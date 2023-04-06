@@ -94,6 +94,7 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 }
 
 export const toK = (num) => {
+	if (num < 0.01 && String(num).includes('e-')) return '<0.01'
 	return Numeral(num).format('0.[00]a')
 }
 
