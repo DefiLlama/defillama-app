@@ -75,6 +75,7 @@ export default function CollectionScatterChart({
 		]
 
 		const option = {
+			animation: false,
 			graphic: {
 				type: 'image',
 				z: 0,
