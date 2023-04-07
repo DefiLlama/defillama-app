@@ -241,9 +241,11 @@ export const getNFTCollection = async (slug: string) => {
 		}
 
 		// calc median
+		// 24h or 7days rolling median depending on nb of datapoints
+		const medianWindow = X.length > 300 ? 24 : 24 * 7
 		const salesMedian1d = hourlyT.map((hour) => {
 			// daily offset
-			const offset = hour - 3600 * 24 * 1000
+			const offset = hour - 3600 * 1000 * medianWindow
 			const valuesInRange = X.reduce((acc, [timestamp, value]) => {
 				if (timestamp >= offset && timestamp <= hour) {
 					acc.push(value)
