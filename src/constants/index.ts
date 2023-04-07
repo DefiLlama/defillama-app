@@ -31,14 +31,14 @@ export const GOVERNANCE_API =
 export const PROTOCOL_GOVERNANCE_API =
 	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/snapshot'
 
-export const NFT_COLLECTIONS_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/collections'
-export const NFT_VOLUME_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/volume'
-export const NFT_COLLECTION_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/collection'
-export const NFT_COLLECTION_STATS_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/stats'
-export const NFT_COLLECTION_SALES_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/salesLite'
-export const NFT_COLLECTION_FLOOR_HISTORY_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/floorHistory'
-export const NFT_MARKETPLACES_STATS_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/exchangeStats'
-export const NFT_MARKETPLACES_VOLUME_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/exchangeVolume'
+export const NFT_COLLECTIONS_API = 'https://cupsc5b2ud.execute-api.eu-central-1.amazonaws.com/collections'
+export const NFT_VOLUME_API = 'https://cupsc5b2ud.execute-api.eu-central-1.amazonaws.com/volume'
+export const NFT_COLLECTION_API = 'https://cupsc5b2ud.execute-api.eu-central-1.amazonaws.com/collection'
+export const NFT_COLLECTION_STATS_API = 'https://cupsc5b2ud.execute-api.eu-central-1.amazonaws.com/stats'
+export const NFT_COLLECTION_SALES_API = 'https://cupsc5b2ud.execute-api.eu-central-1.amazonaws.com/salesLite'
+export const NFT_COLLECTION_FLOOR_HISTORY_API = 'https://cupsc5b2ud.execute-api.eu-central-1.amazonaws.com/floorHistory'
+export const NFT_MARKETPLACES_STATS_API = 'https://cupsc5b2ud.execute-api.eu-central-1.amazonaws.com/exchangeStats'
+export const NFT_MARKETPLACES_VOLUME_API = 'https://cupsc5b2ud.execute-api.eu-central-1.amazonaws.com/exchangeVolume'
 
 export const NFT_CHART_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/chart'
 export const NFT_CHAINS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/chains'
