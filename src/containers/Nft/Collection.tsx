@@ -97,7 +97,11 @@ export function NFTCollectionContainer({
 						/>
 						<span>Include Outliers</span>
 					</ToggleWrapper2>
-					<CollectionScatterChart sales={includeOutliers ? sales : salesExOutliers} salesMedian1d={salesMedian1d} />
+					<CollectionScatterChart
+						sales={includeOutliers ? sales : salesExOutliers}
+						salesMedian1d={salesMedian1d}
+						volume={stats}
+					/>
 				</ChartWrapper>
 			</StatsSection>
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { ScatterChart as EChartScatter, LineChart as EChartLine } from 'echarts/charts'
+import { ScatterChart as EChartScatter, LineChart as EChartLine, BarChart as EChartBar } from 'echarts/charts'
 import {
 	TooltipComponent,
 	TitleComponent,
@@ -22,6 +22,7 @@ echarts.use([
 	CanvasRenderer,
 	EChartScatter,
 	EChartLine,
+	EChartBar,
 	TooltipComponent,
 	TitleComponent,
 	GridComponent,
@@ -33,7 +34,8 @@ echarts.use([
 export default function CollectionScatterChart({
 	height = '360px',
 	sales,
-	salesMedian1d
+	salesMedian1d,
+	volume
 }: ICollectionScatterChartProps) {
 	const id = React.useMemo(() => uuid(), [])
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
@@ -71,6 +73,16 @@ export default function CollectionScatterChart({
 				data: salesMedian1d.map((p) => [new Date(p[0]), p[1]]),
 				showSymbol: false,
 				connectNulls: true
+			},
+			{
+				name: 'Volume',
+				type: 'bar',
+				data: volume.map((p) => [new Date(p[0] * 1e3), p[1]]),
+				itemStyle: {
+					color: '#424ef5',
+					opacity: 0.5
+				},
+				yAxisIndex: 1
 			}
 		]
 
@@ -110,6 +122,7 @@ export default function CollectionScatterChart({
 			xAxis: {
 				type: 'time',
 				boundaryGap: false,
+				min: new Date(salesMedian1d[0][0]),
 				nameTextStyle: {
 					fontFamily: 'sans-serif',
 					fontSize: 14,
@@ -128,32 +141,50 @@ export default function CollectionScatterChart({
 					}
 				}
 			},
-			yAxis: {
-				type: 'value',
-				min: 'dataMin',
-				axisLabel: {
-					formatter: (value) => value + ' ETH'
-				},
-				axisLine: {
-					lineStyle: {
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-						opacity: 0.1
+			yAxis: [
+				{
+					type: 'value',
+					min: 'dataMin',
+					axisLabel: {
+						formatter: (value) => value + ' ETH'
+					},
+					axisLine: {
+						lineStyle: {
+							color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+							opacity: 0.1
+						}
+					},
+					boundaryGap: false,
+					nameTextStyle: {
+						fontFamily: 'sans-serif',
+						fontSize: 14,
+						fontWeight: 400,
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					},
+					splitLine: {
+						lineStyle: {
+							color: '#a1a1aa',
+							opacity: 0.1
+						}
 					}
 				},
-				boundaryGap: false,
-				nameTextStyle: {
-					fontFamily: 'sans-serif',
-					fontSize: 14,
-					fontWeight: 400,
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-				},
-				splitLine: {
-					lineStyle: {
-						color: '#a1a1aa',
-						opacity: 0.1
+				{
+					type: 'value',
+					name: '', // Volume
+					show: false,
+					max: (value) => value.max * 4,
+					position: 'right',
+					axisLine: {
+						show: false
+					},
+					axisLabel: {
+						show: false
+					},
+					splitLine: {
+						show: false
 					}
 				}
-			},
+			],
 			dataZoom: [
 				{
 					type: 'inside',

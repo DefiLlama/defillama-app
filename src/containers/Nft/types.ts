@@ -16,5 +16,6 @@ export interface ISale {
 export interface ICollectionScatterChartProps {
 	sales: Array<ISale>
 	height?: string
-	salesMedian1d: Array<ISale>
+	salesMedian1d: Array<ISale>,
+	volume: any
 }
