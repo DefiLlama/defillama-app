@@ -80,7 +80,8 @@ export const descriptions = {
 	'Options Vault': 'Protocols that allow you to deposit collateral into an options strategy',
 	'Uncollateralized Lending':
 		'Protocol that allows you to lend against known parties that can borrow without collaterall',
-	'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top'
+	'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top',
+	'Liquidity manager': 'Protocols that manage Liquidity Positions in Uniswap V3 and/or Uniswap V3 forks'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
