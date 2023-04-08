@@ -270,12 +270,10 @@ export function useDefaults({
 				type: 'inside',
 				start: 0,
 				end: 100,
-				filterMode: 'none'
 			},
 			{
 				start: 0,
 				end: 100,
-				filterMode: 'none',
 				right: 6,
 				textStyle: {
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
