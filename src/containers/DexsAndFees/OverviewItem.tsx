@@ -169,53 +169,53 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					</LinksWrapper>
 				</Section>
 
-				<Section>
-					<h3>Token Information</h3>
+				{(blockExplorers.length > 0 || props.protocolSummary.gecko_id) && (
+					<Section>
+						<h3>Token Information</h3>
 
-					{blockExplorers && (
-						<>
-							{blockExplorers.map((blockExplorer) => (
-								<FlexRow key={blockExplorer.address}>
-									<span>{`${capitalizeFirstLetter(
-										blockExplorer.chain ? `${blockExplorer.chain} address:` : 'address:'
-									)}`}</span>
-									<span>{blockExplorer.address.slice(0, 8) + '...' + blockExplorer.address?.slice(36, 42)}</span>
-									<CopyHelper toCopy={blockExplorer.address} disabled={!blockExplorer.address} />
-									<Link href={blockExplorer.blockExplorerLink} passHref>
-										<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-											<span>View on {blockExplorer.blockExplorerName}</span> <ArrowUpRight size={14} />
-										</Button>
-									</Link>
-								</FlexRow>
-							))}
-						</>
-					)}
-
-					<LinksWrapper>
-						{props.protocolSummary.gecko_id && (
-							<Link href={`https://www.coingecko.com/en/coins/${props.protocolSummary.gecko_id}`} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-									<span>View on CoinGecko</span> <ArrowUpRight size={14} />
-								</Button>
-							</Link>
+						{blockExplorers && (
+							<>
+								{blockExplorers.map((blockExplorer) => (
+									<FlexRow key={blockExplorer.address}>
+										<span>{`${capitalizeFirstLetter(
+											blockExplorer.chain ? `${blockExplorer.chain} address:` : 'address:'
+										)}`}</span>
+										<span>{blockExplorer.address.slice(0, 8) + '...' + blockExplorer.address?.slice(36, 42)}</span>
+										<CopyHelper toCopy={blockExplorer.address} disabled={!blockExplorer.address} />
+										<Link href={blockExplorer.blockExplorerLink} passHref>
+											<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+												<span>View on {blockExplorer.blockExplorerName}</span> <ArrowUpRight size={14} />
+											</Button>
+										</Link>
+									</FlexRow>
+								))}
+							</>
 						)}
-					</LinksWrapper>
-				</Section>
 
-				<Section>
-					<h3>Methodology</h3>
-					<LinksWrapper>
-						{props.protocolSummary.methodologyURL && (
+						{props.protocolSummary.gecko_id && (
+							<LinksWrapper>
+								<Link href={`https://www.coingecko.com/en/coins/${props.protocolSummary.gecko_id}`} passHref>
+									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+										<span>View on CoinGecko</span> <ArrowUpRight size={14} />
+									</Button>
+								</Link>
+							</LinksWrapper>
+						)}
+					</Section>
+				)}
+				{props.protocolSummary.methodologyURL && (
+					<Section>
+						<h3>Methodology</h3>
+						<LinksWrapper>
 							<Link href={props.protocolSummary.methodologyURL} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Check the code</span>
 									<ArrowUpRight size={14} />
 								</Button>
 							</Link>
-						)}
-					</LinksWrapper>
-				</Section>
-				<Section></Section>
+						</LinksWrapper>
+					</Section>
+				)}
 			</InfoWrapper>
 			{(enableVersionsChart || enableTokensChart || enableChainsChart) && (
 				<>
