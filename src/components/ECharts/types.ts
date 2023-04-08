@@ -14,6 +14,7 @@ export interface IChartProps {
 	customLegendName?: string
 	customLegendOptions?: Array<string>
 	tooltipSort?: boolean
+	tooltipOrderBottomUp?: boolean
 	chartOptions?: {
 		[key: string]: {
 			[key: string]: Value | Array<Value>

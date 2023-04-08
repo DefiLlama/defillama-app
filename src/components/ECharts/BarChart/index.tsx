@@ -19,7 +19,8 @@ export default function BarChart({
 	chartOptions,
 	height = '360px',
 	barWidths,
-	stackColors
+	stackColors,
+	tooltipOrderBottomUp
 }: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
@@ -47,7 +48,8 @@ export default function BarChart({
 		color,
 		title,
 		valueSymbol,
-		hideLegend
+		hideLegend,
+		tooltipOrderBottomUp
 	})
 
 	const series = useMemo(() => {

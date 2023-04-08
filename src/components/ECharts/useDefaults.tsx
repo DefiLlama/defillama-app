@@ -34,6 +34,7 @@ interface IUseDefaultsProps {
 	color: string
 	title: string
 	tooltipSort?: boolean
+	tooltipOrderBottomUp?: boolean
 	valueSymbol?: string
 	hideLegend?: boolean
 	isStackedChart?: boolean
@@ -43,6 +44,7 @@ export function useDefaults({
 	color,
 	title,
 	tooltipSort = true,
+	tooltipOrderBottomUp,
 	valueSymbol = '',
 	hideLegend,
 	isStackedChart
@@ -111,6 +113,10 @@ export function useDefaults({
 				const topParams = filteredParams.slice(0, 10)
 				const otherParams = filteredParams.slice(10)
 
+				if (tooltipOrderBottomUp) {
+					topParams.reverse()
+				}
+
 				if (valueSymbol !== '%' && valueSymbol !== 'ETH') {
 					vals = topParams.reduce((prev, curr) => {
 						return (prev +=
@@ -145,7 +151,7 @@ export function useDefaults({
 							'</li>')
 					}, '')
 					if (otherParams.length !== 0) {
-						vals +=
+						const otherString =
 							'<li style="list-style:none">' +
 							(others?.marker ?? otherParams[0].marker) +
 							'Others' +
@@ -153,6 +159,12 @@ export function useDefaults({
 							(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)).toFixed(2) +
 							valueSymbol +
 							'</li>'
+
+						if (tooltipOrderBottomUp) {
+							vals = otherString + vals
+						} else {
+							vals += otherString
+						}
 					}
 				}
 
@@ -315,7 +327,7 @@ export function useDefaults({
 		]
 
 		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom, inflowsTooltip }
-	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol, hideLegend, isStackedChart])
+	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol, hideLegend, isStackedChart, tooltipOrderBottomUp])
 
 	return defaults
 }

@@ -4,22 +4,21 @@ import { NftsmarketplaceTable } from '~/components/Table'
 import { maxAgeForNext } from '~/api'
 import { getNFTMarketplacesData } from '~/api/categories/nfts'
 import dynamic from 'next/dynamic'
-import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { ChartWrapper } from '~/layout/ProtocolAndPool'
 import { Header } from '~/Theme'
 import { Panel } from '~/components'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import styled from 'styled-components'
-import type { IChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 
 const FlatDenomination = styled(Denomination)`
 	white-space: nowrap;
 	overflow: hidden;
 `
 
-const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
-}) as React.FC<IStackedBarChartProps>
+}) as React.FC<IBarChartProps>
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -36,7 +35,7 @@ export async function getStaticProps() {
 	}
 }
 
-function Marketplaces({ data, volume, dominance, marketplaces }) {
+function Marketplaces({ data, volume, dominance, marketplaces, volumeChartStacks }) {
 	const [dominanceChart, setDominanceChart] = React.useState(false)
 
 	return (
@@ -62,7 +61,14 @@ function Marketplaces({ data, volume, dominance, marketplaces }) {
 							expandTo100Percent={true}
 						/>
 					) : (
-						<StackedBarChart chartData={volume} valueSymbol="ETH" />
+						<BarChart
+							title=""
+							stacks={volumeChartStacks}
+							chartData={volume}
+							valueSymbol="ETH"
+							hideDefaultLegend
+							tooltipOrderBottomUp
+						/>
 					)}
 				</ChartWrapper>
 			</Panel>

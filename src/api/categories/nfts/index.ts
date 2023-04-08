@@ -120,50 +120,53 @@ export const getNFTMarketplacesData = async () => {
 		fetch(NFT_MARKETPLACES_VOLUME_API).then((res) => res.json())
 	])
 
-	const volumeByDay = {}
+	const volumeSumByDay = {}
+	const volumeChartStacks = {}
 
-	const volumeData = Object.entries(
-		volume
-			.map((v) => ({ ...v, date: new Date(v.day).getTime() }))
-			.sort((a, b) => a.date - b.date)
-			.reduce(
-				(acc, curr) => {
-					if (!acc[curr.exchangeName]) {
-						acc[curr.exchangeName] = []
-					}
-
-					if (!volumeByDay[curr.date]) {
-						volumeByDay[curr.date] = {}
-					}
-
-					volumeByDay[curr.date]['total_sum'] = (volumeByDay[curr.date]['total_sum'] || 0) + curr.sum
-
-					volumeByDay[curr.date][curr.exchangeName] = curr.sum
-
-					acc[curr.exchangeName].push([curr.date, Number(curr.sum.toFixed(3))])
-
-					return acc
-				},
-				{} as {
-					[exchangeName: string]: Array<[string, number]>
+	const volumeData = volume
+		.map((v) => ({ ...v, date: new Date(v.day).getTime() }))
+		.sort((a, b) => a.date - b.date)
+		.reduce(
+			(acc, curr) => {
+				const date = Math.floor(Number(curr.date) / 1000)
+				if (!acc[date]) {
+					acc[date] = {}
 				}
-			)
-	).map(([name, data]) => ({ name, data }))
+
+				volumeChartStacks[curr.exchangeName] = 'stackA'
+
+				volumeSumByDay[date] = (volumeSumByDay[date] || 0) + curr.sum
+
+				acc[date][curr.exchangeName] = Number(curr.sum.toFixed(3))
+
+				return acc
+			},
+			{} as {
+				[date: string]: { [exchangeName: string]: number }
+			}
+		)
 
 	const dominance = []
 
-	for (const date in volumeByDay) {
+	for (const date in volumeData) {
 		const value = { date: Math.floor(Number(date) / 1000) }
-		for (const exchangeName in volumeByDay[date]) {
-			if (exchangeName !== 'total_sum') {
-				value[exchangeName] = getDominancePercent(volumeByDay[date][exchangeName], volumeByDay[date]['total_sum'])
-			}
+		for (const exchangeName in volumeData[date]) {
+			value[exchangeName] = getDominancePercent(volumeData[date][exchangeName], volumeSumByDay[date])
 		}
 
 		dominance.push(value)
 	}
 
-	return { data, volume: volumeData, dominance, marketplaces: volumeData.map(({ name }) => name) }
+	return {
+		data,
+		volume: Object.entries(volumeData).map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
+			date,
+			...values
+		})),
+		dominance,
+		marketplaces: Object.keys(volumeChartStacks),
+		volumeChartStacks
+	}
 }
 
 export const getNFTCollections = async () => {
