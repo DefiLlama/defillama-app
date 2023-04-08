@@ -114,9 +114,15 @@ export default function CollectionScatterChart({
 						day: 'numeric'
 					})
 
-					let vals = '<li style="list-style:none">' + 'Sale Price:' + '&nbsp;&nbsp;' + params.value[1]
-
-					return chartdate + vals
+					return (
+						chartdate +
+						'<li style="list-style:none">' +
+						(params.seriesName === 'Volume' ? 'Volume' : 'Sale Price:') +
+						'&nbsp;&nbsp;' +
+						params.value[1].toFixed(2) +
+						'&nbsp;' +
+						'ETH'
+					)
 				}
 			},
 			xAxis: {
@@ -146,7 +152,7 @@ export default function CollectionScatterChart({
 					type: 'value',
 					min: 'dataMin',
 					axisLabel: {
-						formatter: (value) => value + ' ETH'
+						formatter: (value) => Number(value.toFixed(2)) + ' ETH'
 					},
 					axisLine: {
 						lineStyle: {
@@ -170,7 +176,7 @@ export default function CollectionScatterChart({
 				},
 				{
 					type: 'value',
-					name: '', // Volume
+					name: 'Volume',
 					show: false,
 					max: (value) => value.max * 4,
 					position: 'right',
@@ -208,7 +214,7 @@ export default function CollectionScatterChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, sales, createInstance, isDark, isSmall, salesMedian1d])
+	}, [id, sales, volume, createInstance, isDark, isSmall, salesMedian1d])
 
 	return (
 		<div style={{ position: 'relative' }}>
