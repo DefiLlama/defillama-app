@@ -10,6 +10,7 @@ interface ITableProps {
 	skipVirtualization?: boolean
 	rowSize?: number
 	columnResizeMode?: 'onChange' | 'onEnd'
+	renderSubComponent?: ({ row }: { row: any }) => JSX.Element
 }
 
 declare module '@tanstack/table-core' {
@@ -24,6 +25,7 @@ export default function VirtualTable({
 	skipVirtualization,
 	columnResizeMode,
 	rowSize,
+	renderSubComponent,
 	...props
 }: ITableProps) {
 	const [tableTop, setTableTop] = React.useState(0)
@@ -132,18 +134,26 @@ export default function VirtualTable({
 						const trStyle: React.CSSProperties = row.original.disabled ? { opacity: 0.3 } : undefined
 
 						return (
-							<tr key={row.id} style={trStyle}>
-								{row.getVisibleCells().map((cell) => {
-									// get header text alignment
-									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
+							<React.Fragment key={row.id}>
+								<tr key={row.id} style={trStyle}>
+									{row.getVisibleCells().map((cell) => {
+										// get header text alignment
+										const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 
-									return (
-										<td key={cell.id} style={{ width: cell.column.getSize(), textAlign }}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</td>
-									)
-								})}
-							</tr>
+										return (
+											<td key={cell.id} style={{ width: cell.column.getSize(), textAlign }}>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</td>
+										)
+									})}
+								</tr>
+								{renderSubComponent && row.getIsExpanded() && (
+									<tr>
+										{/* 2nd row is a custom 1 cell row */}
+										<td colSpan={row.getVisibleCells().length}>{renderSubComponent({ row })}</td>
+									</tr>
+								)}
+							</React.Fragment>
 						)
 					})}
 

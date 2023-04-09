@@ -7,7 +7,8 @@ import {
 	getCoreRowModel,
 	getSortedRowModel,
 	getFilteredRowModel,
-	ColumnFiltersState
+	ColumnFiltersState,
+	getExpandedRowModel
 } from '@tanstack/react-table'
 import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
@@ -15,14 +16,21 @@ import VirtualTable from '~/components/Table/Table'
 import { governanceColumns } from '~/components/Table/Defi/columns'
 import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
-import { GOVERNANCE_API } from '~/constants'
+import { GOVERNANCE_API, ONCHAIN_GOVERNANCE_API } from '~/constants'
+import { capitalizeFirstLetter } from '~/utils'
 
 export const getStaticProps = async () => {
-	const data = await fetch(GOVERNANCE_API).then((res) => res.json())
+	const [snapshot, compound] = await Promise.all([
+		fetch(GOVERNANCE_API).then((res) => res.json()),
+		fetch(ONCHAIN_GOVERNANCE_API).then((res) => res.json())
+	])
 
 	return {
 		props: {
-			data: Object.values(data)
+			data: Object.values({ ...snapshot, ...compound }).map((x: { states: { [key: string]: number } }) => ({
+				...x,
+				subRowData: x.states
+			}))
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -30,7 +38,7 @@ export const getStaticProps = async () => {
 
 export default function Governance({ data }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'followersCount', desc: true }])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'successfulPropsalsInLast30Days', desc: true }])
 
 	const instance = useReactTable({
 		data: data,
@@ -43,7 +51,9 @@ export default function Governance({ data }) {
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel()
+		getFilteredRowModel: getFilteredRowModel(),
+		getExpandedRowModel: getExpandedRowModel(),
+		getRowCanExpand: () => true
 	})
 
 	const [projectName, setProjectName] = React.useState('')
@@ -74,7 +84,7 @@ export default function Governance({ data }) {
 				</SearchWrapper>
 			</TableHeaderAndSearch>
 
-			<VirtualTable instance={instance} />
+			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} />
 		</Layout>
 	)
 }
@@ -87,3 +97,20 @@ export const Wrapper = styled(StatsSection)`
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => theme.bg7};
 `
+
+const SubrowData = styled.span`
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding-left: 72px;
+`
+
+const renderSubComponent = ({ row }) => {
+	return (
+		<SubrowData>
+			{Object.entries(row.original.subRowData).map(([type, value]) => (
+				<span key={row.original.name + type + value}>{capitalizeFirstLetter(type) + ' Proposals : ' + value}</span>
+			))}
+		</SubrowData>
+	)
+}

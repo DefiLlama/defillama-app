@@ -76,4 +76,5 @@ export interface IGovernance {
 		[month: string]: { proposals: Array<string>; states: { active?: number; closed?: number } }
 	}
 	propsalsInLast30Days: number
+	successfulPropsalsInLast30Days: number
 }

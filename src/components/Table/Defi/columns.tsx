@@ -394,7 +394,14 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
+				<Name depth={row.depth}>
+					<AccordionButton
+						{...{
+							onClick: row.getToggleExpandedHandler()
+						}}
+					>
+						{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+					</AccordionButton>
 					<span>{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<CustomLink href={`/governance/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
@@ -407,26 +414,6 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 		header: 'Proposals',
 		accessorKey: 'proposalsCount',
 		size: 100,
-		meta: { align: 'end' }
-	},
-	{
-		header: 'Followers',
-		accessorKey: 'followersCount',
-		size: 100,
-		meta: { align: 'end' }
-	},
-	{
-		accessorFn: (row) => row.states.active || 0,
-		id: 'activeProposals',
-		header: 'Active Proposals',
-		size: 140,
-		meta: { align: 'end' }
-	},
-	{
-		accessorFn: (row) => row.states.closed || 0,
-		id: 'closedProposals',
-		header: 'Closed Proposals',
-		size: 144,
 		meta: { align: 'end' }
 	},
 	{
