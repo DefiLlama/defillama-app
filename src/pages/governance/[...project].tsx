@@ -5,8 +5,13 @@ import Layout from '~/layout'
 import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
 import TokenLogo from '~/components/TokenLogo'
-import { standardizeProtocolName, toNiceDayMonthAndYear, tokenIconUrl, formattedNum } from '~/utils'
-import { GOVERNANCE_API, PROTOCOL_GOVERNANCE_API } from '~/constants'
+import { standardizeProtocolName, toNiceDayMonthAndYear, tokenIconUrl, formattedNum, chainIconUrl } from '~/utils'
+import {
+	GOVERNANCE_API,
+	ONCHAIN_GOVERNANCE_API,
+	PROTOCOL_GOVERNANCE_API,
+	PROTOCOL_ONCHAIN_GOVERNANCE_API
+} from '~/constants'
 import Link from 'next/link'
 import { ArrowUpRight } from 'react-feather'
 import { Stat } from '~/layout/Stats/Large'
@@ -24,6 +29,7 @@ import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 import dynamic from 'next/dynamic'
 import { IBarChartProps } from '~/components/ECharts/types'
+import { AutoRow } from '~/components/Row'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -34,15 +40,24 @@ export const getStaticProps = async ({
 		project: [project]
 	}
 }) => {
-	const overview: { [key: string]: { name: string; id: string } } = await fetch(GOVERNANCE_API).then((res) =>
-		res.json()
-	)
+	const [snapshot, compound]: [
+		{ [key: string]: { name: string; id: string } },
+		{ [key: string]: { name: string; id: string } }
+	] = await Promise.all([
+		fetch(GOVERNANCE_API).then((res) => res.json()),
+		fetch(ONCHAIN_GOVERNANCE_API).then((res) => res.json())
+	])
 
-	const projectId = Object.values(overview).find((p) => standardizeProtocolName(p.name) === project)?.id
+	const snapshotProjectId = Object.values(snapshot).find((p) => standardizeProtocolName(p.name) === project)?.id
+	const compoundProjectId = Object.values(compound).find((p) => standardizeProtocolName(p.name) === project)?.id
 
-	if (!projectId) {
+	if (!snapshotProjectId && !compoundProjectId) {
 		return { notFound: true }
 	}
+
+	const api = snapshotProjectId
+		? PROTOCOL_GOVERNANCE_API + '/' + snapshotProjectId + '.json'
+		: PROTOCOL_ONCHAIN_GOVERNANCE_API + '/' + compoundProjectId + '.json'
 
 	const data: {
 		proposals: {
@@ -57,7 +72,7 @@ export const getStaticProps = async ({
 				[month: string]: { total: number; successful: number }
 			}
 		}
-	} = await fetch(PROTOCOL_GOVERNANCE_API + '/' + projectId + '.json').then((res) => res.json())
+	} = await fetch(api).then((res) => res.json())
 
 	return {
 		props: {
@@ -79,7 +94,8 @@ export const getStaticProps = async ({
 					Total: values.total || 0,
 					Successful: values.successful || 0
 				}))
-			}
+			},
+			isOnChainGovernance: snapshotProjectId ? false : true
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -89,13 +105,13 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocol({ data }) {
+export default function Protocol({ data, isOnChainGovernance }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'state', desc: true }])
 
 	const instance = useReactTable({
 		data: data.proposals,
-		columns: proposalsColumns,
+		columns: isOnChainGovernance ? proposalsCompoundColumns : proposalsSnapshotColumns,
 		state: {
 			columnFilters,
 			sorting
@@ -126,25 +142,42 @@ export default function Protocol({ data }) {
 				</Name>
 
 				<LinksWrapper>
-					<Stat>
-						<span>Total Proposals</span>
-						<span>{data.stats.proposalsCount}</span>
-					</Stat>
+					{data.stats.chainName && (
+						<Stat>
+							<span>Chain</span>
+							<AutoRow gap="4px">
+								<TokenLogo logo={chainIconUrl(data.stats.chainName)} size={32} />
+								<span>{data.stats.chainName}</span>
+							</AutoRow>
+						</Stat>
+					)}
 
-					<Stat>
-						<span>Successful Proposals</span>
-						<span>{data.stats.successfulProposals}</span>
-					</Stat>
+					{data.stats.proposalsCount && (
+						<Stat>
+							<span>Total Proposals</span>
+							<span>{data.stats.proposalsCount}</span>
+						</Stat>
+					)}
 
-					<Stat>
-						<span>Successful Proposals in last 30 days</span>
-						<span>{data.stats.propsalsInLast30Days}</span>
-					</Stat>
+					{data.stats.successfulProposal && (
+						<Stat>
+							<span>Successful Proposals</span>
+							<span>{data.stats.successfulProposals}</span>
+						</Stat>
+					)}
+					{data.stats.propsalsInLast30Days && (
+						<Stat>
+							<span>Successful Proposals in last 30 days</span>
+							<span>{data.stats.propsalsInLast30Days}</span>
+						</Stat>
+					)}
 
-					<Stat>
-						<span>Followers</span>
-						<span>{data.metadata.followersCount}</span>
-					</Stat>
+					{data.metadata.followersCount && (
+						<Stat>
+							<span>Followers</span>
+							<span>{data.metadata.followersCount}</span>
+						</Stat>
+					)}
 				</LinksWrapper>
 
 				<LazyChart>
@@ -257,14 +290,63 @@ interface IProposal {
 	scores_total: number
 }
 
-const proposalsColumns: ColumnDef<IProposal>[] = [
+const proposalsCompoundColumns: ColumnDef<IProposal>[] = [
 	{
 		header: 'Title',
 		accessorKey: 'title',
 		enableSorting: false,
 		cell: (info) => {
 			if (!info.row.original.link) {
-				return info.getValue()
+				return formatText(info.getValue() as string, 40)
+			}
+			return (
+				<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
+					{formatText(info.getValue() as string, 40)}
+				</a>
+			)
+		}
+	},
+	{
+		header: 'Start',
+		accessorKey: 'start',
+		cell: (info) => toNiceDayMonthAndYear(info.getValue()),
+		meta: { align: 'end' }
+	},
+	{
+		header: 'End',
+		accessorKey: 'end',
+		cell: (info) => toNiceDayMonthAndYear(info.getValue()),
+		meta: { align: 'end' }
+	},
+	{
+		header: 'State',
+		accessorKey: 'state',
+		cell: (info) => info.getValue() || '',
+		meta: { align: 'end' }
+	},
+	{
+		header: 'Votes',
+		accessorKey: 'scores_total',
+		cell: (info) => formattedNum(info.getValue()),
+		meta: { align: 'end' }
+	},
+	{
+		header: 'Controversy',
+		accessorKey: 'score_curve',
+		cell: (info) => (info.getValue() ? (info.getValue() as number).toFixed(2) : ''),
+
+		meta: { align: 'end' }
+	}
+]
+
+const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
+	{
+		header: 'Title',
+		accessorKey: 'title',
+		enableSorting: false,
+		cell: (info) => {
+			if (!info.row.original.link) {
+				return formatText(info.getValue() as string, 40)
 			}
 			return (
 				<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
@@ -300,12 +382,6 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 		cell: (info) => formattedNum(info.getValue()),
 		meta: { align: 'end' }
 	},
-	// {
-	// 	header: 'Quorum',
-	// 	accessorKey: 'quorum',
-	// 	cell: (info) => info.getValue() || '',
-	// 	meta: { align: 'end' }
-	// },
 	{
 		header: 'Winning Choice',
 		accessorKey: 'winningChoice',

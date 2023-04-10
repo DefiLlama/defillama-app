@@ -33,7 +33,7 @@ export const PROTOCOL_GOVERNANCE_API =
 export const ONCHAIN_GOVERNANCE_API =
 	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/overview/compound.json'
 export const PROTOCOL_ONCHAIN_GOVERNANCE_API =
-	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/snapshot'
+	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/compound'
 
 export const NFT_COLLECTIONS_API = 'https://cupsc5b2ud.execute-api.eu-central-1.amazonaws.com/collections'
 export const NFT_VOLUME_API = 'https://cupsc5b2ud.execute-api.eu-central-1.amazonaws.com/volume'
