@@ -57,7 +57,7 @@ import { Treasury } from './Treasury'
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
 import { Emissions } from './Emissions'
-import { AutoRow, RowBetween } from '~/components/Row'
+import { RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
 import { ProtocolFeesAndRevenueCharts } from './Fees'
 import type { IEmission } from './Emissions'
@@ -427,7 +427,6 @@ function ProtocolContainer({
 									}
 								/>
 								<span data-wrapper="true">
-									{tvl === 'false' ? <X size={16} /> : <Check size={16} />}
 									<span>TVL</span>
 								</span>
 							</Toggle>
@@ -450,7 +449,6 @@ function ProtocolContainer({
 										}
 									/>
 									<span data-wrapper="true">
-										{mcap === 'true' ? <Check size={16} /> : <X size={16} />}
 										<span>Mcap</span>
 									</span>
 								</Toggle>
@@ -474,7 +472,6 @@ function ProtocolContainer({
 										}
 									/>
 									<span data-wrapper="true">
-										{events === 'false' ? <X size={16} /> : <Check size={16} />}
 										<span>Events</span>
 									</span>
 								</Toggle>

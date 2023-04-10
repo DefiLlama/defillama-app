@@ -9,7 +9,7 @@ export function ProtocolFeesAndRevenueCharts({ data }: { data: IFusedProtocolDat
 	return (
 		<ChartsWrapper>
 			<ChartByType chartType="chain" protocolName={slug(data.name)} type="dexs" />
-			<ChartByType chartType="version" protocolName={slug(data.name)} type="dexs" />{' '}
+			<ChartByType chartType="version" protocolName={slug(data.name)} type="dexs" />
 			<ChartByType chartType="chain" protocolName={slug(data.name)} type="fees" breakdownChart={false} />
 			<ChartByType chartType="chain" protocolName={slug(data.name)} type="fees" />
 			{/* {metrics.map(([key, enabled]) => {
