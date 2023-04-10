@@ -438,3 +438,15 @@ export function download(filename, text) {
 
 	document.body.removeChild(element)
 }
+
+export function nearestUtc(dateString) {
+	const date = new Date(dateString)
+
+	if (date.getUTCHours() >= 12) {
+		date.setDate(date.getDate() + 1)
+	}
+
+	date.setUTCHours(0, 0, 0, 0)
+
+	return date.getTime()
+}

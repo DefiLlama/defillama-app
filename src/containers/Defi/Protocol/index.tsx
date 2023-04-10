@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { ArrowUpRight, DownloadCloud } from 'react-feather'
+import { ArrowUpRight, Check, DownloadCloud, X } from 'react-feather'
 import Layout from '~/layout'
 import {
 	Button,
@@ -57,7 +57,7 @@ import { Treasury } from './Treasury'
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
 import { Emissions } from './Emissions'
-import { RowBetween } from '~/components/Row'
+import { AutoRow, RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
 import { ProtocolFeesAndRevenueCharts } from './Fees'
 import type { IEmission } from './Emissions'
@@ -140,6 +140,58 @@ export const ProtocolLink = styled.a<IProtocolLink>`
 	:focus-visible {
 		background-color: ${({ color }) => transparentize(0.9, color)};
 	}
+`
+
+interface IToggleProps {
+	backgroundColor: string
+}
+
+const Toggle = styled.label<IToggleProps>`
+	font-size: 0.875rem;
+	font-weight: 500;
+	cursor: pointer;
+
+	input {
+		position: absolute;
+		width: 1em;
+		height: 1em;
+		opacity: 0.00001;
+	}
+
+	span[data-wrapper='true'] {
+		position: relative;
+		z-index: 1;
+		padding: 8px 12px;
+		background: red;
+		border-radius: 10px;
+		display: flex;
+		align-items: center;
+		flex-wrap: nowrap;
+		gap: 4px;
+		background: ${({ backgroundColor, theme }) =>
+			backgroundColor ? transparentize(0.8, backgroundColor) : transparentize(0.8, theme.primary1)};
+	}
+
+	input:checked + span[data-wrapper='true'] {
+		background: ${({ backgroundColor, theme }) =>
+			backgroundColor ? transparentize(0.4, backgroundColor) : transparentize(0.4, theme.primary1)};
+	}
+
+	input:focus-visible {
+		outline: none;
+	}
+
+	input:focus-visible + span[data-wrapper='true'] {
+		outline: ${({ theme }) => '1px solid ' + theme.text1};
+		outline-offset: 1px;
+	}
+`
+
+const ToggleWrapper = styled.span`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
 `
 
 interface IProtocolContainerProps {
@@ -315,6 +367,8 @@ function ProtocolContainer({
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
+	const { tvl, mcap, events } = router.query
+
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO cardName={name} token={name} logo={tokenIconUrl(name)} tvl={formattedNum(totalVolume, true)?.toString()} />
@@ -353,6 +407,80 @@ function ProtocolContainer({
 
 						{!isParentProtocol && <Bookmark readableProtocolName={name} />}
 					</Name>
+
+					{gecko_id || hallmarks?.length > 0 ? (
+						<ToggleWrapper>
+							<Toggle backgroundColor={backgroundColor}>
+								<input
+									type="checkbox"
+									value="events"
+									checked={tvl !== 'false'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, tvl: tvl === 'false' ? true : false }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									{tvl === 'false' ? <X size={16} /> : <Check size={16} />}
+									<span>TVL</span>
+								</span>
+							</Toggle>
+
+							{gecko_id && (
+								<Toggle backgroundColor={backgroundColor}>
+									<input
+										type="checkbox"
+										value="mcap"
+										checked={mcap === 'true'}
+										onChange={() =>
+											router.push(
+												{
+													pathname: router.pathname,
+													query: { ...router.query, mcap: mcap === 'true' ? false : true }
+												},
+												undefined,
+												{ shallow: true }
+											)
+										}
+									/>
+									<span data-wrapper="true">
+										{mcap === 'true' ? <Check size={16} /> : <X size={16} />}
+										<span>Mcap</span>
+									</span>
+								</Toggle>
+							)}
+
+							{hallmarks?.length > 0 && (
+								<Toggle backgroundColor={backgroundColor}>
+									<input
+										type="checkbox"
+										value="events"
+										checked={events !== 'false'}
+										onChange={() =>
+											router.push(
+												{
+													pathname: router.pathname,
+													query: { ...router.query, events: events === 'false' ? true : false }
+												},
+												undefined,
+												{ shallow: true }
+											)
+										}
+									/>
+									<span data-wrapper="true">
+										{events === 'false' ? <X size={16} /> : <Check size={16} />}
+										<span>Events</span>
+									</span>
+								</Toggle>
+							)}
+						</ToggleWrapper>
+					) : null}
 
 					<StatWrapper>
 						<Stat>

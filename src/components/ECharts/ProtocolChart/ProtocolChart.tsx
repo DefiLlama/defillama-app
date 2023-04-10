@@ -9,6 +9,7 @@ import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import type { IChartProps } from '../types'
+import { nearestUtc } from '~/utils'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -45,10 +46,10 @@ export default function ProtocolChart({
 
 	const [extraTvlEnabled] = useDefiManager()
 
-	const { denomination, showMcapChart, hideEvents, showVolume } = router.query
+	const { denomination, tvl, mcap, events, showVolume } = router.query
 
-	const showMcap = showMcapChart === 'true'
-	const hideHallmarks = hideEvents === 'true'
+	const showMcap = mcap === 'true'
+	const hideHallmarks = events === 'false'
 	const showVol = showVolume === 'true'
 
 	const DENOMINATIONS = React.useMemo(() => {
@@ -72,7 +73,7 @@ export default function ProtocolChart({
 
 	// fetch protocol mcap data
 	const { data: protocolCGData, loading } = useDenominationPriceHistory(
-		router.isReady && showMcapChart ? geckoId : null
+		router.isReady && mcap === 'true' ? geckoId : null
 	)
 
 	// update tvl calc based on extra tvl options like staking, pool2 selected
@@ -116,42 +117,64 @@ export default function ProtocolChart({
 
 	// append mcap data when api return it
 	const { finalData, tokensUnique, stackColors } = React.useMemo(() => {
-		let chartData = []
-		let tokensUnique = ['TVL']
+		const tokensUnique = []
 
-		if (geckoId && showMcap && protocolCGData) {
-			tokensUnique = ['TVL', 'Mcap']
+		const chartData = {}
 
-			tvlData.forEach(([date, tvl]) => {
-				let mcapAtDate = protocolCGData['market_caps'].find((x) => x[0] === date * 1000)
+		const isHourlyTvl = tvlData.length > 2 ? tvlData[1] - tvlData[0] < 80_000 : true
 
-				if (!mcapAtDate) {
-					mcapAtDate = protocolCGData['market_caps'].find(
-						(x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000
-					)
+		if (tvlData.length > 0 && tvl !== 'false') {
+			tokensUnique.push('TVL')
+
+			tvlData.forEach(([dateS, TVL]) => {
+				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(dateS * 1000) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
 				}
 
-				chartData.push({
-					date,
-					TVL: tvl,
-					Mcap: mcapAtDate ? mcapAtDate[1] : '-',
-					Volume: volumeMap && volumeMap[date]
-				})
+				chartData[date] = { ...chartData[date], TVL }
 			})
-		} else {
-			chartData = tvlData.map(([date, TVL]) => ({
-				date,
-				TVL,
-				Volume: volumeMap && volumeMap[date]
-			}))
 		}
 
-		tokensUnique = tokensUnique.concat(showVol ? ['Volume'] : [])
+		if (geckoId && showMcap && protocolCGData) {
+			tokensUnique.push('Mcap')
+
+			protocolCGData['market_caps'].map(([dateMs, Mcap]) => {
+				const date = Math.floor(nearestUtc(dateMs) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date] = { ...chartData[date], Mcap }
+			})
+		}
+
+		if (showVol) {
+			tokensUnique.push('Volume')
+
+			for (const date in volumeMap) {
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date] = { ...chartData[date], Volume: volumeMap[date] }
+			}
+		}
 
 		const stackColors = color ? { ...chartColors, TVL: color } : chartColors
 
-		return { finalData: chartData, tokensUnique, stackColors }
-	}, [tvlData, protocolCGData, showMcap, geckoId, showVol, volumeMap, color])
+		const finalData = Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
+			date,
+			...values
+		}))
+
+		return {
+			finalData,
+			tokensUnique,
+			stackColors
+		}
+	}, [tvlData, protocolCGData, showMcap, geckoId, showVol, volumeMap, color, tvl])
 
 	const toggleFilter = React.useCallback(
 		(type: string) => {
@@ -193,30 +216,6 @@ export default function ProtocolChart({
 							onChange={() => toggleFilter('showVolume')}
 						/>
 						<span>Show Volume</span>
-					</ToggleWrapper2>
-				)}
-
-				{hallmarks?.length > 0 && (
-					<ToggleWrapper2>
-						<input
-							type="checkbox"
-							value="hideEvents"
-							checked={hideHallmarks}
-							onChange={() => toggleFilter('hideEvents')}
-						/>
-						<span>Hide Events</span>
-					</ToggleWrapper2>
-				)}
-
-				{geckoId && (
-					<ToggleWrapper2>
-						<input
-							type="checkbox"
-							value="showMcapChart"
-							checked={showMcap}
-							onChange={() => toggleFilter('showMcapChart')}
-						/>
-						<span>Show MCap Chart</span>
 					</ToggleWrapper2>
 				)}
 			</FiltersWrapper>

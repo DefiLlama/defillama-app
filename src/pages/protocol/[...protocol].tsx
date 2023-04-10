@@ -105,10 +105,6 @@ export default function Protocols({ protocolData, ...props }) {
 		)
 	}
 	return (
-		<ProtocolContainer
-			title={`${protocolData.name}: TVL and Stats - DefiLlama`}
-			protocolData={protocolData}
-			{...(props as any)}
-		/>
+		<ProtocolContainer title={`${protocolData.name} - DefiLlama`} protocolData={protocolData} {...(props as any)} />
 	)
 }
