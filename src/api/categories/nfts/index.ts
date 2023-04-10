@@ -149,7 +149,7 @@ export const getNFTMarketplacesData = async () => {
 	const dominance = []
 
 	for (const date in volumeData) {
-		const value = { date: Math.floor(Number(date) / 1000) }
+		const value = { date: Math.floor(Number(date)) }
 		for (const exchangeName in volumeData[date]) {
 			value[exchangeName] = getDominancePercent(volumeData[date][exchangeName], volumeSumByDay[date])
 		}
