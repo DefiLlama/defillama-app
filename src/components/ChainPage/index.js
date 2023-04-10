@@ -244,6 +244,11 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 				</Link>
 				{' !'}
 			</Announcement>
+			{selectedChain === 'zkSync Era' && (
+				<Announcement warning={true}>
+					DefiLlama doesn't whitelist/audit/endorse any protocols listed, we list everything. Exercise caution.
+				</Announcement>
+			)}
 
 			<ProtocolsChainsSearch
 				step={{
