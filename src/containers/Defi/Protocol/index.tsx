@@ -61,7 +61,6 @@ import { RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
 import { ProtocolFeesAndRevenueCharts } from './Fees'
 import type { IEmission } from './Emissions'
-import Announcement from '~/components/Announcement'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
 
@@ -374,12 +373,6 @@ function ProtocolContainer({
 			<SEO cardName={name} token={name} logo={tokenIconUrl(name)} tvl={formattedNum(totalVolume, true)?.toString()} />
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
-
-			{name === 'SyncDEX Finance' && (
-				<Announcement warning={true} notCancellable={true}>
-					Users have reported not being able to unstake from this project. Exercise caution.
-				</Announcement>
-			)}
 
 			<StatsSection>
 				{otherProtocols?.length > 1 && (
