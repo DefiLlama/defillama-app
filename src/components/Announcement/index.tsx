@@ -38,10 +38,12 @@ const getAnnouncementKey = (router: NextRouter) => {
 
 export default function Announcement({
 	children,
-	notCancellable
+	notCancellable,
+	warning = false
 }: {
 	children: React.ReactNode
 	notCancellable?: boolean
+	warning?: boolean
 }) {
 	const [rerenderKey, rerender] = React.useState(1)
 	const router = useRouter()
@@ -63,7 +65,7 @@ export default function Announcement({
 	}
 
 	return (
-		<AnnouncementWrapper>
+		<AnnouncementWrapper style={warning ? { backgroundColor: '#41440d' } : {}}>
 			{children}
 			{!notCancellable && (
 				<Close onClick={closeAnnouncement}>
