@@ -46,11 +46,11 @@ export default function ProtocolChart({
 
 	const [extraTvlEnabled] = useDefiManager()
 
-	const { denomination, tvl, mcap, events, showVolume } = router.query
+	const { denomination, tvl, mcap, events, volume } = router.query
 
 	const showMcap = mcap === 'true'
 	const hideHallmarks = events === 'false'
-	const showVol = showVolume === 'true'
+	const showVol = volume === 'true'
 
 	const DENOMINATIONS = React.useMemo(() => {
 		let d = [{ symbol: 'USD', geckoId: null }]
@@ -77,63 +77,48 @@ export default function ProtocolChart({
 	)
 
 	// update tvl calc based on extra tvl options like staking, pool2 selected
-	const chartDataFiltered = React.useMemo(() => {
+	const tvlData = React.useMemo(() => {
 		return formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled })
 	}, [historicalChainTvls, extraTvlEnabled])
 
-	// calc y-axis based on denomination
-	const { tvlData, valueSymbol } = React.useMemo(() => {
-		const isValidDenomination =
-			denomination && denomination !== 'USD' && DENOMINATIONS.find((d) => d.symbol === denomination)
+	const showNonUsdDenomination =
+		denomination &&
+		denomination !== 'USD' &&
+		DENOMINATIONS.find((d) => d.symbol === denomination) &&
+		denominationHistory?.prices?.length > 0
+			? true
+			: false
 
-		if (isValidDenomination && denominationHistory?.prices?.length > 0) {
-			const newChartData = []
+	let valueSymbol = '$'
+	if (showNonUsdDenomination) {
+		const d = DENOMINATIONS.find((d) => d.symbol === denomination)
 
-			chartDataFiltered.forEach(([date, tvl]) => {
-				let priceAtDate = denominationHistory.prices.find((x) => x[0] === Number(date) * 1000)
+		if (d.symbol === 'ETH') {
+			valueSymbol = 'Ξ'
+		} else valueSymbol = d.symbol.slice(0, 1)
+	}
 
-				if (!priceAtDate) {
-					priceAtDate = denominationHistory.prices.find(
-						(x) => -432000000 < x[0] - Number(date) * 1000 && x[0] - Number(date) * 1000 < 432000000
-					)
-				}
-
-				if (priceAtDate) {
-					newChartData.push([date, tvl / priceAtDate[1]])
-				}
-			})
-
-			let valueSymbol = '$'
-
-			const d = DENOMINATIONS.find((d) => d.symbol === denomination)
-
-			if (d.symbol === 'ETH') {
-				valueSymbol = 'Ξ'
-			} else valueSymbol = d.symbol.slice(0, 1)
-
-			return { tvlData: newChartData, valueSymbol }
-		} else return { tvlData: chartDataFiltered, valueSymbol: '$' }
-	}, [denomination, denominationHistory, chartDataFiltered, DENOMINATIONS])
-
-	// append mcap data when api return it
 	const { finalData, tokensUnique, stackColors } = React.useMemo(() => {
 		const tokensUnique = []
 
 		const chartData = {}
 
-		const isHourlyTvl = tvlData.length > 2 ? tvlData[1] - tvlData[0] < 80_000 : true
+		const isHourlyTvl = tvlData.length > 2 ? +tvlData[1][0] - +tvlData[0][0] < 80_000 : true
 
 		if (tvlData.length > 0 && tvl !== 'false') {
 			tokensUnique.push('TVL')
 
 			tvlData.forEach(([dateS, TVL]) => {
-				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(dateS * 1000) / 1000)
+				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date] = { ...chartData[date], TVL }
+				chartData[date] = {
+					...chartData[date],
+					TVL: showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL
+				}
 			})
 		}
 
@@ -146,8 +131,29 @@ export default function ProtocolChart({
 					chartData[date] = {}
 				}
 
-				chartData[date] = { ...chartData[date], Mcap }
+				chartData[date] = {
+					...chartData[date],
+					Mcap: showNonUsdDenomination ? Mcap / getPriceAtDate(date, denominationHistory.prices) : Mcap
+				}
 			})
+
+			if (
+				tvlData.length > 0 &&
+				tvl !== 'false' &&
+				protocolCGData['market_caps'].length > 0 &&
+				protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][0] <
+					+tvlData[tvlData.length - 1][0] * 1000
+			) {
+				const date = isHourlyTvl
+					? tvlData[tvlData.length - 1][0]
+					: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
+				const Mcap = protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][1]
+
+				chartData[date] = {
+					...chartData[date],
+					Mcap: showNonUsdDenomination ? Mcap / getPriceAtDate(date, denominationHistory.prices) : Mcap
+				}
+			}
 		}
 
 		if (showVol) {
@@ -174,33 +180,37 @@ export default function ProtocolChart({
 			tokensUnique,
 			stackColors
 		}
-	}, [tvlData, protocolCGData, showMcap, geckoId, showVol, volumeMap, color, tvl])
-
-	const toggleFilter = React.useCallback(
-		(type: string) => {
-			const param = { [type]: !(router.query[type] === 'true') }
-
-			router.push(
-				{
-					pathname: router.pathname,
-					query: {
-						...router.query,
-						...param
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		},
-		[router]
-	)
+	}, [
+		tvlData,
+		protocolCGData,
+		showMcap,
+		geckoId,
+		showVol,
+		volumeMap,
+		color,
+		tvl,
+		showNonUsdDenomination,
+		denominationHistory?.prices
+	])
 
 	return (
 		<Wrapper>
 			<FiltersWrapper>
 				<Filters color={color}>
 					{DENOMINATIONS.map((D) => (
-						<Link href={`/protocol/${protocol}?denomination=${D.symbol}`} key={D.symbol} shallow passHref>
+						<Link
+							href={
+								`/protocol/${protocol}?` +
+								(tvl ? `tvl=${tvl}&` : '') +
+								(mcap ? `mcap=${mcap}&` : '') +
+								(volume ? `volume=${volume}&` : '') +
+								(events ? `events=${events}&` : '') +
+								`denomination=${D.symbol}`
+							}
+							key={D.symbol}
+							shallow
+							passHref
+						>
 							<Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
 								{D.symbol}
 							</Denomination>
@@ -211,9 +221,14 @@ export default function ProtocolChart({
 					<ToggleWrapper2>
 						<input
 							type="checkbox"
-							value="showVolume"
-							checked={router.query.showVolume === 'true'}
-							onChange={() => toggleFilter('showVolume')}
+							value="volume"
+							checked={router.query.volume === 'true'}
+							onChange={() => {
+								router.push({
+									pathname: router.pathname,
+									query: { ...router.query, volume: volume === 'true' ? false : true }
+								})
+							}}
 						/>
 						<span>Show Volume</span>
 					</ToggleWrapper2>
@@ -344,4 +359,14 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 	}
 
 	return Object.entries(tvlDictionary)
+}
+
+const getPriceAtDate = (date: string | number, history: Array<[number, number]>) => {
+	let priceAtDate = history.find((x) => x[0] === Number(date) * 1000)
+
+	if (!priceAtDate) {
+		priceAtDate = history.find((x) => -432000000 < x[0] - Number(date) * 1000 && x[0] - Number(date) * 1000 < 432000000)
+	}
+
+	return priceAtDate?.[1] ?? 0
 }
