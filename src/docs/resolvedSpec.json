@@ -348,7 +348,7 @@
             "description": "object where keys are coins in the form {chain}:{address}, and values are arrays of requested timestamps",
             "schema": {
               "type": "string",
-              "example": "'{\n\"avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e\": [1666876743, 1666862343],\n\"coingecko:ethereum\": [1666869543, 1666862343]\n}'\n"
+              "example": "{\"avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e\":  [1666876743, 1666862343], \"coingecko:ethereum\":  [1666869543, 1666862343]}\n"
             }
           },
           {

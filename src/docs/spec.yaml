@@ -247,10 +247,7 @@ paths:
           schema:
             type: string
             example: | 
-              '{
-              "avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e": [1666876743, 1666862343],
-              "coingecko:ethereum": [1666869543, 1666862343]
-              }'
+              {"avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e": [1666876743, 1666862343], "coingecko:ethereum": [1666869543, 1666862343]}
         - name: searchWidth
           in: query
           required: false
