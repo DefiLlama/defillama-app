@@ -27,8 +27,12 @@ const chartTitleBy = (chartType: CHART_TYPES, breakdown: boolean) => {
 			return (_title: string, type: string) => `${capitalizeFirstLetter(type)} by token`
 		case 'chain':
 		default:
-			return (title: string, type: string) =>
-				title && title !== '' ? title : `${capitalizeFirstLetter(type)}${breakdown ? ' by chain' : ' and revenue'}`
+			return (title: string, type: string) => {
+				if (type === 'fees' && !breakdown) return `${capitalizeFirstLetter(type)} and revenue`
+				return title && title !== ''
+					? title
+					: `${capitalizeFirstLetter(type)}${breakdown ? ' by chain' : ' and revenue'}`
+			}
 	}
 }
 
