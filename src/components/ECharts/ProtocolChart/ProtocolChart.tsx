@@ -307,7 +307,7 @@ export default function ProtocolChart({
 				</Filters>
 			</FiltersWrapper>
 
-			{!loading && !denominationLoading && (
+			{!loading && !denominationLoading && router.isReady && (
 				<AreaChart
 					chartData={finalData}
 					color={color}
