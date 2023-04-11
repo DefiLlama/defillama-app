@@ -56,6 +56,8 @@ export default function AreaBarChart({
 				type,
 				yAxisIndex: type === 'bar' ? 1 : 0,
 				scale: true,
+				large: true,
+				largeThreshold: 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
