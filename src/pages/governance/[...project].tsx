@@ -5,7 +5,7 @@ import Layout from '~/layout'
 import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
 import TokenLogo from '~/components/TokenLogo'
-import { standardizeProtocolName, toNiceDayMonthAndYear, tokenIconUrl, formattedNum, chainIconUrl } from '~/utils'
+import { standardizeProtocolName, toNiceDayMonthAndYear, tokenIconUrl, formattedNum, chainIconUrl, toK } from '~/utils'
 import {
 	GOVERNANCE_API,
 	ONCHAIN_GOVERNANCE_API,
@@ -14,7 +14,7 @@ import {
 } from '~/constants'
 import Link from 'next/link'
 import { ArrowUpRight } from 'react-feather'
-import { Stat } from '~/layout/Stats/Large'
+import { Stat, Statlabel, StatValue } from '~/layout/Stats/Large'
 import {
 	useReactTable,
 	SortingState,
@@ -205,14 +205,14 @@ export default function Protocol({ data, isOnChainGovernance }) {
 					{data.stats.highestTotalScore ? (
 						<Stat>
 							<span>Max Total Votes</span>
-							<span>{data.stats.highestTotalScore.toFixed(0)}</span>
+							<span>{toK(data.stats.highestTotalScore)}</span>
 						</Stat>
 					) : null}
 
 					{data.metadata.followersCount ? (
 						<Stat>
 							<span>Followers</span>
-							<span>{data.metadata.followersCount}</span>
+							<span>{toK(data.metadata.followersCount)}</span>
 						</Stat>
 					) : null}
 				</LinksWrapper>
@@ -307,10 +307,6 @@ const LinksWrapper = styled.div`
 	flex-wrap: wrap;
 	align-items: flex-end;
 	gap: 36px;
-	button,
-	a {
-		height: fit-content;
-	}
 `
 
 const TableWrapper = styled(VirtualTable)`
