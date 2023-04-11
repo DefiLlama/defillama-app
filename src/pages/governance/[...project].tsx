@@ -75,6 +75,13 @@ export const getStaticProps = async ({
 		}
 	} = await fetch(api).then((res) => res.json())
 
+	const recentMonth = Object.keys(data.stats.months).sort().pop()
+	const missingMonths = getDateRange(recentMonth)
+
+	missingMonths.forEach((month) => {
+		data.stats.months[month] = { total: 0, successful: 0, proposals: [] }
+	})
+
 	const proposals = Object.values(data.proposals).map((proposal) => {
 		const winningScore = proposal.scores.sort((a, b) => b - a)[0]
 		const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
@@ -130,8 +137,6 @@ export async function getStaticPaths() {
 export default function Protocol({ data, isOnChainGovernance }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'state', desc: true }])
-
-	console.log({ data })
 
 	const instance = useReactTable({
 		data: data.proposals,
@@ -475,3 +480,14 @@ const maxVotesStack = {
 }
 
 const formatText = (text: string, length) => (text.length > length ? text.slice(0, length + 1) + '...' : text)
+
+function getDateRange(startDateStr) {
+	const startDate = new Date(startDateStr)
+	const endDate = new Date()
+	const dateRange = []
+	while (startDate <= endDate) {
+		dateRange.push(startDate.toISOString().slice(0, 7))
+		startDate.setMonth(startDate.getMonth() + 1)
+	}
+	return dateRange.slice(1)
+}
