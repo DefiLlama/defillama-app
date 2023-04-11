@@ -281,7 +281,7 @@ export function useDefaults({
 			{
 				type: 'inside',
 				start: 0,
-				end: 100,
+				end: 100
 			},
 			{
 				start: 0,

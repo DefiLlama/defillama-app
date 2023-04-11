@@ -10,7 +10,7 @@ import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import type { IChartProps } from '../types'
 import { nearestUtc } from '~/utils'
-import { useGetFeesAndRevenueChartData } from '~/containers/DexsAndFees/charts/hooks'
+import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -21,7 +21,6 @@ interface IProps {
 	color: string
 	historicalChainTvls: {}
 	chains: string[]
-	volumeMap?: Record<number, number>
 	bobo?: boolean
 	hallmarks?: [number, string][]
 	geckoId?: string | null
@@ -37,7 +36,6 @@ export default function ProtocolChart({
 	bobo = false,
 	hallmarks,
 	geckoId,
-	volumeMap,
 	chartColors,
 	metrics
 }: IProps) {
@@ -75,11 +73,20 @@ export default function ProtocolChart({
 		router.isReady && mcap === 'true' ? geckoId : null
 	)
 
-	const [feesAndRevenue] = useGetFeesAndRevenueChartData({
+	const [feesAndRevenue] = useGetOverviewChartData({
 		name: protocol,
+		dataToFetch: 'fees',
 		type: 'chains',
 		enableBreakdownChart: false,
 		disabled: metrics.fees ? false : true
+	})
+
+	const [volumeData] = useGetOverviewChartData({
+		name: protocol,
+		dataToFetch: 'dexs',
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: metrics.dexs ? false : true
 	})
 
 	// update tvl calc based on extra tvl options like staking, pool2 selected
@@ -134,7 +141,7 @@ export default function ProtocolChart({
 		if (geckoId && showMcap && protocolCGData) {
 			tokensUnique.push('Mcap')
 
-			protocolCGData['market_caps'].map(([dateMs, Mcap]) => {
+			protocolCGData['market_caps'].forEach(([dateMs, Mcap]) => {
 				const date = Math.floor(nearestUtc(dateMs) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = {}
@@ -168,13 +175,17 @@ export default function ProtocolChart({
 		if (showVol) {
 			tokensUnique.push('Volume')
 
-			for (const date in volumeMap) {
+			volumeData.forEach((item) => {
+				const date = +item.date
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date] = { ...chartData[date], Volume: volumeMap[date] }
-			}
+				chartData[date] = {
+					...chartData[date],
+					Volume: showNonUsdDenomination ? +item.Dexs / getPriceAtDate(date, denominationHistory.prices) : item.Dexs
+				}
+			})
 		}
 
 		if (feesAndRevenue.length > 0) {
@@ -186,7 +197,7 @@ export default function ProtocolChart({
 				tokensUnique.push('Revenue')
 			}
 
-			feesAndRevenue.map((item) => {
+			feesAndRevenue.forEach((item) => {
 				const date = +item.date
 				if (!chartData[date]) {
 					chartData[date] = {}
@@ -225,7 +236,7 @@ export default function ProtocolChart({
 		showMcap,
 		geckoId,
 		showVol,
-		volumeMap,
+		volumeData,
 		tvl,
 		showNonUsdDenomination,
 		denominationHistory?.prices,
@@ -261,22 +272,6 @@ export default function ProtocolChart({
 						</Link>
 					))}
 				</Filters>
-				{Object.values(volumeMap || {}).length > 0 && (
-					<ToggleWrapper2>
-						<input
-							type="checkbox"
-							value="volume"
-							checked={router.query.volume === 'true'}
-							onChange={() => {
-								router.push({
-									pathname: router.pathname,
-									query: { ...router.query, volume: volume === 'true' ? false : true }
-								})
-							}}
-						/>
-						<span>Show Volume</span>
-					</ToggleWrapper2>
-				)}
 			</FiltersWrapper>
 
 			{!loading && !denominationLoading && (

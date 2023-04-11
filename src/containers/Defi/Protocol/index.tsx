@@ -370,7 +370,7 @@ function ProtocolContainer({
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
-	const { tvl, mcap, fees, revenue, events } = router.query
+	const { tvl, mcap, volume, fees, revenue, events } = router.query
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
@@ -400,7 +400,7 @@ function ProtocolContainer({
 					</OtherProtocols>
 				)}
 
-				<DetailsWrapper style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
+				<DetailsWrapper style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px', maxWidth: '300px' }}>
 					{scams.includes(name) && <p>There's been multiple hack reports in this protocol</p>}
 
 					<Name>
@@ -453,6 +453,29 @@ function ProtocolContainer({
 									/>
 									<span data-wrapper="true">
 										<span>Mcap</span>
+									</span>
+								</Toggle>
+							)}
+
+							{metrics.dexs && (
+								<Toggle backgroundColor={backgroundColor}>
+									<input
+										type="checkbox"
+										value="volume"
+										checked={volume === 'true'}
+										onChange={() =>
+											router.push(
+												{
+													pathname: router.pathname,
+													query: { ...router.query, volume: volume === 'true' ? false : true }
+												},
+												undefined,
+												{ shallow: true }
+											)
+										}
+									/>
+									<span data-wrapper="true">
+										<span>Volume</span>
 									</span>
 								</Toggle>
 							)}

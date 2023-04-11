@@ -143,6 +143,8 @@ export default function AreaBarChart({
 			}
 		}
 
+		delete dataZoom[1].right
+
 		chartInstance.setOption({
 			graphic: { ...graphic },
 			legend: {

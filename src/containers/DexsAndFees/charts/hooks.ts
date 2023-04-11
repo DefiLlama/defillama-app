@@ -5,18 +5,20 @@ import { chartBreakdownByChain } from '~/api/categories/adaptors/utils'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { chartFormatterBy } from './utils'
 
-export const useGetFeesAndRevenueChartData = ({
+export const useGetOverviewChartData = ({
 	name,
+	dataToFetch,
 	type,
 	enableBreakdownChart,
 	disabled
 }: {
 	name: string
+	dataToFetch: string
 	type: string
 	enableBreakdownChart: boolean
 	disabled: boolean
 }) => {
-	const { data, loading, error } = useFetchChartsSummary('fees', slug(name), undefined, disabled)
+	const { data, loading, error } = useFetchChartsSummary(dataToFetch, slug(name), undefined, disabled)
 
 	const mainChart = React.useMemo(() => {
 		if (loading)
@@ -28,7 +30,7 @@ export const useGetFeesAndRevenueChartData = ({
 		if (error)
 			return {
 				dataChart: [[], []] as [IJoin2ReturnType, string[]],
-				title: 'Loading'
+				title: 'Error'
 			}
 
 		let chartData: IJoin2ReturnType
