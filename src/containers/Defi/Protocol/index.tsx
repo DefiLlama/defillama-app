@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { ArrowUpRight, Check, DownloadCloud, X } from 'react-feather'
+import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
 import {
 	Button,
@@ -49,7 +49,7 @@ import {
 	tokenIconUrl
 } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
-import type { IFusedProtocolData, IRaise } from '~/api/types'
+import type { IFusedProtocolData } from '~/api/types'
 import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
@@ -203,6 +203,7 @@ interface IProtocolContainerProps {
 	similarProtocols: Array<{ name: string; tvl: number }>
 	emissions: IEmission
 	isCEX?: boolean
+	chartColors: { [type: string]: string }
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
@@ -215,7 +216,8 @@ function ProtocolContainer({
 	backgroundColor,
 	similarProtocols,
 	emissions,
-	isCEX
+	isCEX,
+	chartColors
 }: IProtocolContainerProps) {
 	useScrollToTop()
 	const {
@@ -240,7 +242,8 @@ function ProtocolContainer({
 		gecko_id,
 		isParentProtocol,
 		raises,
-		treasury
+		treasury,
+		metrics
 	} = protocolData
 
 	const router = useRouter()
@@ -367,7 +370,7 @@ function ProtocolContainer({
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
-	const { tvl, mcap, events } = router.query
+	const { tvl, mcap, fees, revenue, events } = router.query
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
@@ -408,7 +411,7 @@ function ProtocolContainer({
 						{!isParentProtocol && <Bookmark readableProtocolName={name} />}
 					</Name>
 
-					{gecko_id || hallmarks?.length > 0 ? (
+					{gecko_id || hallmarks?.length > 0 || metrics.fees || metrics.dexs ? (
 						<ToggleWrapper>
 							<Toggle backgroundColor={backgroundColor}>
 								<input
@@ -452,6 +455,52 @@ function ProtocolContainer({
 										<span>Mcap</span>
 									</span>
 								</Toggle>
+							)}
+
+							{metrics.fees && (
+								<>
+									<Toggle backgroundColor={backgroundColor}>
+										<input
+											type="checkbox"
+											value="fees"
+											checked={fees === 'true'}
+											onChange={() =>
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...router.query, fees: fees === 'true' ? false : true }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}
+										/>
+										<span data-wrapper="true">
+											<span>Fees</span>
+										</span>
+									</Toggle>
+
+									<Toggle backgroundColor={backgroundColor}>
+										<input
+											type="checkbox"
+											value="revenue"
+											checked={revenue === 'true'}
+											onChange={() =>
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...router.query, revenue: revenue === 'true' ? false : true }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}
+										/>
+										<span data-wrapper="true">
+											<span>Revenue</span>
+										</span>
+									</Toggle>
+								</>
 							)}
 
 							{hallmarks?.length > 0 && (
@@ -551,6 +600,8 @@ function ProtocolContainer({
 					hallmarks={hallmarks}
 					bobo={bobo}
 					geckoId={gecko_id}
+					chartColors={chartColors}
+					metrics={metrics}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>

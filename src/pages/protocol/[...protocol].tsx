@@ -1,5 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import { deriveColors, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {
@@ -34,6 +34,12 @@ export const getStaticProps = async ({
 	const protocolData = fuseProtocolData(protocolRes)
 
 	const backgroundColor = await getColor(tokenIconPaletteUrl(protocolData.name))
+
+	const chartTypes = ['TVL', 'Mcap', 'Fees', 'Revenue', 'Volume']
+
+	const colorTones = Object.fromEntries(
+		chartTypes.map((type, index) => [type, deriveColors(backgroundColor, index, chartTypes.length)])
+	)
 
 	const similarProtocols = (await getProtocolsRaw())?.protocols
 		.filter(
@@ -77,7 +83,8 @@ export const getStaticProps = async ({
 			similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
 				similarProtocols.find((p) => p.name === protocolName)
 			),
-			emissions
+			emissions,
+			chartColors: colorTones
 		},
 		revalidate: maxAgeForNext([22])
 	}

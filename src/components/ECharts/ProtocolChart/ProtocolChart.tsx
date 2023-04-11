@@ -10,6 +10,7 @@ import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import type { IChartProps } from '../types'
 import { nearestUtc } from '~/utils'
+import { useGetFeesAndRevenueChartData } from '~/containers/DexsAndFees/charts/hooks'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -24,12 +25,8 @@ interface IProps {
 	bobo?: boolean
 	hallmarks?: [number, string][]
 	geckoId?: string | null
-}
-
-const chartColors = {
-	Volume: '#4f8fea',
-	TVL: '#E59421',
-	Mcap: '#8eb027'
+	chartColors: { [type: string]: string }
+	metrics: { [metric: string]: boolean }
 }
 
 export default function ProtocolChart({
@@ -40,13 +37,15 @@ export default function ProtocolChart({
 	bobo = false,
 	hallmarks,
 	geckoId,
-	volumeMap
+	volumeMap,
+	chartColors,
+	metrics
 }: IProps) {
 	const router = useRouter()
 
 	const [extraTvlEnabled] = useDefiManager()
 
-	const { denomination, tvl, mcap, events, volume } = router.query
+	const { denomination, tvl, mcap, events, volume, fees, revenue } = router.query
 
 	const showMcap = mcap === 'true'
 	const hideHallmarks = events === 'false'
@@ -76,6 +75,13 @@ export default function ProtocolChart({
 		router.isReady && mcap === 'true' ? geckoId : null
 	)
 
+	const [feesAndRevenue] = useGetFeesAndRevenueChartData({
+		name: protocol,
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: metrics.fees ? false : true
+	})
+
 	// update tvl calc based on extra tvl options like staking, pool2 selected
 	const tvlData = React.useMemo(() => {
 		return formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled })
@@ -98,7 +104,10 @@ export default function ProtocolChart({
 		} else valueSymbol = d.symbol.slice(0, 1)
 	}
 
-	const { finalData, tokensUnique, stackColors } = React.useMemo(() => {
+	const { finalData, tokensUnique } = React.useMemo(() => {
+		if (!router.isReady) {
+			return { finalData: [], tokensUnique: [] }
+		}
 		const tokensUnique = []
 
 		const chartData = {}
@@ -168,7 +177,38 @@ export default function ProtocolChart({
 			}
 		}
 
-		const stackColors = color ? { ...chartColors, TVL: color } : chartColors
+		if (feesAndRevenue.length > 0) {
+			if (fees === 'true') {
+				tokensUnique.push('Fees')
+			}
+
+			if (revenue === 'true') {
+				tokensUnique.push('Revenue')
+			}
+
+			feesAndRevenue.map((item) => {
+				const date = +item.date
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				if (fees === 'true') {
+					chartData[date] = {
+						...chartData[date],
+						Fees: showNonUsdDenomination ? +item.Fees / getPriceAtDate(date, denominationHistory.prices) : item.Fees
+					}
+				}
+
+				if (revenue === 'true') {
+					chartData[date] = {
+						...chartData[date],
+						Revenue: showNonUsdDenomination
+							? +item.Revenue / getPriceAtDate(date, denominationHistory.prices)
+							: item.Revenue
+					}
+				}
+			})
+		}
 
 		const finalData = Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
 			date,
@@ -177,8 +217,7 @@ export default function ProtocolChart({
 
 		return {
 			finalData,
-			tokensUnique,
-			stackColors
+			tokensUnique
 		}
 	}, [
 		tvlData,
@@ -187,10 +226,13 @@ export default function ProtocolChart({
 		geckoId,
 		showVol,
 		volumeMap,
-		color,
 		tvl,
 		showNonUsdDenomination,
-		denominationHistory?.prices
+		denominationHistory?.prices,
+		feesAndRevenue,
+		fees,
+		revenue,
+		router.isReady
 	])
 
 	return (
@@ -204,6 +246,8 @@ export default function ProtocolChart({
 								(tvl ? `tvl=${tvl}&` : '') +
 								(mcap ? `mcap=${mcap}&` : '') +
 								(volume ? `volume=${volume}&` : '') +
+								(fees ? `fees=${fees}&` : '') +
+								(revenue ? `revenue=${revenue}&` : '') +
 								(events ? `events=${events}&` : '') +
 								`denomination=${D.symbol}`
 							}
@@ -244,7 +288,7 @@ export default function ProtocolChart({
 					stacks={tokensUnique}
 					hallmarks={!hideHallmarks && hallmarks}
 					tooltipSort={false}
-					stackColors={stackColors}
+					stackColors={chartColors}
 					style={{
 						...(bobo && {
 							backgroundImage: 'url("/bobo.png")',

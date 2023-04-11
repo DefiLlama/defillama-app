@@ -1,13 +1,14 @@
 import * as React from 'react'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { useFetchChartsSummary } from '~/api/categories/adaptors/client'
-import { ProtocolAdaptorSummaryResponse } from '~/api/categories/adaptors/types'
-import { chartBreakdownByChain, chartBreakdownByTokens, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
+import { chartBreakdownByChain } from '~/api/categories/adaptors/utils'
 import { LazyChart } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import type { IProtocolContainerProps } from '../types'
 import { ProtocolChart } from './ProtocolChart'
+import { CHART_TYPES } from './types'
+import { chartFormatterBy } from './utils'
 
 interface IChartByType {
 	type: string
@@ -16,29 +17,6 @@ interface IChartByType {
 	breakdownChart?: boolean
 	protocolSummary?: IProtocolContainerProps['protocolSummary']
 	fullChart?: boolean
-}
-
-export type CHART_TYPES = 'chain' | 'version' | 'tokens'
-
-const chartFormatterBy = (chartType: CHART_TYPES) => {
-	switch (chartType) {
-		case 'version':
-			return (
-				_mainChart: [IJoin2ReturnType, string[]],
-				totalDataChartBreakdown: ProtocolAdaptorSummaryResponse['totalDataChartBreakdown']
-			) => chartBreakdownByVersion(totalDataChartBreakdown ?? [])
-		case 'tokens':
-			return (
-				_mainChart: [IJoin2ReturnType, string[]],
-				totalDataChartBreakdown: ProtocolAdaptorSummaryResponse['totalDataChartBreakdown']
-			) => chartBreakdownByTokens(totalDataChartBreakdown ?? [])
-		case 'chain':
-		default:
-			return (
-				mainChart: [IJoin2ReturnType, string[]],
-				_totalDataChartBreakdown: ProtocolAdaptorSummaryResponse['totalDataChartBreakdown']
-			): [IJoin2ReturnType, string[]] => mainChart
-	}
 }
 
 const chartTitleBy = (chartType: CHART_TYPES, breakdown: boolean) => {
@@ -57,6 +35,7 @@ const chartTitleBy = (chartType: CHART_TYPES, breakdown: boolean) => {
 export const ChartByType: React.FC<IChartByType> = (props) => {
 	const [protocolSummary, setProtocolSummary] = React.useState(props.protocolSummary)
 	const { data, error } = useFetchChartsSummary(props.type, props.protocolName, undefined, !!props.protocolSummary)
+
 	React.useEffect(() => {
 		if (data && !error) {
 			setProtocolSummary(data)
@@ -66,6 +45,7 @@ export const ChartByType: React.FC<IChartByType> = (props) => {
 	const enableBreakdownChart = props.breakdownChart ?? true
 	const fullChart = props.fullChart ?? true
 	const typeSimple = volumeTypes.includes(props.type) ? 'volume' : props.type
+
 	const mainChart = React.useMemo(() => {
 		if (!protocolSummary)
 			return {

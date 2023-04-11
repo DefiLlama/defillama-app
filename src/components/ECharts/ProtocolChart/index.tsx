@@ -47,59 +47,41 @@ export default function AreaBarChart({
 		const chartColor = color || stringToColour()
 
 		const series = chartsStack.map((token, index) => {
-			const stackColor = stackColors?.[token]
+			const stackColor = stackColors[token]
+
+			const type = ['Volume', 'Fees', 'Revenue'].includes(token) ? 'bar' : 'line'
 
 			return {
 				name: token,
-				type: token === 'Volume' ? 'bar' : 'line',
+				type,
+				yAxisIndex: type === 'bar' ? 1 : 0,
 				scale: true,
-				yAxisIndex: token === 'Volume' ? 1 : undefined,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
 				},
 				symbol: 'none',
 				itemStyle: {
-					color: stackColor ? stackColor : index === 0 ? chartColor : null
+					color: stackColor || null
 				},
-				areaStyle: {
-					color: !customLegendName
-						? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-								{
-									offset: 0,
-									color: stackColor ? stackColor : index === 0 ? chartColor : 'transparent'
-								},
-								{
-									offset: 1,
-									color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-								}
-						  ])
-						: null
-				},
-				data: [],
-				...(hallmarks && {
-					markLine: {
-						data: hallmarks.map(([date, event], index) => [
-							{
-								name: event,
-								xAxis: getUtcDateObject(date),
-								yAxis: 0,
-								label: {
-									color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-									fontFamily: 'sans-serif',
-									fontSize: 14,
-									fontWeight: 500
-								}
-							},
-							{
-								name: 'end',
-								xAxis: getUtcDateObject(date),
-								yAxis: 'max',
-								y: Math.max(hallmarks.length * 40 - index * 40, 40)
-							}
-						])
+				...(type === 'line' && {
+					areaStyle: {
+						color: !customLegendName
+							? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+									{
+										offset: 0,
+										color: stackColor ? stackColor : index === 0 ? chartColor : 'transparent'
+									},
+									{
+										offset: 1,
+										color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+									}
+							  ])
+							: null
 					}
-				})
+				}),
+				markLine: {},
+				data: []
 			}
 		})
 
@@ -110,6 +92,33 @@ export default function AreaBarChart({
 				}
 			})
 		})
+
+		if (series.length > 0 && hallmarks) {
+			series[0] = {
+				...series[0],
+				markLine: {
+					data: hallmarks.map(([date, event], index) => [
+						{
+							name: event,
+							xAxis: getUtcDateObject(date),
+							yAxis: 0,
+							label: {
+								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+								fontFamily: 'sans-serif',
+								fontSize: 14,
+								fontWeight: 500
+							}
+						},
+						{
+							name: 'end',
+							xAxis: getUtcDateObject(date),
+							yAxis: 'max',
+							y: Math.max(hallmarks.length * 40 - index * 40, 40)
+						}
+					])
+				}
+			}
+		}
 
 		return series
 	}, [chartData, chartsStack, color, customLegendName, hallmarks, isDark, legendOptions, stackColors])
