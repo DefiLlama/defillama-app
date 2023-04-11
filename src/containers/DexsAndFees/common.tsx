@@ -40,6 +40,10 @@ export const FiltersWrapperRow = styled(FiltersWrapper)`
 	font-size: 1.3em;
 `
 
+const AdjustedBreakpointPannels = styled(BreakpointPanels)`
+	min-width: 17rem;
+`
+
 export interface IMainBarChartProps {
 	type: string
 	total24h: number | null
@@ -96,7 +100,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			(typeof props.data.dexsDominance === 'number' && props.type === 'dexs') ||
 			(typeof props.data.change_7dover7d === 'number' && props.type === 'dexs') ||
 			(typeof props.data.total7d === 'number' && props.type === 'dexs') ? (
-				<BreakpointPanels>
+				<AdjustedBreakpointPannels>
 					{!Number.isNaN(props.data.total24h) ? (
 						<BreakpointPanel>
 							<h1>Total {dataType} (24h)</h1>
@@ -169,7 +173,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.change_1m || 0}%</p>
 						</PanelHiddenMobile>
 					) : null}
-				</BreakpointPanels>
+				</AdjustedBreakpointPannels>
 			) : (
 				<></>
 			)}
