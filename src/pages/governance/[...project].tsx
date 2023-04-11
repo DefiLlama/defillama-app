@@ -171,7 +171,7 @@ export default function Protocol({ data, isOnChainGovernance }) {
 				</Name>
 
 				<LinksWrapper>
-					{data.stats.chainName && (
+					{data.stats.chainName ? (
 						<Stat>
 							<span>Chain</span>
 							<AutoRow gap="4px">
@@ -179,42 +179,42 @@ export default function Protocol({ data, isOnChainGovernance }) {
 								<span>{data.stats.chainName}</span>
 							</AutoRow>
 						</Stat>
-					)}
+					) : null}
 
-					{data.stats.proposalsCount && (
+					{data.stats.proposalsCount ? (
 						<Stat>
 							<span>Total Proposals</span>
 							<span>{data.stats.proposalsCount}</span>
 						</Stat>
-					)}
+					) : null}
 
-					{data.stats.successfulProposal && (
+					{data.stats.successfulProposal ? (
 						<Stat>
 							<span>Successful Proposals</span>
 							<span>{data.stats.successfulProposals}</span>
 						</Stat>
-					)}
+					) : null}
 
-					{data.stats.propsalsInLast30Days && (
+					{data.stats.propsalsInLast30Days ? (
 						<Stat>
 							<span>Successful Proposals in last 30 days</span>
 							<span>{data.stats.propsalsInLast30Days}</span>
 						</Stat>
-					)}
+					) : null}
 
-					{data.stats.highestTotalScore && (
+					{data.stats.highestTotalScore ? (
 						<Stat>
 							<span>Max Total Votes</span>
 							<span>{data.stats.highestTotalScore.toFixed(0)}</span>
 						</Stat>
-					)}
+					) : null}
 
-					{data.metadata.followersCount && (
+					{data.metadata.followersCount ? (
 						<Stat>
 							<span>Followers</span>
 							<span>{data.metadata.followersCount}</span>
 						</Stat>
-					)}
+					) : null}
 				</LinksWrapper>
 
 				<ChartsWrapper>
