@@ -20,12 +20,16 @@ interface IProps {
 	protocol: string
 	color: string
 	historicalChainTvls: {}
-	chains: string[]
+	chains: Array<string>
 	bobo?: boolean
-	hallmarks?: [number, string][]
+	hallmarks?: Array<[number, string]>
 	geckoId?: string | null
 	chartColors: { [type: string]: string }
 	metrics: { [metric: string]: boolean }
+	emissions?: Array<{
+		[label: string]: number
+	}>
+	unlockTokenSymbol?: string
 }
 
 export default function ProtocolChart({
@@ -37,13 +41,15 @@ export default function ProtocolChart({
 	hallmarks,
 	geckoId,
 	chartColors,
-	metrics
+	metrics,
+	emissions,
+	unlockTokenSymbol
 }: IProps) {
 	const router = useRouter()
 
 	const [extraTvlEnabled] = useDefiManager()
 
-	const { denomination, tvl, mcap, events, volume, fees, revenue } = router.query
+	const { denomination, tvl, mcap, events, volume, fees, revenue, unlocks } = router.query
 
 	const showMcap = mcap === 'true'
 	const hideHallmarks = events === 'false'
@@ -221,6 +227,30 @@ export default function ProtocolChart({
 			})
 		}
 
+		if (emissions && emissions.length > 0 && unlocks === 'true') {
+			tokensUnique.push('Unlocks')
+			emissions
+				.filter((emission) => +emission.date * 1000 <= Date.now())
+				.forEach((item) => {
+					if (!chartData[item.date]) {
+						chartData[item.date] = {}
+					}
+
+					let totalUnlocked = 0
+
+					for (const label in item) {
+						if (label !== 'date') {
+							totalUnlocked += item[label]
+						}
+					}
+
+					chartData[item.date] = {
+						...chartData[item.date],
+						Unlocks: totalUnlocked
+					}
+				})
+		}
+
 		const finalData = Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
 			date,
 			...values
@@ -243,7 +273,9 @@ export default function ProtocolChart({
 		feesAndRevenue,
 		fees,
 		revenue,
-		router.isReady
+		router.isReady,
+		unlocks,
+		emissions
 	])
 
 	return (
@@ -259,6 +291,7 @@ export default function ProtocolChart({
 								(volume ? `volume=${volume}&` : '') +
 								(fees ? `fees=${fees}&` : '') +
 								(revenue ? `revenue=${revenue}&` : '') +
+								(unlocks ? `unlocks=${unlocks}&` : '') +
 								(events ? `events=${events}&` : '') +
 								`denomination=${D.symbol}`
 							}
@@ -292,6 +325,7 @@ export default function ProtocolChart({
 							backgroundPosition: 'bottom'
 						})
 					}}
+					unlockTokenSymbol={unlockTokenSymbol}
 				/>
 			)}
 		</Wrapper>

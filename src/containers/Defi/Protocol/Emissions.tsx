@@ -19,7 +19,7 @@ export interface IEmission {
 	notes: Array<string>
 	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
 	hallmarks: Array<[number, string]>
-	tokenPrice: { price?: number | null; symbol?: number | null }
+	tokenPrice: { price?: number | null; symbol?: string | null }
 	pieChartData: Array<{
 		name: string
 		value: number

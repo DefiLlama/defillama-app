@@ -370,7 +370,7 @@ function ProtocolContainer({
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
-	const { tvl, mcap, volume, fees, revenue, events } = router.query
+	const { tvl, mcap, volume, fees, revenue, unlocks, events } = router.query
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
@@ -411,7 +411,7 @@ function ProtocolContainer({
 						{!isParentProtocol && <Bookmark readableProtocolName={name} />}
 					</Name>
 
-					{gecko_id || hallmarks?.length > 0 || metrics.fees || metrics.dexs ? (
+					{gecko_id || hallmarks?.length > 0 || metrics.fees || metrics.dexs || emissions?.chartData?.length > 0 ? (
 						<ToggleWrapper>
 							<Toggle backgroundColor={backgroundColor}>
 								<input
@@ -526,6 +526,29 @@ function ProtocolContainer({
 								</>
 							)}
 
+							{emissions?.chartData?.length > 0 && (
+								<Toggle backgroundColor={backgroundColor}>
+									<input
+										type="checkbox"
+										value="unlocks"
+										checked={unlocks === 'true'}
+										onChange={() =>
+											router.push(
+												{
+													pathname: router.pathname,
+													query: { ...router.query, unlocks: unlocks === 'true' ? false : true }
+												},
+												undefined,
+												{ shallow: true }
+											)
+										}
+									/>
+									<span data-wrapper="true">
+										<span>Unlocks</span>
+									</span>
+								</Toggle>
+							)}
+
 							{hallmarks?.length > 0 && (
 								<Toggle backgroundColor={backgroundColor}>
 									<input
@@ -625,6 +648,8 @@ function ProtocolContainer({
 					geckoId={gecko_id}
 					chartColors={chartColors}
 					metrics={metrics}
+					emissions={emissions?.chartData}
+					unlockTokenSymbol={emissions?.tokenPrice?.symbol}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>

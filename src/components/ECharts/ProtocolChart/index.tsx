@@ -7,6 +7,7 @@ import { getUtcDateObject, stringToColour } from '../utils'
 import { SelectLegendMultiple } from '../shared'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
+import { toK } from '~/utils'
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
@@ -25,6 +26,7 @@ export default function AreaBarChart({
 	tooltipSort = true,
 	chartOptions,
 	height = '360px',
+	unlockTokenSymbol = '',
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -43,18 +45,41 @@ export default function AreaBarChart({
 		hideLegend: true
 	})
 
+	const barChartExists = chartsStack.find((st) => ['Volume', 'Fees', 'Revenue'].includes(st)) ? true : false
+	const unlockChartExists = chartsStack.includes('Unlocks')
+	const unlockStackColor = stackColors['Unlocks']
+
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
+
+		const barChartStacks = chartsStack.filter((st) => ['Volume', 'Fees', 'Revenue'].includes(st))
 
 		const series = chartsStack.map((token, index) => {
 			const stackColor = stackColors[token]
 
-			const type = ['Volume', 'Fees', 'Revenue'].includes(token) ? 'bar' : 'line'
+			const type = barChartStacks.includes(token) ? 'bar' : 'line'
+
+			const yAxisIndex = {}
+			if (chartsStack.length > 0) {
+				if (type === 'bar') {
+					yAxisIndex['yAxisIndex'] = 1
+				} else {
+					if (token === 'Unlocks') {
+						if (barChartStacks.length > 0) {
+							yAxisIndex['yAxisIndex'] = 2
+						} else {
+							yAxisIndex['yAxisIndex'] = 1
+						}
+					} else {
+						yAxisIndex['yAxisIndex'] = 0
+					}
+				}
+			}
 
 			return {
 				name: token,
 				type,
-				yAxisIndex: type === 'bar' ? 1 : 0,
+				...yAxisIndex,
 				scale: true,
 				large: true,
 				largeThreshold: 0,
@@ -147,6 +172,32 @@ export default function AreaBarChart({
 
 		delete dataZoom[1].right
 
+		const yAxiss: any = [yAxis]
+
+		if (barChartExists) {
+			yAxiss.push({ ...yAxis, type: 'value' })
+		}
+
+		if (unlockChartExists) {
+			yAxiss.push({
+				...yAxis,
+				name: '',
+				type: 'value',
+				position: 'right',
+				alignTicks: true,
+				offset: barChartExists ? 40 : 0,
+				axisLabel: {
+					formatter: (value) => toK(value) + ' ' + unlockTokenSymbol
+				},
+				axisLine: {
+					show: true,
+					lineStyle: {
+						color: unlockStackColor
+					}
+				}
+			})
+		}
+
 		chartInstance.setOption({
 			graphic: { ...graphic },
 			legend: {
@@ -161,12 +212,13 @@ export default function AreaBarChart({
 				...titleDefaults
 			},
 			grid: {
-				...grid
+				...grid,
+				top: 40
 			},
 			xAxis: {
 				...xAxis
 			},
-			yAxis: [yAxis, { ...yAxis, type: 'value' }],
+			yAxis: yAxiss,
 			dataZoom: [...dataZoom],
 			series
 		})
@@ -181,7 +233,17 @@ export default function AreaBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, chartsStack.length])
+	}, [
+		createInstance,
+		defaultChartSettings,
+		series,
+		chartOptions,
+		chartsStack.length,
+		unlockTokenSymbol,
+		barChartExists,
+		unlockChartExists,
+		unlockStackColor
+	])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
 

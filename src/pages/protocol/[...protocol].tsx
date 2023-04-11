@@ -35,7 +35,7 @@ export const getStaticProps = async ({
 
 	const backgroundColor = await getColor(tokenIconPaletteUrl(protocolData.name))
 
-	const chartTypes = ['TVL', 'Mcap', 'Fees', 'Revenue', 'Volume']
+	const chartTypes = ['TVL', 'Mcap', 'Fees', 'Revenue', 'Volume', 'Unlocks']
 
 	const colorTones = Object.fromEntries(
 		chartTypes.map((type, index) => [type, deriveColors(backgroundColor, index, chartTypes.length)])

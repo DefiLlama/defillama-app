@@ -27,6 +27,7 @@ export interface IChartProps {
 	expandTo100Percent?: boolean
 	isStackedChart?: boolean
 	hideGradient?: boolean
+	unlockTokenSymbol?: string
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
