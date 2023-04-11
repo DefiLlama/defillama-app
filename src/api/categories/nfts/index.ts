@@ -137,7 +137,7 @@ export const getNFTMarketplacesData = async () => {
 
 				volumeSumByDay[date] = (volumeSumByDay[date] || 0) + curr.sum
 
-				acc[date][curr.exchangeName] = Number(curr.sum.toFixed(3))
+				acc[date][curr.exchangeName] = Number(curr.sum?.toFixed(3))
 
 				return acc
 			},
