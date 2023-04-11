@@ -48,19 +48,19 @@ paths:
       responses:
         '200':
           description: successful operation
-  /charts:
+  /v2/historicalChainTvl:
     get:
       tags:
         - TVL
-      summary: Get historical TVL of DeFi on all chains
+      summary: Get historical TVL (excludes liquid staking and double counted tvl) of DeFi on all chains
       responses:
         '200':
           description: successful operation
-  /charts/{chain}:
+  /v2/historicalChainTvl/{chain}:
     get:
       tags:
         - TVL
-      summary: Get historical TVL of a chain
+      summary: Get historical TVL (excludes liquid staking and double counted tvl) of a chain
       parameters:
         - name: chain
           in: path
@@ -232,7 +232,7 @@ paths:
     get:
       tags:
         - coins
-      summary: Get historical prices for multiple tokens at multiple different timestamps 
+      summary: Get historical prices for multiple tokens at multiple different timestamps
       description: |
         Strings accepted by period and searchWidth:
         Can use regular chart candle notion like ‘4h’ etc where:
@@ -246,12 +246,12 @@ paths:
           description: object where keys are coins in the form {chain}:{address}, and values are arrays of requested timestamps
           schema:
             type: string
-            example: | 
+            example: |
               {"avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e": [1666876743, 1666862343], "coingecko:ethereum": [1666869543, 1666862343]}
         - name: searchWidth
           in: query
           required: false
-          description: time range on either side to find price data, defaults to 6 hours 
+          description: time range on either side to find price data, defaults to 6 hours
           schema:
             type: string
             example: 600
@@ -266,24 +266,24 @@ paths:
                   coins:
                     type: object
                     properties:
-                      "avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e":
+                      'avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e':
                         type: object
                         properties:
-                          symbol: 
+                          symbol:
                             type: string
-                            example: "USDC"
-                          prices: 
+                            example: 'USDC'
+                          prices:
                             type: array
-                            items: 
+                            items:
                               type: object
-                              properties: 
-                                timestamp: 
+                              properties:
+                                timestamp:
                                   type: number
                                   example: 1666876674
-                                price: 
+                                price:
                                   type: number
                                   example: 0.999436
-                                confidence: 
+                                confidence:
                                   type: number
                                   example: 0.99
         '502':
@@ -331,7 +331,7 @@ paths:
         - name: period
           in: query
           required: false
-          description: duration between data points, defaults to 24 hours 
+          description: duration between data points, defaults to 24 hours
           schema:
             type: string
             example: 2d
@@ -353,29 +353,29 @@ paths:
                   coins:
                     type: object
                     properties:
-                      "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1":
+                      'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1':
                         type: object
                         properties:
                           decimals:
                             type: number
                             example: 8
-                          confidence: 
+                          confidence:
                             type: number
                             example: 0.99
-                          prices: 
+                          prices:
                             type: array
-                            items: 
+                            items:
                               type: object
-                              properties: 
+                              properties:
                                 timestamp:
                                   type: number
                                   example: 1666790570
-                                price: 
+                                price:
                                   type: number
                                   example: 0.984519
-                          symbol: 
+                          symbol:
                             type: string
-                            example: "HUSD"
+                            example: 'HUSD'
         '502':
           description: Internal error
   /percentage/{coins}:
@@ -414,7 +414,7 @@ paths:
         - name: period
           in: query
           required: false
-          description: duration between data points, defaults to 24 hours 
+          description: duration between data points, defaults to 24 hours
           schema:
             type: string
             example: 3w
@@ -429,7 +429,7 @@ paths:
                   coins:
                     type: object
                     properties:
-                      "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1":
+                      'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1':
                         type: number
                         example: -2.3009954568977147
         '502':
@@ -460,16 +460,16 @@ paths:
                   coins:
                     type: object
                     properties:
-                      "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1":
+                      'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1':
                         type: object
                         properties:
-                          price: 
+                          price:
                             type: number
                             example: 0.9992047673109988
-                          symbol: 
+                          symbol:
                             type: string
-                            example: "HUSD"
-                          "timestamp": 
+                            example: 'HUSD'
+                          'timestamp':
                             type: number
                             example: 1568883821
         '502':
