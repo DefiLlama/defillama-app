@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { ChevronDown, ChevronRight } from 'react-feather'
+import { ChevronDown, ChevronRight, AlertTriangle } from 'react-feather'
 import styled from 'styled-components'
 import Bookmark from '~/components/Bookmark'
 import { AutoColumn } from '~/components/Column'
@@ -55,6 +55,11 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip2>
 					</AutoColumn>
+					{value === 'SyncDEX Finance' && (
+						<Tooltip2 content={'Many users have reported issues with this protocol'}>
+							<AlertTriangle />
+						</Tooltip2>
+					)}
 				</Name>
 			)
 		},
