@@ -14,7 +14,7 @@ import {
 } from '~/constants'
 import Link from 'next/link'
 import { ArrowUpRight } from 'react-feather'
-import { Stat, Statlabel, StatValue } from '~/layout/Stats/Large'
+import { Stat } from '~/layout/Stats/Large'
 import {
 	useReactTable,
 	SortingState,
