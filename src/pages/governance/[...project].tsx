@@ -14,7 +14,6 @@ import {
 } from '~/constants'
 import Link from 'next/link'
 import { ArrowUpRight } from 'react-feather'
-import { Stat } from '~/layout/Stats/Large'
 import {
 	useReactTable,
 	SortingState,
@@ -172,48 +171,48 @@ export default function Protocol({ data, isOnChainGovernance }) {
 
 				<LinksWrapper>
 					{data.stats.chainName ? (
-						<Stat>
+						<p>
 							<span>Chain</span>
 							<AutoRow gap="4px">
 								<TokenLogo logo={chainIconUrl(data.stats.chainName)} size={32} />
 								<span>{data.stats.chainName}</span>
 							</AutoRow>
-						</Stat>
+						</p>
 					) : null}
 
 					{data.stats.proposalsCount ? (
-						<Stat>
+						<p>
 							<span>Total Proposals</span>
 							<span>{data.stats.proposalsCount}</span>
-						</Stat>
+						</p>
 					) : null}
 
 					{data.stats.successfulProposal ? (
-						<Stat>
+						<p>
 							<span>Successful Proposals</span>
 							<span>{data.stats.successfulProposals}</span>
-						</Stat>
+						</p>
 					) : null}
 
 					{data.stats.propsalsInLast30Days ? (
-						<Stat>
+						<p>
 							<span>Successful Proposals in last 30 days</span>
 							<span>{data.stats.propsalsInLast30Days}</span>
-						</Stat>
+						</p>
 					) : null}
 
 					{data.stats.highestTotalScore ? (
-						<Stat>
+						<p>
 							<span>Max Total Votes</span>
 							<span>{toK(data.stats.highestTotalScore)}</span>
-						</Stat>
+						</p>
 					) : null}
 
 					{data.metadata.followersCount ? (
-						<Stat>
+						<p>
 							<span>Followers</span>
 							<span>{toK(data.metadata.followersCount)}</span>
-						</Stat>
+						</p>
 					) : null}
 				</LinksWrapper>
 
@@ -307,6 +306,28 @@ const LinksWrapper = styled.div`
 	flex-wrap: wrap;
 	align-items: flex-end;
 	gap: 36px;
+
+	p {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+
+		& > *:nth-child(1) {
+			font-family: var(--font-inter);
+			font-weight: 600;
+			font-size: 0.875rem;
+			text-align: left;
+			color: ${({ theme }) => (theme.mode === 'dark' ? '#a9a9a9' : '#737373')};
+			margin: -2px 0;
+		}
+
+		& > *:nth-child(2) {
+			font-family: var(--font-jetbrains);
+			font-weight: 800;
+			font-size: 2.25rem;
+			margin: -10px 0;
+		}
+	}
 `
 
 const TableWrapper = styled(VirtualTable)`
