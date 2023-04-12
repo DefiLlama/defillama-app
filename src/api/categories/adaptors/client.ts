@@ -35,7 +35,7 @@ export const getAPIUrl = (
 
 export const useFetchChartsSummary = (type: string, protocolName: string, dataType?: string, disable?: boolean) => {
 	const fetch = disable
-		? () => undefined
+		? () => null
 		: async (input: RequestInfo, init?: RequestInit) =>
 				fetcherWErrorHandling(input, init).then((item) => {
 					return generateGetOverviewItemPageDate(item, type, protocolName)
@@ -48,7 +48,7 @@ export const useFetchChartsSummary = (type: string, protocolName: string, dataTy
 		}
 	})
 
-	return { data, error, loading: !data && !error }
+	return { data, error, loading: disable ? false : !data && !error }
 }
 
 export const getAPIUrlSummary = (type: string, protocolName: string, dataType?: string, fullChart?: boolean) => {

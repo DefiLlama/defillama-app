@@ -79,20 +79,26 @@ export default function ProtocolChart({
 		router.isReady && mcap === 'true' ? geckoId : null
 	)
 
-	const [feesAndRevenue] = useGetOverviewChartData({
+	const {
+		data: [feesAndRevenue],
+		loading: fetchingFees
+	} = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'fees',
 		type: 'chains',
 		enableBreakdownChart: false,
-		disabled: metrics.fees ? false : true
+		disabled: router.isReady && fees === 'true' && metrics.fees ? false : true
 	})
 
-	const [volumeData] = useGetOverviewChartData({
+	const {
+		data: [volumeData],
+		loading: fetchingVolume
+	} = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'dexs',
 		type: 'chains',
 		enableBreakdownChart: false,
-		disabled: metrics.dexs ? false : true
+		disabled: router.isReady && volume === 'true' && metrics.dexs ? false : true
 	})
 
 	// update tvl calc based on extra tvl options like staking, pool2 selected
@@ -307,7 +313,7 @@ export default function ProtocolChart({
 				</Filters>
 			</FiltersWrapper>
 
-			{!loading && !denominationLoading && router.isReady && (
+			{!loading && !denominationLoading && !fetchingFees && !fetchingVolume && router.isReady && (
 				<AreaChart
 					chartData={finalData}
 					color={color}

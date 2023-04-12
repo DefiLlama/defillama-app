@@ -33,6 +33,12 @@ export const useGetOverviewChartData = ({
 				title: 'Error'
 			}
 
+		if (!data)
+			return {
+				dataChart: [[], []] as [IJoin2ReturnType, string[]],
+				title: 'No Data'
+			}
+
 		let chartData: IJoin2ReturnType
 		let title: string
 		let legend: string[]
@@ -44,12 +50,14 @@ export const useGetOverviewChartData = ({
 			chartData = cd
 			legend = lgnd
 		}
+
 		title = Object.keys(legend).length <= 1 ? `${capitalizeFirstLetter(type)} by chain` : ''
+
 		return {
 			dataChart: [chartData, legend] as [IJoin2ReturnType, string[]],
 			title: title
 		}
 	}, [data, error, loading, enableBreakdownChart, type])
 
-	return chartFormatterBy('chain')(mainChart.dataChart, data?.totalDataChartBreakdown)
+	return { data: chartFormatterBy('chain')(mainChart.dataChart, data?.totalDataChartBreakdown), loading }
 }
