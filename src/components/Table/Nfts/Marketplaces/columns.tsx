@@ -1,18 +1,34 @@
 import { ColumnDef } from '@tanstack/react-table'
 import type { INftMarketplace } from '../types'
 import { formattedPercent } from '~/utils'
+import TokenLogo from '~/components/TokenLogo'
+import { Name } from '../../shared'
 
 export const columns: ColumnDef<INftMarketplace>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'exchangeName',
 		enableSorting: false,
-		size: 200
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			console.log(row)
+			const name = getValue()
+			const icon = row.original.exchangeName.toLowerCase().replace(' aggregator', '').replace(' ', '-')
+
+			return (
+				<Name>
+					<span>{index + 1}</span> <TokenLogo logo={`https://icons.llamao.fi/icons/protocols/${icon}`} data-lgonly />
+					{name}
+				</Name>
+			)
+		},
+		size: 280
 	},
 	{
 		header: 'Volume change',
 		accessorKey: 'weeklyChange',
-		size: 120,
+		size: 160,
 		cell: (info) => <>{info.getValue() ? formattedPercent(info.getValue()) : null}</>,
 		meta: {
 			align: 'end',
@@ -22,7 +38,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 	{
 		header: 'Volume 1d',
 		accessorKey: '1DayVolume',
-		size: 120,
+		size: 130,
 		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + ' ETH' : ''}</>,
 		meta: {
 			align: 'end',
@@ -32,7 +48,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 	{
 		header: 'Volume 7d',
 		accessorKey: '7DayVolume',
-		size: 120,
+		size: 130,
 		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + ' ETH' : ''}</>,
 		meta: {
 			align: 'end',
@@ -42,7 +58,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 	{
 		header: 'Market Share',
 		accessorKey: 'pctOfTotal',
-		size: 120,
+		size: 150,
 		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + '%' : null}</>,
 		meta: {
 			align: 'end',
@@ -52,7 +68,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 	{
 		header: 'Trades 1d',
 		accessorKey: '1DayNbTrades',
-		size: 120,
+		size: 130,
 		meta: {
 			align: 'end',
 			headerHelperText: '24h rolling trades'
@@ -61,7 +77,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 	{
 		header: 'Trades 7d',
 		accessorKey: '7DayNbTrades',
-		size: 120,
+		size: 130,
 		meta: {
 			align: 'end',
 			headerHelperText: '7day rolling trades'
@@ -70,7 +86,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 	{
 		header: '% Wash Volume 7d',
 		accessorKey: 'washVolume7DPct',
-		size: 140,
+		size: 190,
 		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + '%' : null}</>,
 		meta: {
 			align: 'end',
