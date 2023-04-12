@@ -361,7 +361,7 @@ export const Filters = styled.div`
 	justify-content: space-between;
 	gap: 16px;
 	padding: 6px;
-	background-color: ${({ color }) => transparentize(0.8, color)};
+	background-color: ${({ theme, color }) => (color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1))};
 	border-radius: 12px;
 	width: min-content;
 `

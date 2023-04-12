@@ -25,10 +25,11 @@ import {
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
 import { Header } from '~/Theme'
-import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
+import { SearchIcon, SearchWrapper } from '~/components/Table/shared'
 import dynamic from 'next/dynamic'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { AutoRow } from '~/components/Row'
+import { Checkbox2 } from '~/components'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -120,6 +121,9 @@ export const getStaticProps = async ({
 			data: {
 				...data,
 				proposals,
+				controversialProposals: proposals
+					.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+					.slice(0, 10),
 				activity,
 				maxVotes
 			},
@@ -136,9 +140,10 @@ export async function getStaticPaths() {
 export default function Protocol({ data, isOnChainGovernance }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'state', desc: true }])
+	const [filterControversialProposals, setFilterProposals] = React.useState(false)
 
 	const instance = useReactTable({
-		data: data.proposals,
+		data: filterControversialProposals ? data.controversialProposals : data.proposals,
 		columns: isOnChainGovernance ? proposalsCompoundColumns : proposalsSnapshotColumns,
 		state: {
 			columnFilters,
@@ -271,10 +276,20 @@ export default function Protocol({ data, isOnChainGovernance }) {
 				</LinksWrapper>
 			</Wrapper>
 
-			<TableHeaderAndSearch>
-				<Header>Proposals</Header>
+			<TableFilters>
+				<Header style={{ margin: 0 }}>Proposals</Header>
 
-				<SearchWrapper>
+				<FilterProposals>
+					<Checkbox2
+						type="checkbox"
+						value="controversial proposals"
+						checked={filterControversialProposals}
+						onChange={() => setFilterProposals(!filterControversialProposals)}
+					/>
+					<span>Filter Controversial Proposals</span>
+				</FilterProposals>
+
+				<SearchWrapper style={{ bottom: 0, marginLeft: 0 }}>
 					<SearchIcon size={16} />
 
 					<input
@@ -285,7 +300,7 @@ export default function Protocol({ data, isOnChainGovernance }) {
 						placeholder="Search proposals..."
 					/>
 				</SearchWrapper>
-			</TableHeaderAndSearch>
+			</TableFilters>
 
 			<TableWrapper instance={instance} />
 		</Layout>
@@ -495,6 +510,29 @@ const simpleStack = {
 const maxVotesStack = {
 	'Max Votes': 'maxvotes'
 }
+
+const TableFilters = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	flex-wrap: wrap;
+
+	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+		flex-direction: row;
+		align-items: center;
+	}
+`
+const FilterProposals = styled.label`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: nowrap;
+	margin-left: auto;
+
+	span {
+		white-space: nowrap;
+	}
+`
 
 const formatText = (text: string, length) => (text.length > length ? text.slice(0, length + 1) + '...' : text)
 
