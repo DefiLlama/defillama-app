@@ -16,7 +16,7 @@ const Wrapper = styled.div`
 export default function AreaBarChart({
 	chartData,
 	stacks,
-	stackColors,
+	stackColors={},
 	valueSymbol = '',
 	title,
 	color,
