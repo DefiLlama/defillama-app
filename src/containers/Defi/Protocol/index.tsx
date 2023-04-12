@@ -380,7 +380,7 @@ function ProtocolContainer({
 
 			{name === 'SyncDEX Finance' && (
 				<Announcement warning={true} notCancellable={true}>
-					Unstaking immediately is not available in this protocol. Please be careful.
+					Unstaking immediately is not available in this protocol and many users have reported red flags. Be careful.
 				</Announcement>
 			)}
 
