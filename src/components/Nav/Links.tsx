@@ -13,7 +13,8 @@ import {
 	Repeat,
 	Layers,
 	Image as FeatherImage,
-	Unlock
+	Unlock,
+	Image
 } from 'react-feather'
 
 export interface IMainLink {
@@ -209,6 +210,14 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Repeat size={16} />
+	},
+	NFT: {
+		main: [
+			{ name: 'Collections', path: '/nfts' },
+			{ name: 'Marketplaces', path: '/nfts/marketplaces' }
+		],
+		...defaultToolsAndFooterLinks,
+		icon: <Image size={16} />
 	},
 	Unlocks: {
 		main: [],
