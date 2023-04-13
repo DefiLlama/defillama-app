@@ -15,6 +15,7 @@ import type {
 	LiteProtocol
 } from '~/api/types'
 import {
+	ACTIVE_USERS_API,
 	CATEGORY_API,
 	CHART_API,
 	CONFIG_API,
@@ -101,8 +102,8 @@ export const getAllProtocolEmissions = async () => {
 
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
-		const list = await fetch(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json());
-    if (!list.includes(protocolName)) return { data: [], categories: [] };
+		const list = await fetch(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json())
+		if (!list.includes(protocolName)) return { data: [], categories: [] }
 
 		const res = await fetch(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
@@ -548,7 +549,7 @@ export const getNewChainsPageData = async (category: string) => {
 		getChainsPageDataByType('dexs'),
 		getChainPageDataByType('fees'),
 		getPeggedAssets(),
-		fetch(`https://api.llama.fi/activeUsers`).then((res) => res.json())
+		fetch(ACTIVE_USERS_API).then((res) => res.json())
 	])
 
 	const categoryLinks = [
@@ -591,7 +592,9 @@ export const getNewChainsPageData = async (category: string) => {
 				const { total24h: dexsTotal24h } =
 					dexsChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
 
-				const users = Object.entries(activeUsers).find(([name]) => name.toLowerCase() === "chain#" + chain.name.toLowerCase())
+				const users = Object.entries(activeUsers).find(
+					([name]) => name.toLowerCase() === 'chain#' + chain.name.toLowerCase()
+				)
 
 				return {
 					...chain,
@@ -697,7 +700,7 @@ export const getChainsPageData = async (category: string) => {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-				} catch (e) { }
+				} catch (e) {}
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
 		})

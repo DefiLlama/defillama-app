@@ -16,7 +16,7 @@ const Wrapper = styled.div`
 export default function AreaBarChart({
 	chartData,
 	stacks,
-	stackColors={},
+	stackColors = {},
 	valueSymbol = '',
 	title,
 	color,
@@ -45,24 +45,40 @@ export default function AreaBarChart({
 		hideLegend: true
 	})
 
-	const barChartExists = chartsStack.find((st) => ['Volume', 'Fees', 'Revenue'].includes(st)) ? true : false
+	const barChartExists = chartsStack.find((st) => ['Volume', 'Fees', 'Revenue', 'Revenue'].includes(st)) ? true : false
 	const unlockChartExists = chartsStack.includes('Unlocks')
+	const activeUsersChartExists = chartsStack.includes('Active Users')
 	const unlockStackColor = stackColors['Unlocks']
+	const activeUsersStackColor = stackColors['Active Users']
 
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
 
-		const barChartStacks = chartsStack.filter((st) => ['Volume', 'Fees', 'Revenue'].includes(st))
+		const barChartStacks = chartsStack.filter((st) =>
+			['Volume', 'Fees', 'Revenue', 'Revenue', 'Active Users'].includes(st)
+		)
 
 		const series = chartsStack.map((token, index) => {
 			const stackColor = stackColors[token]
 
-			const type = barChartStacks.includes(token) ? 'bar' : 'line'
+			const type = barChartStacks.includes(token) || token === 'Active Users' ? 'bar' : 'line'
 
 			const yAxisIndex = {}
 			if (chartsStack.length > 0) {
 				if (type === 'bar') {
-					yAxisIndex['yAxisIndex'] = 1
+					if (token === 'Active Users') {
+						if (barChartStacks.length > 1) {
+							if (chartsStack.includes('Unlocks')) {
+								yAxisIndex['yAxisIndex'] = 3
+							} else {
+								yAxisIndex['yAxisIndex'] = 2
+							}
+						} else {
+							yAxisIndex['yAxisIndex'] = 1
+						}
+					} else {
+						yAxisIndex['yAxisIndex'] = 1
+					}
 				} else {
 					if (token === 'Unlocks') {
 						if (barChartStacks.length > 0) {
@@ -185,7 +201,7 @@ export default function AreaBarChart({
 				type: 'value',
 				position: 'right',
 				alignTicks: true,
-				offset: barChartExists ? 40 : 0,
+				offset: barChartExists ? 60 : 10,
 				axisLabel: {
 					formatter: (value) => toK(value) + ' ' + unlockTokenSymbol
 				},
@@ -193,6 +209,26 @@ export default function AreaBarChart({
 					show: true,
 					lineStyle: {
 						color: unlockStackColor
+					}
+				}
+			})
+		}
+
+		if (activeUsersChartExists) {
+			yAxiss.push({
+				...yAxis,
+				name: '',
+				type: 'value',
+				position: 'right',
+				alignTicks: true,
+				offset: barChartExists && unlockChartExists ? 80 : barChartExists || unlockChartExists ? 40 : 10,
+				axisLabel: {
+					formatter: (value) => toK(value)
+				},
+				axisLine: {
+					show: true,
+					lineStyle: {
+						color: activeUsersStackColor
 					}
 				}
 			})
@@ -242,7 +278,9 @@ export default function AreaBarChart({
 		unlockTokenSymbol,
 		barChartExists,
 		unlockChartExists,
-		unlockStackColor
+		unlockStackColor,
+		activeUsersChartExists,
+		activeUsersStackColor
 	])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName

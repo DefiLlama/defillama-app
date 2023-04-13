@@ -204,6 +204,7 @@ interface IProtocolContainerProps {
 	emissions: IEmission
 	isCEX?: boolean
 	chartColors: { [type: string]: string }
+	users: { users: number }
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
@@ -217,9 +218,11 @@ function ProtocolContainer({
 	similarProtocols,
 	emissions,
 	isCEX,
-	chartColors
+	chartColors,
+	users
 }: IProtocolContainerProps) {
 	useScrollToTop()
+
 	const {
 		address = '',
 		name,
@@ -370,7 +373,7 @@ function ProtocolContainer({
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
-	const { tvl, mcap, volume, fees, revenue, unlocks, events } = router.query
+	const { tvl, mcap, volume, fees, revenue, unlocks, activeUsers, events } = router.query
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
@@ -411,7 +414,12 @@ function ProtocolContainer({
 						{!isParentProtocol && <Bookmark readableProtocolName={name} />}
 					</Name>
 
-					{gecko_id || hallmarks?.length > 0 || metrics.fees || metrics.dexs || emissions?.chartData?.length > 0 ? (
+					{gecko_id ||
+					hallmarks?.length > 0 ||
+					metrics.fees ||
+					metrics.dexs ||
+					emissions?.chartData?.length > 0 ||
+					users ? (
 						<ToggleWrapper>
 							<Toggle backgroundColor={backgroundColor}>
 								<input
@@ -549,6 +557,29 @@ function ProtocolContainer({
 								</Toggle>
 							)}
 
+							{users && (
+								<Toggle backgroundColor={backgroundColor}>
+									<input
+										type="checkbox"
+										value="activeUsers"
+										checked={activeUsers === 'true'}
+										onChange={() =>
+											router.push(
+												{
+													pathname: router.pathname,
+													query: { ...router.query, activeUsers: activeUsers === 'true' ? false : true }
+												},
+												undefined,
+												{ shallow: true }
+											)
+										}
+									/>
+									<span data-wrapper="true">
+										<span>Active Users</span>
+									</span>
+								</Toggle>
+							)}
+
 							{hallmarks?.length > 0 && (
 								<Toggle backgroundColor={backgroundColor}>
 									<input
@@ -650,6 +681,7 @@ function ProtocolContainer({
 					metrics={metrics}
 					emissions={emissions?.chartData}
 					unlockTokenSymbol={emissions?.tokenPrice?.symbol}
+					activeUsersId={users ? protocolData.id : null}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>

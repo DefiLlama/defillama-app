@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { ToggleWrapper2 } from '~/components'
-import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
+import { useDenominationPriceHistory, useFetchProtocolActiveUsers } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import type { IChartProps } from '../types'
@@ -30,6 +30,7 @@ interface IProps {
 		[label: string]: number
 	}>
 	unlockTokenSymbol?: string
+	activeUsersId: number | string | null
 }
 
 export default function ProtocolChart({
@@ -43,13 +44,14 @@ export default function ProtocolChart({
 	chartColors,
 	metrics,
 	emissions,
-	unlockTokenSymbol
+	unlockTokenSymbol,
+	activeUsersId
 }: IProps) {
 	const router = useRouter()
 
 	const [extraTvlEnabled] = useDefiManager()
 
-	const { denomination, tvl, mcap, events, volume, fees, revenue, unlocks } = router.query
+	const { denomination, tvl, mcap, events, volume, fees, revenue, unlocks, activeUsers } = router.query
 
 	const showMcap = mcap === 'true'
 	const hideHallmarks = events === 'false'
@@ -89,6 +91,8 @@ export default function ProtocolChart({
 		enableBreakdownChart: false,
 		disabled: router.isReady && fees === 'true' && metrics.fees ? false : true
 	})
+
+	const { data: users, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(activeUsersId)
 
 	const {
 		data: [volumeData],
@@ -257,6 +261,21 @@ export default function ProtocolChart({
 				})
 		}
 
+		if (activeUsers === 'true' && users) {
+			tokensUnique.push('Active Users')
+
+			users.forEach((item) => {
+				if (!chartData[item.date]) {
+					chartData[item.date] = {}
+				}
+
+				chartData[item.date] = {
+					...chartData[item.date],
+					'Active Users': item['All'] || 0
+				}
+			})
+		}
+
 		const finalData = Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
 			date,
 			...values
@@ -281,9 +300,40 @@ export default function ProtocolChart({
 		revenue,
 		router.isReady,
 		unlocks,
-		emissions
+		emissions,
+		activeUsers,
+		users
 	])
 
+	const fetchingTypes = []
+
+	if (denominationLoading) {
+		fetchingTypes.push(denomination + ' price')
+	}
+
+	if (loading) {
+		fetchingTypes.push('mcap')
+	}
+
+	if (fetchingFees) {
+		if (fees === 'true') {
+			fetchingTypes.push('fees')
+		}
+
+		if (revenue === 'true') {
+			fetchingTypes.push('revenue')
+		}
+	}
+
+	if (fetchingVolume) {
+		fetchingTypes.push('volume')
+	}
+
+	if (fetchingActiveUsers) {
+		fetchingTypes.push('active users')
+	}
+
+	const isLoading = loading || denominationLoading || fetchingFees || fetchingVolume || fetchingActiveUsers
 	return (
 		<Wrapper>
 			<FiltersWrapper>
@@ -298,6 +348,7 @@ export default function ProtocolChart({
 								(fees ? `fees=${fees}&` : '') +
 								(revenue ? `revenue=${revenue}&` : '') +
 								(unlocks ? `unlocks=${unlocks}&` : '') +
+								(activeUsers ? `activeUsers=${activeUsers}&` : '') +
 								(events ? `events=${events}&` : '') +
 								`denomination=${D.symbol}`
 							}
@@ -313,7 +364,11 @@ export default function ProtocolChart({
 				</Filters>
 			</FiltersWrapper>
 
-			{!loading && !denominationLoading && !fetchingFees && !fetchingVolume && router.isReady && (
+			{!router.isReady ? null : isLoading ? (
+				<p
+					style={{ position: 'relative', top: '0', bottom: '0', margin: 'auto', textAlign: 'center' }}
+				>{`Fetching ${fetchingTypes.join(', ')} ...`}</p>
+			) : (
 				<AreaChart
 					chartData={finalData}
 					color={color}

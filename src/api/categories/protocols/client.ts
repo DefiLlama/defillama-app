@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
 import useSWR from 'swr'
-import { PROTOCOLS_API, PROTOCOL_TREASURY_API } from '~/constants'
+import { ACTIVE_USERS_API, PROTOCOLS_API, PROTOCOL_TREASURY_API } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
 import { getProtocol } from '.'
 import { formatProtocolsData } from './utils'
+import { capitalizeFirstLetter } from '~/utils'
 
 export const useFetchProtocolsList = () => {
 	const { data, error } = useSWR(PROTOCOLS_API, fetcher)
@@ -26,6 +27,35 @@ export const useFetchProtocolTreasury = (protocolName) => {
 	const loading = protocolName && !data && !error
 
 	return { data, error, loading }
+}
+
+export const useFetchProtocolActiveUsers = (protocolId: number | string) => {
+	const { data, error } = useSWR(
+		`activeUsers/${protocolId}`,
+		protocolId ? () => fetch(`${ACTIVE_USERS_API}/${protocolId}`).then((res) => res.json()) : () => null
+	)
+
+	const users = {}
+
+	data?.forEach((item) => {
+		if (!users[item.start]) {
+			users[item.start] = {}
+		}
+
+		users[item.start] = {
+			...users[item.start],
+			[capitalizeFirstLetter(item.chain)]: item.users
+		}
+	})
+
+	return {
+		data: Object.entries(users).map(([date, values]: [string, { [key: string]: number }]) => ({
+			date,
+			...values
+		})),
+		error,
+		loading: !data && data !== null && !error
+	}
 }
 
 export const useDenominationPriceHistory = (geckoId?: string) => {

@@ -1,5 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { deriveColors, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import { capitalizeFirstLetter, deriveColors, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {
@@ -12,6 +12,7 @@ import {
 import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
+import { ACTIVE_USERS_API } from '~/constants'
 
 export const getStaticProps = async ({
 	params: {
@@ -33,32 +34,42 @@ export const getStaticProps = async ({
 
 	const protocolData = fuseProtocolData(protocolRes)
 
-	const backgroundColor = await getColor(tokenIconPaletteUrl(protocolData.name))
+	const [backgroundColor, allProtocols, activeUsers] = await Promise.all([
+		getColor(tokenIconPaletteUrl(protocolData.name)),
+		getProtocolsRaw(),
+		fetch(ACTIVE_USERS_API).then((res) => res.json())
+	])
 
-	const chartTypes = ['TVL', 'Mcap', 'Fees', 'Revenue', 'Volume', 'Unlocks']
+	const chartTypes = ['TVL', 'Mcap', 'Fees', 'Revenue', 'Volume', 'Unlocks', 'Active Users']
 
 	const colorTones = Object.fromEntries(
 		chartTypes.map((type, index) => [type, deriveColors(backgroundColor, index, chartTypes.length)])
 	)
 
-	const similarProtocols = (await getProtocolsRaw())?.protocols
-		.filter(
-			(p) =>
-				p.category?.toLowerCase() === protocolData.category?.toLowerCase() &&
-				p.name.toLowerCase() !== protocolData.name?.toLowerCase()
-		)
-		?.map((p) => {
-			let commonChains = 0
+	const similarProtocols =
+		allProtocols && protocolData.category
+			? allProtocols.protocols
+					.filter((p) => {
+						if (p.category) {
+							return (
+								p.category.toLowerCase() === protocolData.category.toLowerCase() &&
+								p.name.toLowerCase() !== protocolData.name?.toLowerCase()
+							)
+						} else return false
+					})
+					.map((p) => {
+						let commonChains = 0
 
-			protocolData?.chains?.forEach((chain) => {
-				if (p.chains.includes(chain)) {
-					commonChains += 1
-				}
-			})
+						protocolData?.chains?.forEach((chain) => {
+							if (p.chains.includes(chain)) {
+								commonChains += 1
+							}
+						})
 
-			return { name: p.name, tvl: p.tvl, commonChains }
-		})
-		?.sort((a, b) => b.tvl - a.tvl)
+						return { name: p.name, tvl: p.tvl, commonChains }
+					})
+					.sort((a, b) => b.tvl - a.tvl)
+			: []
 
 	const similarProtocolsSet = new Set<string>()
 
@@ -84,7 +95,8 @@ export const getStaticProps = async ({
 				similarProtocols.find((p) => p.name === protocolName)
 			),
 			emissions,
-			chartColors: colorTones
+			chartColors: colorTones,
+			users: activeUsers[protocolData.id] || null
 		},
 		revalidate: maxAgeForNext([22])
 	}
