@@ -373,7 +373,7 @@ function ProtocolContainer({
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
-	const { tvl, mcap, volume, fees, revenue, unlocks, activeUsers, events } = router.query
+	const { tvl, mcap, tokenPrice, fdv, volume, fees, revenue, unlocks, activeUsers, events } = router.query
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
@@ -443,26 +443,70 @@ function ProtocolContainer({
 							</Toggle>
 
 							{gecko_id && (
-								<Toggle backgroundColor={backgroundColor}>
-									<input
-										type="checkbox"
-										value="mcap"
-										checked={mcap === 'true'}
-										onChange={() =>
-											router.push(
-												{
-													pathname: router.pathname,
-													query: { ...router.query, mcap: mcap === 'true' ? false : true }
-												},
-												undefined,
-												{ shallow: true }
-											)
-										}
-									/>
-									<span data-wrapper="true">
-										<span>Mcap</span>
-									</span>
-								</Toggle>
+								<>
+									<Toggle backgroundColor={backgroundColor}>
+										<input
+											type="checkbox"
+											value="mcap"
+											checked={mcap === 'true'}
+											onChange={() =>
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...router.query, mcap: mcap === 'true' ? false : true }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}
+										/>
+										<span data-wrapper="true">
+											<span>Mcap</span>
+										</span>
+									</Toggle>
+
+									<Toggle backgroundColor={backgroundColor}>
+										<input
+											type="checkbox"
+											value="tokenPrice"
+											checked={tokenPrice === 'true'}
+											onChange={() =>
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...router.query, tokenPrice: tokenPrice === 'true' ? false : true }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}
+										/>
+										<span data-wrapper="true">
+											<span>Token Price</span>
+										</span>
+									</Toggle>
+
+									<Toggle backgroundColor={backgroundColor}>
+										<input
+											type="checkbox"
+											value="fdv"
+											checked={fdv === 'true'}
+											onChange={() =>
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...router.query, fdv: fdv === 'true' ? false : true }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}
+										/>
+										<span data-wrapper="true">
+											<span>FDV</span>
+										</span>
+									</Toggle>
+								</>
 							)}
 
 							{metrics.dexs && (

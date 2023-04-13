@@ -117,7 +117,7 @@ export function useDefaults({
 					topParams.reverse()
 				}
 
-				if (valueSymbol !== '%' && valueSymbol !== 'ETH') {
+				if (valueSymbol === '$') {
 					vals = topParams.reduce((prev, curr) => {
 						return (prev +=
 							'<li style="list-style:none">' +
@@ -145,7 +145,7 @@ export function useDefaults({
 							curr.marker +
 							curr.seriesName +
 							'&nbsp;&nbsp;' +
-							Math.round(curr.value[1] * 100) / 100 +
+							(valueSymbol === '%' ? Math.round(curr.value[1] * 100) / 100 : toK(curr.value[1], 4)) +
 							'&nbsp;' +
 							valueSymbol +
 							'</li>')
@@ -243,7 +243,9 @@ export function useDefaults({
 			type: 'value',
 			axisLabel: {
 				formatter: (value) =>
-					valueSymbol === '%' || valueSymbol === 'ETH' ? value + ' ' + valueSymbol : valueSymbol + toK(value)
+					valueSymbol === '$'
+						? valueSymbol + toK(value)
+						: (valueSymbol === '%' ? value : toK(value, 4)) + ' ' + valueSymbol
 			},
 			axisLine: {
 				lineStyle: {

@@ -4,13 +4,13 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { ToggleWrapper2 } from '~/components'
 import { useDenominationPriceHistory, useFetchProtocolActiveUsers } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import type { IChartProps } from '../types'
 import { nearestUtc } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
+import useSWR from 'swr'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -51,11 +51,7 @@ export default function ProtocolChart({
 
 	const [extraTvlEnabled] = useDefiManager()
 
-	const { denomination, tvl, mcap, events, volume, fees, revenue, unlocks, activeUsers } = router.query
-
-	const showMcap = mcap === 'true'
-	const hideHallmarks = events === 'false'
-	const showVol = volume === 'true'
+	const { denomination, tvl, mcap, tokenPrice, fdv, events, volume, fees, revenue, unlocks, activeUsers } = router.query
 
 	const DENOMINATIONS = React.useMemo(() => {
 		let d = [{ symbol: 'USD', geckoId: null }]
@@ -78,8 +74,20 @@ export default function ProtocolChart({
 
 	// fetch protocol mcap data
 	const { data: protocolCGData, loading } = useDenominationPriceHistory(
-		router.isReady && mcap === 'true' ? geckoId : null
+		router.isReady && (mcap === 'true' || tokenPrice === 'true' || fdv === 'true') ? geckoId : null
 	)
+
+	const { data: fdvData, error: fdvError } = useSWR(
+		`fdv-${geckoId}-${fdv}-${router.isReady}`,
+		geckoId && fdv === 'true' && router.isReady
+			? () =>
+					fetch(
+						`https://api.coingecko.com/api/v3/coins/${geckoId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
+					).then((res) => res.json())
+			: () => null
+	)
+
+	const fetchingFdv = !fdvData && fdvData !== null && !fdvError
 
 	const {
 		data: [feesAndRevenue],
@@ -122,9 +130,7 @@ export default function ProtocolChart({
 	if (showNonUsdDenomination) {
 		const d = DENOMINATIONS.find((d) => d.symbol === denomination)
 
-		if (d.symbol === 'ETH') {
-			valueSymbol = 'Ξ'
-		} else valueSymbol = d.symbol.slice(0, 1)
+		valueSymbol = d.symbol || ''
 	}
 
 	const { finalData, tokensUnique } = React.useMemo(() => {
@@ -154,41 +160,115 @@ export default function ProtocolChart({
 			})
 		}
 
-		if (geckoId && showMcap && protocolCGData) {
-			tokensUnique.push('Mcap')
+		if (geckoId && protocolCGData) {
+			if (mcap === 'true') {
+				tokensUnique.push('Mcap')
 
-			protocolCGData['market_caps'].forEach(([dateMs, Mcap]) => {
-				const date = Math.floor(nearestUtc(dateMs) / 1000)
-				if (!chartData[date]) {
-					chartData[date] = {}
+				protocolCGData['market_caps'].forEach(([dateMs, Mcap]) => {
+					const date = Math.floor(nearestUtc(dateMs) / 1000)
+					if (!chartData[date]) {
+						chartData[date] = {}
+					}
+
+					chartData[date] = {
+						...chartData[date],
+						Mcap: showNonUsdDenomination ? Mcap / getPriceAtDate(date, denominationHistory.prices) : Mcap
+					}
+				})
+
+				if (
+					tvlData.length > 0 &&
+					tvl !== 'false' &&
+					protocolCGData['market_caps'].length > 0 &&
+					protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][0] <
+						+tvlData[tvlData.length - 1][0] * 1000
+				) {
+					const date = isHourlyTvl
+						? tvlData[tvlData.length - 1][0]
+						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
+					const Mcap = protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][1]
+
+					chartData[date] = {
+						...chartData[date],
+						Mcap: showNonUsdDenomination ? Mcap / getPriceAtDate(date, denominationHistory.prices) : Mcap
+					}
 				}
+			}
 
-				chartData[date] = {
-					...chartData[date],
-					Mcap: showNonUsdDenomination ? Mcap / getPriceAtDate(date, denominationHistory.prices) : Mcap
+			if (tokenPrice === 'true') {
+				tokensUnique.push('Token Price')
+
+				protocolCGData['prices'].forEach(([dateMs, price]) => {
+					const date = Math.floor(nearestUtc(dateMs) / 1000)
+					if (!chartData[date]) {
+						chartData[date] = {}
+					}
+
+					chartData[date] = {
+						...chartData[date],
+						'Token Price': showNonUsdDenomination ? price / getPriceAtDate(date, denominationHistory.prices) : price
+					}
+				})
+
+				if (
+					tvlData.length > 0 &&
+					tvl !== 'false' &&
+					protocolCGData['prices'].length > 0 &&
+					protocolCGData['prices'][protocolCGData['prices'].length - 1][0] < +tvlData[tvlData.length - 1][0] * 1000
+				) {
+					const date = isHourlyTvl
+						? tvlData[tvlData.length - 1][0]
+						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
+					const tokenPrice = protocolCGData['prices'][protocolCGData['prices'].length - 1][1]
+
+					chartData[date] = {
+						...chartData[date],
+						'Token Price': showNonUsdDenomination
+							? tokenPrice / getPriceAtDate(date, denominationHistory.prices)
+							: tokenPrice
+					}
 				}
-			})
+			}
 
-			if (
-				tvlData.length > 0 &&
-				tvl !== 'false' &&
-				protocolCGData['market_caps'].length > 0 &&
-				protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][0] <
-					+tvlData[tvlData.length - 1][0] * 1000
-			) {
-				const date = isHourlyTvl
-					? tvlData[tvlData.length - 1][0]
-					: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
-				const Mcap = protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][1]
+			if (fdv === 'true' && fdvData) {
+				tokensUnique.push('FDV')
 
-				chartData[date] = {
-					...chartData[date],
-					Mcap: showNonUsdDenomination ? Mcap / getPriceAtDate(date, denominationHistory.prices) : Mcap
+				const totalSupply = fdvData['market_data']['total_supply']
+
+				protocolCGData['prices'].forEach(([dateMs, price]) => {
+					const date = Math.floor(nearestUtc(dateMs) / 1000)
+					if (!chartData[date]) {
+						chartData[date] = {}
+					}
+					const fdv = totalSupply * price
+
+					chartData[date] = {
+						...chartData[date],
+						FDV: showNonUsdDenomination ? fdv / getPriceAtDate(date, denominationHistory.prices) : fdv
+					}
+				})
+
+				if (
+					tvlData.length > 0 &&
+					tvl !== 'false' &&
+					protocolCGData['prices'].length > 0 &&
+					protocolCGData['prices'][protocolCGData['prices'].length - 1][0] < +tvlData[tvlData.length - 1][0] * 1000
+				) {
+					const date = isHourlyTvl
+						? tvlData[tvlData.length - 1][0]
+						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
+					const tokenPrice = protocolCGData['prices'][protocolCGData['prices'].length - 1][1]
+					const fdv = totalSupply * tokenPrice
+
+					chartData[date] = {
+						...chartData[date],
+						FDV: showNonUsdDenomination ? fdv / getPriceAtDate(date, denominationHistory.prices) : fdv
+					}
 				}
 			}
 		}
 
-		if (showVol) {
+		if (volume === 'true') {
 			tokensUnique.push('Volume')
 
 			volumeData.forEach((item) => {
@@ -288,9 +368,9 @@ export default function ProtocolChart({
 	}, [
 		tvlData,
 		protocolCGData,
-		showMcap,
+		mcap,
 		geckoId,
-		showVol,
+		volume,
 		volumeData,
 		tvl,
 		showNonUsdDenomination,
@@ -302,7 +382,10 @@ export default function ProtocolChart({
 		unlocks,
 		emissions,
 		activeUsers,
-		users
+		users,
+		tokenPrice,
+		fdv,
+		fdvData
 	])
 
 	const fetchingTypes = []
@@ -312,7 +395,17 @@ export default function ProtocolChart({
 	}
 
 	if (loading) {
-		fetchingTypes.push('mcap')
+		if (mcap === 'true') {
+			fetchingTypes.push('mcap')
+		}
+
+		if (tokenPrice === 'true') {
+			fetchingTypes.push('token price')
+		}
+	}
+
+	if ((loading || fetchingFdv) && fdv === 'true') {
+		fetchingTypes.push('fdv')
 	}
 
 	if (fetchingFees) {
@@ -344,6 +437,8 @@ export default function ProtocolChart({
 								`/protocol/${protocol}?` +
 								(tvl ? `tvl=${tvl}&` : '') +
 								(mcap ? `mcap=${mcap}&` : '') +
+								(tokenPrice ? `tokenPrice=${tokenPrice}&` : '') +
+								(fdv ? `fdv=${fdv}&` : '') +
 								(volume ? `volume=${volume}&` : '') +
 								(fees ? `fees=${fees}&` : '') +
 								(revenue ? `revenue=${revenue}&` : '') +
@@ -375,7 +470,7 @@ export default function ProtocolChart({
 					title=""
 					valueSymbol={valueSymbol}
 					stacks={tokensUnique}
-					hallmarks={!hideHallmarks && hallmarks}
+					hallmarks={!(events === 'false') && hallmarks}
 					tooltipSort={false}
 					stackColors={chartColors}
 					style={{

@@ -93,8 +93,8 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	return description
 }
 
-export const toK = (num) => {
-	return Numeral(num).format('0.[00]a')
+export const toK = (num, decimals = 2) => {
+	return Numeral(num).format(`'0.[${new Array(decimals || 2).fill(0).join('')}]a'`)
 }
 
 // using a currency library here in case we want to add more in future

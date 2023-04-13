@@ -1,5 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { capitalizeFirstLetter, deriveColors, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import { deriveColors, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {
@@ -40,7 +40,7 @@ export const getStaticProps = async ({
 		fetch(ACTIVE_USERS_API).then((res) => res.json())
 	])
 
-	const chartTypes = ['TVL', 'Mcap', 'Fees', 'Revenue', 'Volume', 'Unlocks', 'Active Users']
+	const chartTypes = ['TVL', 'Mcap', 'Token Price', 'FDV', 'Fees', 'Revenue', 'Volume', 'Unlocks', 'Active Users']
 
 	const colorTones = Object.fromEntries(
 		chartTypes.map((type, index) => [type, deriveColors(backgroundColor, index, chartTypes.length)])
