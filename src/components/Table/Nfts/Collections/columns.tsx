@@ -12,9 +12,10 @@ export const columns: ColumnDef<INftCollection>[] = [
 		enableSorting: false,
 		cell: ({ row }) => {
 			const item = row.original
+
 			return (
 				<Name>
-					<TokenLogo logo={nftCollectionIconUrl(item.collectionId)} external />
+					<TokenLogo logo={nftCollectionIconUrl(item.collectionId)} fallbackLogo={item?.image} external />
 					<CustomLink href={`/nfts/collection/${slug(item.collectionId)}`}>{`${item.name}`}</CustomLink>
 				</Name>
 			)
