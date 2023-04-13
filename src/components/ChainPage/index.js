@@ -229,7 +229,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 
 			<Announcement>
 				<Image
-					src="https://icons.llamao.fi/icons/memes/gib?w=36&h=36"
+					src="https://icons.llamao.fi/icons/memes/gib.png?w=36&h=36"
 					alt="Cute"
 					width={18}
 					height={18}
