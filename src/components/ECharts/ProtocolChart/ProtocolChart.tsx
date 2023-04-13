@@ -77,7 +77,7 @@ export default function ProtocolChart({
 		router.isReady && (mcap === 'true' || tokenPrice === 'true' || fdv === 'true') ? geckoId : null
 	)
 
-	const { data: fdvData, error: fdvError } = useSWR(
+	const { data: fdvData = null, error: fdvError } = useSWR(
 		`fdv-${geckoId}-${fdv}-${router.isReady}`,
 		geckoId && fdv === 'true' && router.isReady
 			? () =>
@@ -87,7 +87,7 @@ export default function ProtocolChart({
 			: () => null
 	)
 
-	const fetchingFdv = !fdvData && fdvData !== null && !fdvError
+	const fetchingFdv = router.isReady && fdv === 'true' && !fdvData && fdvData !== null && !fdvError
 
 	const {
 		data: [feesAndRevenue],
@@ -426,7 +426,9 @@ export default function ProtocolChart({
 		fetchingTypes.push('active users')
 	}
 
-	const isLoading = loading || denominationLoading || fetchingFees || fetchingVolume || fetchingActiveUsers
+	const isLoading =
+		loading || fetchingFdv || denominationLoading || fetchingFees || fetchingVolume || fetchingActiveUsers
+
 	return (
 		<Wrapper>
 			<FiltersWrapper>

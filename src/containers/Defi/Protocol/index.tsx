@@ -672,7 +672,7 @@ function ProtocolContainer({
 								{tvls.map((chainTvl) => (
 									<tr key={chainTvl[0]}>
 										<th>{capitalizeFirstLetter(chainTvl[0])}</th>
-										<td>${toK(chainTvl[1] || 0)}</td>
+										<td>{formattedNum(chainTvl[1] || 0, true)}</td>
 									</tr>
 								))}
 							</tbody>
@@ -705,7 +705,7 @@ function ProtocolContainer({
 												</span>
 											</ExtraOption>
 										</th>
-										<td>${toK(value)}</td>
+										<td>{formattedNum(value, true)}</td>
 									</tr>
 								))}
 							</tbody>
