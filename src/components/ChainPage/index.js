@@ -229,17 +229,17 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 
 			<Announcement>
 				<Image
-					src="https://icons.llamao.fi/icons/memes/cute?w=36&h=36"
+					src="https://icons.llamao.fi/icons/memes/gib?w=36&h=36"
 					alt="Cute"
 					width={18}
 					height={18}
 					unoptimized
 					style={{ marginRight: '0.25rem', display: 'inline' }}
 				/>
-				{'  '}Check out our new{' '}
-				<Link href={`https://chrome.google.com/webstore/detail/defillama/phgiabfbjodhgckcffppiboooeiecgeg`}>
+				{'  '}We've released our{' '}
+				<Link href={`/governance`}>
 					<a>
-						Chrome Extension <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+						Governance dashboard <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
 					</a>
 				</Link>
 				{' !'}
