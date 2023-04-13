@@ -77,7 +77,7 @@ export default function ProtocolChart({
 		router.isReady && (mcap === 'true' || tokenPrice === 'true' || fdv === 'true') ? geckoId : null
 	)
 
-	const { data: fdvData = null, error: fdvError } = useSWR(
+	const { data: fdvData, error: fdvError } = useSWR(
 		`fdv-${geckoId}-${fdv}-${router.isReady}`,
 		geckoId && fdv === 'true' && router.isReady
 			? () =>
@@ -90,7 +90,7 @@ export default function ProtocolChart({
 	const fetchingFdv = router.isReady && fdv === 'true' && !fdvData && fdvData !== null && !fdvError
 
 	const {
-		data: [feesAndRevenue],
+		data: [feesAndRevenueData],
 		loading: fetchingFees
 	} = useGetOverviewChartData({
 		name: protocol,
@@ -100,10 +100,14 @@ export default function ProtocolChart({
 		disabled: router.isReady && fees === 'true' && metrics.fees ? false : true
 	})
 
-	const { data: users, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(activeUsersId)
+	const feesAndRevenue = feesAndRevenueData && feesAndRevenueData.length > 0 ? feesAndRevenueData : null
+
+	const { data: usersData, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(activeUsersId)
+
+	const users = usersData && usersData.length > 0 ? usersData : null
 
 	const {
-		data: [volumeData],
+		data: [volumeData2],
 		loading: fetchingVolume
 	} = useGetOverviewChartData({
 		name: protocol,
@@ -112,6 +116,8 @@ export default function ProtocolChart({
 		enableBreakdownChart: false,
 		disabled: router.isReady && volume === 'true' && metrics.dexs ? false : true
 	})
+
+	const volumeData = volumeData2 && volumeData2.length > 0 ? volumeData2 : null
 
 	// update tvl calc based on extra tvl options like staking, pool2 selected
 	const tvlData = React.useMemo(() => {
@@ -268,7 +274,7 @@ export default function ProtocolChart({
 			}
 		}
 
-		if (volume === 'true') {
+		if (volume === 'true' && volumeData) {
 			tokensUnique.push('Volume')
 
 			volumeData.forEach((item) => {
@@ -284,7 +290,7 @@ export default function ProtocolChart({
 			})
 		}
 
-		if (feesAndRevenue.length > 0) {
+		if (feesAndRevenue) {
 			if (fees === 'true') {
 				tokensUnique.push('Fees')
 			}
