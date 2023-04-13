@@ -12,9 +12,10 @@ import {
 	BookOpen,
 	Repeat,
 	Layers,
-	Image as FeatherImage,
 	Unlock,
-	Image
+	Image,
+	Shuffle,
+	FileText
 } from 'react-feather'
 
 export interface IMainLink {
@@ -234,7 +235,6 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <BookOpen size={16} />
 	},
-	/*
 	Bridges: {
 		main: [
 			{ name: 'Overview', path: '/bridges' },
@@ -244,7 +244,11 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Shuffle size={16} />
 	},
-*/
+	Governance: {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <FileText size={16} />
+	},
 	Liquidations: {
 		main: [],
 		...defaultToolsAndFooterLinks,
@@ -302,6 +306,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'Fees/Revenue', url: '/fees' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Unlocks', url: '/unlocks' },
+	{ name: 'Governance', url: '/governance' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
