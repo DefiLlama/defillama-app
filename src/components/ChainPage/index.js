@@ -237,9 +237,9 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 					style={{ marginRight: '0.25rem', display: 'inline' }}
 				/>
 				{'  '}We've released our{' '}
-				<Link href={`/governance`}>
+				<Link href={`/nfts`}>
 					<a>
-						Governance dashboard <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+						NFT dashboard <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
 					</a>
 				</Link>
 				{' !'}
