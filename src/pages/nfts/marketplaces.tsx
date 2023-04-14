@@ -38,6 +38,7 @@ export async function getStaticProps() {
 function Marketplaces({ data, volume, dominance, marketplaces, volumeChartStacks }) {
 	const [dominanceChart, setDominanceChart] = React.useState(false)
 
+	//x
 	return (
 		<Layout title="NFT Marketplaces - DefiLlama" defaultSEO>
 			<Header>NFT Marketplaces</Header>
