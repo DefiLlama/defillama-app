@@ -34,14 +34,11 @@ export const getAPIUrl = (
 }
 
 export const useFetchChartsSummary = (type: string, protocolName: string, dataType?: string, disable?: boolean) => {
-	const fetch = disable
-		? () => null
-		: async (input: RequestInfo, init?: RequestInit) =>
-				fetcherWErrorHandling(input, init).then((item) => {
-					return generateGetOverviewItemPageDate(item, type, protocolName)
-				})
-
-	const { data, error } = useSWR<ProtocolAdaptorSummaryProps>(getAPIUrlSummary(type, protocolName, dataType), fetch, {
+	const fetch = async (input: RequestInfo, init?: RequestInit) =>
+		fetcherWErrorHandling(input, init).then((item) => {
+			return generateGetOverviewItemPageDate(item, type, protocolName)
+		})
+	const { data, error } = useSWR<ProtocolAdaptorSummaryProps>(!disable ? getAPIUrlSummary(type, protocolName, dataType) : null, fetch, {
 		onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
 			if ([502, 404].includes(error.status)) return
 			setTimeout(() => revalidate({ retryCount }), retryCount * 5000)
