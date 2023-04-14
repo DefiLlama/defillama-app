@@ -15,6 +15,11 @@ export const getStaticProps = async ({
 	}
 }) => {
 	const emissions = await getProtocolEmissons(protocol)
+	if (emissions.data?.length === 0) {
+		return {
+			notFound: true
+		}
+	}
 
 	return {
 		props: {

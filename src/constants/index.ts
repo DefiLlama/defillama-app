@@ -23,7 +23,7 @@ export const PROTOCOLS_BY_TOKEN_API = 'https://api.llama.fi/tokenProtocols'
 export const PROTOCOL_TREASURY_API = 'https://api.llama.fi/treasury'
 export const PROTOCOLS_TREASURY = 'https://api.llama.fi/treasuries'
 export const PROTOCOL_EMISSIONS_API = 'https://api.llama.fi/emissions'
-export const PROTOCOL_EMISSIONS_LIST_API = 'https://api.llama.fi/emissionsList'
+export const PROTOCOL_EMISSIONS_LIST_API = 'https://defillama-datasets.llama.fi/emissionsProtocolsList'
 export const PROTOCOL_EMISSION_API = 'https://api.llama.fi/emission'
 
 export const GOVERNANCE_API =
