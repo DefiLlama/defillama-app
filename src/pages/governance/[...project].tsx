@@ -413,8 +413,7 @@ const proposalsCompoundColumns: ColumnDef<IProposal>[] = [
 		header: 'Controversy',
 		accessorKey: 'score_curve',
 		cell: (info) => (info.getValue() ? (info.getValue() as number).toFixed(2) : ''),
-
-		meta: { align: 'end' }
+		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
 	}
 ]
 
@@ -470,10 +469,10 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 	},
 	{
 		header: 'Controversy',
+
 		accessorKey: 'score_curve',
 		cell: (info) => (info.getValue() ? (info.getValue() as number).toFixed(2) : ''),
-
-		meta: { align: 'end' }
+		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
 	},
 	{
 		header: 'Discussion',
