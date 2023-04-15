@@ -68,7 +68,8 @@ const blockExplorers = {
 	rpg: ['https://scan.rangersprotocol.com/address/', 'Rangerscan'],
 	loop: ['https://explorer.mainnetloop.com/token/', 'LoopExplorer'],
 	era: ['https://explorer.zksync.io/address/', 'zkSync Explorer'],
-	map: ['https://maposcan.io/address/', 'Maposcan']
+	map: ['https://maposcan.io/address/', 'Maposcan'],
+	conflux: ['https://evm.confluxscan.net/address/', 'Conflux Scan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
