@@ -97,7 +97,7 @@ export default function ProtocolChart({
 		dataToFetch: 'fees',
 		type: 'chains',
 		enableBreakdownChart: false,
-		disabled: router.isReady && fees === 'true' && metrics.fees ? false : true
+		disabled: router.isReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
 	})
 
 	const feesAndRevenue = feesAndRevenueData && feesAndRevenueData.length > 0 ? feesAndRevenueData : null
