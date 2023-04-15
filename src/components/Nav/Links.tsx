@@ -43,6 +43,7 @@ interface ILinks {
 		tools: Array<IFooterLink | IButtonLink>
 		footer: Array<IFooterLink | IButtonLink>
 		icon: ReactNode
+		newTag?: boolean
 	}
 }
 
@@ -218,12 +219,14 @@ export const navLinks: ILinks = {
 			{ name: 'Marketplaces', path: '/nfts/marketplaces' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <Image size={16} />
+		icon: <Image size={16} />,
+		newTag: true
 	},
 	Unlocks: {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Unlock size={16} />
+		icon: <Unlock size={16} />,
+		newTag: true
 	},
 	'Borrow Aggregator': {
 		main: [],
@@ -247,7 +250,8 @@ export const navLinks: ILinks = {
 	Governance: {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <FileText size={16} />
+		icon: <FileText size={16} />,
+		newTag: true
 	},
 	Liquidations: {
 		main: [],
@@ -310,6 +314,5 @@ export const linksWithNoSubMenu = [
 	{ name: 'Borrow Aggregator', url: '/borrow' },
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
-	{ name: 'ETH Liquid Staking', url: '/lsd' },
-	{ name: 'NFTs', url: '/nfts' }
+	{ name: 'ETH Liquid Staking', url: '/lsd' }
 ]

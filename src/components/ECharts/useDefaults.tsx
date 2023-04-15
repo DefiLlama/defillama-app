@@ -38,6 +38,7 @@ interface IUseDefaultsProps {
 	valueSymbol?: string
 	hideLegend?: boolean
 	isStackedChart?: boolean
+	unlockTokenSymbol?: string
 }
 
 export function useDefaults({
@@ -47,7 +48,8 @@ export function useDefaults({
 	tooltipOrderBottomUp,
 	valueSymbol = '',
 	hideLegend,
-	isStackedChart
+	isStackedChart,
+	unlockTokenSymbol = ''
 }: IUseDefaultsProps) {
 	const [isDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
@@ -117,54 +119,35 @@ export function useDefaults({
 					topParams.reverse()
 				}
 
-				if (valueSymbol === '$') {
-					vals = topParams.reduce((prev, curr) => {
-						return (prev +=
-							'<li style="list-style:none">' +
-							curr.marker +
-							curr.seriesName +
-							'&nbsp;&nbsp;' +
-							(curr.seriesName === 'Active Users' ? '' : valueSymbol) +
-							toK(curr.value[1]) +
-							'</li>')
-					}, '')
-					if (otherParams.length !== 0) {
-						vals +=
-							'<li style="list-style:none">' +
-							(others?.marker ?? otherParams[0].marker) +
-							'Others' +
-							'&nbsp;&nbsp;' +
-							valueSymbol +
-							toK(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)) +
-							'</li>'
-					}
-				} else {
-					vals = topParams.reduce((prev, curr) => {
-						return (prev +=
-							'<li style="list-style:none">' +
-							curr.marker +
-							curr.seriesName +
-							'&nbsp;&nbsp;' +
-							(valueSymbol === '%' ? Math.round(curr.value[1] * 100) / 100 : toK(curr.value[1], 4)) +
-							'&nbsp;' +
-							(curr.seriesName === 'Active Users' ? '' : valueSymbol) +
-							'</li>')
-					}, '')
-					if (otherParams.length !== 0) {
-						const otherString =
-							'<li style="list-style:none">' +
-							(others?.marker ?? otherParams[0].marker) +
-							'Others' +
-							'&nbsp;&nbsp;' +
-							(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)).toFixed(2) +
-							valueSymbol +
-							'</li>'
+				vals = topParams.reduce((prev, curr) => {
+					return (prev +=
+						'<li style="list-style:none">' +
+						curr.marker +
+						curr.seriesName +
+						'&nbsp;&nbsp;' +
+						formatTooltipValue(
+							curr.value[1],
+							curr.seriesName === 'Unlocks' ? unlockTokenSymbol : curr.seriesName === 'Active Users' ? '' : valueSymbol
+						) +
+						'</li>')
+				}, '')
 
-						if (tooltipOrderBottomUp) {
-							vals = otherString + vals
-						} else {
-							vals += otherString
-						}
+				if (otherParams.length !== 0) {
+					const otherString =
+						'<li style="list-style:none">' +
+						(others?.marker ?? otherParams[0].marker) +
+						'Others' +
+						'&nbsp;&nbsp;' +
+						formatTooltipValue(
+							toK(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)),
+							valueSymbol
+						) +
+						'</li>'
+
+					if (tooltipOrderBottomUp) {
+						vals = otherString + vals
+					} else {
+						vals += otherString
 					}
 				}
 
@@ -327,7 +310,26 @@ export function useDefaults({
 		]
 
 		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom, inflowsTooltip }
-	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol, hideLegend, isStackedChart, tooltipOrderBottomUp])
+	}, [
+		color,
+		isDark,
+		isSmall,
+		title,
+		tooltipSort,
+		valueSymbol,
+		hideLegend,
+		isStackedChart,
+		tooltipOrderBottomUp,
+		unlockTokenSymbol
+	])
 
 	return defaults
+}
+
+const formatTooltipValue = (value, symbol) => {
+	return symbol === '$'
+		? symbol + toK(value)
+		: symbol === '%'
+		? Math.round(value * 100) / 100 + ' %'
+		: toK(value, 4) + ' ' + symbol
 }

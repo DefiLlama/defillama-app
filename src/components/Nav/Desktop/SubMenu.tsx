@@ -18,6 +18,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 				<MainLink data-linkactive={active} target={noSubMenu?.external && '_blank'}>
 					<span data-mainlinkicon>{navLinks[name].icon}</span>
 					<span>{name}</span>
+					{navLinks[name].newTag === true && <span data-newtag>NEW</span>}
 				</MainLink>
 			</Link>
 		)
@@ -28,6 +29,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 			<summary>
 				<span data-mainlinkicon>{navLinks[name].icon}</span>
 				<span>{name}</span>
+				{navLinks[name].newTag === true && <span data-newtag>NEW</span>}
 				<span data-arrowicon>
 					<ChevronRight size={16} />
 				</span>
@@ -87,6 +89,16 @@ const Details = styled.details`
 
 		& > *[data-arrowicon] {
 			margin-left: auto;
+		}
+
+		& > *[data-newtag] {
+			background: #ebebeb;
+			font-size: 0.625rem;
+			border-radius: 4px;
+			padding: 3px;
+			color: black;
+			position: relative;
+			left: -4px;
 		}
 
 		:hover {

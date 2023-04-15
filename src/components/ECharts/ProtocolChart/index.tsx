@@ -42,7 +42,8 @@ export default function AreaBarChart({
 		title,
 		valueSymbol,
 		tooltipSort,
-		hideLegend: true
+		hideLegend: true,
+		unlockTokenSymbol
 	})
 
 	const barChartExists = chartsStack.find((st) => ['Volume', 'Fees', 'Revenue', 'Revenue'].includes(st)) ? true : false
