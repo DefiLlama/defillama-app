@@ -83,7 +83,7 @@ export const getStaticProps = async ({
 	})
 
 	const proposals = Object.values(data.proposals).map((proposal) => {
-		const winningScore = proposal.scores.sort((a, b) => b - a)[0]
+		const winningScore = [...proposal.scores].sort((a, b) => b - a)[0]
 		const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
 
 		return {
