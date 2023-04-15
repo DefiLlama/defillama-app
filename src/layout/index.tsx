@@ -42,6 +42,7 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 		<>
 			<Head>
 				<title>{title}</title>
+				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 
 			{defaultSEO && <SEO />}
