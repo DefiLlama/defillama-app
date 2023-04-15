@@ -124,7 +124,7 @@ export function useDefaults({
 							curr.marker +
 							curr.seriesName +
 							'&nbsp;&nbsp;' +
-							valueSymbol +
+							(curr.seriesName === 'Active Users' ? '' : valueSymbol) +
 							toK(curr.value[1]) +
 							'</li>')
 					}, '')
@@ -147,7 +147,7 @@ export function useDefaults({
 							'&nbsp;&nbsp;' +
 							(valueSymbol === '%' ? Math.round(curr.value[1] * 100) / 100 : toK(curr.value[1], 4)) +
 							'&nbsp;' +
-							valueSymbol +
+							(curr.seriesName === 'Active Users' ? '' : valueSymbol) +
 							'</li>')
 					}, '')
 					if (otherParams.length !== 0) {
