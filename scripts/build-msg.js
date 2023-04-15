@@ -12,7 +12,7 @@ const uploadBuildLog = async () => {
 	const response = await fetch(LOGGER_API_URL, {
 		method: 'POST',
 		headers: {
-			'Content-Type': BUILD_LOG_CONTENT_TYPE,
+			'Content-Type': 'application/json',
 			apikey: LOGGER_API_KEY
 		},
 		body: JSON.stringify({
