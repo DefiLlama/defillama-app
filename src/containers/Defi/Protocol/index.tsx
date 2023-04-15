@@ -416,8 +416,8 @@ function ProtocolContainer({
 
 					{gecko_id ||
 					hallmarks?.length > 0 ||
-					metrics.fees ||
-					metrics.dexs ||
+					metrics?.fees ||
+					metrics?.dexs ||
 					emissions?.chartData?.length > 0 ||
 					users ? (
 						<ToggleWrapper>
