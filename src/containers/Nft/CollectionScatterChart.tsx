@@ -114,15 +114,39 @@ export default function CollectionScatterChart({
 						day: 'numeric'
 					})
 
-					return (
+					let vals =
 						chartdate +
 						'<li style="list-style:none">' +
-						(params.seriesName === 'Volume' ? 'Volume' : 'Sale Price:') +
+						(params.seriesName === 'Volume' ? 'Volume:' : 'Sale Price:') +
 						'&nbsp;&nbsp;' +
 						params.value[1].toFixed(2) +
 						'&nbsp;' +
-						'ETH'
-					)
+						'ETH' +
+						'</li>'
+
+					if (params.seriesName !== 'Volume') {
+						const date = new Date(params.value[0]).getTime()
+
+						vals +=
+							'<li style="list-style:none">' +
+							'Moving Average:' +
+							'&nbsp;&nbsp;' +
+							findClosest(salesMedian1d, salesMedian1d.length, date, false) +
+							'&nbsp;' +
+							'ETH' +
+							'</li>'
+
+						vals +=
+							'<li style="list-style:none">' +
+							'Volume:' +
+							'&nbsp;&nbsp;' +
+							findClosest(volume, volume.length, date, true) +
+							'&nbsp;' +
+							'ETH' +
+							'</li>'
+					}
+
+					return vals
 				}
 			},
 			xAxis: {
@@ -226,3 +250,19 @@ export default function CollectionScatterChart({
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
+
+const findClosest = (arr, n, target, isDateInSeconds) => {
+	let left = 0,
+		right = n - 1
+	while (left < right) {
+		if (
+			Math.abs((isDateInSeconds ? arr[left][0] * 1e3 : arr[left][0]) - target) <=
+			Math.abs((isDateInSeconds ? arr[right][0] * 1e3 : arr[right][0]) - target)
+		) {
+			right--
+		} else {
+			left++
+		}
+	}
+	return arr[left][1].toFixed(2)
+}
