@@ -264,5 +264,5 @@ const findClosest = (arr, n, target, isDateInSeconds) => {
 			left++
 		}
 	}
-	return arr[left][1].toFixed(2)
+	return arr?.[left]?.[1]?.toFixed(2) ?? 0
 }
