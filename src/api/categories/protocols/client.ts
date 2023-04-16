@@ -8,6 +8,7 @@ import { capitalizeFirstLetter } from '~/utils'
 
 export const useFetchProtocolsList = () => {
 	const { data, error } = useSWR(PROTOCOLS_API, fetcher)
+
 	return { data, error, loading: !data && !error }
 }
 

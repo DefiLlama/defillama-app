@@ -13,6 +13,7 @@ import { ArrowUpRight } from 'react-feather'
 import Link from 'next/link'
 import { ToggleWrapper2 } from '~/components'
 import { useRouter } from 'next/router'
+import { ProtocolsChainsSearch } from '~/components/Search'
 
 const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
 	ssr: false
@@ -44,6 +45,15 @@ export function NFTCollectionContainer({
 
 	return (
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
+			<ProtocolsChainsSearch
+				step={{
+					category: 'NFT Collections',
+					name: name,
+					route: '/nfts',
+					hideOptions: true
+				}}
+			/>
+
 			<StatsSection>
 				<DetailsWrapper>
 					<Name>
