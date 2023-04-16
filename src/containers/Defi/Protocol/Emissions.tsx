@@ -37,7 +37,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 
 			<ChartsWrapper>
 				<LazyChart>
-					<PieChart title="Allocation" chartData={data.pieChartData} stackColors={data.stackColors} />
+					<PieChart title="Allocation" chartData={data.pieChartData} stackColors={data.stackColors} usdFormat={false} />
 				</LazyChart>
 
 				<LazyChart>
