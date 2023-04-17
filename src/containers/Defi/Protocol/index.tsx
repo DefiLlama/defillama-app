@@ -246,6 +246,11 @@ interface IProtocolContainerProps {
 	tokenPrice: number | null
 	tokenMcap: number | null
 	tokenSupply: number | null
+	allTimeFees: number | null
+	dailyFees: number | null
+	dailyRevenue: number | null
+	dailyVolume: number | null
+	allTimeVolume: number | null
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
@@ -263,7 +268,12 @@ function ProtocolContainer({
 	users,
 	tokenPrice: priceOfToken,
 	tokenMcap,
-	tokenSupply
+	tokenSupply,
+	allTimeFees,
+	dailyFees,
+	dailyRevenue,
+	dailyVolume,
+	allTimeVolume
 }: IProtocolContainerProps) {
 	useScrollToTop()
 
@@ -788,6 +798,48 @@ function ProtocolContainer({
 						<Stat>
 							<span>Fully Diluted Valuation</span>
 							<span>{formattedNum(priceOfToken * tokenSupply, true)}</span>
+						</Stat>
+					) : null}
+
+					{allTimeVolume ? (
+						<Stat>
+							<span>Total Volume</span>
+							<span>{formattedNum(allTimeVolume, true)}</span>
+						</Stat>
+					) : null}
+
+					{dailyVolume ? (
+						<Stat>
+							<span>Volume 24h</span>
+							<span>{formattedNum(dailyVolume, true)}</span>
+						</Stat>
+					) : null}
+
+					{allTimeFees ? (
+						<Stat>
+							<span>Total Fees</span>
+							<span>{formattedNum(allTimeFees, true)}</span>
+						</Stat>
+					) : null}
+
+					{dailyFees ? (
+						<Stat>
+							<span>Fees 24h</span>
+							<span>{formattedNum(dailyFees, true)}</span>
+						</Stat>
+					) : null}
+
+					{dailyRevenue ? (
+						<Stat>
+							<span>Revenue 24h</span>
+							<span>{formattedNum(dailyRevenue, true)}</span>
+						</Stat>
+					) : null}
+
+					{users?.users ? (
+						<Stat>
+							<span>Users 24h</span>
+							<span>{formattedNum(users.users, false)}</span>
 						</Stat>
 					) : null}
 				</DetailsWrapper>

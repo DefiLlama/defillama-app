@@ -34,41 +34,62 @@ export const getStaticProps = async ({
 
 	const protocolData = fuseProtocolData(protocolRes)
 
-	const [backgroundColor, allProtocols, activeUsers, tokenPrice, tokenMcap, fdvData] = await Promise.all([
-		getColor(tokenIconPaletteUrl(protocolData.name)),
-		getProtocolsRaw(),
-		fetch(ACTIVE_USERS_API).then((res) => res.json()),
-		fetch('https://coins.llama.fi/prices', {
-			method: 'POST',
-			body: JSON.stringify({
-				coins: [`coingecko:${protocolData.gecko_id}`]
+	const [backgroundColor, allProtocols, activeUsers, tokenPrice, tokenMcap, fdvData, feesAndRevenueProtocols, dexs] =
+		await Promise.all([
+			getColor(tokenIconPaletteUrl(protocolData.name)),
+			getProtocolsRaw(),
+			fetch(ACTIVE_USERS_API).then((res) => res.json()),
+			fetch('https://coins.llama.fi/prices', {
+				method: 'POST',
+				body: JSON.stringify({
+					coins: [`coingecko:${protocolData.gecko_id}`]
+				})
 			})
-		})
-			.then((r) => r.json())
-			.catch((err) => {
-				console.log(err)
-				return {}
-			}),
-		fetch('https://coins.llama.fi/mcaps', {
-			method: 'POST',
-			body: JSON.stringify({
-				coins: [`coingecko:${protocolData.gecko_id}`]
+				.then((r) => r.json())
+				.catch((err) => {
+					console.log(err)
+					return {}
+				}),
+			fetch('https://coins.llama.fi/mcaps', {
+				method: 'POST',
+				body: JSON.stringify({
+					coins: [`coingecko:${protocolData.gecko_id}`]
+				})
 			})
-		})
-			.then((r) => r.json())
-			.catch((err) => {
-				console.log(err)
-				return {}
-			}),
-		fetch(
-			`https://api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
-		)
-			.then((res) => res.json())
-			.catch((err) => {
-				console.log(`Couldn't fetch fdv of protocol - ${protocol}`, 'Error:', err)
-				return {}
-			})
-	])
+				.then((r) => r.json())
+				.catch((err) => {
+					console.log(err)
+					return {}
+				}),
+			fetch(
+				`https://api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
+			)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch fdv of protocol - ${protocol}`, 'Error:', err)
+					return {}
+				}),
+			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+				}),
+			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+				})
+		])
+
+	const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.name
+	)
+
+	const volumeData = dexs?.protocols?.filter(
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.name
+	)
 
 	const chartTypes = ['TVL', 'Mcap', 'Token Price', 'FDV', 'Fees', 'Revenue', 'Volume', 'Unlocks', 'Active Users']
 
@@ -129,7 +150,12 @@ export const getStaticProps = async ({
 			users: activeUsers[protocolData.id] || null,
 			tokenPrice: tokenPrice?.coins?.[`coingecko:${protocolData.gecko_id}`]?.price ?? null,
 			tokenMcap: tokenMcap?.[`coingecko:${protocolData.gecko_id}`]?.mcap ?? null,
-			tokenSupply: fdvData?.['market_data']?.['total_supply'] ?? null
+			tokenSupply: fdvData?.['market_data']?.['total_supply'] ?? null,
+			dailyRevenue: feesAndRevenueData?.reduce((acc, curr) => (acc += curr.dailyRevenue || 0), 0) ?? null,
+			dailyFees: feesAndRevenueData?.reduce((acc, curr) => (acc += curr.dailyFees || 0), 0) ?? null,
+			allTimeFees: feesAndRevenueData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null,
+			dailyVolume: volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null,
+			allTimeVolume: volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 		},
 		revalidate: maxAgeForNext([22])
 	}
