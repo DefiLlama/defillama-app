@@ -21,23 +21,7 @@ export const useGetOverviewChartData = ({
 	const { data, loading, error } = useFetchChartsSummary(dataToFetch, slug(name), undefined, disabled)
 
 	const mainChart = React.useMemo(() => {
-		if (loading)
-			return {
-				dataChart: [[], []] as [IJoin2ReturnType, string[]],
-				title: 'Loading'
-			}
-
-		if (error)
-			return {
-				dataChart: [[], []] as [IJoin2ReturnType, string[]],
-				title: 'Error'
-			}
-
-		if (!data)
-			return {
-				dataChart: [[], []] as [IJoin2ReturnType, string[]],
-				title: 'No Data'
-			}
+		if (loading || error || !data) return [[], []] as [IJoin2ReturnType, string[]]
 
 		let chartData: IJoin2ReturnType
 		let title: string
@@ -53,11 +37,13 @@ export const useGetOverviewChartData = ({
 
 		title = Object.keys(legend).length <= 1 ? `${capitalizeFirstLetter(type)} by chain` : ''
 
-		return {
-			dataChart: [chartData, legend] as [IJoin2ReturnType, string[]],
-			title: title
-		}
+		const [finalData] = chartFormatterBy('chain')(
+			[chartData, legend] as [IJoin2ReturnType, string[]],
+			data?.totalDataChartBreakdown
+		)
+
+		return finalData && finalData.length > 0 ? finalData : null
 	}, [data, error, loading, enableBreakdownChart, type])
 
-	return { data: chartFormatterBy('chain')(mainChart.dataChart, data?.totalDataChartBreakdown), loading }
+	return { data: mainChart, loading }
 }

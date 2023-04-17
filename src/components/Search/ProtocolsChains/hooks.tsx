@@ -76,12 +76,13 @@ export function useGetDefiSearchList({
 			  })) ?? []
 			: []
 
-		const nftCollections = collections.map((item) => ({
-			name: item.name,
-			symbol: null,
-			logo: nftCollectionIconUrl(item.collectionId),
-			route: `/nfts/collection/${item.collectionId}`
-		}))
+		const nftCollections =
+			collections?.map((item) => ({
+				name: item.name,
+				symbol: null,
+				logo: nftCollectionIconUrl(item.collectionId),
+				route: `/nfts/collection/${item.collectionId}`
+			})) ?? []
 
 		const sets = pathname.startsWith('/nft')
 			? [...nftCollections, ...chainData, ...parentProtocols, ...protocolData]

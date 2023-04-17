@@ -68,16 +68,19 @@ export default function ProtocolChart({
 	}, [chains])
 
 	// fetch denomination on protocol chains
-	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
-		router.isReady && denomination ? DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId : null
-	)
-
+	// const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
+	// 	router.isReady && denomination ? DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId : null
+	// )
+	const denominationHistory = undefined
+	const denominationLoading = false
+	const protocolCGData = undefined
+	const loading = false
 	// fetch protocol mcap data
-	const { data: protocolCGData, loading } = useDenominationPriceHistory(
-		router.isReady && (mcap === 'true' || tokenPrice === 'true' || fdv === 'true') ? geckoId : null
-	)
+	// const { data: protocolCGData, loading } = useDenominationPriceHistory(
+	// 	router.isReady && (mcap === 'true' || tokenPrice === 'true' || fdv === 'true') ? geckoId : null
+	// )
 
-	const { data: fdvData, error: fdvError } = useSWR(
+	const { data: fdvData = null, error: fdvError } = useSWR(
 		`fdv-${geckoId}-${fdv}-${router.isReady}`,
 		geckoId && fdv === 'true' && router.isReady
 			? () =>
@@ -89,10 +92,7 @@ export default function ProtocolChart({
 
 	const fetchingFdv = router.isReady && fdv === 'true' && !fdvData && fdvData !== null && !fdvError
 
-	const {
-		data: [feesAndRevenueData],
-		loading: fetchingFees
-	} = useGetOverviewChartData({
+	const { data: feesAndRevenue, loading: fetchingFees } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'fees',
 		type: 'chains',
@@ -100,24 +100,15 @@ export default function ProtocolChart({
 		disabled: router.isReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
 	})
 
-	const feesAndRevenue = feesAndRevenueData && feesAndRevenueData.length > 0 ? feesAndRevenueData : null
+	const { data: users, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(activeUsersId)
 
-	const { data: usersData, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(activeUsersId)
-
-	const users = usersData && usersData.length > 0 ? usersData : null
-
-	const {
-		data: [volumeData2],
-		loading: fetchingVolume
-	} = useGetOverviewChartData({
+	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'dexs',
 		type: 'chains',
 		enableBreakdownChart: false,
 		disabled: router.isReady && volume === 'true' && metrics.dexs ? false : true
 	})
-
-	const volumeData = volumeData2 && volumeData2.length > 0 ? volumeData2 : null
 
 	// update tvl calc based on extra tvl options like staking, pool2 selected
 	const tvlData = React.useMemo(() => {
@@ -138,6 +129,8 @@ export default function ProtocolChart({
 
 		valueSymbol = d.symbol || ''
 	}
+
+	// console.log({ denominationHistory, protocolCGData, tvlData, fdvData, feesAndRevenue, users, volumeData })
 
 	const { finalData, tokensUnique } = React.useMemo(() => {
 		if (!router.isReady) {

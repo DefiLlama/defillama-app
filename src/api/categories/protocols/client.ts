@@ -33,30 +33,36 @@ export const useFetchProtocolTreasury = (protocolName) => {
 export const useFetchProtocolActiveUsers = (protocolId: number | string) => {
 	const { data, error } = useSWR(
 		`activeUsers/${protocolId}`,
-		protocolId ? () => fetch(`${ACTIVE_USERS_API}/${protocolId}`).then((res) => res.json()) : () => null
+		protocolId
+			? () =>
+					fetch(`${ACTIVE_USERS_API}/${protocolId}`)
+						.then((res) => res.json())
+						.then((values) => {
+							const userData = values && values.length > 0 ? values : null
+
+							const users = {}
+
+							userData?.forEach((item) => {
+								if (!users[item.start]) {
+									users[item.start] = {}
+								}
+
+								users[item.start] = {
+									...users[item.start],
+									[capitalizeFirstLetter(item.chain)]: item.users
+								}
+							})
+
+							return Object.entries(users).map(([date, values]: [string, { [key: string]: number }]) => ({
+								date,
+								...values
+							}))
+						})
+						.catch((err) => [])
+			: () => null
 	)
 
-	const users = {}
-
-	data?.forEach((item) => {
-		if (!users[item.start]) {
-			users[item.start] = {}
-		}
-
-		users[item.start] = {
-			...users[item.start],
-			[capitalizeFirstLetter(item.chain)]: item.users
-		}
-	})
-
-	return {
-		data: Object.entries(users).map(([date, values]: [string, { [key: string]: number }]) => ({
-			date,
-			...values
-		})),
-		error,
-		loading: !data && data !== null && !error
-	}
+	return { data, error, loading: !data && data !== null && !error }
 }
 
 export const useDenominationPriceHistory = (geckoId?: string) => {
