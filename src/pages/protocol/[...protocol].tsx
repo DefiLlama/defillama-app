@@ -75,7 +75,7 @@ export const getStaticProps = async ({
 					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 				}),
-			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 				.then((res) => res.json())
 				.catch((err) => {
 					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
