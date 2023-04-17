@@ -124,7 +124,7 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
 	const normalMark = isNegative ? '-' : ''
 
 	if (num > 10000000) {
-		return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0), true)
+		return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0), 1)
 	}
 
 	if (num === 0) {

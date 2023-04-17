@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { ArrowUpRight, DownloadCloud } from 'react-feather'
+import { ArrowUpRight, ChevronRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
 import {
 	Button,
@@ -194,6 +194,44 @@ const ToggleWrapper = styled.span`
 	flex-wrap: wrap;
 `
 
+const Details = styled.details`
+	&[open] {
+		summary {
+			& > *[data-arrowicon] {
+				transform: rotate(90deg);
+				transition: 0.1s ease;
+			}
+		}
+	}
+
+	summary {
+		display: flex;
+		gap: 16px;
+		flex-wrap: wrap;
+		align-items: center;
+		list-style: none;
+		list-style-type: none;
+		cursor: pointer;
+
+		& > *[data-arrowicon] {
+			position: relative;
+			left: -20px;
+			margin-right: -32px;
+		}
+	}
+
+	summary::-webkit-details-marker {
+		display: none;
+	}
+
+	summary + span {
+		margin-top: 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+`
+
 interface IProtocolContainerProps {
 	articles: IArticle[]
 	title: string
@@ -205,6 +243,9 @@ interface IProtocolContainerProps {
 	isCEX?: boolean
 	chartColors: { [type: string]: string }
 	users: { users: number }
+	tokenPrice: number | null
+	tokenMcap: number | null
+	tokenSupply: number | null
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
@@ -219,7 +260,10 @@ function ProtocolContainer({
 	emissions,
 	isCEX,
 	chartColors,
-	users
+	users,
+	tokenPrice: priceOfToken,
+	tokenMcap,
+	tokenSupply
 }: IProtocolContainerProps) {
 	useScrollToTop()
 
@@ -403,7 +447,9 @@ function ProtocolContainer({
 					</OtherProtocols>
 				)}
 
-				<DetailsWrapper style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px', maxWidth: '300px' }}>
+				<DetailsWrapper
+					style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px', maxWidth: '300px', gap: '24px' }}
+				>
 					{scams.includes(name) && <p>There's been multiple hack reports in this protocol</p>}
 
 					<Name>
@@ -649,68 +695,101 @@ function ProtocolContainer({
 						</ToggleWrapper>
 					) : null}
 
-					<StatWrapper>
+					<Details>
+						<summary>
+							<span data-arrowicon>
+								<ChevronRight size={16} />
+							</span>
+
+							<Stat as="span">
+								<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
+								<span>{formattedNum(totalVolume || '0', true)}</span>
+							</Stat>
+
+							{!isParentProtocol && (
+								<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+									<DownloadButton
+										as="a"
+										color={backgroundColor}
+										style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
+									>
+										<DownloadCloud size={14} />
+										<span>&nbsp;&nbsp;.csv</span>
+									</DownloadButton>
+								</Link>
+							)}
+						</summary>
+
+						<span>
+							{tvls.length > 0 && (
+								<DetailsTable>
+									<caption>{isCEX ? 'Assets by chain' : 'Chain Breakdown'}</caption>
+									<tbody>
+										{tvls.map((chainTvl) => (
+											<tr key={chainTvl[0]}>
+												<th>{capitalizeFirstLetter(chainTvl[0])}</th>
+												<td>{formattedNum(chainTvl[1] || 0, true)}</td>
+											</tr>
+										))}
+									</tbody>
+								</DetailsTable>
+							)}
+
+							{extraTvls.length > 0 && (
+								<DetailsTable>
+									<thead>
+										<tr>
+											<th>Include in TVL (optional)</th>
+											<td className="question-helper">
+												<QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
+											</td>
+										</tr>
+									</thead>
+									<tbody>
+										{extraTvls.map(([option, value]) => (
+											<tr key={option}>
+												<th>
+													<ExtraOption>
+														<Checkbox2
+															type="checkbox"
+															value={option}
+															checked={extraTvlsEnabled[option]}
+															onChange={updater(option)}
+														/>
+														<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
+															{capitalizeFirstLetter(option)}
+														</span>
+													</ExtraOption>
+												</th>
+												<td>{formattedNum(value, true)}</td>
+											</tr>
+										))}
+									</tbody>
+								</DetailsTable>
+							)}
+						</span>
+					</Details>
+
+					{tokenMcap ? (
 						<Stat>
-							<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
-							<span>{formattedNum(totalVolume || '0', true)}</span>
+							<span>Market Cap</span>
+							<span>{formattedNum(tokenMcap, true)}</span>
 						</Stat>
+					) : null}
 
-						{!isParentProtocol && (
-							<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-								<DownloadButton as="a" color={backgroundColor}>
-									<DownloadCloud size={14} />
-									<span>&nbsp;&nbsp;.csv</span>
-								</DownloadButton>
-							</Link>
-						)}
-					</StatWrapper>
+					{priceOfToken ? (
+						<Stat>
+							<span>Token Price</span>
+							<span>{formattedNum(priceOfToken, true)}</span>
+						</Stat>
+					) : null}
 
-					{tvls.length > 0 && (
-						<DetailsTable>
-							<caption>{isCEX ? 'Assets by chain' : 'Chain Breakdown'}</caption>
-							<tbody>
-								{tvls.map((chainTvl) => (
-									<tr key={chainTvl[0]}>
-										<th>{capitalizeFirstLetter(chainTvl[0])}</th>
-										<td>{formattedNum(chainTvl[1] || 0, true)}</td>
-									</tr>
-								))}
-							</tbody>
-						</DetailsTable>
-					)}
-
-					{extraTvls.length > 0 && (
-						<DetailsTable>
-							<thead>
-								<tr>
-									<th>Include in TVL (optional)</th>
-									<td className="question-helper">
-										<QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
-									</td>
-								</tr>
-							</thead>
-							<tbody>
-								{extraTvls.map(([option, value]) => (
-									<tr key={option}>
-										<th>
-											<ExtraOption>
-												<Checkbox2
-													type="checkbox"
-													value={option}
-													checked={extraTvlsEnabled[option]}
-													onChange={updater(option)}
-												/>
-												<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
-													{capitalizeFirstLetter(option)}
-												</span>
-											</ExtraOption>
-										</th>
-										<td>{formattedNum(value, true)}</td>
-									</tr>
-								))}
-							</tbody>
-						</DetailsTable>
-					)}
+					{tokenSupply && priceOfToken ? (
+						<Stat>
+							<span>Fully Diluted Valuation</span>
+							<span>{formattedNum(priceOfToken * tokenSupply, true)}</span>
+						</Stat>
+					) : null}
 				</DetailsWrapper>
 
 				<ProtocolChart
