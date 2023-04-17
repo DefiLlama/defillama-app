@@ -734,7 +734,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '24h Inflows',
 		accessorKey: '24hInflows',
-		size: 104,
+		size: 120,
 		cell: (info) => (
 			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
 				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
@@ -747,7 +747,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '7d Inflows',
 		accessorKey: '7dInflows',
-		size: 104,
+		size: 120,
 		cell: (info) => (
 			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
 				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
@@ -760,7 +760,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '1m Inflows',
 		accessorKey: '1mInflows',
-		size: 104,
+		size: 120,
 		cell: (info) => (
 			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
 				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
