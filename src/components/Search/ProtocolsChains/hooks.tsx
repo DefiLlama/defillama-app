@@ -32,7 +32,9 @@ export function useGetDefiSearchList({
 	customPath
 }: IDefiSearchListProps): IGetSearchList {
 	const { data, loading } = useFetchProtocolsList()
-	const { data: collections, loading: fetchingCollections } = useFetchNftCollectionsList()
+	//const { data: collections, loading: fetchingCollections } = useFetchNftCollectionsList()
+	const collections = []
+	const fetchingCollections = false
 
 	const { pathname } = useRouter()
 
