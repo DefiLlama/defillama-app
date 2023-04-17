@@ -68,17 +68,14 @@ export default function ProtocolChart({
 	}, [chains])
 
 	// fetch denomination on protocol chains
-	// const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
-	// 	router.isReady && denomination ? DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId : null
-	// )
-	const denominationHistory = undefined
-	const denominationLoading = false
-	const protocolCGData = undefined
-	const loading = false
+	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
+		router.isReady && denomination ? DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId : null
+	)
+
 	// fetch protocol mcap data
-	// const { data: protocolCGData, loading } = useDenominationPriceHistory(
-	// 	router.isReady && (mcap === 'true' || tokenPrice === 'true' || fdv === 'true') ? geckoId : null
-	// )
+	const { data: protocolCGData, loading } = useDenominationPriceHistory(
+		router.isReady && (mcap === 'true' || tokenPrice === 'true' || fdv === 'true') ? geckoId : null
+	)
 
 	const { data: fdvData = null, error: fdvError } = useSWR(
 		`fdv-${geckoId}-${fdv}-${router.isReady}`,
