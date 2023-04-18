@@ -43,57 +43,63 @@ export default function AreaBarChart({
 		unlockTokenSymbol
 	})
 
-	const barChartExists = chartsStack.find((st) => ['Volume', 'Fees', 'Revenue', 'Revenue'].includes(st)) ? true : false
+	const barChartExists = chartsStack.find((st) => ['Volume', 'Fees', 'Revenue'].includes(st)) ? true : false
 	const unlockChartExists = chartsStack.includes('Unlocks')
 	const activeUsersChartExists = chartsStack.includes('Active Users')
-	const unlockStackColor = stackColors['Unlocks']
-	const activeUsersStackColor = stackColors['Active Users']
 
-	const series = useMemo(() => {
+	const { series, yAxisByIndex } = useMemo(() => {
 		const chartColor = color || stringToColour()
 
-		const barChartStacks = chartsStack.filter((st) =>
-			['Volume', 'Fees', 'Revenue', 'Revenue', 'Active Users'].includes(st)
-		)
+		const yAxisByIndex = {}
 
-		const series = chartsStack.map((token, index) => {
-			const stackColor = stackColors[token]
+		if (chartsStack.includes('TVL') || chartsStack.includes('Mcap') || chartsStack.includes('FDV')) {
+			yAxisByIndex['TVL+Mcap+FDV'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
 
-			const type = barChartStacks.includes(token) || token === 'Active Users' ? 'bar' : 'line'
+		if (chartsStack.includes('Token Price')) {
+			yAxisByIndex['Token Price'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
 
-			const yAxisIndex = {}
-			if (chartsStack.length > 0) {
-				if (type === 'bar') {
-					if (token === 'Active Users') {
-						if (barChartStacks.length > 1) {
-							if (chartsStack.includes('Unlocks')) {
-								yAxisIndex['yAxisIndex'] = 3
-							} else {
-								yAxisIndex['yAxisIndex'] = 2
-							}
-						} else {
-							yAxisIndex['yAxisIndex'] = 1
-						}
-					} else {
-						yAxisIndex['yAxisIndex'] = 1
-					}
-				} else {
-					if (token === 'Unlocks') {
-						if (barChartStacks.length > 0) {
-							yAxisIndex['yAxisIndex'] = 2
-						} else {
-							yAxisIndex['yAxisIndex'] = 1
-						}
-					} else {
-						yAxisIndex['yAxisIndex'] = 0
-					}
-				}
+		if (chartsStack.includes('Volume') || chartsStack.includes('Fees') || chartsStack.includes('Revenue')) {
+			yAxisByIndex['Volume+Fees+Revenue'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (chartsStack.includes('Unlocks')) {
+			yAxisByIndex['Unlocks'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (chartsStack.includes('Active Users')) {
+			yAxisByIndex['Active Users'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (chartsStack.includes('Transactions')) {
+			yAxisByIndex['Transactions'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (chartsStack.includes('Gas Used')) {
+			yAxisByIndex['Gas Used'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		const series = chartsStack.map((stack, index) => {
+			const stackColor = stackColors[stack]
+
+			const type = ['Volume', 'Fees', 'Revenue', 'Active Users', 'Transactions', 'Gas Used'].includes(stack)
+				? 'bar'
+				: 'line'
+
+			const options = {}
+			if (['TVL', 'Mcap', 'FDV'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['TVL+Mcap+FDV']
+			} else if (['Volume', 'Fees', 'Revenue'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['Volume+Fees+Revenue']
+			} else {
+				options['yAxisIndex'] = yAxisByIndex[stack]
 			}
 
 			return {
-				name: token,
+				name: stack,
 				type,
-				...yAxisIndex,
+				...options,
 				scale: true,
 				large: true,
 				largeThreshold: 0,
@@ -159,7 +165,7 @@ export default function AreaBarChart({
 			}
 		}
 
-		return series
+		return { series, yAxisByIndex }
 	}, [chartData, chartsStack, color, customLegendName, hallmarks, isDark, stackColors])
 
 	const createInstance = useCallback(() => {
@@ -184,50 +190,102 @@ export default function AreaBarChart({
 
 		delete dataZoom[1].right
 
-		const yAxiss: any = [yAxis]
+		const yAxiss = []
 
-		if (barChartExists) {
-			yAxiss.push({ ...yAxis, type: 'value' })
-		}
+		const noOffset = Object.entries(yAxisByIndex).length < 3
 
-		if (unlockChartExists) {
-			yAxiss.push({
+		Object.entries(yAxisByIndex).forEach(([type, index]: [string, number]) => {
+			const options = {
 				...yAxis,
 				name: '',
 				type: 'value',
-				position: 'right',
 				alignTicks: true,
-				offset: barChartExists ? 60 : 10,
-				axisLabel: {
-					formatter: (value) => toK(value) + ' ' + unlockTokenSymbol
-				},
-				axisLine: {
-					show: true,
-					lineStyle: {
-						color: unlockStackColor
-					}
-				}
-			})
-		}
+				offset: noOffset || index < 2 ? 0 : (yAxiss[yAxiss.length - 1]?.offset ?? 0) + 40
+			}
+			const offset = noOffset || index < 2 ? 0 : (yAxiss[yAxiss.length - 1]?.offset ?? 0) + 40
 
-		if (activeUsersChartExists) {
-			yAxiss.push({
-				...yAxis,
-				name: '',
-				type: 'value',
-				position: 'right',
-				alignTicks: true,
-				offset: barChartExists && unlockChartExists ? 80 : barChartExists || unlockChartExists ? 40 : 10,
-				axisLabel: {
-					formatter: (value) => toK(value)
-				},
-				axisLine: {
-					show: true,
-					lineStyle: {
-						color: activeUsersStackColor
+			if (type === 'TVL+Mcap+FDV') {
+				yAxiss.push(yAxis)
+			}
+
+			if (type === 'Token Price') {
+				yAxiss.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Token Price']
+						}
 					}
-				}
-			})
+				})
+			}
+
+			if (type === 'Volume+Fees+Revenue') {
+				yAxiss.push({
+					...options
+				})
+			}
+
+			if (type === 'Unlocks') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => toK(value) + ' ' + unlockTokenSymbol
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Unlocks']
+						}
+					}
+				})
+			}
+
+			if (type === 'Active Users') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => toK(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Active Users']
+						}
+					}
+				})
+			}
+
+			if (type === 'Transactions') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => toK(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Transactions']
+						}
+					}
+				})
+			}
+
+			if (type === 'Gas Used') {
+				yAxiss.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Gas Used']
+						}
+					}
+				})
+			}
+		})
+
+		if (Object.entries(yAxisByIndex).length === 0) {
+			yAxiss.push(yAxis)
 		}
 
 		chartInstance.setOption({
@@ -274,9 +332,9 @@ export default function AreaBarChart({
 		unlockTokenSymbol,
 		barChartExists,
 		unlockChartExists,
-		unlockStackColor,
 		activeUsersChartExists,
-		activeUsersStackColor
+		stackColors,
+		yAxisByIndex
 	])
 
 	return (

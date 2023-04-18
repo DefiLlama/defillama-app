@@ -24,7 +24,7 @@ import {
 	LazyChart,
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
-import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { Stat, StatsSection } from '~/layout/Stats/Medium'
 import { Checkbox2 } from '~/components'
 import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
@@ -425,7 +425,8 @@ function ProtocolContainer({
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
-	const { tvl, mcap, tokenPrice, fdv, volume, fees, revenue, unlocks, activeUsers, events } = router.query
+	const { tvl, mcap, tokenPrice, fdv, volume, fees, revenue, unlocks, activeUsers, events, transactions, gasUsed } =
+		router.query
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
@@ -656,26 +657,68 @@ function ProtocolContainer({
 							)}
 
 							{users && (
-								<Toggle backgroundColor={backgroundColor}>
-									<input
-										type="checkbox"
-										value="activeUsers"
-										checked={activeUsers === 'true'}
-										onChange={() =>
-											router.push(
-												{
-													pathname: router.pathname,
-													query: { ...router.query, activeUsers: activeUsers === 'true' ? false : true }
-												},
-												undefined,
-												{ shallow: true }
-											)
-										}
-									/>
-									<span data-wrapper="true">
-										<span>Active Users</span>
-									</span>
-								</Toggle>
+								<>
+									<Toggle backgroundColor={backgroundColor}>
+										<input
+											type="checkbox"
+											value="activeUsers"
+											checked={activeUsers === 'true'}
+											onChange={() =>
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...router.query, activeUsers: activeUsers === 'true' ? false : true }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}
+										/>
+										<span data-wrapper="true">
+											<span>Active Users</span>
+										</span>
+									</Toggle>
+									<Toggle backgroundColor={backgroundColor}>
+										<input
+											type="checkbox"
+											value="transactions"
+											checked={transactions === 'true'}
+											onChange={() =>
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...router.query, transactions: transactions === 'true' ? false : true }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}
+										/>
+										<span data-wrapper="true">
+											<span>Transactions</span>
+										</span>
+									</Toggle>
+									<Toggle backgroundColor={backgroundColor}>
+										<input
+											type="checkbox"
+											value="gasUsed"
+											checked={gasUsed === 'true'}
+											onChange={() =>
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...router.query, gasUsed: gasUsed === 'true' ? false : true }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}
+										/>
+										<span data-wrapper="true">
+											<span>Gas Used</span>
+										</span>
+									</Toggle>
+								</>
 							)}
 
 							{hallmarks?.length > 0 && (

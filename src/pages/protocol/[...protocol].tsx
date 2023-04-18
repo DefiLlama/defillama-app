@@ -91,7 +91,19 @@ export const getStaticProps = async ({
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.name
 	)
 
-	const chartTypes = ['TVL', 'Mcap', 'Token Price', 'FDV', 'Fees', 'Revenue', 'Volume', 'Unlocks', 'Active Users']
+	const chartTypes = [
+		'TVL',
+		'Mcap',
+		'Token Price',
+		'FDV',
+		'Fees',
+		'Revenue',
+		'Volume',
+		'Unlocks',
+		'Active Users',
+		'Transactions',
+		'Gas Used'
+	]
 
 	const colorTones = Object.fromEntries(
 		chartTypes.map((type, index) => [type, deriveColors(backgroundColor, index, chartTypes.length)])

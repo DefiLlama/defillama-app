@@ -326,7 +326,7 @@ export function useDefaults({
 	return defaults
 }
 
-const formatTooltipValue = (value, symbol) => {
+export const formatTooltipValue = (value, symbol) => {
 	return symbol === '$'
 		? symbol + toK(value)
 		: symbol === '%'

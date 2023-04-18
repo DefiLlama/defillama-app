@@ -4,7 +4,12 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { useDenominationPriceHistory, useFetchProtocolActiveUsers } from '~/api/categories/protocols/client'
+import {
+	useDenominationPriceHistory,
+	useFetchProtocolActiveUsers,
+	useFetchProtocolGasUsed,
+	useFetchProtocolTransactions
+} from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import type { IChartProps } from '../types'
@@ -51,7 +56,21 @@ export default function ProtocolChart({
 
 	const [extraTvlEnabled] = useDefiManager()
 
-	const { denomination, tvl, mcap, tokenPrice, fdv, events, volume, fees, revenue, unlocks, activeUsers } = router.query
+	const {
+		denomination,
+		tvl,
+		mcap,
+		tokenPrice,
+		fdv,
+		events,
+		volume,
+		fees,
+		revenue,
+		unlocks,
+		activeUsers,
+		transactions,
+		gasUsed
+	} = router.query
 
 	const DENOMINATIONS = React.useMemo(() => {
 		let d = [{ symbol: 'USD', geckoId: null }]
@@ -97,7 +116,15 @@ export default function ProtocolChart({
 		disabled: router.isReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
 	})
 
-	const { data: users, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(activeUsersId)
+	const { data: users, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(
+		router.isReady && activeUsers === 'true' && activeUsersId ? activeUsersId : null
+	)
+	const { data: transactionsData, loading: fetchingTransactions } = useFetchProtocolTransactions(
+		router.isReady && transactions === 'true' && activeUsersId ? activeUsersId : null
+	)
+	const { data: gasData, loading: fetchingGasUsed } = useFetchProtocolGasUsed(
+		router.isReady && gasUsed === 'true' && activeUsersId ? activeUsersId : null
+	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
 		name: protocol,
@@ -351,6 +378,34 @@ export default function ProtocolChart({
 				}
 			})
 		}
+		if (transactions === 'true' && transactionsData) {
+			tokensUnique.push('Transactions')
+
+			transactionsData.forEach(([date, noOfTxs]) => {
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date] = {
+					...chartData[date],
+					Transactions: noOfTxs || 0
+				}
+			})
+		}
+		if (gasUsed === 'true' && gasData) {
+			tokensUnique.push('Gas Used')
+
+			gasData.forEach(([date, gasAmount]) => {
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date] = {
+					...chartData[date],
+					'Gas Used': showNonUsdDenomination ? gasAmount / getPriceAtDate(date, denominationHistory.prices) : gasAmount
+				}
+			})
+		}
 
 		const finalData = Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
 			date,
@@ -381,7 +436,11 @@ export default function ProtocolChart({
 		users,
 		tokenPrice,
 		fdv,
-		fdvData
+		fdvData,
+		gasData,
+		gasUsed,
+		transactions,
+		transactionsData
 	])
 
 	const fetchingTypes = []
@@ -421,6 +480,12 @@ export default function ProtocolChart({
 	if (fetchingActiveUsers) {
 		fetchingTypes.push('active users')
 	}
+	if (fetchingTransactions) {
+		fetchingTypes.push('transactions')
+	}
+	if (fetchingGasUsed) {
+		fetchingTypes.push('gas used')
+	}
 
 	const isLoading =
 		loading || fetchingFdv || denominationLoading || fetchingFees || fetchingVolume || fetchingActiveUsers
@@ -442,6 +507,8 @@ export default function ProtocolChart({
 								(revenue ? `revenue=${revenue}&` : '') +
 								(unlocks ? `unlocks=${unlocks}&` : '') +
 								(activeUsers ? `activeUsers=${activeUsers}&` : '') +
+								(transactions ? `transactions=${transactions}&` : '') +
+								(gasUsed ? `gasUsed=${gasUsed}&` : '') +
 								(events ? `events=${events}&` : '') +
 								`denomination=${D.symbol}`
 							}
@@ -458,9 +525,9 @@ export default function ProtocolChart({
 			</FiltersWrapper>
 
 			{!router.isReady ? null : isLoading ? (
-				<p
-					style={{ position: 'relative', top: '0', bottom: '0', margin: 'auto', textAlign: 'center' }}
-				>{`Fetching ${fetchingTypes.join(', ')} ...`}</p>
+				<p style={{ position: 'relative', top: '200px', textAlign: 'center' }}>{`Fetching ${fetchingTypes.join(
+					', '
+				)} ...`}</p>
 			) : (
 				<AreaChart
 					chartData={finalData}

@@ -1,6 +1,12 @@
 import { useMemo } from 'react'
 import useSWR from 'swr'
-import { PROTOCOLS_API, PROTOCOL_ACTIVE_USERS_API, PROTOCOL_TREASURY_API } from '~/constants'
+import {
+	PROTOCOLS_API,
+	PROTOCOL_ACTIVE_USERS_API,
+	PROTOCOL_GAS_USED_API,
+	PROTOCOL_TRANSACTIONS_API,
+	PROTOCOL_TREASURY_API
+} from '~/constants'
 import { fetcher } from '~/utils/useSWR'
 import { getProtocol } from '.'
 import { formatProtocolsData } from './utils'
@@ -30,12 +36,44 @@ export const useFetchProtocolTreasury = (protocolName) => {
 	return { data, error, loading }
 }
 
-export const useFetchProtocolActiveUsers = (protocolId: number | string) => {
+export const useFetchProtocolActiveUsers = (protocolId: number | string | null) => {
 	const { data, error } = useSWR(
 		`activeUsers/${protocolId}`,
 		protocolId
 			? () =>
 					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`)
+						.then((res) => res.json())
+						.then((values) => {
+							return values && values.length > 0 ? values : null
+						})
+						.catch((err) => [])
+			: () => null
+	)
+
+	return { data, error, loading: !data && data !== null && !error }
+}
+export const useFetchProtocolTransactions = (protocolId: number | string | null) => {
+	const { data, error } = useSWR(
+		`protocolTransactionsApi/${protocolId}`,
+		protocolId
+			? () =>
+					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`)
+						.then((res) => res.json())
+						.then((values) => {
+							return values && values.length > 0 ? values : null
+						})
+						.catch((err) => [])
+			: () => null
+	)
+
+	return { data, error, loading: !data && data !== null && !error }
+}
+export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
+	const { data, error } = useSWR(
+		`protocolGasUsed/${protocolId}`,
+		protocolId
+			? () =>
+					fetch(`${PROTOCOL_GAS_USED_API}/${protocolId}`)
 						.then((res) => res.json())
 						.then((values) => {
 							return values && values.length > 0 ? values : null
