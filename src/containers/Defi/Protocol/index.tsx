@@ -214,9 +214,7 @@ const Details = styled.details`
 		cursor: pointer;
 
 		& > *[data-arrowicon] {
-			position: relative;
-			left: -20px;
-			margin-right: -32px;
+			margin: auto -16px 8px -24px;
 		}
 	}
 
@@ -705,140 +703,138 @@ function ProtocolContainer({
 						</ToggleWrapper>
 					) : null}
 
-					{tvl !== 'false' && (
-						<Details>
-							<summary>
-								<span data-arrowicon>
-									<ChevronRight size={16} />
-								</span>
-
-								<Stat as="span">
-									<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
-									<span>{formattedNum(totalVolume || '0', true)}</span>
-								</Stat>
-
-								{!isParentProtocol && (
-									<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-										<DownloadButton
-											as="a"
-											color={backgroundColor}
-											style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
-										>
-											<DownloadCloud size={14} />
-											<span>&nbsp;&nbsp;.csv</span>
-										</DownloadButton>
-									</Link>
-								)}
-							</summary>
-
-							<span>
-								{tvls.length > 0 && (
-									<DetailsTable>
-										<caption>{isCEX ? 'Assets by chain' : 'Chain Breakdown'}</caption>
-										<tbody>
-											{tvls.map((chainTvl) => (
-												<tr key={chainTvl[0]}>
-													<th>{capitalizeFirstLetter(chainTvl[0])}</th>
-													<td>{formattedNum(chainTvl[1] || 0, true)}</td>
-												</tr>
-											))}
-										</tbody>
-									</DetailsTable>
-								)}
-
-								{extraTvls.length > 0 && (
-									<DetailsTable>
-										<thead>
-											<tr>
-												<th>Include in TVL (optional)</th>
-												<td className="question-helper">
-													<QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
-												</td>
-											</tr>
-										</thead>
-										<tbody>
-											{extraTvls.map(([option, value]) => (
-												<tr key={option}>
-													<th>
-														<ExtraOption>
-															<Checkbox2
-																type="checkbox"
-																value={option}
-																checked={extraTvlsEnabled[option]}
-																onChange={updater(option)}
-															/>
-															<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
-																{capitalizeFirstLetter(option)}
-															</span>
-														</ExtraOption>
-													</th>
-													<td>{formattedNum(value, true)}</td>
-												</tr>
-											))}
-										</tbody>
-									</DetailsTable>
-								)}
+					<Details>
+						<summary>
+							<span data-arrowicon>
+								<ChevronRight size={24} />
 							</span>
-						</Details>
-					)}
 
-					{mcap === 'true' && tokenMcap ? (
+							<Stat as="span">
+								<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
+								<span>{formattedNum(totalVolume || '0', true)}</span>
+							</Stat>
+
+							{!isParentProtocol && (
+								<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+									<DownloadButton
+										as="a"
+										color={backgroundColor}
+										style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
+									>
+										<DownloadCloud size={14} />
+										<span>&nbsp;&nbsp;.csv</span>
+									</DownloadButton>
+								</Link>
+							)}
+						</summary>
+
+						<span>
+							{tvls.length > 0 && (
+								<DetailsTable>
+									<caption>{isCEX ? 'Assets by chain' : 'Chain Breakdown'}</caption>
+									<tbody>
+										{tvls.map((chainTvl) => (
+											<tr key={chainTvl[0]}>
+												<th>{capitalizeFirstLetter(chainTvl[0])}</th>
+												<td>{formattedNum(chainTvl[1] || 0, true)}</td>
+											</tr>
+										))}
+									</tbody>
+								</DetailsTable>
+							)}
+
+							{extraTvls.length > 0 && (
+								<DetailsTable>
+									<thead>
+										<tr>
+											<th>Include in TVL (optional)</th>
+											<td className="question-helper">
+												<QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
+											</td>
+										</tr>
+									</thead>
+									<tbody>
+										{extraTvls.map(([option, value]) => (
+											<tr key={option}>
+												<th>
+													<ExtraOption>
+														<Checkbox2
+															type="checkbox"
+															value={option}
+															checked={extraTvlsEnabled[option]}
+															onChange={updater(option)}
+														/>
+														<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
+															{capitalizeFirstLetter(option)}
+														</span>
+													</ExtraOption>
+												</th>
+												<td>{formattedNum(value, true)}</td>
+											</tr>
+										))}
+									</tbody>
+								</DetailsTable>
+							)}
+						</span>
+					</Details>
+
+					{tokenMcap ? (
 						<Stat>
 							<span>Market Cap</span>
 							<span>{formattedNum(tokenMcap, true)}</span>
 						</Stat>
 					) : null}
 
-					{tokenPrice === 'true' && priceOfToken ? (
+					{priceOfToken ? (
 						<Stat>
 							<span>Token Price</span>
-							<span>{formattedNum(priceOfToken, true)}</span>
+							<span>${priceOfToken.toLocaleString('en-US', { maximumFractionDigits: 5 })}</span>
 						</Stat>
 					) : null}
 
-					{fdv === 'true' && tokenSupply && priceOfToken ? (
+					{tokenSupply && priceOfToken ? (
 						<Stat>
 							<span>Fully Diluted Valuation</span>
 							<span>{formattedNum(priceOfToken * tokenSupply, true)}</span>
 						</Stat>
 					) : null}
 
-					{volume === 'true' && allTimeVolume ? (
+					{allTimeVolume ? (
 						<Stat>
 							<span>Total Volume</span>
 							<span>{formattedNum(allTimeVolume, true)}</span>
 						</Stat>
 					) : null}
 
-					{volume === 'true' && dailyVolume ? (
+					{dailyVolume ? (
 						<Stat>
 							<span>Volume 24h</span>
 							<span>{formattedNum(dailyVolume, true)}</span>
 						</Stat>
 					) : null}
 
-					{fees === 'true' && allTimeFees ? (
+					{allTimeFees ? (
 						<Stat>
 							<span>Total Fees</span>
 							<span>{formattedNum(allTimeFees, true)}</span>
 						</Stat>
 					) : null}
 
-					{fees === 'true' && dailyFees ? (
+					{dailyFees ? (
 						<Stat>
 							<span>Fees 24h</span>
 							<span>{formattedNum(dailyFees, true)}</span>
 						</Stat>
 					) : null}
 
-					{revenue === 'true' && dailyRevenue ? (
+					{dailyRevenue ? (
 						<Stat>
 							<span>Revenue 24h</span>
 							<span>{formattedNum(dailyRevenue, true)}</span>
 						</Stat>
 					) : null}
 
-					{activeUsers === 'true' && users?.users ? (
+					{users?.users ? (
 						<Stat>
 							<span>Users 24h</span>
 							<span>{formattedNum(users.users, false)}</span>

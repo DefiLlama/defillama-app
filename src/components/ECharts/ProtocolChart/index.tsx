@@ -4,7 +4,6 @@ import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject, stringToColour } from '../utils'
-import { SelectLegendMultiple } from '../shared'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { toK } from '~/utils'
@@ -30,8 +29,6 @@ export default function AreaBarChart({
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
-
-	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 
 	const chartsStack = stacks || customLegendOptions
 
@@ -131,9 +128,7 @@ export default function AreaBarChart({
 
 		chartData.forEach(({ date, ...item }) => {
 			chartsStack.forEach((stack) => {
-				if (legendOptions && customLegendName ? legendOptions.includes(stack) : true) {
-					series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
-				}
+				series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
 			})
 		})
 
@@ -165,7 +160,7 @@ export default function AreaBarChart({
 		}
 
 		return series
-	}, [chartData, chartsStack, color, customLegendName, hallmarks, isDark, legendOptions, stackColors])
+	}, [chartData, chartsStack, color, customLegendName, hallmarks, isDark, stackColors])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -284,18 +279,8 @@ export default function AreaBarChart({
 		activeUsersStackColor
 	])
 
-	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
-
 	return (
 		<div style={{ position: 'relative', marginTop: 16 }} {...props}>
-			{customLegendName && customLegendOptions?.length > 1 && (
-				<SelectLegendMultiple
-					allOptions={customLegendOptions}
-					options={legendOptions}
-					setOptions={setLegendOptions}
-					title={legendOptions.length === 1 ? legendTitle : legendTitle + 's'}
-				/>
-			)}
 			<Wrapper id={id} style={{ height, margin: 'auto 0' }}></Wrapper>
 		</div>
 	)

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import useSWR from 'swr'
-import { ACTIVE_USERS_API, PROTOCOLS_API, PROTOCOL_TREASURY_API } from '~/constants'
+import { PROTOCOLS_API, PROTOCOL_ACTIVE_USERS_API, PROTOCOL_TREASURY_API } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
 import { getProtocol } from '.'
 import { formatProtocolsData } from './utils'
@@ -35,28 +35,10 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string) => {
 		`activeUsers/${protocolId}`,
 		protocolId
 			? () =>
-					fetch(`${ACTIVE_USERS_API}/${protocolId}`)
+					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`)
 						.then((res) => res.json())
 						.then((values) => {
-							const userData = values && values.length > 0 ? values : null
-
-							const users = {}
-
-							userData?.forEach((item) => {
-								if (!users[item.start]) {
-									users[item.start] = {}
-								}
-
-								users[item.start] = {
-									...users[item.start],
-									[capitalizeFirstLetter(item.chain)]: item.users
-								}
-							})
-
-							return Object.entries(users).map(([date, values]: [string, { [key: string]: number }]) => ({
-								date,
-								...values
-							}))
+							return values && values.length > 0 ? values : null
 						})
 						.catch((err) => [])
 			: () => null

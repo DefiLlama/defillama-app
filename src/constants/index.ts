@@ -36,6 +36,7 @@ export const PROTOCOL_ONCHAIN_GOVERNANCE_API =
 	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/compound'
 
 export const ACTIVE_USERS_API = 'https://api.llama.fi/activeUsers'
+export const PROTOCOL_ACTIVE_USERS_API = 'https://api.llama.fi/userData/users'
 
 export const NFT_COLLECTIONS_API = 'https://nft.llama.fi/collections'
 export const NFT_VOLUME_API = 'https://nft.llama.fi/volume'

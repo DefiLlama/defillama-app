@@ -340,14 +340,14 @@ export default function ProtocolChart({
 		if (activeUsers === 'true' && users) {
 			tokensUnique.push('Active Users')
 
-			users.forEach((item) => {
-				if (!chartData[item.date]) {
-					chartData[item.date] = {}
+			users.forEach(([date, noOfUsers]) => {
+				if (!chartData[date]) {
+					chartData[date] = {}
 				}
 
-				chartData[item.date] = {
-					...chartData[item.date],
-					'Active Users': item['All'] || 0
+				chartData[date] = {
+					...chartData[date],
+					'Active Users': noOfUsers || 0
 				}
 			})
 		}
