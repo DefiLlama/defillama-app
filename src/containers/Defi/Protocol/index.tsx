@@ -9,7 +9,6 @@ import { ArrowUpRight, ChevronRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
 import {
 	Button,
-	DetailsTable,
 	DownloadButton,
 	ExtraOption,
 	FlexRow,
@@ -24,7 +23,7 @@ import {
 	LazyChart,
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
-import { Stat, StatsSection } from '~/layout/Stats/Medium'
+import { StatsSection } from '~/layout/Stats/Medium'
 import { Checkbox2 } from '~/components'
 import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
@@ -57,12 +56,11 @@ import { Treasury } from './Treasury'
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
 import { Emissions } from './Emissions'
-import { AutoRow, RowBetween } from '~/components/Row'
+import { RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
 import { ProtocolFeesAndRevenueCharts } from './Fees'
 import type { IEmission } from './Emissions'
 import Announcement from '~/components/Announcement'
-import { Tooltip2 } from '~/components/Tooltip'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
 
@@ -286,7 +284,7 @@ const Details = styled.details`
 
 			& > *:first-child {
 				font-weight: 400;
-				font-size: 0.875rem;
+				font-size: 1rem;
 				text-align: left;
 				color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
 			}

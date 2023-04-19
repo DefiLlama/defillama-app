@@ -1,5 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { deriveColors, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import { deriveColors, selectColor, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {
@@ -105,9 +105,7 @@ export const getStaticProps = async ({
 		'Gas Used'
 	]
 
-	const colorTones = Object.fromEntries(
-		chartTypes.map((type, index) => [type, deriveColors(backgroundColor, index, chartTypes.length)])
-	)
+	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
 
 	const similarProtocols =
 		allProtocols && protocolData.category

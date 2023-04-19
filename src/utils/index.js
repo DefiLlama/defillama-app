@@ -365,8 +365,26 @@ export function getRandomColor() {
 	return color
 }
 
+export function selectColor(number, color) {
+	const hue = number * 137.508 // use golden angle approximation
+
+	const { h, s, l, a } = colord(color).toHsl()
+
+	return colord({
+		h: h + hue,
+		s: number !== 0 && l < 70 ? 70 : s,
+		l: number !== 0 && l < 60 ? 60 : l,
+		a: number !== 0 && a < 0.6 ? 1 : a
+	}).toHex()
+
+	return `hsl(${h + number} ${s} ${l} / ${a})`
+	console.log(colord(color).toHsl())
+	return `hsl(${hue},70%,60%)`
+}
+
 export const deriveColors = (color, index, length) => {
 	const { l, c, h } = colord(color).toLch()
+
 	return colord({
 		l: l + (index / (length + 1)) * 30,
 		c: c + (index / (length + 1)) * 20,
