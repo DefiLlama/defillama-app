@@ -165,7 +165,21 @@ export const getStaticProps = async ({
 			dailyFees: feesAndRevenueData?.reduce((acc, curr) => (acc += curr.dailyFees || 0), 0) ?? null,
 			allTimeFees: feesAndRevenueData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null,
 			dailyVolume: volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null,
-			allTimeVolume: volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+			allTimeVolume: volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null,
+			helperTexts: {
+				fees:
+					volumeData.length > 1
+						? 'Sum of all fees from ' +
+						  (feesAndRevenueData?.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
+						: volumeData?.[0]?.methodology?.['Fees'] ?? null,
+				revenue:
+					volumeData.length > 1
+						? 'Sum of all revenue from ' +
+						  (feesAndRevenueData?.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
+						: volumeData?.[0]?.methodology?.['Revenue'] ?? null,
+				users:
+					'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.'
+			}
 		},
 		revalidate: maxAgeForNext([22])
 	}

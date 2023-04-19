@@ -141,6 +141,9 @@ const ProtocolStatsTable = styled.table`
 		font-size: 1rem;
 		text-align: start;
 		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
+		display: flex;
+		align-items: center;
+		gap: 4px;
 	}
 
 	td {
@@ -326,6 +329,11 @@ interface IProtocolContainerProps {
 	dailyRevenue: number | null
 	dailyVolume: number | null
 	allTimeVolume: number | null
+	helperTexts: {
+		fees?: string | null
+		revenue?: string | null
+		users?: string | null
+	}
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
@@ -348,7 +356,8 @@ function ProtocolContainer({
 	dailyFees,
 	dailyRevenue,
 	dailyVolume,
-	allTimeVolume
+	allTimeVolume,
+	helperTexts
 }: IProtocolContainerProps) {
 	useScrollToTop()
 
@@ -936,28 +945,40 @@ function ProtocolContainer({
 
 								{allTimeFees ? (
 									<tr>
-										<th>Total Fees</th>
+										<th>
+											<span>Total Fees</span>
+											{helperTexts.fees && <QuestionHelper text={helperTexts.fees} />}
+										</th>
 										<td>{formattedNum(allTimeFees, true)}</td>
 									</tr>
 								) : null}
 
 								{dailyFees ? (
 									<tr>
-										<th>Fees 24h</th>
+										<th>
+											<span>Fees 24h</span>
+											{helperTexts.fees && <QuestionHelper text={helperTexts.fees} />}
+										</th>
 										<td>{formattedNum(dailyFees, true)}</td>
 									</tr>
 								) : null}
 
 								{dailyRevenue ? (
 									<tr>
-										<th>Revenue 24h</th>
+										<th>
+											<span>Revenue 24h</span>
+											{helperTexts.revenue && <QuestionHelper text={helperTexts.revenue} />}
+										</th>
 										<td>{formattedNum(dailyRevenue, true)}</td>
 									</tr>
 								) : null}
 
 								{users?.users ? (
 									<tr>
-										<th>Users 24h</th>
+										<th>
+											<span>Users 24h</span>
+											{helperTexts.users && <QuestionHelper text={helperTexts.users} />}
+										</th>
 										<td>{formattedNum(users.users, false)}</td>
 									</tr>
 								) : null}

@@ -134,6 +134,7 @@ export default function ProtocolChart({
 		disabled: router.isReady && volume === 'true' && metrics.dexs ? false : true
 	})
 
+	console.log({ feesAndRevenue })
 	// update tvl calc based on extra tvl options like staking, pool2 selected
 	const tvlData = React.useMemo(() => {
 		return formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled })
