@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'

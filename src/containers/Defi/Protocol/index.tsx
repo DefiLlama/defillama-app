@@ -57,11 +57,12 @@ import { Treasury } from './Treasury'
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
 import { Emissions } from './Emissions'
-import { RowBetween } from '~/components/Row'
+import { AutoRow, RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
 import { ProtocolFeesAndRevenueCharts } from './Fees'
 import type { IEmission } from './Emissions'
 import Announcement from '~/components/Announcement'
+import { Tooltip2 } from '~/components/Tooltip'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
 
@@ -115,6 +116,63 @@ const RaisesWrapper = styled.ul`
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+`
+
+const ProtocolDetailsWrapper = styled(DetailsWrapper)`
+	gap: 24px;
+
+	@media screen and (min-width: 80rem) {
+		max-width: 300px;
+	}
+`
+
+const ProtocolStatsTable = styled.table`
+	width: 100%;
+	border-collapse: collapse;
+
+	caption,
+	thead th {
+		font-weight: 400;
+		font-size: 0.75rem;
+		text-align: left;
+		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
+	}
+
+	th {
+		font-weight: 400;
+		font-size: 1rem;
+		text-align: start;
+		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
+	}
+
+	td {
+		font-weight: 600;
+		font-size: 1rem;
+		text-align: right;
+		font-family: var(--font-jetbrains);
+	}
+
+	thead td {
+		> * {
+			width: min-content;
+			background: none;
+			margin-left: auto;
+			color: ${({ theme }) => theme.text1};
+		}
+	}
+
+	thead > tr > *,
+	caption {
+		padding: 0 0 4px;
+	}
+
+	tbody > tr > * {
+		padding: 4px 0;
+	}
+
+	.question-helper {
+		padding: 0 16px 4px;
+	}
 `
 
 interface IProtocolLink {
@@ -204,6 +262,8 @@ const Details = styled.details`
 		}
 	}
 
+	margin-bottom: -8px;
+
 	summary {
 		display: flex;
 		gap: 16px;
@@ -214,7 +274,26 @@ const Details = styled.details`
 		cursor: pointer;
 
 		& > *[data-arrowicon] {
-			margin: auto -16px 8px -24px;
+			margin: auto -16px 4px -16px;
+		}
+
+		& > *[data-summaryheader] {
+			font-size: 1rem;
+			font-weight: 600;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+
+			& > *:first-child {
+				font-weight: 400;
+				font-size: 0.875rem;
+				text-align: left;
+				color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
+			}
+
+			& > *:nth-child(2) {
+				font-family: var(--font-jetbrains);
+			}
 		}
 	}
 
@@ -456,9 +535,7 @@ function ProtocolContainer({
 					</OtherProtocols>
 				)}
 
-				<DetailsWrapper
-					style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px', maxWidth: '300px', gap: '24px' }}
-				>
+				<ProtocolDetailsWrapper style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
 					{scams.includes(name) && <p>There's been multiple hack reports in this protocol</p>}
 
 					<Name>
@@ -749,13 +826,13 @@ function ProtocolContainer({
 					<Details>
 						<summary>
 							<span data-arrowicon>
-								<ChevronRight size={24} />
+								<ChevronRight size={16} />
 							</span>
 
-							<Stat as="span">
+							<span data-summaryheader>
 								<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
 								<span>{formattedNum(totalVolume || '0', true)}</span>
-							</Stat>
+							</span>
 
 							{!isParentProtocol && (
 								<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
@@ -773,7 +850,7 @@ function ProtocolContainer({
 
 						<span>
 							{tvls.length > 0 && (
-								<DetailsTable>
+								<ProtocolStatsTable>
 									<caption>{isCEX ? 'Assets by chain' : 'Chain Breakdown'}</caption>
 									<tbody>
 										{tvls.map((chainTvl) => (
@@ -783,11 +860,11 @@ function ProtocolContainer({
 											</tr>
 										))}
 									</tbody>
-								</DetailsTable>
+								</ProtocolStatsTable>
 							)}
 
 							{extraTvls.length > 0 && (
-								<DetailsTable>
+								<ProtocolStatsTable>
 									<thead>
 										<tr>
 											<th>Include in TVL (optional)</th>
@@ -816,74 +893,80 @@ function ProtocolContainer({
 											</tr>
 										))}
 									</tbody>
-								</DetailsTable>
+								</ProtocolStatsTable>
 							)}
 						</span>
 					</Details>
 
-					{tokenMcap ? (
-						<Stat>
-							<span>Market Cap</span>
-							<span>{formattedNum(tokenMcap, true)}</span>
-						</Stat>
-					) : null}
+					<div style={{ width: '100%', overflowX: 'auto' }}>
+						<ProtocolStatsTable>
+							<tbody>
+								{tokenMcap ? (
+									<tr>
+										<th>Market Cap</th>
+										<td>{formattedNum(tokenMcap, true)}</td>
+									</tr>
+								) : null}
 
-					{priceOfToken ? (
-						<Stat>
-							<span>Token Price</span>
-							<span>${priceOfToken.toLocaleString('en-US', { maximumFractionDigits: 5 })}</span>
-						</Stat>
-					) : null}
+								{priceOfToken ? (
+									<tr>
+										<th>Token Price</th>
+										<td>${priceOfToken.toLocaleString('en-US', { maximumFractionDigits: 5 })}</td>
+									</tr>
+								) : null}
 
-					{tokenSupply && priceOfToken ? (
-						<Stat>
-							<span>Fully Diluted Valuation</span>
-							<span>{formattedNum(priceOfToken * tokenSupply, true)}</span>
-						</Stat>
-					) : null}
+								{tokenSupply && priceOfToken ? (
+									<tr>
+										<th>Fully Diluted Valuation</th>
+										<td>{formattedNum(priceOfToken * tokenSupply, true)}</td>
+									</tr>
+								) : null}
 
-					{allTimeVolume ? (
-						<Stat>
-							<span>Total Volume</span>
-							<span>{formattedNum(allTimeVolume, true)}</span>
-						</Stat>
-					) : null}
+								{allTimeVolume ? (
+									<tr>
+										<th>Total Volume</th>
+										<td>{formattedNum(allTimeVolume, true)}</td>
+									</tr>
+								) : null}
 
-					{dailyVolume ? (
-						<Stat>
-							<span>Volume 24h</span>
-							<span>{formattedNum(dailyVolume, true)}</span>
-						</Stat>
-					) : null}
+								{dailyVolume ? (
+									<tr>
+										<th>Volume 24h</th>
+										<td>{formattedNum(dailyVolume, true)}</td>
+									</tr>
+								) : null}
 
-					{allTimeFees ? (
-						<Stat>
-							<span>Total Fees</span>
-							<span>{formattedNum(allTimeFees, true)}</span>
-						</Stat>
-					) : null}
+								{allTimeFees ? (
+									<tr>
+										<th>Total Fees</th>
+										<td>{formattedNum(allTimeFees, true)}</td>
+									</tr>
+								) : null}
 
-					{dailyFees ? (
-						<Stat>
-							<span>Fees 24h</span>
-							<span>{formattedNum(dailyFees, true)}</span>
-						</Stat>
-					) : null}
+								{dailyFees ? (
+									<tr>
+										<th>Fees 24h</th>
+										<td>{formattedNum(dailyFees, true)}</td>
+									</tr>
+								) : null}
 
-					{dailyRevenue ? (
-						<Stat>
-							<span>Revenue 24h</span>
-							<span>{formattedNum(dailyRevenue, true)}</span>
-						</Stat>
-					) : null}
+								{dailyRevenue ? (
+									<tr>
+										<th>Revenue 24h</th>
+										<td>{formattedNum(dailyRevenue, true)}</td>
+									</tr>
+								) : null}
 
-					{users?.users ? (
-						<Stat>
-							<span>Users 24h</span>
-							<span>{formattedNum(users.users, false)}</span>
-						</Stat>
-					) : null}
-				</DetailsWrapper>
+								{users?.users ? (
+									<tr>
+										<th>Users 24h</th>
+										<td>{formattedNum(users.users, false)}</td>
+									</tr>
+								) : null}
+							</tbody>
+						</ProtocolStatsTable>
+					</div>
+				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
 					protocol={protocol}
