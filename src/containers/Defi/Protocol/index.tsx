@@ -274,11 +274,11 @@ const Details = styled.details`
 		cursor: pointer;
 
 		& > *[data-arrowicon] {
-			margin: auto -16px 4px -16px;
+			margin: auto -16px 8px -20px;
 		}
 
 		& > *[data-summaryheader] {
-			font-size: 1rem;
+			font-size: 1.5rem;
 			font-weight: 600;
 			display: flex;
 			flex-direction: column;
@@ -826,7 +826,7 @@ function ProtocolContainer({
 					<Details>
 						<summary>
 							<span data-arrowicon>
-								<ChevronRight size={16} />
+								<ChevronRight size={20} />
 							</span>
 
 							<span data-summaryheader>
