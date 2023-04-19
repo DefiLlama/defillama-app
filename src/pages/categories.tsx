@@ -72,6 +72,8 @@ export const descriptions = {
 	'NFT Marketplace': 'Protocols where users can buy/sell/rent NFTs',
 	'NFT Lending': 'Protocols that allow you to collateralize your NFT for a loan',
 	RWA: 'Protocols that involve Real World Assets, such as house tokenization',
+	'RWA Lending':
+		'Protocols that bridge traditional finance and blockchain ecosystems by tokenizing real-world assets for use as collateral or credit assessment, enabling decentralized lending and borrowing opportunities.',
 	Farm: 'Protocols that allow users to lock money in exchange for a protocol token',
 	'Liquid Staking':
 		'Protocols that enable you to earn staking rewards on your tokens while also providing a tradeable and liquid receipt for your staked position',
@@ -81,7 +83,7 @@ export const descriptions = {
 	'Uncollateralized Lending':
 		'Protocol that allows you to lend against known parties that can borrow without collaterall',
 	'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top',
-	'Liquidity manager': 'Protocols that manage Liquidity Positions in Uniswap V3 and/or Uniswap V3 forks'
+	'Liquidity manager': 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
