@@ -373,6 +373,13 @@ export async function getStaticProps() {
 					extra.leverage = extra.oi / cleanTvl
 				}
 
+				if (c.slug === 'Binance-CEX' && Number(hour7dms) < 1681609999) {
+					inflows7d.outflows = null
+				}
+				if (c.slug === 'Binance-CEX' && Number(hour1mms) < 1681609999) {
+					inflows1m.outflows = null
+				}
+
 				return {
 					...c,
 					tvl: cexTvl,
