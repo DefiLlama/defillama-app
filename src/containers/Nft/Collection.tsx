@@ -7,7 +7,7 @@ import TokenLogo from '~/components/TokenLogo'
 import FormattedName from '~/components/FormattedName'
 import { nftCollectionIconUrl } from '~/utils'
 import dynamic from 'next/dynamic'
-import type { ICollectionScatterChartProps } from './types'
+import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { ArrowUpRight } from 'react-feather'
 import Link from 'next/link'
@@ -23,9 +23,9 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+const OrderbookChart = dynamic(() => import('./OrderbookChart'), {
 	ssr: false
-}) as React.FC<IBarChartProps>
+}) as React.FC<IOrderBookChartProps>
 
 export function NFTCollectionContainer({
 	name,
@@ -35,7 +35,8 @@ export function NFTCollectionContainer({
 	salesExOutliers,
 	salesMedian1d,
 	address,
-	floorHistory
+	floorHistory,
+	orderbook
 }) {
 	const floorPrice = floorHistory[floorHistory.length - 1]?.[1]
 	const volume24h = stats[stats.length - 1]?.[1]
@@ -116,11 +117,11 @@ export function NFTCollectionContainer({
 			</StatsSection>
 
 			<ChartsWrapper>
-				<LazyChart>
+				<LazyChart style={{ minHeight: '360px', padding: '20px 16px 20px 0' }}>
 					<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
 				</LazyChart>
-				<LazyChart>
-					<BarChart chartData={stats} hideDefaultLegend valueSymbol="ETH" title="Volume" />
+				<LazyChart style={{ minHeight: '360px', padding: '20px 16px 20px 0' }}>
+					<OrderbookChart chartData={orderbook} />
 				</LazyChart>
 			</ChartsWrapper>
 		</Layout>

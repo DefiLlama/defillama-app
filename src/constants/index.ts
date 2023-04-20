@@ -46,6 +46,7 @@ export const NFT_COLLECTION_API = 'https://nft.llama.fi/collection'
 export const NFT_COLLECTION_STATS_API = 'https://nft.llama.fi/stats'
 export const NFT_COLLECTION_SALES_API = 'https://nft.llama.fi/sales'
 export const NFT_COLLECTION_FLOOR_HISTORY_API = 'https://nft.llama.fi/floorHistory'
+export const NFT_COLLECTIONS_ORDERBOOK_API = 'https://nft.llama.fi/orderbook'
 export const NFT_MARKETPLACES_STATS_API = 'https://nft.llama.fi/exchangeStats'
 export const NFT_MARKETPLACES_VOLUME_API = 'https://nft.llama.fi/exchangeVolume'
 

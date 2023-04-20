@@ -16,6 +16,11 @@ export interface ISale {
 export interface ICollectionScatterChartProps {
 	sales: Array<ISale>
 	height?: string
-	salesMedian1d: Array<ISale>,
+	salesMedian1d: Array<ISale>
 	volume: any
+}
+
+export interface IOrderBookChartProps {
+	chartData: Array<{ orderType: string; price: number; priceTotal: number; avgPrice: number; amount: number }>
+	height?: string
 }
