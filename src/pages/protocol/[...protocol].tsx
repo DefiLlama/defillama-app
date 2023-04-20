@@ -84,11 +84,11 @@ export const getStaticProps = async ({
 		])
 
 	const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
-		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.name
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
 	const volumeData = dexs?.protocols?.filter(
-		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.name
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
 	const chartTypes = [
@@ -146,11 +146,24 @@ export const getStaticProps = async ({
 		}
 	})
 
+	const dailyRevenue = feesAndRevenueData?.reduce((acc, curr) => (acc += curr.dailyRevenue || 0), 0) ?? null
+	const dailyFees = feesAndRevenueData?.reduce((acc, curr) => (acc += curr.dailyFees || 0), 0) ?? null
+	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
+	const allTimeFees = feesAndRevenueData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+
 	return {
 		props: {
 			articles,
 			protocol,
-			protocolData,
+			protocolData: {
+				...protocolData,
+				metrics: {
+					...protocolData.metrics,
+					fees: protocolData.metrics.fees || dailyFees || allTimeFees ? true : false,
+					dexs: protocolData.metrics.dexs || dailyVolume || allTimeVolume ? true : false
+				}
+			},
 			backgroundColor,
 			similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
 				similarProtocols.find((p) => p.name === protocolName)
@@ -161,11 +174,11 @@ export const getStaticProps = async ({
 			tokenPrice: tokenPrice?.coins?.[`coingecko:${protocolData.gecko_id}`]?.price ?? null,
 			tokenMcap: tokenMcap?.[`coingecko:${protocolData.gecko_id}`]?.mcap ?? null,
 			tokenSupply: fdvData?.['market_data']?.['total_supply'] ?? null,
-			dailyRevenue: feesAndRevenueData?.reduce((acc, curr) => (acc += curr.dailyRevenue || 0), 0) ?? null,
-			dailyFees: feesAndRevenueData?.reduce((acc, curr) => (acc += curr.dailyFees || 0), 0) ?? null,
-			allTimeFees: feesAndRevenueData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null,
-			dailyVolume: volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null,
-			allTimeVolume: volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null,
+			dailyRevenue,
+			dailyFees,
+			allTimeFees,
+			dailyVolume,
+			allTimeVolume,
 			helperTexts: {
 				fees:
 					volumeData.length > 1

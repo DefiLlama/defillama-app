@@ -929,27 +929,10 @@ function ProtocolContainer({
 									</tr>
 								) : null}
 
-								{allTimeVolume ? (
-									<tr>
-										<th>Total Volume</th>
-										<td>{formattedNum(allTimeVolume, true)}</td>
-									</tr>
-								) : null}
-
 								{dailyVolume ? (
 									<tr>
 										<th>Volume 24h</th>
 										<td>{formattedNum(dailyVolume, true)}</td>
-									</tr>
-								) : null}
-
-								{allTimeFees ? (
-									<tr>
-										<th>
-											<span>Total Fees</span>
-											{helperTexts.fees && <QuestionHelper text={helperTexts.fees} />}
-										</th>
-										<td>{formattedNum(allTimeFees, true)}</td>
 									</tr>
 								) : null}
 
@@ -980,6 +963,23 @@ function ProtocolContainer({
 											{helperTexts.users && <QuestionHelper text={helperTexts.users} />}
 										</th>
 										<td>{formattedNum(users.users, false)}</td>
+									</tr>
+								) : null}
+
+								{allTimeVolume ? (
+									<tr>
+										<th>Total Volume</th>
+										<td>{formattedNum(allTimeVolume, true)}</td>
+									</tr>
+								) : null}
+
+								{allTimeFees ? (
+									<tr>
+										<th>
+											<span>Total Fees</span>
+											{helperTexts.fees && <QuestionHelper text={helperTexts.fees} />}
+										</th>
+										<td>{formattedNum(allTimeFees, true)}</td>
 									</tr>
 								) : null}
 							</tbody>
