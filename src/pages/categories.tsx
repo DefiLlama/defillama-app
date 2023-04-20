@@ -83,7 +83,8 @@ export const descriptions = {
 	'Uncollateralized Lending':
 		'Protocol that allows you to lend against known parties that can borrow without collaterall',
 	'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top',
-	'Liquidity manager': 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs'
+	'Liquidity manager': 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs',
+	'Staking Pool': `Refers to platforms where users stake their assets on native blockchains to help secure the network and earn rewards. Unlike Liquid Staking, users don't receive a token representing their staked assets, and their funds are locked up during the staking period, limiting participation in other DeFi activities`
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
