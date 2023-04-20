@@ -170,8 +170,34 @@ export default function ProtocolChart({
 		if (tvlData.length > 0 && tvl !== 'false') {
 			tokensUnique.push('TVL')
 
+			let prevDate = null
+
 			tvlData.forEach(([dateS, TVL]) => {
 				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
+				if (prevDate && +date - prevDate > 86400) {
+					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
+
+					for (let i = 1; i < noOfDatesMissing + 1; i++) {
+						const missingDate = prevDate + 86400 * i
+
+						if (!chartData[missingDate]) {
+							chartData[missingDate] = {}
+						}
+
+						const missingTvl =
+							((chartData[prevDate]?.['TVL'] ?? 0) +
+								(showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL)) /
+							2
+
+						chartData[missingDate] = {
+							...chartData[missingDate],
+							TVL: missingTvl
+						}
+					}
+				}
+
+				prevDate = date
 
 				if (!chartData[date]) {
 					chartData[date] = {}
