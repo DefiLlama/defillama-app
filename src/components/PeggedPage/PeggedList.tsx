@@ -24,14 +24,7 @@ import {
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
-import {
-	capitalizeFirstLetter,
-	formattedNum,
-	getPercentChange,
-	getPeggedDominance,
-	toNiceCsvDate,
-	download
-} from '~/utils'
+import { formattedNum, getPercentChange, getPeggedDominance, toNiceCsvDate, download } from '~/utils'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -203,7 +196,7 @@ function PeggedAssetsOverview({
 
 	let title = `Stablecoins Market Cap`
 	if (selectedChain !== 'All') {
-		title = `${capitalizeFirstLetter(selectedChain)} Stablecoins Market Cap`
+		title = `${selectedChain} Stablecoins Market Cap`
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
