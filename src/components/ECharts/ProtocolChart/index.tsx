@@ -202,7 +202,6 @@ export default function AreaBarChart({
 				alignTicks: true,
 				offset: noOffset || index < 2 ? 0 : (yAxiss[yAxiss.length - 1]?.offset ?? 0) + 40
 			}
-			const offset = noOffset || index < 2 ? 0 : (yAxiss[yAxiss.length - 1]?.offset ?? 0) + 40
 
 			if (type === 'TVL+Mcap+FDV') {
 				yAxiss.push(yAxis)

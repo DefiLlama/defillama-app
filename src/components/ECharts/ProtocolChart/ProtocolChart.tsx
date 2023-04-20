@@ -16,6 +16,7 @@ import type { IChartProps } from '../types'
 import { nearestUtc } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
 import useSWR from 'swr'
+import { LazyChart } from '~/layout/ProtocolAndPool'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -62,12 +63,12 @@ export default function ProtocolChart({
 		mcap,
 		tokenPrice,
 		fdv,
-		events,
 		volume,
 		fees,
 		revenue,
 		unlocks,
 		activeUsers,
+		events,
 		transactions,
 		gasUsed
 	} = router.query
@@ -492,6 +493,278 @@ export default function ProtocolChart({
 
 	return (
 		<Wrapper>
+			{geckoId || hallmarks?.length > 0 || metrics?.fees || metrics?.dexs || emissions?.length > 0 || users ? (
+				<ToggleWrapper>
+					<Toggle backgroundColor={color}>
+						<input
+							type="checkbox"
+							value="tvl"
+							checked={tvl !== 'false'}
+							onChange={() =>
+								router.push(
+									{
+										pathname: router.pathname,
+										query: { ...router.query, tvl: tvl === 'false' ? true : false }
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}
+						/>
+						<span data-wrapper="true">
+							<span>TVL</span>
+						</span>
+					</Toggle>
+
+					{geckoId && (
+						<>
+							<Toggle backgroundColor={color}>
+								<input
+									type="checkbox"
+									value="mcap"
+									checked={mcap === 'true'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, mcap: mcap === 'true' ? false : true }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									<span>Mcap</span>
+								</span>
+							</Toggle>
+
+							<Toggle backgroundColor={color}>
+								<input
+									type="checkbox"
+									value="tokenPrice"
+									checked={tokenPrice === 'true'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, tokenPrice: tokenPrice === 'true' ? false : true }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									<span>Token Price</span>
+								</span>
+							</Toggle>
+
+							<Toggle backgroundColor={color}>
+								<input
+									type="checkbox"
+									value="fdv"
+									checked={fdv === 'true'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, fdv: fdv === 'true' ? false : true }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									<span>FDV</span>
+								</span>
+							</Toggle>
+						</>
+					)}
+
+					{metrics.dexs && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="volume"
+								checked={volume === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, volume: volume === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Volume</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.fees && (
+						<>
+							<Toggle backgroundColor={color}>
+								<input
+									type="checkbox"
+									value="fees"
+									checked={fees === 'true'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, fees: fees === 'true' ? false : true }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									<span>Fees</span>
+								</span>
+							</Toggle>
+
+							<Toggle backgroundColor={color}>
+								<input
+									type="checkbox"
+									value="revenue"
+									checked={revenue === 'true'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, revenue: revenue === 'true' ? false : true }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									<span>Revenue</span>
+								</span>
+							</Toggle>
+						</>
+					)}
+
+					{emissions?.length > 0 && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="unlocks"
+								checked={unlocks === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, unlocks: unlocks === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Unlocks</span>
+							</span>
+						</Toggle>
+					)}
+
+					{users && (
+						<>
+							<Toggle backgroundColor={color}>
+								<input
+									type="checkbox"
+									value="activeUsers"
+									checked={activeUsers === 'true'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, activeUsers: activeUsers === 'true' ? false : true }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									<span>Active Users</span>
+								</span>
+							</Toggle>
+							<Toggle backgroundColor={color}>
+								<input
+									type="checkbox"
+									value="transactions"
+									checked={transactions === 'true'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, transactions: transactions === 'true' ? false : true }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									<span>Transactions</span>
+								</span>
+							</Toggle>
+							<Toggle backgroundColor={color}>
+								<input
+									type="checkbox"
+									value="gasUsed"
+									checked={gasUsed === 'true'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, gasUsed: gasUsed === 'true' ? false : true }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									<span>Gas Used</span>
+								</span>
+							</Toggle>
+						</>
+					)}
+
+					{hallmarks?.length > 0 && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="events"
+								checked={events !== 'false'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, events: events === 'false' ? true : false }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Events</span>
+							</span>
+						</Toggle>
+					)}
+				</ToggleWrapper>
+			) : null}
+
 			<FiltersWrapper>
 				<Filters color={color}>
 					{DENOMINATIONS.map((D) => (
@@ -524,31 +797,33 @@ export default function ProtocolChart({
 				</Filters>
 			</FiltersWrapper>
 
-			{!router.isReady ? null : isLoading ? (
-				<p style={{ position: 'relative', top: '200px', textAlign: 'center' }}>{`Fetching ${fetchingTypes.join(
-					', '
-				)} ...`}</p>
-			) : (
-				<AreaChart
-					chartData={finalData}
-					color={color}
-					title=""
-					valueSymbol={valueSymbol}
-					stacks={tokensUnique}
-					hallmarks={!(events === 'false') && hallmarks}
-					tooltipSort={false}
-					stackColors={chartColors}
-					style={{
-						...(bobo && {
-							backgroundImage: 'url("/bobo.png")',
-							backgroundSize: '100% 360px',
-							backgroundRepeat: 'no-repeat',
-							backgroundPosition: 'bottom'
-						})
-					}}
-					unlockTokenSymbol={unlockTokenSymbol}
-				/>
-			)}
+			<LazyChart style={{ padding: 0, minHeight: '360px' }}>
+				{!router.isReady ? null : isLoading ? (
+					<p style={{ position: 'relative', top: '200px', textAlign: 'center' }}>{`Fetching ${fetchingTypes.join(
+						', '
+					)} ...`}</p>
+				) : (
+					<AreaChart
+						chartData={finalData}
+						color={color}
+						title=""
+						valueSymbol={valueSymbol}
+						stacks={tokensUnique}
+						hallmarks={!(events === 'false') && hallmarks}
+						tooltipSort={false}
+						stackColors={chartColors}
+						style={{
+							...(bobo && {
+								backgroundImage: 'url("/bobo.png")',
+								backgroundSize: '100% 360px',
+								backgroundRepeat: 'no-repeat',
+								backgroundPosition: 'bottom'
+							})
+						}}
+						unlockTokenSymbol={unlockTokenSymbol}
+					/>
+				)}
+			</LazyChart>
 		</Wrapper>
 	)
 }
@@ -558,7 +833,6 @@ export const Wrapper = styled.div`
 	flex-direction: column;
 	gap: 16px;
 	padding: 0 0 20px 0;
-	min-height: 460px;
 	grid-column: span 1;
 `
 
@@ -567,7 +841,7 @@ export const FiltersWrapper = styled.div`
 	flex-direction: column;
 	flex-wrap: wrap;
 	gap: 16px;
-	margin: 16px 16px 0;
+	margin: 0 16px;
 
 	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
 		flex-wrap: wrap;
@@ -664,3 +938,56 @@ const getPriceAtDate = (date: string | number, history: Array<[number, number]>)
 
 	return priceAtDate?.[1] ?? 0
 }
+
+interface IToggleProps {
+	backgroundColor: string
+}
+
+const Toggle = styled.label<IToggleProps>`
+	font-size: 0.875rem;
+	font-weight: 500;
+	cursor: pointer;
+
+	input {
+		position: absolute;
+		width: 1em;
+		height: 1em;
+		opacity: 0.00001;
+	}
+
+	span[data-wrapper='true'] {
+		position: relative;
+		z-index: 1;
+		padding: 8px 12px;
+		background: red;
+		border-radius: 10px;
+		display: flex;
+		align-items: center;
+		flex-wrap: nowrap;
+		gap: 4px;
+		background: ${({ backgroundColor, theme }) =>
+			backgroundColor ? transparentize(0.8, backgroundColor) : transparentize(0.8, theme.primary1)};
+	}
+
+	input:checked + span[data-wrapper='true'] {
+		background: ${({ backgroundColor, theme }) =>
+			backgroundColor ? transparentize(0.4, backgroundColor) : transparentize(0.4, theme.primary1)};
+	}
+
+	input:focus-visible {
+		outline: none;
+	}
+
+	input:focus-visible + span[data-wrapper='true'] {
+		outline: ${({ theme }) => '1px solid ' + theme.text1};
+		outline-offset: 1px;
+	}
+`
+
+const ToggleWrapper = styled.span`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 16px 16px 0;
+`
