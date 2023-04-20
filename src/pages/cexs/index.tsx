@@ -370,8 +370,14 @@ export async function getStaticProps() {
 					}
 				}
 				if (c.cgDeriv) {
-					extra.oi = derivs.find((ex) => ex.id === c.cgDeriv).open_interest_btc * btcPrice
-					extra.leverage = extra.oi / cleanTvl
+					const _derivs = derivs && !derivs.status && derivs.find((ex) => ex.id === c.cgDeriv)
+					// extra.oi = derivs.find((ex) => ex.id === c.cgDeriv).open_interest_btc * btcPrice
+					if (!_derivs) {
+						console.error(c.name + ' is not in derivs list')
+					} else {
+						extra.oi = _derivs.open_interest_btc * btcPrice
+						extra.leverage = extra.oi / cleanTvl
+					}
 				}
 
 				if (c.slug === 'Binance-CEX' && Number(hour7dms) < 1681609999) {
