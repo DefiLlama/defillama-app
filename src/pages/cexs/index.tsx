@@ -131,6 +131,12 @@ export const cexData = [
 		walletsLink: null
 	},
 	{
+		name: 'MaskEX',
+		slug: 'maskex',
+		coin: null,
+		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
+	},
+	{
 		name: 'Phemex',
 		slug: 'phemex',
 		coin: null,
@@ -143,12 +149,6 @@ export const cexData = [
 		slug: 'cake-defi',
 		coin: null,
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
-	},
-	{
-		name: 'MaskEX',
-		slug: 'maskex',
-		coin: null,
-		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'WOO X',
