@@ -361,6 +361,7 @@ export async function getStaticProps() {
 
 				const extra = {} as any
 				if (c.cgId) {
+					console.log(c.cgId, spot)
 					const spotEx = spot?.find((ex) => ex.id === c.cgId)
 					if (!spotEx) {
 						console.error(c.name + ' is not in spot list')
