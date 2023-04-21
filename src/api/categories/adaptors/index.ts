@@ -105,7 +105,7 @@ function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
-			acc[pd.name] = pd.tvlPrevDay
+			acc[pd.defillamaId] = pd.tvlPrevDay
 			return acc
 		}, {}) ?? {}
 	)
@@ -212,8 +212,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			subRow = {
 				...protocol,
 				displayName: protocol.displayName ?? protocol.name,
-				tvl: tvlData[protocol.name] ?? null,
-				volumetvl: tvlData[protocol.name] ? protocol.total24h / tvlData[protocol.name] : null,
+				tvl: tvlData[protocol.defillamaId] ?? null,
+				volumetvl: tvlData[protocol.defillamaId] ? protocol.total24h / tvlData[protocol.defillamaId] : null,
 				dominance: (100 * protocol.total24h) / total24h,
 				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
@@ -227,7 +227,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		} else mainRow = protocol
 
 		// Main row, either parent or single protocol
-		const protocolTVL = tvlData[protocol.name]
+		const protocolTVL = tvlData[protocol.defillamaId]
 		mainRow = {
 			...mainRow,
 			...acc[protocol.parentProtocol],
