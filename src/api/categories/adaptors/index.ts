@@ -418,7 +418,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					total24h,
 					tvl: protocols.reduce((acc, curr) => {
 						// TODO: This should be mapped using defillamaId to get accurate tvl!
-						const tvl = tvlData[curr.name]
+						const tvl = tvlData[curr.defillamaId]
 						acc += !Number.isNaN(tvl) ? tvl : 0
 						return acc
 					}, 0),
