@@ -29,9 +29,10 @@ export async function getStaticProps() {
 						}),
 						{}
 					),
+					coreTvl: t.tvl,
 					tvl: t.tvl + (t.chainTvls?.['OwnTokens'] ?? 0)
 				}))
-				.sort((a, b) => b.stablecoins - a.stablecoins)
+				.sort((a, b) => b.coreTvl - a.coreTvl)
 		},
 		revalidate: maxAgeForNext([22])
 	}

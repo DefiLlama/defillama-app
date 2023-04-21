@@ -1008,6 +1008,18 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		}
 	},
 	{
+		header: 'Total excl. own tokens',
+		accessorKey: 'coreTvl',
+		id: 'coreTvl',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 128,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Total Treasury',
 		accessorKey: 'tvl',
 		id: 'total-treasury',
