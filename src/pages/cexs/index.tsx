@@ -317,8 +317,12 @@ export async function getStaticProps() {
 			}
 		}
 	] = await Promise.all([
-		fetch(`https://api.coingecko.com/api/v3/exchanges?per_page=250`).then((r) => r.json()),
-		fetch(`https://api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`).then((r) => r.json()),
+		fetch(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250&x_cg_pro_api_key=${process.env.CG_KEY}`).then(
+			(r) => r.json()
+		),
+		fetch(
+			`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000&x_cg_pro_api_key=${process.env.CG_KEY}`
+		).then((r) => r.json()),
 		fetch(`https://coins.llama.fi/prices/current/coingecko:bitcoin`).then((r) => r.json())
 	])
 	const cexs = await Promise.all(
