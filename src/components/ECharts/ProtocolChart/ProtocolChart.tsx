@@ -519,7 +519,7 @@ export default function ProtocolChart({
 
 	return (
 		<Wrapper>
-			{geckoId || hallmarks?.length > 0 || metrics?.fees || metrics?.dexs || emissions?.length > 0 || users ? (
+			{geckoId || hallmarks?.length > 0 || metrics?.fees || metrics?.dexs || emissions?.length > 0 || activeUsersId ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
 						<input
@@ -701,7 +701,7 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
-					{users && (
+					{activeUsersId && (
 						<>
 							<Toggle backgroundColor={color}>
 								<input
@@ -825,7 +825,7 @@ export default function ProtocolChart({
 
 			<LazyChart style={{ padding: 0, minHeight: '360px' }}>
 				{!router.isReady ? null : isLoading ? (
-					<p style={{ position: 'relative', top: '200px', textAlign: 'center' }}>{`Fetching ${fetchingTypes.join(
+					<p style={{ position: 'relative', top: '180px', textAlign: 'center' }}>{`Fetching ${fetchingTypes.join(
 						', '
 					)} ...`}</p>
 				) : (
@@ -858,7 +858,7 @@ export const Wrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-	padding: 0 0 20px 0;
+	padding: 16px 0;
 	grid-column: span 1;
 `
 
@@ -1015,5 +1015,5 @@ const ToggleWrapper = styled.span`
 	align-items: center;
 	gap: 8px;
 	flex-wrap: wrap;
-	margin: 16px 16px 0;
+	margin: 0 16px;
 `
