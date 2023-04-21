@@ -69,7 +69,8 @@ const blockExplorers = {
 	loop: ['https://explorer.mainnetloop.com/token/', 'LoopExplorer'],
 	era: ['https://explorer.zksync.io/address/', 'zkSync Explorer'],
 	map: ['https://maposcan.io/address/', 'Maposcan'],
-	conflux: ['https://evm.confluxscan.net/address/', 'Conflux Scan']
+	conflux: ['https://evm.confluxscan.net/address/', 'Conflux Scan'],
+	eos_evm: ['https://explorer.evm.eosnetwork.com/address/', 'EOS EVM Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
