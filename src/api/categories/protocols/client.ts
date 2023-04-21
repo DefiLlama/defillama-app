@@ -41,7 +41,7 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 		`activeUsers/${protocolId}`,
 		protocolId
 			? () =>
-					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`)
+					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll("#", "$"))
 						.then((res) => res.json())
 						.then((values) => {
 							return values && values.length > 0 ? values : null
@@ -57,7 +57,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 		`protocolTransactionsApi/${protocolId}`,
 		protocolId
 			? () =>
-					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`)
+					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll("#", "$"))
 						.then((res) => res.json())
 						.then((values) => {
 							return values && values.length > 0 ? values : null
@@ -73,7 +73,7 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 		`protocolGasUsed/${protocolId}`,
 		protocolId
 			? () =>
-					fetch(`${PROTOCOL_GAS_USED_API}/${protocolId}`)
+					fetch(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll("#", "$"))
 						.then((res) => res.json())
 						.then((values) => {
 							return values && values.length > 0 ? values : null
