@@ -219,7 +219,7 @@ export const formatProtocolsList = ({
 					strikeTvl = true
 				}
 
-				if (props.category === 'RWA') {
+				if (['RWA', 'Infrastructure', 'Staking Pool'].includes(props.category)) {
 					strikeTvl = true
 				}
 
