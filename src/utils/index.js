@@ -209,7 +209,7 @@ export const filterCollectionsByCurrency = (collections, displayUsd) =>
 	[]
 
 export function chainIconUrl(chain) {
-	return `${ICONS_CDN}/chains/rsz_${chain.toLowerCase()}?w=24&h=24`
+	return `${ICONS_CDN}/chains/rsz_${chain.toLowerCase()}?w=48&h=48`
 }
 
 export function chainIconPaletteUrl(chain) {
@@ -230,11 +230,11 @@ export function tokenIconUrl(name) {
 		.split("'")
 		.join('')
 		.split('’')
-		.join('')}?w=24&h=24`
+		.join('')}?w=48&h=48`
 }
 
 export function nftCollectionIconUrl(address) {
-	return `${ICONS_CDN}/nfts/${address}?w=24&h=24`
+	return `${ICONS_CDN}/nfts/${address}?w=48&h=48`
 }
 
 export function tokenIconPaletteUrl(name) {
@@ -263,7 +263,7 @@ export function liquidationsIconUrl(symbol, hd = false) {
 	if (hd) {
 		return `${ICONS_CDN}/liquidations/${symbol.toLowerCase()}?w=64&h=64`
 	} else {
-		return `${ICONS_CDN}/liquidations/${symbol.toLowerCase()}?w=24&h=24`
+		return `${ICONS_CDN}/liquidations/${symbol.toLowerCase()}?w=48&h=48`
 	}
 }
 
@@ -272,7 +272,7 @@ export function liquidationsIconPaletteUrl(symbol) {
 }
 
 export function peggedAssetIconUrl(name) {
-	return `${ICONS_CDN}/pegged/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}?w=24&h=24`
+	return `${ICONS_CDN}/pegged/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}?w=48&h=48`
 }
 
 export function peggedAssetIconPalleteUrl(name) {
