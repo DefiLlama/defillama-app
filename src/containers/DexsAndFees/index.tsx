@@ -198,7 +198,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 						activeLink={chain}
 						alternativeOthersText="More chains"
 					/>
-					{props.categories?.length > 0 && (
+					{props.categories?.length > 0 && props.type !== 'dexs' && (
 						<FiltersByCategory
 							categoryList={props.categories}
 							selectedCategories={selectedCategories}
