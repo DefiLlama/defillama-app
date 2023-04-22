@@ -331,5 +331,5 @@ export const formatTooltipValue = (value, symbol) => {
 		? symbol + toK(value)
 		: symbol === '%'
 		? Math.round(value * 100) / 100 + ' %'
-		: toK(value, 4) + ' ' + symbol
+		: (`${value}`.startsWith('0.00') ? toK(value, 3) : toK(value, 1)) + ' ' + symbol
 }
