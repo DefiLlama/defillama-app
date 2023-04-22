@@ -30,8 +30,6 @@ export default function AreaBarChart({
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
 
-	const chartsStack = stacks || customLegendOptions
-
 	const [isDark] = useDarkModeManager()
 
 	const defaultChartSettings = useDefaults({
@@ -43,44 +41,40 @@ export default function AreaBarChart({
 		unlockTokenSymbol
 	})
 
-	const barChartExists = chartsStack.find((st) => ['Volume', 'Fees', 'Revenue'].includes(st)) ? true : false
-	const unlockChartExists = chartsStack.includes('Unlocks')
-	const activeUsersChartExists = chartsStack.includes('Active Users')
-
 	const { series, yAxisByIndex } = useMemo(() => {
 		const chartColor = color || stringToColour()
 
 		const yAxisByIndex = {}
 
-		if (chartsStack.includes('TVL') || chartsStack.includes('Mcap') || chartsStack.includes('FDV')) {
-			yAxisByIndex['TVL+Mcap+FDV'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('TVL') || stacks.includes('Mcap') || stacks.includes('FDV')) {
+			yAxisByIndex['TVL+Mcap+FDV'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (chartsStack.includes('Token Price')) {
-			yAxisByIndex['Token Price'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('Token Price')) {
+			yAxisByIndex['Token Price'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (chartsStack.includes('Volume') || chartsStack.includes('Fees') || chartsStack.includes('Revenue')) {
-			yAxisByIndex['Volume+Fees+Revenue'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('Volume') || stacks.includes('Fees') || stacks.includes('Revenue')) {
+			yAxisByIndex['Volume+Fees+Revenue'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (chartsStack.includes('Unlocks')) {
-			yAxisByIndex['Unlocks'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('Unlocks')) {
+			yAxisByIndex['Unlocks'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (chartsStack.includes('Active Users')) {
-			yAxisByIndex['Active Users'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('Active Users')) {
+			yAxisByIndex['Active Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (chartsStack.includes('Transactions')) {
-			yAxisByIndex['Transactions'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('Transactions')) {
+			yAxisByIndex['Transactions'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (chartsStack.includes('Gas Used')) {
-			yAxisByIndex['Gas Used'] = chartsStack.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('Gas Used')) {
+			yAxisByIndex['Gas Used'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		const series = chartsStack.map((stack, index) => {
+		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
 			const type = ['Volume', 'Fees', 'Revenue', 'Active Users', 'Transactions', 'Gas Used'].includes(stack)
@@ -133,7 +127,7 @@ export default function AreaBarChart({
 		})
 
 		chartData.forEach(({ date, ...item }) => {
-			chartsStack.forEach((stack) => {
+			stacks.forEach((stack) => {
 				series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
 			})
 		})
@@ -166,7 +160,7 @@ export default function AreaBarChart({
 		}
 
 		return { series, yAxisByIndex }
-	}, [chartData, chartsStack, color, customLegendName, hallmarks, isDark, stackColors])
+	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -292,7 +286,7 @@ export default function AreaBarChart({
 			legend: {
 				...legend,
 				left: 65,
-				show: chartsStack.length > 1
+				show: stacks.length > 1
 			},
 			tooltip: {
 				...tooltip
@@ -326,12 +320,9 @@ export default function AreaBarChart({
 		createInstance,
 		defaultChartSettings,
 		series,
+		stacks.length,
 		chartOptions,
-		chartsStack.length,
 		unlockTokenSymbol,
-		barChartExists,
-		unlockChartExists,
-		activeUsersChartExists,
 		stackColors,
 		yAxisByIndex
 	])
