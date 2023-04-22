@@ -182,8 +182,8 @@ function formattedPeggedPercent(percent, noSign = false) {
 		return null
 	}
 
-	let up = 'green'
-	let down = 'red'
+	let up = '#3fb950'
+	let down = '#f85149'
 
 	if (noSign) {
 		up = down = ''

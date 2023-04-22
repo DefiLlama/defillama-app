@@ -129,7 +129,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue()
 			if (value) {
 				return (
-					<Text as="span" color={value > 0 ? 'green' : 'red'}>
+					<Text as="span" color={value > 0 ? '#3fb950' : '#f85149'}>
 						${formattedNum(info.getValue())}
 					</Text>
 				)
@@ -166,7 +166,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue()
 			if (value) {
 				return (
-					<Text as="span" color={value > 0 ? 'green' : 'red'}>
+					<Text as="span" color={value > 0 ? '#3fb950' : '#f85149'}>
 						${formattedNum(info.getValue())}
 					</Text>
 				)
@@ -239,7 +239,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as boolean
 			return (
-				<Text as="span" color={value ? 'red' : 'green'}>
+				<Text as="span" color={value ? '#f85149' : '#3fb950'}>
 					{value ? 'Withdrawal' : 'Deposit'}
 				</Text>
 			)

@@ -1192,11 +1192,11 @@ export const InflowOutflow = styled.span`
 	color: ${({ theme }) => theme.text1};
 
 	&[data-variant='green'] {
-		color: green;
+		color: #3fb950;
 	}
 
 	&[data-variant='red'] {
-		color: red;
+		color: #f85149;
 	}
 `
 
@@ -1304,7 +1304,7 @@ const breakdownColor = (type) => {
 		return '#6d28d9'
 	}
 
-	return 'red'
+	return '#f85149'
 }
 
 const formatBreakdownType = (type) => {

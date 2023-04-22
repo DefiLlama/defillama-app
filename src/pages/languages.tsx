@@ -126,6 +126,6 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 }
 
 const sourceTypeColor = {
-	opensource: 'red',
-	closedsource: 'green'
+	opensource: '#f85149',
+	closedsource: '#3fb950'
 }

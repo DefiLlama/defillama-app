@@ -627,7 +627,7 @@ function ProtocolContainer({
 								{users?.users ? (
 									<tr>
 										<th>
-											<span>Users 24h</span>
+											<span>Active Addresses 24h</span>
 											{helperTexts.users && <QuestionHelper text={helperTexts.users} />}
 										</th>
 										<td>{formattedNum(users.users, false)}</td>
