@@ -179,7 +179,7 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols({ protocolData, ...props }) {
-	if (!protocolData.module || protocolData.module === 'dummy.js') {
+	if (protocolData.module === 'dummy.js') {
 		return (
 			<DummyProtocol
 				data={protocolData}
