@@ -26,7 +26,7 @@ interface IProps {
 	protocol: string
 	color: string
 	historicalChainTvls: {}
-	chains: Array<string>
+	chains: Array<string> | null
 	bobo?: boolean
 	hallmarks?: Array<[number, string]>
 	geckoId?: string | null
@@ -74,17 +74,19 @@ export default function ProtocolChart({
 	} = router.query
 
 	const DENOMINATIONS = React.useMemo(() => {
-		let d = [{ symbol: 'USD', geckoId: null }]
+		if (chains && chains.length > 0) {
+			let d = [{ symbol: 'USD', geckoId: null }]
 
-		if (chains.length > 0) {
 			if (chainCoingeckoIds[chains[0]]?.geckoId) {
 				d.push(chainCoingeckoIds[chains[0]])
 			} else {
 				d.push(chainCoingeckoIds['Ethereum'])
 			}
+
+			return d
 		}
 
-		return d
+		return []
 	}, [chains])
 
 	// fetch denomination on protocol chains
@@ -792,35 +794,37 @@ export default function ProtocolChart({
 			) : null}
 
 			<FiltersWrapper>
-				<Filters color={color}>
-					{DENOMINATIONS.map((D) => (
-						<Link
-							href={
-								`/protocol/${protocol}?` +
-								(tvl ? `tvl=${tvl}&` : '') +
-								(mcap ? `mcap=${mcap}&` : '') +
-								(tokenPrice ? `tokenPrice=${tokenPrice}&` : '') +
-								(fdv ? `fdv=${fdv}&` : '') +
-								(volume ? `volume=${volume}&` : '') +
-								(fees ? `fees=${fees}&` : '') +
-								(revenue ? `revenue=${revenue}&` : '') +
-								(unlocks ? `unlocks=${unlocks}&` : '') +
-								(activeUsers ? `activeUsers=${activeUsers}&` : '') +
-								(transactions ? `transactions=${transactions}&` : '') +
-								(gasUsed ? `gasUsed=${gasUsed}&` : '') +
-								(events ? `events=${events}&` : '') +
-								`denomination=${D.symbol}`
-							}
-							key={D.symbol}
-							shallow
-							passHref
-						>
-							<Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
-								{D.symbol}
-							</Denomination>
-						</Link>
-					))}
-				</Filters>
+				{DENOMINATIONS.length > 0 && (
+					<Filters color={color}>
+						{DENOMINATIONS.map((D) => (
+							<Link
+								href={
+									`/protocol/${protocol}?` +
+									(tvl ? `tvl=${tvl}&` : '') +
+									(mcap ? `mcap=${mcap}&` : '') +
+									(tokenPrice ? `tokenPrice=${tokenPrice}&` : '') +
+									(fdv ? `fdv=${fdv}&` : '') +
+									(volume ? `volume=${volume}&` : '') +
+									(fees ? `fees=${fees}&` : '') +
+									(revenue ? `revenue=${revenue}&` : '') +
+									(unlocks ? `unlocks=${unlocks}&` : '') +
+									(activeUsers ? `activeUsers=${activeUsers}&` : '') +
+									(transactions ? `transactions=${transactions}&` : '') +
+									(gasUsed ? `gasUsed=${gasUsed}&` : '') +
+									(events ? `events=${events}&` : '') +
+									`denomination=${D.symbol}`
+								}
+								key={D.symbol}
+								shallow
+								passHref
+							>
+								<Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
+									{D.symbol}
+								</Denomination>
+							</Link>
+						))}
+					</Filters>
+				)}
 			</FiltersWrapper>
 
 			<LazyChart style={{ padding: 0, minHeight: '360px' }}>

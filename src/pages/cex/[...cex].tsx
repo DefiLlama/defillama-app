@@ -34,7 +34,8 @@ export const getStaticProps = async ({
 			articles,
 			protocol: cex,
 			protocolData,
-			backgroundColor
+			backgroundColor,
+			chartColors: { TVL: backgroundColor }
 		},
 		revalidate: maxAgeForNext([22])
 	}

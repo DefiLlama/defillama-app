@@ -659,7 +659,7 @@ function ProtocolContainer({
 					protocol={protocol}
 					color={backgroundColor}
 					historicalChainTvls={historicalChainTvls}
-					chains={chains}
+					chains={isCEX ? null : chains}
 					hallmarks={hallmarks}
 					bobo={bobo}
 					geckoId={gecko_id}
