@@ -1,5 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { deriveColors, selectColor, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import { selectColor, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {
@@ -34,54 +34,23 @@ export const getStaticProps = async ({
 
 	const protocolData = fuseProtocolData(protocolRes)
 
-	const [backgroundColor, allProtocols, activeUsers, tokenPrice, tokenMcap, fdvData, feesAndRevenueProtocols, dexs] =
-		await Promise.all([
-			getColor(tokenIconPaletteUrl(protocolData.name)),
-			getProtocolsRaw(),
-			fetch(ACTIVE_USERS_API).then((res) => res.json()),
-			fetch('https://coins.llama.fi/prices', {
-				method: 'POST',
-				body: JSON.stringify({
-					coins: [`coingecko:${protocolData.gecko_id}`]
-				})
+	const [backgroundColor, allProtocols, activeUsers, feesAndRevenueProtocols, dexs] = await Promise.all([
+		getColor(tokenIconPaletteUrl(protocolData.name)),
+		getProtocolsRaw(),
+		fetch(ACTIVE_USERS_API).then((res) => res.json()),
+		fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
+			}),
+		fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
 			})
-				.then((r) => r.json())
-				.catch((err) => {
-					console.log(err)
-					return {}
-				}),
-			fetch('https://coins.llama.fi/mcaps', {
-				method: 'POST',
-				body: JSON.stringify({
-					coins: [`coingecko:${protocolData.gecko_id}`]
-				})
-			})
-				.then((r) => r.json())
-				.catch((err) => {
-					console.log(err)
-					return {}
-				}),
-			fetch(
-				`https://api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
-			)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch fdv of protocol - ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				})
-		])
+	])
 
 	const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
@@ -151,6 +120,7 @@ export const getStaticProps = async ({
 	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const allTimeFees = feesAndRevenueData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const metrics = protocolData.metrics || {}
 
 	return {
 		props: {
@@ -159,9 +129,9 @@ export const getStaticProps = async ({
 			protocolData: {
 				...protocolData,
 				metrics: {
-					...protocolData.metrics,
-					fees: protocolData.metrics.fees || dailyFees || allTimeFees ? true : false,
-					dexs: protocolData.metrics.dexs || dailyVolume || allTimeVolume ? true : false
+					...metrics,
+					fees: metrics.fees || dailyFees || allTimeFees ? true : false,
+					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false
 				}
 			},
 			backgroundColor,
@@ -171,9 +141,9 @@ export const getStaticProps = async ({
 			emissions,
 			chartColors: colorTones,
 			users: activeUsers[protocolData.id] || null,
-			tokenPrice: tokenPrice?.coins?.[`coingecko:${protocolData.gecko_id}`]?.price ?? null,
-			tokenMcap: tokenMcap?.[`coingecko:${protocolData.gecko_id}`]?.mcap ?? null,
-			tokenSupply: fdvData?.['market_data']?.['total_supply'] ?? null,
+			tokenPrice: protocolData.tokenPrice,
+			tokenMcap: protocolData.tokenMcap,
+			tokenSupply: protocolData.tokenSupply,
 			dailyRevenue,
 			dailyFees,
 			allTimeFees,
@@ -209,7 +179,7 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols({ protocolData, ...props }) {
-	if (protocolData.module === 'dummy.js') {
+	if (!protocolData.module || protocolData.module === 'dummy.js') {
 		return (
 			<DummyProtocol
 				data={protocolData}

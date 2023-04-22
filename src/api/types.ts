@@ -185,6 +185,9 @@ export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {
 	tvlBreakdowns: ICurrentChainTvls
 	tvlByChain: [string, number][]
 	historicalChainTvls: IChainTvl
+	tokenPrice: number | null
+	tokenSupply: number | null
+	tokenMcap: number | null
 }
 
 export interface ICategory {
