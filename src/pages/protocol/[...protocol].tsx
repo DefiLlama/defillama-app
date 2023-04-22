@@ -74,6 +74,14 @@ export const getStaticProps = async ({
 		'Gas Used'
 	]
 
+	if (protocolData.historicalChainTvls?.['staking']?.tvl?.length > 0) {
+		chartTypes.push('Staking')
+	}
+
+	if (protocolData.historicalChainTvls?.['borrowed']?.tvl?.length > 0) {
+		chartTypes.push('Borrowed')
+	}
+
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
 
 	const similarProtocols =
@@ -141,9 +149,9 @@ export const getStaticProps = async ({
 			emissions,
 			chartColors: colorTones,
 			users: activeUsers[protocolData.id] || null,
-			tokenPrice: protocolData.tokenPrice,
-			tokenMcap: protocolData.tokenMcap,
-			tokenSupply: protocolData.tokenSupply,
+			tokenPrice: protocolData.tokenPrice || null,
+			tokenMcap: protocolData.tokenMcap || null,
+			tokenSupply: protocolData.tokenSupply || null,
 			dailyRevenue,
 			dailyFees,
 			allTimeFees,

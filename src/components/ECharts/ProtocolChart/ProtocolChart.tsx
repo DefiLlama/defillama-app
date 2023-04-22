@@ -70,7 +70,9 @@ export default function ProtocolChart({
 		activeUsers,
 		events,
 		transactions,
-		gasUsed
+		gasUsed,
+		staking,
+		borrowed
 	} = router.query
 
 	const DENOMINATIONS = React.useMemo(() => {
@@ -208,6 +210,100 @@ export default function ProtocolChart({
 				chartData[date] = {
 					...chartData[date],
 					TVL: showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL
+				}
+			})
+		}
+
+		if (staking === 'true' && historicalChainTvls['staking']?.tvl?.length > 0) {
+			tokensUnique.push('Staking')
+
+			let prevDate = null
+
+			historicalChainTvls['staking'].tvl.forEach(({ date: dateS, totalLiquidityUSD }) => {
+				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
+				if (prevDate && +date - prevDate > 86400) {
+					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
+
+					for (let i = 1; i < noOfDatesMissing + 1; i++) {
+						const missingDate = prevDate + 86400 * i
+
+						if (!chartData[missingDate]) {
+							chartData[missingDate] = {}
+						}
+
+						const missingStakedTvl =
+							((chartData[prevDate]?.['Staking'] ?? 0) +
+								(showNonUsdDenomination
+									? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
+									: totalLiquidityUSD)) /
+							2
+
+						chartData[missingDate] = {
+							...chartData[missingDate],
+							Staking: missingStakedTvl
+						}
+					}
+				}
+
+				prevDate = date
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date] = {
+					...chartData[date],
+					Staking: showNonUsdDenomination
+						? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
+						: totalLiquidityUSD
+				}
+			})
+		}
+
+		if (borrowed === 'true' && historicalChainTvls['borrowed']?.tvl?.length > 0) {
+			tokensUnique.push('Borrowed')
+
+			let prevDate = null
+
+			historicalChainTvls['borrowed'].tvl.forEach(({ date: dateS, totalLiquidityUSD }) => {
+				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
+				if (prevDate && +date - prevDate > 86400) {
+					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
+
+					for (let i = 1; i < noOfDatesMissing + 1; i++) {
+						const missingDate = prevDate + 86400 * i
+
+						if (!chartData[missingDate]) {
+							chartData[missingDate] = {}
+						}
+
+						const missingBorrowedTvl =
+							((chartData[prevDate]?.['Borrowed'] ?? 0) +
+								(showNonUsdDenomination
+									? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
+									: totalLiquidityUSD)) /
+							2
+
+						chartData[missingDate] = {
+							...chartData[missingDate],
+							Borrowed: missingBorrowedTvl
+						}
+					}
+				}
+
+				prevDate = date
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date] = {
+					...chartData[date],
+					Borrowed: showNonUsdDenomination
+						? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
+						: totalLiquidityUSD
 				}
 			})
 		}
@@ -469,7 +565,10 @@ export default function ProtocolChart({
 		gasData,
 		gasUsed,
 		transactions,
-		transactionsData
+		transactionsData,
+		staking,
+		borrowed,
+		historicalChainTvls
 	])
 
 	const fetchingTypes = []
@@ -521,7 +620,14 @@ export default function ProtocolChart({
 
 	return (
 		<Wrapper>
-			{geckoId || hallmarks?.length > 0 || metrics?.fees || metrics?.dexs || emissions?.length > 0 || activeUsersId ? (
+			{geckoId ||
+			hallmarks?.length > 0 ||
+			metrics?.fees ||
+			metrics?.dexs ||
+			emissions?.length > 0 ||
+			activeUsersId ||
+			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
+			historicalChainTvls['staking']?.tvl?.length > 0 ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
 						<input
@@ -768,6 +874,52 @@ export default function ProtocolChart({
 						</>
 					)}
 
+					{historicalChainTvls['staking']?.tvl?.length > 0 && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="staking"
+								checked={staking === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, staking: staking === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Staking</span>
+							</span>
+						</Toggle>
+					)}
+
+					{historicalChainTvls['borrowed']?.tvl?.length > 0 && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="borrowed"
+								checked={borrowed === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, borrowed: borrowed === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Borrowed</span>
+							</span>
+						</Toggle>
+					)}
+
 					{hallmarks?.length > 0 && (
 						<Toggle backgroundColor={color}>
 							<input
@@ -812,6 +964,8 @@ export default function ProtocolChart({
 									(transactions ? `transactions=${transactions}&` : '') +
 									(gasUsed ? `gasUsed=${gasUsed}&` : '') +
 									(events ? `events=${events}&` : '') +
+									(staking ? `staking=${staking}&` : '') +
+									(borrowed ? `borrowed=${borrowed}&` : '') +
 									`denomination=${D.symbol}`
 								}
 								key={D.symbol}
