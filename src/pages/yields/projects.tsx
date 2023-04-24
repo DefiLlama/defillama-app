@@ -19,7 +19,8 @@ function median(numbers) {
 }
 
 export async function getStaticProps() {
-	const data = await getYieldPageData()
+	let data = await getYieldPageData()
+	data.props.pools = data.props.pools.filter((p) => p.apy > 0)
 
 	const projects = {}
 	data.props.pools.forEach((p) => {
