@@ -204,7 +204,7 @@ const flagOutliers = (sales) => {
 	// zscores
 	const scores = values.map((s) => Math.abs((s - mean) / std))
 	// sigma threshold
-	return sales.map((s, i) => [...s, scores[i] >= 1.5])
+	return sales.map((s, i) => [...s, scores[i] >= 2])
 }
 
 const median = (sales) => {
