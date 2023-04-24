@@ -180,11 +180,6 @@
         "logo":"enjin-marketplace.jpg"
     },
     {
-        "name": "Portion",
-        "url": "https://portion.io/",
-        "logo":"portion.jpg"
-    },
-    {
         "name": "Async Art",
         "url": "https://async.art/",
         "logo":"async-art.jpg"
@@ -203,16 +198,6 @@
         "name": "Mintable ",
         "url": "https://mintable.app/",
         "logo":"mintable.jpg"
-    },
-    {
-        "name": "Institut",
-        "url": "https://institut.co/",
-        "logo":"institut.jpg"
-    },
-    {
-        "name": "Theta Drop",
-        "url": "https://www.thetadrop.com/",
-        "logo":"theta-drop.jpg"
     },
     {
         "name": "Gitcoin",
