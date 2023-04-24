@@ -148,7 +148,7 @@ export async function getLendBorrowData() {
 	props.pools = props.pools.map((p) => ({ ...p, category: p.project === 'fraxlend' ? 'CDP' : p.category }))
 
 	// restrict pool data to lending and cdp
-	const categoriesToKeep = ['Lending', 'Undercollateralized Lending', 'CDP']
+	const categoriesToKeep = ['Lending', 'Undercollateralized Lending', 'CDP',  'NFT Lending']
 	let pools = props.pools.filter((p) => categoriesToKeep.includes(p.category))
 
 	// get new borrow fields
@@ -231,7 +231,7 @@ export async function getLendBorrowData() {
 	props.pools.forEach((pool) => {
 		projectsList.add(pool.projectName)
 		// remove undercollateralised cause we cannot borrow on those
-		if (['Lending', 'CDP'].includes(pool.category)) {
+		if (['Lending', 'CDP', 'NFT Lending'].includes(pool.category)) {
 			lendingProtocols.add(pool.projectName)
 		}
 		farmProtocols.add(pool.projectName)
