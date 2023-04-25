@@ -41,17 +41,8 @@ export const attributeOptions = [
 		key: YIELDS_SETTINGS.MILLION_DOLLAR.toLowerCase(),
 		help: 'Select pools with at least one million dollar in TVL',
 		filterFn: (item) => item.tvlUsd >= 1e6,
-		defaultFilterFnOnPage: {
-			'/yields/stablecoins': (item) => item.tvlUsd >= 1e6
-		},
-		disabledOnPages: [
-			'/yields/stablecoins',
-			'/yields/borrow',
-			'/borrow',
-			'/yields/loop',
-			'/yields/strategy',
-			'/yields/strategyFR'
-		]
+		defaultFilterFnOnPage: {},
+		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'Audited',
