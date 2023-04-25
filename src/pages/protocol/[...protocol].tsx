@@ -83,7 +83,7 @@ export const getStaticProps = async ({
 		chartTypes.push('Borrowed')
 	}
 
-	if (medianApy.length > 0) {
+	if (medianApy.data.length > 0) {
 		chartTypes.push('Median APY')
 	}
 
@@ -145,7 +145,7 @@ export const getStaticProps = async ({
 					...metrics,
 					fees: metrics.fees || dailyFees || allTimeFees ? true : false,
 					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
-					medianApy: medianApy.length > 0 ? true : false
+					medianApy: medianApy.data.length > 0
 				}
 			},
 			backgroundColor,

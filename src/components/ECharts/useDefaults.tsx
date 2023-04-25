@@ -17,6 +17,8 @@ import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutr
 import { toK } from '~/utils'
 import { useMemo } from 'react'
 
+const SERIES_WITH_NO_SYMBOL = ['Active Users', 'Transactions', 'Median APY']
+
 echarts.use([
 	CanvasRenderer,
 	LineChart,
@@ -127,7 +129,11 @@ export function useDefaults({
 						'&nbsp;&nbsp;' +
 						formatTooltipValue(
 							curr.value[1],
-							curr.seriesName === 'Unlocks' ? unlockTokenSymbol : curr.seriesName === 'Active Users' ? '' : valueSymbol
+							curr.seriesName === 'Unlocks'
+								? unlockTokenSymbol
+								: SERIES_WITH_NO_SYMBOL.includes(curr.seriesName)
+								? ''
+								: valueSymbol
 						) +
 						'</li>')
 				}, '')

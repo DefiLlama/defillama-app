@@ -136,8 +136,6 @@ export default function ProtocolChart({
 		router.isReady && medianApy === 'true' && metrics.medianApy ? protocol : null
 	)
 
-	console.log({ medianAPYData, protocol })
-
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'dexs',

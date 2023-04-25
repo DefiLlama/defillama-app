@@ -283,7 +283,7 @@ export default function AreaBarChart({
 				yAxiss.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => value
+						formatter: (value) => `${value}%`
 					},
 					axisLine: {
 						show: true,
