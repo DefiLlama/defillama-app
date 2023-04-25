@@ -465,9 +465,9 @@ function ProtocolContainer({
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 
-			{name === 'SyncDEX Finance' && (
+			{['SyncDEX Finance', 'Avatr'] && (
 				<Announcement warning={true} notCancellable={true}>
-					Unstaking immediately is not available in this protocol and many users have reported red flags. Be careful.
+					Project has some red flags and multiple users have reported concerns. Be careful.
 				</Announcement>
 			)}
 
