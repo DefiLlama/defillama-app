@@ -74,6 +74,10 @@ export default function AreaBarChart({
 			yAxisByIndex['Gas Used'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('Median APY')) {
+			yAxisByIndex['Median APY'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
@@ -271,6 +275,20 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Gas Used']
+						}
+					}
+				})
+			}
+			if (type === 'Median APY') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => value
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Median APY']
 						}
 					}
 				})

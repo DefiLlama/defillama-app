@@ -8,6 +8,7 @@ import {
 	useDenominationPriceHistory,
 	useFetchProtocolActiveUsers,
 	useFetchProtocolGasUsed,
+	useFetchProtocolMedianAPY,
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
@@ -72,7 +73,8 @@ export default function ProtocolChart({
 		transactions,
 		gasUsed,
 		staking,
-		borrowed
+		borrowed,
+		medianApy
 	} = router.query
 
 	const DENOMINATIONS = React.useMemo(() => {
@@ -130,6 +132,11 @@ export default function ProtocolChart({
 	const { data: gasData, loading: fetchingGasUsed } = useFetchProtocolGasUsed(
 		router.isReady && gasUsed === 'true' && activeUsersId ? activeUsersId : null
 	)
+	const { data: medianAPYData, loading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
+		router.isReady && medianApy === 'true' && metrics.medianApy ? protocol : null
+	)
+
+	console.log({ medianAPYData, protocol })
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
 		name: protocol,
@@ -158,8 +165,6 @@ export default function ProtocolChart({
 
 		valueSymbol = d.symbol || ''
 	}
-
-	// console.log({ denominationHistory, protocolCGData, tvlData, fdvData, feesAndRevenue, users, volumeData })
 
 	const { finalData, tokensUnique } = React.useMemo(() => {
 		if (!router.isReady) {
@@ -531,6 +536,20 @@ export default function ProtocolChart({
 				}
 			})
 		}
+		if (medianApy === 'true' && medianAPYData) {
+			tokensUnique.push('Median APY')
+
+			medianAPYData.forEach(({ date, medianAPY }) => {
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date] = {
+					...chartData[date],
+					'Median APY': medianAPY
+				}
+			})
+		}
 
 		const finalData = Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
 			date,
@@ -568,7 +587,9 @@ export default function ProtocolChart({
 		transactionsData,
 		staking,
 		borrowed,
-		historicalChainTvls
+		historicalChainTvls,
+		medianAPYData,
+		medianApy
 	])
 
 	const fetchingTypes = []
@@ -615,6 +636,10 @@ export default function ProtocolChart({
 		fetchingTypes.push('gas used')
 	}
 
+	if (fetchingMedianAPY) {
+		fetchingTypes.push('median apy')
+	}
+
 	const isLoading =
 		loading || fetchingFdv || denominationLoading || fetchingFees || fetchingVolume || fetchingActiveUsers
 
@@ -627,7 +652,8 @@ export default function ProtocolChart({
 			emissions?.length > 0 ||
 			activeUsersId ||
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
-			historicalChainTvls['staking']?.tvl?.length > 0 ? (
+			historicalChainTvls['staking']?.tvl?.length > 0 ||
+			metrics.medianApy ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
 						<input
@@ -920,6 +946,29 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
+					{metrics.medianApy && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="medianApy"
+								checked={medianApy === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, medianApy: medianApy === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Median APY</span>
+							</span>
+						</Toggle>
+					)}
+
 					{hallmarks?.length > 0 && (
 						<Toggle backgroundColor={color}>
 							<input
@@ -966,6 +1015,7 @@ export default function ProtocolChart({
 									(events ? `events=${events}&` : '') +
 									(staking ? `staking=${staking}&` : '') +
 									(borrowed ? `borrowed=${borrowed}&` : '') +
+									(medianApy ? `medianApy=${medianApy}&` : '') +
 									`denomination=${D.symbol}`
 								}
 								key={D.symbol}

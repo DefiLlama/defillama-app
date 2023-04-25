@@ -5,12 +5,12 @@ import {
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
 	PROTOCOL_TRANSACTIONS_API,
-	PROTOCOL_TREASURY_API
+	PROTOCOL_TREASURY_API,
+	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
 import { getProtocol } from '.'
 import { formatProtocolsData } from './utils'
-import { capitalizeFirstLetter } from '~/utils'
 
 export const useFetchProtocolsList = () => {
 	const { data, error } = useSWR(PROTOCOLS_API, fetcher)
@@ -41,7 +41,7 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 		`activeUsers/${protocolId}`,
 		protocolId
 			? () =>
-					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll("#", "$"))
+					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
 						.then((values) => {
 							return values && values.length > 0 ? values : null
@@ -57,7 +57,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 		`protocolTransactionsApi/${protocolId}`,
 		protocolId
 			? () =>
-					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll("#", "$"))
+					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
 						.then((values) => {
 							return values && values.length > 0 ? values : null
@@ -73,12 +73,33 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 		`protocolGasUsed/${protocolId}`,
 		protocolId
 			? () =>
-					fetch(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll("#", "$"))
+					fetch(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
 						.then((values) => {
 							return values && values.length > 0 ? values : null
 						})
 						.catch((err) => [])
+			: () => null
+	)
+
+	return { data, error, loading: !data && data !== null && !error }
+}
+export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
+	const { data, error } = useSWR(
+		`medianApy/${protocolName}`,
+		protocolName
+			? () =>
+					fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
+						.then((res) => res.json())
+						.then((values) => {
+							console.log({ values })
+							return values && values.length > 0
+								? values.map((item) => ({ ...item, date: Math.floor(new Date(item.timestamp).getTime() / 1000) }))
+								: null
+						})
+						.catch((err) => {
+							return []
+						})
 			: () => null
 	)
 

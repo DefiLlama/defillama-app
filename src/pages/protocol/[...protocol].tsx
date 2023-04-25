@@ -12,7 +12,7 @@ import {
 import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
-import { ACTIVE_USERS_API } from '~/constants'
+import { ACTIVE_USERS_API, YIELD_PROJECT_MEDIAN_API } from '~/constants'
 
 export const getStaticProps = async ({
 	params: {
@@ -34,7 +34,7 @@ export const getStaticProps = async ({
 
 	const protocolData = fuseProtocolData(protocolRes)
 
-	const [backgroundColor, allProtocols, activeUsers, feesAndRevenueProtocols, dexs] = await Promise.all([
+	const [backgroundColor, allProtocols, activeUsers, feesAndRevenueProtocols, dexs, medianApy] = await Promise.all([
 		getColor(tokenIconPaletteUrl(protocolData.name)),
 		getProtocolsRaw(),
 		fetch(ACTIVE_USERS_API).then((res) => res.json()),
@@ -49,7 +49,8 @@ export const getStaticProps = async ({
 			.catch((err) => {
 				console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
 				return {}
-			})
+			}),
+		fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json())
 	])
 
 	const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
@@ -80,6 +81,10 @@ export const getStaticProps = async ({
 
 	if (protocolData.historicalChainTvls?.['borrowed']?.tvl?.length > 0) {
 		chartTypes.push('Borrowed')
+	}
+
+	if (medianApy.length > 0) {
+		chartTypes.push('Median APY')
 	}
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
@@ -139,7 +144,8 @@ export const getStaticProps = async ({
 				metrics: {
 					...metrics,
 					fees: metrics.fees || dailyFees || allTimeFees ? true : false,
-					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false
+					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
+					medianApy: medianApy.length > 0 ? true : false
 				}
 			},
 			backgroundColor,

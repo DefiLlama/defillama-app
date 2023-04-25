@@ -14,7 +14,7 @@ export function ProtocolFeesAndRevenueCharts({ data }: { data: IFusedProtocolDat
 			<ChartByType chartType="chain" protocolName={slug(data.name)} type="fees" breakdownChart={false} />
 			<ChartByType chartType="chain" protocolName={slug(data.name)} type="fees" /> */}
 			{metrics.map(([key, enabled], i) => {
-				return enabled ? (
+				return enabled && key !== 'medianApy' ? (
 					<React.Fragment key={i}>
 						<ChartByType chartType="chain" protocolName={slug(data.name)} type={key} />
 						{hasVersions ? <ChartByType chartType="version" protocolName={slug(data.name)} type={key} /> : null}
