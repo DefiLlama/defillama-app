@@ -591,9 +591,22 @@ function ProtocolContainer({
 								) : null}
 
 								{tokenSupply && priceOfToken ? (
+									<>
+										<tr>
+											<th>Fully Diluted Valuation</th>
+											<td>{formattedNum(priceOfToken * tokenSupply, true)}</td>
+										</tr>
+										<tr>
+											<th>FDV / TVL ratio</th>
+											<td>{formattedNum((priceOfToken * tokenSupply) / totalVolume, false)}</td>
+										</tr>
+									</>
+								) : null}
+
+								{tokenMcap ? (
 									<tr>
-										<th>Fully Diluted Valuation</th>
-										<td>{formattedNum(priceOfToken * tokenSupply, true)}</td>
+										<th>Mcap / TVL ratio</th>
+										<td>{formattedNum(tokenMcap / totalVolume, false)}</td>
 									</tr>
 								) : null}
 
