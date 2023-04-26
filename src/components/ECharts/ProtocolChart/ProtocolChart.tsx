@@ -9,6 +9,7 @@ import {
 	useFetchProtocolActiveUsers,
 	useFetchProtocolGasUsed,
 	useFetchProtocolMedianAPY,
+	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
@@ -69,6 +70,7 @@ export default function ProtocolChart({
 		revenue,
 		unlocks,
 		activeUsers,
+		newUsers,
 		events,
 		transactions,
 		gasUsed,
@@ -123,8 +125,11 @@ export default function ProtocolChart({
 		disabled: router.isReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
 	})
 
-	const { data: users, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(
+	const { data: activeUsersData, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(
 		router.isReady && activeUsers === 'true' && activeUsersId ? activeUsersId : null
+	)
+	const { data: newUsersData, loading: fetchingNewUsers } = useFetchProtocolNewUsers(
+		router.isReady && newUsers === 'true' && activeUsersId ? activeUsersId : null
 	)
 	const { data: transactionsData, loading: fetchingTransactions } = useFetchProtocolTransactions(
 		router.isReady && transactions === 'true' && activeUsersId ? activeUsersId : null
@@ -492,10 +497,10 @@ export default function ProtocolChart({
 				})
 		}
 
-		if (activeUsers === 'true' && users) {
+		if (activeUsers === 'true' && activeUsersData) {
 			tokensUnique.push('Active Users')
 
-			users.forEach(([date, noOfUsers]) => {
+			activeUsersData.forEach(([date, noOfUsers]) => {
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
@@ -503,6 +508,20 @@ export default function ProtocolChart({
 				chartData[date] = {
 					...chartData[date],
 					'Active Users': noOfUsers || 0
+				}
+			})
+		}
+		if (newUsers === 'true' && newUsersData) {
+			tokensUnique.push('New Users')
+
+			newUsersData.forEach(([date, noOfUsers]) => {
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date] = {
+					...chartData[date],
+					'New Users': noOfUsers || 0
 				}
 			})
 		}
@@ -575,7 +594,9 @@ export default function ProtocolChart({
 		unlocks,
 		emissions,
 		activeUsers,
-		users,
+		newUsers,
+		activeUsersData,
+		newUsersData,
 		tokenPrice,
 		fdv,
 		fdvData,
@@ -626,6 +647,9 @@ export default function ProtocolChart({
 
 	if (fetchingActiveUsers) {
 		fetchingTypes.push('active users')
+	}
+	if (fetchingNewUsers) {
+		fetchingTypes.push('new users')
 	}
 	if (fetchingTransactions) {
 		fetchingTypes.push('transactions')
@@ -858,6 +882,26 @@ export default function ProtocolChart({
 							<Toggle backgroundColor={color}>
 								<input
 									type="checkbox"
+									value="newUsers"
+									checked={newUsers === 'true'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, newUsers: newUsers === 'true' ? false : true }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									<span>New Users</span>
+								</span>
+							</Toggle>
+							<Toggle backgroundColor={color}>
+								<input
+									type="checkbox"
 									value="transactions"
 									checked={transactions === 'true'}
 									onChange={() =>
@@ -1008,6 +1052,7 @@ export default function ProtocolChart({
 									(revenue ? `revenue=${revenue}&` : '') +
 									(unlocks ? `unlocks=${unlocks}&` : '') +
 									(activeUsers ? `activeUsers=${activeUsers}&` : '') +
+									(newUsers ? `newUsers=${newUsers}&` : '') +
 									(transactions ? `transactions=${transactions}&` : '') +
 									(gasUsed ? `gasUsed=${gasUsed}&` : '') +
 									(events ? `events=${events}&` : '') +

@@ -4,6 +4,7 @@ import {
 	PROTOCOLS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
+	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
 	PROTOCOL_TREASURY_API,
 	YIELD_PROJECT_MEDIAN_API
@@ -41,12 +42,28 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 		`activeUsers/${protocolId}`,
 		protocolId
 			? () =>
-				fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-					.then((res) => res.json())
-					.then((values) => {
-						return values && values.length > 0 ? values : null
-					})
-					.catch((err) => [])
+					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
+						.then((res) => res.json())
+						.then((values) => {
+							return values && values.length > 0 ? values : null
+						})
+						.catch((err) => [])
+			: () => null
+	)
+
+	return { data, error, loading: !data && data !== null && !error }
+}
+export const useFetchProtocolNewUsers = (protocolId: number | string | null) => {
+	const { data, error } = useSWR(
+		`newUsers/${protocolId}`,
+		protocolId
+			? () =>
+					fetch(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
+						.then((res) => res.json())
+						.then((values) => {
+							return values && values.length > 0 ? values : null
+						})
+						.catch((err) => [])
 			: () => null
 	)
 
@@ -57,12 +74,12 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 		`protocolTransactionsApi/${protocolId}`,
 		protocolId
 			? () =>
-				fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
-					.then((res) => res.json())
-					.then((values) => {
-						return values && values.length > 0 ? values : null
-					})
-					.catch((err) => [])
+					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
+						.then((res) => res.json())
+						.then((values) => {
+							return values && values.length > 0 ? values : null
+						})
+						.catch((err) => [])
 			: () => null
 	)
 
@@ -73,12 +90,12 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 		`protocolGasUsed/${protocolId}`,
 		protocolId
 			? () =>
-				fetch(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
-					.then((res) => res.json())
-					.then((values) => {
-						return values && values.length > 0 ? values : null
-					})
-					.catch((err) => [])
+					fetch(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
+						.then((res) => res.json())
+						.then((values) => {
+							return values && values.length > 0 ? values : null
+						})
+						.catch((err) => [])
 			: () => null
 	)
 
@@ -89,16 +106,16 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 		`medianApy/${protocolName}`,
 		protocolName
 			? () =>
-				fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
-					.then((res) => res.json())
-					.then((values) => {
-						return values && values.data.length > 0
-							? values.data.map((item) => ({ ...item, date: Math.floor(new Date(item.timestamp).getTime() / 1000) }))
-							: null
-					})
-					.catch((err) => {
-						return []
-					})
+					fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
+						.then((res) => res.json())
+						.then((values) => {
+							return values && values.data.length > 0
+								? values.data.map((item) => ({ ...item, date: Math.floor(new Date(item.timestamp).getTime() / 1000) }))
+								: null
+						})
+						.catch((err) => {
+							return []
+						})
 			: () => null
 	)
 

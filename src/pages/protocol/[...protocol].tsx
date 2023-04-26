@@ -71,6 +71,7 @@ export const getStaticProps = async ({
 		'Volume',
 		'Unlocks',
 		'Active Users',
+		'New Users',
 		'Transactions',
 		'Gas Used'
 	]

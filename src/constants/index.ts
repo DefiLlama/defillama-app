@@ -39,6 +39,7 @@ export const ACTIVE_USERS_API = 'https://api.llama.fi/activeUsers'
 export const PROTOCOL_ACTIVE_USERS_API = 'https://api.llama.fi/userData/users'
 export const PROTOCOL_TRANSACTIONS_API = 'https://api.llama.fi/userData/txs'
 export const PROTOCOL_GAS_USED_API = 'https://api.llama.fi/userData/gas'
+export const PROTOCOL_NEW_USERS_API = 'https://api.llama.fi/userData/newusers'
 
 export const NFT_COLLECTIONS_API = 'https://nft.llama.fi/collections'
 export const NFT_VOLUME_API = 'https://nft.llama.fi/volume'

@@ -72,6 +72,10 @@ export default function AreaBarChart({
 			yAxisByIndex['Active Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('New Users')) {
+			yAxisByIndex['New Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		if (stacks.includes('Transactions')) {
 			yAxisByIndex['Transactions'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
@@ -87,7 +91,9 @@ export default function AreaBarChart({
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
-			const type = ['Volume', 'Fees', 'Revenue', 'Active Users', 'Transactions', 'Gas Used'].includes(stack)
+			const type = ['Volume', 'Fees', 'Revenue', 'Active Users', 'New Users', 'Transactions', 'Gas Used'].includes(
+				stack
+			)
 				? 'bar'
 				: 'line'
 
@@ -254,6 +260,21 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Active Users']
+						}
+					}
+				})
+			}
+
+			if (type === 'New Users') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => toK(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['New Users']
 						}
 					}
 				})
