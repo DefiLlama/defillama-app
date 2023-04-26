@@ -27,6 +27,7 @@ export interface INftCollection {
 	totalSupply: number
 	volume1d: number
 	volume7d: number
+	sales1d: number
 }
 
 export interface INftMarketplace {
@@ -34,6 +35,7 @@ export interface INftMarketplace {
 	'1DayVolume': string
 	'7DayVolume': string
 	'30DayVolume': string
+	'1DaySales': string
 	'1DayNbTrades': string
 	'7DayNbTrades': string
 	'30DayNbTrades': string

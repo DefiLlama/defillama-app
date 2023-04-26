@@ -114,6 +114,16 @@ export const columns: ColumnDef<INftCollection>[] = [
 		}
 	},
 	{
+		header: 'Sales 1d',
+		accessorKey: 'sales1d',
+		size: 120,
+		cell: (info) => <>{info.getValue() ? info.getValue() : ''}</>,
+
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Total Supply',
 		accessorKey: 'totalSupply',
 		size: 120,
