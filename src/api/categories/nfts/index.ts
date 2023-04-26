@@ -96,7 +96,8 @@ export const getNFTData = async () => {
 				...colleciton,
 				volume1d: Number((volume?.['1DayVolume'] ?? 0).toFixed(2)),
 				volume7d: Number((volume?.['7DayVolume'] ?? 0).toFixed(2)),
-				volume30d: Number((volume?.['30DayVolume'] ?? 0).toFixed(2))
+				volume30d: Number((volume?.['30DayVolume'] ?? 0).toFixed(2)),
+				sales1d: Number((volume?.['1DaySales'] ?? 0).toFixed(2))
 			}
 		})
 
