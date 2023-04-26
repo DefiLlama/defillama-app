@@ -46,8 +46,14 @@ export default function AreaBarChart({
 
 		const yAxisByIndex = {}
 
-		if (stacks.includes('TVL') || stacks.includes('Mcap') || stacks.includes('FDV')) {
-			yAxisByIndex['TVL+Mcap+FDV'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (
+			stacks.includes('TVL') ||
+			stacks.includes('Mcap') ||
+			stacks.includes('FDV') ||
+			stacks.includes('Borrowed') ||
+			stacks.includes('Staking')
+		) {
+			yAxisByIndex['TVL+Mcap+FDV+Borrowed+Staking'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
 		if (stacks.includes('Token Price')) {
@@ -86,8 +92,8 @@ export default function AreaBarChart({
 				: 'line'
 
 			const options = {}
-			if (['TVL', 'Mcap', 'FDV'].includes(stack)) {
-				options['yAxisIndex'] = yAxisByIndex['TVL+Mcap+FDV']
+			if (['TVL', 'Mcap', 'FDV', 'Borrowed', 'Staking'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['TVL+Mcap+FDV+Borrowed+Staking']
 			} else if (['Volume', 'Fees', 'Revenue'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Volume+Fees+Revenue']
 			} else {
@@ -201,7 +207,7 @@ export default function AreaBarChart({
 				offset: noOffset || index < 2 ? 0 : (yAxiss[yAxiss.length - 1]?.offset ?? 0) + 40
 			}
 
-			if (type === 'TVL+Mcap+FDV') {
+			if (type === 'TVL+Mcap+FDV+Borrowed+Staking') {
 				yAxiss.push(yAxis)
 			}
 

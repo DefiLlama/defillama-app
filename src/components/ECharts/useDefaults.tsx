@@ -129,7 +129,9 @@ export function useDefaults({
 						'&nbsp;&nbsp;' +
 						formatTooltipValue(
 							curr.value[1],
-							curr.seriesName === 'Unlocks'
+							curr.seriesName === 'Median APY'
+								? '%'
+								: curr.seriesName === 'Unlocks'
 								? unlockTokenSymbol
 								: SERIES_WITH_NO_SYMBOL.includes(curr.seriesName)
 								? ''
