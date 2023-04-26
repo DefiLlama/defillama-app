@@ -144,7 +144,9 @@ export default function AreaBarChart({
 
 		chartData.forEach(({ date, ...item }) => {
 			stacks.forEach((stack) => {
-				series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || '-'])
+				series
+					.find((t) => t.name === stack)
+					?.data.push([getUtcDateObject(date), item[stack] || (stack === 'TVL' ? 0 : '-')])
 			})
 		})
 
