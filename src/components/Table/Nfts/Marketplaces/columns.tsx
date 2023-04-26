@@ -3,6 +3,7 @@ import type { INftMarketplace } from '../types'
 import { formattedPercent } from '~/utils'
 import TokenLogo from '~/components/TokenLogo'
 import { Name } from '../../shared'
+import styled from 'styled-components'
 
 export const columns: ColumnDef<INftMarketplace>[] = [
 	{
@@ -38,7 +39,21 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		header: 'Volume 1d',
 		accessorKey: '1DayVolume',
 		size: 130,
-		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + ' ETH' : ''}</>,
+		cell: (info) => (
+			<>
+				{info.getValue() ? (
+					<ValueWithETH>
+						<span>{(+info.getValue()).toFixed(2)}</span>
+						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
+							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
+						</svg>
+					</ValueWithETH>
+				) : (
+					''
+				)}
+			</>
+		),
 		meta: {
 			align: 'end',
 			headerHelperText: '24h rolling volume'
@@ -48,7 +63,21 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		header: 'Volume 7d',
 		accessorKey: '7DayVolume',
 		size: 130,
-		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + ' ETH' : ''}</>,
+		cell: (info) => (
+			<>
+				{info.getValue() ? (
+					<ValueWithETH>
+						<span>{(+info.getValue()).toFixed(2)}</span>
+						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
+							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
+						</svg>
+					</ValueWithETH>
+				) : (
+					''
+				)}
+			</>
+		),
 		meta: {
 			align: 'end',
 			headerHelperText: '7day rolling volume'
@@ -94,3 +123,15 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		}
 	}
 ]
+
+const ValueWithETH = styled.span`
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	justify-content: flex-end;
+	flex-wrap: nowrap;
+
+	& > *[data-eth] {
+		height: 12px;
+	}
+`
