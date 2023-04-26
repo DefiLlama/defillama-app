@@ -778,6 +778,11 @@ export const chainCoingeckoIds = {
 		geckoId: 'rangers-protocol-gas',
 		symbol: 'RPG',
 		cmcId: '12221'
+	},
+	Filecoin: {
+		geckoId: 'filecoin',
+		symbol: 'FIL',
+		cmcId: '2280'
 	}
 }
 
