@@ -58,7 +58,7 @@ export function NFTCollectionContainer({
 			<StatsSection>
 				<DetailsWrapper>
 					<Name>
-						<TokenLogo logo={nftCollectionIconUrl(address)} fallbackLogo={data?.[0]?.image} size={24} />
+						<TokenLogo logo={nftCollectionIconUrl(address)} fallbackLogo={data?.[0]?.image} size={48} />
 						<FormattedName text={name} fontWeight={700} />
 					</Name>
 
