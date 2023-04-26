@@ -10,7 +10,7 @@ import { Panel } from '~/components'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import styled from 'styled-components'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { NFTsSearch } from '~/components/Search'
 
 const FlatDenomination = styled(Denomination)`
 	white-space: nowrap;
@@ -42,7 +42,7 @@ function Marketplaces({ data, volume, dominance, marketplaces, volumeChartStacks
 	//x
 	return (
 		<Layout title="NFT Marketplaces - DefiLlama" defaultSEO>
-			<ProtocolsChainsSearch
+			<NFTsSearch
 				step={{
 					category: 'Home',
 					name: 'NFT Marketplaces',

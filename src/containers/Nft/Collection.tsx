@@ -8,12 +8,12 @@ import FormattedName from '~/components/FormattedName'
 import { nftCollectionIconUrl } from '~/utils'
 import dynamic from 'next/dynamic'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
-import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { IChartProps } from '~/components/ECharts/types'
 import { ArrowUpRight } from 'react-feather'
 import Link from 'next/link'
 import { ToggleWrapper2 } from '~/components'
 import { useRouter } from 'next/router'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { NFTsSearch } from '~/components/Search'
 
 const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
 	ssr: false
@@ -46,7 +46,7 @@ export function NFTCollectionContainer({
 
 	return (
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
-			<ProtocolsChainsSearch
+			<NFTsSearch
 				step={{
 					category: 'NFT Collections',
 					name: name,

@@ -1,10 +1,9 @@
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { useFetchProtocolsList } from '~/api/categories/protocols/client'
-import { chainIconUrl, nftCollectionIconUrl, standardizeProtocolName, tokenIconUrl } from '~/utils'
+import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from '~/utils'
 import { IBaseSearchProps, SETS, IGetSearchList } from '../types'
 import placeholderImg from '~/assets/placeholder.png'
-import { useFetchNftCollectionsList } from '~/api/categories/nfts/client'
 
 const groupedChains = [
 	{ name: 'Non-EVM', route: '/chains/Non-EVM', logo: placeholderImg.src },
@@ -32,8 +31,6 @@ export function useGetDefiSearchList({
 	customPath
 }: IDefiSearchListProps): IGetSearchList {
 	const { data, loading } = useFetchProtocolsList()
-	//const { data: collections, loading: fetchingCollections } = useFetchNftCollectionsList()
-	const collections = []
 	const fetchingCollections = false
 
 	const { pathname } = useRouter()
@@ -78,19 +75,11 @@ export function useGetDefiSearchList({
 			  })) ?? []
 			: []
 
-		const nftCollections =
-			collections?.map((item) => ({
-				name: item.name,
-				symbol: null,
-				logo: nftCollectionIconUrl(item.collectionId),
-				route: `/nfts/collection/${item.collectionId}`
-			})) ?? []
-
 		const sets = pathname.startsWith('/nft')
-			? [...nftCollections, ...chainData, ...parentProtocols, ...protocolData]
+			? [...chainData, ...parentProtocols, ...protocolData]
 			: pathname.startsWith('/protocol')
-			? [...parentProtocols, ...protocolData, ...chainData, ...nftCollections]
-			: [...chainData, ...parentProtocols, ...protocolData, ...nftCollections]
+			? [...parentProtocols, ...protocolData, ...chainData]
+			: [...chainData, ...parentProtocols, ...protocolData]
 
 		if (includedSets?.includes(SETS.GROUPED_CHAINS)) {
 			let _groupedChains = groupedChains
@@ -103,7 +92,7 @@ export function useGetDefiSearchList({
 		}
 
 		return sets
-	}, [data, pathname, customPath, includedSets, collections, fetchingCollections, loading])
+	}, [data, pathname, customPath, includedSets, fetchingCollections, loading])
 
 	return { data: searchData, loading: loading || fetchingCollections }
 }

@@ -5,11 +5,11 @@ import styled from 'styled-components'
 import { MobileInput } from './Input'
 import { useDebounce } from '~/hooks'
 import { useGetLiquidationSearchList } from '../Liquidations/hooks'
-import { useGetNftsSearchList } from '../NFTs/hooks'
 import { IDefiSearchListProps, useGetDefiSearchList } from '../ProtocolsChains/hooks'
 import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
 import { MobileResults } from './Results/Mobile'
 import { useGetAdaptorsSearchList } from '../Adaptors/hooks'
+import { useFetchNftCollectionsList } from '~/api/categories/nfts/client'
 
 export default function MobileSearch() {
 	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()(
@@ -56,8 +56,8 @@ const useMobileSearchResult = () => {
 		return useGetDexesSearchList
 	}
 
-	if (router.pathname.startsWith('/nfts')) {
-		return useGetNftsSearchList
+	if (router.pathname.startsWith('/nft')) {
+		return useFetchNftCollectionsList
 	}
 
 	if (router.pathname.startsWith('/fee')) {
