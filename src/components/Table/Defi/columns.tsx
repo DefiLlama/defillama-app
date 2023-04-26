@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, sortingFns } from '@tanstack/react-table'
 import styled from 'styled-components'
 import { ArrowUpRight, ChevronDown, ChevronRight, Tool } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
@@ -694,6 +694,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				</AutoRow>
 			)
 		},
+		sortingFn: sortingFns.datetime,
 		size: 120,
 		meta: {
 			align: 'end',
@@ -725,6 +726,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				</AutoRow>
 			)
 		},
+		sortingFn: sortingFns.datetime,
 		size: 145,
 		meta: {
 			align: 'end',
@@ -740,6 +742,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
 			</InflowOutflow>
 		),
+		sortingFn: sortingFns.datetime,
 		meta: {
 			align: 'end'
 		}
@@ -753,6 +756,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
 			</InflowOutflow>
 		),
+		sortingFn: sortingFns.datetime,
 		meta: {
 			align: 'end'
 		}
@@ -766,6 +770,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
 			</InflowOutflow>
 		),
+		sortingFn: sortingFns.datetime,
 		meta: {
 			align: 'end'
 		}
@@ -800,6 +805,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		header: 'Spot Volume',
 		accessorKey: 'spotVolume',
 		cell: (info) => (info.getValue() ? '$' + formattedNum(info.getValue()) : null),
+		sortingFn: sortingFns.datetime,
 		size: 120,
 		meta: {
 			align: 'end'
@@ -809,6 +815,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		header: '24h Open Interest',
 		accessorKey: 'oi',
 		cell: (info) => (info.getValue() ? '$' + formattedNum(info.getValue()) : null),
+		sortingFn: sortingFns.datetime,
 		size: 160,
 		meta: {
 			align: 'end'
@@ -818,6 +825,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		header: 'Avg Leverage',
 		accessorKey: 'leverage',
 		cell: (info) => (info.getValue() ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
+		sortingFn: sortingFns.datetime,
 		size: 120,
 		meta: {
 			align: 'end'
