@@ -4,6 +4,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { nftCollectionIconUrl, slug, formattedPercent } from '~/utils'
 import { Name } from '../../shared'
 import type { INftCollection } from '../types'
+import styled from 'styled-components'
 
 export const columns: ColumnDef<INftCollection>[] = [
 	{
@@ -26,7 +27,22 @@ export const columns: ColumnDef<INftCollection>[] = [
 		header: 'Floor Price',
 		accessorKey: 'floorPrice',
 		size: 120,
-		cell: (info) => info.getValue() + ' ETH',
+		cell: (info) => (
+			<>
+				{info.getValue() ? (
+					<ValueWithETH>
+						<span>{info.getValue()}</span>
+						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
+							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
+						</svg>
+					</ValueWithETH>
+				) : (
+					''
+				)}{' '}
+			</>
+		),
+
 		meta: {
 			align: 'end'
 		}
@@ -53,7 +69,21 @@ export const columns: ColumnDef<INftCollection>[] = [
 		header: 'Volume 1d',
 		accessorKey: 'volume1d',
 		size: 120,
-		cell: (info) => <>{info.getValue() ? info.getValue() + ' ETH' : ''}</>,
+		cell: (info) => (
+			<>
+				{info.getValue() ? (
+					<ValueWithETH>
+						<span>{info.getValue()}</span>
+						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
+							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
+						</svg>
+					</ValueWithETH>
+				) : (
+					''
+				)}
+			</>
+		),
 
 		meta: {
 			align: 'end'
@@ -63,7 +93,21 @@ export const columns: ColumnDef<INftCollection>[] = [
 		header: 'Volume 7d',
 		accessorKey: 'volume7d',
 		size: 120,
-		cell: (info) => <>{info.getValue() ? info.getValue() + ' ETH' : ''}</>,
+		cell: (info) => (
+			<>
+				{info.getValue() ? (
+					<ValueWithETH>
+						<span>{info.getValue()}</span>
+						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
+							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
+						</svg>
+					</ValueWithETH>
+				) : (
+					''
+				)}
+			</>
+		),
 
 		meta: {
 			align: 'end'
@@ -85,79 +129,16 @@ export const columns: ColumnDef<INftCollection>[] = [
 			align: 'end'
 		}
 	}
-	// {
-	// 	header: 'Chains',
-	// 	accessorKey: 'chains',
-	// 	enableSorting: false,
-	// 	cell: (info) => {
-	// 		const values = info.getValue() as Array<string>
-	// 		return <IconsRow links={values.map((x) => capitalizeFirstLetter(x))} url="/nfts/chain" iconType="chain" />
-	// 	},
-	// 	meta: {
-	// 		align: 'end'
-	// 	},
-	// 	size: 120
-	// },
-	// {
-	// 	header: 'MarketPlaces',
-	// 	accessorKey: 'marketplaces',
-	// 	enableSorting: false,
-	// 	cell: (info) => {
-	// 		const values = info.getValue() as Array<string>
-
-	// 		return <IconsRow links={values.map((x) => capitalizeFirstLetter(x))} url="/nfts/marketplace" iconType="token" />
-	// 	},
-	// 	meta: {
-	// 		align: 'end'
-	// 	},
-	// 	size: 120
-	// },
-	// {
-	// 	header: 'Daily Volume',
-	// 	accessorKey: 'dailyVolumeUSD',
-	// 	enableSorting: true,
-	// 	cell: ({ getValue }) => {
-	// 		return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
-	// 	},
-	// 	meta: {
-	// 		align: 'end'
-	// 	},
-	// 	size: 120
-	// },
-	// {
-	// 	header: 'Total Volume',
-	// 	accessorKey: 'totalVolumeUSD',
-	// 	enableSorting: true,
-	// 	cell: ({ getValue }) => {
-	// 		return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
-	// 	},
-	// 	meta: {
-	// 		align: 'end'
-	// 	},
-	// 	size: 120
-	// },
-	// {
-	// 	header: 'Floor',
-	// 	accessorKey: 'floor',
-	// 	enableSorting: true,
-	// 	cell: ({ getValue }) => {
-	// 		return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
-	// 	},
-	// 	meta: {
-	// 		align: 'end'
-	// 	},
-	// 	size: 120
-	// },
-	// {
-	// 	header: 'Owners',
-	// 	accessorKey: 'owners',
-	// 	enableSorting: true,
-	// 	cell: ({ getValue }) => {
-	// 		return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), false)}</>
-	// 	},
-	// 	meta: {
-	// 		align: 'end'
-	// 	},
-	// 	size: 120
-	// }
 ]
+
+const ValueWithETH = styled.span`
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	justify-content: flex-end;
+	flex-wrap: nowrap;
+
+	& > *[data-eth] {
+		height: 12px;
+	}
+`
