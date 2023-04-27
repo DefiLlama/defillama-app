@@ -48,7 +48,7 @@ import {
 	tokenIconUrl
 } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
-import type { IFusedProtocolData } from '~/api/types'
+import type { IFusedProtocolData, IRaise } from '~/api/types'
 import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
@@ -134,6 +134,10 @@ const ProtocolStatsTable = styled.table`
 		font-size: 0.75rem;
 		text-align: left;
 		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
+	}
+
+	caption {
+		color: ${({ theme }) => theme.text1};
 	}
 
 	th {
@@ -463,6 +467,18 @@ function ProtocolContainer({
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
+	const stakedAmount =
+		historicalChainTvls?.['staking']?.tvl?.length > 0
+			? historicalChainTvls?.['staking']?.tvl[historicalChainTvls?.['staking']?.tvl.length - 1]?.totalLiquidityUSD ??
+			  null
+			: null
+
+	const borrowedAmount =
+		historicalChainTvls?.['borrowed']?.tvl?.length > 0
+			? historicalChainTvls?.['borrowed']?.tvl[historicalChainTvls?.['borrowed']?.tvl.length - 1]?.totalLiquidityUSD ??
+			  null
+			: null
+
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO cardName={name} token={name} logo={tokenIconUrl(name)} tvl={formattedNum(totalVolume, true)?.toString()} />
@@ -595,22 +611,9 @@ function ProtocolContainer({
 								) : null}
 
 								{tokenSupply && priceOfToken ? (
-									<>
-										<tr>
-											<th>Fully Diluted Valuation</th>
-											<td>{formattedNum(priceOfToken * tokenSupply, true)}</td>
-										</tr>
-										<tr>
-											<th>FDV / TVL ratio</th>
-											<td>{formattedNum((priceOfToken * tokenSupply) / totalVolume, false)}</td>
-										</tr>
-									</>
-								) : null}
-
-								{tokenMcap ? (
 									<tr>
-										<th>Mcap / TVL ratio</th>
-										<td>{formattedNum(tokenMcap / totalVolume, false)}</td>
+										<th>Fully Diluted Valuation</th>
+										<td>{formattedNum(priceOfToken * tokenSupply, true)}</td>
 									</tr>
 								) : null}
 
@@ -651,6 +654,55 @@ function ProtocolContainer({
 									</tr>
 								) : null}
 
+								{stakedAmount ? (
+									<>
+										<tr>
+											<th>Staked</th>
+											<td>{formattedNum(stakedAmount, true)}</td>
+										</tr>
+
+										{tokenMcap ? (
+											<tr style={{ position: 'relative', top: '-6px' }}>
+												<th style={{ padding: 0 }}></th>
+												<td
+													style={{
+														opacity: '0.6',
+														fontFamily: 'var(--inter',
+														fontWeight: 400,
+														fontSize: '0.875rem',
+														padding: '0px'
+													}}
+												>
+													{`(${((stakedAmount / tokenMcap) * 100).toLocaleString(undefined, {
+														maximumFractionDigits: 2
+													})}% of mcap)`}
+												</td>
+											</tr>
+										) : null}
+									</>
+								) : null}
+
+								{borrowedAmount ? (
+									<tr>
+										<th>Borrowed</th>
+										<td>{formattedNum(borrowedAmount, true)}</td>
+									</tr>
+								) : null}
+
+								{tokenSupply && priceOfToken && totalVolume ? (
+									<tr>
+										<th>FDV / TVL ratio</th>
+										<td>{formattedNum((priceOfToken * tokenSupply) / totalVolume, false)}</td>
+									</tr>
+								) : null}
+
+								{tokenMcap ? (
+									<tr>
+										<th>Mcap / TVL ratio</th>
+										<td>{formattedNum(tokenMcap / totalVolume, false)}</td>
+									</tr>
+								) : null}
+
 								{allTimeVolume ? (
 									<tr>
 										<th>Cumulative Volume</th>
@@ -670,6 +722,8 @@ function ProtocolContainer({
 							</tbody>
 						</ProtocolStatsTable>
 					</div>
+
+					<>{raises && raises.length > 0 && <Raised data={raises} />}</>
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
@@ -834,24 +888,6 @@ function ProtocolContainer({
 					</Section>
 				) : null}
 
-				{raises && raises.length > 0 && (
-					<Section>
-						<h3>Raises</h3>
-						<RaisesWrapper>
-							<li>{`Total raised: ${formatRaisedAmount(raises.reduce((sum, r) => sum + Number(r.amount), 0))}`}</li>
-							{raises
-								.sort((a, b) => a.date - b.date)
-								.map((raise) => (
-									<li key={raise.date + raise.amount}>
-										<a target="_blank" rel="noopener noreferrer" href={raise.source}>
-											{formatRaise(raise)}
-										</a>
-									</li>
-								))}
-						</RaisesWrapper>
-					</Section>
-				)}
-
 				{treasury && <Treasury protocolName={protocol} />}
 
 				{emissions?.chartData?.length > 0 ? <Emissions data={emissions} /> : null}
@@ -960,5 +996,70 @@ function ProtocolContainer({
 		</Layout>
 	)
 }
+
+const Raised = ({ data }: { data: Array<IRaise> }) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} />
+							<span>Total Raised</span>
+						</Toggle>
+					</th>
+					<td>${formatRaisedAmount(data.reduce((sum, r) => sum + Number(r.amount), 0))}</td>
+				</tr>
+				{open && (
+					<>
+						{data
+							.sort((a, b) => a.date - b.date)
+							.map((raise) => (
+								<tr key={raise.date + raise.amount}>
+									<th data-subvalue>{new Date(raise.date * 1000).toLocaleDateString()}</th>
+									<td data-subvalue>
+										<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+											{formatRaise(raise)}
+										</a>
+									</td>
+								</tr>
+							))}
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+const Toggle = styled.button`
+	margin-left: -24px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	white-space: nowrap;
+
+	svg {
+		flex-shrink: 0;
+	}
+
+	&[data-open='true'] {
+		svg {
+			transform: rotate(90deg);
+			transition: 0.1s ease;
+		}
+	}
+`
+
+const StatsTable2 = styled(ProtocolStatsTable)`
+	margin: -24px 0 0 0;
+
+	th[data-subvalue],
+	td[data-subvalue] {
+		font-weight: 400;
+		font-family: var(--inter);
+		font-size: 0.875rem;
+	}
+`
 
 export default ProtocolContainer
