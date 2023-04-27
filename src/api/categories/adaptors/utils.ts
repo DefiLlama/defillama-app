@@ -2,17 +2,6 @@ import { BASE_API } from "~/constants"
 import { IJoin2ReturnType } from "."
 import { IJSON, ProtocolAdaptorSummaryResponse } from "./types"
 
-export const formatChain = (chain: string) => {
-	if (!chain) return chain
-	const ch = chain.toLowerCase()
-	let c = ch === 'avax' ? "avalanche" : ch
-	if (c === 'bsc') return c.toUpperCase()
-	if (c === 'xdai') return "xDai"
-	if (c === 'terra' || c === 'terra classic') return "Terra Classic"
-	else
-		return c[0].toUpperCase() + c.slice(1)
-}
-
 function pad(s: number) {
 	return s < 10 ? "0" + s : s;
 }
@@ -62,14 +51,14 @@ export function chartBreakdownByChain(chart: ProtocolAdaptorSummaryResponse['tot
 	const rawProcessed = chart.reduce((acc, [timestamp, data]) => {
 		Object.entries(data).forEach(([chain, chainData]) => {
 			Object.entries(chainData).forEach(([_protocolName, value]) => {
-				if (!legend.includes(formatChain(chain))) legend.push(formatChain(chain))
+				if (!legend.includes(chain)) legend.push(chain)
 				if (!acc[`${timestamp}${chain}`]) acc[`${timestamp}${chain}`] = {
-					[formatChain(chain)]: getOkValue(value),
+					[chain]: getOkValue(value),
 					date: String(timestamp)
 				} as IJoin2ReturnType[number]
 				else {
 					acc[`${timestamp}${chain}`] = {
-						[formatChain(chain)]: +acc[`${timestamp}${chain}`][formatChain(chain)] + getOkValue(value),
+						[chain]: +acc[`${timestamp}${chain}`][chain] + getOkValue(value),
 						date: String(timestamp)
 					} as IJoin2ReturnType[number]
 				}

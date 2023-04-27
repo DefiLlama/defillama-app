@@ -12,7 +12,7 @@ import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
 import type { IDexChartsProps } from './types'
 import { useRouter } from 'next/router'
-import { capitalizeFirstLetter } from '~/utils'
+import { capitalizeFirstLetter, slug } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
 import { AnnouncementWrapper } from '~/components/Announcement'
@@ -29,7 +29,6 @@ const HeaderWrapper = styled(Header)`
 export type IOverviewContainerProps = IOverviewProps
 
 export default function OverviewContainer(props: IOverviewContainerProps) {
-	const chain = props.chain ?? 'All'
 	const router = useRouter()
 	const { dataType: selectedDataType = 'Notional volume' } = router.query
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
@@ -55,16 +54,22 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 		totalDataChartBreakdown: props.totalDataChartBreakdown,
 		totalDataChartBreakdown2: undefined
 	})
+	const formattedChain = props.allChains?.find((chain) => slug(chain) === props.chain) ?? 'All'
 
 	// Needs to be improved! Too dirty
-	const { data, error, loading } = useFetchCharts(props.type, chain === 'All' ? undefined : chain)
+	const { data, error, loading } = useFetchCharts(props.type, formattedChain === 'All' ? undefined : formattedChain)
 	const {
 		data: secondTypeData,
 		error: secondTypeError,
 		loading: secondTypeLoading
-	} = useFetchCharts(props.type, chain === 'All' ? undefined : chain, 'dailyPremiumVolume', props.type !== 'options')
+	} = useFetchCharts(
+		props.type,
+		formattedChain === 'All' ? undefined : formattedChain,
+		'dailyPremiumVolume',
+		props.type !== 'options'
+	)
 
-	const isChainsPage = chain === 'all'
+	const isChainsPage = router.pathname.endsWith('/chains')
 
 	React.useEffect(() => {
 		if (loading) {
@@ -153,8 +158,12 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			<AdaptorsSearch
 				type={props.type}
 				step={{
-					category: chain === 'All' ? 'Home' : capitalizeFirstLetter(props.type),
-					name: chain === 'All' ? capitalizeFirstLetter(props.type) : chain === 'all' ? 'Chains' : chain
+					category: isChainsPage
+						? capitalizeFirstLetter(props.type)
+						: formattedChain === 'All'
+						? 'Home'
+						: capitalizeFirstLetter(props.type),
+					name: isChainsPage ? 'Chains' : formattedChain
 				}}
 				enableToggle={props.type !== 'fees'}
 				onToggleClick={
@@ -167,7 +176,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				}
 			/>
 			<StyledHeaderWrapper>
-				<TitleByType type={props.type} chain={chain} />
+				<TitleByType type={props.type} chain={formattedChain === 'All' ? undefined : formattedChain} />
 				<p style={{ fontSize: '.60em', textAlign: 'end' }}>Updated daily at 00:00UTC</p>
 			</StyledHeaderWrapper>
 			{getChartByType(props.type, {
@@ -192,10 +201,10 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				<RowLinksWrapper>
 					<RowLinksWithDropdown
 						links={['All', ...props.allChains].map((chain) => ({
-							label: formatChain(chain),
-							to: chain === 'All' ? `/${props.type}` : `/${props.type}/chains/${chain.toLowerCase()}`
+							label: chain,
+							to: chain === 'All' ? `/${props.type}` : `/${props.type}/chains/${slug(chain)}`
 						}))}
-						activeLink={chain}
+						activeLink={formattedChain}
 						alternativeOthersText="More chains"
 					/>
 					{props.categories?.length > 0 && props.type !== 'dexs' && (

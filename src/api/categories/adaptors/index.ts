@@ -4,7 +4,7 @@ import { getUniqueArray } from '~/containers/DexsAndFees/utils'
 import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
-import { formatChain, getCexVolume, handleFetchResponse } from './utils'
+import { getCexVolume, handleFetchResponse } from './utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>
@@ -99,9 +99,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-				...p,
-				tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
-		  }))
+			...p,
+			tvlPrevDay: p?.chainTvls?.[chain]?.tvlPrevDay ?? null
+		}))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -195,9 +195,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? {}
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -305,7 +305,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		change_1m,
 		change_7dover7d,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
-		chain: chain ? formatChain(chain) : null,
+		chain: chain ?? null,
 		tvlData,
 		totalDataChartBreakdown,
 		allChains,
