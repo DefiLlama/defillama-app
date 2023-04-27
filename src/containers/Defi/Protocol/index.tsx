@@ -108,14 +108,6 @@ export const OtherProtocols = styled.nav`
 	}
 `
 
-const RaisesWrapper = styled.ul`
-	list-style: none;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-`
-
 const ProtocolDetailsWrapper = styled(DetailsWrapper)`
 	gap: 24px;
 
@@ -282,6 +274,7 @@ interface IProtocolContainerProps {
 	dailyVolume: number | null
 	allTimeVolume: number | null
 	inflowsExist: boolean
+	controversialProposals: Array<{ title: string; link?: string }> | null
 	helperTexts: {
 		fees?: string | null
 		revenue?: string | null
@@ -311,6 +304,7 @@ function ProtocolContainer({
 	dailyVolume,
 	allTimeVolume,
 	inflowsExist,
+	controversialProposals,
 	helperTexts
 }: IProtocolContainerProps) {
 	useScrollToTop()
@@ -667,7 +661,7 @@ function ProtocolContainer({
 												<td
 													style={{
 														opacity: '0.6',
-														fontFamily: 'var(--inter',
+														fontFamily: 'var(--inter)',
 														fontWeight: 400,
 														fontSize: '0.875rem',
 														padding: '0px'
@@ -724,6 +718,10 @@ function ProtocolContainer({
 					</div>
 
 					<>{raises && raises.length > 0 && <Raised data={raises} />}</>
+
+					{controversialProposals && controversialProposals.length > 0 ? (
+						<TopProposals data={controversialProposals} />
+					) : null}
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
@@ -1032,6 +1030,41 @@ const Raised = ({ data }: { data: Array<IRaise> }) => {
 	)
 }
 
+const TopProposals = ({ data }: { data: Array<{ title: string; link?: string }> }) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} />
+							<span>Top Controversial Proposals</span>
+						</Toggle>
+					</th>
+				</tr>
+				{open && (
+					<>
+						{data.map((proposal) => (
+							<tr key={proposal.title}>
+								<td data-subvalue style={{ textAlign: 'left' }}>
+									{proposal.link ? (
+										<a href={proposal.link} target="_blank" rel="noreferrer noopener">
+											{proposal.title}
+										</a>
+									) : (
+										proposal.title
+									)}
+								</td>
+							</tr>
+						))}
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
 const Toggle = styled.button`
 	margin-left: -24px;
 	display: flex;
@@ -1059,6 +1092,14 @@ const StatsTable2 = styled(ProtocolStatsTable)`
 		font-weight: 400;
 		font-family: var(--inter);
 		font-size: 0.875rem;
+	}
+	td {
+		color: ${({ theme }) => theme.text1};
+	}
+
+	a {
+		text-decoration: underline;
+		text-decoration-color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
 	}
 `
 

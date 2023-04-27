@@ -37,6 +37,7 @@ export interface Protocol {
 	raises?: Array<IRaise>
 	defillamaId?: number
 	treasury?: string
+	governanceID?: Array<string>
 }
 
 // TODO cleanup

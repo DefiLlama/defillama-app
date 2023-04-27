@@ -12,7 +12,12 @@ import {
 import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
-import { ACTIVE_USERS_API, YIELD_PROJECT_MEDIAN_API } from '~/constants'
+import {
+	ACTIVE_USERS_API,
+	PROTOCOL_GOVERNANCE_API,
+	PROTOCOL_ONCHAIN_GOVERNANCE_API,
+	YIELD_PROJECT_MEDIAN_API
+} from '~/constants'
 
 export const getStaticProps = async ({
 	params: {
@@ -39,24 +44,47 @@ export const getStaticProps = async ({
 
 	const protocolData = fuseProtocolData(protocolRes)
 
-	const [backgroundColor, allProtocols, activeUsers, feesAndRevenueProtocols, dexs, medianApy] = await Promise.all([
-		getColor(tokenIconPaletteUrl(protocolData.name)),
-		getProtocolsRaw(),
-		fetch(ACTIVE_USERS_API).then((res) => res.json()),
-		fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-			.then((res) => res.json())
-			.catch((err) => {
-				console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-				return {}
-			}),
-		fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-			.then((res) => res.json())
-			.catch((err) => {
-				console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-				return {}
-			}),
-		fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json())
-	])
+	const governanceID = protocolData.governanceID?.[0] ?? null
+	const governanceApi = governanceID
+		? governanceID.startsWith('snapshot:')
+			? `${PROTOCOL_GOVERNANCE_API}/${governanceID.split('snapshot:')[1]}.json`
+			: governanceID.startsWith('compound:')
+			? `${PROTOCOL_ONCHAIN_GOVERNANCE_API}/${governanceID.split('compound:')[1]}.json`
+			: null
+		: null
+
+	const [backgroundColor, allProtocols, activeUsers, feesAndRevenueProtocols, dexs, medianApy, controversialProposals] =
+		await Promise.all([
+			getColor(tokenIconPaletteUrl(protocolData.name)),
+			getProtocolsRaw(),
+			fetch(ACTIVE_USERS_API).then((res) => res.json()),
+			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+				}),
+			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+				}),
+			fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
+			governanceApi
+				? fetch(governanceApi)
+						.then((res) => res.json())
+						.then((data) =>
+							Object.values(data.proposals)
+								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+								.slice(0, 3)
+						)
+						.catch((err) => {
+							console.log(err)
+							return {}
+						})
+				: null
+		])
 
 	const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
@@ -162,6 +190,7 @@ export const getStaticProps = async ({
 			dailyVolume,
 			allTimeVolume,
 			inflowsExist,
+			controversialProposals,
 			helperTexts: {
 				fees:
 					volumeData.length > 1
