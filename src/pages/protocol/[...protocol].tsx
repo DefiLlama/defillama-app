@@ -74,11 +74,11 @@ export const getStaticProps = async ({
 			governanceApi
 				? fetch(governanceApi)
 						.then((res) => res.json())
-						.then((data) =>
-							Object.values(data.proposals)
+						.then((data) => {
+							return Object.values(data.proposals)
 								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
 								.slice(0, 3)
-						)
+						})
 						.catch((err) => {
 							console.log(err)
 							return {}
@@ -191,6 +191,7 @@ export const getStaticProps = async ({
 			allTimeVolume,
 			inflowsExist,
 			controversialProposals,
+			governanceApi,
 			helperTexts: {
 				fees:
 					volumeData.length > 1

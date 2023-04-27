@@ -275,6 +275,7 @@ interface IProtocolContainerProps {
 	allTimeVolume: number | null
 	inflowsExist: boolean
 	controversialProposals: Array<{ title: string; link?: string }> | null
+	governanceApi: string | null
 	helperTexts: {
 		fees?: string | null
 		revenue?: string | null
@@ -305,6 +306,7 @@ function ProtocolContainer({
 	allTimeVolume,
 	inflowsExist,
 	controversialProposals,
+	governanceApi,
 	helperTexts
 }: IProtocolContainerProps) {
 	useScrollToTop()
@@ -741,6 +743,7 @@ function ProtocolContainer({
 						inflowsExist && usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null
 					}
 					inflowsExist={inflowsExist}
+					governanceApi={governanceApi}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>

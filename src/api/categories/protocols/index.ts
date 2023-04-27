@@ -848,3 +848,52 @@ export async function getLSDPageData() {
 		}
 	}
 }
+
+export function formatGovernanceData(data: {
+	proposals: Array<{ scores: Array<number>; choices: Array<string>; id: string }>
+	stats: {
+		months: {
+			[date: string]: {
+				total?: number
+				successful?: number
+				proposals: Array<string>
+			}
+		}
+	}
+}) {
+	const proposals = Object.values(data.proposals).map((proposal) => {
+		const winningScore = [...proposal.scores].sort((a, b) => b - a)[0]
+		const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
+
+		return {
+			...proposal,
+			winningChoice: winningScore ? proposal.choices[proposal.scores.findIndex((x) => x === winningScore)] : '',
+			winningPerc:
+				totalVotes && winningScore ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
+		}
+	})
+
+	const activity = Object.entries(data.stats.months || {}).map(([date, values]) => ({
+		date: Math.floor(new Date(date).getTime() / 1000),
+		Total: values.total || 0,
+		Successful: values.successful || 0
+	}))
+
+	const maxVotes = Object.entries(data.stats.months || {}).map(([date, values]) => {
+		let maxVotes = 0
+		values.proposals.forEach((proposal) => {
+			const votes = proposals.find((p) => p.id === proposal)?.['scores_total'] ?? 0
+
+			if (votes > maxVotes) {
+				maxVotes = votes
+			}
+		})
+
+		return {
+			date: Math.floor(new Date(date).getTime() / 1000),
+			'Max Votes': maxVotes.toFixed(2)
+		}
+	})
+
+	return { maxVotes, activity, proposals }
+}

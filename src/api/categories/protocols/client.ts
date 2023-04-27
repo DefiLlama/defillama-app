@@ -10,7 +10,7 @@ import {
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
-import { getProtocol } from '.'
+import { formatGovernanceData, getProtocol } from '.'
 import { formatProtocolsData } from './utils'
 
 export const useFetchProtocolsList = () => {
@@ -115,6 +115,41 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 						})
 						.catch((err) => {
 							return []
+						})
+			: () => null
+	)
+
+	return { data, error, loading: !data && data !== null && !error }
+}
+
+export const useFetchProtocolGovernanceData = (governanceApi: string | null) => {
+	const { data, error } = useSWR(
+		`governanceData/${governanceApi}`,
+		governanceApi
+			? () =>
+					fetch(governanceApi)
+						.then((res) => res.json())
+						.then(
+							(data: {
+								proposals: Array<{ scores: Array<number>; choices: Array<string>; id: string }>
+								stats: {
+									months: {
+										[date: string]: {
+											total?: number
+											successful?: number
+											proposals: Array<string>
+										}
+									}
+								}
+							}) => {
+								const { activity, maxVotes } = formatGovernanceData(data as any)
+
+								return { activity, maxVotes }
+							}
+						)
+						.catch((err) => {
+							console.log(err)
+							return null
 						})
 			: () => null
 	)

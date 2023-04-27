@@ -8,6 +8,7 @@ import {
 	useDenominationPriceHistory,
 	useFetchProtocolActiveUsers,
 	useFetchProtocolGasUsed,
+	useFetchProtocolGovernanceData,
 	useFetchProtocolMedianAPY,
 	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions
@@ -41,6 +42,7 @@ interface IProps {
 	activeUsersId: number | string | null
 	usdInflowsData: Array<[string, number]> | null
 	inflowsExist: boolean
+	governanceApi: string | null
 }
 
 export default function ProtocolChart({
@@ -57,7 +59,8 @@ export default function ProtocolChart({
 	unlockTokenSymbol,
 	activeUsersId,
 	usdInflowsData,
-	inflowsExist
+	inflowsExist,
+	governanceApi
 }: IProps) {
 	const router = useRouter()
 
@@ -81,7 +84,8 @@ export default function ProtocolChart({
 		staking,
 		borrowed,
 		medianApy,
-		usdInflows
+		usdInflows,
+		governance
 	} = router.query
 
 	const DENOMINATIONS = React.useMemo(() => {
@@ -144,6 +148,9 @@ export default function ProtocolChart({
 	)
 	const { data: medianAPYData, loading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
 		router.isReady && medianApy === 'true' && metrics.medianApy ? protocol : null
+	)
+	const { data: governanceData, loading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
+		router.isReady && governance === 'true' ? governanceApi : null
 	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
@@ -688,7 +695,17 @@ export default function ProtocolChart({
 	}
 
 	const isLoading =
-		loading || fetchingFdv || denominationLoading || fetchingFees || fetchingVolume || fetchingActiveUsers
+		loading ||
+		fetchingFdv ||
+		denominationLoading ||
+		fetchingFees ||
+		fetchingVolume ||
+		fetchingActiveUsers ||
+		fetchingNewUsers ||
+		fetchingTransactions ||
+		fetchingGasUsed ||
+		fetchingMedianAPY ||
+		fetchingGovernanceData
 
 	return (
 		<Wrapper>
@@ -701,7 +718,8 @@ export default function ProtocolChart({
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
 			metrics.medianApy ||
-			inflowsExist ? (
+			inflowsExist ||
+			governanceApi ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
 						<input
@@ -1060,6 +1078,29 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
+					{/* {governanceApi && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="governance"
+								checked={governance === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, governance: governance === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Governance</span>
+							</span>
+						</Toggle>
+					)} */}
+
 					{hallmarks?.length > 0 && (
 						<Toggle backgroundColor={color}>
 							<input
@@ -1108,6 +1149,8 @@ export default function ProtocolChart({
 									(staking ? `staking=${staking}&` : '') +
 									(borrowed ? `borrowed=${borrowed}&` : '') +
 									(medianApy ? `medianApy=${medianApy}&` : '') +
+									(usdInflows ? `usdInflows=${usdInflows}&` : '') +
+									(governance ? `governance=${governance}&` : '') +
 									`denomination=${D.symbol}`
 								}
 								key={D.symbol}
