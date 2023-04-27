@@ -39,6 +39,8 @@ interface IProps {
 	}>
 	unlockTokenSymbol?: string
 	activeUsersId: number | string | null
+	usdInflowsData: Array<[string, number]> | null
+	inflowsExist: boolean
 }
 
 export default function ProtocolChart({
@@ -53,7 +55,9 @@ export default function ProtocolChart({
 	metrics,
 	emissions,
 	unlockTokenSymbol,
-	activeUsersId
+	activeUsersId,
+	usdInflowsData,
+	inflowsExist
 }: IProps) {
 	const router = useRouter()
 
@@ -76,7 +80,8 @@ export default function ProtocolChart({
 		gasUsed,
 		staking,
 		borrowed,
-		medianApy
+		medianApy,
+		usdInflows
 	} = router.query
 
 	const DENOMINATIONS = React.useMemo(() => {
@@ -568,6 +573,23 @@ export default function ProtocolChart({
 			})
 		}
 
+		if (inflowsExist && usdInflows === 'true' && usdInflowsData) {
+			tokensUnique.push('USD Inflows')
+
+			usdInflowsData.forEach(([dateS, inflows]) => {
+				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date] = {
+					...chartData[date],
+					'USD Inflows': inflows
+				}
+			})
+		}
+
 		const finalData = Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
 			date,
 			...values
@@ -608,7 +630,10 @@ export default function ProtocolChart({
 		borrowed,
 		historicalChainTvls,
 		medianAPYData,
-		medianApy
+		medianApy,
+		usdInflows,
+		usdInflowsData,
+		inflowsExist
 	])
 
 	const fetchingTypes = []
@@ -675,7 +700,8 @@ export default function ProtocolChart({
 			activeUsersId ||
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
-			metrics.medianApy ? (
+			metrics.medianApy ||
+			inflowsExist ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
 						<input
@@ -1007,6 +1033,29 @@ export default function ProtocolChart({
 							/>
 							<span data-wrapper="true">
 								<span>Median APY</span>
+							</span>
+						</Toggle>
+					)}
+
+					{inflowsExist && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="usdInflows"
+								checked={usdInflows === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, usdInflows: usdInflows === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>USD Inflows</span>
 							</span>
 						</Toggle>
 					)}

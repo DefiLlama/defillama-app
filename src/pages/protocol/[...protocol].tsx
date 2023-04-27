@@ -25,8 +25,13 @@ export const getStaticProps = async ({
 		getProtocolEmissons(protocol)
 	])
 
+	let inflowsExist = false
+
 	if (protocolRes?.chainTvls) {
 		Object.keys(protocolRes.chainTvls).forEach((chain) => {
+			if (protocolRes.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
+				inflowsExist = true
+			}
 			delete protocolRes.chainTvls[chain].tokensInUsd
 			delete protocolRes.chainTvls[chain].tokens
 		})
@@ -73,20 +78,12 @@ export const getStaticProps = async ({
 		'Active Users',
 		'New Users',
 		'Transactions',
-		'Gas Used'
+		'Gas Used',
+		'Staking',
+		'Borrowed',
+		'Median APY',
+		'USD Inflows'
 	]
-
-	if (protocolData.historicalChainTvls?.['staking']?.tvl?.length > 0) {
-		chartTypes.push('Staking')
-	}
-
-	if (protocolData.historicalChainTvls?.['borrowed']?.tvl?.length > 0) {
-		chartTypes.push('Borrowed')
-	}
-
-	if (medianApy.data.length > 0) {
-		chartTypes.push('Median APY')
-	}
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
 
@@ -164,6 +161,7 @@ export const getStaticProps = async ({
 			allTimeFees,
 			dailyVolume,
 			allTimeVolume,
+			inflowsExist,
 			helperTexts: {
 				fees:
 					volumeData.length > 1

@@ -277,6 +277,7 @@ interface IProtocolContainerProps {
 	dailyRevenue: number | null
 	dailyVolume: number | null
 	allTimeVolume: number | null
+	inflowsExist: boolean
 	helperTexts: {
 		fees?: string | null
 		revenue?: string | null
@@ -305,6 +306,7 @@ function ProtocolContainer({
 	dailyRevenue,
 	dailyVolume,
 	allTimeVolume,
+	inflowsExist,
 	helperTexts
 }: IProtocolContainerProps) {
 	useScrollToTop()
@@ -336,6 +338,8 @@ function ProtocolContainer({
 	} = protocolData
 
 	const router = useRouter()
+
+	const { usdInflows: usdInflowsParam } = router.query
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
@@ -431,7 +435,7 @@ function ProtocolContainer({
 			[addlProtocolData, extraTvlsEnabled]
 		)
 
-	const [yeildsNumber, averageApy] = React.useMemo(() => {
+	const [yieldsNumber, averageApy] = React.useMemo(() => {
 		if (!yields) return [0, 0]
 		const projectYieldsExist = yields.find(({ project }) => project === protocol)
 		if (!projectYieldsExist) return [0, 0]
@@ -681,6 +685,10 @@ function ProtocolContainer({
 					emissions={emissions?.chartData}
 					unlockTokenSymbol={emissions?.tokenPrice?.symbol}
 					activeUsersId={users ? protocolData.id : null}
+					usdInflowsData={
+						inflowsExist && usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null
+					}
+					inflowsExist={inflowsExist}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
@@ -849,7 +857,7 @@ function ProtocolContainer({
 				{emissions?.chartData?.length > 0 ? <Emissions data={emissions} /> : null}
 			</InfoWrapper>
 
-			{yeildsNumber > 0 && (
+			{yieldsNumber > 0 && (
 				<InfoWrapper>
 					<Section>
 						<h3>Yields</h3>
@@ -857,7 +865,7 @@ function ProtocolContainer({
 						<FlexRow>
 							<span>Number of pools tracked</span>
 							<span>:</span>
-							<span>{yeildsNumber}</span>
+							<span>{yieldsNumber}</span>
 						</FlexRow>
 						<FlexRow>
 							<span>Average APY</span>

@@ -88,12 +88,23 @@ export default function AreaBarChart({
 			yAxisByIndex['Median APY'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('USD Inflows')) {
+			yAxisByIndex['USD Inflows'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
-			const type = ['Volume', 'Fees', 'Revenue', 'Active Users', 'New Users', 'Transactions', 'Gas Used'].includes(
-				stack
-			)
+			const type = [
+				'Volume',
+				'Fees',
+				'Revenue',
+				'Active Users',
+				'New Users',
+				'Transactions',
+				'Gas Used',
+				'USD Inflows'
+			].includes(stack)
 				? 'bar'
 				: 'line'
 
@@ -318,6 +329,18 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Median APY']
+						}
+					}
+				})
+			}
+
+			if (type === 'USD Inflows') {
+				yAxiss.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['USD Inflows']
 						}
 					}
 				})

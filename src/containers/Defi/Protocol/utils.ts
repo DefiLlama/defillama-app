@@ -163,7 +163,7 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 	const tokenFlows = Object.values(tokenInflows)
 
 	return {
-		usdInflows: zeroUsdInfows === usdFlows.length ? null : usdFlows,
+		usdInflows: (zeroUsdInfows === usdFlows.length ? null : usdFlows) as Array<[string, number]> | null,
 		tokenInflows: zeroTokenInfows === tokenFlows.length ? null : tokenFlows
 	}
 }
