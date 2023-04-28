@@ -7,6 +7,7 @@ import { getUtcDateObject, stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { toK } from '~/utils'
+import { BAR_CHARTS } from './utils'
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
@@ -95,18 +96,7 @@ export default function AreaBarChart({
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
-			const type = [
-				'Volume',
-				'Fees',
-				'Revenue',
-				'Active Users',
-				'New Users',
-				'Transactions',
-				'Gas Used',
-				'USD Inflows'
-			].includes(stack)
-				? 'bar'
-				: 'line'
+			const type = BAR_CHARTS.includes(stack) ? 'bar' : 'line'
 
 			const options = {}
 			if (['TVL', 'Mcap', 'FDV', 'Borrowed', 'Staking'].includes(stack)) {
