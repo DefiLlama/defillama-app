@@ -131,6 +131,19 @@ export const cexData = [
 		walletsLink: null
 	},
 	{
+		name: 'WOO X',
+		slug: 'woo-x',
+		coin: 'WOO',
+		coinSymbol: 'WOO',
+		walletsLink: 'https://woo.org/proof-of-reserves'
+	},
+	{
+		name: 'Cake DeFi',
+		slug: 'cake-defi',
+		coin: null,
+		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
+	},
+	{
 		name: 'MaskEX',
 		slug: 'maskex',
 		coin: null,
@@ -143,19 +156,6 @@ export const cexData = [
 		walletsLink: 'https://phemex.com/proof-of-reserves',
 		cgId: 'phemex',
 		cgDeriv: 'phemex_futures'
-	},
-	{
-		name: 'Cake DeFi',
-		slug: 'cake-defi',
-		coin: null,
-		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
-	},
-	{
-		name: 'WOO X',
-		slug: 'woo-x',
-		coin: 'WOO',
-		coinSymbol: 'WOO',
-		walletsLink: 'https://woo.org/proof-of-reserves'
 	},
 	{
 		name: 'Coinsquare',
