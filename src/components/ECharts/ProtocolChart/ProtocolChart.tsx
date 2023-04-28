@@ -1078,7 +1078,7 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
-					{/* {governanceApi && (
+					{governanceApi && (
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"
@@ -1099,7 +1099,7 @@ export default function ProtocolChart({
 								<span>Governance</span>
 							</span>
 						</Toggle>
-					)} */}
+					)}
 
 					{hallmarks?.length > 0 && (
 						<Toggle backgroundColor={color}>
