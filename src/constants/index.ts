@@ -27,13 +27,13 @@ export const PROTOCOL_EMISSIONS_LIST_API = 'https://defillama-datasets.llama.fi/
 export const PROTOCOL_EMISSION_API = 'https://api.llama.fi/emission'
 
 export const GOVERNANCE_API =
-	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/overview/snapshot.json'
+	'https://defillama-datasets.llama.fi/governance-cache/overview/snapshot.json'
 export const PROTOCOL_GOVERNANCE_API =
-	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/snapshot'
+	'https://defillama-datasets.llama.fi/governance-cache/snapshot'
 export const ONCHAIN_GOVERNANCE_API =
-	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/overview/compound.json'
+	'https://defillama-datasets.llama.fi/governance-cache/overview/compound.json'
 export const PROTOCOL_ONCHAIN_GOVERNANCE_API =
-	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/compound'
+	'https://defillama-datasets.llama.fi/governance-cache/compound'
 
 export const ACTIVE_USERS_API = 'https://api.llama.fi/activeUsers'
 export const PROTOCOL_ACTIVE_USERS_API = 'https://api.llama.fi/userData/users'
