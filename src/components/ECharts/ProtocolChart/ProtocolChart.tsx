@@ -555,7 +555,39 @@ export default function ProtocolChart({
 		if (inflowsExist && usdInflows === 'true' && usdInflowsData) {
 			tokensUnique.push('USD Inflows')
 
-			usdInflowsData.forEach(([dateS, inflows]) => {
+			let isHourlyInflows = usdInflowsData.length > 2 ? false : true
+
+			usdInflowsData.slice(0, 100).forEach((item, index) => {
+				if (
+					!isHourlyTvl &&
+					usdInflowsData[index + 1] &&
+					+usdInflowsData[index + 1][0] - +usdInflowsData[index][0] < 86400
+				) {
+					isHourlyInflows = true
+				}
+			})
+
+			let currentDate
+			let data =
+				isHourlyTvl || isHourlyInflows
+					? Object.entries(
+							usdInflowsData.reduce((acc, curr) => {
+								if (!currentDate || currentDate + 86400 < +curr[0]) {
+									currentDate = Math.floor(nearestUtc(+curr[0] * 1000) / 1000)
+								}
+
+								if (!acc[currentDate]) {
+									acc[currentDate] = 0
+								}
+
+								acc[currentDate] = acc[currentDate] + curr[1]
+
+								return acc
+							}, {})
+					  )
+					: usdInflowsData
+
+			data.forEach(([dateS, inflows]) => {
 				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
@@ -1344,8 +1376,9 @@ const ToggleWrapper = styled.span`
 	margin: 0 16px;
 `
 
-let oneWeek = 7 * 24 * 60 * 60
-let oneMonth = 30 * 24 * 60 * 60
+const oneDay = 24 * 60 * 60
+const oneWeek = 7 * 24 * 60 * 60
+const oneMonth = 30 * 24 * 60 * 60
 
 const groupDataByDays = (data, groupBy: string | null) => {
 	if (groupBy && ['weekly', 'monthly'].includes(groupBy)) {

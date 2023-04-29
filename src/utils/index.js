@@ -475,5 +475,5 @@ export function nearestUtc(dateString) {
 
 	date.setUTCHours(0, 0, 0, 0)
 
-	return date.getTime()
+	return Date.now() < date.getTime() ? Date.now() : date.getTime()
 }
