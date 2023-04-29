@@ -8,6 +8,7 @@ import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { toK } from '~/utils'
 import { BAR_CHARTS } from './utils'
+import { useRouter } from 'next/router'
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
@@ -30,6 +31,9 @@ export default function AreaBarChart({
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
+	const router = useRouter()
+	const { groupBy } = router.query
+	const isCumulative = router.isReady && groupBy === 'cumulative' ? true : false
 
 	const [isDark] = useDarkModeManager()
 
@@ -105,7 +109,7 @@ export default function AreaBarChart({
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
-			const type = BAR_CHARTS.includes(stack) ? 'bar' : 'line'
+			const type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
 
 			const options = {}
 			if (['TVL', 'Mcap', 'FDV', 'Borrowed', 'Staking'].includes(stack)) {
@@ -190,7 +194,7 @@ export default function AreaBarChart({
 		}
 
 		return { series, yAxisByIndex }
-	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors])
+	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors, isCumulative])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

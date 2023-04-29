@@ -1205,6 +1205,13 @@ export default function ProtocolChart({
 						>
 							<Denomination active={groupBy === 'monthly'}>Monthly</Denomination>
 						</Link>
+						<Link
+							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=cumulative'}
+							shallow
+							passHref
+						>
+							<Denomination active={groupBy === 'cumulative'}>Cumulative</Denomination>
+						</Link>
 					</Filters>
 				) : null}
 			</FiltersWrapper>
@@ -1271,7 +1278,8 @@ export const Filters = styled.div`
 	padding: 4px;
 	background-color: ${({ theme, color }) => (color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1))};
 	border-radius: 12px;
-	width: min-content;
+	width: fit-content;
+	flex-wrap: wrap;
 `
 
 interface IDenomination {
@@ -1405,18 +1413,21 @@ const ToggleWrapper = styled.span`
 	margin: 0 16px;
 `
 
-const oneDay = 24 * 60 * 60
 const oneWeek = 7 * 24 * 60 * 60
 const oneMonth = 30 * 24 * 60 * 60
 
 const groupDataByDays = (data, groupBy: string | null) => {
-	if (groupBy && ['weekly', 'monthly'].includes(groupBy)) {
+	if (groupBy && ['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
 		let chartData = {}
 
 		let currentDate
+		const cumulative = {}
 
 		for (const date in data) {
-			if (!currentDate || currentDate + (groupBy === 'weekly' ? oneWeek : oneMonth) < +date) {
+			if (
+				!currentDate ||
+				currentDate + (groupBy === 'weekly' ? oneWeek : groupBy === 'monthly' ? oneMonth : 0) < +date
+			) {
 				currentDate = +date
 			}
 
@@ -1426,9 +1437,14 @@ const groupDataByDays = (data, groupBy: string | null) => {
 				}
 
 				if (BAR_CHARTS.includes(chartType)) {
-					chartData[currentDate][chartType] = (chartData[currentDate][chartType] || 0) + data[date][chartType]
+					if (groupBy === 'cumulative') {
+						cumulative[chartType] = (cumulative[chartType] || 0) + (+data[date][chartType] || 0)
+						chartData[currentDate][chartType] = cumulative[chartType]
+					} else {
+						chartData[currentDate][chartType] = (chartData[currentDate][chartType] || 0) + (+data[date][chartType] || 0)
+					}
 				} else {
-					chartData[date][chartType] = data[date][chartType]
+					chartData[date][chartType] = +data[date][chartType] || 0
 				}
 			}
 		}
