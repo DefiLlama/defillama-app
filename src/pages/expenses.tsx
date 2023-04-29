@@ -17,11 +17,15 @@ export async function getStaticProps() {
 						protocols
 							.concat(parentProtocols.map((p) => ({ ...p, defillamaId: p.id })))
 							.find((p) => p.defillamaId === e.protocolId) ?? null
+					const sumAnnualUsdExpenses = Object.values(e.annualUsdCost).reduce(
+						(sum: number, x: number) => sum + x
+					) as number
 					return {
 						...e,
 						name: protocol?.name ?? '',
 						protocol,
-						sumAnnualUsdExpenses: Object.values(e.annualUsdCost).reduce((sum: number, x: number) => sum + x)
+						avgCostPerFTE: sumAnnualUsdExpenses / e.headcount,
+						sumAnnualUsdExpenses
 					}
 				})
 				.sort((a, b) => b.sumAnnualUsdExpenses - a.sumAnnualUsdExpenses)

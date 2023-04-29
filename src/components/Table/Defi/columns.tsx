@@ -422,6 +422,33 @@ export const expensesColumns: ColumnDef<any>[] = [
 		meta: {
 			align: 'end'
 		}
+	},
+	{
+		header: 'Average cost per FTE',
+		accessorKey: 'avgCostPerFTE',
+		cell: ({ getValue }) => {
+			return <>{getValue() ? '$' + formattedNum(getValue()) : ''}</>
+		},
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Source',
+		accessorKey: 'sources',
+		enableSorting: false,
+		cell: ({ getValue }) => (
+			<ButtonYields
+				as="a"
+				href={getValue()[0] as string}
+				target="_blank"
+				rel="noopener noreferrer"
+				data-lgonly
+				useTextColor={true}
+			>
+				<ArrowUpRight size={14} />
+			</ButtonYields>
+		)
 	}
 ]
 
