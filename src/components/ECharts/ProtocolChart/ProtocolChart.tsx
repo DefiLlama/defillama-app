@@ -20,6 +20,7 @@ import { nearestUtc } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
 import useSWR from 'swr'
 import { LazyChart } from '~/layout/ProtocolAndPool'
+import { Denomination, Filters } from './Misc'
 import { BAR_CHARTS } from './utils'
 
 const AreaChart = dynamic(() => import('.'), {
@@ -1274,6 +1275,7 @@ export const FiltersWrapper = styled.div`
 	}
 `
 
+
 export const Filters = styled.div`
 	display: flex;
 	align-items: center;
@@ -1368,7 +1370,7 @@ interface IToggleProps {
 	backgroundColor: string
 }
 
-const Toggle = styled.label<IToggleProps>`
+export const Toggle = styled.label<IToggleProps>`
 	font-size: 0.875rem;
 	font-weight: 500;
 	cursor: pointer;
@@ -1417,6 +1419,7 @@ const ToggleWrapper = styled.span`
 	margin: 0 16px;
 `
 
+
 const oneWeek = 7 * 24 * 60 * 60
 const oneMonth = 30 * 24 * 60 * 60
 
@@ -1464,3 +1467,6 @@ const groupDataByDays = (data, groupBy: string | null, chartsUnique: Array<strin
 		...values
 	}))
 }
+
+export { Denomination, Filters }
+
