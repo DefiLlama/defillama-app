@@ -318,7 +318,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 }
 
 const getLlamaoLogo = (logo: string | null) => {
-	if (!logo) return logo
+	if (!logo) return null
 	let llamoLogo = logo
 	if (llamoLogo.includes('chains')) llamoLogo = llamoLogo.replace("https://icons.llama.fi/", "https://icons.llamao.fi/icons/")
 	llamoLogo = llamoLogo.replace("https://icons.llama.fi/", "https://icons.llamao.fi/icons/protocols/")
