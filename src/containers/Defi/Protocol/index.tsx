@@ -276,6 +276,7 @@ interface IProtocolContainerProps {
 	inflowsExist: boolean
 	controversialProposals: Array<{ title: string; link?: string }> | null
 	governanceApi: string | null
+	expenses: any
 	helperTexts: {
 		fees?: string | null
 		revenue?: string | null
@@ -307,6 +308,7 @@ function ProtocolContainer({
 	inflowsExist,
 	controversialProposals,
 	governanceApi,
+	expenses,
 	helperTexts
 }: IProtocolContainerProps) {
 	useScrollToTop()
@@ -724,6 +726,8 @@ function ProtocolContainer({
 					{controversialProposals && controversialProposals.length > 0 ? (
 						<TopProposals data={controversialProposals} />
 					) : null}
+
+					{expenses && <Expenses data={expenses} />}
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
@@ -1061,6 +1065,48 @@ const TopProposals = ({ data }: { data: Array<{ title: string; link?: string }> 
 								</td>
 							</tr>
 						))}
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+const Expenses = ({ data }: { data: { headcount: number; annualUsdCost: { [key: string]: number } } }) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} />
+							<span>Annual operational expenses</span>
+						</Toggle>
+					</th>
+					<td>
+						{formattedNum(
+							Object.values(data.annualUsdCost || {}).reduce((acc, curr) => (acc += curr), 0),
+							true
+						)}
+					</td>
+				</tr>
+
+				{open && (
+					<>
+						<tr>
+							<th data-subvalue>Headcount</th>
+							<td data-subvalue>{data.headcount}</td>
+						</tr>
+
+						{Object.entries(data.annualUsdCost || {}).map(([cat, exp]) => {
+							return (
+								<tr key={'expenses' + cat + exp}>
+									<th data-subvalue>{cat}</th>
+									<td data-subvalue>{formattedNum(exp, true)}</td>
+								</tr>
+							)
+						})}
 					</>
 				)}
 			</tbody>

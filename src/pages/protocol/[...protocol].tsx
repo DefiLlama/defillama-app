@@ -14,6 +14,7 @@ import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import {
 	ACTIVE_USERS_API,
+	PROTOCOLS_EXPENSES_API,
 	PROTOCOL_GOVERNANCE_API,
 	PROTOCOL_ONCHAIN_GOVERNANCE_API,
 	YIELD_PROJECT_MEDIAN_API
@@ -24,10 +25,11 @@ export const getStaticProps = async ({
 		protocol: [protocol]
 	}
 }) => {
-	const [protocolRes, articles, emissions]: [IProtocolResponse, IArticle[], any] = await Promise.all([
+	const [protocolRes, articles, emissions, expenses]: [IProtocolResponse, IArticle[], any, any] = await Promise.all([
 		getProtocol(protocol),
 		fetchArticles({ tags: protocol }),
-		getProtocolEmissons(protocol)
+		getProtocolEmissons(protocol),
+		fetch(PROTOCOLS_EXPENSES_API).then((res) => res.json())
 	])
 
 	let inflowsExist = false
@@ -208,7 +210,8 @@ export const getStaticProps = async ({
 						: volumeData?.[0]?.methodology?.['Revenue'] ?? null,
 				users:
 					'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.'
-			}
+			},
+			expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null
 		},
 		revalidate: maxAgeForNext([22])
 	}
