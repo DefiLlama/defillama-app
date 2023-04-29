@@ -598,6 +598,33 @@ export default function ProtocolChart({
 			})
 		}
 
+		if (governance === 'true' && governanceData) {
+			tokensUnique.push('Total Proposals')
+			tokensUnique.push('Successful Proposals')
+			tokensUnique.push('Max Votes')
+
+			governanceData.activity?.forEach((item) => {
+				const date = isHourlyTvl ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Total Proposals'] = item['Total'] || 0
+				chartData[date]['Successful Proposals'] = item['Successful'] || 0
+			})
+
+			governanceData.maxVotes?.forEach((item) => {
+				const date = isHourlyTvl ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Max Votes'] = item['Max Votes'] || 0
+			})
+		}
+
 		const finalData = groupDataByDays(chartData, isHourlyTvl || typeof groupBy !== 'string' ? null : groupBy)
 
 		return {
@@ -640,7 +667,9 @@ export default function ProtocolChart({
 		usdInflowsData,
 		inflowsExist,
 		isHourlyTvl,
-		groupBy
+		groupBy,
+		governance,
+		governanceData
 	])
 
 	const fetchingTypes = []

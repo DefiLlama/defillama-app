@@ -6,5 +6,8 @@ export const BAR_CHARTS = [
 	'New Users',
 	'Transactions',
 	'Gas Used',
-	'USD Inflows'
+	'USD Inflows',
+	'Total Proposals',
+	'Successful Proposals',
+	'Max Votes'
 ]

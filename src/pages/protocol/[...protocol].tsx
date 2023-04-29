@@ -110,7 +110,10 @@ export const getStaticProps = async ({
 		'Staking',
 		'Borrowed',
 		'Median APY',
-		'USD Inflows'
+		'USD Inflows',
+		'Total Proposals',
+		'Successful Proposals',
+		'Max Votes'
 	]
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))

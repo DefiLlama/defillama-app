@@ -93,6 +93,15 @@ export default function AreaBarChart({
 			yAxisByIndex['USD Inflows'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('Total Proposals') || stacks.includes('Successful Proposals')) {
+			yAxisByIndex['Total Proposals+Successful Proposals'] =
+				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('Max Votes')) {
+			yAxisByIndex['Max Votes'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
@@ -103,6 +112,8 @@ export default function AreaBarChart({
 				options['yAxisIndex'] = yAxisByIndex['TVL+Mcap+FDV+Borrowed+Staking']
 			} else if (['Volume', 'Fees', 'Revenue'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Volume+Fees+Revenue']
+			} else if (['Total Proposals', 'Successful Proposals'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['Total Proposals+Successful Proposals']
 			} else {
 				options['yAxisIndex'] = yAxisByIndex[stack]
 			}
@@ -331,6 +342,36 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['USD Inflows']
+						}
+					}
+				})
+			}
+
+			if (type === 'Total Proposals+Successful Proposals') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => toK(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Total Proposals']
+						}
+					}
+				})
+			}
+
+			if (type === 'Max Votes') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => toK(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Max Votes']
 						}
 					}
 				})
