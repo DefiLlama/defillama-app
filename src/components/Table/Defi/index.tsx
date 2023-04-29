@@ -17,7 +17,8 @@ import {
 	forksColumn,
 	oraclesColumn,
 	LSDColumn,
-	treasuriesColumns
+	treasuriesColumns,
+	expensesColumns
 } from './columns'
 import type { IOraclesRow, IForksRow, ICategoryRow, IChainsRow, ILSDRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -41,6 +42,10 @@ export default function DefiProtocolsTable({ data, columns }) {
 
 export const OraclesTable = ({ data }: { data: Array<IOraclesRow> }) => (
 	<DefiProtocolsTable data={data} columns={oraclesColumn} />
+)
+
+export const ExpensesTable = ({ data }: { data: Array<any> }) => (
+	<DefiProtocolsTable data={data} columns={expensesColumns} />
 )
 
 export const CEXTable = ({ data }: { data: Array<any> }) => <DefiProtocolsTable data={data} columns={cexColumn} />
