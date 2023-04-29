@@ -4,7 +4,7 @@ import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, formattedPercent, slug } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 import { IDexsRow } from '../types'
 
@@ -15,7 +15,6 @@ export const NameColumn = (type: string, allChains?: boolean): ColumnDef<IDexsRo
 	cell: ({ getValue, row, table }) => {
 		const value = getValue() as string
 		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-		const getIconByName = allChains ? chainIconUrl : tokenIconUrl
 		return (
 			<Name depth={row.depth}>
 				{row.subRows?.length > 0 && (
@@ -28,7 +27,7 @@ export const NameColumn = (type: string, allChains?: boolean): ColumnDef<IDexsRo
 					</AccordionButton>
 				)}
 				<span>{index + 1}</span>
-				<TokenLogo logo={getIconByName(row.original.name)} data-lgonly />
+				<TokenLogo logo={row.original.logo} data-lgonly />
 				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(row.original.name)}`}>{`${value}`}</CustomLink>
 				{row.original.disabled && <QuestionHelper text={`This protocol has been disabled`} />}
 			</Name>
