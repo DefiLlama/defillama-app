@@ -1072,7 +1072,11 @@ const TopProposals = ({ data }: { data: Array<{ title: string; link?: string }> 
 	)
 }
 
-const Expenses = ({ data }: { data: { headcount: number; annualUsdCost: { [key: string]: number } } }) => {
+const Expenses = ({
+	data
+}: {
+	data: { headcount: number; annualUsdCost: { [key: string]: number }; sources: string[] }
+}) => {
 	const [open, setOpen] = React.useState(false)
 	return (
 		<StatsTable2>
@@ -1107,6 +1111,15 @@ const Expenses = ({ data }: { data: { headcount: number; annualUsdCost: { [key: 
 								</tr>
 							)
 						})}
+
+						<tr>
+							<th data-subvalue>
+								<a href={data.sources[0]}>
+									Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
+								</a>
+							</th>
+							<td data-subvalue></td>
+						</tr>
 					</>
 				)}
 			</tbody>
