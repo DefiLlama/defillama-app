@@ -206,16 +206,16 @@ export default function ProtocolChart({
 
 	const isHourlyTvl = tvlData.length > 2 ? +tvlData[1][0] - +tvlData[0][0] < 80_000 : true
 
-	const { finalData, tokensUnique } = React.useMemo(() => {
+	const { finalData, chartsUnique } = React.useMemo(() => {
 		if (!router.isReady) {
-			return { finalData: [], tokensUnique: [] }
+			return { finalData: [], chartsUnique: [] }
 		}
-		const tokensUnique = []
+		const chartsUnique = []
 
 		const chartData = {}
 
 		if (tvlData.length > 0 && tvl !== 'false') {
-			tokensUnique.push('TVL')
+			chartsUnique.push('TVL')
 
 			let prevDate = null
 
@@ -252,7 +252,7 @@ export default function ProtocolChart({
 		}
 
 		if (staking === 'true' && historicalChainTvls['staking']?.tvl?.length > 0) {
-			tokensUnique.push('Staking')
+			chartsUnique.push('Staking')
 
 			let prevDate = null
 
@@ -293,7 +293,7 @@ export default function ProtocolChart({
 		}
 
 		if (borrowed === 'true' && historicalChainTvls['borrowed']?.tvl?.length > 0) {
-			tokensUnique.push('Borrowed')
+			chartsUnique.push('Borrowed')
 
 			let prevDate = null
 
@@ -335,7 +335,7 @@ export default function ProtocolChart({
 
 		if (geckoId && protocolCGData) {
 			if (mcap === 'true') {
-				tokensUnique.push('Mcap')
+				chartsUnique.push('Mcap')
 
 				protocolCGData['market_caps'].forEach(([dateMs, Mcap]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
@@ -367,7 +367,7 @@ export default function ProtocolChart({
 			}
 
 			if (tokenPrice === 'true') {
-				tokensUnique.push('Token Price')
+				chartsUnique.push('Token Price')
 
 				protocolCGData['prices'].forEach(([dateMs, price]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
@@ -398,7 +398,7 @@ export default function ProtocolChart({
 			}
 
 			if (fdv === 'true' && fdvData) {
-				tokensUnique.push('FDV')
+				chartsUnique.push('FDV')
 
 				const totalSupply = fdvData['market_data']['total_supply']
 
@@ -430,7 +430,7 @@ export default function ProtocolChart({
 		}
 
 		if (volume === 'true' && volumeData) {
-			tokensUnique.push('Volume')
+			chartsUnique.push('Volume')
 
 			volumeData.forEach((item) => {
 				const date = +item.date
@@ -446,11 +446,11 @@ export default function ProtocolChart({
 
 		if (feesAndRevenue) {
 			if (fees === 'true') {
-				tokensUnique.push('Fees')
+				chartsUnique.push('Fees')
 			}
 
 			if (revenue === 'true') {
-				tokensUnique.push('Revenue')
+				chartsUnique.push('Revenue')
 			}
 
 			feesAndRevenue.forEach((item) => {
@@ -474,7 +474,7 @@ export default function ProtocolChart({
 		}
 
 		if (emissions && emissions.length > 0 && unlocks === 'true') {
-			tokensUnique.push('Unlocks')
+			chartsUnique.push('Unlocks')
 			emissions
 				.filter((emission) => +emission.date * 1000 <= Date.now())
 				.forEach((item) => {
@@ -495,7 +495,7 @@ export default function ProtocolChart({
 		}
 
 		if (activeUsers === 'true' && activeUsersData) {
-			tokensUnique.push('Active Users')
+			chartsUnique.push('Active Users')
 
 			activeUsersData.forEach(([date, noOfUsers]) => {
 				if (!chartData[date]) {
@@ -506,7 +506,7 @@ export default function ProtocolChart({
 			})
 		}
 		if (newUsers === 'true' && newUsersData) {
-			tokensUnique.push('New Users')
+			chartsUnique.push('New Users')
 
 			newUsersData.forEach(([date, noOfUsers]) => {
 				if (!chartData[date]) {
@@ -517,7 +517,7 @@ export default function ProtocolChart({
 			})
 		}
 		if (transactions === 'true' && transactionsData) {
-			tokensUnique.push('Transactions')
+			chartsUnique.push('Transactions')
 
 			transactionsData.forEach(([date, noOfTxs]) => {
 				if (!chartData[date]) {
@@ -528,7 +528,7 @@ export default function ProtocolChart({
 			})
 		}
 		if (gasUsed === 'true' && gasData) {
-			tokensUnique.push('Gas Used')
+			chartsUnique.push('Gas Used')
 
 			gasData.forEach(([date, gasAmount]) => {
 				if (!chartData[date]) {
@@ -541,7 +541,7 @@ export default function ProtocolChart({
 			})
 		}
 		if (medianApy === 'true' && medianAPYData) {
-			tokensUnique.push('Median APY')
+			chartsUnique.push('Median APY')
 
 			medianAPYData.forEach(({ date, medianAPY }) => {
 				if (!chartData[date]) {
@@ -553,7 +553,7 @@ export default function ProtocolChart({
 		}
 
 		if (inflowsExist && usdInflows === 'true' && usdInflowsData) {
-			tokensUnique.push('USD Inflows')
+			chartsUnique.push('USD Inflows')
 
 			let isHourlyInflows = usdInflowsData.length > 2 ? false : true
 
@@ -599,9 +599,9 @@ export default function ProtocolChart({
 		}
 
 		if (governance === 'true' && governanceData) {
-			tokensUnique.push('Total Proposals')
-			tokensUnique.push('Successful Proposals')
-			tokensUnique.push('Max Votes')
+			chartsUnique.push('Total Proposals')
+			chartsUnique.push('Successful Proposals')
+			chartsUnique.push('Max Votes')
 
 			governanceData.activity?.forEach((item) => {
 				const date = isHourlyTvl ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
@@ -625,11 +625,15 @@ export default function ProtocolChart({
 			})
 		}
 
-		const finalData = groupDataByDays(chartData, isHourlyTvl || typeof groupBy !== 'string' ? null : groupBy)
+		const finalData = groupDataByDays(
+			chartData,
+			isHourlyTvl || typeof groupBy !== 'string' ? null : groupBy,
+			chartsUnique
+		)
 
 		return {
 			finalData,
-			tokensUnique
+			chartsUnique
 		}
 	}, [
 		tvlData,
@@ -1227,7 +1231,7 @@ export default function ProtocolChart({
 						color={color}
 						title=""
 						valueSymbol={valueSymbol}
-						stacks={tokensUnique}
+						stacks={chartsUnique}
 						hallmarks={!(events === 'false') && hallmarks}
 						tooltipSort={false}
 						stackColors={chartColors}
@@ -1416,7 +1420,7 @@ const ToggleWrapper = styled.span`
 const oneWeek = 7 * 24 * 60 * 60
 const oneMonth = 30 * 24 * 60 * 60
 
-const groupDataByDays = (data, groupBy: string | null) => {
+const groupDataByDays = (data, groupBy: string | null, chartsUnique: Array<string>) => {
 	if (groupBy && ['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
 		let chartData = {}
 
@@ -1431,7 +1435,7 @@ const groupDataByDays = (data, groupBy: string | null) => {
 				currentDate = +date
 			}
 
-			for (const chartType in data[date]) {
+			chartsUnique.forEach((chartType) => {
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
@@ -1446,7 +1450,7 @@ const groupDataByDays = (data, groupBy: string | null) => {
 				} else {
 					chartData[date][chartType] = +data[date][chartType] || 0
 				}
-			}
+			})
 		}
 
 		return Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
