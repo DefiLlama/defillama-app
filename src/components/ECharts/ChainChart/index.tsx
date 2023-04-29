@@ -7,7 +7,6 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject } from '../utils'
 import { SelectLegendMultiple } from '../shared'
 import { useDefaults } from '../useDefaults'
-import { Toggle } from '../ProtocolChart/ProtocolChart'
 import { FlexRow } from '~/layout/ProtocolAndPool'
 
 const Wrapper = styled.div`
@@ -62,8 +61,10 @@ export default function AreaChart({
 	})
 
 	const [series, activeSeries] = useMemo(() => {
-		const series = [
-			{
+		const series = []
+
+		if (route.tvl !== 'false') {
+			series.push({
 				name: 'TVL',
 				chartId: 'TVL',
 				type: 'line',
@@ -90,13 +91,11 @@ export default function AreaChart({
 				},
 				data: [],
 				show: true
-			} as Record<string, any>
-		]
-
-		chartData.forEach(([date, value]) => {
-			series[0].data.push([getUtcDateObject(date), value])
-		})
-
+			} as Record<string, any>)
+			chartData.forEach(([date, value]) => {
+				series[series.length - 1].data.push([getUtcDateObject(date), value])
+			})
+		}
 		if (route.volume === 'true' && volumeData) {
 			console.log({ volumeData })
 			series.push({
@@ -111,7 +110,7 @@ export default function AreaChart({
 				}
 			})
 			volumeData.forEach(([date, value]) => {
-				series[1].data.push([getUtcDateObject(date), value])
+				series[series.length - 1].data.push([getUtcDateObject(date), value])
 			})
 		}
 
@@ -220,7 +219,10 @@ export default function AreaChart({
 			].map((yAxis, i) => {
 				return {
 					...yAxis,
-					offset: i > 1 && activeSeries.includes(yAxis.id) && activeSeries.length !== i ? 60 : 0,
+					offset:
+						i >= 1 && activeSeries.includes(yAxis.id)
+							? (activeSeries?.findIndex((id) => id === yAxis.id) - activeSeries.includes('TVL') ? 1 : 0) * 60
+							: 0,
 					axisLabel: {
 						...yAxis.axisLabel,
 						color: () => Object.values(colors)[i]
@@ -255,51 +257,6 @@ export default function AreaChart({
 					title={legendOptions.length === 1 ? legendTitle : legendTitle + 's'}
 				/>
 			)}
-
-			<FlexRow style={{ marginLeft: '16px' }}>
-				{volumeData ? (
-					<Toggle backgroundColor={color}>
-						<input
-							type="checkbox"
-							onClick={() => {
-								updateRoute('volume', route.volume === 'true' ? 'false' : 'true')
-							}}
-							checked={route.volume === 'true'}
-						/>
-						<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
-							<span>Volume</span>
-						</span>
-					</Toggle>
-				) : null}
-				{feesData ? (
-					<Toggle backgroundColor={color}>
-						<input
-							type="checkbox"
-							onClick={() => {
-								updateRoute('fees', route.fees === 'true' ? 'false' : 'true')
-							}}
-							checked={route.fees === 'true'}
-						/>
-						<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
-							<span>Fees</span>
-						</span>
-					</Toggle>
-				) : null}
-				{feesData ? (
-					<Toggle backgroundColor={color}>
-						<input
-							type="checkbox"
-							onClick={() => {
-								updateRoute('revenue', route.revenue === 'true' ? 'false' : 'true')
-							}}
-							checked={route.revenue === 'true'}
-						/>
-						<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
-							<span>Revenue</span>
-						</span>
-					</Toggle>
-				) : null}
-			</FlexRow>
 
 			<Wrapper id={id} style={{ height, margin: 'auto 0' }}></Wrapper>
 		</div>

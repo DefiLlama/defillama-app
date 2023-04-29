@@ -15,7 +15,8 @@ import {
 } from '~/components'
 
 import Announcement from '~/components/Announcement'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
+import { Denomination, Filters, Toggle } from '~/components/ECharts/ProtocolChart/Misc'
+
 import { ProtocolsTable } from '~/components/Table'
 import { RowFixed } from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
@@ -318,10 +319,10 @@ function GlobalPage({
 						<p style={{ '--tile-text-color': '#46acb7' }}> {dominance}%</p>
 					</PanelHiddenMobile>
 				</BreakpointPanels>
-				<BreakpointPanel id="chartWrapper" style={{ paddingTop: '38px' }}>
-					<RowFixed style={{ marginLeft: '16px' }}>
+				<BreakpointPanel id="chartWrapper">
+					<RowFixed style={{ marginLeft: '16px', justifyContent: 'space-between', width: '100%' }}>
 						{DENOMINATIONS.length > 0 && (
-							<Filters>
+							<Filters style={{ height: '36px' }}>
 								{DENOMINATIONS.map((D) => (
 									<Denomination active={denomination === D} key={D} onClick={() => updateRoute('currency', D)}>
 										{D}
@@ -329,6 +330,64 @@ function GlobalPage({
 								))}
 							</Filters>
 						)}
+						{!isLoading ? (
+							<RowFixed style={{ marginRight: '32px', gap: '8px' }}>
+								<Toggle>
+									<input
+										type="checkbox"
+										onClick={() => {
+											updateRoute('tvl', router.query.tvl !== 'false' ? 'false' : 'true')
+										}}
+										checked={router.query.tvl !== 'false'}
+									/>
+									<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
+										<span>TVL</span>
+									</span>
+								</Toggle>
+								{finalVolumeChart ? (
+									<Toggle>
+										<input
+											type="checkbox"
+											onClick={() => {
+												updateRoute('volume', router.query.volume === 'true' ? 'false' : 'true')
+											}}
+											checked={router.query.volume === 'true'}
+										/>
+										<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
+											<span>Volume</span>
+										</span>
+									</Toggle>
+								) : null}
+								{finalFeesChart ? (
+									<Toggle>
+										<input
+											type="checkbox"
+											onClick={() => {
+												updateRoute('fees', router.query.fees === 'true' ? 'false' : 'true')
+											}}
+											checked={router.query.fees === 'true'}
+										/>
+										<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
+											<span>Fees</span>
+										</span>
+									</Toggle>
+								) : null}
+								{finalFeesChart ? (
+									<Toggle>
+										<input
+											type="checkbox"
+											onClick={() => {
+												updateRoute('revenue', router.query.revenue === 'true' ? 'false' : 'true')
+											}}
+											checked={router.query.revenue === 'true'}
+										/>
+										<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
+											<span>Revenue</span>
+										</span>
+									</Toggle>
+								) : null}
+							</RowFixed>
+						) : null}
 					</RowFixed>
 					{easterEgg ? (
 						<Game />
