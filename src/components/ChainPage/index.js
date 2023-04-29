@@ -320,30 +320,33 @@ function GlobalPage({
 					</PanelHiddenMobile>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
-					<RowFixed style={{ marginLeft: '16px', justifyContent: 'space-between', width: '100%' }}>
-						{DENOMINATIONS.length > 0 && (
-							<Filters style={{ height: '36px' }}>
-								{DENOMINATIONS.map((D) => (
-									<Denomination active={denomination === D} key={D} onClick={() => updateRoute('currency', D)}>
-										{D}
-									</Denomination>
-								))}
-							</Filters>
-						)}
-						{!isLoading ? (
+					{!isLoading ? (
+						<RowFixed style={{ marginLeft: '16px', justifyContent: 'space-between', width: '100%' }}>
+							{DENOMINATIONS.length > 0 && (
+								<Filters style={{ height: '36px' }}>
+									{DENOMINATIONS.map((D) => (
+										<Denomination active={denomination === D} key={D} onClick={() => updateRoute('currency', D)}>
+											{D}
+										</Denomination>
+									))}
+								</Filters>
+							)}
+
 							<RowFixed style={{ marginRight: '32px', gap: '8px' }}>
-								<Toggle>
-									<input
-										type="checkbox"
-										onClick={() => {
-											updateRoute('tvl', router.query.tvl !== 'false' ? 'false' : 'true')
-										}}
-										checked={router.query.tvl !== 'false'}
-									/>
-									<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
-										<span>TVL</span>
-									</span>
-								</Toggle>
+								{selectedChain !== 'All' ? (
+									<Toggle>
+										<input
+											type="checkbox"
+											onClick={() => {
+												updateRoute('tvl', router.query.tvl !== 'false' ? 'false' : 'true')
+											}}
+											checked={router.query.tvl !== 'false'}
+										/>
+										<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
+											<span>TVL</span>
+										</span>
+									</Toggle>
+								) : null}
 								{finalVolumeChart ? (
 									<Toggle>
 										<input
@@ -387,8 +390,8 @@ function GlobalPage({
 									</Toggle>
 								) : null}
 							</RowFixed>
-						) : null}
-					</RowFixed>
+						</RowFixed>
+					) : null}
 					{easterEgg ? (
 						<Game />
 					) : isLoading ? (
