@@ -26,20 +26,19 @@ export const PROTOCOL_EMISSIONS_API = 'https://api.llama.fi/emissions'
 export const PROTOCOL_EMISSIONS_LIST_API = 'https://defillama-datasets.llama.fi/emissionsProtocolsList'
 export const PROTOCOL_EMISSION_API = 'https://api.llama.fi/emission'
 
-export const GOVERNANCE_API =
-	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/overview/snapshot.json'
-export const PROTOCOL_GOVERNANCE_API =
-	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/snapshot'
-export const ONCHAIN_GOVERNANCE_API =
-	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/overview/compound.json'
-export const PROTOCOL_ONCHAIN_GOVERNANCE_API =
-	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/compound'
+export const GOVERNANCE_API = 'https://defillama-datasets.llama.fi/governance-cache/overview/snapshot.json'
+export const PROTOCOL_GOVERNANCE_API = 'https://defillama-datasets.llama.fi/governance-cache/snapshot'
+export const ONCHAIN_GOVERNANCE_API = 'https://defillama-datasets.llama.fi/governance-cache/overview/compound.json'
+export const PROTOCOL_ONCHAIN_GOVERNANCE_API = 'https://defillama-datasets.llama.fi/governance-cache/compound'
 
 export const ACTIVE_USERS_API = 'https://api.llama.fi/activeUsers'
 export const PROTOCOL_ACTIVE_USERS_API = 'https://api.llama.fi/userData/users'
 export const PROTOCOL_TRANSACTIONS_API = 'https://api.llama.fi/userData/txs'
 export const PROTOCOL_GAS_USED_API = 'https://api.llama.fi/userData/gas'
 export const PROTOCOL_NEW_USERS_API = 'https://api.llama.fi/userData/newusers'
+
+export const PROTOCOLS_EXPENSES_API =
+	'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
 
 export const NFT_COLLECTIONS_API = 'https://nft.llama.fi/collections'
 export const NFT_VOLUME_API = 'https://nft.llama.fi/volume'

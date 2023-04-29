@@ -17,7 +17,15 @@ import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutr
 import { toK } from '~/utils'
 import { useMemo } from 'react'
 
-const SERIES_WITH_NO_SYMBOL = ['Active Users', 'New Users', 'Transactions', 'Median APY']
+const SERIES_WITH_NO_SYMBOL = [
+	'Active Users',
+	'New Users',
+	'Transactions',
+	'Median APY',
+	'Total Proposals',
+	'Successful Proposals',
+	'Max Votes'
+]
 
 echarts.use([
 	CanvasRenderer,

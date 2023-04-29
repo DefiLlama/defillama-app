@@ -778,6 +778,41 @@ export const chainCoingeckoIds = {
 		geckoId: 'rangers-protocol-gas',
 		symbol: 'RPG',
 		cmcId: '12221'
+	},
+	Loop: {
+		geckoId: 'loopnetwork',
+		symbol: 'LOOP',
+		cmcId: '18761'
+	},
+	Bone: {
+		geckoId: null,
+		symbol: 'BONE',
+		cmcId: null
+	},
+	Meta: {
+		geckoId: 'metadium',
+		symbol: 'META',
+		cmcId: '3418'
+	},
+	Equilibrium: {
+		geckoId: 'equilibrium-token',
+		symbol: 'EQ',
+		cmcId: '6780'
+	},
+	Regen: {
+		geckoId: 'regen',
+		symbol: 'REGEN',
+		cmcId: '11646'
+	},
+	Quicksilver: {
+		geckoId: 'quicksilver',
+		symbol: 'QCK',
+		cmcId: null
+	},
+	Oasys: {
+		geckoId: 'Oasys',
+		symbol: 'OAS',
+		cmcId: '22265'
 	}
 }
 

@@ -21,6 +21,7 @@ import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
 import useSWR from 'swr'
 import { LazyChart } from '~/layout/ProtocolAndPool'
 import { Denomination, Filters } from './Misc'
+import { BAR_CHARTS } from './utils'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -46,6 +47,27 @@ interface IProps {
 	governanceApi: string | null
 }
 
+const CHART_TYPES = [
+	'tvl',
+	'mcap',
+	'tokenPrice',
+	'fdv',
+	'volume',
+	'fees',
+	'revenue',
+	'unlocks',
+	'activeUsers',
+	'newUsers',
+	'transactions',
+	'gasUsed',
+	'events',
+	'staking',
+	'borrowed',
+	'medianApy',
+	'usdInflows',
+	'governance'
+]
+
 export default function ProtocolChart({
 	protocol,
 	color,
@@ -69,6 +91,7 @@ export default function ProtocolChart({
 
 	const {
 		denomination,
+		groupBy,
 		tvl,
 		mcap,
 		tokenPrice,
@@ -182,18 +205,18 @@ export default function ProtocolChart({
 		valueSymbol = d.symbol || ''
 	}
 
-	const { finalData, tokensUnique } = React.useMemo(() => {
+	const isHourlyTvl = tvlData.length > 2 ? +tvlData[1][0] - +tvlData[0][0] < 80_000 : true
+
+	const { finalData, chartsUnique } = React.useMemo(() => {
 		if (!router.isReady) {
-			return { finalData: [], tokensUnique: [] }
+			return { finalData: [], chartsUnique: [] }
 		}
-		const tokensUnique = []
+		const chartsUnique = []
 
 		const chartData = {}
 
-		const isHourlyTvl = tvlData.length > 2 ? +tvlData[1][0] - +tvlData[0][0] < 80_000 : true
-
 		if (tvlData.length > 0 && tvl !== 'false') {
-			tokensUnique.push('TVL')
+			chartsUnique.push('TVL')
 
 			let prevDate = null
 
@@ -215,10 +238,7 @@ export default function ProtocolChart({
 								(showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL)) /
 							2
 
-						chartData[missingDate] = {
-							...chartData[missingDate],
-							TVL: missingTvl
-						}
+						chartData[missingDate]['TVL'] = missingTvl
 					}
 				}
 
@@ -228,15 +248,12 @@ export default function ProtocolChart({
 					chartData[date] = {}
 				}
 
-				chartData[date] = {
-					...chartData[date],
-					TVL: showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL
-				}
+				chartData[date]['TVL'] = showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL
 			})
 		}
 
 		if (staking === 'true' && historicalChainTvls['staking']?.tvl?.length > 0) {
-			tokensUnique.push('Staking')
+			chartsUnique.push('Staking')
 
 			let prevDate = null
 
@@ -260,10 +277,7 @@ export default function ProtocolChart({
 									: totalLiquidityUSD)) /
 							2
 
-						chartData[missingDate] = {
-							...chartData[missingDate],
-							Staking: missingStakedTvl
-						}
+						chartData[missingDate]['Staking'] = missingStakedTvl
 					}
 				}
 
@@ -273,17 +287,14 @@ export default function ProtocolChart({
 					chartData[date] = {}
 				}
 
-				chartData[date] = {
-					...chartData[date],
-					Staking: showNonUsdDenomination
-						? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
-						: totalLiquidityUSD
-				}
+				chartData[date]['Staking'] = showNonUsdDenomination
+					? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
+					: totalLiquidityUSD
 			})
 		}
 
 		if (borrowed === 'true' && historicalChainTvls['borrowed']?.tvl?.length > 0) {
-			tokensUnique.push('Borrowed')
+			chartsUnique.push('Borrowed')
 
 			let prevDate = null
 
@@ -307,10 +318,7 @@ export default function ProtocolChart({
 									: totalLiquidityUSD)) /
 							2
 
-						chartData[missingDate] = {
-							...chartData[missingDate],
-							Borrowed: missingBorrowedTvl
-						}
+						chartData[missingDate]['Borrowed'] = missingBorrowedTvl
 					}
 				}
 
@@ -320,18 +328,15 @@ export default function ProtocolChart({
 					chartData[date] = {}
 				}
 
-				chartData[date] = {
-					...chartData[date],
-					Borrowed: showNonUsdDenomination
-						? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
-						: totalLiquidityUSD
-				}
+				chartData[date]['Borrowed'] = showNonUsdDenomination
+					? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
+					: totalLiquidityUSD
 			})
 		}
 
 		if (geckoId && protocolCGData) {
 			if (mcap === 'true') {
-				tokensUnique.push('Mcap')
+				chartsUnique.push('Mcap')
 
 				protocolCGData['market_caps'].forEach(([dateMs, Mcap]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
@@ -339,10 +344,9 @@ export default function ProtocolChart({
 						chartData[date] = {}
 					}
 
-					chartData[date] = {
-						...chartData[date],
-						Mcap: showNonUsdDenomination ? Mcap / getPriceAtDate(date, denominationHistory.prices) : Mcap
-					}
+					chartData[date]['Mcap'] = showNonUsdDenomination
+						? Mcap / getPriceAtDate(date, denominationHistory.prices)
+						: Mcap
 				})
 
 				if (
@@ -357,15 +361,14 @@ export default function ProtocolChart({
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
 					const Mcap = protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][1]
 
-					chartData[date] = {
-						...chartData[date],
-						Mcap: showNonUsdDenomination ? Mcap / getPriceAtDate(date, denominationHistory.prices) : Mcap
-					}
+					chartData[date]['Mcap'] = showNonUsdDenomination
+						? Mcap / getPriceAtDate(date, denominationHistory.prices)
+						: Mcap
 				}
 			}
 
 			if (tokenPrice === 'true') {
-				tokensUnique.push('Token Price')
+				chartsUnique.push('Token Price')
 
 				protocolCGData['prices'].forEach(([dateMs, price]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
@@ -373,10 +376,9 @@ export default function ProtocolChart({
 						chartData[date] = {}
 					}
 
-					chartData[date] = {
-						...chartData[date],
-						'Token Price': showNonUsdDenomination ? price / getPriceAtDate(date, denominationHistory.prices) : price
-					}
+					chartData[date]['Token Price'] = showNonUsdDenomination
+						? price / getPriceAtDate(date, denominationHistory.prices)
+						: price
 				})
 
 				if (
@@ -390,17 +392,14 @@ export default function ProtocolChart({
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
 					const tokenPrice = protocolCGData['prices'][protocolCGData['prices'].length - 1][1]
 
-					chartData[date] = {
-						...chartData[date],
-						'Token Price': showNonUsdDenomination
-							? tokenPrice / getPriceAtDate(date, denominationHistory.prices)
-							: tokenPrice
-					}
+					chartData[date]['Token Price'] = showNonUsdDenomination
+						? tokenPrice / getPriceAtDate(date, denominationHistory.prices)
+						: tokenPrice
 				}
 			}
 
 			if (fdv === 'true' && fdvData) {
-				tokensUnique.push('FDV')
+				chartsUnique.push('FDV')
 
 				const totalSupply = fdvData['market_data']['total_supply']
 
@@ -411,10 +410,7 @@ export default function ProtocolChart({
 					}
 					const fdv = totalSupply * price
 
-					chartData[date] = {
-						...chartData[date],
-						FDV: showNonUsdDenomination ? fdv / getPriceAtDate(date, denominationHistory.prices) : fdv
-					}
+					chartData[date]['FDV'] = showNonUsdDenomination ? fdv / getPriceAtDate(date, denominationHistory.prices) : fdv
 				})
 
 				if (
@@ -429,16 +425,13 @@ export default function ProtocolChart({
 					const tokenPrice = protocolCGData['prices'][protocolCGData['prices'].length - 1][1]
 					const fdv = totalSupply * tokenPrice
 
-					chartData[date] = {
-						...chartData[date],
-						FDV: showNonUsdDenomination ? fdv / getPriceAtDate(date, denominationHistory.prices) : fdv
-					}
+					chartData[date]['FDV'] = showNonUsdDenomination ? fdv / getPriceAtDate(date, denominationHistory.prices) : fdv
 				}
 			}
 		}
 
 		if (volume === 'true' && volumeData) {
-			tokensUnique.push('Volume')
+			chartsUnique.push('Volume')
 
 			volumeData.forEach((item) => {
 				const date = +item.date
@@ -446,20 +439,19 @@ export default function ProtocolChart({
 					chartData[date] = {}
 				}
 
-				chartData[date] = {
-					...chartData[date],
-					Volume: showNonUsdDenomination ? +item.Dexs / getPriceAtDate(date, denominationHistory.prices) : item.Dexs
-				}
+				chartData[date]['Volume'] = showNonUsdDenomination
+					? +item.Dexs / getPriceAtDate(date, denominationHistory.prices)
+					: item.Dexs
 			})
 		}
 
 		if (feesAndRevenue) {
 			if (fees === 'true') {
-				tokensUnique.push('Fees')
+				chartsUnique.push('Fees')
 			}
 
 			if (revenue === 'true') {
-				tokensUnique.push('Revenue')
+				chartsUnique.push('Revenue')
 			}
 
 			feesAndRevenue.forEach((item) => {
@@ -469,25 +461,21 @@ export default function ProtocolChart({
 				}
 
 				if (fees === 'true') {
-					chartData[date] = {
-						...chartData[date],
-						Fees: showNonUsdDenomination ? +item.Fees / getPriceAtDate(date, denominationHistory.prices) : item.Fees
-					}
+					chartData[date]['Fees'] = showNonUsdDenomination
+						? +item.Fees / getPriceAtDate(date, denominationHistory.prices)
+						: item.Fees
 				}
 
 				if (revenue === 'true') {
-					chartData[date] = {
-						...chartData[date],
-						Revenue: showNonUsdDenomination
-							? +item.Revenue / getPriceAtDate(date, denominationHistory.prices)
-							: item.Revenue
-					}
+					chartData[date]['Revenue'] = showNonUsdDenomination
+						? +item.Revenue / getPriceAtDate(date, denominationHistory.prices)
+						: item.Revenue
 				}
 			})
 		}
 
 		if (emissions && emissions.length > 0 && unlocks === 'true') {
-			tokensUnique.push('Unlocks')
+			chartsUnique.push('Unlocks')
 			emissions
 				.filter((emission) => +emission.date * 1000 <= Date.now())
 				.forEach((item) => {
@@ -503,109 +491,150 @@ export default function ProtocolChart({
 						}
 					}
 
-					chartData[item.date] = {
-						...chartData[item.date],
-						Unlocks: totalUnlocked
-					}
+					chartData[item.date]['Unlocks'] = totalUnlocked
 				})
 		}
 
 		if (activeUsers === 'true' && activeUsersData) {
-			tokensUnique.push('Active Users')
+			chartsUnique.push('Active Users')
 
 			activeUsersData.forEach(([date, noOfUsers]) => {
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date] = {
-					...chartData[date],
-					'Active Users': noOfUsers || 0
-				}
+				chartData[date]['Active Users'] = noOfUsers || 0
 			})
 		}
 		if (newUsers === 'true' && newUsersData) {
-			tokensUnique.push('New Users')
+			chartsUnique.push('New Users')
 
 			newUsersData.forEach(([date, noOfUsers]) => {
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date] = {
-					...chartData[date],
-					'New Users': noOfUsers || 0
-				}
+				chartData[date]['New Users'] = noOfUsers || 0
 			})
 		}
 		if (transactions === 'true' && transactionsData) {
-			tokensUnique.push('Transactions')
+			chartsUnique.push('Transactions')
 
 			transactionsData.forEach(([date, noOfTxs]) => {
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date] = {
-					...chartData[date],
-					Transactions: noOfTxs || 0
-				}
+				chartData[date]['Transactions'] = noOfTxs || 0
 			})
 		}
 		if (gasUsed === 'true' && gasData) {
-			tokensUnique.push('Gas Used')
+			chartsUnique.push('Gas Used')
 
 			gasData.forEach(([date, gasAmount]) => {
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date] = {
-					...chartData[date],
-					'Gas Used': showNonUsdDenomination ? gasAmount / getPriceAtDate(date, denominationHistory.prices) : gasAmount
-				}
+				chartData[date]['Gas Used'] = showNonUsdDenomination
+					? gasAmount / getPriceAtDate(date, denominationHistory.prices)
+					: gasAmount
 			})
 		}
 		if (medianApy === 'true' && medianAPYData) {
-			tokensUnique.push('Median APY')
+			chartsUnique.push('Median APY')
 
 			medianAPYData.forEach(({ date, medianAPY }) => {
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date] = {
-					...chartData[date],
-					'Median APY': medianAPY
-				}
+				chartData[date]['Median APY'] = medianAPY
 			})
 		}
 
 		if (inflowsExist && usdInflows === 'true' && usdInflowsData) {
-			tokensUnique.push('USD Inflows')
+			chartsUnique.push('USD Inflows')
 
-			usdInflowsData.forEach(([dateS, inflows]) => {
+			let isHourlyInflows = usdInflowsData.length > 2 ? false : true
+
+			usdInflowsData.slice(0, 100).forEach((item, index) => {
+				if (
+					!isHourlyTvl &&
+					usdInflowsData[index + 1] &&
+					+usdInflowsData[index + 1][0] - +usdInflowsData[index][0] < 86400
+				) {
+					isHourlyInflows = true
+				}
+			})
+
+			let currentDate
+			let data =
+				isHourlyTvl || isHourlyInflows
+					? Object.entries(
+							usdInflowsData.reduce((acc, curr) => {
+								if (!currentDate || currentDate + 86400 < +curr[0]) {
+									currentDate = Math.floor(nearestUtc(+curr[0] * 1000) / 1000)
+								}
+
+								if (!acc[currentDate]) {
+									acc[currentDate] = 0
+								}
+
+								acc[currentDate] = acc[currentDate] + curr[1]
+
+								return acc
+							}, {})
+					  )
+					: usdInflowsData
+
+			data.forEach(([dateS, inflows]) => {
 				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date] = {
-					...chartData[date],
-					'USD Inflows': inflows
-				}
+				chartData[date]['USD Inflows'] = inflows
 			})
 		}
 
-		const finalData = Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
-			date,
-			...values
-		}))
+		if (governance === 'true' && governanceData) {
+			chartsUnique.push('Total Proposals')
+			chartsUnique.push('Successful Proposals')
+			chartsUnique.push('Max Votes')
+
+			governanceData.activity?.forEach((item) => {
+				const date = isHourlyTvl ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Total Proposals'] = item['Total'] || 0
+				chartData[date]['Successful Proposals'] = item['Successful'] || 0
+			})
+
+			governanceData.maxVotes?.forEach((item) => {
+				const date = isHourlyTvl ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Max Votes'] = item['Max Votes'] || 0
+			})
+		}
+
+		const finalData = groupDataByDays(
+			chartData,
+			isHourlyTvl || typeof groupBy !== 'string' ? null : groupBy,
+			chartsUnique
+		)
 
 		return {
 			finalData,
-			tokensUnique
+			chartsUnique
 		}
 	}, [
 		tvlData,
@@ -641,7 +670,11 @@ export default function ProtocolChart({
 		medianApy,
 		usdInflows,
 		usdInflowsData,
-		inflowsExist
+		inflowsExist,
+		isHourlyTvl,
+		groupBy,
+		governance,
+		governanceData
 	])
 
 	const fetchingTypes = []
@@ -707,6 +740,15 @@ export default function ProtocolChart({
 		fetchingGasUsed ||
 		fetchingMedianAPY ||
 		fetchingGovernanceData
+
+	const realPathname =
+		`/protocol/${protocol}?` +
+		CHART_TYPES.reduce((acc, curr) => {
+			if (router.query[curr]) {
+				acc += `${curr}=${router.query[curr]}&`
+			}
+			return acc
+		}, '')
 
 	return (
 		<Wrapper>
@@ -1079,7 +1121,7 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
-					{/* {governanceApi && (
+					{governanceApi && (
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"
@@ -1100,7 +1142,7 @@ export default function ProtocolChart({
 								<span>Governance</span>
 							</span>
 						</Toggle>
-					)} */}
+					)}
 
 					{hallmarks?.length > 0 && (
 						<Toggle backgroundColor={color}>
@@ -1132,28 +1174,7 @@ export default function ProtocolChart({
 					<Filters color={color}>
 						{DENOMINATIONS.map((D) => (
 							<Link
-								href={
-									`/protocol/${protocol}?` +
-									(tvl ? `tvl=${tvl}&` : '') +
-									(mcap ? `mcap=${mcap}&` : '') +
-									(tokenPrice ? `tokenPrice=${tokenPrice}&` : '') +
-									(fdv ? `fdv=${fdv}&` : '') +
-									(volume ? `volume=${volume}&` : '') +
-									(fees ? `fees=${fees}&` : '') +
-									(revenue ? `revenue=${revenue}&` : '') +
-									(unlocks ? `unlocks=${unlocks}&` : '') +
-									(activeUsers ? `activeUsers=${activeUsers}&` : '') +
-									(newUsers ? `newUsers=${newUsers}&` : '') +
-									(transactions ? `transactions=${transactions}&` : '') +
-									(gasUsed ? `gasUsed=${gasUsed}&` : '') +
-									(events ? `events=${events}&` : '') +
-									(staking ? `staking=${staking}&` : '') +
-									(borrowed ? `borrowed=${borrowed}&` : '') +
-									(medianApy ? `medianApy=${medianApy}&` : '') +
-									(usdInflows ? `usdInflows=${usdInflows}&` : '') +
-									(governance ? `governance=${governance}&` : '') +
-									`denomination=${D.symbol}`
-								}
+								href={realPathname + `denomination=${D.symbol}` + (groupBy ? `&groupBy=${groupBy}` : '')}
 								key={D.symbol}
 								shallow
 								passHref
@@ -1165,6 +1186,39 @@ export default function ProtocolChart({
 						))}
 					</Filters>
 				)}
+
+				{!isHourlyTvl ? (
+					<Filters color={color}>
+						<Link
+							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=daily'}
+							shallow
+							passHref
+						>
+							<Denomination active={groupBy === 'daily' || !groupBy}>Daily</Denomination>
+						</Link>
+						<Link
+							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=weekly'}
+							shallow
+							passHref
+						>
+							<Denomination active={groupBy === 'weekly'}>Weekly</Denomination>
+						</Link>
+						<Link
+							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=monthly'}
+							shallow
+							passHref
+						>
+							<Denomination active={groupBy === 'monthly'}>Monthly</Denomination>
+						</Link>
+						<Link
+							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=cumulative'}
+							shallow
+							passHref
+						>
+							<Denomination active={groupBy === 'cumulative'}>Cumulative</Denomination>
+						</Link>
+					</Filters>
+				) : null}
 			</FiltersWrapper>
 
 			<LazyChart style={{ padding: 0, minHeight: '360px' }}>
@@ -1178,7 +1232,7 @@ export default function ProtocolChart({
 						color={color}
 						title=""
 						valueSymbol={valueSymbol}
-						stacks={tokensUnique}
+						stacks={chartsUnique}
 						hallmarks={!(events === 'false') && hallmarks}
 						tooltipSort={false}
 						stackColors={chartColors}
@@ -1217,7 +1271,43 @@ export const FiltersWrapper = styled.div`
 		flex-wrap: wrap;
 		flex-direction: row;
 		align-items: center;
+		justify-content: space-between;
 	}
+`
+
+
+export const Filters = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 4px;
+	background-color: ${({ theme, color }) => (color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1))};
+	border-radius: 12px;
+	width: fit-content;
+	flex-wrap: wrap;
+`
+
+interface IDenomination {
+	active?: boolean
+}
+
+export const Denomination = styled.a<IDenomination>`
+	display: inline-block;
+	font-weight: 500;
+	font-size: 0.875rem;
+	border-radius: 10px;
+	background: ${({ theme, active }) =>
+		active ? transparentize(0.5, theme.mode === 'dark' ? '#000' : '#fff') : 'none'};
+	padding: 6px 8px;
+	color: ${({ theme, active }) =>
+		active
+			? theme.mode === 'dark'
+				? '#fff'
+				: '#000'
+			: theme.mode === 'dark'
+			? 'rgba(255, 255, 255, 0.6)'
+			: 'rgba(0, 0, 0, 0.6)'};
 `
 
 export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabled }) => {
@@ -1329,4 +1419,54 @@ const ToggleWrapper = styled.span`
 	margin: 0 16px;
 `
 
+
+const oneWeek = 7 * 24 * 60 * 60
+const oneMonth = 30 * 24 * 60 * 60
+
+const groupDataByDays = (data, groupBy: string | null, chartsUnique: Array<string>) => {
+	if (groupBy && ['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
+		let chartData = {}
+
+		let currentDate
+		const cumulative = {}
+
+		for (const date in data) {
+			if (
+				!currentDate ||
+				currentDate + (groupBy === 'weekly' ? oneWeek : groupBy === 'monthly' ? oneMonth : 0) < +date
+			) {
+				currentDate = +date
+			}
+
+			chartsUnique.forEach((chartType) => {
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				if (BAR_CHARTS.includes(chartType)) {
+					if (groupBy === 'cumulative') {
+						cumulative[chartType] = (cumulative[chartType] || 0) + (+data[date][chartType] || 0)
+						chartData[currentDate][chartType] = cumulative[chartType]
+					} else {
+						chartData[currentDate][chartType] = (chartData[currentDate][chartType] || 0) + (+data[date][chartType] || 0)
+					}
+				} else {
+					chartData[date][chartType] = +data[date][chartType] || 0
+				}
+			})
+		}
+
+		return Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
+			date,
+			...values
+		}))
+	}
+
+	return Object.entries(data).map(([date, values]: [string, { [key: string]: number }]) => ({
+		date,
+		...values
+	}))
+}
+
 export { Denomination, Filters }
+
