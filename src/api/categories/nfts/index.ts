@@ -116,48 +116,51 @@ export const getNFTData = async () => {
 	}
 }
 
+const formatNftVolume = (volume, column) => {
+	const sumByDay = {}
+	const chartStacks = {}
+	const volumeData = volume.reduce(
+		(acc, curr) => {
+			const date = Math.floor(Number(curr.date) / 1000)
+			if (!acc[date]) {
+				acc[date] = {}
+			}
+
+			chartStacks[curr.exchangeName] = 'stackA'
+
+			sumByDay[date] = (sumByDay[date] || 0) + curr[column]
+
+			acc[date][curr.exchangeName] = Number(curr[column]?.toFixed(3))
+
+			return acc
+		},
+		{} as {
+			[date: string]: { [exchangeName: string]: number }
+		}
+	)
+
+	const dominance = []
+	for (const date in volumeData) {
+		const value = { date: Math.floor(Number(date)) }
+		for (const exchangeName in volumeData[date]) {
+			value[exchangeName] = getDominancePercent(volumeData[date][exchangeName], sumByDay[date])
+		}
+		dominance.push(value)
+	}
+
+	return [volumeData, dominance, chartStacks]
+}
+
 export const getNFTMarketplacesData = async () => {
 	const [data, volume] = await Promise.all([
 		fetch(NFT_MARKETPLACES_STATS_API).then((res) => res.json()),
 		fetch(NFT_MARKETPLACES_VOLUME_API).then((res) => res.json())
 	])
 
-	const volumeSumByDay = {}
-	const volumeChartStacks = {}
+	const volumeSorted = volume.map((v) => ({ ...v, date: new Date(v.day).getTime() })).sort((a, b) => a.date - b.date)
 
-	const volumeData = volume
-		.map((v) => ({ ...v, date: new Date(v.day).getTime() }))
-		.sort((a, b) => a.date - b.date)
-		.reduce(
-			(acc, curr) => {
-				const date = Math.floor(Number(curr.date) / 1000)
-				if (!acc[date]) {
-					acc[date] = {}
-				}
-
-				volumeChartStacks[curr.exchangeName] = 'stackA'
-
-				volumeSumByDay[date] = (volumeSumByDay[date] || 0) + curr.sum
-
-				acc[date][curr.exchangeName] = Number(curr.sum?.toFixed(3))
-
-				return acc
-			},
-			{} as {
-				[date: string]: { [exchangeName: string]: number }
-			}
-		)
-
-	const dominance = []
-
-	for (const date in volumeData) {
-		const value = { date: Math.floor(Number(date)) }
-		for (const exchangeName in volumeData[date]) {
-			value[exchangeName] = getDominancePercent(volumeData[date][exchangeName], volumeSumByDay[date])
-		}
-
-		dominance.push(value)
-	}
+	const [volumeData, dominance, volumeChartStacks] = formatNftVolume(volumeSorted, 'sum')
+	const [tradeData, dominanceTrade, tradeChartStacks] = formatNftVolume(volumeSorted, 'count')
 
 	return {
 		data,
@@ -166,8 +169,14 @@ export const getNFTMarketplacesData = async () => {
 			...values
 		})),
 		dominance,
+		trades: Object.entries(tradeData).map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
+			date,
+			...values
+		})),
+		dominanceTrade,
 		marketplaces: Object.keys(volumeChartStacks),
-		volumeChartStacks
+		volumeChartStacks,
+		tradeChartStacks
 	}
 }
 
