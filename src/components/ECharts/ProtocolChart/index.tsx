@@ -73,12 +73,8 @@ export default function AreaBarChart({
 			yAxisByIndex['Unlocks'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (stacks.includes('Active Users')) {
-			yAxisByIndex['Active Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('New Users')) {
-			yAxisByIndex['New Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('Active Users') || stacks.includes('New Users')) {
+			yAxisByIndex['Active Users+New Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
 		if (stacks.includes('Transactions')) {
@@ -116,6 +112,8 @@ export default function AreaBarChart({
 				options['yAxisIndex'] = yAxisByIndex['TVL+Mcap+FDV+Borrowed+Staking']
 			} else if (['Volume', 'Fees', 'Revenue'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Volume+Fees+Revenue']
+			} else if (['Active Users', 'New Users'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['Active Users+New Users']
 			} else if (['Total Proposals', 'Successful Proposals'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Total Proposals+Successful Proposals']
 			} else {
@@ -268,32 +266,11 @@ export default function AreaBarChart({
 				})
 			}
 
-			if (type === 'Active Users') {
+			if (type === 'Active Users+New Users') {
 				yAxiss.push({
 					...options,
 					axisLabel: {
 						formatter: (value) => toK(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: stackColors['Active Users']
-						}
-					}
-				})
-			}
-
-			if (type === 'New Users') {
-				yAxiss.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => toK(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: stackColors['New Users']
-						}
 					}
 				})
 			}
