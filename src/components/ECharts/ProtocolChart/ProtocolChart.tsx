@@ -553,40 +553,35 @@ export default function ProtocolChart({
 			})
 		}
 
-		if (inflowsExist && usdInflows === 'true' && usdInflowsData) {
+		if (!isHourlyTvl && inflowsExist && usdInflows === 'true' && usdInflowsData) {
 			chartsUnique.push('USD Inflows')
 
 			let isHourlyInflows = usdInflowsData.length > 2 ? false : true
 
 			usdInflowsData.slice(0, 100).forEach((item, index) => {
-				if (
-					!isHourlyTvl &&
-					usdInflowsData[index + 1] &&
-					+usdInflowsData[index + 1][0] - +usdInflowsData[index][0] < 86400
-				) {
+				if (usdInflowsData[index + 1] && +usdInflowsData[index + 1][0] - +usdInflowsData[index][0] < 86400) {
 					isHourlyInflows = true
 				}
 			})
 
 			let currentDate
-			let data =
-				isHourlyTvl || isHourlyInflows
-					? Object.entries(
-							usdInflowsData.reduce((acc, curr) => {
-								if (!currentDate || currentDate + 86400 < +curr[0]) {
-									currentDate = Math.floor(nearestUtc(+curr[0] * 1000) / 1000)
-								}
+			let data = isHourlyInflows
+				? Object.entries(
+						usdInflowsData.reduce((acc, curr) => {
+							if (!currentDate || currentDate + 86400 < +curr[0]) {
+								currentDate = Math.floor(nearestUtc(+curr[0] * 1000) / 1000)
+							}
 
-								if (!acc[currentDate]) {
-									acc[currentDate] = 0
-								}
+							if (!acc[currentDate]) {
+								acc[currentDate] = 0
+							}
 
-								acc[currentDate] = acc[currentDate] + curr[1]
+							acc[currentDate] = acc[currentDate] + curr[1]
 
-								return acc
-							}, {})
-					  )
-					: usdInflowsData
+							return acc
+						}, {})
+				  )
+				: usdInflowsData
 
 			data.forEach(([dateS, inflows]) => {
 				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
@@ -761,7 +756,7 @@ export default function ProtocolChart({
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
 			metrics.medianApy ||
-			inflowsExist ||
+			(inflowsExist && !isHourlyTvl ? true : false) ||
 			governanceApi ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
@@ -1098,7 +1093,7 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
-					{inflowsExist && (
+					{!isHourlyTvl && inflowsExist && (
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"
