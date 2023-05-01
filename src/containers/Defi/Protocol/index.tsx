@@ -261,6 +261,7 @@ interface IProtocolContainerProps {
 	protocolData: IFusedProtocolData
 	backgroundColor: string
 	similarProtocols: Array<{ name: string; tvl: number }>
+	totalTreasury: number | null
 	emissions: IEmission
 	isCEX?: boolean
 	chartColors: { [type: string]: string }
@@ -293,6 +294,7 @@ function ProtocolContainer({
 	protocol,
 	backgroundColor,
 	similarProtocols,
+	totalTreasury,
 	emissions,
 	isCEX,
 	chartColors,
@@ -715,6 +717,13 @@ function ProtocolContainer({
 											{helperTexts.fees && <QuestionHelper text={helperTexts.fees} />}
 										</th>
 										<td>{formattedNum(allTimeFees, true)}</td>
+									</tr>
+								) : null}
+
+								{totalTreasury ? (
+									<tr>
+										<th>Treasury</th>
+										<td>{formattedNum(totalTreasury, true)}</td>
 									</tr>
 								) : null}
 							</tbody>
