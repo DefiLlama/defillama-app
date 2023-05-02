@@ -17,7 +17,8 @@ const colors = {
 	tvl: '#335cd7',
 	volume: '#19ab17',
 	fees: '#f150f4',
-	revenue: '#b4b625'
+	revenue: '#b4b625',
+	price: '#da1f73'
 }
 
 // TODO remove color prop and use stackColors by default
@@ -38,6 +39,7 @@ export default function AreaChart({
 	hideGradient = false,
 	volumeData,
 	feesData,
+	priceData,
 	denomination,
 	updateRoute,
 	route,
@@ -119,7 +121,6 @@ export default function AreaChart({
 				name: 'Fees',
 				chartId: 'Fees',
 				type: 'bar',
-				stack: 'fees',
 				data: [],
 				yAxisIndex: 2,
 				itemStyle: {
@@ -134,17 +135,33 @@ export default function AreaChart({
 		if (route.revenue === 'true' && feesData) {
 			series.push({
 				name: 'Revenue',
-				chartId: 'Fees',
+				chartId: 'Revenue',
 				type: 'bar',
-				stack: 'fees',
 				data: [],
-				yAxisIndex: 2,
+				yAxisIndex: 3,
 				itemStyle: {
 					color: colors.revenue
 				}
 			})
 			feesData.forEach(([date, _, value]) => {
 				series[series.length - 1].data.push([getUtcDateObject(date), value])
+			})
+		}
+
+		if (route.price === 'true' && priceData && denomination === 'USD') {
+			series.push({
+				name: 'Price',
+				chartId: 'Price',
+				symbol: 'none',
+				type: 'line',
+				data: [],
+				yAxisIndex: 4,
+				itemStyle: {
+					color: colors.price
+				}
+			})
+			priceData.forEach(([date, value]) => {
+				if (Number(date) > Number(chartData[0][0])) series[series.length - 1].data.push([getUtcDateObject(date), value])
 			})
 		}
 
@@ -215,13 +232,23 @@ export default function AreaChart({
 					scale: true,
 					id: 'Volume'
 				},
-				{ ...yAxis, scale: true, id: 'Fees' }
+				{ ...yAxis, scale: true, id: 'Fees' },
+				{
+					...yAxis,
+					scale: true,
+					id: 'Revenue'
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Price'
+				}
 			].map((yAxis, i) => {
 				return {
 					...yAxis,
 					offset:
-						i >= 1 && activeSeries.includes(yAxis.id)
-							? (activeSeries?.findIndex((id) => id === yAxis.id) - activeSeries.includes('TVL') ? 1 : 0) * 60
+						i > 1 && activeSeries.includes(yAxis.id)
+							? (activeSeries?.findIndex((id) => id === yAxis.id) - activeSeries.includes('TVL')) * 65
 							: 0,
 					axisLabel: {
 						...yAxis.axisLabel,
