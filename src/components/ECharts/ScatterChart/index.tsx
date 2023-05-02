@@ -90,6 +90,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 			},
 			tooltip: {
 				showDelay: 0,
+				confine: true,
 				formatter: function (params) {
 					if (params.value.length > 1) {
 						return (

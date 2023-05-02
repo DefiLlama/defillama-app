@@ -143,6 +143,7 @@ export default function OrderBookChart({ height = '360px', chartData }: IOrderBo
 			},
 			tooltip: {
 				trigger: 'axis',
+				confine: true,
 				formatter: function (params) {
 					let vals = '<li style="list-style:none">' + params[0].marker + params[0].seriesName + '</li>'
 

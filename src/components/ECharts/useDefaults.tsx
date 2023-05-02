@@ -99,6 +99,7 @@ export function useDefaults({
 
 		const tooltip = {
 			trigger: 'axis',
+			confine: true,
 			formatter: function (params) {
 				const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
 					year: 'numeric',
@@ -186,6 +187,7 @@ export function useDefaults({
 
 		const inflowsTooltip = {
 			trigger: 'axis',
+			confine: true,
 			formatter: function (params) {
 				const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
 					year: 'numeric',

@@ -107,6 +107,7 @@ export default function CollectionScatterChart({
 			},
 			tooltip: {
 				showDelay: 0,
+				confine: true,
 				formatter: function (params) {
 					const chartdate = new Date(params.value[0]).toLocaleDateString(undefined, {
 						year: 'numeric',
