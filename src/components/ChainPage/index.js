@@ -234,6 +234,10 @@ function GlobalPage({
 		} else return [globalChart, volumeChart, feesChart]
 	}, [chainGeckoId, globalChart, denominationPriceHistory, denomination, volumeChart, feesChart])
 
+	const priceHistory = React.useMemo(() => {
+		return denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
+	}, [denominationPriceHistory?.prices])
+
 	const updateRoute = (key, val) => {
 		router.push(
 			{
@@ -392,6 +396,21 @@ function GlobalPage({
 										</span>
 									</Toggle>
 								) : null}
+
+								{priceHistory && denomination === 'USD' ? (
+									<Toggle>
+										<input
+											type="checkbox"
+											onClick={() => {
+												updateRoute('price', router.query.price === 'true' ? 'false' : 'true')
+											}}
+											checked={router.query.price === 'true'}
+										/>
+										<span data-wrapper="true">
+											<span>Price</span>
+										</span>
+									</Toggle>
+								) : null}
 							</ToggleWrapper>
 						</FiltersWrapper>
 					) : null}
@@ -404,6 +423,7 @@ function GlobalPage({
 							chartData={finalTvlChart}
 							volumeData={finalVolumeChart}
 							feesData={finalFeesChart}
+							priceData={priceHistory}
 							customLegendName="Chain"
 							hideDefaultLegend
 							valueSymbol="$"
