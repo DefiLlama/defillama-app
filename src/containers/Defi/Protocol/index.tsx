@@ -338,7 +338,8 @@ function ProtocolContainer({
 		isParentProtocol,
 		raises,
 		treasury,
-		metrics
+		metrics,
+		isHourlyChart
 	} = protocolData
 
 	const router = useRouter()
@@ -757,6 +758,7 @@ function ProtocolContainer({
 					}
 					inflowsExist={inflowsExist}
 					governanceApi={governanceApi}
+					isHourlyChart={isHourlyChart}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>

@@ -45,6 +45,7 @@ interface IProps {
 	usdInflowsData: Array<[string, number]> | null
 	inflowsExist: boolean
 	governanceApi: string | null
+	isHourlyChart?: boolean
 }
 
 const CHART_TYPES = [
@@ -83,7 +84,8 @@ export default function ProtocolChart({
 	activeUsersId,
 	usdInflowsData,
 	inflowsExist,
-	governanceApi
+	governanceApi,
+	isHourlyChart
 }: IProps) {
 	const router = useRouter()
 
@@ -205,8 +207,6 @@ export default function ProtocolChart({
 		valueSymbol = d.symbol || ''
 	}
 
-	const isHourlyTvl = tvlData.length > 2 ? +tvlData[1][0] - +tvlData[0][0] < 80_000 : true
-
 	const { finalData, chartsUnique } = React.useMemo(() => {
 		if (!router.isReady) {
 			return { finalData: [], chartsUnique: [] }
@@ -221,7 +221,7 @@ export default function ProtocolChart({
 			let prevDate = null
 
 			tvlData.forEach(([dateS, TVL]) => {
-				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (prevDate && +date - prevDate > 86400) {
 					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
@@ -258,7 +258,7 @@ export default function ProtocolChart({
 			let prevDate = null
 
 			historicalChainTvls['staking'].tvl.forEach(({ date: dateS, totalLiquidityUSD }) => {
-				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (prevDate && +date - prevDate > 86400) {
 					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
@@ -299,7 +299,7 @@ export default function ProtocolChart({
 			let prevDate = null
 
 			historicalChainTvls['borrowed'].tvl.forEach(({ date: dateS, totalLiquidityUSD }) => {
-				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (prevDate && +date - prevDate > 86400) {
 					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
@@ -356,7 +356,7 @@ export default function ProtocolChart({
 					protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][0] <
 						+tvlData[tvlData.length - 1][0] * 1000
 				) {
-					const date = isHourlyTvl
+					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
 					const Mcap = protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][1]
@@ -387,7 +387,7 @@ export default function ProtocolChart({
 					protocolCGData['prices'].length > 0 &&
 					protocolCGData['prices'][protocolCGData['prices'].length - 1][0] < +tvlData[tvlData.length - 1][0] * 1000
 				) {
-					const date = isHourlyTvl
+					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
 					const tokenPrice = protocolCGData['prices'][protocolCGData['prices'].length - 1][1]
@@ -419,7 +419,7 @@ export default function ProtocolChart({
 					protocolCGData['prices'].length > 0 &&
 					protocolCGData['prices'][protocolCGData['prices'].length - 1][0] < +tvlData[tvlData.length - 1][0] * 1000
 				) {
-					const date = isHourlyTvl
+					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
 					const tokenPrice = protocolCGData['prices'][protocolCGData['prices'].length - 1][1]
@@ -553,7 +553,7 @@ export default function ProtocolChart({
 			})
 		}
 
-		if (!isHourlyTvl && inflowsExist && usdInflows === 'true' && usdInflowsData) {
+		if (!isHourlyChart && inflowsExist && usdInflows === 'true' && usdInflowsData) {
 			chartsUnique.push('USD Inflows')
 
 			let isHourlyInflows = usdInflowsData.length > 2 ? false : true
@@ -584,7 +584,7 @@ export default function ProtocolChart({
 				: usdInflowsData
 
 			data.forEach(([dateS, inflows]) => {
-				const date = isHourlyTvl ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
@@ -600,7 +600,7 @@ export default function ProtocolChart({
 			chartsUnique.push('Max Votes')
 
 			governanceData.activity?.forEach((item) => {
-				const date = isHourlyTvl ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = isHourlyChart ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
@@ -611,7 +611,7 @@ export default function ProtocolChart({
 			})
 
 			governanceData.maxVotes?.forEach((item) => {
-				const date = isHourlyTvl ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = isHourlyChart ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
@@ -623,7 +623,7 @@ export default function ProtocolChart({
 
 		const finalData = groupDataByDays(
 			chartData,
-			isHourlyTvl || typeof groupBy !== 'string' ? null : groupBy,
+			isHourlyChart || typeof groupBy !== 'string' ? null : groupBy,
 			chartsUnique
 		)
 
@@ -666,7 +666,7 @@ export default function ProtocolChart({
 		usdInflows,
 		usdInflowsData,
 		inflowsExist,
-		isHourlyTvl,
+		isHourlyChart,
 		groupBy,
 		governance,
 		governanceData
@@ -756,7 +756,7 @@ export default function ProtocolChart({
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
 			metrics.medianApy ||
-			(inflowsExist && !isHourlyTvl ? true : false) ||
+			(inflowsExist && !isHourlyChart ? true : false) ||
 			governanceApi ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
@@ -1093,7 +1093,7 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
-					{!isHourlyTvl && inflowsExist && (
+					{!isHourlyChart && inflowsExist && (
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"
@@ -1182,7 +1182,7 @@ export default function ProtocolChart({
 					</Filters>
 				)}
 
-				{!isHourlyTvl ? (
+				{!isHourlyChart ? (
 					<Filters color={color}>
 						<Link
 							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=daily'}
