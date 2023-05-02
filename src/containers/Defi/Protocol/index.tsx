@@ -238,6 +238,7 @@ const Details = styled.details`
 
 			& > *:nth-child(2) {
 				font-family: var(--font-jetbrains);
+				min-height: 2rem;
 			}
 		}
 	}

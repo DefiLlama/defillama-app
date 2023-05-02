@@ -60,7 +60,7 @@ export default function OrderBookChart({ height = '360px', chartData }: IOrderBo
 				},
 				symbol: 'none',
 				itemStyle: {
-					color: 'blue'
+					color: '#3b82f6'
 				},
 				areaStyle: {
 					color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -92,7 +92,7 @@ export default function OrderBookChart({ height = '360px', chartData }: IOrderBo
 				},
 				symbol: 'none',
 				itemStyle: {
-					color: 'green'
+					color: '#22c55e'
 				},
 				areaStyle: {
 					color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [

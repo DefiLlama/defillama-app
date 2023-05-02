@@ -21,7 +21,7 @@ export const useGetOverviewChartData = ({
 	const { data, loading, error } = useFetchChartsSummary(dataToFetch, slug(name), undefined, disabled)
 
 	const mainChart = React.useMemo(() => {
-		if (loading || error || !data) return [[], []] as [IJoin2ReturnType, string[]]
+		if (loading || error || !data) return null
 
 		let chartData: IJoin2ReturnType
 		let title: string

@@ -61,6 +61,9 @@ export default function CollectionScatterChart({
 				emphasis: {
 					focus: 'series'
 				},
+				itemStyle: {
+					color: '#3b82f6'
+				},
 				symbolSize: 3,
 				data: sales.map((p) => [new Date(p[0]), p[1]])
 			},
@@ -79,8 +82,7 @@ export default function CollectionScatterChart({
 				type: 'bar',
 				data: volume.map((p) => [new Date(p[0] * 1e3), p[1]]),
 				itemStyle: {
-					color: '#424ef5',
-					opacity: 0.5
+					color: '#22c55e'
 				},
 				yAxisIndex: 1
 			}
@@ -100,9 +102,9 @@ export default function CollectionScatterChart({
 				top: '130px'
 			},
 			grid: {
-				left: '3%',
-				right: '7%',
-				bottom: '7%',
+				left: '20',
+				right: '20',
+				bottom: 0,
 				containLabel: true
 			},
 			tooltip: {
