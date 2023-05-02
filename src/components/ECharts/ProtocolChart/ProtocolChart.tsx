@@ -20,7 +20,7 @@ import { nearestUtc } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
 import useSWR from 'swr'
 import { LazyChart } from '~/layout/ProtocolAndPool'
-import { Denomination, Filters, Toggle } from './Misc'
+import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
 import { BAR_CHARTS } from './utils'
 
 const AreaChart = dynamic(() => import('.'), {
@@ -1254,25 +1254,6 @@ export const Wrapper = styled.div`
 	padding: 16px 0;
 	grid-column: span 1;
 `
-
-export const FiltersWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	flex-wrap: wrap;
-	gap: 16px;
-	margin: 0 16px;
-
-	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		flex-wrap: wrap;
-		flex-direction: row;
-		align-items: center;
-		justify-content: space-between;
-	}
-`
-
-interface IDenomination {
-	active?: boolean
-}
 
 export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabled }) => {
 	const tvlDictionary: { [key: number]: number } = {}

@@ -10,10 +10,11 @@ export const Filters = styled.div`
 	align-items: center;
 	justify-content: space-between;
 	gap: 16px;
-	padding: 6px;
+	padding: 4px;
 	background-color: ${({ theme, color }) => (color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1))};
 	border-radius: 12px;
-	width: min-content;
+	width: fit-content;
+	flex-wrap: wrap;
 `
 
 export const Denomination = styled.a<IDenomination>`
@@ -76,5 +77,20 @@ export const Toggle = styled.label<IToggleProps>`
 	input:focus-visible + span[data-wrapper='true'] {
 		outline: ${({ theme }) => '1px solid ' + theme.text1};
 		outline-offset: 1px;
+	}
+`
+
+export const FiltersWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin: 0 16px;
+
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		flex-wrap: wrap;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
 	}
 `

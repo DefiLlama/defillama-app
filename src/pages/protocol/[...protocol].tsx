@@ -1,5 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { selectColor, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import { selectColor, slug, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {
@@ -96,7 +96,7 @@ export const getStaticProps = async ({
 					})
 			: null,
 		protocolData.treasury
-			? fetch(`${PROTOCOL_TREASURY_API}/${protocolData.id.replace('parent#', '')}`).then((res) => res.json())
+			? fetch(`${PROTOCOL_TREASURY_API}/${slug(protocolData.name)}`).then((res) => res.json())
 			: null
 	])
 

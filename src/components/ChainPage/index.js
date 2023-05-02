@@ -13,16 +13,12 @@ import {
 	DownloadButton,
 	DownloadIcon
 } from '~/components'
-
 import Announcement from '~/components/Announcement'
-import { Denomination, Filters, Toggle } from '~/components/ECharts/ProtocolChart/Misc'
-
+import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import { ProtocolsTable } from '~/components/Table'
-import { RowFixed } from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
 import SEO from '~/components/SEO'
-import { OptionButton } from '~/components/ButtonStyled'
 import LocalLoader from '~/components/LocalLoader'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
@@ -46,6 +42,13 @@ const EasterLlama = styled.button`
 		width: 41px !important;
 		height: 34px !important;
 	}
+`
+
+const ToggleWrapper = styled.span`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
 `
 
 const ChainChart = dynamic(() => import('~/components/ECharts/ChainChart'), {
@@ -229,7 +232,7 @@ function GlobalPage({
 
 			return [denominatedTvls, denominatedVolumes, denominatedFess]
 		} else return [globalChart, volumeChart, feesChart]
-	}, [chainGeckoId, globalChart, denominationPriceHistory, denomination, volumeChart])
+	}, [chainGeckoId, globalChart, denominationPriceHistory, denomination, volumeChart, feesChart])
 
 	const updateRoute = (key, val) => {
 		router.push(
@@ -321,9 +324,9 @@ function GlobalPage({
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
 					{!isLoading ? (
-						<RowFixed style={{ marginLeft: '16px', justifyContent: 'space-between', width: '100%' }}>
+						<FiltersWrapper style={{ margin: 0 }}>
 							{DENOMINATIONS.length > 0 && (
-								<Filters style={{ height: '36px' }}>
+								<Filters>
 									{DENOMINATIONS.map((D) => (
 										<Denomination active={denomination === D} key={D} onClick={() => updateRoute('currency', D)}>
 											{D}
@@ -332,7 +335,7 @@ function GlobalPage({
 								</Filters>
 							)}
 
-							<RowFixed style={{ marginRight: '32px', gap: '8px' }}>
+							<ToggleWrapper>
 								{selectedChain !== 'All' ? (
 									<Toggle>
 										<input
@@ -342,7 +345,7 @@ function GlobalPage({
 											}}
 											checked={router.query.tvl !== 'false'}
 										/>
-										<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
+										<span data-wrapper="true">
 											<span>TVL</span>
 										</span>
 									</Toggle>
@@ -356,7 +359,7 @@ function GlobalPage({
 											}}
 											checked={router.query.volume === 'true'}
 										/>
-										<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
+										<span data-wrapper="true">
 											<span>Volume</span>
 										</span>
 									</Toggle>
@@ -370,7 +373,7 @@ function GlobalPage({
 											}}
 											checked={router.query.fees === 'true'}
 										/>
-										<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
+										<span data-wrapper="true">
 											<span>Fees</span>
 										</span>
 									</Toggle>
@@ -384,13 +387,13 @@ function GlobalPage({
 											}}
 											checked={router.query.revenue === 'true'}
 										/>
-										<span data-wrapper="true" style={{ width: 'fit-content', height: '36px', marginTop: '8px' }}>
+										<span data-wrapper="true">
 											<span>Revenue</span>
 										</span>
 									</Toggle>
 								) : null}
-							</RowFixed>
-						</RowFixed>
+							</ToggleWrapper>
+						</FiltersWrapper>
 					) : null}
 					{easterEgg ? (
 						<Game />
