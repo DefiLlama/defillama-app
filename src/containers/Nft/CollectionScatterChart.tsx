@@ -53,7 +53,7 @@ export default function CollectionScatterChart({
 
 		const series = [
 			{
-				name: '',
+				name: 'Sale Price',
 				type: 'scatter',
 				large: true,
 				largeThreshold: 0,
@@ -68,7 +68,7 @@ export default function CollectionScatterChart({
 				data: sales.map((p) => [new Date(p[0]), p[1]])
 			},
 			{
-				name: 'RollingMedian1d',
+				name: 'Moving Average',
 				type: 'line',
 				itemStyle: {
 					color: '#ffc300'
@@ -120,7 +120,9 @@ export default function CollectionScatterChart({
 					let vals =
 						chartdate +
 						'<li style="list-style:none">' +
-						(params.seriesName === 'Volume' ? 'Volume:' : 'Sale Price:') +
+						params.marker +
+						params.seriesName +
+						':' +
 						'&nbsp;&nbsp;' +
 						params.value[1].toFixed(2) +
 						'&nbsp;' +
@@ -132,6 +134,7 @@ export default function CollectionScatterChart({
 
 						vals +=
 							'<li style="list-style:none">' +
+							'<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#ffc300;"></span>' +
 							'Moving Average:' +
 							'&nbsp;&nbsp;' +
 							findClosest(salesMedian1d, salesMedian1d.length, date, false) +
@@ -141,6 +144,7 @@ export default function CollectionScatterChart({
 
 						vals +=
 							'<li style="list-style:none">' +
+							'<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#22c55e;"></span>' +
 							'Volume:' +
 							'&nbsp;&nbsp;' +
 							findClosest(volume, volume.length, date, true) +
