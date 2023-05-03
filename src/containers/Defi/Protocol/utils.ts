@@ -163,7 +163,7 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 	const tokenFlows = Object.values(tokenInflows)
 
 	return {
-		usdInflows: zeroUsdInfows === usdFlows.length ? null : usdFlows,
+		usdInflows: (zeroUsdInfows === usdFlows.length ? null : usdFlows) as Array<[string, number]> | null,
 		tokenInflows: zeroTokenInfows === tokenFlows.length ? null : tokenFlows
 	}
 }
@@ -312,7 +312,7 @@ export const buildProtocolAddlChartsData = ({
 }
 
 export const formatRaise = (raise: IRaise) => {
-	let text = new Date(raise.date * 1000).toLocaleDateString() + ' :'
+	let text = ''
 
 	if (raise.round) {
 		text += ` ${raise.round}`

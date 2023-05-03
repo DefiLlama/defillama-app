@@ -14,12 +14,11 @@ import {
 	DownloadIcon
 } from '~/components'
 import Announcement from '~/components/Announcement'
+import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import { ProtocolsTable } from '~/components/Table'
-import { RowFixed } from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
 import SEO from '~/components/SEO'
-import { OptionButton } from '~/components/ButtonStyled'
 import LocalLoader from '~/components/LocalLoader'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
@@ -29,6 +28,7 @@ import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
 import { ArrowUpRight } from 'react-feather'
 import { formatProtocolsList } from '~/hooks/data/defi'
+import { getUtcDateObject } from '../ECharts/utils'
 
 const EasterLlama = styled.button`
 	padding: 0;
@@ -44,7 +44,14 @@ const EasterLlama = styled.button`
 	}
 `
 
-const Chart = dynamic(() => import('~/components/GlobalChart'), {
+const ToggleWrapper = styled.span`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+`
+
+const ChainChart = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
 })
 
@@ -54,12 +61,21 @@ const BASIC_DENOMINATIONS = ['USD']
 
 const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
-function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, extraTvlCharts = {} }) {
+function GlobalPage({
+	selectedChain = 'All',
+	chainsSet,
+	protocolsList,
+	chart,
+	extraTvlCharts = {},
+	volumeData,
+	feesData
+}) {
 	const {
 		fullProtocolsList,
 		parentProtocols,
 		isLoading: fetchingProtocolsList
 	} = useGetProtocolsList({ chain: selectedChain })
+
 	const [extraTvlsEnabled] = useDefiManager()
 
 	const router = useRouter()
@@ -176,39 +192,64 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 
 	const { data: denominationPriceHistory, loading } = useDenominationPriceHistory(chainGeckoId)
 
-	const [finalChartData, chainPriceInUSD] = React.useMemo(() => {
+	const volumeChart = React.useMemo(
+		() =>
+			volumeData?.totalDataChart[0]?.[0][selectedChain]
+				? volumeData?.totalDataChart?.[0].map((val) => [val.date, val[selectedChain]])
+				: null,
+		[volumeData, selectedChain]
+	)
+
+	const feesChart = React.useMemo(
+		() =>
+			feesData?.totalDataChart?.[0].length
+				? feesData?.totalDataChart?.[0]?.map((val) => [val.date, val.Fees, val.Revenue])
+				: null,
+		[feesData?.totalDataChart]
+	)
+
+	const [finalTvlChart, finalVolumeChart, finalFeesChart] = React.useMemo(() => {
 		if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
-			let priceIndex = 0
-			let prevPriceDate = 0
-			const denominationPrices = denominationPriceHistory.prices
-			const newChartData = []
-			let priceInUSD = 1
-			for (let i = 0; i < globalChart.length; i++) {
-				const date = globalChart[i][0] * 1000
-				while (
-					priceIndex < denominationPrices.length &&
-					Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])
-				) {
-					prevPriceDate = denominationPrices[priceIndex][0]
-					priceIndex++
+			const normalizedDenomination = Object.fromEntries(
+				denominationPriceHistory.prices.map(([timestamp, price]) => [getUtcDateObject(timestamp / 1000), price])
+			)
+
+			const denominatedTvls = globalChart.map(([date, tvl]) => [
+				date,
+				tvl / normalizedDenomination[getUtcDateObject(date)]
+			])
+
+			const denominatedVolumes = volumeChart?.map(([date, volume]) => [
+				date,
+				volume / normalizedDenomination[getUtcDateObject(date)]
+			])
+
+			const denominatedFess = feesChart?.map(([date, fees, revenue]) => [
+				date,
+				fees / normalizedDenomination[getUtcDateObject(date)],
+				revenue / normalizedDenomination[getUtcDateObject(date)]
+			])
+
+			return [denominatedTvls, denominatedVolumes, denominatedFess]
+		} else return [globalChart, volumeChart, feesChart]
+	}, [chainGeckoId, globalChart, denominationPriceHistory, denomination, volumeChart, feesChart])
+
+	const priceHistory = React.useMemo(() => {
+		return denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
+	}, [denominationPriceHistory?.prices])
+
+	const updateRoute = (key, val) => {
+		router.push(
+			{
+				query: {
+					...router.query,
+					[key]: val
 				}
-				priceInUSD = denominationPrices[priceIndex - 1][1]
-				newChartData.push([globalChart[i][0], globalChart[i][1] / priceInUSD])
-			}
-			return [newChartData, priceInUSD]
-		} else return [globalChart, 1]
-	}, [chainGeckoId, globalChart, denominationPriceHistory, denomination])
-
-	const updateRoute = (unit) => {
-		router.push({
-			query: {
-				...router.query,
-				currency: unit
-			}
-		})
+			},
+			undefined,
+			{ shallow: true }
+		)
 	}
-
-	const totalVolume = totalVolumeUSD / chainPriceInUSD
 
 	const dominance = getTokenDominance(topToken, totalVolumeUSD)
 
@@ -286,28 +327,111 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 					</PanelHiddenMobile>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
-					<RowFixed>
-						{DENOMINATIONS.map((option) => (
-							<OptionButton
-								active={denomination === option}
-								onClick={() => updateRoute(option)}
-								style={{ margin: '0 8px 8px 0' }}
-								key={option}
-							>
-								{option}
-							</OptionButton>
-						))}
-					</RowFixed>
+					{!isLoading ? (
+						<FiltersWrapper style={{ margin: 0 }}>
+							{DENOMINATIONS.length > 0 && (
+								<Filters>
+									{DENOMINATIONS.map((D) => (
+										<Denomination active={denomination === D} key={D} onClick={() => updateRoute('currency', D)}>
+											{D}
+										</Denomination>
+									))}
+								</Filters>
+							)}
+
+							<ToggleWrapper>
+								{selectedChain !== 'All' ? (
+									<Toggle>
+										<input
+											type="checkbox"
+											onClick={() => {
+												updateRoute('tvl', router.query.tvl !== 'false' ? 'false' : 'true')
+											}}
+											checked={router.query.tvl !== 'false'}
+										/>
+										<span data-wrapper="true">
+											<span>TVL</span>
+										</span>
+									</Toggle>
+								) : null}
+								{finalVolumeChart ? (
+									<Toggle>
+										<input
+											type="checkbox"
+											onClick={() => {
+												updateRoute('volume', router.query.volume === 'true' ? 'false' : 'true')
+											}}
+											checked={router.query.volume === 'true'}
+										/>
+										<span data-wrapper="true">
+											<span>Volume</span>
+										</span>
+									</Toggle>
+								) : null}
+								{finalFeesChart ? (
+									<Toggle>
+										<input
+											type="checkbox"
+											onClick={() => {
+												updateRoute('fees', router.query.fees === 'true' ? 'false' : 'true')
+											}}
+											checked={router.query.fees === 'true'}
+										/>
+										<span data-wrapper="true">
+											<span>Fees</span>
+										</span>
+									</Toggle>
+								) : null}
+								{finalFeesChart ? (
+									<Toggle>
+										<input
+											type="checkbox"
+											onClick={() => {
+												updateRoute('revenue', router.query.revenue === 'true' ? 'false' : 'true')
+											}}
+											checked={router.query.revenue === 'true'}
+										/>
+										<span data-wrapper="true">
+											<span>Revenue</span>
+										</span>
+									</Toggle>
+								) : null}
+
+								{priceHistory && denomination === 'USD' ? (
+									<Toggle>
+										<input
+											type="checkbox"
+											onClick={() => {
+												updateRoute('price', router.query.price === 'true' ? 'false' : 'true')
+											}}
+											checked={router.query.price === 'true'}
+										/>
+										<span data-wrapper="true">
+											<span>Price</span>
+										</span>
+									</Toggle>
+								) : null}
+							</ToggleWrapper>
+						</FiltersWrapper>
+					) : null}
 					{easterEgg ? (
 						<Game />
 					) : isLoading ? (
 						<LocalLoader style={{ margin: 'auto' }} />
 					) : (
-						<Chart
-							dailyData={finalChartData}
-							unit={denomination}
-							totalLiquidity={totalVolume}
-							liquidityChange={volumeChangeUSD}
+						<ChainChart
+							chartData={finalTvlChart}
+							volumeData={finalVolumeChart}
+							feesData={finalFeesChart}
+							priceData={priceHistory}
+							customLegendName="Chain"
+							hideDefaultLegend
+							valueSymbol="$"
+							title=""
+							DENOMINATIONS={DENOMINATIONS}
+							denomination={denomination}
+							updateRoute={updateRoute}
+							route={router.query}
 						/>
 					)}
 				</BreakpointPanel>

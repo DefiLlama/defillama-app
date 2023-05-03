@@ -90,8 +90,8 @@ export function NFTCollectionContainer({
 					</Link>
 				</DetailsWrapper>
 
-				<ChartWrapper>
-					<ToggleWrapper2>
+				<ChartWrapper style={{ padding: '20px 0 0 0' }}>
+					<ToggleWrapper2 style={{ padding: '0 20px' }}>
 						<input
 							type="checkbox"
 							value="showMcapChart"

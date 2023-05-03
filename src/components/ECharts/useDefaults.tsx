@@ -17,7 +17,18 @@ import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutr
 import { toK } from '~/utils'
 import { useMemo } from 'react'
 
-const SERIES_WITH_NO_SYMBOL = ['Active Users', 'New Users', 'Transactions', 'Median APY']
+const CHART_SYMBOLS = {
+	'Active Users': '',
+	'New Users': '',
+	Transactions: '',
+	'Total Proposals': '',
+	'Successful Proposals': '',
+	'Max Votes': '',
+	TVL: '$',
+	APY: '%',
+	'Median APY': '%',
+	Treasury: '$'
+}
 
 echarts.use([
 	CanvasRenderer,
@@ -91,6 +102,7 @@ export function useDefaults({
 
 		const tooltip = {
 			trigger: 'axis',
+			confine: true,
 			formatter: function (params) {
 				const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
 					year: 'numeric',
@@ -129,13 +141,7 @@ export function useDefaults({
 						'&nbsp;&nbsp;' +
 						formatTooltipValue(
 							curr.value[1],
-							curr.seriesName === 'Median APY'
-								? '%'
-								: curr.seriesName === 'Unlocks'
-								? unlockTokenSymbol
-								: SERIES_WITH_NO_SYMBOL.includes(curr.seriesName)
-								? ''
-								: valueSymbol
+							curr.seriesName === 'Unlocks' ? unlockTokenSymbol : CHART_SYMBOLS[curr.seriesName] || valueSymbol
 						) +
 						'</li>')
 				}, '')
@@ -178,6 +184,7 @@ export function useDefaults({
 
 		const inflowsTooltip = {
 			trigger: 'axis',
+			confine: true,
 			formatter: function (params) {
 				const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
 					year: 'numeric',

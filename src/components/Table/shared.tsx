@@ -115,3 +115,30 @@ export const SearchIcon = styled(Search)`
 	left: 8px;
 	color: ${({ theme }) => theme.text3};
 `
+
+export const TableFiltersWithInput = styled.div`
+	display: flex;
+	aling-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 0 0 -20px;
+	position: relative;
+
+	input {
+		width: 100%;
+		margin-right: auto;
+		border-radius: 8px;
+		padding: 8px;
+		padding-left: 32px;
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
+
+		font-size: 0.875rem;
+		border: none;
+	}
+
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		input {
+			max-width: 400px;
+		}
+	}
+`

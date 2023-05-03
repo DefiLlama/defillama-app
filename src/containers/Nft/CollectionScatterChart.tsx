@@ -53,7 +53,7 @@ export default function CollectionScatterChart({
 
 		const series = [
 			{
-				name: '',
+				name: 'Sale Price',
 				type: 'scatter',
 				large: true,
 				largeThreshold: 0,
@@ -61,11 +61,14 @@ export default function CollectionScatterChart({
 				emphasis: {
 					focus: 'series'
 				},
+				itemStyle: {
+					color: '#3b82f6'
+				},
 				symbolSize: 3,
 				data: sales.map((p) => [new Date(p[0]), p[1]])
 			},
 			{
-				name: 'RollingMedian1d',
+				name: 'Moving Average',
 				type: 'line',
 				itemStyle: {
 					color: '#ffc300'
@@ -79,8 +82,7 @@ export default function CollectionScatterChart({
 				type: 'bar',
 				data: volume.map((p) => [new Date(p[0] * 1e3), p[1]]),
 				itemStyle: {
-					color: '#424ef5',
-					opacity: 0.5
+					color: '#22c55e'
 				},
 				yAxisIndex: 1
 			}
@@ -100,13 +102,14 @@ export default function CollectionScatterChart({
 				top: '130px'
 			},
 			grid: {
-				left: '3%',
-				right: '7%',
-				bottom: '7%',
+				left: '20',
+				right: '20',
+				bottom: 0,
 				containLabel: true
 			},
 			tooltip: {
 				showDelay: 0,
+				confine: true,
 				formatter: function (params) {
 					const chartdate = new Date(params.value[0]).toLocaleDateString(undefined, {
 						year: 'numeric',
@@ -117,7 +120,9 @@ export default function CollectionScatterChart({
 					let vals =
 						chartdate +
 						'<li style="list-style:none">' +
-						(params.seriesName === 'Volume' ? 'Volume:' : 'Sale Price:') +
+						params.marker +
+						params.seriesName +
+						':' +
 						'&nbsp;&nbsp;' +
 						params.value[1].toFixed(2) +
 						'&nbsp;' +
@@ -129,6 +134,7 @@ export default function CollectionScatterChart({
 
 						vals +=
 							'<li style="list-style:none">' +
+							'<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#ffc300;"></span>' +
 							'Moving Average:' +
 							'&nbsp;&nbsp;' +
 							findClosest(salesMedian1d, salesMedian1d.length, date, false) +
@@ -138,6 +144,7 @@ export default function CollectionScatterChart({
 
 						vals +=
 							'<li style="list-style:none">' +
+							'<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#22c55e;"></span>' +
 							'Volume:' +
 							'&nbsp;&nbsp;' +
 							findClosest(volume, volume.length, date, true) +

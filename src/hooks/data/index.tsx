@@ -136,34 +136,30 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 }
 
 // returns tvl by day for a single token
-export const useCalcExtraTvlsByDay = (data) => {
-	const [extraTvlsEnabled] = useDefiManager()
+export function formatChartTvlsByDay({ data, extraTvlsEnabled, key }) {
+	return data.map(([date, values]) => {
+		let sum = values.tvl || 0
 
-	return useMemo(() => {
-		return data.map(([date, values]) => {
-			let sum = values.tvl || 0
+		for (const value in values) {
+			if (value === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
+				sum -= values[value]
+			}
 
-			for (const value in values) {
-				if (value === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
-					sum -= values[value]
-				}
+			if ((value === 'liquidstaking' || value === 'd') && !extraTvlsEnabled['liquidstaking']) {
+				sum -= values[value]
+			}
 
-				if ((value === 'liquidstaking' || value === 'd') && !extraTvlsEnabled['liquidstaking']) {
-					sum -= values[value]
-				}
-
-				if (value.toLowerCase() === 'dcandlsoverlap') {
-					if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
-						sum += values[value]
-					}
-				}
-
-				if (extraTvlsEnabled[value.toLowerCase()] && value !== 'doublecounted' && value !== 'liquidstaking') {
+			if (value.toLowerCase() === 'dcandlsoverlap') {
+				if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
 					sum += values[value]
 				}
 			}
 
-			return [date, sum]
-		})
-	}, [data, extraTvlsEnabled])
+			if (extraTvlsEnabled[value.toLowerCase()] && value !== 'doublecounted' && value !== 'liquidstaking') {
+				sum += values[value]
+			}
+		}
+
+		return { date, [key]: sum }
+	})
 }

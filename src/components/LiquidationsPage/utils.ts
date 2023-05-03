@@ -103,6 +103,7 @@ export const getOption = (
 		],
 		tooltip: {
 			trigger: 'axis',
+			confine: true,
 			axisPointer: {
 				type: 'cross'
 			},

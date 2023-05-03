@@ -1,5 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { selectColor, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import { selectColor, slug, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {
@@ -12,21 +12,41 @@ import {
 import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
-import { ACTIVE_USERS_API, YIELD_PROJECT_MEDIAN_API } from '~/constants'
+import {
+	ACTIVE_USERS_API,
+	PROTOCOLS_EXPENSES_API,
+	PROTOCOLS_TREASURY,
+	PROTOCOL_GOVERNANCE_API,
+	PROTOCOL_ONCHAIN_GOVERNANCE_API,
+	YIELD_PROJECT_MEDIAN_API
+} from '~/constants'
 
 export const getStaticProps = async ({
 	params: {
 		protocol: [protocol]
 	}
 }) => {
-	const [protocolRes, articles, emissions]: [IProtocolResponse, IArticle[], any] = await Promise.all([
+	const [protocolRes, articles, emissions, expenses, treasuries]: [
+		IProtocolResponse,
+		IArticle[],
+		any,
+		any,
+		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>
+	] = await Promise.all([
 		getProtocol(protocol),
 		fetchArticles({ tags: protocol }),
-		getProtocolEmissons(protocol)
+		getProtocolEmissons(protocol),
+		fetch(PROTOCOLS_EXPENSES_API).then((res) => res.json()),
+		fetch(PROTOCOLS_TREASURY).then((res) => res.json())
 	])
+
+	let inflowsExist = false
 
 	if (protocolRes?.chainTvls) {
 		Object.keys(protocolRes.chainTvls).forEach((chain) => {
+			if (protocolRes.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
+				inflowsExist = true
+			}
 			delete protocolRes.chainTvls[chain].tokensInUsd
 			delete protocolRes.chainTvls[chain].tokens
 		})
@@ -34,24 +54,47 @@ export const getStaticProps = async ({
 
 	const protocolData = fuseProtocolData(protocolRes)
 
-	const [backgroundColor, allProtocols, activeUsers, feesAndRevenueProtocols, dexs, medianApy] = await Promise.all([
-		getColor(tokenIconPaletteUrl(protocolData.name)),
-		getProtocolsRaw(),
-		fetch(ACTIVE_USERS_API).then((res) => res.json()),
-		fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-			.then((res) => res.json())
-			.catch((err) => {
-				console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-				return {}
-			}),
-		fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-			.then((res) => res.json())
-			.catch((err) => {
-				console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-				return {}
-			}),
-		fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json())
-	])
+	const governanceID = protocolData.governanceID?.[0] ?? null
+	const governanceApi = governanceID
+		? governanceID.startsWith('snapshot:')
+			? `${PROTOCOL_GOVERNANCE_API}/${governanceID.split('snapshot:')[1]}.json`
+			: governanceID.startsWith('compound:')
+			? `${PROTOCOL_ONCHAIN_GOVERNANCE_API}/${governanceID.split('compound:')[1]}.json`
+			: null
+		: null
+
+	const [backgroundColor, allProtocols, activeUsers, feesAndRevenueProtocols, dexs, medianApy, controversialProposals] =
+		await Promise.all([
+			getColor(tokenIconPaletteUrl(protocolData.name)),
+			getProtocolsRaw(),
+			fetch(ACTIVE_USERS_API).then((res) => res.json()),
+			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+				}),
+			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+				}),
+			fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
+			governanceApi
+				? fetch(governanceApi)
+						.then((res) => res.json())
+						.then((data) => {
+							return Object.values(data.proposals)
+								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+								.slice(0, 3)
+						})
+						.catch((err) => {
+							console.log(err)
+							return {}
+						})
+				: null
+		])
 
 	const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
@@ -73,20 +116,16 @@ export const getStaticProps = async ({
 		'Active Users',
 		'New Users',
 		'Transactions',
-		'Gas Used'
+		'Gas Used',
+		'Staking',
+		'Borrowed',
+		'Median APY',
+		'USD Inflows',
+		'Total Proposals',
+		'Successful Proposals',
+		'Max Votes',
+		'Treasury'
 	]
-
-	if (protocolData.historicalChainTvls?.['staking']?.tvl?.length > 0) {
-		chartTypes.push('Staking')
-	}
-
-	if (protocolData.historicalChainTvls?.['borrowed']?.tvl?.length > 0) {
-		chartTypes.push('Borrowed')
-	}
-
-	if (medianApy.data.length > 0) {
-		chartTypes.push('Median APY')
-	}
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
 
@@ -135,7 +174,7 @@ export const getStaticProps = async ({
 	const allTimeFees = feesAndRevenueData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const metrics = protocolData.metrics || {}
-
+	const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
 	return {
 		props: {
 			articles,
@@ -164,6 +203,10 @@ export const getStaticProps = async ({
 			allTimeFees,
 			dailyVolume,
 			allTimeVolume,
+			inflowsExist,
+			controversialProposals,
+			governanceApi,
+			treasury: treasury?.tokenBreakdowns ?? null,
 			helperTexts: {
 				fees:
 					volumeData.length > 1
@@ -177,7 +220,8 @@ export const getStaticProps = async ({
 						: volumeData?.[0]?.methodology?.['Revenue'] ?? null,
 				users:
 					'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.'
-			}
+			},
+			expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null
 		},
 		revalidate: maxAgeForNext([22])
 	}

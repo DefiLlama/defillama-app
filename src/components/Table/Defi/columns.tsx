@@ -365,10 +365,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Next Event',
 		id: 'upcomingEvent',
-		accessorFn: (row) =>
-			row.upcomingEvent?.noOfTokens?.length > 0 && row.tPrice
-				? +row.upcomingEvent.noOfTokens[row.upcomingEvent.noOfTokens.length - 1] * row.tPrice
-				: 0,
+		accessorFn: (row) => row.upcomingEvent.timestamp || 0,
 		cell: ({ row }) => {
 			let { description, noOfTokens, timestamp } = row.original.upcomingEvent
 
@@ -382,6 +379,63 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			return <span style={{ width: '100%', overflow: 'scroll' }}>{description}</span>
 		},
 		size: 800
+	}
+]
+
+export const expensesColumns: ColumnDef<any>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<CustomLink href={`/protocol/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+				</Name>
+			)
+		},
+		size: 220
+	},
+	{
+		header: 'Headcount',
+		accessorKey: 'headcount',
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Annual Expenses',
+		accessorKey: 'sumAnnualUsdExpenses',
+		cell: ({ getValue }) => {
+			return <>{getValue() ? '$' + formattedNum(getValue()) : ''}</>
+		},
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Source',
+		accessorKey: 'sources',
+		enableSorting: false,
+		cell: ({ getValue }) => (
+			<ButtonYields
+				as="a"
+				href={getValue()[0] as string}
+				target="_blank"
+				rel="noopener noreferrer"
+				data-lgonly
+				useTextColor={true}
+			>
+				<ArrowUpRight size={14} />
+			</ButtonYields>
+		)
 	}
 ]
 

@@ -130,6 +130,7 @@ export default function StackedBarChart({
 				: false,
 			tooltip: {
 				trigger: 'axis',
+				confine: true,
 				formatter: function (params) {
 					const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
 						year: 'numeric',

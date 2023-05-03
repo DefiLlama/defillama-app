@@ -5,14 +5,22 @@ import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/comp
 import { ProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
-import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
-import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
+import { formatChartTvlsByDay } from '~/hooks/data'
+import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
+import { formatDataWithExtraTvls } from '~/hooks/data/defi'
+import { useDefiManager } from '~/contexts/LocalStorage'
 
-const Chart = dynamic(() => import('~/components/GlobalChart'), {
-	ssr: false
+const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
+	ssr: false,
+	loading: () => <></>
 })
+const charts = ['TVS']
+
+const chartColors = {
+	TVS: '#4f8fea'
+}
 
 export async function getStaticProps({ params: { oracle } }) {
 	const data = await getOraclePageData(oracle)
@@ -38,16 +46,21 @@ export async function getStaticPaths() {
 }
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
-	const protocolsData = useCalcStakePool2Tvl(filteredProtocols)
+	const [extraTvlsEnabled] = useDefiManager()
 
-	const finalChartData = useCalcExtraTvlsByDay(chartData)
+	const { protocolsData, finalChartData, totalVolume, volumeChangeUSD } = useMemo(() => {
+		const protocolsData = formatDataWithExtraTvls({
+			data: filteredProtocols,
+			extraTvlsEnabled
+		})
 
-	const { totalVolume, volumeChangeUSD } = useMemo(() => {
-		const totalVolume = getPrevTvlFromChart(finalChartData, 0)
-		const tvlPrevDay = getPrevTvlFromChart(finalChartData, 1)
+		const finalChartData = formatChartTvlsByDay({ data: chartData, extraTvlsEnabled, key: 'TVS' })
+
+		const totalVolume = getPrevTvlFromChart2(finalChartData, 0, 'TVS')
+		const tvlPrevDay = getPrevTvlFromChart2(finalChartData, 1, 'TVS')
 		const volumeChangeUSD = getPercentChange(totalVolume, tvlPrevDay)
-		return { totalVolume, volumeChangeUSD }
-	}, [finalChartData])
+		return { protocolsData, finalChartData, totalVolume, volumeChangeUSD }
+	}, [chartData, extraTvlsEnabled, filteredProtocols])
 
 	const topToken = {}
 
@@ -82,12 +95,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
 					</BreakpointPanel>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
-					<Chart
-						dailyData={finalChartData}
-						totalLiquidity={totalVolume}
-						liquidityChange={volumeChangeUSD}
-						title="TVS"
-					/>
+					<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 

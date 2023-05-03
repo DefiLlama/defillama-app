@@ -17,7 +17,8 @@ import {
 	Symbol,
 	ChartsWrapper,
 	LazyChart,
-	ChartsPlaceholder
+	ChartsPlaceholder,
+	ChartWrapper
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
@@ -35,7 +36,7 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	loading: () => <></>
 })
 
-const Chart = dynamic(() => import('~/components/GlobalChart'), {
+const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
 	loading: () => <></>
 })
@@ -131,7 +132,11 @@ const PageView = () => {
 
 		const areaChartData = data?.length ? data.filter((t) => t[5] !== null).map((t) => [t[0], t[5]]) : []
 
-		return { finalChartData: data, barChartData, areaChartData }
+		return {
+			finalChartData: data.map((item) => ({ date: item[0], TVL: item[1], APY: item[2] })),
+			barChartData,
+			areaChartData
+		}
 	}, [chart])
 
 	return (
@@ -178,15 +183,9 @@ const PageView = () => {
 					</Stat>
 				</PoolDetails>
 
-				<BreakpointPanel id="chartWrapper" style={{ border: 'none', borderRadius: '0 12px 12px 0', boxShadow: 'none' }}>
-					<Chart
-						dailyData={finalChartData}
-						totalLiquidity={poolData.tvlUsd}
-						liquidityChange={poolData.apy}
-						title="APY & TVL"
-						dualAxis={true}
-					/>
-				</BreakpointPanel>
+				<LazyChart style={{ padding: '20px 0' }}>
+					<Chart chartData={finalChartData} stackColors={mainChartStackColors} stacks={mainChartStacks} title="" />
+				</LazyChart>
 			</StatsSection>
 
 			<ChartsWrapper>
@@ -261,6 +260,13 @@ const PageView = () => {
 }
 
 const backgroundColor = '#4f8fea'
+
+const mainChartStacks = ['APY', 'TVL']
+
+const mainChartStackColors = {
+	APY: '#fd3c99',
+	TVL: '#4f8fea'
+}
 
 const stackedBarChartColors = {
 	Base: backgroundColor,

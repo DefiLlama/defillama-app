@@ -4,7 +4,6 @@ import { NftsmarketplaceTable } from '~/components/Table'
 import { maxAgeForNext } from '~/api'
 import { getNFTMarketplacesData } from '~/api/categories/nfts'
 import dynamic from 'next/dynamic'
-import { ChartWrapper } from '~/layout/ProtocolAndPool'
 import { Header } from '~/Theme'
 import { Panel } from '~/components'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
@@ -36,7 +35,16 @@ export async function getStaticProps() {
 	}
 }
 
-function Marketplaces({ data, volume, dominance, marketplaces, volumeChartStacks }) {
+function Marketplaces({
+	data,
+	volume,
+	dominance,
+	trades,
+	dominanceTrade,
+	marketplaces,
+	volumeChartStacks,
+	tradeChartStacks
+}) {
 	const [dominanceChart, setDominanceChart] = React.useState(false)
 
 	//x
@@ -53,40 +61,72 @@ function Marketplaces({ data, volume, dominance, marketplaces, volumeChartStacks
 
 			<Header>NFT Marketplaces</Header>
 
-			<Panel style={{ padding: '1rem 1rem 0', width: '100%' }}>
-				<Filters color={'#4f8fea'} style={{ marginLeft: 'auto' }}>
-					<FlatDenomination active={!dominanceChart} onClick={() => setDominanceChart(false)}>
-						Volume
-					</FlatDenomination>
-					<FlatDenomination active={dominanceChart} onClick={() => setDominanceChart(true)}>
-						Dominance
-					</FlatDenomination>
-				</Filters>
-				<ChartWrapper>
-					{dominanceChart ? (
-						<AreaChart
-							chartData={dominance}
-							stacks={marketplaces}
-							hideDefaultLegend
-							valueSymbol="%"
-							title=""
-							expandTo100Percent={true}
-						/>
-					) : (
-						<BarChart
-							title=""
-							stacks={volumeChartStacks}
-							chartData={volume}
-							valueSymbol="ETH"
-							hideDefaultLegend
-							tooltipOrderBottomUp
-						/>
-					)}
-				</ChartWrapper>
-			</Panel>
+			<Filters color={'#4f8fea'} style={{ marginLeft: 'auto' }}>
+				<FlatDenomination active={!dominanceChart} onClick={() => setDominanceChart(false)}>
+					Absolute
+				</FlatDenomination>
+				<FlatDenomination active={dominanceChart} onClick={() => setDominanceChart(true)}>
+					Relative
+				</FlatDenomination>
+			</Filters>
+			<ChartWrapper>
+				{dominanceChart ? (
+					<AreaChart
+						chartData={dominance}
+						stacks={marketplaces}
+						hideDefaultLegend
+						valueSymbol="%"
+						title="Volume"
+						expandTo100Percent={true}
+					/>
+				) : (
+					<BarChart
+						title="Volume"
+						stacks={volumeChartStacks}
+						chartData={volume}
+						valueSymbol="ETH"
+						hideDefaultLegend
+						tooltipOrderBottomUp
+					/>
+				)}
+				{dominanceChart ? (
+					<AreaChart
+						chartData={dominanceTrade}
+						stacks={marketplaces}
+						hideDefaultLegend
+						valueSymbol="%"
+						title="Trades"
+						expandTo100Percent={true}
+					/>
+				) : (
+					<BarChart
+						title="Trades"
+						stacks={tradeChartStacks}
+						chartData={trades}
+						valueSymbol=""
+						hideDefaultLegend
+						tooltipOrderBottomUp
+					/>
+				)}
+			</ChartWrapper>
 			<NftsmarketplaceTable data={data} />
 		</Layout>
 	)
 }
 
 export default Marketplaces
+
+const ChartWrapper = styled(Panel)`
+	min-height: 402px;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 16px;
+
+	& > * {
+		grid-cols: span 1;
+	}
+
+	@media screen and (min-width: 80rem) {
+		grid-template-columns: 1fr 1fr;
+	}
+`

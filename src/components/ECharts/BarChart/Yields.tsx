@@ -70,6 +70,7 @@ export default function BarChartYields({ chartData }: IChartProps) {
 			},
 			tooltip: {
 				trigger: 'axis',
+				confine: true,
 				axisPointer: {
 					type: 'cross'
 				}

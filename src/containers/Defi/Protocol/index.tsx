@@ -48,7 +48,7 @@ import {
 	tokenIconUrl
 } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
-import type { IFusedProtocolData } from '~/api/types'
+import type { IFusedProtocolData, IRaise } from '~/api/types'
 import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
@@ -108,14 +108,6 @@ export const OtherProtocols = styled.nav`
 	}
 `
 
-const RaisesWrapper = styled.ul`
-	list-style: none;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-`
-
 const ProtocolDetailsWrapper = styled(DetailsWrapper)`
 	gap: 24px;
 
@@ -134,6 +126,10 @@ const ProtocolStatsTable = styled.table`
 		font-size: 0.75rem;
 		text-align: left;
 		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
+	}
+
+	caption {
+		color: ${({ theme }) => theme.text1};
 	}
 
 	th {
@@ -242,6 +238,7 @@ const Details = styled.details`
 
 			& > *:nth-child(2) {
 				font-family: var(--font-jetbrains);
+				min-height: 2rem;
 			}
 		}
 	}
@@ -265,6 +262,7 @@ interface IProtocolContainerProps {
 	protocolData: IFusedProtocolData
 	backgroundColor: string
 	similarProtocols: Array<{ name: string; tvl: number }>
+	treasury: { [category: string]: number } | null
 	emissions: IEmission
 	isCEX?: boolean
 	chartColors: { [type: string]: string }
@@ -277,6 +275,10 @@ interface IProtocolContainerProps {
 	dailyRevenue: number | null
 	dailyVolume: number | null
 	allTimeVolume: number | null
+	inflowsExist: boolean
+	controversialProposals: Array<{ title: string; link?: string }> | null
+	governanceApi: string | null
+	expenses: any
 	helperTexts: {
 		fees?: string | null
 		revenue?: string | null
@@ -290,6 +292,7 @@ function ProtocolContainer({
 	articles,
 	title,
 	protocolData,
+	treasury,
 	protocol,
 	backgroundColor,
 	similarProtocols,
@@ -305,6 +308,10 @@ function ProtocolContainer({
 	dailyRevenue,
 	dailyVolume,
 	allTimeVolume,
+	inflowsExist,
+	controversialProposals,
+	governanceApi,
+	expenses,
 	helperTexts
 }: IProtocolContainerProps) {
 	useScrollToTop()
@@ -331,11 +338,13 @@ function ProtocolContainer({
 		gecko_id,
 		isParentProtocol,
 		raises,
-		treasury,
-		metrics
+		metrics,
+		isHourlyChart
 	} = protocolData
 
 	const router = useRouter()
+
+	const { usdInflows: usdInflowsParam } = router.query
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
@@ -431,7 +440,7 @@ function ProtocolContainer({
 			[addlProtocolData, extraTvlsEnabled]
 		)
 
-	const [yeildsNumber, averageApy] = React.useMemo(() => {
+	const [yieldsNumber, averageApy] = React.useMemo(() => {
 		if (!yields) return [0, 0]
 		const projectYieldsExist = yields.find(({ project }) => project === protocol)
 		if (!projectYieldsExist) return [0, 0]
@@ -459,13 +468,25 @@ function ProtocolContainer({
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
+	const stakedAmount =
+		historicalChainTvls?.['staking']?.tvl?.length > 0
+			? historicalChainTvls?.['staking']?.tvl[historicalChainTvls?.['staking']?.tvl.length - 1]?.totalLiquidityUSD ??
+			  null
+			: null
+
+	const borrowedAmount =
+		historicalChainTvls?.['borrowed']?.tvl?.length > 0
+			? historicalChainTvls?.['borrowed']?.tvl[historicalChainTvls?.['borrowed']?.tvl.length - 1]?.totalLiquidityUSD ??
+			  null
+			: null
+
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO cardName={name} token={name} logo={tokenIconUrl(name)} tvl={formattedNum(totalVolume, true)?.toString()} />
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 
-			{['SyncDEX Finance', 'Avatr'].includes(name) && (
+			{['SyncDEX Finance', 'Avatr', 'Swaprum'].includes(name) && (
 				<Announcement warning={true} notCancellable={true}>
 					Project has some red flags and multiple users have reported concerns. Be careful.
 				</Announcement>
@@ -591,22 +612,9 @@ function ProtocolContainer({
 								) : null}
 
 								{tokenSupply && priceOfToken ? (
-									<>
-										<tr>
-											<th>Fully Diluted Valuation</th>
-											<td>{formattedNum(priceOfToken * tokenSupply, true)}</td>
-										</tr>
-										<tr>
-											<th>FDV / TVL ratio</th>
-											<td>{formattedNum((priceOfToken * tokenSupply) / totalVolume, false)}</td>
-										</tr>
-									</>
-								) : null}
-
-								{tokenMcap ? (
 									<tr>
-										<th>Mcap / TVL ratio</th>
-										<td>{formattedNum(tokenMcap / totalVolume, false)}</td>
+										<th>Fully Diluted Valuation</th>
+										<td>{formattedNum(priceOfToken * tokenSupply, true)}</td>
 									</tr>
 								) : null}
 
@@ -647,6 +655,55 @@ function ProtocolContainer({
 									</tr>
 								) : null}
 
+								{stakedAmount ? (
+									<>
+										<tr>
+											<th>Staked</th>
+											<td>{formattedNum(stakedAmount, true)}</td>
+										</tr>
+
+										{tokenMcap ? (
+											<tr style={{ position: 'relative', top: '-6px' }}>
+												<th style={{ padding: 0 }}></th>
+												<td
+													style={{
+														opacity: '0.6',
+														fontFamily: 'var(--inter)',
+														fontWeight: 400,
+														fontSize: '0.875rem',
+														padding: '0px'
+													}}
+												>
+													{`(${((stakedAmount / tokenMcap) * 100).toLocaleString(undefined, {
+														maximumFractionDigits: 2
+													})}% of mcap)`}
+												</td>
+											</tr>
+										) : null}
+									</>
+								) : null}
+
+								{borrowedAmount ? (
+									<tr>
+										<th>Borrowed</th>
+										<td>{formattedNum(borrowedAmount, true)}</td>
+									</tr>
+								) : null}
+
+								{tokenSupply && priceOfToken && totalVolume ? (
+									<tr>
+										<th>FDV / TVL ratio</th>
+										<td>{formattedNum((priceOfToken * tokenSupply) / totalVolume, false)}</td>
+									</tr>
+								) : null}
+
+								{tokenMcap ? (
+									<tr>
+										<th>Mcap / TVL ratio</th>
+										<td>{formattedNum(tokenMcap / totalVolume, false)}</td>
+									</tr>
+								) : null}
+
 								{allTimeVolume ? (
 									<tr>
 										<th>Cumulative Volume</th>
@@ -666,6 +723,16 @@ function ProtocolContainer({
 							</tbody>
 						</ProtocolStatsTable>
 					</div>
+
+					<>{treasury && <TreasuryTable data={treasury} />}</>
+
+					<>{raises && raises.length > 0 && <Raised data={raises} />}</>
+
+					{controversialProposals && controversialProposals.length > 0 ? (
+						<TopProposals data={controversialProposals} />
+					) : null}
+
+					{expenses && <Expenses data={expenses} />}
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
@@ -681,6 +748,13 @@ function ProtocolContainer({
 					emissions={emissions?.chartData}
 					unlockTokenSymbol={emissions?.tokenPrice?.symbol}
 					activeUsersId={users ? protocolData.id : null}
+					usdInflowsData={
+						inflowsExist && usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null
+					}
+					inflowsExist={inflowsExist}
+					governanceApi={governanceApi}
+					isHourlyChart={isHourlyChart}
+					protocolHasTreasury={treasury ? true : false}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
@@ -826,30 +900,12 @@ function ProtocolContainer({
 					</Section>
 				) : null}
 
-				{raises && raises.length > 0 && (
-					<Section>
-						<h3>Raises</h3>
-						<RaisesWrapper>
-							<li>{`Total raised: ${formatRaisedAmount(raises.reduce((sum, r) => sum + Number(r.amount), 0))}`}</li>
-							{raises
-								.sort((a, b) => a.date - b.date)
-								.map((raise) => (
-									<li key={raise.date + raise.amount}>
-										<a target="_blank" rel="noopener noreferrer" href={raise.source}>
-											{formatRaise(raise)}
-										</a>
-									</li>
-								))}
-						</RaisesWrapper>
-					</Section>
-				)}
-
 				{treasury && <Treasury protocolName={protocol} />}
 
 				{emissions?.chartData?.length > 0 ? <Emissions data={emissions} /> : null}
 			</InfoWrapper>
 
-			{yeildsNumber > 0 && (
+			{yieldsNumber > 0 && (
 				<InfoWrapper>
 					<Section>
 						<h3>Yields</h3>
@@ -857,7 +913,7 @@ function ProtocolContainer({
 						<FlexRow>
 							<span>Number of pools tracked</span>
 							<span>:</span>
-							<span>{yeildsNumber}</span>
+							<span>{yieldsNumber}</span>
 						</FlexRow>
 						<FlexRow>
 							<span>Average APY</span>
@@ -952,5 +1008,205 @@ function ProtocolContainer({
 		</Layout>
 	)
 }
+
+const Raised = ({ data }: { data: Array<IRaise> }) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} />
+							<span>Total Raised</span>
+						</Toggle>
+					</th>
+					<td>${formatRaisedAmount(data.reduce((sum, r) => sum + Number(r.amount), 0))}</td>
+				</tr>
+				{open && (
+					<>
+						{data
+							.sort((a, b) => a.date - b.date)
+							.map((raise) => (
+								<tr key={raise.date + raise.amount}>
+									<th data-subvalue>{new Date(raise.date * 1000).toLocaleDateString()}</th>
+									<td data-subvalue>
+										<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+											{formatRaise(raise)}
+										</a>
+									</td>
+								</tr>
+							))}
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+const TopProposals = ({ data }: { data: Array<{ title: string; link?: string }> }) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} />
+							<span>Top Controversial Proposals</span>
+						</Toggle>
+					</th>
+				</tr>
+				{open && (
+					<>
+						{data.map((proposal) => (
+							<tr key={proposal.title}>
+								<td data-subvalue style={{ textAlign: 'left' }}>
+									{proposal.link ? (
+										<a href={proposal.link} target="_blank" rel="noreferrer noopener">
+											{proposal.title}
+										</a>
+									) : (
+										proposal.title
+									)}
+								</td>
+							</tr>
+						))}
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+const Expenses = ({
+	data
+}: {
+	data: { headcount: number; annualUsdCost: { [key: string]: number }; sources: string[] }
+}) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} />
+							<span>Annual operational expenses</span>
+						</Toggle>
+					</th>
+					<td>
+						{formattedNum(
+							Object.values(data.annualUsdCost || {}).reduce((acc, curr) => (acc += curr), 0),
+							true
+						)}
+					</td>
+				</tr>
+
+				{open && (
+					<>
+						<tr>
+							<th data-subvalue>Headcount</th>
+							<td data-subvalue>{data.headcount}</td>
+						</tr>
+
+						{Object.entries(data.annualUsdCost || {}).map(([cat, exp]) => {
+							return (
+								<tr key={'expenses' + cat + exp}>
+									<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
+									<td data-subvalue>{formattedNum(exp, true)}</td>
+								</tr>
+							)
+						})}
+
+						<tr>
+							<th data-subvalue>
+								<a href={data.sources[0]}>
+									Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
+								</a>
+							</th>
+							<td data-subvalue></td>
+						</tr>
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+const TreasuryTable = ({ data }: { data: { [category: string]: number } }) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} />
+							<span>Treasury</span>
+						</Toggle>
+					</th>
+					<td>
+						{formattedNum(
+							Object.values(data).reduce((acc, curr) => (acc += curr), 0),
+							true
+						)}
+					</td>
+				</tr>
+
+				{open && (
+					<>
+						{Object.entries(data).map(([cat, tre]) => {
+							return (
+								<tr key={'treasury' + cat + tre}>
+									<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
+									<td data-subvalue>{formattedNum(tre, true)}</td>
+								</tr>
+							)
+						})}
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+const Toggle = styled.button`
+	margin-left: -24px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	white-space: nowrap;
+
+	svg {
+		flex-shrink: 0;
+	}
+
+	&[data-open='true'] {
+		svg {
+			transform: rotate(90deg);
+			transition: 0.1s ease;
+		}
+	}
+`
+
+const StatsTable2 = styled(ProtocolStatsTable)`
+	margin: -24px 0 0 0;
+
+	th[data-subvalue],
+	td[data-subvalue] {
+		font-weight: 400;
+		font-family: var(--inter);
+		font-size: 0.875rem;
+	}
+	td {
+		color: ${({ theme }) => theme.text1};
+	}
+
+	a {
+		text-decoration: underline;
+		text-decoration-color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
+	}
+`
 
 export default ProtocolContainer

@@ -7,6 +7,8 @@ import { getUtcDateObject, stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { toK } from '~/utils'
+import { BAR_CHARTS } from './utils'
+import { useRouter } from 'next/router'
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
@@ -29,6 +31,9 @@ export default function AreaBarChart({
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
+	const router = useRouter()
+	const { groupBy } = router.query
+	const isCumulative = router.isReady && groupBy === 'cumulative' ? true : false
 
 	const [isDark] = useDarkModeManager()
 
@@ -68,12 +73,8 @@ export default function AreaBarChart({
 			yAxisByIndex['Unlocks'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (stacks.includes('Active Users')) {
-			yAxisByIndex['Active Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('New Users')) {
-			yAxisByIndex['New Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('Active Users') || stacks.includes('New Users')) {
+			yAxisByIndex['Active Users+New Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
 		if (stacks.includes('Transactions')) {
@@ -88,20 +89,37 @@ export default function AreaBarChart({
 			yAxisByIndex['Median APY'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('USD Inflows')) {
+			yAxisByIndex['USD Inflows'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('Total Proposals') || stacks.includes('Successful Proposals')) {
+			yAxisByIndex['Total Proposals+Successful Proposals'] =
+				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('Max Votes')) {
+			yAxisByIndex['Max Votes'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('Treasury')) {
+			yAxisByIndex['Treasury'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
-			const type = ['Volume', 'Fees', 'Revenue', 'Active Users', 'New Users', 'Transactions', 'Gas Used'].includes(
-				stack
-			)
-				? 'bar'
-				: 'line'
+			const type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
 
 			const options = {}
 			if (['TVL', 'Mcap', 'FDV', 'Borrowed', 'Staking'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['TVL+Mcap+FDV+Borrowed+Staking']
 			} else if (['Volume', 'Fees', 'Revenue'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Volume+Fees+Revenue']
+			} else if (['Active Users', 'New Users'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['Active Users+New Users']
+			} else if (['Total Proposals', 'Successful Proposals'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['Total Proposals+Successful Proposals']
 			} else {
 				options['yAxisIndex'] = yAxisByIndex[stack]
 			}
@@ -178,7 +196,7 @@ export default function AreaBarChart({
 		}
 
 		return { series, yAxisByIndex }
-	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors])
+	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors, isCumulative])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -252,32 +270,11 @@ export default function AreaBarChart({
 				})
 			}
 
-			if (type === 'Active Users') {
+			if (type === 'Active Users+New Users') {
 				yAxiss.push({
 					...options,
 					axisLabel: {
 						formatter: (value) => toK(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: stackColors['Active Users']
-						}
-					}
-				})
-			}
-
-			if (type === 'New Users') {
-				yAxiss.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => toK(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: stackColors['New Users']
-						}
 					}
 				})
 			}
@@ -318,6 +315,60 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Median APY']
+						}
+					}
+				})
+			}
+
+			if (type === 'USD Inflows') {
+				yAxiss.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['USD Inflows']
+						}
+					}
+				})
+			}
+
+			if (type === 'Total Proposals+Successful Proposals') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => toK(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Total Proposals']
+						}
+					}
+				})
+			}
+
+			if (type === 'Max Votes') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => toK(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Max Votes']
+						}
+					}
+				})
+			}
+
+			if (type === 'Treasury') {
+				yAxiss.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Treasury']
 						}
 					}
 				})

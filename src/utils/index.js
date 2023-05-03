@@ -437,6 +437,10 @@ export const getPrevTvlFromChart = (chart, daysBefore) => {
 	return chart[chart.length - 1 - daysBefore]?.[1] ?? null
 }
 
+export const getPrevTvlFromChart2 = (chart, daysBefore, key) => {
+	return chart[chart.length - 1 - daysBefore]?.[key] ?? null
+}
+
 export const getPrevPeggedTotalFromChart = (chart, daysBefore, issuanceType, pegType = '') => {
 	const prevChart = chart[chart.length - 1 - daysBefore]
 	if (!prevChart) return null
@@ -475,5 +479,5 @@ export function nearestUtc(dateString) {
 
 	date.setUTCHours(0, 0, 0, 0)
 
-	return date.getTime()
+	return Date.now() < date.getTime() ? Date.now() : date.getTime()
 }

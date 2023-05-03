@@ -71,6 +71,7 @@ export const generateGetOverviewItemPageDate = async (
 
 	return {
 		...item,
+		logo: getLlamaoLogo(item.logo),
 		dailyRevenue: secondType?.total24h ?? null,
 		type,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)]
@@ -99,9 +100,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-				...p,
-				tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
-		  }))
+			...p,
+			tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
+		}))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -195,9 +196,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? {}
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -211,6 +212,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			mainRow = parentProtocolsMap[protocol.parentProtocol]
 			subRow = {
 				...protocol,
+				logo: getLlamaoLogo(protocol.logo),
 				displayName: protocol.displayName ?? protocol.name,
 				tvl: tvlData[protocol.defillamaId] ?? null,
 				volumetvl: tvlData[protocol.defillamaId] ? protocol.total24h / tvlData[protocol.defillamaId] : null,
@@ -231,6 +233,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		mainRow = {
 			...mainRow,
 			...acc[protocol.parentProtocol],
+			logo: getLlamaoLogo(protocol.logo),
 			category: protocol.category,
 			displayName: mainRow.displayName ?? mainRow.name,
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
@@ -312,6 +315,14 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		dexsDominance: cexVolume ? +((total24h / (cexVolume + total24h)) * 100).toFixed(2) : null,
 		type
 	}
+}
+
+const getLlamaoLogo = (logo: string | null) => {
+	if (!logo) return null
+	let llamoLogo = logo
+	if (llamoLogo.includes('chains')) llamoLogo = llamoLogo.replace("https://icons.llama.fi/", "https://icons.llamao.fi/icons/")
+	llamoLogo = llamoLogo.replace("https://icons.llama.fi/", "https://icons.llamao.fi/icons/protocols/")
+	return llamoLogo.split('.').slice(0, -1).join('.')
 }
 
 const reduceSumByAttribute = (attribute: string) => (acc, curr) => {

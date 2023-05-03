@@ -37,6 +37,7 @@ export interface Protocol {
 	raises?: Array<IRaise>
 	defillamaId?: number
 	treasury?: string
+	governanceID?: Array<string>
 }
 
 // TODO cleanup
@@ -100,6 +101,7 @@ export interface IProtocolResponse extends Protocol {
 	tokenPrice?: number | null
 	tokenSupply?: number | null
 	tokenMcap?: number | null
+	isHourlyChart?: boolean
 }
 
 export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChainTvls' | 'chainTvls'> {
