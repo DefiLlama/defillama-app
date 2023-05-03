@@ -364,11 +364,9 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	},
 	{
 		header: 'Next Event',
-		id: 'upcomingEvent',
-		accessorFn: (row) =>
-			row.upcomingEvent?.noOfTokens?.length > 0 && row.tPrice
-				? +row.upcomingEvent.noOfTokens[row.upcomingEvent.noOfTokens.length - 1] * row.tPrice
-				: 0,
+		id: 'upcomingEventTimestamp',
+		accessorFn: (row) => row.upcomingEvent.timestamp,
+		sortingFn: sortingFns.datetime,
 		cell: ({ row }) => {
 			let { description, noOfTokens, timestamp } = row.original.upcomingEvent
 

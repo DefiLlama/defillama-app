@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { toNiceDateYear } from '~/utils'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { sortingFns } from '@tanstack/react-table'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -21,8 +22,9 @@ const banksTableColumns = [
 	{
 		header: 'Closing date',
 		accessorKey: 'date',
+		sortingFn: sortingFns.datetime,
 		cell: ({ getValue }) => {
-			return <>{toNiceDateYear(getValue())}</>
+			return <>{getValue() ? toNiceDateYear(getValue()) : ''}</>
 		},
 		meta: {
 			align: 'end'

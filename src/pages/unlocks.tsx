@@ -41,9 +41,9 @@ export default function Protocols({ data }) {
 		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
+		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel()
+		getSortedRowModel: getSortedRowModel()
 	})
 
 	const [projectName, setProjectName] = React.useState('')
