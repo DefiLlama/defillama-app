@@ -28,11 +28,12 @@ export const useFetchProtocol = (protocolName) => {
 }
 
 export const useFetchProtocolTreasury = (protocolName) => {
-	const { data, error } = useSWR(`treasury/${protocolName}`, () =>
-		fetch(`${PROTOCOL_TREASURY_API}/${protocolName}`).then((res) => res.json())
+	const { data, error } = useSWR(
+		`treasury/${protocolName}`,
+		protocolName ? () => fetch(`${PROTOCOL_TREASURY_API}/${protocolName}`).then((res) => res.json()) : () => null
 	)
 
-	const loading = protocolName && !data && !error
+	const loading = protocolName && !data && data !== null && !error
 
 	return { data, error, loading }
 }

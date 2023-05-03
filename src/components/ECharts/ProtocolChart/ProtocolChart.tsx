@@ -10,7 +10,8 @@ import {
 	useFetchProtocolGovernanceData,
 	useFetchProtocolMedianAPY,
 	useFetchProtocolNewUsers,
-	useFetchProtocolTransactions
+	useFetchProtocolTransactions,
+	useFetchProtocolTreasury
 } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
@@ -45,6 +46,7 @@ interface IProps {
 	inflowsExist: boolean
 	governanceApi: string | null
 	isHourlyChart?: boolean
+	protocolHasTreasury?: boolean
 }
 
 const CHART_TYPES = [
@@ -84,7 +86,8 @@ export default function ProtocolChart({
 	usdInflowsData,
 	inflowsExist,
 	governanceApi,
-	isHourlyChart
+	isHourlyChart,
+	protocolHasTreasury
 }: IProps) {
 	const router = useRouter()
 
@@ -110,7 +113,8 @@ export default function ProtocolChart({
 		borrowed,
 		medianApy,
 		usdInflows,
-		governance
+		governance,
+		treasury
 	} = router.query
 
 	const DENOMINATIONS = React.useMemo(() => {
@@ -177,6 +181,9 @@ export default function ProtocolChart({
 	const { data: governanceData, loading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
 		router.isReady && governance === 'true' ? governanceApi : null
 	)
+	const { data: treasuryData, loading: fetchingTreasury } = useFetchProtocolTreasury(
+		router.isReady && protocolHasTreasury && treasury === 'true' ? protocol : null
+	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
 		name: protocol,
@@ -185,11 +192,6 @@ export default function ProtocolChart({
 		enableBreakdownChart: false,
 		disabled: router.isReady && volume === 'true' && metrics.dexs ? false : true
 	})
-
-	// update tvl calc based on extra tvl options like staking, pool2 selected
-	const tvlData = React.useMemo(() => {
-		return formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled })
-	}, [historicalChainTvls, extraTvlEnabled])
 
 	const showNonUsdDenomination =
 		denomination &&
@@ -206,13 +208,15 @@ export default function ProtocolChart({
 		valueSymbol = d.symbol || ''
 	}
 
-	const { finalData, chartsUnique } = React.useMemo(() => {
+	const { chartData, chartsUnique } = React.useMemo(() => {
 		if (!router.isReady) {
-			return { finalData: [], chartsUnique: [] }
+			return { chartData: [], chartsUnique: [] }
 		}
 		const chartsUnique = []
 
 		const chartData = {}
+
+		const tvlData = tvl !== 'false' ? formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled }) : []
 
 		if (tvlData.length > 0 && tvl !== 'false') {
 			chartsUnique.push('TVL')
@@ -620,18 +624,53 @@ export default function ProtocolChart({
 			})
 		}
 
-		const finalData = groupDataByDays(
-			chartData,
-			isHourlyChart || typeof groupBy !== 'string' ? null : groupBy,
-			chartsUnique
-		)
+		if (treasury === 'true' && treasuryData) {
+			chartsUnique.push('Treasury')
+			const tData = formatProtocolsTvlChartData({ historicalChainTvls: treasuryData.chainTvls, extraTvlEnabled: {} })
+
+			let prevDate = null
+
+			tData.forEach(([dateS, treasuryValue]) => {
+				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
+				// if (prevDate && +date - prevDate > 86400) {
+				// 	const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
+
+				// 	for (let i = 1; i < noOfDatesMissing + 1; i++) {
+				// 		const missingDate = prevDate + 86400 * i
+
+				// 		if (!chartData[missingDate]) {
+				// 			chartData[missingDate] = {}
+				// 		}
+
+				// 		const missingTvl =
+				// 			((chartData[prevDate]?.['Treasury'] ?? 0) +
+				// 				(showNonUsdDenomination
+				// 					? treasuryValue / getPriceAtDate(dateS, denominationHistory.prices)
+				// 					: treasuryValue)) /
+				// 			2
+
+				// 		chartData[missingDate]['Treasury'] = missingTvl
+				// 	}
+				// }
+
+				// prevDate = date
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Treasury'] = showNonUsdDenomination
+					? treasuryValue / getPriceAtDate(dateS, denominationHistory.prices)
+					: treasuryValue
+			})
+		}
 
 		return {
-			finalData,
+			chartData,
 			chartsUnique
 		}
 	}, [
-		tvlData,
 		protocolCGData,
 		mcap,
 		geckoId,
@@ -666,10 +705,16 @@ export default function ProtocolChart({
 		usdInflowsData,
 		inflowsExist,
 		isHourlyChart,
-		groupBy,
 		governance,
-		governanceData
+		governanceData,
+		extraTvlEnabled,
+		treasury,
+		treasuryData
 	])
+
+	const finalData = React.useMemo(() => {
+		return groupDataByDays(chartData, isHourlyChart || typeof groupBy !== 'string' ? null : groupBy, chartsUnique)
+	}, [chartData, chartsUnique, isHourlyChart, groupBy])
 
 	const fetchingTypes = []
 
@@ -722,6 +767,14 @@ export default function ProtocolChart({
 		fetchingTypes.push('median apy')
 	}
 
+	if (fetchingGovernanceData) {
+		fetchingTypes.push('governance')
+	}
+
+	if (fetchingTreasury) {
+		fetchingTypes.push('treasury')
+	}
+
 	const isLoading =
 		loading ||
 		fetchingFdv ||
@@ -733,7 +786,8 @@ export default function ProtocolChart({
 		fetchingTransactions ||
 		fetchingGasUsed ||
 		fetchingMedianAPY ||
-		fetchingGovernanceData
+		fetchingGovernanceData ||
+		fetchingTreasury
 
 	const realPathname =
 		`/protocol/${protocol}?` +
@@ -756,7 +810,8 @@ export default function ProtocolChart({
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
 			metrics.medianApy ||
 			(inflowsExist && !isHourlyChart ? true : false) ||
-			governanceApi ? (
+			governanceApi ||
+			protocolHasTreasury ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
 						<input
@@ -1134,6 +1189,29 @@ export default function ProtocolChart({
 							/>
 							<span data-wrapper="true">
 								<span>Governance</span>
+							</span>
+						</Toggle>
+					)}
+
+					{protocolHasTreasury && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="treasury"
+								checked={treasury === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, treasury: treasury === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Treasury</span>
 							</span>
 						</Toggle>
 					)}

@@ -15,9 +15,9 @@ import { fetchArticles, IArticle } from '~/api/categories/news'
 import {
 	ACTIVE_USERS_API,
 	PROTOCOLS_EXPENSES_API,
+	PROTOCOLS_TREASURY,
 	PROTOCOL_GOVERNANCE_API,
 	PROTOCOL_ONCHAIN_GOVERNANCE_API,
-	PROTOCOL_TREASURY_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 
@@ -26,11 +26,18 @@ export const getStaticProps = async ({
 		protocol: [protocol]
 	}
 }) => {
-	const [protocolRes, articles, emissions, expenses]: [IProtocolResponse, IArticle[], any, any] = await Promise.all([
+	const [protocolRes, articles, emissions, expenses, treasuries]: [
+		IProtocolResponse,
+		IArticle[],
+		any,
+		any,
+		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>
+	] = await Promise.all([
 		getProtocol(protocol),
 		fetchArticles({ tags: protocol }),
 		getProtocolEmissons(protocol),
-		fetch(PROTOCOLS_EXPENSES_API).then((res) => res.json())
+		fetch(PROTOCOLS_EXPENSES_API).then((res) => res.json()),
+		fetch(PROTOCOLS_TREASURY).then((res) => res.json())
 	])
 
 	let inflowsExist = false
@@ -56,49 +63,38 @@ export const getStaticProps = async ({
 			: null
 		: null
 
-	const [
-		backgroundColor,
-		allProtocols,
-		activeUsers,
-		feesAndRevenueProtocols,
-		dexs,
-		medianApy,
-		controversialProposals,
-		treasury
-	] = await Promise.all([
-		getColor(tokenIconPaletteUrl(protocolData.name)),
-		getProtocolsRaw(),
-		fetch(ACTIVE_USERS_API).then((res) => res.json()),
-		fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-			.then((res) => res.json())
-			.catch((err) => {
-				console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-				return {}
-			}),
-		fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-			.then((res) => res.json())
-			.catch((err) => {
-				console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-				return {}
-			}),
-		fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
-		governanceApi
-			? fetch(governanceApi)
-					.then((res) => res.json())
-					.then((data) => {
-						return Object.values(data.proposals)
-							.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
-							.slice(0, 3)
-					})
-					.catch((err) => {
-						console.log(err)
-						return {}
-					})
-			: null,
-		protocolData.treasury
-			? fetch(`${PROTOCOL_TREASURY_API}/${slug(protocolData.name)}`).then((res) => res.json())
-			: null
-	])
+	const [backgroundColor, allProtocols, activeUsers, feesAndRevenueProtocols, dexs, medianApy, controversialProposals] =
+		await Promise.all([
+			getColor(tokenIconPaletteUrl(protocolData.name)),
+			getProtocolsRaw(),
+			fetch(ACTIVE_USERS_API).then((res) => res.json()),
+			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+				}),
+			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+				}),
+			fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
+			governanceApi
+				? fetch(governanceApi)
+						.then((res) => res.json())
+						.then((data) => {
+							return Object.values(data.proposals)
+								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+								.slice(0, 3)
+						})
+						.catch((err) => {
+							console.log(err)
+							return {}
+						})
+				: null
+		])
 
 	const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
@@ -127,7 +123,8 @@ export const getStaticProps = async ({
 		'USD Inflows',
 		'Total Proposals',
 		'Successful Proposals',
-		'Max Votes'
+		'Max Votes',
+		'Treasury'
 	]
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
@@ -177,7 +174,7 @@ export const getStaticProps = async ({
 	const allTimeFees = feesAndRevenueData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const metrics = protocolData.metrics || {}
-
+	const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
 	return {
 		props: {
 			articles,
@@ -195,11 +192,6 @@ export const getStaticProps = async ({
 			similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
 				similarProtocols.find((p) => p.name === protocolName)
 			),
-			totalTreasury: treasury
-				? Object.entries((treasury.currentChainTvls || {}) as { [chain: string]: number })
-						.filter(([chain]) => !chain.endsWith('-OwnTokens'))
-						.reduce((acc, curr) => (acc += curr[1]), 0)
-				: null,
 			emissions,
 			chartColors: colorTones,
 			users: activeUsers[protocolData.id] || null,
@@ -214,6 +206,7 @@ export const getStaticProps = async ({
 			inflowsExist,
 			controversialProposals,
 			governanceApi,
+			treasury: treasury?.tokenBreakdowns ?? null,
 			helperTexts: {
 				fees:
 					volumeData.length > 1

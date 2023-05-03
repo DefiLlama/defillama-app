@@ -26,7 +26,8 @@ const CHART_SYMBOLS = {
 	'Max Votes': '',
 	TVL: '$',
 	APY: '%',
-	'Median APY': '%'
+	'Median APY': '%',
+	Treasury: '$'
 }
 
 echarts.use([

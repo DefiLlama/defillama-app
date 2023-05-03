@@ -262,7 +262,7 @@ interface IProtocolContainerProps {
 	protocolData: IFusedProtocolData
 	backgroundColor: string
 	similarProtocols: Array<{ name: string; tvl: number }>
-	totalTreasury: number | null
+	treasury: { [category: string]: number } | null
 	emissions: IEmission
 	isCEX?: boolean
 	chartColors: { [type: string]: string }
@@ -292,10 +292,10 @@ function ProtocolContainer({
 	articles,
 	title,
 	protocolData,
+	treasury,
 	protocol,
 	backgroundColor,
 	similarProtocols,
-	totalTreasury,
 	emissions,
 	isCEX,
 	chartColors,
@@ -338,7 +338,6 @@ function ProtocolContainer({
 		gecko_id,
 		isParentProtocol,
 		raises,
-		treasury,
 		metrics,
 		isHourlyChart
 	} = protocolData
@@ -721,16 +720,11 @@ function ProtocolContainer({
 										<td>{formattedNum(allTimeFees, true)}</td>
 									</tr>
 								) : null}
-
-								{totalTreasury ? (
-									<tr>
-										<th>Treasury</th>
-										<td>{formattedNum(totalTreasury, true)}</td>
-									</tr>
-								) : null}
 							</tbody>
 						</ProtocolStatsTable>
 					</div>
+
+					<>{treasury && <TreasuryTable data={treasury} />}</>
 
 					<>{raises && raises.length > 0 && <Raised data={raises} />}</>
 
@@ -760,6 +754,7 @@ function ProtocolContainer({
 					inflowsExist={inflowsExist}
 					governanceApi={governanceApi}
 					isHourlyChart={isHourlyChart}
+					protocolHasTreasury={treasury ? true : false}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
@@ -1118,7 +1113,7 @@ const Expenses = ({
 						{Object.entries(data.annualUsdCost || {}).map(([cat, exp]) => {
 							return (
 								<tr key={'expenses' + cat + exp}>
-									<th data-subvalue>{cat}</th>
+									<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
 									<td data-subvalue>{formattedNum(exp, true)}</td>
 								</tr>
 							)
@@ -1132,6 +1127,43 @@ const Expenses = ({
 							</th>
 							<td data-subvalue></td>
 						</tr>
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+const TreasuryTable = ({ data }: { data: { [category: string]: number } }) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} />
+							<span>Treasury</span>
+						</Toggle>
+					</th>
+					<td>
+						{formattedNum(
+							Object.values(data).reduce((acc, curr) => (acc += curr), 0),
+							true
+						)}
+					</td>
+				</tr>
+
+				{open && (
+					<>
+						{Object.entries(data).map(([cat, tre]) => {
+							return (
+								<tr key={'treasury' + cat + tre}>
+									<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
+									<td data-subvalue>{formattedNum(tre, true)}</td>
+								</tr>
+							)
+						})}
 					</>
 				)}
 			</tbody>

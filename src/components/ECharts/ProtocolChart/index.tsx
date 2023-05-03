@@ -102,6 +102,10 @@ export default function AreaBarChart({
 			yAxisByIndex['Max Votes'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('Treasury')) {
+			yAxisByIndex['Treasury'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
@@ -353,6 +357,18 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Max Votes']
+						}
+					}
+				})
+			}
+
+			if (type === 'Treasury') {
+				yAxiss.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Treasury']
 						}
 					}
 				})
