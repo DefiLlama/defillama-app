@@ -25,6 +25,7 @@ import Link from 'next/link'
 import { DownloadIcon } from '~/components'
 import { download, formattedNum, toNiceCsvDate } from '~/utils'
 import useWindowSize from '~/hooks/useWindowSize'
+import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -79,7 +80,7 @@ function RaisesTable({ raises, downloadCsv }) {
 
 	return (
 		<>
-			<TableFilters>
+			<TableFiltersWithInput>
 				<SearchIcon size={16} />
 
 				<input
@@ -100,7 +101,7 @@ function RaisesTable({ raises, downloadCsv }) {
 						<span>&nbsp;&nbsp;.json</span>
 					</DownloadButton>
 				</Link>
-			</TableFilters>
+			</TableFiltersWithInput>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</>
@@ -347,39 +348,5 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		</Layout>
 	)
 }
-
-const TableFilters = styled.div`
-	display: flex;
-	aling-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-	margin: 0 0 -20px;
-	position: relative;
-
-	input {
-		width: 100%;
-		margin-right: auto;
-		border-radius: 8px;
-		padding: 8px;
-		padding-left: 32px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
-
-		font-size: 0.875rem;
-		border: none;
-	}
-
-	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		input {
-			max-width: 400px;
-		}
-	}
-`
-
-const SearchIcon = styled(Search)`
-	position: absolute;
-	top: 8px;
-	left: 8px;
-	color: ${({ theme }) => theme.text3};
-`
 
 export default RaisesContainer

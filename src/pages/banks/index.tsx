@@ -3,57 +3,57 @@ import Layout from '~/layout'
 import data from './final.json'
 import { ChartWrapper } from '~/layout/ProtocolAndPool'
 import dynamic from 'next/dynamic'
-import DefiProtocolsTable from '~/components/Table/Defi'
-import { formattedNum, toNiceDayMonthAndYear } from '~/utils'
+import { formattedNum } from '~/utils'
 import { toNiceDateYear } from '~/utils'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<any>
 
-const BanksTable = ({ data }: { data: Array<any> }) => (
-	<DefiProtocolsTable
-		data={data}
-		columns={[
-			{
-				header: 'Name',
-				accessorKey: '1',
-				enableSorting: false,
-				size: 220
-			},
-			{
-				header: 'Closing date',
-				accessorKey: 'date',
-				cell: ({ getValue }) => {
-					return <>{toNiceDateYear(getValue())}</>
-				},
-				meta: {
-					align: 'end'
-				}
-			},
-			{
-				header: 'Assets',
-				accessorKey: '6',
-				cell: ({ getValue }) => {
-					return <>{getValue() ? '$' + formattedNum(getValue() * 1e6) : ''}</>
-				},
-				meta: {
-					align: 'end'
-				}
-			},
-			{
-				header: 'Assets (inflation adjusted)',
-				accessorKey: '7',
-				cell: ({ getValue }) => {
-					return <>{getValue() ? '$' + formattedNum(getValue() * 1e6) : ''}</>
-				},
-				meta: {
-					align: 'end'
-				}
-			}
-		]}
-	/>
-)
+const banksTableColumns = [
+	{
+		header: 'Name',
+		accessorKey: '1',
+		enableSorting: false,
+		size: 220
+	},
+	{
+		header: 'Closing date',
+		accessorKey: 'date',
+		cell: ({ getValue }) => {
+			return <>{toNiceDateYear(getValue())}</>
+		},
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Assets',
+		accessorKey: '6',
+		cell: ({ getValue }) => {
+			return <>{getValue() ? '$' + formattedNum(getValue() * 1e6) : ''}</>
+		},
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Assets (inflation adjusted)',
+		accessorKey: '7',
+		cell: ({ getValue }) => {
+			return <>{getValue() ? '$' + formattedNum(getValue() * 1e6) : ''}</>
+		},
+		meta: {
+			align: 'end'
+		}
+	}
+]
+
+const tableData = data.banks.map((b: any) => {
+	b.date = new Date(b[4]).getTime() / 1e3
+	return b
+})
 
 const Banks = () => {
 	return (
@@ -65,11 +65,11 @@ const Banks = () => {
 					valueSymbol="$"
 				/>
 			</ChartWrapper>
-			<BanksTable
-				data={data.banks.map((b: any) => {
-					b.date = new Date(b[4]).getTime() / 1e3
-					return b
-				})}
+			<TableWithSearch
+				data={tableData}
+				columns={banksTableColumns}
+				placeholder="Search banks..."
+				columnToSearch={'1'}
 			/>
 		</Layout>
 	)
