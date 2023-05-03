@@ -424,16 +424,6 @@ export const expensesColumns: ColumnDef<any>[] = [
 		}
 	},
 	{
-		header: 'Average cost per FTE',
-		accessorKey: 'avgCostPerFTE',
-		cell: ({ getValue }) => {
-			return <>{getValue() ? '$' + formattedNum(getValue()) : ''}</>
-		},
-		meta: {
-			align: 'end'
-		}
-	},
-	{
 		header: 'Source',
 		accessorKey: 'sources',
 		enableSorting: false,
