@@ -138,32 +138,35 @@ export default function AreaChart({
 			xAxis: {
 				...xAxis
 			},
-			yAxis: [
-				{
-					...yAxis,
-					axisLabel: {
-						formatter: (value) => value + '%'
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: stackColors['APY']
-						}
-					}
-				},
-				{
-					...yAxis,
-					axisLabel: {
-						formatter: (value) => '$' + toK(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: stackColors['TVL']
-						}
-					}
-				}
-			],
+			yAxis:
+				stacks.length === 1
+					? yAxis
+					: [
+							{
+								...yAxis,
+								axisLabel: {
+									formatter: (value) => value + '%'
+								},
+								axisLine: {
+									show: true,
+									lineStyle: {
+										color: stackColors['APY']
+									}
+								}
+							},
+							{
+								...yAxis,
+								axisLabel: {
+									formatter: (value) => '$' + toK(value)
+								},
+								axisLine: {
+									show: true,
+									lineStyle: {
+										color: stackColors['TVL']
+									}
+								}
+							}
+					  ],
 			dataZoom: [...dataZoom],
 			series
 		})
