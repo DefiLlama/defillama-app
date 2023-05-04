@@ -5,32 +5,36 @@ import { maxAgeForNext } from '~/api'
 import { getPeggedAssets, getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 import { primaryColor } from '~/constants/colors'
 import { peggedAssetIconPalleteUrl } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps({
-	params: {
-		chain: [chain]
-	}
-}) {
-	const props = await getPeggedOverviewPageData(chain)
+export const getStaticProps = withPerformanceLogging(
+	'stablecoins/[...chain]',
+	async ({
+		params: {
+			chain: [chain]
+		}
+	}) => {
+		const props = await getPeggedOverviewPageData(chain)
 
-	if (!props.filteredPeggedAssets || props.filteredPeggedAssets?.length === 0) {
+		if (!props.filteredPeggedAssets || props.filteredPeggedAssets?.length === 0) {
+			return {
+				notFound: true
+			}
+		}
+
+		const name = props.filteredPeggedAssets[0]?.name
+
+		const backgroundColor = name ? await getColor(peggedAssetIconPalleteUrl(name)) : primaryColor
+
 		return {
-			notFound: true
+			props: {
+				...props,
+				backgroundColor
+			},
+			revalidate: maxAgeForNext([22])
 		}
 	}
-
-	const name = props.filteredPeggedAssets[0]?.name
-
-	const backgroundColor = name ? await getColor(peggedAssetIconPalleteUrl(name)) : primaryColor
-
-	return {
-		props: {
-			...props,
-			backgroundColor
-		},
-		revalidate: maxAgeForNext([22])
-	}
-}
+)
 
 export async function getStaticPaths() {
 	const { chains } = await getPeggedAssets()
