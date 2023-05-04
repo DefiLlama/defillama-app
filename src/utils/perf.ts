@@ -11,11 +11,13 @@ export const withPerformanceLogging = <T extends {}>(
 		try {
 			const props = await getStaticPropsFunction(context)
 			const end = performance.now()
-			console.log(`[PREPARED] [${(end - start).toFixed(0)}ms] <${filename}> ${JSON.stringify(params)}`)
+			console.log(
+				`[PREPARED][${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
+			)
 			return props
 		} catch (error) {
 			const end = performance.now()
-			console.log(`[ERROR] [${(end - start).toFixed(0)}ms] <${filename}> ${JSON.stringify(params)}`)
+			console.log(`[ERROR][${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : ''))
 			throw error
 		}
 	}
