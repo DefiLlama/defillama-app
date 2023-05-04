@@ -7,6 +7,12 @@ export async function getStaticProps({
 		collection: [slug]
 	}
 }) {
+	if (!slug.startsWith('0x')) {
+		return {
+			notFound: true
+		}
+	}
+
 	const data = await getNFTCollection(slug)
 
 	return {
