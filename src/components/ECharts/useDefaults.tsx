@@ -143,7 +143,7 @@ export function useDefaults({
 							curr.value[1],
 							curr.seriesName === 'Unlocks'
 								? unlockTokenSymbol
-								: Object.keys(CHART_SYMBOLS)
+								: Object.keys(CHART_SYMBOLS).includes(curr.seriesName)
 								? CHART_SYMBOLS[curr.seriesName]
 								: valueSymbol
 						) +
