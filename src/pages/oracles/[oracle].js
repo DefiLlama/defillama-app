@@ -11,6 +11,7 @@ import { maxAgeForNext } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -22,14 +23,14 @@ const chartColors = {
 	TVS: '#4f8fea'
 }
 
-export async function getStaticProps({ params: { oracle } }) {
+export const getStaticProps = withPerformanceLogging('oracles/[oracle]', async ({ params: { oracle } }) => {
 	const data = await getOraclePageData(oracle)
 
 	return {
 		...data,
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export async function getStaticPaths() {
 	const { oracles = {} } = await getOraclePageData()
