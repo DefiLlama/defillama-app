@@ -45,15 +45,6 @@ export const cexData = [
 		cgDeriv: 'crypto_com_futures'
 	},
 	{
-		name: 'Huobi',
-		slug: 'Huobi',
-		coin: 'HT',
-		coinSymbol: 'HT',
-		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',
-		cgId: 'huobi',
-		cgDeriv: 'huobi_dm'
-	},
-	{
 		name: 'Bybit',
 		slug: 'Bybit',
 		coin: 'BIT',
@@ -61,6 +52,15 @@ export const cexData = [
 		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048',
 		cgId: 'bybit_spot',
 		cgDeriv: 'bybit'
+	},
+	{
+		name: 'Huobi',
+		slug: 'Huobi',
+		coin: 'HT',
+		coinSymbol: 'HT',
+		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',
+		cgId: 'huobi',
+		cgDeriv: 'huobi_dm'
 	},
 	{
 		name: 'Kucoin',
@@ -180,6 +180,12 @@ export const cexData = [
 		slug: 'nbx',
 		coin: null,
 		walletsLink: 'https://nbx.com/en/proof-of-reserves'
+	},
+	{
+		name: 'Latoken',
+		slug: 'latoken',
+		coin: null,
+		walletsLink: null
 	},
 	{
 		name: 'BitVenus',
