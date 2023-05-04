@@ -4,8 +4,9 @@ import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('yields/borrow', async () => {
 	const data = await getLendBorrowData()
 
 	const cgTokens = await getAllCGTokensList()
@@ -29,7 +30,7 @@ export async function getStaticProps() {
 		props: { ...data.props, tokens, tokenSymbolsList },
 		revalidate: maxAgeForNext([23])
 	}
-}
+})
 
 export default function YieldBorrow(data) {
 	return (

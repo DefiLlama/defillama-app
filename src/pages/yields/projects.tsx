@@ -4,6 +4,7 @@ import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
+import { withPerformanceLogging } from '~/utils/perf'
 
 import PageHeader from '~/components/PageHeader'
 
@@ -18,7 +19,7 @@ function median(numbers) {
 	return sorted[middle]
 }
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('yields/projects', async () => {
 	let data = await getYieldPageData()
 	data.props.pools = data.props.pools.filter((p) => p.apy > 0)
 
@@ -51,7 +52,7 @@ export async function getStaticProps() {
 		props: { projects: projArray.sort((a, b) => b.tvl - a.tvl) },
 		revalidate: maxAgeForNext([23])
 	}
-}
+})
 
 export default function Protocols({ projects }) {
 	return (

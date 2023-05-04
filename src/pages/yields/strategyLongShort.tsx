@@ -4,8 +4,9 @@ import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getYieldPageData, getPerpData } from '~/api/categories/yield'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('yields/strategyLongShort', async () => {
 	const data = await getYieldPageData()
 
 	// for funding rate strategies keep only single sided no IL pools
@@ -54,7 +55,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([23])
 	}
-}
+})
 
 export default function YieldStrategiesFR(data) {
 	return (
