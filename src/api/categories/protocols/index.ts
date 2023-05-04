@@ -59,12 +59,10 @@ export const getProtocol = async (protocolName: string) => {
 	try {
 		const data: IProtocolResponse = await fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
 
-		let isNewlyListedProtocol = false
+		let isNewlyListedProtocol = true
 
 		Object.values(data.chainTvls).forEach((chain) => {
-			if (chain.tvl?.length < 7) {
-				isNewlyListedProtocol = true
-			} else {
+			if (chain.tvl?.length > 7) {
 				isNewlyListedProtocol = false
 			}
 		})

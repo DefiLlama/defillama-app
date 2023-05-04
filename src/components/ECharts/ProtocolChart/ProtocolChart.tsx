@@ -245,7 +245,7 @@ export default function ProtocolChart({
 					}
 				}
 
-				prevDate = date
+				prevDate = +date
 
 				if (!chartData[date]) {
 					chartData[date] = {}
@@ -437,7 +437,7 @@ export default function ProtocolChart({
 			chartsUnique.push('Volume')
 
 			volumeData.forEach((item) => {
-				const date = +item.date
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
@@ -458,7 +458,7 @@ export default function ProtocolChart({
 			}
 
 			feesAndRevenue.forEach((item) => {
-				const date = +item.date
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
@@ -482,8 +482,9 @@ export default function ProtocolChart({
 			emissions
 				.filter((emission) => +emission.date * 1000 <= Date.now())
 				.forEach((item) => {
-					if (!chartData[item.date]) {
-						chartData[item.date] = {}
+					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+					if (!chartData[date]) {
+						chartData[date] = {}
 					}
 
 					let totalUnlocked = 0
@@ -494,14 +495,16 @@ export default function ProtocolChart({
 						}
 					}
 
-					chartData[item.date]['Unlocks'] = totalUnlocked
+					chartData[date]['Unlocks'] = totalUnlocked
 				})
 		}
 
 		if (activeUsers === 'true' && activeUsersData) {
 			chartsUnique.push('Active Users')
 
-			activeUsersData.forEach(([date, noOfUsers]) => {
+			activeUsersData.forEach(([dateS, noOfUsers]) => {
+				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
@@ -512,7 +515,9 @@ export default function ProtocolChart({
 		if (newUsers === 'true' && newUsersData) {
 			chartsUnique.push('New Users')
 
-			newUsersData.forEach(([date, noOfUsers]) => {
+			newUsersData.forEach(([dateS, noOfUsers]) => {
+				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
@@ -523,7 +528,9 @@ export default function ProtocolChart({
 		if (transactions === 'true' && transactionsData) {
 			chartsUnique.push('Transactions')
 
-			transactionsData.forEach(([date, noOfTxs]) => {
+			transactionsData.forEach(([dateS, noOfTxs]) => {
+				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
@@ -534,7 +541,9 @@ export default function ProtocolChart({
 		if (gasUsed === 'true' && gasData) {
 			chartsUnique.push('Gas Used')
 
-			gasData.forEach(([date, gasAmount]) => {
+			gasData.forEach(([dateS, gasAmount]) => {
+				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
@@ -547,7 +556,9 @@ export default function ProtocolChart({
 		if (medianApy === 'true' && medianAPYData) {
 			chartsUnique.push('Median APY')
 
-			medianAPYData.forEach(({ date, medianAPY }) => {
+			medianAPYData.forEach(({ date: dateS, medianAPY }) => {
+				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
@@ -603,7 +614,7 @@ export default function ProtocolChart({
 			chartsUnique.push('Max Votes')
 
 			governanceData.activity?.forEach((item) => {
-				const date = isHourlyChart ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
@@ -614,7 +625,7 @@ export default function ProtocolChart({
 			})
 
 			governanceData.maxVotes?.forEach((item) => {
-				const date = isHourlyChart ? item.date : Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
