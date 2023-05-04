@@ -4,24 +4,27 @@ import { maxAgeForNext } from '~/api'
 import { getProtocolsPageData } from '~/api/categories/protocols'
 import { PROTOCOLS_API } from '~/constants/index'
 import { capitalizeFirstLetter } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
+export const getStaticProps = withPerformanceLogging(
+	'protocols/[...category]',
+	async ({
+		params: {
+			category: [category, chain]
+		}
+	}) => {
+		const props = await getProtocolsPageData(category, chain)
 
-export async function getStaticProps({
-	params: {
-		category: [category, chain]
-	}
-}) {
-	const props = await getProtocolsPageData(category, chain)
-
-	if (props.filteredProtocols.length === 0) {
+		if (props.filteredProtocols.length === 0) {
+			return {
+				notFound: true
+			}
+		}
 		return {
-			notFound: true
+			props,
+			revalidate: maxAgeForNext([22])
 		}
 	}
-	return {
-		props,
-		revalidate: maxAgeForNext([22])
-	}
-}
+)
 
 export async function getStaticPaths() {
 	const res = await fetch(PROTOCOLS_API)
