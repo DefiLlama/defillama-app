@@ -2,17 +2,14 @@ import * as React from 'react'
 import type { IFusedProtocolData } from '~/api/types'
 import { ChartsWrapper } from '~/layout/ProtocolAndPool'
 import { slug } from '~/utils'
-import { ChartByType } from './../../DexsAndFees/charts'
+import { ChartByType, ChartByType2 } from './../../DexsAndFees/charts'
 
-export function ProtocolFeesAndRevenueCharts({ data }: { data: IFusedProtocolData }) {
+export const ProtocolFeesRevenueVolumeCharts = ({ data }: { data: IFusedProtocolData }) => {
 	const metrics = Object.entries(data.metrics ?? {})
 	const hasVersions = (data.otherProtocols ?? []).length > 0
+
 	return (
 		<ChartsWrapper>
-			{/* <ChartByType chartType="chain" protocolName={slug(data.name)} type="dexs" />
-			<ChartByType chartType="version" protocolName={slug(data.name)} type="dexs" />
-			<ChartByType chartType="chain" protocolName={slug(data.name)} type="fees" breakdownChart={false} />
-			<ChartByType chartType="chain" protocolName={slug(data.name)} type="fees" /> */}
 			{metrics.map(([key, enabled], i) => {
 				return enabled && key !== 'medianApy' ? (
 					<React.Fragment key={i}>
@@ -24,6 +21,29 @@ export function ProtocolFeesAndRevenueCharts({ data }: { data: IFusedProtocolDat
 					</React.Fragment>
 				) : null
 			})}
+		</ChartsWrapper>
+	)
+}
+
+export function FeesAndRevenueCharts({ data }: { data: IFusedProtocolData }) {
+	const hasVersions = (data.otherProtocols ?? []).length > 0
+
+	return (
+		<ChartsWrapper style={{ background: 'none', border: 'none' }}>
+			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} />
+			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={'fees'} /> : null}
+			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} breakdownChart={false} />
+		</ChartsWrapper>
+	)
+}
+
+export function VolumeCharts({ data }: { data: IFusedProtocolData }) {
+	const hasVersions = (data.otherProtocols ?? []).length > 0
+
+	return (
+		<ChartsWrapper style={{ background: 'none', border: 'none' }}>
+			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'dexs'} />
+			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={'dexs'} /> : null}
 		</ChartsWrapper>
 	)
 }

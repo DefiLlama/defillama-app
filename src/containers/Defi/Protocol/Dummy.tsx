@@ -12,7 +12,7 @@ import { tokenIconUrl } from '~/utils'
 import { ArrowUpRight } from 'react-feather'
 import styled from 'styled-components'
 import { Treasury } from './Treasury'
-import { ProtocolFeesAndRevenueCharts } from './Fees'
+import { ProtocolFeesRevenueVolumeCharts } from './Fees'
 
 export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 	return (
@@ -61,7 +61,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 
 				{data.treasury && <Treasury protocolName={protocol} />}
 
-				<ProtocolFeesAndRevenueCharts data={data} />
+				<ProtocolFeesRevenueVolumeCharts data={data} />
 			</Wrapper>
 		</Layout>
 	)

@@ -12,15 +12,13 @@ import {
 	DownloadButton,
 	ExtraOption,
 	FlexRow,
-	InfoWrapper,
 	LinksWrapper,
 	DetailsWrapper,
 	Name,
 	Section,
-	SectionHeader,
 	Symbol,
 	ChartsWrapper,
-	LazyChart,
+	ChartWrapper,
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
@@ -49,18 +47,19 @@ import {
 } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IFusedProtocolData, IRaise } from '~/api/types'
-import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
-import { Treasury } from './Treasury'
+import { TreasuryChart } from './Treasury'
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
-import { Emissions } from './Emissions'
+import { UnlocksCharts } from './Emissions'
 import { RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
-import { ProtocolFeesAndRevenueCharts } from './Fees'
 import type { IEmission } from './Emissions'
 import Announcement from '~/components/Announcement'
+import { useTabState, TabPanel } from 'ariakit'
+import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
+import { GridContent, TabLayout, TabList, Tab } from './Common'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
 
@@ -279,6 +278,7 @@ interface IProtocolContainerProps {
 	controversialProposals: Array<{ title: string; link?: string }> | null
 	governanceApi: string | null
 	expenses: any
+	yields: { noOfPoolsTracked: number; averageAPY: number } | null
 	helperTexts: {
 		fees?: string | null
 		revenue?: string | null
@@ -312,6 +312,7 @@ function ProtocolContainer({
 	controversialProposals,
 	governanceApi,
 	expenses,
+	yields,
 	helperTexts
 }: IProtocolContainerProps) {
 	useScrollToTop()
@@ -391,8 +392,6 @@ function ProtocolContainer({
 		return tvl
 	}, [extraTvlsEnabled, tvlBreakdowns, historicalChainTvls])
 
-	const { data: yields } = useYields()
-
 	const {
 		tvls: tvlsByChain,
 		extraTvls,
@@ -440,16 +439,6 @@ function ProtocolContainer({
 			[addlProtocolData, extraTvlsEnabled]
 		)
 
-	const [yieldsNumber, averageApy] = React.useMemo(() => {
-		if (!yields) return [0, 0]
-		const projectYieldsExist = yields.find(({ project }) => project === protocol)
-		if (!projectYieldsExist) return [0, 0]
-		const projectYields = yields.filter(({ project }) => project === protocol)
-		const averageApy = projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
-
-		return [projectYields.length, averageApy]
-	}, [protocol, yields])
-
 	const chainsSplit = React.useMemo(() => {
 		return formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
 	}, [historicalChainTvls, extraTvlsEnabled])
@@ -479,6 +468,8 @@ function ProtocolContainer({
 			? historicalChainTvls?.['borrowed']?.tvl[historicalChainTvls?.['borrowed']?.tvl.length - 1]?.totalLiquidityUSD ??
 			  null
 			: null
+
+	const tab = useTabState({ defaultSelectedId: 'information' })
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
@@ -763,248 +754,333 @@ function ProtocolContainer({
 				</Bobo>
 			</StatsSection>
 
-			<SectionHeader>Information</SectionHeader>
-			<InfoWrapper>
-				<Section>
-					<h3>{isCEX ? 'Exchange Information' : 'Protocol Information'}</h3>
-					{description && <p>{description}</p>}
-
-					{category && (
-						<FlexRow>
-							<span>Category</span>
-							<span>: </span>
-							<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category.toLowerCase()}`}>
-								{category}
-							</Link>
-						</FlexRow>
+			<TabLayout>
+				<TabList state={tab}>
+					<Tab id="information" color={backgroundColor}>
+						Information
+					</Tab>
+					{showCharts && (
+						<Tab id="tvl-charts" color={backgroundColor}>
+							TVL Charts
+						</Tab>
 					)}
+					{treasury && (
+						<Tab id="treasury" color={backgroundColor}>
+							Treasury
+						</Tab>
+					)}
+					{emissions?.chartData?.length > 0 && (
+						<Tab id="unlocks" color={backgroundColor}>
+							Unlocks
+						</Tab>
+					)}
+					{yields && (
+						<Tab id="yields" color={backgroundColor}>
+							Yields
+						</Tab>
+					)}
+					{metrics.fees && (
+						<Tab id="fees-revenue" color={backgroundColor}>
+							Fees and Revenue
+						</Tab>
+					)}
+					{metrics.dexs && (
+						<Tab id="volume" color={backgroundColor}>
+							Volume
+						</Tab>
+					)}
+				</TabList>
 
-					{forkedFrom && forkedFrom.length > 0 && (
-						<FlexRow>
-							<span>Forked from</span>
-							<span>:</span>
-							<>
-								{forkedFrom.map((p, index) => (
-									<Link href={`/protocol/${slug(p)}`} key={p}>
-										{forkedFrom[index + 1] ? p + ', ' : p}
+				<TabPanel state={tab} tabId="information">
+					<GridContent>
+						<Section>
+							<h3>{isCEX ? 'Exchange Information' : 'Protocol Information'}</h3>
+							{description && <p>{description}</p>}
+
+							{category && (
+								<FlexRow>
+									<span>Category</span>
+									<span>: </span>
+									<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category.toLowerCase()}`}>
+										{category}
 									</Link>
-								))}
-							</>
-						</FlexRow>
-					)}
-
-					{audits && audit_links && <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />}
-
-					<LinksWrapper>
-						{url && (
-							<Link href={url} passHref>
-								<Button as="a" target="_blank" rel="noopener" useTextColor={true} color={backgroundColor}>
-									<span>Website</span> <ArrowUpRight size={14} />
-								</Button>
-							</Link>
-						)}
-
-						{twitter && (
-							<Link href={`https://twitter.com/${twitter}`} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-									<span>Twitter</span> <ArrowUpRight size={14} />
-								</Button>
-							</Link>
-						)}
-					</LinksWrapper>
-				</Section>
-
-				{articles.length > 0 && (
-					<Section>
-						<RowBetween>
-							<h3>Latest from DL News</h3>
-							<Link href="https://www.dlnews.com" passHref>
-								<a>
-									<DLNewsLogo width={102} height={22} />
-								</a>
-							</Link>
-						</RowBetween>
-
-						{articles.map((article, idx) => (
-							<NewsCard key={`news_card_${idx}`} {...article} color={backgroundColor} />
-						))}
-					</Section>
-				)}
-
-				{(address || protocolData.gecko_id || blockExplorerLink) && (
-					<Section>
-						<h3>Token Information</h3>
-
-						{address && (
-							<FlexRow>
-								<span>Address</span>
-								<span>:</span>
-								<span>{address.split(':').pop().slice(0, 8) + '...' + address?.slice(36, 42)}</span>
-								<CopyHelper toCopy={address.split(':').pop()} disabled={!address} />
-							</FlexRow>
-						)}
-
-						<LinksWrapper>
-							{protocolData.gecko_id && (
-								<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
-									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-										<span>View on CoinGecko</span> <ArrowUpRight size={14} />
-									</Button>
-								</Link>
+								</FlexRow>
 							)}
 
-							{blockExplorerLink && (
-								<Link href={blockExplorerLink} passHref>
-									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-										<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
-									</Button>
-								</Link>
-							)}
-						</LinksWrapper>
-					</Section>
-				)}
-
-				{(methodology || codeModule) && (
-					<Section>
-						<h3>Methodology</h3>
-						{methodology && <p>{methodology}</p>}
-						<LinksWrapper>
-							{codeModule && (
-								<Link
-									href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
-									passHref
-								>
-									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-										<span>Check the code</span>
-										<ArrowUpRight size={14} />
-									</Button>
-								</Link>
-							)}
-						</LinksWrapper>
-					</Section>
-				)}
-
-				{similarProtocols && similarProtocols.length > 0 ? (
-					<Section>
-						<h3>Competitors</h3>
-
-						<LinksWrapper>
-							{similarProtocols.map((similarProtocol) => (
-								<Link href={`/protocol/${slug(similarProtocol.name)}`} passHref key={similarProtocol.name}>
-									<a target="_blank" style={{ textDecoration: 'underline' }}>{`${similarProtocol.name} ($${toK(
-										similarProtocol.tvl
-									)})`}</a>
-								</Link>
-							))}
-						</LinksWrapper>
-					</Section>
-				) : null}
-
-				{treasury && <Treasury protocolName={protocol} />}
-
-				{emissions?.chartData?.length > 0 ? <Emissions data={emissions} /> : null}
-			</InfoWrapper>
-
-			{yieldsNumber > 0 && (
-				<InfoWrapper>
-					<Section>
-						<h3>Yields</h3>
-
-						<FlexRow>
-							<span>Number of pools tracked</span>
-							<span>:</span>
-							<span>{yieldsNumber}</span>
-						</FlexRow>
-						<FlexRow>
-							<span>Average APY</span>
-							<span>:</span>
-							<span>{averageApy.toFixed(2)}%</span>
-						</FlexRow>
-
-						<LinksWrapper>
-							<Link href={`/yields?project=${protocol}`} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-									<span>Open on Yields dashboard</span> <ArrowUpRight size={14} />
-								</Button>
-							</Link>
-						</LinksWrapper>
-					</Section>
-				</InfoWrapper>
-			)}
-
-			{showCharts && (
-				<>
-					<SectionHeader>{isCEX ? 'Total Assets Charts' : 'TVL Charts'}</SectionHeader>
-
-					<ChartsWrapper>
-						{loading ? (
-							<ChartsPlaceholder>Loading...</ChartsPlaceholder>
-						) : (
-							<>
-								{chainsSplit && chainsUnique?.length > 1 && (
-									<LazyChart>
-										<AreaChart
-											chartData={chainsSplit}
-											title="Chains"
-											customLegendName="Chain"
-											customLegendOptions={chainsUnique}
-											valueSymbol="$"
-										/>
-									</LazyChart>
-								)}
-								{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
-									<LazyChart>
-										<AreaChart
-											chartData={tokenBreakdown}
-											title="Tokens"
-											customLegendName="Token"
-											customLegendOptions={tokensUnique}
-										/>
-									</LazyChart>
-								)}
-								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
+							{forkedFrom && forkedFrom.length > 0 && (
+								<FlexRow>
+									<span>Forked from</span>
+									<span>:</span>
 									<>
-										{tokenBreakdownPieChart.length > 0 && (
-											<LazyChart>
-												<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
-											</LazyChart>
-										)}
+										{forkedFrom.map((p, index) => (
+											<Link href={`/protocol/${slug(p)}`} key={p}>
+												{forkedFrom[index + 1] ? p + ', ' : p}
+											</Link>
+										))}
+									</>
+								</FlexRow>
+							)}
 
-										<LazyChart>
+							{audits && audit_links && <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />}
+
+							<LinksWrapper>
+								{url && (
+									<Link href={url} passHref>
+										<Button as="a" target="_blank" rel="noopener" useTextColor={true} color={backgroundColor}>
+											<span>Website</span> <ArrowUpRight size={14} />
+										</Button>
+									</Link>
+								)}
+
+								{twitter && (
+									<Link href={`https://twitter.com/${twitter}`} passHref>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
+											<span>Twitter</span> <ArrowUpRight size={14} />
+										</Button>
+									</Link>
+								)}
+							</LinksWrapper>
+						</Section>
+
+						{articles.length > 0 && (
+							<Section>
+								<RowBetween>
+									<h3>Latest from DL News</h3>
+									<Link href="https://www.dlnews.com" passHref>
+										<a>
+											<DLNewsLogo width={102} height={22} />
+										</a>
+									</Link>
+								</RowBetween>
+
+								{articles.map((article, idx) => (
+									<NewsCard key={`news_card_${idx}`} {...article} color={backgroundColor} />
+								))}
+							</Section>
+						)}
+
+						{(address || protocolData.gecko_id || blockExplorerLink) && (
+							<Section>
+								<h3>Token Information</h3>
+
+								{address && (
+									<FlexRow>
+										<span>Address</span>
+										<span>:</span>
+										<span>{address.split(':').pop().slice(0, 8) + '...' + address?.slice(36, 42)}</span>
+										<CopyHelper toCopy={address.split(':').pop()} disabled={!address} />
+									</FlexRow>
+								)}
+
+								<LinksWrapper>
+									{protocolData.gecko_id && (
+										<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
+											<Button
+												as="a"
+												target="_blank"
+												rel="noopener noreferrer"
+												useTextColor={true}
+												color={backgroundColor}
+											>
+												<span>View on CoinGecko</span> <ArrowUpRight size={14} />
+											</Button>
+										</Link>
+									)}
+
+									{blockExplorerLink && (
+										<Link href={blockExplorerLink} passHref>
+											<Button
+												as="a"
+												target="_blank"
+												rel="noopener noreferrer"
+												useTextColor={true}
+												color={backgroundColor}
+											>
+												<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
+											</Button>
+										</Link>
+									)}
+								</LinksWrapper>
+							</Section>
+						)}
+
+						{(methodology || codeModule) && (
+							<Section>
+								<h3>Methodology</h3>
+								{methodology && <p>{methodology}</p>}
+								<LinksWrapper>
+									{codeModule && (
+										<Link
+											href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
+											passHref
+										>
+											<Button
+												as="a"
+												target="_blank"
+												rel="noopener noreferrer"
+												useTextColor={true}
+												color={backgroundColor}
+											>
+												<span>Check the code</span>
+												<ArrowUpRight size={14} />
+											</Button>
+										</Link>
+									)}
+								</LinksWrapper>
+							</Section>
+						)}
+
+						{similarProtocols && similarProtocols.length > 0 ? (
+							<Section>
+								<h3>Competitors</h3>
+
+								<LinksWrapper>
+									{similarProtocols.map((similarProtocol) => (
+										<Link href={`/protocol/${slug(similarProtocol.name)}`} passHref key={similarProtocol.name}>
+											<a target="_blank" style={{ textDecoration: 'underline' }}>{`${similarProtocol.name} ($${toK(
+												similarProtocol.tvl
+											)})`}</a>
+										</Link>
+									))}
+								</LinksWrapper>
+							</Section>
+						) : null}
+					</GridContent>
+				</TabPanel>
+
+				{showCharts && (
+					<TabPanel state={tab} tabId="tvl-charts">
+						<ChartsWrapper style={{ background: 'none', border: 'none' }}>
+							{loading ? (
+								<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+							) : (
+								<>
+									{chainsSplit && chainsUnique?.length > 1 && (
+										<ChartWrapper>
 											<AreaChart
-												chartData={tokenBreakdownUSD}
-												title="Tokens (USD)"
-												customLegendName="Token"
-												customLegendOptions={tokensUnique}
+												chartData={chainsSplit}
+												title="Chains"
+												customLegendName="Chain"
+												customLegendOptions={chainsUnique}
 												valueSymbol="$"
 											/>
-										</LazyChart>
-									</>
-								)}
-								{usdInflows && (
-									<LazyChart>
-										<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
-									</LazyChart>
-								)}
-								{tokenInflows && (
-									<LazyChart>
-										<BarChart
-											chartData={tokenInflows}
-											title="Token Inflows"
-											customLegendName="Token"
-											customLegendOptions={tokensUnique}
-											hideDefaultLegend={true}
-											valueSymbol="$"
-										/>
-									</LazyChart>
-								)}
-							</>
-						)}
-					</ChartsWrapper>
-				</>
-			)}
+										</ChartWrapper>
+									)}
+									{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
+										<ChartWrapper>
+											<AreaChart
+												chartData={tokenBreakdown}
+												title="Tokens"
+												customLegendName="Token"
+												customLegendOptions={tokensUnique}
+											/>
+										</ChartWrapper>
+									)}
+									{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
+										<>
+											{tokenBreakdownPieChart.length > 0 && (
+												<ChartWrapper>
+													<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+												</ChartWrapper>
+											)}
 
-			<ProtocolFeesAndRevenueCharts data={protocolData} />
+											<ChartWrapper>
+												<AreaChart
+													chartData={tokenBreakdownUSD}
+													title="Tokens (USD)"
+													customLegendName="Token"
+													customLegendOptions={tokensUnique}
+													valueSymbol="$"
+												/>
+											</ChartWrapper>
+										</>
+									)}
+									{usdInflows && (
+										<ChartWrapper>
+											<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
+										</ChartWrapper>
+									)}
+									{tokenInflows && (
+										<ChartWrapper>
+											<BarChart
+												chartData={tokenInflows}
+												title="Token Inflows"
+												customLegendName="Token"
+												customLegendOptions={tokensUnique}
+												hideDefaultLegend={true}
+												valueSymbol="$"
+											/>
+										</ChartWrapper>
+									)}
+								</>
+							)}
+						</ChartsWrapper>
+					</TabPanel>
+				)}
+
+				{treasury && (
+					<TabPanel state={tab} tabId="treasury">
+						<TreasuryChart protocolName={protocol} />
+					</TabPanel>
+				)}
+
+				{emissions?.chartData?.length > 0 && (
+					<TabPanel state={tab} tabId="unlocks">
+						<UnlocksCharts data={emissions} />
+					</TabPanel>
+				)}
+
+				{yields && (
+					<TabPanel state={tab} tabId="yields">
+						<GridContent>
+							<Section>
+								<FlexRow>
+									<span>Number of pools tracked</span>
+									<span>:</span>
+									<span>{yields.noOfPoolsTracked}</span>
+								</FlexRow>
+								<FlexRow>
+									<span>Average APY</span>
+									<span>:</span>
+									<span>{yields.averageAPY.toFixed(2)}%</span>
+								</FlexRow>
+
+								<LinksWrapper>
+									<Link href={`/yields?project=${protocol}`} passHref>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
+											<span>Open on Yields dashboard</span> <ArrowUpRight size={14} />
+										</Button>
+									</Link>
+								</LinksWrapper>
+							</Section>
+						</GridContent>
+					</TabPanel>
+				)}
+
+				{metrics.fees && (
+					<TabPanel state={tab} tabId="fees-revenue">
+						<FeesAndRevenueCharts data={protocolData} />
+					</TabPanel>
+				)}
+
+				{metrics.dexs && (
+					<TabPanel state={tab} tabId="volume">
+						<VolumeCharts data={protocolData} />
+					</TabPanel>
+				)}
+			</TabLayout>
 		</Layout>
 	)
 }

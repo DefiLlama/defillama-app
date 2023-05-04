@@ -6,7 +6,7 @@ import { LazyChart } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import type { IProtocolContainerProps } from '../types'
-import { ProtocolChart } from './ProtocolChart'
+import { ActualChart, ProtocolChart } from './ProtocolChart'
 import { CHART_TYPES } from './types'
 import { chartFormatterBy } from './utils'
 
@@ -37,6 +37,46 @@ const chartTitleBy = (chartType: CHART_TYPES, breakdown: boolean) => {
 }
 
 export const ChartByType: React.FC<IChartByType> = (props) => {
+	const { protocolSummary, error, enableBreakdownChart, fullChart, typeSimple, mainChart } =
+		useGetDexsAndFeesChartData(props)
+
+	return !error &&
+		(mainChart.dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (
+		<LazyChart enable={fullChart}>
+			<ProtocolChart
+				logo={protocolSummary?.logo}
+				data={protocolSummary}
+				chartData={chartFormatterBy(props.chartType)(mainChart.dataChart, protocolSummary?.totalDataChartBreakdown)}
+				name={protocolSummary?.displayName}
+				type={protocolSummary?.type ?? props.type}
+				title={fullChart ? chartTitleBy(props.chartType, enableBreakdownChart)(mainChart.title, typeSimple) : undefined}
+				totalAllTime={protocolSummary?.totalAllTime}
+				fullChart={fullChart}
+			/>
+		</LazyChart>
+	) : (
+		<></>
+	)
+}
+
+export const ChartByType2: React.FC<IChartByType> = (props) => {
+	const { protocolSummary, error, enableBreakdownChart, fullChart, typeSimple, mainChart } =
+		useGetDexsAndFeesChartData(props)
+
+	return !error &&
+		(mainChart.dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (
+		<LazyChart enable={fullChart}>
+			<ActualChart
+				chartData={chartFormatterBy(props.chartType)(mainChart.dataChart, protocolSummary?.totalDataChartBreakdown)}
+				title={fullChart ? chartTitleBy(props.chartType, enableBreakdownChart)(mainChart.title, typeSimple) : undefined}
+			/>
+		</LazyChart>
+	) : (
+		<></>
+	)
+}
+
+export const useGetDexsAndFeesChartData = (props) => {
 	const [protocolSummary, setProtocolSummary] = React.useState(props.protocolSummary)
 	const { data, error } = useFetchChartsSummary(props.type, props.protocolName, undefined, !!props.protocolSummary)
 
@@ -74,21 +114,5 @@ export const ChartByType: React.FC<IChartByType> = (props) => {
 		}
 	}, [protocolSummary, enableBreakdownChart, typeSimple])
 
-	return !error &&
-		(mainChart.dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (
-		<LazyChart enable={fullChart}>
-			<ProtocolChart
-				logo={protocolSummary?.logo}
-				data={protocolSummary}
-				chartData={chartFormatterBy(props.chartType)(mainChart.dataChart, protocolSummary?.totalDataChartBreakdown)}
-				name={protocolSummary?.displayName}
-				type={protocolSummary?.type ?? props.type}
-				title={fullChart ? chartTitleBy(props.chartType, enableBreakdownChart)(mainChart.title, typeSimple) : undefined}
-				totalAllTime={protocolSummary?.totalAllTime}
-				fullChart={fullChart}
-			/>
-		</LazyChart>
-	) : (
-		<></>
-	)
+	return { protocolSummary, error, enableBreakdownChart, fullChart, typeSimple, mainChart }
 }

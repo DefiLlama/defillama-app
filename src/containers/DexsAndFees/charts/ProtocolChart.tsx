@@ -70,17 +70,21 @@ export const ProtocolChart = ({
 	disableDefaultLeged = false
 }: IDexChartsProps) => {
 	const router = useRouter()
-	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
+
 	const typeString = volumeTypes.includes(type) ? 'Volume' : capitalizeFirstLetter(type)
 	const typeSimple = volumeTypes.includes(type) ? 'volume' : type
+
+	const tabs = [name]
+	if (childProtocols) tabs.push(...childProtocols)
+
+	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
+
 	const simpleStack =
 		chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
 			? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 			: undefined
 
 	const barsData = React.useMemo(aggregateDataByInterval(barInterval, chartData), [chartData, barInterval])
-	const tabs = [name]
-	if (childProtocols) tabs.push(...childProtocols)
 
 	return (
 		<StatsSection>
@@ -184,6 +188,45 @@ export const ProtocolChart = ({
 				/>
 			</Wrapper>
 		</StatsSection>
+	)
+}
+
+export const ActualChart = ({ title, chartData }) => {
+	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
+
+	const simpleStack =
+		chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
+			? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
+			: undefined
+
+	const barsData = React.useMemo(aggregateDataByInterval(barInterval, chartData), [chartData, barInterval])
+
+	return (
+		<>
+			{barsData && barsData.length > 0 && (
+				<FiltersWrapperRow style={{ margin: '0 20px 20px' }}>
+					<>{title ?? ''}</>
+					<FiltersAligned color={'#4f8fea'}>
+						{GROUP_INTERVALS_LIST.map((dataInterval) => (
+							<FlatDenomination
+								key={dataInterval}
+								onClick={() => setBarInterval(dataInterval)}
+								active={dataInterval === barInterval}
+							>
+								{dataInterval}
+							</FlatDenomination>
+						))}
+					</FiltersAligned>
+				</FiltersWrapperRow>
+			)}
+			<StackedChart
+				title={''}
+				chartData={barsData}
+				customLegendOptions={chartData[1]}
+				stacks={simpleStack}
+				stackColors={stackedBarChartColors}
+			/>
+		</>
 	)
 }
 

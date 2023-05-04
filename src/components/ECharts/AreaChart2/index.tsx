@@ -205,7 +205,7 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, stackColors, isDark])
+	}, [createInstance, defaultChartSettings, series, chartOptions, stackColors, isDark, stacks.length])
 
 	return (
 		<div style={{ position: 'relative' }} {...props}>

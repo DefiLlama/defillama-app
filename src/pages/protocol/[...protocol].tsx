@@ -18,6 +18,7 @@ import {
 	PROTOCOLS_TREASURY,
 	PROTOCOL_GOVERNANCE_API,
 	PROTOCOL_ONCHAIN_GOVERNANCE_API,
+	YIELD_POOLS_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 
@@ -26,18 +27,20 @@ export const getStaticProps = async ({
 		protocol: [protocol]
 	}
 }) => {
-	const [protocolRes, articles, emissions, expenses, treasuries]: [
+	const [protocolRes, articles, emissions, expenses, treasuries, yields]: [
 		IProtocolResponse,
 		IArticle[],
 		any,
 		any,
-		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>
+		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+		any
 	] = await Promise.all([
 		getProtocol(protocol),
 		fetchArticles({ tags: protocol }),
 		getProtocolEmissons(protocol),
 		fetch(PROTOCOLS_EXPENSES_API).then((res) => res.json()),
-		fetch(PROTOCOLS_TREASURY).then((res) => res.json())
+		fetch(PROTOCOLS_TREASURY).then((res) => res.json()),
+		fetch(YIELD_POOLS_API).then((res) => res.json())
 	])
 
 	let inflowsExist = false
@@ -175,6 +178,8 @@ export const getStaticProps = async ({
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const metrics = protocolData.metrics || {}
 	const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
+	const projectYields = yields.data.filter(({ project }) => project === protocol)
+
 	return {
 		props: {
 			articles,
@@ -207,6 +212,13 @@ export const getStaticProps = async ({
 			controversialProposals,
 			governanceApi,
 			treasury: treasury?.tokenBreakdowns ?? null,
+			yields:
+				yields && yields.data && projectYields.length > 0
+					? {
+							noOfPoolsTracked: projectYields.length,
+							averageAPY: projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
+					  }
+					: null,
 			helperTexts: {
 				fees:
 					volumeData.length > 1

@@ -30,12 +30,21 @@ export interface IEmission {
 const MAX_LENGTH_EVENTS_LIST = 5
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
-	const cutEventsList = !isEmissionsPage && data.events?.length > MAX_LENGTH_EVENTS_LIST
 	return (
 		<Section id="emissions" style={{ paddingLeft: 0, gridColumn: '1 / -1' }}>
 			{!isEmissionsPage && <h3>Emissions</h3>}
+			<UnlocksCharts data={data} isEmissionsPage={isEmissionsPage} />
+		</Section>
+	)
+}
 
-			<ChartsWrapper>
+export const UnlocksCharts = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
+	const cutEventsList = !isEmissionsPage && data.events?.length > MAX_LENGTH_EVENTS_LIST
+	const styles = isEmissionsPage ? {} : { background: 'none', padding: 0, border: 'none' }
+
+	return (
+		<>
+			<ChartsWrapper style={styles}>
 				<LazyChart>
 					<PieChart title="Allocation" chartData={data.pieChartData} stackColors={data.stackColors} usdFormat={false} />
 				</LazyChart>
@@ -54,7 +63,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 			</ChartsWrapper>
 
 			{data.sources?.length > 0 && (
-				<>
+				<SmolSection>
 					<h4>Sources</h4>
 					<List>
 						{data.sources.map((source) => (
@@ -65,22 +74,22 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 							</li>
 						))}
 					</List>
-				</>
+				</SmolSection>
 			)}
 
 			{data.notes?.length > 0 && (
-				<>
+				<SmolSection>
 					<h4>Notes</h4>
 					<List>
 						{data.notes.map((note) => (
 							<li key={note}>{note}</li>
 						))}
 					</List>
-				</>
+				</SmolSection>
 			)}
 
 			{data.events?.length > 0 && (
-				<>
+				<SmolSection>
 					<h4>Events</h4>
 					<List>
 						{(cutEventsList ? data.events.slice(0, MAX_LENGTH_EVENTS_LIST) : data.events).map((event) => (
@@ -96,9 +105,9 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 						))}
 						{cutEventsList && <li key="more">...</li>}
 					</List>
-				</>
+				</SmolSection>
 			)}
-		</Section>
+		</>
 	)
 }
 
@@ -119,4 +128,12 @@ const List = styled.ul`
 	a {
 		text-decoration: underline;
 	}
+`
+
+const SmolSection = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 0 24px;
+	margin-bottom: 24px;
 `

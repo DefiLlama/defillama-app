@@ -290,7 +290,7 @@ export function useDefaults({
 			{
 				start: 0,
 				end: 100,
-				right: 6,
+				right: 20,
 				textStyle: {
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},
