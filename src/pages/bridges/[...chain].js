@@ -2,31 +2,35 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import BridgeList from '~/components/BridgesPage/BridgeList'
 import { getBridgeOverviewPageData, getBridges } from '~/api/categories/bridges'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps({
-	params: {
-		chain: [chain]
-	}
-}) {
-	const props = await getBridgeOverviewPageData(chain)
-
-	if (!props.filteredBridges || props.filteredBridges?.length === 0) {
-		return {
-			notFound: true
+export const getStaticProps = withPerformanceLogging(
+	'bridges/[...chain]',
+	async ({
+		params: {
+			chain: [chain]
 		}
-	}
-	/*
+	}) => {
+		const props = await getBridgeOverviewPageData(chain)
+
+		if (!props.filteredBridges || props.filteredBridges?.length === 0) {
+			return {
+				notFound: true
+			}
+		}
+		/*
 	const backgroundColor = await getPeggedColor({
 		peggedAsset: props.filteredPeggedAssets[0]?.name
 	})
 	*/
-	return {
-		props: {
-			...props
-		},
-		revalidate: maxAgeForNext([22])
+		return {
+			props: {
+				...props
+			},
+			revalidate: maxAgeForNext([22])
+		}
 	}
-}
+)
 
 export async function getStaticPaths() {
 	const { chains } = await getBridges()
