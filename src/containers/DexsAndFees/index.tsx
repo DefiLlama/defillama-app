@@ -57,12 +57,22 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	})
 
 	// Needs to be improved! Too dirty
-	const { data, error, loading } = useFetchCharts(props.type, chain === 'All' ? undefined : chain)
+	const { data, error, loading } = useFetchCharts(
+		props.type,
+		chain === 'All' ? undefined : chain,
+		undefined,
+		props.type === 'fees' || chain === 'all'
+	)
 	const {
 		data: secondTypeData,
 		error: secondTypeError,
 		loading: secondTypeLoading
-	} = useFetchCharts(props.type, chain === 'All' ? undefined : chain, 'dailyPremiumVolume', props.type !== 'options')
+	} = useFetchCharts(
+		props.type,
+		chain === 'All' ? undefined : chain,
+		'dailyPremiumVolume',
+		props.type !== 'options' || chain === 'all'
+	)
 
 	const isChainsPage = chain === 'all'
 
@@ -156,7 +166,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					category: chain === 'All' ? 'Home' : capitalizeFirstLetter(props.type),
 					name: chain === 'All' ? capitalizeFirstLetter(props.type) : chain === 'all' ? 'Chains' : chain
 				}}
-				enableToggle={props.type !== 'fees'}
+				enableToggle={props.type !== 'fees' && props.chain !== 'all'}
 				onToggleClick={
 					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
 						? (enabled) => setEnableBreakdownChart(enabled)
