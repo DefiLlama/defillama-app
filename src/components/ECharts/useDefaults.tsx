@@ -141,7 +141,11 @@ export function useDefaults({
 						'&nbsp;&nbsp;' +
 						formatTooltipValue(
 							curr.value[1],
-							curr.seriesName === 'Unlocks' ? unlockTokenSymbol : CHART_SYMBOLS[curr.seriesName] || valueSymbol
+							curr.seriesName === 'Unlocks'
+								? unlockTokenSymbol
+								: Object.keys(CHART_SYMBOLS)
+								? CHART_SYMBOLS[curr.seriesName]
+								: valueSymbol
 						) +
 						'</li>')
 				}, '')
