@@ -4,6 +4,7 @@ import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
 import type { IChainTvl } from '~/api/types'
 import { fetchWithErrorLogging } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const fetch = fetchWithErrorLogging
 
@@ -307,7 +308,7 @@ const hour7dms = ((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
 
 const hour1mms = ((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 	const [
 		spot,
 		derivs,
@@ -410,7 +411,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Protocols({ cexs }) {
 	return (
