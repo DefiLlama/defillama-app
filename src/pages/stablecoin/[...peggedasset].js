@@ -6,34 +6,38 @@ import { maxAgeForNext } from '~/api'
 import { getPeggedAssetPageData, getPeggedAssets } from '~/api/categories/stablecoins'
 import { primaryColor } from '~/constants/colors'
 import { withErrorLogging } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps({
-	params: {
-		peggedasset: [peggedasset]
+export const getStaticProps = withPerformanceLogging(
+	'stablecoin/[...peggedasset]',
+	async ({
+		params: {
+			peggedasset: [peggedasset]
+		}
+	}) => {
+		const data = await withErrorLogging(getPeggedAssetPageData)(peggedasset)
+		const { chainsUnique, chainCirculatings, peggedAssetData, totalCirculating, unreleased, mcap, bridgeInfo } =
+			data.props
+
+		const name = peggedAssetData.name
+
+		const backgroundColor = name ? await getColor(peggedAssetIconPalleteUrl(name)) : primaryColor
+
+		return {
+			props: {
+				chainsUnique,
+				chainCirculatings,
+				peggedAssetData,
+				totalCirculating,
+				unreleased,
+				mcap,
+				bridgeInfo,
+				backgroundColor
+			},
+			revalidate: maxAgeForNext([22])
+		}
 	}
-}) {
-	const data = await withErrorLogging(getPeggedAssetPageData)(peggedasset)
-	const { chainsUnique, chainCirculatings, peggedAssetData, totalCirculating, unreleased, mcap, bridgeInfo } =
-		data.props
-
-	const name = peggedAssetData.name
-
-	const backgroundColor = name ? await getColor(peggedAssetIconPalleteUrl(name)) : primaryColor
-
-	return {
-		props: {
-			chainsUnique,
-			chainCirculatings,
-			peggedAssetData,
-			totalCirculating,
-			unreleased,
-			mcap,
-			bridgeInfo,
-			backgroundColor
-		},
-		revalidate: maxAgeForNext([22])
-	}
-}
+)
 
 export async function getStaticPaths() {
 	const res = await getPeggedAssets()

@@ -7,12 +7,16 @@ import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import { cexData } from '../cexs'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = async ({
-	params: {
-		cex: [cex]
+export const getStaticProps = withPerformanceLogging('cex/[...cex]', async ({ params: { cex } }) => {
+	// if cex is not string, return 404
+	if (typeof cex !== 'string') {
+		return {
+			notFound: true
+		}
 	}
-}) => {
+
 	const [protocolRes, articles]: [IProtocolResponse, IArticle[]] = await Promise.all([
 		getProtocol(cex),
 		fetchArticles({ tags: cex })
@@ -39,7 +43,7 @@ export const getStaticProps = async ({
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export async function getStaticPaths() {
 	const paths = cexData

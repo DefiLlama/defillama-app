@@ -2,8 +2,9 @@ import Layout from '~/layout'
 import BridgeChainsOverview from '~/components/BridgesPage/BridgeChainsOverview'
 import { maxAgeForNext } from '~/api'
 import { getBridgeChainsPageData } from '~/api/categories/bridges'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('bridges/chains', async () => {
 	const props = await getBridgeChainsPageData()
 
 	if (!props.filteredChains || props.filteredChains?.length === 0) {
@@ -14,7 +15,7 @@ export async function getStaticProps() {
 		props,
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function BridgeChains({ chains, filteredChains, chainToChartDataIndex, formattedVolumeChartData }) {
 	return (

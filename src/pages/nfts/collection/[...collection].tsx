@@ -1,27 +1,31 @@
 import { maxAgeForNext } from '~/api'
 import { getNFTCollection } from '~/api/categories/nfts'
 import { NFTCollectionContainer } from '~/containers/Nft/Collection'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps({
-	params: {
-		collection: [slug]
-	}
-}) {
-	if (!slug.startsWith('0x')) {
+export const getStaticProps = withPerformanceLogging(
+	'nfts/collection/[...collection]',
+	async ({
+		params: {
+			collection: [slug]
+		}
+	}) => {
+		if (!slug.startsWith('0x')) {
+			return {
+				notFound: true
+			}
+		}
+
+		const data = await getNFTCollection(slug)
+
 		return {
-			notFound: true
+			props: {
+				...data
+			},
+			revalidate: maxAgeForNext([22])
 		}
 	}
-
-	const data = await getNFTCollection(slug)
-
-	return {
-		props: {
-			...data
-		},
-		revalidate: maxAgeForNext([22])
-	}
-}
+)
 
 // export async function getStaticPaths() {
 // 	const collections = await getNFTCollections()

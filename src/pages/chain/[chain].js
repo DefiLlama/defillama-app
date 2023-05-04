@@ -4,9 +4,9 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/protocols'
 import { getChainsPageData, getOverviewItemPageData } from '~/api/categories/adaptors'
-import { chainCoingeckoIds } from '~/constants/chainTokens'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps({ params }) {
+export const getStaticProps = withPerformanceLogging('aggregators/[item]', async ({ params }) => {
 	const chain = params.chain
 	const data = await getChainPageData(chain)
 
@@ -23,7 +23,7 @@ export async function getStaticProps({ params }) {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export async function getStaticPaths() {
 	const res = await fetch(PROTOCOLS_API)

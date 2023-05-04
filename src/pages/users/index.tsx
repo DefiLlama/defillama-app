@@ -3,8 +3,9 @@ import { capitalizeFirstLetter } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { USER_METRICS_ALL_API } from '~/constants'
 import UsersByChain from '~/containers/UsersByChain'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('users/index', async () => {
 	try {
 		const userMetrics = await fetch(`${USER_METRICS_ALL_API}`).then((res) => res.json())
 
@@ -26,7 +27,7 @@ export async function getStaticProps() {
 			notFound: true
 		}
 	}
-}
+})
 
 export default function Protocol({ name, chart, chains, protocols, chain }) {
 	return <UsersByChain {...{ name, chart, chains, protocols, chain }} />

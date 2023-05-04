@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import ReactMarkdown from 'react-markdown'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
+import { withPerformanceLogging } from '~/utils/perf'
 import Announcement from '~/components/Announcement'
 
 const Header = styled.h1`
@@ -97,7 +98,7 @@ export default function Chains({ messages }: { messages?: string }) {
 	)
 }
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('roundup', async () => {
 	const headers = new Headers()
 	headers.append('Authorization', `Bot ${process.env.ROUND_UP_BOT_TOKEN}`)
 
@@ -139,4 +140,4 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})

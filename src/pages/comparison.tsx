@@ -16,6 +16,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { fuseProtocolData } from '~/api/categories/protocols'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -25,7 +26,8 @@ const protocolColor = async (name: string) => {
 	const color = await getColor(tokenIconPaletteUrl(name))
 	return { [name]: color }
 }
-export async function getStaticProps() {
+
+export const getStaticProps = withPerformanceLogging('comparison', async () => {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo'])
 
 	const stackColors = await Promise.allSettled(protocols.map((p) => protocolColor(p.name)))
@@ -45,7 +47,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function CompareProtocolsTvls({
 	protocols,

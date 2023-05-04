@@ -4,8 +4,9 @@ import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getYieldPageData, getYieldMedianData } from '~/api/categories/yield'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('yields/overview', async () => {
 	const {
 		props: { ...data }
 	} = await getYieldPageData()
@@ -33,7 +34,7 @@ export async function getStaticProps() {
 		props: { ...data, median: median.props, tokens, tokenSymbolsList },
 		revalidate: maxAgeForNext([23])
 	}
-}
+})
 
 export default function YieldPlots(data) {
 	return (

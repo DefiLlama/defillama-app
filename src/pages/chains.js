@@ -3,8 +3,9 @@ import Layout from '~/layout'
 import ChainsContainer from '~/containers/Defi/Chains'
 import { maxAgeForNext } from '~/api'
 import { getNewChainsPageData } from '~/api/categories/protocols'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('chains', async () => {
 	const { props: data } = await getNewChainsPageData('All')
 	const sampledData = []
 	const dataLength = data.stackedDataset.length
@@ -18,7 +19,7 @@ export async function getStaticProps() {
 		props: data,
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Chains(props) {
 	return (

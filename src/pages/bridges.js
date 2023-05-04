@@ -2,8 +2,9 @@ import Layout from '~/layout'
 import { maxAgeForNext, revalidate } from '~/api'
 import BridgeList from '~/components/BridgesPage/BridgeList'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps({}) {
+export const getStaticProps = withPerformanceLogging('bridges', async () => {
 	const props = await getBridgeOverviewPageData(null)
 
 	/*
@@ -18,7 +19,7 @@ export async function getStaticProps({}) {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Bridges({
 	chains,

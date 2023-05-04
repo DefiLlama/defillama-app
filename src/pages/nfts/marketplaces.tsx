@@ -10,6 +10,7 @@ import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Protoc
 import styled from 'styled-components'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { NFTsSearch } from '~/components/Search'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const FlatDenomination = styled(Denomination)`
 	white-space: nowrap;
@@ -24,7 +25,7 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('nfts/marketplaces', async () => {
 	const data = await getNFTMarketplacesData()
 
 	return {
@@ -33,7 +34,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 function Marketplaces({
 	data,
@@ -54,7 +55,7 @@ function Marketplaces({
 				step={{
 					category: 'Home',
 					name: 'NFT Marketplaces',
-					route: '/',
+					route: '',
 					hideOptions: true
 				}}
 			/>

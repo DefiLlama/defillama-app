@@ -7,6 +7,7 @@ import { maxAgeForNext } from '~/api'
 import { LANGS_API } from '~/constants'
 import { ChartsWrapper, LazyChart, SectionHeader } from '~/layout/ProtocolAndPool'
 import type { IChartProps } from '~/components/ECharts/types'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -45,7 +46,7 @@ function formatDataForChart(langs) {
 	}
 }
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('languages', async () => {
 	const data = await fetch(LANGS_API).then((r) => r.json())
 
 	const { unique: langsUnique, formatted: formattedLangs, dominance: langsDominance } = formatDataForChart(data.chart)
@@ -74,7 +75,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
 	return (

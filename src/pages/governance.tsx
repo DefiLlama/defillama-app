@@ -18,8 +18,9 @@ import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 import { GOVERNANCE_API, ONCHAIN_GOVERNANCE_API } from '~/constants'
 import { capitalizeFirstLetter } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = async () => {
+export const getStaticProps = withPerformanceLogging('governance', async () => {
 	const [snapshot, compound] = await Promise.all([
 		fetch(GOVERNANCE_API).then((res) => res.json()),
 		fetch(ONCHAIN_GOVERNANCE_API).then((res) => res.json())
@@ -34,7 +35,7 @@ export const getStaticProps = async () => {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Governance({ data }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])

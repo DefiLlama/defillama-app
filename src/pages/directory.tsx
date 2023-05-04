@@ -7,8 +7,9 @@ import { useComboboxState } from 'ariakit'
 import { Input } from '~/components/Search/Base/Input'
 import { DesktopResults } from '~/components/Search/Base/Results/Desktop'
 import Announcement from '~/components/Announcement'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('directory', async () => {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo', 'url'])
 	return {
 		props: {
@@ -20,7 +21,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Protocols({ protocols }) {
 	const combobox = useComboboxState({

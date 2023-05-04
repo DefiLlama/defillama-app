@@ -6,8 +6,9 @@ import VirtualTable from '~/components/Table/Table'
 import { RAISES_API } from '~/constants'
 import Layout from '~/layout'
 import { Header } from '~/Theme'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('raises/active-investors', async () => {
 	const data = await fetch(RAISES_API).then((r) => r.json())
 
 	const activeInvestors = {}
@@ -52,7 +53,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 const ActiveInvestors = ({ investors }) => {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'deals' }])

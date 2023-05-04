@@ -8,26 +8,30 @@ import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
 import TokenLogo from '~/components/TokenLogo'
 import { tokenIconUrl } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = async ({
-	params: {
-		protocol: [protocol]
-	}
-}) => {
-	const emissions = await getProtocolEmissons(protocol)
-	if (emissions.data?.length === 0) {
+export const getStaticProps = withPerformanceLogging(
+	'unlocks/[...protocol]',
+	async ({
+		params: {
+			protocol: [protocol]
+		}
+	}) => {
+		const emissions = await getProtocolEmissons(protocol)
+		if (emissions.data?.length === 0) {
+			return {
+				notFound: true
+			}
+		}
+
 		return {
-			notFound: true
+			props: {
+				emissions
+			},
+			revalidate: maxAgeForNext([22])
 		}
 	}
-
-	return {
-		props: {
-			emissions
-		},
-		revalidate: maxAgeForNext([22])
-	}
-}
+)
 
 export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }

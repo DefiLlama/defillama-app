@@ -2,8 +2,9 @@ import { maxAgeForNext } from '~/api'
 import { getProtocolsRaw } from '~/api/categories/protocols'
 import { ExpensesTable } from '~/components/Table/Defi'
 import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('expenses', async () => {
 	const { protocols, parentProtocols } = await getProtocolsRaw()
 	const expenses = await fetch(
 		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
@@ -32,7 +33,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Protocols(props) {
 	return (

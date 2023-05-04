@@ -14,8 +14,9 @@ import {
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
 import { treasuriesColumns } from '~/components/Table/Defi/columns'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('treasuries', async () => {
 	const treasuries = await fetch(PROTOCOLS_TREASURY).then((res) => res.json())
 	return {
 		props: {
@@ -36,7 +37,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Treasuries({ treasuries }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])

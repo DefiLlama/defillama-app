@@ -5,8 +5,9 @@ import { maxAgeForNext } from '~/api'
 import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 import { peggedAssetIconPalleteUrl } from '~/utils'
 import { primaryColor } from '~/constants/colors'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps({}) {
+export const getStaticProps = withPerformanceLogging('stablecoins', async () => {
 	const props = await getPeggedOverviewPageData(null)
 
 	const name = props.filteredPeggedAssets[0]?.name
@@ -20,7 +21,7 @@ export async function getStaticProps({}) {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function PeggedAssets({
 	chains,

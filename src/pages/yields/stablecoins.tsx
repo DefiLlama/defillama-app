@@ -4,8 +4,9 @@ import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('yields/stablecoins', async () => {
 	const data = await getYieldPageData()
 	const cgTokens = await getAllCGTokensList()
 	data.props.pools = data.props.pools.filter((p) => p.apy > 0)
@@ -29,7 +30,7 @@ export async function getStaticProps() {
 		props: { ...data.props, tokens, tokenSymbolsList },
 		revalidate: maxAgeForNext([23])
 	}
-}
+})
 
 export default function YieldPlots(data) {
 	return (

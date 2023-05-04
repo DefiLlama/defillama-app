@@ -2,8 +2,9 @@ import Layout from '~/layout'
 import PeggedChainsOverview from '~/components/PeggedPage/PeggedChainsOverview'
 import { maxAgeForNext } from '~/api'
 import { getPeggedChainsPageData } from '~/api/categories/stablecoins'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('stablecoins/chains', async () => {
 	const props = await getPeggedChainsPageData()
 
 	if (!props.chainCirculatings || props.chainCirculatings?.length === 0) {
@@ -14,7 +15,7 @@ export async function getStaticProps() {
 		props,
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function PeggedAssets({
 	chainCirculatings,
