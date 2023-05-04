@@ -18,7 +18,7 @@ import {
 	Section,
 	Symbol,
 	ChartsWrapper,
-	ChartWrapper,
+	LazyChart,
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
@@ -968,7 +968,7 @@ function ProtocolContainer({
 							) : (
 								<>
 									{chainsSplit && chainsUnique?.length > 1 && (
-										<ChartWrapper>
+										<LazyChart>
 											<AreaChart
 												chartData={chainsSplit}
 												title="Chains"
@@ -976,27 +976,27 @@ function ProtocolContainer({
 												customLegendOptions={chainsUnique}
 												valueSymbol="$"
 											/>
-										</ChartWrapper>
+										</LazyChart>
 									)}
 									{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
-										<ChartWrapper>
+										<LazyChart>
 											<AreaChart
 												chartData={tokenBreakdown}
 												title="Tokens"
 												customLegendName="Token"
 												customLegendOptions={tokensUnique}
 											/>
-										</ChartWrapper>
+										</LazyChart>
 									)}
 									{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
 										<>
 											{tokenBreakdownPieChart.length > 0 && (
-												<ChartWrapper>
+												<LazyChart>
 													<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
-												</ChartWrapper>
+												</LazyChart>
 											)}
 
-											<ChartWrapper>
+											<LazyChart>
 												<AreaChart
 													chartData={tokenBreakdownUSD}
 													title="Tokens (USD)"
@@ -1004,16 +1004,16 @@ function ProtocolContainer({
 													customLegendOptions={tokensUnique}
 													valueSymbol="$"
 												/>
-											</ChartWrapper>
+											</LazyChart>
 										</>
 									)}
 									{usdInflows && (
-										<ChartWrapper>
+										<LazyChart>
 											<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
-										</ChartWrapper>
+										</LazyChart>
 									)}
 									{tokenInflows && (
-										<ChartWrapper>
+										<LazyChart>
 											<BarChart
 												chartData={tokenInflows}
 												title="Token Inflows"
@@ -1022,7 +1022,7 @@ function ProtocolContainer({
 												hideDefaultLegend={true}
 												valueSymbol="$"
 											/>
-										</ChartWrapper>
+										</LazyChart>
 									)}
 								</>
 							)}
