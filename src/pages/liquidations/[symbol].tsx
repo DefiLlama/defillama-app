@@ -25,17 +25,21 @@ import {
 	getReadableValue
 } from '~/utils/liquidations'
 import { LiquidationsContext } from '~/components/LiquidationsPage/context'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
-	const symbol = (params.symbol as string).toLowerCase()
-	const { assets: options } = await getAvailableAssetsList()
-	const data = await getLatestChartData(symbol, 100)
-	const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
-	return {
-		props: { data, prevData, options },
-		revalidate: maxAgeForNext([5, 25, 45])
+export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = withPerformanceLogging(
+	'liquidations/[symbol]',
+	async ({ params }) => {
+		const symbol = (params.symbol as string).toLowerCase()
+		const { assets: options } = await getAvailableAssetsList()
+		const data = await getLatestChartData(symbol, 100)
+		const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
+		return {
+			props: { data, prevData, options },
+			revalidate: maxAgeForNext([5, 25, 45])
+		}
 	}
-}
+)
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	const { assets } = await getAvailableAssetsList()

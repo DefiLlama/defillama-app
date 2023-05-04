@@ -19,76 +19,80 @@ import { IBarChartProps } from '~/components/ECharts/types'
 import { AutoRow } from '~/components/Row'
 import { formatGovernanceData } from '~/api/categories/protocols'
 import { GovernanceTable } from '~/containers/Defi/Protocol/Governance'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-export const getStaticProps = async ({
-	params: {
-		project: [project]
-	}
-}) => {
-	const [snapshot, compound]: [
-		{ [key: string]: { name: string; id: string } },
-		{ [key: string]: { name: string; id: string } }
-	] = await Promise.all([
-		fetch(GOVERNANCE_API).then((res) => res.json()),
-		fetch(ONCHAIN_GOVERNANCE_API).then((res) => res.json())
-	])
-
-	const snapshotProjectId = Object.values(snapshot).find((p) => standardizeProtocolName(p.name) === project)?.id
-	const compoundProjectId = Object.values(compound).find((p) => standardizeProtocolName(p.name) === project)?.id
-
-	if (!snapshotProjectId && !compoundProjectId) {
-		return { notFound: true }
-	}
-
-	const api = snapshotProjectId
-		? PROTOCOL_GOVERNANCE_API + '/' + snapshotProjectId + '.json'
-		: PROTOCOL_ONCHAIN_GOVERNANCE_API + '/' + compoundProjectId + '.json'
-
-	const data: {
-		proposals: {
-			[id: string]: {
-				id: string
-				title: string
-				choices: Array<string>
-				scores: Array<number>
-			}
+export const getStaticProps = withPerformanceLogging(
+	'governance/[...project]',
+	async ({
+		params: {
+			project: [project]
 		}
-		stats: {
-			months: {
-				[month: string]: { total: number; successful: number; proposals: Array<string> }
-			}
+	}) => {
+		const [snapshot, compound]: [
+			{ [key: string]: { name: string; id: string } },
+			{ [key: string]: { name: string; id: string } }
+		] = await Promise.all([
+			fetch(GOVERNANCE_API).then((res) => res.json()),
+			fetch(ONCHAIN_GOVERNANCE_API).then((res) => res.json())
+		])
+
+		const snapshotProjectId = Object.values(snapshot).find((p) => standardizeProtocolName(p.name) === project)?.id
+		const compoundProjectId = Object.values(compound).find((p) => standardizeProtocolName(p.name) === project)?.id
+
+		if (!snapshotProjectId && !compoundProjectId) {
+			return { notFound: true }
 		}
-	} = await fetch(api).then((res) => res.json())
 
-	const recentMonth = Object.keys(data.stats.months).sort().pop()
-	const missingMonths = getDateRange(recentMonth)
+		const api = snapshotProjectId
+			? PROTOCOL_GOVERNANCE_API + '/' + snapshotProjectId + '.json'
+			: PROTOCOL_ONCHAIN_GOVERNANCE_API + '/' + compoundProjectId + '.json'
 
-	missingMonths.forEach((month) => {
-		data.stats.months[month] = { total: 0, successful: 0, proposals: [] }
-	})
+		const data: {
+			proposals: {
+				[id: string]: {
+					id: string
+					title: string
+					choices: Array<string>
+					scores: Array<number>
+				}
+			}
+			stats: {
+				months: {
+					[month: string]: { total: number; successful: number; proposals: Array<string> }
+				}
+			}
+		} = await fetch(api).then((res) => res.json())
 
-	const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
+		const recentMonth = Object.keys(data.stats.months).sort().pop()
+		const missingMonths = getDateRange(recentMonth)
 
-	return {
-		props: {
-			data: {
-				...data,
-				proposals,
-				controversialProposals: proposals
-					.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
-					.slice(0, 10),
-				activity,
-				maxVotes
+		missingMonths.forEach((month) => {
+			data.stats.months[month] = { total: 0, successful: 0, proposals: [] }
+		})
+
+		const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
+
+		return {
+			props: {
+				data: {
+					...data,
+					proposals,
+					controversialProposals: proposals
+						.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+						.slice(0, 10),
+					activity,
+					maxVotes
+				},
+				isOnChainGovernance: snapshotProjectId ? false : true
 			},
-			isOnChainGovernance: snapshotProjectId ? false : true
-		},
-		revalidate: maxAgeForNext([22])
+			revalidate: maxAgeForNext([22])
+		}
 	}
-}
+)
 
 export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }

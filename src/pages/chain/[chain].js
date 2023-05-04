@@ -6,7 +6,7 @@ import { getChainPageData } from '~/api/categories/protocols'
 import { getChainsPageData, getOverviewItemPageData } from '~/api/categories/adaptors'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = withPerformanceLogging('aggregators/[item]', async ({ params }) => {
+export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params }) => {
 	const chain = params.chain
 	const data = await getChainPageData(chain)
 

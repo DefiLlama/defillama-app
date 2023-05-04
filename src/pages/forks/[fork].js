@@ -11,6 +11,7 @@ import { maxAgeForNext } from '~/api'
 import { getForkPageData } from '~/api/categories/protocols'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -23,14 +24,14 @@ const chartColors = {
 	TVL: '#4f8fea'
 }
 
-export async function getStaticProps({ params: { fork } }) {
+export const getStaticProps = withPerformanceLogging('fees/chains/index', async ({ params: { fork } }) => {
 	const data = await getForkPageData(fork)
 
 	return {
 		...data,
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export async function getStaticPaths() {
 	const { forks = {} } = await getForkPageData()
