@@ -22,6 +22,7 @@ import {
 } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { USER_METRICS_CHAIN_API_BY_DATE, USER_METRICS_PROTOCOL_API } from '~/constants'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -43,48 +44,51 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-export async function getStaticProps({
-	params: {
-		protocol: [protocol]
-	}
-}) {
-	try {
-		const [userMetrics, protocolData] = await Promise.all([
-			fetch(`${USER_METRICS_PROTOCOL_API}/${protocol}`).then((res) => res.json()),
-			getProtocol(protocol)
-		])
+export const getStaticProps = withPerformanceLogging(
+	'aggregators/[item]',
+	async ({
+		params: {
+			protocol: [protocol]
+		}
+	}) => {
+		try {
+			const [userMetrics, protocolData] = await Promise.all([
+				fetch(`${USER_METRICS_PROTOCOL_API}/${protocol}`).then((res) => res.json()),
+				getProtocol(protocol)
+			])
 
-		const logoUrl = protocolData.logo || tokenIconUrl(protocol)
+			const logoUrl = protocolData.logo || tokenIconUrl(protocol)
 
-		const backgroundColor = await getColor(tokenIconPaletteUrl(protocol))
+			const backgroundColor = await getColor(tokenIconPaletteUrl(protocol))
 
-		const { uniqueChains, uniqueColumns } = userMetrics?.reduce(
-			(acc, curr) => {
-				acc.uniqueChains.add(capitalizeFirstLetter(curr.chain))
-				acc.uniqueColumns.add(curr.column_type)
+			const { uniqueChains, uniqueColumns } = userMetrics?.reduce(
+				(acc, curr) => {
+					acc.uniqueChains.add(capitalizeFirstLetter(curr.chain))
+					acc.uniqueColumns.add(curr.column_type)
 
-				return acc
-			},
-			{ uniqueChains: new Set(), uniqueColumns: new Set() }
-		)
+					return acc
+				},
+				{ uniqueChains: new Set(), uniqueColumns: new Set() }
+			)
 
-		return {
-			props: {
-				data: userMetrics?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime()),
-				name: protocolData.name || protocol,
-				logo: logoUrl,
-				uniqueChains: Array.from(uniqueChains),
-				uniqueColumns: Array.from(uniqueColumns),
-				backgroundColor,
-				revalidate: maxAgeForNext([22])
+			return {
+				props: {
+					data: userMetrics?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime()),
+					name: protocolData.name || protocol,
+					logo: logoUrl,
+					uniqueChains: Array.from(uniqueChains),
+					uniqueColumns: Array.from(uniqueColumns),
+					backgroundColor,
+					revalidate: maxAgeForNext([22])
+				}
+			}
+		} catch (error) {
+			return {
+				notFound: true
 			}
 		}
-	} catch (error) {
-		return {
-			notFound: true
-		}
 	}
-}
+)
 
 export default function Protocol({ name, logo, backgroundColor, data, uniqueChains, uniqueColumns }) {
 	const allTxsChart = React.useMemo(() => {
