@@ -68,7 +68,8 @@ function GlobalPage({
 	chart,
 	extraTvlCharts = {},
 	volumeData,
-	feesData
+	feesData,
+	usersData
 }) {
 	const {
 		fullProtocolsList,
@@ -251,6 +252,12 @@ function GlobalPage({
 		)
 	}
 
+	React.useEffect(() => {
+		if (selectedChain !== 'All' && !router.query.tvl) {
+			updateRoute('tvl', 'true')
+		}
+	}, [])
+
 	const dominance = getTokenDominance(topToken, totalVolumeUSD)
 
 	const isLoading = denomination !== 'USD' && loading
@@ -340,77 +347,60 @@ function GlobalPage({
 							)}
 
 							<ToggleWrapper>
-								{selectedChain !== 'All' ? (
-									<Toggle>
-										<input
-											type="checkbox"
-											onClick={() => {
-												updateRoute('tvl', router.query.tvl !== 'false' ? 'false' : 'true')
-											}}
-											checked={router.query.tvl !== 'false'}
-										/>
-										<span data-wrapper="true">
-											<span>TVL</span>
-										</span>
-									</Toggle>
-								) : null}
-								{finalVolumeChart ? (
-									<Toggle>
-										<input
-											type="checkbox"
-											onClick={() => {
-												updateRoute('volume', router.query.volume === 'true' ? 'false' : 'true')
-											}}
-											checked={router.query.volume === 'true'}
-										/>
-										<span data-wrapper="true">
-											<span>Volume</span>
-										</span>
-									</Toggle>
-								) : null}
-								{finalFeesChart ? (
-									<Toggle>
-										<input
-											type="checkbox"
-											onClick={() => {
-												updateRoute('fees', router.query.fees === 'true' ? 'false' : 'true')
-											}}
-											checked={router.query.fees === 'true'}
-										/>
-										<span data-wrapper="true">
-											<span>Fees</span>
-										</span>
-									</Toggle>
-								) : null}
-								{finalFeesChart ? (
-									<Toggle>
-										<input
-											type="checkbox"
-											onClick={() => {
-												updateRoute('revenue', router.query.revenue === 'true' ? 'false' : 'true')
-											}}
-											checked={router.query.revenue === 'true'}
-										/>
-										<span data-wrapper="true">
-											<span>Revenue</span>
-										</span>
-									</Toggle>
-								) : null}
-
-								{priceHistory && denomination === 'USD' ? (
-									<Toggle>
-										<input
-											type="checkbox"
-											onClick={() => {
-												updateRoute('price', router.query.price === 'true' ? 'false' : 'true')
-											}}
-											checked={router.query.price === 'true'}
-										/>
-										<span data-wrapper="true">
-											<span>Price</span>
-										</span>
-									</Toggle>
-								) : null}
+								{[
+									{
+										id: 'tvl',
+										name: 'TVL',
+										isVisible: selectedChain !== 'All'
+									},
+									{
+										id: 'volume',
+										name: 'Volume',
+										isVisible: !!finalVolumeChart
+									},
+									{
+										id: 'fees',
+										name: 'Fees',
+										isVisible: !!finalFeesChart
+									},
+									{
+										id: 'revenue',
+										name: 'Revenue',
+										isVisible: !!finalFeesChart
+									},
+									{
+										id: 'price',
+										name: 'Price',
+										isVisible: Boolean(
+											priceHistory &&
+												denomination === 'USD' &&
+												priceHistory?.[priceHistory?.length - 1][0] > globalChart?.[0][0]
+										)
+									},
+									{
+										id: 'users',
+										name: 'Active Users',
+										isVisible: usersData?.length > 0
+									}
+								].map(({ id, name, isVisible }) =>
+									isVisible ? (
+										<Toggle>
+											<input
+												key={id}
+												type="checkbox"
+												onClick={() => {
+													updateRoute(id, router.query[id] === 'true' ? 'false' : 'true')
+												}}
+												checked={router.query[id] === 'true'}
+											/>
+											<span data-wrapper="true">
+												<span>{name}</span>
+											</span>
+										</Toggle>
+									) : (
+										false
+									)
+								)}
 							</ToggleWrapper>
 						</FiltersWrapper>
 					) : null}
@@ -424,6 +414,7 @@ function GlobalPage({
 							volumeData={finalVolumeChart}
 							feesData={finalFeesChart}
 							priceData={priceHistory}
+							usersData={usersData}
 							customLegendName="Chain"
 							hideDefaultLegend
 							valueSymbol="$"

@@ -12,18 +12,14 @@ export async function getStaticProps({ params }) {
 
 	const volumeData = await getChainsPageData('dexs')
 	const feesData = await getOverviewItemPageData('fees', chain)
-	const tokenChart = chainCoingeckoIds[chain]
-		? await fetch(
-				`https://api.coingecko.com/api/v3/coins/${chainCoingeckoIds[chain].geckoId}/market_chart?vs_currency=usd&days=max&interval=daily`
-		  ).then((r) => r.json())
-		: null
+	const usersData = await fetch(`https://api.llama.fi/userData/users/chain$${chain}`).then((r) => r.json())
 
 	return {
 		props: {
 			...data.props,
 			volumeData,
 			feesData,
-			tokenChart
+			usersData
 		},
 		revalidate: maxAgeForNext([22])
 	}

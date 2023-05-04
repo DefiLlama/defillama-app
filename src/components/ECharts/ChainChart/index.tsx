@@ -7,7 +7,6 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject } from '../utils'
 import { SelectLegendMultiple } from '../shared'
 import { useDefaults } from '../useDefaults'
-import { FlexRow } from '~/layout/ProtocolAndPool'
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
@@ -18,7 +17,8 @@ const colors = {
 	volume: '#19ab17',
 	fees: '#f150f4',
 	revenue: '#b4b625',
-	price: '#da1f73'
+	price: '#da1f73',
+	activeUsers: '#fa4646'
 }
 
 // TODO remove color prop and use stackColors by default
@@ -40,6 +40,7 @@ export default function AreaChart({
 	volumeData,
 	feesData,
 	priceData,
+	usersData,
 	denomination,
 	updateRoute,
 	route,
@@ -57,6 +58,14 @@ export default function AreaChart({
 		color,
 		title,
 		valueSymbol: denomination,
+		tooltipSort,
+		hideLegend: true,
+		isStackedChart
+	})
+	const usersChartSetting = useDefaults({
+		color,
+		title,
+		valueSymbol: 'Users',
 		tooltipSort,
 		hideLegend: true,
 		isStackedChart
@@ -165,6 +174,22 @@ export default function AreaChart({
 			})
 		}
 
+		if (route.users === 'true' && usersData?.length > 0) {
+			series.push({
+				name: 'Active Users',
+				chartId: 'Active Users',
+				type: 'bar',
+				data: [],
+				yAxisIndex: 5,
+				itemStyle: {
+					color: colors.activeUsers
+				}
+			})
+			usersData.forEach(([date, value]) => {
+				series[series.length - 1].data.push([getUtcDateObject(date), value])
+			})
+		}
+
 		return [series, uniq(series.map((val) => val.chartId))]
 	}, [
 		chartData,
@@ -207,6 +232,16 @@ export default function AreaChart({
 			right: grid.right
 		} as any
 
+		const offsets = {
+			TVL: undefined,
+			Volume: 60,
+			Fees: 55,
+			Revenue: 65,
+			Price: 65,
+			'Active Users': 60
+		}
+		let offsetAcc = -60
+
 		chartInstance.setOption({
 			graphic: { ...graphic },
 
@@ -242,14 +277,21 @@ export default function AreaChart({
 					...yAxis,
 					scale: true,
 					id: 'Price'
+				},
+				{
+					...usersChartSetting.yAxis,
+					scale: true,
+					id: 'Active Users'
 				}
-			].map((yAxis, i) => {
+			].map((yAxis: any, i) => {
+				const isActive = activeSeries?.findIndex((id) => id === yAxis.id) !== -1
+				const defaultOffset = offsets[yAxis.id]
+				const offset = isActive && defaultOffset ? offsetAcc + defaultOffset : 0
+				offsetAcc = isActive && i !== 0 ? offsetAcc + defaultOffset : offsetAcc
 				return {
 					...yAxis,
-					offset:
-						i > 1 && activeSeries.includes(yAxis.id)
-							? (activeSeries?.findIndex((id) => id === yAxis.id) - activeSeries.includes('TVL')) * 65
-							: 0,
+					offset,
+
 					axisLabel: {
 						...yAxis.axisLabel,
 						color: () => Object.values(colors)[i]
