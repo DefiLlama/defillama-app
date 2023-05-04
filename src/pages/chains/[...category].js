@@ -4,18 +4,22 @@ import ChainsContainer from '~/containers/Defi/Chains'
 import { maxAgeForNext } from '~/api'
 import { getNewChainsPageData } from '~/api/categories/protocols'
 import { CONFIG_API } from '~/constants/index'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps({
-	params: {
-		category: [category]
+export const getStaticProps = withPerformanceLogging(
+	'chains/[...category]',
+	async ({
+		params: {
+			category: [category]
+		}
+	}) => {
+		const data = await getNewChainsPageData(category)
+		return {
+			...data,
+			revalidate: maxAgeForNext([22])
+		}
 	}
-}) {
-	const data = await getNewChainsPageData(category)
-	return {
-		...data,
-		revalidate: maxAgeForNext([22])
-	}
-}
+)
 
 export async function getStaticPaths() {
 	const { chainCoingeckoIds = {} } = await fetch(CONFIG_API).then((res) => res.json())
