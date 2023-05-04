@@ -60,6 +60,7 @@ import Announcement from '~/components/Announcement'
 import { useTabState, TabPanel } from 'ariakit'
 import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
 import { GridContent, TabLayout, TabList, Tab } from './Common'
+import { GovernanceData } from './Governance'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
 
@@ -761,7 +762,7 @@ function ProtocolContainer({
 					</Tab>
 					{showCharts && (
 						<Tab id="tvl-charts" color={backgroundColor}>
-							TVL Charts
+							TVL
 						</Tab>
 					)}
 					{treasury && (
@@ -787,6 +788,11 @@ function ProtocolContainer({
 					{metrics.dexs && (
 						<Tab id="volume" color={backgroundColor}>
 							Volume
+						</Tab>
+					)}
+					{governanceApi && (
+						<Tab id="governance" color={backgroundColor}>
+							Governance
 						</Tab>
 					)}
 				</TabList>
@@ -1078,6 +1084,12 @@ function ProtocolContainer({
 				{metrics.dexs && (
 					<TabPanel state={tab} tabId="volume">
 						<VolumeCharts data={protocolData} />
+					</TabPanel>
+				)}
+
+				{governanceApi && (
+					<TabPanel state={tab} tabId="governance">
+						<GovernanceData api={governanceApi} />
 					</TabPanel>
 				)}
 			</TabLayout>
