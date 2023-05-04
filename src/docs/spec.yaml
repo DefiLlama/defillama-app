@@ -89,7 +89,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /chains:
+  /v2/chains:
     get:
       tags:
         - TVL
