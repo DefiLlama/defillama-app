@@ -44,6 +44,32 @@ const EasterLlama = styled.button`
 	}
 `
 
+const DataWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	position: relative;
+
+	#chartWrapper {
+		flex: 1;
+	}
+
+	@media screen and (min-width: 105rem) {
+		flex-direction: row;
+	}
+`
+
+const PanelWrapper = styled.div`
+	display: flex;
+	gap: 10px;
+	flex: 1;
+
+	@media screen and (min-width: 105rem) {
+		flex-direction: column;
+		max-width: 20%;
+	}
+`
+
 const ToggleWrapper = styled.span`
 	display: flex;
 	align-items: center;
@@ -305,8 +331,8 @@ function GlobalPage({
 				}}
 			/>
 
-			<ChartAndValuesWrapper>
-				<BreakpointPanels>
+			<DataWrapper>
+				<PanelWrapper>
 					<BreakpointPanel>
 						<h1>Total Value Locked (USD)</h1>
 						<p style={{ '--tile-text-color': '#4f8fea' }}>{tvl}</p>
@@ -332,7 +358,7 @@ function GlobalPage({
 						<h2>{topToken.name} Dominance</h2>
 						<p style={{ '--tile-text-color': '#46acb7' }}> {dominance}%</p>
 					</PanelHiddenMobile>
-				</BreakpointPanels>
+				</PanelWrapper>
 				<BreakpointPanel id="chartWrapper">
 					{!isLoading ? (
 						<FiltersWrapper style={{ margin: 0 }}>
@@ -429,7 +455,7 @@ function GlobalPage({
 				<EasterLlama onClick={activateEasterEgg}>
 					<Image src={llamaLogo} width="41px" height="34px" alt="Activate Easter Egg" />
 				</EasterLlama>
-			</ChartAndValuesWrapper>
+			</DataWrapper>
 
 			<ListOptions>
 				<ListHeader>TVL Rankings</ListHeader>
