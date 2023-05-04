@@ -24,7 +24,7 @@ export default function NFTHomePage(props) {
 				step={{
 					category: 'Home',
 					name: 'NFT Collections',
-					route: '/',
+					route: '',
 					hideOptions: true
 				}}
 			/>
