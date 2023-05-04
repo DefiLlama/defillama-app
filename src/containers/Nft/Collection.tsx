@@ -50,7 +50,7 @@ export function NFTCollectionContainer({
 				step={{
 					category: 'NFT Collections',
 					name: name,
-					route: '/nfts',
+					route: 'nfts',
 					hideOptions: true
 				}}
 			/>
