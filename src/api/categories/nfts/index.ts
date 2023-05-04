@@ -246,13 +246,16 @@ export const getNFTCollection = async (slug: string) => {
 		// calc 1d-rolling median at at the end of every x-hours
 		const x = 6
 		const u = 3600 * x * 1000
-		// round up
-		const start = Math.ceil(X[0][0] / u) * u
-		const stop = Math.ceil(X[X.length - 1][0] / u) * u
-		// create hourly timestamps
+
 		const hourlyT = []
-		for (let timestamp = start; timestamp <= stop; timestamp += u) {
-			hourlyT.push(timestamp)
+		if (X.length) {
+			// round up
+			const start = Math.ceil(X[0][0] / u) * u
+			const stop = Math.ceil(X[X.length - 1][0] / u) * u
+			// create hourly timestamps
+			for (let timestamp = start; timestamp <= stop; timestamp += u) {
+				hourlyT.push(timestamp)
+			}
 		}
 
 		// calc median
