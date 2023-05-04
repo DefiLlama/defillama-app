@@ -4,8 +4,9 @@ import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
 import { toYearMonth } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('raises', async () => {
 	const data = await fetch(RAISES_API).then((r) => r.json())
 
 	const monthlyInvestment = {}
@@ -37,7 +38,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 const Raises = (props) => {
 	return <RaisesContainer {...props} investorName={null} />

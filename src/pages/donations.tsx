@@ -9,6 +9,7 @@ import { DashGrid } from './press'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { tokenIconUrl } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
 function Section({ title, children }) {
 	return (
@@ -19,7 +20,7 @@ function Section({ title, children }) {
 	)
 }
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('donations', async () => {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo', 'url', 'referralUrl'])
 	return {
 		props: {
@@ -33,7 +34,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 function PressPage({ protocols }) {
 	return (

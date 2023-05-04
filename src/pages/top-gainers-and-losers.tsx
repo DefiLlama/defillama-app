@@ -8,8 +8,9 @@ import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { TopGainersAndLosers } from '~/components/Table/Defi/Protocols'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('top-gainers-and-losers', async () => {
 	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl'])
 
 	return {
@@ -18,7 +19,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function TopGainersLosers({ protocols }) {
 	const data = useCalcStakePool2Tvl(protocols)

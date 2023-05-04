@@ -10,6 +10,7 @@ import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { fetcher } from '~/utils/useSWR'
 import Announcement from '~/components/Announcement'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export default function Tokens({ searchData }) {
 	const router = useRouter()
@@ -85,7 +86,7 @@ export default function Tokens({ searchData }) {
 	)
 }
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 	const searchData = await getAllCGTokensList()
 
 	return {
@@ -102,4 +103,4 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([23])
 	}
-}
+})

@@ -10,6 +10,7 @@ import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { maxAgeForNext } from '~/api'
 import { getForkPageData } from '~/api/categories/protocols'
+import { withPerformanceLogging } from '~/utils/perf'
 
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 
@@ -21,14 +22,15 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-export async function getStaticProps() {
+// @ts-ignore TODO: getForkPageData shouldn't be concerned with 'notFound' param, should be just about data
+export const getStaticProps = withPerformanceLogging('forks', async () => {
 	const data = await getForkPageData()
 
 	return {
 		...data,
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 const ChartsWrapper = styled(Panel)`
 	min-height: 402px;

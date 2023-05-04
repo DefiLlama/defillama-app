@@ -8,7 +8,7 @@ import { LSDTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
-
+import { withPerformanceLogging } from '~/utils/perf'
 import { formattedNum, toK } from '~/utils'
 
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -21,14 +21,14 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	const data = await getLSDPageData()
 
 	return {
 		...data,
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 const ChartsWrapper = styled(Panel)`
 	min-height: 402px;

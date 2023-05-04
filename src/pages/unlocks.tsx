@@ -16,8 +16,9 @@ import VirtualTable from '~/components/Table/Table'
 import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = async () => {
+export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const data = await getAllProtocolEmissions()
 
 	return {
@@ -26,7 +27,7 @@ export const getStaticProps = async () => {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Protocols({ data }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])

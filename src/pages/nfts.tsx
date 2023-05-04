@@ -4,8 +4,9 @@ import Layout from '~/layout'
 import { NftsCollectionTable } from '~/components/Table'
 import { useScrollToTop } from '~/hooks'
 import { NFTsSearch } from '~/components/Search'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('nfts', async () => {
 	const data = await getNFTData()
 
 	return {
@@ -14,7 +15,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function NFTHomePage(props) {
 	useScrollToTop()

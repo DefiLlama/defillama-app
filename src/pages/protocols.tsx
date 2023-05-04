@@ -2,8 +2,9 @@ import Layout from '~/layout'
 import ProtocolList from '~/components/ProtocolList'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('protocols', async () => {
 	const { protocols } = await getSimpleProtocolsPageData()
 
 	return {
@@ -12,7 +13,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Protocols({ protocols }) {
 	return (

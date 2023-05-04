@@ -12,8 +12,9 @@ import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table
 import { IFormattedProtocol } from '~/api/types'
 import { Name } from '~/components/Table/shared'
 import { descriptions } from './categories'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
 	const topProtocolPerChainAndCategory = Object.fromEntries(chains.map((c) => [c, {}]))
 
@@ -62,7 +63,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export default function Chains({ data, columns }) {
 	const allColumns: ColumnDef<IFormattedProtocol>[] = useMemo(

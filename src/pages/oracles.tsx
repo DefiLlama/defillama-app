@@ -10,7 +10,7 @@ import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import { maxAgeForNext } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
-
+import { withPerformanceLogging } from '~/utils/perf'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
@@ -21,14 +21,15 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-export async function getStaticProps() {
+// @ts-ignore TODO: same reason as in another file, getOraclePageData cares too much
+export const getStaticProps = withPerformanceLogging('oracles', async () => {
 	const data = await getOraclePageData()
 
 	return {
 		...data,
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 const ChartsWrapper = styled(Panel)`
 	min-height: 402px;

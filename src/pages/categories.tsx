@@ -9,13 +9,14 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
+import { withPerformanceLogging } from '~/utils/perf'
 import type { IChartProps } from '~/components/ECharts/types'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-export async function getStaticProps() {
+export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const protocols = await getProtocolsRaw()
 	const chartAndColorsData = await getCategoriesPageData()
 
@@ -42,7 +43,7 @@ export async function getStaticProps() {
 		},
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 export const descriptions = {
 	Dexes: 'Protocols where you can swap/trade cryptocurrency',
