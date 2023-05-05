@@ -49,6 +49,7 @@ const DataWrapper = styled.div`
 	flex-direction: column;
 	gap: 10px;
 	position: relative;
+	min-height: 500px;
 
 	#chartWrapper {
 		flex: 1;
@@ -66,7 +67,8 @@ const PanelWrapper = styled.div`
 
 	@media screen and (min-width: 105rem) {
 		flex-direction: column;
-		max-width: 20%;
+		max-width: 14%;
+		min-width: 250px;
 	}
 `
 
@@ -75,6 +77,7 @@ const ToggleWrapper = styled.span`
 	align-items: center;
 	gap: 8px;
 	flex-wrap: wrap;
+	margin-left: auto;
 `
 
 const ChainChart = dynamic(() => import('~/components/ECharts/ChainChart'), {
@@ -359,9 +362,9 @@ function GlobalPage({
 						<p style={{ '--tile-text-color': '#46acb7' }}> {dominance}%</p>
 					</PanelHiddenMobile>
 				</PanelWrapper>
-				<BreakpointPanel id="chartWrapper">
+				<BreakpointPanel id="chartWrapper" style={{ minHeight: '430px' }}>
 					{!isLoading ? (
-						<FiltersWrapper style={{ margin: 0 }}>
+						<FiltersWrapper style={{ margin: 0, marginBottom: 'auto' }}>
 							{DENOMINATIONS.length > 0 && (
 								<Filters>
 									{DENOMINATIONS.map((D) => (
@@ -433,9 +436,10 @@ function GlobalPage({
 					{easterEgg ? (
 						<Game />
 					) : isLoading ? (
-						<LocalLoader style={{ margin: 'auto' }} />
+						<LocalLoader style={{ margin: 'auto', minHeight: '360px' }} />
 					) : (
 						<ChainChart
+							height="360px"
 							chartData={finalTvlChart}
 							volumeData={finalVolumeChart}
 							feesData={finalFeesChart}
