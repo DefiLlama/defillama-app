@@ -66,7 +66,7 @@ export const TreasuryChart = ({ protocolName }) => {
 	})
 
 	return (
-		<ChartsWrapper>
+		<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0 }}>
 			<LazyChart style={{ minHeight: '320px' }}>
 				<PieChart chartData={top10Tokens} />
 			</LazyChart>
