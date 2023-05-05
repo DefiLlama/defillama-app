@@ -483,6 +483,20 @@ function ProtocolContainer({
 					Project has some red flags and multiple users have reported concerns. Be careful.
 				</Announcement>
 			)}
+			{category === 'Uncollateralized Lending' && (
+				<Announcement>
+					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this
+					click{' '}
+					<a
+						href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/6163"
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						here
+					</a>
+					.
+				</Announcement>
+			)}
 
 			<StatsSection>
 				{otherProtocols?.length > 1 && (
