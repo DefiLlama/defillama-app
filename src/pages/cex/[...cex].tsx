@@ -9,41 +9,48 @@ import { fetchArticles, IArticle } from '~/api/categories/news'
 import { cexData } from '../cexs'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = withPerformanceLogging('cex/[...cex]', async ({ params: { cex } }) => {
-	// if cex is not string, return 404
-	if (typeof cex !== 'string') {
+export const getStaticProps = withPerformanceLogging(
+	'cex/[...cex]',
+	async ({
+		params: {
+			cex: [exchangeName]
+		}
+	}) => {
+		// if cex is not string, return 404
+		if (typeof exchangeName !== 'string') {
+			return {
+				notFound: true
+			}
+		}
+
+		const [protocolRes, articles]: [IProtocolResponse, IArticle[]] = await Promise.all([
+			getProtocol(exchangeName),
+			fetchArticles({ tags: exchangeName })
+		])
+
+		if (protocolRes?.chainTvls) {
+			Object.keys(protocolRes.chainTvls).forEach((chain) => {
+				delete protocolRes.chainTvls[chain].tokensInUsd
+				delete protocolRes.chainTvls[chain].tokens
+			})
+		}
+
+		const protocolData = fuseProtocolData(protocolRes)
+
+		const backgroundColor = await getColor(tokenIconPaletteUrl(protocolData.name))
+
 		return {
-			notFound: true
+			props: {
+				articles,
+				protocol: exchangeName,
+				protocolData,
+				backgroundColor,
+				chartColors: { TVL: backgroundColor }
+			},
+			revalidate: maxAgeForNext([22])
 		}
 	}
-
-	const [protocolRes, articles]: [IProtocolResponse, IArticle[]] = await Promise.all([
-		getProtocol(cex),
-		fetchArticles({ tags: cex })
-	])
-
-	if (protocolRes?.chainTvls) {
-		Object.keys(protocolRes.chainTvls).forEach((chain) => {
-			delete protocolRes.chainTvls[chain].tokensInUsd
-			delete protocolRes.chainTvls[chain].tokens
-		})
-	}
-
-	const protocolData = fuseProtocolData(protocolRes)
-
-	const backgroundColor = await getColor(tokenIconPaletteUrl(protocolData.name))
-
-	return {
-		props: {
-			articles,
-			protocol: cex,
-			protocolData,
-			backgroundColor,
-			chartColors: { TVL: backgroundColor }
-		},
-		revalidate: maxAgeForNext([22])
-	}
-})
+)
 
 export async function getStaticPaths() {
 	const paths = cexData
