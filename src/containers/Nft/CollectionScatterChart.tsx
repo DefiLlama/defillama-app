@@ -51,42 +51,45 @@ export default function CollectionScatterChart({
 	React.useEffect(() => {
 		const chartInstance = createInstance()
 
-		const series = [
-			{
-				name: 'Sale Price',
-				type: 'scatter',
-				large: true,
-				largeThreshold: 0,
-				symbols: 5,
-				emphasis: {
-					focus: 'series'
-				},
-				itemStyle: {
-					color: '#3b82f6'
-				},
-				symbolSize: 3,
-				data: sales.map((p) => [new Date(p[0]), p[1]])
-			},
-			{
-				name: 'Moving Average',
-				type: 'line',
-				itemStyle: {
-					color: '#ffc300'
-				},
-				data: salesMedian1d.map((p) => [new Date(p[0]), p[1]]),
-				showSymbol: false,
-				connectNulls: true
-			},
-			{
-				name: 'Volume',
-				type: 'bar',
-				data: volume.map((p) => [new Date(p[0] * 1e3), p[1]]),
-				itemStyle: {
-					color: '#22c55e'
-				},
-				yAxisIndex: 1
-			}
-		]
+		const series =
+			sales.length > 0
+				? [
+						{
+							name: 'Sale Price',
+							type: 'scatter',
+							large: true,
+							largeThreshold: 0,
+							symbols: 5,
+							emphasis: {
+								focus: 'series'
+							},
+							itemStyle: {
+								color: '#3b82f6'
+							},
+							symbolSize: 3,
+							data: sales.map((p) => [new Date(p[0]), p[1]])
+						},
+						{
+							name: 'Moving Average',
+							type: 'line',
+							itemStyle: {
+								color: '#ffc300'
+							},
+							data: salesMedian1d.map((p) => [new Date(p[0]), p[1]]),
+							showSymbol: false,
+							connectNulls: true
+						},
+						{
+							name: 'Volume',
+							type: 'bar',
+							data: volume.map((p) => [new Date(p[0] * 1e3), p[1]]),
+							itemStyle: {
+								color: '#22c55e'
+							},
+							yAxisIndex: 1
+						}
+				  ]
+				: []
 
 		const option = {
 			animation: false,
@@ -159,7 +162,7 @@ export default function CollectionScatterChart({
 			xAxis: {
 				type: 'time',
 				boundaryGap: false,
-				min: new Date(salesMedian1d[0][0]),
+				min: salesMedian1d.length > 0 ? new Date(salesMedian1d[0][0]) : 0,
 				nameTextStyle: {
 					fontFamily: 'sans-serif',
 					fontSize: 14,
