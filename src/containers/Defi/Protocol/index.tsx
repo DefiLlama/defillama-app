@@ -59,7 +59,7 @@ import type { IEmission } from './Emissions'
 import Announcement from '~/components/Announcement'
 import { useTabState, TabPanel } from 'ariakit'
 import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
-import { GridContent, TabLayout, TabList, Tab } from './Common'
+import { GridContent, TabLayout, TabList, Tab, OtherProtocols, ProtocolLink } from './Common'
 import { GovernanceData } from './Governance'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
@@ -92,19 +92,6 @@ const Bobo = styled.button`
 		bottom: initial;
 		left: initial;
 		z-index: 1;
-	}
-`
-
-export const OtherProtocols = styled.nav`
-	grid-column: span 1;
-	display: flex;
-	overflow-x: auto;
-	background: ${({ theme }) => theme.bg7};
-	font-weight: 500;
-	border-radius: 12px 12px 0 0;
-
-	@media screen and (min-width: 80rem) {
-		grid-column: span 2;
 	}
 `
 
@@ -169,31 +156,6 @@ const ProtocolStatsTable = styled.table`
 
 	.question-helper {
 		padding: 0 16px 4px;
-	}
-`
-
-interface IProtocolLink {
-	active: boolean
-	color: string | null
-}
-
-export const ProtocolLink = styled.a<IProtocolLink>`
-	padding: 8px 24px;
-	white-space: nowrap;
-
-	& + & {
-		border-left: ${({ theme }) => '1px solid ' + theme.divider};
-	}
-
-	border-bottom: ${({ active, color, theme }) => '1px solid ' + (active ? color : theme.divider)};
-
-	:first-child {
-		border-top-left-radius: 12px;
-	}
-
-	:hover,
-	:focus-visible {
-		background-color: ${({ color }) => transparentize(0.9, color)};
 	}
 `
 

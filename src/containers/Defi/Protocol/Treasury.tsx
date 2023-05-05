@@ -60,7 +60,10 @@ export const TreasuryChart = ({ protocolName }) => {
 		extraTvlEnabled: {}
 	})
 
-	const { tokenBreakdownUSD, tokensUnique } = buildProtocolAddlChartsData({ protocolData: data, extraTvlsEnabled: {} })
+	const { tokenBreakdown, tokenBreakdownUSD, tokensUnique } = buildProtocolAddlChartsData({
+		protocolData: data,
+		extraTvlsEnabled: {}
+	})
 
 	return (
 		<ChartsWrapper>
@@ -69,6 +72,9 @@ export const TreasuryChart = ({ protocolName }) => {
 			</LazyChart>
 			<LazyChart style={{ minHeight: '320px' }}>
 				<AreaChart chartData={historicalTreasury} title="Historical Treasury" valueSymbol="$" />
+			</LazyChart>
+			<LazyChart style={{ minHeight: '320px' }}>
+				<AreaChart chartData={tokenBreakdown} title="Tokens Breakdown" stacks={tokensUnique} />
 			</LazyChart>
 			<LazyChart style={{ minHeight: '320px' }}>
 				<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />

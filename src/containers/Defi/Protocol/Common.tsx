@@ -50,3 +50,41 @@ export const Tab = styled(AriaktiTab)`
 		background-color: ${({ color }) => transparentize(0.9, color)};
 	}
 `
+
+export const OtherProtocols = styled.nav`
+	grid-column: span 1;
+	display: flex;
+	overflow-x: auto;
+	background: ${({ theme }) => theme.bg7};
+	font-weight: 500;
+	border-radius: 12px 12px 0 0;
+
+	@media screen and (min-width: 80rem) {
+		grid-column: span 2;
+	}
+`
+
+interface IProtocolLink {
+	active: boolean
+	color: string | null
+}
+
+export const ProtocolLink = styled.a<IProtocolLink>`
+	padding: 8px 24px;
+	white-space: nowrap;
+
+	& + & {
+		border-left: ${({ theme }) => '1px solid ' + theme.divider};
+	}
+
+	border-bottom: ${({ active, color, theme }) => '1px solid ' + (active ? color : theme.divider)};
+
+	:first-child {
+		border-top-left-radius: 12px;
+	}
+
+	:hover,
+	:focus-visible {
+		background-color: ${({ color }) => transparentize(0.9, color)};
+	}
+`

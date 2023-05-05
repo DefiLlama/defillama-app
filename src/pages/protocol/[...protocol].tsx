@@ -29,6 +29,10 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
+		const timeNow = Date.now()
+
+		console.log('started building', 'protocol/[...protocol]', protocol, timeNow - Date.now())
+
 		const [protocolRes, articles, emissions, expenses, treasuries, yields]: [
 			IProtocolResponse,
 			IArticle[],
@@ -44,6 +48,8 @@ export const getStaticProps = withPerformanceLogging(
 			fetch(PROTOCOLS_TREASURY).then((res) => res.json()),
 			fetch(YIELD_POOLS_API).then((res) => res.json())
 		])
+
+		console.log('done fetching main data', 'protocol/[...protocol]', protocol, timeNow - Date.now())
 
 		let inflowsExist = false
 
@@ -107,6 +113,8 @@ export const getStaticProps = withPerformanceLogging(
 						})
 				: null
 		])
+
+		console.log('done fetching protocol specific data', 'protocol/[...protocol]', protocol, timeNow - Date.now())
 
 		const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
 			(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
@@ -188,6 +196,8 @@ export const getStaticProps = withPerformanceLogging(
 		const metrics = protocolData.metrics || {}
 		const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
 		const projectYields = yields.data.filter(({ project }) => project === protocol)
+
+		console.log('finished building', 'protocol/[...protocol]', protocol, timeNow - Date.now())
 
 		return {
 			props: {

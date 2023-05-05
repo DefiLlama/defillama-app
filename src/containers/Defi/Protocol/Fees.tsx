@@ -9,14 +9,14 @@ export const ProtocolFeesRevenueVolumeCharts = ({ data }: { data: IFusedProtocol
 	const hasVersions = (data.otherProtocols ?? []).length > 0
 
 	return (
-		<ChartsWrapper>
-			{metrics.map(([key, enabled], i) => {
+		<ChartsWrapper style={{ background: 'none', border: 'none' }}>
+			{metrics.map(([key, enabled]) => {
 				return enabled && key !== 'medianApy' ? (
-					<React.Fragment key={i}>
-						<ChartByType chartType="chain" protocolName={slug(data.name)} type={key} />
-						{hasVersions ? <ChartByType chartType="version" protocolName={slug(data.name)} type={key} /> : null}
+					<React.Fragment key={key + 'fees-revenue-volume-charts'}>
+						<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={key} />
+						{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={key} /> : null}
 						{key === 'fees' ? (
-							<ChartByType chartType="chain" protocolName={slug(data.name)} type={key} breakdownChart={false} />
+							<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={key} breakdownChart={false} />
 						) : null}
 					</React.Fragment>
 				) : null
