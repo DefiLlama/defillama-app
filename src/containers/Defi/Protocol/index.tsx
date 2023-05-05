@@ -316,8 +316,6 @@ function ProtocolContainer({
 	yields,
 	helperTexts
 }: IProtocolContainerProps) {
-	useScrollToTop()
-
 	const {
 		address = '',
 		name,
@@ -470,7 +468,9 @@ function ProtocolContainer({
 			  null
 			: null
 
-	const tab = useTabState({ defaultSelectedId: 'information' })
+	const defaultSelectedId = router.asPath.split('#')?.[1] ?? 'information'
+
+	const tab = useTabState({ defaultSelectedId })
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
