@@ -21,7 +21,7 @@ import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import type { IProtocolContainerProps } from '../types'
 import LocalLoader from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
-import { OtherProtocols, ProtocolLink } from '~/containers/Defi/Protocol'
+import { OtherProtocols, ProtocolLink } from '~/containers/Defi/Protocol/Common'
 import Link from 'next/link'
 import { Wrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 
