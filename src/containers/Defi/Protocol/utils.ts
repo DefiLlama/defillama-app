@@ -82,7 +82,7 @@ function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
 	return Array.from(tokenSet)
 }
 
-function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
+function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete }) {
 	const usdInflows = {}
 	const tokenInflows = {}
 
@@ -158,6 +158,11 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 			}
 		}
 	}
+
+	datesToDelete.forEach((date) => {
+		delete usdInflows[date]
+		delete tokenInflows[date]
+	})
 
 	const usdFlows = Object.entries(usdInflows)
 	const tokenFlows = Object.values(tokenInflows)
@@ -263,7 +268,7 @@ export const buildProtocolAddlChartsData = ({
 	protocolData,
 	extraTvlsEnabled
 }: {
-	protocolData: { chainTvls: IChainTvl; misrepresentedTokens?: boolean }
+	protocolData: { name: string; chainTvls: IChainTvl; misrepresentedTokens?: boolean }
 	extraTvlsEnabled: ISettings
 }) => {
 	if (protocolData) {
@@ -292,7 +297,8 @@ export const buildProtocolAddlChartsData = ({
 			const { usdInflows, tokenInflows } = buildInflows({
 				chainTvls: protocolData.chainTvls,
 				extraTvlsEnabled,
-				tokensUnique
+				tokensUnique,
+				datesToDelete: protocolData.name === 'Binance CEX' ? [1681516800] : []
 			})
 
 			return {
