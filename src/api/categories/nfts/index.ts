@@ -232,7 +232,7 @@ export const getNFTCollection = async (slug: string) => {
 			fetch(`${NFT_COLLECTION_API}/${slug}`).then((r) => r.json()),
 			fetch(`${NFT_COLLECTION_SALES_API}/${slug}`)
 				.then((r) => r.json())
-				.then((data) => (data ? data.map((i) => [i[0] * 1000, i[1]]) : [])),
+				.then((data) => (data && Array.isArray(data) ? data.map((i) => [i[0] * 1000, i[1]]) : [])),
 			fetch(`${NFT_COLLECTION_STATS_API}/${slug}`).then((r) => r.json()),
 			fetch(`${NFT_COLLECTION_FLOOR_HISTORY_API}/${slug}`).then((r) => r.json()),
 			fetch(`${NFT_COLLECTIONS_ORDERBOOK_API}/${slug}`).then((r) => r.json())

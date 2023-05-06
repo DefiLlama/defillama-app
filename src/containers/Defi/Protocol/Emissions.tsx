@@ -1,5 +1,6 @@
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
+import { useGetProtocolEmissions } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { ChartsWrapper, LazyChart, Section } from '~/layout/ProtocolAndPool'
 import { formatUnlocksEvent } from '~/utils'
@@ -33,12 +34,11 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 	return (
 		<Section id="emissions" style={{ paddingLeft: 0, gridColumn: '1 / -1' }}>
 			{!isEmissionsPage && <h3>Emissions</h3>}
-			<UnlocksCharts data={data} isEmissionsPage={isEmissionsPage} />
+			<ChartContainer data={data} isEmissionsPage={isEmissionsPage} />
 		</Section>
 	)
 }
-
-export const UnlocksCharts = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
+const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
 	const cutEventsList = !isEmissionsPage && data.events?.length > MAX_LENGTH_EVENTS_LIST
 	const styles = isEmissionsPage ? {} : { background: 'none', padding: 0, border: 'none' }
 
@@ -109,6 +109,16 @@ export const UnlocksCharts = ({ data, isEmissionsPage }: { data: IEmission; isEm
 			)}
 		</>
 	)
+}
+
+export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
+	const { data, loading } = useGetProtocolEmissions(protocolName)
+
+	if (loading) {
+		return <span style={{ height: '360px' }}></span>
+	}
+
+	return <ChartContainer data={data} />
 }
 
 const List = styled.ul`

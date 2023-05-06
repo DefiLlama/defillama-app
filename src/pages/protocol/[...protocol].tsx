@@ -16,6 +16,7 @@ import {
 	ACTIVE_USERS_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
+	PROTOCOL_EMISSIONS_LIST_API,
 	PROTOCOL_GOVERNANCE_API,
 	PROTOCOL_ONCHAIN_GOVERNANCE_API,
 	YIELD_POOLS_API,
@@ -40,7 +41,7 @@ export const getStaticProps = withPerformanceLogging(
 		] = await Promise.all([
 			getProtocol(protocol),
 			fetchArticles({ tags: protocol }),
-			getProtocolEmissons(protocol),
+			fetchWithPerformaceLogging(PROTOCOL_EMISSIONS_LIST_API),
 			fetchWithPerformaceLogging(PROTOCOLS_EXPENSES_API),
 			fetchWithPerformaceLogging(PROTOCOLS_TREASURY),
 			fetchWithPerformaceLogging(YIELD_POOLS_API)
@@ -200,14 +201,15 @@ export const getStaticProps = withPerformanceLogging(
 						...metrics,
 						fees: metrics.fees || dailyFees || allTimeFees ? true : false,
 						dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
-						medianApy: medianApy.data.length > 0
+						medianApy: medianApy.data.length > 0,
+						inflows: inflowsExist,
+						unlocks: emissions.includes(protocol)
 					}
 				},
 				backgroundColor,
 				similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
 					similarProtocols.find((p) => p.name === protocolName)
 				),
-				emissions,
 				chartColors: colorTones,
 				users: activeUsers[protocolData.id] || null,
 				tokenPrice: protocolData.tokenPrice || null,
@@ -218,7 +220,6 @@ export const getStaticProps = withPerformanceLogging(
 				allTimeFees,
 				dailyVolume,
 				allTimeVolume,
-				inflowsExist,
 				controversialProposals,
 				governanceApi,
 				treasury: treasury?.tokenBreakdowns ?? null,

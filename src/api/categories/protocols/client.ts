@@ -10,7 +10,7 @@ import {
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
-import { formatGovernanceData, getProtocol } from '.'
+import { formatGovernanceData, getProtocol, getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
 export const useFetchProtocolsList = () => {
@@ -188,4 +188,10 @@ export const useGetProtocolsList = ({ chain }) => {
 	}, [chain, data])
 
 	return { fullProtocolsList, parentProtocols, isLoading: !data && !error }
+}
+
+export const useGetProtocolEmissions = (protocol?: string | null) => {
+	const { data, error } = useSWR(`unlocksData/${protocol}`, protocol ? () => getProtocolEmissons(protocol) : () => null)
+
+	return { data, error, loading: protocol && !data && !error }
 }

@@ -11,7 +11,8 @@ import {
 	useFetchProtocolMedianAPY,
 	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions,
-	useFetchProtocolTreasury
+	useFetchProtocolTreasury,
+	useGetProtocolEmissions
 } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
@@ -37,13 +38,8 @@ interface IProps {
 	geckoId?: string | null
 	chartColors: { [type: string]: string }
 	metrics: { [metric: string]: boolean }
-	emissions?: Array<{
-		[label: string]: number
-	}>
-	unlockTokenSymbol?: string
 	activeUsersId: number | string | null
 	usdInflowsData: Array<[string, number]> | null
-	inflowsExist: boolean
 	governanceApi: string | null
 	isHourlyChart?: boolean
 	protocolHasTreasury?: boolean
@@ -80,11 +76,8 @@ export default function ProtocolChart({
 	geckoId,
 	chartColors,
 	metrics,
-	emissions,
-	unlockTokenSymbol,
 	activeUsersId,
 	usdInflowsData,
-	inflowsExist,
 	governanceApi,
 	isHourlyChart,
 	protocolHasTreasury
@@ -183,6 +176,10 @@ export default function ProtocolChart({
 	)
 	const { data: treasuryData, loading: fetchingTreasury } = useFetchProtocolTreasury(
 		router.isReady && protocolHasTreasury && treasury === 'true' ? protocol : null
+	)
+
+	const { data: emissions, loading: fetchingEmissions } = useGetProtocolEmissions(
+		metrics.unlocks && unlocks === 'true' ? protocol : null
 	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
@@ -477,9 +474,9 @@ export default function ProtocolChart({
 			})
 		}
 
-		if (emissions && emissions.length > 0 && unlocks === 'true') {
+		if (emissions && unlocks === 'true') {
 			chartsUnique.push('Unlocks')
-			emissions
+			emissions.chartData
 				.filter((emission) => +emission.date * 1000 <= Date.now())
 				.forEach((item) => {
 					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
@@ -567,7 +564,7 @@ export default function ProtocolChart({
 			})
 		}
 
-		if (!isHourlyChart && inflowsExist && usdInflows === 'true' && usdInflowsData) {
+		if (!isHourlyChart && usdInflows === 'true' && usdInflowsData) {
 			chartsUnique.push('USD Inflows')
 
 			let isHourlyInflows = usdInflowsData.length > 2 ? false : true
@@ -695,7 +692,6 @@ export default function ProtocolChart({
 		revenue,
 		router.isReady,
 		unlocks,
-		emissions,
 		activeUsers,
 		newUsers,
 		activeUsersData,
@@ -714,13 +710,13 @@ export default function ProtocolChart({
 		medianApy,
 		usdInflows,
 		usdInflowsData,
-		inflowsExist,
 		isHourlyChart,
 		governance,
 		governanceData,
 		extraTvlEnabled,
 		treasury,
-		treasuryData
+		treasuryData,
+		emissions
 	])
 
 	const finalData = React.useMemo(() => {
@@ -761,6 +757,10 @@ export default function ProtocolChart({
 		fetchingTypes.push('volume')
 	}
 
+	if (fetchingEmissions) {
+		fetchingTypes.push('unlocks')
+	}
+
 	if (fetchingActiveUsers) {
 		fetchingTypes.push('active users')
 	}
@@ -798,7 +798,8 @@ export default function ProtocolChart({
 		fetchingGasUsed ||
 		fetchingMedianAPY ||
 		fetchingGovernanceData ||
-		fetchingTreasury
+		fetchingTreasury ||
+		fetchingEmissions
 
 	const realPathname =
 		`/protocol/${protocol}?` +
@@ -815,12 +816,12 @@ export default function ProtocolChart({
 			hallmarks?.length > 0 ||
 			metrics?.fees ||
 			metrics?.dexs ||
-			emissions?.length > 0 ||
+			metrics.unlocks ||
 			activeUsersId ||
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
 			metrics.medianApy ||
-			(inflowsExist && !isHourlyChart ? true : false) ||
+			(metrics.inflows && !isHourlyChart ? true : false) ||
 			governanceApi ||
 			protocolHasTreasury ? (
 				<ToggleWrapper>
@@ -981,7 +982,7 @@ export default function ProtocolChart({
 						</>
 					)}
 
-					{emissions?.length > 0 && (
+					{metrics.unlocks && (
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"
@@ -1158,7 +1159,7 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
-					{!isHourlyChart && inflowsExist && (
+					{!isHourlyChart && metrics.inflows && (
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"
@@ -1327,7 +1328,7 @@ export default function ProtocolChart({
 								backgroundPosition: 'bottom'
 							})
 						}}
-						unlockTokenSymbol={unlockTokenSymbol}
+						unlockTokenSymbol={emissions?.tokenPrice?.symbol}
 					/>
 				)}
 			</LazyChart>

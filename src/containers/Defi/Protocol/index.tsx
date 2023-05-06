@@ -225,7 +225,6 @@ interface IProtocolContainerProps {
 	backgroundColor: string
 	similarProtocols: Array<{ name: string; tvl: number }>
 	treasury: { [category: string]: number } | null
-	emissions: IEmission
 	isCEX?: boolean
 	chartColors: { [type: string]: string }
 	users: { users: number }
@@ -237,7 +236,6 @@ interface IProtocolContainerProps {
 	dailyRevenue: number | null
 	dailyVolume: number | null
 	allTimeVolume: number | null
-	inflowsExist: boolean
 	controversialProposals: Array<{ title: string; link?: string }> | null
 	governanceApi: string | null
 	expenses: any
@@ -259,7 +257,6 @@ function ProtocolContainer({
 	protocol,
 	backgroundColor,
 	similarProtocols,
-	emissions,
 	isCEX,
 	chartColors,
 	users,
@@ -271,7 +268,6 @@ function ProtocolContainer({
 	dailyRevenue,
 	dailyVolume,
 	allTimeVolume,
-	inflowsExist,
 	controversialProposals,
 	governanceApi,
 	expenses,
@@ -714,13 +710,8 @@ function ProtocolContainer({
 					geckoId={gecko_id}
 					chartColors={chartColors}
 					metrics={metrics}
-					emissions={emissions?.chartData}
-					unlockTokenSymbol={emissions?.tokenPrice?.symbol}
 					activeUsersId={users ? protocolData.id : null}
-					usdInflowsData={
-						inflowsExist && usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null
-					}
-					inflowsExist={inflowsExist}
+					usdInflowsData={usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null}
 					governanceApi={governanceApi}
 					isHourlyChart={isHourlyChart}
 					protocolHasTreasury={treasury ? true : false}
@@ -747,7 +738,7 @@ function ProtocolContainer({
 							Treasury
 						</Tab>
 					)}
-					{emissions?.chartData?.length > 0 && (
+					{metrics.unlocks && (
 						<Tab id="unlocks" color={backgroundColor}>
 							Unlocks
 						</Tab>
@@ -1013,9 +1004,9 @@ function ProtocolContainer({
 					</TabPanel>
 				)}
 
-				{emissions?.chartData?.length > 0 && (
+				{metrics.unlocks && (
 					<TabPanel state={tab} tabId="unlocks">
-						<UnlocksCharts data={emissions} />
+						<UnlocksCharts protocolName={protocol} />
 					</TabPanel>
 				)}
 
