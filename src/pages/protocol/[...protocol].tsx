@@ -30,10 +30,6 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const startTime = Date.now()
-
-		console.error('started building', 'protocol/[...protocol]', protocol, Date.now() - startTime)
-
 		const [protocolRes, articles, emissions, expenses, treasuries, yields]: [
 			IProtocolResponse,
 			IArticle[],

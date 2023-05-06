@@ -35,7 +35,8 @@ export const DesktopRow = ({ data, onItemClick }) => {
 				if (onItemClick) {
 					onItemClick(data)
 				} else {
-					router.push(data.route)
+					// router.push(data.route)
+					window.open(data.route, '_blank')
 				}
 			}}
 			focusOnHover

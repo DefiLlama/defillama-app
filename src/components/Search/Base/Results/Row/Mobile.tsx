@@ -43,7 +43,8 @@ export const MobileRow = ({
 				if (onItemClick) {
 					onItemClick(data)
 				} else {
-					router.push(data.route)
+					// router.push(data.route)
+					window.open(data.route, '_blank')
 				}
 			}}
 			{...props}

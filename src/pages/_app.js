@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from '~/contexts/LocalStorage'
 import { useAnalytics } from '~/hooks'
 import '~/Theme/globals.css'
