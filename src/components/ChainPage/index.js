@@ -344,6 +344,7 @@ function GlobalPage({
 								.filter((t) => t[1] === true)
 								.map((t) => `${t[0]}=true`)
 								.join('&')}`}
+							target="_blank"
 						>
 							<DownloadIcon />
 							<span>&nbsp;&nbsp;.csv</span>

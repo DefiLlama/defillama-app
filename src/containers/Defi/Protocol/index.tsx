@@ -504,6 +504,7 @@ function ProtocolContainer({
 										as="a"
 										color={backgroundColor}
 										style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
+										target="_blank"
 									>
 										<DownloadCloud size={14} />
 										<span>&nbsp;&nbsp;.csv</span>
