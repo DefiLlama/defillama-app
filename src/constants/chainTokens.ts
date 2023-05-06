@@ -813,7 +813,12 @@ export const chainCoingeckoIds = {
 		geckoId: 'Oasys',
 		symbol: 'OAS',
 		cmcId: '22265'
-	}
+	},
+	Filecoin: {
+		geckoId: 'filecoin',
+		symbol: 'FIL',
+		cmcId: '2280'
+  }
 }
 
 export const chainMarketplaceMappings = {
