@@ -35,8 +35,11 @@ export const DesktopRow = ({ data, onItemClick }) => {
 				if (onItemClick) {
 					onItemClick(data)
 				} else {
-					// router.push(data.route)
-					window.open(data.route, '_blank')
+					if (typeof data.route === 'string') {
+						window.open('https://defillama.com' + data.route, '_blank')
+					} else {
+						router.push(data.route)
+					}
 				}
 			}}
 			focusOnHover
