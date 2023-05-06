@@ -1239,7 +1239,7 @@ const Toggle = styled.button`
 	margin-left: -24px;
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	gap: 2px;
 	white-space: nowrap;
 
 	svg {

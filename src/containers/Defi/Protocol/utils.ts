@@ -298,7 +298,7 @@ export const buildProtocolAddlChartsData = ({
 				chainTvls: protocolData.chainTvls,
 				extraTvlsEnabled,
 				tokensUnique,
-				datesToDelete: protocolData.name === 'Binance CEX' ? [1681516800] : []
+				datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : []
 			})
 
 			return {

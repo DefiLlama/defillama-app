@@ -22,3 +22,11 @@ export const withPerformanceLogging = <T extends {}>(
 		}
 	}
 }
+
+export const fetchWithPerformaceLogging = async (api) => {
+	const dateNow = Date.now()
+	console.log('started fetching', api)
+	const data = fetch(api).then((res) => res.json())
+	console.log('done fetching', api, Date.now() - dateNow)
+	return data
+}
