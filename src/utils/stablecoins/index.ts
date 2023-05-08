@@ -12,6 +12,7 @@ export const useBuildPeggedChartData = (
 ) => {
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
 		useMemo(() => {
+			if (selectedChain === null) return {}
 			const backfilledChains = [
 				'All',
 				'Ethereum',
@@ -151,7 +152,7 @@ export const useBuildPeggedChartData = (
 				}
 			})
 
-			const tokenInflowNames = zeroTokenInflows === tokenInflows.length ? ['USDT'] : Array.from(tokenSet) as any
+			const tokenInflowNames = zeroTokenInflows === tokenInflows.length ? ['USDT'] : (Array.from(tokenSet) as any)
 
 			tokenInflows = zeroTokenInflows === tokenInflows.length ? [{ USDT: 0, date: '1652486400' }] : tokenInflows
 			usdInflows = zeroUsdInfows === usdInflows.length ? [['1652486400', 0]] : usdInflows

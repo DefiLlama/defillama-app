@@ -4,6 +4,7 @@ import Image from 'next/future/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import { groupBy, mapValues, sumBy } from 'lodash'
 import {
 	Panel,
 	BreakpointPanels,
@@ -21,6 +22,7 @@ import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
 import SEO from '~/components/SEO'
 import LocalLoader from '~/components/LocalLoader'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
+import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory, useGetProtocolsList } from '~/api/categories/protocols/client'
@@ -90,6 +92,10 @@ const BASIC_DENOMINATIONS = ['USD']
 
 const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
+const sum = (obj) => {
+	return Object.values(obj).reduce((acc, curr) => (typeof curr === 'number' ? (acc += curr) : acc), 0)
+}
+
 function GlobalPage({
 	selectedChain = 'All',
 	chainsSet,
@@ -98,7 +104,9 @@ function GlobalPage({
 	extraTvlCharts = {},
 	volumeData,
 	feesData,
-	usersData
+	usersData,
+	raisesData,
+	stablecoinsData = {}
 }) {
 	const {
 		fullProtocolsList,
@@ -129,16 +137,6 @@ function GlobalPage({
 			setEasterEgg(true)
 		}
 	}
-
-	// const initialTvl = chart[chart.length - 1][1]
-	// const doublecounted = extraTvlCharts['doublecounted'][extraTvlCharts['doublecounted'].length - 1][1]
-	// const liquidstaking = extraTvlCharts['liquidstaking'][extraTvlCharts['liquidstaking'].length - 1][1]
-	// const overlap = extraTvlCharts['dcAndLsOverlap'][extraTvlCharts['dcAndLsOverlap'].length - 1][1]
-	// console.log(['doublecounted', 'liquidstaking', 'total'])
-	// console.log(['on', 'on', initialTvl])
-	// console.log(['on', 'off', initialTvl - liquidstaking + overlap])
-	// console.log(['off', 'on', initialTvl - doublecounted + overlap])
-	// console.log(['off', 'off', initialTvl - doublecounted - liquidstaking + overlap])
 
 	const { totalVolumeUSD, volumeChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -224,8 +222,11 @@ function GlobalPage({
 
 	const volumeChart = React.useMemo(
 		() =>
-			volumeData?.totalDataChart[0]?.[0][selectedChain]
-				? volumeData?.totalDataChart?.[0].map((val) => [val.date, val[selectedChain]])
+			selectedChain === 'All' || volumeData?.totalDataChart[0]?.[0][selectedChain]
+				? volumeData?.totalDataChart?.[0].map((val) => [
+						val.date,
+						selectedChain === 'All' ? sum(val) : val[selectedChain]
+				  ])
 				: null,
 		[volumeData, selectedChain]
 	)
@@ -236,6 +237,26 @@ function GlobalPage({
 				? feesData?.totalDataChart?.[0]?.map((val) => [val.date, val.Fees, val.Revenue])
 				: null,
 		[feesData?.totalDataChart]
+	)
+
+	const raisesChart = React.useMemo(
+		() =>
+			raisesData && raisesData?.raises
+				? mapValues(
+						groupBy(raisesData.raises, (val) => getUtcDateObject(val.date)),
+						(raises) => sumBy(raises, 'amount')
+				  )
+				: null,
+		[raisesData]
+	)
+
+	const { peggedAreaTotalData } = useBuildPeggedChartData(
+		stablecoinsData?.chartDataByPeggedAsset,
+		stablecoinsData?.peggedAssetNames,
+		Object.values(stablecoinsData?.peggedNameToChartDataIndex || {}),
+		'mcap',
+		stablecoinsData?.chainTVLData,
+		selectedChain === 'All' ? 'All' : null
 	)
 
 	const [finalTvlChart, finalVolumeChart, finalFeesChart] = React.useMemo(() => {
@@ -411,6 +432,16 @@ function GlobalPage({
 										id: 'users',
 										name: 'Active Users',
 										isVisible: usersData?.length > 0
+									},
+									{
+										id: 'raises',
+										name: 'Raises',
+										isVisible: selectedChain === 'All'
+									},
+									{
+										id: 'stables',
+										name: 'Stablecoins',
+										isVisible: selectedChain === 'All'
 									}
 								].map(({ id, name, isVisible }) =>
 									isVisible ? (
@@ -445,6 +476,8 @@ function GlobalPage({
 							volumeData={finalVolumeChart}
 							feesData={finalFeesChart}
 							priceData={priceHistory}
+							raisesData={raisesChart}
+							totalStablesData={peggedAreaTotalData}
 							usersData={usersData}
 							customLegendName="Chain"
 							hideDefaultLegend
