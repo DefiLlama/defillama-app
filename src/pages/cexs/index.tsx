@@ -46,15 +46,6 @@ export const cexData = [
 		cgDeriv: 'crypto_com_futures'
 	},
 	{
-		name: 'Bybit',
-		slug: 'Bybit',
-		coin: 'BIT',
-		coinSymbol: 'BIT',
-		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048',
-		cgId: 'bybit_spot',
-		cgDeriv: 'bybit'
-	},
-	{
 		name: 'Huobi',
 		slug: 'Huobi',
 		coin: 'HT',
@@ -62,6 +53,15 @@ export const cexData = [
 		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',
 		cgId: 'huobi',
 		cgDeriv: 'huobi_dm'
+	},
+	{
+		name: 'Bybit',
+		slug: 'Bybit',
+		coin: 'BIT',
+		coinSymbol: 'BIT',
+		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048',
+		cgId: 'bybit_spot',
+		cgDeriv: 'bybit'
 	},
 	{
 		name: 'Kucoin',
@@ -113,17 +113,17 @@ export const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
-		name: 'Korbit',
-		slug: 'korbit',
-		coin: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
-	},
-	{
 		name: 'Binance US',
 		slug: 'binance-us',
 		coin: 'BNB',
 		coinSymbol: 'BNB',
 		cgId: 'binance_us'
+	},
+	{
+		name: 'Korbit',
+		slug: 'korbit',
+		coin: null,
+		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'Firi',
