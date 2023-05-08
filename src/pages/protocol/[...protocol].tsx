@@ -31,22 +31,21 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const [protocolRes, articles, emissions, expenses, treasuries, yields]: [
+		const [protocolRes, articles, emissions, expenses, treasuries]: [
 			IProtocolResponse,
 			IArticle[],
 			any,
 			any,
-			Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
-			any
+			Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>
 		] = await Promise.all([
 			getProtocol(protocol),
 			fetchArticles({ tags: protocol }),
 			fetchWithPerformaceLogging(PROTOCOL_EMISSIONS_LIST_API),
 			fetchWithPerformaceLogging(PROTOCOLS_EXPENSES_API),
-			fetchWithPerformaceLogging(PROTOCOLS_TREASURY),
-			fetchWithPerformaceLogging(YIELD_POOLS_API)
+			fetchWithPerformaceLogging(PROTOCOLS_TREASURY)
+			// fetchWithPerformaceLogging(YIELD_POOLS_API)
 		])
-
+		const yields: any = {}
 		let inflowsExist = false
 
 		if (protocolRes?.chainTvls) {
@@ -189,7 +188,7 @@ export const getStaticProps = withPerformanceLogging(
 		const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 		const metrics = protocolData.metrics || {}
 		const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
-		const projectYields = yields.data.filter(({ project }) => project === protocol)
+		const projectYields = yields?.data?.filter(({ project }) => project === protocol)
 
 		return {
 			props: {
