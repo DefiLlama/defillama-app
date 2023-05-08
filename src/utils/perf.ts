@@ -1,4 +1,4 @@
-import { performance } from 'perf_hooks'
+// import { performance } from 'perf_hooks'
 import { GetStaticProps, GetStaticPropsContext } from 'next'
 
 export const withPerformanceLogging = <T extends {}>(
@@ -6,11 +6,11 @@ export const withPerformanceLogging = <T extends {}>(
 	getStaticPropsFunction: GetStaticProps<T>
 ): GetStaticProps<T> => {
 	return async (context: GetStaticPropsContext) => {
-		const start = performance.now()
+		const start = Date.now()
 		const { params } = context
 		try {
 			const props = await getStaticPropsFunction(context)
-			const end = performance.now()
+			const end = Date.now()
 
 			if (end - start > 10_000) {
 				console.log(
@@ -20,7 +20,7 @@ export const withPerformanceLogging = <T extends {}>(
 
 			return props
 		} catch (error) {
-			const end = performance.now()
+			const end = Date.now()
 			console.log(`[ERROR][${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : ''))
 			throw error
 		}
@@ -30,7 +30,7 @@ export const withPerformanceLogging = <T extends {}>(
 export const fetchWithPerformaceLogging = async (api) => {
 	const startTime = Date.now()
 
-	const data = fetch(api).then((res) => res.json())
+	const data = await fetch(api).then((res) => res.json())
 
 	if (Date.now() - startTime > 5_000) {
 		console.log('done fetching', api, Date.now() - startTime)

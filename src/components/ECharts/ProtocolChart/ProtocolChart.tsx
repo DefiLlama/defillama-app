@@ -43,6 +43,7 @@ interface IProps {
 	governanceApi: string | null
 	isHourlyChart?: boolean
 	protocolHasTreasury?: boolean
+	isCEX?: boolean
 }
 
 const CHART_TYPES = [
@@ -80,7 +81,8 @@ export default function ProtocolChart({
 	usdInflowsData,
 	governanceApi,
 	isHourlyChart,
-	protocolHasTreasury
+	protocolHasTreasury,
+	isCEX
 }: IProps) {
 	const router = useRouter()
 
@@ -802,7 +804,7 @@ export default function ProtocolChart({
 		fetchingEmissions
 
 	const realPathname =
-		`/protocol/${protocol}?` +
+		`/${isCEX ? 'cex' : 'protocol'}/${protocol}?` +
 		CHART_TYPES.reduce((acc, curr) => {
 			if (router.query[curr]) {
 				acc += `${curr}=${router.query[curr]}&`
@@ -810,12 +812,20 @@ export default function ProtocolChart({
 			return acc
 		}, '')
 
+	const hasAtleasOneBarChart = chartsUnique.reduce((acc, curr) => {
+		if (BAR_CHARTS.includes(curr)) {
+			acc = true
+		}
+
+		return acc
+	}, false)
+
 	return (
 		<Wrapper>
 			{geckoId ||
 			hallmarks?.length > 0 ||
-			metrics?.fees ||
-			metrics?.dexs ||
+			metrics.fees ||
+			metrics.dexs ||
 			metrics.unlocks ||
 			activeUsersId ||
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
@@ -1271,7 +1281,7 @@ export default function ProtocolChart({
 					</Filters>
 				)}
 
-				{!isHourlyChart ? (
+				{!isHourlyChart && hasAtleasOneBarChart ? (
 					<Filters color={color}>
 						<Link
 							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=daily'}

@@ -57,7 +57,7 @@ export const fetchArticles = async ({ tags = '', size = 2 }) => {
 			})) ?? []
 
 	if (Date.now() - startTime > 5_000) {
-		console.log('done fetching', tags, 'in', Date.now() - startTime)
+		console.log('done fetching articles', tags, 'in', Date.now() - startTime)
 	}
 
 	return articles.slice(0, size)

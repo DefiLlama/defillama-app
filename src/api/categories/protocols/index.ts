@@ -37,6 +37,7 @@ import {
 import { getPeggedAssets } from '../stablecoins'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchWithPerformaceLogging } from '~/utils/perf'
 
 const fetch = fetchWithErrorLogging
 
@@ -57,7 +58,7 @@ export const getProtocols = () =>
 
 export const getProtocol = async (protocolName: string) => {
 	try {
-		const data: IProtocolResponse = await fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
+		const data: IProtocolResponse = await fetchWithPerformaceLogging(`${PROTOCOL_API}/${protocolName}`)
 
 		let isNewlyListedProtocol = true
 
@@ -68,7 +69,7 @@ export const getProtocol = async (protocolName: string) => {
 		})
 
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
-			const hourlyData = await fetch(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((r) => r.json())
+			const hourlyData = await fetchWithPerformaceLogging(`${HOURLY_PROTOCOL_API}/${protocolName}`)
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
 	} catch (e) {

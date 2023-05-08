@@ -13,8 +13,9 @@ export const Filters = styled.div`
 	padding: 4px;
 	background-color: ${({ theme, color }) => (color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1))};
 	border-radius: 12px;
-	width: fit-content;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	max-width: calc(100vw - 64px);
 `
 
 export const Denomination = styled.a<IDenomination>`

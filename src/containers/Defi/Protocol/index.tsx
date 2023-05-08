@@ -715,6 +715,7 @@ function ProtocolContainer({
 					governanceApi={governanceApi}
 					isHourlyChart={isHourlyChart}
 					protocolHasTreasury={treasury ? true : false}
+					isCEX={isCEX}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
@@ -730,7 +731,7 @@ function ProtocolContainer({
 					</Tab>
 					{showCharts && (
 						<Tab id="tvl-charts" color={backgroundColor}>
-							TVL
+							{isCEX ? 'Assets' : 'TVL'}
 						</Tab>
 					)}
 					{treasury && (
