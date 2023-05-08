@@ -13,7 +13,10 @@ import {
 	NFT_COLLECTION_STATS_API,
 	NFT_COLLECTION_FLOOR_HISTORY_API,
 	NFT_MARKETPLACES_VOLUME_API,
-	NFT_COLLECTIONS_ORDERBOOK_API
+	NFT_COLLECTIONS_ORDERBOOK_API,
+	NFT_ROYALTIES_API,
+	NFT_ROYALTY_HISTORY_API,
+	NFT_ROYALTY_API
 } from '~/constants'
 import { getDominancePercent } from '~/utils'
 
@@ -177,6 +180,81 @@ export const getNFTMarketplacesData = async () => {
 		marketplaces: Object.keys(volumeChartStacks),
 		volumeChartStacks,
 		tradeChartStacks
+	}
+}
+
+export const getNFTRoyaltyData = async () => {
+	try {
+		const [royalties, collections] = await Promise.all([
+			fetch(NFT_ROYALTIES_API).then((r) => r.json()),
+			fetch(NFT_COLLECTIONS_API).then((r) => r.json())
+		])
+
+		const data = collections
+			.map((c) => {
+				const royalty = royalties.find((r) => `0x${r.collection}` === c.collectionId)
+
+				if (!royalty) return {}
+
+				return {
+					defillamaId: c.collectionId,
+					name: c.name,
+					displayName: c.name,
+					logo: `https://icons.llamao.fi/icons/nfts/${c.collecitonId}?w=48&h=48`,
+					chains: ['Ethereum'],
+					total24h: royalty.usd1D,
+					total7d: royalty.usd7D,
+					total30d: royalty.usd30D
+					// totalAllTime: royalty.usdLifetime
+				}
+			})
+			.filter((c) => c.defillamaId)
+
+		return {
+			royalties: data
+		}
+	} catch (err) {
+		console.log(err)
+		return {
+			royalties: []
+		}
+	}
+}
+
+export const getNFTRoyaltyHistory = async (slug: string) => {
+	try {
+		let [royaltyChart, collection, royalty] = await Promise.all([
+			fetch(`${NFT_ROYALTY_HISTORY_API}/${slug}`).then((r) => r.json()),
+			fetch(`${NFT_COLLECTION_API}/${slug}`).then((r) => r.json()),
+			fetch(`${NFT_ROYALTY_API}/${slug}`).then((r) => r.json())
+		])
+
+		const data = [
+			{
+				defillamaId: slug,
+				name: collection[0].name,
+				displayName: collection[0].name,
+				logo: `https://icons.llamao.fi/icons/nfts/${slug}?w=48&h=48`,
+				address: slug,
+				url: collection[0].projectUrl,
+				twitter: collection[0].twitterUsername,
+				category: 'Nft',
+				totalDataChart: royaltyChart,
+				total24h: royalty[0].usd1D,
+				total7d: royalty[0].usd7D,
+				total30d: royalty[0].usd30D
+				// totalAllTime: royalty[0].usdLifetime
+			}
+		]
+
+		return {
+			royaltyHistory: data
+		}
+	} catch (err) {
+		console.log(err)
+		return {
+			royaltyHistory: []
+		}
 	}
 }
 
