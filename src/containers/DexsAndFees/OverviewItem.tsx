@@ -25,6 +25,16 @@ import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import SEO from '~/components/SEO'
 import type { IProtocolContainerProps } from './types'
 import { ProtocolChart } from './charts/ProtocolChart'
+import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
+
+const USE_SIMPLE_CHART = [ADAPTOR_TYPES.FEES, ADAPTOR_TYPES.OPTIONS, ADAPTOR_TYPES.ROYALTIES]
+const ENABLE_TOKENS_CHART = ['incentives']
+const ENABLE_CHAINS_CHART = [
+	ADAPTOR_TYPES.FEES,
+	ADAPTOR_TYPES.OPTIONS,
+	ADAPTOR_TYPES.AGGREGATORS,
+	ADAPTOR_TYPES.DERIVATIVES
+]
 
 function ProtocolContainer(props: IProtocolContainerProps) {
 	useScrollToTop()
@@ -43,10 +53,10 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 	})
 
 	const enableVersionsChart = props.protocolSummary.childProtocols?.length > 0
-	const enableTokensChart = props.protocolSummary.type === 'incentives'
-	const enableChainsChart = props.protocolSummary.type !== 'dexs'
+	const enableTokensChart = ENABLE_TOKENS_CHART.includes(props.protocolSummary.type)
+	const enableChainsChart = ENABLE_CHAINS_CHART.includes(props.protocolSummary.type as ADAPTOR_TYPES)
 	const typeSimple = volumeTypes.includes(props.protocolSummary.type) ? 'volume' : props.protocolSummary.type
-	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'options'
+	const useTotalDataChart = USE_SIMPLE_CHART.includes(props.protocolSummary.type as ADAPTOR_TYPES)
 	const mainChart = React.useMemo(() => {
 		let chartData: IJoin2ReturnType
 		let title: string

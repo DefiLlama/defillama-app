@@ -6,7 +6,7 @@ import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { formatChain, getCexVolume, handleFetchResponse } from './utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
-import { getNFTRoyaltyData } from '../nfts'
+import { getNFTRoyaltyData, getNFTRoyaltyHistory } from '../nfts'
 import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
 
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>
@@ -85,6 +85,7 @@ export const getOverviewItemPageData = async (
 	protocolName: string,
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryProps> => {
+	if (type === ADAPTOR_TYPES.ROYALTIES) return (await getNFTRoyaltyHistory(protocolName)).royaltyHistory
 	const item = await getOverviewItem(type, protocolName, dataType)
 	return generateGetOverviewItemPageDate(item, type, protocolName)
 }
@@ -485,7 +486,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 	}
 }
 
-type IChartsList = Array<[string, IGetOverviewResponseBody['totalDataChart']]>
+export type IChartsList = Array<[string, IGetOverviewResponseBody['totalDataChart']]>
 export type IJoin2ReturnType = Array<IJSON<number | string> & { date: string }>
 export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>): IJoin2ReturnType =>
 	Object.values(

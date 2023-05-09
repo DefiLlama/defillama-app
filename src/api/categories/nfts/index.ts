@@ -18,7 +18,10 @@ import {
 	NFT_ROYALTY_HISTORY_API,
 	NFT_ROYALTY_API
 } from '~/constants'
-import { getColorFromNumber, getDominancePercent } from '~/utils'
+import { getColorFromNumber, getDominancePercent, standardizeProtocolName } from '~/utils'
+import { IChartsList, IJoin2ReturnType, joinCharts2, ProtocolAdaptorSummaryProps } from '../adaptors'
+import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
+import { IJSON } from '../adaptors/types'
 
 interface IResponseNFTSearchAPI {
 	hits: Array<{
@@ -209,7 +212,7 @@ export const getNFTRoyaltyData = async () => {
 					defillamaId: c.collectionId,
 					name: c.name,
 					displayName: c.name,
-					logo: `https://icons.llamao.fi/icons/nfts/${c.collecitonId}?w=48&h=48`,
+					logo: `https://icons.llamao.fi/icons/nfts/${c.collectionId}?w=48&h=48`,
 					chains: ['Ethereum'],
 					total24h: royalty.usd1D,
 					total7d: royalty.usd7D,
@@ -230,40 +233,63 @@ export const getNFTRoyaltyData = async () => {
 	}
 }
 
-export const getNFTRoyaltyHistory = async (slug: string) => {
+let COLLECTIONS_DATA = {}
+
+export const getNFTRoyaltyHistory = async (slugName: string): Promise<{ royaltyHistory: ProtocolAdaptorSummaryProps }> => {
+
+	const collectionsData = await fetch(NFT_COLLECTIONS_API).then((r) => r.json())
+	COLLECTIONS_DATA = collectionsData.reduce((acc, curr) => {
+		acc[standardizeProtocolName(curr.name)] = curr.collectionId
+		return acc
+	}, {} as IJSON<{ collectionId: string }>)
+	const slug = COLLECTIONS_DATA[slugName]
+
 	try {
 		let [royaltyChart, collection, royalty] = await Promise.all([
 			fetch(`${NFT_ROYALTY_HISTORY_API}/${slug}`).then((r) => r.json()),
 			fetch(`${NFT_COLLECTION_API}/${slug}`).then((r) => r.json()),
 			fetch(`${NFT_ROYALTY_API}/${slug}`).then((r) => r.json())
 		])
-
-		const data = [
-			{
-				defillamaId: slug,
-				name: collection[0].name,
-				displayName: collection[0].name,
-				logo: `https://icons.llamao.fi/icons/nfts/${slug}?w=48&h=48`,
-				address: slug,
-				url: collection[0].projectUrl,
-				twitter: collection[0].twitterUsername,
-				category: 'Nft',
-				totalDataChart: royaltyChart,
-				total24h: royalty[0].usd1D,
-				total7d: royalty[0].usd7D,
-				total30d: royalty[0].usd30D
-				// totalAllTime: royalty[0].usdLifetime
-			}
-		]
-
+		const allCharts: IChartsList = [["Royalties", royaltyChart]]
+		const data: ProtocolAdaptorSummaryProps =
+		{
+			type: ADAPTOR_TYPES.ROYALTIES,
+			description: null,
+			gecko_id: null,
+			module: null,
+			totalDataChartBreakdown: null,
+			change_1d: null,
+			protocolsData: null,
+			methodologyURL: null,
+			latestFetchIsOk: true,
+			totalAllTime: null,
+			change_7d: null,
+			change_1m: null,
+			mcap: null,
+			breakdown24h: null,
+			chains: null,
+			protocolsStats: null,
+			disabled: false,
+			defillamaId: slug,
+			name: collection[0].name,
+			displayName: collection[0].name,
+			logo: `https://icons.llamao.fi/icons/nfts/${slug}?w=48&h=48`,
+			address: slug,
+			url: collection[0].projectUrl,
+			twitter: collection[0].twitterUsername,
+			category: 'Nft',
+			totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
+			total24h: royalty[0].usd1D,
+			total7d: royalty[0].usd7D,
+			total30d: royalty[0].usd30D
+			// totalAllTime: royalty[0].usdLifetime
+		}
 		return {
 			royaltyHistory: data
 		}
 	} catch (err) {
 		console.log(err)
-		return {
-			royaltyHistory: []
-		}
+		throw err
 	}
 }
 

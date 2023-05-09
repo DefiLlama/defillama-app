@@ -34,6 +34,7 @@ export interface IDexChartsProps {
 	data: {
 		total24h: IProtocolContainerProps['protocolSummary']['total24h']
 		total7d: IProtocolContainerProps['protocolSummary']['total7d']
+		total30d: IProtocolContainerProps['protocolSummary']['total30d']
 		disabled: IProtocolContainerProps['protocolSummary']['disabled']
 		dailyRevenue?: IProtocolContainerProps['protocolSummary']['dailyRevenue']
 		change_1d: IProtocolContainerProps['protocolSummary']['change_1d']
@@ -119,6 +120,34 @@ export const ProtocolChart = ({
 											: `${typeString} (24h)`}
 									</span>
 									<span>{formattedNum(data.total24h || '0', true)}</span>
+								</Stat>
+							</StatWrapper>
+						) : null}
+						{data.total7d || data.total7d === 0 ? (
+							<StatWrapper>
+								<Stat>
+									<span>
+										{data.disabled === true
+											? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+													+chartData[0][chartData[0].length - 1][0]
+											  )})`
+											: `${typeString} (7d)`}
+									</span>
+									<span>{formattedNum(data.total7d || '0', true)}</span>
+								</Stat>
+							</StatWrapper>
+						) : null}
+						{data.total30d || data.total30d === 0 ? (
+							<StatWrapper>
+								<Stat>
+									<span>
+										{data.disabled === true
+											? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+													+chartData[0][chartData[0].length - 1][0]
+											  )})`
+											: `${typeString} (30d)`}
+									</span>
+									<span>{formattedNum(data.total30d || '0', true)}</span>
 								</Stat>
 							</StatWrapper>
 						) : null}
