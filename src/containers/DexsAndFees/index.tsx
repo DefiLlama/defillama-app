@@ -16,6 +16,7 @@ import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
 import { AnnouncementWrapper } from '~/components/Announcement'
+import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -235,8 +236,11 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 }
 
 const getChartByType = (type: string, props?: IDexChartsProps) => {
+	if (!props?.chartData) return <></>
 	switch (type) {
-		case 'fees':
+		case ADAPTOR_TYPES.FEES:
+		case ADAPTOR_TYPES.ROYALTIES:
+			console.log('props', props)
 			return <></>
 		default:
 			return <MainBarChart {...props} />

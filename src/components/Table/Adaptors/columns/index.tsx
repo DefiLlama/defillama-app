@@ -1,4 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
+import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
 import { formatColumnOrder } from '../../utils'
 import type { IDexsRow } from '../types'
 import {
@@ -18,18 +19,20 @@ import {
 
 export const getColumnsByType = (type: string, allChains?: boolean) => {
 	switch (type) {
-		case 'dexs':
+		case ADAPTOR_TYPES.DEXS:
 			return volumesColumns(allChains)
-		case 'fees':
+		case ADAPTOR_TYPES.FEES:
 			return feesColumns(allChains)
 		case 'incentives':
 			return incentivesColumns(allChains)
-		case 'options':
+		case ADAPTOR_TYPES.OPTIONS:
 			return optionsColumns(allChains)
-		case 'aggregators':
+		case ADAPTOR_TYPES.AGGREGATORS:
 			return aggregatorsColumns(allChains)
-		case 'derivatives':
+		case ADAPTOR_TYPES.DERIVATIVES:
 			return derivativesColumns(allChains)
+		case ADAPTOR_TYPES.ROYALTIES:
+			return royaltiesColumns(allChains)
 		default:
 			return volumesColumns(allChains)
 	}
@@ -142,6 +145,15 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		// ChangeColumn('Weekly change', 'change_7dover7d', 160, 'Change of last 7d fees over the previous 7d fees'),
 		// ChangeColumn('Monthly change', 'change_30dover30d', 160, 'Change of last 30d fees over the previous 30d fees'),
 		TotalAllTimeColumn('fees')
+	].filter((c) => c !== undefined)
+
+export const royaltiesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('royalties', allChains),
+		allChains ? undefined : ChainsColumn('royalties'),
+		Total24hColumn('Fees', undefined, undefined, 140),
+		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, undefined, 'Fees (7d)'),
+		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, undefined, 'Fees (30d)')
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen

@@ -60,7 +60,8 @@ export type ChartType = 'Volume' | 'Dominance'
 export const GROUP_CHART_LIST: ChartType[] = ['Volume', 'Dominance']
 
 export const aggregateDataByInterval =
-	(barInterval: DataIntervalType, chartData: IDexChartsProps['chartData']) => () => {
+	(barInterval: DataIntervalType, chartData?: IDexChartsProps['chartData']) => () => {
+		if (!chartData) return
 		let cleanTimestampFormatter: typeof getCleanMonthTimestamp
 		if (barInterval === 'Monthly') cleanTimestampFormatter = getCleanMonthTimestamp
 		else if (barInterval === 'Weekly') cleanTimestampFormatter = getCleanWeekTimestamp
@@ -84,7 +85,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const [chartInterval, changeChartInterval] = useChartInterval()
 	const dataType = volumeTypes.includes(props.type) ? 'volume' : props.type
 	const simpleStack =
-		props.chartData[1].includes('Fees') || props.chartData[1].includes('Premium volume')
+		props.chartData?.[1].includes('Fees') || props.chartData?.[1].includes('Premium volume')
 			? props.chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 			: undefined
 

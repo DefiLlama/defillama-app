@@ -6,6 +6,8 @@ import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { formatChain, getCexVolume, handleFetchResponse } from './utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
+import { getNFTRoyaltyData } from '../nfts'
+import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
 
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>
 	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
@@ -124,6 +126,14 @@ const getMapingCoinGeckoId = (name: string): string => {
 
 // - used in /[type] and /[type]/chains/[chain]
 export const getChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
+	if (type === ADAPTOR_TYPES.ROYALTIES) {
+		const res = await getNFTRoyaltyData()
+		return {
+			protocols: res.royalties,
+			type: type,
+			chain: null
+		}
+	}
 	const feesOrRevenueApi =
 		type === 'options'
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
@@ -379,7 +389,7 @@ export interface IOverviewProps {
 	change_7d?: IGetOverviewResponseBody['change_7d']
 	change_1m?: IGetOverviewResponseBody['change_1m']
 	change_7dover7d?: IGetOverviewResponseBody['change_7dover7d']
-	totalDataChart: [IJoin2ReturnType, string[]]
+	totalDataChart?: [IJoin2ReturnType, string[]]
 	chain: string
 	tvlData?: IJSON<number>
 	totalDataChartBreakdown?: IGetOverviewResponseBody['totalDataChartBreakdown']
