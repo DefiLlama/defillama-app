@@ -240,7 +240,6 @@ const getChartByType = (type: string, props?: IDexChartsProps) => {
 	switch (type) {
 		case ADAPTOR_TYPES.FEES:
 		case ADAPTOR_TYPES.ROYALTIES:
-			console.log('props', props)
 			return <></>
 		default:
 			return <MainBarChart {...props} />
