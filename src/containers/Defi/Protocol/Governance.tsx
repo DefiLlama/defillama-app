@@ -108,11 +108,11 @@ export function GovernanceData({ api }: { api: string }) {
 		)
 	}
 
-	return (
+	return data ? (
 		<Wrapper>
 			<GovernanceTable data={data} isOnChainGovernance={api.includes('governance-cache/snapshot') ? false : true} />
 		</Wrapper>
-	)
+	) : null
 }
 
 const Wrapper = styled.div`
