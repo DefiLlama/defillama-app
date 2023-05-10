@@ -19,7 +19,7 @@ export function BarWidthInChart({ color }: { color: string }) {
 		<Popover
 			trigger={
 				<>
-					<Settings size={16} />
+					<Settings size={14} style={{ height: '19.5px' }} />
 					<MenuButtonArrow />
 				</>
 			}
@@ -27,11 +27,13 @@ export function BarWidthInChart({ color }: { color: string }) {
 				<PopoverContent>
 					<PopoverForm onSubmit={onSubmit}>
 						<label>
-							<span>Bar min width in chart</span>
+							<span>Bar width in chart</span>
 							<input
 								type="number"
 								name="min"
 								defaultValue={Number.isNaN(Number(barMinWidth)) ? 0 : Number(barMinWidth)}
+								min={0}
+								max={5}
 							/>
 						</label>
 

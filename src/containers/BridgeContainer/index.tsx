@@ -45,8 +45,7 @@ export default function BridgeContainer({
 	logo,
 	chains,
 	defaultChain,
-	chainToChartDataIndex,
-	bridgeChartDataByChain,
+	volumeDataByChain,
 	prevDayDataByChain
 }) {
 	const [chartType, setChartType] = useState('Inflows')
@@ -57,8 +56,7 @@ export default function BridgeContainer({
 
 	// can refactor, make some functions here
 	const { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals } = React.useMemo(() => {
-		const chartIndex = chainToChartDataIndex[currentChain]
-		const prevDayData: DailyBridgeStats = prevDayDataByChain[chartIndex]
+		const prevDayData: DailyBridgeStats = prevDayDataByChain[currentChain]
 		let tokensTableData = [],
 			addressesTableData = [],
 			tokenDeposits = [],
@@ -149,37 +147,25 @@ export default function BridgeContainer({
 				})
 		}
 		return { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals, tokenColor }
-	}, [prevDayDataByChain, chainToChartDataIndex, currentChain])
+	}, [prevDayDataByChain, currentChain])
 
-	const { currentDepositsUSD, currentWithdrawalsUSD, volPercentChange, volumeChartData } = React.useMemo(() => {
-		const chartIndex = chainToChartDataIndex[currentChain]
-		const chainChartData = bridgeChartDataByChain[chartIndex]
-		const prevDayChart = chainChartData[chainChartData.length - 2]
-		const currentDepositsUSD = prevDayChart?.depositUSD ?? 0
-		const currentWithdrawalsUSD = prevDayChart?.withdrawUSD ?? 0
-		const currentVolume = currentDepositsUSD + currentWithdrawalsUSD
+	const volumeChartDataByChain = volumeDataByChain[currentChain]
+	const prevDayChart = volumeChartDataByChain[volumeChartDataByChain.length - 2]
+	const currentDepositsUSD = prevDayChart?.Deposited ?? 0
+	const currentWithdrawalsUSD = -(prevDayChart?.Withdrawn ?? 0)
+	const currentVolume = currentDepositsUSD + currentWithdrawalsUSD
 
-		let volPercentChange = '0 '
-		if (chainChartData.length > 2) {
-			const prev2DayChart = chainChartData[chainChartData.length - 3]
-			const prevDepositsUSD = prev2DayChart.depositUSD ?? 0
-			const prevWithdrawalsUSD = prev2DayChart.withdrawUSD ?? 0
-			const prevVolume = prevDepositsUSD + prevWithdrawalsUSD
-			if (prevVolume > 0) {
-				volPercentChange = getPercentChange(currentVolume, prevVolume)?.toFixed(2)
-			}
+	let volPercentChange = '0 '
+
+	if (volumeChartDataByChain.length > 2) {
+		const prev2DayChart = volumeChartDataByChain[volumeChartDataByChain.length - 3]
+		const prevDepositsUSD = prev2DayChart.Deposited ?? 0
+		const prevWithdrawalsUSD = -(prev2DayChart.Withdrawn ?? 0)
+		const prevVolume = prevDepositsUSD + prevWithdrawalsUSD
+		if (prevVolume > 0) {
+			volPercentChange = getPercentChange(currentVolume, prevVolume)?.toFixed(2)
 		}
-
-		const volumeChartData = chainChartData.map((entry) => {
-			return {
-				date: entry.date,
-				Deposited: entry.withdrawUSD,
-				Withdrawn: -entry.depositUSD
-			}
-		})
-
-		return { currentDepositsUSD, currentWithdrawalsUSD, volPercentChange, volumeChartData }
-	}, [chainToChartDataIndex, bridgeChartDataByChain, currentChain])
+	}
 
 	const chainOptions = chains.map((chain) => {
 		return { name: chain, route: '' }
@@ -214,12 +200,6 @@ export default function BridgeContainer({
 							<span>Deposited to {currentChain} (24h)</span>
 							<span>{formattedNum(currentWithdrawalsUSD || '0', true)}</span>
 						</Stat>
-						{/*
-								<DownloadButton onClick={downloadCsv}>
-									<DownloadCloud size={14} />
-									<span>&nbsp;&nbsp;.csv</span>
-								</DownloadButton>
-								*/}
 					</StatWrapper>
 
 					<StatWrapper>
@@ -260,9 +240,9 @@ export default function BridgeContainer({
 							</OptionButton>
 						</AutoRow>
 					</RowBetween>
-					{chartType === 'Inflows' && volumeChartData && volumeChartData.length > 0 && (
+					{chartType === 'Inflows' && volumeChartDataByChain && volumeChartDataByChain.length > 0 && (
 						<BarChart
-							chartData={volumeChartData}
+							chartData={volumeChartDataByChain}
 							title=""
 							hideDefaultLegend={true}
 							customLegendName="Volume"

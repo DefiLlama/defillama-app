@@ -319,3 +319,99 @@ export async function getBridgePageData(bridge: string) {
 		prevDayDataByChain
 	}
 }
+
+export async function getBridgePageDatanew(bridge: string) {
+	// fetch list of all bridges
+	const { bridges } = await getBridges()
+
+	// find datqa of bridge
+	const bridgeData = bridges.filter(
+		(obj) => standardizeProtocolName(obj.displayName) === standardizeProtocolName(bridge)
+	)[0]
+
+	const { id, chains, icon, displayName } = bridgeData
+
+	const [iconType, iconName] = icon.split(':')
+	// get logo based on icon type (chain or protocol)
+	const logo = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
+
+	const volumeDataByChain = {}
+
+	const volume = await Promise.all(
+		chains.map(async (chain) => {
+			for (let i = 0; i < 5; i++) {
+				try {
+					const charts = await fetch(`${BRIDGEVOLUME_API}/${chain}?id=${id}`).then((resp) => resp.json())
+					return charts
+				} catch (e) {}
+			}
+
+			throw new Error(`${BRIDGEVOLUME_API}/${chain} is broken`)
+		})
+	)
+
+	const volumeOnAllChains: {
+		[date: number]: {
+			date: number
+			Deposited: number
+			Withdrawn: number
+		}
+	} = {}
+
+	volume.forEach((chainVolume, index) => {
+		const chartData = []
+
+		chainVolume.forEach((item) => {
+			const date = Number(item.date)
+			chartData.push({ date, Deposited: item.depositUSD, Withdrawn: -item.withdrawUSD })
+
+			if (!volumeOnAllChains[date]) {
+				volumeOnAllChains[date] = { date, Deposited: 0, Withdrawn: 0 }
+			}
+
+			volumeOnAllChains[date] = {
+				date,
+				Deposited: volumeOnAllChains[date].Deposited + (item.depositUSD || 0),
+				Withdrawn: volumeOnAllChains[date].Withdrawn - (item.withdrawUSD || 0)
+			}
+		})
+
+		volumeDataByChain[chains[index]] = chartData
+	})
+
+	volumeDataByChain['All Chains'] = Object.values(volumeOnAllChains)
+
+	const currentTimestamp = Math.floor(new Date().getTime() / 1000)
+	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
+	const prevDayTimestamp = currentTimestamp - 86400 - 3600
+
+	const statsOnPrevDay = await Promise.all(
+		chains.map(async (chain) => {
+			for (let i = 0; i < 5; i++) {
+				try {
+					const charts = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}?id=${id}`).then((resp) =>
+						resp.json()
+					)
+					// can format differently here if needed
+					return charts
+				} catch (e) {}
+			}
+			throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain} is broken`)
+		})
+	)
+
+	const prevDayDataByChain = {}
+
+	statsOnPrevDay.forEach((data, index) => {
+		prevDayDataByChain[chains[index]] = data
+	})
+
+	return {
+		displayName,
+		logo,
+		chains: ['All Chains', ...chains],
+		defaultChain: 'All Chains',
+		volumeDataByChain,
+		prevDayDataByChain
+	}
+}

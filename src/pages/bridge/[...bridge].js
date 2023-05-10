@@ -2,7 +2,7 @@ import * as React from 'react'
 import BridgeContainer from '~/containers/BridgeContainer'
 import { standardizeProtocolName } from '~/utils'
 import { maxAgeForNext } from '~/api'
-import { getBridgePageData, getBridges } from '~/api/categories/bridges'
+import { getBridgePageDatanew, getBridges } from '~/api/categories/bridges'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -12,31 +12,11 @@ export const getStaticProps = withPerformanceLogging(
 			bridge: [bridge]
 		}
 	}) => {
-		const data = await getBridgePageData(bridge)
-		const {
-			displayName,
-			logo,
-			chains,
-			defaultChain,
-			chainToChartDataIndex,
-			bridgeChartDataByChain,
-			prevDayDataByChain
-		} = data
-		/*
-	const backgroundColor = await getPeggedColor({
-		peggedAsset: peggedAssetData.name
-	})
-	*/
+		const data = await getBridgePageDatanew(bridge)
+
 		return {
 			props: {
-				displayName,
-				logo,
-				chains,
-				defaultChain,
-				chainToChartDataIndex,
-				bridgeChartDataByChain,
-				prevDayDataByChain
-				// backgroundColor
+				...data
 			},
 			revalidate: maxAgeForNext([22])
 		}
