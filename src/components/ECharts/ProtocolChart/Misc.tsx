@@ -16,6 +16,7 @@ export const Filters = styled.div`
 	flex-wrap: nowrap;
 	overflow-x: auto;
 	max-width: calc(100vw - 64px);
+	width: fit-content;
 `
 
 export const Denomination = styled.a<IDenomination>`

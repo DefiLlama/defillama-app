@@ -23,6 +23,7 @@ import useSWR from 'swr'
 import { LazyChart } from '~/layout/ProtocolAndPool'
 import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
 import { BAR_CHARTS } from './utils'
+import { BarWidthInChart } from '~/components/Filters/common/BarWidthInChart'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -112,21 +113,17 @@ export default function ProtocolChart({
 		treasury
 	} = router.query
 
-	const DENOMINATIONS = React.useMemo(() => {
-		if (chains && chains.length > 0) {
-			let d = [{ symbol: 'USD', geckoId: null }]
+	const DENOMINATIONS: Array<{ symbol: string; geckoId?: string | null }> = []
 
-			if (chainCoingeckoIds[chains[0]]?.geckoId) {
-				d.push(chainCoingeckoIds[chains[0]])
-			} else {
-				d.push(chainCoingeckoIds['Ethereum'])
-			}
+	if (chains && chains.length > 0) {
+		DENOMINATIONS.push({ symbol: 'USD', geckoId: null })
 
-			return d
+		if (chainCoingeckoIds[chains[0]]?.geckoId) {
+			DENOMINATIONS.push(chainCoingeckoIds[chains[0]])
+		} else {
+			DENOMINATIONS.push(chainCoingeckoIds['Ethereum'])
 		}
-
-		return []
-	}, [chains])
+	}
 
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -1265,7 +1262,7 @@ export default function ProtocolChart({
 
 			<FiltersWrapper>
 				{DENOMINATIONS.length > 0 && (
-					<Filters color={color}>
+					<Filters color={color} style={{ marginRight: 'auto' }}>
 						{DENOMINATIONS.map((D) => (
 							<Link
 								href={realPathname + `denomination=${D.symbol}` + (groupBy ? `&groupBy=${groupBy}` : '')}
@@ -1282,36 +1279,39 @@ export default function ProtocolChart({
 				)}
 
 				{!isHourlyChart && hasAtleasOneBarChart ? (
-					<Filters color={color}>
-						<Link
-							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=daily'}
-							shallow
-							passHref
-						>
-							<Denomination active={groupBy === 'daily' || !groupBy}>Daily</Denomination>
-						</Link>
-						<Link
-							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=weekly'}
-							shallow
-							passHref
-						>
-							<Denomination active={groupBy === 'weekly'}>Weekly</Denomination>
-						</Link>
-						<Link
-							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=monthly'}
-							shallow
-							passHref
-						>
-							<Denomination active={groupBy === 'monthly'}>Monthly</Denomination>
-						</Link>
-						<Link
-							href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=cumulative'}
-							shallow
-							passHref
-						>
-							<Denomination active={groupBy === 'cumulative'}>Cumulative</Denomination>
-						</Link>
-					</Filters>
+					<>
+						<Filters color={color}>
+							<Link
+								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=daily'}
+								shallow
+								passHref
+							>
+								<Denomination active={groupBy === 'daily' || !groupBy}>Daily</Denomination>
+							</Link>
+							<Link
+								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=weekly'}
+								shallow
+								passHref
+							>
+								<Denomination active={groupBy === 'weekly'}>Weekly</Denomination>
+							</Link>
+							<Link
+								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=monthly'}
+								shallow
+								passHref
+							>
+								<Denomination active={groupBy === 'monthly'}>Monthly</Denomination>
+							</Link>
+							<Link
+								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=cumulative'}
+								shallow
+								passHref
+							>
+								<Denomination active={groupBy === 'cumulative'}>Cumulative</Denomination>
+							</Link>
+						</Filters>
+						<BarWidthInChart color={color} />
+					</>
 				) : null}
 			</FiltersWrapper>
 

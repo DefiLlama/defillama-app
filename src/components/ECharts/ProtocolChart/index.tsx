@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartManager, useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject, stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -36,6 +36,7 @@ export default function AreaBarChart({
 	const isCumulative = router.isReady && groupBy === 'cumulative' ? true : false
 
 	const [isDark] = useDarkModeManager()
+	const [barMinWidth] = useChartManager()
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -156,7 +157,7 @@ export default function AreaBarChart({
 									: null
 							}
 					  }
-					: { barMinWidth: 4 }),
+					: { barMinWidth }),
 				markLine: {},
 				data: []
 			}
@@ -198,7 +199,7 @@ export default function AreaBarChart({
 		}
 
 		return { series, yAxisByIndex }
-	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors, isCumulative])
+	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors, isCumulative, barMinWidth])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

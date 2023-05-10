@@ -61,6 +61,8 @@ export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES'
 // DIMENSIONS (DEXS AND FEES)
 const DIMENSIONS_CHART_INTERVAL_KEY = 'DIMENSIONS:CHART_INTERVAL'
 
+export const BAR_MIN_WIDTH_IN_CHART = 'BAR_MIN_WIDTH_IN_CHART'
+
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING }
 
 export const YIELDS_SETTINGS = {
@@ -134,7 +136,8 @@ const UPDATABLE_KEYS = [
 	...NFT_SETTINGS_KEYS,
 	...LIQS_SETTINGS_KEYS,
 	...BRIDGES_SETTINGS_KEYS,
-	DIMENSIONS_CHART_INTERVAL_KEY
+	DIMENSIONS_CHART_INTERVAL_KEY,
+	BAR_MIN_WIDTH_IN_CHART
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -174,7 +177,8 @@ function init() {
 		...BRIDGES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
-		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME
+		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME,
+		[BAR_MIN_WIDTH_IN_CHART]: 0
 	}
 
 	try {
@@ -256,7 +260,7 @@ export function useDarkModeManager() {
 }
 
 // TODO fix unnecessary rerenders on all state managers
-function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
+export function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
 	const [state, { updateKey }] = useLocalStorageContext()
 	const isClient = useIsClient()
 
@@ -282,6 +286,16 @@ function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
 	}
 
 	return [toggledSettings, updater]
+}
+
+export function useChartManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+
+	const updater = (value: number) => {
+		updateKey(BAR_MIN_WIDTH_IN_CHART, value)
+	}
+
+	return [state[BAR_MIN_WIDTH_IN_CHART], updater]
 }
 
 // DEFI

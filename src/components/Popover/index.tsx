@@ -26,12 +26,14 @@ const Trigger = styled(PopoverDisclosure)`
 	}
 
 	&[data-variant='secondary'] {
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		background: ${({ theme, color }) =>
+			color ? transparentize(0.8, color) : theme.mode === 'dark' ? '#22242a' : '#eaeaea'};
 		font-size: 0.75rem;
 
 		:hover,
 		:focus-visible {
-			background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+			background: ${({ theme, color }) =>
+				color ? transparentize(0.8, color) : theme.mode === 'dark' ? '#22242a' : '#eaeaea'};
 		}
 	}
 
@@ -102,16 +104,17 @@ interface IProps {
 	variant?: 'primary' | 'secondary'
 	trigger: React.ReactNode
 	content: React.ReactNode
+	color?: string
 }
 
-export default function Popover({ trigger, content, variant = 'primary', ...props }: IProps) {
+export default function Popover({ trigger, content, variant = 'primary', color, ...props }: IProps) {
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
 	const popover = usePopoverState({ renderCallback, gutter: 8, animated: true })
 
 	return (
 		<>
-			<Trigger state={popover} data-variant={variant}>
+			<Trigger state={popover} data-variant={variant} color={color}>
 				{trigger}
 			</Trigger>
 			<PopoverWrapper state={popover} modal={!isLarge} data-variant={variant} {...props}>
