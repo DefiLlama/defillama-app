@@ -9,12 +9,13 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params }) => {
 	const chain = params.chain
-	const data = await getChainPageData(chain)
-
-	const volumeData = await getChainsPageData('dexs')
-	const chainVolumeData = await getChainVolume('dexs', chain)
-	const feesData = await getOverviewItemPageData('fees', chain)
-	const usersData = await fetch(`https://api.llama.fi/userData/users/chain$${chain}`).then((r) => r.json())
+	const [data, volumeData, chainVolumeData, feesData, usersData] = await Promise.all([
+		getChainPageData(chain),
+		getChainsPageData('dexs'),
+		getChainVolume('dexs', chain).catch(() => ({})),
+		getOverviewItemPageData('fees', chain),
+		fetch(`https://api.llama.fi/userData/users/chain$${chain}`).then((r) => r.json())
+	])
 
 	return {
 		props: {
