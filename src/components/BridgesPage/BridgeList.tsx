@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react'
+import * as React from 'react'
+
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BRIDGES_SHOWING_TXS, useBridgesManager } from '~/contexts/LocalStorage'
@@ -55,7 +56,7 @@ function BridgesOverview({
 	largeTxsData
 }) {
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
-	const [chartType, setChartType] = useState(selectedChain === 'All' ? 'Volumes' : 'Net Flow')
+	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Net Flow')
 
 	const chartTypeList =
 		selectedChain === 'All' ? ['Volumes'] : ['Net Flow', 'Inflows', '24h Tokens Deposited', '24h Tokens Withdrawn']
@@ -144,7 +145,7 @@ function BridgesOverview({
 		download('bridge-volumes.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
-	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = useMemo(() => {
+	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = React.useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
 		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
 		// start from i = 1 to exclude current day

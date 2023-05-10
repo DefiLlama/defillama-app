@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react'
+import * as React from 'react'
+
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
@@ -68,14 +69,14 @@ function PeggedAssetsOverview({
 	chainTVLData,
 	backgroundColor
 }) {
-	const [chartType, setChartType] = useState(selectedChain === 'All' ? 'Token Market Caps' : 'USD Inflows')
+	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Token Market Caps' : 'USD Inflows')
 
 	const chartTypeList =
 		selectedChain !== 'All'
 			? ['USD Inflows', 'Total Market Cap', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
 			: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
 
-	const [filteredIndexes, setFilteredIndexes] = useState([])
+	const [filteredIndexes, setFilteredIndexes] = React.useState([])
 
 	const { query } = useRouter()
 	const { minMcap, maxMcap } = query
@@ -86,7 +87,7 @@ function PeggedAssetsOverview({
 		stablecoinBackingOptions
 	})
 
-	const peggedAssets = useMemo(() => {
+	const peggedAssets = React.useMemo(() => {
 		let chartDataIndexes = []
 		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {
 			let toFilter = false
@@ -161,7 +162,7 @@ function PeggedAssetsOverview({
 
 	const peggedTotals = useCalcCirculating(peggedAssets)
 
-	const chainsCirculatingValues = useMemo(() => {
+	const chainsCirculatingValues = React.useMemo(() => {
 		const data = peggedTotals.map((chain) => ({ name: chain.symbol, value: chain.mcap }))
 
 		const otherCirculating = data.slice(10).reduce((total, entry) => {
@@ -199,7 +200,7 @@ function PeggedAssetsOverview({
 		title = `${selectedChain} Stablecoins Market Cap`
 	}
 
-	const { percentChange, totalMcapCurrent } = useMemo(() => {
+	const { percentChange, totalMcapCurrent } = React.useMemo(() => {
 		let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
 		let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)

@@ -1,22 +1,20 @@
-import React, { useState } from 'react'
+import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import Layout from '~/layout'
 import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
-import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { StatsSection } from '~/layout/Stats/Medium'
 import { BridgesSearch } from '~/components/Search'
-import { OptionButton } from '~/components/ButtonStyled'
 import TokenLogo from '~/components/TokenLogo'
-import { AutoRow, RowBetween } from '~/components/Row'
 import FormattedName from '~/components/FormattedName'
 import SEO from '~/components/SEO'
 import { BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
-import { getRandomColor, formattedNum, getPercentChange } from '~/utils'
+import { formattedNum, getPercentChange } from '~/utils'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { BridgeTokensTable, BridgeAddressesTable } from '~/components/Table'
 import { AddressesTableSwitch } from '~/components/BridgesPage/TableSwitch'
-import { DailyBridgeStats } from '~/api/categories/bridges/utils'
 import { BridgeChainSelector } from '~/components/BridgesPage/BridgeChainSelector'
+import { Filters, Denomination } from '~/components/ECharts/ProtocolChart/Misc'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -27,17 +25,18 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 }) as React.FC<IPieChartProps>
 
 const TableNoticeWrapper = styled.div`
-	margin-top: -2rem;
-	margin-bottom: -2rem;
-`
-
-const SmolHints = styled.div`
 	display: flex;
-	gap: 6px;
-	flex-direction: row;
-	justify-content: flex-end;
-	align-items: center;
-	opacity: 0.6;
+	gap: 16px;
+	align-items: flex-end;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	margin-bottom: -2rem;
+
+	p {
+		opacity: 0.6;
+		font-size: 0.875rem;
+		font-style: italic;
+	}
 `
 
 export default function BridgeContainer({
@@ -46,108 +45,15 @@ export default function BridgeContainer({
 	chains,
 	defaultChain,
 	volumeDataByChain,
-	prevDayDataByChain
+	tableDataByChain
 }) {
-	const [chartType, setChartType] = useState('Inflows')
-	const [currentChain, setChain] = useState(defaultChain)
+	const [chartType, setChartType] = React.useState('Inflows')
+	const [currentChain, setChain] = React.useState(defaultChain)
 
 	const [bridgesSettings] = useBridgesManager()
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
 
-	// can refactor, make some functions here
-	const { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals } = React.useMemo(() => {
-		const prevDayData: DailyBridgeStats = prevDayDataByChain[currentChain]
-		let tokensTableData = [],
-			addressesTableData = [],
-			tokenDeposits = [],
-			tokenWithdrawals = [],
-			tokenColor = {}
-		if (prevDayData) {
-			const totalTokensDeposited = prevDayData.totalTokensDeposited
-			const totalTokensWithdrawn = prevDayData.totalTokensWithdrawn
-			let tokensTableUnformatted = {}
-			Object.entries(totalTokensDeposited).map(([token, tokenData]) => {
-				const symbol = tokenData.symbol == null || tokenData.symbol === '' ? 'unknown' : tokenData.symbol
-				const usdValue = tokenData.usdValue
-				const key = `${symbol}#${token}`
-				tokensTableUnformatted[key] = tokensTableUnformatted[key] || {}
-				tokensTableUnformatted[key].deposited = (tokensTableUnformatted[key].deposited ?? 0) + usdValue
-				tokensTableUnformatted[key].volume = (tokensTableUnformatted[key].volume ?? 0) + usdValue
-				// ensure there are no undefined values for deposited/withdrawn so table can be sorted
-				tokensTableUnformatted[key].withdrawn = 0
-			})
-			Object.entries(totalTokensWithdrawn).map(([token, tokenData]) => {
-				const symbol = tokenData.symbol == null || tokenData.symbol === '' ? 'unknown' : tokenData.symbol
-				const usdValue = tokenData.usdValue ?? 0
-				const key = `${symbol}#${token}`
-				tokensTableUnformatted[key] = tokensTableUnformatted[key] || {}
-				tokensTableUnformatted[key].withdrawn = (tokensTableUnformatted[key].withdrawn ?? 0) + usdValue
-				tokensTableUnformatted[key].volume = (tokensTableUnformatted[key].volume ?? 0) + usdValue
-				if (!tokensTableUnformatted[key].deposited) {
-					tokensTableUnformatted[key].deposited = 0
-				}
-			})
-
-			tokensTableData = Object.entries(tokensTableUnformatted)
-				.filter(([symbol, volumeData]: [string, any]) => {
-					return volumeData.volume !== 0
-				})
-				.map((entry: [string, object]) => {
-					return { symbol: entry[0], ...entry[1] }
-				})
-
-			const fullTokenDeposits = Object.values(totalTokensDeposited).map((tokenData) => {
-				return { name: tokenData.symbol, value: tokenData.usdValue }
-			})
-			const otherDeposits = fullTokenDeposits.slice(10).reduce((total, entry) => {
-				return (total += entry.value)
-			}, 0)
-			tokenDeposits = fullTokenDeposits
-				.slice(0, 10)
-				.sort((a, b) => b.value - a.value)
-				.concat({ name: 'Others', value: otherDeposits })
-			const fullTokenWithdrawals = Object.values(totalTokensWithdrawn).map((tokenData) => {
-				return { name: tokenData.symbol, value: tokenData.usdValue }
-			})
-			const otherWithdrawals = fullTokenWithdrawals.slice(10).reduce((total, entry) => {
-				return (total += entry.value)
-			}, 0)
-			tokenWithdrawals = fullTokenWithdrawals
-				.slice(0, 10)
-				.sort((a, b) => b.value - a.value)
-				.concat({ name: 'Others', value: otherWithdrawals })
-			tokenColor = Object.fromEntries(
-				[...tokenDeposits, ...tokenWithdrawals, 'Others'].map((token) => {
-					return typeof token === 'string' ? ['-', getRandomColor()] : [token.name, getRandomColor()]
-				})
-			)
-			const totalAddressesDeposited = prevDayData.totalAddressDeposited
-			const totalAddressesWithdrawn = prevDayData.totalAddressWithdrawn
-			let addressesTableUnformatted = {}
-			Object.entries(totalAddressesDeposited).map(([address, addressData]) => {
-				const txs = addressData.txs
-				const usdValue = addressData.usdValue
-				addressesTableUnformatted[address] = addressesTableUnformatted[address] || {}
-				addressesTableUnformatted[address].deposited = (addressesTableUnformatted[address].deposited ?? 0) + usdValue
-				addressesTableUnformatted[address].txs = (addressesTableUnformatted[address].txs ?? 0) + txs
-			})
-			Object.entries(totalAddressesWithdrawn).map(([address, addressData]) => {
-				const txs = addressData.txs
-				const usdValue = addressData.usdValue
-				addressesTableUnformatted[address] = addressesTableUnformatted[address] || {}
-				addressesTableUnformatted[address].withdrawn = (addressesTableUnformatted[address].withdrawn ?? 0) + usdValue
-				addressesTableUnformatted[address].txs = (addressesTableUnformatted[address].txs ?? 0) + txs
-			})
-			addressesTableData = Object.entries(addressesTableUnformatted)
-				.filter(([address, addressData]: [string, any]) => {
-					return addressData.txs !== 0
-				})
-				.map((entry: [string, object]) => {
-					return { address: entry[0], deposited: 0, withdrawn: 0, ...entry[1] }
-				})
-		}
-		return { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals, tokenColor }
-	}, [prevDayDataByChain, currentChain])
+	const { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals } = tableDataByChain[currentChain]
 
 	const volumeChartDataByChain = volumeDataByChain[currentChain]
 	const prevDayChart = volumeChartDataByChain[volumeChartDataByChain.length - 2]
@@ -195,26 +101,20 @@ export default function BridgeContainer({
 
 					<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
 
-					<StatWrapper>
-						<Stat>
-							<span>Deposited to {currentChain} (24h)</span>
-							<span>{formattedNum(currentWithdrawalsUSD || '0', true)}</span>
-						</Stat>
-					</StatWrapper>
+					<Stat>
+						<span>Deposited to {currentChain} (24h)</span>
+						<span>{formattedNum(currentWithdrawalsUSD || '0', true)}</span>
+					</Stat>
 
-					<StatWrapper>
-						<Stat>
-							<span>Withdrawn from {currentChain} (24h)</span>
-							<span>{formattedNum(currentDepositsUSD || '0', true)}</span>
-						</Stat>
-					</StatWrapper>
+					<Stat>
+						<span>Withdrawn from {currentChain} (24h)</span>
+						<span>{formattedNum(currentDepositsUSD || '0', true)}</span>
+					</Stat>
 
-					<StatWrapper>
-						<Stat>
-							<span>Volume Change (24h)</span>
-							<span>{volPercentChange + '%'}</span>
-						</Stat>
-					</StatWrapper>
+					<Stat>
+						<span>Volume Change (24h)</span>
+						<span>{volPercentChange + '%'}</span>
+					</Stat>
 				</DetailsWrapper>
 
 				<div
@@ -227,28 +127,23 @@ export default function BridgeContainer({
 						minHeight: '460px'
 					}}
 				>
-					<RowBetween m="8px">
-						<AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
-							<OptionButton active={chartType === 'Inflows'} onClick={() => setChartType('Inflows')}>
-								Inflows
-							</OptionButton>
-							<OptionButton active={chartType === 'Tokens To'} onClick={() => setChartType('Tokens To')}>
-								Tokens To
-							</OptionButton>
-							<OptionButton active={chartType === 'Tokens From'} onClick={() => setChartType('Tokens From')}>
-								Tokens From
-							</OptionButton>
-						</AutoRow>
-					</RowBetween>
+					<Filters style={{ margin: '16px 16px 0' }}>
+						<Denomination as="button" active={chartType === 'Inflows'} onClick={() => setChartType('Inflows')}>
+							Inflows
+						</Denomination>
+						<Denomination as="button" active={chartType === 'Tokens To'} onClick={() => setChartType('Tokens To')}>
+							Tokens To
+						</Denomination>
+						<Denomination as="button" active={chartType === 'Tokens From'} onClick={() => setChartType('Tokens From')}>
+							Tokens From
+						</Denomination>
+					</Filters>
 					{chartType === 'Inflows' && volumeChartDataByChain && volumeChartDataByChain.length > 0 && (
 						<BarChart
 							chartData={volumeChartDataByChain}
 							title=""
-							hideDefaultLegend={true}
-							customLegendName="Volume"
-							customLegendOptions={['Deposited', 'Withdrawn']}
-							key={['Deposited', 'Withdrawn'] as any} // escape hatch to rerender state in legend options
 							chartOptions={volumeChartOptions}
+							stacks={inflowChartStacks}
 						/>
 					)}
 					{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 && (
@@ -260,16 +155,17 @@ export default function BridgeContainer({
 				</div>
 			</StatsSection>
 
-			<AddressesTableSwitch />
-
 			<TableNoticeWrapper>
-				<SmolHints>
-					<i>All stats in table are for the previous day.</i>
-				</SmolHints>
+				<AddressesTableSwitch />
+
+				<p>All stats in table are for the previous day.</p>
 			</TableNoticeWrapper>
 
-			{!isBridgesShowingAddresses && <BridgeTokensTable data={tokensTableData} />}
-			{isBridgesShowingAddresses && <BridgeAddressesTable data={addressesTableData} />}
+			{isBridgesShowingAddresses ? (
+				<BridgeAddressesTable data={addressesTableData} />
+			) : (
+				<BridgeTokensTable data={tokensTableData} />
+			)}
 		</Layout>
 	)
 }
@@ -279,3 +175,28 @@ const volumeChartOptions = {
 		inflow: true
 	}
 }
+
+const inflowChartStacks = {
+	Deposited: 'stackA',
+	Withdrawn: 'stackA'
+}
+
+const Stat = styled.h1`
+	font-size: 1.5rem;
+	font-weight: 600;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+
+	& > *:first-child {
+		font-weight: 400;
+		font-size: 1rem;
+		text-align: left;
+		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
+	}
+
+	& > *:nth-child(2) {
+		font-family: var(--font-jetbrains);
+		min-height: 2rem;
+	}
+`

@@ -2,7 +2,6 @@ import * as React from 'react'
 import { MenuButtonArrow, useComboboxState, useMenuState } from 'ariakit'
 import styled from 'styled-components'
 import { Name } from '~/layout/ProtocolAndPool'
-import FormattedName from '~/components/FormattedName'
 import { Button, Popover } from '~/components/DropdownMenu'
 import { Input, Item, List } from '~/components/Combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
@@ -36,10 +35,8 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 
 	return (
 		<div>
-			<Button state={menu} style={{ fontWeight: 600 }}>
-				<Name>
-					<FormattedName text={selectedAsset.name} maxCharacters={20} fontWeight={700} />
-				</Name>
+			<Button state={menu}>
+				<Name style={{ fontWeight: 400, fontSize: '1rem' }}>{selectedAsset.name}</Name>
 				<MenuButtonArrow />
 			</Button>
 			<Popover state={menu} modal={!isLarge} composite={false}>

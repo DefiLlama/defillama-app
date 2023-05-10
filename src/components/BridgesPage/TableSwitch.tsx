@@ -3,6 +3,7 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { BarChart2, Activity, TrendingUp, Users } from 'react-feather'
 import { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
+import { Denomination, Filters } from '../ECharts/ProtocolChart/Misc'
 
 export const TxsTableSwitch = () => {
 	const [bridgesSettings, toggleBridgesSettings] = useBridgesManager()
@@ -27,16 +28,26 @@ export const AddressesTableSwitch = () => {
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
 
 	return (
-		<Wrapper>
-			<Switch active={!isBridgesShowingAddresses} onClick={toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}>
+		<Filters>
+			<Denomination
+				as="button"
+				active={!isBridgesShowingAddresses}
+				onClick={toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
+				style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+			>
 				<TrendingUp size={14} />
 				<span>Tokens</span>
-			</Switch>
-			<Switch active={isBridgesShowingAddresses} onClick={toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}>
+			</Denomination>
+			<Denomination
+				as="button"
+				active={isBridgesShowingAddresses}
+				onClick={toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
+				style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+			>
 				<Users size={14} />
 				<span>Addresses</span>
-			</Switch>
-		</Wrapper>
+			</Denomination>
+		</Filters>
 	)
 }
 

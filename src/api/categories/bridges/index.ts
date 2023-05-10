@@ -1,4 +1,4 @@
-import { standardizeProtocolName, chainIconUrl, tokenIconUrl } from '~/utils'
+import { standardizeProtocolName, chainIconUrl, tokenIconUrl, getRandomColor } from '~/utils'
 import { formatBridgesData, formatChainsData } from './utils'
 import type { IChainData } from '~/api/types'
 import { CONFIG_API, BRIDGEDAYSTATS_API, BRIDGES_API, BRIDGEVOLUME_API, BRIDGELARGETX_API } from '~/constants'
@@ -426,12 +426,124 @@ export async function getBridgePageDatanew(bridge: string) {
 		prevDayDataByChain[chains[index]] = data
 	})
 
+	const chainsList = ['All Chains', ...chains]
+
+	const tableDataByChain = {}
+	chainsList.forEach((currentChain) => {
+		const prevDayData = prevDayDataByChain[currentChain]
+		let tokensTableData = [],
+			addressesTableData = [],
+			tokenDeposits = [],
+			tokenWithdrawals = [],
+			tokenColor = {}
+		if (prevDayData) {
+			const totalTokensDeposited = prevDayData.totalTokensDeposited
+			const totalTokensWithdrawn = prevDayData.totalTokensWithdrawn
+			let tokensTableUnformatted = {}
+			Object.entries(totalTokensDeposited).map(([token, tokenData]: [string, { symbol: string; usdValue: number }]) => {
+				const symbol = tokenData.symbol == null || tokenData.symbol === '' ? 'unknown' : tokenData.symbol
+				const usdValue = tokenData.usdValue
+				const key = `${symbol}#${token}`
+				tokensTableUnformatted[key] = tokensTableUnformatted[key] || {}
+				tokensTableUnformatted[key].deposited = (tokensTableUnformatted[key].deposited ?? 0) + usdValue
+				tokensTableUnformatted[key].volume = (tokensTableUnformatted[key].volume ?? 0) + usdValue
+				// ensure there are no undefined values for deposited/withdrawn so table can be sorted
+				tokensTableUnformatted[key].withdrawn = 0
+			})
+			Object.entries(totalTokensWithdrawn).map(([token, tokenData]: [string, { symbol: string; usdValue: number }]) => {
+				const symbol = tokenData.symbol == null || tokenData.symbol === '' ? 'unknown' : tokenData.symbol
+				const usdValue = tokenData.usdValue ?? 0
+				const key = `${symbol}#${token}`
+				tokensTableUnformatted[key] = tokensTableUnformatted[key] || {}
+				tokensTableUnformatted[key].withdrawn = (tokensTableUnformatted[key].withdrawn ?? 0) + usdValue
+				tokensTableUnformatted[key].volume = (tokensTableUnformatted[key].volume ?? 0) + usdValue
+				if (!tokensTableUnformatted[key].deposited) {
+					tokensTableUnformatted[key].deposited = 0
+				}
+			})
+
+			tokensTableData = Object.entries(tokensTableUnformatted)
+				.filter(([symbol, volumeData]: [string, any]) => {
+					return volumeData.volume !== 0
+				})
+				.map((entry: [string, object]) => {
+					return { symbol: entry[0], ...entry[1] }
+				})
+
+			const fullTokenDeposits = Object.values(totalTokensDeposited).map(
+				(tokenData: { symbol: string; usdValue: number }) => {
+					return { name: tokenData.symbol, value: tokenData.usdValue }
+				}
+			)
+			const otherDeposits = fullTokenDeposits.slice(10).reduce((total, entry) => {
+				return (total += entry.value)
+			}, 0)
+			tokenDeposits = fullTokenDeposits
+				.slice(0, 10)
+				.sort((a, b) => b.value - a.value)
+				.concat({ name: 'Others', value: otherDeposits })
+			const fullTokenWithdrawals = Object.values(totalTokensWithdrawn).map(
+				(tokenData: { symbol: string; usdValue: number }) => {
+					return { name: tokenData.symbol, value: tokenData.usdValue }
+				}
+			)
+			const otherWithdrawals = fullTokenWithdrawals.slice(10).reduce((total, entry) => {
+				return (total += entry.value)
+			}, 0)
+			tokenWithdrawals = fullTokenWithdrawals
+				.slice(0, 10)
+				.sort((a, b) => b.value - a.value)
+				.concat({ name: 'Others', value: otherWithdrawals })
+			tokenColor = Object.fromEntries(
+				[...tokenDeposits, ...tokenWithdrawals, 'Others'].map((token) => {
+					return typeof token === 'string' ? ['-', getRandomColor()] : [token.name, getRandomColor()]
+				})
+			)
+			const totalAddressesDeposited = prevDayData.totalAddressDeposited
+			const totalAddressesWithdrawn = prevDayData.totalAddressWithdrawn
+			let addressesTableUnformatted = {}
+			Object.entries(totalAddressesDeposited).map(
+				([address, addressData]: [string, { txs: number; deposited: number; usdValue: number }]) => {
+					const txs = addressData.txs
+					const usdValue = addressData.usdValue
+					addressesTableUnformatted[address] = addressesTableUnformatted[address] || {}
+					addressesTableUnformatted[address].deposited = (addressesTableUnformatted[address].deposited ?? 0) + usdValue
+					addressesTableUnformatted[address].txs = (addressesTableUnformatted[address].txs ?? 0) + txs
+				}
+			)
+			Object.entries(totalAddressesWithdrawn).map(
+				([address, addressData]: [string, { txs: number; deposited: number; usdValue: number }]) => {
+					const txs = addressData.txs
+					const usdValue = addressData.usdValue
+					addressesTableUnformatted[address] = addressesTableUnformatted[address] || {}
+					addressesTableUnformatted[address].withdrawn = (addressesTableUnformatted[address].withdrawn ?? 0) + usdValue
+					addressesTableUnformatted[address].txs = (addressesTableUnformatted[address].txs ?? 0) + txs
+				}
+			)
+			addressesTableData = Object.entries(addressesTableUnformatted)
+				.filter(([address, addressData]: [string, any]) => {
+					return addressData.txs !== 0
+				})
+				.map((entry: [string, object]) => {
+					return { address: entry[0], deposited: 0, withdrawn: 0, ...entry[1] }
+				})
+		}
+
+		tableDataByChain[currentChain] = {
+			tokensTableData,
+			addressesTableData,
+			tokenDeposits,
+			tokenWithdrawals,
+			tokenColor
+		}
+	})
+
 	return {
 		displayName,
 		logo,
 		chains: ['All Chains', ...chains],
 		defaultChain: 'All Chains',
 		volumeDataByChain,
-		prevDayDataByChain
+		tableDataByChain
 	}
 }

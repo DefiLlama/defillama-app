@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import * as React from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
@@ -190,7 +190,7 @@ export default function PeggedContainer({
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
-	const [chartType, setChartType] = useState('Pie')
+	const [chartType, setChartType] = React.useState('Pie')
 	const defaultSelectedId = 'default-selected-tab'
 	const tab = useTabState({ defaultSelectedId })
 
@@ -215,7 +215,7 @@ export default function PeggedContainer({
 
 	const chainTotals = useCalcCirculating(chainCirculatings)
 
-	const chainsCirculatingValues = useMemo(() => {
+	const chainsCirculatingValues = React.useMemo(() => {
 		const data = chainTotals.map((chain) => ({
 			name: chain.name,
 			value: chain.circulating

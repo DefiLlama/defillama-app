@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react'
+import * as React from 'react'
+
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
@@ -45,7 +46,7 @@ function PeggedChainsOverview({
 	chainsGroupbyParent,
 	chainTVLData
 }) {
-	const [chartType, setChartType] = useState('Pie')
+	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = useBuildPeggedChartData(
@@ -80,7 +81,7 @@ function PeggedChainsOverview({
 
 	const title = `Stablecoins Market Cap`
 
-	const { percentChange, totalMcapCurrent } = useMemo(() => {
+	const { percentChange, totalMcapCurrent } = React.useMemo(() => {
 		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD')
 		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, 'totalCirculatingUSD')
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
@@ -102,7 +103,7 @@ function PeggedChainsOverview({
 
 	const groupedChains = useGroupChainsPegged(chainTotals, chainsGroupbyParent)
 
-	const chainsCirculatingValues = useMemo(() => {
+	const chainsCirculatingValues = React.useMemo(() => {
 		const data = groupedChains.map((chain) => ({ name: chain.name, value: chain.mcap }))
 
 		const otherCirculating = data.slice(10).reduce((total, entry) => {
