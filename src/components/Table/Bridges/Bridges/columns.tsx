@@ -317,16 +317,29 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 			const { blockExplorerLink } = getBlockExplorer(token)
 			if (value) {
 				return (
-					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
-						<AutoRow as="span" gap="0px" justify="start">
-							{symbol}
-							<ExternalLink size={10} />
-						</AutoRow>
-					</a>
+					<LinkToBlockExplorer href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
+						<span>{symbol}</span>
+						<ExternalLink size={10} />
+					</LinkToBlockExplorer>
 				)
 			} else return <>Not found</>
 		},
 		size: 120
+	},
+	{
+		header: 'Chain',
+		id: 'chainName',
+		cell: ({ row }) => {
+			const value = row.original.symbol
+			const splitValue = value.split('#')
+			const [symbol, token] = splitValue
+			const { chainName } = getBlockExplorer(token)
+			return chainName
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
 	},
 	{
 		header: 'Deposited',
@@ -367,16 +380,27 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 			const { blockExplorerLink } = getBlockExplorerForAddress(value)
 			if (value) {
 				return (
-					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
-						<Name>
-							{formattedValue}
-							<ExternalLink size={10} />
-						</Name>
-					</a>
+					<LinkToBlockExplorer href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
+						<span>{formattedValue.slice(0, 5) + '...' + formattedValue.slice(-4)}</span>
+						<ExternalLink size={10} />
+					</LinkToBlockExplorer>
 				)
 			} else return <>Not found</>
 		},
-		size: 240
+		size: 120
+	},
+	{
+		header: 'Chain',
+		id: 'chainName',
+		cell: ({ row }) => {
+			const value = row.original.address
+			const { chainName } = getBlockExplorerForAddress(value)
+			return chainName
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
 	},
 	{
 		header: 'Deposited',
@@ -542,48 +566,6 @@ export const largeTxsColumnSizes = {
 	}
 }
 
-export const bridgeTokensColumnSizes = {
-	0: {
-		symbol: 100,
-		withdrawn: 120,
-		deposited: 120,
-		volume: 140
-	},
-	480: {
-		symbol: 120,
-		withdrawn: 120,
-		deposited: 120,
-		volume: 120
-	},
-	1024: {
-		symbol: 120,
-		withdrawn: 120,
-		deposited: 120,
-		volume: 120
-	}
-}
-
-export const bridgeAddressesColumnSizes = {
-	0: {
-		address: 100,
-		withdrawn: 120,
-		deposited: 120,
-		txs: 120
-	},
-	480: {
-		address: 240,
-		withdrawn: 120,
-		deposited: 120,
-		txs: 120
-	},
-	1024: {
-		address: 240,
-		withdrawn: 120,
-		deposited: 120,
-		txs: 120
-	}
-}
-
 const Name = styled.span`
 	display: flex;
 	align-items: center;
@@ -594,5 +576,21 @@ const Name = styled.span`
 		overflow: hidden;
 		text-overflow: ellipsis;
 		whitespace: nowrap;
+	}
+`
+
+const LinkToBlockExplorer = styled.a`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		whitespace: nowrap;
+	}
+
+	svg {
+		flex-shrink: 0;
 	}
 `

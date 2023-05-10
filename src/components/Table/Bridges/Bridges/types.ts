@@ -11,6 +11,7 @@ export interface IBridge {
 	change_7d: number
 	change_1m: number
 	txsPrevDay: number
+	address: string
 }
 
 export interface IBridgeChain {

@@ -1,3 +1,5 @@
+import { capitalizeFirstLetter } from '.'
+
 const blockExplorers = {
 	ethereum: ['https://etherscan.io/token/', 'Etherscan'],
 	bsc: ['https://bscscan.com/address/', 'Bscscan'],
@@ -76,7 +78,7 @@ const blockExplorers = {
 }
 
 export const getBlockExplorer = (address: string = '') => {
-	let blockExplorerLink, blockExplorerName
+	let blockExplorerLink, blockExplorerName, chainName
 	if (address?.includes(':')) {
 		const [chain, chainAddress] = address.split(':')
 		const explorer = blockExplorers[chain]
@@ -84,15 +86,23 @@ export const getBlockExplorer = (address: string = '') => {
 			blockExplorerLink = explorer[0] + chainAddress
 			blockExplorerName = explorer[1]
 		}
+		chainName = chain
+			? chain
+					.split('_')
+					.map((x) => capitalizeFirstLetter(x))
+					.join(' ')
+			: 'Ethereum'
 	} else {
 		if (typeof address === 'string' && address !== '') {
 			blockExplorerLink = 'https://etherscan.io/token/' + address
 			blockExplorerName = 'Etherscan'
+			chainName = 'Ethereum'
 		}
 	}
 
 	return {
 		blockExplorerLink: blockExplorerLink ?? '',
-		blockExplorerName: blockExplorerName ?? 'unknown'
+		blockExplorerName: blockExplorerName ?? 'unknown',
+		chainName
 	}
 }

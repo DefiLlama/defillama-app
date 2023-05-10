@@ -189,7 +189,8 @@ const Wrapper = styled.div`
 	table {
 		table-layout: fixed;
 		width: 100%;
-		border-collapse: collapse;
+		border-collapse: separate;
+		border-spacing: 0;
 	}
 
 	thead {
@@ -210,10 +211,6 @@ const Wrapper = styled.div`
 		}
 	}
 
-	tr {
-		border-bottom: 1px solid ${({ theme }) => theme.divider};
-	}
-
 	th,
 	td {
 		padding: 12px;
@@ -221,6 +218,7 @@ const Wrapper = styled.div`
 		overflow: hidden;
 		text-overflow: ellipsis;
 		background-color: ${({ theme }) => theme.background};
+		border-bottom: 1px solid ${({ theme }) => theme.divider};
 	}
 
 	tr > *:first-child {

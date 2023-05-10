@@ -19,11 +19,7 @@ import {
 	largeTxsColumnOrders,
 	largeTxsColumnSizes,
 	bridgeTokensColumn,
-	bridgeTokensColumnOrders,
-	bridgeTokensColumnSizes,
-	bridgeAddressesColumn,
-	bridgeAddressesColumnOrders,
-	bridgeAddressesColumnSizes
+	bridgeAddressesColumn
 } from './Bridges/columns'
 import useWindowSize from '~/hooks/useWindowSize'
 
@@ -153,80 +149,34 @@ export function BridgesLargeTxsTable({ data }) {
 
 export function BridgeTokensTable({ data }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'volume', desc: true }])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
-	const windowSize = useWindowSize()
 
 	const instance = useReactTable({
 		data,
 		columns: bridgeTokensColumn,
 		state: {
-			sorting,
-			columnOrder,
-			columnSizing
+			sorting
 		},
 		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
-
-	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = windowSize.width
-			? bridgeTokensColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
-			: defaultOrder
-
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
-
-		instance.setColumnSizing(bridgeTokensColumnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [windowSize, instance])
 
 	return <VirtualTable instance={instance} />
 }
 
 export function BridgeAddressesTable({ data }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'withdrawn', desc: true }])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
-	const windowSize = useWindowSize()
 
 	const instance = useReactTable({
 		data,
 		columns: bridgeAddressesColumn,
 		state: {
-			sorting,
-			columnOrder,
-			columnSizing
+			sorting
 		},
 		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
-
-	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = windowSize.width
-			? bridgeAddressesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
-			: defaultOrder
-
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
-
-		instance.setColumnSizing(bridgeAddressesColumnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [windowSize, instance])
 
 	return <VirtualTable instance={instance} />
 }

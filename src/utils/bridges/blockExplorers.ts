@@ -1,3 +1,5 @@
+import { capitalizeFirstLetter } from '..'
+
 const blockExplorersTxs = {
 	ethereum: ['https://etherscan.io/tx/', 'Etherscan'],
 	bsc: ['https://bscscan.com/tx/', 'Bscscan'],
@@ -53,7 +55,7 @@ export const getBlockExplorerForTx = (txHash: string = '') => {
 }
 
 export const getBlockExplorerForAddress = (txHash: string = '') => {
-	let blockExplorerLink, blockExplorerName
+	let blockExplorerLink, blockExplorerName, chainName
 	if (txHash?.includes(':')) {
 		const [chain, chainHash] = txHash.split(':')
 		const explorer = blockExplorersAddresses[chain]
@@ -61,15 +63,23 @@ export const getBlockExplorerForAddress = (txHash: string = '') => {
 			blockExplorerLink = explorer[0] + chainHash
 			blockExplorerName = explorer[1]
 		}
+		chainName = chain
+			? chain
+					.split('_')
+					.map((x) => capitalizeFirstLetter(x))
+					.join(' ')
+			: 'Ethereum'
 	} else {
 		if (typeof txHash === 'string' && txHash !== '') {
 			blockExplorerLink = 'https://etherscan.io/address/' + txHash
 			blockExplorerName = 'Etherscan'
+			chainName = 'Ethereum'
 		}
 	}
 
 	return {
 		blockExplorerLink,
-		blockExplorerName
+		blockExplorerName,
+		chainName
 	}
 }

@@ -403,6 +403,26 @@ export async function getBridgePageDatanew(bridge: string) {
 	const prevDayDataByChain = {}
 
 	statsOnPrevDay.forEach((data, index) => {
+		prevDayDataByChain['All Chains'] = {
+			date: Math.max(prevDayDataByChain['All Chains']?.date ?? 0, data.date),
+			totalTokensDeposited: {
+				...(prevDayDataByChain['All Chains']?.totalTokensDeposited ?? {}),
+				...data.totalTokensDeposited
+			},
+			totalTokensWithdrawn: {
+				...(prevDayDataByChain['All Chains']?.totalTokensWithdrawn ?? {}),
+				...data.totalTokensWithdrawn
+			},
+			totalAddressDeposited: {
+				...(prevDayDataByChain['All Chains']?.totalAddressDeposited ?? {}),
+				...data.totalAddressDeposited
+			},
+			totalAddressWithdrawn: {
+				...(prevDayDataByChain['All Chains']?.totalAddressWithdrawn ?? {}),
+				...data.totalAddressWithdrawn
+			}
+		}
+
 		prevDayDataByChain[chains[index]] = data
 	})
 
