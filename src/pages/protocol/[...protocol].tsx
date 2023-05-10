@@ -1,14 +1,8 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { selectColor, slug, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import { selectColor, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
-import {
-	getProtocols,
-	getProtocol,
-	fuseProtocolData,
-	getProtocolsRaw,
-	getProtocolEmissons
-} from '~/api/categories/protocols'
+import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
@@ -19,7 +13,6 @@ import {
 	PROTOCOL_EMISSIONS_LIST_API,
 	PROTOCOL_GOVERNANCE_API,
 	PROTOCOL_ONCHAIN_GOVERNANCE_API,
-	YIELD_POOLS_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetchWithPerformaceLogging, withPerformanceLogging } from '~/utils/perf'

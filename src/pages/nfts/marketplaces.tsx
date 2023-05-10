@@ -44,7 +44,8 @@ function Marketplaces({
 	dominanceTrade,
 	marketplaces,
 	volumeChartStacks,
-	tradeChartStacks
+	tradeChartStacks,
+	stackColors
 }) {
 	const [dominanceChart, setDominanceChart] = React.useState(false)
 
@@ -75,6 +76,7 @@ function Marketplaces({
 					<AreaChart
 						chartData={dominance}
 						stacks={marketplaces}
+						stackColors={stackColors}
 						hideDefaultLegend
 						valueSymbol="%"
 						title="Volume"
@@ -84,6 +86,7 @@ function Marketplaces({
 					<BarChart
 						title="Volume"
 						stacks={volumeChartStacks}
+						stackColors={stackColors}
 						chartData={volume}
 						valueSymbol="ETH"
 						hideDefaultLegend
@@ -94,6 +97,7 @@ function Marketplaces({
 					<AreaChart
 						chartData={dominanceTrade}
 						stacks={marketplaces}
+						stackColors={stackColors}
 						hideDefaultLegend
 						valueSymbol="%"
 						title="Trades"
@@ -103,6 +107,7 @@ function Marketplaces({
 					<BarChart
 						title="Trades"
 						stacks={tradeChartStacks}
+						stackColors={stackColors}
 						chartData={trades}
 						valueSymbol=""
 						hideDefaultLegend

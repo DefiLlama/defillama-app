@@ -376,10 +376,6 @@ export function selectColor(number, color) {
 		l: number !== 0 && l < 60 ? 60 : l,
 		a: number !== 0 && a < 0.6 ? 1 : a
 	}).toHex()
-
-	return `hsl(${h + number} ${s} ${l} / ${a})`
-	console.log(colord(color).toHsl())
-	return `hsl(${hue},70%,60%)`
 }
 
 export const deriveColors = (color, index, length) => {

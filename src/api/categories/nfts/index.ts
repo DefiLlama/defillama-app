@@ -18,7 +18,7 @@ import {
 	NFT_ROYALTY_HISTORY_API,
 	NFT_ROYALTY_API
 } from '~/constants'
-import { getDominancePercent } from '~/utils'
+import { getColorFromNumber, getDominancePercent } from '~/utils'
 
 interface IResponseNFTSearchAPI {
 	hits: Array<{
@@ -165,6 +165,14 @@ export const getNFTMarketplacesData = async () => {
 	const [volumeData, dominance, volumeChartStacks] = formatNftVolume(volumeSorted, 'sum')
 	const [tradeData, dominanceTrade, tradeChartStacks] = formatNftVolume(volumeSorted, 'count')
 
+	const marketplaces = Object.keys(volumeChartStacks)
+	const colors = {}
+	marketplaces.forEach((chain, index) => {
+		colors[chain] = getColorFromNumber(index, 10)
+	})
+
+	colors['Others'] = '#AAAAAA'
+
 	return {
 		data,
 		volume: Object.entries(volumeData).map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
@@ -177,7 +185,8 @@ export const getNFTMarketplacesData = async () => {
 			...values
 		})),
 		dominanceTrade,
-		marketplaces: Object.keys(volumeChartStacks),
+		marketplaces,
+		stackColors: colors,
 		volumeChartStacks,
 		tradeChartStacks
 	}
