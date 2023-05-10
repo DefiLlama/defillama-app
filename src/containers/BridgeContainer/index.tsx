@@ -15,6 +15,8 @@ import { BridgeTokensTable, BridgeAddressesTable } from '~/components/Table'
 import { AddressesTableSwitch } from '~/components/BridgesPage/TableSwitch'
 import { BridgeChainSelector } from '~/components/BridgesPage/BridgeChainSelector'
 import { Filters, Denomination } from '~/components/ECharts/ProtocolChart/Misc'
+import useSWR from 'swr'
+import { getBridgePageDatanew } from '~/api/categories/bridges'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -39,14 +41,7 @@ const TableNoticeWrapper = styled.div`
 	}
 `
 
-export default function BridgeContainer({
-	displayName,
-	logo,
-	chains,
-	defaultChain,
-	volumeDataByChain,
-	tableDataByChain
-}) {
+const BridgeInfo = ({ displayName, logo, chains, defaultChain, volumeDataByChain, tableDataByChain }) => {
 	const [chartType, setChartType] = React.useState('Inflows')
 	const [currentChain, setChain] = React.useState(defaultChain)
 
@@ -78,20 +73,7 @@ export default function BridgeContainer({
 	})
 
 	return (
-		<Layout
-			title={`${displayName}: Bridge Volume - DefiLlama`}
-			// backgroundColor={transparentize(0.6, backgroundColor)}
-			style={{ gap: '48px' }}
-		>
-			<SEO cardName={displayName} token={displayName} />
-
-			<BridgesSearch
-				step={{
-					category: 'Bridges',
-					name: displayName
-				}}
-			/>
-
+		<>
 			<StatsSection>
 				<DetailsWrapper>
 					<Name>
@@ -166,7 +148,46 @@ export default function BridgeContainer({
 			) : (
 				<BridgeTokensTable data={tokensTableData} />
 			)}
+		</>
+	)
+}
+
+export default function BridgeContainer(props) {
+	return (
+		<Layout
+			title={`${props.displayName}: Bridge Volume - DefiLlama`}
+			// backgroundColor={transparentize(0.6, backgroundColor)}
+			style={{ gap: '48px' }}
+		>
+			<SEO cardName={props.displayName} token={props.displayName} />
+
+			<BridgesSearch
+				step={{
+					category: 'Bridges',
+					name: props.displayName
+				}}
+			/>
+
+			<BridgeInfo {...props} />
 		</Layout>
+	)
+}
+
+export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
+	const { data, error } = useSWR(`bridgeData/${protocol}`, () => getBridgePageDatanew(protocol))
+
+	if (!data && !error) {
+		return <p style={{ margin: '100px 0', textAlign: 'center' }}></p>
+	}
+
+	if (error) {
+		return <p style={{ margin: '100px 0', textAlign: 'center' }}>Something went wrong, couldn't fetch data</p>
+	}
+
+	return (
+		<InfoWrapper>
+			<BridgeInfo {...data} />
+		</InfoWrapper>
 	)
 }
 
@@ -176,6 +197,12 @@ const volumeChartOptions = {
 	}
 }
 
+const InfoWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 40px;
+	padding: 16px;
+`
 const inflowChartStacks = {
 	Deposited: 'stackA',
 	Withdrawn: 'stackA'

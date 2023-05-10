@@ -59,6 +59,7 @@ import { useTabState, TabPanel } from 'ariakit'
 import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
 import { GridContent, TabLayout, TabList, Tab, OtherProtocols, ProtocolLink } from './Common'
 import { GovernanceData } from './Governance'
+import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
 
@@ -732,6 +733,11 @@ function ProtocolContainer({
 							{isCEX ? 'Assets' : 'TVL'}
 						</Tab>
 					)}
+					{(category === 'Bridge' || category === 'Cross Chain') && (
+						<Tab id="bridge" color={backgroundColor}>
+							Bridge Info
+						</Tab>
+					)}
 					{treasury && (
 						<Tab id="treasury" color={backgroundColor}>
 							Treasury
@@ -994,6 +1000,12 @@ function ProtocolContainer({
 								</>
 							)}
 						</ChartsWrapper>
+					</TabPanel>
+				)}
+
+				{(category === 'Bridge' || category === 'Cross Chain') && (
+					<TabPanel state={tab} tabId="bridge">
+						<BridgeContainerOnClient protocol={protocol} />
 					</TabPanel>
 				)}
 
