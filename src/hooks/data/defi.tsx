@@ -2,6 +2,7 @@ import { IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/typ
 import { ISettings } from '~/contexts/types'
 import { getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
+import { IOverviewProps } from '~/api/categories/adaptors'
 
 interface IData {
 	tvl: number
@@ -194,11 +195,13 @@ export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: I
 export const formatProtocolsList = ({
 	protocols,
 	parentProtocols,
-	extraTvlsEnabled
+	extraTvlsEnabled,
+	volumeData = []
 }: {
 	protocols: IFormattedProtocol[]
 	parentProtocols: IParentProtocol[]
 	extraTvlsEnabled: ISettings
+	volumeData?: IOverviewProps['protocols']
 }) => {
 	const checkExtras = {
 		...extraTvlsEnabled,
@@ -207,7 +210,7 @@ export const formatProtocolsList = ({
 
 	const updatedProtocols = Object.values(checkExtras).every((t) => !t)
 		? protocols
-		: protocols.map(({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
+		: protocols.map(({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, name, ...props }) => {
 				let finalTvl: number | null = tvl
 				let finalTvlPrevDay: number | null = tvlPrevDay
 				let finalTvlPrevWeek: number | null = tvlPrevWeek
@@ -254,8 +257,13 @@ export const formatProtocolsList = ({
 
 				const mcaptvl = mcap && finalTvl ? mcap / finalTvl : null
 
+				const volume_7d = volumeData.find((data) =>
+					props?.parentProtocol || !data?.id ? data.name === name : false
+				)?.total7d
+
 				return {
 					...props,
+					name,
 					tvl: finalTvl,
 					tvlPrevDay: finalTvlPrevDay,
 					tvlPrevWeek: finalTvlPrevWeek,
@@ -263,6 +271,7 @@ export const formatProtocolsList = ({
 					change_1d: change1d,
 					change_7d: change7d,
 					change_1m: change1m,
+					volume_7d,
 					mcap,
 					mcaptvl,
 					strikeTvl

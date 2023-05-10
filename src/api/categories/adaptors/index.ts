@@ -100,9 +100,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-			...p,
-			tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
-		}))
+				...p,
+				tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
+		  }))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -196,9 +196,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-				{} as IJSON<ProtocolAdaptorSummary>
-			) ?? {}
+					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+					{} as IJSON<ProtocolAdaptorSummary>
+			  ) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -320,8 +320,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 const getLlamaoLogo = (logo: string | null) => {
 	if (!logo) return null
 	let llamoLogo = logo
-	if (llamoLogo.includes('chains')) llamoLogo = llamoLogo.replace("https://icons.llama.fi/", "https://icons.llamao.fi/icons/")
-	llamoLogo = llamoLogo.replace("https://icons.llama.fi/", "https://icons.llamao.fi/icons/protocols/")
+	if (llamoLogo.includes('chains'))
+		llamoLogo = llamoLogo.replace('https://icons.llama.fi/', 'https://icons.llamao.fi/icons/')
+	llamoLogo = llamoLogo.replace('https://icons.llama.fi/', 'https://icons.llamao.fi/icons/protocols/')
 	return llamoLogo.split('.').slice(0, -1).join('.')
 }
 
@@ -371,6 +372,8 @@ export interface IOverviewProps {
 			tvl?: number
 			dominance?: number
 			change_7dover7d?: IGetOverviewResponseBody['change_7dover7d']
+			dailyVolume?: number
+			id?: string
 		}
 	>
 	total24h?: IGetOverviewResponseBody['total24h']

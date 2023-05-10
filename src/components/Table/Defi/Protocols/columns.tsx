@@ -80,7 +80,17 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		},
 		size: 120
 	},
-
+	{
+		header: '7d Volume',
+		accessorKey: 'volume_7d',
+		cell: (info) => {
+			return <>{info.getValue() && formattedNum(info.getValue())}</>
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
@@ -259,9 +269,9 @@ export const protocolAddlColumns = {
 // key: min width of window/screen
 // values: table columns order
 export const columnOrders = formatColumnOrder({
-	0: ['name', 'tvl', 'change_7d', 'category', 'change_1m', 'change_1d', 'mcaptvl'],
-	480: ['name', 'change_7d', 'tvl', 'category', 'change_1m', 'change_1d', 'mcaptvl'],
-	1024: ['name', 'category', 'change_1d', 'change_7d', 'change_1m', 'tvl', 'mcaptvl']
+	0: ['name', 'tvl', 'change_7d', 'category', 'change_1m', 'change_1d', 'volume_7d', 'mcaptvl'],
+	480: ['name', 'change_7d', 'tvl', 'category', 'change_1m', 'change_1d', 'volume_7d', 'mcaptvl'],
+	1024: ['name', 'category', 'change_1d', 'change_7d', 'change_1m', 'tvl', 'volume_7d', 'mcaptvl']
 })
 
 export const columnSizes = {
