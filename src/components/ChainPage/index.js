@@ -103,6 +103,7 @@ function GlobalPage({
 	chart,
 	extraTvlCharts = {},
 	volumeData,
+	chainVolumeData = {},
 	feesData,
 	usersData,
 	raisesData,
@@ -177,15 +178,37 @@ function GlobalPage({
 
 	let chainOptions = ['All'].concat(chainsSet).map((label) => ({ label, to: setSelectedChain(label) }))
 
+	const chainProtocolsVolumes = React.useMemo(() => {
+		const allProtocolVolumes = []
+		chainVolumeData &&
+			chainVolumeData?.protocols?.forEach((prototcol) =>
+				allProtocolVolumes.push(prototcol, ...(prototcol?.subRows || []))
+			)
+
+		return allProtocolVolumes
+	}, [chainVolumeData])
+
 	const protocolTotals = React.useMemo(() => {
 		if (!fetchingProtocolsList && fullProtocolsList) {
-			const list = formatProtocolsList({ extraTvlsEnabled, protocols: fullProtocolsList, parentProtocols })
+			const list = formatProtocolsList({
+				extraTvlsEnabled,
+				protocols: fullProtocolsList,
+				parentProtocols,
+				volumeData: chainProtocolsVolumes
+			})
 
 			return list
 		}
 
 		return protocolsList
-	}, [extraTvlsEnabled, fetchingProtocolsList, fullProtocolsList, parentProtocols, protocolsList])
+	}, [
+		extraTvlsEnabled,
+		fetchingProtocolsList,
+		fullProtocolsList,
+		parentProtocols,
+		protocolsList,
+		chainProtocolsVolumes
+	])
 
 	const topToken = { name: 'Uniswap', tvl: 0 }
 	if (protocolTotals.length > 0) {
@@ -502,7 +525,10 @@ function GlobalPage({
 			</ListOptions>
 
 			{finalProtocolTotals.length > 0 ? (
-				<ProtocolsTable data={finalProtocolTotals} />
+				<ProtocolsTable
+					data={finalProtocolTotals}
+					removeColumns={[router.query?.volume !== 'true' || selectedChain === 'All' ? 'volume_7d' : undefined]}
+				/>
 			) : (
 				<Panel
 					as="p"

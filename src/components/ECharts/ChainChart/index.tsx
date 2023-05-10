@@ -112,7 +112,6 @@ export default function AreaChart({
 			})
 		}
 		if (route.volume === 'true' && volumeData) {
-			console.log({ volumeData })
 			series.push({
 				name: 'Volume',
 				chartId: 'Volume',

@@ -3,6 +3,7 @@ import { PROTOCOLS_API } from '~/constants/index'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/protocols'
+import { getChainPageData as getChainVolume } from '~/api/categories/adaptors'
 import { getChainsPageData, getOverviewItemPageData } from '~/api/categories/adaptors'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -11,6 +12,7 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 	const data = await getChainPageData(chain)
 
 	const volumeData = await getChainsPageData('dexs')
+	const chainVolumeData = await getChainVolume('dexs', chain)
 	const feesData = await getOverviewItemPageData('fees', chain)
 	const usersData = await fetch(`https://api.llama.fi/userData/users/chain$${chain}`).then((r) => r.json())
 
@@ -18,6 +20,7 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 		props: {
 			...data.props,
 			volumeData,
+			chainVolumeData,
 			feesData,
 			usersData
 		},

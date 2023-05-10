@@ -4,19 +4,20 @@ import { getPercentChange } from '~/utils'
 // group protocols so we can show child protocols inside an accordion in a table
 export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol) => {
 	let strikeTvl = false
-	const { mcap, tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = protocols.reduce(
+	const { mcap, tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, volume_7d } = protocols.reduce(
 		(acc, curr) => {
 			if (curr.strikeTvl) {
 				strikeTvl = true
 			}
-				curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
-				curr.tvlPrevDay && (acc.tvlPrevDay = (acc.tvlPrevDay || 0) + curr.tvlPrevDay)
-				curr.tvlPrevWeek && (acc.tvlPrevWeek = (acc.tvlPrevWeek || 0) + curr.tvlPrevWeek)
-				curr.tvlPrevMonth && (acc.tvlPrevMonth = (acc.tvlPrevMonth || 0) + curr.tvlPrevMonth)
+			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
+			curr.tvlPrevDay && (acc.tvlPrevDay = (acc.tvlPrevDay || 0) + curr.tvlPrevDay)
+			curr.tvlPrevWeek && (acc.tvlPrevWeek = (acc.tvlPrevWeek || 0) + curr.tvlPrevWeek)
+			curr.tvlPrevMonth && (acc.tvlPrevMonth = (acc.tvlPrevMonth || 0) + curr.tvlPrevMonth)
+			curr?.volume_7d && (acc.volume_7d = (acc?.volume_7d || 0) + curr?.volume_7d)
 
-				if (curr.mcap) {
-					acc.mcap = (acc.mcap || 0) + curr.mcap
-				} else acc.mcap = null
+			if (curr.mcap) {
+				acc.mcap = (acc.mcap || 0) + curr.mcap
+			} else acc.mcap = null
 
 			return acc
 		},
@@ -25,7 +26,8 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 			tvl: null,
 			tvlPrevDay: null,
 			tvlPrevWeek: null,
-			tvlPrevMonth: null
+			tvlPrevMonth: null,
+			volume_7d: null
 		}
 	)
 
@@ -47,6 +49,7 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 		change_1d: change1d,
 		change_7d: change7d,
 		change_1m: change1m,
+		volume_7d,
 		mcap,
 		mcaptvl,
 		extraTvl: {},
