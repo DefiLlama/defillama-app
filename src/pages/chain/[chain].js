@@ -12,7 +12,9 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 	const [data, volumeData, chainVolumeData, feesData, usersData] = await Promise.all([
 		getChainPageData(chain),
 		getChainsPageData('dexs'),
-		getChainVolume('dexs', chain).catch(() => ({})),
+		getChainVolume('dexs', chain)
+			.catch(() => ({}))
+			.then((r) => (r.total24h === undefined ? {} : r)),
 		getOverviewItemPageData('fees', chain),
 		fetch(`https://api.llama.fi/userData/users/chain$${chain}`).then((r) => r.json())
 	])
