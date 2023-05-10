@@ -201,7 +201,7 @@ export const formatProtocolsList = ({
 	protocols: IFormattedProtocol[]
 	parentProtocols: IParentProtocol[]
 	extraTvlsEnabled: ISettings
-	volumeData: IOverviewProps['protocols']
+	volumeData?: IOverviewProps['protocols']
 }) => {
 	const checkExtras = {
 		...extraTvlsEnabled,
