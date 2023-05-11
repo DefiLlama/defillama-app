@@ -23,7 +23,6 @@ import useSWR from 'swr'
 import { LazyChart } from '~/layout/ProtocolAndPool'
 import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
 import { BAR_CHARTS } from './utils'
-import { BarWidthInChart } from '~/components/Filters/common/BarWidthInChart'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/BridgeContainer'
 
 const AreaChart = dynamic(() => import('.'), {
@@ -1363,7 +1362,6 @@ export default function ProtocolChart({
 								<Denomination active={groupBy === 'cumulative'}>Cumulative</Denomination>
 							</Link>
 						</Filters>
-						<BarWidthInChart color={color} />
 					</>
 				) : null}
 			</FiltersWrapper>
