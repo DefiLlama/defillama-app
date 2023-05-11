@@ -46,7 +46,7 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
 						.then((values) => {
-							return values && values.length > 0 ? values : null
+							return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
 						})
 						.catch((err) => [])
 			: () => null
@@ -62,7 +62,7 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 					fetch(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
 						.then((values) => {
-							return values && values.length > 0 ? values : null
+							return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
 						})
 						.catch((err) => [])
 			: () => null

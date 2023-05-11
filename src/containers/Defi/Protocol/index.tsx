@@ -226,7 +226,7 @@ interface IProtocolContainerProps {
 	treasury: { [category: string]: number } | null
 	isCEX?: boolean
 	chartColors: { [type: string]: string }
-	users: { users: number }
+	users: { active: number | null; new: number | null }
 	tokenPrice: number | null
 	tokenMcap: number | null
 	tokenSupply: number | null
@@ -582,13 +582,23 @@ function ProtocolContainer({
 									</tr>
 								) : null}
 
-								{users?.users ? (
+								{users?.active ? (
 									<tr>
 										<th>
 											<span>Active Addresses 24h</span>
 											{helperTexts.users && <QuestionHelper text={helperTexts.users} />}
 										</th>
-										<td>{formattedNum(users.users, false)}</td>
+										<td>{formattedNum(users.active, false)}</td>
+									</tr>
+								) : null}
+
+								{users?.new ? (
+									<tr>
+										<th>
+											<span>New Addresses 24h</span>
+											{helperTexts.users && <QuestionHelper text={helperTexts.users} />}
+										</th>
+										<td>{formattedNum(users.new, false)}</td>
 									</tr>
 								) : null}
 

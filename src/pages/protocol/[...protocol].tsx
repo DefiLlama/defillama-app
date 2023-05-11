@@ -7,11 +7,12 @@ import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import {
-	ACTIVE_USERS_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
+	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_EMISSIONS_LIST_API,
 	PROTOCOL_GOVERNANCE_API,
+	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_ONCHAIN_GOVERNANCE_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
@@ -66,6 +67,7 @@ export const getStaticProps = withPerformanceLogging(
 			backgroundColor,
 			allProtocols,
 			activeUsers,
+			newUsers,
 			feesAndRevenueProtocols,
 			dexs,
 			medianApy,
@@ -73,7 +75,30 @@ export const getStaticProps = withPerformanceLogging(
 		] = await Promise.all([
 			getColor(tokenIconPaletteUrl(protocolData.name)),
 			getProtocolsRaw(),
-			fetch(ACTIVE_USERS_API).then((res) => res.json()),
+			fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolData.id}`.replaceAll('#', '$'))
+				.then((res) => res.json())
+				.then((data) => {
+					if (data && data.length > 0) {
+						const values = data.sort((a, b) => a[0] - b[0])
+						return values[values.length - 1][1] ?? null
+					} else return null
+				})
+				.catch((err) => {
+					console.log(err)
+					return null
+				}),
+			fetch(`${PROTOCOL_NEW_USERS_API}/${protocolData.id}`.replaceAll('#', '$'))
+				.then((res) => res.json())
+				.then((data) => {
+					if (data && data.length > 0) {
+						const values = data.sort((a, b) => a[0] - b[0])
+						return values[values.length - 1][1] ?? null
+					} else return null
+				})
+				.catch((err) => {
+					console.log(err)
+					return null
+				}),
 			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 				.then((res) => res.json())
 				.catch((err) => {
@@ -207,7 +232,7 @@ export const getStaticProps = withPerformanceLogging(
 					similarProtocols.find((p) => p.name === protocolName)
 				),
 				chartColors: colorTones,
-				users: activeUsers[protocolData.id] || null,
+				users: { active: activeUsers, new: newUsers },
 				tokenPrice: protocolData.tokenPrice || null,
 				tokenMcap: protocolData.tokenMcap || null,
 				tokenSupply: protocolData.tokenSupply || null,
