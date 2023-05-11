@@ -202,7 +202,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				<RowLinksWrapper>
 					<RowLinksWithDropdown
 						links={['All', ...props.allChains].map((chain) => ({
-							label: formatChain(chain),
+							label: chain,
 							to: chain === 'All' ? `/${props.type}` : `/${props.type}/chains/${chain.toLowerCase()}`
 						}))}
 						activeLink={chain}

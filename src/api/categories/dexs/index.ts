@@ -48,13 +48,13 @@ export const getChainPageData = async (chain?: string) => {
 		chains: dex.chains.map(formatChain),
 		subRows: dex.protocolVersions
 			? Object.entries(dex.protocolVersions)
-					.map(([versionName, summary]) => ({
-						...dex,
-						name: `${dex.name} - ${versionName.toUpperCase()}`,
-						displayName: `${dex.name} - ${versionName.toUpperCase()}`,
-						...summary
-					}))
-					.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
+				.map(([versionName, summary]) => ({
+					...dex,
+					name: `${dex.name} - ${versionName.toUpperCase()}`,
+					displayName: `${dex.name} - ${versionName.toUpperCase()}`,
+					...summary
+				}))
+				.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
 			: null
 	}))
 
@@ -66,7 +66,7 @@ export const getChainPageData = async (chain?: string) => {
 			changeVolume30d,
 			changeVolume7d,
 			totalDataChart: totalDataChart,
-			chain: chain ? formatChain(chain) : 'All',
+			chain: chain ? chain : 'All',
 			tvlData,
 			totalDataChartBreakdown,
 			allChains
