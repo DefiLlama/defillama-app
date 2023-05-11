@@ -106,8 +106,10 @@ function GlobalPage({
 	chainVolumeData = {},
 	feesData,
 	usersData,
+	txsData,
 	raisesData,
-	stablecoinsData = {}
+	stablecoinsData = {},
+	chainFeesData
 }) {
 	const {
 		fullProtocolsList,
@@ -188,13 +190,22 @@ function GlobalPage({
 		return allProtocolVolumes
 	}, [chainVolumeData])
 
+	const chainProtocolsFees = React.useMemo(() => {
+		const allProtocolFees = []
+		chainFeesData &&
+			chainFeesData?.protocols?.forEach((prototcol) => allProtocolFees.push(prototcol, ...(prototcol?.subRows || [])))
+
+		return allProtocolFees
+	}, [chainFeesData])
+
 	const protocolTotals = React.useMemo(() => {
 		if (!fetchingProtocolsList && fullProtocolsList) {
 			const list = formatProtocolsList({
 				extraTvlsEnabled,
 				protocols: fullProtocolsList,
 				parentProtocols,
-				volumeData: chainProtocolsVolumes
+				volumeData: chainProtocolsVolumes,
+				feesData: chainProtocolsFees
 			})
 
 			return list
@@ -207,7 +218,8 @@ function GlobalPage({
 		fullProtocolsList,
 		parentProtocols,
 		protocolsList,
-		chainProtocolsVolumes
+		chainProtocolsVolumes,
+		chainProtocolsFees
 	])
 
 	const topToken = { name: 'Uniswap', tvl: 0 }
@@ -457,6 +469,11 @@ function GlobalPage({
 										isVisible: usersData?.length > 0
 									},
 									{
+										id: 'txs',
+										name: 'Transactions',
+										isVisible: txsData?.length > 0
+									},
+									{
 										id: 'raises',
 										name: 'Raises',
 										isVisible: selectedChain === 'All'
@@ -502,6 +519,7 @@ function GlobalPage({
 							raisesData={raisesChart}
 							totalStablesData={peggedAreaTotalData}
 							usersData={usersData}
+							txsData={txsData}
 							customLegendName="Chain"
 							hideDefaultLegend
 							valueSymbol="$"
@@ -527,7 +545,9 @@ function GlobalPage({
 			{finalProtocolTotals.length > 0 ? (
 				<ProtocolsTable
 					data={finalProtocolTotals}
-					removeColumns={[router.query?.volume !== 'true' || selectedChain === 'All' ? 'volume_7d' : undefined]}
+					removeColumns={['fees', 'revenue', 'volume'].map((key) =>
+						router.query?.[key] !== 'true' || selectedChain === 'All' ? `${key}_7d` : undefined
+					)}
 				/>
 			) : (
 				<Panel
