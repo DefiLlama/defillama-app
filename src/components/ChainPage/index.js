@@ -444,7 +444,7 @@ function GlobalPage({
 										isVisible: selectedChain === 'All'
 									}
 								].map(({ id, name, isVisible }) =>
-									isVisible && loading === false ? (
+									isVisible && (loading === false || selectedChain === 'All)' ? (
 										<Toggle>
 											<input
 												key={id}
