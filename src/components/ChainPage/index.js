@@ -282,7 +282,11 @@ function GlobalPage({
 		selectedChain === 'All' ? 'All' : null
 	)
 
-	const [finalTvlChart, finalVolumeChart, finalFeesChart] = React.useMemo(() => {
+	const [finalTvlChart, finalVolumeChart, finalFeesChart, priceHistory] = React.useMemo(() => {
+		const priceHistory =
+			denomination === 'USD'
+				? denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
+				: null
 		if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
 			const normalizedDenomination = Object.fromEntries(
 				denominationPriceHistory.prices.map(([timestamp, price]) => [getUtcDateObject(timestamp / 1000), price])
@@ -305,12 +309,8 @@ function GlobalPage({
 			])
 
 			return [denominatedTvls, denominatedVolumes, denominatedFess]
-		} else return [globalChart, volumeChart, feesChart]
+		} else return [globalChart, volumeChart, feesChart, priceHistory]
 	}, [chainGeckoId, globalChart, denominationPriceHistory, denomination, volumeChart, feesChart])
-
-	const priceHistory = React.useMemo(() => {
-		return denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
-	}, [denominationPriceHistory?.prices])
 
 	const updateRoute = (key, val) => {
 		router.push(
@@ -425,7 +425,7 @@ function GlobalPage({
 									{
 										id: 'tvl',
 										name: 'TVL',
-										isVisible: selectedChain !== 'All'
+										isVisible: true
 									},
 									{
 										id: 'volume',
@@ -467,7 +467,7 @@ function GlobalPage({
 										isVisible: selectedChain === 'All'
 									}
 								].map(({ id, name, isVisible }) =>
-									isVisible ? (
+									isVisible && loading === false ? (
 										<Toggle>
 											<input
 												key={id}
