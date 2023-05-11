@@ -228,15 +228,15 @@ export const getStaticProps = withPerformanceLogging(
 						: null,
 				helperTexts: {
 					fees:
-						volumeData.length > 1
+						feesAndRevenueData.length > 1
 							? 'Sum of all fees from ' +
-							  (feesAndRevenueData?.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
-							: volumeData?.[0]?.methodology?.['Fees'] ?? null,
+							  (feesAndRevenueData.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
+							: feesAndRevenueData?.[0]?.methodology?.['Fees'] ?? null,
 					revenue:
-						volumeData.length > 1
+						feesAndRevenueData.length > 1
 							? 'Sum of all revenue from ' +
-							  (feesAndRevenueData?.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
-							: volumeData?.[0]?.methodology?.['Revenue'] ?? null,
+							  (feesAndRevenueData.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
+							: feesAndRevenueData?.[0]?.methodology?.['Revenue'] ?? null,
 					users:
 						'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.'
 				},
