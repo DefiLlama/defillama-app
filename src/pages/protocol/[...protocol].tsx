@@ -240,7 +240,8 @@ export const getStaticProps = withPerformanceLogging(
 					users:
 						'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.'
 				},
-				expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null
+				expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null,
+				feesAndRevenueData
 			},
 			revalidate: maxAgeForNext([22])
 		}

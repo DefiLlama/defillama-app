@@ -582,33 +582,6 @@ function ProtocolContainer({
 									</tr>
 								) : null}
 
-								{dailyVolume ? (
-									<tr>
-										<th>Volume 24h</th>
-										<td>{formattedNum(dailyVolume, true)}</td>
-									</tr>
-								) : null}
-
-								{dailyFees ? (
-									<tr>
-										<th>
-											<span>Fees 24h</span>
-											{helperTexts.fees && <QuestionHelper text={helperTexts.fees} />}
-										</th>
-										<td>{formattedNum(dailyFees, true)}</td>
-									</tr>
-								) : null}
-
-								{dailyRevenue ? (
-									<tr>
-										<th>
-											<span>Revenue 24h</span>
-											{helperTexts.revenue && <QuestionHelper text={helperTexts.revenue} />}
-										</th>
-										<td>{formattedNum(dailyRevenue, true)}</td>
-									</tr>
-								) : null}
-
 								{users?.users ? (
 									<tr>
 										<th>
@@ -653,26 +626,19 @@ function ProtocolContainer({
 										<td>{formattedNum(borrowedAmount, true)}</td>
 									</tr>
 								) : null}
-
-								{allTimeVolume ? (
-									<tr>
-										<th>Cumulative Volume</th>
-										<td>{formattedNum(allTimeVolume, true)}</td>
-									</tr>
-								) : null}
-
-								{allTimeFees ? (
-									<tr>
-										<th>
-											<span>Cumulative Fees</span>
-											{helperTexts.fees && <QuestionHelper text={helperTexts.fees} />}
-										</th>
-										<td>{formattedNum(allTimeFees, true)}</td>
-									</tr>
-								) : null}
 							</tbody>
 						</ProtocolStatsTable>
 					</div>
+
+					<>{dailyVolume ? <AnnualizedMetric name="Volume" value={dailyVolume} /> : null}</>
+
+					<>{dailyFees ? <AnnualizedMetric name="Fees" value={dailyFees} helperText={helperTexts.fees} /> : null}</>
+
+					<>
+						{dailyRevenue ? (
+							<AnnualizedMetric name="Revenue" value={dailyRevenue} helperText={helperTexts.revenue} />
+						) : null}
+					</>
 
 					<>{treasury && <TreasuryTable data={treasury} />}</>
 
@@ -1069,7 +1035,7 @@ const Raised = ({ data }: { data: Array<IRaise> }) => {
 				<tr>
 					<th>
 						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} />
+							<ChevronRight size={16} data-arrow />
 							<span>Total Raised</span>
 						</Toggle>
 					</th>
@@ -1104,7 +1070,7 @@ const TopProposals = ({ data }: { data: Array<{ title: string; link?: string }> 
 				<tr>
 					<th>
 						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} />
+							<ChevronRight size={16} data-arrow />
 							<span>Top Controversial Proposals</span>
 						</Toggle>
 					</th>
@@ -1143,7 +1109,7 @@ const Expenses = ({
 				<tr>
 					<th>
 						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} />
+							<ChevronRight size={16} data-arrow />
 							<span>Annual operational expenses</span>
 						</Toggle>
 					</th>
@@ -1194,7 +1160,7 @@ const TreasuryTable = ({ data }: { data: { [category: string]: number } }) => {
 				<tr>
 					<th>
 						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} />
+							<ChevronRight size={16} data-arrow />
 							<span>Treasury</span>
 						</Toggle>
 					</th>
@@ -1223,6 +1189,52 @@ const TreasuryTable = ({ data }: { data: { [category: string]: number } }) => {
 	)
 }
 
+const AnnualizedMetric = ({ name, value, helperText }: { name: string; value: number; helperText?: string }) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} data-arrow />
+							<span>{`${name} (annualized)`}</span>
+							{helperText && <QuestionHelper text={helperText} />}
+						</Toggle>
+					</th>
+					<td>{formattedNum(value * 365, true)}</td>
+				</tr>
+
+				{open && (
+					<>
+						<tr>
+							<th data-subvalue>{`${name} 24h`}</th>
+							<td data-subvalue>{formattedNum(value, true)}</td>
+						</tr>
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+// {allTimeVolume ? (
+// 	<tr>
+// 		<th>Cumulative Volume</th>
+// 		<td>{formattedNum(allTimeVolume, true)}</td>
+// 	</tr>
+// ) : null}
+
+// {allTimeFees ? (
+// 	<tr>
+// 		<th>
+// 			<span>Cumulative Fees</span>
+// 			{helperTexts.fees && <QuestionHelper text={helperTexts.fees} />}
+// 		</th>
+// 		<td>{formattedNum(allTimeFees, true)}</td>
+// 	</tr>
+// ) : null}
+
 const Toggle = styled.button`
 	margin-left: -24px;
 	display: flex;
@@ -1230,12 +1242,12 @@ const Toggle = styled.button`
 	gap: 2px;
 	white-space: nowrap;
 
-	svg {
+	& > *[data-arrow] {
 		flex-shrink: 0;
 	}
 
 	&[data-open='true'] {
-		svg {
+		& > *[data-arrow] {
 			transform: rotate(90deg);
 			transition: 0.1s ease;
 		}
