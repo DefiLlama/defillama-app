@@ -20,8 +20,12 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 			.catch(() => ({}))
 			.then((r) => (r.total24h === undefined ? {} : r)),
 		getOverviewItemPageData('fees', chain),
-		fetch(`https://api.llama.fi/userData/users/chain$${chain}`).then((r) => r.json()),
-		fetch(`https://api.llama.fi/userData/txs/chain$${chain}`).then((r) => r.json()),
+		fetch(`https://api.llama.fi/userData/users/chain$${chain}`)
+			.then((r) => r.json())
+			.catch(() => []),
+		fetch(`https://api.llama.fi/userData/txs/chain$${chain}`)
+			.then((r) => r.json())
+			.catch(() => []),
 		getFeesData('fees', chain)
 	])
 
