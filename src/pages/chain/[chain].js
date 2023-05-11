@@ -28,12 +28,12 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 	return {
 		props: {
 			...data.props,
-			volumeData,
-			chainVolumeData,
-			feesData,
-			usersData,
-			chainFeesData,
-			txsData
+			volumeData: volumeData || null,
+			chainVolumeData: chainVolumeData || null,
+			feesData: feesData || null,
+			usersData: usersData || null,
+			chainFeesData: chainFeesData || null,
+			txsData: txsData || null
 		},
 		revalidate: maxAgeForNext([22])
 	}
