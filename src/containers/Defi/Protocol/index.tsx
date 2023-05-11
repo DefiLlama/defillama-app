@@ -699,7 +699,6 @@ function ProtocolContainer({
 					usdInflowsData={usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null}
 					governanceApi={governanceApi}
 					isHourlyChart={isHourlyChart}
-					protocolHasTreasury={treasury ? true : false}
 					isCEX={isCEX}
 				/>
 
@@ -719,7 +718,7 @@ function ProtocolContainer({
 							{isCEX ? 'Assets' : 'TVL'}
 						</Tab>
 					)}
-					{(category === 'Bridge' || category === 'Cross Chain') && (
+					{metrics.bridge && (
 						<Tab id="bridge" color={backgroundColor}>
 							Bridge Info
 						</Tab>
@@ -989,7 +988,7 @@ function ProtocolContainer({
 					</TabPanel>
 				)}
 
-				{(category === 'Bridge' || category === 'Cross Chain') && (
+				{metrics.bridge && (
 					<TabPanel state={tab} tabId="bridge">
 						<BridgeContainerOnClient protocol={protocol} />
 					</TabPanel>

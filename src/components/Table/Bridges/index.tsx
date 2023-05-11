@@ -161,7 +161,7 @@ export function BridgeTokensTable({ data }) {
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	return <VirtualTable instance={instance} />
+	return <VirtualTable instance={instance} skipVirtualization />
 }
 
 export function BridgeAddressesTable({ data }) {
@@ -178,5 +178,5 @@ export function BridgeAddressesTable({ data }) {
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	return <VirtualTable instance={instance} />
+	return <VirtualTable instance={instance} skipVirtualization />
 }

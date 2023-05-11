@@ -24,6 +24,7 @@ import { LazyChart } from '~/layout/ProtocolAndPool'
 import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
 import { BAR_CHARTS } from './utils'
 import { BarWidthInChart } from '~/components/Filters/common/BarWidthInChart'
+import { useFetchBridgeVolumeOnAllChains } from '~/containers/BridgeContainer'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -43,7 +44,6 @@ interface IProps {
 	usdInflowsData: Array<[string, number]> | null
 	governanceApi: string | null
 	isHourlyChart?: boolean
-	protocolHasTreasury?: boolean
 	isCEX?: boolean
 }
 
@@ -65,7 +65,8 @@ const CHART_TYPES = [
 	'borrowed',
 	'medianApy',
 	'usdInflows',
-	'governance'
+	'governance',
+	'bridgeVolume'
 ]
 
 export default function ProtocolChart({
@@ -82,7 +83,6 @@ export default function ProtocolChart({
 	usdInflowsData,
 	governanceApi,
 	isHourlyChart,
-	protocolHasTreasury,
 	isCEX
 }: IProps) {
 	const router = useRouter()
@@ -110,7 +110,8 @@ export default function ProtocolChart({
 		medianApy,
 		usdInflows,
 		governance,
-		treasury
+		treasury,
+		bridgeVolume
 	} = router.query
 
 	const DENOMINATIONS: Array<{ symbol: string; geckoId?: string | null }> = []
@@ -136,7 +137,7 @@ export default function ProtocolChart({
 	)
 
 	const { data: fdvData = null, error: fdvError } = useSWR(
-		`fdv-${geckoId}-${fdv}-${router.isReady}`,
+		`fdv-${geckoId && fdv === 'true' && router.isReady ? geckoId : null}`,
 		geckoId && fdv === 'true' && router.isReady
 			? () =>
 					fetch(
@@ -145,7 +146,7 @@ export default function ProtocolChart({
 			: () => null
 	)
 
-	const fetchingFdv = router.isReady && fdv === 'true' && !fdvData && fdvData !== null && !fdvError
+	const fetchingFdv = !fdvData && fdvData !== null && !fdvError
 
 	const { data: feesAndRevenue, loading: fetchingFees } = useGetOverviewChartData({
 		name: protocol,
@@ -174,11 +175,13 @@ export default function ProtocolChart({
 		router.isReady && governance === 'true' ? governanceApi : null
 	)
 	const { data: treasuryData, loading: fetchingTreasury } = useFetchProtocolTreasury(
-		router.isReady && protocolHasTreasury && treasury === 'true' ? protocol : null
+		router.isReady && metrics.treasury && treasury === 'true' ? protocol : null
 	)
-
 	const { data: emissions, loading: fetchingEmissions } = useGetProtocolEmissions(
-		metrics.unlocks && unlocks === 'true' ? protocol : null
+		router.isReady && metrics.unlocks && unlocks === 'true' ? protocol : null
+	)
+	const { data: bridgeVolumeData, loading: fetchingBridgeVolume } = useFetchBridgeVolumeOnAllChains(
+		router.isReady && metrics.bridge && bridgeVolume === 'true' ? protocol : null
 	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
@@ -427,6 +430,25 @@ export default function ProtocolChart({
 					chartData[date]['FDV'] = showNonUsdDenomination ? fdv / getPriceAtDate(date, denominationHistory.prices) : fdv
 				}
 			}
+		}
+
+		if (bridgeVolume === 'true' && bridgeVolumeData) {
+			chartsUnique.push('Bridge Deposits')
+			chartsUnique.push('Bridge Withdrawals')
+
+			bridgeVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Bridge Deposits'] = showNonUsdDenomination
+					? item.Deposited / getPriceAtDate(date, denominationHistory.prices)
+					: item.Deposited
+				chartData[date]['Bridge Withdrawals'] = showNonUsdDenomination
+					? item.Withdrawn / getPriceAtDate(date, denominationHistory.prices)
+					: item.Withdrawn
+			})
 		}
 
 		if (volume === 'true' && volumeData) {
@@ -715,7 +737,9 @@ export default function ProtocolChart({
 		extraTvlEnabled,
 		treasury,
 		treasuryData,
-		emissions
+		emissions,
+		bridgeVolume,
+		bridgeVolumeData
 	])
 
 	const finalData = React.useMemo(() => {
@@ -740,6 +764,10 @@ export default function ProtocolChart({
 
 	if ((loading || fetchingFdv) && fdv === 'true') {
 		fetchingTypes.push('fdv')
+	}
+
+	if (fetchingBridgeVolume) {
+		fetchingTypes.push('bridge volume')
 	}
 
 	if (fetchingFees) {
@@ -798,7 +826,8 @@ export default function ProtocolChart({
 		fetchingMedianAPY ||
 		fetchingGovernanceData ||
 		fetchingTreasury ||
-		fetchingEmissions
+		fetchingEmissions ||
+		fetchingBridgeVolume
 
 	const realPathname =
 		`/${isCEX ? 'cex' : 'protocol'}/${protocol}?` +
@@ -821,6 +850,7 @@ export default function ProtocolChart({
 		<Wrapper>
 			{geckoId ||
 			hallmarks?.length > 0 ||
+			metrics.bridge ||
 			metrics.fees ||
 			metrics.dexs ||
 			metrics.unlocks ||
@@ -830,7 +860,7 @@ export default function ProtocolChart({
 			metrics.medianApy ||
 			(metrics.inflows && !isHourlyChart ? true : false) ||
 			governanceApi ||
-			protocolHasTreasury ? (
+			metrics.treasury ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
 						<input
@@ -918,6 +948,29 @@ export default function ProtocolChart({
 								</span>
 							</Toggle>
 						</>
+					)}
+
+					{metrics.bridge && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="bridgeVolume"
+								checked={bridgeVolume === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, bridgeVolume: bridgeVolume === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Bridge Volume</span>
+							</span>
+						</Toggle>
 					)}
 
 					{metrics.dexs && (
@@ -1212,7 +1265,7 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
-					{protocolHasTreasury && (
+					{metrics.treasury && (
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"

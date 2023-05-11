@@ -66,6 +66,11 @@ export default function AreaBarChart({
 			yAxisByIndex['Token Price'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('Bridge Deposits') || stacks.includes('Bridge Withdrawals')) {
+			yAxisByIndex['Bridge Deposits+Bridge Withdrawals'] =
+				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		if (stacks.includes('Volume') || stacks.includes('Fees') || stacks.includes('Revenue')) {
 			yAxisByIndex['Volume+Fees+Revenue'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
@@ -115,6 +120,8 @@ export default function AreaBarChart({
 			const options = {}
 			if (['TVL', 'Mcap', 'FDV', 'Borrowed', 'Staking'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['TVL+Mcap+FDV+Borrowed+Staking']
+			} else if (['Bridge Deposits', 'Bridge Withdrawals'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['Bridge Deposits+Bridge Withdrawals']
 			} else if (['Volume', 'Fees', 'Revenue'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Volume+Fees+Revenue']
 			} else if (['Active Users', 'New Users'].includes(stack)) {
@@ -247,6 +254,18 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Token Price']
+						}
+					}
+				})
+			}
+
+			if (type === 'Bridge Deposits+Bridge Withdrawals') {
+				yAxiss.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Bridge Deposits']
 						}
 					}
 				})

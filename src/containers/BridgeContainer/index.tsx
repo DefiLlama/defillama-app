@@ -2,7 +2,7 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
+import { DetailsWrapper, LazyChart, Name } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { BridgesSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
@@ -120,20 +120,22 @@ const BridgeInfo = ({ displayName, logo, chains, defaultChain, volumeDataByChain
 							Tokens From
 						</Denomination>
 					</Filters>
-					{chartType === 'Inflows' && volumeChartDataByChain && volumeChartDataByChain.length > 0 && (
-						<BarChart
-							chartData={volumeChartDataByChain}
-							title=""
-							chartOptions={volumeChartOptions}
-							stacks={inflowChartStacks}
-						/>
-					)}
-					{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 && (
-						<PieChart chartData={tokenWithdrawals} />
-					)}
-					{chartType === 'Tokens From' && tokenDeposits && tokenDeposits.length > 0 && (
-						<PieChart chartData={tokenDeposits} />
-					)}
+					<LazyChart>
+						{chartType === 'Inflows' && volumeChartDataByChain && volumeChartDataByChain.length > 0 && (
+							<BarChart
+								chartData={volumeChartDataByChain}
+								title=""
+								chartOptions={volumeChartOptions}
+								stacks={inflowChartStacks}
+							/>
+						)}
+						{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 && (
+							<PieChart chartData={tokenWithdrawals} />
+						)}
+						{chartType === 'Tokens From' && tokenDeposits && tokenDeposits.length > 0 && (
+							<PieChart chartData={tokenDeposits} />
+						)}
+					</LazyChart>
 				</div>
 			</StatsSection>
 
@@ -191,6 +193,14 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	)
 }
 
+export const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
+	const { data, error } = useSWR(
+		`bridgeVolumeOnAllChain/${protocol}`,
+		protocol ? () => getBridgePageDatanew(protocol).then((data) => data.volumeDataByChain['All Chains']) : () => null
+	)
+
+	return { data, loading: !data && data !== null && !error }
+}
 const volumeChartOptions = {
 	overrides: {
 		inflow: true

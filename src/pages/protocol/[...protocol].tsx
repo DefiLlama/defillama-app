@@ -130,7 +130,9 @@ export const getStaticProps = withPerformanceLogging(
 			'Total Proposals',
 			'Successful Proposals',
 			'Max Votes',
-			'Treasury'
+			'Treasury',
+			'Bridge Deposits',
+			'Bridge Withdrawals'
 		]
 
 		const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
@@ -195,7 +197,9 @@ export const getStaticProps = withPerformanceLogging(
 						dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
 						medianApy: medianApy.data.length > 0,
 						inflows: inflowsExist,
-						unlocks: emissions.includes(protocol)
+						unlocks: emissions.includes(protocol),
+						bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
+						treasury: treasury?.tokenBreakdowns ? true : false
 					}
 				},
 				backgroundColor,

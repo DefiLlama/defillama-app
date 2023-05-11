@@ -9,5 +9,7 @@ export const BAR_CHARTS = [
 	'USD Inflows',
 	'Total Proposals',
 	'Successful Proposals',
-	'Max Votes'
+	'Max Votes',
+	'Bridge Deposits',
+	'Bridge Withdrawals'
 ]
