@@ -19,6 +19,9 @@ import {
 	NFT_ROYALTY_API
 } from '~/constants'
 import { getColorFromNumber, getDominancePercent } from '~/utils'
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
 
 interface IResponseNFTSearchAPI {
 	hits: Array<{
