@@ -83,6 +83,6 @@ const nextConfig = {
 
 module.exports = withBundleAnalyzer(nextConfig)
 
-if (process.env.SENTRY_DSN) {
-	module.exports = withSentryConfig(module.exports, { silent: true }, { hideSourceMaps: true })
-}
+// if (process.env.SENTRY_DSN) {
+// 	module.exports = withSentryConfig(module.exports, { silent: true }, { hideSourceMaps: true })
+// }

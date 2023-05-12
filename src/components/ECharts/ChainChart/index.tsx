@@ -20,7 +20,8 @@ const colors = {
 	price: '#da1f73',
 	activeUsers: '#fa4646',
 	raises: '#7700ff',
-	stablecoins: '#00a09d'
+	stablecoins: '#00a09d',
+	transactions: '#307622'
 }
 
 // TODO remove color prop and use stackColors by default
@@ -43,6 +44,7 @@ export default function AreaChart({
 	feesData,
 	priceData,
 	usersData,
+	txsData,
 	raisesData,
 	totalStablesData,
 	denomination,
@@ -70,6 +72,15 @@ export default function AreaChart({
 		color,
 		title,
 		valueSymbol: 'Users',
+		tooltipSort,
+		hideLegend: true,
+		isStackedChart
+	})
+
+	const txsChartSetting = useDefaults({
+		color,
+		title,
+		valueSymbol: 'TXs',
 		tooltipSort,
 		hideLegend: true,
 		isStackedChart
@@ -230,6 +241,22 @@ export default function AreaChart({
 			})
 		}
 
+		if (route.txs === 'true' && txsData?.length > 0) {
+			series.push({
+				name: 'Transactions',
+				chartId: 'Transactions',
+				type: 'bar',
+				data: [],
+				yAxisIndex: 8,
+				itemStyle: {
+					color: colors.transactions
+				}
+			})
+			usersData.forEach(([date, value]) => {
+				series[series.length - 1].data.push([getUtcDateObject(date), value])
+			})
+		}
+
 		return [series, uniq(series.map((val) => val.chartId))]
 	}, [
 		chartData,
@@ -280,7 +307,8 @@ export default function AreaChart({
 			Price: 65,
 			Raises: 65,
 			'Active Users': 60,
-			'Stablecoins Mcap': 60
+			'Stablecoins Mcap': 60,
+			Transactions: 65
 		}
 		let offsetAcc = -60
 
@@ -334,6 +362,11 @@ export default function AreaChart({
 					...yAxis,
 					scale: true,
 					id: 'Stablecoins Mcap'
+				},
+				{
+					...txsChartSetting.yAxis,
+					scale: true,
+					id: 'Transactions'
 				}
 			].map((yAxis: any, i) => {
 				const isActive = activeSeries?.findIndex((id) => id === yAxis.id) !== -1

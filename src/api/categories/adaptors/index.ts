@@ -100,9 +100,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-				...p,
-				tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
-		  }))
+			...p,
+			tvlPrevDay: p?.chainTvls?.[chain]?.tvlPrevDay ?? null
+		}))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -148,6 +148,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		change_1d,
 		change_7d,
 		change_1m,
+		chain: filtredChain,
 		change_7dover7d,
 		totalDataChart,
 		totalDataChartBreakdown,
@@ -179,7 +180,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			return acc
 		}, {}) ?? {}
 
-	const tvlData: IJSON<number> = getTVLData(protocolsData, chain)
+	const tvlData: IJSON<number> = getTVLData(protocolsData, filtredChain)
 	const mcapData = { ...getMCap(protocolsData), ...chainMcap }
 	const label: string = type === 'options' ? 'Notionial volume' : capitalizeFirstLetter(type)
 
@@ -196,9 +197,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? {}
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -308,7 +309,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		change_1m,
 		change_7dover7d,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
-		chain: chain ? formatChain(chain) : null,
+		chain: filtredChain ?? null,
 		tvlData,
 		totalDataChartBreakdown,
 		allChains,

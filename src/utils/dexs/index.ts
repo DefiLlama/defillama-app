@@ -82,7 +82,7 @@ export const formatVolumeHistoryToChartDataByProtocol = (
 		return acc
 	}, {} as { [protName: string]: IStackedBarChartProps['chartData'][0]['data'] })
 	return Object.entries(chartData).map(([name, data]) => ({
-		name: name === adapterName ? dexName : formatChain(name),
+		name: name === adapterName ? dexName : name,
 		data
 	})) as IStackedBarChartProps['chartData']
 }

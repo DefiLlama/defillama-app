@@ -196,12 +196,14 @@ export const formatProtocolsList = ({
 	protocols,
 	parentProtocols,
 	extraTvlsEnabled,
-	volumeData = []
+	volumeData = [],
+	feesData = []
 }: {
 	protocols: IFormattedProtocol[]
 	parentProtocols: IParentProtocol[]
 	extraTvlsEnabled: ISettings
 	volumeData?: IOverviewProps['protocols']
+	feesData?: IOverviewProps['protocols']
 }) => {
 	const checkExtras = {
 		...extraTvlsEnabled,
@@ -261,6 +263,8 @@ export const formatProtocolsList = ({
 					props?.parentProtocol || !data?.id ? data.name === name : false
 				)?.total7d
 
+				const currentFees = feesData.find((data) => (props?.parentProtocol || !data?.id ? data.name === name : false))
+
 				return {
 					...props,
 					name,
@@ -272,6 +276,8 @@ export const formatProtocolsList = ({
 					change_7d: change7d,
 					change_1m: change1m,
 					volume_7d,
+					fees_7d: currentFees?.total7d,
+					revenue_7d: currentFees?.revenue7d,
 					mcap,
 					mcaptvl,
 					strikeTvl

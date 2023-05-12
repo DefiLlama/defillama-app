@@ -106,8 +106,10 @@ function GlobalPage({
 	chainVolumeData = {},
 	feesData,
 	usersData,
+	txsData,
 	raisesData,
-	stablecoinsData = {}
+	stablecoinsData = {},
+	chainFeesData
 }) {
 	const {
 		fullProtocolsList,
@@ -188,13 +190,22 @@ function GlobalPage({
 		return allProtocolVolumes
 	}, [chainVolumeData])
 
+	const chainProtocolsFees = React.useMemo(() => {
+		const allProtocolFees = []
+		chainFeesData &&
+			chainFeesData?.protocols?.forEach((prototcol) => allProtocolFees.push(prototcol, ...(prototcol?.subRows || [])))
+
+		return allProtocolFees
+	}, [chainFeesData])
+
 	const protocolTotals = React.useMemo(() => {
 		if (!fetchingProtocolsList && fullProtocolsList) {
 			const list = formatProtocolsList({
 				extraTvlsEnabled,
 				protocols: fullProtocolsList,
 				parentProtocols,
-				volumeData: chainProtocolsVolumes
+				volumeData: chainProtocolsVolumes,
+				feesData: chainProtocolsFees
 			})
 
 			return list
@@ -207,7 +218,8 @@ function GlobalPage({
 		fullProtocolsList,
 		parentProtocols,
 		protocolsList,
-		chainProtocolsVolumes
+		chainProtocolsVolumes,
+		chainProtocolsFees
 	])
 
 	const topToken = { name: 'Uniswap', tvl: 0 }
@@ -282,7 +294,11 @@ function GlobalPage({
 		selectedChain === 'All' ? 'All' : null
 	)
 
-	const [finalTvlChart, finalVolumeChart, finalFeesChart] = React.useMemo(() => {
+	const [finalTvlChart, finalVolumeChart, finalFeesChart, priceHistory] = React.useMemo(() => {
+		const priceHistory =
+			denomination === 'USD'
+				? denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
+				: null
 		if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
 			const normalizedDenomination = Object.fromEntries(
 				denominationPriceHistory.prices.map(([timestamp, price]) => [getUtcDateObject(timestamp / 1000), price])
@@ -305,12 +321,8 @@ function GlobalPage({
 			])
 
 			return [denominatedTvls, denominatedVolumes, denominatedFess]
-		} else return [globalChart, volumeChart, feesChart]
+		} else return [globalChart, volumeChart, feesChart, priceHistory]
 	}, [chainGeckoId, globalChart, denominationPriceHistory, denomination, volumeChart, feesChart])
-
-	const priceHistory = React.useMemo(() => {
-		return denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
-	}, [denominationPriceHistory?.prices])
 
 	const updateRoute = (key, val) => {
 		router.push(
@@ -425,7 +437,7 @@ function GlobalPage({
 									{
 										id: 'tvl',
 										name: 'TVL',
-										isVisible: selectedChain !== 'All'
+										isVisible: true
 									},
 									{
 										id: 'volume',
@@ -457,6 +469,11 @@ function GlobalPage({
 										isVisible: usersData?.length > 0
 									},
 									{
+										id: 'txs',
+										name: 'Transactions',
+										isVisible: txsData?.length > 0
+									},
+									{
 										id: 'raises',
 										name: 'Raises',
 										isVisible: selectedChain === 'All'
@@ -467,7 +484,7 @@ function GlobalPage({
 										isVisible: selectedChain === 'All'
 									}
 								].map(({ id, name, isVisible }) =>
-									isVisible ? (
+									isVisible && (loading === false || selectedChain === 'All') ? (
 										<Toggle>
 											<input
 												key={id}
@@ -502,6 +519,7 @@ function GlobalPage({
 							raisesData={raisesChart}
 							totalStablesData={peggedAreaTotalData}
 							usersData={usersData}
+							txsData={txsData}
 							customLegendName="Chain"
 							hideDefaultLegend
 							valueSymbol="$"
@@ -527,7 +545,9 @@ function GlobalPage({
 			{finalProtocolTotals.length > 0 ? (
 				<ProtocolsTable
 					data={finalProtocolTotals}
-					removeColumns={[router.query?.volume !== 'true' || selectedChain === 'All' ? 'volume_7d' : undefined]}
+					removeColumns={['fees', 'revenue', 'volume'].map((key) =>
+						router.query?.[key] !== 'true' || selectedChain === 'All' ? `${key}_7d` : undefined
+					)}
 				/>
 			) : (
 				<Panel
