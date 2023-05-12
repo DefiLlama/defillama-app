@@ -11,9 +11,11 @@ import {
 	PROTOCOLS_TREASURY,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_EMISSIONS_LIST_API,
+	PROTOCOL_GAS_USED_API,
 	PROTOCOL_GOVERNANCE_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_ONCHAIN_GOVERNANCE_API,
+	PROTOCOL_TRANSACTIONS_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetchWithPerformaceLogging, withPerformanceLogging } from '~/utils/perf'
@@ -68,6 +70,8 @@ export const getStaticProps = withPerformanceLogging(
 			allProtocols,
 			activeUsers,
 			newUsers,
+			transactions,
+			gasUsed,
 			feesAndRevenueProtocols,
 			dexs,
 			medianApy,
@@ -88,6 +92,30 @@ export const getStaticProps = withPerformanceLogging(
 					return null
 				}),
 			fetch(`${PROTOCOL_NEW_USERS_API}/${protocolData.id}`.replaceAll('#', '$'))
+				.then((res) => res.json())
+				.then((data) => {
+					if (data && data.length > 0) {
+						const values = data.sort((a, b) => a[0] - b[0])
+						return values[values.length - 1][1] ?? null
+					} else return null
+				})
+				.catch((err) => {
+					console.log(err)
+					return null
+				}),
+			fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolData.id}`.replaceAll('#', '$'))
+				.then((res) => res.json())
+				.then((data) => {
+					if (data && data.length > 0) {
+						const values = data.sort((a, b) => a[0] - b[0])
+						return values[values.length - 1][1] ?? null
+					} else return null
+				})
+				.catch((err) => {
+					console.log(err)
+					return null
+				}),
+			fetch(`${PROTOCOL_GAS_USED_API}/${protocolData.id}`.replaceAll('#', '$'))
 				.then((res) => res.json())
 				.then((data) => {
 					if (data && data.length > 0) {
@@ -232,7 +260,7 @@ export const getStaticProps = withPerformanceLogging(
 					similarProtocols.find((p) => p.name === protocolName)
 				),
 				chartColors: colorTones,
-				users: { active: activeUsers, new: newUsers },
+				users: { activeUsers, newUsers, transactions, gasUsed },
 				tokenPrice: protocolData.tokenPrice || null,
 				tokenMcap: protocolData.tokenMcap || null,
 				tokenSupply: protocolData.tokenSupply || null,

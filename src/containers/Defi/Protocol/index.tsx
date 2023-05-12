@@ -226,7 +226,7 @@ interface IProtocolContainerProps {
 	treasury: { [category: string]: number } | null
 	isCEX?: boolean
 	chartColors: { [type: string]: string }
-	users: { active: number | null; new: number | null }
+	users: { activeUsers: number | null; newUsers: number | null; transactions: number | null; gasUsed: number | null }
 	tokenPrice: number | null
 	tokenMcap: number | null
 	tokenSupply: number | null
@@ -582,26 +582,6 @@ function ProtocolContainer({
 									</tr>
 								) : null}
 
-								{users?.active ? (
-									<tr>
-										<th>
-											<span>Active Addresses 24h</span>
-											{helperTexts.users && <QuestionHelper text={helperTexts.users} />}
-										</th>
-										<td>{formattedNum(users.active, false)}</td>
-									</tr>
-								) : null}
-
-								{users?.new ? (
-									<tr>
-										<th>
-											<span>New Addresses 24h</span>
-											{helperTexts.users && <QuestionHelper text={helperTexts.users} />}
-										</th>
-										<td>{formattedNum(users.new, false)}</td>
-									</tr>
-								) : null}
-
 								{stakedAmount ? (
 									<>
 										<tr>
@@ -640,15 +620,30 @@ function ProtocolContainer({
 						</ProtocolStatsTable>
 					</div>
 
-					<>{dailyVolume ? <AnnualizedMetric name="Volume" value={dailyVolume} /> : null}</>
+					<>
+						{dailyVolume ? (
+							<AnnualizedMetric name="Volume" dailyValue={dailyVolume} cumulativeValue={allTimeVolume} />
+						) : null}
+					</>
 
-					<>{dailyFees ? <AnnualizedMetric name="Fees" value={dailyFees} helperText={helperTexts.fees} /> : null}</>
+					<>
+						{dailyFees ? (
+							<AnnualizedMetric
+								name="Fees"
+								dailyValue={dailyFees}
+								helperText={helperTexts.fees}
+								cumulativeValue={allTimeFees}
+							/>
+						) : null}
+					</>
 
 					<>
 						{dailyRevenue ? (
-							<AnnualizedMetric name="Revenue" value={dailyRevenue} helperText={helperTexts.revenue} />
+							<AnnualizedMetric name="Revenue" dailyValue={dailyRevenue} helperText={helperTexts.revenue} />
 						) : null}
 					</>
+
+					{users?.activeUsers ? <UsersTable {...users} helperText={helperTexts.users} /> : null}
 
 					<>{treasury && <TreasuryTable data={treasury} />}</>
 
@@ -1199,7 +1194,17 @@ const TreasuryTable = ({ data }: { data: { [category: string]: number } }) => {
 	)
 }
 
-const AnnualizedMetric = ({ name, value, helperText }: { name: string; value: number; helperText?: string }) => {
+const AnnualizedMetric = ({
+	name,
+	dailyValue,
+	cumulativeValue,
+	helperText
+}: {
+	name: string
+	dailyValue: number
+	cumulativeValue?: number | null
+	helperText?: string
+}) => {
 	const [open, setOpen] = React.useState(false)
 	return (
 		<StatsTable2>
@@ -1212,14 +1217,70 @@ const AnnualizedMetric = ({ name, value, helperText }: { name: string; value: nu
 							{helperText && <QuestionHelper text={helperText} />}
 						</Toggle>
 					</th>
-					<td>{formattedNum(value * 365, true)}</td>
+					<td>{formattedNum(dailyValue * 365, true)}</td>
 				</tr>
 
 				{open && (
 					<>
 						<tr>
 							<th data-subvalue>{`${name} 24h`}</th>
-							<td data-subvalue>{formattedNum(value, true)}</td>
+							<td data-subvalue>{formattedNum(dailyValue, true)}</td>
+						</tr>
+
+						{cumulativeValue ? (
+							<tr>
+								<th data-subvalue>{`Cumulative ${name}`}</th>
+								<td data-subvalue>{formattedNum(cumulativeValue, true)}</td>
+							</tr>
+						) : null}
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+const UsersTable = ({
+	activeUsers,
+	newUsers,
+	transactions,
+	gasUsed,
+	helperText
+}: {
+	activeUsers: number | null
+	newUsers: number | null
+	transactions: number | null
+	gasUsed: number | null
+	helperText?: string
+}) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} data-arrow />
+							<span>Active Addresses 24h</span>
+							{helperText && <QuestionHelper text={helperText} />}
+						</Toggle>
+					</th>
+					<td>{formattedNum(activeUsers, false)}</td>
+				</tr>
+
+				{open && (
+					<>
+						<tr>
+							<th data-subvalue>New Addresses 24h</th>
+							<td data-subvalue>{formattedNum(newUsers, false)}</td>
+						</tr>
+						<tr>
+							<th data-subvalue>Transactions 24h</th>
+							<td data-subvalue>{formattedNum(transactions, false)}</td>
+						</tr>
+						<tr>
+							<th data-subvalue>Gas Used 24h</th>
+							<td data-subvalue>{formattedNum(gasUsed, true)}</td>
 						</tr>
 					</>
 				)}
