@@ -185,7 +185,8 @@ export const getStaticProps = withPerformanceLogging(
 			'Max Votes',
 			'Treasury',
 			'Bridge Deposits',
-			'Bridge Withdrawals'
+			'Bridge Withdrawals',
+			'Token Volume'
 		]
 
 		const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))

@@ -50,6 +50,7 @@ const CHART_TYPES = [
 	'tvl',
 	'mcap',
 	'tokenPrice',
+	'tokenVolume',
 	'fdv',
 	'volume',
 	'fees',
@@ -110,7 +111,8 @@ export default function ProtocolChart({
 		usdInflows,
 		governance,
 		treasury,
-		bridgeVolume
+		bridgeVolume,
+		tokenVolume
 	} = router.query
 
 	const DENOMINATIONS: Array<{ symbol: string; geckoId?: string | null }> = []
@@ -132,7 +134,9 @@ export default function ProtocolChart({
 
 	// fetch protocol mcap data
 	const { data: protocolCGData, loading } = useDenominationPriceHistory(
-		router.isReady && (mcap === 'true' || tokenPrice === 'true' || fdv === 'true') ? geckoId : null
+		router.isReady && (mcap === 'true' || tokenPrice === 'true' || fdv === 'true' || tokenVolume === 'true')
+			? geckoId
+			: null
 	)
 
 	const { data: fdvData = null, error: fdvError } = useSWR(
@@ -427,6 +431,38 @@ export default function ProtocolChart({
 					const fdv = totalSupply * tokenPrice
 
 					chartData[date]['FDV'] = showNonUsdDenomination ? fdv / getPriceAtDate(date, denominationHistory.prices) : fdv
+				}
+			}
+
+			if (tokenVolume === 'true') {
+				chartsUnique.push('Token Volume')
+
+				protocolCGData['total_volumes'].forEach(([dateMs, price]) => {
+					const date = Math.floor(nearestUtc(dateMs) / 1000)
+					if (!chartData[date]) {
+						chartData[date] = {}
+					}
+
+					chartData[date]['Token Volume'] = showNonUsdDenomination
+						? price / getPriceAtDate(date, denominationHistory.prices)
+						: price
+				})
+
+				if (
+					tvlData.length > 0 &&
+					tvl !== 'false' &&
+					protocolCGData['total_volumes'].length > 0 &&
+					protocolCGData['total_volumes'][protocolCGData['total_volumes'].length - 1][0] <
+						+tvlData[tvlData.length - 1][0] * 1000
+				) {
+					const date = isHourlyChart
+						? tvlData[tvlData.length - 1][0]
+						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
+					const tokenVolume = protocolCGData['total_volumes'][protocolCGData['total_volumes'].length - 1][1]
+
+					chartData[date]['Token Volume'] = showNonUsdDenomination
+						? tokenVolume / getPriceAtDate(date, denominationHistory.prices)
+						: tokenVolume
 				}
 			}
 		}
@@ -738,7 +774,8 @@ export default function ProtocolChart({
 		treasuryData,
 		emissions,
 		bridgeVolume,
-		bridgeVolumeData
+		bridgeVolumeData,
+		tokenVolume
 	])
 
 	const finalData = React.useMemo(() => {
@@ -758,6 +795,10 @@ export default function ProtocolChart({
 
 		if (tokenPrice === 'true') {
 			fetchingTypes.push('token price')
+		}
+
+		if (tokenVolume === 'true') {
+			fetchingTypes.push('token volume')
 		}
 	}
 
@@ -923,6 +964,27 @@ export default function ProtocolChart({
 								/>
 								<span data-wrapper="true">
 									<span>Token Price</span>
+								</span>
+							</Toggle>
+
+							<Toggle backgroundColor={color}>
+								<input
+									type="checkbox"
+									value="tokenVolume"
+									checked={tokenVolume === 'true'}
+									onChange={() =>
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, tokenVolume: tokenVolume === 'true' ? false : true }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}
+								/>
+								<span data-wrapper="true">
+									<span>Token Volume</span>
 								</span>
 							</Toggle>
 
