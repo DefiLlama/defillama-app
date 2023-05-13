@@ -303,7 +303,7 @@ function GlobalPage({
 
 	const [finalTvlChart, finalVolumeChart, finalFeesChart, priceHistory] = React.useMemo(() => {
 		const priceHistory =
-			denomination === 'USD'
+			denomination === 'USD' && denominationPriceHistory?.prices
 				? denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
 				: null
 		if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
@@ -488,7 +488,7 @@ function GlobalPage({
 									{
 										id: 'stables',
 										name: 'Stablecoins',
-										isVisible: peggedAreaTotalData && peggedAreaTotalData
+										isVisible: peggedAreaTotalData && peggedAreaTotalData?.length > 0
 									},
 									{
 										id: 'inflows',
