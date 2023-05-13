@@ -599,21 +599,30 @@ function ProtocolContainer({
 							<tbody>
 								{tokenMcap ? (
 									<tr>
-										<th>Market Cap</th>
+										<th>
+											<span>Market Cap</span>
+											{showFlag && <Flag protocol={protocolData.name} dataType={'Market Cap'} />}
+										</th>
 										<td>{formattedNum(tokenMcap, true)}</td>
 									</tr>
 								) : null}
 
 								{priceOfToken ? (
 									<tr>
-										<th>Token Price</th>
+										<th>
+											<span>Token Price</span>
+											{showFlag && <Flag protocol={protocolData.name} dataType={'Token Price'} />}
+										</th>
 										<td>${priceOfToken.toLocaleString('en-US', { maximumFractionDigits: 5 })}</td>
 									</tr>
 								) : null}
 
 								{tokenSupply && priceOfToken ? (
 									<tr>
-										<th>Fully Diluted Valuation</th>
+										<th>
+											<span>Fully Diluted Valuation</span>
+											{showFlag && <Flag protocol={protocolData.name} dataType={'FDV'} />}
+										</th>
 										<td>{formattedNum(priceOfToken * tokenSupply, true)}</td>
 									</tr>
 								) : null}
@@ -621,7 +630,10 @@ function ProtocolContainer({
 								{stakedAmount ? (
 									<>
 										<tr>
-											<th>Staked</th>
+											<th>
+												<span>Staked</span>
+												{showFlag && <Flag protocol={protocolData.name} dataType={'Staked'} />}
+											</th>
 											<td>{formattedNum(stakedAmount, true)}</td>
 										</tr>
 
@@ -648,7 +660,10 @@ function ProtocolContainer({
 
 								{borrowedAmount ? (
 									<tr>
-										<th>Borrowed</th>
+										<th>
+											<span>Borrowed</span>
+											{showFlag && <Flag protocol={protocolData.name} dataType={'Borrowed'} />}
+										</th>
 										<td>{formattedNum(borrowedAmount, true)}</td>
 									</tr>
 								) : null}
