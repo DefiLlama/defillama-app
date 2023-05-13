@@ -26,6 +26,10 @@ export function Treasury({ protocolName }) {
 export const TreasuryChart = ({ protocolName }) => {
 	const { data, loading } = useFetchProtocolTreasury(protocolName)
 
+	if (loading) {
+		return <p style={{ height: '360px', textAlign: 'center' }}>Loading...</p>
+	}
+
 	const tokens = Object.entries(data?.chainTvls ?? {})
 		.filter((chain) => !chain[0].endsWith('-OwnTokens'))
 		.reduce((acc, curr: [string, { tokensInUsd: Array<{ date: number; tokens: { [token: string]: number } }> }]) => {
@@ -47,12 +51,8 @@ export const TreasuryChart = ({ protocolName }) => {
 		top10Tokens.push({ name: 'Others', value: tokens.slice(11).reduce((acc, curr) => (acc += curr.value), 0) })
 	}
 
-	if (!loading && data && top10Tokens.length === 0) {
-		return <></>
-	}
-
-	if (loading || !data) {
-		return <></>
+	if (!loading && (!data || top10Tokens.length === 0)) {
+		return <p style={{ height: '360px', textAlign: 'center' }}></p>
 	}
 
 	const historicalTreasury = formatProtocolsTvlChartData({

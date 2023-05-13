@@ -7,15 +7,12 @@ import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import {
+	ACTIVE_USERS_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
-	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_EMISSIONS_LIST_API,
-	PROTOCOL_GAS_USED_API,
 	PROTOCOL_GOVERNANCE_API,
-	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_ONCHAIN_GOVERNANCE_API,
-	PROTOCOL_TRANSACTIONS_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetchWithPerformaceLogging, withPerformanceLogging } from '~/utils/perf'
@@ -65,95 +62,40 @@ export const getStaticProps = withPerformanceLogging(
 				: null
 			: null
 
-		const [
-			backgroundColor,
-			allProtocols,
-			activeUsers,
-			newUsers,
-			transactions,
-			gasUsed,
-			feesAndRevenueProtocols,
-			dexs,
-			medianApy,
-			controversialProposals
-		] = await Promise.all([
-			getColor(tokenIconPaletteUrl(protocolData.name)),
-			getProtocolsRaw(),
-			fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolData.id}`.replaceAll('#', '$'))
-				.then((res) => res.json())
-				.then((data) => {
-					if (data && data.length > 0) {
-						const values = data.sort((a, b) => a[0] - b[0])
-						return values[values.length - 1][1] ?? null
-					} else return null
-				})
-				.catch((err) => {
-					console.log(err)
-					return null
-				}),
-			fetch(`${PROTOCOL_NEW_USERS_API}/${protocolData.id}`.replaceAll('#', '$'))
-				.then((res) => res.json())
-				.then((data) => {
-					if (data && data.length > 0) {
-						const values = data.sort((a, b) => a[0] - b[0])
-						return values[values.length - 1][1] ?? null
-					} else return null
-				})
-				.catch((err) => {
-					console.log(err)
-					return null
-				}),
-			fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolData.id}`.replaceAll('#', '$'))
-				.then((res) => res.json())
-				.then((data) => {
-					if (data && data.length > 0) {
-						const values = data.sort((a, b) => a[0] - b[0])
-						return values[values.length - 1][1] ?? null
-					} else return null
-				})
-				.catch((err) => {
-					console.log(err)
-					return null
-				}),
-			fetch(`${PROTOCOL_GAS_USED_API}/${protocolData.id}`.replaceAll('#', '$'))
-				.then((res) => res.json())
-				.then((data) => {
-					if (data && data.length > 0) {
-						const values = data.sort((a, b) => a[0] - b[0])
-						return values[values.length - 1][1] ?? null
-					} else return null
-				})
-				.catch((err) => {
-					console.log(err)
-					return null
-				}),
-			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
-			governanceApi
-				? fetch(governanceApi)
-						.then((res) => res.json())
-						.then((data) => {
-							return Object.values(data.proposals)
-								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
-								.slice(0, 3)
-						})
-						.catch((err) => {
-							console.log(err)
-							return {}
-						})
-				: null
-		])
+		const [backgroundColor, allProtocols, users, feesAndRevenueProtocols, dexs, medianApy, controversialProposals] =
+			await Promise.all([
+				getColor(tokenIconPaletteUrl(protocolData.name)),
+				getProtocolsRaw(),
+				fetch(ACTIVE_USERS_API)
+					.then((res) => res.json())
+					.then((data) => data?.[protocolData.id] ?? null),
+				fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					}),
+				fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					}),
+				fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
+				governanceApi
+					? fetch(governanceApi)
+							.then((res) => res.json())
+							.then((data) => {
+								return Object.values(data.proposals)
+									.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+									.slice(0, 3)
+							})
+							.catch((err) => {
+								console.log(err)
+								return {}
+							})
+					: null
+			])
 
 		const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
 			(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
@@ -261,7 +203,14 @@ export const getStaticProps = withPerformanceLogging(
 					similarProtocols.find((p) => p.name === protocolName)
 				),
 				chartColors: colorTones,
-				users: { activeUsers, newUsers, transactions, gasUsed },
+				users: users
+					? {
+							activeUsers: users.users?.value ?? null,
+							newUsers: users.newUsers?.value ?? null,
+							transactions: users.txs?.value ?? null,
+							gasUsd: users.gasUsd?.value ?? null
+					  }
+					: null,
 				tokenPrice: protocolData.tokenPrice || null,
 				tokenMcap: protocolData.tokenMcap || null,
 				tokenSupply: protocolData.tokenSupply || null,

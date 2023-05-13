@@ -226,7 +226,12 @@ interface IProtocolContainerProps {
 	treasury: { [category: string]: number } | null
 	isCEX?: boolean
 	chartColors: { [type: string]: string }
-	users: { activeUsers: number | null; newUsers: number | null; transactions: number | null; gasUsed: number | null }
+	users: {
+		activeUsers: number | null
+		newUsers: number | null
+		transactions: number | null
+		gasUsd: number | null
+	} | null
 	tokenPrice: number | null
 	tokenMcap: number | null
 	tokenSupply: number | null
@@ -1244,13 +1249,13 @@ const UsersTable = ({
 	activeUsers,
 	newUsers,
 	transactions,
-	gasUsed,
+	gasUsd,
 	helperText
 }: {
 	activeUsers: number | null
 	newUsers: number | null
 	transactions: number | null
-	gasUsed: number | null
+	gasUsd: number | null
 	helperText?: string
 }) => {
 	const [open, setOpen] = React.useState(false)
@@ -1270,18 +1275,24 @@ const UsersTable = ({
 
 				{open && (
 					<>
-						<tr>
-							<th data-subvalue>New Addresses 24h</th>
-							<td data-subvalue>{formattedNum(newUsers, false)}</td>
-						</tr>
-						<tr>
-							<th data-subvalue>Transactions 24h</th>
-							<td data-subvalue>{formattedNum(transactions, false)}</td>
-						</tr>
-						<tr>
-							<th data-subvalue>Gas Used 24h</th>
-							<td data-subvalue>{formattedNum(gasUsed, true)}</td>
-						</tr>
+						{newUsers ? (
+							<tr>
+								<th data-subvalue>New Addresses 24h</th>
+								<td data-subvalue>{formattedNum(newUsers, false)}</td>
+							</tr>
+						) : null}
+						{transactions ? (
+							<tr>
+								<th data-subvalue>Transactions 24h</th>
+								<td data-subvalue>{formattedNum(transactions, false)}</td>
+							</tr>
+						) : null}
+						{gasUsd ? (
+							<tr>
+								<th data-subvalue>Gas Used 24h</th>
+								<td data-subvalue>{formattedNum(gasUsd, true)}</td>
+							</tr>
+						) : null}
 					</>
 				)}
 			</tbody>
