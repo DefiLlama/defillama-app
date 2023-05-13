@@ -4,7 +4,6 @@ import styled from 'styled-components'
 import { Header } from '~/Theme'
 import Layout from '~/layout'
 import { Panel } from '~/components'
-import { LSDTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
@@ -12,6 +11,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { formattedNum, toK } from '~/utils'
 
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { LSDColumn } from '~/components/Table/Defi/columns'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -70,7 +71,12 @@ const PageView = ({ areaChartData, pieChartData, tokensList, tokens, stakedEthSu
 					title=""
 				/>
 			</ChartsWrapper>
-			<LSDTable data={tokensList} />
+			<TableWithSearch
+				data={tokensList}
+				columns={LSDColumn}
+				columnToSearch={'name'}
+				placeholder={'Search protocols...'}
+			/>
 		</>
 	)
 }

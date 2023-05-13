@@ -3,7 +3,6 @@ import styled from 'styled-components'
 import { ComboboxItem } from 'ariakit/combobox'
 import TokenLogo from '~/components/TokenLogo'
 import { useState } from 'react'
-import Loader from '~/assets/loading_circle.svg'
 
 const Item = styled(ComboboxItem)`
 	padding: 12px 14px;

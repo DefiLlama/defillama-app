@@ -1,6 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { getProtocolsRaw } from '~/api/categories/protocols'
-import { ExpensesTable } from '~/components/Table/Defi'
+import { expensesColumns } from '~/components/Table/Defi/columns'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -38,7 +39,12 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 export default function Protocols(props) {
 	return (
 		<Layout title={`Protocol Expenses - DefiLlama`} defaultSEO>
-			<ExpensesTable data={props.expenses} />
+			<TableWithSearch
+				data={props.expenses}
+				columns={expensesColumns}
+				columnToSearch={'name'}
+				placeholder={'Search protocol...'}
+			/>
 		</Layout>
 	)
 }

@@ -4,13 +4,14 @@ import styled from 'styled-components'
 import { Header } from '~/Theme'
 import Layout from '~/layout'
 import { Panel } from '~/components'
-import { ProtocolsCategoriesTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import { withPerformanceLogging } from '~/utils/perf'
 import type { IChartProps } from '~/components/ECharts/types'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { categoriesColumn } from '~/components/Table/Defi/columns'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -110,7 +111,12 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 				/>
 			</ChartsWrapper>
 
-			<ProtocolsCategoriesTable data={categories} />
+			<TableWithSearch
+				data={categories}
+				columns={categoriesColumn}
+				columnToSearch={'name'}
+				placeholder={'Search category...'}
+			/>
 		</Layout>
 	)
 }

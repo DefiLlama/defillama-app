@@ -1,10 +1,11 @@
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { Header } from '~/Theme'
-import { CEXTable } from '~/components/Table/Defi'
 import type { IChainTvl } from '~/api/types'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { cexColumn } from '~/components/Table/Defi/columns'
 
 const fetch = fetchWithErrorLogging
 
@@ -424,7 +425,7 @@ export default function Protocols({ cexs }) {
 		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
 			<Header>CEX Transparency</Header>
 
-			<CEXTable data={cexs} />
+			<TableWithSearch data={cexs} columns={cexColumn} columnToSearch={'name'} placeholder={'Search exchange...'} />
 		</Layout>
 	)
 }

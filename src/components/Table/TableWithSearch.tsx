@@ -38,7 +38,7 @@ export function TableWithSearch({ data, columns, placeholder, columnToSearch }) 
 		}, 200)
 
 		return () => clearTimeout(id)
-	}, [projectName, instance])
+	}, [projectName, instance, columnToSearch])
 
 	return (
 		<>

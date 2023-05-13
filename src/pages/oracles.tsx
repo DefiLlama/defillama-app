@@ -4,7 +4,6 @@ import styled from 'styled-components'
 import Layout from '~/layout'
 import { Header } from '~/Theme'
 import { Panel } from '~/components'
-import { OraclesTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
@@ -12,6 +11,8 @@ import { maxAgeForNext } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { oraclesColumn } from '~/components/Table/Defi/columns'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -92,7 +93,12 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, oraclesColor
 				<RowLinksWithDropdown links={tokenLinks} activeLink="All" />
 			</RowLinksWrapper>
 
-			<OraclesTable data={tokensList} />
+			<TableWithSearch
+				data={tokensList}
+				columns={oraclesColumn}
+				columnToSearch={'name'}
+				placeholder={'Search oracles...'}
+			/>
 		</>
 	)
 }

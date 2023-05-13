@@ -4,7 +4,6 @@ import styled from 'styled-components'
 import { Header } from '~/Theme'
 import Layout from '~/layout'
 import { Panel } from '~/components'
-import { ForksTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
@@ -13,6 +12,8 @@ import { getForkPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { forksColumn } from '~/components/Table/Defi/columns'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -103,7 +104,12 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 				<RowLinksWithDropdown links={tokenLinks} activeLink="All" />
 			</RowLinksWrapper>
 
-			<ForksTable data={tokensList} />
+			<TableWithSearch
+				data={tokensList}
+				columns={forksColumn}
+				placeholder={'Search protocols...'}
+				columnToSearch={'name'}
+			/>
 		</>
 	)
 }

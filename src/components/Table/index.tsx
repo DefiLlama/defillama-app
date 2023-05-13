@@ -8,7 +8,6 @@ export {
 	NftChainsTable,
 	NftMarketplacesTable
 } from './Nfts/ChainsAndMarketplaces'
-export { OraclesTable, ForksTable, ProtocolsCategoriesTable, LSDTable } from './Defi'
 export { FeesTable } from './Fees'
 export { DexsTable, VolumeByChainsTable } from './Dexs'
 export { OverviewTable } from './Adaptors'
