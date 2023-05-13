@@ -46,7 +46,7 @@ export function DesktopResults({ state, data, loading, onItemClick, ...props }: 
 			) : state.matches.length ? (
 				<>
 					{options.slice(0, resultsLength + 1).map((token) => (
-						<DesktopRow key={token.name} onItemClick={onItemClick} data={token} />
+						<DesktopRow key={token.name} onItemClick={onItemClick} data={token} state={state} />
 					))}
 
 					{resultsLength < sortedList.length && <MoreResults onClick={showMoreResults}>See more...</MoreResults>}
