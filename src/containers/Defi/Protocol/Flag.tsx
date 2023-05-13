@@ -4,6 +4,7 @@ import { Flag as FlagIcon } from 'react-feather'
 import { mutate } from 'swr'
 import { FormSubmitBtn } from '~/components'
 import { DialogForm } from '~/components/Filters/common/Base'
+import { Tooltip2 } from '~/components/Tooltip'
 
 export function Flag({ protocol, dataType }) {
 	const [loading, setLoading] = useState(false)
@@ -36,9 +37,11 @@ export function Flag({ protocol, dataType }) {
 
 	return (
 		<>
-			<button onClick={dialog.toggle}>
-				<FlagIcon size={14} />
-			</button>
+			<Tooltip2 content="Report incorrect data">
+				<button onClick={dialog.toggle}>
+					<FlagIcon size={14} />
+				</button>
+			</Tooltip2>
 
 			<Dialog state={dialog} className="dialog">
 				<DialogForm onSubmit={onSubmit} data-variant="secondary">

@@ -197,6 +197,9 @@ const Details = styled.details`
 				font-size: 1rem;
 				text-align: left;
 				color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
+				display: flex;
+				align-items: center;
+				gap: 8px;
 			}
 
 			& > *:nth-child(2) {
@@ -525,7 +528,10 @@ function ProtocolContainer({
 							</span>
 
 							<span data-summaryheader>
-								<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
+								<span>
+									<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
+									{showFlag && <Flag protocol={protocolData.name} dataType={'TVL'} />}
+								</span>
 								<span>{formattedNum(totalVolume || '0', true)}</span>
 							</span>
 
