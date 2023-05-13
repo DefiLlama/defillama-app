@@ -21,7 +21,8 @@ const colors = {
 	activeUsers: '#fa4646',
 	raises: '#7700ff',
 	stablecoins: '#00a09d',
-	transactions: '#307622'
+	transactions: '#307622',
+	bridges: '#ffb12b'
 }
 
 // TODO remove color prop and use stackColors by default
@@ -47,6 +48,7 @@ export default function AreaChart({
 	txsData,
 	raisesData,
 	totalStablesData,
+	bridgeData,
 	denomination,
 	updateRoute,
 	route,
@@ -257,6 +259,38 @@ export default function AreaChart({
 			})
 		}
 
+		if (route.inflows === 'true' && bridgeData && bridgeData?.length > 0) {
+			series.push({
+				name: 'Inflows',
+				chartId: 'Inflows',
+				type: 'bar',
+				stack: 'bridge',
+				data: [],
+				yAxisIndex: 9,
+				itemStyle: {
+					color: colors.bridges
+				}
+			})
+			bridgeData.forEach(([date, value]) => {
+				series[series.length - 1].data.push([getUtcDateObject(date), value])
+			})
+
+			series.push({
+				name: 'Outflows',
+				chartId: 'Inflows',
+				type: 'bar',
+				stack: 'bridge',
+				data: [],
+				yAxisIndex: 9,
+				itemStyle: {
+					color: colors.bridges
+				}
+			})
+			bridgeData.forEach(([date, _, value]) => {
+				series[series.length - 1].data.push([getUtcDateObject(date), value])
+			})
+		}
+
 		return [series, uniq(series.map((val) => val.chartId))]
 	}, [
 		chartData,
@@ -308,7 +342,8 @@ export default function AreaChart({
 			Raises: 65,
 			'Active Users': 60,
 			'Stablecoins Mcap': 60,
-			Transactions: 65
+			Transactions: 65,
+			Inflows: 55
 		}
 		let offsetAcc = -60
 
@@ -367,6 +402,11 @@ export default function AreaChart({
 					...txsChartSetting.yAxis,
 					scale: true,
 					id: 'Transactions'
+				},
+				{
+					...txsChartSetting.yAxis,
+					scale: true,
+					id: 'Inflows'
 				}
 			].map((yAxis: any, i) => {
 				const isActive = activeSeries?.findIndex((id) => id === yAxis.id) !== -1
