@@ -109,7 +109,8 @@ function GlobalPage({
 	txsData,
 	raisesData,
 	stablecoinsData = {},
-	chainFeesData
+	chainFeesData,
+	bridgeData
 }) {
 	const {
 		fullProtocolsList,
@@ -197,6 +198,12 @@ function GlobalPage({
 
 		return allProtocolFees
 	}, [chainFeesData])
+
+	const bridgeChartData = React.useMemo(() => {
+		return bridgeData
+			? bridgeData?.chainVolumeData?.map((volume) => [volume?.date, volume?.Deposits, volume.Withdrawals])
+			: null
+	}, [bridgeData])
 
 	const protocolTotals = React.useMemo(() => {
 		if (!fetchingProtocolsList && fullProtocolsList) {
@@ -291,7 +298,7 @@ function GlobalPage({
 		Object.values(stablecoinsData?.peggedNameToChartDataIndex || {}),
 		'mcap',
 		stablecoinsData?.chainTVLData,
-		selectedChain === 'All' ? 'All' : null
+		selectedChain
 	)
 
 	const [finalTvlChart, finalVolumeChart, finalFeesChart, priceHistory] = React.useMemo(() => {
@@ -481,10 +488,15 @@ function GlobalPage({
 									{
 										id: 'stables',
 										name: 'Stablecoins',
-										isVisible: selectedChain === 'All'
+										isVisible: peggedAreaTotalData && peggedAreaTotalData
+									},
+									{
+										id: 'inflows',
+										name: 'Inflows',
+										isVisible: bridgeChartData && bridgeChartData?.length && selectedChain !== 'All'
 									}
 								].map(({ id, name, isVisible }) =>
-									isVisible && (loading === false || selectedChain === 'All') ? (
+									isVisible && (loading === false || selectedChain === 'All' || chainGeckoId === null) ? (
 										<Toggle>
 											<input
 												key={id}
@@ -518,6 +530,7 @@ function GlobalPage({
 							priceData={priceHistory}
 							raisesData={raisesChart}
 							totalStablesData={peggedAreaTotalData}
+							bridgeData={bridgeChartData}
 							usersData={usersData}
 							txsData={txsData}
 							customLegendName="Chain"
