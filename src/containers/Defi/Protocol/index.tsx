@@ -60,6 +60,7 @@ import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
 import { GridContent, TabLayout, TabList, Tab, OtherProtocols, ProtocolLink } from './Common'
 import { GovernanceData } from './Governance'
 import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
+import { ProtocolPools } from './Yields'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
 
@@ -984,34 +985,7 @@ function ProtocolContainer({
 
 				{yields && (
 					<TabPanel state={tab} tabId="yields">
-						<GridContent>
-							<Section>
-								<FlexRow>
-									<span>Number of pools tracked</span>
-									<span>:</span>
-									<span>{yields.noOfPoolsTracked}</span>
-								</FlexRow>
-								<FlexRow>
-									<span>Average APY</span>
-									<span>:</span>
-									<span>{yields.averageAPY.toFixed(2)}%</span>
-								</FlexRow>
-
-								<LinksWrapper>
-									<Link href={`/yields?project=${protocol}`} passHref>
-										<Button
-											as="a"
-											target="_blank"
-											rel="noopener noreferrer"
-											useTextColor={true}
-											color={backgroundColor}
-										>
-											<span>Open on Yields dashboard</span> <ArrowUpRight size={14} />
-										</Button>
-									</Link>
-								</LinksWrapper>
-							</Section>
-						</GridContent>
+						<ProtocolPools data={yields} protocol={protocol} />
 					</TabPanel>
 				)}
 

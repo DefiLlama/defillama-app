@@ -13,6 +13,7 @@ import {
 	PROTOCOL_EMISSIONS_LIST_API,
 	PROTOCOL_GOVERNANCE_API,
 	PROTOCOL_ONCHAIN_GOVERNANCE_API,
+	YIELD_POOLS_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetchWithPerformaceLogging, withPerformanceLogging } from '~/utils/perf'
@@ -24,21 +25,22 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const [protocolRes, articles, emissions, expenses, treasuries]: [
+		const [protocolRes, articles, emissions, expenses, treasuries, yields]: [
 			IProtocolResponse,
 			IArticle[],
 			any,
 			any,
-			Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>
+			Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+			any
 		] = await Promise.all([
 			getProtocol(protocol),
 			fetchArticles({ tags: protocol }),
 			fetchWithPerformaceLogging(PROTOCOL_EMISSIONS_LIST_API),
 			fetchWithPerformaceLogging(PROTOCOLS_EXPENSES_API),
-			fetchWithPerformaceLogging(PROTOCOLS_TREASURY)
-			// fetchWithPerformaceLogging(YIELD_POOLS_API)
+			fetchWithPerformaceLogging(PROTOCOLS_TREASURY),
+			fetchWithPerformaceLogging(YIELD_POOLS_API)
 		])
-		const yields: any = {}
+
 		let inflowsExist = false
 
 		if (protocolRes?.chainTvls) {

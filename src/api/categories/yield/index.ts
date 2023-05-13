@@ -72,21 +72,21 @@ export async function getYieldPageData() {
 		p['rewardTokensSymbols'] =
 			p.chain === 'Neo'
 				? [
-					...new Set(
-						rewardTokens.map((t) =>
-							t === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
-								? 'FLM'
-								: t === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
+						...new Set(
+							rewardTokens.map((t) =>
+								t === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
+									? 'FLM'
+									: t === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
 									? 'NUDES'
 									: null
+							)
 						)
-					)
-				]
+				  ]
 				: [
-					...new Set(
-						rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
-					)
-				]
+						...new Set(
+							rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
+						)
+				  ]
 	}
 
 	for (let p of data.pools) {
@@ -97,10 +97,10 @@ export async function getYieldPageData() {
 			return t === 'WAVAX'
 				? data.tokenNameMapping['AVAX']
 				: t === 'WFTM'
-					? data.tokenNameMapping['FTM']
-					: t === 'HOP' && p.project === 'hop-protocol'
-						? p.projectName
-						: data.tokenNameMapping[t]
+				? data.tokenNameMapping['FTM']
+				: t === 'HOP' && p.project === 'hop-protocol'
+				? p.projectName
+				: data.tokenNameMapping[t]
 		})
 		p['rewardTokensNames'] = xy.filter((t) => t)
 	}
@@ -148,7 +148,7 @@ export async function getLendBorrowData() {
 	props.pools = props.pools.map((p) => ({ ...p, category: p.project === 'fraxlend' ? 'CDP' : p.category }))
 
 	// restrict pool data to lending and cdp
-	const categoriesToKeep = ['Lending', 'Undercollateralized Lending', 'CDP',  'NFT Lending']
+	const categoriesToKeep = ['Lending', 'Undercollateralized Lending', 'CDP', 'NFT Lending']
 	let pools = props.pools.filter((p) => categoriesToKeep.includes(p.category))
 
 	// get new borrow fields
