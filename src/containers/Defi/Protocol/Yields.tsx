@@ -6,11 +6,10 @@ import { YieldsPoolsTable } from '~/components/Table'
 import { getYieldPageData } from '~/api/categories/yield'
 
 export function ProtocolPools({ protocol, data }) {
-	const { data: poolsListt, error } = useSWR('yields-pools-list', () =>
+	const { data: poolsList, error } = useSWR('yields-pools-list', () =>
 		getYieldPageData().then((res) => res?.props?.pools?.filter((p) => p.project === protocol && p.apy > 0) ?? null)
 	)
 
-	const poolsList = []
 	return (
 		<GridContent>
 			<Section>

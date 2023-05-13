@@ -297,7 +297,7 @@ export const SelectContent = ({ clearAllOptions, toggleAllOptions, variant, path
 	)
 }
 
-export const PopoverForm = styled.form`
+export const DialogForm = styled.form`
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
@@ -310,7 +310,8 @@ export const PopoverForm = styled.form`
 		margin: 12px 0 0;
 	}
 
-	input {
+	input,
+	textarea {
 		padding: 8px;
 		border-radius: 4px;
 		border: ${({ theme }) => '1px solid ' + theme.text4};
@@ -319,17 +320,25 @@ export const PopoverForm = styled.form`
 		font: inherit;
 	}
 
+	input:disabled {
+		opacity: 0.5;
+	}
+
 	&[data-variant='secondary'] {
 		padding: 12px;
 	}
 
 	@media screen and (min-width: 640px) {
-		label {
-			margin: 12px 12px 0;
-		}
-
 		&[data-variant='secondary'] {
 			padding: 0;
+		}
+	}
+`
+
+export const PopoverForm = styled(DialogForm)`
+	@media screen and (min-width: 640px) {
+		label {
+			margin: 12px 12px 0;
 		}
 	}
 `

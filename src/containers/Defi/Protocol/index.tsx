@@ -61,6 +61,7 @@ import { GridContent, TabLayout, TabList, Tab, OtherProtocols, ProtocolLink } fr
 import { GovernanceData } from './Governance'
 import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
 import { ProtocolPools } from './Yields'
+import { Flag } from './Flag'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
 
@@ -628,7 +629,12 @@ function ProtocolContainer({
 
 					<>
 						{dailyVolume ? (
-							<AnnualizedMetric name="Volume" dailyValue={dailyVolume} cumulativeValue={allTimeVolume} />
+							<AnnualizedMetric
+								name="Volume"
+								dailyValue={dailyVolume}
+								cumulativeValue={allTimeVolume}
+								protocolName={protocolData.name}
+							/>
 						) : null}
 					</>
 
@@ -639,27 +645,35 @@ function ProtocolContainer({
 								dailyValue={dailyFees}
 								helperText={helperTexts.fees}
 								cumulativeValue={allTimeFees}
+								protocolName={protocolData.name}
 							/>
 						) : null}
 					</>
 
 					<>
 						{dailyRevenue ? (
-							<AnnualizedMetric name="Revenue" dailyValue={dailyRevenue} helperText={helperTexts.revenue} />
+							<AnnualizedMetric
+								name="Revenue"
+								dailyValue={dailyRevenue}
+								helperText={helperTexts.revenue}
+								protocolName={protocolData.name}
+							/>
 						) : null}
 					</>
 
-					{users?.activeUsers ? <UsersTable {...users} helperText={helperTexts.users} /> : null}
-
-					<>{treasury && <TreasuryTable data={treasury} />}</>
-
-					<>{raises && raises.length > 0 && <Raised data={raises} />}</>
-
-					{controversialProposals && controversialProposals.length > 0 ? (
-						<TopProposals data={controversialProposals} />
+					{users?.activeUsers ? (
+						<UsersTable {...users} helperText={helperTexts.users} protocolName={protocolData.name} />
 					) : null}
 
-					{expenses && <Expenses data={expenses} />}
+					<>{treasury && <TreasuryTable data={treasury} protocolName={protocolData.name} />}</>
+
+					<>{raises && raises.length > 0 && <Raised data={raises} protocolName={protocolData.name} />}</>
+
+					{controversialProposals && controversialProposals.length > 0 ? (
+						<TopProposals data={controversialProposals} protocolName={protocolData.name} />
+					) : null}
+
+					{expenses && <Expenses data={expenses} protocolName={protocolData.name} />}
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
@@ -1011,10 +1025,33 @@ function ProtocolContainer({
 	)
 }
 
-const Raised = ({ data }: { data: Array<IRaise> }) => {
+const Raised = ({ data, protocolName }: { data: Array<IRaise>; protocolName: string }) => {
 	const [open, setOpen] = React.useState(false)
+	const [hover, setHover] = React.useState(false)
+
+	const mouseOver = () => {
+		setHover(true)
+	}
+
+	const mouseOut = () => {
+		setHover(false)
+	}
+
+	const onBlur = (event) => {
+		if (
+			event.target.getAttribute('name') !== 'message' &&
+			event.target.getAttribute('name') !== 'correctSource' &&
+			event.target.getAttribute('name') !== 'submit-btn' &&
+			event.target.getAttribute('role') !== 'dialog' &&
+			event.relatedTarget?.getAttribute('role') !== 'dialog' &&
+			!event.currentTarget.contains(event.relatedTarget)
+		) {
+			setHover(false)
+		}
+	}
+
 	return (
-		<StatsTable2>
+		<StatsTable2 onMouseEnter={mouseOver} onMouseLeave={mouseOut} onFocus={mouseOver} onBlur={onBlur}>
 			<tbody>
 				<tr>
 					<th>
@@ -1022,6 +1059,7 @@ const Raised = ({ data }: { data: Array<IRaise> }) => {
 							<ChevronRight size={16} data-arrow />
 							<span>Total Raised</span>
 						</Toggle>
+						{hover && <Flag protocol={protocolName} dataType={'Raises'} />}
 					</th>
 					<td>${formatRaisedAmount(data.reduce((sum, r) => sum + Number(r.amount), 0))}</td>
 				</tr>
@@ -1033,9 +1071,13 @@ const Raised = ({ data }: { data: Array<IRaise> }) => {
 								<tr key={raise.date + raise.amount}>
 									<th data-subvalue>{new Date(raise.date * 1000).toLocaleDateString()}</th>
 									<td data-subvalue>
-										<a target="_blank" rel="noopener noreferrer" href={raise.source}>
-											{formatRaise(raise)}
-										</a>
+										{raise.source ? (
+											<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+												{formatRaise(raise)}
+											</a>
+										) : (
+											formatRaise(raise)
+										)}
 									</td>
 								</tr>
 							))}
@@ -1046,10 +1088,40 @@ const Raised = ({ data }: { data: Array<IRaise> }) => {
 	)
 }
 
-const TopProposals = ({ data }: { data: Array<{ title: string; link?: string }> }) => {
+const TopProposals = ({
+	data,
+	protocolName
+}: {
+	data: Array<{ title: string; link?: string }>
+	protocolName: string
+}) => {
 	const [open, setOpen] = React.useState(false)
+
+	const [hover, setHover] = React.useState(false)
+
+	const mouseOver = () => {
+		setHover(true)
+	}
+
+	const mouseOut = () => {
+		setHover(false)
+	}
+
+	const onBlur = (event) => {
+		if (
+			event.target.getAttribute('name') !== 'message' &&
+			event.target.getAttribute('name') !== 'correctSource' &&
+			event.target.getAttribute('name') !== 'submit-btn' &&
+			event.target.getAttribute('role') !== 'dialog' &&
+			event.relatedTarget?.getAttribute('role') !== 'dialog' &&
+			!event.currentTarget.contains(event.relatedTarget)
+		) {
+			setHover(false)
+		}
+	}
+
 	return (
-		<StatsTable2>
+		<StatsTable2 onMouseEnter={mouseOver} onMouseLeave={mouseOut} onFocus={mouseOver} onBlur={onBlur}>
 			<tbody>
 				<tr>
 					<th>
@@ -1057,6 +1129,7 @@ const TopProposals = ({ data }: { data: Array<{ title: string; link?: string }> 
 							<ChevronRight size={16} data-arrow />
 							<span>Top Controversial Proposals</span>
 						</Toggle>
+						{hover && <Flag protocol={protocolName} dataType={'Governance'} />}
 					</th>
 				</tr>
 				{open && (
@@ -1082,13 +1155,39 @@ const TopProposals = ({ data }: { data: Array<{ title: string; link?: string }> 
 }
 
 const Expenses = ({
-	data
+	data,
+	protocolName
 }: {
 	data: { headcount: number; annualUsdCost: { [key: string]: number }; sources: string[] }
+	protocolName: string
 }) => {
 	const [open, setOpen] = React.useState(false)
+
+	const [hover, setHover] = React.useState(false)
+
+	const mouseOver = () => {
+		setHover(true)
+	}
+
+	const mouseOut = () => {
+		setHover(false)
+	}
+
+	const onBlur = (event) => {
+		if (
+			event.target.getAttribute('name') !== 'message' &&
+			event.target.getAttribute('name') !== 'correctSource' &&
+			event.target.getAttribute('name') !== 'submit-btn' &&
+			event.target.getAttribute('role') !== 'dialog' &&
+			event.relatedTarget?.getAttribute('role') !== 'dialog' &&
+			!event.currentTarget.contains(event.relatedTarget)
+		) {
+			setHover(false)
+		}
+	}
+
 	return (
-		<StatsTable2>
+		<StatsTable2 onMouseEnter={mouseOver} onMouseLeave={mouseOut} onFocus={mouseOver} onBlur={onBlur}>
 			<tbody>
 				<tr>
 					<th>
@@ -1096,6 +1195,7 @@ const Expenses = ({
 							<ChevronRight size={16} data-arrow />
 							<span>Annual operational expenses</span>
 						</Toggle>
+						{hover && <Flag protocol={protocolName} dataType={'Expenses'} />}
 					</th>
 					<td>
 						{formattedNum(
@@ -1136,10 +1236,34 @@ const Expenses = ({
 	)
 }
 
-const TreasuryTable = ({ data }: { data: { [category: string]: number } }) => {
+const TreasuryTable = ({ data, protocolName }: { data: { [category: string]: number }; protocolName: string }) => {
 	const [open, setOpen] = React.useState(false)
+
+	const [hover, setHover] = React.useState(false)
+
+	const mouseOver = () => {
+		setHover(true)
+	}
+
+	const mouseOut = () => {
+		setHover(false)
+	}
+
+	const onBlur = (event) => {
+		if (
+			event.target.getAttribute('name') !== 'message' &&
+			event.target.getAttribute('name') !== 'correctSource' &&
+			event.target.getAttribute('name') !== 'submit-btn' &&
+			event.target.getAttribute('role') !== 'dialog' &&
+			event.relatedTarget?.getAttribute('role') !== 'dialog' &&
+			!event.currentTarget.contains(event.relatedTarget)
+		) {
+			setHover(false)
+		}
+	}
+
 	return (
-		<StatsTable2>
+		<StatsTable2 onMouseEnter={mouseOver} onMouseLeave={mouseOut} onFocus={mouseOver} onBlur={onBlur}>
 			<tbody>
 				<tr>
 					<th>
@@ -1147,6 +1271,7 @@ const TreasuryTable = ({ data }: { data: { [category: string]: number } }) => {
 							<ChevronRight size={16} data-arrow />
 							<span>Treasury</span>
 						</Toggle>
+						{hover && <Flag protocol={protocolName} dataType={'Treasury'} />}
 					</th>
 					<td>
 						{formattedNum(
@@ -1177,16 +1302,42 @@ const AnnualizedMetric = ({
 	name,
 	dailyValue,
 	cumulativeValue,
-	helperText
+	helperText,
+	protocolName
 }: {
 	name: string
 	dailyValue: number
 	cumulativeValue?: number | null
 	helperText?: string
+	protocolName: string
 }) => {
 	const [open, setOpen] = React.useState(false)
+
+	const [hover, setHover] = React.useState(false)
+
+	const mouseOver = () => {
+		setHover(true)
+	}
+
+	const mouseOut = () => {
+		setHover(false)
+	}
+
+	const onBlur = (event) => {
+		if (
+			event.target.getAttribute('name') !== 'message' &&
+			event.target.getAttribute('name') !== 'correctSource' &&
+			event.target.getAttribute('name') !== 'submit-btn' &&
+			event.target.getAttribute('role') !== 'dialog' &&
+			event.relatedTarget?.getAttribute('role') !== 'dialog' &&
+			!event.currentTarget.contains(event.relatedTarget)
+		) {
+			setHover(false)
+		}
+	}
+
 	return (
-		<StatsTable2>
+		<StatsTable2 onMouseEnter={mouseOver} onMouseLeave={mouseOut} onFocus={mouseOver} onBlur={onBlur}>
 			<tbody>
 				<tr>
 					<th>
@@ -1195,6 +1346,7 @@ const AnnualizedMetric = ({
 							<span>{`${name} (annualized)`}</span>
 							{helperText && <QuestionHelper text={helperText} />}
 						</Toggle>
+						{hover && <Flag protocol={protocolName} dataType={name} />}
 					</th>
 					<td>{formattedNum(dailyValue * 365, true)}</td>
 				</tr>
@@ -1224,17 +1376,42 @@ const UsersTable = ({
 	newUsers,
 	transactions,
 	gasUsd,
-	helperText
+	helperText,
+	protocolName
 }: {
 	activeUsers: number | null
 	newUsers: number | null
 	transactions: number | null
 	gasUsd: number | null
 	helperText?: string
+	protocolName: string
 }) => {
 	const [open, setOpen] = React.useState(false)
+	const [hover, setHover] = React.useState(false)
+
+	const mouseOver = () => {
+		setHover(true)
+	}
+
+	const mouseOut = () => {
+		setHover(false)
+	}
+
+	const onBlur = (event) => {
+		if (
+			event.target.getAttribute('name') !== 'message' &&
+			event.target.getAttribute('name') !== 'correctSource' &&
+			event.target.getAttribute('name') !== 'submit-btn' &&
+			event.target.getAttribute('role') !== 'dialog' &&
+			event.relatedTarget?.getAttribute('role') !== 'dialog' &&
+			!event.currentTarget.contains(event.relatedTarget)
+		) {
+			setHover(false)
+		}
+	}
+
 	return (
-		<StatsTable2>
+		<StatsTable2 onMouseEnter={mouseOver} onMouseLeave={mouseOut} onFocus={mouseOver} onBlur={onBlur}>
 			<tbody>
 				<tr>
 					<th>
@@ -1243,6 +1420,7 @@ const UsersTable = ({
 							<span>Active Addresses 24h</span>
 							{helperText && <QuestionHelper text={helperText} />}
 						</Toggle>
+						{hover && <Flag protocol={protocolName} dataType="Users" />}
 					</th>
 					<td>{formattedNum(activeUsers, false)}</td>
 				</tr>

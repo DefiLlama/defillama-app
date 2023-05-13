@@ -204,7 +204,7 @@ export const SubNavEl = styled.li<ISubNavEl>`
 	}
 `
 
-export const ApplyFilters = styled.button`
+export const FormSubmitBtn = styled.button`
 	padding: 12px;
 	margin: 12px 0 0;
 	background: #2172e5;
@@ -217,6 +217,12 @@ export const ApplyFilters = styled.button`
 		background: #4190ff;
 	}
 
+	:disabled {
+		opacity: 0.5;
+	}
+`
+
+export const ApplyFilters = styled(FormSubmitBtn)`
 	@media screen and (min-width: 640px) {
 		border-radius: 0 0 8px 8px;
 	}

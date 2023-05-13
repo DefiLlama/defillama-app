@@ -330,6 +330,12 @@ export const GlobalStyle = createGlobalStyle`
 		flex-direction: row-reverse;
 	}
 
+	.dialog {
+		color: ${({ theme }) => theme.text1};
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
+	}
+
 	.combobox-input {
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
 		color: ${({ theme }) => theme.text1};
