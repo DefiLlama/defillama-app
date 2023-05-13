@@ -1059,7 +1059,7 @@ const Raised = ({ data, protocolName }: { data: Array<IRaise>; protocolName: str
 							<ChevronRight size={16} data-arrow />
 							<span>Total Raised</span>
 						</Toggle>
-						{hover && <Flag protocol={protocolName} dataType={'Raises'} />}
+						{(open || hover) && <Flag protocol={protocolName} dataType={'Raises'} />}
 					</th>
 					<td>${formatRaisedAmount(data.reduce((sum, r) => sum + Number(r.amount), 0))}</td>
 				</tr>
@@ -1129,7 +1129,7 @@ const TopProposals = ({
 							<ChevronRight size={16} data-arrow />
 							<span>Top Controversial Proposals</span>
 						</Toggle>
-						{hover && <Flag protocol={protocolName} dataType={'Governance'} />}
+						{(open || hover) && <Flag protocol={protocolName} dataType={'Governance'} />}
 					</th>
 				</tr>
 				{open && (
@@ -1195,7 +1195,7 @@ const Expenses = ({
 							<ChevronRight size={16} data-arrow />
 							<span>Annual operational expenses</span>
 						</Toggle>
-						{hover && <Flag protocol={protocolName} dataType={'Expenses'} />}
+						{(open || hover) && <Flag protocol={protocolName} dataType={'Expenses'} />}
 					</th>
 					<td>
 						{formattedNum(
@@ -1271,7 +1271,7 @@ const TreasuryTable = ({ data, protocolName }: { data: { [category: string]: num
 							<ChevronRight size={16} data-arrow />
 							<span>Treasury</span>
 						</Toggle>
-						{hover && <Flag protocol={protocolName} dataType={'Treasury'} />}
+						{(open || hover) && <Flag protocol={protocolName} dataType={'Treasury'} />}
 					</th>
 					<td>
 						{formattedNum(
@@ -1346,7 +1346,7 @@ const AnnualizedMetric = ({
 							<span>{`${name} (annualized)`}</span>
 							{helperText && <QuestionHelper text={helperText} />}
 						</Toggle>
-						{hover && <Flag protocol={protocolName} dataType={name} />}
+						{(open || hover) && <Flag protocol={protocolName} dataType={name} />}
 					</th>
 					<td>{formattedNum(dailyValue * 365, true)}</td>
 				</tr>
@@ -1420,7 +1420,7 @@ const UsersTable = ({
 							<span>Active Addresses 24h</span>
 							{helperText && <QuestionHelper text={helperText} />}
 						</Toggle>
-						{hover && <Flag protocol={protocolName} dataType="Users" />}
+						{(open || hover) && <Flag protocol={protocolName} dataType="Users" />}
 					</th>
 					<td>{formattedNum(activeUsers, false)}</td>
 				</tr>
