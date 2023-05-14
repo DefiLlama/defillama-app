@@ -13,6 +13,7 @@ import {
 	PROTOCOL_EMISSIONS_LIST_API,
 	PROTOCOL_GOVERNANCE_API,
 	PROTOCOL_ONCHAIN_GOVERNANCE_API,
+	YIELD_CONFIG_API,
 	YIELD_POOLS_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
@@ -25,12 +26,13 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const [protocolRes, articles, emissions, expenses, treasuries, yields]: [
+		const [protocolRes, articles, emissions, expenses, treasuries, yields, yieldsConfig]: [
 			IProtocolResponse,
 			IArticle[],
 			any,
 			any,
 			Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+			any,
 			any
 		] = await Promise.all([
 			getProtocol(protocol),
@@ -38,7 +40,8 @@ export const getStaticProps = withPerformanceLogging(
 			fetchWithPerformaceLogging(PROTOCOL_EMISSIONS_LIST_API),
 			fetchWithPerformaceLogging(PROTOCOLS_EXPENSES_API),
 			fetchWithPerformaceLogging(PROTOCOLS_TREASURY),
-			fetchWithPerformaceLogging(YIELD_POOLS_API)
+			fetchWithPerformaceLogging(YIELD_POOLS_API),
+			fetchWithPerformaceLogging(YIELD_CONFIG_API)
 		])
 
 		let inflowsExist = false
@@ -183,6 +186,22 @@ export const getStaticProps = withPerformanceLogging(
 		const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
 		const projectYields = yields?.data?.filter(({ project }) => project === protocol)
 
+		// token liquidity
+		const tokenPools =
+			yields?.data && yieldsConfig && protocolData.symbol
+				? yields?.data?.filter(
+						(p) =>
+							yieldsConfig.protocols[p.project]?.category === 'Dexes' &&
+							p.symbol.toUpperCase().split('-').includes(protocolData.symbol.toUpperCase())
+				  )
+				: []
+
+		const liquidityAggregated = tokenPools.reduce((agg, pool) => {
+			if (!agg[pool.project]) agg[pool.project] = {}
+			agg[pool.project][pool.chain] = pool.tvlUsd + (agg[pool.project][pool.chain] ?? 0)
+			return agg
+		}, {} as any)
+
 		return {
 			props: {
 				articles,
@@ -246,7 +265,13 @@ export const getStaticProps = withPerformanceLogging(
 						'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.'
 				},
 				expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null,
-				feesAndRevenueData
+				feesAndRevenueData,
+				tokenLiquidtity: yieldsConfig
+					? Object.entries(liquidityAggregated)
+							.map((p) => Object.entries(p[1]).map((c) => [yieldsConfig.protocols[p[0]].name, c[0], c[1]]))
+							.flat()
+							.sort((a, b) => b[2] - a[2])
+					: []
 			},
 			revalidate: maxAgeForNext([22])
 		}

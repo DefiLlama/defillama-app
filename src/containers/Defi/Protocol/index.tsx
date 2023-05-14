@@ -309,6 +309,7 @@ interface IProtocolContainerProps {
 		revenue?: string | null
 		users?: string | null
 	}
+	tokenLiquidtity: Array<[string, string, number]>
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
@@ -336,7 +337,8 @@ function ProtocolContainer({
 	governanceApi,
 	expenses,
 	yields,
-	helperTexts
+	helperTexts,
+	tokenLiquidtity
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -703,6 +705,10 @@ function ProtocolContainer({
 							</tbody>
 						</ProtocolStatsTable>
 					</div>
+
+					{tokenLiquidtity && tokenLiquidtity.length > 0 && (
+						<TokenLiquidityTable data={tokenLiquidtity} protocolName={protocolData.name} />
+					)}
 
 					<>
 						{dailyVolume ? (
@@ -1399,6 +1405,46 @@ const UsersTable = ({
 								<td data-subvalue>{formattedNum(gasUsd, true)}</td>
 							</tr>
 						) : null}
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+const TokenLiquidityTable = ({
+	data,
+	protocolName
+}: {
+	data: Array<[string, string, number]>
+	protocolName: string
+}) => {
+	const [open, setOpen] = React.useState(false)
+
+	const totalLiq = data.reduce((acc, curr) => (acc += curr[2]), 0)
+
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} data-arrow />
+							<span>DEX Liquidity</span>
+						</Toggle>
+						<Flag protocol={protocolName} dataType="Token Liquidity" />
+					</th>
+					<td>{formattedNum(totalLiq, true)}</td>
+				</tr>
+
+				{open && (
+					<>
+						{data.map((item) => (
+							<tr key={'token-liq' + item[0] + item[1] + item[2]}>
+								<th data-subvalue>{`${item[0]} (${item[1]})`}</th>
+								<td data-subvalue>{formattedNum(item[2], true)}</td>
+							</tr>
+						))}
 					</>
 				)}
 			</tbody>

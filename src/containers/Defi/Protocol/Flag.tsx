@@ -65,6 +65,7 @@ export function Flag({ protocol, dataType }: { protocol: string; dataType?: stri
 								<option value="Mcap">Mcap</option>
 								<option value="Token Price">Token Price</option>
 								<option value="Token Volume">Token Volume</option>
+								<option value="Token Liquidity">Token Liquidity</option>
 								<option value="FDV">FDV</option>
 								<option value="Volume">Volume</option>
 								<option value="Fees">Fees</option>
