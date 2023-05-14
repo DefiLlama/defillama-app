@@ -16,11 +16,9 @@ import {
 	Name,
 	Symbol
 } from '~/layout/ProtocolAndPool'
-import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { StatsSection } from '~/layout/Stats/Medium'
 import { Checkbox2 } from '~/components'
 import { PeggedSearch } from '~/components/Search'
-import { OptionButton } from '~/components/ButtonStyled'
-import { AutoRow, RowBetween } from '~/components/Row'
 import { ButtonLight } from '~/components/ButtonStyled'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
@@ -43,6 +41,8 @@ import {
 } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedAssetByChainTable } from '~/components/Table'
+import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
+import { Stat, StatInARow } from '~/layout/Stats/Large'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -71,6 +71,12 @@ const PeggedDetails = styled.div`
 	overflow: auto;
 `
 
+const LinksWrapper = styled(PeggedDetails)`
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 16px;
+`
+
 const TabContainer = styled(TabList)`
 	display: flex;
 
@@ -90,28 +96,26 @@ const TabContainer = styled(TabList)`
 `
 
 const PeggedTab = styled(Tab)`
-	display: flex;
-	flex-grow: 1;
-	height: 2rem;
-	align-items: center;
-	justify-content: center;
-	border-style: none;
-	padding-left: 1rem;
-	padding-right: 1rem;
-	font-weight: 400;
-	font-size: 1rem;
-	line-height: 1.5rem;
-	background-color: ${({ theme }) => theme.bg3};
-	color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
+	padding: 8px 24px;
+	white-space: nowrap;
+	border-bottom: 1px solid transparent;
+	flex: 1;
 
 	&[aria-selected='true'] {
-		color: ${({ theme }) => theme.white};
-		background-color: ${({ theme }) => theme.primary1} !important;
+		border-bottom: ${({ color }) => '1px solid ' + color};
 	}
 
-	:hover {
-		background-color: ${({ color, theme }) =>
-			color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1)};
+	& + & {
+		border-left: ${({ theme }) => '1px solid ' + theme.divider};
+	}
+
+	:first-child {
+		border-top-left-radius: 12px;
+	}
+
+	:hover,
+	:focus-visible {
+		background-color: ${({ color }) => transparentize(0.9, color)};
 	}
 `
 
@@ -139,7 +143,7 @@ const PeggedDescription = styled.p`
 
 	& > *:first-child {
 		font-weight: 400;
-		font-size: 0.75rem;
+		font-size: 0.875rem;
 		text-align: left;
 		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
 	}
@@ -271,11 +275,15 @@ export default function PeggedContainer({
 			<StatsSection>
 				<TabWrapper>
 					<TabContainer state={tab} className="tab-list" aria-label="Pegged Tabs">
-						<PeggedTab className="tab" id={defaultSelectedId}>
+						<PeggedTab className="tab" id={defaultSelectedId} color={backgroundColor}>
 							Stats
 						</PeggedTab>
-						<PeggedTab className="tab">Info</PeggedTab>
-						<PeggedTab className="tab">Links</PeggedTab>
+						<PeggedTab className="tab" color={backgroundColor}>
+							Info
+						</PeggedTab>
+						<PeggedTab className="tab" color={backgroundColor}>
+							Links
+						</PeggedTab>
 					</TabContainer>
 
 					<TabPanel state={tab} tabId={defaultSelectedId}>
@@ -286,26 +294,21 @@ export default function PeggedContainer({
 								<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
 							</Name>
 
-							<StatWrapper>
-								<Stat>
-									<span>Market Cap</span>
+							<Stat>
+								<span>Market Cap</span>
+								<span>
 									<span>{formattedNum(mcap || '0', true)}</span>
-								</Stat>
+									<DownloadButton onClick={downloadCsv} color={backgroundColor}>
+										<DownloadCloud size={14} />
+										<span>&nbsp;&nbsp;.csv</span>
+									</DownloadButton>
+								</span>
+							</Stat>
 
-								<DownloadButton onClick={downloadCsv}>
-									<DownloadCloud size={14} />
-									<span>&nbsp;&nbsp;.csv</span>
-								</DownloadButton>
-							</StatWrapper>
-
-							<DetailsTable>
-								<tbody>
-									<tr>
-										<th>Price</th>
-										<td>{price === null ? '-' : formattedPeggedPrice(price, true)}</td>
-									</tr>
-								</tbody>
-							</DetailsTable>
+							<StatInARow>
+								<span>Price</span>
+								<span>{price === null ? '-' : formattedPeggedPrice(price, true)}</span>
+							</StatInARow>
 
 							{totalCirculating && (
 								<DetailsTable>
@@ -321,14 +324,10 @@ export default function PeggedContainer({
 
 							{extraPeggeds.length > 0 && (
 								<DetailsTable>
-									<thead>
-										<tr>
-											<th>Optional Circulating Counts</th>
-											<td className="question-helper">
-												<QuestionHelper text="Use this option to choose whether to include coins that have been minted but have never been circulating." />
-											</td>
-										</tr>
-									</thead>
+									<caption>
+										<span>Optional Circulating Counts</span>
+										<QuestionHelper text="Use this option to choose whether to include coins that have been minted but have never been circulating." />
+									</caption>
 									<tbody>
 										{extraPeggeds.map((option) => (
 											<tr key={option}>
@@ -392,125 +391,101 @@ export default function PeggedContainer({
 					</TabPanel>
 
 					<TabPanel state={tab}>
-						<PeggedDetails>
-							<FlexRow>
-								{blockExplorerLink !== undefined && (
-									<>
-										<span>
-											<Link href={blockExplorerLink} passHref>
-												<Button
-													as="a"
-													target="_blank"
-													rel="noopener noreferrer"
-													useTextColor={true}
-													color={backgroundColor}
-												>
-													<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
-												</Button>
-											</Link>
-										</span>
-									</>
-								)}
-							</FlexRow>
-
-							{url && (
-								<FlexRow>
-									<>
-										<span>
-											<Link href={url} passHref>
-												<Button as="a" target="_blank" rel="noopener" useTextColor={true} color={backgroundColor}>
-													<span>Website</span>
-													<ArrowUpRight size={14} />
-												</Button>
-											</Link>
-										</span>
-									</>
-								</FlexRow>
-							)}
-
-							{twitter && (
-								<FlexRow>
-									<>
-										<span>
-											<Link href={twitter} passHref>
-												<Button
-													as="a"
-													target="_blank"
-													rel="noopener noreferrer"
-													useTextColor={true}
-													color={backgroundColor}
-												>
-													<span>Twitter</span>
-													<ArrowUpRight size={14} />
-												</Button>
-											</Link>
-										</span>
-									</>
-								</FlexRow>
-							)}
-
-							{wiki && (
-								<FlexRow>
-									<>
-										<span>
-											<Link href={wiki} passHref>
-												<Button
-													as="a"
-													target="_blank"
-													rel="noopener noreferrer"
-													useTextColor={true}
-													color={backgroundColor}
-												>
-													<span>DeFiLlama Wiki</span>
-													<ArrowUpRight size={14} />
-												</Button>
-											</Link>
-										</span>
-									</>
-								</FlexRow>
-							)}
-
-							{onCoinGecko === 'true' && (
-								<FlexRow>
-									<>
-										<span>
-											<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} passHref>
-												<Button
-													as="a"
-													target="_blank"
-													rel="noopener noreferrer"
-													useTextColor={true}
-													color={backgroundColor}
-												>
-													<span>CoinGecko</span>
-													<ArrowUpRight size={14} />
-												</Button>
-											</Link>
-										</span>
-									</>
-								</FlexRow>
-							)}
-
-							<FlexRow>
-								<>
-									<Link
-										href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
-										passHref
-									>
-										<AlignSelfButton
+						<LinksWrapper>
+							{blockExplorerLink !== undefined && (
+								<span>
+									<Link href={blockExplorerLink} passHref>
+										<Button
 											as="a"
 											target="_blank"
 											rel="noopener noreferrer"
 											useTextColor={true}
 											color={backgroundColor}
 										>
-											<span>Check the code</span>
-											<ArrowUpRight size={14} />
-										</AlignSelfButton>
+											<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
+										</Button>
 									</Link>
-								</>
-							</FlexRow>
-						</PeggedDetails>
+								</span>
+							)}
+
+							{url && (
+								<span>
+									<Link href={url} passHref>
+										<Button as="a" target="_blank" rel="noopener" useTextColor={true} color={backgroundColor}>
+											<span>Website</span>
+											<ArrowUpRight size={14} />
+										</Button>
+									</Link>
+								</span>
+							)}
+
+							{twitter && (
+								<span>
+									<Link href={twitter} passHref>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
+											<span>Twitter</span>
+											<ArrowUpRight size={14} />
+										</Button>
+									</Link>
+								</span>
+							)}
+
+							{wiki && (
+								<span>
+									<Link href={wiki} passHref>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
+											<span>DeFiLlama Wiki</span>
+											<ArrowUpRight size={14} />
+										</Button>
+									</Link>
+								</span>
+							)}
+
+							{onCoinGecko === 'true' && (
+								<span>
+									<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} passHref>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
+											<span>CoinGecko</span>
+											<ArrowUpRight size={14} />
+										</Button>
+									</Link>
+								</span>
+							)}
+
+							<Link
+								href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
+								passHref
+							>
+								<AlignSelfButton
+									as="a"
+									target="_blank"
+									rel="noopener noreferrer"
+									useTextColor={true}
+									color={backgroundColor}
+								>
+									<span>Check the code</span>
+									<ArrowUpRight size={14} />
+								</AlignSelfButton>
+							</Link>
+						</LinksWrapper>
 					</TabPanel>
 				</TabWrapper>
 
@@ -524,22 +499,21 @@ export default function PeggedContainer({
 						minHeight: '460px'
 					}}
 				>
-					<RowBetween m="8px">
-						<AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
-							<OptionButton active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
-								Total Circ
-							</OptionButton>
-							<OptionButton active={chartType === 'Pie'} onClick={() => setChartType('Pie')}>
-								Pie
-							</OptionButton>
-							<OptionButton active={chartType === 'Dominance'} onClick={() => setChartType('Dominance')}>
-								Dominance
-							</OptionButton>
-							<OptionButton active={chartType === 'Chain Mcaps'} onClick={() => setChartType('Chain Mcaps')}>
-								Area
-							</OptionButton>
-						</AutoRow>
-					</RowBetween>
+					<Filters style={{ margin: '16px 16px 0' }} color={backgroundColor}>
+						<Denomination as="button" active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
+							Total Circ
+						</Denomination>
+						<Denomination as="button" active={chartType === 'Pie'} onClick={() => setChartType('Pie')}>
+							Pie
+						</Denomination>
+						<Denomination as="button" active={chartType === 'Dominance'} onClick={() => setChartType('Dominance')}>
+							Dominance
+						</Denomination>
+						<Denomination as="button" active={chartType === 'Chain Mcaps'} onClick={() => setChartType('Chain Mcaps')}>
+							Area
+						</Denomination>
+					</Filters>
+
 					{chartType === 'Mcap' && (
 						<AreaChart
 							title={`Total ${symbol} Circulating`}

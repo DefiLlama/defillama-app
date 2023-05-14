@@ -18,12 +18,11 @@ import {
 	ChartsWrapper,
 	LazyChart,
 	ChartsPlaceholder,
-	ChartWrapper
+	ß
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
-import { BreakpointPanel } from '~/components'
 import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {

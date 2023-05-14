@@ -118,7 +118,7 @@ export const SearchIcon = styled(Search)`
 
 export const TableFiltersWithInput = styled.div`
 	display: flex;
-	aling-items: center;
+	align-items: center;
 	gap: 8px;
 	flex-wrap: wrap;
 	margin: 0 0 -20px;

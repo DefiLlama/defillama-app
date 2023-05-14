@@ -146,15 +146,23 @@ export const DetailsTable = styled.table`
 		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
 	}
 
+	caption {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px;
+	}
+
 	th {
-		font-weight: 600;
+		font-weight: 400;
 		font-size: 1rem;
 		text-align: start;
+		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
 	}
 
 	td {
-		font-weight: 400;
-		font-size: 0.875rem;
+		font-weight: 600;
+		font-size: 1rem;
 		text-align: right;
 		font-family: var(--font-jetbrains);
 	}
