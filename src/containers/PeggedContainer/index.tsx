@@ -165,7 +165,36 @@ const Capitalize = (str) => {
 	return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-export default function PeggedContainer({
+export default function PeggedContainer(props) {
+	let {
+		name,
+
+		symbol
+	} = props.peggedAssetData
+
+	return (
+		<Layout
+			title={`${name}: Circulating and stats - DefiLlama`}
+			backgroundColor={transparentize(0.6, props.backgroundColor)}
+			style={{ gap: '48px' }}
+		>
+			<SEO cardName={name} token={name} logo={props.logo} tvl={formattedNum(props.mcap, true)?.toString()} />
+
+			<PeggedSearch
+				step={{
+					category: 'Stablecoin',
+					name: Capitalize(symbol),
+					route: 'stablecoins',
+					hideOptions: true
+				}}
+			/>
+
+			<PeggedAssetInfo {...props} />
+		</Layout>
+	)
+}
+
+export const PeggedAssetInfo = ({
 	chainsUnique,
 	chainCirculatings,
 	peggedAssetData,
@@ -174,7 +203,7 @@ export default function PeggedContainer({
 	mcap,
 	bridgeInfo,
 	backgroundColor
-}) {
+}) => {
 	let {
 		name,
 		onCoinGecko,
@@ -256,22 +285,7 @@ export default function PeggedContainer({
 	}
 
 	return (
-		<Layout
-			title={`${name}: Circulating and stats - DefiLlama`}
-			backgroundColor={transparentize(0.6, backgroundColor)}
-			style={{ gap: '48px' }}
-		>
-			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(mcap, true)?.toString()} />
-
-			<PeggedSearch
-				step={{
-					category: 'Stablecoin',
-					name: Capitalize(symbol),
-					route: 'stablecoins',
-					hideOptions: true
-				}}
-			/>
-
+		<>
 			<StatsSection>
 				<TabWrapper>
 					<TabContainer state={tab} className="tab-list" aria-label="Pegged Tabs">
@@ -546,6 +560,6 @@ export default function PeggedContainer({
 			</StatsSection>
 
 			<PeggedAssetByChainTable data={groupedChains} />
-		</Layout>
+		</>
 	)
 }

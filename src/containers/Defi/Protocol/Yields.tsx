@@ -25,9 +25,9 @@ export function ProtocolPools({ protocol, data }) {
 				</FlexRow>
 
 				{!poolsList && poolsList !== null && !error ? (
-					<p style={{ height: '360px', textAlign: 'center' }}>Loading...</p>
+					<p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
 				) : !poolsList ? (
-					<p style={{ height: '360px', textAlign: 'center' }}></p>
+					<p style={{ margin: '180px 0', textAlign: 'center' }}></p>
 				) : (
 					<YieldsPoolsTable data={poolsList} />
 				)}

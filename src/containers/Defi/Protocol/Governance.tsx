@@ -101,11 +101,7 @@ export function GovernanceData({ api }: { api: string }) {
 	const isLoading = !data && !error
 
 	if (isLoading) {
-		return (
-			<>
-				<p>Loading...</p>
-			</>
-		)
+		return <p style={{ margin: '180px 0 ', textAlign: 'center' }}>Loading...</p>
 	}
 
 	return data ? (

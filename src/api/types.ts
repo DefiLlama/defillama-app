@@ -38,6 +38,7 @@ export interface Protocol {
 	defillamaId?: number
 	treasury?: string
 	governanceID?: Array<string>
+	stablecoins?: Array<string>
 }
 
 // TODO cleanup

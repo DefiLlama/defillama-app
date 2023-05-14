@@ -62,6 +62,7 @@ import { GovernanceData } from './Governance'
 import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
 import { ProtocolPools } from './Yields'
 import { Flag } from './Flag'
+import { StablecoinInfo } from './Stablecoin'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
 
@@ -360,7 +361,8 @@ function ProtocolContainer({
 		isParentProtocol,
 		raises,
 		metrics,
-		isHourlyChart
+		isHourlyChart,
+		stablecoins
 	} = protocolData
 
 	const router = useRouter()
@@ -786,6 +788,11 @@ function ProtocolContainer({
 							{isCEX ? 'Assets' : 'TVL'}
 						</Tab>
 					)}
+					{stablecoins && stablecoins.length > 0 && (
+						<Tab id="stablecoin-info" color={backgroundColor}>
+							Stablecoin Info
+						</Tab>
+					)}
 					{metrics.bridge && (
 						<Tab id="bridge" color={backgroundColor}>
 							Bridge Info
@@ -1053,6 +1060,12 @@ function ProtocolContainer({
 								</>
 							)}
 						</ChartsWrapper>
+					</TabPanel>
+				)}
+
+				{stablecoins && stablecoins.length > 0 && (
+					<TabPanel state={tab} tabId="stablecoin-info">
+						<StablecoinInfo assetName={stablecoins[0]} />
 					</TabPanel>
 				)}
 

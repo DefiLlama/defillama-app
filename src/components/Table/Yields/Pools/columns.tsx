@@ -187,6 +187,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: false,
 		cell: ({ row }) => {
 			const configID = row.original.configID
+			if (!configID) return null
 			return (
 				<CustomLink href={`/yields/pool/${configID}`} target="_blank">
 					<ChartImage
