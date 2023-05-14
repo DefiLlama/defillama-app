@@ -309,7 +309,7 @@ interface IProtocolContainerProps {
 		revenue?: string | null
 		users?: string | null
 	}
-	tokenLiquidtity: Array<[string, string, number]>
+	tokenLiquidity: Array<[string, string, number]>
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
@@ -338,7 +338,7 @@ function ProtocolContainer({
 	expenses,
 	yields,
 	helperTexts,
-	tokenLiquidtity
+	tokenLiquidity
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -706,8 +706,8 @@ function ProtocolContainer({
 						</ProtocolStatsTable>
 					</div>
 
-					{tokenLiquidtity && tokenLiquidtity.length > 0 && (
-						<TokenLiquidityTable data={tokenLiquidtity} protocolName={protocolData.name} />
+					{tokenLiquidity && tokenLiquidity.length > 0 && (
+						<TokenLiquidityTable data={tokenLiquidity} protocolName={protocolData.name} />
 					)}
 
 					<>
@@ -776,6 +776,7 @@ function ProtocolContainer({
 					governanceApi={governanceApi}
 					isHourlyChart={isHourlyChart}
 					isCEX={isCEX}
+					tokenSymbol={symbol}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>

@@ -69,6 +69,10 @@ export default function AreaBarChart({
 			yAxisByIndex['Token Volume'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('Token Liquidity')) {
+			yAxisByIndex['Token Liquidity'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		if (stacks.includes('Bridge Deposits') || stacks.includes('Bridge Withdrawals')) {
 			yAxisByIndex['Bridge Deposits+Bridge Withdrawals'] =
 				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
@@ -269,6 +273,18 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Token Volume']
+						}
+					}
+				})
+			}
+
+			if (type === 'Token Liquidity') {
+				yAxiss.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Token Liquidity']
 						}
 					}
 				})

@@ -10,6 +10,7 @@ import {
 	useFetchProtocolGovernanceData,
 	useFetchProtocolMedianAPY,
 	useFetchProtocolNewUsers,
+	useFetchProtocolTokenLiquidity,
 	useFetchProtocolTransactions,
 	useFetchProtocolTreasury,
 	useGetProtocolEmissions
@@ -44,6 +45,7 @@ interface IProps {
 	governanceApi: string | null
 	isHourlyChart?: boolean
 	isCEX?: boolean
+	tokenSymbol?: string
 }
 
 const CHART_TYPES = [
@@ -51,6 +53,7 @@ const CHART_TYPES = [
 	'mcap',
 	'tokenPrice',
 	'tokenVolume',
+	'tokenLiquidity',
 	'fdv',
 	'volume',
 	'fees',
@@ -83,7 +86,8 @@ export default function ProtocolChart({
 	usdInflowsData,
 	governanceApi,
 	isHourlyChart,
-	isCEX
+	isCEX,
+	tokenSymbol
 }: IProps) {
 	const router = useRouter()
 
@@ -112,7 +116,8 @@ export default function ProtocolChart({
 		governance,
 		treasury,
 		bridgeVolume,
-		tokenVolume
+		tokenVolume,
+		tokenLiquidity
 	} = router.query
 
 	const DENOMINATIONS: Array<{ symbol: string; geckoId?: string | null }> = []
@@ -185,6 +190,9 @@ export default function ProtocolChart({
 	)
 	const { data: bridgeVolumeData, loading: fetchingBridgeVolume } = useFetchBridgeVolumeOnAllChains(
 		router.isReady && metrics.bridge && bridgeVolume === 'true' ? protocol : null
+	)
+	const { data: tokenLiquidityData, loading: fetchingTokenLiquidity } = useFetchProtocolTokenLiquidity(
+		router.isReady && metrics.tokenLiquidity && tokenLiquidity === 'true' ? tokenSymbol.toUpperCase() : null
 	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
@@ -465,6 +473,21 @@ export default function ProtocolChart({
 						: tokenVolume
 				}
 			}
+		}
+
+		if (tokenLiquidity === 'true' && tokenLiquidityData) {
+			chartsUnique.push('Token Liquidity')
+
+			tokenLiquidityData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item[0] * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Token Liquidity'] = showNonUsdDenomination
+					? item[1] / getPriceAtDate(date, denominationHistory.prices)
+					: item[1]
+			})
 		}
 
 		if (bridgeVolume === 'true' && bridgeVolumeData) {
@@ -775,7 +798,9 @@ export default function ProtocolChart({
 		emissions,
 		bridgeVolume,
 		bridgeVolumeData,
-		tokenVolume
+		tokenVolume,
+		tokenLiquidity,
+		tokenLiquidityData
 	])
 
 	const finalData = React.useMemo(() => {
@@ -804,6 +829,10 @@ export default function ProtocolChart({
 
 	if ((loading || fetchingFdv) && fdv === 'true') {
 		fetchingTypes.push('fdv')
+	}
+
+	if (fetchingTokenLiquidity) {
+		fetchingTypes.push('token liquidity')
 	}
 
 	if (fetchingBridgeVolume) {
@@ -867,7 +896,8 @@ export default function ProtocolChart({
 		fetchingGovernanceData ||
 		fetchingTreasury ||
 		fetchingEmissions ||
-		fetchingBridgeVolume
+		fetchingBridgeVolume ||
+		fetchingTokenLiquidity
 
 	const realPathname =
 		`/${isCEX ? 'cex' : 'protocol'}/${protocol}?` +
@@ -987,6 +1017,29 @@ export default function ProtocolChart({
 									<span>Token Volume</span>
 								</span>
 							</Toggle>
+
+							{metrics.tokenLiquidity && (
+								<Toggle backgroundColor={color}>
+									<input
+										type="checkbox"
+										value="tokenLiquidity"
+										checked={tokenLiquidity === 'true'}
+										onChange={() =>
+											router.push(
+												{
+													pathname: router.pathname,
+													query: { ...router.query, tokenLiquidity: tokenLiquidity === 'true' ? false : true }
+												},
+												undefined,
+												{ shallow: true }
+											)
+										}
+									/>
+									<span data-wrapper="true">
+										<span>Token Liquidity</span>
+									</span>
+								</Toggle>
+							)}
 
 							<Toggle backgroundColor={color}>
 								<input

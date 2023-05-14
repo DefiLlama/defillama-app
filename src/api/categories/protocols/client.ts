@@ -7,6 +7,7 @@ import {
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
 	PROTOCOL_TREASURY_API,
+	TOKEN_LIQUIDITY_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
@@ -97,6 +98,20 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 							return values && values.length > 0 ? values : null
 						})
 						.catch((err) => [])
+			: () => null
+	)
+
+	return { data, error, loading: !data && data !== null && !error }
+}
+export const useFetchProtocolTokenLiquidity = (token: string | null) => {
+	const { data, error } = useSWR(
+		`tokenLiquidity/${token}`,
+		token
+			? () =>
+					fetch(`${TOKEN_LIQUIDITY_API}/${token}`)
+						.then((res) => res.json())
+
+						.catch((err) => null)
 			: () => null
 	)
 

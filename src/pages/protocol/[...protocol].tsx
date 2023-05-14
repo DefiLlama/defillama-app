@@ -133,7 +133,8 @@ export const getStaticProps = withPerformanceLogging(
 			'Treasury',
 			'Bridge Deposits',
 			'Bridge Withdrawals',
-			'Token Volume'
+			'Token Volume',
+			'Token Liquidity'
 		]
 
 		const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
@@ -202,12 +203,20 @@ export const getStaticProps = withPerformanceLogging(
 			return agg
 		}, {} as any)
 
+		const tokenLiquidity = yieldsConfig
+			? Object.entries(liquidityAggregated)
+					.map((p) => Object.entries(p[1]).map((c) => [yieldsConfig.protocols[p[0]].name, c[0], c[1]]))
+					.flat()
+					.sort((a, b) => b[2] - a[2])
+			: []
+
 		return {
 			props: {
 				articles,
 				protocol,
 				protocolData: {
 					...protocolData,
+					symbol: protocolData.symbol ?? null,
 					metrics: {
 						...metrics,
 						fees: metrics.fees || dailyFees || allTimeFees ? true : false,
@@ -216,7 +225,8 @@ export const getStaticProps = withPerformanceLogging(
 						inflows: inflowsExist,
 						unlocks: emissions.includes(protocol),
 						bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
-						treasury: treasury?.tokenBreakdowns ? true : false
+						treasury: treasury?.tokenBreakdowns ? true : false,
+						tokenLiquidity: protocolData.symbol && tokenLiquidity.length > 0 ? true : false
 					}
 				},
 				backgroundColor,
@@ -266,12 +276,7 @@ export const getStaticProps = withPerformanceLogging(
 				},
 				expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null,
 				feesAndRevenueData,
-				tokenLiquidtity: yieldsConfig
-					? Object.entries(liquidityAggregated)
-							.map((p) => Object.entries(p[1]).map((c) => [yieldsConfig.protocols[p[0]].name, c[0], c[1]]))
-							.flat()
-							.sort((a, b) => b[2] - a[2])
-					: []
+				tokenLiquidity
 			},
 			revalidate: maxAgeForNext([22])
 		}

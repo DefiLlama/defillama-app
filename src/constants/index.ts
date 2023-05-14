@@ -102,6 +102,8 @@ export const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'
 export const USER_METRICS_CHAIN_API_BY_DATE = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/chain'
 export const USER_METRICS_ALL_API = 'https://users.llama.fi/all'
 
+export const TOKEN_LIQUIDITY_API = 'https://api.llama.fi/historicalLiquidity'
+
 export const RAISES_API = `https://api.llama.fi/raises`
 
 export const CG_TOKEN_API =
