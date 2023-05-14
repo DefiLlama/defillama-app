@@ -311,7 +311,8 @@ export const DialogForm = styled.form`
 	}
 
 	input,
-	textarea {
+	textarea,
+	select {
 		padding: 8px;
 		border-radius: 4px;
 		border: ${({ theme }) => '1px solid ' + theme.text4};

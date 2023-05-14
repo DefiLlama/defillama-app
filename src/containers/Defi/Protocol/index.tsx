@@ -749,6 +749,8 @@ function ProtocolContainer({
 					) : null}
 
 					{expenses && <Expenses data={expenses} protocolName={protocolData.name} />}
+
+					<Flag protocol={protocolData.name} />
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
