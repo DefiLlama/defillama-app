@@ -128,6 +128,30 @@ const ProtocolStatsTable = styled.table`
 		display: flex;
 		align-items: center;
 		gap: 4px;
+
+		div[data-tooltipanchor='true'] {
+			button {
+				opacity: 0;
+			}
+
+			button:focus-visible {
+				opacity: 1;
+			}
+		}
+
+		div[data-tooltipanchor='true']:focus-visible {
+			button {
+				opacity: 1;
+			}
+		}
+	}
+
+	th:hover {
+		div[data-tooltipanchor='true'] {
+			button {
+				opacity: 1;
+			}
+		}
 	}
 
 	td {
@@ -200,6 +224,22 @@ const Details = styled.details`
 				display: flex;
 				align-items: center;
 				gap: 8px;
+
+				div[data-tooltipanchor='true'] {
+					button {
+						opacity: 0;
+					}
+
+					button:focus-visible {
+						opacity: 1;
+					}
+				}
+
+				div[data-tooltipanchor='true']:focus-visible {
+					button {
+						opacity: 1;
+					}
+				}
 			}
 
 			& > *:nth-child(2) {
@@ -218,6 +258,20 @@ const Details = styled.details`
 		display: flex;
 		flex-direction: column;
 		gap: 16px;
+	}
+
+	:hover {
+		summary {
+			& > *[data-summaryheader] {
+				& > *:first-child {
+					div[data-tooltipanchor='true'] {
+						button {
+							opacity: 1;
+						}
+					}
+				}
+			}
+		}
 	}
 `
 
@@ -439,29 +493,6 @@ function ProtocolContainer({
 
 	const tab = useTabState({ defaultSelectedId })
 
-	const [showFlag, setFlag] = React.useState(false)
-
-	const mouseOver = () => {
-		setFlag(true)
-	}
-
-	const mouseOut = () => {
-		setFlag(false)
-	}
-
-	const onBlur = (event) => {
-		if (
-			event.target.getAttribute('name') !== 'message' &&
-			event.target.getAttribute('name') !== 'correctSource' &&
-			event.target.getAttribute('name') !== 'submit-btn' &&
-			event.target.getAttribute('role') !== 'dialog' &&
-			event.relatedTarget?.getAttribute('role') !== 'dialog' &&
-			!event.currentTarget.contains(event.relatedTarget)
-		) {
-			setFlag(false)
-		}
-	}
-
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO cardName={name} token={name} logo={tokenIconUrl(name)} tvl={formattedNum(totalVolume, true)?.toString()} />
@@ -504,13 +535,7 @@ function ProtocolContainer({
 					</OtherProtocols>
 				)}
 
-				<ProtocolDetailsWrapper
-					style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}
-					onMouseEnter={mouseOver}
-					onMouseLeave={mouseOut}
-					onFocus={mouseOver}
-					onBlur={onBlur}
-				>
+				<ProtocolDetailsWrapper style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
 					{scams.includes(name) && <p>There's been multiple hack reports in this protocol</p>}
 
 					<Name>
@@ -530,7 +555,7 @@ function ProtocolContainer({
 							<span data-summaryheader>
 								<span>
 									<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
-									{showFlag && <Flag protocol={protocolData.name} dataType={'TVL'} />}
+									<Flag protocol={protocolData.name} dataType={'TVL'} />
 								</span>
 								<span>{formattedNum(totalVolume || '0', true)}</span>
 							</span>
@@ -607,7 +632,7 @@ function ProtocolContainer({
 									<tr>
 										<th>
 											<span>Market Cap</span>
-											{showFlag && <Flag protocol={protocolData.name} dataType={'Market Cap'} />}
+											<Flag protocol={protocolData.name} dataType={'Market Cap'} />
 										</th>
 										<td>{formattedNum(tokenMcap, true)}</td>
 									</tr>
@@ -617,7 +642,7 @@ function ProtocolContainer({
 									<tr>
 										<th>
 											<span>Token Price</span>
-											{showFlag && <Flag protocol={protocolData.name} dataType={'Token Price'} />}
+											<Flag protocol={protocolData.name} dataType={'Token Price'} />
 										</th>
 										<td>${priceOfToken.toLocaleString('en-US', { maximumFractionDigits: 5 })}</td>
 									</tr>
@@ -627,7 +652,7 @@ function ProtocolContainer({
 									<tr>
 										<th>
 											<span>Fully Diluted Valuation</span>
-											{showFlag && <Flag protocol={protocolData.name} dataType={'FDV'} />}
+											<Flag protocol={protocolData.name} dataType={'FDV'} />
 										</th>
 										<td>{formattedNum(priceOfToken * tokenSupply, true)}</td>
 									</tr>
@@ -638,7 +663,7 @@ function ProtocolContainer({
 										<tr>
 											<th>
 												<span>Staked</span>
-												{showFlag && <Flag protocol={protocolData.name} dataType={'Staked'} />}
+												<Flag protocol={protocolData.name} dataType={'Staked'} />
 											</th>
 											<td>{formattedNum(stakedAmount, true)}</td>
 										</tr>
@@ -668,7 +693,7 @@ function ProtocolContainer({
 									<tr>
 										<th>
 											<span>Borrowed</span>
-											{showFlag && <Flag protocol={protocolData.name} dataType={'Borrowed'} />}
+											<Flag protocol={protocolData.name} dataType={'Borrowed'} />
 										</th>
 										<td>{formattedNum(borrowedAmount, true)}</td>
 									</tr>
@@ -684,7 +709,6 @@ function ProtocolContainer({
 								dailyValue={dailyVolume}
 								cumulativeValue={allTimeVolume}
 								protocolName={protocolData.name}
-								showFlag={showFlag}
 							/>
 						) : null}
 					</>
@@ -697,7 +721,6 @@ function ProtocolContainer({
 								helperText={helperTexts.fees}
 								cumulativeValue={allTimeFees}
 								protocolName={protocolData.name}
-								showFlag={showFlag}
 							/>
 						) : null}
 					</>
@@ -709,33 +732,23 @@ function ProtocolContainer({
 								dailyValue={dailyRevenue}
 								helperText={helperTexts.revenue}
 								protocolName={protocolData.name}
-								showFlag={showFlag}
 							/>
 						) : null}
 					</>
 
 					{users?.activeUsers ? (
-						<UsersTable
-							{...users}
-							helperText={helperTexts.users}
-							protocolName={protocolData.name}
-							showFlag={showFlag}
-						/>
+						<UsersTable {...users} helperText={helperTexts.users} protocolName={protocolData.name} />
 					) : null}
 
-					<>{treasury && <TreasuryTable data={treasury} protocolName={protocolData.name} showFlag={showFlag} />}</>
+					<>{treasury && <TreasuryTable data={treasury} protocolName={protocolData.name} />}</>
 
-					<>
-						{raises && raises.length > 0 && (
-							<Raised data={raises} protocolName={protocolData.name} showFlag={showFlag} />
-						)}
-					</>
+					<>{raises && raises.length > 0 && <Raised data={raises} protocolName={protocolData.name} />}</>
 
 					{controversialProposals && controversialProposals.length > 0 ? (
-						<TopProposals data={controversialProposals} protocolName={protocolData.name} showFlag={showFlag} />
+						<TopProposals data={controversialProposals} protocolName={protocolData.name} />
 					) : null}
 
-					{expenses && <Expenses data={expenses} protocolName={protocolData.name} showFlag={showFlag} />}
+					{expenses && <Expenses data={expenses} protocolName={protocolData.name} />}
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
@@ -1087,7 +1100,7 @@ function ProtocolContainer({
 	)
 }
 
-const Raised = ({ data, protocolName, showFlag }: { data: Array<IRaise>; protocolName: string; showFlag: boolean }) => {
+const Raised = ({ data, protocolName }: { data: Array<IRaise>; protocolName: string }) => {
 	const [open, setOpen] = React.useState(false)
 
 	return (
@@ -1099,7 +1112,7 @@ const Raised = ({ data, protocolName, showFlag }: { data: Array<IRaise>; protoco
 							<ChevronRight size={16} data-arrow />
 							<span>Total Raised</span>
 						</Toggle>
-						{(open || showFlag) && <Flag protocol={protocolName} dataType={'Raises'} />}
+						<Flag protocol={protocolName} dataType={'Raises'} />
 					</th>
 					<td>${formatRaisedAmount(data.reduce((sum, r) => sum + Number(r.amount), 0))}</td>
 				</tr>
@@ -1130,12 +1143,10 @@ const Raised = ({ data, protocolName, showFlag }: { data: Array<IRaise>; protoco
 
 const TopProposals = ({
 	data,
-	protocolName,
-	showFlag
+	protocolName
 }: {
 	data: Array<{ title: string; link?: string }>
 	protocolName: string
-	showFlag: boolean
 }) => {
 	const [open, setOpen] = React.useState(false)
 
@@ -1148,7 +1159,7 @@ const TopProposals = ({
 							<ChevronRight size={16} data-arrow />
 							<span>Top Controversial Proposals</span>
 						</Toggle>
-						{(open || showFlag) && <Flag protocol={protocolName} dataType={'Governance'} />}
+						<Flag protocol={protocolName} dataType={'Governance'} />
 					</th>
 				</tr>
 				{open && (
@@ -1175,12 +1186,10 @@ const TopProposals = ({
 
 const Expenses = ({
 	data,
-	protocolName,
-	showFlag
+	protocolName
 }: {
 	data: { headcount: number; annualUsdCost: { [key: string]: number }; sources: string[] }
 	protocolName: string
-	showFlag: boolean
 }) => {
 	const [open, setOpen] = React.useState(false)
 
@@ -1193,7 +1202,7 @@ const Expenses = ({
 							<ChevronRight size={16} data-arrow />
 							<span>Annual operational expenses</span>
 						</Toggle>
-						{(open || showFlag) && <Flag protocol={protocolName} dataType={'Expenses'} />}
+						<Flag protocol={protocolName} dataType={'Expenses'} />
 					</th>
 					<td>
 						{formattedNum(
@@ -1234,15 +1243,7 @@ const Expenses = ({
 	)
 }
 
-const TreasuryTable = ({
-	data,
-	protocolName,
-	showFlag
-}: {
-	data: { [category: string]: number }
-	protocolName: string
-	showFlag: boolean
-}) => {
+const TreasuryTable = ({ data, protocolName }: { data: { [category: string]: number }; protocolName: string }) => {
 	const [open, setOpen] = React.useState(false)
 
 	return (
@@ -1254,7 +1255,7 @@ const TreasuryTable = ({
 							<ChevronRight size={16} data-arrow />
 							<span>Treasury</span>
 						</Toggle>
-						{(open || showFlag) && <Flag protocol={protocolName} dataType={'Treasury'} />}
+						<Flag protocol={protocolName} dataType={'Treasury'} />
 					</th>
 					<td>
 						{formattedNum(
@@ -1286,15 +1287,13 @@ const AnnualizedMetric = ({
 	dailyValue,
 	cumulativeValue,
 	helperText,
-	protocolName,
-	showFlag
+	protocolName
 }: {
 	name: string
 	dailyValue: number
 	cumulativeValue?: number | null
 	helperText?: string
 	protocolName: string
-	showFlag: boolean
 }) => {
 	const [open, setOpen] = React.useState(false)
 
@@ -1308,7 +1307,7 @@ const AnnualizedMetric = ({
 							<span>{`${name} (annualized)`}</span>
 							{helperText && <QuestionHelper text={helperText} />}
 						</Toggle>
-						{(open || showFlag) && <Flag protocol={protocolName} dataType={name} />}
+						<Flag protocol={protocolName} dataType={name} />
 					</th>
 					<td>{formattedNum(dailyValue * 365, true)}</td>
 				</tr>
@@ -1339,8 +1338,7 @@ const UsersTable = ({
 	transactions,
 	gasUsd,
 	helperText,
-	protocolName,
-	showFlag
+	protocolName
 }: {
 	activeUsers: number | null
 	newUsers: number | null
@@ -1348,7 +1346,6 @@ const UsersTable = ({
 	gasUsd: number | null
 	helperText?: string
 	protocolName: string
-	showFlag: boolean
 }) => {
 	const [open, setOpen] = React.useState(false)
 
@@ -1362,7 +1359,7 @@ const UsersTable = ({
 							<span>Active Addresses 24h</span>
 							{helperText && <QuestionHelper text={helperText} />}
 						</Toggle>
-						{(open || showFlag) && <Flag protocol={protocolName} dataType="Users" />}
+						<Flag protocol={protocolName} dataType="Users" />
 					</th>
 					<td>{formattedNum(activeUsers, false)}</td>
 				</tr>
@@ -1446,6 +1443,16 @@ const StatsTable2 = styled(ProtocolStatsTable)`
 	a {
 		text-decoration: underline;
 		text-decoration-color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
+	}
+
+	:hover {
+		th {
+			div[data-tooltipanchor='true'] {
+				button {
+					opacity: 1;
+				}
+			}
+		}
 	}
 `
 

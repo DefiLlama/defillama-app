@@ -84,7 +84,7 @@ export function Tooltip2({ content, children, color, fontSize, anchorStyles, ...
 
 	return (
 		<>
-			<TooltipAnchor2 state={tooltip} color={color} fontSize={fontSize} style={anchorStyles}>
+			<TooltipAnchor2 state={tooltip} color={color} fontSize={fontSize} style={anchorStyles} data-tooltipanchor>
 				{children}
 			</TooltipAnchor2>
 			<Popover2 state={tooltip} {...props}>
