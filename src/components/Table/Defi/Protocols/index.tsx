@@ -7,7 +7,9 @@ import {
 	ExpandedState,
 	getExpandedRowModel,
 	ColumnOrderState,
-	ColumnSizingState
+	ColumnSizingState,
+	ColumnFiltersState,
+	getFilteredRowModel
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
 import {
@@ -23,6 +25,7 @@ import {
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
+import { SearchIcon, TableFiltersWithInput } from '../../shared'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -90,6 +93,102 @@ export function ProtocolsTable({
 	}, [windowSize, instance])
 
 	return <VirtualTable instance={instance} />
+}
+
+export function ProtocolsTableWithSearch({
+	data,
+	addlColumns,
+	removeColumns
+}: {
+	data: Array<IProtocolRow>
+	addlColumns?: Array<string>
+	removeColumns?: Array<string>
+}) {
+	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
+	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+
+	const [expanded, setExpanded] = React.useState<ExpandedState>({})
+	const windowSize = useWindowSize()
+
+	const columnsData = React.useMemo(
+		() =>
+			addlColumns || removeColumns
+				? [
+						...protocolsColumns.filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
+						...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
+				  ]
+				: protocolsColumns,
+		[addlColumns, removeColumns]
+	)
+
+	const instance = useReactTable({
+		data,
+		columns: columnsData,
+		state: {
+			sorting,
+			expanded,
+			columnOrder,
+			columnSizing,
+			columnFilters
+		},
+		onExpandedChange: setExpanded,
+		getSubRows: (row: IProtocolRow) => row.subRows,
+		onSortingChange: setSorting,
+		onColumnOrderChange: setColumnOrder,
+		onColumnSizingChange: setColumnSizing,
+		onColumnFiltersChange: setColumnFilters,
+		getFilteredRowModel: getFilteredRowModel(),
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getExpandedRowModel: getExpandedRowModel()
+	})
+
+	React.useEffect(() => {
+		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
+
+		const order = windowSize.width
+			? columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			: defaultOrder
+
+		const cSize = windowSize.width
+			? columnSizesKeys.find((size) => windowSize.width > Number(size))
+			: columnSizesKeys[0]
+
+		instance.setColumnSizing(columnSizes[cSize])
+
+		instance.setColumnOrder(order)
+	}, [windowSize, instance])
+
+	const [projectName, setProjectName] = React.useState('')
+
+	React.useEffect(() => {
+		const columns = instance.getColumn('name')
+
+		const id = setTimeout(() => {
+			columns.setFilterValue(projectName)
+		}, 200)
+
+		return () => clearTimeout(id)
+	}, [projectName, instance])
+
+	return (
+		<>
+			<TableFiltersWithInput>
+				<SearchIcon size={16} />
+
+				<input
+					value={projectName}
+					onChange={(e) => {
+						setProjectName(e.target.value)
+					}}
+					placeholder="Search protocols..."
+				/>
+			</TableFiltersWithInput>
+			<VirtualTable instance={instance} />
+		</>
+	)
 }
 
 export function RecentlyListedProtocolsTable({ data }: { data: Array<IProtocolRow> }) {

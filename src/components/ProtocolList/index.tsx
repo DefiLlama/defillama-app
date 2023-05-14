@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { Header } from '~/Theme'
-import { ProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { IParentProtocol } from '~/api/types'
@@ -8,6 +7,7 @@ import { formatProtocolsList } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { DownloadIcon } from '..'
 import { DownloadButton } from '~/containers/Raises'
+import { ProtocolsTableWithSearch } from '../Table/Defi/Protocols'
 
 interface IAllTokensPageProps {
 	title?: string
@@ -80,18 +80,22 @@ function ProtocolList({
 				}}
 			/>
 
-			<div style={{display:"flex", gap:"8px"}}>
-			<Header>{title}</Header>
+			<div style={{ display: 'flex', gap: '8px' }}>
+				<Header>{title}</Header>
 
-			{csvDownload === true && 
-				<a href={`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)
-				.filter((t) => t[1] === true)
-				.map((t) => `${t[0]}=true`)
-				.join('&')}`}>
-				<DownloadButton>
-					<DownloadIcon />
-					<span>&nbsp;&nbsp;.csv</span>
-				</DownloadButton></a>}
+				{csvDownload === true && (
+					<a
+						href={`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)
+							.filter((t) => t[1] === true)
+							.map((t) => `${t[0]}=true`)
+							.join('&')}`}
+					>
+						<DownloadButton>
+							<DownloadIcon />
+							<span>&nbsp;&nbsp;.csv</span>
+						</DownloadButton>
+					</a>
+				)}
 			</div>
 
 			{showChainList && (
@@ -100,7 +104,7 @@ function ProtocolList({
 				</RowLinksWrapper>
 			)}
 
-			<ProtocolsTable
+			<ProtocolsTableWithSearch
 				data={protocolTotals}
 				addlColumns={
 					category === 'Lending' || category === 'Undercollateralized Lending'

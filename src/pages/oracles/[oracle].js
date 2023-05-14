@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
-import { ProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { formatChartTvlsByDay } from '~/hooks/data'
@@ -12,6 +11,7 @@ import { getOraclePageData } from '~/api/categories/protocols'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
+import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -104,7 +104,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
 				<RowLinksWithDropdown links={tokenLinks} activeLink={token} />
 			</RowLinksWrapper>
 
-			<ProtocolsTable data={protocolsData} />
+			<ProtocolsTableWithSearch data={protocolsData} />
 		</>
 	)
 }
