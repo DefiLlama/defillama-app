@@ -7,7 +7,19 @@ import { getYieldPageData } from '~/api/categories/yield'
 
 export function ProtocolPools({ protocol, data }) {
 	const { data: poolsList, error } = useSWR('yields-pools-list', () =>
-		getYieldPageData().then((res) => res?.props?.pools?.filter((p) => p.project === protocol && p.apy > 0) ?? null)
+		getYieldPageData().then(
+			(res) =>
+				res?.props?.pools
+					?.filter((p) => p.project === protocol && p.apy > 0)
+					.map((i) => ({
+						...i,
+						tvl: i.tvlUsd,
+						pool: i.symbol,
+						configID: i.pool,
+						chains: [i.chain],
+						project: i.projectName
+					})) ?? null
+		)
 	)
 
 	return (
