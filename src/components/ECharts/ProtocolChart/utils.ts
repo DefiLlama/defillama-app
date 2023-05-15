@@ -12,6 +12,5 @@ export const BAR_CHARTS = [
 	'Max Votes',
 	'Bridge Deposits',
 	'Bridge Withdrawals',
-	'Token Volume',
-	'Token Liquidity'
+	'Token Volume'
 ]
