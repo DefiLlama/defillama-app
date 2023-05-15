@@ -180,7 +180,7 @@ export default function ProtocolChart({
 		router.isReady && medianApy === 'true' && metrics.medianApy ? protocol : null
 	)
 	const { data: governanceData, loading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
-		router.isReady && governance === 'true' ? governanceApi : null
+		router.isReady && governance === 'true' && governanceApi ? governanceApi : null
 	)
 	const { data: treasuryData, loading: fetchingTreasury } = useFetchProtocolTreasury(
 		router.isReady && metrics.treasury && treasury === 'true' ? protocol : null

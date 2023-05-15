@@ -160,6 +160,10 @@ export const useFetchProtocolGovernanceData = (governanceApi: string | null) => 
 							}) => {
 								const { activity, maxVotes } = formatGovernanceData(data as any)
 
+								if (activity.length === 0 && maxVotes.length === 0) {
+									return null
+								}
+
 								return { activity, maxVotes }
 							}
 						)
