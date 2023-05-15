@@ -64,7 +64,7 @@ import { ProtocolPools } from './Yields'
 import { Flag } from './Flag'
 import { StablecoinInfo } from './Stablecoin'
 
-const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
+const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance', 'SatoshiCoreSwap']
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
