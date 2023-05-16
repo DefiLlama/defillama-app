@@ -64,7 +64,15 @@ import { ProtocolPools } from './Yields'
 import { Flag } from './Flag'
 import { StablecoinInfo } from './Stablecoin'
 
-const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance', 'SatoshiCoreSwap']
+const scams = [
+	'Drachma Exchange',
+	'StableDoin',
+	'CroLend Finance',
+	'Agora',
+	'MinerSwap',
+	'Mosquitos Finance',
+	'SatoshiCoreSwap'
+]
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -707,7 +715,7 @@ function ProtocolContainer({
 					</div>
 
 					{tokenLiquidity && tokenLiquidity.length > 0 && (
-						<TokenLiquidityTable data={tokenLiquidity} protocolName={protocolData.name} />
+						<TokenLiquidityTable data={tokenLiquidity} protocolName={protocolData.name} symbol={symbol} />
 					)}
 
 					<>
@@ -1415,10 +1423,12 @@ const UsersTable = ({
 
 const TokenLiquidityTable = ({
 	data,
-	protocolName
+	protocolName,
+	symbol
 }: {
 	data: Array<[string, string, number]>
 	protocolName: string
+	symbol: string
 }) => {
 	const [open, setOpen] = React.useState(false)
 
@@ -1431,7 +1441,7 @@ const TokenLiquidityTable = ({
 					<th>
 						<Toggle onClick={() => setOpen(!open)} data-open={open}>
 							<ChevronRight size={16} data-arrow />
-							<span>DEX Liquidity</span>
+							<span>{`${symbol} Liquidity`}</span>
 						</Toggle>
 						<Flag protocol={protocolName} dataType="Token Liquidity" />
 					</th>
