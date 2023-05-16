@@ -993,7 +993,7 @@ export default function ProtocolChart({
 									}
 								/>
 								<span data-wrapper="true">
-									<span>Token Price</span>
+									<span>{tokenSymbol} Price</span>
 								</span>
 							</Toggle>
 
@@ -1014,7 +1014,7 @@ export default function ProtocolChart({
 									}
 								/>
 								<span data-wrapper="true">
-									<span>Token Volume</span>
+									<span>{tokenSymbol} Volume</span>
 								</span>
 							</Toggle>
 
@@ -1036,7 +1036,7 @@ export default function ProtocolChart({
 										}
 									/>
 									<span data-wrapper="true">
-										<span>Token Liquidity</span>
+										<span>{tokenSymbol} Liquidity</span>
 									</span>
 								</Toggle>
 							)}
