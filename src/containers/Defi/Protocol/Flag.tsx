@@ -5,7 +5,7 @@ import { FormSubmitBtn } from '~/components'
 import { DialogForm } from '~/components/Filters/common/Base'
 import { Tooltip2 } from '~/components/Tooltip'
 
-export function Flag({ protocol, dataType }: { protocol: string; dataType?: string }) {
+export function Flag({ protocol, dataType, isLending }: { protocol: string; dataType?: string; isLending?: boolean }) {
 	const [loading, setLoading] = useState(false)
 	const dialog = useDialogState()
 
@@ -50,6 +50,11 @@ export function Flag({ protocol, dataType }: { protocol: string; dataType?: stri
 			)}
 
 			<Dialog state={dialog} className="dialog">
+				{isLending && (
+					<p style={{ textAlign: 'center', color: 'red' }}>
+						For lending protocols TVL doesn't include borrowed coins by default
+					</p>
+				)}
 				<DialogForm onSubmit={onSubmit} data-variant="secondary">
 					<label>
 						<span>Protocol</span>

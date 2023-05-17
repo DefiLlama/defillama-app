@@ -567,7 +567,7 @@ function ProtocolContainer({
 							<span data-summaryheader>
 								<span>
 									<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
-									<Flag protocol={protocolData.name} dataType={'TVL'} />
+									<Flag protocol={protocolData.name} dataType={'TVL'} isLending={category === 'Lending'} />
 								</span>
 								<span>{formattedNum(totalVolume || '0', true)}</span>
 							</span>
@@ -766,7 +766,7 @@ function ProtocolContainer({
 
 					{expenses && <Expenses data={expenses} protocolName={protocolData.name} />}
 
-					<Flag protocol={protocolData.name} />
+					<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
