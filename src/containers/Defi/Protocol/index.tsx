@@ -1291,7 +1291,7 @@ const TreasuryTable = ({ data, protocolName }: { data: { [category: string]: num
 					</th>
 					<td>
 						{formattedNum(
-							Object.values(data).reduce((acc, curr) => (acc += curr), 0),
+							Object.entries(data).reduce((acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]), 0),
 							true
 						)}
 					</td>
