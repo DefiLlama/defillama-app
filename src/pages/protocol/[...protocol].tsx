@@ -26,12 +26,13 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const [protocolRes, articles, emissions, expenses, treasuries, yields, yieldsConfig]: [
+		const [protocolRes, articles, emissions, expenses, treasuries, yields, yieldsConfig, liquidityInfo]: [
 			IProtocolResponse,
 			IArticle[],
 			any,
 			any,
 			Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+			any,
 			any,
 			any
 		] = await Promise.all([
@@ -41,7 +42,8 @@ export const getStaticProps = withPerformanceLogging(
 			fetchWithPerformaceLogging(PROTOCOLS_EXPENSES_API),
 			fetchWithPerformaceLogging(PROTOCOLS_TREASURY),
 			fetchWithPerformaceLogging(YIELD_POOLS_API),
-			fetchWithPerformaceLogging(YIELD_CONFIG_API)
+			fetchWithPerformaceLogging(YIELD_CONFIG_API),
+			fetchWithPerformaceLogging('https://defillama-datasets.llama.fi/liquidity.json')
 		])
 
 		let inflowsExist = false
@@ -189,13 +191,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		// token liquidity
 		const tokenPools =
-			yields?.data && yieldsConfig && protocolData.symbol
-				? yields?.data?.filter(
-						(p) =>
-							yieldsConfig.protocols[p.project]?.category === 'Dexes' &&
-							p.symbol.toUpperCase().split('-').includes(protocolData.symbol.toUpperCase())
-				  )
-				: []
+			yields?.data && yieldsConfig ? liquidityInfo.find((p) => p.id === protocolData.id)?.tokenPools ?? [] : []
 
 		const liquidityAggregated = tokenPools.reduce((agg, pool) => {
 			if (!agg[pool.project]) agg[pool.project] = {}

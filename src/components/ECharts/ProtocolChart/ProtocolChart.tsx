@@ -46,6 +46,7 @@ interface IProps {
 	isHourlyChart?: boolean
 	isCEX?: boolean
 	tokenSymbol?: string
+	protocolId: string
 }
 
 const CHART_TYPES = [
@@ -87,7 +88,8 @@ export default function ProtocolChart({
 	governanceApi,
 	isHourlyChart,
 	isCEX,
-	tokenSymbol
+	tokenSymbol,
+	protocolId
 }: IProps) {
 	const router = useRouter()
 
@@ -192,7 +194,7 @@ export default function ProtocolChart({
 		router.isReady && metrics.bridge && bridgeVolume === 'true' ? protocol : null
 	)
 	const { data: tokenLiquidityData, loading: fetchingTokenLiquidity } = useFetchProtocolTokenLiquidity(
-		router.isReady && metrics.tokenLiquidity && tokenLiquidity === 'true' ? tokenSymbol.toUpperCase() : null
+		router.isReady && metrics.tokenLiquidity && tokenLiquidity === 'true' ? protocolId : null
 	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({

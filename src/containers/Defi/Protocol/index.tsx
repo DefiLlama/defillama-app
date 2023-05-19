@@ -785,6 +785,7 @@ function ProtocolContainer({
 					isHourlyChart={isHourlyChart}
 					isCEX={isCEX}
 					tokenSymbol={symbol}
+					protocolId={protocolData.id}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
