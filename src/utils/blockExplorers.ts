@@ -74,7 +74,8 @@ const blockExplorers = {
 	conflux: ['https://evm.confluxscan.net/address/', 'Conflux Scan'],
 	eos_evm: ['https://explorer.evm.eosnetwork.com/address/', 'EOS EVM Explorer'],
 	thorchain: ['https://thorchain.net/address/', 'Thorchain Explorer'],
-	sui: ['https://suiscan.xyz/mainnet/object/', 'Suiscan']
+	sui: ['https://suiscan.xyz/mainnet/object/', 'Suiscan'],
+	pulse: ['https://scan.pulsechain.com/address/', 'PulseChain Scan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
