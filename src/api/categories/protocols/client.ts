@@ -108,7 +108,7 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 		`tokenLiquidity/${token}`,
 		token
 			? () =>
-					fetch(`${TOKEN_LIQUIDITY_API}/${token}`)
+					fetch(`${TOKEN_LIQUIDITY_API}/${token.replaceAll("#", "$")}`)
 						.then((res) => res.json())
 
 						.catch((err) => null)
