@@ -136,6 +136,8 @@ export default function BarChart({
 
 		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, legend, dataZoom } = defaultChartSettings
 
+		console.log(dataZoom)
+
 		chartInstance.setOption({
 			graphic: {
 				...graphic
@@ -161,7 +163,7 @@ export default function BarChart({
 					data: stackKeys
 				}
 			}),
-			dataZoom: [...dataZoom.map((item) => ({ ...item, filterMode: 'none' }))],
+			dataZoom: [...dataZoom.map((item) => ({ ...item }))],
 			series
 		})
 
