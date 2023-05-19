@@ -818,7 +818,12 @@ export const chainCoingeckoIds = {
 		geckoId: 'filecoin',
 		symbol: 'FIL',
 		cmcId: '2280'
-  }
+	},
+	Pulse: {
+		geckoId: 'pulsechain',
+		symbol: 'PLS',
+		cmcId: null
+	}
 }
 
 export const chainMarketplaceMappings = {
