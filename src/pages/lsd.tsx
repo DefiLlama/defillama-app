@@ -207,7 +207,9 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	const stakedEthInUsdSum = tokenTvls.reduce((sum, a) => sum + a.stakedEthInUsd, 0)
 	const tokensList = tokenTvls.map((p) => {
 		const priceInfo = lsdRates.marketRates?.find(
-			(i) => i.sellTokenAddress?.toLowerCase() === lsdRates.expectedRates.find((r) => r.name === p.name)?.address
+			(i) =>
+				i.sellTokenAddress?.toLowerCase() ===
+				lsdRates.expectedRates.find((r) => r.name === p.name)?.address.toLowerCase()
 		)
 		const expectedInfo = lsdRates.expectedRates.find((r) => r.name === p.name)
 
