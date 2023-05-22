@@ -11,7 +11,7 @@ import { getChainsPageData, getOverviewItemPageData, getChainPageData as getFees
 
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params, ...rest }) => {
+export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params }) => {
 	const chain = params.chain
 
 	const [data, volumeData, chainVolumeData, feesData, usersData, txsData, chainFeesData, bridgeData, stablecoinsData] =

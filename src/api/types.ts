@@ -69,7 +69,7 @@ export interface IChainTvl {
 	}
 }
 
-interface ITvlsWithChangesByChain {
+export interface ITvlsWithChangesByChain {
 	[key: string]: {
 		tvl: number | null
 		tvlPrevDay: number | null

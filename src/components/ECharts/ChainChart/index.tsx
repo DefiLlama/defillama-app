@@ -25,6 +25,28 @@ const colors = {
 	bridges: '#ffb12b'
 }
 
+const colorsArray = [
+	...Object.values(colors),
+	'#00ffff',
+	'#ffff00',
+	'#8000ff',
+	'#00ff00',
+	'#00ff80',
+	'#0080ff',
+	'#ff8000',
+	'#0000ff',
+	'#ff0000',
+	'#ff00ff',
+	'#80ff00',
+	'#ff0080'
+]
+
+const initGetColor = () => {
+	let colorOffset = 0
+
+	return (isCompare) => (isCompare ? colorsArray[colorOffset++] : null)
+}
+
 // TODO remove color prop and use stackColors by default
 export default function AreaChart({
 	chartData,
@@ -41,20 +63,23 @@ export default function AreaChart({
 	expandTo100Percent = false,
 	isStackedChart,
 	hideGradient = false,
-	volumeData,
-	feesData,
-	priceData,
-	usersData,
-	txsData,
-	raisesData,
-	totalStablesData,
-	bridgeData,
+	volumeData = [],
+	feesData = [],
+	priceData = [],
+	usersData = [],
+	txsData = [],
+	raisesData = [],
+	totalStablesData = [],
+	bridgeData = [],
 	denomination,
 	updateRoute,
-	route,
+	datasets = [],
+	router,
 	...props
 }) {
 	const id = useMemo(() => uuid(), [])
+	const { query: route, pathname } = router
+	const isCompare = pathname?.includes('compare')
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 
@@ -65,7 +90,7 @@ export default function AreaChart({
 	const defaultChartSettings = useDefaults({
 		color,
 		title,
-		valueSymbol: denomination,
+		valueSymbol: denomination || 'USD',
 		tooltipSort,
 		hideLegend: true,
 		isStackedChart
@@ -89,211 +114,218 @@ export default function AreaChart({
 	})
 
 	const [series, activeSeries] = useMemo(() => {
+		const getColor = initGetColor()
 		const series = []
+		datasets.forEach((data, i) => {
+			const namePrefix = isCompare ? data?.chain + ' ' : ''
 
-		if (route.tvl !== 'false') {
-			series.push({
-				name: 'TVL',
-				chartId: 'TVL',
-				type: 'line',
-				yAxisIndex: 0,
-				emphasis: {
-					focus: 'series',
-					shadowBlur: 10
-				},
-				symbol: 'none',
-				itemStyle: {
-					color: colors.tvl
-				},
-				areaStyle: {
-					color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-						{
-							offset: 0,
-							color: colors.tvl
-						},
-						{
-							offset: 1,
-							color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-						}
+			if (route.tvl !== 'false') {
+				const color = getColor(isCompare) || colors.tvl
+				series.push({
+					name: namePrefix + 'TVL',
+					chartId: 'TVL',
+					type: 'line',
+					yAxisIndex: 0,
+					emphasis: {
+						focus: 'series',
+						shadowBlur: 10
+					},
+					symbol: 'none',
+					itemStyle: {
+						color
+					},
+					areaStyle: {
+						color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+							{
+								offset: 0,
+								color
+							},
+							{
+								offset: 1,
+								color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+							}
+						])
+					},
+					data: [],
+					show: true
+				} as Record<string, any>)
+				data?.globalChart.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+			if (route.volume === 'true' && data?.volumeChart) {
+				series.push({
+					name: namePrefix + 'Volume',
+					chartId: 'Volume',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 1,
+					show: route.volume === 'true',
+					itemStyle: {
+						color: getColor(isCompare) || colors.volume
+					}
+				})
+				data?.volumeChart.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+
+			if (route.fees === 'true' && data?.feesChart) {
+				series.push({
+					name: namePrefix + 'Fees',
+					chartId: 'Fees',
+					type: 'bar',
+
+					data: [],
+					yAxisIndex: 2,
+					itemStyle: {
+						color: getColor(isCompare) || colors.fees
+					}
+				})
+				data?.feesChart.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+
+			if (route.revenue === 'true' && data?.feesChart) {
+				series.push({
+					name: namePrefix + 'Revenue',
+					chartId: 'Revenue',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 3,
+					itemStyle: {
+						color: getColor(isCompare) || colors.revenue
+					}
+				})
+				data?.feesChart.forEach(([date, _, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+
+			if (route.price === 'true' && data?.priceData && denomination === 'USD') {
+				series.push({
+					name: namePrefix + 'Price',
+					chartId: 'Price',
+					symbol: 'none',
+					type: 'line',
+					data: [],
+					yAxisIndex: 4,
+					itemStyle: {
+						color: getColor(isCompare) || colors.price
+					}
+				})
+				data?.priceData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+
+			if (route.users === 'true' && data?.usersData?.length > 0) {
+				series.push({
+					name: namePrefix + 'Active Users',
+					chartId: 'Active Users',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 5,
+					itemStyle: {
+						color: getColor(isCompare) || colors.activeUsers
+					}
+				})
+				data?.usersData.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+
+			if (route.raises === 'true' && data?.raisesData) {
+				series.push({
+					name: 'Raises',
+					chartId: 'Raises',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 6,
+					itemStyle: {
+						color: getColor(isCompare) || colors.raises
+					}
+				})
+
+				data?.globalChart.forEach(([date, value]) => {
+					series[series.length - 1].data.push([
+						getUtcDateObject(date),
+						(data?.raisesData[getUtcDateObject(date) as any] || 0) * 1e6
 					])
-				},
-				data: [],
-				show: true
-			} as Record<string, any>)
-			chartData.forEach(([date, value]) => {
-				series[series.length - 1].data.push([getUtcDateObject(date), value])
-			})
-		}
-		if (route.volume === 'true' && volumeData) {
-			series.push({
-				name: 'Volume',
-				chartId: 'Volume',
-				type: 'bar',
-				data: [],
-				yAxisIndex: 1,
-				show: route.volume === 'true',
-				itemStyle: {
-					color: colors.volume
-				}
-			})
-			volumeData.forEach(([date, value]) => {
-				series[series.length - 1].data.push([getUtcDateObject(date), value])
-			})
-		}
+				})
+			}
 
-		if (route.fees === 'true' && feesData) {
-			series.push({
-				name: 'Fees',
-				chartId: 'Fees',
-				type: 'bar',
-				data: [],
-				yAxisIndex: 2,
-				itemStyle: {
-					color: colors.fees
-				}
-			})
-			feesData.forEach(([date, value]) => {
-				series[series.length - 1].data.push([getUtcDateObject(date), value])
-			})
-		}
+			if (route.stables === 'true' && data?.totalStablesData) {
+				series.push({
+					name: namePrefix + 'Stablecoins Mcap',
+					chartId: 'Stablecoins Mcap',
+					symbol: 'none',
+					type: 'line',
+					data: [],
+					yAxisIndex: 7,
+					itemStyle: {
+						color: getColor(isCompare) || colors.stablecoins
+					}
+				})
+				data?.totalStablesData.forEach((data) => {
+					series[series.length - 1].data.push([getUtcDateObject(data.date), data.Mcap])
+				})
+			}
 
-		if (route.revenue === 'true' && feesData) {
-			series.push({
-				name: 'Revenue',
-				chartId: 'Revenue',
-				type: 'bar',
-				data: [],
-				yAxisIndex: 3,
-				itemStyle: {
-					color: colors.revenue
-				}
-			})
-			feesData.forEach(([date, _, value]) => {
-				series[series.length - 1].data.push([getUtcDateObject(date), value])
-			})
-		}
+			if (route.txs === 'true' && data?.txsData?.length > 0) {
+				series.push({
+					name: namePrefix + 'Transactions',
+					chartId: 'Transactions',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 8,
+					itemStyle: {
+						color: getColor(isCompare) || colors.transactions
+					}
+				})
+				data?.txsData.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
 
-		if (route.price === 'true' && priceData && denomination === 'USD') {
-			series.push({
-				name: 'Price',
-				chartId: 'Price',
-				symbol: 'none',
-				type: 'line',
-				data: [],
-				yAxisIndex: 4,
-				itemStyle: {
-					color: colors.price
-				}
-			})
-			priceData.forEach(([date, value]) => {
-				if (Number(date) > Number(chartData[0][0])) series[series.length - 1].data.push([getUtcDateObject(date), value])
-			})
-		}
+			if (route.inflows === 'true' && data?.bridgeData && data?.bridgeData?.length > 0) {
+				series.push({
+					name: namePrefix + 'Inflows',
+					chartId: 'Inflows',
+					type: 'bar',
+					stack: 'bridge',
+					data: [],
+					yAxisIndex: 9,
+					itemStyle: {
+						color: getColor(isCompare) || colors.bridges
+					}
+				})
+				data?.bridgeData.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
 
-		if (route.users === 'true' && usersData?.length > 0) {
-			series.push({
-				name: 'Active Users',
-				chartId: 'Active Users',
-				type: 'bar',
-				data: [],
-				yAxisIndex: 5,
-				itemStyle: {
-					color: colors.activeUsers
-				}
-			})
-			usersData.forEach(([date, value]) => {
-				series[series.length - 1].data.push([getUtcDateObject(date), value])
-			})
-		}
+				series.push({
+					name: namePrefix + 'Outflows',
+					chartId: 'Inflows',
+					type: 'bar',
+					stack: 'bridge',
+					data: [],
+					yAxisIndex: 9,
+					itemStyle: {
+						color: getColor(isCompare) || colors.bridges
+					}
+				})
+				data?.bridgeData.forEach(([date, _, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+		})
 
-		if (route.raises === 'true' && raisesData) {
-			series.push({
-				name: 'Raises',
-				chartId: 'Raises',
-				type: 'bar',
-				data: [],
-				yAxisIndex: 6,
-				itemStyle: {
-					color: colors.raises
-				}
-			})
-
-			chartData.forEach(([date, value]) => {
-				series[series.length - 1].data.push([
-					getUtcDateObject(date),
-					(raisesData[getUtcDateObject(date) as any] || 0) * 1e6
-				])
-			})
-		}
-
-		if (route.stables === 'true' && totalStablesData) {
-			series.push({
-				name: 'Stablecoins Mcap',
-				chartId: 'Stablecoins Mcap',
-				symbol: 'none',
-				type: 'line',
-				data: [],
-				yAxisIndex: 7,
-				itemStyle: {
-					color: colors.stablecoins
-				}
-			})
-			totalStablesData.forEach((data) => {
-				series[series.length - 1].data.push([getUtcDateObject(data.date), data.Mcap])
-			})
-		}
-
-		if (route.txs === 'true' && txsData?.length > 0) {
-			series.push({
-				name: 'Transactions',
-				chartId: 'Transactions',
-				type: 'bar',
-				data: [],
-				yAxisIndex: 8,
-				itemStyle: {
-					color: colors.transactions
-				}
-			})
-			usersData.forEach(([date, value]) => {
-				series[series.length - 1].data.push([getUtcDateObject(date), value])
-			})
-		}
-
-		if (route.inflows === 'true' && bridgeData && bridgeData?.length > 0) {
-			series.push({
-				name: 'Inflows',
-				chartId: 'Inflows',
-				type: 'bar',
-				stack: 'bridge',
-				data: [],
-				yAxisIndex: 9,
-				itemStyle: {
-					color: colors.bridges
-				}
-			})
-			bridgeData.forEach(([date, value]) => {
-				series[series.length - 1].data.push([getUtcDateObject(date), value])
-			})
-
-			series.push({
-				name: 'Outflows',
-				chartId: 'Inflows',
-				type: 'bar',
-				stack: 'bridge',
-				data: [],
-				yAxisIndex: 9,
-				itemStyle: {
-					color: colors.bridges
-				}
-			})
-			bridgeData.forEach(([date, _, value]) => {
-				series[series.length - 1].data.push([getUtcDateObject(date), value])
-			})
-		}
-
-		return [series, uniq(series.map((val) => val.chartId))]
+		return [series.reverse(), uniq(series.map((val) => val.chartId))]
 	}, [
-		chartData,
+		datasets,
 		chartsStack,
 		color,
 		customLegendName,
@@ -419,7 +451,7 @@ export default function AreaChart({
 
 					axisLabel: {
 						...yAxis.axisLabel,
-						color: () => Object.values(colors)[i]
+						color: () => (isCompare ? '#fff' : Object.values(colors)[i])
 					}
 				}
 			}),

@@ -524,15 +524,21 @@ function GlobalPage({
 					) : (
 						<ChainChart
 							height="360px"
-							chartData={finalTvlChart}
-							volumeData={finalVolumeChart}
-							feesData={finalFeesChart}
-							priceData={priceHistory}
-							raisesData={raisesChart}
-							totalStablesData={peggedAreaTotalData}
-							bridgeData={bridgeChartData}
-							usersData={usersData}
-							txsData={txsData}
+							datasets={[
+								{
+									feesChart: finalFeesChart,
+									volumeChart: finalVolumeChart,
+									bridgeChartData,
+									chainProtocolsFees,
+									chainProtocolsVolumes,
+									globalChart: finalTvlChart,
+									raisesData: raisesChart,
+									totalStablesData: peggedAreaTotalData,
+									bridgeData: bridgeChartData,
+									usersData: usersData,
+									txsData: txsData
+								}
+							]}
 							customLegendName="Chain"
 							hideDefaultLegend
 							valueSymbol="$"
@@ -540,7 +546,7 @@ function GlobalPage({
 							DENOMINATIONS={DENOMINATIONS}
 							denomination={denomination}
 							updateRoute={updateRoute}
-							route={router.query}
+							router={router}
 						/>
 					)}
 				</BreakpointPanel>
