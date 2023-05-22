@@ -1,16 +1,19 @@
 import { useDialogState, Dialog } from 'ariakit/dialog'
 import { useState } from 'react'
-import { Flag as FlagIcon } from 'react-feather'
+import { CheckCircle, Flag as FlagIcon } from 'react-feather'
 import { FormSubmitBtn } from '~/components'
 import { DialogForm } from '~/components/Filters/common/Base'
 import { Tooltip2 } from '~/components/Tooltip'
 
 export function Flag({ protocol, dataType, isLending }: { protocol: string; dataType?: string; isLending?: boolean }) {
 	const [loading, setLoading] = useState(false)
+	const [error, setError] = useState(false)
 	const dialog = useDialogState()
+	const reportSuccess = useDialogState()
 
 	const onSubmit = async (e) => {
 		e.preventDefault()
+		setError(false)
 		setLoading(true)
 
 		const form = e.target as HTMLFormElement
@@ -24,10 +27,22 @@ export function Flag({ protocol, dataType, isLending }: { protocol: string; data
 				message: form.message?.value ?? '',
 				correctSource: form.correctSource?.value ?? ''
 			})
-		}).finally(() => {
-			setLoading(false)
-			dialog.setOpen(false)
 		})
+			.then((res) => res.json())
+			.then((data) => {
+				setLoading(false)
+
+				if (data?.message === 'success') {
+					form.reset()
+					dialog.setOpen(false)
+					reportSuccess.setOpen(true)
+				} else {
+					setError(true)
+				}
+			})
+			.finally(() => {
+				setLoading(false)
+			})
 
 		return data
 	}
@@ -101,7 +116,25 @@ export function Flag({ protocol, dataType, isLending }: { protocol: string; data
 					<FormSubmitBtn name="submit-btn" disabled={loading}>
 						Report
 					</FormSubmitBtn>
+					{error && (
+						<small style={{ textAlign: 'center', color: 'red' }}>Something went wrong, couldn't submit report</small>
+					)}
 				</DialogForm>
+			</Dialog>
+
+			<Dialog
+				state={reportSuccess}
+				className="dialog"
+				style={{
+					fontSize: '1.125rem',
+					display: 'flex',
+					flexDirection: 'column',
+					alignItems: 'center',
+					padding: '36px 0'
+				}}
+			>
+				<CheckCircle size={100} strokeWidth={0.5} />
+				<p>Reported Successfully</p>
 			</Dialog>
 		</>
 	)
