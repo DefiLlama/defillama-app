@@ -102,6 +102,29 @@ export default function LSDs(props) {
 }
 
 function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
+	// for beth we are adding up values on ethereum and bsc chain
+	const beth = chartData.find((protocol) => protocol.name === 'Binance staked ETH')
+
+	const combineEthereumBSC = (tokensKey) => {
+		return beth.chainTvls['Ethereum'][tokensKey].map((i) => {
+			const bethBSC = beth.chainTvls['BSC'][tokensKey].find((j) => j.date === i.date)?.tokens['ETH']
+			return {
+				date: i.date,
+				tokens: { ETH: i.tokens['ETH'] + bethBSC }
+			}
+		})
+	}
+
+	const bethTVL = combineEthereumBSC('tokens')
+	const bethTVLUsd = combineEthereumBSC('tokensInUsd')
+	chartData = chartData.map((protocol) => {
+		if (protocol.name === 'Binance staked ETH') {
+			protocol.chainTvls['Ethereum'].tokens = bethTVL
+			protocol.chainTvls['Ethereum'].tokensInUsd = bethTVLUsd
+		}
+		return protocol
+	})
+
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray = protocol.chainTvls['Ethereum'].tokens
