@@ -22,6 +22,8 @@ export interface IGetOverviewResponseBody {
 	allChains: string[]
 	chain: string | null
 	mcap?: number
+	pf: number | null
+	ps: number | null
 }
 
 //  Response /summary
@@ -72,6 +74,8 @@ export type ProtocolAdaptorSummary = {
 	revenue7d?: number
 	revenue30d?: number
 	mcap: number | null
+	pf: number | null
+	ps: number | null
 	breakdown24h: IJSON<number>
 	chains: Array<string>
 	module: string

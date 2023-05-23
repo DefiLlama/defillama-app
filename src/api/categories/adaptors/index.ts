@@ -221,7 +221,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
 				revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
-				mcap: mcapData[protocol.name] || null
+				mcap: mcapData[protocol.name] || null,
+				pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total24h),
+				ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total24h),
 			}
 			// If already included parent protocol we add the new child
 			if (acc[protocol.parentProtocol]) acc[protocol.parentProtocol].subRows.push(subRow)
@@ -244,7 +246,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			dominance: (100 * protocol.total24h) / total24h,
 			module: protocol.module,
 			dailyUserFees: protocol.dailyUserFees ?? null,
-			mcap: mcapData[protocol.name] || null
+			mcap: mcapData[protocol.name] || null,
+			pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total24h),
+			ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total24h),
 		}
 		// Stats for parent protocol
 		if (acc[protocol.parentProtocol]) {
@@ -288,6 +292,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			)
 			const total14dto7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total14dto7d'), null)
 			mainRow.change_7dover7d = ((mainRow.total7d - total14dto7d) / total14dto7d) * 100
+			mainRow.pf = getAnnualizedRatio(mcapData[mainRow.name], mainRow.total24h)
+			mainRow.ps = getAnnualizedRatio(mcapData[mainRow.name], mainRow.revenue24h)
 		}
 		// Computed stats
 		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
@@ -316,6 +322,11 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		dexsDominance: cexVolume ? +((total24h / (cexVolume + total24h)) * 100).toFixed(2) : null,
 		type
 	}
+}
+
+const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
+	if (numerator && denominator && numerator !== null && denominator !== null) return Number((numerator / denominator * 365).toFixed(2))
+	return null
 }
 
 const getLlamaoLogo = (logo: string | null) => {
@@ -456,7 +467,9 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					dailySupplySideRevenue: dailySupplySideRevenue ?? null,
 					dailyProtocolRevenue: dailyProtocolRevenue ?? null,
 					dailyPremiumVolume: dailyPremiumVolume ?? null,
-					mcap: null
+					mcap: null,
+					ps: null,
+					pf: null
 				}
 			}
 		)

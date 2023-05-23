@@ -141,7 +141,9 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		// Total24hColumn('Total revenue', 'dailyTotalRevenue', undefined, 220)
 		// ChangeColumn('Weekly change', 'change_7dover7d', 160, 'Change of last 7d fees over the previous 7d fees'),
 		// ChangeColumn('Monthly change', 'change_30dover30d', 160, 'Change of last 30d fees over the previous 30d fees'),
-		TotalAllTimeColumn('fees')
+		TotalAllTimeColumn('fees'),
+		Total24hColumn('Fees', 'pf', `Market cap / annualized fees`, undefined, 'P/F'),
+		Total24hColumn('Fees', 'ps', `Market cap / annualized revenue`, undefined, 'P/S')
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen
