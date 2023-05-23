@@ -16,19 +16,20 @@ import VirtualTable from '~/components/Table/Table'
 import { governanceColumns } from '~/components/Table/Defi/columns'
 import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
-import { GOVERNANCE_API, ONCHAIN_GOVERNANCE_API } from '~/constants'
+import { GOVERNANCE_SNAPSHOT_API, GOVERNANCE_COMPOUND_API, GOVERNANCE_TALLY_API } from '~/constants'
 import { capitalizeFirstLetter } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('governance', async () => {
-	const [snapshot, compound] = await Promise.all([
-		fetch(GOVERNANCE_API).then((res) => res.json()),
-		fetch(ONCHAIN_GOVERNANCE_API).then((res) => res.json())
+	const [snapshot, compound, tally] = await Promise.all([
+		fetch(GOVERNANCE_SNAPSHOT_API).then((res) => res.json()),
+		fetch(GOVERNANCE_COMPOUND_API).then((res) => res.json()),
+		fetch(GOVERNANCE_TALLY_API).then((res) => res.json())
 	])
 
 	return {
 		props: {
-			data: Object.values({ ...snapshot, ...compound }).map((x: { states: { [key: string]: number } }) => ({
+			data: Object.values({ ...snapshot, ...compound, ...tally }).map((x: { states: { [key: string]: number } }) => ({
 				...x,
 				subRowData: x.states
 			}))

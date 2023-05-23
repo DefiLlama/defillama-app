@@ -7,10 +7,12 @@ import { StatsSection } from '~/layout/Stats/Medium'
 import TokenLogo from '~/components/TokenLogo'
 import { standardizeProtocolName, tokenIconUrl, chainIconUrl, toK } from '~/utils'
 import {
-	GOVERNANCE_API,
-	ONCHAIN_GOVERNANCE_API,
-	PROTOCOL_GOVERNANCE_API,
-	PROTOCOL_ONCHAIN_GOVERNANCE_API
+	GOVERNANCE_SNAPSHOT_API,
+	GOVERNANCE_COMPOUND_API,
+	GOVERNANCE_TALLY_API,
+	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
+	PROTOCOL_GOVERNANCE_COMPOUND_API,
+	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
 import Link from 'next/link'
 import { ArrowUpRight } from 'react-feather'
@@ -32,24 +34,31 @@ export const getStaticProps = withPerformanceLogging(
 			project: [project]
 		}
 	}) => {
-		const [snapshot, compound]: [
+		const [snapshot, compound, tally]: [
+			{ [key: string]: { name: string; id: string } },
 			{ [key: string]: { name: string; id: string } },
 			{ [key: string]: { name: string; id: string } }
 		] = await Promise.all([
-			fetch(GOVERNANCE_API).then((res) => res.json()),
-			fetch(ONCHAIN_GOVERNANCE_API).then((res) => res.json())
+			fetch(GOVERNANCE_SNAPSHOT_API).then((res) => res.json()),
+			fetch(GOVERNANCE_COMPOUND_API).then((res) => res.json()),
+			fetch(GOVERNANCE_TALLY_API).then((res) => res.json())
 		])
 
 		const snapshotProjectId = Object.values(snapshot).find((p) => standardizeProtocolName(p.name) === project)?.id
 		const compoundProjectId = Object.values(compound).find((p) => standardizeProtocolName(p.name) === project)?.id
+		const tallyProjectId = Object.values(tally).find((p) => standardizeProtocolName(p.name) === project)?.id
 
-		if (!snapshotProjectId && !compoundProjectId) {
+		if (!snapshotProjectId && !compoundProjectId && !tallyProjectId) {
 			return { notFound: true }
 		}
 
 		const api = snapshotProjectId
-			? PROTOCOL_GOVERNANCE_API + '/' + snapshotProjectId + '.json'
-			: PROTOCOL_ONCHAIN_GOVERNANCE_API + '/' + compoundProjectId + '.json'
+			? PROTOCOL_GOVERNANCE_SNAPSHOT_API + '/' + snapshotProjectId + '.json'
+			: compoundProjectId
+			? PROTOCOL_GOVERNANCE_COMPOUND_API + '/' + compoundProjectId + '.json'
+			: tallyProjectId
+			? PROTOCOL_GOVERNANCE_TALLY_API + '/' + tallyProjectId + '.json'
+			: null
 
 		const data: {
 			proposals: {
@@ -87,7 +96,7 @@ export const getStaticProps = withPerformanceLogging(
 					activity,
 					maxVotes
 				},
-				isOnChainGovernance: snapshotProjectId ? false : true
+				governanceType: snapshotProjectId ? 'snapshot' : compoundProjectId ? 'compound' : 'tally'
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -98,7 +107,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocol({ data, isOnChainGovernance }) {
+export default function Protocol({ data, governanceType }) {
 	return (
 		<Layout title={`${data.metadata.name} Governance - DefiLlama`} defaultSEO>
 			<Wrapper>
@@ -209,7 +218,7 @@ export default function Protocol({ data, isOnChainGovernance }) {
 				</LinksWrapper>
 			</Wrapper>
 
-			<GovernanceTable data={data} isOnChainGovernance={isOnChainGovernance} />
+			<GovernanceTable data={data} governanceType={governanceType} />
 		</Layout>
 	)
 }

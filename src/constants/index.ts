@@ -26,10 +26,14 @@ export const PROTOCOL_EMISSIONS_API = 'https://api.llama.fi/emissions'
 export const PROTOCOL_EMISSIONS_LIST_API = 'https://defillama-datasets.llama.fi/emissionsProtocolsList'
 export const PROTOCOL_EMISSION_API = 'https://api.llama.fi/emission'
 
-export const GOVERNANCE_API = 'https://defillama-datasets.llama.fi/governance-cache/overview/snapshot.json'
-export const PROTOCOL_GOVERNANCE_API = 'https://defillama-datasets.llama.fi/governance-cache/snapshot'
-export const ONCHAIN_GOVERNANCE_API = 'https://defillama-datasets.llama.fi/governance-cache/overview/compound.json'
-export const PROTOCOL_ONCHAIN_GOVERNANCE_API = 'https://defillama-datasets.llama.fi/governance-cache/compound'
+export const GOVERNANCE_SNAPSHOT_API = 'https://defillama-datasets.llama.fi/governance-cache/overview/snapshot.json'
+export const PROTOCOL_GOVERNANCE_SNAPSHOT_API = 'https://defillama-datasets.llama.fi/governance-cache/snapshot'
+export const GOVERNANCE_COMPOUND_API = 'https://defillama-datasets.llama.fi/governance-cache/overview/compound.json'
+export const PROTOCOL_GOVERNANCE_COMPOUND_API = 'https://defillama-datasets.llama.fi/governance-cache/compound'
+export const GOVERNANCE_TALLY_API =
+	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/overview/tally.json'
+export const PROTOCOL_GOVERNANCE_TALLY_API =
+	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/tally'
 
 export const ACTIVE_USERS_API = 'https://api.llama.fi/activeUsers'
 export const PROTOCOL_ACTIVE_USERS_API = 'https://api.llama.fi/userData/users'

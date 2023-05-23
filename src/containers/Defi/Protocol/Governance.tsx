@@ -17,14 +17,19 @@ import { Checkbox2 } from '~/components'
 import useSWR from 'swr'
 import { formatGovernanceData } from '~/api/categories/protocols'
 
-export function GovernanceTable({ data, isOnChainGovernance }) {
+export function GovernanceTable({ data, governanceType }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'state', desc: true }])
 	const [filterControversialProposals, setFilterProposals] = React.useState(false)
 
 	const instance = useReactTable({
 		data: filterControversialProposals ? data.controversialProposals : data.proposals,
-		columns: isOnChainGovernance ? proposalsCompoundColumns : proposalsSnapshotColumns,
+		columns:
+			governanceType === 'compound'
+				? proposalsCompoundColumns
+				: governanceType === 'snapshot'
+				? proposalsSnapshotColumns
+				: proposalsTallyColumns,
 		state: {
 			columnFilters,
 			sorting
@@ -106,7 +111,16 @@ export function GovernanceData({ api }: { api: string }) {
 
 	return data ? (
 		<Wrapper>
-			<GovernanceTable data={data} isOnChainGovernance={api.includes('governance-cache/snapshot') ? false : true} />
+			<GovernanceTable
+				data={data}
+				governanceType={
+					api.includes('governance-cache/snapshot')
+						? 'snapshot'
+						: api.includes('governance-cache/compound')
+						? 'compound'
+						: 'tally'
+				}
+			/>
 		</Wrapper>
 	) : null
 }
@@ -288,6 +302,54 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 				</a>
 			),
 		meta: { align: 'end' }
+	}
+]
+
+const proposalsTallyColumns: ColumnDef<IProposal>[] = [
+	{
+		header: 'Title',
+		accessorKey: 'title',
+		enableSorting: false,
+		cell: (info) => {
+			if (!info.row.original.link) {
+				return formatText(info.getValue() as string, 40)
+			}
+			return (
+				<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
+					{formatText(info.getValue() as string, 40)}
+				</a>
+			)
+		}
+	},
+	{
+		header: 'Start',
+		accessorKey: 'start',
+		cell: (info) => toNiceDayMonthAndYear(info.getValue()),
+		meta: { align: 'end' }
+	},
+	{
+		header: 'End',
+		accessorKey: 'end',
+		cell: (info) => toNiceDayMonthAndYear(info.getValue()),
+		meta: { align: 'end' }
+	},
+	{
+		header: 'State',
+		accessorKey: 'state',
+		cell: (info) => info.getValue() || '',
+		meta: { align: 'end' }
+	},
+	{
+		header: 'Votes',
+		accessorKey: 'scores_total',
+		cell: (info) => formattedNum(info.getValue()),
+		meta: { align: 'end' }
+	},
+	{
+		header: 'Controversy',
+		accessorKey: 'score_curve',
+		cell: (info) => (info.getValue() ? (info.getValue() as number).toFixed(2) : ''),
+		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
 	}
 ]
 

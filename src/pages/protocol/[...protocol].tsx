@@ -11,11 +11,12 @@ import {
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
 	PROTOCOL_EMISSIONS_LIST_API,
-	PROTOCOL_GOVERNANCE_API,
-	PROTOCOL_ONCHAIN_GOVERNANCE_API,
+	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
+	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	YIELD_CONFIG_API,
 	YIELD_POOLS_API,
-	YIELD_PROJECT_MEDIAN_API
+	YIELD_PROJECT_MEDIAN_API,
+	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
 import { fetchWithPerformaceLogging, withPerformanceLogging } from '~/utils/perf'
 
@@ -63,9 +64,11 @@ export const getStaticProps = withPerformanceLogging(
 		const governanceID = protocolData.governanceID?.[0] ?? null
 		const governanceApi = governanceID
 			? governanceID.startsWith('snapshot:')
-				? `${PROTOCOL_GOVERNANCE_API}/${governanceID.split('snapshot:')[1]}.json`
+				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${governanceID.split('snapshot:')[1]}.json`
 				: governanceID.startsWith('compound:')
-				? `${PROTOCOL_ONCHAIN_GOVERNANCE_API}/${governanceID.split('compound:')[1]}.json`
+				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${governanceID.split('compound:')[1]}.json`
+				: governanceID.startsWith('tally:')
+				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${governanceID.split('tally:')[1]}.json`
 				: null
 			: null
 
