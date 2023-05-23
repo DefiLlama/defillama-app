@@ -47,12 +47,15 @@ export async function getYieldPageData() {
 	pricesList = [...new Set(pricesList.flat())]
 
 	// price endpoint seems to break with too many tokens, splitting it to max 150 per request
-	const maxSize = 150
+	const maxSize = 50
 	const pages = Math.ceil(pricesList.length / maxSize)
 	let pricesA = []
 	let x = ''
 	for (const p of [...Array(pages).keys()]) {
-		x = pricesList.slice(p * maxSize, maxSize * (p + 1)).join(',')
+		x = pricesList
+			.slice(p * maxSize, maxSize * (p + 1))
+			.join(',')
+			.replace('//', '')
 		pricesA = [...pricesA, (await arrayFetcher([`https://coins.llama.fi/prices/current/${x}`]))[0].coins]
 	}
 	// flatten
