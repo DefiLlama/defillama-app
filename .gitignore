@@ -2,8 +2,6 @@
 
 # dependencies
 /node_modules
-server/node_modules
-server/dist
 /.pnp
 .pnp.js
 .next

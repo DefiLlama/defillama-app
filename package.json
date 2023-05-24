@@ -12,8 +12,7 @@
 		"format": "prettier --write .",
 		"build": "./scripts/build.sh",
 		"start": "./scripts/prestart.sh & next start",
-		"lint": "next lint",
-		"run:server": "cd server && yarn && yarn start"
+		"lint": "next lint"
 	},
 	"dependencies": {
 		"@sentry/nextjs": "^7.34.0",
