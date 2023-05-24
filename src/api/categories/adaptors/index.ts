@@ -325,7 +325,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 }
 
 const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
-	if (numerator && denominator && numerator !== null && denominator !== null) return Number((numerator / denominator * 12).toFixed(2))
+	if (numerator && denominator && numerator !== null && denominator !== null) return Number((numerator / (denominator * 12)).toFixed(2))
 	return null
 }
 
