@@ -33,16 +33,8 @@ const DataWrapper = styled.div`
 	}
 `
 
-const PanelWrapper = styled.div`
-	display: flex;
-	gap: 10px;
-	flex: 1;
-
-	@media screen and (min-width: 105rem) {
-		flex-direction: column;
-		max-width: 14%;
-		min-width: 250px;
-	}
+const ControlsWrapper = styled.div`
+	width: fit-content;
 `
 
 const ToggleWrapper = styled.span`
@@ -82,7 +74,7 @@ const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
 			usersData,
 			chainsSet
 		}
-	} = await fetch('http://localhost:3001/' + chain).then((r) => r.json())
+	} = await fetch('https://fe-cache.llama.fi/' + chain).then((r) => r.json())
 
 	const globalChart = (() => {
 		const globalChart =
@@ -227,6 +219,11 @@ function ComparePage() {
 		[]
 	)
 
+	const selectedChains = [router?.query?.chains]
+		.flat()
+		.filter(Boolean)
+		.map((chain) => ({ value: chain, label: chain }))
+
 	return (
 		<>
 			<Announcement>
@@ -253,17 +250,22 @@ function ComparePage() {
 				}}
 			/>
 			<h2>Compare chains </h2>
-			<ReactSelect
-				defaultValue={chains?.[0]}
-				isMulti
-				name="colors"
-				options={chains}
-				className="basic-multi-select"
-				classNamePrefix="select"
-				onChange={onChainSelect}
-				components={components}
-				placeholder="Select Chains..."
-			/>
+
+			<ControlsWrapper>
+				<ReactSelect
+					defaultValue={router?.query?.chains || chains?.[0]}
+					isMulti
+					value={selectedChains}
+					name="colors"
+					options={chains}
+					className="basic-multi-select"
+					classNamePrefix="select"
+					onChange={onChainSelect}
+					components={components}
+					placeholder="Select Chains..."
+				/>
+			</ControlsWrapper>
+
 			<DataWrapper>
 				<BreakpointPanel id="chartWrapper" style={{ minHeight: '430px' }}>
 					<FiltersWrapper style={{ margin: 0, marginBottom: 'auto' }}>
