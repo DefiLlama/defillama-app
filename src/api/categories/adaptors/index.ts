@@ -222,8 +222,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
 				revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
 				mcap: mcapData[protocol.name] || null,
-				pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total24h),
-				ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total24h),
+				pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total30d),
+				ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d),
 			}
 			// If already included parent protocol we add the new child
 			if (acc[protocol.parentProtocol]) acc[protocol.parentProtocol].subRows.push(subRow)
@@ -247,8 +247,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			module: protocol.module,
 			dailyUserFees: protocol.dailyUserFees ?? null,
 			mcap: mcapData[protocol.name] || null,
-			pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total24h),
-			ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total24h),
+			pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total30d),
+			ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d),
 		}
 		// Stats for parent protocol
 		if (acc[protocol.parentProtocol]) {
@@ -292,8 +292,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			)
 			const total14dto7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total14dto7d'), null)
 			mainRow.change_7dover7d = ((mainRow.total7d - total14dto7d) / total14dto7d) * 100
-			mainRow.pf = getAnnualizedRatio(mainRow.mcap, mainRow.total24h)
-			mainRow.ps = getAnnualizedRatio(mainRow.mcap, mainRow.revenue24h)
+			mainRow.pf = getAnnualizedRatio(mainRow.mcap, mainRow.total30d)
+			mainRow.ps = getAnnualizedRatio(mainRow.mcap, mainRow.revenue30d)
 		}
 		// Computed stats
 		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
@@ -325,7 +325,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 }
 
 const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
-	if (numerator && denominator && numerator !== null && denominator !== null) return Number((numerator / denominator * 365).toFixed(2))
+	if (numerator && denominator && numerator !== null && denominator !== null) return Number((numerator / denominator * 12).toFixed(2))
 	return null
 }
 
