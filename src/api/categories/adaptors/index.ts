@@ -292,8 +292,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			)
 			const total14dto7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total14dto7d'), null)
 			mainRow.change_7dover7d = ((mainRow.total7d - total14dto7d) / total14dto7d) * 100
-			mainRow.pf = getAnnualizedRatio(mcapData[mainRow.name], mainRow.total24h)
-			mainRow.ps = getAnnualizedRatio(mcapData[mainRow.name], mainRow.revenue24h)
+			mainRow.pf = getAnnualizedRatio(mainRow.mcap, mainRow.total24h)
+			mainRow.ps = getAnnualizedRatio(mainRow.mcap, mainRow.revenue24h)
 		}
 		// Computed stats
 		mainRow.volumetvl = mainRow.total24h / mainRow.tvl

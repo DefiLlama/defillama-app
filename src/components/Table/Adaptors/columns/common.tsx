@@ -91,6 +91,25 @@ export const ChangeColumn = (
 		headerHelperText
 	}
 })
+export const XColumn = (
+	header: string,
+	accesor: string,
+	size?: number,
+	headerHelperText?: string
+): ColumnDef<IDexsRow> => ({
+	header: header,
+	accessorKey: accesor,
+	enableSorting: true,
+	cell: (info) => {
+		if (!info.getValue()) return <></>
+		return <>{`${info.getValue()}x`}</>
+	},
+	size: size ?? 140,
+	meta: {
+		align: 'end',
+		headerHelperText
+	}
+})
 export const Total24hColumn = (
 	type: string,
 	alternativeAccessor?: string,
