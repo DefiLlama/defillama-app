@@ -130,6 +130,7 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Overview', path: '/' },
 			{ name: 'Chains', path: '/chains' },
+			{ name: 'Compare Chains', path: 'compare' },
 			{ name: 'Airdrops', path: '/airdrops' },
 			{ name: 'Treasuries', path: '/treasuries', newTag: true },
 			{ name: 'Oracles', path: '/oracles' },

@@ -13,6 +13,7 @@ import Announcement from '~/components/Announcement'
 import { Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { useDefiManager } from '~/contexts/LocalStorage'
+import LocalLoader from '~/components/LocalLoader'
 
 import { ISettings } from '~/contexts/types'
 import ReactSelect from '../MultiSelect/ReactSelect'
@@ -224,6 +225,10 @@ function ComparePage() {
 		.filter(Boolean)
 		.map((chain) => ({ value: chain, label: chain }))
 
+	React.useEffect(() => {
+		if (!router?.query?.chains) updateRoute('chains', 'Ethereum')
+	}, [])
+
 	return (
 		<>
 			<Announcement>
@@ -325,16 +330,20 @@ function ComparePage() {
 						</ToggleWrapper>
 					</FiltersWrapper>
 
-					<ChainChart
-						height="360px"
-						customLegendName="Chain"
-						hideDefaultLegend
-						valueSymbol="$"
-						title=""
-						updateRoute={updateRoute}
-						router={router}
-						datasets={data?.data}
-					/>
+					{data.isLoading ? (
+						<LocalLoader style={{ marginBottom: 'auto' }} />
+					) : (
+						<ChainChart
+							height="360px"
+							customLegendName="Chain"
+							hideDefaultLegend
+							valueSymbol="$"
+							title=""
+							updateRoute={updateRoute}
+							router={router}
+							datasets={data?.data}
+						/>
+					)}
 				</BreakpointPanel>
 			</DataWrapper>
 		</>
