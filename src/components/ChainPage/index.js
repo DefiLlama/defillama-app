@@ -79,7 +79,8 @@ const ToggleWrapper = styled.span`
 	align-items: center;
 	gap: 8px;
 	flex-wrap: wrap;
-	margin-left: auto;
+	justify-content: right;
+	width: 100%;
 `
 
 const ChainChart = dynamic(() => import('~/components/ECharts/ChainChart'), {
@@ -426,25 +427,24 @@ function GlobalPage({
 						<p style={{ '--tile-text-color': '#46acb7' }}> {dominance}%</p>
 					</PanelHiddenMobile>
 				</PanelWrapper>
-				<BreakpointPanel id="chartWrapper" style={{ minHeight: '430px' }}>
+				<BreakpointPanel id="chartWrapper" style={{ minHeight: '460px' }}>
 					{!isLoading ? (
 						<FiltersWrapper style={{ margin: 0, marginBottom: 'auto' }}>
-							{selectedChain !== 'All' ? (
-								<Toggle style={{ marginLeft: '16px', marginRight: '16px' }}>
-									<input
-										type="checkbox"
-										onClick={() => {
-											window.open(`/compare?chains=${selectedChain}`)
-										}}
-										checked={true}
-									/>
-									<span data-wrapper="true">
-										<span>Compare chain</span>
-									</span>
-								</Toggle>
-							) : null}
-
 							<ToggleWrapper>
+								{selectedChain !== 'All' ? (
+									<Toggle style={{ marginRight: 'auto' }}>
+										<input
+											type="checkbox"
+											onClick={() => {
+												window.open(`/compare?chains=${selectedChain}`)
+											}}
+											checked={true}
+										/>
+										<span data-wrapper="true">
+											<span>Compare chain</span>
+										</span>
+									</Toggle>
+								) : null}
 								{DENOMINATIONS.length > 0 && (
 									<Filters>
 										{DENOMINATIONS.map((D) => (
