@@ -429,17 +429,31 @@ function GlobalPage({
 				<BreakpointPanel id="chartWrapper" style={{ minHeight: '430px' }}>
 					{!isLoading ? (
 						<FiltersWrapper style={{ margin: 0, marginBottom: 'auto' }}>
-							{DENOMINATIONS.length > 0 && (
-								<Filters>
-									{DENOMINATIONS.map((D) => (
-										<Denomination active={denomination === D} key={D} onClick={() => updateRoute('currency', D)}>
-											{D}
-										</Denomination>
-									))}
-								</Filters>
-							)}
+							{selectedChain !== 'All' ? (
+								<Toggle style={{ marginLeft: '16px', marginRight: '16px' }}>
+									<input
+										type="checkbox"
+										onClick={() => {
+											window.open(`/compare?chains=${selectedChain}`)
+										}}
+										checked={true}
+									/>
+									<span data-wrapper="true">
+										<span>Compare chain</span>
+									</span>
+								</Toggle>
+							) : null}
 
 							<ToggleWrapper>
+								{DENOMINATIONS.length > 0 && (
+									<Filters>
+										{DENOMINATIONS.map((D) => (
+											<Denomination active={denomination === D} key={D} onClick={() => updateRoute('currency', D)}>
+												{D}
+											</Denomination>
+										))}
+									</Filters>
+								)}
 								{[
 									{
 										id: 'tvl',
@@ -524,15 +538,21 @@ function GlobalPage({
 					) : (
 						<ChainChart
 							height="360px"
-							chartData={finalTvlChart}
-							volumeData={finalVolumeChart}
-							feesData={finalFeesChart}
-							priceData={priceHistory}
-							raisesData={raisesChart}
-							totalStablesData={peggedAreaTotalData}
-							bridgeData={bridgeChartData}
-							usersData={usersData}
-							txsData={txsData}
+							datasets={[
+								{
+									feesChart: finalFeesChart,
+									volumeChart: finalVolumeChart,
+									bridgeChartData,
+									chainProtocolsFees,
+									chainProtocolsVolumes,
+									globalChart: finalTvlChart,
+									raisesData: raisesChart,
+									totalStablesData: peggedAreaTotalData,
+									bridgeData: bridgeChartData,
+									usersData: usersData,
+									txsData: txsData
+								}
+							]}
 							customLegendName="Chain"
 							hideDefaultLegend
 							valueSymbol="$"
@@ -540,7 +560,7 @@ function GlobalPage({
 							DENOMINATIONS={DENOMINATIONS}
 							denomination={denomination}
 							updateRoute={updateRoute}
-							route={router.query}
+							router={router}
 						/>
 					)}
 				</BreakpointPanel>

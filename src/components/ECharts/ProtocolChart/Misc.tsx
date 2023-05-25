@@ -38,7 +38,7 @@ export const Denomination = styled.a<IDenomination>`
 `
 
 interface IToggleProps {
-	backgroundColor: string
+	backgroundColor?: string
 }
 
 export const Toggle = styled.label<IToggleProps>`
