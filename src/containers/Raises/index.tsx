@@ -11,11 +11,10 @@ import {
 	ColumnFiltersState
 } from '@tanstack/react-table'
 import styled from 'styled-components'
-import { Search } from 'react-feather'
-import type { IBarChartProps } from '~/components/ECharts/types'
-import { ChartWrapper, DetailsWrapper } from '~/layout/ProtocolAndPool'
+import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { ChartWrapper, DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
-import { Stat } from '~/layout/Stats/Large'
+import { Stat, StatInARow } from '~/layout/Stats/Large'
 import VirtualTable from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import { AnnouncementWrapper } from '~/components/Announcement'
@@ -30,6 +29,10 @@ import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
 
 const columnResizeMode = 'onChange'
 
@@ -117,17 +120,27 @@ export const DownloadButton = styled.button`
 	border-radius: 6px;
 `
 
-const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName, monthlyInvestment }) => {
+const RaisesContainer = ({
+	raises,
+	investors,
+	rounds,
+	sectors,
+	chains,
+	investorName,
+	monthlyInvestment,
+	showInvestmentBreakdown
+}) => {
 	const { pathname, query } = useRouter()
 
 	const { investor, round, sector, chain, minRaised, maxRaised } = query
 
-	const { filteredRaisesList, selectedInvestors, selectedRounds, selectedChains, selectedSectors } =
+	const { filteredRaisesList, selectedInvestors, selectedRounds, selectedChains, selectedSectors, raisesByCategory } =
 		React.useMemo(() => {
 			let selectedInvestors = []
 			let selectedRounds = []
 			let selectedSectors = []
 			let selectedChains = []
+			const raisesByCategory: { [category: string]: number } = {}
 
 			if (investor) {
 				if (typeof investor === 'string') {
@@ -247,10 +260,27 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				if (isValidTvlRange && !isInRange) {
 					toFilter = false
 				}
+
+				if (toFilter && raise.category) {
+					raisesByCategory[raise.category] = (raisesByCategory[raise.category] || 0) + 1
+				}
+
 				return toFilter
 			})
 
-			return { selectedInvestors, selectedChains, selectedRounds, selectedSectors, filteredRaisesList }
+			return {
+				selectedInvestors,
+				selectedChains,
+				selectedRounds,
+				selectedSectors,
+				filteredRaisesList,
+				raisesByCategory: Object.entries(raisesByCategory)
+					.map(([name, value]) => ({
+						name,
+						value
+					}))
+					.sort((a, b) => b.value - a.value)
+			}
 		}, [investor, investors, round, rounds, sector, sectors, chain, chains, raises, minRaised, maxRaised])
 
 	// prepare csv data
@@ -329,6 +359,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 
 			<StatsSection>
 				<DetailsWrapper>
+					{showInvestmentBreakdown && <Name>{investorName}</Name>}
 					<Stat>
 						<span>Total Funding Rounds</span>
 						<span>{filteredRaisesList.length}</span>
@@ -343,6 +374,23 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					<BarChart chartData={monthlyInvestment} title="Monthly sum" valueSymbol="$" />
 				</ChartWrapper>
 			</StatsSection>
+
+			{showInvestmentBreakdown && (
+				<StatsSection style={{ marginTop: '-16px' }}>
+					<DetailsWrapper style={{ gap: '8px' }}>
+						{raisesByCategory.map(({ name, value }) => (
+							<StatInARow key={'total' + name + value}>
+								<span>{name}</span>
+								<span>{value}</span>
+							</StatInARow>
+						))}
+					</DetailsWrapper>
+
+					<ChartWrapper>
+						<PieChart chartData={raisesByCategory} />
+					</ChartWrapper>
+				</StatsSection>
+			)}
 
 			<RaisesTable raises={filteredRaisesList} downloadCsv={downloadCsv} />
 		</Layout>

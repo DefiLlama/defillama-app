@@ -88,7 +88,7 @@ export async function getStaticPaths() {
 }
 
 const Raises = (props) => {
-	return <RaisesContainer {...props} />
+	return <RaisesContainer {...props} showInvestmentBreakdown={true} />
 }
 
 export default Raises
