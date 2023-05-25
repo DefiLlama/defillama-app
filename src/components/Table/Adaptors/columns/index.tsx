@@ -13,7 +13,8 @@ import {
 	Total24hColumn,
 	TotalAllTimeColumn,
 	TVLColumn,
-	VolumeTVLColumn
+	VolumeTVLColumn,
+	XColumn
 } from './common'
 
 export const getColumnsByType = (type: string, allChains?: boolean) => {
@@ -141,7 +142,9 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		// Total24hColumn('Total revenue', 'dailyTotalRevenue', undefined, 220)
 		// ChangeColumn('Weekly change', 'change_7dover7d', 160, 'Change of last 7d fees over the previous 7d fees'),
 		// ChangeColumn('Monthly change', 'change_30dover30d', 160, 'Change of last 30d fees over the previous 30d fees'),
-		TotalAllTimeColumn('fees')
+		TotalAllTimeColumn('fees'),
+		XColumn('P/F', 'pf', undefined, `Market cap / annualized fees`),
+		XColumn('P/S', 'ps', undefined, `Market cap / annualized revenue`)
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen
