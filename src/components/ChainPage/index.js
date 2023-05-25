@@ -367,7 +367,7 @@ function GlobalPage({
 		<>
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
-			<Announcement>
+			{/*<Announcement>
 				<Image
 					src="https://icons.llamao.fi/icons/memes/gib.png?w=36&h=36"
 					alt="Cute"
@@ -383,7 +383,7 @@ function GlobalPage({
 					</a>
 				</Link>
 				{' !'}
-			</Announcement>
+			</Announcement>*/}
 			{selectedChain === 'zkSync Era' && (
 				<Announcement warning={true}>
 					DefiLlama doesn't whitelist/audit/endorse any protocols listed, we list everything. Exercise caution.

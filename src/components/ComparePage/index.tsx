@@ -231,23 +231,6 @@ function ComparePage() {
 
 	return (
 		<>
-			<Announcement>
-				<Image
-					src="https://icons.llamao.fi/icons/memes/gib.png?w=36&h=36"
-					alt="Cute"
-					width={18}
-					height={18}
-					unoptimized
-					style={{ marginRight: '0.25rem', display: 'inline' }}
-				/>
-				{'  '}We've released our{' '}
-				<Link href={`/nfts`}>
-					<a>
-						NFT dashboard <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
-					</a>
-				</Link>
-				{' !'}
-			</Announcement>
 			<ProtocolsChainsSearch
 				step={{
 					category: 'Compare Protocols',
