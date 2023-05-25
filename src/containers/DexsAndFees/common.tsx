@@ -61,6 +61,35 @@ export const GROUP_CHART_LIST: ChartType[] = ['Volume', 'Dominance']
 
 export const aggregateDataByInterval =
 	(barInterval: DataIntervalType, chartData: IDexChartsProps['chartData']) => () => {
+		if (barInterval === 'Cumulative') {
+			let cumulativeData = {}
+
+			let currentDate
+
+			const cumulativeStore = {}
+
+			chartData[0].forEach(({ date, ...metricsOnDay }) => {
+				if (!currentDate || currentDate < +date) {
+					currentDate = +date
+				}
+
+				chartData[1].forEach((chartType) => {
+					if (!cumulativeData[date]) {
+						cumulativeData[date] = {}
+					}
+
+					cumulativeStore[chartType] = (cumulativeStore[chartType] || 0) + (+metricsOnDay[chartType] || 0)
+
+					cumulativeData[currentDate][chartType] = cumulativeStore[chartType]
+				})
+			})
+
+			return Object.entries(cumulativeData).map(([date, values]: [string, { [key: string]: number }]) => ({
+				date,
+				...values
+			}))
+		}
+
 		let cleanTimestampFormatter: typeof getCleanMonthTimestamp
 		if (barInterval === 'Monthly') cleanTimestampFormatter = getCleanMonthTimestamp
 		else if (barInterval === 'Weekly') cleanTimestampFormatter = getCleanWeekTimestamp
@@ -76,6 +105,7 @@ export const aggregateDataByInterval =
 			}, acc[cleanDate] ?? ({} as typeof acc[number]))
 			return acc
 		}, {} as typeof chartData[0])
+
 		return Object.entries(monthBarsDataMap).map(([date, bar]) => ({ ...bar, date }))
 	}
 

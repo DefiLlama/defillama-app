@@ -6,7 +6,7 @@ import { LazyChart } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import type { IProtocolContainerProps } from '../types'
-import { ActualChart, ProtocolChart } from './ProtocolChart'
+import { ChartOnly, ProtocolChart } from './ProtocolChart'
 import { CHART_TYPES } from './types'
 import { chartFormatterBy } from './utils'
 
@@ -66,7 +66,7 @@ export const ChartByType2: React.FC<IChartByType> = (props) => {
 	return !error &&
 		(mainChart.dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (
 		<LazyChart enable={fullChart}>
-			<ActualChart
+			<ChartOnly
 				chartData={chartFormatterBy(props.chartType)(mainChart.dataChart, protocolSummary?.totalDataChartBreakdown)}
 				title={fullChart ? chartTitleBy(props.chartType, enableBreakdownChart)(mainChart.title, typeSimple) : undefined}
 			/>
