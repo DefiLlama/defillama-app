@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { Text } from 'rebass'
 import Numeral from 'numeral'
-import { ICONS_CDN, ICONS_PALETTE_CDN, timeframeOptions } from '~/constants'
+import { ICONS_CDN, ICONS_NFT_CDN, ICONS_PALETTE_CDN, timeframeOptions } from '~/constants'
 export * from './blockExplorers'
 import { colord, extend } from 'colord'
 import lchPlugin from 'colord/plugins/lch'
@@ -234,7 +234,7 @@ export function tokenIconUrl(name) {
 }
 
 export function nftCollectionIconUrl(address) {
-	return `${ICONS_CDN}/nfts/${address}?w=48&h=48`
+	return `${ICONS_NFT_CDN}/nfts/${address}?w=48&h=48`
 }
 
 export function tokenIconPaletteUrl(name) {
