@@ -6,7 +6,7 @@ import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { DownloadIcon } from '..'
-import { DownloadButton } from '~/containers/Raises'
+import { DownloadButton } from '~/containers/Raises/RaisesTable'
 import { ProtocolsTableWithSearch } from '../Table/Defi/Protocols'
 
 interface IAllTokensPageProps {
