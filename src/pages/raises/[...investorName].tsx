@@ -2,8 +2,8 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'
-import RaisesContainer from '~/containers/Raises'
-import { slug, toYearMonth } from '~/utils'
+import { InvestorContainer } from '~/containers/Raises/Investor'
+import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -47,31 +47,11 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const monthlyInvestment = {}
-
-		raises.forEach((r) => {
-			// split EOS raised amount between 13 months
-			if (r.name === 'EOS') {
-				for (let month = 0; month < 13; month++) {
-					const date = toYearMonth(r.date - month * 2_529_746)
-					monthlyInvestment[date] = (monthlyInvestment[date] ?? 0) + (r.amount ?? 0) / 13
-				}
-			} else {
-				const monthlyDate = toYearMonth(r.date)
-
-				monthlyInvestment[monthlyDate] = (monthlyInvestment[monthlyDate] ?? 0) + (r.amount ?? 0)
-			}
-		})
-
 		const filters = getRaisesFiltersList({ raises })
 
 		return {
 			props: {
 				raises,
-				monthlyInvestment: Object.entries(monthlyInvestment).map((t) => [
-					new Date(t[0]).getTime() / 1e3,
-					Number.isNaN(Number(t[1])) ? 0 : Number(t[1]) * 1e6
-				]),
 				...filters,
 				investorName
 			},
@@ -88,7 +68,7 @@ export async function getStaticPaths() {
 }
 
 const Raises = (props) => {
-	return <RaisesContainer {...props} showInvestmentBreakdown={true} />
+	return <InvestorContainer {...props} />
 }
 
 export default Raises

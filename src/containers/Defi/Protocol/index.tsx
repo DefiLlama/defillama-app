@@ -63,6 +63,7 @@ import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
 import { ProtocolPools } from './Yields'
 import { Flag } from './Flag'
 import { StablecoinInfo } from './Stablecoin'
+import { AccordionStat } from '~/layout/Stats/Large'
 
 const scams = [
 	'Drachma Exchange',
@@ -191,97 +192,6 @@ const ProtocolStatsTable = styled.table`
 
 	.question-helper {
 		padding: 0 16px 4px;
-	}
-`
-
-const Details = styled.details`
-	&[open] {
-		summary {
-			& > *[data-arrowicon] {
-				transform: rotate(90deg);
-				transition: 0.1s ease;
-			}
-		}
-	}
-
-	margin-bottom: -8px;
-
-	summary {
-		display: flex;
-		gap: 16px;
-		flex-wrap: wrap;
-		align-items: center;
-		list-style: none;
-		list-style-type: none;
-		cursor: pointer;
-
-		& > *[data-arrowicon] {
-			margin: auto -16px 8px -20px;
-		}
-
-		& > *[data-summaryheader] {
-			font-size: 1.5rem;
-			font-weight: 600;
-			display: flex;
-			flex-direction: column;
-			gap: 8px;
-
-			& > *:first-child {
-				font-weight: 400;
-				font-size: 1rem;
-				text-align: left;
-				color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
-				display: flex;
-				align-items: center;
-				gap: 8px;
-
-				div[data-tooltipanchor='true'] {
-					button {
-						opacity: 0;
-					}
-
-					button:focus-visible {
-						opacity: 1;
-					}
-				}
-
-				div[data-tooltipanchor='true']:focus-visible {
-					button {
-						opacity: 1;
-					}
-				}
-			}
-
-			& > *:nth-child(2) {
-				font-family: var(--font-jetbrains);
-				min-height: 2rem;
-			}
-		}
-	}
-
-	summary::-webkit-details-marker {
-		display: none;
-	}
-
-	summary + span {
-		margin-top: 16px;
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-	}
-
-	:hover {
-		summary {
-			& > *[data-summaryheader] {
-				& > *:first-child {
-					div[data-tooltipanchor='true'] {
-						button {
-							opacity: 1;
-						}
-					}
-				}
-			}
-		}
 	}
 `
 
@@ -559,7 +469,7 @@ function ProtocolContainer({
 						{!isParentProtocol && <Bookmark readableProtocolName={name} />}
 					</Name>
 
-					<Details>
+					<AccordionStat>
 						<summary>
 							<span data-arrowicon>
 								<ChevronRight size={20} />
@@ -636,7 +546,7 @@ function ProtocolContainer({
 								</ProtocolStatsTable>
 							)}
 						</span>
-					</Details>
+					</AccordionStat>
 
 					<div style={{ width: '100%', overflowX: 'auto' }}>
 						<ProtocolStatsTable>

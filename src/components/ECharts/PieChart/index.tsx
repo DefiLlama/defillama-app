@@ -27,6 +27,8 @@ export default function PieChart({
 			type: 'pie',
 			left: 0,
 			right: 0,
+			top: title === '' ? 0 : 25,
+			bottom: 0,
 			label: {
 				fontFamily: 'sans-serif',
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -82,7 +84,7 @@ export default function PieChart({
 				left: 0,
 				containLabel: true,
 				bottom: 0,
-				top: 100,
+				top: 0,
 				right: 0
 			},
 			series
