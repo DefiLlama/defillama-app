@@ -83,7 +83,15 @@ export default function YieldsSearch({ lend = false, searchData, value }: IYield
 				variant="secondary"
 			/>
 
-			<DesktopResults state={combobox} data={data} loading={false} onItemClick={onItemClick} />
+			<DesktopResults
+				state={combobox}
+				data={data}
+				loading={false}
+				onItemClick={(item) => {
+					combobox.setValue(item.name)
+					onItemClick(item)
+				}}
+			/>
 		</Wrapper>
 	)
 }

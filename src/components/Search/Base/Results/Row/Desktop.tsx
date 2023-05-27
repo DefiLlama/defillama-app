@@ -39,10 +39,11 @@ export const DesktopRow = ({ data, onItemClick, state }) => {
 		<Item
 			value={data.name}
 			onClick={() => {
-				setLoading(true)
 				if (onItemClick) {
 					onItemClick(data)
 				} else {
+					setLoading(true)
+
 					router.push(data.route).then(() => {
 						setLoading(false)
 						state.hide()
