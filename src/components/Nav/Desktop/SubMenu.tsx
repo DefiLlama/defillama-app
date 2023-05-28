@@ -173,7 +173,7 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 				!isFees(pathname) &&
 				!isRaises(pathname) &&
 				!isHacks(pathname) &&
-				!isBorrow
+				!isBorrow(pathname)
 			)
 		default:
 			return false
