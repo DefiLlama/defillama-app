@@ -1,19 +1,10 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/future/image'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { groupBy, mapValues, sumBy } from 'lodash'
-import {
-	Panel,
-	BreakpointPanels,
-	BreakpointPanel,
-	PanelHiddenMobile,
-	ChartAndValuesWrapper,
-	DownloadButton,
-	DownloadIcon
-} from '~/components'
+import { Panel, BreakpointPanel, PanelHiddenMobile, DownloadButton, DownloadIcon } from '~/components'
 import Announcement from '~/components/Announcement'
 import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import { ProtocolsTable } from '~/components/Table'
@@ -28,7 +19,6 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory, useGetProtocolsList } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
-import { ArrowUpRight } from 'react-feather'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { getUtcDateObject } from '../ECharts/utils'
 
@@ -143,7 +133,7 @@ function GlobalPage({
 		}
 	}
 
-	const { totalVolumeUSD, volumeChangeUSD, globalChart } = React.useMemo(() => {
+	const { totalVauleUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
 			let sum = data[1]
 			Object.entries(extraTvlCharts).forEach(([prop, propCharts]) => {
@@ -175,9 +165,9 @@ function GlobalPage({
 
 		const tvl = getPrevTvlFromChart(globalChart, 0)
 		const tvlPrevDay = getPrevTvlFromChart(globalChart, 1)
-		const volumeChangeUSD = getPercentChange(tvl, tvlPrevDay)
+		const valueChangeUSD = getPercentChange(tvl, tvlPrevDay)
 
-		return { totalVolumeUSD: tvl, volumeChangeUSD, globalChart }
+		return { totalVauleUSD: tvl, valueChangeUSD, globalChart }
 	}, [chart, extraTvlsEnabled, extraTvlCharts])
 
 	let chainOptions = ['All'].concat(chainsSet).map((label) => ({ label, to: setSelectedChain(label) }))
@@ -240,9 +230,9 @@ function GlobalPage({
 		}
 	}
 
-	const tvl = formattedNum(totalVolumeUSD, true)
+	const tvl = formattedNum(totalVauleUSD, true)
 
-	const percentChange = volumeChangeUSD?.toFixed(2)
+	const percentChange = valueChangeUSD?.toFixed(2)
 
 	const volumeChange = (percentChange > 0 ? '+' : '') + percentChange + '%'
 
@@ -351,7 +341,7 @@ function GlobalPage({
 		}
 	}, [])
 
-	const dominance = getTokenDominance(topToken, totalVolumeUSD)
+	const dominance = getTokenDominance(topToken, totalVauleUSD)
 
 	const isLoading = denomination !== 'USD' && loading
 
@@ -561,6 +551,7 @@ function GlobalPage({
 							denomination={denomination}
 							updateRoute={updateRoute}
 							router={router}
+							hideTooltip={selectedChain === 'All'}
 						/>
 					)}
 				</BreakpointPanel>

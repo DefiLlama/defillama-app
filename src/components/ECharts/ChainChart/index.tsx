@@ -75,6 +75,7 @@ export default function AreaChart({
 	updateRoute,
 	datasets = [],
 	router,
+	hideTooltip,
 	...props
 }) {
 	const id = useMemo(() => uuid(), [])
@@ -383,7 +384,18 @@ export default function AreaChart({
 			graphic: { ...graphic },
 
 			tooltip: {
-				...tooltip
+				...tooltip,
+				...(hideTooltip
+					? {
+							position: [100, 0],
+							backgroundColor: 'none',
+							borderWidth: '0',
+							padding: 0,
+							textStyle: {
+								color: isDark ? 'white' : 'black'
+							}
+					  }
+					: {})
 			},
 			title: {
 				...titleDefaults
@@ -459,6 +471,32 @@ export default function AreaChart({
 			series
 		})
 
+		if (hideTooltip) {
+			chartInstance.dispatchAction({
+				type: 'showTip',
+				// index of series, which is optional when trigger of tooltip is axis
+				seriesIndex: 0,
+				// data index; could assign by name attribute when not defined
+				dataIndex: (series[0]?.data?.length ?? 1) - 1,
+				// Position of tooltip. Only works in this action.
+				// Use tooltip.position in option by default.
+				position: [100, 0]
+			})
+
+			chartInstance.on('globalout', () => {
+				chartInstance.dispatchAction({
+					type: 'showTip',
+					// index of series, which is optional when trigger of tooltip is axis
+					seriesIndex: 0,
+					// data index; could assign by name attribute when not defined
+					dataIndex: (series[0]?.data?.length ?? 1) - 1,
+					// Position of tooltip. Only works in this action.
+					// Use tooltip.position in option by default.
+					position: [100, 0]
+				})
+			})
+		}
+
 		function resize() {
 			chartInstance.resize()
 		}
@@ -469,7 +507,7 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, route, activeSeries])
+	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, route, activeSeries, hideTooltip])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
 
