@@ -177,7 +177,8 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 				!isRaises(pathname) &&
 				!isHacks(pathname) &&
 				!isBorrow(pathname) &&
-				!isNFT(pathname)
+				!isNFT(pathname) &&
+				!isBridges(pathname)
 			)
 		default:
 			return false
