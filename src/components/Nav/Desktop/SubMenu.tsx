@@ -139,10 +139,11 @@ const isDexs = (pathname: string) =>
 	pathname === '/dexs' || pathname.startsWith('/dexs/') || pathname.startsWith('/dex/')
 const isFees = (pathname: string) =>
 	pathname === '/fees' || pathname.startsWith('/fees/') || pathname.startsWith('/fee/')
-const isRaises = (pathname: string) => pathname === '/raises'
+const isRaises = (pathname: string) => pathname.startsWith('/raises')
 const isHacks = (pathname: string) => pathname === '/hacks'
-const isBridges = (pathname: string) => pathname.startsWith('bridge')
+const isBridges = (pathname: string) => pathname.startsWith('/bridge')
 const isBorrow = (pathname: string) => pathname === '/borrow'
+const isNFT = (pathname: string) => pathname.startsWith('/nfts')
 
 const isActive = ({ pathname, category }: { pathname: string; category: string }) => {
 	switch (category) {
@@ -164,6 +165,8 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 			return isBridges(pathname)
 		case 'Borrow Aggregator':
 			return isBorrow(pathname)
+		case 'NFT':
+			return isNFT(pathname)
 		case 'DeFi':
 			return (
 				!isYields(pathname) &&
@@ -173,7 +176,8 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 				!isFees(pathname) &&
 				!isRaises(pathname) &&
 				!isHacks(pathname) &&
-				!isBorrow(pathname)
+				!isBorrow(pathname) &&
+				!isNFT(pathname)
 			)
 		default:
 			return false
