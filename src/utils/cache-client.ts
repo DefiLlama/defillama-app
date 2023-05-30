@@ -1,13 +1,17 @@
 // import Redis from 'ioredis'
 
 let redis = null as null | import('ioredis').Redis
+const REDIS_URL = process.env.REDIS_URL as string
 
 if (typeof window === 'undefined') {
 	// Server-side execution
-	const { Redis } = require('ioredis') as typeof import('ioredis')
-	const REDIS_URL = process.env.REDIS_URL as string
-	console.log('[cache] [connecting to redis]', REDIS_URL)
-	redis = REDIS_URL ? new Redis(REDIS_URL) : null
+	try {
+		const { Redis } = require('ioredis') as typeof import('ioredis')
+		console.log('[cache] [connecting to redis]', REDIS_URL)
+		redis = REDIS_URL ? new Redis(REDIS_URL) : null
+	} catch (e) {
+		console.log('[cache] [failed to connect to redis]', REDIS_URL)
+	}
 }
 
 export const sluggify = (input: string) => {
