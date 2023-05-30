@@ -6,6 +6,7 @@ if (typeof window === 'undefined') {
 	// Server-side execution
 	const { Redis } = require('ioredis') as typeof import('ioredis')
 	const REDIS_URL = process.env.REDIS_URL as string
+	console.log('[cache] [connecting to redis]', REDIS_URL)
 	redis = REDIS_URL ? new Redis(REDIS_URL) : null
 }
 
