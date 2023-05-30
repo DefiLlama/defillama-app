@@ -26,6 +26,10 @@ import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
 import { BAR_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/BridgeContainer'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
 }) as React.FC<IChartProps>

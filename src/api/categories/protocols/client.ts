@@ -14,6 +14,10 @@ import { fetcher } from '~/utils/useSWR'
 import { formatGovernanceData, getProtocol, getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const useFetchProtocolsList = () => {
 	const { data, error } = useSWR(PROTOCOLS_API, fetcher)
 
@@ -108,7 +112,7 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 		`tokenLiquidity/${token}`,
 		token
 			? () =>
-					fetch(`${TOKEN_LIQUIDITY_API}/${token.replaceAll("#", "$")}`)
+					fetch(`${TOKEN_LIQUIDITY_API}/${token.replaceAll('#', '$')}`)
 						.then((res) => res.json())
 
 						.catch((err) => null)

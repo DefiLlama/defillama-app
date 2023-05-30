@@ -4,6 +4,10 @@ import HacksContainer from '~/containers/Hacks'
 import { formattedNum, toYearMonth } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	const data = (await fetch('https://defi-hacks-api.herokuapp.com/').then((r) => r.json())).map((h) => ({
 		chains: h.chain,

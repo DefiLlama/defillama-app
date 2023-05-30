@@ -6,6 +6,10 @@ import { getNewChainsPageData } from '~/api/categories/protocols'
 import { CONFIG_API } from '~/constants/index'
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const getStaticProps = withPerformanceLogging(
 	'chains/[...category]',
 	async ({

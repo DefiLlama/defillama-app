@@ -6,6 +6,10 @@ import { InvestorContainer } from '~/containers/Raises/Investor'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const getStaticProps = withPerformanceLogging(
 	'raises/[...investorName]',
 	async ({
