@@ -5,10 +5,6 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 export const getStaticProps = withPerformanceLogging('expenses', async () => {
 	const { protocols, parentProtocols } = await getProtocolsRaw()
 	const expenses = await fetch(

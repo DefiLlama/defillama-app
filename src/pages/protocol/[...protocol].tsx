@@ -18,7 +18,7 @@ import {
 	YIELD_PROJECT_MEDIAN_API,
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
-import { fetchOverCacheJson, withPerformanceLogging } from '~/utils/perf'
+import { fetchWithPerformaceLogging, withPerformanceLogging } from '~/utils/perf'
 import validProtocols from '~/constants/validProtocols'
 
 export const getStaticProps = withPerformanceLogging(
@@ -45,12 +45,12 @@ export const getStaticProps = withPerformanceLogging(
 		] = await Promise.all([
 			getProtocol(protocol),
 			fetchArticles({ tags: protocol }),
-			fetchOverCacheJson(PROTOCOL_EMISSIONS_LIST_API),
-			fetchOverCacheJson(PROTOCOLS_EXPENSES_API),
-			fetchOverCacheJson(PROTOCOLS_TREASURY),
-			fetchOverCacheJson(YIELD_POOLS_API),
-			fetchOverCacheJson(YIELD_CONFIG_API),
-			fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json')
+			fetchWithPerformaceLogging(PROTOCOL_EMISSIONS_LIST_API),
+			fetchWithPerformaceLogging(PROTOCOLS_EXPENSES_API),
+			fetchWithPerformaceLogging(PROTOCOLS_TREASURY),
+			fetchWithPerformaceLogging(YIELD_POOLS_API),
+			fetchWithPerformaceLogging(YIELD_CONFIG_API),
+			fetchWithPerformaceLogging('https://defillama-datasets.llama.fi/liquidity.json')
 		])
 
 		let inflowsExist = false

@@ -16,10 +16,6 @@ import VirtualTable from '~/components/Table/Table'
 import { treasuriesColumns } from '~/components/Table/Defi/columns'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 export const getStaticProps = withPerformanceLogging('treasuries', async () => {
 	const treasuries = await fetch(PROTOCOLS_TREASURY).then((res) => res.json())
 	return {

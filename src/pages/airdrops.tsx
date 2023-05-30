@@ -3,7 +3,7 @@ import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API, RAISES_API } from '~/constants'
-import { fetchOverCache, withPerformanceLogging } from '~/utils/perf'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const exclude = [
 	'DeerFi',
@@ -109,8 +109,8 @@ const exclude = [
 export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 	const [protocolsRaw, { forks }, { raises }] = await Promise.all([
 		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls', 'defillamaId']),
-		fetchOverCache(FORK_API).then((r) => r.json()),
-		fetchOverCache(RAISES_API).then((r) => r.json())
+		fetch(FORK_API).then((r) => r.json()),
+		fetch(RAISES_API).then((r) => r.json())
 	])
 
 	const protocols = protocolsRaw.protocols

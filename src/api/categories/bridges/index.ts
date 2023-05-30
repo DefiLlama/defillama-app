@@ -2,9 +2,6 @@ import { standardizeProtocolName, chainIconUrl, tokenIconUrl, getRandomColor } f
 import { formatBridgesData, formatChainsData } from './utils'
 import type { IChainData } from '~/api/types'
 import { CONFIG_API, BRIDGEDAYSTATS_API, BRIDGES_API, BRIDGEVOLUME_API, BRIDGELARGETX_API } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
 
 export const getBridges = () =>
 	fetch(BRIDGES_API + '/?includeChains=true')

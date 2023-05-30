@@ -5,10 +5,6 @@ import { USER_METRICS_ALL_API } from '~/constants'
 import UsersByChain from '~/containers/UsersByChain'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 export const getStaticProps = withPerformanceLogging('users/index', async () => {
 	try {
 		const userMetrics = await fetch(`${USER_METRICS_ALL_API}`).then((res) => res.json())

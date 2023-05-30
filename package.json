@@ -24,7 +24,6 @@
 		"echarts": "^5.4.2",
 		"echarts-simple-transform": "^1.0.0",
 		"fathom-client": "^3.4.1",
-		"ioredis": "^5.3.2",
 		"lodash": "^4.17.21",
 		"next": "12.3.1",
 		"numeral": "^2.0.6",

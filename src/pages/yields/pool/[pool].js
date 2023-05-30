@@ -25,10 +25,6 @@ import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
 	loading: () => <></>

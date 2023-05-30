@@ -1,10 +1,7 @@
+import { fetcher } from '~/utils/useSWR'
 import useSWR from 'swr'
 import { NFT_COLLECTIONS_API } from '~/constants'
 import { nftCollectionIconUrl } from '~/utils'
-
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
 
 export const useFetchNftCollectionsList = () => {
 	const { data, error } = useSWR(NFT_COLLECTIONS_API, () =>
