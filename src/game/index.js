@@ -1,10 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 const Style = styled.div`
 	.icon {
 		-webkit-user-select: none;

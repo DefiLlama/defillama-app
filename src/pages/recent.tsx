@@ -5,10 +5,6 @@ import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API } from '~/constants'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 export const getStaticProps = withPerformanceLogging('recent', async () => {
 	const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls'])
 	const { forks } = await fetch(FORK_API).then((r) => r.json())

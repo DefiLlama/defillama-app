@@ -7,10 +7,6 @@ import { Form, FormError, FormInput, FormLabel, FormSubmit, useFormState } from 
 import { BRIDGETX_API } from '~/constants'
 import { download, toNiceCsvDate } from '~/utils'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 type BridgeTransaction = {
 	tx_hash: string
 	ts: string
@@ -115,7 +111,7 @@ const BridgeTransactionsPage = ({ bridges }) => {
 	const form = useFormState({
 		defaultValues: { startDate: '', endDate: '', selectedBridge: '' }
 	})
-	const [placeholder, setPlaceholder] = React.useState('Search...')
+	const [placeholder, setPlaceholder] = React.useState("Search...")
 
 	const downloadCsv = (transactions: BridgeTransaction[]) => {
 		{
@@ -209,13 +205,8 @@ const BridgeTransactionsPage = ({ bridges }) => {
 							<FormError name={form.names.endDate} className="error" />
 						</DateInputField>
 					</Wrapper>
-					<BridgesSearchSelect
-						formValueToEdit={form.values}
-						formProperty={'selectedBridge'}
-						placeholder={placeholder}
-						click={(item) => setPlaceholder(item)}
-					/>
-					<StyledFormSubmit onClick={() => setPlaceholder('Search...')}>Generate CSV</StyledFormSubmit>
+					<BridgesSearchSelect formValueToEdit={form.values} formProperty={'selectedBridge'} placeholder={placeholder} click={(item) => setPlaceholder(item)}/>
+					<StyledFormSubmit onClick={() => setPlaceholder("Search...")}>Generate CSV</StyledFormSubmit>
 				</SearchWrapper>
 			</Form>
 

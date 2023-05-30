@@ -14,10 +14,6 @@ import LocalLoader from '~/components/LocalLoader'
 import { ISettings } from '~/contexts/types'
 import ReactSelect from '../MultiSelect/ReactSelect'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 const DataWrapper = styled.div`
 	display: flex;
 	flex-direction: column;

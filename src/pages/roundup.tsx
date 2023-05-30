@@ -6,10 +6,6 @@ import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
 import Announcement from '~/components/Announcement'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 const Header = styled.h1`
 	color: ${({ theme }) => theme.text1};
 	font-weight: 600;

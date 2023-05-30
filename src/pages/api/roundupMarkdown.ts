@@ -1,9 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 export default async function roundupMarkdown(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const headers = new Headers()

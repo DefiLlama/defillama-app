@@ -9,10 +9,6 @@ import { ChartsWrapper, LazyChart, SectionHeader } from '~/layout/ProtocolAndPoo
 import type { IChartProps } from '~/components/ECharts/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>

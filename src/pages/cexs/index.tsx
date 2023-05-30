@@ -2,11 +2,10 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { Header } from '~/Theme'
 import type { IChainTvl } from '~/api/types'
+import { fetchWithErrorLogging } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { cexColumn } from '~/components/Table/Defi/columns'
-
-import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
 

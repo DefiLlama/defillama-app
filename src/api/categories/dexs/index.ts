@@ -4,10 +4,6 @@ import { chainIconUrl, getColorFromNumber, getDominancePercent } from '~/utils'
 import { IDexResponse, IGetDexsResponseBody, VolumeSummaryDex } from './types'
 import { formatChain } from './utils'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 export const getDex = async (dexName: string): Promise<IDexResponse> =>
 	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
 
@@ -52,13 +48,13 @@ export const getChainPageData = async (chain?: string) => {
 		chains: dex.chains.map(formatChain),
 		subRows: dex.protocolVersions
 			? Object.entries(dex.protocolVersions)
-					.map(([versionName, summary]) => ({
-						...dex,
-						name: `${dex.name} - ${versionName.toUpperCase()}`,
-						displayName: `${dex.name} - ${versionName.toUpperCase()}`,
-						...summary
-					}))
-					.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
+				.map(([versionName, summary]) => ({
+					...dex,
+					name: `${dex.name} - ${versionName.toUpperCase()}`,
+					displayName: `${dex.name} - ${versionName.toUpperCase()}`,
+					...summary
+				}))
+				.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
 			: null
 	}))
 
