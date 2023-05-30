@@ -41,10 +41,9 @@ export const fetchWithPerformaceLogging = async (api: string) => {
 	return data
 }
 
-export const fetchOverCache = async (
-	url: string,
-	options?: RequestInit & { ttl?: string | number; logging?: boolean }
-): Promise<Response> => {
+export type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean }
+
+export const fetchOverCache = async (url: string, options?: FetchOverCacheOptions): Promise<Response> => {
 	const start = Date.now()
 
 	const cacheKey = `app-cache::${url}`
@@ -63,7 +62,7 @@ export const fetchOverCache = async (
 			})
 		}
 		const end = Date.now()
-		console.log(`[fetchOverCache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
+		!options?.silent && console.log(`[fetchOverCache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
 
 		return new Response(blob, responseInit)
 	} else {
@@ -79,7 +78,12 @@ export const fetchOverCache = async (
 		const ttl = options?.ttl || maxAgeForNext([21])
 		await setCache(payload, ttl)
 		const end = Date.now()
-		console.log(`[fetchOverCache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
+		!options?.silent && console.log(`[fetchOverCache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
 		return response
 	}
+}
+
+export const fetchOverCacheJson = async <T = any>(url: string, options?: FetchOverCacheOptions): Promise<T> => {
+	const data = await fetchOverCache(url, options).then((res) => res.json())
+	return data as T
 }
