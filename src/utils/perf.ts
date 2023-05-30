@@ -77,9 +77,17 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		}
 		const ttl = options?.ttl || maxAgeForNext([21])
 		await setCache(payload, ttl)
+		const blob = new Blob([arrayBuffer])
+		const responseInit = {
+			status: 200,
+			statusText: 'OK',
+			headers: new Headers({
+				'Content-Type': ContentType
+			})
+		}
 		const end = Date.now()
 		!options?.silent && console.log(`[fetchOverCache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
-		return response
+		return new Response(blob, responseInit)
 	}
 }
 

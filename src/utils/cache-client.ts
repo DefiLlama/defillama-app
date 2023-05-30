@@ -1,7 +1,13 @@
-import Redis from 'ioredis'
+// import Redis from 'ioredis'
 
-const REDIS_URL = process.env.REDIS_URL as string
-const redis = REDIS_URL ? new Redis(REDIS_URL) : null
+let redis = null
+
+if (typeof window === 'undefined') {
+	// Server-side execution
+	const Redis = require('ioredis')
+	const REDIS_URL = process.env.REDIS_URL as string
+	redis = REDIS_URL ? new Redis(REDIS_URL) : null
+}
 
 export const sluggify = (input: string) => {
 	const slug = decodeURIComponent(input)
