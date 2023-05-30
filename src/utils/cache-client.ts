@@ -11,8 +11,9 @@ if (typeof window === 'undefined') {
 	redis = REDIS_URL ? new Redis(REDIS_URL) : null
 
 	// if redis errors, we will disable it and send a message to discord
-	redis.on('error', (_error) => {
+	redis.on('error', (error) => {
 		console.error('[cache] [redis error]', REDIS_URL)
+		console.error(error)
 	})
 
 	redis.connect().catch((error) => {
