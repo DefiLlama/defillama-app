@@ -2,16 +2,38 @@
 
 let redis = null as null | import('ioredis').Redis
 const REDIS_URL = process.env.REDIS_URL as string
+const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK as string
 
 if (typeof window === 'undefined') {
 	// Server-side execution
-	try {
-		const { Redis } = require('ioredis') as typeof import('ioredis')
-		console.log('[cache] [connecting to redis]', REDIS_URL)
-		redis = REDIS_URL ? new Redis(REDIS_URL) : null
-	} catch (e) {
-		console.log('[cache] [failed to connect to redis]', REDIS_URL)
-	}
+	const { Redis } = require('ioredis') as typeof import('ioredis')
+	console.log('[cache] [connecting to redis]', REDIS_URL)
+	redis = REDIS_URL ? new Redis(REDIS_URL) : null
+
+	// if redis errors, we will disable it and send a message to discord
+	redis.on('error', (error) => {
+		console.error('[cache] [redis error]', REDIS_URL)
+		console.error(error)
+		redis = null
+
+		if (BUILD_STATUS_WEBHOOK) {
+			fetch(BUILD_STATUS_WEBHOOK, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					content: `:warning: [cache] [redis error] [${REDIS_URL}] \n\`\`\`${error}\`\`\``
+				})
+			})
+		}
+	})
+
+	redis.connect().catch((error) => {
+		console.error('[cache] [failed to connect to redis]', REDIS_URL)
+		console.error(error)
+		redis = null
+	})
 }
 
 export const sluggify = (input: string) => {
