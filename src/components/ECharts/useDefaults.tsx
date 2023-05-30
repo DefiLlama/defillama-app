@@ -141,7 +141,9 @@ export function useDefaults({
 						'&nbsp;&nbsp;' +
 						formatTooltipValue(
 							curr.value[1],
-							curr.seriesName === 'Unlocks'
+							valueSymbol !== ''
+								? valueSymbol
+								: curr.seriesName === 'Unlocks'
 								? unlockTokenSymbol
 								: curr.seriesName.includes('Active Users')
 								? 'Users'
@@ -149,7 +151,7 @@ export function useDefaults({
 								? 'TXs'
 								: Object.keys(CHART_SYMBOLS).includes(curr.seriesName)
 								? CHART_SYMBOLS[curr.seriesName]
-								: valueSymbol
+								: ''
 						) +
 						'</li>')
 				}, '')
