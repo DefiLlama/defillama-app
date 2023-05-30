@@ -19,6 +19,7 @@ import {
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
 import { fetchWithPerformaceLogging, withPerformanceLogging } from '~/utils/perf'
+import validProtocols from '~/constants/validProtocols'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/[...protocol]',
@@ -27,6 +28,11 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
+		if (validProtocols[protocol] !== true) {
+			return {
+				notFound: true
+			}
+		}
 		const [protocolRes, articles, emissions, expenses, treasuries, yields, yieldsConfig, liquidityInfo]: [
 			IProtocolResponse,
 			IArticle[],
