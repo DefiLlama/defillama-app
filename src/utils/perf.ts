@@ -3,6 +3,9 @@ import { GetStaticProps, GetStaticPropsContext } from 'next'
 import { getCache, setCache } from './cache-client'
 import { maxAgeForNext } from '~/api'
 
+const isServer = typeof window === 'undefined'
+const REDIS_URL = process.env.REDIS_URL as string
+
 export const withPerformanceLogging = <T extends {}>(
 	filename: string,
 	getStaticPropsFunction: GetStaticProps<T>
@@ -47,7 +50,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 	const start = Date.now()
 
 	const cacheKey = `app-cache::${url.toString()}`
-	const cache = await getCache(cacheKey)
+	const cache = REDIS_URL ? await getCache(cacheKey) : null
 
 	if (cache) {
 		const Body = cache.Body
@@ -62,7 +65,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 			})
 		}
 		const end = Date.now()
-		!options?.silent && console.log(`[fetchOverCache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
+		!options?.silent && isServer && console.log(`[fetchOverCache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
 
 		return new Response(blob, responseInit)
 	} else {
@@ -86,7 +89,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 			})
 		}
 		const end = Date.now()
-		!options?.silent && console.log(`[fetchOverCache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
+		!options?.silent && isServer && console.log(`[fetchOverCache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
 		return new Response(blob, responseInit)
 	}
 }
