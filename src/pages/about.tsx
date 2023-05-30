@@ -43,13 +43,19 @@ function AboutPage() {
 					<TYPE.main area="account">Contact</TYPE.main>
 					<Divider />
 					<TYPE.main>
-						Contact us on <Link href="https://twitter.com/defillama">Twitter</Link> or{' '}
-						<Link href="https://discord.defillama.com">Discord</Link> or {' '} by email <Link href="mailto:contact@llama-corp.com">contact@llama-corp.com</Link>
-					</TYPE.main>
-					<TYPE.main>DeFiLlama is a part of <Link href="https://twitter.com/llamacorporg">Llama Corp</Link>.
+						The best way to contact us and the one in which you'll get a reply the fastest is through our{' '}
+						<Link href="https://discord.defillama.com">Discord</Link>. If you want communication to be private you can
+						use <Link href="https://twitter.com/defillama">Twitter</Link> as a slower alternative, or, as an even slower
+						option, you can also contact us by email at{' '}
+						<Link href="mailto:contact@llama-corp.com">contact@llama-corp.com</Link> or{' '}
+						<Link href="mailto:0xngmi@llama.fi">0xngmi@llama.fi</Link>.
 					</TYPE.main>
 					<TYPE.main>
-					Llama Corp is a collective building out the decentralized future with data analytics, infrastructure, payments, cross-chain and media solutions used by more than 10M monthly users.
+						DeFiLlama is a part of <Link href="https://twitter.com/llamacorporg">Llama Corp</Link>.
+					</TYPE.main>
+					<TYPE.main>
+						Llama Corp is a collective building out the decentralized future with data analytics, infrastructure,
+						payments, cross-chain and media solutions used by more than 10M monthly users.
 					</TYPE.main>
 				</DashGrid>
 			</Panel>
@@ -69,7 +75,5 @@ function AboutPage() {
 		</Layout>
 	)
 }
-
-
 
 export default AboutPage
