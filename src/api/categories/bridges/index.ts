@@ -117,7 +117,7 @@ export async function getBridgeOverviewPageData(chain) {
 
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000)
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
-	const prevDayTimestamp = currentTimestamp - 86400 - 3600
+	const prevDayTimestamp = currentTimestamp
 	let bridgeStatsCurrentDay = {}
 	if (chain) {
 		bridgeStatsCurrentDay = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`).then((resp) =>

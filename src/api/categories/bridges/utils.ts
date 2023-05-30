@@ -65,14 +65,14 @@ export const formatBridgesData = ({
 	filteredBridges = filteredBridges.map((bridge) => {
 		const chartIndex = bridgeNameToChartDataIndex[bridge.displayName]
 		const chart = chartDataByBridge[chartIndex] ?? null
-		
+
 		if (chain) {
 			let dayTotalVolume, weekTotalVolume, monthTotalVolume
 			dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
 			// start from i = 1 to exclude current day
-			for (let i = 1; i < 31; i++) {
+			for (let i = 0; i < 31; i++) {
 				const dailyVolume = getPrevVolumeFromChart(chart, i)
-				if (i < 2) {
+				if (i < 1) {
 					dayTotalVolume += dailyVolume
 				}
 				if (i < 8) {
@@ -85,7 +85,7 @@ export const formatBridgesData = ({
 			bridge.weeklyVolume = weekTotalVolume ?? null
 			bridge.monthlyVolume = monthTotalVolume ?? null
 		}
-		
+
 		bridge.change_1d = getPercentChange(bridge.lastDailyVolume, bridge.dayBeforeLastVolume)
 		bridge.txsPrevDay = getPrevVolumeFromChart(chart, 1, true) ?? null
 
@@ -110,7 +110,7 @@ export const formatChainsData = ({
 		const chartIndex = chainToChartDataIndex[name]
 		const charts = chartDataByChain[chartIndex] ?? null
 		const prevDayData = prevDayDataByChain[chartIndex] ?? null
-		const prevDayChart = charts?.[charts.length - 2]
+		const prevDayChart = charts?.[charts.length - 1]
 		const prevDayUsdDeposits = prevDayChart?.depositUSD
 		const prevDayUsdWithdrawals = prevDayChart?.withdrawUSD
 		const totalTokensDeposited = prevDayData?.totalTokensDeposited

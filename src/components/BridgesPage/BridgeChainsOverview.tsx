@@ -46,6 +46,8 @@ function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, f
 		download('bridge-chains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
+	console.log(filteredChains)
+
 	return (
 		<>
 			<BridgesSearch
