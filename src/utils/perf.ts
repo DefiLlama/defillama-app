@@ -1,5 +1,7 @@
 // import { performance } from 'perf_hooks'
 import { GetStaticProps, GetStaticPropsContext } from 'next'
+import { getCache, setCache } from './cache-client'
+import { maxAgeForNext } from '~/api'
 
 export const withPerformanceLogging = <T extends {}>(
 	filename: string,
@@ -27,7 +29,7 @@ export const withPerformanceLogging = <T extends {}>(
 	}
 }
 
-export const fetchWithPerformaceLogging = async (api) => {
+export const fetchWithPerformaceLogging = async (api: string) => {
 	const startTime = Date.now()
 
 	const data = await fetch(api).then((res) => res.json())
@@ -37,4 +39,47 @@ export const fetchWithPerformaceLogging = async (api) => {
 	}
 
 	return data
+}
+
+export const fetchOverCache = async (
+	url: string,
+	options?: RequestInit & { ttl?: string | number; logging?: boolean }
+): Promise<Response> => {
+	const start = Date.now()
+
+	const cacheKey = `app-cache::${url}`
+	const cache = await getCache(cacheKey)
+
+	if (cache) {
+		const Body = cache.Body
+		const ContentType = cache.ContentType
+		const arrayBuffer = new Uint8Array(Body).buffer
+		const blob = new Blob([arrayBuffer])
+		const responseInit = {
+			status: 200,
+			statusText: 'OK',
+			headers: new Headers({
+				'Content-Type': ContentType
+			})
+		}
+		const end = Date.now()
+		console.log(`[fetchOverCache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
+
+		return new Response(blob, responseInit)
+	} else {
+		const response = await fetch(url, options)
+		const arrayBuffer = await response.arrayBuffer()
+		const Body = Buffer.from(arrayBuffer)
+		const ContentType = response.headers.get('Content-Type')
+		const payload = {
+			Key: cacheKey,
+			Body,
+			ContentType
+		}
+		const ttl = options?.ttl || maxAgeForNext([21])
+		await setCache(payload, ttl)
+		const end = Date.now()
+		console.log(`[fetchOverCache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
+		return response
+	}
 }
