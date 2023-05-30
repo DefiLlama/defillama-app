@@ -5,6 +5,10 @@ import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const getStaticProps = withPerformanceLogging('raises', async () => {
 	const data = await fetch(RAISES_API).then((r) => r.json())
 

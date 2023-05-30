@@ -43,10 +43,10 @@ export const fetchWithPerformanceLogging = async (api: string) => {
 
 export type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean }
 
-export const fetchOverCache = async (url: string, options?: FetchOverCacheOptions): Promise<Response> => {
+export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
 	const start = Date.now()
 
-	const cacheKey = `app-cache::${url}`
+	const cacheKey = `app-cache::${url.toString()}`
 	const cache = await getCache(cacheKey)
 
 	if (cache) {
@@ -83,7 +83,10 @@ export const fetchOverCache = async (url: string, options?: FetchOverCacheOption
 	}
 }
 
-export const fetchOverCacheJson = async <T = any>(url: string, options?: FetchOverCacheOptions): Promise<T> => {
+export const fetchOverCacheJson = async <T = any>(
+	url: RequestInfo | URL,
+	options?: FetchOverCacheOptions
+): Promise<T> => {
 	const data = await fetchOverCache(url, options).then((res) => res.json())
 	return data as T
 }

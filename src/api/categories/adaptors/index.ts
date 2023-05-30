@@ -4,8 +4,12 @@ import { getUniqueArray } from '~/containers/DexsAndFees/utils'
 import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
-import { formatChain, getCexVolume, handleFetchResponse } from './utils'
+import { getCexVolume, handleFetchResponse } from './utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
+
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
 
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>
 	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
@@ -100,9 +104,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-			...p,
-			tvlPrevDay: p?.chainTvls?.[chain]?.tvlPrevDay ?? null
-		}))
+				...p,
+				tvlPrevDay: p?.chainTvls?.[chain]?.tvlPrevDay ?? null
+		  }))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -197,9 +201,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-				{} as IJSON<ProtocolAdaptorSummary>
-			) ?? {}
+					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+					{} as IJSON<ProtocolAdaptorSummary>
+			  ) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -223,7 +227,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
 				mcap: mcapData[protocol.name] || null,
 				pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total30d),
-				ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d),
+				ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d)
 			}
 			// If already included parent protocol we add the new child
 			if (acc[protocol.parentProtocol]) acc[protocol.parentProtocol].subRows.push(subRow)
@@ -248,7 +252,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			dailyUserFees: protocol.dailyUserFees ?? null,
 			mcap: mcapData[protocol.name] || null,
 			pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total30d),
-			ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d),
+			ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d)
 		}
 		// Stats for parent protocol
 		if (acc[protocol.parentProtocol]) {
@@ -325,7 +329,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 }
 
 const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
-	if (numerator && denominator && numerator !== null && denominator !== null) return Number((numerator / (denominator * 12)).toFixed(2))
+	if (numerator && denominator && numerator !== null && denominator !== null)
+		return Number((numerator / (denominator * 12)).toFixed(2))
 	return null
 }
 

@@ -23,6 +23,10 @@ import { formatGovernanceData } from '~/api/categories/protocols'
 import { GovernanceTable } from '~/containers/Defi/Protocol/Governance'
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>

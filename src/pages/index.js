@@ -8,6 +8,10 @@ import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const getStaticProps = withPerformanceLogging('index', async () => {
 	const data = await getChainPageData()
 	const volumeData = await getChainsPageData('dexs')

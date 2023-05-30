@@ -1,3 +1,5 @@
+import { fetchOverCache } from './perf'
+
 export function withErrorLogging<T extends any[], R>(
 	fn: (...args: T) => Promise<R>,
 	shouldThrow = true,
@@ -18,7 +20,7 @@ export function withErrorLogging<T extends any[], R>(
 }
 
 export async function fetchWithThrows(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-	const res = await fetch(input, init)
+	const res = await fetchOverCache(input, init)
 	if (res.status >= 400) {
 		throw new Error(`HTTP Error: ${res.status} via ${res.url}`)
 	}
@@ -26,7 +28,7 @@ export async function fetchWithThrows(input: RequestInfo | URL, init?: RequestIn
 }
 
 export async function fetchWithErrorLogging(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-	const res = await fetch(input, init)
+	const res = await fetchOverCache(input, init)
 	if (res.status >= 400) {
 		console.error(`HTTP Error: ${res.status} via ${res.url}`)
 	}
