@@ -1,10 +1,10 @@
 // import Redis from 'ioredis'
 
-let redis = null
+let redis = null as null | import('ioredis').Redis
 
 if (typeof window === 'undefined') {
 	// Server-side execution
-	const Redis = require('ioredis')
+	const { Redis } = require('ioredis') as typeof import('ioredis')
 	const REDIS_URL = process.env.REDIS_URL as string
 	redis = REDIS_URL ? new Redis(REDIS_URL) : null
 }
