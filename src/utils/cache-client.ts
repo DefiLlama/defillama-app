@@ -2,7 +2,7 @@
 
 let redis = null as null | import('ioredis').Redis
 const REDIS_URL = process.env.REDIS_URL as string
-const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK as string
+// const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK as string
 
 if (typeof window === 'undefined') {
 	// Server-side execution
@@ -11,22 +11,9 @@ if (typeof window === 'undefined') {
 	redis = REDIS_URL ? new Redis(REDIS_URL) : null
 
 	// if redis errors, we will disable it and send a message to discord
-	redis.on('error', (error) => {
+	redis.on('error', (_error) => {
 		console.error('[cache] [redis error]', REDIS_URL)
-		console.error(error)
 		redis = null
-
-		if (BUILD_STATUS_WEBHOOK) {
-			fetch(BUILD_STATUS_WEBHOOK, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					content: `:warning: [cache] [redis error] [${REDIS_URL}] \n\`\`\`${error}\`\`\``
-				})
-			})
-		}
 	})
 
 	redis.connect().catch((error) => {
