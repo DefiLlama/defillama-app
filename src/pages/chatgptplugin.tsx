@@ -28,7 +28,7 @@ function PluginPage() {
 				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
 					<TYPE.heading>Legal</TYPE.heading>
 					<Divider />
-					<TYPE.main>The DefiLlama ChatGPT plugin does not collect or sell user data.</TYPE.main>					
+					<TYPE.main>The DefiLlama ChatGPT plugin does not sell user data. The plugin does not collect any identifying user data.</TYPE.main>					
 					<TYPE.main>
 						The DefiLlama Plugin uses{' '}
 						<Link href="https://mixpanel.com/">Mixpanel</Link> to track anonymized product analytics. Visit {' '}
