@@ -12,11 +12,6 @@ if (typeof window === 'undefined' && USE_REDIS) {
 		console.error('[cache] [redis error]', REDIS_URL)
 		console.error(error)
 	})
-
-	redis.connect().catch((error) => {
-		console.error('[cache] [failed to connect to redis]', REDIS_URL)
-		console.error(error)
-	})
 }
 
 export const sluggify = (input: string) => {
