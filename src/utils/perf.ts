@@ -69,11 +69,18 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		IS_RUNTIME &&
 			!options?.silent &&
 			isServer &&
-			console.log(`[fetchOverCache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
+			console.log(`[fetch-cache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
 
 		return new Response(blob, responseInit)
 	} else {
 		const response = await fetch(url, options)
+		if (response.status >= 400) {
+			return new Response(null, {
+				status: response.status,
+				statusText: response.statusText
+			})
+		}
+
 		const arrayBuffer = await response.arrayBuffer()
 		const Body = Buffer.from(arrayBuffer)
 		const ContentType = response.headers.get('Content-Type')
@@ -96,7 +103,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		IS_RUNTIME &&
 			!options?.silent &&
 			isServer &&
-			console.log(`[fetchOverCache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
+			console.log(`[fetch-cache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
 		return new Response(blob, responseInit)
 	}
 }
