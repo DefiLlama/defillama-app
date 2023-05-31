@@ -16,7 +16,7 @@
 	},
 	"dependencies": {
 		"@sentry/nextjs": "^7.34.0",
-		"@tanstack/react-table": "^8.8.4",
+		"@tanstack/react-table": "^8.9.1",
 		"@tanstack/react-virtual": "^3.0.0-beta.54",
 		"ariakit": "^2.0.0-next.43",
 		"colord": "^2.9.3",

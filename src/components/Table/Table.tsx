@@ -129,14 +129,14 @@ export default function VirtualTable({
 						</tr>
 					)}
 
-					{(skipVirtualization ? rows : virtualItems).map((virtualRow) => {
-						const row = rows[virtualRow.index]
-						const trStyle: React.CSSProperties = row.original.disabled ? { opacity: 0.3 } : undefined
+					{(skipVirtualization ? rows : virtualItems).map((row) => {
+						const rowTorender = skipVirtualization ? row : rows[row.index]
+						const trStyle: React.CSSProperties = rowTorender.original.disabled ? { opacity: 0.3 } : undefined
 
 						return (
-							<React.Fragment key={row.id}>
-								<tr key={row.id} style={trStyle}>
-									{row.getVisibleCells().map((cell) => {
+							<React.Fragment key={rowTorender.id}>
+								<tr style={trStyle}>
+									{rowTorender.getVisibleCells().map((cell) => {
 										// get header text alignment
 										const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 
@@ -147,10 +147,10 @@ export default function VirtualTable({
 										)
 									})}
 								</tr>
-								{renderSubComponent && row.getIsExpanded() && (
+								{renderSubComponent && rowTorender.getIsExpanded() && (
 									<tr>
 										{/* 2nd row is a custom 1 cell row */}
-										<td colSpan={row.getVisibleCells().length}>{renderSubComponent({ row })}</td>
+										<td colSpan={rowTorender.getVisibleCells().length}>{renderSubComponent({ row: rowTorender })}</td>
 									</tr>
 								)}
 							</React.Fragment>
