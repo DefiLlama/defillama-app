@@ -24,7 +24,7 @@ export async function fetchWithThrows(input: RequestInfo | URL, init?: RequestIn
 	const res = await fetchOverCache(input, init)
 	if (res.status >= 400) {
 		const end = Date.now()
-		throw new Error(`[HTTP] [error] [${res.status}] [${start - end}ms] <${input}>`)
+		throw new Error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${input}>`)
 	}
 	return res
 }
@@ -34,7 +34,7 @@ export async function fetchWithErrorLogging(input: RequestInfo | URL, init?: Req
 	const res = await fetchOverCache(input, init)
 	if (res.status >= 400) {
 		const end = Date.now()
-		console.error(`[HTTP] [error] [${res.status}] [${start - end}ms] <${input}>`)
+		console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${input}>`)
 	}
 	return res
 }
