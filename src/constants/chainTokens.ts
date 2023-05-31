@@ -95,7 +95,7 @@ export const chainCoingeckoIds = {
 		symbol: 'KAVA',
 		cmcId: '4846'
 	},
-	OKExChain: {
+	OKTChain: {
 		geckoId: 'okexchain',
 		symbol: 'OKT',
 		cmcId: '8267'
