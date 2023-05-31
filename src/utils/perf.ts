@@ -20,14 +20,16 @@ export const withPerformanceLogging = <T extends {}>(
 
 			if (end - start > 10_000) {
 				console.log(
-					`[PREPARED][${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
+					`[PREPARED] [${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
 				)
 			}
 
 			return props
 		} catch (error) {
 			const end = Date.now()
-			console.log(`[ERROR][${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : ''))
+			console.log(
+				`[ERROR] [${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
+			)
 			throw error
 		}
 	}
