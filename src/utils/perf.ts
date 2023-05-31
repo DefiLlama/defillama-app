@@ -33,18 +33,6 @@ export const withPerformanceLogging = <T extends {}>(
 	}
 }
 
-export const fetchWithPerformanceLogging = async (api: string) => {
-	const startTime = Date.now()
-
-	const data = await fetch(api).then((res) => res.json())
-
-	if (Date.now() - startTime > 5_000) {
-		console.log('done fetching', api, Date.now() - startTime)
-	}
-
-	return data
-}
-
 export type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean }
 
 export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
