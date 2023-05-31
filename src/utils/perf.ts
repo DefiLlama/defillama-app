@@ -5,6 +5,7 @@ import { maxAgeForNext } from '~/api'
 
 const isServer = typeof window === 'undefined'
 const REDIS_URL = process.env.REDIS_URL as string
+const IS_RUNTIME = !!process.env.IS_RUNTIME
 
 export const withPerformanceLogging = <T extends {}>(
 	filename: string,
@@ -65,7 +66,10 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 			})
 		}
 		const end = Date.now()
-		!options?.silent && isServer && console.log(`[fetchOverCache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
+		IS_RUNTIME &&
+			!options?.silent &&
+			isServer &&
+			console.log(`[fetchOverCache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
 
 		return new Response(blob, responseInit)
 	} else {
@@ -89,7 +93,10 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 			})
 		}
 		const end = Date.now()
-		!options?.silent && isServer && console.log(`[fetchOverCache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
+		IS_RUNTIME &&
+			!options?.silent &&
+			isServer &&
+			console.log(`[fetchOverCache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
 		return new Response(blob, responseInit)
 	}
 }

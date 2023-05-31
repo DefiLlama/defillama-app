@@ -2,9 +2,10 @@
 
 let redis = null as null | import('ioredis').Redis
 const REDIS_URL = process.env.REDIS_URL as string
+const USE_REDIS = !!process.env.USE_REDIS
 // const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK as string
 
-if (typeof window === 'undefined') {
+if (typeof window === 'undefined' && USE_REDIS) {
 	// Server-side execution
 	const { Redis } = require('ioredis') as typeof import('ioredis')
 	console.log('[cache] [connecting to redis]', REDIS_URL)
