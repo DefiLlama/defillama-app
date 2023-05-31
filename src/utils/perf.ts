@@ -74,13 +74,6 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		return new Response(blob, responseInit)
 	} else {
 		const response = await fetch(url, options)
-		if (response.status >= 400) {
-			return new Response(null, {
-				status: response.status,
-				statusText: response.statusText
-			})
-		}
-
 		const arrayBuffer = await response.arrayBuffer()
 		const Body = Buffer.from(arrayBuffer)
 		const ContentType = response.headers.get('Content-Type')
@@ -89,16 +82,24 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 			Body,
 			ContentType
 		}
-		const ttl = options?.ttl || maxAgeForNext([21])
+
+		// if error, cache for 10 minutes only
+		const ttl = response.status >= 400 ? 600 : options?.ttl || maxAgeForNext([21])
 		await setCache(payload, ttl)
 		const blob = new Blob([arrayBuffer])
-		const responseInit = {
-			status: 200,
-			statusText: 'OK',
-			headers: new Headers({
-				'Content-Type': ContentType
-			})
-		}
+		const responseInit =
+			response.status >= 400
+				? {
+						status: response.status,
+						statusText: response.statusText
+				  }
+				: {
+						status: 200,
+						statusText: 'OK',
+						headers: new Headers({
+							'Content-Type': ContentType
+						})
+				  }
 		const end = Date.now()
 		IS_RUNTIME &&
 			!options?.silent &&
