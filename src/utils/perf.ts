@@ -50,7 +50,7 @@ export type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silen
 export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
 	const start = Date.now()
 
-	const cacheKey = `app-cache::${url.toString()}`
+	const cacheKey = 'defillama-cache:' + url.toString().replace(/^https?:\/\//, '')
 	const cache = REDIS_URL ? await getCache(cacheKey) : null
 
 	if (cache) {
