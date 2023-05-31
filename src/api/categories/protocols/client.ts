@@ -14,6 +14,10 @@ import { fetcher } from '~/utils/useSWR'
 import { formatGovernanceData, getProtocol, getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const useFetchProtocolsList = () => {
 	const { data, error } = useSWR(PROTOCOLS_API, fetcher)
 

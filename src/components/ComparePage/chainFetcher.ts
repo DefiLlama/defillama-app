@@ -5,6 +5,10 @@ import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 import { getChainsPageData, getOverviewItemPageData, getChainPageData as getFeesData } from '~/api/categories/adaptors'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const fetchChain = async ({ chain }) => {
 	const [data, volumeData, chainVolumeData, feesData, usersData, txsData, chainFeesData, bridgeData, stablecoinsData] =
 		await Promise.all([

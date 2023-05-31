@@ -5,6 +5,11 @@ import { getProtocolsPageData } from '~/api/categories/protocols'
 import { PROTOCOLS_API } from '~/constants/index'
 import { capitalizeFirstLetter } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const getStaticProps = withPerformanceLogging(
 	'protocols/[...category]',
 	async ({

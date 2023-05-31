@@ -1,6 +1,10 @@
 import { PROTOCOLS_API } from '~/constants/index'
 import { standardizeProtocolName } from '~/utils'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 const baseUrl = `https://defillama.com`
 const singleUrls = ['protocols', 'comparison', 'about', 'airdrops', 'chains', 'recent', 'nfts', 'nfts/chains']
 

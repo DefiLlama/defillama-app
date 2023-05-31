@@ -24,6 +24,10 @@ import { getColor } from '~/utils/getColor'
 import { USER_METRICS_CHAIN_API_BY_DATE, USER_METRICS_PROTOCOL_API } from '~/constants'
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
