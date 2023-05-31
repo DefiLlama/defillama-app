@@ -1,3 +1,5 @@
+import { fetchOverCache } from './perf'
+
 export function withErrorLogging<T extends any[], R>(
 	fn: (...args: T) => Promise<R>,
 	shouldThrow = true,
@@ -8,7 +10,7 @@ export function withErrorLogging<T extends any[], R>(
 			return await fn(...args)
 		} catch (error) {
 			const name = fn.name || 'unknown function'
-			const message = (note ? `Error ${note}: ` : `Error: `) + JSON.stringify(args) + ` in ${name}`
+			const message = (note ? `[${name}] [error] ` + `[${note}] <` : `<`) + JSON.stringify(args) + '>'
 			console.error(message)
 			if (shouldThrow) {
 				throw error
@@ -18,17 +20,21 @@ export function withErrorLogging<T extends any[], R>(
 }
 
 export async function fetchWithThrows(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-	const res = await fetch(input, init)
+	const start = Date.now()
+	const res = await fetchOverCache(input, init)
 	if (res.status >= 400) {
-		throw new Error(`HTTP Error: ${res.status} via ${res.url}`)
+		const end = Date.now()
+		throw new Error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${input}>`)
 	}
 	return res
 }
 
 export async function fetchWithErrorLogging(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-	const res = await fetch(input, init)
+	const start = Date.now()
+	const res = await fetchOverCache(input, init)
 	if (res.status >= 400) {
-		console.error(`HTTP Error: ${res.status} via ${res.url}`)
+		const end = Date.now()
+		console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${input}>`)
 	}
 	return res
 }
