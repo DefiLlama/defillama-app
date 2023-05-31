@@ -1,6 +1,6 @@
 // import { performance } from 'perf_hooks'
 import { GetStaticProps, GetStaticPropsContext } from 'next'
-import { getCache, setCache } from './cache-client'
+import { RedisCachePayload, getCache, setCache } from './cache-client'
 import { maxAgeForNext } from '~/api'
 
 const isServer = typeof window === 'undefined'
@@ -56,11 +56,13 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 	if (cache) {
 		const Body = cache.Body
 		const ContentType = cache.ContentType
+		const StatusCode = cache.StatusCode || 200
+		const StatusText = cache.StatusText || 'OK'
 		const arrayBuffer = new Uint8Array(Body).buffer
 		const blob = new Blob([arrayBuffer])
 		const responseInit = {
-			status: 200,
-			statusText: 'OK',
+			status: StatusCode,
+			statusText: StatusText,
 			headers: new Headers({
 				'Content-Type': ContentType
 			})
@@ -77,29 +79,27 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		const arrayBuffer = await response.arrayBuffer()
 		const Body = Buffer.from(arrayBuffer)
 		const ContentType = response.headers.get('Content-Type')
-		const payload = {
+		const StatusCode = response.status
+		const StatusText = response.statusText
+		const payload: RedisCachePayload = {
 			Key: cacheKey,
 			Body,
-			ContentType
+			ContentType,
+			StatusCode,
+			StatusText
 		}
 
 		// if error, cache for 10 minutes only
 		const ttl = response.status >= 400 ? 600 : options?.ttl || maxAgeForNext([21])
 		await setCache(payload, ttl)
 		const blob = new Blob([arrayBuffer])
-		const responseInit =
-			response.status >= 400
-				? {
-						status: response.status,
-						statusText: response.statusText
-				  }
-				: {
-						status: 200,
-						statusText: 'OK',
-						headers: new Headers({
-							'Content-Type': ContentType
-						})
-				  }
+		const responseInit = {
+			status: StatusCode,
+			statusText: StatusText,
+			headers: new Headers({
+				'Content-Type': ContentType
+			})
+		}
 		const end = Date.now()
 		IS_RUNTIME &&
 			!options?.silent &&

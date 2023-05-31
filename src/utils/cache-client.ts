@@ -30,9 +30,19 @@ export const sluggify = (input: string) => {
 export type RedisCacheObject = {
 	Body: string
 	ContentType: string
+	StatusCode?: number
+	StatusText?: string
 }
 
-export const setCache = async (payload: { Key: string; Body: Buffer; ContentType: string }, ttl?: string | number) => {
+export type RedisCachePayload = {
+	Key: string
+	Body: Buffer
+	ContentType: string
+	StatusCode?: number
+	StatusText?: string
+}
+
+export const setCache = async (payload: RedisCachePayload, ttl?: string | number) => {
 	if (!redis) {
 		return false
 	}
@@ -40,7 +50,9 @@ export const setCache = async (payload: { Key: string; Body: Buffer; ContentType
 	try {
 		const cacheObject: RedisCacheObject = {
 			Body: payload.Body.toString('base64'),
-			ContentType: payload.ContentType
+			ContentType: payload.ContentType,
+			...(payload.StatusCode ? { StatusCode: payload.StatusCode } : {}),
+			...(payload.StatusText ? { StatusText: payload.StatusText } : {})
 		}
 		if (ttl) {
 			await redis.set(payload.Key, JSON.stringify(cacheObject), 'EX', ttl)
@@ -69,7 +81,9 @@ export const getCache = async (Key: string) => {
 		const payload = {
 			Key,
 			Body: Buffer.from(cacheObject.Body, 'base64'),
-			ContentType: cacheObject.ContentType
+			ContentType: cacheObject.ContentType,
+			...(cacheObject.StatusCode ? { StatusCode: cacheObject.StatusCode } : {}),
+			...(cacheObject.StatusText ? { StatusText: cacheObject.StatusText } : {})
 		}
 		return payload
 	} catch (error) {
