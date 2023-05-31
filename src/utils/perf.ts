@@ -61,7 +61,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		IS_RUNTIME &&
 			!options?.silent &&
 			isServer &&
-			console.log(`[fetch-cache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
+			console.log(`[fetch-cache] [HIT] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
 
 		return new Response(blob, responseInit)
 	} else {
@@ -80,7 +80,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		}
 
 		// if error, cache for 10 minutes only
-		const ttl = response.status >= 400 ? 600 : options?.ttl || maxAgeForNext([21])
+		const ttl = StatusCode >= 400 ? 600 : options?.ttl || maxAgeForNext([21])
 		await setCache(payload, ttl)
 		const blob = new Blob([arrayBuffer])
 		const responseInit = {
@@ -94,7 +94,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		IS_RUNTIME &&
 			!options?.silent &&
 			isServer &&
-			console.log(`[fetch-cache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
+			console.log(`[fetch-cache] [MISS] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
 		return new Response(blob, responseInit)
 	}
 }
