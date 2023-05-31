@@ -1,9 +1,6 @@
-// import Redis from 'ioredis'
-
 let redis = null as null | import('ioredis').Redis
 const REDIS_URL = process.env.REDIS_URL as string
 const USE_REDIS = !!process.env.USE_REDIS
-// const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK as string
 
 if (typeof window === 'undefined' && USE_REDIS) {
 	// Server-side execution
@@ -33,7 +30,7 @@ export const sluggify = (input: string) => {
 /**
  * RedisCacheObject is the object stored in Redis
  *
- * @property {string} Body - base64 encoded string of the content, e.g. image, html, etc.
+ * @property {string} Body - base64 encoded string of the content via Buffer.toString('base64')
  * @property {string} ContentType - the content type of the content, e.g. image/jpeg, text/html, etc.
  */
 export type RedisCacheObject = {
