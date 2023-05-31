@@ -41,10 +41,9 @@ import {
 	getBlockExplorer,
 	slug,
 	standardizeProtocolName,
-	toK,
 	tokenIconUrl
 } from '~/utils'
-import { useFetchProtocol } from '~/api/categories/protocols/client'
+import { useFetchProtocol, useGetTokenPrice } from '~/api/categories/protocols/client'
 import type { IFusedProtocolData, IRaise } from '~/api/types'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
@@ -64,6 +63,7 @@ import { ProtocolPools } from './Yields'
 import { Flag } from './Flag'
 import { StablecoinInfo } from './Stablecoin'
 import { AccordionStat } from '~/layout/Stats/Large'
+import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 const scams = [
 	'Drachma Exchange',
@@ -288,7 +288,7 @@ function ProtocolContainer({
 
 	const router = useRouter()
 
-	const { usdInflows: usdInflowsParam } = router.query
+	const { usdInflows: usdInflowsParam, denomination } = router.query
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
@@ -416,6 +416,30 @@ function ProtocolContainer({
 
 	const tab = useTabState({ defaultSelectedId })
 
+	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
+
+	if (!isCEX && chains && chains.length > 0) {
+		chartDenominations.push({ symbol: 'USD', geckoId: null })
+
+		if (chainCoingeckoIds[chains[0]]?.geckoId) {
+			chartDenominations.push(chainCoingeckoIds[chains[0]])
+		} else {
+			chartDenominations.push(chainCoingeckoIds['Ethereum'])
+		}
+	}
+
+	const { data: chainPrice, loading: fetchingChainPrice } = useGetTokenPrice(chartDenominations[1]?.geckoId)
+
+	const formatPrice = (value?: number | string | null): string | number | null => {
+		if (Number.isNaN(Number(value))) return null
+
+		if (router.isReady && !fetchingChainPrice && chainPrice?.price && denomination && denomination !== 'USD') {
+			return formattedNum(Number(value) / chainPrice.price, false) + ` ${chainPrice.symbol}`
+		}
+
+		return formattedNum(value, true)
+	}
+
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO cardName={name} token={name} logo={tokenIconUrl(name)} tvl={formattedNum(totalVolume, true)?.toString()} />
@@ -480,7 +504,7 @@ function ProtocolContainer({
 									<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
 									<Flag protocol={protocolData.name} dataType={'TVL'} isLending={category === 'Lending'} />
 								</span>
-								<span>{formattedNum(totalVolume || '0', true)}</span>
+								<span>{formatPrice(totalVolume || '0')}</span>
 							</span>
 
 							{!isParentProtocol && (
@@ -506,7 +530,7 @@ function ProtocolContainer({
 										{tvls.map((chainTvl) => (
 											<tr key={chainTvl[0]}>
 												<th>{capitalizeFirstLetter(chainTvl[0])}</th>
-												<td>{formattedNum(chainTvl[1] || 0, true)}</td>
+												<td>{formatPrice((chainTvl[1] || 0) as number)}</td>
 											</tr>
 										))}
 									</tbody>
@@ -539,7 +563,7 @@ function ProtocolContainer({
 														</span>
 													</ExtraOption>
 												</th>
-												<td>{formattedNum(value, true)}</td>
+												<td>{formatPrice(value)}</td>
 											</tr>
 										))}
 									</tbody>
@@ -557,7 +581,7 @@ function ProtocolContainer({
 											<span>Market Cap</span>
 											<Flag protocol={protocolData.name} dataType={'Market Cap'} />
 										</th>
-										<td>{formattedNum(tokenMcap, true)}</td>
+										<td>{formatPrice(tokenMcap)}</td>
 									</tr>
 								) : null}
 
@@ -577,7 +601,7 @@ function ProtocolContainer({
 											<span>Fully Diluted Valuation</span>
 											<Flag protocol={protocolData.name} dataType={'FDV'} />
 										</th>
-										<td>{formattedNum(priceOfToken * tokenSupply, true)}</td>
+										<td>{formatPrice(priceOfToken * tokenSupply)}</td>
 									</tr>
 								) : null}
 
@@ -588,7 +612,7 @@ function ProtocolContainer({
 												<span>Staked</span>
 												<Flag protocol={protocolData.name} dataType={'Staked'} />
 											</th>
-											<td>{formattedNum(stakedAmount, true)}</td>
+											<td>{formatPrice(stakedAmount)}</td>
 										</tr>
 
 										{tokenMcap ? (
@@ -618,7 +642,7 @@ function ProtocolContainer({
 											<span>Borrowed</span>
 											<Flag protocol={protocolData.name} dataType={'Borrowed'} />
 										</th>
-										<td>{formattedNum(borrowedAmount, true)}</td>
+										<td>{formatPrice(borrowedAmount)}</td>
 									</tr>
 								) : null}
 							</tbody>
@@ -626,7 +650,12 @@ function ProtocolContainer({
 					</div>
 
 					{tokenLiquidity && tokenLiquidity.length > 0 && (
-						<TokenLiquidityTable data={tokenLiquidity} protocolName={protocolData.name} symbol={symbol} />
+						<TokenLiquidityTable
+							data={tokenLiquidity}
+							protocolName={protocolData.name}
+							symbol={symbol}
+							formatPrice={formatPrice}
+						/>
 					)}
 
 					<>
@@ -636,6 +665,7 @@ function ProtocolContainer({
 								dailyValue={dailyVolume}
 								cumulativeValue={allTimeVolume}
 								protocolName={protocolData.name}
+								formatPrice={formatPrice}
 							/>
 						) : null}
 					</>
@@ -648,6 +678,7 @@ function ProtocolContainer({
 								helperText={helperTexts.fees}
 								cumulativeValue={allTimeFees}
 								protocolName={protocolData.name}
+								formatPrice={formatPrice}
 							/>
 						) : null}
 					</>
@@ -659,15 +690,23 @@ function ProtocolContainer({
 								dailyValue={dailyRevenue}
 								helperText={helperTexts.revenue}
 								protocolName={protocolData.name}
+								formatPrice={formatPrice}
 							/>
 						) : null}
 					</>
 
 					{users?.activeUsers ? (
-						<UsersTable {...users} helperText={helperTexts.users} protocolName={protocolData.name} />
+						<UsersTable
+							{...users}
+							helperText={helperTexts.users}
+							protocolName={protocolData.name}
+							formatPrice={formatPrice}
+						/>
 					) : null}
 
-					<>{treasury && <TreasuryTable data={treasury} protocolName={protocolData.name} />}</>
+					<>
+						{treasury && <TreasuryTable data={treasury} protocolName={protocolData.name} formatPrice={formatPrice} />}
+					</>
 
 					<>{raises && raises.length > 0 && <Raised data={raises} protocolName={protocolData.name} />}</>
 
@@ -675,7 +714,7 @@ function ProtocolContainer({
 						<TopProposals data={controversialProposals} protocolName={protocolData.name} />
 					) : null}
 
-					{expenses && <Expenses data={expenses} protocolName={protocolData.name} />}
+					{expenses && <Expenses data={expenses} protocolName={protocolData.name} formatPrice={formatPrice} />}
 
 					<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
 				</ProtocolDetailsWrapper>
@@ -684,7 +723,6 @@ function ProtocolContainer({
 					protocol={protocol}
 					color={backgroundColor}
 					historicalChainTvls={historicalChainTvls}
-					chains={isCEX ? null : chains}
 					hallmarks={hallmarks}
 					bobo={bobo}
 					geckoId={gecko_id}
@@ -697,6 +735,7 @@ function ProtocolContainer({
 					isCEX={isCEX}
 					tokenSymbol={symbol}
 					protocolId={protocolData.id}
+					chartDenominations={chartDenominations}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
@@ -909,9 +948,9 @@ function ProtocolContainer({
 								<LinksWrapper>
 									{similarProtocols.map((similarProtocol) => (
 										<Link href={`/protocol/${slug(similarProtocol.name)}`} passHref key={similarProtocol.name}>
-											<a target="_blank" style={{ textDecoration: 'underline' }}>{`${similarProtocol.name} ($${toK(
-												similarProtocol.tvl
-											)})`}</a>
+											<a target="_blank" style={{ textDecoration: 'underline' }}>{`${
+												similarProtocol.name
+											} (${formatPrice(similarProtocol.tvl)})`}</a>
 										</Link>
 									))}
 								</LinksWrapper>
@@ -1128,10 +1167,12 @@ const TopProposals = ({
 
 const Expenses = ({
 	data,
-	protocolName
+	protocolName,
+	formatPrice
 }: {
 	data: { headcount: number; annualUsdCost: { [key: string]: number }; sources: string[] }
 	protocolName: string
+	formatPrice: (value?: number | string | null) => string | number | null
 }) => {
 	const [open, setOpen] = React.useState(false)
 
@@ -1146,12 +1187,7 @@ const Expenses = ({
 						</Toggle>
 						<Flag protocol={protocolName} dataType={'Expenses'} />
 					</th>
-					<td>
-						{formattedNum(
-							Object.values(data.annualUsdCost || {}).reduce((acc, curr) => (acc += curr), 0),
-							true
-						)}
-					</td>
+					<td>{formatPrice(Object.values(data.annualUsdCost || {}).reduce((acc, curr) => (acc += curr), 0))}</td>
 				</tr>
 
 				{open && (
@@ -1165,7 +1201,7 @@ const Expenses = ({
 							return (
 								<tr key={'expenses' + cat + exp}>
 									<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
-									<td data-subvalue>{formattedNum(exp, true)}</td>
+									<td data-subvalue>{formatPrice(exp)}</td>
 								</tr>
 							)
 						})}
@@ -1185,7 +1221,15 @@ const Expenses = ({
 	)
 }
 
-const TreasuryTable = ({ data, protocolName }: { data: { [category: string]: number }; protocolName: string }) => {
+const TreasuryTable = ({
+	data,
+	protocolName,
+	formatPrice
+}: {
+	data: { [category: string]: number }
+	protocolName: string
+	formatPrice: (value?: number | string | null) => string | number | null
+}) => {
 	const [open, setOpen] = React.useState(false)
 
 	return (
@@ -1200,10 +1244,7 @@ const TreasuryTable = ({ data, protocolName }: { data: { [category: string]: num
 						<Flag protocol={protocolName} dataType={'Treasury'} />
 					</th>
 					<td>
-						{formattedNum(
-							Object.entries(data).reduce((acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]), 0),
-							true
-						)}
+						{formatPrice(Object.entries(data).reduce((acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]), 0))}
 					</td>
 				</tr>
 
@@ -1213,7 +1254,7 @@ const TreasuryTable = ({ data, protocolName }: { data: { [category: string]: num
 							return (
 								<tr key={'treasury' + cat + tre}>
 									<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
-									<td data-subvalue>{formattedNum(tre, true)}</td>
+									<td data-subvalue>{formatPrice(tre)}</td>
 								</tr>
 							)
 						})}
@@ -1229,13 +1270,15 @@ const AnnualizedMetric = ({
 	dailyValue,
 	cumulativeValue,
 	helperText,
-	protocolName
+	protocolName,
+	formatPrice
 }: {
 	name: string
 	dailyValue: number
 	cumulativeValue?: number | null
 	helperText?: string
 	protocolName: string
+	formatPrice: (value?: number | string | null) => string | number | null
 }) => {
 	const [open, setOpen] = React.useState(false)
 
@@ -1251,20 +1294,20 @@ const AnnualizedMetric = ({
 						</Toggle>
 						<Flag protocol={protocolName} dataType={name} />
 					</th>
-					<td>{formattedNum(dailyValue * 365, true)}</td>
+					<td>{formatPrice(dailyValue * 365)}</td>
 				</tr>
 
 				{open && (
 					<>
 						<tr>
 							<th data-subvalue>{`${name} 24h`}</th>
-							<td data-subvalue>{formattedNum(dailyValue, true)}</td>
+							<td data-subvalue>{formatPrice(dailyValue)}</td>
 						</tr>
 
 						{cumulativeValue ? (
 							<tr>
 								<th data-subvalue>{`Cumulative ${name}`}</th>
-								<td data-subvalue>{formattedNum(cumulativeValue, true)}</td>
+								<td data-subvalue>{formatPrice(cumulativeValue)}</td>
 							</tr>
 						) : null}
 					</>
@@ -1280,7 +1323,8 @@ const UsersTable = ({
 	transactions,
 	gasUsd,
 	helperText,
-	protocolName
+	protocolName,
+	formatPrice
 }: {
 	activeUsers: number | null
 	newUsers: number | null
@@ -1288,6 +1332,7 @@ const UsersTable = ({
 	gasUsd: number | null
 	helperText?: string
 	protocolName: string
+	formatPrice: (value?: number | string | null) => string | number | null
 }) => {
 	const [open, setOpen] = React.useState(false)
 
@@ -1323,7 +1368,7 @@ const UsersTable = ({
 						{gasUsd ? (
 							<tr>
 								<th data-subvalue>Gas Used 24h</th>
-								<td data-subvalue>{formattedNum(gasUsd, true)}</td>
+								<td data-subvalue>{formatPrice(gasUsd)}</td>
 							</tr>
 						) : null}
 					</>
@@ -1336,11 +1381,13 @@ const UsersTable = ({
 const TokenLiquidityTable = ({
 	data,
 	protocolName,
-	symbol
+	symbol,
+	formatPrice
 }: {
 	data: Array<[string, string, number]>
 	protocolName: string
 	symbol: string
+	formatPrice: (value?: number | string | null) => string | number | null
 }) => {
 	const [open, setOpen] = React.useState(false)
 
@@ -1357,7 +1404,7 @@ const TokenLiquidityTable = ({
 						</Toggle>
 						<Flag protocol={protocolName} dataType="Token Liquidity" />
 					</th>
-					<td>{formattedNum(totalLiq, true)}</td>
+					<td>{formatPrice(totalLiq)}</td>
 				</tr>
 
 				{open && (
@@ -1365,7 +1412,7 @@ const TokenLiquidityTable = ({
 						{data.map((item) => (
 							<tr key={'token-liq' + item[0] + item[1] + item[2]}>
 								<th data-subvalue>{`${item[0]} (${item[1]})`}</th>
-								<td data-subvalue>{formattedNum(item[2], true)}</td>
+								<td data-subvalue>{formatPrice(item[2])}</td>
 							</tr>
 						))}
 					</>

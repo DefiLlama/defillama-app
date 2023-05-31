@@ -16,7 +16,6 @@ import {
 	useGetProtocolEmissions
 } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
-import { chainCoingeckoIds } from '~/constants/chainTokens'
 import type { IChartProps } from '../types'
 import { nearestUtc } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
@@ -34,7 +33,7 @@ interface IProps {
 	protocol: string
 	color: string
 	historicalChainTvls: {}
-	chains: Array<string> | null
+	chartDenominations: Array<{ symbol: string; geckoId?: string | null }>
 	bobo?: boolean
 	hallmarks?: Array<[number, string]>
 	geckoId?: string | null
@@ -77,7 +76,6 @@ export default function ProtocolChart({
 	protocol,
 	color,
 	historicalChainTvls,
-	chains = [],
 	bobo = false,
 	hallmarks,
 	geckoId,
@@ -89,7 +87,8 @@ export default function ProtocolChart({
 	isHourlyChart,
 	isCEX,
 	tokenSymbol,
-	protocolId
+	protocolId,
+	chartDenominations
 }: IProps) {
 	const router = useRouter()
 
@@ -122,21 +121,9 @@ export default function ProtocolChart({
 		tokenLiquidity
 	} = router.query
 
-	const DENOMINATIONS: Array<{ symbol: string; geckoId?: string | null }> = []
-
-	if (chains && chains.length > 0) {
-		DENOMINATIONS.push({ symbol: 'USD', geckoId: null })
-
-		if (chainCoingeckoIds[chains[0]]?.geckoId) {
-			DENOMINATIONS.push(chainCoingeckoIds[chains[0]])
-		} else {
-			DENOMINATIONS.push(chainCoingeckoIds['Ethereum'])
-		}
-	}
-
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
-		router.isReady && denomination ? DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId : null
+		router.isReady && denomination ? chartDenominations.find((d) => d.symbol === denomination)?.geckoId : null
 	)
 
 	// fetch protocol mcap data
@@ -208,14 +195,14 @@ export default function ProtocolChart({
 	const showNonUsdDenomination =
 		denomination &&
 		denomination !== 'USD' &&
-		DENOMINATIONS.find((d) => d.symbol === denomination) &&
+		chartDenominations.find((d) => d.symbol === denomination) &&
 		denominationHistory?.prices?.length > 0
 			? true
 			: false
 
 	let valueSymbol = '$'
 	if (showNonUsdDenomination) {
-		const d = DENOMINATIONS.find((d) => d.symbol === denomination)
+		const d = chartDenominations.find((d) => d.symbol === denomination)
 
 		valueSymbol = d.symbol || ''
 	}
@@ -1430,9 +1417,9 @@ export default function ProtocolChart({
 			) : null}
 
 			<FiltersWrapper>
-				{DENOMINATIONS.length > 0 && (
+				{chartDenominations.length > 0 && (
 					<Filters color={color} style={{ marginRight: 'auto' }}>
-						{DENOMINATIONS.map((D) => (
+						{chartDenominations.map((D) => (
 							<Link
 								href={realPathname + `denomination=${D.symbol}` + (groupBy ? `&groupBy=${groupBy}` : '')}
 								key={D.symbol}

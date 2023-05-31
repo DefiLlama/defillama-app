@@ -108,7 +108,7 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 		`tokenLiquidity/${token}`,
 		token
 			? () =>
-					fetch(`${TOKEN_LIQUIDITY_API}/${token.replaceAll("#", "$")}`)
+					fetch(`${TOKEN_LIQUIDITY_API}/${token.replaceAll('#', '$')}`)
 						.then((res) => res.json())
 
 						.catch((err) => null)
@@ -184,6 +184,14 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Date.now()))
 
 	return { data, error, loading: geckoId && !data && !error }
+}
+
+export const useGetTokenPrice = (geckoId?: string) => {
+	let url = `https://coins.llama.fi/prices/current/coingecko:${geckoId}`
+
+	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url))
+
+	return { data: data?.coins?.[`coingecko:${geckoId}`], error, loading: geckoId && !data && !error }
 }
 
 export const useGetProtocolsList = ({ chain }) => {
