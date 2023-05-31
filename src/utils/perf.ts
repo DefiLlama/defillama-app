@@ -1,6 +1,6 @@
 // import { performance } from 'perf_hooks'
 import { GetStaticProps, GetStaticPropsContext } from 'next'
-import { getCache, setCache } from './cache-client'
+import { RedisCachePayload, getCache, setCache } from './cache-client'
 import { maxAgeForNext } from '~/api'
 
 const isServer = typeof window === 'undefined'
@@ -20,29 +20,19 @@ export const withPerformanceLogging = <T extends {}>(
 
 			if (end - start > 10_000) {
 				console.log(
-					`[PREPARED][${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
+					`[PREPARED] [${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
 				)
 			}
 
 			return props
 		} catch (error) {
 			const end = Date.now()
-			console.log(`[ERROR][${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : ''))
+			console.log(
+				`[ERROR] [${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
+			)
 			throw error
 		}
 	}
-}
-
-export const fetchWithPerformanceLogging = async (api: string) => {
-	const startTime = Date.now()
-
-	const data = await fetch(api).then((res) => res.json())
-
-	if (Date.now() - startTime > 5_000) {
-		console.log('done fetching', api, Date.now() - startTime)
-	}
-
-	return data
 }
 
 export type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean }
@@ -56,11 +46,13 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 	if (cache) {
 		const Body = cache.Body
 		const ContentType = cache.ContentType
+		const StatusCode = cache.StatusCode || 200
+		const StatusText = cache.StatusText || 'OK'
 		const arrayBuffer = new Uint8Array(Body).buffer
 		const blob = new Blob([arrayBuffer])
 		const responseInit = {
-			status: 200,
-			statusText: 'OK',
+			status: StatusCode,
+			statusText: StatusText,
 			headers: new Headers({
 				'Content-Type': ContentType
 			})
@@ -69,7 +61,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		IS_RUNTIME &&
 			!options?.silent &&
 			isServer &&
-			console.log(`[fetch-cache] [HIT] [${(end - start).toFixed(0)}ms] <${url}>`)
+			console.log(`[fetch-cache] [HIT] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
 
 		return new Response(blob, responseInit)
 	} else {
@@ -77,34 +69,32 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		const arrayBuffer = await response.arrayBuffer()
 		const Body = Buffer.from(arrayBuffer)
 		const ContentType = response.headers.get('Content-Type')
-		const payload = {
+		const StatusCode = response.status
+		const StatusText = response.statusText
+		const payload: RedisCachePayload = {
 			Key: cacheKey,
 			Body,
-			ContentType
+			ContentType,
+			StatusCode,
+			StatusText
 		}
 
 		// if error, cache for 10 minutes only
-		const ttl = response.status >= 400 ? 600 : options?.ttl || maxAgeForNext([21])
+		const ttl = StatusCode >= 400 ? 600 : options?.ttl || maxAgeForNext([21])
 		await setCache(payload, ttl)
 		const blob = new Blob([arrayBuffer])
-		const responseInit =
-			response.status >= 400
-				? {
-						status: response.status,
-						statusText: response.statusText
-				  }
-				: {
-						status: 200,
-						statusText: 'OK',
-						headers: new Headers({
-							'Content-Type': ContentType
-						})
-				  }
+		const responseInit = {
+			status: StatusCode,
+			statusText: StatusText,
+			headers: new Headers({
+				'Content-Type': ContentType
+			})
+		}
 		const end = Date.now()
 		IS_RUNTIME &&
 			!options?.silent &&
 			isServer &&
-			console.log(`[fetch-cache] [MISS] [${(end - start).toFixed(0)}ms] <${url}>`)
+			console.log(`[fetch-cache] [MISS] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
 		return new Response(blob, responseInit)
 	}
 }
