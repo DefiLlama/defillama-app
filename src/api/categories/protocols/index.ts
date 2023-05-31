@@ -37,7 +37,7 @@ import {
 import { getPeggedAssets } from '../stablecoins'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { fetchWithPerformaceLogging } from '~/utils/perf'
+import { fetchOverCacheJson } from '~/utils/perf'
 
 const fetch = fetchWithErrorLogging
 
@@ -58,7 +58,7 @@ export const getProtocols = () =>
 
 export const getProtocol = async (protocolName: string) => {
 	try {
-		const data: IProtocolResponse = await fetchWithPerformaceLogging(`${PROTOCOL_API}/${protocolName}`)
+		const data: IProtocolResponse = await fetchOverCacheJson(`${PROTOCOL_API}/${protocolName}`)
 
 		let isNewlyListedProtocol = true
 
@@ -69,7 +69,7 @@ export const getProtocol = async (protocolName: string) => {
 		})
 
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
-			const hourlyData = await fetchWithPerformaceLogging(`${HOURLY_PROTOCOL_API}/${protocolName}`)
+			const hourlyData = await fetchOverCacheJson(`${HOURLY_PROTOCOL_API}/${protocolName}`)
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
 	} catch (e) {
@@ -284,7 +284,11 @@ const getExtraTvlCharts = (data) => {
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
 	const [chartData, { protocols, chains, parentProtocols }] = await Promise.all(
-		[CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()).catch())
+		[CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) =>
+			fetch(url)
+				.then((r) => r.json())
+				.catch()
+		)
 	)
 
 	const filteredProtocols = formatProtocolsData({
@@ -699,7 +703,7 @@ export const getChainsPageData = async (category: string) => {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-				} catch (e) { }
+				} catch (e) {}
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
 		})

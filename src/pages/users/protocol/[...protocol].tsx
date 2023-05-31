@@ -24,6 +24,10 @@ import { getColor } from '~/utils/getColor'
 import { USER_METRICS_CHAIN_API_BY_DATE, USER_METRICS_PROTOCOL_API } from '~/constants'
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
@@ -33,15 +37,15 @@ interface IChainData {
 }
 
 export async function getStaticPaths() {
-	// TODO replace chain and date
-	const res = await fetch(`${USER_METRICS_CHAIN_API_BY_DATE}/ethereum?day=2022-08-20`).then((res) => res.json())
+	// // TODO replace chain and date
+	// const res = await fetch(`${USER_METRICS_CHAIN_API_BY_DATE}/ethereum?day=2022-08-20`).then((res) => res.json())
 
-	const paths: string[] =
-		res.protocols?.slice(0, 30).map(({ adaptor }) => ({
-			params: { protocol: [standardizeProtocolName(adaptor)] }
-		})) ?? []
+	// const paths: string[] =
+	// 	res.protocols?.slice(0, 30).map(({ adaptor }) => ({
+	// 		params: { protocol: [standardizeProtocolName(adaptor)] }
+	// 	})) ?? []
 
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export const getStaticProps = withPerformanceLogging(

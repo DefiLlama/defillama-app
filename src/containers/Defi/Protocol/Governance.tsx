@@ -17,6 +17,10 @@ import { Checkbox2 } from '~/components'
 import useSWR from 'swr'
 import { formatGovernanceData } from '~/api/categories/protocols'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export function GovernanceTable({ data, governanceType }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'state', desc: true }])

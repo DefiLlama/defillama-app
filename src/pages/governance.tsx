@@ -20,6 +20,10 @@ import { GOVERNANCE_SNAPSHOT_API, GOVERNANCE_COMPOUND_API, GOVERNANCE_TALLY_API 
 import { capitalizeFirstLetter } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const getStaticProps = withPerformanceLogging('governance', async () => {
 	const [snapshot, compound, tally] = await Promise.all([
 		fetch(GOVERNANCE_SNAPSHOT_API).then((res) => res.json()),

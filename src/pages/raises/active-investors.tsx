@@ -8,6 +8,10 @@ import Layout from '~/layout'
 import { Header } from '~/Theme'
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export const getStaticProps = withPerformanceLogging('raises/active-investors', async () => {
 	const data = await fetch(RAISES_API).then((r) => r.json())
 

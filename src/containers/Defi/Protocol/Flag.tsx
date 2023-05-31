@@ -5,6 +5,10 @@ import { FormSubmitBtn } from '~/components'
 import { DialogForm } from '~/components/Filters/common/Base'
 import { Tooltip2 } from '~/components/Tooltip'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 export function Flag({ protocol, dataType, isLending }: { protocol: string; dataType?: string; isLending?: boolean }) {
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState(false)

@@ -13,6 +13,10 @@ import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
 import { useDebounce } from '~/hooks'
 import { formattedPercent } from '~/utils'
 
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
+
 interface ITrendingContracts {
 	accounts_percentage_growth: number
 	active_accounts: number
