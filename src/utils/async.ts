@@ -20,17 +20,21 @@ export function withErrorLogging<T extends any[], R>(
 }
 
 export async function fetchWithThrows(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+	const start = Date.now()
 	const res = await fetchOverCache(input, init)
 	if (res.status >= 400) {
-		throw new Error(`[HTTP] [error] [${res.status}] <${input}>`)
+		const end = Date.now()
+		throw new Error(`[HTTP] [error] [${res.status}] [${start - end}ms] <${input}>`)
 	}
 	return res
 }
 
 export async function fetchWithErrorLogging(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+	const start = Date.now()
 	const res = await fetchOverCache(input, init)
 	if (res.status >= 400) {
-		console.error(`[HTTP] [error] [${res.status}] <${input}>`)
+		const end = Date.now()
+		console.error(`[HTTP] [error] [${res.status}] [${start - end}ms] <${input}>`)
 	}
 	return res
 }
