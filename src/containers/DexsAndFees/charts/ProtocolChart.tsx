@@ -35,6 +35,8 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	loading: () => <LocalLoader style={{ margin: 'auto' }} />
 }) as React.FC<IChartProps>
 
+const INTERVALS_LIST = [...GROUP_INTERVALS_LIST, 'Cumulative']
+
 export interface IDexChartsProps {
 	data: {
 		total24h: IProtocolContainerProps['protocolSummary']['total24h']
@@ -84,12 +86,13 @@ export const ProtocolChart = ({
 
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 
-	const simpleStack =
-		chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
-			? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
-			: undefined
+	const simpleStack = chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
+	// const simpleStack =
+	// 	chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
+	// 		? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
+	// 		: undefined
 
-	const barsData = React.useMemo(aggregateDataByInterval(barInterval, chartData), [chartData, barInterval])
+	const barsData = React.useMemo(() => aggregateDataByInterval(barInterval, chartData)(), [chartData, barInterval])
 
 	return (
 		<StatsSection>
@@ -167,12 +170,12 @@ export const ProtocolChart = ({
 				// TODO: Temporal work around to unlock feature
 				<>‎</>
 			)}
-			<Wrapper>
+			<Wrapper style={{ minHeight: '462px' }}>
 				{barsData && barsData.length > 0 && (
 					<FiltersWrapperRow>
 						<>{title ?? ''}</>
 						<FiltersAligned color={'#4f8fea'}>
-							{GROUP_INTERVALS_LIST.map((dataInterval) => (
+							{INTERVALS_LIST.map((dataInterval) => (
 								<FlatDenomination
 									key={dataInterval}
 									onClick={() => setBarInterval(dataInterval)}
@@ -184,27 +187,31 @@ export const ProtocolChart = ({
 						</FiltersAligned>
 					</FiltersWrapperRow>
 				)}
-				<BarChart
-					title={''}
-					chartData={barsData}
-					customLegendOptions={chartData[1]}
-					stacks={simpleStack}
-					stackColors={stackedBarChartColors}
-				/>
+
+				{barInterval === 'Cumulative' ? (
+					<AreaChart
+						title={''}
+						chartData={barsData}
+						stacks={chartData[1]}
+						stackColors={stackedBarChartColors}
+						valueSymbol="$"
+					/>
+				) : (
+					<BarChart title={''} chartData={barsData} stacks={simpleStack} stackColors={stackedBarChartColors} />
+				)}
 			</Wrapper>
 		</StatsSection>
 	)
 }
 
-const INTERVALS_LIST = [...GROUP_INTERVALS_LIST, 'Cumulative']
-
 export const ChartOnly = ({ title, chartData }) => {
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 
-	const simpleStack =
-		chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
-			? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
-			: undefined
+	// const simpleStack =
+	// 	chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
+	// 		? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
+	// 		: undefined
+	const simpleStack = chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 
 	const barsData = React.useMemo(() => aggregateDataByInterval(barInterval, chartData)(), [chartData, barInterval])
 
@@ -229,15 +236,15 @@ export const ChartOnly = ({ title, chartData }) => {
 			)}
 
 			{barInterval === 'Cumulative' ? (
-				<AreaChart title={''} chartData={barsData} stacks={chartData[1]} stackColors={stackedBarChartColors} />
-			) : (
-				<BarChart
+				<AreaChart
 					title={''}
 					chartData={barsData}
-					customLegendOptions={chartData[1]}
-					stacks={simpleStack}
+					stacks={chartData[1]}
 					stackColors={stackedBarChartColors}
+					valueSymbol="$"
 				/>
+			) : (
+				<BarChart title={''} chartData={barsData} stacks={simpleStack} stackColors={stackedBarChartColors} />
 			)}
 		</>
 	)
