@@ -230,6 +230,10 @@ const Wrapper = styled.div`
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		max-width: calc(100vw - 276px);
 	}
+
+	a:hover {
+		text-decoration: underline;
+	}
 `
 
 interface ITableHeader {
