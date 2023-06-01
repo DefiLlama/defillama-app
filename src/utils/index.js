@@ -41,16 +41,13 @@ export function getTimeframe(timeWindow) {
 export const toNiceDaysAgo = (date) => dayjs().to(dayjs.utc(dayjs.unix(date)))
 
 export const toNiceDayAndHour = (date) => {
-	let x = dayjs.utc(dayjs.unix(date)).format('D MMM, HH:mm')
-	return x
+	return dayjs.utc(dayjs.unix(date)).format('D MMM, HH:mm')
 }
 export const toNiceHour = (date) => {
-	let x = dayjs.utc(dayjs.unix(date)).format('HH:mm')
-	return x
+	return dayjs.utc(dayjs.unix(date)).format('HH:mm')
 }
 export const toNiceDayMonthAndYear = (date) => {
-	let x = dayjs.utc(dayjs.unix(date)).format('D MMM, YYYY, HH:mm')
-	return x
+	return dayjs.utc(dayjs.unix(date)).format('D MMM, YYYY, HH:mm')
 }
 
 export const toNiceDayMonthAndYearAndTime = (date) => {
@@ -58,26 +55,24 @@ export const toNiceDayMonthAndYearAndTime = (date) => {
 }
 
 export const toNiceMonthlyDate = (date) => {
-	let x = dayjs.utc(dayjs.unix(date)).format('MMM YYYY')
-	return x
+	return dayjs.utc(dayjs.unix(date)).format('MMM YYYY')
 }
 
 export const toYearMonth = (date) => {
-	let x = dayjs.utc(dayjs.unix(date)).format('YYYY-MM')
-	return x
+	return dayjs.utc(dayjs.unix(date)).format('YYYY-MM')
 }
 
 export const toNiceDate = (date) => {
-	let x = dayjs.utc(dayjs.unix(date)).format('MMM DD')
-	return x
+	return dayjs.utc(dayjs.unix(date)).format('MMM DD')
 }
 
 export const toNiceCsvDate = (date) => {
-	let x = dayjs.utc(dayjs.unix(date)).format('YYYY-MM-DD')
-	return x
+	return dayjs.utc(dayjs.unix(date)).format('YYYY-MM-DD')
 }
 
 export const toNiceDateYear = (date) => dayjs.utc(dayjs.unix(date)).format('MMMM DD, YYYY')
+
+export const toNiceDayMonthYear = (date) => dayjs.utc(dayjs.unix(date)).format('DD MMM YYYY')
 
 const timeFromNow = (date) => dayjs.utc(dayjs.unix(date)).fromNow()
 export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, symbol }) {

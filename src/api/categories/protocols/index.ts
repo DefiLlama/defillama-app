@@ -82,14 +82,18 @@ export const getAllProtocolEmissions = async () => {
 		const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
 		return res
 			.map((protocol) => {
-				const upcomingEvent = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
+				let upcomingEvent = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
+
+				if (!upcomingEvent || (upcomingEvent.noOfTokens.length === 1 && upcomingEvent.noOfTokens[0] === 0)) {
+					upcomingEvent = { timestamp: null }
+				}
 
 				const tSymbol =
 					protocol.name === 'LooksRare' ? 'LOOKS' : protocol.tokenPrice?.coins?.[protocol.token]?.symbol ?? null
 
 				return {
 					...protocol,
-					upcomingEvent: upcomingEvent ?? { timestamp: null },
+					upcomingEvent,
 					tPrice: protocol.tokenPrice?.coins?.[protocol.token]?.price ?? null,
 					tSymbol
 				}

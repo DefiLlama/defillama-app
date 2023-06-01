@@ -19,12 +19,15 @@ import {
 	standardizeProtocolName,
 	toK,
 	tokenIconUrl,
-	toNiceDayMonthAndYear
+	toNiceDayMonthAndYear,
+	toNiceDayMonthYear,
+	toNiceHour
 } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow, IEmission, IGovernance } from './types'
 import { AutoColumn } from '~/components/Column'
+import { useEffect, useState } from 'react'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -272,8 +275,18 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Mcap',
 		accessorKey: 'mcap',
-		cell: ({ getValue }) => {
-			return <>{getValue() ? '$' + formattedNum(getValue()) : ''}</>
+		cell: ({ getValue, row }) => {
+			if (!getValue()) return null
+			return (
+				<AutoColumn gap="4px">
+					<span>{'$' + formattedNum(getValue())}</span>
+					{row.original.circSupply && row.original.maxSupply ? (
+						<LightText>{`${formatPercentage(
+							(row.original.circSupply / row.original.maxSupply) * 100
+						)}% unlocked`}</LightText>
+					) : null}
+				</AutoColumn>
+			)
 		},
 		meta: {
 			align: 'end'
@@ -392,20 +405,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		size: 800
 	}
 ]
-
-const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, maxSupply }) => {
-	let tooltipContent = formatUnlocksEvent({
-		description,
-		noOfTokens: noOfTokens ?? [],
-		timestamp,
-		price,
-		symbol
-	})
-
-	const unlockPercent = ((noOfTokens / maxSupply) * 100).toLocaleString(undefined, { maximumFractionDigits: 2 }) + '%'
-
-	return <Tooltip content={tooltipContent}>{tooltipContent}</Tooltip>
-}
 
 export const expensesColumns: ColumnDef<any>[] = [
 	{
@@ -1440,3 +1439,168 @@ const LightText = styled.span`
 	opacity: 0.6;
 	min-width: 120px;
 `
+
+const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, maxSupply }) => {
+	const tokens = noOfTokens.length === 2 ? noOfTokens[1] - noOfTokens[0] : noOfTokens[0]
+	const unlockPercent = tokens && maxSupply ? tokens / maxSupply : null
+
+	const timeLeft = timestamp - Date.now() / 1e3
+	const days = Math.floor(timeLeft / 86400)
+	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
+	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)
+	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
+
+	const [_, rerender] = useState(1)
+
+	useEffect(() => {
+		const id = setInterval(() => rerender((value) => value + 1), 1000)
+
+		return () => clearInterval(id)
+	}, [])
+
+	return (
+		<Tooltip
+			content={formatUnlocksEvent({
+				description,
+				noOfTokens: noOfTokens ?? [],
+				timestamp,
+				price,
+				symbol
+			})}
+		>
+			<EventWrapper>
+				<span>
+					<span>{unlockPercent ? formatPercentage(unlockPercent) + '%' : ''}</span>
+					<span>{formattedNum(tokens * price, true)}</span>
+				</span>
+
+				<span data-divider></span>
+
+				<TimeLeft>
+					<span>
+						<span>{days}</span>
+						<span>D</span>
+					</span>
+
+					<span data-divider></span>
+
+					<span>
+						<span>{hours}</span>
+						<span>H</span>
+					</span>
+
+					<span data-divider></span>
+
+					<span>
+						<span>{minutes}</span>
+						<span>M</span>
+					</span>
+
+					<span data-divider></span>
+
+					<span>
+						<span>{seconds}</span>
+						<span>S</span>
+					</span>
+				</TimeLeft>
+
+				<span data-divider></span>
+
+				<span>
+					<span>{toNiceDayMonthYear(timestamp)}</span>
+					<span>{toNiceHour(timestamp)}</span>
+				</span>
+			</EventWrapper>
+		</Tooltip>
+	)
+}
+
+const TimeLeft = styled.span`
+	display: flex;
+	align-items: center
+	flex-wrap: nowrap;
+	gap: 8px;
+	font-size: 0.825rem;
+
+	& > * {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+
+		& > *:nth-child(1) {
+			padding: 4px;
+			background: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)')};
+			color: ${({ theme }) => (theme.mode === 'dark' ? 'black' : 'white')};
+			border-radius: 4px;
+			min-width: 25px;
+			text-align: center;
+			font-weight: 500;
+		}
+
+		& > *:nth-child(2) {
+			opacity: 0.6;
+		}
+	}
+
+	& > *[data-divider='true'] {
+		height: 4px;
+		width: 1px;
+		background: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)')};
+		margin: auto 0;
+	}
+`
+
+const EventWrapper = styled.span`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: nowrap;
+	font-size: 0.75rem;
+	background: ${({ theme }) => (theme.mode === 'dark' ? 'black' : '#f2f2f2')};
+	border-radius: 4px;
+	padding: 8px;
+
+	& > *[data-divider='true'] {
+		height: 40px;
+		width: 1px;
+		background: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')};
+		margin: 0 8px;
+	}
+
+	& > *:first-child,
+	& > *:last-child {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+
+		& > *:nth-child(2) {
+			opacity: 0.6;
+		}
+	}
+
+	& > *:last-child {
+		& > *:last-child {
+			text-align: end;
+		}
+	}
+`
+
+const formatPercentage = (value) => {
+	let zeroes = 0
+	let stop = false
+
+	value
+		.toString()
+		.split('.')?.[1]
+		?.slice(0, 5)
+		?.split('')
+		?.forEach((x) => {
+			if (!stop && x == '0') {
+				zeroes += 1
+			} else {
+				stop = true
+			}
+		})
+
+	return value.toLocaleString(undefined, { maximumFractionDigits: zeroes + 1 })
+}
