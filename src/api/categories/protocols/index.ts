@@ -80,19 +80,36 @@ export const getProtocol = async (protocolName: string) => {
 export const getAllProtocolEmissions = async () => {
 	try {
 		const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
-		return res.map((protocol) => {
-			const upcomingEvent = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
+		return res
+			.map((protocol) => {
+				const upcomingEvent = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
 
-			const tSymbol =
-				protocol.name === 'LooksRare' ? 'LOOKS' : protocol.tokenPrice?.coins?.[protocol.token]?.symbol ?? null
+				const tSymbol =
+					protocol.name === 'LooksRare' ? 'LOOKS' : protocol.tokenPrice?.coins?.[protocol.token]?.symbol ?? null
 
-			return {
-				...protocol,
-				upcomingEvent: upcomingEvent || {},
-				tPrice: protocol.tokenPrice?.coins?.[protocol.token]?.price ?? null,
-				tSymbol
-			}
-		})
+				return {
+					...protocol,
+					upcomingEvent: upcomingEvent ?? { timestamp: null },
+					tPrice: protocol.tokenPrice?.coins?.[protocol.token]?.price ?? null,
+					tSymbol
+				}
+			})
+			.sort((a, b) => {
+				// equal items sort equally
+				if (a.upcomingEvent.timestamp === b.upcomingEvent.timestamp) {
+					return 0
+				}
+
+				// nulls sort after anything else
+				if (a.upcomingEvent.timestamp === null) {
+					return 1
+				}
+				if (b.upcomingEvent.timestamp === null) {
+					return -1
+				}
+
+				return a.upcomingEvent.timestamp < b.upcomingEvent.timestamp ? -1 : 1
+			})
 	} catch (e) {
 		console.log(e)
 		return []
