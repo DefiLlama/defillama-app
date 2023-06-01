@@ -75,7 +75,7 @@ export default function Protocols({ data }) {
 				</SearchWrapper>
 			</TableHeaderAndSearch>
 
-			<TableWrapper instance={instance} />
+			<TableWrapper instance={instance} skipVirtualization />
 		</Layout>
 	)
 }

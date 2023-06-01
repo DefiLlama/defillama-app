@@ -334,7 +334,9 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 					<Tooltip content={row.original.totalLocked.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
 						{percetage.toFixed(2) + '%'}
 					</Tooltip>
-					<LightText>{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}</LightText>
+					<LightText>
+						{getValue() ? '$' + formattedNum((row.original.totalLocked * row.original.tPrice).toFixed(2)) : ''}
+					</LightText>
 				</AutoColumn>
 			)
 		},
@@ -349,6 +351,9 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		accessorFn: (row) => (row.tPrice && row.nextEvent.toUnlock ? +row.tPrice * row.nextEvent.toUnlock : 0),
 		cell: ({ getValue, row }) => {
 			const symbol = row.original.tSymbol
+
+			if (!row.original.nextEvent.toUnlock) return '-'
+
 			return (
 				<AutoColumn gap="4px">
 					<Tooltip content={row.original.nextEvent.toUnlock.toFixed(2)}>
@@ -369,18 +374,38 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		cell: ({ row }) => {
 			let { description, noOfTokens, timestamp } = row.original.upcomingEvent
 
-			description = formatUnlocksEvent({
-				description,
-				noOfTokens: noOfTokens ?? [],
-				timestamp,
-				price: row.original.tPrice,
-				symbol: row.original.tSymbol
-			})
-			return <span style={{ width: '100%', overflow: 'scroll' }}>{description}</span>
+			if (!timestamp) return null
+
+			return (
+				<UpcomingEvent
+					{...{
+						noOfTokens,
+						timestamp,
+						description,
+						price: row.original.tPrice,
+						symbol: row.original.tSymbol,
+						maxSupply: row.original.maxSupply
+					}}
+				/>
+			)
 		},
 		size: 800
 	}
 ]
+
+const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, maxSupply }) => {
+	let tooltipContent = formatUnlocksEvent({
+		description,
+		noOfTokens: noOfTokens ?? [],
+		timestamp,
+		price,
+		symbol
+	})
+
+	const unlockPercent = ((noOfTokens / maxSupply) * 100).toLocaleString(undefined, { maximumFractionDigits: 2 }) + '%'
+
+	return <Tooltip content={tooltipContent}>{tooltipContent}</Tooltip>
+}
 
 export const expensesColumns: ColumnDef<any>[] = [
 	{
