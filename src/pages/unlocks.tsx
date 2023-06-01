@@ -17,6 +17,7 @@ import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 import { withPerformanceLogging } from '~/utils/perf'
+import { AnnouncementWrapper } from '~/components/Announcement'
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const data = await getAllProtocolEmissions()
@@ -59,6 +60,18 @@ export default function Protocols({ data }) {
 
 	return (
 		<Layout title={`Unlocks - DefiLlama`} defaultSEO>
+			<AnnouncementWrapper>
+				<span>Are we missing any protocol?</span>{' '}
+				<a
+					href="https://airtable.com/shrD1bSGYNcdFQ6kd"
+					style={{ color: '#2f80ed' }}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Add it here!
+				</a>
+			</AnnouncementWrapper>
+
 			<TableHeaderAndSearch>
 				<Header>Token Unlocks</Header>
 
