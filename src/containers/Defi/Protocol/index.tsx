@@ -231,6 +231,12 @@ interface IProtocolContainerProps {
 	tokenLiquidity: Array<[string, string, number]>
 }
 
+function explainAnnualized(text: string | undefined) {
+	return `${
+		text === undefined ? '' : text + '. '
+	}This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it`
+}
+
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
 function ProtocolContainer({
@@ -675,7 +681,7 @@ function ProtocolContainer({
 							<AnnualizedMetric
 								name="Fees"
 								dailyValue={dailyFees}
-								helperText={helperTexts.fees}
+								helperText={explainAnnualized(helperTexts.fees)}
 								cumulativeValue={allTimeFees}
 								protocolName={protocolData.name}
 								formatPrice={formatPrice}
@@ -688,7 +694,7 @@ function ProtocolContainer({
 							<AnnualizedMetric
 								name="Revenue"
 								dailyValue={dailyRevenue}
-								helperText={helperTexts.revenue}
+								helperText={explainAnnualized(helperTexts.revenue)}
 								protocolName={protocolData.name}
 								formatPrice={formatPrice}
 							/>
