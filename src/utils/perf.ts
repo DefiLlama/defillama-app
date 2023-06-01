@@ -43,7 +43,10 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 	const cacheKey = 'defillama-cache:' + url.toString().replace(/^https?:\/\//, '')
 	const cache = REDIS_URL ? await getCache(cacheKey) : null
 
-	if (cache) {
+	if (process.env.NODE_ENV === 'development') {
+		const response = await fetch(url, options)
+		return response
+	} else if (cache) {
 		const Body = cache.Body
 		const ContentType = cache.ContentType
 		const StatusCode = cache.StatusCode || 200
