@@ -90,7 +90,7 @@ const PageView = () => {
 	const projectName = config?.name ?? ''
 	const audits = config?.audits ?? ''
 	const audit_links = config?.audit_links ?? []
-	const url = config?.url ?? ''
+	const url = poolData.url ?? ''
 	const twitter = config?.twitter ?? ''
 	const category = config?.category ?? ''
 
