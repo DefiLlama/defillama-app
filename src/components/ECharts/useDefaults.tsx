@@ -141,17 +141,17 @@ export function useDefaults({
 						'&nbsp;&nbsp;' +
 						formatTooltipValue(
 							curr.value[1],
-							valueSymbol !== ''
-								? valueSymbol
-								: curr.seriesName === 'Unlocks'
+							curr.seriesName === 'Unlocks'
 								? unlockTokenSymbol
 								: curr.seriesName.includes('Active Users')
 								? 'Users'
 								: curr.seriesName.includes('Transactions')
 								? 'TXs'
+								: curr.seriesName === 'TVL' && valueSymbol !== '$'
+								? valueSymbol
 								: Object.keys(CHART_SYMBOLS).includes(curr.seriesName)
 								? CHART_SYMBOLS[curr.seriesName]
-								: ''
+								: valueSymbol
 						) +
 						'</li>')
 				}, '')
