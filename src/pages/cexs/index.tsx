@@ -75,6 +75,13 @@ export const cexData = [
 		cgDeriv: 'kumex'
 	},
 	{
+		name: 'Deribit',
+		slug: 'deribit',
+		coin: null,
+		walletsLink: 'https://insights.deribit.com/exchange-updates/deribit-wallet-holdings/',
+		cgDeriv: 'deribit'
+	},
+	{
 		name: 'Gate.io',
 		slug: 'Gate-io',
 		coin: 'GT',
@@ -82,13 +89,6 @@ export const cexData = [
 		walletsLink: 'https://github.com/gateio/proof-of-reserves',
 		cgId: 'gate',
 		cgDeriv: 'gate_futures'
-	},
-	{
-		name: 'Deribit',
-		slug: 'deribit',
-		coin: null,
-		walletsLink: 'https://insights.deribit.com/exchange-updates/deribit-wallet-holdings/',
-		cgDeriv: 'deribit'
 	},
 	{
 		name: 'Bitget',
@@ -115,17 +115,17 @@ export const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
+		name: 'Korbit',
+		slug: 'korbit',
+		coin: null,
+		walletsLink: 'https://korbit.co.kr/reserve'
+	},
+	{
 		name: 'Binance US',
 		slug: 'binance-us',
 		coin: 'BNB',
 		coinSymbol: 'BNB',
 		cgId: 'binance_us'
-	},
-	{
-		name: 'Korbit',
-		slug: 'korbit',
-		coin: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'Firi',
@@ -134,11 +134,10 @@ export const cexData = [
 		walletsLink: null
 	},
 	{
-		name: 'WOO X',
-		slug: 'woo-x',
-		coin: 'WOO',
-		coinSymbol: 'WOO',
-		walletsLink: 'https://woo.org/proof-of-reserves'
+		name: 'MaskEX',
+		slug: 'maskex',
+		coin: null,
+		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Cake DeFi',
@@ -147,10 +146,11 @@ export const cexData = [
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
 	{
-		name: 'MaskEX',
-		slug: 'maskex',
-		coin: null,
-		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
+		name: 'WOO X',
+		slug: 'woo-x',
+		coin: 'WOO',
+		coinSymbol: 'WOO',
+		walletsLink: 'https://woo.org/proof-of-reserves'
 	},
 	{
 		name: 'Phemex',
@@ -161,16 +161,16 @@ export const cexData = [
 		cgDeriv: 'phemex_futures'
 	},
 	{
-		name: 'Coinsquare',
-		slug: 'coinsquare',
-		coin: null,
-		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
-	},
-	{
 		name: 'CoinDCX',
 		slug: 'coindcx',
 		coin: null,
 		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
+	},
+	{
+		name: 'Coinsquare',
+		slug: 'coinsquare',
+		coin: null,
+		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
 	},
 	{
 		name: 'Hotbit',
