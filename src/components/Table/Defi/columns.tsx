@@ -392,7 +392,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 						description,
 						price: row.original.tPrice,
 						symbol: row.original.tSymbol,
-						circSupply: row.original.circSupply
+						mcap: row.original.mcap
 					}}
 				/>
 			)
@@ -1435,9 +1435,9 @@ const LightText = styled.span`
 	min-width: 120px;
 `
 
-const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, circSupply }) => {
-	const tokens = noOfTokens.length === 2 ? noOfTokens[1] - noOfTokens[0] : noOfTokens[0]
-	const unlockPercent = tokens && circSupply ? (tokens / circSupply) * 100 : null
+const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, mcap }) => {
+	const tokenValue = (noOfTokens.length === 2 ? noOfTokens[1] - noOfTokens[0] : noOfTokens[0]) * price
+	const unlockPercent = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
 
 	const timeLeft = timestamp - Date.now() / 1e3
 	const days = Math.floor(timeLeft / 86400)
@@ -1466,7 +1466,7 @@ const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, circ
 			<EventWrapper>
 				<span>
 					<span>{unlockPercent ? formatPercentage(unlockPercent) + '%' : ''}</span>
-					<span>{formattedNum(tokens * price, true)}</span>
+					<span>{formattedNum(tokenValue, true)}</span>
 				</span>
 
 				<span data-divider></span>
