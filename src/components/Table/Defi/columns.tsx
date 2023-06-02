@@ -1436,7 +1436,8 @@ const LightText = styled.span`
 `
 
 const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, mcap }) => {
-	const tokenValue = (noOfTokens.length === 2 ? noOfTokens[1] - noOfTokens[0] : noOfTokens[0]) * price
+	const tokens = noOfTokens.length === 2 ? noOfTokens[1] - noOfTokens[0] : noOfTokens[0]
+	const tokenValue = price ? tokens * price : null
 	const unlockPercent = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
 
 	const timeLeft = timestamp - Date.now() / 1e3
@@ -1464,10 +1465,14 @@ const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, mcap
 			})}
 		>
 			<EventWrapper>
-				<span>
-					<span>{unlockPercent ? formatPercentage(unlockPercent) + '%' : ''}</span>
-					<span>{formattedNum(tokenValue, true)}</span>
-				</span>
+				{noOfTokens && unlockPercent ? (
+					<span>
+						<span>{unlockPercent ? formatPercentage(unlockPercent) + '%' : ''}</span>
+						<span>{formattedNum(tokenValue, true)}</span>
+					</span>
+				) : (
+					<span>{`${tokens.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${symbol ?? 'tokens'}`}</span>
+				)}
 
 				<span data-divider></span>
 
