@@ -72,40 +72,53 @@ export const getStaticProps = withPerformanceLogging(
 				: null
 			: null
 
-		const [backgroundColor, allProtocols, users, feesAndRevenueProtocols, dexs, medianApy, controversialProposals] =
-			await Promise.all([
-				getColor(tokenIconPaletteUrl(protocolData.name)),
-				getProtocolsRaw(),
-				fetch(ACTIVE_USERS_API)
-					.then((res) => res.json())
-					.then((data) => data?.[protocolData.id] ?? null),
-				fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					}),
-				fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					}),
-				fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
-				governanceApi
-					? fetch(governanceApi)
-							.then((res) => res.json())
-							.then((data) => {
-								return Object.values(data.proposals)
-									.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
-									.slice(0, 3)
-							})
-							.catch((err) => {
-								console.log(err)
-								return {}
-							})
-					: null
-			])
+		const [
+			backgroundColor,
+			allProtocols,
+			users,
+			feesAndRevenueProtocols,
+			dexs,
+			medianApy,
+			controversialProposals,
+			tokenCGData
+		] = await Promise.all([
+			getColor(tokenIconPaletteUrl(protocolData.name)),
+			getProtocolsRaw(),
+			fetch(ACTIVE_USERS_API)
+				.then((res) => res.json())
+				.then((data) => data?.[protocolData.id] ?? null),
+			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+				}),
+			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+				}),
+			fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
+			governanceApi
+				? fetch(governanceApi)
+						.then((res) => res.json())
+						.then((data) => {
+							return Object.values(data.proposals)
+								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+								.slice(0, 3)
+						})
+						.catch((err) => {
+							console.log(err)
+							return {}
+						})
+				: null,
+			protocolData.gecko_id
+				? fetch(
+						`https://api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=false&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+				  ).then((res) => res.json())
+				: {}
+		])
 
 		const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
 			(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
@@ -241,9 +254,6 @@ export const getStaticProps = withPerformanceLogging(
 							gasUsd: users.gasUsd?.value ?? null
 					  }
 					: null,
-				tokenPrice: protocolData.tokenPrice || null,
-				tokenMcap: protocolData.tokenMcap || null,
-				tokenSupply: protocolData.tokenSupply || null,
 				dailyRevenue,
 				dailyFees,
 				allTimeFees,
@@ -275,7 +285,19 @@ export const getStaticProps = withPerformanceLogging(
 				},
 				expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null,
 				feesAndRevenueData,
-				tokenLiquidity
+				tokenLiquidity,
+				tokenCGData: {
+					price: {
+						current: tokenCGData?.['market_data']?.['current_price']?.['usd'] ?? null,
+						ath: tokenCGData?.['market_data']?.['ath']?.['usd'] ?? null,
+						athDate: tokenCGData?.['market_data']?.['ath_date']?.['usd'],
+						atl: tokenCGData?.['market_data']?.['atl']?.['usd'],
+						atlDate: tokenCGData?.['market_data']?.['atl_date']?.['usd']
+					},
+					marketCap: { current: tokenCGData?.['market_data']?.['market_cap']?.['usd'] ?? null },
+					totalSupply: tokenCGData?.['market_data']?.['total_supply'] ?? null,
+					totalVolume: tokenCGData?.['market_data']?.['total_volume']?.['usd'] ?? null
+				}
 			},
 			revalidate: maxAgeForNext([22])
 		}

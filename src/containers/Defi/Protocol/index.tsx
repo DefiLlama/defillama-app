@@ -211,9 +211,6 @@ interface IProtocolContainerProps {
 		transactions: number | null
 		gasUsd: number | null
 	} | null
-	tokenPrice: number | null
-	tokenMcap: number | null
-	tokenSupply: number | null
 	allTimeFees: number | null
 	dailyFees: number | null
 	dailyRevenue: number | null
@@ -229,6 +226,18 @@ interface IProtocolContainerProps {
 		users?: string | null
 	}
 	tokenLiquidity: Array<[string, string, number]>
+	tokenCGData: {
+		price: {
+			current: number | null
+			ath: number | null
+			atl: number | null
+			athData: number | null
+			atlData: number | null
+		}
+		marketCap: { current: number | null }
+		totalSupply: number | null
+		totalVolume: number | null
+	}
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -250,9 +259,6 @@ function ProtocolContainer({
 	isCEX,
 	chartColors,
 	users,
-	tokenPrice: priceOfToken,
-	tokenMcap,
-	tokenSupply,
 	allTimeFees,
 	dailyFees,
 	dailyRevenue,
@@ -263,7 +269,8 @@ function ProtocolContainer({
 	expenses,
 	yields,
 	helperTexts,
-	tokenLiquidity
+	tokenLiquidity,
+	tokenCGData
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -581,33 +588,33 @@ function ProtocolContainer({
 					<div style={{ width: '100%', overflowX: 'auto' }}>
 						<ProtocolStatsTable>
 							<tbody>
-								{tokenMcap ? (
+								{tokenCGData.marketCap.current ? (
 									<tr>
 										<th>
 											<span>Market Cap</span>
 											<Flag protocol={protocolData.name} dataType={'Market Cap'} />
 										</th>
-										<td>{formatPrice(tokenMcap)}</td>
+										<td>{formatPrice(tokenCGData.marketCap.current)}</td>
 									</tr>
 								) : null}
 
-								{priceOfToken ? (
+								{tokenCGData.price.current ? (
 									<tr>
 										<th>
 											<span>Token Price</span>
 											<Flag protocol={protocolData.name} dataType={'Token Price'} />
 										</th>
-										<td>${priceOfToken.toLocaleString('en-US', { maximumFractionDigits: 5 })}</td>
+										<td>${tokenCGData.price.current.toLocaleString('en-US', { maximumFractionDigits: 5 })}</td>
 									</tr>
 								) : null}
 
-								{tokenSupply && priceOfToken ? (
+								{tokenCGData.totalSupply && tokenCGData.price.current ? (
 									<tr>
 										<th>
 											<span>Fully Diluted Valuation</span>
 											<Flag protocol={protocolData.name} dataType={'FDV'} />
 										</th>
-										<td>{formatPrice(priceOfToken * tokenSupply)}</td>
+										<td>{formatPrice(tokenCGData.price.current * tokenCGData.totalSupply)}</td>
 									</tr>
 								) : null}
 
@@ -621,7 +628,7 @@ function ProtocolContainer({
 											<td>{formatPrice(stakedAmount)}</td>
 										</tr>
 
-										{tokenMcap ? (
+										{tokenCGData.marketCap.current ? (
 											<tr style={{ position: 'relative', top: '-6px' }}>
 												<th style={{ padding: 0 }}></th>
 												<td
@@ -633,7 +640,7 @@ function ProtocolContainer({
 														padding: '0px'
 													}}
 												>
-													{`(${((stakedAmount / tokenMcap) * 100).toLocaleString(undefined, {
+													{`(${((stakedAmount / tokenCGData.marketCap.current) * 100).toLocaleString(undefined, {
 														maximumFractionDigits: 2
 													})}% of mcap)`}
 												</td>
