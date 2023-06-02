@@ -1587,6 +1587,12 @@ const EventWrapper = styled.span`
 			text-align: end;
 		}
 	}
+
+	& > *:first-child {
+		inline-size: 68px;
+		overflow-wrap: break-word;
+		white-space: normal;
+	}
 `
 
 const formatPercentage = (value) => {
