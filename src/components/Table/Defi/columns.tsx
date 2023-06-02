@@ -280,11 +280,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			return (
 				<AutoColumn gap="4px">
 					<span>{'$' + formattedNum(getValue())}</span>
-					{row.original.circSupply && row.original.maxSupply ? (
-						<LightText>{`${formatPercentage(
-							(row.original.circSupply / row.original.maxSupply) * 100
-						)}% unlocked`}</LightText>
-					) : null}
 				</AutoColumn>
 			)
 		},
@@ -397,7 +392,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 						description,
 						price: row.original.tPrice,
 						symbol: row.original.tSymbol,
-						maxSupply: row.original.maxSupply
+						circSupply: row.original.circSupply
 					}}
 				/>
 			)
@@ -1440,9 +1435,9 @@ const LightText = styled.span`
 	min-width: 120px;
 `
 
-const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, maxSupply }) => {
+const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, circSupply }) => {
 	const tokens = noOfTokens.length === 2 ? noOfTokens[1] - noOfTokens[0] : noOfTokens[0]
-	const unlockPercent = tokens && maxSupply ? tokens / maxSupply : null
+	const unlockPercent = tokens && circSupply ? (tokens / circSupply) * 100 : null
 
 	const timeLeft = timestamp - Date.now() / 1e3
 	const days = Math.floor(timeLeft / 86400)
