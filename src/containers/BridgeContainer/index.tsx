@@ -51,7 +51,7 @@ const BridgeInfo = ({ displayName, logo, chains, defaultChain, volumeDataByChain
 	const { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals } = tableDataByChain[currentChain]
 
 	const volumeChartDataByChain = volumeDataByChain[currentChain]
-	const prevDayChart = volumeChartDataByChain[volumeChartDataByChain.length - 2]
+	const prevDayChart = volumeChartDataByChain[volumeChartDataByChain.length - 1]
 	const currentDepositsUSD = prevDayChart?.Deposited ?? 0
 	const currentWithdrawalsUSD = -(prevDayChart?.Withdrawn ?? 0)
 	const currentVolume = currentDepositsUSD + currentWithdrawalsUSD
@@ -59,7 +59,7 @@ const BridgeInfo = ({ displayName, logo, chains, defaultChain, volumeDataByChain
 	let volPercentChange = '0 '
 
 	if (volumeChartDataByChain.length > 2) {
-		const prev2DayChart = volumeChartDataByChain[volumeChartDataByChain.length - 3]
+		const prev2DayChart = volumeChartDataByChain[volumeChartDataByChain.length - 2]
 		const prevDepositsUSD = prev2DayChart.Deposited ?? 0
 		const prevWithdrawalsUSD = -(prev2DayChart.Withdrawn ?? 0)
 		const prevVolume = prevDepositsUSD + prevWithdrawalsUSD
@@ -85,12 +85,12 @@ const BridgeInfo = ({ displayName, logo, chains, defaultChain, volumeDataByChain
 
 					<Stat>
 						<span>Deposited to {currentChain} (24h)</span>
-						<span>{formattedNum(currentWithdrawalsUSD || '0', true)}</span>
+						<span>{formattedNum(currentDepositsUSD || '0', true)}</span>
 					</Stat>
 
 					<Stat>
 						<span>Withdrawn from {currentChain} (24h)</span>
-						<span>{formattedNum(currentDepositsUSD || '0', true)}</span>
+						<span>{formattedNum(currentWithdrawalsUSD || '0', true)}</span>
 					</Stat>
 
 					<Stat>
