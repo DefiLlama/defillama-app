@@ -75,7 +75,7 @@ export default function OrderBookChart({ height = '360px', chartData }: IOrderBo
 					])
 				},
 				data: chartData
-					.filter((item) => item.orderType === 'ask')
+					.filter((item) => item.orderType === 'ask' && item.price > 0)
 					.map((item) => [item.price, item.amount, item.avgPrice, item.priceTotal, item.orderType])
 			},
 			{
@@ -107,8 +107,9 @@ export default function OrderBookChart({ height = '360px', chartData }: IOrderBo
 					])
 				},
 				data: chartData
-					.filter((item) => item.orderType === 'bid')
+					.filter((item) => item.orderType === 'bid' && item.price > 0)
 					.map((item) => [item.price, item.amount, item.avgPrice, item.priceTotal, item.orderType])
+					.slice(0, 62)
 			}
 		]
 
