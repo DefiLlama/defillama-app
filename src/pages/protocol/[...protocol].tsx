@@ -290,9 +290,9 @@ export const getStaticProps = withPerformanceLogging(
 					price: {
 						current: tokenCGData?.['market_data']?.['current_price']?.['usd'] ?? null,
 						ath: tokenCGData?.['market_data']?.['ath']?.['usd'] ?? null,
-						athDate: tokenCGData?.['market_data']?.['ath_date']?.['usd'],
-						atl: tokenCGData?.['market_data']?.['atl']?.['usd'],
-						atlDate: tokenCGData?.['market_data']?.['atl_date']?.['usd']
+						athDate: tokenCGData?.['market_data']?.['ath_date']?.['usd'] ?? null,
+						atl: tokenCGData?.['market_data']?.['atl']?.['usd'] ?? null,
+						atlDate: tokenCGData?.['market_data']?.['atl_date']?.['usd'] ?? null
 					},
 					marketCap: { current: tokenCGData?.['market_data']?.['market_cap']?.['usd'] ?? null },
 					totalSupply: tokenCGData?.['market_data']?.['total_supply'] ?? null,
