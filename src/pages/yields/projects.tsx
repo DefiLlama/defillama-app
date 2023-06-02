@@ -40,7 +40,9 @@ export const getStaticProps = withPerformanceLogging('yields/projects', async ()
 		projects[project]['medianApy'] = m
 		projects[project]['audits'] = x[0].audits !== '0'
 		projects[project]['category'] = x[0].category
-		projects[project]['airdrop'] = project === 'fraxlend' ? false : x[0].airdrop
+		projects[project]['airdrop'] = ['fraxlend', 'origin-dollar', 'origin-ether'].includes(project)
+			? false
+			: x[0].airdrop
 	}
 
 	const projArray = Object.entries(projects).map(([slug, details]: [string, any]) => ({
