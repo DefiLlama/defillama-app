@@ -118,7 +118,7 @@ export const cexData = [
 		name: 'MaskEX',
 		slug: 'maskex',
 		coin: null,
-		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
+		walletsLink: 'https://blog.maskex.com/news/announcements/embracing-transparency-maskex-reveals-wallet-addresses'
 	},
 	{
 		name: 'Korbit',
