@@ -588,7 +588,7 @@ function ProtocolContainer({
 					<div style={{ width: '100%', overflowX: 'auto' }}>
 						<ProtocolStatsTable>
 							<tbody>
-								{tokenCGData.marketCap.current ? (
+								{tokenCGData?.marketCap.current ? (
 									<tr>
 										<th>
 											<span>Market Cap</span>
@@ -598,7 +598,7 @@ function ProtocolContainer({
 									</tr>
 								) : null}
 
-								{tokenCGData.price.current ? (
+								{tokenCGData?.price.current ? (
 									<tr>
 										<th>
 											<span>Token Price</span>
@@ -608,7 +608,7 @@ function ProtocolContainer({
 									</tr>
 								) : null}
 
-								{tokenCGData.totalSupply && tokenCGData.price.current ? (
+								{tokenCGData?.totalSupply && tokenCGData?.price.current ? (
 									<tr>
 										<th>
 											<span>Fully Diluted Valuation</span>
