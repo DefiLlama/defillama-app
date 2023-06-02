@@ -82,10 +82,14 @@ export const getAllProtocolEmissions = async () => {
 		const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
 		return res
 			.map((protocol) => {
-				let upcomingEvent = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
+				let event = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
+				let upcomingEvent = []
 
-				if (!upcomingEvent || (upcomingEvent.noOfTokens.length === 1 && upcomingEvent.noOfTokens[0] === 0)) {
-					upcomingEvent = { timestamp: null }
+				if (!event || (event.noOfTokens.length === 1 && event.noOfTokens[0] === 0)) {
+					upcomingEvent = [{ timestamp: null }]
+				} else {
+					const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
+					upcomingEvent = [...comingEvents]
 				}
 
 				const tSymbol =
@@ -99,20 +103,22 @@ export const getAllProtocolEmissions = async () => {
 				}
 			})
 			.sort((a, b) => {
+				const x = a.upcomingEvent?.[0]?.timestamp
+				const y = b.upcomingEvent?.[0]?.timestamp
 				// equal items sort equally
-				if (a.upcomingEvent.timestamp === b.upcomingEvent.timestamp) {
+				if (x === y) {
 					return 0
 				}
 
 				// nulls sort after anything else
-				if (a.upcomingEvent.timestamp === null) {
+				if (x === null) {
 					return 1
 				}
-				if (b.upcomingEvent.timestamp === null) {
+				if (y === null) {
 					return -1
 				}
 
-				return a.upcomingEvent.timestamp < b.upcomingEvent.timestamp ? -1 : 1
+				return x < y ? -1 : 1
 			})
 	} catch (e) {
 		console.log(e)

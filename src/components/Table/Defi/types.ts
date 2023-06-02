@@ -56,11 +56,11 @@ export interface IEmission {
 	tPrice?: number | null
 	tSymbol?: string | null
 	mcap: number | null
-	upcomingEvent: {
+	upcomingEvent: Array<{
 		description: string
 		noOfTokens: number[]
 		timestamp: number
-	}
+	}>
 }
 
 export interface IGovernance {

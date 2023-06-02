@@ -378,18 +378,18 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Next Event',
 		id: 'upcomingEvent',
-		accessorFn: (row) => row.upcomingEvent.timestamp || 0,
+		accessorFn: (row) => row.upcomingEvent?.[0]?.timestamp,
 		cell: ({ row }) => {
-			let { description, noOfTokens, timestamp } = row.original.upcomingEvent
+			let { timestamp } = row.original.upcomingEvent[0]
 
 			if (!timestamp) return null
 
 			return (
 				<UpcomingEvent
 					{...{
-						noOfTokens,
+						noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
 						timestamp,
-						description,
+						description: row.original.upcomingEvent.map((x) => x.description),
 						price: row.original.tPrice,
 						symbol: row.original.tSymbol,
 						mcap: row.original.mcap
@@ -1435,8 +1435,8 @@ const LightText = styled.span`
 	min-width: 120px;
 `
 
-const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, mcap }) => {
-	const tokens = noOfTokens.length === 2 ? noOfTokens[1] - noOfTokens[0] : noOfTokens[0]
+const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol, mcap }) => {
+	const tokens = noOfTokens.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
 	const tokenValue = price ? tokens * price : null
 	const unlockPercent = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
 
@@ -1454,16 +1454,20 @@ const UpcomingEvent = ({ noOfTokens, timestamp, description, price, symbol, mcap
 		return () => clearInterval(id)
 	}, [])
 
-	return (
-		<Tooltip
-			content={formatUnlocksEvent({
-				description,
-				noOfTokens: noOfTokens ?? [],
+	const tooltipContent = description
+		.map((item, index) =>
+			formatUnlocksEvent({
+				description: item,
+				noOfTokens: noOfTokens?.[index] ?? [],
 				timestamp,
 				price,
 				symbol
-			})}
-		>
+			})
+		)
+		.join('\n\n')
+
+	return (
+		<Tooltip content={tooltipContent}>
 			<EventWrapper>
 				{noOfTokens && unlockPercent ? (
 					<span>
