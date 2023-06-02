@@ -942,7 +942,7 @@ export default function ProtocolChart({
 							}
 						/>
 						<span data-wrapper="true">
-							<span>TVL</span>
+							<span>{isCEX ? 'Total Assets' : 'TVL'}</span>
 						</span>
 					</Toggle>
 
