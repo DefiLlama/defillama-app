@@ -1467,7 +1467,7 @@ const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol,
 		.join('\n\n')
 
 	return (
-		<Tooltip content={tooltipContent}>
+		<Tooltip content={tooltipContent} placement="left">
 			<EventWrapper>
 				{noOfTokens && unlockPercent ? (
 					<span>

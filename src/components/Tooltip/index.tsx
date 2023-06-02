@@ -14,6 +14,7 @@ interface ITooltip {
 	color?: string
 	fontSize?: string
 	anchorStyles?: React.CSSProperties
+	placement?: 'top' | 'bottom' | 'left' | 'right'
 }
 
 const TooltipPopver = styled(AriaTooltip)`
@@ -78,8 +79,8 @@ export default function Tooltip({ content, as, href, shallow, onClick, children,
 	)
 }
 
-export function Tooltip2({ content, children, color, fontSize, anchorStyles, ...props }: ITooltip) {
-	const tooltip = useTooltipState()
+export function Tooltip2({ content, children, color, fontSize, anchorStyles, placement, ...props }: ITooltip) {
+	const tooltip = useTooltipState({ placement })
 
 	if (!content || content === '') return <>{children}</>
 
