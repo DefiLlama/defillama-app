@@ -115,6 +115,12 @@ export const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
+		name: 'MaskEX',
+		slug: 'maskex',
+		coin: null,
+		walletsLink: 'https://blog.maskex.com/news/announcements/embracing-transparency-maskex-reveals-wallet-addresses'
+	},
+	{
 		name: 'Korbit',
 		slug: 'korbit',
 		coin: null,
@@ -128,16 +134,18 @@ export const cexData = [
 		cgId: 'binance_us'
 	},
 	{
+		name: 'Phemex',
+		slug: 'phemex',
+		coin: null,
+		walletsLink: 'https://phemex.com/proof-of-reserves',
+		cgId: 'phemex',
+		cgDeriv: 'phemex_futures'
+	},
+	{
 		name: 'Firi',
 		slug: 'firi',
 		coin: null,
 		walletsLink: null
-	},
-	{
-		name: 'MaskEX',
-		slug: 'maskex',
-		coin: null,
-		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Cake DeFi',
@@ -151,14 +159,6 @@ export const cexData = [
 		coin: 'WOO',
 		coinSymbol: 'WOO',
 		walletsLink: 'https://woo.org/proof-of-reserves'
-	},
-	{
-		name: 'Phemex',
-		slug: 'phemex',
-		coin: null,
-		walletsLink: 'https://phemex.com/proof-of-reserves',
-		cgId: 'phemex',
-		cgDeriv: 'phemex_futures'
 	},
 	{
 		name: 'CoinDCX',
