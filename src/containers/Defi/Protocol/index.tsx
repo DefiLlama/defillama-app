@@ -585,9 +585,9 @@ function ProtocolContainer({
 						</span>
 					</AccordionStat>
 
-					{tokenCGData?.marketCap.current ? (
-						<ProtocolStatsTable>
-							<tbody>
+					<StatsTable2>
+						<tbody>
+							{tokenCGData?.marketCap?.current ? (
 								<tr>
 									<th>
 										<span>Market Cap</span>
@@ -595,167 +595,360 @@ function ProtocolContainer({
 									</th>
 									<td>{formatPrice(tokenCGData.marketCap.current)}</td>
 								</tr>
-							</tbody>
-						</ProtocolStatsTable>
-					) : null}
-
-					<PriceAthAtlTable
-						protocolName={protocolData.name}
-						name="Token Price"
-						current={'$' + tokenCGData.price.current.toLocaleString('en-US', { maximumFractionDigits: 5 })}
-						ath={'$' + tokenCGData.price.ath.toLocaleString('en-US', { maximumFractionDigits: 5 })}
-						atl={'$' + tokenCGData.price.atl.toLocaleString('en-US', { maximumFractionDigits: 5 })}
-						athDate={tokenCGData.price.athDate}
-						atlDate={tokenCGData.price.atlDate}
-					/>
-
-					<PriceAthAtlTable
-						protocolName={protocolData.name}
-						name="Fully Diluted Valuation"
-						current={formatPrice(tokenCGData.price.current * tokenCGData.totalSupply)}
-						ath={formatPrice(tokenCGData.price.ath * tokenCGData.totalSupply)}
-						atl={formatPrice(tokenCGData.price.atl * tokenCGData.totalSupply)}
-						athDate={tokenCGData.price.athDate}
-						atlDate={tokenCGData.price.atlDate}
-					/>
-
-					<ProtocolStatsTable>
-						<tbody>
-							{tokenCGData?.price.current ? (
-								<tr>
-									<th>
-										<span>Token Price</span>
-										<Flag protocol={protocolData.name} dataType={'Token Price'} />
-									</th>
-									<td>${tokenCGData.price.current.toLocaleString('en-US', { maximumFractionDigits: 5 })}</td>
-								</tr>
 							) : null}
 
-							{tokenCGData?.totalSupply && tokenCGData?.price.current ? (
-								<tr>
-									<th>
-										<span>Fully Diluted Valuation</span>
-										<Flag protocol={protocolData.name} dataType={'FDV'} />
-									</th>
-									<td>{formatPrice(tokenCGData.price.current * tokenCGData.totalSupply)}</td>
-								</tr>
-							) : null}
-						</tbody>
-					</ProtocolStatsTable>
-
-					{stakedAmount || borrowedAmount ? (
-						<ProtocolStatsTable>
-							<tbody>
-								{stakedAmount ? (
-									<>
-										<tr>
-											<th>
-												<span>Staked</span>
-												<Flag protocol={protocolData.name} dataType={'Staked'} />
-											</th>
-											<td>{formatPrice(stakedAmount)}</td>
-										</tr>
-
-										{tokenCGData.marketCap.current ? (
-											<tr style={{ position: 'relative', top: '-6px' }}>
-												<th style={{ padding: 0 }}></th>
-												<td
-													style={{
-														opacity: '0.6',
-														fontFamily: 'var(--inter)',
-														fontWeight: 400,
-														fontSize: '0.875rem',
-														padding: '0px'
-													}}
-												>
-													{`(${((stakedAmount / tokenCGData.marketCap.current) * 100).toLocaleString(undefined, {
-														maximumFractionDigits: 2
-													})}% of mcap)`}
+							{tokenCGData?.price?.current ? (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									dataType="Token Price"
+									rowHeader={`${symbol || 'Token'} Price`}
+									rowValue={'$' + tokenCGData.price.current.toLocaleString('en-US', { maximumFractionDigits: 5 })}
+									helperText={null}
+									subRows={
+										<>
+											<tr>
+												<th data-subvalue>{`All Time High (${new Date(
+													tokenCGData.price.athDate
+												).toLocaleDateString()})`}</th>
+												<td data-subvalue>
+													{'$' + tokenCGData.price.ath.toLocaleString('en-US', { maximumFractionDigits: 5 })}
 												</td>
 											</tr>
-										) : null}
-									</>
-								) : null}
+											<tr>
+												<th data-subvalue>{`All Time Low (${new Date(
+													tokenCGData.price.atlDate
+												).toLocaleDateString()})`}</th>
+												<td data-subvalue>
+													{'$' + tokenCGData.price.atl.toLocaleString('en-US', { maximumFractionDigits: 5 })}
+												</td>
+											</tr>
+										</>
+									}
+								/>
+							) : null}
 
-								{borrowedAmount ? (
+							{tokenCGData?.price?.current && tokenCGData?.totalSupply ? (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									dataType="FDV"
+									rowHeader="Fully Diluted Valuation"
+									rowValue={formatPrice(tokenCGData.price.current * tokenCGData.totalSupply)}
+									helperText={null}
+									subRows={
+										<>
+											<tr>
+												<th data-subvalue>{`All Time High (${new Date(
+													tokenCGData.price.athDate
+												).toLocaleDateString()})`}</th>
+												<td data-subvalue>{formatPrice(tokenCGData.price.ath * tokenCGData.totalSupply)}</td>
+											</tr>
+											<tr>
+												<th data-subvalue>{`All Time Low (${new Date(
+													tokenCGData.price.atlDate
+												).toLocaleDateString()})`}</th>
+												<td data-subvalue>{formatPrice(tokenCGData.price.atl * tokenCGData.totalSupply)}</td>
+											</tr>
+										</>
+									}
+								/>
+							) : null}
+
+							{tokenCGData?.totalVolume ? (
+								<tr>
+									<th>
+										<span>24h {symbol || 'Token'} Volume</span>
+										<Flag protocol={protocolData.name} dataType={'Token Volume'} />
+									</th>
+									<td>{formatPrice(totalVolume)}</td>
+								</tr>
+							) : null}
+
+							{stakedAmount ? (
+								<>
 									<tr>
 										<th>
-											<span>Borrowed</span>
-											<Flag protocol={protocolData.name} dataType={'Borrowed'} />
+											<span>Staked</span>
+											<Flag protocol={protocolData.name} dataType={'Staked'} />
 										</th>
-										<td>{formatPrice(borrowedAmount)}</td>
+										<td>{formatPrice(stakedAmount)}</td>
 									</tr>
-								) : null}
-							</tbody>
-						</ProtocolStatsTable>
-					) : null}
 
-					{tokenLiquidity && tokenLiquidity.length > 0 && (
-						<TokenLiquidityTable
-							data={tokenLiquidity}
-							protocolName={protocolData.name}
-							symbol={symbol}
-							formatPrice={formatPrice}
-						/>
-					)}
+									{tokenCGData.marketCap.current ? (
+										<tr style={{ position: 'relative', top: '-6px' }}>
+											<th style={{ padding: 0 }}></th>
+											<td
+												style={{
+													opacity: '0.6',
+													fontFamily: 'var(--inter)',
+													fontWeight: 400,
+													fontSize: '0.875rem',
+													padding: '0px'
+												}}
+											>
+												{`(${((stakedAmount / tokenCGData.marketCap.current) * 100).toLocaleString(undefined, {
+													maximumFractionDigits: 2
+												})}% of mcap)`}
+											</td>
+										</tr>
+									) : null}
+								</>
+							) : null}
 
-					<>
-						{dailyVolume ? (
-							<AnnualizedMetric
-								name="Volume"
-								dailyValue={dailyVolume}
-								cumulativeValue={allTimeVolume}
-								protocolName={protocolData.name}
-								formatPrice={formatPrice}
-							/>
-						) : null}
-					</>
+							{borrowedAmount ? (
+								<tr>
+									<th>
+										<span>Borrowed</span>
+										<Flag protocol={protocolData.name} dataType={'Borrowed'} />
+									</th>
+									<td>{formatPrice(borrowedAmount)}</td>
+								</tr>
+							) : null}
 
-					<>
-						{dailyFees ? (
-							<AnnualizedMetric
-								name="Fees"
-								dailyValue={dailyFees}
-								helperText={explainAnnualized(helperTexts.fees)}
-								cumulativeValue={allTimeFees}
-								protocolName={protocolData.name}
-								formatPrice={formatPrice}
-							/>
-						) : null}
-					</>
+							{tokenLiquidity && tokenLiquidity.length > 0 ? (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									dataType="Token Liquidity"
+									rowHeader={`${symbol || 'Token'} Liquidity`}
+									rowValue={formatPrice(tokenLiquidity.reduce((acc, curr) => (acc += curr[2]), 0))}
+									helperText={null}
+									subRows={
+										<>
+											{tokenLiquidity.map((item) => (
+												<tr key={'token-liq' + item[0] + item[1] + item[2]}>
+													<th data-subvalue>{`${item[0]} (${item[1]})`}</th>
+													<td data-subvalue>{formatPrice(item[2])}</td>
+												</tr>
+											))}
+										</>
+									}
+								/>
+							) : null}
 
-					<>
-						{dailyRevenue ? (
-							<AnnualizedMetric
-								name="Revenue"
-								dailyValue={dailyRevenue}
-								helperText={explainAnnualized(helperTexts.revenue)}
-								protocolName={protocolData.name}
-								formatPrice={formatPrice}
-							/>
-						) : null}
-					</>
+							{dailyVolume ? (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									dataType="Volume"
+									rowHeader="Volume (annualized)"
+									rowValue={formatPrice(dailyVolume * 365)}
+									helperText={null}
+									subRows={
+										<>
+											<tr>
+												<th data-subvalue>{`Volume 24h`}</th>
+												<td data-subvalue>{formatPrice(dailyVolume)}</td>
+											</tr>
 
-					{users?.activeUsers ? (
-						<UsersTable
-							{...users}
-							helperText={helperTexts.users}
-							protocolName={protocolData.name}
-							formatPrice={formatPrice}
-						/>
-					) : null}
+											{allTimeVolume ? (
+												<tr>
+													<th data-subvalue>{`Cumulative Volume`}</th>
+													<td data-subvalue>{formatPrice(allTimeVolume)}</td>
+												</tr>
+											) : null}
+										</>
+									}
+								/>
+							) : null}
 
-					<>
-						{treasury && <TreasuryTable data={treasury} protocolName={protocolData.name} formatPrice={formatPrice} />}
-					</>
+							{dailyFees ? (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									dataType="Fees"
+									rowHeader="Fees (annualized)"
+									rowValue={formatPrice(dailyFees * 365)}
+									helperText={explainAnnualized(helperTexts.fees)}
+									subRows={
+										<>
+											<tr>
+												<th data-subvalue>{`Fees 24h`}</th>
+												<td data-subvalue>{formatPrice(dailyFees)}</td>
+											</tr>
 
-					<>{raises && raises.length > 0 && <Raised data={raises} protocolName={protocolData.name} />}</>
+											{allTimeFees ? (
+												<tr>
+													<th data-subvalue>{`Cumulative Fees`}</th>
+													<td data-subvalue>{formatPrice(allTimeFees)}</td>
+												</tr>
+											) : null}
+										</>
+									}
+								/>
+							) : null}
 
-					{controversialProposals && controversialProposals.length > 0 ? (
-						<TopProposals data={controversialProposals} protocolName={protocolData.name} />
-					) : null}
+							{dailyRevenue ? (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									dataType="Revenue"
+									rowHeader="Revenue (annualized)"
+									rowValue={formatPrice(dailyRevenue * 365)}
+									helperText={explainAnnualized(helperTexts.revenue)}
+									subRows={
+										<>
+											<tr>
+												<th data-subvalue>{`Revenue 24h`}</th>
+												<td data-subvalue>{formatPrice(dailyRevenue)}</td>
+											</tr>
+										</>
+									}
+								/>
+							) : null}
 
-					{expenses && <Expenses data={expenses} protocolName={protocolData.name} formatPrice={formatPrice} />}
+							{users?.activeUsers ? (
+								<RowWithSubRows
+									helperText={helperTexts.users}
+									protocolName={protocolData.name}
+									dataType="Users"
+									rowHeader={'Active Addresses 24h'}
+									rowValue={formattedNum(users.activeUsers, false)}
+									subRows={
+										<>
+											{users.newUsers ? (
+												<tr>
+													<th data-subvalue>New Addresses 24h</th>
+													<td data-subvalue>{formattedNum(users.newUsers, false)}</td>
+												</tr>
+											) : null}
+											{users.transactions ? (
+												<tr>
+													<th data-subvalue>Transactions 24h</th>
+													<td data-subvalue>{formattedNum(users.transactions, false)}</td>
+												</tr>
+											) : null}
+											{users.gasUsd ? (
+												<tr>
+													<th data-subvalue>Gas Used 24h</th>
+													<td data-subvalue>{formatPrice(users.gasUsd)}</td>
+												</tr>
+											) : null}
+										</>
+									}
+								/>
+							) : null}
+
+							{treasury && (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									helperText={null}
+									rowHeader={'Treasury'}
+									rowValue={formatPrice(
+										Object.entries(treasury).reduce((acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]), 0)
+									)}
+									dataType={'Treasury'}
+									subRows={
+										<>
+											{Object.entries(treasury).map(([cat, tre]) => {
+												return (
+													<tr key={'treasury' + cat + tre}>
+														<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
+														<td data-subvalue>{formatPrice(tre)}</td>
+													</tr>
+												)
+											})}
+										</>
+									}
+								/>
+							)}
+
+							<>
+								{raises && raises.length > 0 && (
+									<RowWithSubRows
+										protocolName={protocolData.name}
+										dataType={'Raises'}
+										helperText={null}
+										rowHeader={'Total Raised'}
+										rowValue={`$${formatRaisedAmount(raises.reduce((sum, r) => sum + Number(r.amount), 0))}`}
+										subRows={
+											<>
+												{raises
+													.sort((a, b) => a.date - b.date)
+													.map((raise) => (
+														<tr key={raise.date + raise.amount}>
+															<th data-subvalue>{new Date(raise.date * 1000).toLocaleDateString()}</th>
+															<td data-subvalue>
+																{raise.source ? (
+																	<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+																		{formatRaise(raise)}
+																	</a>
+																) : (
+																	formatRaise(raise)
+																)}
+															</td>
+														</tr>
+													))}
+											</>
+										}
+									/>
+								)}
+							</>
+
+							{controversialProposals && controversialProposals.length > 0 ? (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									dataType={'Governance'}
+									helperText={null}
+									rowHeader={'Top Controversial Proposals'}
+									rowValue={null}
+									subRows={
+										<>
+											{controversialProposals.map((proposal) => (
+												<tr key={proposal.title}>
+													<td data-subvalue style={{ textAlign: 'left' }}>
+														{proposal.link ? (
+															<a href={proposal.link} target="_blank" rel="noreferrer noopener">
+																{proposal.title}
+															</a>
+														) : (
+															proposal.title
+														)}
+													</td>
+												</tr>
+											))}
+										</>
+									}
+								/>
+							) : null}
+
+							{expenses && (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									dataType={'Expenses'}
+									helperText={null}
+									rowHeader={'Annual operational expenses'}
+									rowValue={formatPrice(
+										Object.values((expenses.annualUsdCost || {}) as { [key: string]: number }).reduce(
+											(acc, curr) => (acc += curr),
+											0
+										)
+									)}
+									subRows={
+										<>
+											<tr>
+												<th data-subvalue>Headcount</th>
+												<td data-subvalue>{expenses.headcount}</td>
+											</tr>
+
+											{Object.entries(expenses.annualUsdCost || {}).map(([cat, exp]: [string, number]) => {
+												return (
+													<tr key={'expenses' + cat + exp}>
+														<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
+														<td data-subvalue>{formatPrice(exp)}</td>
+													</tr>
+												)
+											})}
+
+											<tr>
+												<th data-subvalue>
+													<a href={expenses.sources[0]}>
+														Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
+													</a>
+												</th>
+												<td data-subvalue></td>
+											</tr>
+										</>
+									}
+								/>
+							)}
+						</tbody>
+					</StatsTable2>
 
 					<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
 				</ProtocolDetailsWrapper>
@@ -1122,397 +1315,6 @@ function ProtocolContainer({
 	)
 }
 
-const Raised = ({ data, protocolName }: { data: Array<IRaise>; protocolName: string }) => {
-	const [open, setOpen] = React.useState(false)
-
-	return (
-		<StatsTable2>
-			<tbody>
-				<tr>
-					<th>
-						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} data-arrow />
-							<span>Total Raised</span>
-						</Toggle>
-						<Flag protocol={protocolName} dataType={'Raises'} />
-					</th>
-					<td>${formatRaisedAmount(data.reduce((sum, r) => sum + Number(r.amount), 0))}</td>
-				</tr>
-				{open && (
-					<>
-						{data
-							.sort((a, b) => a.date - b.date)
-							.map((raise) => (
-								<tr key={raise.date + raise.amount}>
-									<th data-subvalue>{new Date(raise.date * 1000).toLocaleDateString()}</th>
-									<td data-subvalue>
-										{raise.source ? (
-											<a target="_blank" rel="noopener noreferrer" href={raise.source}>
-												{formatRaise(raise)}
-											</a>
-										) : (
-											formatRaise(raise)
-										)}
-									</td>
-								</tr>
-							))}
-					</>
-				)}
-			</tbody>
-		</StatsTable2>
-	)
-}
-
-const TopProposals = ({
-	data,
-	protocolName
-}: {
-	data: Array<{ title: string; link?: string }>
-	protocolName: string
-}) => {
-	const [open, setOpen] = React.useState(false)
-
-	return (
-		<StatsTable2>
-			<tbody>
-				<tr>
-					<th>
-						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} data-arrow />
-							<span>Top Controversial Proposals</span>
-						</Toggle>
-						<Flag protocol={protocolName} dataType={'Governance'} />
-					</th>
-				</tr>
-				{open && (
-					<>
-						{data.map((proposal) => (
-							<tr key={proposal.title}>
-								<td data-subvalue style={{ textAlign: 'left' }}>
-									{proposal.link ? (
-										<a href={proposal.link} target="_blank" rel="noreferrer noopener">
-											{proposal.title}
-										</a>
-									) : (
-										proposal.title
-									)}
-								</td>
-							</tr>
-						))}
-					</>
-				)}
-			</tbody>
-		</StatsTable2>
-	)
-}
-
-const Expenses = ({
-	data,
-	protocolName,
-	formatPrice
-}: {
-	data: { headcount: number; annualUsdCost: { [key: string]: number }; sources: string[] }
-	protocolName: string
-	formatPrice: (value?: number | string | null) => string | number | null
-}) => {
-	const [open, setOpen] = React.useState(false)
-
-	return (
-		<StatsTable2>
-			<tbody>
-				<tr>
-					<th>
-						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} data-arrow />
-							<span>Annual operational expenses</span>
-						</Toggle>
-						<Flag protocol={protocolName} dataType={'Expenses'} />
-					</th>
-					<td>{formatPrice(Object.values(data.annualUsdCost || {}).reduce((acc, curr) => (acc += curr), 0))}</td>
-				</tr>
-
-				{open && (
-					<>
-						<tr>
-							<th data-subvalue>Headcount</th>
-							<td data-subvalue>{data.headcount}</td>
-						</tr>
-
-						{Object.entries(data.annualUsdCost || {}).map(([cat, exp]) => {
-							return (
-								<tr key={'expenses' + cat + exp}>
-									<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
-									<td data-subvalue>{formatPrice(exp)}</td>
-								</tr>
-							)
-						})}
-
-						<tr>
-							<th data-subvalue>
-								<a href={data.sources[0]}>
-									Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
-								</a>
-							</th>
-							<td data-subvalue></td>
-						</tr>
-					</>
-				)}
-			</tbody>
-		</StatsTable2>
-	)
-}
-
-const TreasuryTable = ({
-	data,
-	protocolName,
-	formatPrice
-}: {
-	data: { [category: string]: number }
-	protocolName: string
-	formatPrice: (value?: number | string | null) => string | number | null
-}) => {
-	const [open, setOpen] = React.useState(false)
-
-	return (
-		<StatsTable2>
-			<tbody>
-				<tr>
-					<th>
-						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} data-arrow />
-							<span>Treasury</span>
-						</Toggle>
-						<Flag protocol={protocolName} dataType={'Treasury'} />
-					</th>
-					<td>
-						{formatPrice(Object.entries(data).reduce((acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]), 0))}
-					</td>
-				</tr>
-
-				{open && (
-					<>
-						{Object.entries(data).map(([cat, tre]) => {
-							return (
-								<tr key={'treasury' + cat + tre}>
-									<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
-									<td data-subvalue>{formatPrice(tre)}</td>
-								</tr>
-							)
-						})}
-					</>
-				)}
-			</tbody>
-		</StatsTable2>
-	)
-}
-
-const AnnualizedMetric = ({
-	name,
-	dailyValue,
-	cumulativeValue,
-	helperText,
-	protocolName,
-	formatPrice
-}: {
-	name: string
-	dailyValue: number
-	cumulativeValue?: number | null
-	helperText?: string
-	protocolName: string
-	formatPrice: (value?: number | string | null) => string | number | null
-}) => {
-	const [open, setOpen] = React.useState(false)
-
-	return (
-		<StatsTable2>
-			<tbody>
-				<tr>
-					<th>
-						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} data-arrow />
-							<span>{`${name} (annualized)`}</span>
-							{helperText && <QuestionHelper text={helperText} />}
-						</Toggle>
-						<Flag protocol={protocolName} dataType={name} />
-					</th>
-					<td>{formatPrice(dailyValue * 365)}</td>
-				</tr>
-
-				{open && (
-					<>
-						<tr>
-							<th data-subvalue>{`${name} 24h`}</th>
-							<td data-subvalue>{formatPrice(dailyValue)}</td>
-						</tr>
-
-						{cumulativeValue ? (
-							<tr>
-								<th data-subvalue>{`Cumulative ${name}`}</th>
-								<td data-subvalue>{formatPrice(cumulativeValue)}</td>
-							</tr>
-						) : null}
-					</>
-				)}
-			</tbody>
-		</StatsTable2>
-	)
-}
-
-const UsersTable = ({
-	activeUsers,
-	newUsers,
-	transactions,
-	gasUsd,
-	helperText,
-	protocolName,
-	formatPrice
-}: {
-	activeUsers: number | null
-	newUsers: number | null
-	transactions: number | null
-	gasUsd: number | null
-	helperText?: string
-	protocolName: string
-	formatPrice: (value?: number | string | null) => string | number | null
-}) => {
-	const [open, setOpen] = React.useState(false)
-
-	return (
-		<StatsTable2>
-			<tbody>
-				<tr>
-					<th>
-						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} data-arrow />
-							<span>Active Addresses 24h</span>
-							{helperText && <QuestionHelper text={helperText} />}
-						</Toggle>
-						<Flag protocol={protocolName} dataType="Users" />
-					</th>
-					<td>{formattedNum(activeUsers, false)}</td>
-				</tr>
-
-				{open && (
-					<>
-						{newUsers ? (
-							<tr>
-								<th data-subvalue>New Addresses 24h</th>
-								<td data-subvalue>{formattedNum(newUsers, false)}</td>
-							</tr>
-						) : null}
-						{transactions ? (
-							<tr>
-								<th data-subvalue>Transactions 24h</th>
-								<td data-subvalue>{formattedNum(transactions, false)}</td>
-							</tr>
-						) : null}
-						{gasUsd ? (
-							<tr>
-								<th data-subvalue>Gas Used 24h</th>
-								<td data-subvalue>{formatPrice(gasUsd)}</td>
-							</tr>
-						) : null}
-					</>
-				)}
-			</tbody>
-		</StatsTable2>
-	)
-}
-
-const TokenLiquidityTable = ({
-	data,
-	protocolName,
-	symbol,
-	formatPrice
-}: {
-	data: Array<[string, string, number]>
-	protocolName: string
-	symbol: string
-	formatPrice: (value?: number | string | null) => string | number | null
-}) => {
-	const [open, setOpen] = React.useState(false)
-
-	const totalLiq = data.reduce((acc, curr) => (acc += curr[2]), 0)
-
-	return (
-		<StatsTable2>
-			<tbody>
-				<tr>
-					<th>
-						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} data-arrow />
-							<span>{`${symbol} Liquidity`}</span>
-						</Toggle>
-						<Flag protocol={protocolName} dataType="Token Liquidity" />
-					</th>
-					<td>{formatPrice(totalLiq)}</td>
-				</tr>
-
-				{open && (
-					<>
-						{data.map((item) => (
-							<tr key={'token-liq' + item[0] + item[1] + item[2]}>
-								<th data-subvalue>{`${item[0]} (${item[1]})`}</th>
-								<td data-subvalue>{formatPrice(item[2])}</td>
-							</tr>
-						))}
-					</>
-				)}
-			</tbody>
-		</StatsTable2>
-	)
-}
-
-const PriceAthAtlTable = ({
-	protocolName,
-	name,
-	current,
-	ath,
-	atl,
-	athDate,
-	atlDate
-}: {
-	protocolName: string
-	name: string
-	current: string | number | null
-	ath: string | number | null
-	atl: string | number | null
-	athDate: number
-	atlDate: number
-}) => {
-	const [open, setOpen] = React.useState(false)
-
-	return (
-		<StatsTable2>
-			<tbody>
-				<tr>
-					<th>
-						<Toggle onClick={() => setOpen(!open)} data-open={open}>
-							<ChevronRight size={16} data-arrow />
-							<span>{name}</span>
-						</Toggle>
-						<Flag protocol={protocolName} dataType={name} />
-					</th>
-					<td>{current}</td>
-				</tr>
-
-				{open && (
-					<>
-						<tr>
-							<th data-subvalue>{`All Time High (${new Date(athDate).toLocaleDateString()})`}</th>
-							<td data-subvalue>{ath}</td>
-						</tr>
-						<tr>
-							<th data-subvalue>{`All Time Low (${new Date(atlDate).toLocaleDateString()})`}</th>
-							<td data-subvalue>{atl}</td>
-						</tr>
-					</>
-				)}
-			</tbody>
-		</StatsTable2>
-	)
-}
-
 const Toggle = styled.button`
 	margin-left: -22px;
 	display: flex;
@@ -1539,6 +1341,7 @@ const StatsTable2 = styled(ProtocolStatsTable)`
 		font-family: var(--inter);
 		font-size: 0.875rem;
 	}
+
 	td {
 		color: ${({ theme }) => theme.text1};
 	}
@@ -1548,15 +1351,43 @@ const StatsTable2 = styled(ProtocolStatsTable)`
 		text-decoration-color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
 	}
 
-	:hover {
-		th {
-			div[data-tooltipanchor='true'] {
-				button {
-					opacity: 1;
-				}
+	tr[data-parentrow] {
+		div[data-tooltipanchor='true'] {
+			button {
+				position: relative;
+				top: 2px;
+			}
+		}
+	}
+
+	tr[data-parentrow]:hover {
+		div[data-tooltipanchor='true'] {
+			button {
+				opacity: 1;
 			}
 		}
 	}
 `
+
+const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, helperText }) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<>
+			<tr data-parentrow>
+				<th>
+					<Toggle onClick={() => setOpen(!open)} data-open={open}>
+						<ChevronRight size={16} data-arrow />
+						<span>{rowHeader}</span>
+						{helperText && <QuestionHelper text={helperText} />}
+					</Toggle>
+					<Flag protocol={protocolName} dataType={dataType} />
+				</th>
+				<td>{rowValue}</td>
+			</tr>
+
+			{open && <>{subRows}</>}
+		</>
+	)
+}
 
 export default ProtocolContainer
