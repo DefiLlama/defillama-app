@@ -953,7 +953,7 @@ function ProtocolContainer({
 						</tbody>
 					</StatsTable2>
 
-					{upcomingEvent?.length > 0 && (
+					{upcomingEvent?.length > 0 && upcomingEvent[0].timestamp && (
 						<UpcomingEvent>
 							{upcomingEvent.map((item) => (
 								<li key={JSON.stringify(item)}>

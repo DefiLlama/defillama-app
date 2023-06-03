@@ -227,7 +227,7 @@ export const getStaticProps = withPerformanceLogging(
 					.sort((a, b) => b[2] - a[2])
 			: []
 
-		const protocolUpcomingEvent = emissions.events.find((e) => e.timestamp >= Date.now() / 1000)
+		const protocolUpcomingEvent = emissions.events?.find((e) => e.timestamp >= Date.now() / 1000)
 		let upcomingEvent = []
 
 		if (
