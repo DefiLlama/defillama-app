@@ -108,7 +108,7 @@ const Bobo = styled.button`
 `
 
 const ProtocolDetailsWrapper = styled(DetailsWrapper)`
-	gap: 24px;
+	gap: 0px;
 
 	@media screen and (min-width: 80rem) {
 		max-width: 300px;
@@ -506,7 +506,7 @@ function ProtocolContainer({
 						{!isParentProtocol && <Bookmark readableProtocolName={name} />}
 					</Name>
 
-					<AccordionStat>
+					<AccordionStat style={{ margin: '24px 0 16px' }}>
 						<summary>
 							<span data-arrowicon>
 								<ChevronRight size={20} />
@@ -585,39 +585,47 @@ function ProtocolContainer({
 						</span>
 					</AccordionStat>
 
-					<div style={{ width: '100%', overflowX: 'auto' }}>
+					{tokenCGData?.marketCap.current ? (
 						<ProtocolStatsTable>
 							<tbody>
-								{tokenCGData?.marketCap.current ? (
-									<tr>
-										<th>
-											<span>Market Cap</span>
-											<Flag protocol={protocolData.name} dataType={'Market Cap'} />
-										</th>
-										<td>{formatPrice(tokenCGData.marketCap.current)}</td>
-									</tr>
-								) : null}
+								<tr>
+									<th>
+										<span>Market Cap</span>
+										<Flag protocol={protocolData.name} dataType={'Market Cap'} />
+									</th>
+									<td>{formatPrice(tokenCGData.marketCap.current)}</td>
+								</tr>
+							</tbody>
+						</ProtocolStatsTable>
+					) : null}
 
-								{tokenCGData?.price.current ? (
-									<tr>
-										<th>
-											<span>Token Price</span>
-											<Flag protocol={protocolData.name} dataType={'Token Price'} />
-										</th>
-										<td>${tokenCGData.price.current.toLocaleString('en-US', { maximumFractionDigits: 5 })}</td>
-									</tr>
-								) : null}
+					<ProtocolStatsTable>
+						<tbody>
+							{tokenCGData?.price.current ? (
+								<tr>
+									<th>
+										<span>Token Price</span>
+										<Flag protocol={protocolData.name} dataType={'Token Price'} />
+									</th>
+									<td>${tokenCGData.price.current.toLocaleString('en-US', { maximumFractionDigits: 5 })}</td>
+								</tr>
+							) : null}
 
-								{tokenCGData?.totalSupply && tokenCGData?.price.current ? (
-									<tr>
-										<th>
-											<span>Fully Diluted Valuation</span>
-											<Flag protocol={protocolData.name} dataType={'FDV'} />
-										</th>
-										<td>{formatPrice(tokenCGData.price.current * tokenCGData.totalSupply)}</td>
-									</tr>
-								) : null}
+							{tokenCGData?.totalSupply && tokenCGData?.price.current ? (
+								<tr>
+									<th>
+										<span>Fully Diluted Valuation</span>
+										<Flag protocol={protocolData.name} dataType={'FDV'} />
+									</th>
+									<td>{formatPrice(tokenCGData.price.current * tokenCGData.totalSupply)}</td>
+								</tr>
+							) : null}
+						</tbody>
+					</ProtocolStatsTable>
 
+					{stakedAmount || borrowedAmount ? (
+						<ProtocolStatsTable>
+							<tbody>
 								{stakedAmount ? (
 									<>
 										<tr>
@@ -660,7 +668,7 @@ function ProtocolContainer({
 								) : null}
 							</tbody>
 						</ProtocolStatsTable>
-					</div>
+					) : null}
 
 					{tokenLiquidity && tokenLiquidity.length > 0 && (
 						<TokenLiquidityTable
@@ -1435,25 +1443,8 @@ const TokenLiquidityTable = ({
 	)
 }
 
-// {allTimeVolume ? (
-// 	<tr>
-// 		<th>Cumulative Volume</th>
-// 		<td>{formattedNum(allTimeVolume, true)}</td>
-// 	</tr>
-// ) : null}
-
-// {allTimeFees ? (
-// 	<tr>
-// 		<th>
-// 			<span>Cumulative Fees</span>
-// 			{helperTexts.fees && <QuestionHelper text={helperTexts.fees} />}
-// 		</th>
-// 		<td>{formattedNum(allTimeFees, true)}</td>
-// 	</tr>
-// ) : null}
-
 const Toggle = styled.button`
-	margin-left: -24px;
+	margin-left: -22px;
 	display: flex;
 	align-items: center;
 	gap: 2px;
@@ -1472,8 +1463,6 @@ const Toggle = styled.button`
 `
 
 const StatsTable2 = styled(ProtocolStatsTable)`
-	margin: -24px 0 0 0;
-
 	th[data-subvalue],
 	td[data-subvalue] {
 		font-weight: 400;
