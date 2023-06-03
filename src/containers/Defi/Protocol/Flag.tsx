@@ -62,7 +62,7 @@ export function Flag({ protocol, dataType, isLending }: { protocol: string; data
 			) : (
 				<button
 					onClick={dialog.toggle}
-					style={{ textAlign: 'left', margin: 'auto 0 0 -4px', textDecoration: 'underline' }}
+					style={{ textAlign: 'left', margin: '24px 0 0 -4px', textDecoration: 'underline' }}
 				>
 					Report incorrect data
 				</button>

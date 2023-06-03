@@ -231,8 +231,8 @@ interface IProtocolContainerProps {
 			current: number | null
 			ath: number | null
 			atl: number | null
-			athData: number | null
-			atlData: number | null
+			athDate: number | null
+			atlDate: number | null
 		}
 		marketCap: { current: number | null }
 		totalSupply: number | null
@@ -598,6 +598,26 @@ function ProtocolContainer({
 							</tbody>
 						</ProtocolStatsTable>
 					) : null}
+
+					<PriceAthAtlTable
+						protocolName={protocolData.name}
+						name="Token Price"
+						current={'$' + tokenCGData.price.current.toLocaleString('en-US', { maximumFractionDigits: 5 })}
+						ath={'$' + tokenCGData.price.ath.toLocaleString('en-US', { maximumFractionDigits: 5 })}
+						atl={'$' + tokenCGData.price.atl.toLocaleString('en-US', { maximumFractionDigits: 5 })}
+						athDate={tokenCGData.price.athDate}
+						atlDate={tokenCGData.price.atlDate}
+					/>
+
+					<PriceAthAtlTable
+						protocolName={protocolData.name}
+						name="Fully Diluted Valuation"
+						current={formatPrice(tokenCGData.price.current * tokenCGData.totalSupply)}
+						ath={formatPrice(tokenCGData.price.ath * tokenCGData.totalSupply)}
+						atl={formatPrice(tokenCGData.price.atl * tokenCGData.totalSupply)}
+						athDate={tokenCGData.price.athDate}
+						atlDate={tokenCGData.price.atlDate}
+					/>
 
 					<ProtocolStatsTable>
 						<tbody>
@@ -1436,6 +1456,56 @@ const TokenLiquidityTable = ({
 								<td data-subvalue>{formatPrice(item[2])}</td>
 							</tr>
 						))}
+					</>
+				)}
+			</tbody>
+		</StatsTable2>
+	)
+}
+
+const PriceAthAtlTable = ({
+	protocolName,
+	name,
+	current,
+	ath,
+	atl,
+	athDate,
+	atlDate
+}: {
+	protocolName: string
+	name: string
+	current: string | number | null
+	ath: string | number | null
+	atl: string | number | null
+	athDate: number
+	atlDate: number
+}) => {
+	const [open, setOpen] = React.useState(false)
+
+	return (
+		<StatsTable2>
+			<tbody>
+				<tr>
+					<th>
+						<Toggle onClick={() => setOpen(!open)} data-open={open}>
+							<ChevronRight size={16} data-arrow />
+							<span>{name}</span>
+						</Toggle>
+						<Flag protocol={protocolName} dataType={name} />
+					</th>
+					<td>{current}</td>
+				</tr>
+
+				{open && (
+					<>
+						<tr>
+							<th data-subvalue>{`All Time High (${new Date(athDate).toLocaleDateString()})`}</th>
+							<td data-subvalue>{ath}</td>
+						</tr>
+						<tr>
+							<th data-subvalue>{`All Time Low (${new Date(atlDate).toLocaleDateString()})`}</th>
+							<td data-subvalue>{atl}</td>
+						</tr>
 					</>
 				)}
 			</tbody>
