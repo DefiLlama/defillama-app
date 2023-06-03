@@ -37,6 +37,7 @@ import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
+	formatUnlocksEvent,
 	formattedNum,
 	getBlockExplorer,
 	slug,
@@ -238,6 +239,7 @@ interface IProtocolContainerProps {
 		totalSupply: number | null
 		totalVolume: number | null
 	}
+	upcomingEvent: Array<{ description: string; timestamp: number; noOfTokens: Array<number> }>
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -270,7 +272,8 @@ function ProtocolContainer({
 	yields,
 	helperTexts,
 	tokenLiquidity,
-	tokenCGData
+	tokenCGData,
+	upcomingEvent
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -950,6 +953,22 @@ function ProtocolContainer({
 						</tbody>
 					</StatsTable2>
 
+					{upcomingEvent.length > 0 && (
+						<UpcomingEvent>
+							{upcomingEvent.map((item) => (
+								<li key={JSON.stringify(item)}>
+									{formatUnlocksEvent({
+										description: item.description,
+										noOfTokens: item.noOfTokens,
+										timestamp: item.timestamp,
+										price: tokenCGData?.price?.current,
+										symbol
+									})}
+								</li>
+							))}
+						</UpcomingEvent>
+					)}
+
 					<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
 				</ProtocolDetailsWrapper>
 
@@ -1389,5 +1408,13 @@ const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, 
 		</>
 	)
 }
+
+const UpcomingEvent = styled.ul`
+	padding: 0;
+	margin: 24px 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+`
 
 export default ProtocolContainer

@@ -2,7 +2,13 @@ import ProtocolContainer from '~/containers/Defi/Protocol'
 import { selectColor, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
-import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
+import {
+	getProtocols,
+	getProtocol,
+	fuseProtocolData,
+	getProtocolsRaw,
+	getProtocolEmissons
+} from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
@@ -10,7 +16,6 @@ import {
 	ACTIVE_USERS_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
-	PROTOCOL_EMISSIONS_LIST_API,
 	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	YIELD_CONFIG_API,
@@ -27,10 +32,9 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const [protocolRes, articles, emissions, expenses, treasuries, yields, yieldsConfig, liquidityInfo]: [
+		const [protocolRes, articles, expenses, treasuries, yields, yieldsConfig, liquidityInfo]: [
 			IProtocolResponse,
 			IArticle[],
-			any,
 			any,
 			Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
 			any,
@@ -39,7 +43,6 @@ export const getStaticProps = withPerformanceLogging(
 		] = await Promise.all([
 			getProtocol(protocol),
 			fetchArticles({ tags: protocol }),
-			fetchOverCacheJson(PROTOCOL_EMISSIONS_LIST_API),
 			fetchOverCacheJson(PROTOCOLS_EXPENSES_API),
 			fetchOverCacheJson(PROTOCOLS_TREASURY),
 			fetchOverCacheJson(YIELD_POOLS_API),
@@ -80,7 +83,8 @@ export const getStaticProps = withPerformanceLogging(
 			dexs,
 			medianApy,
 			controversialProposals,
-			tokenCGData
+			tokenCGData,
+			emissions
 		] = await Promise.all([
 			getColor(tokenIconPaletteUrl(protocolData.name)),
 			getProtocolsRaw(),
@@ -117,7 +121,8 @@ export const getStaticProps = withPerformanceLogging(
 				? fetch(
 						`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=false&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 				  ).then((res) => res.json())
-				: {}
+				: {},
+			getProtocolEmissons(protocol)
 		])
 
 		const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
@@ -222,6 +227,19 @@ export const getStaticProps = withPerformanceLogging(
 					.sort((a, b) => b[2] - a[2])
 			: []
 
+		const protocolUpcomingEvent = emissions.events.find((e) => e.timestamp >= Date.now() / 1000)
+		let upcomingEvent = []
+
+		if (
+			!protocolUpcomingEvent ||
+			(protocolUpcomingEvent.noOfTokens.length === 1 && protocolUpcomingEvent.noOfTokens[0] === 0)
+		) {
+			upcomingEvent = [{ timestamp: null }]
+		} else {
+			const comingEvents = emissions.events.filter((e) => e.timestamp === protocolUpcomingEvent.timestamp)
+			upcomingEvent = [...comingEvents]
+		}
+
 		return {
 			props: {
 				articles,
@@ -235,7 +253,7 @@ export const getStaticProps = withPerformanceLogging(
 						dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
 						medianApy: medianApy.data.length > 0,
 						inflows: inflowsExist,
-						unlocks: emissions.includes(protocol),
+						unlocks: emissions.chartData?.length > 0 ? true : false,
 						bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
 						treasury: treasury?.tokenBreakdowns ? true : false,
 						tokenLiquidity: protocolData.symbol && tokenLiquidity.length > 0 ? true : false
@@ -297,7 +315,8 @@ export const getStaticProps = withPerformanceLogging(
 					marketCap: { current: tokenCGData?.['market_data']?.['market_cap']?.['usd'] ?? null },
 					totalSupply: tokenCGData?.['market_data']?.['total_supply'] ?? null,
 					totalVolume: tokenCGData?.['market_data']?.['total_volume']?.['usd'] ?? null
-				}
+				},
+				upcomingEvent
 			},
 			revalidate: maxAgeForNext([22])
 		}

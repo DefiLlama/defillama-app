@@ -45,7 +45,6 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 
 	if (process.env.NODE_ENV === 'development') {
 		const response = await fetch(url, options)
-		console.log({ response })
 		return response
 	} else if (cache) {
 		const Body = cache.Body

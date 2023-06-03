@@ -129,7 +129,7 @@ export const getAllProtocolEmissions = async () => {
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
 		const list = await fetch(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json())
-		if (!list.includes(protocolName)) return { data: [], categories: [] }
+		if (!list.includes(protocolName)) return { chartData: [], categories: [] }
 
 		const res = await fetch(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
@@ -204,7 +204,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 	} catch (e) {
 		console.log(e)
 
-		return { data: [], categories: [] }
+		return { chartData: [], categories: [] }
 	}
 }
 
