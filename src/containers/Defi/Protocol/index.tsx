@@ -662,7 +662,7 @@ function ProtocolContainer({
 										<span>24h {symbol || 'Token'} Volume</span>
 										<Flag protocol={protocolData.name} dataType={'Token Volume'} />
 									</th>
-									<td>{formatPrice(totalVolume)}</td>
+									<td>{formatPrice(tokenCGData.totalVolume)}</td>
 								</tr>
 							) : null}
 
