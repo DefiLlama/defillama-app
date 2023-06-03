@@ -115,7 +115,7 @@ export const getStaticProps = withPerformanceLogging(
 				: null,
 			protocolData.gecko_id
 				? fetch(
-						`https://api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=false&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+						`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=false&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 				  ).then((res) => res.json())
 				: {}
 		])
