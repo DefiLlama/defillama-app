@@ -1173,9 +1173,9 @@ function ProtocolContainer({
 						)}
 
 						{(methodology ||
-							helperTexts.fees ||
-							helperTexts.revenue ||
-							(helperTexts.users && users?.activeUsers) ||
+							helperTexts?.fees ||
+							helperTexts?.revenue ||
+							(helperTexts?.users && users?.activeUsers) ||
 							Object.values(methodologyUrls ?? {}).filter((x) => !!x).length > 0) && (
 							<Section>
 								<h3>Methodology</h3>
