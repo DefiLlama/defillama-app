@@ -75,6 +75,7 @@ if (BUILD_ID) {
 }
 
 let commitSummary = ''
+commitSummary += `📂 defillama-app`
 commitSummary += `💬 ${COMMIT_COMMENT}`
 commitSummary += '\n' + `🦙 ${COMMIT_AUTHOR}`
 commitSummary += '\n' + `📸 ${COMMIT_HASH}`
