@@ -1176,7 +1176,7 @@ function ProtocolContainer({
 							helperTexts.fees ||
 							helperTexts.revenue ||
 							(helperTexts.users && users?.activeUsers) ||
-							Object.values(methodologyUrls).filter((x) => !!x).length > 0) && (
+							Object.values(methodologyUrls ?? {}).filter((x) => !!x).length > 0) && (
 							<Section>
 								<h3>Methodology</h3>
 								{methodology && <p>TVL: {methodology}</p>}
@@ -1185,7 +1185,7 @@ function ProtocolContainer({
 								{helperTexts?.users && users?.activeUsers ? <p>Users: {helperTexts.users}</p> : null}
 
 								<LinksWrapper>
-									{methodologyUrls.tvl && (
+									{methodologyUrls?.tvl && (
 										<Link href={methodologyUrls.tvl} passHref>
 											<Button
 												as="a"
@@ -1200,7 +1200,7 @@ function ProtocolContainer({
 										</Link>
 									)}
 
-									{methodologyUrls.fees && (
+									{methodologyUrls?.fees && (
 										<Link href={methodologyUrls.fees} passHref>
 											<Button
 												as="a"
@@ -1215,7 +1215,7 @@ function ProtocolContainer({
 										</Link>
 									)}
 
-									{methodologyUrls.dexs && (
+									{methodologyUrls?.dexs && (
 										<Link href={methodologyUrls.dexs} passHref>
 											<Button
 												as="a"
