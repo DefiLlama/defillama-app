@@ -1172,10 +1172,14 @@ function ProtocolContainer({
 							</Section>
 						)}
 
-						{(methodology || codeModule) && (
+						{(methodology || codeModule || helperTexts.fees || helperTexts.revenue || helperTexts.users) && (
 							<Section>
 								<h3>Methodology</h3>
-								{methodology && <p>{methodology}</p>}
+								{methodology && <p>TVL: {methodology}</p>}
+								{helperTexts.fees && <p>Fees: {helperTexts.fees}</p>}
+								{helperTexts.revenue && <p>Revenue: {helperTexts.revenue}</p>}
+								{helperTexts.users && <p>Users: {helperTexts.users}</p>}
+
 								<LinksWrapper>
 									{codeModule && (
 										<Link
@@ -1189,7 +1193,7 @@ function ProtocolContainer({
 												useTextColor={true}
 												color={backgroundColor}
 											>
-												<span>Check the code</span>
+												<span>TVL code</span>
 												<ArrowUpRight size={14} />
 											</Button>
 										</Link>
