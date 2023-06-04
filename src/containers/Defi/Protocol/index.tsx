@@ -1176,9 +1176,9 @@ function ProtocolContainer({
 							<Section>
 								<h3>Methodology</h3>
 								{methodology && <p>TVL: {methodology}</p>}
-								{helperTexts.fees && <p>Fees: {helperTexts.fees}</p>}
-								{helperTexts.revenue && <p>Revenue: {helperTexts.revenue}</p>}
-								{helperTexts.users && <p>Users: {helperTexts.users}</p>}
+								{helperTexts?.fees && <p>Fees: {helperTexts.fees}</p>}
+								{helperTexts?.revenue && <p>Revenue: {helperTexts.revenue}</p>}
+								{helperTexts?.users && <p>Users: {helperTexts.users}</p>}
 
 								<LinksWrapper>
 									{codeModule && (
