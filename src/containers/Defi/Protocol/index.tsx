@@ -37,7 +37,6 @@ import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
-	formatUnlocksEvent,
 	formattedNum,
 	getBlockExplorer,
 	slug,
@@ -240,6 +239,7 @@ interface IProtocolContainerProps {
 		totalVolume: number | null
 	}
 	nextEventDescription: string | null
+	methodologyUrls: { [type: string]: string | null }
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -273,7 +273,8 @@ function ProtocolContainer({
 	helperTexts,
 	tokenLiquidity,
 	tokenCGData,
-	nextEventDescription
+	nextEventDescription,
+	methodologyUrls
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -288,7 +289,6 @@ function ProtocolContainer({
 		tvlByChain = [],
 		audit_links,
 		methodology,
-		module: codeModule,
 		historicalChainTvls,
 		chains = [],
 		forkedFrom,
@@ -1172,20 +1172,21 @@ function ProtocolContainer({
 							</Section>
 						)}
 
-						{(methodology || codeModule || helperTexts.fees || helperTexts.revenue || helperTexts.users) && (
+						{(methodology ||
+							helperTexts.fees ||
+							helperTexts.revenue ||
+							(helperTexts.users && users?.activeUsers) ||
+							Object.values(methodologyUrls).filter((x) => !!x).length > 0) && (
 							<Section>
 								<h3>Methodology</h3>
 								{methodology && <p>TVL: {methodology}</p>}
 								{helperTexts?.fees && <p>Fees: {helperTexts.fees}</p>}
 								{helperTexts?.revenue && <p>Revenue: {helperTexts.revenue}</p>}
-								{helperTexts?.users && <p>Users: {helperTexts.users}</p>}
+								{helperTexts?.users && users?.activeUsers ? <p>Users: {helperTexts.users}</p> : null}
 
 								<LinksWrapper>
-									{codeModule && (
-										<Link
-											href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
-											passHref
-										>
+									{methodologyUrls.tvl && (
+										<Link href={methodologyUrls.tvl} passHref>
 											<Button
 												as="a"
 												target="_blank"
@@ -1194,6 +1195,36 @@ function ProtocolContainer({
 												color={backgroundColor}
 											>
 												<span>TVL code</span>
+												<ArrowUpRight size={14} />
+											</Button>
+										</Link>
+									)}
+
+									{methodologyUrls.fees && (
+										<Link href={methodologyUrls.fees} passHref>
+											<Button
+												as="a"
+												target="_blank"
+												rel="noopener noreferrer"
+												useTextColor={true}
+												color={backgroundColor}
+											>
+												<span>Fees and Revenue code</span>
+												<ArrowUpRight size={14} />
+											</Button>
+										</Link>
+									)}
+
+									{methodologyUrls.dexs && (
+										<Link href={methodologyUrls.dexs} passHref>
+											<Button
+												as="a"
+												target="_blank"
+												rel="noopener noreferrer"
+												useTextColor={true}
+												color={backgroundColor}
+											>
+												<span>Volume code</span>
 												<ArrowUpRight size={14} />
 											</Button>
 										</Link>

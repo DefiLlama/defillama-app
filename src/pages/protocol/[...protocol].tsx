@@ -1,12 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import {
-	formatPercentage,
-	formattedNum,
-	selectColor,
-	standardizeProtocolName,
-	timeFromNow,
-	tokenIconPaletteUrl
-} from '~/utils'
+import { formatPercentage, selectColor, standardizeProtocolName, timeFromNow, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {
@@ -343,7 +336,14 @@ export const getStaticProps = withPerformanceLogging(
 				},
 				nextEventDescription: upcomingEvent[0]?.timestamp
 					? `${nextEventDescription} will be unlocked ${timeFromNow(upcomingEvent[0].timestamp)}`
-					: null
+					: null,
+				methodologyUrls: {
+					tvl: protocolData.module
+						? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
+						: null,
+					fees: feesAndRevenueData?.[0]?.methodologyURL ?? null,
+					dexs: volumeData?.[0]?.methodologyURL ?? null
+				}
 			},
 			revalidate: maxAgeForNext([22])
 		}
