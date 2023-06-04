@@ -206,6 +206,14 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				{props.protocolSummary.methodologyURL && (
 					<Section>
 						<h3>Methodology</h3>
+						{props.protocolSummary.methodology?.['Fees'] ? (
+							<p>{`Fees: ${props.protocolSummary.methodology['Fees']}`}</p>
+						) : null}
+
+						{props.protocolSummary.methodology?.['Revenue'] ? (
+							<p>{`Revenue: ${props.protocolSummary.methodology['Revenue']}`}</p>
+						) : null}
+
 						<LinksWrapper>
 							<Link href={props.protocolSummary.methodologyURL} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>

@@ -239,7 +239,7 @@ interface IProtocolContainerProps {
 		totalSupply: number | null
 		totalVolume: number | null
 	}
-	upcomingEvent: Array<{ description: string; timestamp: number; noOfTokens: Array<number> }>
+	nextEventDescription: string | null
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -273,7 +273,7 @@ function ProtocolContainer({
 	helperTexts,
 	tokenLiquidity,
 	tokenCGData,
-	upcomingEvent
+	nextEventDescription
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -591,13 +591,33 @@ function ProtocolContainer({
 					<StatsTable2>
 						<tbody>
 							{tokenCGData?.marketCap?.current ? (
-								<tr>
-									<th>
-										<span>Market Cap</span>
-										<Flag protocol={protocolData.name} dataType={'Market Cap'} />
-									</th>
-									<td>{formatPrice(tokenCGData.marketCap.current)}</td>
-								</tr>
+								<>
+									<tr>
+										<th>
+											<span>Market Cap</span>
+											<Flag protocol={protocolData.name} dataType={'Market Cap'} />
+										</th>
+										<td>{formatPrice(tokenCGData.marketCap.current)}</td>
+									</tr>
+
+									{nextEventDescription ? (
+										<tr style={{ position: 'relative', top: '-6px' }}>
+											<td
+												style={{
+													opacity: '0.6',
+													fontFamily: 'var(--inter)',
+													fontWeight: 400,
+													fontSize: '0.875rem',
+													padding: '0px',
+													textAlign: 'right'
+												}}
+												colSpan={2}
+											>
+												{nextEventDescription}
+											</td>
+										</tr>
+									) : null}
+								</>
 							) : null}
 
 							{tokenCGData?.price?.current ? (
@@ -678,7 +698,6 @@ function ProtocolContainer({
 
 									{tokenCGData.marketCap.current ? (
 										<tr style={{ position: 'relative', top: '-6px' }}>
-											<th style={{ padding: 0 }}></th>
 											<td
 												style={{
 													opacity: '0.6',
@@ -687,6 +706,7 @@ function ProtocolContainer({
 													fontSize: '0.875rem',
 													padding: '0px'
 												}}
+												colSpan={2}
 											>
 												{`(${((stakedAmount / tokenCGData.marketCap.current) * 100).toLocaleString(undefined, {
 													maximumFractionDigits: 2
@@ -952,22 +972,6 @@ function ProtocolContainer({
 							)}
 						</tbody>
 					</StatsTable2>
-
-					{upcomingEvent?.length > 0 && upcomingEvent[0].timestamp && (
-						<UpcomingEvent>
-							{upcomingEvent.map((item) => (
-								<li key={JSON.stringify(item)}>
-									{formatUnlocksEvent({
-										description: item.description,
-										noOfTokens: item.noOfTokens,
-										timestamp: item.timestamp,
-										price: tokenCGData?.price?.current,
-										symbol
-									})}
-								</li>
-							))}
-						</UpcomingEvent>
-					)}
 
 					<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
 				</ProtocolDetailsWrapper>

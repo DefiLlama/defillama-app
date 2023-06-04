@@ -11,6 +11,7 @@ import { ButtonYields } from '~/layout/Pool'
 import {
 	capitalizeFirstLetter,
 	chainIconUrl,
+	formatPercentage,
 	formattedNum,
 	formattedPercent,
 	formatUnlocksEvent,
@@ -1594,23 +1595,3 @@ const EventWrapper = styled.span`
 		white-space: normal;
 	}
 `
-
-const formatPercentage = (value) => {
-	let zeroes = 0
-	let stop = false
-
-	value
-		.toString()
-		.split('.')?.[1]
-		?.slice(0, 5)
-		?.split('')
-		?.forEach((x) => {
-			if (!stop && x == '0') {
-				zeroes += 1
-			} else {
-				stop = true
-			}
-		})
-
-	return value.toLocaleString(undefined, { maximumFractionDigits: zeroes + 1 })
-}

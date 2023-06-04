@@ -1,5 +1,12 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { selectColor, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import {
+	formatPercentage,
+	formattedNum,
+	selectColor,
+	standardizeProtocolName,
+	timeFromNow,
+	tokenIconPaletteUrl
+} from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {
@@ -229,7 +236,6 @@ export const getStaticProps = withPerformanceLogging(
 
 		const protocolUpcomingEvent = emissions.events?.find((e) => e.timestamp >= Date.now() / 1000)
 		let upcomingEvent = []
-
 		if (
 			!protocolUpcomingEvent ||
 			(protocolUpcomingEvent.noOfTokens.length === 1 && protocolUpcomingEvent.noOfTokens[0] === 0)
@@ -239,6 +245,25 @@ export const getStaticProps = withPerformanceLogging(
 			const comingEvents = emissions.events.filter((e) => e.timestamp === protocolUpcomingEvent.timestamp)
 			upcomingEvent = [...comingEvents]
 		}
+
+		const tokensUnlockedInNextEvent = upcomingEvent
+			.map((x) => x.noOfTokens ?? [])
+			.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
+
+		const tokenValue = tokenCGData?.['market_data']?.['current_price']?.['usd']
+			? tokensUnlockedInNextEvent * tokenCGData['market_data']['current_price']['usd']
+			: null
+
+		const unlockPercent =
+			tokenValue && tokenCGData?.['market_data']?.['market_cap']?.['usd']
+				? (tokenValue / tokenCGData['market_data']['market_cap']['usd']) * 100
+				: null
+		const nextEventDescription =
+			tokensUnlockedInNextEvent && unlockPercent
+				? `${unlockPercent ? formatPercentage(unlockPercent) + '% ' : ''}`
+				: `${tokensUnlockedInNextEvent.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${
+						protocolData.symbol ?? 'tokens'
+				  }`
 
 		return {
 			props: {
@@ -316,7 +341,9 @@ export const getStaticProps = withPerformanceLogging(
 					totalSupply: tokenCGData?.['market_data']?.['total_supply'] ?? null,
 					totalVolume: tokenCGData?.['market_data']?.['total_volume']?.['usd'] ?? null
 				},
-				upcomingEvent
+				nextEventDescription: upcomingEvent[0]?.timestamp
+					? `${nextEventDescription} will be unlocked ${timeFromNow(upcomingEvent[0].timestamp)}`
+					: null
 			},
 			revalidate: maxAgeForNext([22])
 		}

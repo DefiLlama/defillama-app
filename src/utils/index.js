@@ -74,7 +74,8 @@ export const toNiceDateYear = (date) => dayjs.utc(dayjs.unix(date)).format('MMMM
 
 export const toNiceDayMonthYear = (date) => dayjs.utc(dayjs.unix(date)).format('DD MMM YYYY')
 
-const timeFromNow = (date) => dayjs.utc(dayjs.unix(date)).fromNow()
+export const timeFromNow = (date) => dayjs.utc(dayjs.unix(date)).fromNow()
+
 export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, symbol }) {
 	noOfTokens.forEach((tokens, i) => {
 		description = description.replace(
@@ -471,4 +472,24 @@ export function nearestUtc(dateString) {
 	date.setUTCHours(0, 0, 0, 0)
 
 	return Date.now() < date.getTime() ? Date.now() : date.getTime()
+}
+
+export const formatPercentage = (value) => {
+	let zeroes = 0
+	let stop = false
+
+	value
+		.toString()
+		.split('.')?.[1]
+		?.slice(0, 5)
+		?.split('')
+		?.forEach((x) => {
+			if (!stop && x == '0') {
+				zeroes += 1
+			} else {
+				stop = true
+			}
+		})
+
+	return value.toLocaleString(undefined, { maximumFractionDigits: zeroes + 1 })
 }
