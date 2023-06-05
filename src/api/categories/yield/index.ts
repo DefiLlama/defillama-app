@@ -5,13 +5,20 @@ import {
 	YIELD_URL_API,
 	YIELD_CHAIN_API,
 	YIELD_LEND_BORROW_API,
-	YIELD_PERPS_API
+	YIELD_PERPS_API,
+	PROTOCOLS_API
 } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
-	let poolsAndConfig = await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API, YIELD_CHAIN_API])
+	let poolsAndConfig = await arrayFetcher([
+		YIELD_POOLS_API,
+		YIELD_CONFIG_API,
+		YIELD_URL_API,
+		YIELD_CHAIN_API,
+		PROTOCOLS_API
+	])
 
 	let data = formatYieldsPageData(poolsAndConfig)
 	data.pools = data.pools.map((p) => ({

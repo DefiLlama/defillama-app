@@ -3,6 +3,17 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	let _config = poolsAndConfig[1]?.protocols ?? []
 	let _urls = poolsAndConfig[2] ?? []
 	let _chains = poolsAndConfig[3] ?? []
+	let _lite = poolsAndConfig[4] ?? []
+
+	// symbol in _config doesn't account for potential parentProtocol token, updating this here
+	for (const i of Object.values(_config)) {
+		const parentId = _lite.protocols.find((l) => l.name === i['name'])?.parentProtocol
+
+		if (parentId) {
+			const geckoId = _lite.parentProtocols.find((p) => p.id === parentId)?.gecko_id
+			i['symbol'] = geckoId ? 'x' : i['symbol']
+		}
+	}
 
 	// add projectName and audit fields from config to pools array
 	_pools = _pools.map((p) => ({
