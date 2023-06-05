@@ -62,7 +62,7 @@ export async function getYieldPageData() {
 		x = pricesList
 			.slice(p * maxSize, maxSize * (p + 1))
 			.join(',')
-			.replace('//', '')
+			.replaceAll('/', '')
 		pricesA = [...pricesA, (await arrayFetcher([`https://coins.llama.fi/prices/current/${x}`]))[0].coins]
 	}
 	// flatten
