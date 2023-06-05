@@ -37,6 +37,7 @@ import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
+	formatPercentage,
 	formattedNum,
 	getBlockExplorer,
 	slug,
@@ -236,7 +237,7 @@ interface IProtocolContainerProps {
 		}
 		marketCap: { current: number | null }
 		totalSupply: number | null
-		totalVolume: number | null
+		volume24h: { total: number | null; cex: number | null; dex: number | null }
 	}
 	nextEventDescription: string | null
 	methodologyUrls: { [type: string]: string | null }
@@ -676,14 +677,46 @@ function ProtocolContainer({
 								/>
 							) : null}
 
-							{tokenCGData?.totalVolume ? (
-								<tr>
-									<th>
-										<span>24h {symbol || 'Token'} Volume</span>
-										<Flag protocol={protocolData.name} dataType={'Token Volume'} />
-									</th>
-									<td>{formatPrice(tokenCGData.totalVolume)}</td>
-								</tr>
+							{tokenCGData?.volume24h?.total ? (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									rowHeader={`24h ${symbol || 'Token'} Volume`}
+									dataType={'Token Volume'}
+									rowValue={formatPrice(tokenCGData.volume24h.total)}
+									helperText={null}
+									subRows={
+										<>
+											{tokenCGData?.volume24h?.cex ? (
+												<tr>
+													<th data-subvalue>CEX Volume</th>
+													<td data-subvalue>{formatPrice(tokenCGData.volume24h.cex)}</td>
+												</tr>
+											) : null}
+											{tokenCGData?.volume24h?.dex ? (
+												<>
+													<tr>
+														<th data-subvalue>DEX Volume</th>
+														<td data-subvalue>{formatPrice(tokenCGData.volume24h.dex)}</td>
+													</tr>
+													<tr style={{ position: 'relative', top: '-6px' }}>
+														<td
+															style={{
+																opacity: '0.6',
+																fontFamily: 'var(--inter)',
+																fontWeight: 400,
+																fontSize: '0.875rem',
+																padding: '0px'
+															}}
+															colSpan={2}
+														>{`(${formatPercentage(
+															(tokenCGData.volume24h.dex / tokenCGData.volume24h.total) * 100
+														)}%)`}</td>
+													</tr>
+												</>
+											) : null}
+										</>
+									}
+								/>
 							) : null}
 
 							{stakedAmount ? (

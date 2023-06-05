@@ -10,7 +10,131 @@ import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
 
-export const cexData = [
+interface ICex {
+	name: string
+	slug?: string
+	coin?: string
+	coinSymbol?: string
+	walletsLink?: string
+	cgId?: string
+	cgDeriv?: string
+	lastAuditDate?: number
+	auditor?: string | null
+	auditLink?: string
+}
+
+export const cg_volume_cexs = Object.values({
+	Bybit: 'bybit-spot',
+	Coinbase: 'gdax',
+	Huobi: 'huobi',
+	KuCoin: 'kucoin',
+	Kraken: 'kraken',
+	Binance: 'binance',
+	'Binance US': 'binance_us',
+	'Crypto.com Exchange': 'crypto_com',
+	Bitfinex: 'bitfinex',
+	'Gate.io': 'gate',
+	Bitget: 'bitget',
+	OKX: 'okex',
+	BingX: 'bingx',
+	Phemex: 'phemex',
+	Gemini: 'gemini',
+	'MEXC Global': 'mxc',
+	WhiteBIT: 'whitebit',
+	Upbit: 'upbit',
+	BitMart: 'bitmart',
+	BTSE: 'btse',
+	EXMO: 'exmo',
+	CoinEx: 'coinex',
+	Bitbank: 'bitbank',
+	'WOO X': 'wootrade',
+	Bitso: 'bitso',
+	'Coins.ph': 'coinspro',
+	LBank: 'lbank',
+	DigiFinex: 'digifinex',
+	Coinsbit: 'coinsbit',
+	'XT.COM': 'xt',
+	BTCEX: 'btcex',
+	P2B: 'p2pb2b',
+	Tidex: 'tidex',
+	Bithumb: 'bithumb',
+	Bitrue: 'bitrue',
+	BigONE: 'bigone',
+	'Dex-Trade': 'dextrade',
+	Coinstore: 'coinstore',
+	Poloniex: 'poloniex',
+	Paribu: 'paribu',
+	'AscendEX (BitMax)': 'bitmax',
+	Bitstamp: 'bitstamp',
+	bitFlyer: 'bitflyer',
+	'BtcTurk PRO': 'btcturk',
+	QMall: 'qmall',
+	Cryptology: 'cryptology',
+	Bitkub: 'bitkub',
+	'C-Patex': 'c_patex',
+	LATOKEN: 'latoken',
+	'Max Maicoin': 'max_maicoin',
+	Kanga: 'kanga',
+	Luno: 'luno',
+	Indodax: 'indodax',
+	BTCMarkets: 'btcmarkets',
+	Korbit: 'korbit',
+	BitoPro: 'bitopro',
+	'Bittrex Global': 'bittrex',
+	VALR: 'valr',
+	'CEX.IO': 'cex',
+	'Bitpanda Pro': 'bitpanda',
+	'Delta Exchange': 'delta_spot',
+	'Blockchain.com': 'blockchain_com',
+	Coinmetro: 'coin_metro',
+	NiceHash: 'nice_hash',
+	BitMEX: 'bitmex_spot',
+	Okcoin: 'okcoin',
+	Toobit: 'toobit',
+	Bitforex: 'bitforex',
+	DIFX: 'difx',
+	Bitvavo: 'bitvavo',
+	Coincheck: 'coincheck',
+	'FMFW.io': 'bitcoin_com',
+	PointPay: 'pointpay',
+	'GMO Japan': 'gmo_japan',
+	Bitazza: 'bitazza',
+	'Independent Reserve': 'independent_reserve',
+	Nominex: 'nominex',
+	Coinlist: 'coinlist',
+	Fastex: 'fastex',
+	'CoinJar Exchange': 'coinjar',
+	Zaif: 'zaif',
+	WazirX: 'wazirx',
+	Bitlo: 'bitlo',
+	'Bitcoin.me': 'klever_exchange',
+	'CoinTR Pro': 'cointr',
+	Pionex: 'pionex',
+	Deepcoin: 'deepcoin',
+	'ProBit Global': 'probit',
+	CoinDCX: 'coindcx',
+	Coinone: 'coinone',
+	'Bitci TR': 'bitci',
+	BIT: 'bit_com',
+	Stormgain: 'stormgain',
+	BitBNS: 'bitbns',
+	Bullish: 'bullish_com',
+	TokoCrypto: 'toko_crypto',
+	'Currency.com': 'currency',
+	Bilaxy: 'bilaxy',
+	Tokenize: 'tokenize',
+	Coinzoom: 'coinzoom',
+	NovaDAX: 'novadax',
+	'Deribit Spot': 'deribit_spot',
+	Deribit: 'deribit',
+	Emirex: 'emirex',
+	Bitbuy: 'bitbuy',
+	Foxbit: 'foxbit',
+	ZBX: 'zbx',
+	zipmex: 'zipmex'
+})
+
+export const cexData: Array<ICex> = [
 	{
 		name: 'Binance',
 		slug: 'Binance-CEX',
@@ -223,7 +347,7 @@ export const cexData = [
 	},
 	{
 		name: 'CoinEx',
-		cdId: 'coinex',
+		cgId: 'coinex',
 		cgDeriv: 'coinex_futures'
 	},
 	{
@@ -298,7 +422,7 @@ export const cexData = [
 	},
 	{
 		name: 'BTCC',
-		cgID: 'btcc',
+		cgId: 'btcc',
 		cgDeriv: 'btcc_futures'
 	},
 	{

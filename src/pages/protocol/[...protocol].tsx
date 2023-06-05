@@ -24,6 +24,7 @@ import {
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
 import { fetchOverCacheJson, withPerformanceLogging } from '~/utils/perf'
+import { cg_volume_cexs } from '../cexs'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/[...protocol]',
@@ -119,7 +120,7 @@ export const getStaticProps = withPerformanceLogging(
 				: null,
 			protocolData.gecko_id
 				? fetch(
-						`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=false&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+						`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 				  ).then((res) => res.json())
 				: {},
 			getProtocolEmissons(protocol)
@@ -332,7 +333,27 @@ export const getStaticProps = withPerformanceLogging(
 					},
 					marketCap: { current: tokenCGData?.['market_data']?.['market_cap']?.['usd'] ?? null },
 					totalSupply: tokenCGData?.['market_data']?.['total_supply'] ?? null,
-					totalVolume: tokenCGData?.['market_data']?.['total_volume']?.['usd'] ?? null
+					volume24h: {
+						total: tokenCGData?.['market_data']?.['total_volume']?.['usd'] ?? null,
+						cex:
+							tokenCGData?.['tickers']?.reduce(
+								(acc, curr) =>
+									(acc +=
+										curr['trust_score'] !== 'red' && cg_volume_cexs.includes(curr.market.identifier)
+											? curr.converted_volume.usd ?? 0
+											: 0),
+								0
+							) ?? null,
+						dex:
+							tokenCGData?.['tickers']?.reduce(
+								(acc, curr) =>
+									(acc +=
+										curr['trust_score'] === 'red' || cg_volume_cexs.includes(curr.market.identifier)
+											? 0
+											: curr.converted_volume.usd ?? 0),
+								0
+							) ?? null
+					}
 				},
 				nextEventDescription: upcomingEvent[0]?.timestamp
 					? `${nextEventDescription} will be unlocked ${timeFromNow(upcomingEvent[0].timestamp)}`
