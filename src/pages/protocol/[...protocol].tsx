@@ -74,7 +74,7 @@ export const getStaticProps = withPerformanceLogging(
 					: gid.startsWith('tally:')
 					? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1]}.json`
 					: null
-			) ?? null
+			) ?? []
 
 		const [backgroundColor, allProtocols, users, feesAndRevenueProtocols, dexs, medianApy, tokenCGData, emissions] =
 			await Promise.all([
