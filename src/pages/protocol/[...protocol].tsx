@@ -73,7 +73,7 @@ export const getStaticProps = withPerformanceLogging(
 					? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1]}.json`
 					: gid.startsWith('tally:')
 					? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1]}.json`
-					: null
+					: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1]}.json`
 			) ?? []
 
 		const [backgroundColor, allProtocols, users, feesAndRevenueProtocols, dexs, medianApy, tokenCGData, emissions] =
