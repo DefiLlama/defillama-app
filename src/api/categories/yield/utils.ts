@@ -7,11 +7,13 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	// symbol in _config doesn't account for potential parentProtocol token, updating this here
 	for (const i of Object.values(_config)) {
-		const parentId = _lite.protocols.find((l) => l.name === i['name'])?.parentProtocol
+		if ([null, '-'].includes(i['symbol'])) {
+			const parentId = _lite.protocols.find((l) => l.name === i['name'])?.parentProtocol
 
-		if (parentId) {
-			const geckoId = _lite.parentProtocols.find((p) => p.id === parentId)?.gecko_id
-			i['symbol'] = geckoId ? 'x' : i['symbol']
+			if (parentId) {
+				const geckoId = _lite.parentProtocols.find((p) => p.id === parentId)?.gecko_id
+				i['symbol'] = geckoId ? 'x' : i['symbol']
+			}
 		}
 	}
 
