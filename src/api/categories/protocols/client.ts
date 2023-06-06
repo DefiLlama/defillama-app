@@ -15,6 +15,7 @@ import { formatGovernanceData, getProtocol, getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchAndFormatGovernanceData } from '~/containers/Defi/Protocol/Governance'
 
 const fetch = fetchWithErrorLogging
 
@@ -142,41 +143,8 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	return { data, error, loading: !data && data !== null && !error }
 }
 
-export const useFetchProtocolGovernanceData = (governanceApi: string | null) => {
-	const { data, error } = useSWR(
-		`governanceData/${governanceApi}`,
-		governanceApi
-			? () =>
-					fetch(governanceApi)
-						.then((res) => res.json())
-						.then(
-							(data: {
-								proposals: Array<{ scores: Array<number>; choices: Array<string>; id: string }>
-								stats: {
-									months: {
-										[date: string]: {
-											total?: number
-											successful?: number
-											proposals: Array<string>
-										}
-									}
-								}
-							}) => {
-								const { activity, maxVotes } = formatGovernanceData(data as any)
-
-								if (activity.length === 0 && maxVotes.length === 0) {
-									return null
-								}
-
-								return { activity, maxVotes }
-							}
-						)
-						.catch((err) => {
-							console.log(err)
-							return null
-						})
-			: () => null
-	)
+export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | null) => {
+	const { data, error } = useSWR(JSON.stringify(governanceApis), () => fetchAndFormatGovernanceData(governanceApis))
 
 	return { data, error, loading: !data && data !== null && !error }
 }

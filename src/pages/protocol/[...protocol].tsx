@@ -65,66 +65,70 @@ export const getStaticProps = withPerformanceLogging(
 
 		const protocolData = fuseProtocolData(protocolRes)
 
-		const governanceID = protocolData.governanceID?.[0] ?? null
-		const governanceApi = governanceID
-			? governanceID.startsWith('snapshot:')
-				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${governanceID.split('snapshot:')[1]}.json`
-				: governanceID.startsWith('compound:')
-				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${governanceID.split('compound:')[1]}.json`
-				: governanceID.startsWith('tally:')
-				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${governanceID.split('tally:')[1]}.json`
-				: null
-			: null
+		const governanceApis =
+			protocolData.governanceID?.map((gid) =>
+				gid.startsWith('snapshot:')
+					? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1]}.json`
+					: gid.startsWith('compound:')
+					? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1]}.json`
+					: gid.startsWith('tally:')
+					? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1]}.json`
+					: null
+			) ?? null
 
-		const [
-			backgroundColor,
-			allProtocols,
-			users,
-			feesAndRevenueProtocols,
-			dexs,
-			medianApy,
-			controversialProposals,
-			tokenCGData,
-			emissions
-		] = await Promise.all([
-			getColor(tokenIconPaletteUrl(protocolData.name)),
-			getProtocolsRaw(),
-			fetch(ACTIVE_USERS_API)
-				.then((res) => res.json())
-				.then((data) => data?.[protocolData.id] ?? null),
-			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
-			governanceApi
-				? fetch(governanceApi)
-						.then((res) => res.json())
-						.then((data) => {
-							return Object.values(data.proposals)
-								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
-								.slice(0, 3)
-						})
-						.catch((err) => {
-							console.log(err)
-							return {}
-						})
-				: null,
-			protocolData.gecko_id
-				? fetch(
-						`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
-				  ).then((res) => res.json())
-				: {},
-			getProtocolEmissons(protocol)
-		])
+		const [backgroundColor, allProtocols, users, feesAndRevenueProtocols, dexs, medianApy, tokenCGData, emissions] =
+			await Promise.all([
+				getColor(tokenIconPaletteUrl(protocolData.name)),
+				getProtocolsRaw(),
+				fetch(ACTIVE_USERS_API)
+					.then((res) => res.json())
+					.then((data) => data?.[protocolData.id] ?? null),
+				fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					}),
+				fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					}),
+				fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
+				protocolData.gecko_id
+					? fetch(
+							`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+					  ).then((res) => res.json())
+					: {},
+				getProtocolEmissons(protocol)
+			])
+
+		const governanceData = await Promise.all(
+			governanceApis.map((gapi) =>
+				gapi
+					? fetch(gapi)
+							.then((res) => res.json())
+							.then((data) => {
+								return Object.values(data.proposals)
+									.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+									.slice(0, 3)
+							})
+							.catch((err) => {
+								console.log(err)
+								return []
+							})
+					: null
+			)
+		)
+
+		let controversialProposals = []
+
+		governanceData.forEach((item) => {
+			if (item && item.length > 0) {
+				controversialProposals = [...controversialProposals, ...item]
+			}
+		})
 
 		const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
 			(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
@@ -297,7 +301,7 @@ export const getStaticProps = withPerformanceLogging(
 				dailyVolume,
 				allTimeVolume,
 				controversialProposals,
-				governanceApi,
+				governanceApis: governanceApis.filter((x) => !!x),
 				treasury: treasury?.tokenBreakdowns ?? null,
 				yields:
 					yields && yields.data && projectYields.length > 0

@@ -88,24 +88,59 @@ export function GovernanceTable({ data, governanceType }) {
 	)
 }
 
-export function GovernanceData({ api }: { api: string }) {
-	const { data, error } = useSWR(api, () =>
-		fetch(api)
-			.then((res) => res.json())
-			.then((data) => {
-				const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
+export const fetchAndFormatGovernanceData = async (
+	apis: Array<string> | null
+): Promise<
+	Array<{
+		proposals: {
+			winningChoice: string
+			winningPerc: string
+			scores: number[]
+			choices: string[]
+			id: string
+		}[]
+		controversialProposals: {
+			winningChoice: string
+			winningPerc: string
+			scores: number[]
+			choices: string[]
+			id: string
+		}[]
+		activity: {
+			date: number
+			Total: number
+			Successful: number
+		}[]
+		maxVotes: {
+			date: number
+			'Max Votes': string
+		}[]
+	}>
+> =>
+	apis
+		? await Promise.all(
+				apis.map((gapi) =>
+					fetch(gapi)
+						.then((res) => res.json())
+						.then((data) => {
+							const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
 
-				return {
-					...data,
-					proposals,
-					controversialProposals: proposals
-						.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
-						.slice(0, 10),
-					activity,
-					maxVotes
-				}
-			})
-	)
+							return {
+								...data,
+								proposals,
+								controversialProposals: proposals
+									.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+									.slice(0, 10),
+								activity,
+								maxVotes
+							}
+						})
+				)
+		  )
+		: null
+
+export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
+	const { data, error } = useSWR(JSON.stringify(apis), () => fetchAndFormatGovernanceData(apis))
 
 	const isLoading = !data && !error
 
@@ -115,16 +150,19 @@ export function GovernanceData({ api }: { api: string }) {
 
 	return data ? (
 		<Wrapper>
-			<GovernanceTable
-				data={data}
-				governanceType={
-					api.includes('governance-cache/snapshot')
-						? 'snapshot'
-						: api.includes('governance-cache/compound')
-						? 'compound'
-						: 'tally'
-				}
-			/>
+			{data.map((item, index) => (
+				<GovernanceTable
+					key={apis[index] + 'table'}
+					data={item}
+					governanceType={
+						apis[index].includes('governance-cache/snapshot')
+							? 'snapshot'
+							: apis[index].includes('governance-cache/compound')
+							? 'compound'
+							: 'tally'
+					}
+				/>
+			))}
 		</Wrapper>
 	) : null
 }

@@ -45,7 +45,7 @@ interface IProps {
 	metrics: { [metric: string]: boolean }
 	activeUsersId: number | string | null
 	usdInflowsData: Array<[string, number]> | null
-	governanceApi: string | null
+	governanceApis: Array<string> | null
 	isHourlyChart?: boolean
 	isCEX?: boolean
 	tokenSymbol?: string
@@ -87,7 +87,7 @@ export default function ProtocolChart({
 	metrics,
 	activeUsersId,
 	usdInflowsData,
-	governanceApi,
+	governanceApis,
 	isHourlyChart,
 	isCEX,
 	tokenSymbol,
@@ -173,7 +173,7 @@ export default function ProtocolChart({
 		router.isReady && medianApy === 'true' && metrics.medianApy ? protocol : null
 	)
 	const { data: governanceData, loading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
-		router.isReady && governance === 'true' && governanceApi ? governanceApi : null
+		router.isReady && governance === 'true' && governanceApis ? governanceApis : null
 	)
 	const { data: treasuryData, loading: fetchingTreasury } = useFetchProtocolTreasury(
 		router.isReady && metrics.treasury && treasury === 'true' ? protocol : null
@@ -682,26 +682,30 @@ export default function ProtocolChart({
 			chartsUnique.push('Successful Proposals')
 			chartsUnique.push('Max Votes')
 
-			governanceData.activity?.forEach((item) => {
-				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+			governanceData.forEach((item) =>
+				item.activity?.forEach((item) => {
+					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 
-				if (!chartData[date]) {
-					chartData[date] = {}
-				}
+					if (!chartData[date]) {
+						chartData[date] = {}
+					}
 
-				chartData[date]['Total Proposals'] = item['Total'] || 0
-				chartData[date]['Successful Proposals'] = item['Successful'] || 0
-			})
+					chartData[date]['Total Proposals'] = item['Total'] || 0
+					chartData[date]['Successful Proposals'] = item['Successful'] || 0
+				})
+			)
 
-			governanceData.maxVotes?.forEach((item) => {
-				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+			governanceData.forEach((item) =>
+				item.maxVotes?.forEach((item) => {
+					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 
-				if (!chartData[date]) {
-					chartData[date] = {}
-				}
+					if (!chartData[date]) {
+						chartData[date] = {}
+					}
 
-				chartData[date]['Max Votes'] = item['Max Votes'] || 0
-			})
+					chartData[date]['Max Votes'] = item['Max Votes'] || 0
+				})
+			)
 		}
 
 		if (treasury === 'true' && treasuryData) {
@@ -922,7 +926,7 @@ export default function ProtocolChart({
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
 			metrics.medianApy ||
 			(metrics.inflows && !isHourlyChart ? true : false) ||
-			governanceApi ||
+			governanceApis ||
 			metrics.treasury ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
@@ -1349,7 +1353,7 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
-					{governanceApi && (
+					{governanceApis && (
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"

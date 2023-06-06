@@ -218,7 +218,7 @@ interface IProtocolContainerProps {
 	dailyVolume: number | null
 	allTimeVolume: number | null
 	controversialProposals: Array<{ title: string; link?: string }> | null
-	governanceApi: string | null
+	governanceApis: Array<string> | null
 	expenses: any
 	yields: { noOfPoolsTracked: number; averageAPY: number } | null
 	helperTexts: {
@@ -268,7 +268,7 @@ function ProtocolContainer({
 	dailyVolume,
 	allTimeVolume,
 	controversialProposals,
-	governanceApi,
+	governanceApis,
 	expenses,
 	yields,
 	helperTexts,
@@ -1020,7 +1020,7 @@ function ProtocolContainer({
 					metrics={metrics}
 					activeUsersId={users ? protocolData.id : null}
 					usdInflowsData={usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null}
-					governanceApi={governanceApi}
+					governanceApis={governanceApis}
 					isHourlyChart={isHourlyChart}
 					isCEX={isCEX}
 					tokenSymbol={symbol}
@@ -1079,7 +1079,7 @@ function ProtocolContainer({
 							Volume
 						</Tab>
 					)}
-					{governanceApi && (
+					{governanceApis?.length > 0 && (
 						<Tab id="governance" color={backgroundColor}>
 							Governance
 						</Tab>
@@ -1396,9 +1396,9 @@ function ProtocolContainer({
 					</TabPanel>
 				)}
 
-				{governanceApi && (
+				{governanceApis?.length > 0 && (
 					<TabPanel state={tab} tabId="governance">
-						<GovernanceData api={governanceApi} />
+						<GovernanceData apis={governanceApis} />
 					</TabPanel>
 				)}
 			</TabLayout>
