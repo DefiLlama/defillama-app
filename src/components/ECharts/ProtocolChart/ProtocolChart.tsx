@@ -173,7 +173,7 @@ export default function ProtocolChart({
 		router.isReady && medianApy === 'true' && metrics.medianApy ? protocol : null
 	)
 	const { data: governanceData, loading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
-		router.isReady && governance === 'true' && governanceApis ? governanceApis : null
+		router.isReady && governance === 'true' && governanceApis && governanceApis.length > 0 ? governanceApis : null
 	)
 	const { data: treasuryData, loading: fetchingTreasury } = useFetchProtocolTreasury(
 		router.isReady && metrics.treasury && treasury === 'true' ? protocol : null
@@ -926,7 +926,7 @@ export default function ProtocolChart({
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
 			metrics.medianApy ||
 			(metrics.inflows && !isHourlyChart ? true : false) ||
-			governanceApis ||
+			(governanceApis && governanceApis.length > 0) ||
 			metrics.treasury ? (
 				<ToggleWrapper>
 					<Toggle backgroundColor={color}>
@@ -1353,7 +1353,7 @@ export default function ProtocolChart({
 						</Toggle>
 					)}
 
-					{governanceApis && (
+					{governanceApis?.length > 0 && (
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"
