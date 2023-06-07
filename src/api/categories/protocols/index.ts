@@ -27,7 +27,8 @@ import {
 	PROTOCOL_EMISSIONS_API,
 	PROTOCOL_EMISSIONS_LIST_API,
 	PROTOCOL_EMISSION_API,
-	YIELD_POOLS_API
+	YIELD_POOLS_API,
+	LSD_RATES_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -832,7 +833,7 @@ export async function getLSDPageData() {
 	const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json())))
 	const pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 
-	const lsdRates = await fetch('https://yields.llama.fi/lsdRatesNew').then((r) => r.json())
+	const lsdRates = await fetch(LSD_RATES_API).then((r) => r.json())
 
 	// filter for LSDs
 	const lsdProtocols = protocols
