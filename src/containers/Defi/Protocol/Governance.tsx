@@ -116,28 +116,31 @@ export const fetchAndFormatGovernanceData = async (
 			'Max Votes': string
 		}[]
 	}>
-> =>
-	apis
-		? await Promise.all(
-				apis.map((gapi) =>
-					fetch(gapi)
-						.then((res) => res.json())
-						.then((data) => {
-							const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
+> => {
+	if (!apis) return null
 
-							return {
-								...data,
-								proposals,
-								controversialProposals: proposals
-									.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
-									.slice(0, 10),
-								activity,
-								maxVotes
-							}
-						})
-				)
-		  )
-		: null
+	const data = await Promise.allSettled(
+		apis.map((gapi) =>
+			fetch(gapi)
+				.then((res) => res.json())
+				.then((data) => {
+					const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
+
+					return {
+						...data,
+						proposals,
+						controversialProposals: proposals
+							.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+							.slice(0, 10),
+						activity,
+						maxVotes
+					}
+				})
+		)
+	)
+
+	return data.map((item) => (item.status === 'fulfilled' ? item.value : null)).filter((item) => !!item)
+}
 
 export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 	const { data, error } = useSWR(JSON.stringify(apis), () => fetchAndFormatGovernanceData(apis))
