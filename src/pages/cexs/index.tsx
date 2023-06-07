@@ -224,6 +224,13 @@ export const cexData: Array<ICex> = [
 		cgDeriv: 'bitget_futures'
 	},
 	{
+		name: 'MEXC',
+		slug: 'mexc',
+		coin: 'MX',
+		coinSymbol: 'MX',
+		cgId: 'mxc',
+	},
+	{
 		name: 'Bitmex',
 		slug: 'bitmex',
 		coin: null,
