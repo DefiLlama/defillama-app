@@ -22,7 +22,7 @@ export const getStaticProps = withPerformanceLogging(
 			props: {
 				...data
 			},
-			revalidate: maxAgeForNext([22])
+			revalidate: 300
 		}
 	}
 )
