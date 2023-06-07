@@ -52,7 +52,7 @@ export default function PieChart({
 		}
 
 		return series
-	}, [chartData, isDark, stackColors])
+	}, [chartData, isDark, stackColors, title])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

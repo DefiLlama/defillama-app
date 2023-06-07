@@ -7,6 +7,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject } from '../utils'
 import { SelectLegendMultiple } from '../shared'
 import { useDefaults } from '../useDefaults'
+import { useRouter } from 'next/router'
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
@@ -54,7 +55,6 @@ export default function AreaChart({
 	stackColors,
 	title,
 	color,
-	hallmarks,
 	customLegendName,
 	customLegendOptions,
 	tooltipSort = true,
@@ -62,7 +62,6 @@ export default function AreaChart({
 	height = '360px',
 	expandTo100Percent = false,
 	isStackedChart,
-	hideGradient = false,
 	volumeData = [],
 	feesData = [],
 	priceData = [],
@@ -72,19 +71,15 @@ export default function AreaChart({
 	totalStablesData = [],
 	bridgeData = [],
 	denomination,
-	updateRoute,
 	datasets = [],
-	router,
 	hideTooltip,
 	...props
 }) {
 	const id = useMemo(() => uuid(), [])
-	const { query: route, pathname } = router
+	const { query: route, pathname } = useRouter()
 	const isCompare = pathname?.includes('compare')
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
-
-	const chartsStack = stacks || customLegendOptions
 
 	const [isDark] = useDarkModeManager()
 
@@ -325,21 +320,7 @@ export default function AreaChart({
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
-	}, [
-		datasets,
-		chartsStack,
-		color,
-		customLegendName,
-		hallmarks,
-		isDark,
-		legendOptions,
-		stackColors,
-		expandTo100Percent,
-		isStackedChart,
-		hideGradient,
-		route,
-		volumeData
-	])
+	}, [datasets, isDark, route, denomination, isCompare])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -507,7 +488,20 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, route, activeSeries, hideTooltip])
+	}, [
+		createInstance,
+		defaultChartSettings,
+		series,
+		chartOptions,
+		expandTo100Percent,
+		route,
+		activeSeries,
+		hideTooltip,
+		txsChartSetting.yAxis,
+		usersChartSetting.yAxis,
+		isCompare,
+		isDark
+	])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
 

@@ -3,6 +3,7 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { useQueries, useQuery } from 'react-query'
 import { useRouter } from 'next/router'
+import type { NextRouter } from 'next/router'
 import styled from 'styled-components'
 
 import { BreakpointPanel } from '~/components'
@@ -169,21 +170,35 @@ const useCompare = ({
 }) => {
 	const data = useQueries(
 		chains.map((chain) => ({
-			queryKey: ['compare', chain, Object.values(extraTvlsEnabled)],
+			queryKey: ['compare', JSON.stringify(chain), JSON.stringify(extraTvlsEnabled)],
 			queryFn: () => getChainData(chain, extraTvlsEnabled)
 		}))
 	)
 
-	const protocolsData = useQuery(['chains'], () =>
-		fetch('https://defillama-datasets.llama.fi/lite/protocols2').then((r) => r.json())
+	const chainsData = useQuery(['chains'], () =>
+		fetch('https://defillama-datasets.llama.fi/lite/protocols2')
+			.then((r) => r.json())
+			.then((pData) => pData?.chains?.map((val) => ({ value: val, label: val })))
 	)
 
 	return {
-		...data,
 		data: data.map((r) => r?.data),
-		chains: protocolsData?.data?.chains,
-		isLoading: data.some((r) => r.status === 'loading')
+		chains: chainsData.data,
+		isLoading: data.some((r) => r.status === 'loading') || data.some((r) => r.isRefetching) || chainsData.isLoading
 	}
+}
+
+const updateRoute = (key, val, router: NextRouter) => {
+	router.push(
+		{
+			query: {
+				...router.query,
+				[key]: val
+			}
+		},
+		undefined,
+		{ shallow: true }
+	)
 }
 
 function ComparePage() {
@@ -192,25 +207,11 @@ function ComparePage() {
 	const router = useRouter()
 
 	const data = useCompare({ extraTvlsEnabled, chains: router.query?.chains ? [router.query?.chains].flat() : [] })
-	const chains = useMemo(() => data?.chains?.map((val) => ({ value: val, label: val })), [data])
-
-	const updateRoute = (key, val) => {
-		router.push(
-			{
-				query: {
-					...router.query,
-					[key]: val
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
 
 	const onChainSelect = (chains: Array<Record<string, string>>) => {
 		const selectedChains = chains.map((val) => val.value)
 
-		updateRoute('chains', selectedChains)
+		updateRoute('chains', selectedChains, router)
 	}
 
 	const components = useMemo(
@@ -226,8 +227,8 @@ function ComparePage() {
 		.map((chain) => ({ value: chain, label: chain }))
 
 	React.useEffect(() => {
-		if (!router?.query?.chains) updateRoute('chains', 'Ethereum')
-	}, [])
+		if (!router?.query?.chains) updateRoute('chains', 'Ethereum', router)
+	}, [router])
 
 	return (
 		<>
@@ -241,11 +242,11 @@ function ComparePage() {
 
 			<ControlsWrapper>
 				<ReactSelect
-					defaultValue={router?.query?.chains || chains?.[0]}
+					defaultValue={router?.query?.chains || data?.chains?.[0]}
 					isMulti
 					value={selectedChains}
 					name="colors"
-					options={chains}
+					options={data.chains as any}
 					className="basic-multi-select"
 					classNamePrefix="select"
 					onChange={onChainSelect}
@@ -298,7 +299,7 @@ function ComparePage() {
 											key={id}
 											type="checkbox"
 											onClick={() => {
-												updateRoute(id, router.query[id] === 'true' ? 'false' : 'true')
+												updateRoute(id, router.query[id] === 'true' ? 'false' : 'true', router)
 											}}
 											checked={router.query[id] === 'true'}
 										/>
@@ -313,7 +314,7 @@ function ComparePage() {
 						</ToggleWrapper>
 					</FiltersWrapper>
 
-					{data.isLoading ? (
+					{data.isLoading || !router.isReady ? (
 						<LocalLoader style={{ marginBottom: 'auto' }} />
 					) : (
 						<ChainChart

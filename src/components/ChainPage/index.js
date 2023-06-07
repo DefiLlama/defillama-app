@@ -87,6 +87,19 @@ const sum = (obj) => {
 	return Object.values(obj).reduce((acc, curr) => (typeof curr === 'number' ? (acc += curr) : acc), 0)
 }
 
+const updateRoute = (key, val, router) => {
+	router.push(
+		{
+			query: {
+				...router.query,
+				[key]: val
+			}
+		},
+		undefined,
+		{ shallow: true }
+	)
+}
+
 function GlobalPage({
 	selectedChain = 'All',
 	chainsSet,
@@ -322,24 +335,11 @@ function GlobalPage({
 		} else return [globalChart, volumeChart, feesChart, priceHistory]
 	}, [chainGeckoId, globalChart, denominationPriceHistory, denomination, volumeChart, feesChart])
 
-	const updateRoute = (key, val) => {
-		router.push(
-			{
-				query: {
-					...router.query,
-					[key]: val
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
 	React.useEffect(() => {
 		if (selectedChain !== 'All' && !router.query.tvl) {
-			updateRoute('tvl', 'true')
+			updateRoute('tvl', 'true', router)
 		}
-	}, [])
+	}, [router, selectedChain])
 
 	const dominance = getTokenDominance(topToken, totalVauleUSD)
 
@@ -438,7 +438,11 @@ function GlobalPage({
 								{DENOMINATIONS.length > 0 && (
 									<Filters>
 										{DENOMINATIONS.map((D) => (
-											<Denomination active={denomination === D} key={D} onClick={() => updateRoute('currency', D)}>
+											<Denomination
+												active={denomination === D}
+												key={D}
+												onClick={() => updateRoute('currency', D, router)}
+											>
 												{D}
 											</Denomination>
 										))}
@@ -506,7 +510,7 @@ function GlobalPage({
 												key={id}
 												type="checkbox"
 												onClick={() => {
-													updateRoute(id, router.query[id] === 'true' ? 'false' : 'true')
+													updateRoute(id, router.query[id] === 'true' ? 'false' : 'true', router)
 												}}
 												checked={router.query[id] === 'true'}
 											/>
@@ -550,7 +554,6 @@ function GlobalPage({
 							DENOMINATIONS={DENOMINATIONS}
 							denomination={denomination}
 							updateRoute={updateRoute}
-							router={router}
 							hideTooltip={selectedChain === 'All'}
 						/>
 					)}

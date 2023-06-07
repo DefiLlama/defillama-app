@@ -13,7 +13,7 @@ import {
 	Repeat,
 	Layers,
 	Unlock,
-	Image,
+	Image as ImageIcon,
 	Shuffle,
 	FileText
 } from 'react-feather'
@@ -221,7 +221,7 @@ export const navLinks: ILinks = {
 			{ name: 'Marketplaces', path: '/nfts/marketplaces' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <Image size={16} />,
+		icon: <ImageIcon size={16} />,
 		newTag: true
 	},
 	Unlocks: {

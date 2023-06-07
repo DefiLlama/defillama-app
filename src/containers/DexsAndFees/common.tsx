@@ -118,10 +118,10 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			? props.chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 			: undefined
 
-	const barsData = React.useMemo(aggregateDataByInterval(chartInterval, props.chartData), [
-		props.chartData,
-		chartInterval
-	])
+	const barsData = React.useMemo(
+		() => aggregateDataByInterval(chartInterval, props.chartData)(),
+		[props.chartData, chartInterval]
+	)
 
 	return (
 		<ChartAndValuesWrapper>
