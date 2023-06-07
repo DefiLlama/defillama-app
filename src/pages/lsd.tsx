@@ -226,32 +226,27 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 		.filter((p) => p.stakedEth !== undefined)
 		.sort((a, b) => b.stakedEth - a.stakedEth)
 
+	const rebase = 'Rebase Token: Staking rewards accrue as new tokens. Expected Peg = 1 : 1'
+	const valueAccruing = 'Value Accruing Token: Staking rewards are earned in form of an appreciating LSD value.'
+
 	const stakedEthSum = tokenTvls.reduce((sum, a) => sum + a.stakedEth, 0)
 	const stakedEthInUsdSum = tokenTvls.reduce((sum, a) => sum + a.stakedEthInUsd, 0)
 	const tokensList = tokenTvls.map((p) => {
-		const priceInfo = lsdRates.marketRates?.find(
-			(i) =>
-				i.sellTokenAddress?.toLowerCase() ===
-				lsdRates.expectedRates.find((r) => r.name === p.name)?.address.toLowerCase()
-		)
-		const expectedInfo = lsdRates.expectedRates.find((r) => r.name === p.name)
+		const lsd = lsdRates.find((i) => i.name === p.name)
 
-		const marketRate = priceInfo?.buyAmount / 10 ** 18
-		const expectedRate = expectedInfo?.expectedRate
-
-		const ethPeg = (marketRate / expectedRate - 1) * 100
-		const pegInfo = expectedInfo?.peg
+		const type = lsd?.type
+		const pegInfo = type === 'rebase' ? rebase : type === 'accruing' ? valueAccruing : null
 
 		const mcaptvl = p.mcap / p.stakedEthInUsd
 
 		return {
 			...p,
 			marketShare: (p.stakedEth / stakedEthSum) * 100,
-			lsdSymbol: expectedInfo?.symbol ?? null,
-			ethPeg: p.name === 'SharedStake' ? null : ethPeg ?? null,
-			pegInfo: pegInfo ?? null,
-			marketRate: marketRate ?? null,
-			expectedRate: expectedRate ?? null,
+			lsdSymbol: lsd?.symbol ?? null,
+			ethPeg: p.name === 'SharedStake' ? null : lsd?.ethPeg ?? null,
+			pegInfo,
+			marketRate: lsd?.marketRate ?? null,
+			expectedRate: lsd?.expectedRate ?? null,
 			mcapOverTvl: mcaptvl ? mcaptvl.toFixed(2) : null,
 			apy: lsdApy.find((m) => m.name === p.name)?.apy ?? null
 		}
