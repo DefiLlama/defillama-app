@@ -20,6 +20,9 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 
 	protocols.forEach((p) => {
 		const { chainTvls, category, name } = p
+		if (['Bridge', 'Cross-Chain'].includes(category)) {
+			return
+		}
 		Object.entries(chainTvls).forEach(([chain, { tvl }]: [string, { tvl: number }]) => {
 			if (topProtocolPerChainAndCategory[chain] === undefined) {
 				return
