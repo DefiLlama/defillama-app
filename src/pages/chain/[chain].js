@@ -21,7 +21,7 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 	const [data, volumeData, chainVolumeData, feesData, usersData, txsData, chainFeesData, bridgeData, stablecoinsData] =
 		await Promise.all([
 			getChainPageData(chain),
-			getChainsPageData('dexs'),
+			chain === "All" ? getChainsPageData('dexs') : null,
 			getChainVolume('dexs', chain)
 				.catch(() => ({}))
 				.then((r) => (r.total24h === undefined ? {} : r)),

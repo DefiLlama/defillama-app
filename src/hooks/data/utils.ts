@@ -1,6 +1,14 @@
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
 import { getPercentChange } from '~/utils'
 
+function addElement(key: string, curr: IFormattedProtocol, acc: any) {
+	if (curr[key] && acc[key] !== null) {
+		acc[key] += curr[key]
+	} else {
+		acc[key] = null
+	}
+}
+
 // group protocols so we can show child protocols inside an accordion in a table
 export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol) => {
 	let strikeTvl = false
@@ -9,13 +17,8 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 			if (curr.strikeTvl) {
 				strikeTvl = true
 			}
-			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
-			curr.tvlPrevDay && (acc.tvlPrevDay = (acc.tvlPrevDay || 0) + curr.tvlPrevDay)
-			curr.tvlPrevWeek && (acc.tvlPrevWeek = (acc.tvlPrevWeek || 0) + curr.tvlPrevWeek)
-			curr.tvlPrevMonth && (acc.tvlPrevMonth = (acc.tvlPrevMonth || 0) + curr.tvlPrevMonth)
-			curr?.volume_7d && (acc.volume_7d = (acc?.volume_7d || 0) + curr?.volume_7d)
-			curr?.fees_7d && (acc.fees_7d = (acc?.fees_7d || 0) + curr?.fees_7d)
-			curr?.revenue_7d && (acc.revenue_7d = (acc?.revenue_7d || 0) + curr?.revenue_7d)
+			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl);
+			["tvlPrevDay", "tvlPrevWeek", "tvlPrevMonth", "volume_7d", "fees_7d", "revenue_7d"].forEach(k => addElement(k, curr, acc))
 
 			if (curr.mcap) {
 				acc.mcap = (acc.mcap || 0) + curr.mcap
@@ -24,14 +27,14 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 			return acc
 		},
 		{
-			mcap: null,
-			tvl: null,
-			tvlPrevDay: null,
-			tvlPrevWeek: null,
-			tvlPrevMonth: null,
-			volume_7d: null,
-			fees_7d: null,
-			revenue_7d: null
+			mcap: 0,
+			tvl: 0,
+			tvlPrevDay: 0,
+			tvlPrevWeek: 0,
+			tvlPrevMonth: 0,
+			volume_7d: 0,
+			fees_7d: 0,
+			revenue_7d: 0
 		}
 	)
 
