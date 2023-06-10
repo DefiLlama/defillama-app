@@ -75,7 +75,8 @@ const blockExplorers = {
 	eos_evm: ['https://explorer.evm.eosnetwork.com/address/', 'EOS EVM Explorer'],
 	thorchain: ['https://thorchain.net/address/', 'Thorchain Explorer'],
 	sui: ['https://suiscan.xyz/mainnet/object/', 'Suiscan'],
-	pulse: ['https://scan.pulsechain.com/address/', 'PulseChain Scan']
+	pulse: ['https://scan.pulsechain.com/address/', 'PulseChain Scan'],
+	onus: ['https://explorer.onuschain.io/address/', 'OnusChain Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
