@@ -161,7 +161,7 @@ export default function BarChart({
 					data: stackKeys
 				}
 			}),
-			dataZoom: [...dataZoom.map((item) => ({ ...item, filterMode: 'none' }))],
+			dataZoom: [...dataZoom],
 			series
 		})
 
