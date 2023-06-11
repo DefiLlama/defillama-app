@@ -170,7 +170,7 @@ export const listedAtColumn = {
 export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
 	...protocolsColumns.slice(0, 3),
 	listedAtColumn,
-	...protocolsColumns.slice(3, -1)
+	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
 ]
 
 export const airdropsColumns: ColumnDef<IProtocolRow>[] = [
@@ -185,7 +185,7 @@ export const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 		}
 	},
 	listedAtColumn,
-	...protocolsColumns.slice(3, -1)
+	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
 ]
 
 export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
