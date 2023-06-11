@@ -73,7 +73,8 @@ const scams = [
 	'MinerSwap',
 	'Mosquitos Finance',
 	'SatoshiCoreSwap',
-	'Swaprum'
+	'Swaprum',
+	'Cells Finance'
 ]
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
