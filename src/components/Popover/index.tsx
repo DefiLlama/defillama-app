@@ -6,6 +6,7 @@ import { useSetPopoverStyles } from './utils'
 import { useRouter } from 'next/router'
 import { Tooltip2 } from '../Tooltip'
 import { Code } from 'react-feather'
+import { useDefiManager } from '~/contexts/LocalStorage'
 
 const Trigger = styled(PopoverDisclosure)`
 	display: flex;
@@ -165,7 +166,21 @@ export function EmbedChart({ color, ...props }) {
 
 	const router = useRouter()
 
-	const url = `<iframe width="640px" height="360px" src="https://defillama.com/chart${router.asPath}" title="DefiLlama" frameborder="0"></iframe>`
+	const [extraTvlsEnabled] = useDefiManager()
+
+	let path = router.asPath
+
+	if (!path.includes('?')) {
+		path += '?'
+	}
+
+	for (const option in extraTvlsEnabled) {
+		if (extraTvlsEnabled[option]) {
+			path += `&include_${option}_in_tvl=true`
+		}
+	}
+
+	const url = `<iframe width="640px" height="360px" src="https://defillama.com/chart${path}" title="DefiLlama" frameborder="0"></iframe>`
 
 	return (
 		<>
