@@ -9,6 +9,7 @@ import { LazyChart } from '~/layout/ProtocolAndPool'
 import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
 import { BAR_CHARTS } from './utils'
 import { useFetchAndFormatChartData } from './useFetchAndFormatChartData'
+import { EmbedChart } from '~/components/Popover'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -726,6 +727,8 @@ export default function ProtocolChart({
 						</Filters>
 					</>
 				) : null}
+
+				<EmbedChart color={color} />
 			</FiltersWrapper>
 
 			<ProtocolChartOnly

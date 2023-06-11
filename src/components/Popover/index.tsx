@@ -3,6 +3,9 @@ import { Popover as AriaPopover, PopoverDisclosure, usePopoverState } from 'aria
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { useSetPopoverStyles } from './utils'
+import { useRouter } from 'next/router'
+import { Tooltip2 } from '../Tooltip'
+import { Code } from 'react-feather'
 
 const Trigger = styled(PopoverDisclosure)`
 	display: flex;
@@ -35,6 +38,27 @@ const Trigger = styled(PopoverDisclosure)`
 			background: ${({ theme, color }) =>
 				color ? transparentize(0.8, color) : theme.mode === 'dark' ? '#22242a' : '#eaeaea'};
 		}
+	}
+
+	:focus-visible,
+	[data-focus-visible] {
+		outline: ${({ theme }) => '1px solid ' + theme.text1};
+		outline-offset: 1px;
+	}
+`
+
+export const PopoverTrigger = styled(PopoverDisclosure)`
+	display: inline-block;
+	font-weight: 500;
+	font-size: 0.875rem;
+	border-radius: 10px;
+	background-color: ${({ theme, color }) => (color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1))};
+	padding: 10px 12px;
+	color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)')};
+
+	:hover,
+	:focus-visible {
+		background-color: ${({ color }) => transparentize(0.4, color)};
 	}
 
 	:focus-visible,
@@ -119,6 +143,42 @@ export default function Popover({ trigger, content, variant = 'primary', color, 
 			</Trigger>
 			<PopoverWrapper state={popover} modal={!isLarge} data-variant={variant} {...props}>
 				{content}
+			</PopoverWrapper>
+		</>
+	)
+}
+
+const CopyContent = styled.div`
+	padding: 8px;
+
+	p {
+		padding: 8px;
+		background: black;
+		border-radius: 8px;
+	}
+`
+
+export function EmbedChart({ color, ...props }) {
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
+	const popover = usePopoverState({ renderCallback, gutter: 8, animated: true })
+
+	const router = useRouter()
+
+	const url = `<iframe width="640px" height="360px" src="https://defillama.com/chart${router.asPath}" title="DefiLlama" frameborder="0"></iframe>`
+
+	return (
+		<>
+			<Tooltip2 content="Embed Chart">
+				<PopoverTrigger state={popover} color={color}>
+					<Code size={16} />
+				</PopoverTrigger>
+			</Tooltip2>
+
+			<PopoverWrapper state={popover} modal={!isLarge} {...props}>
+				<CopyContent>
+					<p>{url}</p>
+				</CopyContent>
 			</PopoverWrapper>
 		</>
 	)
