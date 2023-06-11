@@ -64,7 +64,6 @@ import { ProtocolPools } from './Yields'
 import { Flag } from './Flag'
 import { StablecoinInfo } from './Stablecoin'
 import { AccordionStat } from '~/layout/Stats/Large'
-import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 const scams = [
 	'Drachma Exchange',
@@ -241,6 +240,7 @@ interface IProtocolContainerProps {
 	}
 	nextEventDescription: string | null
 	methodologyUrls: { [type: string]: string | null }
+	chartDenominations?: Array<{ symbol: string; geckoId: string | null }>
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -275,7 +275,8 @@ function ProtocolContainer({
 	tokenLiquidity,
 	tokenCGData,
 	nextEventDescription,
-	methodologyUrls
+	methodologyUrls,
+	chartDenominations = []
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -433,19 +434,7 @@ function ProtocolContainer({
 
 	const tab = useTabState({ defaultSelectedId })
 
-	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
-
-	if (!isCEX && chains && chains.length > 0) {
-		chartDenominations.push({ symbol: 'USD', geckoId: null })
-
-		if (chainCoingeckoIds[chains[0]]?.geckoId) {
-			chartDenominations.push(chainCoingeckoIds[chains[0]])
-		} else {
-			chartDenominations.push(chainCoingeckoIds['Ethereum'])
-		}
-	}
-
-	const { data: chainPrice, loading: fetchingChainPrice } = useGetTokenPrice(chartDenominations[1]?.geckoId)
+	const { data: chainPrice, loading: fetchingChainPrice } = useGetTokenPrice(chartDenominations?.[1]?.geckoId)
 
 	const formatPrice = (value?: number | string | null): string | number | null => {
 		if (Number.isNaN(Number(value))) return null

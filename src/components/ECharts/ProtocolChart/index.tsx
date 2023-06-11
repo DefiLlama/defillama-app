@@ -28,6 +28,7 @@ export default function AreaBarChart({
 	chartOptions,
 	height = '360px',
 	unlockTokenSymbol = '',
+	isDarkMode,
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -35,7 +36,8 @@ export default function AreaBarChart({
 	const { groupBy } = router.query
 	const isCumulative = router.isReady && groupBy === 'cumulative' ? true : false
 
-	const [isDark] = useDarkModeManager()
+	const theme = useDarkModeManager()
+	const isDark = isDarkMode ?? theme[0]
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -43,7 +45,8 @@ export default function AreaBarChart({
 		valueSymbol,
 		tooltipSort,
 		hideLegend: true,
-		unlockTokenSymbol
+		unlockTokenSymbol,
+		isDarkMode
 	})
 
 	const { series, yAxisByIndex } = useMemo(() => {

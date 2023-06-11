@@ -52,6 +52,7 @@ interface IUseDefaultsProps {
 	hideLegend?: boolean
 	isStackedChart?: boolean
 	unlockTokenSymbol?: string
+	isDarkMode?: boolean
 }
 
 export function useDefaults({
@@ -62,9 +63,12 @@ export function useDefaults({
 	valueSymbol = '',
 	hideLegend,
 	isStackedChart,
-	unlockTokenSymbol = ''
+	unlockTokenSymbol = '',
+	isDarkMode
 }: IUseDefaultsProps) {
-	const [isDark] = useDarkModeManager()
+	const theme = useDarkModeManager()
+	const isDark = isDarkMode ?? theme[0]
+
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
 	const defaults = useMemo(() => {

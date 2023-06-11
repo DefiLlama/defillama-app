@@ -14,7 +14,7 @@ import { SelectLegendMultiple } from '~/components/ECharts/shared'
 import { getColor } from '~/utils/getColor'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { useDefiManager } from '~/contexts/LocalStorage'
-import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/ProtocolChart'
+import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { fuseProtocolData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 

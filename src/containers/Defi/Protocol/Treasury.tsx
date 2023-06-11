@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic'
 import { useFetchProtocolTreasury } from '~/api/categories/protocols/client'
-import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/ProtocolChart'
+import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { ChartsWrapper, LazyChart, Section } from '~/layout/ProtocolAndPool'
 import { buildProtocolAddlChartsData } from './utils'

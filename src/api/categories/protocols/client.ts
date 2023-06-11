@@ -16,6 +16,7 @@ import { formatProtocolsData } from './utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchAndFormatGovernanceData } from '~/containers/Defi/Protocol/Governance'
+import { buildProtocolAddlChartsData } from '~/containers/Defi/Protocol/utils'
 
 const fetch = fetchWithErrorLogging
 
@@ -27,6 +28,22 @@ export const useFetchProtocolsList = () => {
 
 export const useFetchProtocol = (protocolName) => {
 	const { data, error } = useSWR(`updatedProtocolsData/${protocolName}`, () => getProtocol(protocolName))
+
+	const loading = protocolName && !data && !error
+
+	return { data, error, loading }
+}
+
+export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
+	const { data, error } = useSWR(
+		`updatedProtocolsDataWithInflows/${protocolName}/${JSON.stringify(extraTvlsEnabled)}`,
+		protocolName
+			? () =>
+					getProtocol(protocolName)
+						.then((protocolData) => buildProtocolAddlChartsData({ protocolData, extraTvlsEnabled }))
+						.catch(() => null)
+			: () => null
+	)
 
 	const loading = protocolName && !data && !error
 
