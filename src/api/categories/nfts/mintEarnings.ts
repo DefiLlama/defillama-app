@@ -408,12 +408,6 @@ export const NFT_MINT_EARNINGS = [
 		endMint: '2021-12-23 1:32:05'
 	},
 	{
-		contractAddress: '0x0b4b2ba334f476c8f41bfe52a428d6891755554d',
-		usdSales: 49560073.57,
-		startMint: '2021-11-19 15:42:38',
-		endMint: '2021-11-23 3:03:10'
-	},
-	{
 		contractAddress: '0x6fd053bff10512d743fa36c859e49351a4920df6',
 		usdSales: 6996208.975,
 		startMint: '2022-01-14 12:11:44',
