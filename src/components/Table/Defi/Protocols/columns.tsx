@@ -81,39 +81,6 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		size: 120
 	},
 	{
-		header: '7d Volume',
-		accessorKey: 'volume_7d',
-		cell: (info) => {
-			return <>{info.getValue() ? '$' + formattedNum(info.getValue()) : null}</>
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 100
-	},
-	{
-		header: '7d Fees',
-		accessorKey: 'fees_7d',
-		cell: (info) => {
-			return <>{info.getValue() ? '$' + formattedNum(info.getValue()) : null}</>
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 100
-	},
-	{
-		header: '7d Revenue',
-		accessorKey: 'revenue_7d',
-		cell: (info) => {
-			return <>{info.getValue() ? '$' + formattedNum(info.getValue()) : null}</>
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
