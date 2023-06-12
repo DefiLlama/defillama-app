@@ -218,7 +218,8 @@ export const navLinks: ILinks = {
 	NFT: {
 		main: [
 			{ name: 'Collections', path: '/nfts' },
-			{ name: 'Marketplaces', path: '/nfts/marketplaces' }
+			{ name: 'Marketplaces', path: '/nfts/marketplaces' },
+			{ name: 'Earnings', path: '/nfts/earnings' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <ImageIcon size={16} />,

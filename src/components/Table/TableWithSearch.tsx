@@ -5,7 +5,9 @@ import {
 	getCoreRowModel,
 	getSortedRowModel,
 	ColumnFiltersState,
-	getFilteredRowModel
+	getFilteredRowModel,
+	ExpandedState,
+	getExpandedRowModel
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
 import { SearchIcon, TableFiltersWithInput } from './shared'
@@ -13,19 +15,24 @@ import { SearchIcon, TableFiltersWithInput } from './shared'
 export function TableWithSearch({ data, columns, placeholder, columnToSearch }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
+	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 
 	const instance = useReactTable({
 		data,
 		columns,
 		state: {
 			sorting,
-			columnFilters
+			columnFilters,
+			expanded
 		},
+		onExpandedChange: setExpanded,
+		getSubRows: (row: any) => row.subRows,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
+		getSortedRowModel: getSortedRowModel(),
+		getExpandedRowModel: getExpandedRowModel()
 	})
 
 	const [projectName, setProjectName] = React.useState('')

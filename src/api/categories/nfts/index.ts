@@ -20,6 +20,7 @@ import {
 } from '~/constants'
 import { getColorFromNumber, getDominancePercent } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
+import { NFT_MINT_EARNINGS } from './mintEarnings'
 
 const fetch = fetchWithErrorLogging
 
@@ -195,18 +196,22 @@ export const getNFTMarketplacesData = async () => {
 	}
 }
 
-export const getNFTRoyaltyData = async () => {
+export const getNFTCollectionEarnings = async () => {
 	try {
-		const [royalties, collections] = await Promise.all([
+		const [parentCompanies, royalties, collections] = await Promise.all([
+			fetch(
+				'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/nfts/output/parentCompanies.json'
+			).then((res) => res.json()),
 			fetch(NFT_ROYALTIES_API).then((r) => r.json()),
 			fetch(NFT_COLLECTIONS_API).then((r) => r.json())
 		])
 
-		const data = collections
+		const collectionEarnings = collections
 			.map((c) => {
 				const royalty = royalties.find((r) => `0x${r.collection}` === c.collectionId)
+				const mintEarnings = NFT_MINT_EARNINGS.find((r) => r.contractAddress === c.collectionId)
 
-				if (!royalty) return {}
+				if (!royalty && !mintEarnings) return {}
 
 				return {
 					defillamaId: c.collectionId,
@@ -214,21 +219,67 @@ export const getNFTRoyaltyData = async () => {
 					displayName: c.name,
 					logo: `https://nft-icons.llamao.fi/icons/nfts/${c.collecitonId}?w=48&h=48`,
 					chains: ['Ethereum'],
-					total24h: royalty.usd1D,
-					total7d: royalty.usd7D,
-					total30d: royalty.usd30D
-					// totalAllTime: royalty.usdLifetime
+					total24h: royalty?.usd1D ?? null,
+					total7d: royalty?.usd7D ?? null,
+					total30d: royalty?.usd30D ?? null,
+					totalRoyaltyEarnings: royalty?.usdLifetime ?? null,
+					totalMintEarnings: mintEarnings?.usdSales ?? null,
+					totalEarnings: (royalty?.usdLifetime ?? 0) + (mintEarnings?.usdSales ?? 0)
 				}
 			})
 			.filter((c) => c.defillamaId)
 
+		const duplicateCollections = new Set<string>()
+
+		const parentEarnings = parentCompanies.map((parent) => {
+			const subCollections = parent.nftCollections.map((x) => {
+				const address = x[0].toLowerCase()
+				duplicateCollections.add(address)
+				return address
+			})
+
+			const subCollectionEarnings = collectionEarnings.filter((c) => subCollections.includes(c.defillamaId))
+
+			let total24h = 0
+			let total7d = 0
+			let total30d = 0
+			let totalRoyaltyEarnings = 0
+			let totalMintEarnings = 0
+			let totalEarnings = 0
+
+			subCollectionEarnings.forEach((c) => {
+				total24h += c.total24h ?? 0
+				total7d += c.total7d ?? 0
+				total30d += c.total30d ?? 0
+				totalRoyaltyEarnings += c.totalRoyaltyEarnings ?? 0
+				totalMintEarnings += c.totalMintEarnings ?? 0
+				totalEarnings += c.totalEarnings ?? 0
+			})
+
+			return {
+				defillamaId: subCollections.join('+'),
+				name: parent.name,
+				displayName: parent.name,
+				chains: ['Ethereum'],
+				total24h,
+				total7d,
+				total30d,
+				totalRoyaltyEarnings,
+				totalMintEarnings,
+				totalEarnings,
+				subRows: subCollectionEarnings
+			}
+		})
+
 		return {
-			royalties: data
+			earnings: [...parentEarnings, ...collectionEarnings.filter((c) => !duplicateCollections.has(c.defillamaId))].sort(
+				(a, b) => b.totalEarnings - a.totalEarnings
+			)
 		}
 	} catch (err) {
 		console.log(err)
 		return {
-			royalties: []
+			earnings: []
 		}
 	}
 }
