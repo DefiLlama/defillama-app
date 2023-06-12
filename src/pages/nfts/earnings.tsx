@@ -27,11 +27,11 @@ export const getStaticProps = withPerformanceLogging('nfts/marketplaces', async 
 function Earnings({ earnings }) {
 	//x
 	return (
-		<Layout title="NFTs Earnings - DefiLlama" defaultSEO>
+		<Layout title="NFT Earnings - DefiLlama" defaultSEO>
 			<NFTsSearch
 				step={{
 					category: 'Home',
-					name: 'NFTs Earnings',
+					name: 'NFT Earnings',
 					route: '',
 					hideOptions: true
 				}}
