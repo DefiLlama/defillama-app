@@ -133,6 +133,7 @@ export function ProtocolsTableWithSearch({
 			columnSizing,
 			columnFilters
 		},
+		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
 		onSortingChange: setSorting,

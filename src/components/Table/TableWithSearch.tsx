@@ -25,6 +25,7 @@ export function TableWithSearch({ data, columns, placeholder, columnToSearch }) 
 			columnFilters,
 			expanded
 		},
+		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
 		getSubRows: (row: any) => row.subRows,
 		onSortingChange: setSorting,
