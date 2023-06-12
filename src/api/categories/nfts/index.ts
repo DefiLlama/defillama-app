@@ -217,7 +217,7 @@ export const getNFTCollectionEarnings = async () => {
 					defillamaId: c.collectionId,
 					name: c.name,
 					displayName: c.name,
-					logo: `https://nft-icons.llamao.fi/icons/nfts/${c.collecitonId}?w=48&h=48`,
+					logo: `https://nft-icons.llamao.fi/icons/nfts/${c.collectionId}?w=48&h=48`,
 					chains: ['Ethereum'],
 					total24h: royalty?.usd1D ?? null,
 					total7d: royalty?.usd7D ?? null,
@@ -305,8 +305,8 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 				totalDataChart: royaltyChart,
 				total24h: royalty[0].usd1D,
 				total7d: royalty[0].usd7D,
-				total30d: royalty[0].usd30D
-				// totalAllTime: royalty[0].usdLifetime
+				total30d: royalty[0].usd30D,
+				totalAllTime: royalty[0].usdLifetime
 			}
 		]
 

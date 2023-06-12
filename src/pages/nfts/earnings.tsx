@@ -7,10 +7,11 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { Header } from '~/Theme'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ColumnDef } from '@tanstack/react-table'
-import { ChevronDown, ChevronRight } from 'react-feather'
+import { ChevronDown, ChevronRight, Minus } from 'react-feather'
 import { AccordionButton, Name } from '~/components/Table/shared'
 import { formattedNum } from '~/utils'
 import TokenLogo from '~/components/TokenLogo'
+import Link from '~/components/Link'
 
 export const getStaticProps = withPerformanceLogging('nfts/marketplaces', async () => {
 	const data = await getNFTCollectionEarnings()
@@ -85,9 +86,15 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 
 					<span>{index + 1}</span>
 
-					{row.original.logo ? <TokenLogo logo={row.original.logo} data-lgonly /> : null}
+					<TokenLogo logo={row.original.logo ?? row.subRows[0].original.logo} data-lgonly />
 
-					<span>{value}</span>
+					{row.subRows?.length === 0 ? (
+						<Link href={`royalties/${row.original.defillamaId}`}>
+							<span>{value}</span>
+						</Link>
+					) : (
+						<span>{value}</span>
+					)}
 				</Name>
 			)
 		},
