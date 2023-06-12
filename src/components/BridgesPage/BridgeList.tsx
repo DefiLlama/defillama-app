@@ -149,18 +149,27 @@ function BridgesOverview({
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
 		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
 		// start from i = 1 to exclude current day
-		for (let i = 0; i < 31; i++) {
-			const dailyVolume = getPrevVolumeFromChart(chainVolumeData, i, false, selectedChain !== 'All')
-			if (i < 1) {
-				dayTotalVolume += dailyVolume
+
+		if (filteredBridges) {
+			filteredBridges?.forEach((bridge) => {
+				dayTotalVolume += Number(bridge?.lastDailyVolume) || 0
+				weekTotalVolume += Number(bridge?.weeklyVolume) || 0
+				monthTotalVolume += Number(bridge?.monthlyVolume) || 0
+			})
+		} else {
+			for (let i = 0; i < 31; i++) {
+				const dailyVolume = getPrevVolumeFromChart(chainVolumeData, i, false, selectedChain !== 'All')
+				if (i < 1) {
+					dayTotalVolume += dailyVolume
+				}
+				if (i < 8) {
+					weekTotalVolume += dailyVolume
+				}
+				monthTotalVolume += dailyVolume
 			}
-			if (i < 8) {
-				weekTotalVolume += dailyVolume
-			}
-			monthTotalVolume += dailyVolume
 		}
 		return { dayTotalVolume, weekTotalVolume, monthTotalVolume }
-	}, [chainVolumeData, selectedChain])
+	}, [chainVolumeData, selectedChain, filteredBridges])
 
 	return (
 		<>
