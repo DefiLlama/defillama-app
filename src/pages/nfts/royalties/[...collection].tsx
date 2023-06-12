@@ -43,7 +43,6 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 }) as React.FC<IBarChartProps>
 
 export default function Collection(props) {
-	console.log(props)
 	return (
 		<Layout title={props.name + ' Royalties - DefiLlama'}>
 			<StatsSection>
