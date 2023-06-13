@@ -10,7 +10,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight, Minus } from 'react-feather'
 import { AccordionButton, Name } from '~/components/Table/shared'
 import { formattedNum } from '~/utils'
-import TokenLogo from '~/components/TokenLogo'
+import TokenLogo, { FallbackLogo } from '~/components/TokenLogo'
 import Link from '~/components/Link'
 
 export const getStaticProps = withPerformanceLogging('nfts/marketplaces', async () => {
@@ -71,6 +71,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			const logo = row.original.logo ?? row.subRows?.[0]?.original?.logo
 
 			return (
 				<Name depth={row.depth}>
@@ -86,7 +87,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 
 					<span>{index + 1}</span>
 
-					<TokenLogo logo={row.original.logo ?? row.subRows[0].original.logo} data-lgonly />
+					{logo ? <TokenLogo logo={logo} data-lgonly /> : <FallbackLogo />}
 
 					{row.subRows?.length === 0 ? (
 						<Link href={`royalties/${row.original.defillamaId}`}>

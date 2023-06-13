@@ -22,6 +22,17 @@ const Image = styled.img`
 	flex-shrink: 0;
 `
 
+export const FallbackLogo = styled.span`
+	display: inline-block;
+	object-fit: cover;
+	aspect-ratio: 1;
+	background: ${({ theme }) => theme.bg3};
+	border-radius: 50%;
+	flex-shrink: 0;
+	height: 24px;
+	width: 24px;
+`
+
 export default function TokenLogo({ logo = null, size = 24, style, id, fallbackLogo, ...rest }: TokenLogoProps) {
 	return (
 		<Image
