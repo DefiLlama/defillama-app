@@ -150,7 +150,7 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Pools', path: '/yields' },
 			{ name: 'Delta Neutral', path: '/yields/strategy' },
-			{ name: 'Long-Short Strats', path: '/yields/strategyLongShort', newTag: true },
+			{ name: 'Long-Short Strats', path: '/yields/strategyLongShort' },
 			{ name: 'Leveraged Lending', path: '/yields/loop' },
 			{ name: 'Borrow', path: '/yields/borrow' },
 			{ name: 'Overview', path: '/yields/overview' },

@@ -116,6 +116,14 @@ export const attributeOptions = [
 		},
 		defaultFilterFnOnPage: {},
 		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/yields/loop']
+	},
+	{
+		name: 'Potential Airdrop',
+		key: YIELDS_SETTINGS.AIRDROP.toLowerCase(),
+		help: 'Select projects which have no token yet and might airdrop one to depositors in the future',
+		filterFn: (item) => item.airdrop === true,
+		defaultFilterFnOnPage: {},
+		disabledOnPages: ['/borrow', '/yields/strategy', '/yields/strategyFR']
 	}
 ]
 
