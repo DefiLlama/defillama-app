@@ -1,4 +1,3 @@
-import ChainPage from '~/components/ChainPage'
 import { PROTOCOLS_API } from '~/constants/index'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
@@ -12,8 +11,13 @@ import { getChainsPageData, getOverviewItemPageData, getChainPageData as getFees
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { ChainContainer } from '~/containers/ChainContainer'
 
 const fetch = fetchWithErrorLogging
+
+const sum = (obj) => {
+	return Object.values(obj).reduce((acc, curr) => (typeof curr === 'number' ? (acc += curr) : acc), 0)
+}
 
 export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params }) => {
 	const chain = params.chain
@@ -21,7 +25,7 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 	const [data, volumeData, chainVolumeData, feesData, usersData, txsData, chainFeesData, bridgeData, stablecoinsData] =
 		await Promise.all([
 			getChainPageData(chain),
-			chain === "All" ? getChainsPageData('dexs') : null,
+			chain === 'All' ? getChainsPageData('dexs') : null,
 			getChainVolume('dexs', chain)
 				.catch(() => ({}))
 				.then((r) => (r.total24h === undefined ? {} : r)),
@@ -35,26 +39,62 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 			getPeggedOverviewPageData(chain).catch(() => null)
 		])
 
+	// TODO remove duplicate in index.js
+	const chainProtocolsVolumes = []
+	if (chainVolumeData) {
+		chainVolumeData?.protocols?.forEach((prototcol) =>
+			chainProtocolsVolumes.push(prototcol, ...(prototcol?.subRows || []))
+		)
+	}
+
+	const chainProtocolsFees = []
+
+	if (chainFeesData) {
+		chainFeesData?.protocols?.forEach((prototcol) => chainProtocolsFees.push(prototcol, ...(prototcol?.subRows || [])))
+	}
+
+	const bridgeChartData = bridgeData
+		? bridgeData?.chainVolumeData?.map((volume) => [
+				volume?.date ?? null,
+				volume?.Deposits ?? null,
+				volume.Withdrawals ?? null
+		  ])
+		: null
+
+	const volumeChart =
+		chain === 'All' || volumeData?.totalDataChart[0]?.[0][chain]
+			? volumeData?.totalDataChart?.[0].map((val) => [val.date, (chain === 'All' ? sum(val) : val[chain]) ?? null])
+			: null
+
+	const feesChart = feesData?.totalDataChart?.[0].length
+		? feesData?.totalDataChart?.[0]?.map((val) => [val.date, val.Fees ?? null, val.Revenue ?? null])
+		: null
+
+	const raisesData = null
+	const raisesChart = null
+
 	return {
 		props: {
 			...data.props,
-			volumeData: volumeData || null,
-			chainVolumeData: chainVolumeData || null,
-			feesData: feesData || null,
-			usersData: usersData || null,
-			chainFeesData: chainFeesData || null,
-			txsData: txsData || null,
-			bridgeData: bridgeData || null,
-			stablecoinsData: stablecoinsData || null
+			raisesData,
+			stablecoinsData,
+			chainProtocolsVolumes,
+			chainProtocolsFees,
+			bridgeChartData,
+			volumeChart,
+			feesChart,
+			raisesChart,
+			usersData,
+			txsData
 		},
 		revalidate: maxAgeForNext([22])
 	}
 })
 
 export async function getStaticPaths() {
-	const res = await fetch(PROTOCOLS_API)
+	const res = await fetch(PROTOCOLS_API).then((res) => res.json())
 
-	const paths = (await res.json()).chains.slice(0, 20).map((chain) => ({
+	const paths = res.chains.slice(0, 20).map((chain) => ({
 		params: { chain }
 	}))
 
@@ -64,7 +104,7 @@ export async function getStaticPaths() {
 export default function Chain({ chain, ...props }) {
 	return (
 		<Layout title={`${chain} TVL - DefiLlama`}>
-			<ChainPage {...props} selectedChain={chain} />
+			<ChainContainer {...props} selectedChain={chain} />
 		</Layout>
 	)
 }

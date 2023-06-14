@@ -4,13 +4,17 @@ import Link from 'next/link'
 import { Button, Popover } from '~/components/DropdownMenu'
 import { Input, Item, List } from '~/components/Combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
+import styled from 'styled-components'
+import { darken, transparentize } from 'polished'
 
 interface IProps {
 	options: { label: string; to: string }[]
 	name: string
+	variant: 'primary' | 'secondary'
+	isActive: boolean
 }
 
-export function OtherLinks({ options, name }: IProps) {
+export function OtherLinks({ options, name, variant, isActive, ...props }: IProps) {
 	const defaultList = options.map((l) => l.to)
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
@@ -26,10 +30,10 @@ export function OtherLinks({ options, name }: IProps) {
 
 	return (
 		<>
-			<Button state={menu} style={{ fontWeight: 600 }}>
+			<Trigger state={menu} data-variant={variant} data-active={isActive} {...props}>
 				<span>{name}</span>
 				<MenuButtonArrow />
-			</Button>
+			</Trigger>
 			<Popover state={menu} modal={!isLarge} composite={false}>
 				<Input state={combobox} placeholder="Search..." autoFocus />
 				{combobox.matches.length > 0 ? (
@@ -49,3 +53,32 @@ export function OtherLinks({ options, name }: IProps) {
 		</>
 	)
 }
+
+const Trigger = styled(Button)`
+	font-weight: 600;
+
+	&[data-variant='secondary'] {
+		width: 100%;
+	}
+
+	&[data-active='false'] {
+		height: 32px;
+		margin: auto 0;
+		background-color: ${({ theme }) =>
+			theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};
+	}
+
+	&[data-active='true'] {
+		background-color: ${({ color, theme }) => (color ? color : theme.primary1)};
+		color: white;
+		height: 32px;
+		margin: auto 0;
+		background-color: ${({ theme }) =>
+			theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};
+
+		:hover,
+		:focus-visible {
+			background-color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.primary1))};
+		}
+	}
+`

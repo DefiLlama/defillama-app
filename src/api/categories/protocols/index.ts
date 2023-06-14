@@ -359,11 +359,14 @@ export async function getChainPageData(chain?: string) {
 		props: {
 			...(chain && { chain }),
 			chainsSet: chains,
+			chainOptions: ['All'].concat(chains).map((label) => ({ label, to: setSelectedChain(label) })),
 			protocolsList,
 			...charts
 		}
 	}
 }
+
+const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
 // - used in /oracles and /oracles/[name]
 export async function getOraclePageData(oracle = null) {

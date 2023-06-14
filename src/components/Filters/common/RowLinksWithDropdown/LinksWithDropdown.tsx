@@ -18,7 +18,7 @@ interface IRowLinksProps {
 
 const GAP = 6
 
-const Wrapper = styled.ul`
+const Wrapper = styled.div`
 	flex: 1;
 	overflow: hidden;
 	padding: 4px;
@@ -27,13 +27,8 @@ const Wrapper = styled.ul`
 	gap: ${GAP}px;
 	max-height: calc(1.8rem + 14px);
 
-	& > li {
-		list-style: none;
+	& > * {
 		display: inline-block;
-
-		& > * {
-			display: inline-block;
-		}
 	}
 `
 
@@ -44,7 +39,7 @@ export const RowLinksWrapper = styled.nav`
 	overflow: hidden;
 	margin-bottom: -20px;
 
-	& > ul {
+	& > * {
 		padding: 4px 0;
 	}
 `
@@ -105,7 +100,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 		}
 	}, [calcFiltersToRender])
 
-	const { linksInRow, dropdownLinks } = useMemo(() => {
+	const { linksInRow, dropdownLinks, isLinkInDropdown } = useMemo(() => {
 		if (lastIndexToRender === 'renderMenu') {
 			return { linksInRow: null, dropdownLinks: links }
 		}
@@ -114,8 +109,10 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 
 		const dropdownLinks = lastIndexToRender ? links.slice(linksInRow.length) : null
 
-		return { linksInRow, dropdownLinks }
-	}, [links, lastIndexToRender])
+		const isLinkInDropdown = dropdownLinks?.find((link) => link.label === activeLink) ? true : false
+
+		return { linksInRow, dropdownLinks, isLinkInDropdown }
+	}, [links, lastIndexToRender, activeLink])
 
 	return (
 		<>
@@ -126,11 +123,12 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 					))}
 				</Wrapper>
 			)}
+
 			{dropdownLinks && (
 				<OtherLinks
-					name={
-						dropdownLinks.find((link) => link.label === activeLink) ? activeLink : alternativeOthersText ?? 'Others'
-					}
+					name={isLinkInDropdown ? activeLink : alternativeOthersText ?? 'Others'}
+					variant="primary"
+					isActive={isLinkInDropdown}
 					options={dropdownLinks}
 				/>
 			)}
@@ -140,15 +138,17 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 
 const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
-		<li {...props}>
-			<Link scroll={false} href={option.to} prefetch={false} passHref>
-				{option.label === activeLink ? (
-					<ButtonDark as="a">{option.label}</ButtonDark>
-				) : (
-					<InactiveLink as="a">{option.label}</InactiveLink>
-				)}
-			</Link>
-		</li>
+		<Link scroll={false} href={option.to} prefetch={false} passHref>
+			{option.label === activeLink ? (
+				<ButtonDark as="a" {...props}>
+					{option.label}
+				</ButtonDark>
+			) : (
+				<InactiveLink as="a" {...props}>
+					{option.label}
+				</InactiveLink>
+			)}
+		</Link>
 	)
 }
 

@@ -11,6 +11,7 @@ interface IRowLinksProps {
 	links: ILink[]
 	activeLink?: string
 	alternativeOthersText?: string
+	variant?: 'primary' | 'secondary'
 }
 
 const RowLinksWithDropdown = (props: IRowLinksProps) => {
@@ -25,6 +26,8 @@ const RowLinksWithDropdown = (props: IRowLinksProps) => {
 						: props.alternativeOthersText ?? 'Others'
 				}
 				options={props.links}
+				variant={props.variant ?? 'primary'}
+				isActive={true}
 			/>
 		)
 	}

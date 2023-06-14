@@ -45,7 +45,7 @@ import {
 	tokenIconUrl
 } from '~/utils'
 import { useFetchProtocol, useGetTokenPrice } from '~/api/categories/protocols/client'
-import type { IFusedProtocolData, IRaise } from '~/api/types'
+import type { IFusedProtocolData } from '~/api/types'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
 import { TreasuryChart } from './Treasury'
@@ -293,7 +293,6 @@ function ProtocolContainer({
 		audit_links,
 		methodology,
 		historicalChainTvls,
-		chains = [],
 		forkedFrom,
 		otherProtocols,
 		hallmarks,
