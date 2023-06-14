@@ -87,8 +87,11 @@ export function toFilterPool({
 export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes) => {
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
-			(tokenToLend === 'USD_Stables' ? true : symbol.includes(tokenToLend)) && ltv > 0 && !symbol.includes('AMM')
+			(tokenToLend === 'USD_Stables' ? true : removeMetaTag(symbol).includes(tokenToLend)) &&
+			ltv > 0 &&
+			!removeMetaTag(symbol).includes('AMM')
 	)
+
 	const availableProjects = availableToLend.map(({ project }) => project)
 	const availableChains = availableToLend.map(({ chain }) => chain)
 
@@ -96,8 +99,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 		if (
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
-			(tokenToBorrow === 'USD_Stables' ? false : !pool.symbol.includes(tokenToBorrow)) ||
-			pool.symbol.includes('AMM') ||
+			(tokenToBorrow === 'USD_Stables' ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow)) ||
+			removeMetaTag(pool.symbol).includes('AMM') ||
 			pool.borrowable === false ||
 			(pool.project === 'liqee' && (tokenToLend === 'RETH' || tokenToBorrow === 'RETH'))
 		)
@@ -108,11 +111,12 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 			(collateralPool) =>
 				collateralPool.chain === pool.chain &&
 				collateralPool.project === pool.project &&
-				((tokenToLend === 'STETH' && tokenToBorrow === 'ETH') || !collateralPool.symbol.includes(tokenToBorrow)) &&
+				((tokenToLend === 'STETH' && tokenToBorrow === 'ETH') ||
+					!removeMetaTag(collateralPool.symbol).includes(tokenToBorrow)) &&
 				collateralPool.pool !== pool.pool &&
 				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
 				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true) &&
-				(pool.project === 'compound-v3' ? pool.symbol === 'USDC' : true)
+				(pool.project === 'compound-v3' ? pool.borrowable && collateralPool.poolMeta === pool.poolMeta : true)
 		)
 
 		const poolsPairs = collatteralPools.map((collatteralPool) => ({
