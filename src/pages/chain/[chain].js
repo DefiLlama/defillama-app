@@ -12,6 +12,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { ChainContainer } from '~/containers/ChainContainer'
+import { buildPeggedChartData } from '~/utils/stablecoins'
 
 const fetch = fetchWithErrorLogging
 
@@ -73,11 +74,20 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 	const raisesData = null
 	const raisesChart = null
 
+	const { peggedAreaTotalData } = buildPeggedChartData(
+		stablecoinsData?.chartDataByPeggedAsset,
+		stablecoinsData?.peggedAssetNames,
+		Object.values(stablecoinsData?.peggedNameToChartDataIndex || {}),
+		'mcap',
+		stablecoinsData?.chainTVLData,
+		chain
+	)
+
 	return {
 		props: {
 			...data.props,
 			raisesData,
-			stablecoinsData,
+			stablecoinsChartData: peggedAreaTotalData,
 			chainProtocolsVolumes,
 			chainProtocolsFees,
 			bridgeChartData,
@@ -85,7 +95,8 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 			feesChart,
 			raisesChart,
 			usersData,
-			txsData
+			txsData,
+			totalFundingAmount: null
 		},
 		revalidate: maxAgeForNext([22])
 	}

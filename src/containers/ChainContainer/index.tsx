@@ -15,13 +15,13 @@ import dynamic from 'next/dynamic'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { getUtcDateObject } from '~/components/ECharts/utils'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
-import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import Image from 'next/future/image'
 import llamaLogo from '~/assets/peeking-llama.png'
-import { DetailsWrapper } from '~/layout/ProtocolAndPool'
-import { Stat } from '~/layout/Stats/Large'
-import { DownloadIcon } from '~/components'
+import { DetailsWrapper, DownloadButton } from '~/layout/ProtocolAndPool'
+import { AccordionStat, Stat, StatInARow } from '~/layout/Stats/Large'
+import Link from 'next/link'
+import { ChevronRight, DownloadCloud } from 'react-feather'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -50,13 +50,14 @@ export function ChainContainer({
 	extraTvlCharts = {},
 	usersData,
 	txsData,
-	stablecoinsData = {},
+	stablecoinsChartData = [],
 	chainProtocolsVolumes,
 	chainProtocolsFees,
 	bridgeChartData,
 	volumeChart,
 	feesChart,
-	raisesChart
+	raisesChart,
+	totalFundingAmount
 }) {
 	const {
 		fullProtocolsList,
@@ -105,7 +106,7 @@ export function ChainContainer({
 		useDenominationPriceHistory(chainGeckoId)
 	const isLoadingChartData = denomination !== 'USD' && fetchingDenominationPriceHistory
 
-	const { totalVauleUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
+	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
 			let sum = data[1]
 			Object.entries(extraTvlCharts).forEach(([prop, propCharts]: [string, Array<[number, number]>]) => {
@@ -139,17 +140,8 @@ export function ChainContainer({
 		const tvlPrevDay = getPrevTvlFromChart(globalChart, 1)
 		const valueChangeUSD = getPercentChange(tvl, tvlPrevDay)
 
-		return { totalVauleUSD: tvl, valueChangeUSD, globalChart }
+		return { totalValueUSD: tvl, valueChangeUSD, globalChart }
 	}, [chart, extraTvlsEnabled, extraTvlCharts])
-
-	const { peggedAreaTotalData } = useBuildPeggedChartData(
-		(stablecoinsData as any)?.chartDataByPeggedAsset,
-		(stablecoinsData as any)?.peggedAssetNames,
-		Object.values((stablecoinsData as any)?.peggedNameToChartDataIndex || {}),
-		'mcap',
-		(stablecoinsData as any)?.chainTVLData,
-		selectedChain
-	)
 
 	const { DENOMINATIONS, chartOptions, chartDatasets } = React.useMemo(() => {
 		const priceHistory =
@@ -192,7 +184,7 @@ export function ChainContainer({
 				chainProtocolsVolumes,
 				globalChart: finalTvlChart,
 				raisesData: raisesChart,
-				totalStablesData: peggedAreaTotalData,
+				totalStablesData: stablecoinsChartData,
 				bridgeData: bridgeChartData,
 				usersData: usersData,
 				txsData: txsData
@@ -245,7 +237,7 @@ export function ChainContainer({
 			{
 				id: 'stables',
 				name: 'Stablecoins',
-				isVisible: peggedAreaTotalData && peggedAreaTotalData?.length > 0
+				isVisible: stablecoinsChartData && stablecoinsChartData?.length > 0
 			},
 			{
 				id: 'inflows',
@@ -269,7 +261,7 @@ export function ChainContainer({
 		CHAIN_SYMBOL,
 		bridgeChartData,
 		selectedChain,
-		peggedAreaTotalData,
+		stablecoinsChartData,
 		chainProtocolsFees,
 		chainProtocolsVolumes,
 		raisesChart,
@@ -317,9 +309,9 @@ export function ChainContainer({
 		}
 	}
 
-	const tvl = formattedNum(totalVauleUSD, true)
+	const tvl = formattedNum(totalValueUSD, true)
 	const percentChange = valueChangeUSD?.toFixed(2)
-	const dominance = getTokenDominance(topToken, totalVauleUSD)
+	const dominance = getTokenDominance(topToken, totalValueUSD)
 
 	return (
 		<>
@@ -368,32 +360,90 @@ export function ChainContainer({
 
 				<StatsSection>
 					<OverallMetricsWrapper>
-						<StatWithDownloadOption>
-							<span>Total Value Locked</span>
-							<span>{tvl}</span>
-							<a
-								href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
-									.filter((t) => t[1] === true)
-									.map((t) => `${t[0]}=true`)
-									.join('&')}`}
-								target="_blank"
-								rel="noreferrer"
-								data-download
-							>
-								<DownloadIcon />
-								<span>&nbsp;&nbsp;.csv</span>
-							</a>
-						</StatWithDownloadOption>
+						<AccordionStat>
+							<summary>
+								<span data-arrowicon>
+									<ChevronRight size={20} />
+								</span>
 
-						<Stat>
-							<span>Change (24h)</span>
-							<span>{percentChange || 0}%</span>
-						</Stat>
+								<span data-summaryheader>
+									<span>Total Value Locked</span>
+									<span>{tvl}</span>
+								</span>
 
-						<Stat>
-							<span>{topToken.name} Dominance</span>
-							<span>{dominance}%</span>
-						</Stat>
+								<Link
+									href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
+										.filter((t) => t[1] === true)
+										.map((t) => `${t[0]}=true`)
+										.join('&')}`}
+									passHref
+								>
+									<DownloadButton
+										as="a"
+										style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
+										target="_blank"
+										rel="noreferrer"
+									>
+										<DownloadCloud size={14} />
+										<span>&nbsp;&nbsp;.csv</span>
+									</DownloadButton>
+								</Link>
+							</summary>
+
+							<span>
+								<StatInARow>
+									<span>Change (24h)</span>
+									<span>{percentChange || 0}%</span>
+								</StatInARow>
+
+								<StatInARow>
+									<span>{topToken.name} Dominance</span>
+									<span>{dominance}%</span>
+								</StatInARow>
+							</span>
+						</AccordionStat>
+
+						{stablecoinsChartData && stablecoinsChartData.length > 0 ? (
+							<StatInARow>
+								<span>Stablecoins Mcap</span>
+								<span>{formattedNum(stablecoinsChartData[stablecoinsChartData.length - 1]['Mcap'], true)}</span>
+							</StatInARow>
+						) : null}
+
+						{feesChart && feesChart.length > 0 ? (
+							<>
+								<StatInARow>
+									<span>Fees (24h)</span>
+									<span>{formattedNum(feesChart[feesChart.length - 1][1], true)}</span>
+								</StatInARow>
+
+								<StatInARow>
+									<span>Revenue (24h)</span>
+									<span>{formattedNum(feesChart[feesChart.length - 1][2], true)}</span>
+								</StatInARow>
+							</>
+						) : null}
+
+						{volumeChart && volumeChart.length > 0 ? (
+							<StatInARow>
+								<span>Volume (24h)</span>
+								<span>{formattedNum(volumeChart[volumeChart.length - 1][1], true)}</span>
+							</StatInARow>
+						) : null}
+
+						{totalFundingAmount ? (
+							<StatInARow>
+								<span>Total Funding Amount</span>
+								<span>{formattedNum(totalFundingAmount, true)}</span>
+							</StatInARow>
+						) : null}
+
+						{bridgeChartData && bridgeChartData.length > 0 ? (
+							<StatInARow>
+								<span>Inflows</span>
+								<span>{formattedNum(bridgeChartData[bridgeChartData.length - 1][1], true)}</span>
+							</StatInARow>
+						) : null}
 					</OverallMetricsWrapper>
 
 					<ChartWrapper>
@@ -413,7 +463,17 @@ export function ChainContainer({
 														key={id}
 														type="checkbox"
 														onClick={() => {
-															updateRoute(id, router.query[id] === 'true' ? 'false' : 'true', router)
+															updateRoute(
+																id,
+																id === 'tvl'
+																	? router.query[id] !== 'false'
+																		? 'false'
+																		: 'true'
+																	: router.query[id] === 'true'
+																	? 'false'
+																	: 'true',
+																router
+															)
 														}}
 														checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
 													/>
@@ -565,25 +625,14 @@ const EasterLlama = styled.button`
 
 const OverallMetricsWrapper = styled(DetailsWrapper)`
 	background: none;
+	gap: 16px;
+
+	& > *:first-child {
+		margin-bottom: 8px;
+	}
 
 	@media screen and (min-width: 80rem) {
 		max-width: 300px;
 		border-right: ${({ theme }) => '1px solid ' + theme.divider};
-	}
-`
-
-const StatWithDownloadOption = styled(Stat)`
-	position: relative;
-
-	& > *[data-download] {
-		padding: 4px 6px;
-		border-radius: 6px;
-		background: ${({ theme }) => theme.bg3};
-		position: absolute;
-		bottom: 0;
-		right: 0;
-		display: flex;
-		align-items: center;
-		font-size: 1rem;
 	}
 `

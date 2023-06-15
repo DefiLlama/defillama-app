@@ -11,6 +11,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import { ChainContainer } from '~/containers/ChainContainer'
 
 import { groupBy, mapValues, sumBy } from 'lodash'
+import { buildPeggedChartData } from '~/utils/stablecoins'
 
 const fetch = fetchWithErrorLogging
 
@@ -66,17 +67,27 @@ export const getStaticProps = withPerformanceLogging('index', async () => {
 			  )
 			: null
 
+	const { peggedAreaTotalData } = buildPeggedChartData(
+		stablecoinsData?.chartDataByPeggedAsset,
+		stablecoinsData?.peggedAssetNames,
+		Object.values(stablecoinsData?.peggedNameToChartDataIndex || {}),
+		'mcap',
+		stablecoinsData?.chainTVLData,
+		'All'
+	)
+
 	return {
 		props: {
 			...data.props,
 			raisesData,
-			stablecoinsData,
+			stablecoinsChartData: peggedAreaTotalData,
 			chainProtocolsVolumes,
 			chainProtocolsFees,
 			bridgeChartData,
 			volumeChart,
 			feesChart,
-			raisesChart
+			raisesChart,
+			totalFundingAmount: raisesChart ? Object.values(raisesChart).reduce((acc, curr) => (acc += curr), 0) * 1e6 : null
 		},
 		revalidate: maxAgeForNext([22])
 	}
