@@ -265,6 +265,12 @@ export const cexData: Array<ICex> = [
 		cgId: 'binance_us'
 	},
 	{
+		name: 'Okcoin',
+		slug: 'okcoin',
+		coin: null,
+		walletsLink: 'https://www.okcoin.com/proof-of-reserves/download',
+	},
+	{
 		name: 'Phemex',
 		slug: 'phemex',
 		coin: null,
