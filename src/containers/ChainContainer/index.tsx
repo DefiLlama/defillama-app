@@ -68,13 +68,6 @@ export function ChainContainer({
 
 	const router = useRouter()
 
-	// TODO remove this unecessary useeffect by fixing tvl toggle in chain chart
-	React.useEffect(() => {
-		if (selectedChain !== 'All' && !router.query.tvl) {
-			updateRoute('tvl', 'true', router)
-		}
-	}, [router, selectedChain])
-
 	const denomination = router.query?.currency ?? 'USD'
 
 	const { minTvl, maxTvl } = router.query
@@ -422,7 +415,7 @@ export function ChainContainer({
 														onClick={() => {
 															updateRoute(id, router.query[id] === 'true' ? 'false' : 'true', router)
 														}}
-														checked={router.query[id] === 'true'}
+														checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
 													/>
 													<span data-wrapper="true">
 														<span>{name}</span>
@@ -464,18 +457,20 @@ export function ChainContainer({
 									)}
 								</FiltersWrapper>
 
-								<ChainChart
-									height="360px"
-									datasets={chartDatasets}
-									customLegendName="Chain"
-									hideDefaultLegend
-									valueSymbol="$"
-									title=""
-									DENOMINATIONS={DENOMINATIONS}
-									denomination={denomination}
-									updateRoute={updateRoute}
-									hideTooltip={selectedChain === 'All'}
-								/>
+								{router.isReady && (
+									<ChainChart
+										height="360px"
+										datasets={chartDatasets}
+										customLegendName="Chain"
+										hideDefaultLegend
+										valueSymbol="$"
+										title=""
+										DENOMINATIONS={DENOMINATIONS}
+										denomination={denomination}
+										updateRoute={updateRoute}
+										hideTooltip={selectedChain === 'All'}
+									/>
+								)}
 							</>
 						)}
 					</ChartWrapper>
