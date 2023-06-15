@@ -42,7 +42,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const protocolData = fuseProtocolData(protocolRes)
-		console.log({ protocolData })
+
 		const backgroundColor = await getColor(tokenIconPaletteUrl(protocolData.name))
 
 		return {

@@ -67,6 +67,8 @@ export const getStaticProps = withPerformanceLogging('index', async () => {
 			  )
 			: null
 
+	console.log({ raisesData, raisesChart })
+
 	return {
 		props: {
 			...data.props,
