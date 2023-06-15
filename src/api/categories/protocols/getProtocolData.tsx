@@ -15,7 +15,7 @@ import {
 	YIELD_PROJECT_MEDIAN_API,
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
-import { fetchOverCacheJson, withPerformanceLogging } from '~/utils/perf'
+import { fetchOverCacheJson } from '~/utils/perf'
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
