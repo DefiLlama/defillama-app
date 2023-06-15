@@ -9,7 +9,6 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { ChainContainer } from '~/containers/ChainContainer'
-import { getUtcDateObject } from '~/components/ECharts/utils'
 
 import { groupBy, mapValues, sumBy } from 'lodash'
 
@@ -62,12 +61,10 @@ export const getStaticProps = withPerformanceLogging('index', async () => {
 	const raisesChart =
 		raisesData && raisesData?.raises
 			? mapValues(
-					groupBy(raisesData.raises, (val) => getUtcDateObject(val.date)),
+					groupBy(raisesData.raises, (val) => val.date),
 					(raises) => sumBy(raises, 'amount')
 			  )
 			: null
-
-	console.log({ raisesData, raisesChart })
 
 	return {
 		props: {

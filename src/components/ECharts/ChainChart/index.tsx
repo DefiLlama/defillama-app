@@ -246,10 +246,7 @@ export default function AreaChart({
 				})
 
 				data?.globalChart.forEach(([date, value]) => {
-					series[series.length - 1].data.push([
-						getUtcDateObject(date),
-						(data?.raisesData[getUtcDateObject(date) as any] || 0) * 1e6
-					])
+					series[series.length - 1].data.push([getUtcDateObject(date), (data?.raisesData[date] || 0) * 1e6])
 				})
 			}
 
