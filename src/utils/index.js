@@ -234,8 +234,9 @@ export function nftCollectionIconUrl(address) {
 }
 
 export function tokenIconPaletteUrl(name) {
-	const x = name ?? ''
-	return `${ICONS_PALETTE_CDN}/protocols/${x
+	if (!name) return null
+
+	return `${ICONS_PALETTE_CDN}/protocols/${name
 		.trim()
 		.toLowerCase()
 		.split(' ')
