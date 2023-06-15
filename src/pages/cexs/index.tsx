@@ -328,6 +328,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'Bitmake',
+		slug: 'bitmake',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'BitVenus',
 		slug: 'bitvenus',
 		coin: null,
@@ -437,9 +443,6 @@ export const cexData: Array<ICex> = [
 		name: 'BTCC',
 		cgId: 'btcc',
 		cgDeriv: 'btcc_futures'
-	},
-	{
-		name: 'BitVenus'
 	},
 	{
 		name: 'Deepcoin',
