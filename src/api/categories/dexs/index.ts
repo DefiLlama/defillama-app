@@ -16,7 +16,12 @@ export const getDexVolumeByChain = async ({
 		`https://api.llama.fi/overview/dexs${
 			chain && chain !== 'All' ? '/' + chain : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
-	).then((res) => res.json())
+	)
+		.then((res) => res.json())
+		.catch((err) => {
+			console.log(err)
+			return {}
+		})
 
 	return data
 }
