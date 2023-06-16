@@ -552,7 +552,7 @@ export async function getLSDPageData() {
 	const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
 	const history = await Promise.all(lsdProtocolsSlug.map((p) => fetch(`${PROTOCOL_API}/${p}`).then((r) => r.json())))
 
-	const lsdApy = pools
+	let lsdApy = pools
 		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
 		.map((p) => ({
 			...p,
@@ -563,6 +563,7 @@ export async function getLSDPageData() {
 				)
 				.join(' ')
 		}))
+	lsdApy = lsdApy.map((p) => ({ ...p, name: p.project === 'binance-staked-eth' ? 'Binance staked ETH' : p.name }))
 
 	const nameGeckoMapping = {}
 	for (const p of history) {
