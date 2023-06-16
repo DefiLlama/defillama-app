@@ -382,6 +382,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		symbol: 'STSOL'
 	},
 	{
+		name: 'Rocket Pool ETH',
+		symbol: 'RETH'
+	},
+	{
 		name: 'Marinade Staked SOL',
 		symbol: 'MSOL'
 	},
@@ -540,7 +544,9 @@ export const PROTOCOL_NAMES_MAP = {
 	bsc: 'BSC',
 	angle: 'Angle',
 	optimism: 'Optimism',
-	arbitrum: 'Arbitrum'
+	arbitrum: 'Arbitrum',
+	'gravita-protocol': 'Gravita',
+	strike: 'Strike',
 } as const
 
 export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.entries(PROTOCOL_NAMES_MAP).reduce(
