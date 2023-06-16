@@ -1,6 +1,7 @@
 import useSWR from 'swr'
 import { getChainPageData as getChainVolume } from '~/api/categories/adaptors'
 import { getChainsPageData } from '~/api/categories/adaptors'
+import { getDexVolumeByChain } from '../dexs'
 
 const sum = (obj) => {
 	return Object.values(obj).reduce((acc: any, curr) => (typeof curr === 'number' ? (acc += curr) : acc), 0)
@@ -36,20 +37,11 @@ export function useGetProtocolsVolumeByChain(chain?: string) {
 }
 
 export function useGetVolumeChartDataByChain(chain?: string) {
-	const { data, error } = useSWR(
-		`volumeChartDataByChain/${chain}`,
-		chain === 'All'
-			? () =>
-					getChainsPageData('dexs').then((volumeData) =>
-						chain === 'All' || volumeData?.totalDataChart[0]?.[0][chain]
-							? volumeData?.totalDataChart?.[0].map((val) => [
-									val.date,
-									(chain === 'All' ? sum(val) : val[chain]) ?? null
-							  ])
-							: null
-					)
-			: () => null
+	const { data, error } = useSWR(`volumeChartDataByChain/${chain}`, () =>
+		getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
+			(data) => data.totalDataChart ?? null
+		)
 	)
 
-	return { data, loading: !data && data !== null && !error }
+	return { data: data ?? null, loading: !data && data !== null && !error }
 }

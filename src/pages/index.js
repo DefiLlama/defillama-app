@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import { RAISES_API } from '~/constants'
 import { maxAgeForNext } from '~/api'
-import { getChainPageData } from '~/api/categories/protocols'
+import { getChainPageData } from '~/api/categories/chains'
 import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 
 import { withPerformanceLogging } from '~/utils/perf'

@@ -1,5 +1,4 @@
 import { IDexResponse } from '~/api/categories/dexs/types'
-import { formatChain } from '~/api/categories/dexs/utils'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { capitalizeFirstLetter } from '..'
 

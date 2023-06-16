@@ -1414,7 +1414,7 @@ const Toggle = styled.button`
 	}
 `
 
-const StatsTable2 = styled(ProtocolStatsTable)`
+export const StatsTable2 = styled(ProtocolStatsTable)`
 	th[data-subvalue],
 	td[data-subvalue] {
 		font-weight: 400;
@@ -1449,7 +1449,7 @@ const StatsTable2 = styled(ProtocolStatsTable)`
 	}
 `
 
-const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, helperText }) => {
+export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, helperText }) => {
 	const [open, setOpen] = React.useState(false)
 	return (
 		<>
@@ -1460,7 +1460,7 @@ const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, 
 						<span>{rowHeader}</span>
 						{helperText && <QuestionHelper text={helperText} />}
 					</Toggle>
-					<Flag protocol={protocolName} dataType={dataType} />
+					{protocolName && dataType ? <Flag protocol={protocolName} dataType={dataType} /> : null}
 				</th>
 				<td>{rowValue}</td>
 			</tr>
@@ -1469,13 +1469,5 @@ const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, 
 		</>
 	)
 }
-
-const UpcomingEvent = styled.ul`
-	padding: 0;
-	margin: 24px 0;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-`
 
 export default ProtocolContainer

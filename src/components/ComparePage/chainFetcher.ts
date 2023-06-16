@@ -1,4 +1,4 @@
-import { getChainPageData } from '~/api/categories/protocols'
+import { getChainPageData } from '~/api/categories/chains'
 import { getChainPageData as getChainVolume } from '~/api/categories/adaptors'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 import { getChainsPageData, getOverviewItemPageData, getChainPageData as getFeesData } from '~/api/categories/adaptors'

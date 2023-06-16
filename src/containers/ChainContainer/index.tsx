@@ -21,7 +21,8 @@ import { DetailsWrapper, DownloadButton } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import Link from 'next/link'
 import { ChevronRight, DownloadCloud } from 'react-feather'
-import { useGetProtocolsVolumeByChain, useGetVolumeChartDataByChain } from '~/api/categories/chain'
+import { useGetProtocolsVolumeByChain, useGetVolumeChartDataByChain } from '~/api/categories/chains/client'
+import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -55,7 +56,8 @@ export function ChainContainer({
 	bridgeChartData,
 	feesChart,
 	raisesChart,
-	totalFundingAmount
+	totalFundingAmount,
+	volumeData
 }) {
 	const {
 		fullProtocolsList,
@@ -111,7 +113,7 @@ export function ChainContainer({
 	)
 
 	const { data: volumeChart, loading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
-		selectedChain === 'All' ? selectedChain : null
+		volumeData.totalVolume24h && router.query.volume === 'true' ? selectedChain : null
 	)
 
 	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
@@ -209,7 +211,7 @@ export function ChainContainer({
 			{
 				id: 'volume',
 				name: 'Volume',
-				isVisible: !!finalVolumeChart
+				isVisible: volumeData.totalVolume24h ? true : false
 			},
 			{
 				id: 'fees',
@@ -273,7 +275,8 @@ export function ChainContainer({
 		chainProtocolsVolumes,
 		raisesChart,
 		txsData,
-		usersData
+		usersData,
+		volumeData
 	])
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -410,47 +413,72 @@ export function ChainContainer({
 							</span>
 						</AccordionStat>
 
-						{stablecoinsChartData && stablecoinsChartData.length > 0 ? (
-							<StatInARow>
-								<span>Stablecoins Mcap</span>
-								<span>{formattedNum(stablecoinsChartData[stablecoinsChartData.length - 1]['Mcap'], true)}</span>
-							</StatInARow>
-						) : null}
+						<StatsTable2>
+							<tbody>
+								{stablecoinsChartData && stablecoinsChartData.length > 0 ? (
+									<tr>
+										<th>Stablecoins Mcap</th>
+										<td>{formattedNum(stablecoinsChartData[stablecoinsChartData.length - 1]['Mcap'], true)}</td>
+									</tr>
+								) : null}
 
-						{feesChart && feesChart.length > 0 ? (
-							<>
-								<StatInARow>
-									<span>Fees (24h)</span>
-									<span>{formattedNum(feesChart[feesChart.length - 1][1], true)}</span>
-								</StatInARow>
+								{feesChart && feesChart.length > 0 ? (
+									<>
+										<tr>
+											<th>Fees (24h)</th>
+											<td>{formattedNum(feesChart[feesChart.length - 1][1], true)}</td>
+										</tr>
 
-								<StatInARow>
-									<span>Revenue (24h)</span>
-									<span>{formattedNum(feesChart[feesChart.length - 1][2], true)}</span>
-								</StatInARow>
-							</>
-						) : null}
+										<tr>
+											<th>Revenue (24h)</th>
+											<td>{formattedNum(feesChart[feesChart.length - 1][2], true)}</td>
+										</tr>
+									</>
+								) : null}
 
-						{volumeChart && volumeChart.length > 0 ? (
-							<StatInARow>
-								<span>Volume (24h)</span>
-								<span>{formattedNum(volumeChart[volumeChart.length - 1][1], true)}</span>
-							</StatInARow>
-						) : null}
+								{volumeData.totalVolume24h ? (
+									<RowWithSubRows
+										rowHeader={'Volume (24h)'}
+										rowValue={formattedNum(volumeData.totalVolume24h, true)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{volumeData.totalVolume7d ? (
+													<tr>
+														<th>Volume (7d)</th>
+														<td>{formattedNum(volumeData.totalVolume7d, true)}</td>
+													</tr>
+												) : null}
+												<tr>
+													<th>Weekly Change</th>
+													<td>{volumeData.weeklyChange}%</td>
+												</tr>
+												<tr>
+													<th>DEX vs CEX dominance</th>
+													<td>{volumeData.dexsDominance}%</td>
+												</tr>
+											</>
+										}
+									/>
+								) : null}
 
-						{totalFundingAmount ? (
-							<StatInARow>
-								<span>Total Funding Amount</span>
-								<span>{formattedNum(totalFundingAmount, true)}</span>
-							</StatInARow>
-						) : null}
+								{totalFundingAmount ? (
+									<tr>
+										<th>Total Funding Amount</th>
+										<td>{formattedNum(totalFundingAmount, true)}</td>
+									</tr>
+								) : null}
 
-						{bridgeChartData && bridgeChartData.length > 0 ? (
-							<StatInARow>
-								<span>Inflows</span>
-								<span>{formattedNum(bridgeChartData[bridgeChartData.length - 1][1], true)}</span>
-							</StatInARow>
-						) : null}
+								{bridgeChartData && bridgeChartData.length > 0 ? (
+									<tr>
+										<th>Inflows</th>
+										<td>{formattedNum(bridgeChartData[bridgeChartData.length - 1][1], true)}</td>
+									</tr>
+								) : null}
+							</tbody>
+						</StatsTable2>
 					</OverallMetricsWrapper>
 
 					<ChartWrapper>

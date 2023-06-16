@@ -1,7 +1,7 @@
 import { PROTOCOLS_API } from '~/constants/index'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
-import { getChainPageData } from '~/api/categories/protocols'
+import { getChainPageData } from '~/api/categories/chains'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 import { getOverviewItemPageData, getChainPageData as getFeesData } from '~/api/categories/adaptors'
