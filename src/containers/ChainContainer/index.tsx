@@ -8,7 +8,6 @@ import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { useDenominationPriceHistory, useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { ListHeader, ListOptions } from '~/components/ChainPage/shared'
 import { StatsSection } from '~/layout/Stats/Medium'
 import LocalLoader from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
@@ -22,6 +21,7 @@ import { DetailsWrapper, DownloadButton } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import Link from 'next/link'
 import { ChevronRight, DownloadCloud } from 'react-feather'
+import { useGetProtocolsVolumeByChain, useGetVolumeChartDataByChain } from '~/api/categories/chain'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -51,10 +51,8 @@ export function ChainContainer({
 	usersData,
 	txsData,
 	stablecoinsChartData = [],
-	chainProtocolsVolumes,
 	chainProtocolsFees,
 	bridgeChartData,
-	volumeChart,
 	feesChart,
 	raisesChart,
 	totalFundingAmount
@@ -107,6 +105,14 @@ export function ChainContainer({
 	)
 
 	const isLoadingChartData = denomination !== 'USD' && fetchingDenominationPriceHistory
+
+	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain(
+		selectedChain !== 'All' ? selectedChain : null
+	)
+
+	const { data: volumeChart, loading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
+		selectedChain === 'All' ? selectedChain : null
+	)
 
 	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -450,41 +456,39 @@ export function ChainContainer({
 					<ChartWrapper>
 						{easterEgg ? (
 							<Game />
-						) : isLoadingChartData ? (
+						) : isLoadingChartData || fetchingVolumeChartDataByChain ? (
 							<LocalLoader style={{ margin: 'auto', minHeight: '360px' }} />
 						) : (
 							<>
 								<FiltersWrapper>
 									<ToggleWrapper>
-										{chartOptions.map(({ id, name, isVisible }) =>
-											isVisible &&
-											(isLoadingChartData === false || selectedChain === 'All' || chainGeckoId === null) ? (
-												<Toggle>
-													<input
-														key={id}
-														type="checkbox"
-														onClick={() => {
-															updateRoute(
-																id,
-																id === 'tvl'
-																	? router.query[id] !== 'false'
+										{chartOptions.map(
+											({ id, name, isVisible }) =>
+												isVisible && (
+													<Toggle>
+														<input
+															key={id}
+															type="checkbox"
+															onClick={() => {
+																updateRoute(
+																	id,
+																	id === 'tvl'
+																		? router.query[id] !== 'false'
+																			? 'false'
+																			: 'true'
+																		: router.query[id] === 'true'
 																		? 'false'
-																		: 'true'
-																	: router.query[id] === 'true'
-																	? 'false'
-																	: 'true',
-																router
-															)
-														}}
-														checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
-													/>
-													<span data-wrapper="true">
-														<span>{name}</span>
-													</span>
-												</Toggle>
-											) : (
-												false
-											)
+																		: 'true',
+																	router
+																)
+															}}
+															checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
+														/>
+														<span data-wrapper="true">
+															<span>{name}</span>
+														</span>
+													</Toggle>
+												)
 										)}
 									</ToggleWrapper>
 
@@ -635,5 +639,28 @@ const OverallMetricsWrapper = styled(DetailsWrapper)`
 	@media screen and (min-width: 80rem) {
 		max-width: 300px;
 		border-right: ${({ theme }) => '1px solid ' + theme.divider};
+	}
+`
+
+const ListOptions = styled.nav`
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	overflow: hidden;
+	margin: 0 0 -20px;
+
+	button {
+		font-weight: 600;
+	}
+`
+
+const ListHeader = styled.h3`
+	font-size: 1.125rem;
+	color: ${({ theme }) => theme.text1};
+	font-weight: 500;
+	white-space: nowrap;
+
+	@media screen and (max-width: 40rem) {
+		font-size: 1rem;
 	}
 `

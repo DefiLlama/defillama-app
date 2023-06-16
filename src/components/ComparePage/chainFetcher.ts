@@ -1,8 +1,6 @@
 import { getChainPageData } from '~/api/categories/protocols'
-
 import { getChainPageData as getChainVolume } from '~/api/categories/adaptors'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
-import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 import { getChainsPageData, getOverviewItemPageData, getChainPageData as getFeesData } from '~/api/categories/adaptors'
 
 import { fetchWithErrorLogging } from '~/utils/async'
