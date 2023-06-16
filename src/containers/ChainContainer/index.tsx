@@ -102,8 +102,10 @@ export function ChainContainer({
 		}
 	}
 
-	const { data: denominationPriceHistory, loading: fetchingDenominationPriceHistory } =
-		useDenominationPriceHistory(chainGeckoId)
+	const { data: denominationPriceHistory, loading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
+		denomination !== 'USD' || router.query.price === 'true' ? chainGeckoId : null
+	)
+
 	const isLoadingChartData = denomination !== 'USD' && fetchingDenominationPriceHistory
 
 	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
@@ -144,7 +146,7 @@ export function ChainContainer({
 	}, [chart, extraTvlsEnabled, extraTvlCharts])
 
 	const { DENOMINATIONS, chartOptions, chartDatasets } = React.useMemo(() => {
-		const priceHistory =
+		const priceData =
 			denomination === 'USD' && denominationPriceHistory?.prices
 				? denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
 				: null
@@ -187,7 +189,8 @@ export function ChainContainer({
 				totalStablesData: stablecoinsChartData,
 				bridgeData: bridgeChartData,
 				usersData: usersData,
-				txsData: txsData
+				txsData: txsData,
+				priceData
 			}
 		]
 
@@ -215,9 +218,7 @@ export function ChainContainer({
 			{
 				id: 'price',
 				name: 'Price',
-				isVisible: Boolean(
-					priceHistory && denomination === 'USD' && priceHistory?.[priceHistory?.length - 1][0] > globalChart?.[0][0]
-				) /* TODO fix flashing */
+				isVisible: DENOMINATIONS.length > 1
 			},
 			{
 				id: 'users',
