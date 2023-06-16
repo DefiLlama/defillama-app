@@ -132,7 +132,7 @@ export const DownloadButton = styled(Button)`
 	align-items: center;
 	color: inherit;
 	padding: 8px 12px;
-	border-radius: 10px;
+	border-radius: 12px;
 `
 
 export const DetailsTable = styled.table`

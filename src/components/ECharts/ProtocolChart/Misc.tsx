@@ -23,7 +23,7 @@ export const Denomination = styled.a<IDenomination>`
 	display: inline-block;
 	font-weight: 500;
 	font-size: 0.875rem;
-	border-radius: 10px;
+	border-radius: 12px;
 	background: ${({ theme, active }) =>
 		active ? transparentize(0.5, theme.mode === 'dark' ? '#000' : '#fff') : 'none'};
 	padding: 6px 8px;
@@ -58,7 +58,7 @@ export const Toggle = styled.label<IToggleProps>`
 		z-index: 1;
 		padding: 8px 12px;
 		background: red;
-		border-radius: 10px;
+		border-radius: 12px;
 		display: flex;
 		align-items: center;
 		flex-wrap: nowrap;

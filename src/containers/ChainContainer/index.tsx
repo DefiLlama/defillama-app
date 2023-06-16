@@ -19,7 +19,7 @@ import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECha
 import Image from 'next/future/image'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { DetailsWrapper, DownloadButton } from '~/layout/ProtocolAndPool'
-import { AccordionStat, Stat, StatInARow } from '~/layout/Stats/Large'
+import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import Link from 'next/link'
 import { ChevronRight, DownloadCloud } from 'react-feather'
 
@@ -590,7 +590,7 @@ const Wrapper = styled.div`
 	}
 `
 
-const ChainsSelect = styled.div`
+const ChainsSelect = styled.nav`
 	display: flex;
 `
 
@@ -626,7 +626,7 @@ const EasterLlama = styled.button`
 
 const OverallMetricsWrapper = styled(DetailsWrapper)`
 	background: none;
-	gap: 16px;
+	gap: 8px;
 
 	& > *:first-child {
 		margin-bottom: 8px;

@@ -28,7 +28,7 @@ const AuditInfo = ({ audits, auditLinks = [], color, isLoading, ...props }: IPro
 			<HeadHelp title="Audits" text="Audits are not a guarantee of security." />
 			<span>:</span>
 			<Info>
-				{isLoading ? null : audits > 0 ? (
+				{isLoading ? null : +audits > 0 ? (
 					<Menu name="Yes" options={auditLinks} color={color} isExternal />
 				) : (
 					<span>No</span>

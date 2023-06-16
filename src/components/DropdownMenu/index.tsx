@@ -56,7 +56,7 @@ export const Button = styled(MenuButton)<IButtonProps>`
 	gap: 16px;
 	padding: 8px 12px;
 	font-size: 0.825rem;
-	border-radius: 8px;
+	border-radius: 12px;
 	background-color: ${({ color, theme }) => transparentize(0.9, color || theme.primary1)};
 	color: ${({ theme }) => theme.text1};
 

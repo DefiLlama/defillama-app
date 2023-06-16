@@ -15,7 +15,7 @@ const Trigger = styled(PopoverDisclosure)`
 	gap: 8px;
 	padding: 8px 12px;
 	font-size: 0.825rem;
-	border-radius: 8px;
+	border-radius: 12px;
 	cursor: pointer;
 	outline: none;
 	border: 1px solid transparent;
@@ -52,7 +52,7 @@ export const PopoverTrigger = styled(PopoverDisclosure)`
 	display: inline-block;
 	font-weight: 500;
 	font-size: 0.875rem;
-	border-radius: 10px;
+	border-radius: 12px;
 	background-color: ${({ theme, color }) => (color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1))};
 	padding: 10px 12px;
 	color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)')};
@@ -155,7 +155,7 @@ const CopyContent = styled.div`
 	p {
 		padding: 8px;
 		background: ${({ theme }) => (theme.mode === 'dark' ? 'black' : 'white')};
-		border-radius: 8px;
+		border-radius: 10px;
 	}
 `
 

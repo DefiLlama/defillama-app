@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import styled from 'styled-components'
-import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
 import { OtherLinks } from './OtherLinks'
-import { transparentize } from 'polished'
+import { darken, transparentize } from 'polished'
 
 interface ILink {
 	label: string
@@ -138,22 +137,39 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 
 const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
-		<Link scroll={false} href={option.to} prefetch={false} passHref>
-			{option.label === activeLink ? (
-				<ButtonDark as="a" {...props}>
-					{option.label}
-				</ButtonDark>
-			) : (
-				<InactiveLink as="a" {...props}>
-					{option.label}
-				</InactiveLink>
-			)}
+		<Link href={option.to} prefetch={false} passHref>
+			<NavLink data-active={option.label === activeLink} {...props}>
+				{option.label}
+			</NavLink>
 		</Link>
 	)
 }
 
-const InactiveLink = styled(ButtonLight)`
+const NavLink = styled.a`
+	min-width: fit-content;
+	border-radius: 12px;
+	padding: 8px 12px;
+	white-space: nowrap;
+	font-size: 0.875rem;
+	font-weight: 500;
+
 	color: ${({ theme }) => (theme.mode === 'dark' ? '#629ff4' : '#2172E5')};
 	background-color: ${({ theme }) =>
 		theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};
+
+	:hover,
+	:focus-visible {
+		background-color: ${({ color, theme }) =>
+			color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1)};
+	}
+
+	&[data-active='true'] {
+		background-color: ${({ color, theme }) => (color ? color : theme.primary1)};
+		color: white;
+
+		:hover,
+		:focus-visible {
+			background-color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.primary1))};
+		}
+	}
 `
