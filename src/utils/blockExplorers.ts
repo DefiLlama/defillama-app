@@ -76,7 +76,8 @@ const blockExplorers = {
 	thorchain: ['https://thorchain.net/address/', 'Thorchain Explorer'],
 	sui: ['https://suiscan.xyz/mainnet/object/', 'Suiscan'],
 	pulse: ['https://scan.pulsechain.com/address/', 'PulseChain Scan'],
-	onus: ['https://explorer.onuschain.io/address/', 'OnusChain Explorer']
+	onus: ['https://explorer.onuschain.io/address/', 'OnusChain Explorer'],
+	stark: ['https://starkscan.co/token/', 'StarkScan'],
 }
 
 export const getBlockExplorer = (address: string = '') => {
