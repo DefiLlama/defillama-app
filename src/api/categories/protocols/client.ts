@@ -11,7 +11,7 @@ import {
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
-import { formatGovernanceData, getProtocol, getProtocolEmissons } from '.'
+import { getProtocol, getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'

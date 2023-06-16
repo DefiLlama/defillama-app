@@ -52,17 +52,16 @@ export const getProtocolData = async (protocol: string) => {
 
 	const protocolData = fuseProtocolData(protocolRes)
 
-	const governanceApis = (
+	const governanceApis =
 		protocolData.governanceID?.map((gid) =>
 			gid.startsWith('snapshot:')
-				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1]}.json`
+				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replaceAll(':', '/')}.json`
 				: gid.startsWith('compound:')
-				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1]}.json`
+				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replaceAll(':', '/')}.json`
 				: gid.startsWith('tally:')
-				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1]}.json`
-				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid}.json`
+				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replaceAll(':', '/')}.json`
+				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replaceAll(':', '/')}.json`
 		) ?? []
-	).map((x) => x.replace(':', '/'))
 
 	const [backgroundColor, allProtocols, users, feesAndRevenueProtocols, dexs, medianApy, tokenCGData, emissions] =
 		await Promise.all([

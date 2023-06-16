@@ -22,14 +22,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function ProtocolChart({
-	protocolData,
-	protocol,
-	chartColors,
-	users,
-	governanceApis,
-	chartDenominations = []
-}) {
+export default function ProtocolChart({ protocolData, protocol, users, governanceApis, chartDenominations = [] }) {
 	const router = useRouter()
 
 	const {
