@@ -154,7 +154,7 @@ const CopyContent = styled.div`
 
 	p {
 		padding: 8px;
-		background: black;
+		background: ${({ theme }) => (theme.mode === 'dark' ? 'black' : 'white')};
 		border-radius: 8px;
 	}
 `
