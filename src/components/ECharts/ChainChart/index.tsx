@@ -285,7 +285,7 @@ export default function AreaChart({
 
 			if (route.inflows === 'true' && data?.bridgeData && data?.bridgeData?.length > 0) {
 				series.push({
-					name: namePrefix + 'Inflows',
+					name: namePrefix + 'Net Inflows',
 					chartId: 'Inflows',
 					type: 'bar',
 					stack: 'bridge',
@@ -295,23 +295,8 @@ export default function AreaChart({
 						color: getColor(isCompare) || colors.bridges
 					}
 				})
-				data?.bridgeData.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
-				})
-
-				series.push({
-					name: namePrefix + 'Outflows',
-					chartId: 'Inflows',
-					type: 'bar',
-					stack: 'bridge',
-					data: [],
-					yAxisIndex: 9,
-					itemStyle: {
-						color: getColor(isCompare) || colors.bridges
-					}
-				})
-				data?.bridgeData.forEach(([date, _, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				data?.bridgeData.forEach(([date, inflow, outflow]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), outflow + inflow || 0])
 				})
 			}
 		})
@@ -426,7 +411,7 @@ export default function AreaChart({
 					id: 'Transactions'
 				},
 				{
-					...txsChartSetting.yAxis,
+					...yAxis,
 					scale: true,
 					id: 'Inflows'
 				}
