@@ -59,7 +59,9 @@ function BridgesOverview({
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Net Flow')
 
 	const chartTypeList =
-		selectedChain === 'All' ? ['Volumes'] : ['Net Flow', 'Inflows', '24h Tokens Deposited', '24h Tokens Withdrawn']
+		selectedChain === 'All'
+			? ['Volumes']
+			: ['Net Flow', 'Net Flow (%)', 'Inflows', '24h Tokens Deposited', '24h Tokens Withdrawn']
 
 	const [bridgesSettings] = useBridgesManager()
 	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
@@ -106,6 +108,16 @@ function BridgesOverview({
 			return {
 				date: entry.date,
 				'Net Flow': entry.Deposits + entry.Withdrawals
+			}
+		})
+	}, [chainVolumeData])
+
+	const chainPercentageNet = React.useMemo(() => {
+		return chainVolumeData.map((entry) => {
+			return {
+				date: entry.date,
+				Inflows: (+entry.Deposits / (entry.Deposits + Math.abs(entry.Withdrawals))) * 100 || 0,
+				Outflows: (Math.abs(entry.Withdrawals) / (entry.Deposits + Math.abs(entry.Withdrawals))) * 100 || 0
 			}
 		})
 	}, [chainVolumeData])
@@ -219,6 +231,17 @@ function BridgesOverview({
 							hideDefaultLegend={true}
 							customLegendName="Volume"
 							customLegendOptions={['Net Flow']}
+						/>
+					)}
+					{chartType === 'Net Flow (%)' && chainPercentageNet && chainPercentageNet.length > 0 && (
+						<BarChart
+							chartData={chainPercentageNet}
+							title=""
+							valueSymbol="%"
+							stacks={{ Inflows: 'stackA', Outflows: 'stackA' }}
+							hideDefaultLegend={true}
+							customLegendName="Volume"
+							customLegendOptions={['Inflows', 'Outflows']}
 						/>
 					)}
 					{chartType === 'Inflows' && chainVolumeData && chainVolumeData.length > 0 && (
