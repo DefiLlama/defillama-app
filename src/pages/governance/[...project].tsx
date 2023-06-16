@@ -57,11 +57,11 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const api = snapshotProjectId
-			? PROTOCOL_GOVERNANCE_SNAPSHOT_API + '/' + snapshotProjectId + '.json'
+			? PROTOCOL_GOVERNANCE_SNAPSHOT_API + '/' + snapshotProjectId.replace(':', '/') + '.json'
 			: compoundProjectId
-			? PROTOCOL_GOVERNANCE_COMPOUND_API + '/' + compoundProjectId + '.json'
+			? PROTOCOL_GOVERNANCE_COMPOUND_API + '/' + compoundProjectId.replace(':', '/') + '.json'
 			: tallyProjectId
-			? PROTOCOL_GOVERNANCE_TALLY_API + '/' + tallyProjectId + '.json'
+			? PROTOCOL_GOVERNANCE_TALLY_API + '/' + tallyProjectId.replace(':', '/') + '.json'
 			: null
 
 		const data: {
