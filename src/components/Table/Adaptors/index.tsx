@@ -41,7 +41,8 @@ export function OverviewTable({ data, type, allChains }) {
 		onColumnSizingChange: setColumnSizing,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
+		getExpandedRowModel: getExpandedRowModel(),
+		enableSortingRemoval: false
 	})
 
 	React.useEffect(() => {
