@@ -80,7 +80,7 @@ export async function getChainPageData(chain?: string) {
 					const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
 
 					for (const token in recentMcaps) {
-						if (recentMcaps[token] > topToken.mcap) {
+						if (token !== 'date' && recentMcaps[token] > topToken.mcap) {
 							topToken = { symbol: token, mcap: recentMcaps[token] }
 						}
 					}
