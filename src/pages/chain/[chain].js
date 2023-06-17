@@ -4,7 +4,6 @@ import { maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/chains'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
-import { getChainPageData as getFeesData } from '~/api/categories/adaptors'
 
 import { withPerformanceLogging } from '~/utils/perf'
 

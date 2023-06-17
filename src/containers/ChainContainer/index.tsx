@@ -29,6 +29,7 @@ import {
 } from '~/api/categories/chains/client'
 import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
 import SEO from '~/components/SEO'
+import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -57,13 +58,12 @@ export function ChainContainer({
 	extraTvlCharts = {},
 	usersData,
 	txsData,
-	stablecoinsChartData = [],
 	bridgeChartData,
 	raisesChart,
 	totalFundingAmount,
 	volumeData,
 	feesAndRevenueData,
-	chainProtocolsFees
+	stablecoinsData
 }) {
 	const {
 		fullProtocolsList,
@@ -116,7 +116,7 @@ export function ChainContainer({
 		selectedChain !== 'All' ? selectedChain : null
 	)
 
-	const { data: chainProtocolsFees2, loading: fetchingProtocolsFeesAndRevenueByChain } =
+	const { data: chainProtocolsFees, loading: fetchingProtocolsFeesAndRevenueByChain } =
 		useGetProtocolsFeesAndRevenueByChain(selectedChain !== 'All' ? selectedChain : null)
 
 	const { data: volumeChart, loading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
@@ -130,10 +130,14 @@ export function ChainContainer({
 				: null
 		)
 
+	const { data: stablecoinsChartData, loading: fetchingStablecoinsChartDataByChain } =
+		useGetStabelcoinsChartDataByChain(router.query.stables === 'true' ? selectedChain : null)
+
 	const isFetchingChartData =
 		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
 		fetchingVolumeChartDataByChain ||
-		fetchingFeesAndRevenueChartDataByChain
+		fetchingFeesAndRevenueChartDataByChain ||
+		fetchingStablecoinsChartDataByChain
 
 	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -265,7 +269,7 @@ export function ChainContainer({
 			{
 				id: 'stables',
 				name: 'Stablecoins',
-				isVisible: stablecoinsChartData && stablecoinsChartData?.length > 0
+				isVisible: stablecoinsData?.totalMcapCurrent
 			},
 			{
 				id: 'inflows',
@@ -296,7 +300,8 @@ export function ChainContainer({
 		txsData,
 		usersData,
 		volumeData,
-		feesAndRevenueData
+		feesAndRevenueData,
+		stablecoinsData
 	])
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -435,11 +440,30 @@ export function ChainContainer({
 
 						<StatsTable2>
 							<tbody>
-								{stablecoinsChartData && stablecoinsChartData.length > 0 ? (
-									<tr>
-										<th>Stablecoins Mcap</th>
-										<td>{formattedNum(stablecoinsChartData[stablecoinsChartData.length - 1]['Mcap'], true)}</td>
-									</tr>
+								{stablecoinsData?.totalMcapCurrent ? (
+									<RowWithSubRows
+										rowHeader={'Stablecoins Mcap'}
+										rowValue={formattedNum(stablecoinsData.totalMcapCurrent, true)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{stablecoinsData.change7d ? (
+													<tr>
+														<th>Change (7d)</th>
+														<td>{stablecoinsData.change7d}%</td>
+													</tr>
+												) : null}
+												{stablecoinsData.dominance ? (
+													<tr>
+														<th>{stablecoinsData.topToken.symbol} Dominance</th>
+														<td>{stablecoinsData.dominance}%</td>
+													</tr>
+												) : null}
+											</>
+										}
+									/>
 								) : null}
 
 								{feesAndRevenueData?.totalFees24h ? (
