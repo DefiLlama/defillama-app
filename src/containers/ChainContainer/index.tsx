@@ -30,6 +30,7 @@ import {
 import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
 import SEO from '~/components/SEO'
 import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
+import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -58,12 +59,12 @@ export function ChainContainer({
 	extraTvlCharts = {},
 	usersData,
 	txsData,
-	bridgeChartData,
 	raisesChart,
 	totalFundingAmount,
 	volumeData,
 	feesAndRevenueData,
-	stablecoinsData
+	stablecoinsData,
+	inflowsData
 }) {
 	const {
 		fullProtocolsList,
@@ -135,11 +136,16 @@ export function ChainContainer({
 			stablecoinsData?.totalMcapCurrent && router.query.stables === 'true' ? selectedChain : null
 		)
 
+	const { data: inflowsChartData, loading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
+		inflowsData?.netInflows && router.query.inflows === 'true' ? selectedChain : null
+	)
+
 	const isFetchingChartData =
 		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
 		fetchingVolumeChartDataByChain ||
 		fetchingFeesAndRevenueChartDataByChain ||
-		fetchingStablecoinsChartDataByChain
+		fetchingStablecoinsChartDataByChain ||
+		fetchingInflowsChartData
 
 	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -214,13 +220,10 @@ export function ChainContainer({
 			{
 				feesChart: finalFeesAndRevenueChart,
 				volumeChart: finalVolumeChart,
-				bridgeChartData,
-				chainProtocolsFees,
-				chainProtocolsVolumes,
 				globalChart: finalTvlChart,
 				raisesData: raisesChart,
 				totalStablesData: stablecoinsChartData,
-				bridgeData: bridgeChartData,
+				bridgeData: inflowsChartData,
 				usersData: usersData,
 				txsData: txsData,
 				priceData
@@ -276,7 +279,7 @@ export function ChainContainer({
 			{
 				id: 'inflows',
 				name: 'Inflows',
-				isVisible: bridgeChartData && bridgeChartData?.length && selectedChain !== 'All'
+				isVisible: inflowsData?.netInflows
 			}
 		]
 
@@ -293,17 +296,16 @@ export function ChainContainer({
 		volumeChart,
 		feesAndRevenueChart,
 		CHAIN_SYMBOL,
-		bridgeChartData,
 		selectedChain,
 		stablecoinsChartData,
-		chainProtocolsFees,
-		chainProtocolsVolumes,
 		raisesChart,
 		txsData,
 		usersData,
 		volumeData,
 		feesAndRevenueData,
-		stablecoinsData
+		stablecoinsData,
+		inflowsChartData,
+		inflowsData
 	])
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -517,10 +519,10 @@ export function ChainContainer({
 									</tr>
 								) : null}
 
-								{bridgeChartData && bridgeChartData.length > 0 ? (
+								{inflowsData?.netInflows ? (
 									<tr>
-										<th>Inflows</th>
-										<td>{formattedNum(bridgeChartData[bridgeChartData.length - 1][1], true)}</td>
+										<th>Inflows (24h)</th>
+										<td>{formattedNum(inflowsData.netInflows, true)}</td>
 									</tr>
 								) : null}
 							</tbody>

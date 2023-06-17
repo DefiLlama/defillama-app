@@ -8,6 +8,7 @@ import { getFeesAndRevenueByChain } from '../fees'
 import { getPeggedDominance, getPercentChange } from '~/utils'
 import { buildPeggedChartData } from '~/utils/stablecoins'
 import { getPeggedOverviewPageData } from '../stablecoins'
+import { getBridgeOverviewPageData } from '../bridges'
 
 const fetch = fetchWithErrorLogging
 
@@ -45,53 +46,71 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const [chartData, { protocols, chains, parentProtocols }, volume, cexVolume, { fees, revenue }, stablecoinsData] =
-		await Promise.all([
-			fetch(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
-			fetch(PROTOCOLS_API).then((res) => res.json()),
-			getDexVolumeByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
-			getCexVolume(),
-			getFeesAndRevenueByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
-			getPeggedOverviewPageData(chain === 'All' ? null : chain)
-				.then((data) => {
-					const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = buildPeggedChartData(
-						data?.chartDataByPeggedAsset,
-						data?.peggedAssetNames,
-						Object.values(data?.peggedNameToChartDataIndex || {}),
-						'mcap',
-						data?.chainTVLData,
-						chain
-					)
-					let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
-					let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
-					const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
+	const [
+		chartData,
+		{ protocols, chains, parentProtocols },
+		volume,
+		cexVolume,
+		{ fees, revenue },
+		stablecoinsData,
+		inflowsData
+	] = await Promise.all([
+		fetch(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
+		fetch(PROTOCOLS_API).then((res) => res.json()),
+		getDexVolumeByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
+		getCexVolume(),
+		getFeesAndRevenueByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
+		getPeggedOverviewPageData(chain === 'All' ? null : chain)
+			.then((data) => {
+				const { peggedAreaChartData, peggedAreaTotalData } = buildPeggedChartData(
+					data?.chartDataByPeggedAsset,
+					data?.peggedAssetNames,
+					Object.values(data?.peggedNameToChartDataIndex || {}),
+					'mcap',
+					data?.chainTVLData,
+					chain
+				)
+				let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
+				let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
+				const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
 
-					let topToken = { symbol: 'USDT', mcap: 0 }
+				let topToken = { symbol: 'USDT', mcap: 0 }
 
-					if (peggedAreaChartData && peggedAreaChartData.length > 0) {
-						const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
+				if (peggedAreaChartData && peggedAreaChartData.length > 0) {
+					const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
 
-						for (const token in recentMcaps) {
-							if (recentMcaps[token] > topToken.mcap) {
-								topToken = { symbol: token, mcap: recentMcaps[token] }
-							}
+					for (const token in recentMcaps) {
+						if (recentMcaps[token] > topToken.mcap) {
+							topToken = { symbol: token, mcap: recentMcaps[token] }
 						}
 					}
+				}
 
-					const dominance = getPeggedDominance(topToken, totalMcapCurrent)
+				const dominance = getPeggedDominance(topToken, totalMcapCurrent)
 
-					return {
-						totalMcapCurrent: totalMcapCurrent ?? null,
-						change7d: percentChange ?? null,
-						topToken,
-						dominance: dominance ?? null
-					}
-				})
-				.catch((err) => {
-					console.log('ERROR fetching stablecoins data of chain', chain, err)
-					return {}
-				})
-		])
+				return {
+					totalMcapCurrent: totalMcapCurrent ?? null,
+					change7d: percentChange ?? null,
+					topToken,
+					dominance: dominance ?? null
+				}
+			})
+			.catch((err) => {
+				console.log('ERROR fetching stablecoins data of chain', chain, err)
+				return {}
+			}),
+		!chain || chain === 'All'
+			? null
+			: getBridgeOverviewPageData(chain)
+					.then((data) => {
+						return {
+							netInflows: data?.chainVolumeData?.length
+								? data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits']
+								: null
+						}
+					})
+					.catch(() => null)
+	])
 
 	const filteredProtocols = formatProtocolsData({
 		chain,
@@ -144,6 +163,7 @@ export async function getChainPageData(chain?: string) {
 			},
 			feesAndRevenueData: { totalFees24h: fees?.total24h ?? null, totalRevenue24h: revenue?.total24h ?? null },
 			stablecoinsData,
+			inflowsData,
 			...charts
 		}
 	}
