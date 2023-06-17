@@ -75,7 +75,7 @@ export default function VirtualTable({
 		virtualItems.length > 0 ? rowVirtualizer.getTotalSize() - (virtualItems?.[virtualItems.length - 1]?.end || 0) : 0
 
 	return (
-		<Wrapper ref={tableContainerRef} data-resizable={columnResizeMode ? true : false} {...props}>
+		<Wrapper ref={tableContainerRef} data-resizable={columnResizeMode ? true : false} data-tablewrapper {...props}>
 			<table>
 				<thead>
 					{instance.getHeaderGroups().map((headerGroup) => (
