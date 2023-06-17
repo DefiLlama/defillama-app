@@ -356,7 +356,8 @@ export default function AreaChart({
 							padding: 0,
 							textStyle: {
 								color: isDark ? 'white' : 'black'
-							}
+							},
+							extraCssText: 'box-shadow: none;'
 					  }
 					: {})
 			},

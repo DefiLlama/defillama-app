@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight, AlertTriangle } from 'react-feather'
 import styled from 'styled-components'
 import Bookmark from '~/components/Bookmark'
@@ -13,6 +13,120 @@ import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDayAndHo
 import { AccordionButton, Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow } from './types'
+
+const columnHelper = createColumnHelper<IProtocolRow>()
+
+export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
+	{
+		header: () => <Name>Name</Name>,
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const value = getValue() as string
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			const Chains = () => (
+				<AutoColumn>
+					{row.original.chains.map((chain) => (
+						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
+					))}
+				</AutoColumn>
+			)
+
+			return (
+				<Name depth={row.depth}>
+					{row.subRows?.length > 0 ? (
+						<AccordionButton
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+						</AccordionButton>
+					) : (
+						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
+					)}
+
+					<span>{index + 1}</span>
+
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+
+					<AutoColumn as="span">
+						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+
+						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
+							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+						</Tooltip2>
+					</AutoColumn>
+					{value === 'SyncDEX Finance' && (
+						<Tooltip2 content={'Many users have reported issues with this protocol'}>
+							<AlertTriangle />
+						</Tooltip2>
+					)}
+				</Name>
+			)
+		},
+		size: 240
+	},
+	{
+		header: 'Category',
+		accessorKey: 'category',
+		enableSorting: false,
+		cell: ({ getValue }) => (getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink> : ''),
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	columnHelper.group({
+		id: 'TVL',
+		header: () => <span style={{ margin: '0 auto' }}>TVL</span>,
+		enableSorting: false,
+		columns: [
+			columnHelper.accessor('tvl', {
+				header: 'TVL',
+				cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
+				meta: {
+					align: 'end'
+				},
+				size: 120
+			}),
+			columnHelper.accessor('change_1d', {
+				header: '1d Change',
+				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
+			columnHelper.accessor('change_7d', {
+				header: '7d Change',
+				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
+			columnHelper.accessor('change_1m', {
+				header: '1m Change',
+				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
+			columnHelper.accessor('mcaptvl', {
+				header: 'Mcap/TVL',
+				cell: (info) => {
+					return <>{info.getValue() && formattedNum(info.getValue())}</>
+				},
+				size: 100,
+				meta: {
+					align: 'end'
+				}
+			})
+		]
+	})
+]
 
 export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{

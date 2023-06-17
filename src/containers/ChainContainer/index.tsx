@@ -36,6 +36,7 @@ import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
 import SEO from '~/components/SEO'
 import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
 import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
+import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -675,12 +676,7 @@ export function ChainContainer({
 				</ListOptions>
 
 				{finalProtocolsList.length > 0 ? (
-					<ProtocolsTable
-						data={finalProtocolsList}
-						removeColumns={['fees', 'revenue', 'volume'].map((key) =>
-							router.query?.[key] !== 'true' || selectedChain === 'All' ? `${key}_7d` : undefined
-						)}
-					/>
+					<ProtocolsByChainTable data={finalProtocolsList} />
 				) : (
 					<p style={{ textAlign: 'center', margin: '256px 0' }}>{`${selectedChain} chain has no protocols listed`}</p>
 				)}
@@ -694,7 +690,7 @@ const Wrapper = styled.div`
 	flex-direction: column;
 	padding: 12px;
 	gap: 20px;
-	background-color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'white')};
+	background-color: ${({ theme }) => (theme.mode === 'dark' ? '#090a0b' : 'white')};
 	border: ${({ theme }) => '1px solid ' + theme.divider};
 	border-radius: 12px;
 	box-shadow: ${({ theme }) => theme.shadowSm};
@@ -704,7 +700,12 @@ const Wrapper = styled.div`
 
 		th,
 		td {
-			background: none;
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#090a0b' : 'white')};
+		}
+
+		th:not(:last-child),
+		td:not(:last-child) {
+			border-right: 1px solid ${({ theme }) => theme.divider};
 		}
 
 		border: ${({ theme }) => '1px solid ' + theme.divider};

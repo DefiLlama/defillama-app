@@ -20,12 +20,14 @@ import {
 	recentlyListedProtocolsColumns,
 	topGainersAndLosersColumns,
 	protocolsByTokenColumns,
-	airdropsColumns
+	airdropsColumns,
+	protocolsByChainColumns
 } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
 import { SearchIcon, TableFiltersWithInput } from '../../shared'
+import styled from 'styled-components'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -60,6 +62,51 @@ export function ProtocolsTable({
 	const instance = useReactTable({
 		data,
 		columns: columnsData,
+		state: {
+			sorting,
+			expanded,
+			columnOrder,
+			columnSizing
+		},
+		onExpandedChange: setExpanded,
+		getSubRows: (row: IProtocolRow) => row.subRows,
+		onSortingChange: setSorting,
+		onColumnOrderChange: setColumnOrder,
+		onColumnSizingChange: setColumnSizing,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getExpandedRowModel: getExpandedRowModel()
+	})
+
+	React.useEffect(() => {
+		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
+
+		const order = windowSize.width
+			? columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			: defaultOrder
+
+		const cSize = windowSize.width
+			? columnSizesKeys.find((size) => windowSize.width > Number(size))
+			: columnSizesKeys[0]
+
+		instance.setColumnSizing(columnSizes[cSize])
+
+		instance.setColumnOrder(order)
+	}, [windowSize, instance])
+
+	return <VirtualTable instance={instance} />
+}
+
+export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
+	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
+	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
+	const [expanded, setExpanded] = React.useState<ExpandedState>({})
+	const windowSize = useWindowSize()
+
+	const instance = useReactTable({
+		data,
+		columns: protocolsByChainColumns,
 		state: {
 			sorting,
 			expanded,

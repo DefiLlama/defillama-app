@@ -62,7 +62,7 @@ const Trigger = styled(Button)`
 	}
 
 	&[data-active='false'] {
-		height: 32px;
+		height: 34px;
 		margin: auto 0;
 		background-color: ${({ theme }) =>
 			theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};
@@ -71,7 +71,7 @@ const Trigger = styled(Button)`
 	&[data-active='true'] {
 		background-color: ${({ color, theme }) => (color ? color : theme.primary1)};
 		color: white;
-		height: 32px;
+		height: 34px;
 		margin: auto 0;
 		background-color: ${({ theme }) =>
 			theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};
