@@ -13,18 +13,11 @@ const fetch = fetchWithErrorLogging
 export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params }) => {
 	const chain = params.chain
 
-	const [data, usersData, txsData] = await Promise.all([
-		getChainPageData(chain),
-		fetch(`https://api.llama.fi/userData/users/chain$${chain}`).then((r) => r.json()),
-		fetch(`https://api.llama.fi/userData/txs/chain$${chain}`).then((r) => r.json())
-	])
+	const [data] = await Promise.all([getChainPageData(chain)])
 
 	return {
 		props: {
-			...data.props,
-			usersData,
-			txsData,
-			totalFundingAmount: null
+			...data.props
 		},
 		revalidate: maxAgeForNext([22])
 	}

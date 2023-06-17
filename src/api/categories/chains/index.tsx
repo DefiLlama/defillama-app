@@ -1,4 +1,11 @@
-import { CHART_API, PROTOCOLS_API } from '~/constants'
+import {
+	CHART_API,
+	PROTOCOLS_API,
+	PROTOCOL_ACTIVE_USERS_API,
+	PROTOCOL_GAS_USED_API,
+	PROTOCOL_NEW_USERS_API,
+	PROTOCOL_TRANSACTIONS_API
+} from '~/constants'
 import { formatProtocolsData } from '../protocols/utils'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
@@ -53,7 +60,11 @@ export async function getChainPageData(chain?: string) {
 		cexVolume,
 		{ fees, revenue },
 		stablecoinsData,
-		inflowsData
+		inflowsData,
+		activeUsers,
+		transactions,
+		gasUsed,
+		newUsers
 	] = await Promise.all([
 		fetch(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
 		fetch(PROTOCOLS_API).then((res) => res.json()),
@@ -109,6 +120,30 @@ export async function getChainPageData(chain?: string) {
 								: null
 						}
 					})
+					.catch(() => null),
+		!chain || chain === 'All'
+			? null
+			: fetch(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chain}`)
+					.then((res) => res.json())
+					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
+					.catch(() => null),
+		!chain || chain === 'All'
+			? null
+			: fetch(`${PROTOCOL_TRANSACTIONS_API}/chain$${chain}`)
+					.then((res) => res.json())
+					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
+					.catch(() => null),
+		!chain || chain === 'All'
+			? null
+			: fetch(`${PROTOCOL_GAS_USED_API}/chain$${chain}`)
+					.then((res) => res.json())
+					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
+					.catch(() => null),
+		!chain || chain === 'All'
+			? null
+			: fetch(`${PROTOCOL_NEW_USERS_API}/chain$${chain}`)
+					.then((res) => res.json())
+					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null)
 	])
 
@@ -164,6 +199,7 @@ export async function getChainPageData(chain?: string) {
 			feesAndRevenueData: { totalFees24h: fees?.total24h ?? null, totalRevenue24h: revenue?.total24h ?? null },
 			stablecoinsData,
 			inflowsData,
+			userData: { activeUsers, newUsers, transactions, gasUsed },
 			...charts
 		}
 	}

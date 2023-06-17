@@ -6,7 +6,12 @@ import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
 import { ProtocolsTable } from '~/components/Table'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
-import { useDenominationPriceHistory, useGetProtocolsList } from '~/api/categories/protocols/client'
+import {
+	useDenominationPriceHistory,
+	useFetchProtocolActiveUsers,
+	useFetchProtocolTransactions,
+	useGetProtocolsList
+} from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { StatsSection } from '~/layout/Stats/Medium'
 import LocalLoader from '~/components/LocalLoader'
@@ -57,14 +62,13 @@ export function ChainContainer({
 	protocolsList,
 	chart,
 	extraTvlCharts = {},
-	usersData,
-	txsData,
 	raisesChart,
 	totalFundingAmount,
 	volumeData,
 	feesAndRevenueData,
 	stablecoinsData,
-	inflowsData
+	inflowsData,
+	userData
 }) {
 	const {
 		fullProtocolsList,
@@ -140,12 +144,22 @@ export function ChainContainer({
 		inflowsData?.netInflows && router.query.inflows === 'true' ? selectedChain : null
 	)
 
+	const { data: usersData, loading: fetchingActiveUsersChartdata } = useFetchProtocolActiveUsers(
+		userData.activeUsers && router.query.users === 'true' ? 'chain$' + selectedChain : null
+	)
+
+	const { data: txsData, loading: fetchingTransactionsChartdata } = useFetchProtocolTransactions(
+		userData.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
+	)
+
 	const isFetchingChartData =
 		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
 		fetchingVolumeChartDataByChain ||
 		fetchingFeesAndRevenueChartDataByChain ||
 		fetchingStablecoinsChartDataByChain ||
-		fetchingInflowsChartData
+		fetchingInflowsChartData ||
+		fetchingActiveUsersChartdata ||
+		fetchingTransactionsChartdata
 
 	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -224,8 +238,8 @@ export function ChainContainer({
 				raisesData: raisesChart,
 				totalStablesData: stablecoinsChartData,
 				bridgeData: inflowsChartData,
-				usersData: usersData,
-				txsData: txsData,
+				usersData,
+				txsData,
 				priceData
 			}
 		]
@@ -259,12 +273,12 @@ export function ChainContainer({
 			{
 				id: 'users',
 				name: 'Active Users',
-				isVisible: usersData?.length > 0
+				isVisible: userData.activeUsers ? true : false
 			},
 			{
 				id: 'txs',
 				name: 'Transactions',
-				isVisible: txsData?.length > 0
+				isVisible: userData.transactions ? true : false
 			},
 			{
 				id: 'raises',
@@ -305,7 +319,8 @@ export function ChainContainer({
 		feesAndRevenueData,
 		stablecoinsData,
 		inflowsChartData,
-		inflowsData
+		inflowsData,
+		userData
 	])
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -525,6 +540,38 @@ export function ChainContainer({
 										<td>{formattedNum(inflowsData.netInflows, true)}</td>
 									</tr>
 								) : null}
+
+								{userData.activeUsers ? (
+									<RowWithSubRows
+										rowHeader={'Active Users (24h)'}
+										rowValue={formattedNum(userData.activeUsers, false)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{userData.newUsers ? (
+													<tr>
+														<th>New Users (24h)</th>
+														<td>{formattedNum(userData.newUsers, false)}</td>
+													</tr>
+												) : null}
+												{userData.transactions ? (
+													<tr>
+														<th>Transactions (24h)</th>
+														<td>{formattedNum(userData.transactions, false)}</td>
+													</tr>
+												) : null}
+												{userData.gasUsed ? (
+													<tr>
+														<th>Gas Used (24h)</th>
+														<td>{formattedNum(userData.gasUsed, false)}</td>
+													</tr>
+												) : null}
+											</>
+										}
+									/>
+								) : null}
 							</tbody>
 						</StatsTable2>
 					</OverallMetricsWrapper>
@@ -532,8 +579,6 @@ export function ChainContainer({
 					<ChartWrapper>
 						{easterEgg ? (
 							<Game />
-						) : isFetchingChartData ? (
-							<LocalLoader style={{ margin: 'auto', minHeight: '360px' }} />
 						) : (
 							<>
 								<FiltersWrapper>
@@ -598,19 +643,23 @@ export function ChainContainer({
 									)}
 								</FiltersWrapper>
 
-								{router.isReady && (
-									<ChainChart
-										height="360px"
-										datasets={chartDatasets}
-										customLegendName="Chain"
-										hideDefaultLegend
-										valueSymbol="$"
-										title=""
-										DENOMINATIONS={DENOMINATIONS}
-										denomination={denomination}
-										updateRoute={updateRoute}
-										hideTooltip={selectedChain === 'All'}
-									/>
+								{isFetchingChartData ? (
+									<LocalLoader style={{ margin: 'auto', height: '360px' }} />
+								) : (
+									router.isReady && (
+										<ChainChart
+											height="360px"
+											datasets={chartDatasets}
+											customLegendName="Chain"
+											hideDefaultLegend
+											valueSymbol="$"
+											title=""
+											DENOMINATIONS={DENOMINATIONS}
+											denomination={denomination}
+											updateRoute={updateRoute}
+											hideTooltip={selectedChain === 'All'}
+										/>
+									)
 								)}
 							</>
 						)}
