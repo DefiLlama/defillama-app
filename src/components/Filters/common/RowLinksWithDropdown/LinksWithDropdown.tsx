@@ -159,17 +159,17 @@ const NavLink = styled.a`
 
 	:hover,
 	:focus-visible {
-		background-color: ${({ color, theme }) =>
-			color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1)};
+		background-color: ${({ theme }) =>
+			theme.mode === 'dark' ? transparentize(0.8, '#629ff4') : transparentize(0.8, '#2172E5')};
 	}
 
 	&[data-active='true'] {
-		background-color: ${({ color, theme }) => (color ? color : theme.primary1)};
+		background-color: #2172e5;
 		color: white;
 
 		:hover,
 		:focus-visible {
-			background-color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.primary1))};
+			background-color: ${darken(0.1, '#2172E5')};
 		}
 	}
 `
