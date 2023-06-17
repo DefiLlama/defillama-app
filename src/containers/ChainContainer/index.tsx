@@ -131,7 +131,9 @@ export function ChainContainer({
 		)
 
 	const { data: stablecoinsChartData, loading: fetchingStablecoinsChartDataByChain } =
-		useGetStabelcoinsChartDataByChain(router.query.stables === 'true' ? selectedChain : null)
+		useGetStabelcoinsChartDataByChain(
+			stablecoinsData?.totalMcapCurrent && router.query.stables === 'true' ? selectedChain : null
+		)
 
 	const isFetchingChartData =
 		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
