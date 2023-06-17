@@ -19,14 +19,9 @@ export const getStaticProps = withPerformanceLogging('index', async () => {
 	const raisesData = await fetch(RAISES_API).then((r) => r.json())
 	const stablecoinsData = await getPeggedOverviewPageData(null)
 	const bridgeData = null
-	const feesData = null
 
 	const bridgeChartData = bridgeData
 		? bridgeData?.chainVolumeData?.map((volume) => [volume?.date, volume?.Deposits, volume.Withdrawals])
-		: null
-
-	const feesChart = feesData?.totalDataChart?.[0].length
-		? feesData?.totalDataChart?.[0]?.map((val) => [val.date, val.Fees, val.Revenue])
 		: null
 
 	const raisesChart =
@@ -52,7 +47,6 @@ export const getStaticProps = withPerformanceLogging('index', async () => {
 			raisesData,
 			stablecoinsChartData: peggedAreaTotalData,
 			bridgeChartData,
-			feesChart,
 			raisesChart,
 			totalFundingAmount: raisesChart ? Object.values(raisesChart).reduce((acc, curr) => (acc += curr), 0) * 1e6 : null
 		},

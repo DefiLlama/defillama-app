@@ -73,8 +73,9 @@ export const buildPeggedChartData = (
 	let unformattedTotalData = {}
 	let stackedDatasetObject = {}
 	let unformattedTokenInflowData = {}
-	let assetAddedToInflows = assetsOrChainsList.reduce((acc, curr) => ({ ...acc, [curr]: false }), {})
-	chartDataByAssetOrChain.map((charts, i) => {
+	let assetAddedToInflows = assetsOrChainsList?.reduce((acc, curr) => ({ ...acc, [curr]: false }), {}) ?? {}
+
+	chartDataByAssetOrChain?.forEach((charts, i) => {
 		if (!charts.length || !filteredIndexes.includes(i)) return
 		charts.forEach((chart, j) => {
 			const mcap = getPrevPeggedTotalFromChart([chart], 0, issuanceType) // 'issuanceType' and 'mcap' here are 'circulating' values on /stablecoin pages, and 'mcap' otherwise

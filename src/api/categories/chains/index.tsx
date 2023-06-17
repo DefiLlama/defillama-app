@@ -4,6 +4,7 @@ import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { getDexVolumeByChain } from '../dexs'
 import { getCexVolume } from '../adaptors/utils'
+import { getFeesAndRevenueByChain } from '../fees'
 
 const fetch = fetchWithErrorLogging
 
@@ -41,11 +42,12 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const [chartData, { protocols, chains, parentProtocols }, volume, cexVolume] = await Promise.all([
+	const [chartData, { protocols, chains, parentProtocols }, volume, cexVolume, { fees, revenue }] = await Promise.all([
 		fetch(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
 		fetch(PROTOCOLS_API).then((res) => res.json()),
 		getDexVolumeByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
-		getCexVolume()
+		getCexVolume(),
+		getFeesAndRevenueByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true })
 	])
 
 	const filteredProtocols = formatProtocolsData({
@@ -97,6 +99,7 @@ export async function getChainPageData(chain?: string) {
 				dexsDominance:
 					cexVolume && volume.total24h ? +((volume.total24h / (cexVolume + volume.total24h)) * 100).toFixed(2) : null
 			},
+			feesAndRevenueData: { totalFees24h: fees?.total24h ?? null, totalRevenue24h: revenue?.total24h ?? null },
 			...charts
 		}
 	}

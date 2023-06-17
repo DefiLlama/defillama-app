@@ -4,7 +4,7 @@ import { maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/chains'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
-import { getOverviewItemPageData, getChainPageData as getFeesData } from '~/api/categories/adaptors'
+import { getChainPageData as getFeesData } from '~/api/categories/adaptors'
 
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -17,23 +17,13 @@ const fetch = fetchWithErrorLogging
 export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params }) => {
 	const chain = params.chain
 
-	const [data, feesData, usersData, txsData, chainFeesData, bridgeData, stablecoinsData] = await Promise.all([
+	const [data, usersData, txsData, bridgeData, stablecoinsData] = await Promise.all([
 		getChainPageData(chain),
-		getOverviewItemPageData('fees', chain).catch(() => null),
 		fetch(`https://api.llama.fi/userData/users/chain$${chain}`).then((r) => r.json()),
 		fetch(`https://api.llama.fi/userData/txs/chain$${chain}`).then((r) => r.json()),
-		getFeesData('fees', chain)
-			.catch(() => null)
-			.then((r) => (r.total24h === undefined ? {} : r)),
 		getBridgeOverviewPageData(chain).catch(() => null),
 		getPeggedOverviewPageData(chain).catch(() => null)
 	])
-
-	const chainProtocolsFees = []
-
-	if (chainFeesData) {
-		chainFeesData?.protocols?.forEach((prototcol) => chainProtocolsFees.push(prototcol, ...(prototcol?.subRows || [])))
-	}
 
 	const bridgeChartData = bridgeData
 		? bridgeData?.chainVolumeData?.map((volume) => [
@@ -42,13 +32,6 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 				volume.Withdrawals ?? null
 		  ])
 		: null
-
-	const feesChart = feesData?.totalDataChart?.[0].length
-		? feesData?.totalDataChart?.[0]?.map((val) => [val.date, val.Fees ?? null, val.Revenue ?? null])
-		: null
-
-	const raisesData = null
-	const raisesChart = null
 
 	const { peggedAreaTotalData } = buildPeggedChartData(
 		stablecoinsData?.chartDataByPeggedAsset,
@@ -62,12 +45,8 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 	return {
 		props: {
 			...data.props,
-			raisesData,
 			stablecoinsChartData: peggedAreaTotalData,
-			chainProtocolsFees,
 			bridgeChartData,
-			feesChart,
-			raisesChart,
 			usersData,
 			txsData,
 			totalFundingAmount: null
@@ -79,7 +58,7 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 export async function getStaticPaths() {
 	const res = await fetch(PROTOCOLS_API).then((res) => res.json())
 
-	const paths = res.chains.slice(0, 20).map((chain) => ({
+	const paths = res.chains.map((chain) => ({
 		params: { chain }
 	}))
 

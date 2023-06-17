@@ -21,8 +21,14 @@ import { DetailsWrapper, DownloadButton } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import Link from 'next/link'
 import { ChevronRight, DownloadCloud } from 'react-feather'
-import { useGetProtocolsVolumeByChain, useGetVolumeChartDataByChain } from '~/api/categories/chains/client'
+import {
+	useGetFeesAndRevenueChartDataByChain,
+	useGetProtocolsFeesAndRevenueByChain,
+	useGetProtocolsVolumeByChain,
+	useGetVolumeChartDataByChain
+} from '~/api/categories/chains/client'
 import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
+import SEO from '~/components/SEO'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -52,12 +58,12 @@ export function ChainContainer({
 	usersData,
 	txsData,
 	stablecoinsChartData = [],
-	chainProtocolsFees,
 	bridgeChartData,
-	feesChart,
 	raisesChart,
 	totalFundingAmount,
-	volumeData
+	volumeData,
+	feesAndRevenueData,
+	chainProtocolsFees
 }) {
 	const {
 		fullProtocolsList,
@@ -106,15 +112,28 @@ export function ChainContainer({
 		denomination !== 'USD' || router.query.price === 'true' ? chainGeckoId : null
 	)
 
-	const isLoadingChartData = denomination !== 'USD' && fetchingDenominationPriceHistory
-
 	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain(
 		selectedChain !== 'All' ? selectedChain : null
 	)
 
+	const { data: chainProtocolsFees2, loading: fetchingProtocolsFeesAndRevenueByChain } =
+		useGetProtocolsFeesAndRevenueByChain(selectedChain !== 'All' ? selectedChain : null)
+
 	const { data: volumeChart, loading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
-		volumeData.totalVolume24h && router.query.volume === 'true' ? selectedChain : null
+		volumeData?.totalVolume24h && router.query.volume === 'true' ? selectedChain : null
 	)
+
+	const { data: feesAndRevenueChart, loading: fetchingFeesAndRevenueChartDataByChain } =
+		useGetFeesAndRevenueChartDataByChain(
+			feesAndRevenueData?.totalFees24h && (router.query.fees === 'true' || router.query.revenue === 'true')
+				? selectedChain
+				: null
+		)
+
+	const isFetchingChartData =
+		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
+		fetchingVolumeChartDataByChain ||
+		fetchingFeesAndRevenueChartDataByChain
 
 	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -177,17 +196,17 @@ export function ChainContainer({
 			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
 			: volumeChart
 
-		const finalFeesChart = isNonUSDDenomination
-			? feesChart?.map(([date, fees, revenue]) => [
+		const finalFeesAndRevenueChart = isNonUSDDenomination
+			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
 					date,
 					fees / normalizedDenomination[getUtcDateObject(date)],
 					revenue / normalizedDenomination[getUtcDateObject(date)]
 			  ])
-			: feesChart
+			: feesAndRevenueChart
 
 		const chartDatasets = [
 			{
-				feesChart: finalFeesChart,
+				feesChart: finalFeesAndRevenueChart,
 				volumeChart: finalVolumeChart,
 				bridgeChartData,
 				chainProtocolsFees,
@@ -211,17 +230,17 @@ export function ChainContainer({
 			{
 				id: 'volume',
 				name: 'Volume',
-				isVisible: volumeData.totalVolume24h ? true : false
+				isVisible: volumeData?.totalVolume24h ? true : false
 			},
 			{
 				id: 'fees',
 				name: 'Fees',
-				isVisible: !!finalFeesChart
+				isVisible: feesAndRevenueData?.totalFees24h ? true : false
 			},
 			{
 				id: 'revenue',
 				name: 'Revenue',
-				isVisible: !!finalFeesChart
+				isVisible: feesAndRevenueData?.totalRevenue24h ? true : false
 			},
 			{
 				id: 'price',
@@ -266,7 +285,7 @@ export function ChainContainer({
 		denominationPriceHistory,
 		denomination,
 		volumeChart,
-		feesChart,
+		feesAndRevenueChart,
 		CHAIN_SYMBOL,
 		bridgeChartData,
 		selectedChain,
@@ -276,7 +295,8 @@ export function ChainContainer({
 		raisesChart,
 		txsData,
 		usersData,
-		volumeData
+		volumeData,
+		feesAndRevenueData
 	])
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -325,7 +345,7 @@ export function ChainContainer({
 
 	return (
 		<>
-			{/* <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={volumeChange} /> */}
+			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={percentChange} />
 
 			{/*<Announcement>
 				<Image
@@ -400,7 +420,7 @@ export function ChainContainer({
 								</Link>
 							</summary>
 
-							<span>
+							<span style={{ gap: '8px' }}>
 								<StatInARow>
 									<span>Change (24h)</span>
 									<span>{percentChange || 0}%</span>
@@ -422,21 +442,21 @@ export function ChainContainer({
 									</tr>
 								) : null}
 
-								{feesChart && feesChart.length > 0 ? (
-									<>
-										<tr>
-											<th>Fees (24h)</th>
-											<td>{formattedNum(feesChart[feesChart.length - 1][1], true)}</td>
-										</tr>
-
-										<tr>
-											<th>Revenue (24h)</th>
-											<td>{formattedNum(feesChart[feesChart.length - 1][2], true)}</td>
-										</tr>
-									</>
+								{feesAndRevenueData?.totalFees24h ? (
+									<tr>
+										<th>Fees (24h)</th>
+										<td>{formattedNum(feesAndRevenueData?.totalFees24h, true)}</td>
+									</tr>
 								) : null}
 
-								{volumeData.totalVolume24h ? (
+								{feesAndRevenueData?.totalRevenue24h ? (
+									<tr>
+										<th>Revenue (24h)</th>
+										<td>{formattedNum(feesAndRevenueData?.totalRevenue24h, true)}</td>
+									</tr>
+								) : null}
+
+								{volumeData?.totalVolume24h ? (
 									<RowWithSubRows
 										rowHeader={'Volume (24h)'}
 										rowValue={formattedNum(volumeData.totalVolume24h, true)}
@@ -484,7 +504,7 @@ export function ChainContainer({
 					<ChartWrapper>
 						{easterEgg ? (
 							<Game />
-						) : isLoadingChartData || fetchingVolumeChartDataByChain ? (
+						) : isFetchingChartData ? (
 							<LocalLoader style={{ margin: 'auto', minHeight: '360px' }} />
 						) : (
 							<>

@@ -2,7 +2,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
 
-// - used in /dexs and /dexs/chain/[chaoin]
+// - used in /dexs and /dexs/chain/[chain]
 export const getDexVolumeByChain = async ({
 	chain,
 	excludeTotalDataChart,

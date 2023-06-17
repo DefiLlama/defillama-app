@@ -1,11 +1,7 @@
 import useSWR from 'swr'
 import { getChainPageData as getChainVolume } from '~/api/categories/adaptors'
-import { getChainsPageData } from '~/api/categories/adaptors'
 import { getDexVolumeByChain } from '../dexs'
-
-const sum = (obj) => {
-	return Object.values(obj).reduce((acc: any, curr) => (typeof curr === 'number' ? (acc += curr) : acc), 0)
-}
+import { getFeesAndRevenueByChain, getFeesAndRevenueProtocolsByChain } from '../fees'
 
 export function useGetProtocolsVolumeByChain(chain?: string) {
 	const { data, error } = useSWR(
@@ -44,4 +40,45 @@ export function useGetVolumeChartDataByChain(chain?: string) {
 	)
 
 	return { data: data ?? null, loading: !data && data !== null && !error }
+}
+
+export function useGetFeesAndRevenueChartDataByChain(chain?: string) {
+	const { data, error } = useSWR(`feesAndRevenueChartDataByChain/${chain}`, () =>
+		getFeesAndRevenueByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
+			({ fees, revenue }) => {
+				const chart: { [date: number]: { fees: number | null; revenue: number | null } } = {}
+
+				fees.totalDataChart?.forEach(([date, fees]) => {
+					if (!chart[date]) {
+						chart[date] = { fees: null, revenue: null }
+					}
+
+					chart[date]['fees'] = fees
+				})
+
+				revenue.totalDataChart?.forEach(([date, revenue]) => {
+					if (!chart[date]) {
+						chart[date] = { fees: null, revenue: null }
+					}
+
+					chart[date]['revenue'] = revenue
+				})
+
+				return Object.entries(chart).map(([date, { fees, revenue }]) => [+date, fees, revenue]) as Array<
+					[number, number, number]
+				>
+			}
+		)
+	)
+
+	return { data: data ?? null, loading: !data && data !== null && !error }
+}
+
+export function useGetProtocolsFeesAndRevenueByChain(chain?: string) {
+	const { data, error } = useSWR(
+		`protocolsFeesAndRevenueByChain/${chain}`,
+		chain ? () => getFeesAndRevenueProtocolsByChain({ chain }) : () => null
+	)
+
+	return { data, loading: !data && data !== null && !error }
 }
