@@ -403,7 +403,7 @@ export function ChainContainer({
 				}}
 			/>
 
-			<Wrapper>
+			<LayoutWrapper>
 				<ChainsSelect>
 					<RowLinksWithDropdown
 						links={chainOptions}
@@ -680,12 +680,12 @@ export function ChainContainer({
 				) : (
 					<p style={{ textAlign: 'center', margin: '256px 0' }}>{`${selectedChain} chain has no protocols listed`}</p>
 				)}
-			</Wrapper>
+			</LayoutWrapper>
 		</>
 	)
 }
 
-const Wrapper = styled.div`
+export const LayoutWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	padding: 12px;
@@ -720,11 +720,11 @@ const Wrapper = styled.div`
 	}
 `
 
-const ChainsSelect = styled.nav`
+export const ChainsSelect = styled.nav`
 	display: flex;
 `
 
-const ChartWrapper = styled.div`
+export const ChartWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
@@ -733,7 +733,7 @@ const ChartWrapper = styled.div`
 	min-height: 442px;
 `
 
-const ToggleWrapper = styled.span`
+export const ToggleWrapper = styled.span`
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -754,7 +754,7 @@ const EasterLlama = styled.button`
 	}
 `
 
-const OverallMetricsWrapper = styled(DetailsWrapper)`
+export const OverallMetricsWrapper = styled(DetailsWrapper)`
 	background: none;
 	gap: 8px;
 
@@ -768,7 +768,7 @@ const OverallMetricsWrapper = styled(DetailsWrapper)`
 	}
 `
 
-const ListOptions = styled.nav`
+export const ListOptions = styled.nav`
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -780,7 +780,7 @@ const ListOptions = styled.nav`
 	}
 `
 
-const ListHeader = styled.h3`
+export const ListHeader = styled.h3`
 	font-size: 1.125rem;
 	color: ${({ theme }) => theme.text1};
 	font-weight: 500;

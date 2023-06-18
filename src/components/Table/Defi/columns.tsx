@@ -73,7 +73,11 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 
 			return (
 				<Name>
-					<span>{index + 1}</span> <CustomLink href={`/forks/${getValue()}`}>{getValue()}</CustomLink>
+					<span>{index + 1}</span>
+
+					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+
+					<CustomLink href={`/forks/${getValue()}`}>{getValue()}</CustomLink>
 				</Name>
 			)
 		}

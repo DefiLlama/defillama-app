@@ -64,6 +64,7 @@ import { ProtocolPools } from './Yields'
 import { Flag } from './Flag'
 import { StablecoinInfo } from './Stablecoin'
 import { AccordionStat } from '~/layout/Stats/Large'
+import { ForksData } from './Forks'
 
 const scams = [
 	'Drachma Exchange',
@@ -242,6 +243,7 @@ interface IProtocolContainerProps {
 	nextEventDescription: string | null
 	methodologyUrls: { [type: string]: string | null }
 	chartDenominations?: Array<{ symbol: string; geckoId: string | null }>
+	protocolHasForks?: boolean
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -277,7 +279,8 @@ function ProtocolContainer({
 	tokenCGData,
 	nextEventDescription,
 	methodologyUrls,
-	chartDenominations = []
+	chartDenominations = [],
+	protocolHasForks = false
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -1073,6 +1076,11 @@ function ProtocolContainer({
 							Governance
 						</Tab>
 					)}
+					{protocolHasForks && (
+						<Tab id="forks" color={backgroundColor}>
+							Forks
+						</Tab>
+					)}
 				</TabList>
 
 				<TabPanel state={tab} tabId="information">
@@ -1388,6 +1396,12 @@ function ProtocolContainer({
 				{governanceApis?.length > 0 && (
 					<TabPanel state={tab} tabId="governance">
 						<GovernanceData apis={governanceApis} />
+					</TabPanel>
+				)}
+
+				{protocolHasForks && (
+					<TabPanel state={tab} tabId="forks">
+						<ForksData protocolName={name} />
 					</TabPanel>
 				)}
 			</TabLayout>

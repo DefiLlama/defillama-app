@@ -27,7 +27,6 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
 import { SearchIcon, TableFiltersWithInput } from '../../shared'
-import styled from 'styled-components'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -145,11 +144,13 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 export function ProtocolsTableWithSearch({
 	data,
 	addlColumns,
-	removeColumns
+	removeColumns,
+	skipVirtualization
 }: {
 	data: Array<IProtocolRow>
 	addlColumns?: Array<string>
 	removeColumns?: Array<string>
+	skipVirtualization?: boolean
 }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -234,7 +235,7 @@ export function ProtocolsTableWithSearch({
 					placeholder="Search protocols..."
 				/>
 			</TableFiltersWithInput>
-			<VirtualTable instance={instance} />
+			<VirtualTable instance={instance} skipVirtualization={skipVirtualization} />
 		</>
 	)
 }

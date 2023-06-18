@@ -1,7 +1,13 @@
 import { formatPercentage, selectColor, timeFromNow, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
-import { getProtocol, fuseProtocolData, getProtocolsRaw, getProtocolEmissons } from '~/api/categories/protocols'
+import {
+	getProtocol,
+	fuseProtocolData,
+	getProtocolsRaw,
+	getProtocolEmissons,
+	getForkPageData
+} from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import {
@@ -20,11 +26,12 @@ import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 export const getProtocolData = async (protocol: string) => {
-	const [protocolRes, articles, expenses, treasuries, yields, yieldsConfig, liquidityInfo]: [
+	const [protocolRes, articles, expenses, treasuries, yields, yieldsConfig, liquidityInfo, forks]: [
 		IProtocolResponse,
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+		any,
 		any,
 		any,
 		any
@@ -35,7 +42,8 @@ export const getProtocolData = async (protocol: string) => {
 		fetchOverCacheJson(PROTOCOLS_TREASURY),
 		fetchOverCacheJson(YIELD_POOLS_API),
 		fetchOverCacheJson(YIELD_CONFIG_API),
-		fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json')
+		fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json'),
+		getForkPageData()
 	])
 
 	let inflowsExist = false
@@ -368,7 +376,8 @@ export const getProtocolData = async (protocol: string) => {
 				fees: feesAndRevenueData?.[0]?.methodologyURL ?? null,
 				dexs: volumeData?.[0]?.methodologyURL ?? null
 			},
-			chartDenominations
+			chartDenominations,
+			protocolHasForks: (forks?.props?.tokens ?? []).includes(protocolData.name)
 		},
 		revalidate: maxAgeForNext([22])
 	}

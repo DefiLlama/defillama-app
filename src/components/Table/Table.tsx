@@ -34,10 +34,10 @@ export default function VirtualTable({
 	const { rows } = instance.getRowModel()
 
 	React.useEffect(() => {
-		if (tableContainerRef?.current) {
+		if (!skipVirtualization && tableContainerRef?.current) {
 			setTableTop(tableContainerRef.current.offsetTop)
 		}
-	}, [])
+	}, [skipVirtualization])
 
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
