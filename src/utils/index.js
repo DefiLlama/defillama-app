@@ -109,6 +109,7 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
 	} else {
 		currencySymbol = symbol
 	}
+
 	if (isNaN(number) || number === '' || number === undefined) {
 		return symbol ? `${currencySymbol}0` : 0
 	}

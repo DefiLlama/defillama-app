@@ -132,7 +132,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		columns: [
 			columnHelper.accessor('fees_7d', {
 				header: 'Fees 7d',
-				cell: (info) => <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end'
 				},
@@ -140,8 +141,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('revenue_7d', {
 				header: 'Revenue 7d',
-				cell: (info) => <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>,
-
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end'
 				},
@@ -155,7 +156,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		columns: [
 			columnHelper.accessor('volume_7d', {
 				header: 'Volume 7d',
-				cell: (info) => <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end'
 				},
@@ -568,27 +570,3 @@ const ListedAt = styled.div`
 		text-align: end;
 	}
 `
-
-// const sortAndFilterFalsyValues = (rowA: any, rowB: any): number => {
-// 	const columnId = sorting?.[0].id ?? 'tvl'
-// 	const x = rowA.getValue(columnId)?.value
-// 	const y = rowB.getValue(columnId)?.value
-// 	// equal items sort equally
-// 	if (x === y) {
-// 		return 0
-// 	}
-
-// 	// nulls sort after anything else
-// 	if (x === null) {
-// 		return 1
-// 	}
-// 	if (y === null) {
-// 		return -1
-// 	}
-
-// 	if (sorting.length === 0) {
-// 		return x < y ? 1 : -1
-// 	}
-
-// 	return sorting?.[0].desc ? (x < y ? 1 : -1) : x < y ? -1 : 1
-// }

@@ -111,6 +111,32 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 			expanded,
 			columnSizing
 		},
+		sortingFns: {
+			alphanumericFalsyLast: (rowA, rowB, columnId) => {
+				const desc = sorting.length ? sorting[0].desc : true
+
+				let a = (rowA.getValue(columnId) ?? null) as any
+				let b = (rowB.getValue(columnId) ?? null) as any
+
+				/**
+				 * These first 3 conditions keep our null values at the bottom.
+				 */
+				if (a === null && b !== null) {
+					return desc ? -1 : 1
+				}
+
+				if (a !== null && b === null) {
+					return desc ? 1 : -1
+				}
+
+				if (a === null && b === null) {
+					return 0
+				}
+
+				// at this point, you have non-null values and you should do whatever is required to sort those values correctly
+				return a - b
+			}
+		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
