@@ -118,12 +118,11 @@ export function ChainContainer({
 		denomination !== 'USD' || router.query.price === 'true' ? chainGeckoId : null
 	)
 
-	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain(
-		selectedChain !== 'All' ? selectedChain : null
-	)
+	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } =
+		useGetProtocolsVolumeByChain(selectedChain)
 
 	const { data: chainProtocolsFees, loading: fetchingProtocolsFeesAndRevenueByChain } =
-		useGetProtocolsFeesAndRevenueByChain(selectedChain !== 'All' ? selectedChain : null)
+		useGetProtocolsFeesAndRevenueByChain(selectedChain)
 
 	const { data: volumeChart, loading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
 		volumeData?.totalVolume24h && router.query.volume === 'true' ? selectedChain : null
@@ -589,7 +588,7 @@ export function ChainContainer({
 												isVisible && (
 													<Toggle>
 														<input
-															key={id}
+															key={id + 'chart-option'}
 															type="checkbox"
 															onClick={() => {
 																updateRoute(

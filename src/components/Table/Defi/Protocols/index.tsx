@@ -109,9 +109,9 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		state: {
 			sorting,
 			expanded,
-			columnOrder,
 			columnSizing
 		},
+		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
 		onSortingChange: setSorting,
@@ -123,19 +123,11 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	})
 
 	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = windowSize.width
-			? columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
-			: defaultOrder
-
 		const cSize = windowSize.width
 			? columnSizesKeys.find((size) => windowSize.width > Number(size))
 			: columnSizesKeys[0]
 
 		instance.setColumnSizing(columnSizes[cSize])
-
-		instance.setColumnOrder(order)
 	}, [windowSize, instance])
 
 	return <VirtualTable instance={instance} />

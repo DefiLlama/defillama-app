@@ -8,28 +8,13 @@ export function useGetProtocolsVolumeByChain(chain?: string) {
 		`protocolsVolumeByChain/${chain}`,
 		chain
 			? () =>
-					getChainVolume('dexs', chain)
-						.catch(() => ({}))
-						.then((r: any) => (r.total24h === undefined ? {} : r))
-						.then((chainVolumeData) => {
-							if (chainVolumeData) {
-								const chainProtocolsVolumes = []
-								chainVolumeData?.protocols?.forEach((prototcol) =>
-									chainProtocolsVolumes.push(prototcol, ...(prototcol?.subRows || []))
-								)
-								return chainProtocolsVolumes
-							}
-
-							return null
-						})
-						.catch((err) => {
-							console.log(err)
-							return null
-						})
+					getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
+						(data) => data?.protocols ?? null
+					)
 			: () => null
 	)
 
-	return { data, loading: !data && data !== null && !error }
+	return { data: data ?? null, loading: !data && data !== null && !error }
 }
 
 export function useGetVolumeChartDataByChain(chain?: string) {

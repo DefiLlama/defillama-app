@@ -1,4 +1,4 @@
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
+import { ColumnDef, SortingFn, createColumnHelper, sortingFns } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight, AlertTriangle } from 'react-feather'
 import styled from 'styled-components'
 import Bookmark from '~/components/Bookmark'
@@ -80,7 +80,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	columnHelper.group({
 		id: 'TVL',
 		header: () => <span style={{ margin: '0 auto' }}>TVL</span>,
-		enableSorting: false,
+
 		columns: [
 			columnHelper.accessor('tvl', {
 				header: 'TVL',
@@ -117,12 +117,49 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('mcaptvl', {
 				header: 'Mcap/TVL',
 				cell: (info) => {
-					return <>{info.getValue() && formattedNum(info.getValue())}</>
+					return <>{info.getValue() ? formattedNum(info.getValue()) : null}</>
 				},
 				size: 100,
 				meta: {
 					align: 'end'
 				}
+			})
+		]
+	}),
+	columnHelper.group({
+		id: 'Fees & Revenue',
+		header: () => <span style={{ margin: '0 auto' }}>Fees & Revenue</span>,
+		columns: [
+			columnHelper.accessor('fees_7d', {
+				header: 'Fees 7d',
+				cell: (info) => <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>,
+				meta: {
+					align: 'end'
+				},
+				size: 120
+			}),
+			columnHelper.accessor('revenue_7d', {
+				header: 'Revenue 7d',
+				cell: (info) => <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>,
+
+				meta: {
+					align: 'end'
+				},
+				size: 120
+			})
+		]
+	}),
+	columnHelper.group({
+		id: 'Volume',
+		header: () => <span style={{ margin: '0 auto' }}>Volume</span>,
+		columns: [
+			columnHelper.accessor('volume_7d', {
+				header: 'Volume 7d',
+				cell: (info) => <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>,
+				meta: {
+					align: 'end'
+				},
+				size: 120
 			})
 		]
 	})
@@ -531,3 +568,27 @@ const ListedAt = styled.div`
 		text-align: end;
 	}
 `
+
+// const sortAndFilterFalsyValues = (rowA: any, rowB: any): number => {
+// 	const columnId = sorting?.[0].id ?? 'tvl'
+// 	const x = rowA.getValue(columnId)?.value
+// 	const y = rowB.getValue(columnId)?.value
+// 	// equal items sort equally
+// 	if (x === y) {
+// 		return 0
+// 	}
+
+// 	// nulls sort after anything else
+// 	if (x === null) {
+// 		return 1
+// 	}
+// 	if (y === null) {
+// 		return -1
+// 	}
+
+// 	if (sorting.length === 0) {
+// 		return x < y ? 1 : -1
+// 	}
+
+// 	return sorting?.[0].desc ? (x < y ? 1 : -1) : x < y ? -1 : 1
+// }
