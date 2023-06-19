@@ -15,7 +15,7 @@ const Wrapper = styled.div`
 `
 
 const colors = {
-	tvl: primaryColor,
+	tvl: '#335cd7',
 	volume: '#19ab17',
 	fees: '#f150f4',
 	revenue: '#b4b625',

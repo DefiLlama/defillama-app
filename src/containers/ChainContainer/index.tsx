@@ -378,7 +378,7 @@ export function ChainContainer({
 	const tvl = formattedNum(totalValueUSD, true)
 	const percentChange = valueChangeUSD?.toFixed(2)
 	const dominance = getTokenDominance(topToken, totalValueUSD)
-	console.log({ chartOptions })
+
 	return (
 		<>
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={percentChange} />
