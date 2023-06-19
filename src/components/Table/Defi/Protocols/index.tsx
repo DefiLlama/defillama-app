@@ -118,6 +118,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		typeof window !== 'undefined' ? window.localStorage.getItem(optionsKey) ?? '{}' : '{}'
 	)
 	const [columnVisibility, setColumnVisibility] = React.useState(valuesInStorage)
+
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -188,7 +189,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	}
 
 	const selectedOptions = protocolsByChainTableColumns
-		.filter((option) => (valuesInStorage[option.key] ? true : false))
+		.filter((option) => (Object.keys(valuesInStorage).length ? (valuesInStorage[option.key] ? true : false) : true))
 		.map((op) => op.key)
 
 	const addOption = (newOptions) => {
