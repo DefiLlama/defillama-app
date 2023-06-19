@@ -666,12 +666,7 @@ export function ChainContainer({
 									<LocalLoader style={{ margin: 'auto', height: '360px' }} />
 								) : (
 									router.isReady && (
-										<ChainChart
-											datasets={chartDatasets}
-											title=""
-											denomination={denomination}
-											hideTooltip={selectedChain === 'All'}
-										/>
+										<ChainChart datasets={chartDatasets} title="" denomination={denomination} hideTooltip />
 									)
 								)}
 							</>
@@ -681,11 +676,6 @@ export function ChainContainer({
 						<Image src={llamaLogo} width="41px" height="34px" alt="Activate Easter Egg" />
 					</EasterLlama>
 				</StatsSection>
-
-				<ListOptions style={{ margin: '0 0 -12px 0', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-					<ListHeader>Protocol Rankings</ListHeader>
-					<TVLRange />
-				</ListOptions>
 
 				{finalProtocolsList.length > 0 ? (
 					<ProtocolsByChainTable data={finalProtocolsList} />
@@ -781,28 +771,5 @@ export const OverallMetricsWrapper = styled(DetailsWrapper)`
 	@media screen and (min-width: 80rem) {
 		max-width: 300px;
 		border-right: ${({ theme }) => '1px solid ' + theme.divider};
-	}
-`
-
-export const ListOptions = styled.nav`
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	overflow: hidden;
-	margin: 0 0 -20px;
-
-	button {
-		font-weight: 600;
-	}
-`
-
-export const ListHeader = styled.h3`
-	font-size: 1.125rem;
-	color: ${({ theme }) => theme.text1};
-	font-weight: 500;
-	white-space: nowrap;
-
-	@media screen and (max-width: 40rem) {
-		font-size: 1rem;
 	}
 `

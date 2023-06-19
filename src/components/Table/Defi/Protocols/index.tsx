@@ -27,6 +27,9 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
 import { SearchIcon, TableFiltersWithInput } from '../../shared'
+import styled from 'styled-components'
+import { TVLRange } from '~/components/Filters'
+import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -96,7 +99,25 @@ export function ProtocolsTable({
 	return <VirtualTable instance={instance} />
 }
 
+const protocolsByChainTableColumns = [
+	{ name: 'Name', key: 'name' },
+	{ name: 'Category', key: 'category' },
+	{ name: 'TVL', key: 'tvl' },
+	{ name: 'TVL 1d change', key: 'change_1d' },
+	{ name: 'TVL 7d change', key: 'change_7d' },
+	{ name: 'TVL 1m change', key: 'change_1m' },
+	{ name: 'Mcap/TVL', key: 'mcaptvl' },
+	{ name: 'Fees 7d', key: 'fees_7d' },
+	{ name: 'Revenue 7d', key: 'revenue_7d' },
+	{ name: 'Volume 7d', key: 'volume_7d' }
+]
+
 export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
+	const optionsKey = 'protocolsTableColumns'
+	const valuesInStorage = JSON.parse(
+		typeof window !== 'undefined' ? window.localStorage.getItem(optionsKey) ?? '{}' : '{}'
+	)
+	const [columnVisibility, setColumnVisibility] = React.useState(valuesInStorage)
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -108,7 +129,8 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		state: {
 			sorting,
 			expanded,
-			columnSizing
+			columnSizing,
+			columnVisibility
 		},
 		sortingFns: {
 			alphanumericFalsyLast: (rowA, rowB, columnId) => {
@@ -141,6 +163,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		getSubRows: (row: IProtocolRow) => row.subRows,
 		onSortingChange: setSorting,
 		onColumnSizingChange: setColumnSizing,
+		onColumnVisibilityChange: setColumnVisibility,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
@@ -154,7 +177,45 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		instance.setColumnSizing(columnSizes[cSize])
 	}, [windowSize, instance])
 
-	return <VirtualTable instance={instance} />
+	const clearAllOptions = () => {
+		window.localStorage.setItem(optionsKey, '{}')
+		instance.getToggleAllColumnsVisibilityHandler()({ checked: false } as any)
+	}
+	const toggleAllOptions = () => {
+		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, true])))
+		window.localStorage.setItem(optionsKey, ops)
+		instance.getToggleAllColumnsVisibilityHandler()({ checked: true } as any)
+	}
+
+	const selectedOptions = protocolsByChainTableColumns
+		.filter((option) => (valuesInStorage[option.key] ? true : false))
+		.map((op) => op.key)
+
+	const addOption = (newOptions) => {
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id) ? true : false])
+		)
+		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
+		instance.setColumnVisibility(ops)
+	}
+
+	return (
+		<>
+			<ListOptions>
+				<ListHeader>Protocol Rankings</ListHeader>
+				<ColumnFilters2
+					options={protocolsByChainTableColumns}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					selectedOptions={selectedOptions}
+					addOption={addOption}
+					subMenu={false}
+				/>
+				<TVLRange />
+			</ListOptions>
+			<VirtualTable instance={instance} />
+		</>
+	)
 }
 
 export function ProtocolsTableWithSearch({
@@ -325,3 +386,28 @@ export function ProtocolsByToken({ data }: { data: Array<{ name: string; amountU
 
 	return <VirtualTable instance={instance} />
 }
+
+const ListOptions = styled.div`
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 -12px;
+	justify-content: space-between;
+	flex-wrap: wrap;
+
+	button {
+		font-weight: 600;
+	}
+`
+
+const ListHeader = styled.h3`
+	font-size: 1.125rem;
+	color: ${({ theme }) => theme.text1};
+	font-weight: 500;
+	white-space: nowrap;
+	margin-right: auto;
+
+	@media screen and (max-width: 40rem) {
+		font-size: 1rem;
+	}
+`

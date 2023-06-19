@@ -141,3 +141,60 @@ export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColum
 		</>
 	)
 }
+
+export function ColumnFilters2({
+	variant = 'primary',
+	subMenu,
+	clearAllOptions,
+	toggleAllOptions,
+	selectedOptions,
+	options,
+	addOption
+}) {
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
+	const selectState = useSelectState({
+		value: selectedOptions,
+		setValue: addOption,
+		gutter: 8,
+		renderCallback,
+		...(!subMenu && { animated: true })
+	})
+
+	if (subMenu) {
+		return (
+			<SlidingMenu label="Columns" selectState={selectState}>
+				<SelectContent
+					options={options}
+					selectedOptions={selectedOptions}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					pathname={null}
+					variant={variant}
+				/>
+			</SlidingMenu>
+		)
+	}
+
+	return (
+		<>
+			<SelectButton state={selectState} data-variant={variant}>
+				<span>Columns</span>
+				<ItemsSelected>{selectedOptions.length}</ItemsSelected>
+
+				<MenuButtonArrow />
+			</SelectButton>
+
+			<SelectPopover state={selectState} modal={!isLarge} data-variant={variant}>
+				<SelectContent
+					options={options}
+					selectedOptions={selectedOptions}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					pathname={null}
+					variant={variant}
+				/>
+			</SelectPopover>
+		</>
+	)
+}
