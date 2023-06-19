@@ -55,7 +55,8 @@ export function OtherLinks({ options, name, variant, isActive, ...props }: IProp
 }
 
 const Trigger = styled(Button)`
-	font-weight: 600;
+	font-size: 0.875rem;
+	font-weight: 500;
 
 	&[data-variant='secondary'] {
 		width: 100%;
@@ -73,12 +74,11 @@ const Trigger = styled(Button)`
 		color: white;
 		height: 34px;
 		margin: auto 0;
-		background-color: ${({ theme }) =>
-			theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};
+		background-color: #2172e5;
 
 		:hover,
 		:focus-visible {
-			background-color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.primary1))};
+			background-color: ${darken(0.1, '#2172E5')};
 		}
 	}
 `

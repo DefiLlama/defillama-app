@@ -18,11 +18,11 @@ import LocalLoader from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { getUtcDateObject } from '~/components/ECharts/utils'
-import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
+import { chainIconUrl, formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import Image from 'next/future/image'
 import llamaLogo from '~/assets/peeking-llama.png'
-import { DetailsWrapper, DownloadButton } from '~/layout/ProtocolAndPool'
+import { DetailsWrapper, DownloadButton, Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import Link from 'next/link'
 import { ChevronRight, DownloadCloud } from 'react-feather'
@@ -37,6 +37,7 @@ import SEO from '~/components/SEO'
 import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
 import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
+import TokenLogo from '~/components/TokenLogo'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -426,7 +427,13 @@ export function ChainContainer({
 
 				<StatsSection>
 					<OverallMetricsWrapper>
-						<AccordionStat>
+						{selectedChain !== 'All' && (
+							<Name data-chainname>
+								<TokenLogo logo={chainIconUrl(selectedChain)} size={24} />
+								<span>{selectedChain}</span>
+							</Name>
+						)}
+						<AccordionStat data-tvl>
 							<summary>
 								<span data-arrowicon>
 									<ChevronRight size={20} />
@@ -763,7 +770,11 @@ export const OverallMetricsWrapper = styled(DetailsWrapper)`
 	background: none;
 	gap: 8px;
 
-	& > *:first-child {
+	& > *[data-chainname] {
+		margin-bottom: 16px;
+	}
+
+	& > *[data-tvl] {
 		margin-bottom: 8px;
 	}
 
