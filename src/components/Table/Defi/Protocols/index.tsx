@@ -98,7 +98,6 @@ export function ProtocolsTable({
 
 export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const windowSize = useWindowSize()
@@ -141,7 +140,6 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
 		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),

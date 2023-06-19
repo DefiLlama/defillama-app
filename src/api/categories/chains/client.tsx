@@ -1,5 +1,4 @@
 import useSWR from 'swr'
-import { getChainPageData as getChainVolume } from '~/api/categories/adaptors'
 import { getDexVolumeByChain } from '../dexs'
 import { getFeesAndRevenueByChain, getFeesAndRevenueProtocolsByChain } from '../fees'
 
