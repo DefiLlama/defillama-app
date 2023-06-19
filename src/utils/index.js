@@ -109,6 +109,7 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
 	} else {
 		currencySymbol = symbol
 	}
+
 	if (isNaN(number) || number === '' || number === undefined) {
 		return symbol ? `${currencySymbol}0` : 0
 	}
@@ -372,16 +373,6 @@ export function selectColor(number, color) {
 		s: number !== 0 && l < 70 ? 70 : s,
 		l: number !== 0 && l < 60 ? 60 : l,
 		a: number !== 0 && a < 0.6 ? 1 : a
-	}).toHex()
-}
-
-export const deriveColors = (color, index, length) => {
-	const { l, c, h } = colord(color).toLch()
-
-	return colord({
-		l: l + (index / (length + 1)) * 30,
-		c: c + (index / (length + 1)) * 20,
-		h: h + (index / (length + 1)) * 360
 	}).toHex()
 }
 

@@ -54,7 +54,7 @@ export const Stat = styled.h1`
 	}
 `
 
-export const StatInARow = styled.h1`
+export const StatInARow = styled.p`
 	font-weight: 400;
 	font-size: 1rem;
 	display: flex;

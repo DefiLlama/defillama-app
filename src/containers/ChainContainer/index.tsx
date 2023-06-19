@@ -3,26 +3,41 @@ import styled from 'styled-components'
 import Announcement from '~/components/Announcement'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
-import { ProtocolsTable } from '~/components/Table'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
-import { useDenominationPriceHistory, useGetProtocolsList } from '~/api/categories/protocols/client'
+import {
+	useDenominationPriceHistory,
+	useFetchProtocolActiveUsers,
+	useFetchProtocolNewUsers,
+	useFetchProtocolTransactions,
+	useGetProtocolsList
+} from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { StatsSection } from '~/layout/Stats/Medium'
 import LocalLoader from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { getUtcDateObject } from '~/components/ECharts/utils'
-import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
+import { chainIconUrl, formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import Image from 'next/future/image'
 import llamaLogo from '~/assets/peeking-llama.png'
-import { DetailsWrapper, DownloadButton } from '~/layout/ProtocolAndPool'
+import { DetailsWrapper, DownloadButton, Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import Link from 'next/link'
 import { ChevronRight, DownloadCloud } from 'react-feather'
-import { useGetProtocolsVolumeByChain, useGetVolumeChartDataByChain } from '~/api/categories/chains/client'
+import {
+	useGetFeesAndRevenueChartDataByChain,
+	useGetProtocolsFeesAndRevenueByChain,
+	useGetProtocolsVolumeByChain,
+	useGetVolumeChartDataByChain
+} from '~/api/categories/chains/client'
 import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
+import SEO from '~/components/SEO'
+import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
+import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
+import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
+import TokenLogo from '~/components/TokenLogo'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -49,15 +64,13 @@ export function ChainContainer({
 	protocolsList,
 	chart,
 	extraTvlCharts = {},
-	usersData,
-	txsData,
-	stablecoinsChartData = [],
-	chainProtocolsFees,
-	bridgeChartData,
-	feesChart,
 	raisesChart,
 	totalFundingAmount,
-	volumeData
+	volumeData,
+	feesAndRevenueData,
+	stablecoinsData,
+	inflowsData,
+	userData
 }) {
 	const {
 		fullProtocolsList,
@@ -106,15 +119,53 @@ export function ChainContainer({
 		denomination !== 'USD' || router.query.price === 'true' ? chainGeckoId : null
 	)
 
-	const isLoadingChartData = denomination !== 'USD' && fetchingDenominationPriceHistory
+	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } =
+		useGetProtocolsVolumeByChain(selectedChain)
 
-	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain(
-		selectedChain !== 'All' ? selectedChain : null
-	)
+	const { data: chainProtocolsFees, loading: fetchingProtocolsFeesAndRevenueByChain } =
+		useGetProtocolsFeesAndRevenueByChain(selectedChain)
 
 	const { data: volumeChart, loading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
-		volumeData.totalVolume24h && router.query.volume === 'true' ? selectedChain : null
+		volumeData?.totalVolume24h && router.query.volume === 'true' ? selectedChain : null
 	)
+
+	const { data: feesAndRevenueChart, loading: fetchingFeesAndRevenueChartDataByChain } =
+		useGetFeesAndRevenueChartDataByChain(
+			feesAndRevenueData?.totalFees24h && (router.query.fees === 'true' || router.query.revenue === 'true')
+				? selectedChain
+				: null
+		)
+
+	const { data: stablecoinsChartData, loading: fetchingStablecoinsChartDataByChain } =
+		useGetStabelcoinsChartDataByChain(
+			stablecoinsData?.totalMcapCurrent && router.query.stables === 'true' ? selectedChain : null
+		)
+
+	const { data: inflowsChartData, loading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
+		inflowsData?.netInflows && router.query.inflows === 'true' ? selectedChain : null
+	)
+
+	const { data: usersData, loading: fetchingActiveUsersChartData } = useFetchProtocolActiveUsers(
+		userData.activeUsers && router.query.users === 'true' ? 'chain$' + selectedChain : null
+	)
+
+	const { data: newUsersData, loading: fetchingNewUsersChartData } = useFetchProtocolNewUsers(
+		userData.newUsers && router.query.newUsers === 'true' ? 'chain$' + selectedChain : null
+	)
+
+	const { data: txsData, loading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
+		userData.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
+	)
+
+	const isFetchingChartData =
+		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
+		fetchingVolumeChartDataByChain ||
+		fetchingFeesAndRevenueChartDataByChain ||
+		fetchingStablecoinsChartDataByChain ||
+		fetchingInflowsChartData ||
+		fetchingActiveUsersChartData ||
+		fetchingNewUsersChartData ||
+		fetchingTransactionsChartData
 
 	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -177,27 +228,25 @@ export function ChainContainer({
 			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
 			: volumeChart
 
-		const finalFeesChart = isNonUSDDenomination
-			? feesChart?.map(([date, fees, revenue]) => [
+		const finalFeesAndRevenueChart = isNonUSDDenomination
+			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
 					date,
 					fees / normalizedDenomination[getUtcDateObject(date)],
 					revenue / normalizedDenomination[getUtcDateObject(date)]
 			  ])
-			: feesChart
+			: feesAndRevenueChart
 
 		const chartDatasets = [
 			{
-				feesChart: finalFeesChart,
+				feesChart: finalFeesAndRevenueChart,
 				volumeChart: finalVolumeChart,
-				bridgeChartData,
-				chainProtocolsFees,
-				chainProtocolsVolumes,
 				globalChart: finalTvlChart,
 				raisesData: raisesChart,
 				totalStablesData: stablecoinsChartData,
-				bridgeData: bridgeChartData,
-				usersData: usersData,
-				txsData: txsData,
+				bridgeData: inflowsChartData,
+				usersData,
+				newUsersData,
+				txsData,
 				priceData
 			}
 		]
@@ -211,17 +260,17 @@ export function ChainContainer({
 			{
 				id: 'volume',
 				name: 'Volume',
-				isVisible: volumeData.totalVolume24h ? true : false
+				isVisible: volumeData?.totalVolume24h ? true : false
 			},
 			{
 				id: 'fees',
 				name: 'Fees',
-				isVisible: !!finalFeesChart
+				isVisible: feesAndRevenueData?.totalFees24h ? true : false
 			},
 			{
 				id: 'revenue',
 				name: 'Revenue',
-				isVisible: !!finalFeesChart
+				isVisible: feesAndRevenueData?.totalRevenue24h ? true : false
 			},
 			{
 				id: 'price',
@@ -231,12 +280,17 @@ export function ChainContainer({
 			{
 				id: 'users',
 				name: 'Active Users',
-				isVisible: usersData?.length > 0
+				isVisible: userData.activeUsers ? true : false
+			},
+			{
+				id: 'newUsers',
+				name: 'New Users',
+				isVisible: userData.newUsers ? true : false
 			},
 			{
 				id: 'txs',
 				name: 'Transactions',
-				isVisible: txsData?.length > 0
+				isVisible: userData.transactions ? true : false
 			},
 			{
 				id: 'raises',
@@ -246,12 +300,12 @@ export function ChainContainer({
 			{
 				id: 'stables',
 				name: 'Stablecoins',
-				isVisible: stablecoinsChartData && stablecoinsChartData?.length > 0
+				isVisible: stablecoinsData?.totalMcapCurrent ? true : false
 			},
 			{
 				id: 'inflows',
 				name: 'Inflows',
-				isVisible: bridgeChartData && bridgeChartData?.length && selectedChain !== 'All'
+				isVisible: inflowsData?.netInflows ? true : false
 			}
 		]
 
@@ -266,17 +320,20 @@ export function ChainContainer({
 		denominationPriceHistory,
 		denomination,
 		volumeChart,
-		feesChart,
+		feesAndRevenueChart,
 		CHAIN_SYMBOL,
-		bridgeChartData,
 		selectedChain,
 		stablecoinsChartData,
-		chainProtocolsFees,
-		chainProtocolsVolumes,
 		raisesChart,
 		txsData,
 		usersData,
-		volumeData
+		volumeData,
+		feesAndRevenueData,
+		stablecoinsData,
+		inflowsChartData,
+		inflowsData,
+		userData,
+		newUsersData
 	])
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -325,7 +382,7 @@ export function ChainContainer({
 
 	return (
 		<>
-			{/* <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={volumeChange} /> */}
+			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={percentChange} />
 
 			{/*<Announcement>
 				<Image
@@ -358,7 +415,7 @@ export function ChainContainer({
 				}}
 			/>
 
-			<Wrapper>
+			<LayoutWrapper>
 				<ChainsSelect>
 					<RowLinksWithDropdown
 						links={chainOptions}
@@ -370,7 +427,13 @@ export function ChainContainer({
 
 				<StatsSection>
 					<OverallMetricsWrapper>
-						<AccordionStat>
+						{selectedChain !== 'All' && (
+							<Name data-chainname>
+								<TokenLogo logo={chainIconUrl(selectedChain)} size={24} />
+								<span>{selectedChain}</span>
+							</Name>
+						)}
+						<AccordionStat data-tvl>
 							<summary>
 								<span data-arrowicon>
 									<ChevronRight size={20} />
@@ -400,7 +463,7 @@ export function ChainContainer({
 								</Link>
 							</summary>
 
-							<span>
+							<span style={{ gap: '8px' }}>
 								<StatInARow>
 									<span>Change (24h)</span>
 									<span>{percentChange || 0}%</span>
@@ -415,28 +478,47 @@ export function ChainContainer({
 
 						<StatsTable2>
 							<tbody>
-								{stablecoinsChartData && stablecoinsChartData.length > 0 ? (
+								{stablecoinsData?.totalMcapCurrent ? (
+									<RowWithSubRows
+										rowHeader={'Stablecoins Mcap'}
+										rowValue={formattedNum(stablecoinsData.totalMcapCurrent, true)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{stablecoinsData.change7d ? (
+													<tr>
+														<th>Change (7d)</th>
+														<td>{stablecoinsData.change7d}%</td>
+													</tr>
+												) : null}
+												{stablecoinsData.dominance ? (
+													<tr>
+														<th>{stablecoinsData.topToken.symbol} Dominance</th>
+														<td>{stablecoinsData.dominance}%</td>
+													</tr>
+												) : null}
+											</>
+										}
+									/>
+								) : null}
+
+								{feesAndRevenueData?.totalFees24h ? (
 									<tr>
-										<th>Stablecoins Mcap</th>
-										<td>{formattedNum(stablecoinsChartData[stablecoinsChartData.length - 1]['Mcap'], true)}</td>
+										<th>Fees (24h)</th>
+										<td>{formattedNum(feesAndRevenueData?.totalFees24h, true)}</td>
 									</tr>
 								) : null}
 
-								{feesChart && feesChart.length > 0 ? (
-									<>
-										<tr>
-											<th>Fees (24h)</th>
-											<td>{formattedNum(feesChart[feesChart.length - 1][1], true)}</td>
-										</tr>
-
-										<tr>
-											<th>Revenue (24h)</th>
-											<td>{formattedNum(feesChart[feesChart.length - 1][2], true)}</td>
-										</tr>
-									</>
+								{feesAndRevenueData?.totalRevenue24h ? (
+									<tr>
+										<th>Revenue (24h)</th>
+										<td>{formattedNum(feesAndRevenueData?.totalRevenue24h, true)}</td>
+									</tr>
 								) : null}
 
-								{volumeData.totalVolume24h ? (
+								{volumeData?.totalVolume24h ? (
 									<RowWithSubRows
 										rowHeader={'Volume (24h)'}
 										rowValue={formattedNum(volumeData.totalVolume24h, true)}
@@ -471,11 +553,43 @@ export function ChainContainer({
 									</tr>
 								) : null}
 
-								{bridgeChartData && bridgeChartData.length > 0 ? (
+								{inflowsData?.netInflows ? (
 									<tr>
-										<th>Inflows</th>
-										<td>{formattedNum(bridgeChartData[bridgeChartData.length - 1][1], true)}</td>
+										<th>Inflows (24h)</th>
+										<td>{formattedNum(inflowsData.netInflows, true)}</td>
 									</tr>
+								) : null}
+
+								{userData.activeUsers ? (
+									<RowWithSubRows
+										rowHeader={'Active Users (24h)'}
+										rowValue={formattedNum(userData.activeUsers, false)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{userData.newUsers ? (
+													<tr>
+														<th>New Users (24h)</th>
+														<td>{formattedNum(userData.newUsers, false)}</td>
+													</tr>
+												) : null}
+												{userData.transactions ? (
+													<tr>
+														<th>Transactions (24h)</th>
+														<td>{formattedNum(userData.transactions, false)}</td>
+													</tr>
+												) : null}
+												{userData.gasUsed ? (
+													<tr>
+														<th>Gas Used (24h)</th>
+														<td>{formattedNum(userData.gasUsed, false)}</td>
+													</tr>
+												) : null}
+											</>
+										}
+									/>
 								) : null}
 							</tbody>
 						</StatsTable2>
@@ -484,8 +598,6 @@ export function ChainContainer({
 					<ChartWrapper>
 						{easterEgg ? (
 							<Game />
-						) : isLoadingChartData || fetchingVolumeChartDataByChain ? (
-							<LocalLoader style={{ margin: 'auto', minHeight: '360px' }} />
 						) : (
 							<>
 								<FiltersWrapper>
@@ -495,7 +607,7 @@ export function ChainContainer({
 												isVisible && (
 													<Toggle>
 														<input
-															key={id}
+															key={id + 'chart-option'}
 															type="checkbox"
 															onClick={() => {
 																updateRoute(
@@ -550,19 +662,17 @@ export function ChainContainer({
 									)}
 								</FiltersWrapper>
 
-								{router.isReady && (
-									<ChainChart
-										height="360px"
-										datasets={chartDatasets}
-										customLegendName="Chain"
-										hideDefaultLegend
-										valueSymbol="$"
-										title=""
-										DENOMINATIONS={DENOMINATIONS}
-										denomination={denomination}
-										updateRoute={updateRoute}
-										hideTooltip={selectedChain === 'All'}
-									/>
+								{isFetchingChartData ? (
+									<LocalLoader style={{ margin: 'auto', height: '360px' }} />
+								) : (
+									router.isReady && (
+										<ChainChart
+											datasets={chartDatasets}
+											title=""
+											denomination={denomination}
+											hideTooltip={selectedChain === 'All'}
+										/>
+									)
 								)}
 							</>
 						)}
@@ -578,26 +688,21 @@ export function ChainContainer({
 				</ListOptions>
 
 				{finalProtocolsList.length > 0 ? (
-					<ProtocolsTable
-						data={finalProtocolsList}
-						removeColumns={['fees', 'revenue', 'volume'].map((key) =>
-							router.query?.[key] !== 'true' || selectedChain === 'All' ? `${key}_7d` : undefined
-						)}
-					/>
+					<ProtocolsByChainTable data={finalProtocolsList} />
 				) : (
 					<p style={{ textAlign: 'center', margin: '256px 0' }}>{`${selectedChain} chain has no protocols listed`}</p>
 				)}
-			</Wrapper>
+			</LayoutWrapper>
 		</>
 	)
 }
 
-const Wrapper = styled.div`
+export const LayoutWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	padding: 12px;
 	gap: 20px;
-	background-color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'white')};
+	background-color: ${({ theme }) => (theme.mode === 'dark' ? '#090a0b' : 'white')};
 	border: ${({ theme }) => '1px solid ' + theme.divider};
 	border-radius: 12px;
 	box-shadow: ${({ theme }) => theme.shadowSm};
@@ -607,7 +712,12 @@ const Wrapper = styled.div`
 
 		th,
 		td {
-			background: none;
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#090a0b' : 'white')};
+		}
+
+		th:not(:last-child),
+		td:not(:last-child) {
+			border-right: 1px solid ${({ theme }) => theme.divider};
 		}
 
 		border: ${({ theme }) => '1px solid ' + theme.divider};
@@ -622,11 +732,11 @@ const Wrapper = styled.div`
 	}
 `
 
-const ChainsSelect = styled.nav`
+export const ChainsSelect = styled.nav`
 	display: flex;
 `
 
-const ChartWrapper = styled.div`
+export const ChartWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
@@ -635,7 +745,7 @@ const ChartWrapper = styled.div`
 	min-height: 442px;
 `
 
-const ToggleWrapper = styled.span`
+export const ToggleWrapper = styled.span`
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -656,11 +766,15 @@ const EasterLlama = styled.button`
 	}
 `
 
-const OverallMetricsWrapper = styled(DetailsWrapper)`
+export const OverallMetricsWrapper = styled(DetailsWrapper)`
 	background: none;
 	gap: 8px;
 
-	& > *:first-child {
+	& > *[data-chainname] {
+		margin-bottom: 16px;
+	}
+
+	& > *[data-tvl] {
 		margin-bottom: 8px;
 	}
 
@@ -670,7 +784,7 @@ const OverallMetricsWrapper = styled(DetailsWrapper)`
 	}
 `
 
-const ListOptions = styled.nav`
+export const ListOptions = styled.nav`
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -682,7 +796,7 @@ const ListOptions = styled.nav`
 	}
 `
 
-const ListHeader = styled.h3`
+export const ListHeader = styled.h3`
 	font-size: 1.125rem;
 	color: ${({ theme }) => theme.text1};
 	font-weight: 500;

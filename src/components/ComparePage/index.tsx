@@ -317,16 +317,7 @@ function ComparePage() {
 					{data.isLoading || !router.isReady ? (
 						<LocalLoader style={{ marginBottom: 'auto' }} />
 					) : (
-						<ChainChart
-							height="360px"
-							customLegendName="Chain"
-							hideDefaultLegend
-							valueSymbol="$"
-							title=""
-							updateRoute={updateRoute}
-							router={router}
-							datasets={data?.data}
-						/>
+						<ChainChart title="" datasets={data?.data} />
 					)}
 				</BreakpointPanel>
 			</DataWrapper>

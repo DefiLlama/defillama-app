@@ -149,6 +149,8 @@ export function useDefaults({
 								? unlockTokenSymbol
 								: curr.seriesName.includes('Active Users')
 								? 'Users'
+								: curr.seriesName.includes('New Users')
+								? 'Users'
 								: curr.seriesName.includes('Transactions')
 								? 'TXs'
 								: curr.seriesName === 'TVL' && valueSymbol !== '$'

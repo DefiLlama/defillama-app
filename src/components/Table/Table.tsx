@@ -34,10 +34,10 @@ export default function VirtualTable({
 	const { rows } = instance.getRowModel()
 
 	React.useEffect(() => {
-		if (tableContainerRef?.current) {
+		if (!skipVirtualization && tableContainerRef?.current) {
 			setTableTop(tableContainerRef.current.offsetTop)
 		}
-	}, [])
+	}, [skipVirtualization])
 
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
@@ -75,7 +75,7 @@ export default function VirtualTable({
 		virtualItems.length > 0 ? rowVirtualizer.getTotalSize() - (virtualItems?.[virtualItems.length - 1]?.end || 0) : 0
 
 	return (
-		<Wrapper ref={tableContainerRef} data-resizable={columnResizeMode ? true : false} {...props}>
+		<Wrapper ref={tableContainerRef} data-resizable={columnResizeMode ? true : false} data-tablewrapper {...props}>
 			<table>
 				<thead>
 					{instance.getHeaderGroups().map((headerGroup) => (

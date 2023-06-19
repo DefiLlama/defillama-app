@@ -328,13 +328,13 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	}
 }
 
-const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
+export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
 	if (numerator && denominator && numerator !== null && denominator !== null)
 		return Number((numerator / (denominator * 12)).toFixed(2))
 	return null
 }
 
-const getLlamaoLogo = (logo: string | null) => {
+export const getLlamaoLogo = (logo: string | null) => {
 	if (!logo) return null
 	let llamoLogo = logo
 	if (llamoLogo.includes('chains'))
@@ -343,7 +343,7 @@ const getLlamaoLogo = (logo: string | null) => {
 	return llamoLogo.split('.').slice(0, -1).join('.')
 }
 
-const reduceSumByAttribute = (attribute: string) => (acc, curr) => {
+export const reduceSumByAttribute = (attribute: string) => (acc, curr) => {
 	if (curr[attribute] !== null) {
 		if (acc === undefined) return curr[attribute]
 		return (acc += curr[attribute])
@@ -529,3 +529,5 @@ export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>):
 export function notUndefined<T>(x: T | undefined): x is T {
 	return x !== undefined
 }
+
+export function formatOverviewProtocolsList() {}
