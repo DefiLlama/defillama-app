@@ -1,25 +1,27 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { uniq } from 'lodash'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject } from '../utils'
-import { SelectLegendMultiple } from '../shared'
 import { useDefaults } from '../useDefaults'
 import { useRouter } from 'next/router'
+import { primaryColor } from '~/constants/colors'
+import { toK } from '~/utils'
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
 
 const colors = {
-	tvl: '#335cd7',
+	tvl: primaryColor,
 	volume: '#19ab17',
 	fees: '#f150f4',
 	revenue: '#b4b625',
 	price: '#da1f73',
 	activeUsers: '#fa4646',
+	newUsers: '#46faf2',
 	raises: '#7700ff',
 	stablecoins: '#00a09d',
 	transactions: '#307622',
@@ -48,65 +50,29 @@ const initGetColor = () => {
 	return (isCompare) => (isCompare ? colorsArray[colorOffset++] : null)
 }
 
-// TODO remove color prop and use stackColors by default
 export default function AreaChart({
-	chartData,
-	stacks,
-	stackColors,
 	title,
-	color,
-	customLegendName,
-	customLegendOptions,
 	tooltipSort = true,
-	chartOptions,
 	height = '360px',
 	expandTo100Percent = false,
-	isStackedChart,
-	volumeData = [],
-	feesData = [],
-	priceData = [],
-	usersData = [],
-	txsData = [],
-	raisesData = [],
-	totalStablesData = [],
-	bridgeData = [],
 	denomination,
-	datasets = [],
+	datasets,
 	hideTooltip,
 	...props
 }) {
 	const id = useMemo(() => uuid(), [])
 	const { query: route, pathname } = useRouter()
-	const isCompare = pathname?.includes('compare')
 
-	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
+	const isCompare = pathname?.includes('compare')
 
 	const [isDark] = useDarkModeManager()
 
 	const defaultChartSettings = useDefaults({
-		color,
+		color: primaryColor,
 		title,
 		valueSymbol: denomination || 'USD',
 		tooltipSort,
-		hideLegend: true,
-		isStackedChart
-	})
-	const usersChartSetting = useDefaults({
-		color,
-		title,
-		valueSymbol: 'Users',
-		tooltipSort,
-		hideLegend: true,
-		isStackedChart
-	})
-
-	const txsChartSetting = useDefaults({
-		color,
-		title,
-		valueSymbol: 'TXs',
-		tooltipSort,
-		hideLegend: true,
-		isStackedChart
+		hideLegend: true
 	})
 
 	const [series, activeSeries] = useMemo(() => {
@@ -233,13 +199,29 @@ export default function AreaChart({
 				})
 			}
 
+			if (route.newUsers === 'true' && data?.newUsersData?.length > 0) {
+				series.push({
+					name: namePrefix + 'New Users',
+					chartId: 'New Users',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 6,
+					itemStyle: {
+						color: getColor(isCompare) || colors.newUsers
+					}
+				})
+				data?.newUsersData.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+
 			if (route.raises === 'true' && data?.raisesData) {
 				series.push({
 					name: 'Raises',
 					chartId: 'Raises',
 					type: 'bar',
 					data: [],
-					yAxisIndex: 6,
+					yAxisIndex: 7,
 					itemStyle: {
 						color: getColor(isCompare) || colors.raises
 					}
@@ -257,7 +239,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 7,
+					yAxisIndex: 8,
 					itemStyle: {
 						color: getColor(isCompare) || colors.stablecoins
 					}
@@ -273,7 +255,7 @@ export default function AreaChart({
 					chartId: 'Transactions',
 					type: 'bar',
 					data: [],
-					yAxisIndex: 8,
+					yAxisIndex: 9,
 					itemStyle: {
 						color: getColor(isCompare) || colors.transactions
 					}
@@ -290,7 +272,7 @@ export default function AreaChart({
 					type: 'bar',
 					stack: 'bridge',
 					data: [],
-					yAxisIndex: 9,
+					yAxisIndex: 10,
 					itemStyle: {
 						color: getColor(isCompare) || colors.bridges
 					}
@@ -316,13 +298,6 @@ export default function AreaChart({
 
 		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
-		for (const option in chartOptions) {
-			if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
-			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
-			}
-		}
 		dataZoom[1] = {
 			...dataZoom[1],
 			left: grid.left,
@@ -337,6 +312,7 @@ export default function AreaChart({
 			Price: 65,
 			Raises: 65,
 			'Active Users': 60,
+			'New Users': 60,
 			'Stablecoins Mcap': 60,
 			Transactions: 65,
 			Inflows: 55
@@ -392,9 +368,20 @@ export default function AreaChart({
 					id: 'Price'
 				},
 				{
-					...usersChartSetting.yAxis,
+					...yAxis,
+					axisLabel: {
+						formatter: (value) => toK(value, 4) + ' ' + 'Users'
+					},
 					scale: true,
 					id: 'Active Users'
+				},
+				{
+					...yAxis,
+					axisLabel: {
+						formatter: (value) => toK(value, 4) + ' ' + 'Users'
+					},
+					scale: true,
+					id: 'New Users'
 				},
 				{
 					...yAxis,
@@ -407,7 +394,10 @@ export default function AreaChart({
 					id: 'Stablecoins Mcap'
 				},
 				{
-					...txsChartSetting.yAxis,
+					...yAxis,
+					axisLabel: {
+						formatter: (value) => toK(value, 4) + ' ' + 'TXs'
+					},
 					scale: true,
 					id: 'Transactions'
 				},
@@ -424,7 +414,6 @@ export default function AreaChart({
 				return {
 					...yAxis,
 					offset,
-
 					axisLabel: {
 						...yAxis.axisLabel,
 						color: () => (isCompare ? '#fff' : Object.values(colors)[i])
@@ -475,30 +464,16 @@ export default function AreaChart({
 		createInstance,
 		defaultChartSettings,
 		series,
-		chartOptions,
 		expandTo100Percent,
 		route,
 		activeSeries,
 		hideTooltip,
-		txsChartSetting.yAxis,
-		usersChartSetting.yAxis,
 		isCompare,
 		isDark
 	])
 
-	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
-
 	return (
 		<div style={{ position: 'relative', minHeight: height }} {...props}>
-			{customLegendName && customLegendOptions?.length > 1 && (
-				<SelectLegendMultiple
-					allOptions={customLegendOptions}
-					options={legendOptions}
-					setOptions={setLegendOptions}
-					title={legendOptions.length === 1 ? legendTitle : legendTitle + 's'}
-				/>
-			)}
-
 			<Wrapper id={id} style={{ minHeight: height, margin: 'auto 0' }}></Wrapper>
 		</div>
 	)

@@ -376,16 +376,6 @@ export function selectColor(number, color) {
 	}).toHex()
 }
 
-export const deriveColors = (color, index, length) => {
-	const { l, c, h } = colord(color).toLch()
-
-	return colord({
-		l: l + (index / (length + 1)) * 30,
-		c: c + (index / (length + 1)) * 20,
-		h: h + (index / (length + 1)) * 360
-	}).toHex()
-}
-
 export const getColorFromNumber = (index, length) => {
 	//use defillama blue as starting
 	return colord({

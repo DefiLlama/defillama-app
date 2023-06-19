@@ -3,12 +3,12 @@ import styled from 'styled-components'
 import Announcement from '~/components/Announcement'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
-import { ProtocolsTable } from '~/components/Table'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import {
 	useDenominationPriceHistory,
 	useFetchProtocolActiveUsers,
+	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions,
 	useGetProtocolsList
 } from '~/api/categories/protocols/client'
@@ -144,11 +144,15 @@ export function ChainContainer({
 		inflowsData?.netInflows && router.query.inflows === 'true' ? selectedChain : null
 	)
 
-	const { data: usersData, loading: fetchingActiveUsersChartdata } = useFetchProtocolActiveUsers(
+	const { data: usersData, loading: fetchingActiveUsersChartData } = useFetchProtocolActiveUsers(
 		userData.activeUsers && router.query.users === 'true' ? 'chain$' + selectedChain : null
 	)
 
-	const { data: txsData, loading: fetchingTransactionsChartdata } = useFetchProtocolTransactions(
+	const { data: newUsersData, loading: fetchingNewUsersChartData } = useFetchProtocolNewUsers(
+		userData.newUsers && router.query.newUsers === 'true' ? 'chain$' + selectedChain : null
+	)
+
+	const { data: txsData, loading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
 		userData.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
 	)
 
@@ -158,8 +162,9 @@ export function ChainContainer({
 		fetchingFeesAndRevenueChartDataByChain ||
 		fetchingStablecoinsChartDataByChain ||
 		fetchingInflowsChartData ||
-		fetchingActiveUsersChartdata ||
-		fetchingTransactionsChartdata
+		fetchingActiveUsersChartData ||
+		fetchingNewUsersChartData ||
+		fetchingTransactionsChartData
 
 	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -239,6 +244,7 @@ export function ChainContainer({
 				totalStablesData: stablecoinsChartData,
 				bridgeData: inflowsChartData,
 				usersData,
+				newUsersData,
 				txsData,
 				priceData
 			}
@@ -276,6 +282,11 @@ export function ChainContainer({
 				isVisible: userData.activeUsers ? true : false
 			},
 			{
+				id: 'newUsers',
+				name: 'New Users',
+				isVisible: userData.newUsers ? true : false
+			},
+			{
 				id: 'txs',
 				name: 'Transactions',
 				isVisible: userData.transactions ? true : false
@@ -288,12 +299,12 @@ export function ChainContainer({
 			{
 				id: 'stables',
 				name: 'Stablecoins',
-				isVisible: stablecoinsData?.totalMcapCurrent
+				isVisible: stablecoinsData?.totalMcapCurrent ? true : false
 			},
 			{
 				id: 'inflows',
 				name: 'Inflows',
-				isVisible: inflowsData?.netInflows
+				isVisible: inflowsData?.netInflows ? true : false
 			}
 		]
 
@@ -320,7 +331,8 @@ export function ChainContainer({
 		stablecoinsData,
 		inflowsChartData,
 		inflowsData,
-		userData
+		userData,
+		newUsersData
 	])
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -366,7 +378,7 @@ export function ChainContainer({
 	const tvl = formattedNum(totalValueUSD, true)
 	const percentChange = valueChangeUSD?.toFixed(2)
 	const dominance = getTokenDominance(topToken, totalValueUSD)
-
+	console.log({ chartOptions })
 	return (
 		<>
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={percentChange} />
@@ -648,15 +660,9 @@ export function ChainContainer({
 								) : (
 									router.isReady && (
 										<ChainChart
-											height="360px"
 											datasets={chartDatasets}
-											customLegendName="Chain"
-											hideDefaultLegend
-											valueSymbol="$"
 											title=""
-											DENOMINATIONS={DENOMINATIONS}
 											denomination={denomination}
-											updateRoute={updateRoute}
 											hideTooltip={selectedChain === 'All'}
 										/>
 									)
