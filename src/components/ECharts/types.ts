@@ -29,6 +29,7 @@ export interface IChartProps {
 	hideGradient?: boolean
 	unlockTokenSymbol?: string
 	isDarkMode?: boolean
+	isMonthly?: boolean
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
