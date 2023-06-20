@@ -244,6 +244,47 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Annualised percentage yield since inception'
 		}
+	},
+	{
+		header: 'APY',
+		accessorKey: 'apyIncludingLsdApy',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+					{info.row.original.project === 'cBridge' ? (
+						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY!'} />
+					) : info.row.original.project === 'Uniswap V3' ? (
+						<QuestionHelper
+							text={
+								'Calculated as: 24h fees * 365 / TVL. Enable "7d Base APY" for a more detailed APY calculation which uses 7 day trading fees and a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
+							}
+						/>
+					) : null}
+					{formattedPercent(info.getValue(), true, 700)}
+				</span>
+			)
+		},
+		size: 100,
+		meta: {
+			align: 'end',
+			headerHelperText:
+				'APY = Base APY + Reward APY. For non-autocompounding pools we do not account for reinvesting, in which case APY = APR.'
+		}
+	},
+	{
+		header: 'Base APY',
+		accessorKey: 'apyBaseIncludingLsdApy',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true)}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText:
+				'Annualised percentage yield from trading fees/supplying inclusive of LSD APY (if applicable). For dexes we use the 24h fees and scale those to a year.'
+		}
 	}
 ]
 
@@ -253,10 +294,12 @@ const columnOrders = {
 	0: [
 		'pool',
 		'apy',
+		'apyIncludingLsdApy',
 		'tvl',
 		'project',
 		'chains',
 		'apyBase',
+		'apyBaseIncludingLsdApy',
 		'apyReward',
 		'apyNet7d',
 		'apyBase7d',
@@ -271,9 +314,11 @@ const columnOrders = {
 		'pool',
 		'project',
 		'apy',
+		'apyIncludingLsdApy',
 		'tvl',
 		'chains',
 		'apyBase',
+		'apyBaseIncludingLsdApy',
 		'apyReward',
 		'apyNet7d',
 		'apyBase7d',
@@ -289,8 +334,10 @@ const columnOrders = {
 		'project',
 		'tvl',
 		'apy',
+		'apyIncludingLsdApy',
 		'chains',
 		'apyBase',
+		'apyBaseIncludingLsdApy',
 		'apyReward',
 		'apyNet7d',
 		'apyBase7d',
@@ -307,7 +354,9 @@ const columnOrders = {
 		'chains',
 		'tvl',
 		'apy',
+		'apyIncludingLsdApy',
 		'apyBase',
+		'apyBaseIncludingLsdApy',
 		'apyReward',
 		'apyNet7d',
 		'apyBase7d',
@@ -327,7 +376,9 @@ export const columnSizes = {
 		chain: 60,
 		tvl: 120,
 		apy: 100,
+		apyIncludingLsdApy: 100,
 		apyBase: 140,
+		apyBaseIncludingLsdApy: 140,
 		apyReward: 140,
 		apyNet7d: 120,
 		apyBase7d: 130,
@@ -344,7 +395,9 @@ export const columnSizes = {
 		chain: 60,
 		tvl: 120,
 		apy: 100,
+		apyIncludingLsdApy: 100,
 		apyBase: 140,
+		apyBaseIncludingLsdApy: 140,
 		apyReward: 140,
 		apyNet7d: 120,
 		apyBase7d: 140,

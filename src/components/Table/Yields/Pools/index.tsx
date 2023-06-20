@@ -8,15 +8,32 @@ const columnSizesKeys = getColumnSizesKeys(columnSizes)
 
 export default function YieldsPoolsTable({ data }: IYieldsTableProps) {
 	const router = useRouter()
-	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume, showInceptionApy } = router.query
+	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume, showInceptionApy, includeLsdApy } = router.query
 
-	const columnVisibility = {
-		apyBase7d: show7dBaseApy === 'true',
-		il7d: show7dIL === 'true',
-		volumeUsd1d: show1dVolume === 'true',
-		volumeUsd7d: show7dVolume === 'true',
-		apyBaseInception: showInceptionApy === 'true'
-	}
+	const columnVisibility =
+		includeLsdApy === 'true'
+			? {
+					apyBase7d: show7dBaseApy === 'true',
+					il7d: show7dIL === 'true',
+					volumeUsd1d: show1dVolume === 'true',
+					volumeUsd7d: show7dVolume === 'true',
+					apyBaseInception: showInceptionApy === 'true',
+					apy: false,
+					apyBase: false,
+					apyIncludingLsdApy: true,
+					apyBaseIncludingLsdApy: true
+			  }
+			: {
+					apyBase7d: show7dBaseApy === 'true',
+					il7d: show7dIL === 'true',
+					volumeUsd1d: show1dVolume === 'true',
+					volumeUsd7d: show7dVolume === 'true',
+					apyBaseInception: showInceptionApy === 'true',
+					apy: true,
+					apyBase: true,
+					apyIncludingLsdApy: false,
+					apyBaseIncludingLsdApy: false
+			  }
 
 	return (
 		<YieldsTableWrapper

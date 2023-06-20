@@ -40,13 +40,16 @@ export function YieldFilterDropdowns({
 	isMobile,
 	show1dVolume,
 	show7dVolume,
-	showInceptionApy
+	showInceptionApy,
+	includeLsdApy
 }: IDropdownMenusProps) {
 	const router = useRouter()
 
 	const isBadDebtToggled = selectedAttributes ? selectedAttributes.includes(BAD_DEBT_KEY) : false
 
 	const shouldExlcudeRewardApy = router.query.excludeRewardApy === 'true' ? true : false
+
+	const shouldIncludeLsdApy = router.query.includeLsdApy === 'true' ? true : false
 
 	return (
 		<>
@@ -181,6 +184,30 @@ export function YieldFilterDropdowns({
 						}}
 					/>
 					<span>Exclude reward APY</span>
+				</label>
+			)}
+
+			{includeLsdApy && (
+				<label className={isMobile ? 'sliding-menu-button align-reverse' : 'checkbox-filter'}>
+					<input
+						type="checkbox"
+						value="includeLsdApy"
+						checked={shouldIncludeLsdApy}
+						onChange={() => {
+							router.push(
+								{
+									pathname: pathname || router.pathname,
+									query: {
+										...router.query,
+										includeLsdApy: !shouldIncludeLsdApy
+									}
+								},
+								undefined,
+								{ shallow: true }
+							)
+						}}
+					/>
+					<span>Include LSD APY</span>
 				</label>
 			)}
 

@@ -39,14 +39,17 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	const lsdSymbols = [...new Set(lsd.map((p) => p.symbol))]
 	_pools = _pools.map((p) => {
 		let apyLsd = null
-		if (p.category !== 'Liquid Staking' && lsdSymbols.some((i) => p.symbol.includes(i))) {
+		if (p.category !== 'Liquid Staking' && lsdSymbols.some((i) => p.symbol.includes(i)) && p.project !== 'curve-dex') {
 			const l = p.underlyingTokens?.length
 			apyLsd = lsd.filter((i) => p.symbol.includes(i.symbol)).reduce((acc, v) => v.apyBase / l + acc, 0)
+			apyLsd = Number.isFinite(apyLsd) ? apyLsd : null
 		}
 
 		return {
 			...p,
-			apyLsd
+			apyLsd,
+			apyBaseIncludingLsdApy: p.apyBase + apyLsd,
+			apyIncludingLsdApy: p.apy + apyLsd
 		}
 	})
 

@@ -22,6 +22,7 @@ export interface IDropdownMenusProps {
 	excludeBadDebt?: boolean
 	selectedAttributes?: Array<string>
 	excludeRewardApy?: boolean
+	includeLsdApy?: boolean
 	isMobile?: boolean
 	ltvPlaceholder?: string
 	show1dVolume?: boolean
