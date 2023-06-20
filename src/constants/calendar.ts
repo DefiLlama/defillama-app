@@ -6,12 +6,12 @@ const macro = [
   ["2023-12-13 2:00 PM EDT", "FOMC"],
 
   // https://www.bls.gov/schedule/news_release/cpi.htm
-  ["2023-07-12 08:30 AM ET", "US CPI"],
-  ["2023-08-10 08:30 AM ET", "US CPI"],
-  ["2023-09-13 08:30 AM ET", "US CPI"],
-  ["2023-10-12 08:30 AM ET", "US CPI"],
-  ["2023-11-14 08:30 AM ET", "US CPI"],
-  ["2023-12-12 08:30 AM ET", "US CPI"],
+  ["2023-07-12 08:30 AM EDT", "US CPI"],
+  ["2023-08-10 08:30 AM EDT", "US CPI"],
+  ["2023-09-13 08:30 AM EDT", "US CPI"],
+  ["2023-10-12 08:30 AM EDT", "US CPI"],
+  ["2023-11-14 08:30 AM EDT", "US CPI"],
+  ["2023-12-12 08:30 AM EDT", "US CPI"],
 ]
 
 const closes = [

@@ -1,5 +1,4 @@
 import { maxAgeForNext } from '~/api'
-import { getAllProtocolEmissions } from '~/api/categories/protocols'
 import * as React from 'react'
 import Layout from '~/layout'
 import {
@@ -19,13 +18,40 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { AnnouncementWrapper } from '~/components/Announcement'
 import calendarEvents from '~/constants/calendar'
 import { formatPercentage } from '~/utils'
+import { PROTOCOL_EMISSIONS_API } from '~/constants'
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
-	const emissions = await getAllProtocolEmissions()
+	const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
+	const emissions = res.map((protocol) => {
+		const unlocksByDate = {}
+		protocol.events.forEach((e) => {
+			if (e.timestamp < Date.now() / 1000 || (e.noOfTokens.length === 1 && e.noOfTokens[0] === 0)) return
+			unlocksByDate[e.timestamp] =
+				(unlocksByDate[e.timestamp] ?? 0) +
+				(e.noOfTokens.length === 2 ? e.noOfTokens[1] - e.noOfTokens[0] : e.noOfTokens[0])
+		})
+		const unlocksList = Object.entries(unlocksByDate)
+		const maxUnlock = unlocksList.reduce((max, curr) => {
+			if (max[1] < curr[1]) {
+				return curr
+			}
+			return max
+		}, unlocksList[0])
+
+		const tSymbol =
+			protocol.name === 'LooksRare' ? 'LOOKS' : protocol.tokenPrice?.coins?.[protocol.token]?.symbol ?? null
+
+		return {
+			...protocol,
+			unlock: maxUnlock,
+			tPrice: protocol.tokenPrice?.coins?.[protocol.token]?.price ?? null,
+			tSymbol
+		}
+	})
 
 	return {
 		props: {
-			emissions: emissions.filter((p) => p.upcomingEvent[0]?.timestamp)
+			emissions: emissions.filter((p) => p.unlock)
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -37,15 +63,13 @@ export default function Protocols({ emissions }) {
 
 	const allEvents = emissions
 		.map((e) => {
-			const tokens = e.upcomingEvent
-				.map((x) => x.noOfTokens)
-				.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
+			const tokens = e.unlock[1]
 			const tokenValue = e.tPrice ? tokens * e.tPrice : null
 			const unlockPercent = tokenValue && e.mcap ? (tokenValue / e.mcap) * 100 : null
 			if (unlockPercent === null || unlockPercent <= 4) return null
 			return {
 				name: `${e.tSymbol} ${formatPercentage(unlockPercent)}% unlock`,
-				timestamp: new Date(e.upcomingEvent[0].timestamp * 1e3),
+				timestamp: new Date(e.unlock[0] * 1e3),
 				type: 'Unlock',
 				link: e.name
 			}
