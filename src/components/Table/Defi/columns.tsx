@@ -437,7 +437,7 @@ export const calendarColumns: ColumnDef<any>[] = [
 		id: 'timestamp',
 		accessorKey: 'timestamp',
 		cell: ({ getValue, row }) => {
-			return <SimpleUpcomingEvent timestamp={getValue() / 1e3} name={row.original.name} />
+			return <SimpleUpcomingEvent timestamp={(getValue() as Date) / 1e3} name={row.original.name} />
 		},
 		size: 800
 	}
