@@ -13,6 +13,7 @@ import { formattedNum, toK } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
+import { ProtocolChart } from '~/containers/DexsAndFees/charts/ProtocolChart'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -47,7 +48,16 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const PageView = ({ areaChartData, pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum, lsdColors }) => {
+const PageView = ({
+	areaChartData,
+	pieChartData,
+	tokensList,
+	tokens,
+	stakedEthSum,
+	stakedEthInUsdSum,
+	lsdColors,
+	inflow
+}) => {
 	return (
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'ETH Liquid Staking Derivatives' }} />
@@ -76,6 +86,14 @@ const PageView = ({ areaChartData, pieChartData, tokensList, tokens, stakedEthSu
 				columns={LSDColumn}
 				columnToSearch={'name'}
 				placeholder={'Search protocols...'}
+			/>
+			<ProtocolChart
+				logo={''}
+				data={inflow}
+				chartData={[inflow.filter((i) => Object.keys(i)[1] === 'Lido'), ['Lido']]}
+				name={''}
+				type={'Inflow'}
+				fullChart={true}
 			/>
 		</>
 	)
@@ -256,5 +274,32 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 
 	const tokens = tokensList.map((p) => p.name)
 
-	return { areaChartData, pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum, lsdColors }
+	// calc daily inflow per LSD
+	let inflow = tokens.map((protocol) => {
+		// sort ascending
+		const X = historicData.filter((i) => i.name === protocol).sort((a, b) => a.date - b.date)
+
+		const current = X.slice(1)
+		const previous = X.slice(0, -1)
+
+		return current.map((c, i) => {
+			return {
+				date: c.date,
+				[c.name]: c.value - previous[i].value
+			}
+		})
+	})
+	inflow = inflow.flat()
+	console.log(inflow)
+
+	return {
+		areaChartData,
+		pieChartData,
+		tokensList,
+		tokens,
+		stakedEthSum,
+		stakedEthInUsdSum,
+		lsdColors,
+		inflow
+	}
 }
