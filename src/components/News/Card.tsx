@@ -76,7 +76,7 @@ interface INewsCardProps extends IArticle {
 export const NewsCard = ({ imgSrc, href, headline, date, color }: INewsCardProps) => {
 	return (
 		<Link href={href} passHref>
-			<Container color={color} target="_blank" rel="noopener">
+			<Container color={color} target="_blank" rel="noopener noreferrer">
 				{imgSrc && <Img src={imgSrc} alt={headline} />}
 				<Content>
 					<Headline>{headline}</Headline>
