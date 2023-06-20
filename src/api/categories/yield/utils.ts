@@ -42,7 +42,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		if (
 			p.category !== 'Liquid Staking' &&
 			lsdSymbols.some((i) => p.symbol.includes(i)) &&
-			!['curve-dex', 'olympus-dao'].includes(p.project)
+			!['curve-dex', 'olympus-dao', 'convex-finance'].includes(p.project)
 		) {
 			const l = p.underlyingTokens?.length
 			apyLsd = lsd.filter((i) => p.symbol.includes(i.symbol)).reduce((acc, v) => v.apyBase / l + acc, 0)
