@@ -34,6 +34,22 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		apyNet7d: p.apyBase7d > 0 ? Math.max(p.apyBase7d + p.il7d * 52, -100) : null // scale il7d (negative value) to year
 	}))
 
+	// add lsd apr
+	const lsd = _pools.filter((p) => p.category === 'Liquid Staking' && p.exposure === 'single')
+	const lsdSymbols = [...new Set(lsd.map((p) => p.symbol))]
+	_pools = _pools.map((p) => {
+		let apyLsd = null
+		if (p.category !== 'Liquid Staking' && lsdSymbols.some((i) => p.symbol.includes(i))) {
+			const l = p.underlyingTokens?.length
+			apyLsd = lsd.filter((i) => p.symbol.includes(i.symbol)).reduce((acc, v) => v.apyBase / l + acc, 0)
+		}
+
+		return {
+			...p,
+			apyLsd
+		}
+	})
+
 	const poolsList = []
 
 	const chainList: Set<string> = new Set()
