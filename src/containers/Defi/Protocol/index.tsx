@@ -244,6 +244,7 @@ interface IProtocolContainerProps {
 	methodologyUrls: { [type: string]: string | null }
 	chartDenominations?: Array<{ symbol: string; geckoId: string | null }>
 	protocolHasForks?: boolean
+	twitterData?: { tweets: Array<{ date: string; id: string; message: string }> }
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -1002,6 +1003,7 @@ function ProtocolContainer({
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
+					twitterHandle={protocolData.twitter}
 					protocol={protocol}
 					color={backgroundColor}
 					historicalChainTvls={historicalChainTvls}

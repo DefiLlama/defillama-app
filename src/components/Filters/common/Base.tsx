@@ -286,10 +286,17 @@ export const SelectContent = ({ clearAllOptions, toggleAllOptions, variant, path
 				<button onClick={toggleAllOptions}>Toggle all</button>
 			</FilterFnsGroup>
 			{options.map((option) => (
-				<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages?.includes(pathname) ?? false}>
+				<SelectItem
+					key={option.key}
+					value={option.key}
+					disabled={pathname ? option.disabledOnPages?.includes(pathname) ?? false : false}
+				>
 					{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 					<Checkbox
-						checked={selectedOptions.includes(option.key) || (option.disabledOnPages?.includes(pathname) ?? false)}
+						checked={
+							selectedOptions.includes(option.key) ||
+							(pathname ? option.disabledOnPages?.includes(pathname) ?? false : false)
+						}
 					/>
 				</SelectItem>
 			))}

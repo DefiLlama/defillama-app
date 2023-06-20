@@ -85,6 +85,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('tvl', {
 				header: 'TVL',
 				cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end'
 				},
@@ -93,6 +94,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('change_1d', {
 				header: '1d Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end'
 				},
@@ -101,6 +103,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('change_7d', {
 				header: '7d Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end'
 				},
@@ -109,6 +112,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('change_1m', {
 				header: '1m Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end'
 				},
@@ -119,6 +123,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => {
 					return <>{info.getValue() ? formattedNum(info.getValue()) : null}</>
 				},
+				sortingFn: 'alphanumericFalsyLast' as any,
 				size: 100,
 				meta: {
 					align: 'end'

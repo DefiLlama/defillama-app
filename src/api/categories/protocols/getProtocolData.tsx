@@ -157,7 +157,8 @@ export const getProtocolData = async (protocol: string) => {
 		'Bridge Deposits',
 		'Bridge Withdrawals',
 		'Token Volume',
-		'Token Liquidity'
+		'Token Liquidity',
+		'Tweets'
 	]
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))

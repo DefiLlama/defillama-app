@@ -22,7 +22,14 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function ProtocolChart({ protocolData, protocol, users, governanceApis, chartDenominations = [] }) {
+export default function ProtocolChart({
+	protocolData,
+	protocol,
+	users,
+	governanceApis,
+	chartDenominations = [],
+	twitterHandle
+}) {
 	const router = useRouter()
 
 	const {
@@ -49,7 +56,8 @@ export default function ProtocolChart({ protocolData, protocol, users, governanc
 		bridgeVolume,
 		tokenVolume,
 		tokenLiquidity,
-		usdInflows: usdInflowsParam
+		usdInflows: usdInflowsParam,
+		twitter
 	} = router.query
 
 	const extraTvlsEnabled = {}
@@ -98,7 +106,9 @@ export default function ProtocolChart({ protocolData, protocol, users, governanc
 			historicalChainTvls: protocolData.historicalChainTvls,
 			extraTvlEnabled: extraTvlsEnabled,
 			isHourlyChart: protocolData.isHourlyChart,
-			usdInflowsData: usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null
+			usdInflowsData: usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null,
+			twitter,
+			twitterHandle
 		})
 
 	return (
@@ -116,6 +126,7 @@ export default function ProtocolChart({ protocolData, protocol, users, governanc
 			bobo={false}
 			unlockTokenSymbol={unlockTokenSymbol}
 			isDarkMode={false}
+			isMonthly={groupBy === 'monthly'}
 		/>
 	)
 }

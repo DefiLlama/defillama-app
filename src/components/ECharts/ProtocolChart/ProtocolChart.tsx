@@ -32,6 +32,7 @@ interface IProps {
 	isCEX?: boolean
 	tokenSymbol?: string
 	protocolId: string
+	twitterHandle?: string
 }
 
 const CHART_TYPES = [
@@ -55,7 +56,8 @@ const CHART_TYPES = [
 	'medianApy',
 	'usdInflows',
 	'governance',
-	'bridgeVolume'
+	'bridgeVolume',
+	'twitter'
 ]
 
 export default function ProtocolChart({
@@ -74,7 +76,8 @@ export default function ProtocolChart({
 	isCEX,
 	tokenSymbol,
 	protocolId,
-	chartDenominations
+	chartDenominations,
+	twitterHandle
 }: IProps) {
 	const router = useRouter()
 
@@ -104,7 +107,8 @@ export default function ProtocolChart({
 		treasury,
 		bridgeVolume,
 		tokenVolume,
-		tokenLiquidity
+		tokenLiquidity,
+		twitter
 	} = router.query
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
@@ -144,7 +148,9 @@ export default function ProtocolChart({
 			historicalChainTvls,
 			extraTvlEnabled,
 			isHourlyChart,
-			usdInflowsData
+			usdInflowsData,
+			twitter,
+			twitterHandle
 		})
 
 	const realPathname =
@@ -672,6 +678,28 @@ export default function ProtocolChart({
 							</span>
 						</Toggle>
 					)}
+					{twitterHandle && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="twitter"
+								checked={twitter === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, twitter: twitter === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Tweets</span>
+							</span>
+						</Toggle>
+					)}
 				</ToggleWrapper>
 			) : null}
 
@@ -745,6 +773,7 @@ export default function ProtocolChart({
 				bobo={bobo}
 				unlockTokenSymbol={unlockTokenSymbol}
 				isDarkMode={null}
+				isMonthly={groupBy === 'monthly'}
 			/>
 		</Wrapper>
 	)
@@ -763,7 +792,8 @@ export const ProtocolChartOnly = ({
 	chartColors,
 	bobo,
 	unlockTokenSymbol,
-	isDarkMode
+	isDarkMode,
+	isMonthly
 }) => {
 	return (
 		<LazyChart style={{ padding: 0, minHeight: '360px' }}>
@@ -791,6 +821,7 @@ export const ProtocolChartOnly = ({
 					}}
 					unlockTokenSymbol={unlockTokenSymbol}
 					isDarkMode={isDarkMode}
+					isMonthly={isMonthly}
 				/>
 			)}
 		</LazyChart>

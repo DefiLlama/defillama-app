@@ -205,7 +205,7 @@ export default function AreaChart({
 					chartId: 'New Users',
 					type: 'bar',
 					data: [],
-					yAxisIndex: 6,
+					yAxisIndex: 5,
 					itemStyle: {
 						color: getColor(isCompare) || colors.newUsers
 					}

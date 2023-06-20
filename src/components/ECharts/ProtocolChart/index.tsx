@@ -29,6 +29,7 @@ export default function AreaBarChart({
 	height = '360px',
 	unlockTokenSymbol = '',
 	isDarkMode,
+	isMonthly,
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -122,6 +123,10 @@ export default function AreaBarChart({
 			yAxisByIndex['Treasury'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('Tweets')) {
+			yAxisByIndex['Tweets'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
@@ -174,7 +179,7 @@ export default function AreaBarChart({
 									: null
 							}
 					  }
-					: {}),
+					: { barWidth: isMonthly ? '5' : '1.2' }),
 				markLine: {},
 				data: []
 			}
@@ -216,7 +221,7 @@ export default function AreaBarChart({
 		}
 
 		return { series, yAxisByIndex }
-	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors, isCumulative])
+	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors, isCumulative, isMonthly])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -425,6 +430,21 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Treasury']
+						}
+					}
+				})
+			}
+
+			if (type === 'Tweets') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => value + ' tweets'
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Tweets']
 						}
 					}
 				})
