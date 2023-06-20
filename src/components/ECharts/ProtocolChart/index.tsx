@@ -221,7 +221,7 @@ export default function AreaBarChart({
 		}
 
 		return { series, yAxisByIndex }
-	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors, isCumulative])
+	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors, isCumulative, isMonthly])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
