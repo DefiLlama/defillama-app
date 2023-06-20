@@ -96,7 +96,7 @@ export default function Protocols({ emissions }) {
 			</AnnouncementWrapper>
 
 			<TableHeaderAndSearch>
-				<Header>Calendar</Header>
+				<Header>Crypto Calendar</Header>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />
