@@ -19,6 +19,9 @@ import { AnnouncementWrapper } from '~/components/Announcement'
 import calendarEvents from '~/constants/calendar'
 import { formatPercentage } from '~/utils'
 import { PROTOCOL_EMISSIONS_API } from '~/constants'
+import OptionToggle from '~/components/OptionToggle'
+import { BasicDropdown } from '~/components/Filters/common/BasicDropdown'
+import { useRouter } from 'next/router'
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
@@ -60,6 +63,18 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 export default function Protocols({ emissions }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
+	const { pathname, query } = useRouter()
+	const { type } = query
+	const options = ['Unlock', 'Close', 'Macro', 'Crypto']
+
+	let selectedOptions: string[]
+	if (type) {
+		if (typeof type === 'string') {
+			selectedOptions = type === 'All' ? [...options] : type === 'None' ? [] : [type]
+		} else {
+			selectedOptions = [...type]
+		}
+	} else selectedOptions = [...options]
 
 	const allEvents = emissions
 		.map((e) => {
@@ -86,7 +101,7 @@ export default function Protocols({ emissions }) {
 				)
 				.flat()
 		)
-		.filter((e) => e.timestamp >= new Date())
+		.filter((e) => e.timestamp >= new Date() && selectedOptions.includes(e.type))
 		.sort((a, b) => a.timestamp - b.timestamp)
 
 	const instance = useReactTable({
@@ -121,6 +136,16 @@ export default function Protocols({ emissions }) {
 
 			<TableHeaderAndSearch>
 				<Header>Crypto Calendar</Header>
+
+				<div style={{ marginBottom: '-23px' }}>
+					<BasicDropdown
+						pathname={pathname}
+						options={options}
+						selectedOptions={selectedOptions}
+						label="Type"
+						urlKey="type"
+					/>
+				</div>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />
