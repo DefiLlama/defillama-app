@@ -12,6 +12,8 @@ const macro = [
   ["2023-10-12 08:30 AM EDT", "US CPI"],
   ["2023-11-14 08:30 AM EDT", "US CPI"],
   ["2023-12-12 08:30 AM EDT", "US CPI"],
+
+  ["2024-11-05", "US Elections"],
 ]
 
 const closes = [
