@@ -868,7 +868,7 @@ export function useFetchAndFormatChartData({
 const oneWeek = 7 * 24 * 60 * 60
 const oneMonth = 30 * 24 * 60 * 60
 
-const groupDataByDays = (data, groupBy: string | null, chartsUnique: Array<string>) => {
+export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Array<string>, forceGroup?: boolean) => {
 	if (groupBy && ['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
 		let chartData = {}
 
@@ -884,11 +884,17 @@ const groupDataByDays = (data, groupBy: string | null, chartsUnique: Array<strin
 			}
 
 			chartsUnique.forEach((chartType) => {
-				if (!chartData[date]) {
-					chartData[date] = {}
+				if (forceGroup) {
+					if (!chartData[currentDate]) {
+						chartData[currentDate] = {}
+					}
+				} else {
+					if (!chartData[date]) {
+						chartData[date] = {}
+					}
 				}
 
-				if (BAR_CHARTS.includes(chartType)) {
+				if (BAR_CHARTS.includes(chartType) || forceGroup) {
 					if (groupBy === 'cumulative') {
 						cumulative[chartType] = (cumulative[chartType] || 0) + (+data[date][chartType] || 0)
 						chartData[currentDate][chartType] = cumulative[chartType]
