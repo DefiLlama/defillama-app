@@ -3,17 +3,19 @@ import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
 import Layout from '~/layout'
-import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { formattedNum, toK } from '~/utils'
 
-import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
-import { ProtocolChart } from '~/containers/DexsAndFees/charts/ProtocolChart'
+import { primaryColor } from '~/constants/colors'
+import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
+import { transparentize } from 'polished'
+import { groupDataByDays } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -22,6 +24,10 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+	ssr: false
+}) as React.FC<IBarChartProps>
 
 export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	const data = await getLSDPageData()
@@ -34,8 +40,38 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	}
 })
 
-const ChartsWrapper = styled(Panel)`
-	min-height: 402px;
+const TabList = styled.div`
+	display: flex;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	border-bottom: ${({ theme }) => '1px solid ' + theme.divider};
+`
+
+const Tab = styled.button`
+	padding: 8px 24px;
+	white-space: nowrap;
+	border-bottom: 1px solid transparent;
+
+	&[aria-selected='true'] {
+		border-bottom: ${'1px solid ' + primaryColor};
+	}
+
+	& + & {
+		border-left: ${({ theme }) => '1px solid ' + theme.divider};
+	}
+
+	:first-child {
+		border-top-left-radius: 12px;
+	}
+
+	:hover,
+	:focus-visible {
+		background-color: ${transparentize(0.9, primaryColor)};
+	}
+`
+
+const ChartsWrapper = styled.div`
+	min-height: 360px;
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 16px;
@@ -48,6 +84,19 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
+
+const TabContainer = styled.div`
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+`
+const ChartsContainer = styled.div`
+	background-color: ${({ theme }) => theme.advancedBG};
+	border: 1px solid ${({ theme }) => theme.bg3};
+	border-radius: 8px;
+`
+
 const PageView = ({
 	areaChartData,
 	pieChartData,
@@ -56,8 +105,14 @@ const PageView = ({
 	stakedEthSum,
 	stakedEthInUsdSum,
 	lsdColors,
-	inflow
+	inflowsChartData,
+	barChartStacks
 }) => {
+	const [tab, setTab] = React.useState('breakdown')
+	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
+
+	const inflowsData = groupDataByDays(inflowsChartData, groupBy, tokens, true)
+
 	return (
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'ETH Liquid Staking Derivatives' }} />
@@ -68,32 +123,69 @@ const PageView = ({
 				<span> {`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
 			</TotalLocked>
 
-			<ChartsWrapper>
-				<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
-				<AreaChart
-					chartData={areaChartData}
-					stacks={tokens}
-					stackColors={lsdColors}
-					customLegendName="LSD"
-					customLegendOptions={tokens}
-					hideDefaultLegend
-					valueSymbol="%"
-					title=""
-				/>
-			</ChartsWrapper>
+			<ChartsContainer>
+				<TabList>
+					<Tab onClick={() => setTab('breakdown')} aria-selected={tab === 'breakdown'}>
+						Breakdown
+					</Tab>
+					<Tab onClick={() => setTab('inflows')} aria-selected={tab === 'inflows'}>
+						Inflows
+					</Tab>
+				</TabList>
+
+				<TabContainer>
+					{tab === 'breakdown' ? (
+						<ChartsWrapper>
+							<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
+
+							<AreaChart
+								chartData={areaChartData}
+								stacks={tokens}
+								stackColors={lsdColors}
+								customLegendName="LSD"
+								customLegendOptions={tokens}
+								hideDefaultLegend
+								valueSymbol="%"
+								title=""
+							/>
+						</ChartsWrapper>
+					) : (
+						<>
+							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
+								<Denomination as="button" active={groupBy === 'daily'} onClick={() => setGroupBy('daily')}>
+									Daily
+								</Denomination>
+
+								<Denomination as="button" active={groupBy === 'weekly'} onClick={() => setGroupBy('weekly')}>
+									Weekly
+								</Denomination>
+
+								<Denomination as="button" active={groupBy === 'monthly'} onClick={() => setGroupBy('monthly')}>
+									Monthly
+								</Denomination>
+
+								<Denomination as="button" active={groupBy === 'cumulative'} onClick={() => setGroupBy('cumulative')}>
+									Cumulative
+								</Denomination>
+							</Filters>
+
+							<BarChart
+								chartData={inflowsData}
+								stacks={barChartStacks}
+								stackColors={lsdColors}
+								valueSymbol="ETH"
+								title=""
+							/>
+						</>
+					)}
+				</TabContainer>
+			</ChartsContainer>
+
 			<TableWithSearch
 				data={tokensList}
 				columns={LSDColumn}
 				columnToSearch={'name'}
 				placeholder={'Search protocols...'}
-			/>
-			<ProtocolChart
-				logo={''}
-				data={inflow}
-				chartData={[inflow.filter((i) => Object.keys(i)[1] === 'Lido'), ['Lido']]}
-				name={''}
-				type={'Inflow'}
-				fullChart={true}
 			/>
 		</>
 	)
@@ -274,23 +366,27 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 
 	const tokens = tokensList.map((p) => p.name)
 
+	const inflowsChartData: { [date: number]: { [token: string]: number } } = {}
+	const barChartStacks = {}
+
 	// calc daily inflow per LSD
-	let inflow = tokens.map((protocol) => {
+	tokens.forEach((protocol) => {
 		// sort ascending
 		const X = historicData.filter((i) => i.name === protocol).sort((a, b) => a.date - b.date)
 
 		const current = X.slice(1)
 		const previous = X.slice(0, -1)
 
-		return current.map((c, i) => {
-			return {
-				date: c.date,
-				[c.name]: c.value - previous[i].value
+		current.forEach((c, i) => {
+			if (!inflowsChartData[c.date]) {
+				inflowsChartData[c.date] = {}
 			}
+
+			inflowsChartData[c.date][c.name] = c.value - previous[i].value
 		})
+
+		barChartStacks[protocol] = 'A'
 	})
-	inflow = inflow.flat()
-	console.log(inflow)
 
 	return {
 		areaChartData,
@@ -300,6 +396,7 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 		stakedEthSum,
 		stakedEthInUsdSum,
 		lsdColors,
-		inflow
+		inflowsChartData,
+		barChartStacks
 	}
 }
