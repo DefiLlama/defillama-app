@@ -28,7 +28,8 @@ const CHART_SYMBOLS = {
 	TVL: '$',
 	APY: '%',
 	'Median APY': '%',
-	Treasury: '$'
+	Treasury: '$',
+	Tweets: ''
 }
 
 echarts.use([
