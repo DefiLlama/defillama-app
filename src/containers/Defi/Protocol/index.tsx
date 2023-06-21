@@ -244,6 +244,7 @@ interface IProtocolContainerProps {
 	methodologyUrls: { [type: string]: string | null }
 	chartDenominations?: Array<{ symbol: string; geckoId: string | null }>
 	protocolHasForks?: boolean
+	twitterData?: { tweets: Array<{ date: string; id: string; message: string }> }
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -1002,6 +1003,7 @@ function ProtocolContainer({
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
+					twitterHandle={protocolData.twitter}
 					protocol={protocol}
 					color={backgroundColor}
 					historicalChainTvls={historicalChainTvls}
@@ -1118,7 +1120,13 @@ function ProtocolContainer({
 							<LinksWrapper>
 								{url && (
 									<Link href={url} passHref>
-										<Button as="a" target="_blank" rel="noopener" useTextColor={true} color={backgroundColor}>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
 											<span>Website</span> <ArrowUpRight size={14} />
 										</Button>
 									</Link>

@@ -20,7 +20,7 @@ const colors = {
 	fees: '#f150f4',
 	revenue: '#b4b625',
 	price: '#da1f73',
-	activeUsers: '#fa4646',
+	returningUsers: '#fa4646',
 	newUsers: '#46faf2',
 	raises: '#7700ff',
 	stablecoins: '#00a09d',
@@ -137,7 +137,6 @@ export default function AreaChart({
 					name: namePrefix + 'Fees',
 					chartId: 'Fees',
 					type: 'bar',
-
 					data: [],
 					yAxisIndex: 2,
 					itemStyle: {
@@ -185,24 +184,23 @@ export default function AreaChart({
 
 			if (route.users === 'true' && data?.usersData?.length > 0) {
 				series.push({
-					name: namePrefix + 'Active Users',
-					chartId: 'Active Users',
+					name: namePrefix + 'Returning Users',
+					chartId: 'Users',
+					stack: 'Users',
 					type: 'bar',
 					data: [],
 					yAxisIndex: 5,
 					itemStyle: {
-						color: getColor(isCompare) || colors.activeUsers
+						color: getColor(isCompare) || colors.returningUsers
 					}
 				})
-				data?.usersData.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				data?.usersData.forEach(([date, value, value2]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), (value ?? 0) - (value2 ?? 0)])
 				})
-			}
-
-			if (route.newUsers === 'true' && data?.newUsersData?.length > 0) {
 				series.push({
 					name: namePrefix + 'New Users',
-					chartId: 'New Users',
+					chartId: 'Users',
+					stack: 'Users',
 					type: 'bar',
 					data: [],
 					yAxisIndex: 5,
@@ -210,8 +208,8 @@ export default function AreaChart({
 						color: getColor(isCompare) || colors.newUsers
 					}
 				})
-				data?.newUsersData.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				data?.usersData.forEach(([date, value, value2]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value2])
 				})
 			}
 
@@ -221,7 +219,7 @@ export default function AreaChart({
 					chartId: 'Raises',
 					type: 'bar',
 					data: [],
-					yAxisIndex: 7,
+					yAxisIndex: 6,
 					itemStyle: {
 						color: getColor(isCompare) || colors.raises
 					}
@@ -239,7 +237,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 8,
+					yAxisIndex: 7,
 					itemStyle: {
 						color: getColor(isCompare) || colors.stablecoins
 					}
@@ -255,7 +253,7 @@ export default function AreaChart({
 					chartId: 'Transactions',
 					type: 'bar',
 					data: [],
-					yAxisIndex: 9,
+					yAxisIndex: 8,
 					itemStyle: {
 						color: getColor(isCompare) || colors.transactions
 					}
@@ -272,7 +270,7 @@ export default function AreaChart({
 					type: 'bar',
 					stack: 'bridge',
 					data: [],
-					yAxisIndex: 10,
+					yAxisIndex: 9,
 					itemStyle: {
 						color: getColor(isCompare) || colors.bridges
 					}
@@ -311,8 +309,7 @@ export default function AreaChart({
 			Revenue: 65,
 			Price: 65,
 			Raises: 65,
-			'Active Users': 60,
-			'New Users': 60,
+			Users: 60,
 			'Stablecoins Mcap': 60,
 			Transactions: 65,
 			Inflows: 55
@@ -349,54 +346,80 @@ export default function AreaChart({
 			yAxis: [
 				{
 					...yAxis,
-					id: 'TVL'
+					id: 'TVL',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.tvl)
+					}
 				},
 				{
 					...yAxis,
 					scale: true,
-					id: 'Volume'
-				},
-				{ ...yAxis, scale: true, id: 'Fees' },
-				{
-					...yAxis,
-					scale: true,
-					id: 'Revenue'
+					id: 'Volume',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.volume)
+					}
 				},
 				{
 					...yAxis,
 					scale: true,
-					id: 'Price'
+					id: 'Fees',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.fees)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Revenue',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.revenue)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Price',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.price)
+					}
 				},
 				{
 					...yAxis,
 					axisLabel: {
-						formatter: (value) => toK(value, 4) + ' ' + 'Users'
+						formatter: (value) => toK(value, 4) + ' ' + 'Users',
+						color: () => (isCompare ? '#fff' : colors.returningUsers)
 					},
 					scale: true,
-					id: 'Active Users'
+					id: 'Users'
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Raises',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.raises)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Stablecoins Mcap',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.stablecoins)
+					}
 				},
 				{
 					...yAxis,
 					axisLabel: {
-						formatter: (value) => toK(value, 4) + ' ' + 'Users'
-					},
-					scale: true,
-					id: 'New Users'
-				},
-				{
-					...yAxis,
-					scale: true,
-					id: 'Raises'
-				},
-				{
-					...yAxis,
-					scale: true,
-					id: 'Stablecoins Mcap'
-				},
-				{
-					...yAxis,
-					axisLabel: {
-						formatter: (value) => toK(value, 4) + ' ' + 'TXs'
+						formatter: (value) => toK(value, 4) + ' ' + 'TXs',
+						color: () => (isCompare ? '#fff' : colors.transactions)
 					},
 					scale: true,
 					id: 'Transactions'
@@ -404,7 +427,11 @@ export default function AreaChart({
 				{
 					...yAxis,
 					scale: true,
-					id: 'Inflows'
+					id: 'Inflows',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.bridges)
+					}
 				}
 			].map((yAxis: any, i) => {
 				const isActive = activeSeries?.findIndex((id) => id === yAxis.id) !== -1
@@ -413,11 +440,7 @@ export default function AreaChart({
 				offsetAcc = isActive && i !== 0 ? offsetAcc + defaultOffset : offsetAcc
 				return {
 					...yAxis,
-					offset,
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : Object.values(colors)[i])
-					}
+					offset
 				}
 			}),
 			dataZoom: [...dataZoom],

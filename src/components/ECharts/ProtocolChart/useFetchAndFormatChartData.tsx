@@ -9,7 +9,8 @@ import {
 	useFetchProtocolTokenLiquidity,
 	useFetchProtocolTransactions,
 	useFetchProtocolTreasury,
-	useGetProtocolEmissions
+	useGetProtocolEmissions,
+	useFetchProtocolTwitter
 } from '~/api/categories/protocols/client'
 import { nearestUtc } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
@@ -56,7 +57,9 @@ export function useFetchAndFormatChartData({
 	historicalChainTvls,
 	extraTvlEnabled,
 	isHourlyChart,
-	usdInflowsData
+	usdInflowsData,
+	twitter,
+	twitterHandle
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -119,6 +122,9 @@ export function useFetchAndFormatChartData({
 	)
 	const { data: tokenLiquidityData, loading: fetchingTokenLiquidity } = useFetchProtocolTokenLiquidity(
 		isRouterReady && metrics.tokenLiquidity && tokenLiquidity === 'true' ? protocolId : null
+	)
+	const { data: twitterData, loading: fetchingTwitter } = useFetchProtocolTwitter(
+		isRouterReady && twitter === 'true' ? twitterHandle : null
 	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
@@ -479,6 +485,19 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
+		if (twitter === 'true') {
+			chartsUnique.push('Tweets')
+
+			twitterData?.tweets?.forEach((tweet) => {
+				const date = Math.floor(nearestUtc(tweet.date) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Tweets'] = chartData[date]['Tweets'] ? chartData[date]['Tweets'] + 1 : 1
+			})
+		}
+
 		if (emissions && unlocks === 'true') {
 			chartsUnique.push('Unlocks')
 			emissions.chartData
@@ -730,7 +749,9 @@ export function useFetchAndFormatChartData({
 		bridgeVolumeData,
 		tokenVolume,
 		tokenLiquidity,
-		tokenLiquidityData
+		tokenLiquidityData,
+		twitter,
+		twitterData?.tweets
 	])
 
 	const finalData = React.useMemo(() => {
@@ -812,6 +833,10 @@ export function useFetchAndFormatChartData({
 		fetchingTypes.push('treasury')
 	}
 
+	if (fetchingTwitter) {
+		fetchingTypes.push('twitter')
+	}
+
 	const isLoading =
 		loading ||
 		fetchingFdv ||
@@ -827,7 +852,8 @@ export function useFetchAndFormatChartData({
 		fetchingTreasury ||
 		fetchingEmissions ||
 		fetchingBridgeVolume ||
-		fetchingTokenLiquidity
+		fetchingTokenLiquidity ||
+		fetchingTwitter
 
 	return {
 		fetchingTypes,

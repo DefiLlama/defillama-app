@@ -8,6 +8,7 @@ import {
 	PROTOCOL_TRANSACTIONS_API,
 	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API,
+	TWITTER_POSTS_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
@@ -93,6 +94,50 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 
 	return { data, error, loading: !data && data !== null && !error }
 }
+
+const getProtocolUsers = async (protocolId: number | string) => {
+	const [activeUsers, newUsers] = await Promise.all([
+		fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
+			.then((res) => res.json())
+			.then((values) => {
+				return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
+			})
+			.catch((err) => []),
+		fetch(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
+			.then((res) => res.json())
+			.then((values) => {
+				return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
+			})
+			.catch((err) => [])
+	])
+
+	const users: { [date: number]: { activeUsers: number | null; newUsers: number | null } } = {}
+
+	activeUsers.forEach(([date, value]) => {
+		if (!users[date]) {
+			users[date] = { activeUsers: null, newUsers: null }
+		}
+
+		users[date]['activeUsers'] = value
+	})
+
+	newUsers.forEach(([date, value]) => {
+		if (!users[date]) {
+			users[date] = { activeUsers: null, newUsers: null }
+		}
+
+		users[date]['newUsers'] = value
+	})
+
+	return Object.entries(users).map(([date, { activeUsers, newUsers }]) => [date, activeUsers, newUsers])
+}
+
+export const useFetchProtocolUsers = (protocolId: number | string | null) => {
+	const { data, error } = useSWR(`users/${protocolId}`, protocolId ? () => getProtocolUsers(protocolId) : () => null)
+
+	return { data, error, loading: !data && data !== null && !error }
+}
+
 export const useFetchProtocolTransactions = (protocolId: number | string | null) => {
 	const { data, error } = useSWR(
 		`protocolTransactionsApi/${protocolId}`,
@@ -109,6 +154,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 
 	return { data, error, loading: !data && data !== null && !error }
 }
+
 export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 	const { data, error } = useSWR(
 		`protocolGasUsed/${protocolId}`,
@@ -210,4 +256,13 @@ export const useGetProtocolEmissions = (protocol?: string | null) => {
 	const { data, error } = useSWR(`unlocksData/${protocol}`, protocol ? () => getProtocolEmissons(protocol) : () => null)
 
 	return { data, error, loading: protocol && !data && !error }
+}
+
+export const useFetchProtocolTwitter = (twitter?: string | null) => {
+	const { data, error } = useSWR(
+		`twitterData1/${twitter}`,
+		twitter ? () => fetch(TWITTER_POSTS_API + `/${twitter?.toLowerCase()}.json`).then((r) => r.json()) : () => null
+	)
+
+	return { data, error, loading: twitter && !data && !error }
 }

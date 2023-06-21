@@ -19,6 +19,7 @@ import { useMemo } from 'react'
 
 const CHART_SYMBOLS = {
 	'Active Users': '',
+	'Returning Users': '',
 	'New Users': '',
 	Transactions: '',
 	'Total Proposals': '',

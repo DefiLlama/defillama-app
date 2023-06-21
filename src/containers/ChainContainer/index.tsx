@@ -2,14 +2,13 @@ import * as React from 'react'
 import styled from 'styled-components'
 import Announcement from '~/components/Announcement'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
+import { RowLinksWithDropdown } from '~/components/Filters'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import {
 	useDenominationPriceHistory,
-	useFetchProtocolActiveUsers,
-	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions,
+	useFetchProtocolUsers,
 	useGetProtocolsList
 } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
@@ -145,12 +144,8 @@ export function ChainContainer({
 		inflowsData?.netInflows && router.query.inflows === 'true' ? selectedChain : null
 	)
 
-	const { data: usersData, loading: fetchingActiveUsersChartData } = useFetchProtocolActiveUsers(
+	const { data: usersData, loading: fetchingUsersChartData } = useFetchProtocolUsers(
 		userData.activeUsers && router.query.users === 'true' ? 'chain$' + selectedChain : null
-	)
-
-	const { data: newUsersData, loading: fetchingNewUsersChartData } = useFetchProtocolNewUsers(
-		userData.newUsers && router.query.newUsers === 'true' ? 'chain$' + selectedChain : null
 	)
 
 	const { data: txsData, loading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
@@ -163,8 +158,7 @@ export function ChainContainer({
 		fetchingFeesAndRevenueChartDataByChain ||
 		fetchingStablecoinsChartDataByChain ||
 		fetchingInflowsChartData ||
-		fetchingActiveUsersChartData ||
-		fetchingNewUsersChartData ||
+		fetchingUsersChartData ||
 		fetchingTransactionsChartData
 
 	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
@@ -245,7 +239,6 @@ export function ChainContainer({
 				totalStablesData: stablecoinsChartData,
 				bridgeData: inflowsChartData,
 				usersData,
-				newUsersData,
 				txsData,
 				priceData
 			}
@@ -279,13 +272,8 @@ export function ChainContainer({
 			},
 			{
 				id: 'users',
-				name: 'Active Users',
+				name: 'Users',
 				isVisible: userData.activeUsers ? true : false
-			},
-			{
-				id: 'newUsers',
-				name: 'New Users',
-				isVisible: userData.newUsers ? true : false
 			},
 			{
 				id: 'txs',
@@ -332,8 +320,7 @@ export function ChainContainer({
 		stablecoinsData,
 		inflowsChartData,
 		inflowsData,
-		userData,
-		newUsersData
+		userData
 	])
 
 	const finalProtocolsList = React.useMemo(() => {

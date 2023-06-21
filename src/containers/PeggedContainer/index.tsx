@@ -425,7 +425,13 @@ export const PeggedAssetInfo = ({
 							{url && (
 								<span>
 									<Link href={url} passHref>
-										<Button as="a" target="_blank" rel="noopener" useTextColor={true} color={backgroundColor}>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
 											<span>Website</span>
 											<ArrowUpRight size={14} />
 										</Button>
