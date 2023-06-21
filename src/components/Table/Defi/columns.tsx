@@ -361,11 +361,11 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Unlocks per day',
 		id: 'nextEvent',
-		accessorFn: (row) => (row.tPrice && row.nextEvent.toUnlock ? +row.tPrice * row.nextEvent.toUnlock : 0),
+		accessorFn: (row) => (row.tPrice && row.nextEvent?.toUnlock ? +row.tPrice * row.nextEvent.toUnlock : 0),
 		cell: ({ getValue, row }) => {
 			const symbol = row.original.tSymbol
 
-			if (!row.original.nextEvent.toUnlock) return '-'
+			if (!row.original.nextEvent?.toUnlock) return '-'
 
 			return (
 				<AutoColumn gap="4px">
@@ -853,7 +853,9 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: '24hInflows',
 		size: 120,
 		cell: (info) => (
-			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
+			<InflowOutflow
+				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
+			>
 				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
 			</InflowOutflow>
 		),
@@ -867,7 +869,9 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: '7dInflows',
 		size: 120,
 		cell: (info) => (
-			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
+			<InflowOutflow
+				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
+			>
 				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
 			</InflowOutflow>
 		),
@@ -881,7 +885,9 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: '1mInflows',
 		size: 120,
 		cell: (info) => (
-			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
+			<InflowOutflow
+				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
+			>
 				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
 			</InflowOutflow>
 		),
@@ -1620,7 +1626,7 @@ const SimpleUpcomingEvent = ({ timestamp, name }) => {
 
 const TimeLeft = styled.span`
 	display: flex;
-	align-items: center
+	align-items: center;
 	flex-wrap: nowrap;
 	gap: 8px;
 	font-size: 0.825rem;
