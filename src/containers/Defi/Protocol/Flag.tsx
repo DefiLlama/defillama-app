@@ -94,6 +94,7 @@ export function Flag({ protocol, dataType, isLending }: { protocol: string; data
 								<option value="Volume">Volume</option>
 								<option value="Fees">Fees</option>
 								<option value="Revenue">Revenue</option>
+								<option value="Treasury">Treasury</option>
 								<option value="Unlocks">Unlocks</option>
 								<option value="Active Users">Active Users</option>
 								<option value="New Users">New Users</option>
