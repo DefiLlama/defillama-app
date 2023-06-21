@@ -5,17 +5,7 @@ export const chainCoingeckoIds = {
 		symbol: 'ETH',
 		cmcId: '1027'
 	},
-	Arbitrum: {
-		geckoId: null,
-		symbol: 'ETH',
-		cmcId: null
-	},
 	Palm: {
-		geckoId: null,
-		symbol: null,
-		cmcId: null
-	},
-	Optimism: {
 		geckoId: null,
 		symbol: null,
 		cmcId: null
@@ -834,4 +824,42 @@ export const chainMarketplaceMappings = {
 	magiceden: 'Solana',
 	randomearth: 'Terra',
 	jpgstore: 'Cardano'
+}
+
+export const chainCoingeckoIdsForGasNotMcap = {
+	Optimism: {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
+	Arbitrum: {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
+	"zkSync Era": {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
+	"Polygon zkEVM": {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
+	"Arbitrum Nova": {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
+	"Boba": {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
+	Metis: {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
 }

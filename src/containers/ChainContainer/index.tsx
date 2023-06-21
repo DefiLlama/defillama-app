@@ -15,7 +15,7 @@ import { formatProtocolsList } from '~/hooks/data/defi'
 import { StatsSection } from '~/layout/Stats/Medium'
 import LocalLoader from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
-import { chainCoingeckoIds } from '~/constants/chainTokens'
+import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { getUtcDateObject } from '~/components/ECharts/utils'
 import { chainIconUrl, formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
@@ -105,7 +105,7 @@ export function ChainContainer({
 	let chainGeckoId = null
 
 	if (selectedChain !== 'All') {
-		let chainDenomination = chainCoingeckoIds[selectedChain] ?? null
+		let chainDenomination = chainCoingeckoIds[selectedChain] ?? chainCoingeckoIdsForGasNotMcap[selectedChain] ?? null
 
 		chainGeckoId = chainDenomination?.geckoId ?? null
 
