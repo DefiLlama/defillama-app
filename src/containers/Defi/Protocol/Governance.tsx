@@ -18,6 +18,7 @@ import useSWR from 'swr'
 import { formatGovernanceData } from '~/api/categories/protocols'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 
 const fetch = fetchWithErrorLogging
 
@@ -142,7 +143,9 @@ export const fetchAndFormatGovernanceData = async (
 	return data.map((item) => (item.status === 'fulfilled' ? item.value : null)).filter((item) => !!item)
 }
 
-export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
+export function GovernanceData({ apis = [], color }: { apis: Array<string>; color: string }) {
+	const [apiCatergoyIndex, setApiCategoryIndex] = React.useState<number>(0)
+
 	const { data, error } = useSWR(JSON.stringify(apis), () => fetchAndFormatGovernanceData(apis))
 
 	const isLoading = !data && !error
@@ -151,21 +154,41 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
 	}
 
+	const apisByCategory = apis.map((apiUrl) =>
+		apiUrl.includes('governance-cache/snapshot')
+			? 'Snapshot'
+			: apiUrl.includes('governance-cache/compound')
+			? 'Compound'
+			: 'Tally'
+	)
+
 	return data ? (
 		<Wrapper>
-			{data.map((item, index) => (
-				<GovernanceTable
-					key={apis[index] + 'table'}
-					data={item}
-					governanceType={
-						apis[index].includes('governance-cache/snapshot')
-							? 'snapshot'
-							: apis[index].includes('governance-cache/compound')
-							? 'compound'
-							: 'tally'
-					}
-				/>
-			))}
+			{apisByCategory.length > 1 ? (
+				<Filters color={color} style={{ marginLeft: 'auto' }}>
+					{apisByCategory.map((apiCat, index) => (
+						<Denomination
+							as="button"
+							key={apiCat + 'governance-table-filter'}
+							onClick={() => setApiCategoryIndex(index)}
+							active={apiCatergoyIndex === index}
+						>
+							{apiCat}
+						</Denomination>
+					))}
+				</Filters>
+			) : null}
+
+			<GovernanceTable
+				data={data[apiCatergoyIndex]}
+				governanceType={
+					apis[apiCatergoyIndex].includes('governance-cache/snapshot')
+						? 'snapshot'
+						: apis[apiCatergoyIndex].includes('governance-cache/compound')
+						? 'compound'
+						: 'tally'
+				}
+			/>
 		</Wrapper>
 	) : null
 }

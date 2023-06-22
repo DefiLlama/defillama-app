@@ -1403,7 +1403,7 @@ function ProtocolContainer({
 
 				{governanceApis?.length > 0 && (
 					<TabPanel state={tab} tabId="governance">
-						<GovernanceData apis={governanceApis} />
+						<GovernanceData apis={governanceApis} color={backgroundColor} />
 					</TabPanel>
 				)}
 
