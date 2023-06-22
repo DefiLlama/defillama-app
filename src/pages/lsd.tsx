@@ -90,6 +90,7 @@ const TabContainer = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
+	min-height: 360px;
 `
 const ChartsContainer = styled.div`
 	background-color: ${({ theme }) => theme.advancedBG};
@@ -171,6 +172,9 @@ const PageView = ({
 
 							<BarChart
 								chartData={inflowsData}
+								hideDefaultLegend
+								customLegendName="Protocol"
+								customLegendOptions={tokens}
 								stacks={barChartStacks}
 								stackColors={lsdColors}
 								valueSymbol="ETH"
