@@ -84,7 +84,7 @@ export function GovernanceTable({ data, governanceType }) {
 				</SearchWrapper>
 			</TableFilters>
 
-			<TableWrapper instance={instance} />
+			<TableWrapper instance={instance} skipVirtualization />
 		</>
 	)
 }
