@@ -24,7 +24,7 @@ const fetch = fetchWithErrorLogging
 
 export function GovernanceTable({ data, governanceType }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'state', desc: true }])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'start', desc: true }])
 	const [filterControversialProposals, setFilterProposals] = React.useState(false)
 
 	const instance = useReactTable({
