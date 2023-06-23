@@ -185,9 +185,23 @@ export interface IFormattedProtocol extends LiteProtocol {
 	change_1m: number | null
 	mcaptvl: number | null
 	strikeTvl?: boolean
-	volume_7d?: number
-	fees_7d?: number
-	revenue_7d?: number
+	volume_7d?: number | null
+	fees_7d?: number | null
+	revenue_7d?: number | null
+	fees_24h?: number | null
+	revenue_24h?: number | null
+	fees_30d?: number | null
+	revenue_30d?: number | null
+	userFees_24h?: number | null
+	cumulativeFees?: number | null
+	holderRevenue_24h?: number | null
+	treasuryRevenue_24h?: number | null
+	supplySideRevenue_24h?: number | null
+	pf?: number | null
+	ps?: number | null
+	volume_24h?: number | null
+	volumeChange_7d?: number | null
+	cumulativeVolume?: number | null
 }
 
 export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {

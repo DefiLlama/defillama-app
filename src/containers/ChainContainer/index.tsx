@@ -592,9 +592,8 @@ export function ChainContainer({
 										{chartOptions.map(
 											({ id, name, isVisible }) =>
 												isVisible && (
-													<Toggle>
+													<Toggle key={id + 'chart-option'}>
 														<input
-															key={id + 'chart-option'}
 															type="checkbox"
 															onClick={() => {
 																updateRoute(
@@ -639,7 +638,7 @@ export function ChainContainer({
 											{DENOMINATIONS.map((D) => (
 												<Denomination
 													active={denomination === D}
-													key={D}
+													key={'denomination' + D}
 													onClick={() => updateRoute('currency', D, router)}
 												>
 													{D}

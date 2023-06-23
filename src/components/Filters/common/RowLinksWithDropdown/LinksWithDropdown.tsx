@@ -37,10 +37,6 @@ export const RowLinksWrapper = styled.nav`
 	gap: 20px;
 	overflow: hidden;
 	margin-bottom: -20px;
-
-	& > * {
-		padding: 4px 0;
-	}
 `
 
 // Renders a row of links and overflow links / links that not fit in viewport are shown in a dropdown

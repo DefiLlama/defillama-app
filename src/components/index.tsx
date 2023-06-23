@@ -239,6 +239,7 @@ export const Checkbox = styled(CheckboxCheck)`
 	border: 1px solid #28a2b5;
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 	color: ${({ theme }) => theme.text1};
+	flex-shrink: 0;
 `
 
 export const DownloadButton = styled(BasicLink)`

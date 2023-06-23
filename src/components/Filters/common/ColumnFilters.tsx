@@ -178,7 +178,7 @@ export function ColumnFilters2({
 
 	return (
 		<>
-			<SelectButton state={selectState} data-variant={variant}>
+			<SelectButton state={selectState} data-variant={variant} style={{ borderRadius: '12px' }}>
 				<span>Columns</span>
 				<ItemsSelected>{selectedOptions.length}</ItemsSelected>
 

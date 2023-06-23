@@ -2,7 +2,7 @@ import { IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/typ
 import { ISettings } from '~/contexts/types'
 import { getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
-import { IOverviewProps } from '~/api/categories/adaptors'
+import { IOverviewProps, getAnnualizedRatio } from '~/api/categories/adaptors'
 
 interface IData {
 	tvl: number
@@ -259,9 +259,9 @@ export const formatProtocolsList = ({
 
 				const mcaptvl = mcap && finalTvl ? mcap / finalTvl : null
 
-				const volume_7d = volumeData?.find((data) =>
+				const currentVolume = volumeData?.find((data) =>
 					props?.parentProtocol || !data?.id ? data.name === name : false
-				)?.total7d
+				)
 
 				const currentFees = feesData?.find((data) => (props?.parentProtocol || !data?.id ? data.name === name : false))
 
@@ -275,9 +275,23 @@ export const formatProtocolsList = ({
 					change_1d: change1d,
 					change_7d: change7d,
 					change_1m: change1m,
-					volume_7d,
+					fees_24h: currentFees?.total24h,
+					revenue_24h: currentFees?.revenue24h,
+					holderRevenue_24h: currentFees?.dailyHoldersRevenue,
 					fees_7d: currentFees?.total7d,
 					revenue_7d: currentFees?.revenue7d,
+					fees_30d: currentFees?.total30d,
+					revenue_30d: currentFees?.revenue30d,
+					treasuryRevenue_24h: currentFees?.dailyProtocolRevenue,
+					supplySideRevenue_24h: currentFees?.dailySupplySideRevenue,
+					userFees_24h: currentFees?.dailyUserFees,
+					cumulativeFees: currentFees?.totalAllTime,
+					pf: getAnnualizedRatio(mcap, currentFees?.total30d),
+					ps: getAnnualizedRatio(mcap, currentFees?.revenue30d),
+					volume_24h: currentVolume?.total24h,
+					volume_7d: currentVolume?.total7d,
+					volumeChange_7d: currentVolume?.['change_7dover7d'],
+					cumulativeVolume: currentVolume?.totalAllTime,
 					mcap,
 					mcaptvl,
 					strikeTvl

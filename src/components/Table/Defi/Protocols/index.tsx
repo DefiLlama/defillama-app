@@ -107,9 +107,23 @@ const protocolsByChainTableColumns = [
 	{ name: 'TVL 7d change', key: 'change_7d' },
 	{ name: 'TVL 1m change', key: 'change_1m' },
 	{ name: 'Mcap/TVL', key: 'mcaptvl' },
+	{ name: 'Fees 24h', key: 'fees_24h' },
 	{ name: 'Fees 7d', key: 'fees_7d' },
+	{ name: 'Fees 30d', key: 'fees_30d' },
+	{ name: 'Revenue 24h', key: 'revenue_24h' },
 	{ name: 'Revenue 7d', key: 'revenue_7d' },
-	{ name: 'Volume 7d', key: 'volume_7d' }
+	{ name: 'Revenue 30d', key: 'revenue_30d' },
+	{ name: 'User Fees 24h', key: 'userFees_24h' },
+	{ name: 'Cumulative Fees', key: 'cumulativeFees' },
+	{ name: 'Holders Revenue 24h', key: 'holderRevenue_24h' },
+	{ name: 'Treasury Revenue 24h', key: 'treasuryRevenue_24h' },
+	{ name: 'Supply Side Revenue 24h', key: 'supplySideRevenue_24h' },
+	{ name: 'P/S', key: 'pf' },
+	{ name: 'P/F', key: 'ps' },
+	{ name: 'Volume 24h', key: 'volume_24h' },
+	{ name: 'Volume 7d', key: 'volume_7d' },
+	{ name: 'Volume Change 7d', key: 'volumeChange_7d' },
+	{ name: 'Cumulative Volume', key: 'cumulativeVolume' }
 ]
 
 export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
@@ -122,7 +136,6 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
 
 	const instance = useReactTable({
 		data,
@@ -170,14 +183,6 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	React.useEffect(() => {
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
-
-		instance.setColumnSizing(columnSizes[cSize])
-	}, [windowSize, instance])
-
 	const clearAllOptions = () => {
 		window.localStorage.setItem(optionsKey, '{}')
 		instance.getToggleAllColumnsVisibilityHandler()({ checked: false } as any)
@@ -188,10 +193,6 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		instance.getToggleAllColumnsVisibilityHandler()({ checked: true } as any)
 	}
 
-	const selectedOptions = protocolsByChainTableColumns
-		.filter((option) => (Object.keys(valuesInStorage).length ? (valuesInStorage[option.key] ? true : false) : true))
-		.map((op) => op.key)
-
 	const addOption = (newOptions) => {
 		const ops = Object.fromEntries(
 			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id) ? true : false])
@@ -199,6 +200,11 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
+
+	const selectedOptions = instance
+		.getAllLeafColumns()
+		.filter((col) => col.getIsVisible())
+		.map((col) => col.id)
 
 	return (
 		<>
@@ -214,10 +220,38 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 				/>
 				<TVLRange />
 			</ListOptions>
-			<VirtualTable instance={instance} />
+			<PTable instance={instance} />
 		</>
 	)
 }
+
+const PTable = styled(VirtualTable)`
+	table {
+		table-layout: auto;
+	}
+
+	th:first-child {
+		min-width: 180px;
+	}
+
+	th:not(:first-child) > * {
+		padding-left: 12px;
+	}
+
+	thead > tr:first-child {
+		th > * {
+			width: fit-content;
+			margin: 0 auto;
+			padding-left: 0;
+		}
+	}
+
+	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		th:first-child {
+			min-width: 240px;
+		}
+	}
+`
 
 export function ProtocolsTableWithSearch({
 	data,

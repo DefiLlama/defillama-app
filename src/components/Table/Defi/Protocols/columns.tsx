@@ -18,7 +18,7 @@ const columnHelper = createColumnHelper<IProtocolRow>()
 
 export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -79,8 +79,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	},
 	columnHelper.group({
 		id: 'TVL',
-		header: () => <span style={{ margin: '0 auto' }}>TVL</span>,
-
+		header: 'TVL',
 		columns: [
 			columnHelper.accessor('tvl', {
 				header: 'TVL',
@@ -133,8 +132,26 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	}),
 	columnHelper.group({
 		id: 'Fees & Revenue',
-		header: () => <span style={{ margin: '0 auto' }}>Fees & Revenue</span>,
+		header: 'Fees & Revenue',
 		columns: [
+			columnHelper.accessor('fees_24h', {
+				header: 'Fees 24h',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
+			columnHelper.accessor('revenue_24h', {
+				header: 'Revenue 24h',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
 			columnHelper.accessor('fees_7d', {
 				header: 'Fees 7d',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
@@ -142,7 +159,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 120
+				size: 100
 			}),
 			columnHelper.accessor('revenue_7d', {
 				header: 'Revenue 7d',
@@ -151,16 +168,128 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 120
+				size: 100
+			}),
+			columnHelper.accessor('fees_30d', {
+				header: 'Fees 30d',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
+			columnHelper.accessor('revenue_30d', {
+				header: 'Revenue 30d',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
+			columnHelper.accessor('userFees_24h', {
+				header: 'User Fees 24h',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 140
+			}),
+			columnHelper.accessor('cumulativeFees', {
+				header: 'Cumulative Fees',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 140
+			}),
+			columnHelper.accessor('holderRevenue_24h', {
+				header: 'Holders Revenue 24h',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 180
+			}),
+			,
+			columnHelper.accessor('treasuryRevenue_24h', {
+				header: 'Treasury Revenue 24h',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 180
+			}),
+			columnHelper.accessor('supplySideRevenue_24h', {
+				header: 'Supply Side Revenue 24h',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 180
+			}),
+			columnHelper.accessor('pf', {
+				header: 'P/F',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? info.getValue() + 'x' : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end',
+					headerHelperText: 'Market cap / annualized fees'
+				},
+				size: 180
+			}),
+			columnHelper.accessor('ps', {
+				header: 'P/S',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? info.getValue() + 'x' : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end',
+					headerHelperText: 'Market cap / annualized revenue'
+				},
+				size: 180
 			})
 		]
 	}),
 	columnHelper.group({
 		id: 'Volume',
-		header: () => <span style={{ margin: '0 auto' }}>Volume</span>,
+		header: 'Volume',
 		columns: [
+			columnHelper.accessor('volume_24h', {
+				header: 'Volume 24h',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 120
+			}),
 			columnHelper.accessor('volume_7d', {
 				header: 'Volume 7d',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 120
+			}),
+			columnHelper.accessor('volumeChange_7d', {
+				header: 'Change 7d',
+				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end',
+					headerHelperText: 'Change of last 7d volume over the previous 7d volume'
+				},
+				size: 120
+			}),
+			columnHelper.accessor('cumulativeVolume', {
+				header: 'Cumulative Volume',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
