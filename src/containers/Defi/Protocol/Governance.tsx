@@ -162,7 +162,7 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 			: 'Tally'
 	)
 
-	return data ? (
+	return data && data.length > 0 ? (
 		<Wrapper>
 			{apisByCategory.length > 1 ? (
 				<Filters color={color} style={{ marginLeft: 'auto' }}>
