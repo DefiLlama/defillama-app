@@ -623,22 +623,27 @@ function ProtocolContainer({
 									helperText={null}
 									subRows={
 										<>
-											<tr>
-												<th data-subvalue>{`All Time High (${new Date(
-													tokenCGData.price.athDate
-												).toLocaleDateString()})`}</th>
-												<td data-subvalue>
-													{'$' + tokenCGData.price.ath.toLocaleString('en-US', { maximumFractionDigits: 5 })}
-												</td>
-											</tr>
-											<tr>
-												<th data-subvalue>{`All Time Low (${new Date(
-													tokenCGData.price.atlDate
-												).toLocaleDateString()})`}</th>
-												<td data-subvalue>
-													{'$' + tokenCGData.price.atl.toLocaleString('en-US', { maximumFractionDigits: 5 })}
-												</td>
-											</tr>
+											{tokenCGData.price.ath ? (
+												<tr>
+													<th data-subvalue>{`All Time High (${new Date(
+														tokenCGData.price.athDate
+													).toLocaleDateString()})`}</th>
+													<td data-subvalue>
+														{'$' + tokenCGData.price.ath.toLocaleString('en-US', { maximumFractionDigits: 5 })}
+													</td>
+												</tr>
+											) : null}
+
+											{tokenCGData.price.atl ? (
+												<tr>
+													<th data-subvalue>{`All Time Low (${new Date(
+														tokenCGData.price.atlDate
+													).toLocaleDateString()})`}</th>
+													<td data-subvalue>
+														{'$' + tokenCGData.price.atl.toLocaleString('en-US', { maximumFractionDigits: 5 })}
+													</td>
+												</tr>
+											) : null}
 										</>
 									}
 								/>
