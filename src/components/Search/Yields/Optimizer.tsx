@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { DesktopResults } from '../Base/Results/Desktop'
 import { Input } from '../Base/Input'
-import { useComboboxState } from 'ariakit'
+import { useComboboxState } from 'ariakit/combobox'
 import { findActiveItem } from '../Base/utils'
 
 interface IYieldSearchProps {

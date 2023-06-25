@@ -84,13 +84,12 @@ export function toFilterPool({
 	return toFilter
 }
 
-export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes) => {
-	const availableToLend = pools.filter(
-		({ symbol, ltv }) =>
-			(tokenToLend === 'USD_Stables' ? true : removeMetaTag(symbol).includes(tokenToLend)) &&
-			ltv > 0 &&
-			!removeMetaTag(symbol).includes('AMM')
-	)
+export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoutes }) => {
+	const availableToLend = pools.filter(({ symbol, ltv }) => {
+		if (!tokenToLend || tokenToLend === 'USD_Stables') return true
+
+		return removeMetaTag(symbol).includes(tokenToLend) && ltv > 0 && !removeMetaTag(symbol).includes('AMM')
+	})
 
 	const availableProjects = availableToLend.map(({ project }) => project)
 	const availableChains = availableToLend.map(({ chain }) => chain)
@@ -103,12 +102,18 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 			removeMetaTag(pool.symbol).includes('AMM') ||
 			pool.borrowable === false ||
 			(pool.project === 'liqee' && (tokenToLend === 'RETH' || tokenToBorrow === 'RETH'))
-		)
+		) {
 			return acc
-		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
+		}
 
-		const collatteralPools = availableToLend.filter(
-			(collateralPool) =>
+		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) {
+			return acc
+		}
+
+		const collatteralPools = availableToLend.filter((collateralPool) => {
+			if (!tokenToBorrow) return true
+
+			return (
 				collateralPool.chain === pool.chain &&
 				collateralPool.project === pool.project &&
 				((tokenToLend === 'STETH' && tokenToBorrow === 'ETH') ||
@@ -117,7 +122,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
 				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true) &&
 				(pool.project === 'compound-v3' ? pool.borrowable && collateralPool.poolMeta === pool.poolMeta : true)
-		)
+			)
+		})
 
 		const poolsPairs = collatteralPools.map((collatteralPool) => ({
 			...collatteralPool,
@@ -143,7 +149,7 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 	return lendBorrowPairs.concat(cdpPairs)
 }
 
-const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
+export const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
 export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV) => {
 	// prepare leveraged lending (loop) pools

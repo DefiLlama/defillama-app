@@ -234,7 +234,8 @@ export const navLinks: ILinks = {
 	'Borrow Aggregator': {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Search size={16} />
+		icon: <Search size={16} />,
+		newTag: true
 	},
 	'CEX Transparency': {
 		main: [],

@@ -16,6 +16,7 @@ import { primaryColor } from '~/constants/colors'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { transparentize } from 'polished'
 import { groupDataByDays } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
+import { Tab, TabList } from '~/components'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -39,36 +40,6 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 		revalidate: maxAgeForNext([22])
 	}
 })
-
-const TabList = styled.div`
-	display: flex;
-	flex-wrap: nowrap;
-	overflow-x: auto;
-	border-bottom: ${({ theme }) => '1px solid ' + theme.divider};
-`
-
-const Tab = styled.button`
-	padding: 8px 24px;
-	white-space: nowrap;
-	border-bottom: 1px solid transparent;
-
-	&[aria-selected='true'] {
-		border-bottom: ${'1px solid ' + primaryColor};
-	}
-
-	& + & {
-		border-left: ${({ theme }) => '1px solid ' + theme.divider};
-	}
-
-	:first-child {
-		border-top-left-radius: 12px;
-	}
-
-	:hover,
-	:focus-visible {
-		background-color: ${transparentize(0.9, primaryColor)};
-	}
-`
 
 const ChartsWrapper = styled.div`
 	min-height: 360px;
