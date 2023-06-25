@@ -345,6 +345,7 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 
 	const stakedEthSum = tokenTvls.reduce((sum, a) => sum + a.stakedEth, 0)
 	const stakedEthInUsdSum = tokenTvls.reduce((sum, a) => sum + a.stakedEthInUsd, 0)
+
 	const tokensList = tokenTvls.map((p) => {
 		const lsd = lsdRates.find((i) => i.name === p.name)
 
@@ -362,7 +363,8 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 			marketRate: lsd?.marketRate ?? null,
 			expectedRate: lsd?.expectedRate ?? null,
 			mcapOverTvl: mcaptvl ? mcaptvl.toFixed(2) : null,
-			apy: lsdApy.find((m) => m.name === p.name)?.apy ?? null
+			apy: lsdApy.find((m) => m.name === p.name)?.apy ?? null,
+			fee: lsd?.fee > 0 ? lsd?.fee * 100 : null
 		}
 	})
 

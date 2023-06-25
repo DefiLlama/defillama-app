@@ -1302,6 +1302,19 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			align: 'end'
 		},
 		size: 90
+	},
+	{
+		header: 'Fee',
+		accessorKey: 'fee',
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <>{value && value.toFixed(2) + '%'}</>
+		},
+		meta: {
+			align: 'end',
+			headerHelperText: 'Protocol Fee'
+		},
+		size: 90
 	}
 ]
 
