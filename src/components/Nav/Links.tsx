@@ -232,7 +232,7 @@ export const navLinks: ILinks = {
 		newTag: true
 	},
 	'Borrow Aggregator': {
-		main: [],
+		main: [{ name: 'Advanced', path: '/borrow/advanced' }],
 		...defaultToolsAndFooterLinks,
 		icon: <Search size={16} />,
 		newTag: true
@@ -315,7 +315,6 @@ export const linksWithNoSubMenu = [
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Unlocks', url: '/unlocks' },
 	{ name: 'Governance', url: '/governance' },
-	{ name: 'Borrow Aggregator', url: '/borrow' },
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lsd' }
