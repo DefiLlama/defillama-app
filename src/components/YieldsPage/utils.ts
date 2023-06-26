@@ -84,9 +84,11 @@ export function toFilterPool({
 	return toFilter
 }
 
+const isStable = (token) => token?.toUpperCase() === 'USD_STABLES'
+
 export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoutes }) => {
 	const availableToLend = pools.filter(({ symbol, ltv }) => {
-		if (!tokenToLend || tokenToLend === 'USD_Stables') return true
+		if (!tokenToLend || isStable(tokenToLend)) return true
 
 		return removeMetaTag(symbol).includes(tokenToLend) && ltv > 0 && !removeMetaTag(symbol).includes('AMM')
 	})
@@ -98,7 +100,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 		if (
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
-			(tokenToBorrow === 'USD_Stables' ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow)) ||
+			(isStable(tokenToBorrow) ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow)) ||
 			removeMetaTag(pool.symbol).includes('AMM') ||
 			pool.borrowable === false ||
 			(pool.project === 'liqee' && (tokenToLend === 'RETH' || tokenToBorrow === 'RETH'))
@@ -106,7 +108,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 			return acc
 		}
 
-		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) {
+		if (isStable(tokenToBorrow) && !pool.stablecoin) {
 			return acc
 		}
 
@@ -120,7 +122,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 					!removeMetaTag(collateralPool.symbol).includes(tokenToBorrow)) &&
 				collateralPool.pool !== pool.pool &&
 				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
-				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true) &&
+				(isStable(tokenToLend) ? collateralPool.stablecoin : true) &&
 				(pool.project === 'compound-v3' ? pool.borrowable && collateralPool.poolMeta === pool.poolMeta : true)
 			)
 		})

@@ -24,7 +24,14 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	let cgList = await getAllCGTokensList()
 	const cgTokens = cgList.filter((x) => x.symbol)
 	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
-	const searchData = {}
+	const searchData = {
+		['USD_STABLES']: {
+			name: `All USD Stablecoins`,
+			symbol: 'USD_STABLES',
+			image: 'https://icons.llamao.fi/icons/pegged/usd_native?h=48&w=48',
+			image2: 'https://icons.llamao.fi/icons/pegged/usd_native?h=48&w=48'
+		}
+	}
 
 	data.symbols
 		.sort((a, b) => cgPositions[a] - cgPositions[b])
@@ -288,7 +295,9 @@ const TokensSelect = ({
 				{tokenInSearchData ? (
 					<>
 						<TokenLogo logo={tokenInSearchData.image2} fallbackLogo={tokenInSearchData.image} />
-						<span data-name>{tokenInSearchData.symbol}</span>
+						<span data-name>
+							{tokenInSearchData.symbol === 'USD_STABLES' ? tokenInSearchData.name : tokenInSearchData.symbol}
+						</span>
 					</>
 				) : (
 					placeholder
@@ -304,7 +313,9 @@ const TokensSelect = ({
 						{combobox.matches.map((value, i) => (
 							<PopoverItem value={value} key={value + i} focusOnHover>
 								<TokenLogo logo={searchData[value].image2} fallbackLogo={searchData[value].image} />
-								<span data-name>{`${value} (${searchData[value].name})`}</span>
+								<span data-name>
+									{value === 'USD_STABLES' ? searchData[value].name : `${value} (${searchData[value].name})`}
+								</span>
 							</PopoverItem>
 						))}
 					</List>
@@ -337,15 +348,18 @@ const PoolsList = ({
 		chain: string
 		pool: string | null
 		poolMeta: string | null
+		tvlUsd: number
 	}>
 }) => {
 	const [tab, setTab] = React.useState('safe')
 
-	const filteredPools = pools.filter(
-		(pool) =>
-			(tab === 'safe' ? safeProjects.includes(pool.projectName) : !safeProjects.includes(pool.projectName)) &&
-			pool.totalAvailableUsd
-	)
+	const filteredPools = pools
+		.filter(
+			(pool) =>
+				(tab === 'safe' ? safeProjects.includes(pool.projectName) : !safeProjects.includes(pool.projectName)) &&
+				pool.totalAvailableUsd
+		)
+		.sort((a, b) => b.tvlUsd - a.tvlUsd)
 
 	return (
 		<PoolsWrapper>

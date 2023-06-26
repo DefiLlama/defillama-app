@@ -232,10 +232,12 @@ export const navLinks: ILinks = {
 		newTag: true
 	},
 	'Borrow Aggregator': {
-		main: [{ name: 'Advanced', path: '/borrow/advanced' }],
+		main: [
+			{ name: 'Basic', path: '/borrow', newTag: true },
+			{ name: 'Advanced', path: '/borrow/advanced' }
+		],
 		...defaultToolsAndFooterLinks,
-		icon: <Search size={16} />,
-		newTag: true
+		icon: <Search size={16} />
 	},
 	'CEX Transparency': {
 		main: [],
