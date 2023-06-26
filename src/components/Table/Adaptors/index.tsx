@@ -13,12 +13,24 @@ import VirtualTable from '../StickyTable'
 import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from './columns'
 import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
+import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
+import { TableFilters } from '../shared'
+import { FiltersByCategory } from '~/components/Filters/yields/Categories'
 
 const columnSizesKeys = Object.keys(volumesColumnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
 
-export function OverviewTable({ data, type, allChains }) {
+const columnsOptions = (type, allChains) => [
+	{ name: 'Name', key: 'displayName' },
+	...getColumnsByType(type, allChains)
+		.filter((c: any) => typeof c.header === 'string' && typeof c.accessorKey === 'string')
+		.map((c: any) => ({ name: c.header as string, key: c.accessorKey as string }))
+]
+
+export function OverviewTable({ data, type, allChains, categories, selectedCategories }) {
+	const optionsKey = 'table-columns-' + type
+
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -45,6 +57,29 @@ export function OverviewTable({ data, type, allChains }) {
 		enableSortingRemoval: false
 	})
 
+	const clearAllOptions = () => {
+		window.localStorage.setItem(optionsKey, '{}')
+		instance.getToggleAllColumnsVisibilityHandler()({ checked: false } as any)
+	}
+	const toggleAllOptions = () => {
+		const ops = JSON.stringify(Object.fromEntries(columnsOptions(type, allChains).map((option) => [option.key, true])))
+		window.localStorage.setItem(optionsKey, ops)
+		instance.getToggleAllColumnsVisibilityHandler()({ checked: true } as any)
+	}
+
+	const addOption = (newOptions) => {
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id) ? true : false])
+		)
+		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
+		instance.setColumnVisibility(ops)
+	}
+
+	const selectedOptions = instance
+		.getAllLeafColumns()
+		.filter((col) => col.getIsVisible())
+		.map((col) => col.id)
+
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
@@ -61,5 +96,29 @@ export function OverviewTable({ data, type, allChains }) {
 		instance.setColumnOrder(order)
 	}, [windowSize, instance, type])
 
-	return <VirtualTable instance={instance} />
+	return (
+		<>
+			<TableFilters style={{ justifyContent: 'flex-end' }}>
+				<ColumnFilters2
+					options={columnsOptions(type, allChains)}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					selectedOptions={selectedOptions}
+					addOption={addOption}
+					subMenu={false}
+				/>
+
+				{categories?.length > 0 && type !== 'dexs' && (
+					<FiltersByCategory
+						categoryList={categories}
+						selectedCategories={selectedCategories}
+						pathname={`/${type}`}
+						hideSelectedCount
+					/>
+				)}
+			</TableFilters>
+
+			<VirtualTable instance={instance} />
+		</>
+	)
 }

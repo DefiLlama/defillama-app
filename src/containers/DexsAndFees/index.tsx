@@ -13,7 +13,6 @@ import type { IDexChartsProps } from './types'
 import { useRouter } from 'next/router'
 import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
-import { FiltersByCategory } from '~/components/Filters/yields/Categories'
 import { AnnouncementWrapper } from '~/components/Announcement'
 
 const HeaderWrapper = styled(Header)`
@@ -207,21 +206,19 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 						activeLink={chain}
 						alternativeOthersText="More chains"
 					/>
-					{props.categories?.length > 0 && props.type !== 'dexs' && (
-						<FiltersByCategory
-							categoryList={props.categories}
-							selectedCategories={selectedCategories}
-							pathname={`/${props.type}`}
-							hideSelectedCount
-						/>
-					)}
 				</RowLinksWrapper>
 			) : (
 				<></>
 			)}
 
 			{protocolsList && protocolsList.length > 0 ? (
-				<OverviewTable data={protocolsList} type={props.type} allChains={isChainsPage} />
+				<OverviewTable
+					data={protocolsList}
+					type={props.type}
+					allChains={isChainsPage}
+					categories={props.categories}
+					selectedCategories={selectedCategories}
+				/>
 			) : (
 				<Panel>
 					<p style={{ textAlign: 'center' }}>
