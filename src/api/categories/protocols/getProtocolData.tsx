@@ -63,12 +63,12 @@ export const getProtocolData = async (protocol: string) => {
 	const governanceApis =
 		protocolData.governanceID?.map((gid) =>
 			gid.startsWith('snapshot:')
-				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replaceAll(':', '/')}.json`
+				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|’|')/g, '/')}.json`
 				: gid.startsWith('compound:')
-				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replaceAll(':', '/')}.json`
+				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|’|')/g, '/')}.json`
 				: gid.startsWith('tally:')
-				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replaceAll(':', '/')}.json`
-				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replaceAll(':', '/')}.json`
+				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|’|')/g, '/')}.json`
+				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|’|')/g, '/')}.json`
 		) ?? []
 
 	const [backgroundColor, allProtocols, users, feesAndRevenueProtocols, dexs, medianApy, tokenCGData, emissions] =
