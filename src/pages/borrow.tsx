@@ -349,6 +349,7 @@ const PoolsList = ({
 		pool: string | null
 		poolMeta: string | null
 		tvlUsd: number
+		borrow: any
 	}>
 }) => {
 	const [tab, setTab] = React.useState('safe')
@@ -357,7 +358,7 @@ const PoolsList = ({
 		.filter(
 			(pool) =>
 				(tab === 'safe' ? safeProjects.includes(pool.projectName) : !safeProjects.includes(pool.projectName)) &&
-				pool.totalAvailableUsd
+				pool.borrow.totalAvailableUsd
 		)
 		.sort((a, b) => b.tvlUsd - a.tvlUsd)
 
@@ -388,7 +389,7 @@ const PoolsList = ({
 
 								<td>
 									<span data-metric>
-										<span>{formattedNum(pool.totalAvailableUsd, true)}</span>
+										<span>{formattedNum(pool.borrow.totalAvailableUsd, true)}</span>
 										<span>Available</span>
 									</span>
 								</td>
