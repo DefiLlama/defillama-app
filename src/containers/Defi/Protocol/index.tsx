@@ -1098,23 +1098,25 @@ function ProtocolContainer({
 
 							{category && (
 								<FlexRow>
-									<span>Category</span>
-									<span>: </span>
+									<span>Category:</span>
 									<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category.toLowerCase()}`}>
 										{category}
 									</Link>
+									<ArrowUpRight size={14} />
 								</FlexRow>
 							)}
 
 							{forkedFrom && forkedFrom.length > 0 && (
 								<FlexRow>
-									<span>Forked from</span>
-									<span>:</span>
+									<span>Forked from:</span>
 									<>
 										{forkedFrom.map((p, index) => (
-											<Link href={`/protocol/${slug(p)}`} key={p}>
-												{forkedFrom[index + 1] ? p + ', ' : p}
-											</Link>
+											<>
+												<Link href={`/protocol/${slug(p)}`} key={p}>
+													{forkedFrom[index + 1] ? p + ', ' : p}
+												</Link>
+												<ArrowUpRight size={14} />
+											</>
 										))}
 									</>
 								</FlexRow>
