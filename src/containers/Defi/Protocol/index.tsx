@@ -1326,7 +1326,7 @@ function ProtocolContainer({
 									)}
 									{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
 										<>
-											{tokenBreakdownPieChart.length > 0 && (
+											{tokenBreakdownPieChart?.length > 0 && (
 												<LazyChart>
 													<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
 												</LazyChart>
@@ -1343,12 +1343,12 @@ function ProtocolContainer({
 											</LazyChart>
 										</>
 									)}
-									{usdInflows && (
+									{usdInflows?.length > 0 && (
 										<LazyChart>
 											<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
 										</LazyChart>
 									)}
-									{tokenInflows && (
+									{tokenInflows?.length > 0 && (
 										<LazyChart>
 											<BarChart
 												chartData={tokenInflows}
