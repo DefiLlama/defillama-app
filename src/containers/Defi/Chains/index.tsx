@@ -2,18 +2,17 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
-import { Panel } from '~/components'
 import { DefiChainsTable } from '~/components/Table/Defi'
 import { ButtonDark } from '~/components/ButtonStyled'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
-import { GroupChains } from '~/components/MultiSelect'
+import { RowLinksWithDropdown } from '~/components/Filters'
 import { toNiceCsvDate, download } from '~/utils'
 import { getNewChainsPageData } from '~/api/categories/protocols'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { useGroupChainsByParent } from '~/hooks/data'
+import { ChainsSelect, LayoutWrapper } from '~/containers/ChainContainer'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -23,11 +22,15 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-const ChartsWrapper = styled(Panel)`
+const ChartsWrapper = styled.div`
 	min-height: 402px;
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 16px;
+	background: ${({ theme }) => theme.bg6};
+	border: ${({ theme }) => '1px solid ' + theme.divider};
+	box-shadow: ${({ theme }) => theme.shadowSm};
+	border-radius: 12px;
 
 	& > * {
 		grid-cols: span 1;
@@ -48,16 +51,7 @@ const HeaderWrapper = styled.div`
 
 	button {
 		position: relative;
-		bottom: -14px;
-	}
-`
-
-const ChainTvlsFilter = styled.form`
-	& > h2 {
-		margin: 0 2px 8px;
-		font-weight: 600;
-		font-size: 0.825rem;
-		color: ${({ theme }) => theme.text1};
+		bottom: -2px;
 	}
 `
 
@@ -133,35 +127,33 @@ export default function ChainsContainer({
 				}}
 			/>
 
-			<HeaderWrapper>
-				<Header>Total Value Locked All Chains</Header>
-				<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
-			</HeaderWrapper>
+			<LayoutWrapper>
+				<ChainsSelect>
+					<RowLinksWithDropdown links={categories} activeLink={category} variant="secondary" />
+				</ChainsSelect>
 
-			<ChartsWrapper>
-				<PieChart chartData={pieChartData} stackColors={colorsByChain} />
-				<AreaChart
-					chartData={chainsWithExtraTvlsAndDominanceByDay}
-					stacks={chainsUnique}
-					stackColors={colorsByChain}
-					customLegendName="Chain"
-					customLegendOptions={chainsUnique}
-					hideDefaultLegend
-					valueSymbol="%"
-					title=""
-					expandTo100Percent={true}
-				/>
-			</ChartsWrapper>
+				<HeaderWrapper>
+					<Header>Total Value Locked All Chains</Header>
+					<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
+				</HeaderWrapper>
 
-			<ChainTvlsFilter>
-				<h2>Chain Groups</h2>
-				<GroupChains label="Filters" />
-			</ChainTvlsFilter>
+				<ChartsWrapper>
+					<PieChart chartData={pieChartData} stackColors={colorsByChain} />
+					<AreaChart
+						chartData={chainsWithExtraTvlsAndDominanceByDay}
+						stacks={chainsUnique}
+						stackColors={colorsByChain}
+						customLegendName="Chain"
+						customLegendOptions={chainsUnique}
+						hideDefaultLegend
+						valueSymbol="%"
+						title=""
+						expandTo100Percent={true}
+					/>
+				</ChartsWrapper>
 
-			<RowLinksWrapper>
-				<RowLinksWithDropdown links={categories} activeLink={category} />
-			</RowLinksWrapper>
-			<DefiChainsTable data={groupedChains} />
+				<DefiChainsTable data={groupedChains} />
+			</LayoutWrapper>
 		</>
 	)
 }

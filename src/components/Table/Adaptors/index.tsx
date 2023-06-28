@@ -100,6 +100,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 		<>
 			<TableFilters style={{ justifyContent: 'flex-end' }}>
 				<ColumnFilters2
+					label={'Columns'}
 					options={columnsOptions(type, allChains)}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}

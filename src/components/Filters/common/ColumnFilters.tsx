@@ -143,6 +143,7 @@ export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColum
 }
 
 export function ColumnFilters2({
+	label,
 	variant = 'primary',
 	subMenu,
 	clearAllOptions,
@@ -179,7 +180,7 @@ export function ColumnFilters2({
 	return (
 		<>
 			<SelectButton state={selectState} data-variant={variant} style={{ borderRadius: '12px' }}>
-				<span>Columns</span>
+				<span>{label}</span>
 				<ItemsSelected>{selectedOptions.length}</ItemsSelected>
 
 				<MenuButtonArrow />

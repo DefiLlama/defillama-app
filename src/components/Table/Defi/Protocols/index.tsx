@@ -211,6 +211,17 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 			<ListOptions>
 				<ListHeader>Protocol Rankings</ListHeader>
 				<ColumnFilters2
+					label={'Columns'}
+					options={protocolsByChainTableColumns}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					selectedOptions={selectedOptions}
+					addOption={addOption}
+					subMenu={false}
+				/>
+
+				<ColumnFilters2
+					label={'Columns'}
 					options={protocolsByChainTableColumns}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
