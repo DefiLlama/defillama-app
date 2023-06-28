@@ -85,7 +85,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: "This colum shows yesterday's volume and it's updated daily at 00:00UTC"
+			headerHelperText: "This column shows yesterday's volume and it's updated daily at 00:00UTC"
 		}
 	},
 	{
@@ -167,7 +167,7 @@ export const volumesByChainsColumns: ColumnDef<IDexsRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: "This colum shows yesterday's volume and it's updated daily at 00:00UTC"
+			headerHelperText: "This column shows yesterday's volume and it's updated daily at 00:00UTC"
 		}
 	},
 	{
