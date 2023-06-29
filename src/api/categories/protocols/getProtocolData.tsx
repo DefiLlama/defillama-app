@@ -71,33 +71,50 @@ export const getProtocolData = async (protocol: string) => {
 				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|’|')/g, '/')}.json`
 		) ?? []
 
-	const [backgroundColor, allProtocols, users, feesAndRevenueProtocols, dexs, medianApy, tokenCGData, emissions] =
-		await Promise.all([
-			getColor(tokenIconPaletteUrl(protocolData.name)),
-			getProtocolsRaw(),
-			fetch(ACTIVE_USERS_API)
-				.then((res) => res.json())
-				.then((data) => data?.[protocolData.id] ?? null),
-			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
-			protocolData.gecko_id
-				? fetch(
-						`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
-				  ).then((res) => res.json())
-				: {},
-			getProtocolEmissons(protocol)
-		])
+	const [
+		backgroundColor,
+		allProtocols,
+		users,
+		feesProtocols,
+		revenueProtocols,
+		dexs,
+		medianApy,
+		tokenCGData,
+		emissions
+	] = await Promise.all([
+		getColor(tokenIconPaletteUrl(protocolData.name)),
+		getProtocolsRaw(),
+		fetch(ACTIVE_USERS_API)
+			.then((res) => res.json())
+			.then((data) => data?.[protocolData.id] ?? null),
+		fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
+			}),
+		fetch(
+			`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
+		)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
+			}),
+		fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
+			}),
+		fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
+		protocolData.gecko_id
+			? fetch(
+					`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+			  ).then((res) => res.json())
+			: {},
+		getProtocolEmissons(protocol)
+	])
 
 	const governanceData = await Promise.all(
 		governanceApis.map((gapi) =>
@@ -125,7 +142,11 @@ export const getProtocolData = async (protocol: string) => {
 		}
 	})
 
-	const feesAndRevenueData = feesAndRevenueProtocols?.protocols?.filter(
+	const feesData = feesProtocols?.protocols?.filter(
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
+	)
+
+	const revenueData = revenueProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
@@ -202,11 +223,12 @@ export const getProtocolData = async (protocol: string) => {
 		}
 	})
 
-	const dailyRevenue = feesAndRevenueData?.reduce((acc, curr) => (acc += curr.dailyRevenue || 0), 0) ?? null
-	const dailyFees = feesAndRevenueData?.reduce((acc, curr) => (acc += curr.dailyFees || 0), 0) ?? null
-	const fees30d = feesAndRevenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
+	const dailyRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyRevenue || 0), 0) ?? null
+	const dailyFees = feesData?.reduce((acc, curr) => (acc += curr.dailyFees || 0), 0) ?? null
+	const fees30d = feesData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
+	const revenue30d = revenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
-	const allTimeFees = feesAndRevenueData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const metrics = protocolData.metrics || {}
 	const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
@@ -307,6 +329,8 @@ export const getProtocolData = async (protocol: string) => {
 			dailyRevenue,
 			dailyFees,
 			allTimeFees,
+			fees30d,
+			revenue30d,
 			dailyVolume,
 			allTimeVolume,
 			controversialProposals,
@@ -321,20 +345,19 @@ export const getProtocolData = async (protocol: string) => {
 					: null,
 			helperTexts: {
 				fees:
-					feesAndRevenueData.length > 1
+					feesData.length > 1
 						? 'Sum of all fees from ' +
-						  (feesAndRevenueData.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
-						: feesAndRevenueData?.[0]?.methodology?.['Fees'] ?? null,
+						  (feesData.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
+						: feesData?.[0]?.methodology?.['Fees'] ?? null,
 				revenue:
-					feesAndRevenueData.length > 1
+					revenueData.length > 1
 						? 'Sum of all revenue from ' +
-						  (feesAndRevenueData.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
-						: feesAndRevenueData?.[0]?.methodology?.['Revenue'] ?? null,
+						  (revenueData.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
+						: revenueData?.[0]?.methodology?.['Revenue'] ?? null,
 				users:
 					'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.'
 			},
 			expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null,
-			feesAndRevenueData,
 			tokenLiquidity,
 			tokenCGData: {
 				price: {
@@ -375,7 +398,7 @@ export const getProtocolData = async (protocol: string) => {
 				tvl: protocolData.module
 					? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 					: null,
-				fees: feesAndRevenueData?.[0]?.methodologyURL ?? null,
+				fees: feesData?.[0]?.methodologyURL ?? null,
 				dexs: volumeData?.[0]?.methodologyURL ?? null
 			},
 			chartDenominations,

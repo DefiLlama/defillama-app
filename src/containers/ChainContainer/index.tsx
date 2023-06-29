@@ -66,7 +66,7 @@ export function ChainContainer({
 		parentProtocols,
 		isLoading: fetchingProtocolsList
 	} = useGetProtocolsList({ chain: selectedChain })
-	console.log({ stablecoinsData })
+
 	const [extraTvlsEnabled] = useDefiManager()
 
 	const router = useRouter()

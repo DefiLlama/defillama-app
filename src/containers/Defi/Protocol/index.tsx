@@ -213,6 +213,8 @@ interface IProtocolContainerProps {
 		transactions: number | null
 		gasUsd: number | null
 	} | null
+	fees30d: number | null
+	revenue30d: number | null
 	allTimeFees: number | null
 	dailyFees: number | null
 	dailyRevenue: number | null
@@ -266,6 +268,8 @@ function ProtocolContainer({
 	isCEX,
 	chartColors,
 	users,
+	fees30d,
+	revenue30d,
 	allTimeFees,
 	dailyFees,
 	dailyRevenue,
@@ -803,19 +807,26 @@ function ProtocolContainer({
 								/>
 							) : null}
 
-							{dailyFees ? (
+							{fees30d ? (
 								<RowWithSubRows
 									protocolName={protocolData.name}
 									dataType="Fees"
 									rowHeader="Fees (annualized)"
-									rowValue={formatPrice(dailyFees * 365)}
+									rowValue={formatPrice(fees30d * 12.2)}
 									helperText={explainAnnualized(helperTexts.fees)}
 									subRows={
 										<>
 											<tr>
-												<th data-subvalue>{`Fees 24h`}</th>
-												<td data-subvalue>{formatPrice(dailyFees)}</td>
+												<th data-subvalue>{`Fees 30d`}</th>
+												<td data-subvalue>{formatPrice(fees30d)}</td>
 											</tr>
+
+											{dailyFees ? (
+												<tr>
+													<th data-subvalue>{`Fees 24h`}</th>
+													<td data-subvalue>{formatPrice(dailyFees)}</td>
+												</tr>
+											) : null}
 
 											{allTimeFees ? (
 												<tr>
@@ -828,19 +839,26 @@ function ProtocolContainer({
 								/>
 							) : null}
 
-							{dailyRevenue ? (
+							{revenue30d ? (
 								<RowWithSubRows
 									protocolName={protocolData.name}
 									dataType="Revenue"
 									rowHeader="Revenue (annualized)"
-									rowValue={formatPrice(dailyRevenue * 365)}
+									rowValue={formatPrice(revenue30d * 12.2)}
 									helperText={explainAnnualized(helperTexts.revenue)}
 									subRows={
 										<>
 											<tr>
-												<th data-subvalue>{`Revenue 24h`}</th>
-												<td data-subvalue>{formatPrice(dailyRevenue)}</td>
+												<th data-subvalue>{`Revenue 30d`}</th>
+												<td data-subvalue>{formatPrice(revenue30d)}</td>
 											</tr>
+
+											{dailyRevenue ? (
+												<tr>
+													<th data-subvalue>{`Revenue 24h`}</th>
+													<td data-subvalue>{formatPrice(dailyRevenue)}</td>
+												</tr>
+											) : null}
 										</>
 									}
 								/>
