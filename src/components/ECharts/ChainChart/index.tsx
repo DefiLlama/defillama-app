@@ -65,7 +65,9 @@ export default function AreaChart({
 
 	const isCompare = pathname?.includes('compare')
 
-	const [isDark] = useDarkModeManager()
+	const [theme] = useDarkModeManager()
+
+	const isDark = pathname.startsWith('/chart') ? false : theme
 
 	const defaultChartSettings = useDefaults({
 		color: primaryColor,

@@ -13,7 +13,7 @@ const fetch = fetchWithErrorLogging
 export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params }) => {
 	const chain = params.chain
 
-	const [data] = await Promise.all([getChainPageData(chain)])
+	const data = await getChainPageData(chain)
 
 	return {
 		props: {

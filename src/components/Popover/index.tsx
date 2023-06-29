@@ -168,7 +168,7 @@ export function EmbedChart({ color, ...props }) {
 
 	const [extraTvlsEnabled] = useDefiManager()
 
-	let path = router.asPath
+	let path = router.asPath === '/' ? '/chain/All' : router.asPath
 
 	if (!path.includes('?')) {
 		path += '?'

@@ -4,7 +4,8 @@ import {
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
 	PROTOCOL_NEW_USERS_API,
-	PROTOCOL_TRANSACTIONS_API
+	PROTOCOL_TRANSACTIONS_API,
+	RAISES_API
 } from '~/constants'
 import { formatProtocolsData } from '../protocols/utils'
 import { formatProtocolsList } from '~/hooks/data/defi'
@@ -16,6 +17,8 @@ import { getPeggedDominance, getPercentChange } from '~/utils'
 import { buildPeggedChartData } from '~/utils/stablecoins'
 import { getPeggedOverviewPageData } from '../stablecoins'
 import { getBridgeOverviewPageData } from '../bridges'
+import { maxAgeForNext } from '~/api'
+import { groupBy, mapValues, sumBy } from 'lodash'
 
 const fetch = fetchWithErrorLogging
 
@@ -64,14 +67,15 @@ export async function getChainPageData(chain?: string) {
 		activeUsers,
 		transactions,
 		gasUsed,
-		newUsers
+		newUsers,
+		raisesData
 	] = await Promise.all([
 		fetch(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
 		fetch(PROTOCOLS_API).then((res) => res.json()),
 		getDexVolumeByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
 		getCexVolume(),
 		getFeesAndRevenueByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
-		getPeggedOverviewPageData(chain === 'All' ? null : chain)
+		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chain)
 			.then((data) => {
 				const { peggedAreaChartData, peggedAreaTotalData } = buildPeggedChartData(
 					data?.chartDataByPeggedAsset,
@@ -79,7 +83,7 @@ export async function getChainPageData(chain?: string) {
 					Object.values(data?.peggedNameToChartDataIndex || {}),
 					'mcap',
 					data?.chainTVLData,
-					chain
+					!chain || chain === 'All' ? 'All' : chain
 				)
 				let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
 				let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
@@ -144,7 +148,8 @@ export async function getChainPageData(chain?: string) {
 			: fetch(`${PROTOCOL_NEW_USERS_API}/chain$${chain}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
-					.catch(() => null)
+					.catch(() => null),
+		!chain || chain === 'All' ? fetch(RAISES_API).then((r) => r.json()) : null
 	])
 
 	const filteredProtocols = formatProtocolsData({
@@ -183,6 +188,14 @@ export async function getChainPageData(chain?: string) {
 			return protocol
 		})
 
+	const raisesChart =
+		raisesData && raisesData?.raises
+			? mapValues(
+					groupBy(raisesData.raises, (val) => val.date),
+					(raises) => sumBy(raises, 'amount')
+			  )
+			: null
+
 	return {
 		props: {
 			...(chain && { chain }),
@@ -200,8 +213,10 @@ export async function getChainPageData(chain?: string) {
 			stablecoinsData,
 			inflowsData,
 			userData: { activeUsers, newUsers, transactions, gasUsed },
+			raisesChart,
 			...charts
-		}
+		},
+		revalidate: maxAgeForNext([22])
 	}
 }
 

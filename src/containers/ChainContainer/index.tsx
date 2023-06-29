@@ -5,19 +5,13 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown } from '~/components/Filters'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
-import {
-	useDenominationPriceHistory,
-	useFetchProtocolTransactions,
-	useFetchProtocolUsers,
-	useGetProtocolsList
-} from '~/api/categories/protocols/client'
+import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { StatsSection } from '~/layout/Stats/Medium'
 import LocalLoader from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { getUtcDateObject } from '~/components/ECharts/utils'
-import { chainIconUrl, formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
+import { chainIconUrl, formattedNum, getTokenDominance } from '~/utils'
 import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import Image from 'next/future/image'
 import llamaLogo from '~/assets/peeking-llama.png'
@@ -25,18 +19,14 @@ import { DetailsWrapper, DownloadButton, Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import Link from 'next/link'
 import { ChevronRight, DownloadCloud } from 'react-feather'
-import {
-	useGetFeesAndRevenueChartDataByChain,
-	useGetProtocolsFeesAndRevenueByChain,
-	useGetProtocolsVolumeByChain,
-	useGetVolumeChartDataByChain
-} from '~/api/categories/chains/client'
+import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
 import SEO from '~/components/SEO'
-import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
-import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import TokenLogo from '~/components/TokenLogo'
+import { EmbedChart } from '~/components/Popover'
+import { primaryColor } from '~/constants/colors'
+import { useFetchChainChartData } from './useFetchChainChartData'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -76,7 +66,7 @@ export function ChainContainer({
 		parentProtocols,
 		isLoading: fetchingProtocolsList
 	} = useGetProtocolsList({ chain: selectedChain })
-
+	console.log({ stablecoinsData })
 	const [extraTvlsEnabled] = useDefiManager()
 
 	const router = useRouter()
@@ -114,214 +104,81 @@ export function ChainContainer({
 		}
 	}
 
-	const { data: denominationPriceHistory, loading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
-		denomination !== 'USD' || router.query.price === 'true' ? chainGeckoId : null
-	)
-
 	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } =
 		useGetProtocolsVolumeByChain(selectedChain)
 
 	const { data: chainProtocolsFees, loading: fetchingProtocolsFeesAndRevenueByChain } =
 		useGetProtocolsFeesAndRevenueByChain(selectedChain)
 
-	const { data: volumeChart, loading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
-		volumeData?.totalVolume24h && router.query.volume === 'true' ? selectedChain : null
-	)
+	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
-	const { data: feesAndRevenueChart, loading: fetchingFeesAndRevenueChartDataByChain } =
-		useGetFeesAndRevenueChartDataByChain(
-			feesAndRevenueData?.totalFees24h && (router.query.fees === 'true' || router.query.revenue === 'true')
-				? selectedChain
-				: null
-		)
-
-	const { data: stablecoinsChartData, loading: fetchingStablecoinsChartDataByChain } =
-		useGetStabelcoinsChartDataByChain(
-			stablecoinsData?.totalMcapCurrent && router.query.stables === 'true' ? selectedChain : null
-		)
-
-	const { data: inflowsChartData, loading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
-		inflowsData?.netInflows && router.query.inflows === 'true' ? selectedChain : null
-	)
-
-	const { data: usersData, loading: fetchingUsersChartData } = useFetchProtocolUsers(
-		userData.activeUsers && router.query.users === 'true' ? 'chain$' + selectedChain : null
-	)
-
-	const { data: txsData, loading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
-		userData.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
-	)
-
-	const isFetchingChartData =
-		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
-		fetchingVolumeChartDataByChain ||
-		fetchingFeesAndRevenueChartDataByChain ||
-		fetchingStablecoinsChartDataByChain ||
-		fetchingInflowsChartData ||
-		fetchingUsersChartData ||
-		fetchingTransactionsChartData
-
-	const { totalValueUSD, valueChangeUSD, globalChart } = React.useMemo(() => {
-		const globalChart = chart.map((data) => {
-			let sum = data[1]
-			Object.entries(extraTvlCharts).forEach(([prop, propCharts]: [string, Array<[number, number]>]) => {
-				const stakedData = propCharts.find((x) => x[0] === data[0])
-
-				// find current date and only add values on that date in "data" above
-				if (stakedData) {
-					if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
-						sum -= stakedData[1]
-					}
-
-					if (prop === 'liquidstaking' && !extraTvlsEnabled['liquidstaking']) {
-						sum -= stakedData[1]
-					}
-
-					if (prop === 'dcAndLsOverlap') {
-						if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
-							sum += stakedData[1]
-						}
-					}
-
-					if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
-						sum += stakedData[1]
-					}
-				}
-			})
-			return [data[0], sum]
-		})
-
-		const tvl = getPrevTvlFromChart(globalChart, 0)
-		const tvlPrevDay = getPrevTvlFromChart(globalChart, 1)
-		const valueChangeUSD = getPercentChange(tvl, tvlPrevDay)
-
-		return { totalValueUSD: tvl, valueChangeUSD, globalChart }
-	}, [chart, extraTvlsEnabled, extraTvlCharts])
-
-	const { DENOMINATIONS, chartOptions, chartDatasets } = React.useMemo(() => {
-		const priceData =
-			denomination === 'USD' && denominationPriceHistory?.prices
-				? denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
-				: null
-
-		const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
-
-		const isNonUSDDenomination = denomination !== 'USD' && denominationPriceHistory && chainGeckoId
-
-		const normalizedDenomination = isNonUSDDenomination
-			? Object.fromEntries(
-					denominationPriceHistory.prices.map(([timestamp, price]) => [getUtcDateObject(timestamp / 1000), price])
-			  )
-			: []
-
-		const finalTvlChart = isNonUSDDenomination
-			? globalChart.map(([date, tvl]) => [date, tvl / normalizedDenomination[getUtcDateObject(date)]])
-			: globalChart
-
-		const finalVolumeChart = isNonUSDDenomination
-			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
-			: volumeChart
-
-		const finalFeesAndRevenueChart = isNonUSDDenomination
-			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
-					date,
-					fees / normalizedDenomination[getUtcDateObject(date)],
-					revenue / normalizedDenomination[getUtcDateObject(date)]
-			  ])
-			: feesAndRevenueChart
-
-		const chartDatasets = [
-			{
-				feesChart: finalFeesAndRevenueChart,
-				volumeChart: finalVolumeChart,
-				globalChart: finalTvlChart,
-				raisesData: raisesChart,
-				totalStablesData: stablecoinsChartData,
-				bridgeData: inflowsChartData,
-				usersData,
-				txsData,
-				priceData
-			}
-		]
-
-		const chartOptions = [
-			{
-				id: 'tvl',
-				name: 'TVL',
-				isVisible: true
-			},
-			{
-				id: 'volume',
-				name: 'Volume',
-				isVisible: volumeData?.totalVolume24h ? true : false
-			},
-			{
-				id: 'fees',
-				name: 'Fees',
-				isVisible: feesAndRevenueData?.totalFees24h ? true : false
-			},
-			{
-				id: 'revenue',
-				name: 'Revenue',
-				isVisible: feesAndRevenueData?.totalRevenue24h ? true : false
-			},
-			{
-				id: 'price',
-				name: 'Price',
-				isVisible: DENOMINATIONS.length > 1
-			},
-			{
-				id: 'users',
-				name: 'Users',
-				isVisible: userData.activeUsers ? true : false
-			},
-			{
-				id: 'txs',
-				name: 'Transactions',
-				isVisible: userData.transactions ? true : false
-			},
-			{
-				id: 'raises',
-				name: 'Raises',
-				isVisible: selectedChain === 'All'
-			},
-			{
-				id: 'stables',
-				name: 'Stablecoins',
-				isVisible: stablecoinsData?.totalMcapCurrent ? true : false
-			},
-			{
-				id: 'inflows',
-				name: 'Inflows',
-				isVisible: inflowsData?.netInflows ? true : false
-			}
-		]
-
-		return {
-			DENOMINATIONS,
-			chartOptions,
-			chartDatasets
+	const chartOptions = [
+		{
+			id: 'tvl',
+			name: 'TVL',
+			isVisible: true
+		},
+		{
+			id: 'volume',
+			name: 'Volume',
+			isVisible: volumeData?.totalVolume24h ? true : false
+		},
+		{
+			id: 'fees',
+			name: 'Fees',
+			isVisible: feesAndRevenueData?.totalFees24h ? true : false
+		},
+		{
+			id: 'revenue',
+			name: 'Revenue',
+			isVisible: feesAndRevenueData?.totalRevenue24h ? true : false
+		},
+		{
+			id: 'price',
+			name: 'Price',
+			isVisible: DENOMINATIONS.length > 1
+		},
+		{
+			id: 'users',
+			name: 'Users',
+			isVisible: userData.activeUsers ? true : false
+		},
+		{
+			id: 'txs',
+			name: 'Transactions',
+			isVisible: userData.transactions ? true : false
+		},
+		{
+			id: 'raises',
+			name: 'Raises',
+			isVisible: selectedChain === 'All'
+		},
+		{
+			id: 'stables',
+			name: 'Stablecoins',
+			isVisible: stablecoinsData?.totalMcapCurrent ? true : false
+		},
+		{
+			id: 'inflows',
+			name: 'Inflows',
+			isVisible: inflowsData?.netInflows ? true : false
 		}
-	}, [
-		chainGeckoId,
-		globalChart,
-		denominationPriceHistory,
+	]
+
+	const { totalValueUSD, valueChangeUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
 		denomination,
-		volumeChart,
-		feesAndRevenueChart,
-		CHAIN_SYMBOL,
 		selectedChain,
-		stablecoinsChartData,
-		raisesChart,
-		txsData,
-		usersData,
+		chainGeckoId,
 		volumeData,
 		feesAndRevenueData,
 		stablecoinsData,
-		inflowsChartData,
 		inflowsData,
-		userData
-	])
+		userData,
+		raisesChart,
+		chart,
+		extraTvlCharts,
+		extraTvlsEnabled
+	})
 
 	const finalProtocolsList = React.useMemo(() => {
 		const list =
@@ -646,6 +503,8 @@ export function ChainContainer({
 											))}
 										</Filters>
 									)}
+
+									<EmbedChart color={primaryColor} />
 								</FiltersWrapper>
 
 								{isFetchingChartData ? (
