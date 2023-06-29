@@ -306,8 +306,8 @@ export const buildProtocolAddlChartsData = ({
 				tokenBreakdownUSD,
 				tokenBreakdownPieChart,
 				tokenBreakdown,
-				usdInflows: [],
-				tokenInflows: []
+				usdInflows,
+				tokenInflows
 			}
 		}
 
