@@ -61,7 +61,7 @@ function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
 				chainTvls[section].tokensInUsd?.forEach((dayTokens) => {
 					// filters tokens that have no name or their value is near zero and pick top 10 tokens from the list
 					const topTokens = Object.entries(dayTokens.tokens)
-						.filter((t) => !(t[0].startsWith('UNKNOWN') && t[1] < 1))
+						.filter((t: [string, number]) => !(t[0].startsWith('UNKNOWN') && t[1] < 1))
 						.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
 
 					if (topTokens.length > 10) {
@@ -175,7 +175,9 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete
 
 function storeTokensBreakdown({ date, tokens, tokensUnique, directory }) {
 	// filters tokens that have no name or their value is near zero
-	const tokensOfTheDay = Object.entries(tokens).filter((t) => !(t[0].startsWith('UNKNOWN') && t[1] < 1))
+	const tokensOfTheDay = Object.entries(tokens).filter(
+		(t: [string, number]) => !(t[0].startsWith('UNKNOWN') && t[1] < 1)
+	)
 
 	const tokensToShow = []
 	let remainingTokensSum = 0
