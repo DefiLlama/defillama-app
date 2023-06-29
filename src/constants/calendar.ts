@@ -18,13 +18,13 @@ const macro = [
 
 const closes = [
   // Monthly and quarterly
-  ["2023-06-30", "Q2 close"],
-  ["2023-09-30", "Q3 close"],
-  ["2023-12-31", "Q4 close"],
-  ["2023-07-31", "Monthly close"],
-  ["2023-08-31", "Monthly close"],
-  ["2023-10-31", "Monthly close"],
-  ["2023-11-30", "Monthly close"],
+  ["2023-07-01", "Q2 close"],
+  ["2023-10-01", "Q3 close"],
+  ["2024-01-01", "Q4 close"],
+  ["2023-08-01", "Monthly close"],
+  ["2023-09-01", "Monthly close"],
+  ["2023-11-01", "Monthly close"],
+  ["2023-12-01", "Monthly close"],
 ]
 
 const cryptos = [
