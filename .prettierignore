@@ -4,6 +4,7 @@
 .pnp.js
 .next
 out
+/public
 
 # testing
 /coverage
@@ -23,3 +24,7 @@ yarn-debug.log*
 yarn-error.log*
 
 /.vscode
+
+.gitignore
+.prettierignore
+.eslintignore
