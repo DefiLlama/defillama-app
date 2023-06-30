@@ -90,6 +90,11 @@ const nextConfig = {
 	compiler: {
 		styledComponents: true
 	},
+	generateBuildId: async () => {
+		// get the latest git commit hash here
+		const commitHash = require('child_process').execSync('git rev-parse HEAD').toString().trim()
+		return commitHash
+	},
 	experimental: {
 		largePageDataBytes: 6_000_000
 	}
