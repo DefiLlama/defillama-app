@@ -546,7 +546,7 @@ export const PROTOCOL_NAMES_MAP = {
 	optimism: 'Optimism',
 	arbitrum: 'Arbitrum',
 	'gravita-protocol': 'Gravita',
-	strike: 'Strike',
+	strike: 'Strike'
 } as const
 
 export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.entries(PROTOCOL_NAMES_MAP).reduce(

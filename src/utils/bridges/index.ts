@@ -29,12 +29,12 @@ export const useBuildBridgeChartData = (bridgeStatsCurrentDay: DailyBridgeStats)
 
 			let uniqueTokenWithdrawals = {} as { [symbol: string]: number }
 			Object.entries(tokensWithdrawn).map(([token, tokenData]) => {
-					{
-						const symbol = tokenData.symbol
-						const usdValue = tokenData.usdValue
-						uniqueTokenWithdrawals[symbol] = (uniqueTokenWithdrawals[symbol] ?? 0) + usdValue
-					}
-				})
+				{
+					const symbol = tokenData.symbol
+					const usdValue = tokenData.usdValue
+					uniqueTokenWithdrawals[symbol] = (uniqueTokenWithdrawals[symbol] ?? 0) + usdValue
+				}
+			})
 
 			const fullTokenWithdrawals = Object.entries(uniqueTokenWithdrawals).map(([symbol, usdValue]) => {
 				return { name: symbol, value: usdValue }

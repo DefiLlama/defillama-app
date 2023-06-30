@@ -18,11 +18,13 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 			if (curr.strikeTvl) {
 				strikeTvl = true
 			}
-			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl);
-			["tvlPrevDay", "tvlPrevWeek", "tvlPrevMonth", "volume_7d", "fees_7d", "revenue_7d"].forEach(k => addElement(k, curr, acc))
+			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
+			;['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth', 'volume_7d', 'fees_7d', 'revenue_7d'].forEach((k) =>
+				addElement(k, curr, acc)
+			)
 
 			if (curr.category !== category) {
-				category = undefined;
+				category = undefined
 			}
 			if (curr.mcap) {
 				acc.mcap = (acc.mcap || 0) + curr.mcap
@@ -71,7 +73,7 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 		subRows: [...protocols],
 		chainTvls: {}, // TODO cleanup
 		strikeTvl,
-		isParentProtocol: true,
+		isParentProtocol: true
 	}
 }
 

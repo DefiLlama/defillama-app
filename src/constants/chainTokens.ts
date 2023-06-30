@@ -837,22 +837,22 @@ export const chainCoingeckoIdsForGasNotMcap = {
 		symbol: 'ETH',
 		cmcId: '1027'
 	},
-	"zkSync Era": {
+	'zkSync Era': {
 		geckoId: 'ethereum',
 		symbol: 'ETH',
 		cmcId: '1027'
 	},
-	"Polygon zkEVM": {
+	'Polygon zkEVM': {
 		geckoId: 'ethereum',
 		symbol: 'ETH',
 		cmcId: '1027'
 	},
-	"Arbitrum Nova": {
+	'Arbitrum Nova': {
 		geckoId: 'ethereum',
 		symbol: 'ETH',
 		cmcId: '1027'
 	},
-	"Boba": {
+	Boba: {
 		geckoId: 'ethereum',
 		symbol: 'ETH',
 		cmcId: '1027'
@@ -861,5 +861,5 @@ export const chainCoingeckoIdsForGasNotMcap = {
 		geckoId: 'ethereum',
 		symbol: 'ETH',
 		cmcId: '1027'
-	},
+	}
 }

@@ -8,7 +8,9 @@ export function ResetAllStablecoinFilters({ pathname }: { pathname: string }) {
 	return (
 		<button
 			onClick={() => {
-				Object.values(STABLECOINS_SETTINGS).filter((setting) => !state[setting]).map((setting => updater(setting)()))
+				Object.values(STABLECOINS_SETTINGS)
+					.filter((setting) => !state[setting])
+					.map((setting) => updater(setting)())
 				router.push(pathname, undefined, { shallow: true })
 			}}
 			style={{ textDecoration: 'underline' }}

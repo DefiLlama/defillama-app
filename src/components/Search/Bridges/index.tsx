@@ -11,7 +11,6 @@ interface IBridgesSearchProps extends ICommonSearchProps {
 	onToggleClick?: (enabled: boolean) => void
 }
 
-
 interface IBridgesSearchSelectProps extends ICommonSearchProps {
 	onlyChains?: boolean
 	formValueToEdit?: any
@@ -66,8 +65,17 @@ export function BridgesSearchSelect(props: IBridgesSearchSelectProps) {
 		props.formValueToEdit[props.formProperty] = item.name
 		props.click(item.name)
 	}
-	
-	return <DesktopSearch {...props} data={data} loading={loading} data-alwaysdisplay={true} placeholder={props.placeholder} onItemClick={itemClick}/>
+
+	return (
+		<DesktopSearch
+			{...props}
+			data={data}
+			loading={loading}
+			data-alwaysdisplay={true}
+			placeholder={props.placeholder}
+			onItemClick={itemClick}
+		/>
+	)
 }
 
 export const ListItem = styled.li`

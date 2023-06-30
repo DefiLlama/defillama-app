@@ -1,4 +1,4 @@
-import { IJSON } from "~/api/categories/adaptors/types"
+import { IJSON } from '~/api/categories/adaptors/types'
 
 interface IDexs {
 	name: string

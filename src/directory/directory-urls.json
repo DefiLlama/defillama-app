@@ -1,242 +1,242 @@
 [
-    {
-        "name": "DefiLlama",
-        "url": "https://defillama.com/",
-        "logo":"defillama.jpg"
-    },
-	  {
-        "name": "DLNews",
-        "url": "https://www.dlnews.com/",
-        "logo":"dlnews.jpg"
-    },
-	  {
-        "name": "LlamaNodes",
-        "url": "https://llamanodes.com/",
-        "logo":"llamanodes.jpg"
-    },
-	  {
-        "name": "Zapper",
-        "url": "https://zapper.xyz/",
-        "logo":"zapper.jpg"
-    },
-	  {
-        "name": "Binance Exchange",
-        "url": "https://www.binance.com/en",
-        "logo":"binance-exchange.jpg"
-    },
-    {
-        "name": "KuCoin Exchange",
-        "url": "https://www.kucoin.com/",
-        "logo":"kucoin-exchange.jpg"
-    },
-    {
-        "name": "Coinbase Exchange",
-        "url": "https://www.coinbase.com/",
-        "logo":"coinbase-exchange.jpg"
-    },
-    {
-        "name": "Crypto.com Exchange",
-        "url": "https://crypto.com/exchange",
-        "logo":"crypto.com-exchange.jpg"
-    },
-    {
-        "name": "FTX Exchange",
-        "url": "https://ftx.com/",
-        "logo":"ftx-exchange.jpg"
-    },
-    {
-        "name": "Huobi Exchange",
-        "url": "https://www.huobi.com/en-us/",
-        "logo":"huobi-exchange.jpg"
-    },
-    {
-        "name": "OKX Exchange",
-        "url": "https://www.okx.com/",
-        "logo":"okx-exchange.jpg"
-    },
-    {
-        "name": "Gemini Exchange",
-        "url": "https://www.gemini.com/",
-        "logo":"gemini-exchange.jpg"
-    },
-    {
-        "name": "Kraken Exchange",
-        "url": "https://www.kraken.com/",
-        "logo":"kraken-exchange.jpg"
-    },
-    {
-        "name": "Gate.io",
-        "url": "https://www.gate.io/",
-        "logo":"gate.io.jpg"
-    },
-    {
-        "name": "Bybit Exchange",
-        "url": "https://www.bybit.com/",
-        "logo":"bybit-exchange.jpg"
-    },
-    {
-        "name": "Phemex",
-        "url": "https://phemex.com/",
-        "logo":"phemex.jpg"
-    },
-    {
-        "name": "CoinGecko",
-        "url": "https://www.coingecko.com/",
-        "logo":"coingecko.jpg"
-    },
-    {
-        "name": "CoinMarketCap",
-        "url": "https://coinmarketcap.com/",
-        "logo":"coinmarketcap.jpg"
-    },
-    {
-        "name": "OpenSea",
-        "url": "https://opensea.io/",
-        "logo":"opensea.jpg"
-    },
-    {
-        "name": "LooksRare",
-        "url": "https://looksrare.org/",
-        "logo":"looksrare.jpg"
-    },
-    {
-        "name": "Decentraland",
-        "url": "https://decentraland.org/",
-        "logo":"decentraland.jpg"
-    },
-    {
-        "name": "The Sandbox",
-        "url": "https://www.sandbox.game/en/",
-        "logo":"the-sandbox.jpg"
-    },
-    {
-        "name": "Sudoswap",
-        "url": "https://sudoswap.xyz/#/",
-        "logo":"sudoswap.jpg"
-    },
-    {
-        "name": "Rarible",
-        "url": "https://rarible.com/",
-        "logo":"rarible.jpg"
-    },
-    {
-        "name": "SuperRare",
-        "url": "https://superrare.com/",
-        "logo":"superrare.jpg"
-    },
-    {
-        "name": "Magic Eden",
-        "url": "https://magiceden.io/",
-        "logo":"magic-eden.jpg"
-    },
-    {
-        "name": "Foundation",
-        "url": "https://foundation.app/",
-        "logo":"foundation.jpg"
-    },
-    {
-        "name": "NBA Top Shot",
-        "url": "https://nbatopshot.com/",
-        "logo":"nba-top-shot.jpg"
-    },
-    {
-        "name": "jgp.store",
-        "url": "https://www.jpg.store/",
-        "logo":"jpg.store.jpg"
-    },
-    {
-        "name": "GameStop NFT",
-        "url": "https://nft.gamestop.com/",
-        "logo":"gamestop-nft.jpg"
-    },
-    {
-        "name": "Paintswap",
-        "url": "https://paintswap.finance/",
-        "logo":"paintswap.jpg"
-    },
-    {
-        "name": "NFTrade",
-        "url": "https://nftrade.com/",
-        "logo":"nftrade.jpg"
-    },
-    {
-        "name": "AtomicMarket",
-        "url": "https://atomicmarket.io/",
-        "logo":"atomicmarket.jpg"
-    },
-    {
-        "name": "BakerySwap",
-        "url": "https://www.bakeryswap.org/#/home",
-        "logo":"bakeryswap.jpg"
-    },
-    {
-        "name": "KnownOrigin",
-        "url": "https://knownorigin.io/",
-        "logo":"knownorigin.jpg"
-    },
-    {
-        "name": "Enjin Marketplace",
-        "url": "https://enjin.io/products/marketplace",
-        "logo":"enjin-marketplace.jpg"
-    },
-    {
-        "name": "Async Art",
-        "url": "https://async.art/",
-        "logo":"async-art.jpg"
-    },
-    {
-        "name": "Nifty Gateway",
-        "url": "https://www.niftygateway.com/",
-        "logo":"nifty-gateway.jpg"
-    },
-    {
-        "name": "Zora",
-        "url": "https://zora.co/",
-        "logo":"zora.jpg"
-    },
-    {
-        "name": "Mintable ",
-        "url": "https://mintable.app/",
-        "logo":"mintable.jpg"
-    },
-    {
-        "name": "Gitcoin",
-        "url": "https://gitcoin.co/",
-        "logo":"gitcoin.jpg"
-    },
-    {
-        "name": "Chainlist",
-        "url": "https://chainlist.org/",
-        "logo":"chainlist.jpg"
-    },
-    {
-        "name": "Zapper",
-        "url": "https://zapper.fi/",
-        "logo":"zapper.jpg"
-    },
-    {
-        "name": "Zerion",
-        "url": "https://zerion.io/",
-        "logo":"zerion.jpg"
-    },
-    {
-        "name": "Gala Games",
-        "url": "https://app.gala.games/",
-        "logo":"gala-games.jpg"
-    },
-    {
-        "name": "Axie Infinity",
-        "url": "https://axieinfinity.com/",
-        "logo":"axie-infinity.jpg"
-    },
-    {
-        "name": "ENS",
-        "url": "https://ens.domains/",
-        "logo":"ens.jpg"
-    },
-    {
-        "name": "TradingView",
-        "url": "https://www.tradingview.com/",
-        "logo":"tradingview.jpg"
-    }
+	{
+		"name": "DefiLlama",
+		"url": "https://defillama.com/",
+		"logo": "defillama.jpg"
+	},
+	{
+		"name": "DLNews",
+		"url": "https://www.dlnews.com/",
+		"logo": "dlnews.jpg"
+	},
+	{
+		"name": "LlamaNodes",
+		"url": "https://llamanodes.com/",
+		"logo": "llamanodes.jpg"
+	},
+	{
+		"name": "Zapper",
+		"url": "https://zapper.xyz/",
+		"logo": "zapper.jpg"
+	},
+	{
+		"name": "Binance Exchange",
+		"url": "https://www.binance.com/en",
+		"logo": "binance-exchange.jpg"
+	},
+	{
+		"name": "KuCoin Exchange",
+		"url": "https://www.kucoin.com/",
+		"logo": "kucoin-exchange.jpg"
+	},
+	{
+		"name": "Coinbase Exchange",
+		"url": "https://www.coinbase.com/",
+		"logo": "coinbase-exchange.jpg"
+	},
+	{
+		"name": "Crypto.com Exchange",
+		"url": "https://crypto.com/exchange",
+		"logo": "crypto.com-exchange.jpg"
+	},
+	{
+		"name": "FTX Exchange",
+		"url": "https://ftx.com/",
+		"logo": "ftx-exchange.jpg"
+	},
+	{
+		"name": "Huobi Exchange",
+		"url": "https://www.huobi.com/en-us/",
+		"logo": "huobi-exchange.jpg"
+	},
+	{
+		"name": "OKX Exchange",
+		"url": "https://www.okx.com/",
+		"logo": "okx-exchange.jpg"
+	},
+	{
+		"name": "Gemini Exchange",
+		"url": "https://www.gemini.com/",
+		"logo": "gemini-exchange.jpg"
+	},
+	{
+		"name": "Kraken Exchange",
+		"url": "https://www.kraken.com/",
+		"logo": "kraken-exchange.jpg"
+	},
+	{
+		"name": "Gate.io",
+		"url": "https://www.gate.io/",
+		"logo": "gate.io.jpg"
+	},
+	{
+		"name": "Bybit Exchange",
+		"url": "https://www.bybit.com/",
+		"logo": "bybit-exchange.jpg"
+	},
+	{
+		"name": "Phemex",
+		"url": "https://phemex.com/",
+		"logo": "phemex.jpg"
+	},
+	{
+		"name": "CoinGecko",
+		"url": "https://www.coingecko.com/",
+		"logo": "coingecko.jpg"
+	},
+	{
+		"name": "CoinMarketCap",
+		"url": "https://coinmarketcap.com/",
+		"logo": "coinmarketcap.jpg"
+	},
+	{
+		"name": "OpenSea",
+		"url": "https://opensea.io/",
+		"logo": "opensea.jpg"
+	},
+	{
+		"name": "LooksRare",
+		"url": "https://looksrare.org/",
+		"logo": "looksrare.jpg"
+	},
+	{
+		"name": "Decentraland",
+		"url": "https://decentraland.org/",
+		"logo": "decentraland.jpg"
+	},
+	{
+		"name": "The Sandbox",
+		"url": "https://www.sandbox.game/en/",
+		"logo": "the-sandbox.jpg"
+	},
+	{
+		"name": "Sudoswap",
+		"url": "https://sudoswap.xyz/#/",
+		"logo": "sudoswap.jpg"
+	},
+	{
+		"name": "Rarible",
+		"url": "https://rarible.com/",
+		"logo": "rarible.jpg"
+	},
+	{
+		"name": "SuperRare",
+		"url": "https://superrare.com/",
+		"logo": "superrare.jpg"
+	},
+	{
+		"name": "Magic Eden",
+		"url": "https://magiceden.io/",
+		"logo": "magic-eden.jpg"
+	},
+	{
+		"name": "Foundation",
+		"url": "https://foundation.app/",
+		"logo": "foundation.jpg"
+	},
+	{
+		"name": "NBA Top Shot",
+		"url": "https://nbatopshot.com/",
+		"logo": "nba-top-shot.jpg"
+	},
+	{
+		"name": "jgp.store",
+		"url": "https://www.jpg.store/",
+		"logo": "jpg.store.jpg"
+	},
+	{
+		"name": "GameStop NFT",
+		"url": "https://nft.gamestop.com/",
+		"logo": "gamestop-nft.jpg"
+	},
+	{
+		"name": "Paintswap",
+		"url": "https://paintswap.finance/",
+		"logo": "paintswap.jpg"
+	},
+	{
+		"name": "NFTrade",
+		"url": "https://nftrade.com/",
+		"logo": "nftrade.jpg"
+	},
+	{
+		"name": "AtomicMarket",
+		"url": "https://atomicmarket.io/",
+		"logo": "atomicmarket.jpg"
+	},
+	{
+		"name": "BakerySwap",
+		"url": "https://www.bakeryswap.org/#/home",
+		"logo": "bakeryswap.jpg"
+	},
+	{
+		"name": "KnownOrigin",
+		"url": "https://knownorigin.io/",
+		"logo": "knownorigin.jpg"
+	},
+	{
+		"name": "Enjin Marketplace",
+		"url": "https://enjin.io/products/marketplace",
+		"logo": "enjin-marketplace.jpg"
+	},
+	{
+		"name": "Async Art",
+		"url": "https://async.art/",
+		"logo": "async-art.jpg"
+	},
+	{
+		"name": "Nifty Gateway",
+		"url": "https://www.niftygateway.com/",
+		"logo": "nifty-gateway.jpg"
+	},
+	{
+		"name": "Zora",
+		"url": "https://zora.co/",
+		"logo": "zora.jpg"
+	},
+	{
+		"name": "Mintable ",
+		"url": "https://mintable.app/",
+		"logo": "mintable.jpg"
+	},
+	{
+		"name": "Gitcoin",
+		"url": "https://gitcoin.co/",
+		"logo": "gitcoin.jpg"
+	},
+	{
+		"name": "Chainlist",
+		"url": "https://chainlist.org/",
+		"logo": "chainlist.jpg"
+	},
+	{
+		"name": "Zapper",
+		"url": "https://zapper.fi/",
+		"logo": "zapper.jpg"
+	},
+	{
+		"name": "Zerion",
+		"url": "https://zerion.io/",
+		"logo": "zerion.jpg"
+	},
+	{
+		"name": "Gala Games",
+		"url": "https://app.gala.games/",
+		"logo": "gala-games.jpg"
+	},
+	{
+		"name": "Axie Infinity",
+		"url": "https://axieinfinity.com/",
+		"logo": "axie-infinity.jpg"
+	},
+	{
+		"name": "ENS",
+		"url": "https://ens.domains/",
+		"logo": "ens.jpg"
+	},
+	{
+		"name": "TradingView",
+		"url": "https://www.tradingview.com/",
+		"logo": "tradingview.jpg"
+	}
 ]

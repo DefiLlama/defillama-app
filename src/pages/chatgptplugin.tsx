@@ -28,28 +28,28 @@ function PluginPage() {
 				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
 					<TYPE.heading>Legal</TYPE.heading>
 					<Divider />
-					<TYPE.main>The DefiLlama ChatGPT plugin does not sell user data. The plugin does not collect any identifying user data.</TYPE.main>					
 					<TYPE.main>
-						The DefiLlama Plugin uses{' '}
-						<Link href="https://mixpanel.com/">Mixpanel</Link> to track anonymized product analytics. Visit {' '}
-						<Link href="https://mixpanel.com/legal/privacy-policy/">Mixpanel’s Privacy Policy</Link> to learn more about how they handle data.
+						The DefiLlama ChatGPT plugin does not sell user data. The plugin does not collect any identifying user data.
 					</TYPE.main>
-				</DashGrid>			
+					<TYPE.main>
+						The DefiLlama Plugin uses <Link href="https://mixpanel.com/">Mixpanel</Link> to track anonymized product
+						analytics. Visit <Link href="https://mixpanel.com/legal/privacy-policy/">Mixpanel’s Privacy Policy</Link> to
+						learn more about how they handle data.
+					</TYPE.main>
+				</DashGrid>
 			</Panel>
 			<Panel style={{ marginTop: '6px' }}>
 				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
-						<TYPE.heading>About</TYPE.heading>
-						<Divider />			
-						<TYPE.main>
-							DefiLlama is the most popular DeFi (Decentralized Finance) data aggregator.
-							The DefiLlama ChatGPT plugin retrieves current and historical data on blockchains, DeFi applications and bridges.
-						</TYPE.main>
-					</DashGrid>	
+					<TYPE.heading>About</TYPE.heading>
+					<Divider />
+					<TYPE.main>
+						DefiLlama is the most popular DeFi (Decentralized Finance) data aggregator. The DefiLlama ChatGPT plugin
+						retrieves current and historical data on blockchains, DeFi applications and bridges.
+					</TYPE.main>
+				</DashGrid>
 			</Panel>
 		</Layout>
 	)
 }
-
-
 
 export default PluginPage

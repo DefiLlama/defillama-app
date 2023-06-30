@@ -82,21 +82,21 @@ export async function getYieldPageData() {
 		p['rewardTokensSymbols'] =
 			p.chain === 'Neo'
 				? [
-					...new Set(
-						rewardTokens.map((t) =>
-							t === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
-								? 'FLM'
-								: t === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
+						...new Set(
+							rewardTokens.map((t) =>
+								t === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
+									? 'FLM'
+									: t === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
 									? 'NUDES'
 									: null
+							)
 						)
-					)
-				]
+				  ]
 				: [
-					...new Set(
-						rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
-					)
-				]
+						...new Set(
+							rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
+						)
+				  ]
 	}
 
 	for (let p of data.pools) {
@@ -107,10 +107,10 @@ export async function getYieldPageData() {
 			return t === 'WAVAX'
 				? data.tokenNameMapping['AVAX']
 				: t === 'WFTM'
-					? data.tokenNameMapping['FTM']
-					: t === 'HOP' && p.project === 'hop-protocol'
-						? p.projectName
-						: data.tokenNameMapping[t]
+				? data.tokenNameMapping['FTM']
+				: t === 'HOP' && p.project === 'hop-protocol'
+				? p.projectName
+				: data.tokenNameMapping[t]
 		})
 		p['rewardTokensNames'] = xy.filter((t) => t)
 	}
@@ -268,7 +268,7 @@ export async function getLendBorrowData() {
 }
 
 export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
-	let pools = lendBorrowPools.filter((p) => p.ltv > 0 && p.totalBorrowUsd > 0 && p.project !== "marginfi") // Can't loop same asset on marginfi
+	let pools = lendBorrowPools.filter((p) => p.ltv > 0 && p.totalBorrowUsd > 0 && p.project !== 'marginfi') // Can't loop same asset on marginfi
 	pools = pools.map((p) => ({ ...p, ltv: p.project === 'euler' ? p.ltv * p.borrowFactor : p.ltv }))
 
 	return pools

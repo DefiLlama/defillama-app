@@ -13,7 +13,10 @@ export const useFetchAdaptorsList = (type: string) => {
 }
 
 export const useFetchCharts = (type: string, chain?: string, dataType?: string, disable?: boolean) => {
-	const { data, error } = useSWR<IGetOverviewResponseBody>(!disable ? getAPIUrl(type, chain, true, false, dataType) : null, fetcher)
+	const { data, error } = useSWR<IGetOverviewResponseBody>(
+		!disable ? getAPIUrl(type, chain, true, false, dataType) : null,
+		fetcher
+	)
 	return { data, error, loading: !data && !error }
 }
 

@@ -228,7 +228,7 @@ export const cexData: Array<ICex> = [
 		slug: 'mexc',
 		coin: 'MX',
 		coinSymbol: 'MX',
-		cgId: 'mxc',
+		cgId: 'mxc'
 	},
 	{
 		name: 'Bitmex',
@@ -268,7 +268,7 @@ export const cexData: Array<ICex> = [
 		name: 'Okcoin',
 		slug: 'okcoin',
 		coin: null,
-		walletsLink: 'https://www.okcoin.com/proof-of-reserves/download',
+		walletsLink: 'https://www.okcoin.com/proof-of-reserves/download'
 	},
 	{
 		name: 'Phemex',
