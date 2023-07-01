@@ -11,14 +11,24 @@ const handle = app.getRequestHandler()
 app.prepare().then(() => {
 	createServer(async (req, res) => {
 		try {
+			const start = Date.now()
 			// Be sure to pass `true` as the second argument to `url.parse`.
 			// This tells it to parse the query portion of the URL.
 			const parsedUrl = parse(req.url, true)
-			const { pathname, query } = parsedUrl
-			console.log('pathname', pathname)
-			console.log('query', query)
+			const fullUrl = `${req.headers['x-forwarded-proto'] || 'http'}://${
+				req.headers['x-forwarded-host'] || req.headers.host
+			}${req.url}`
 
-			await handle(req, res, parsedUrl)
+			try {
+				await handle(req, res, parsedUrl)
+				const duration = Date.now() - start
+				const statusCode = res.statusCode
+				console.log(`[${statusCode}] [${req.method}] [${duration}ms] ${fullUrl}`)
+			} catch (err) {
+				const duration = Date.now() - start
+				const statusCode = res.statusCode || 500
+				console.error(`[${statusCode}] [${req.method}] [${duration}ms] ${fullUrl}`)
+			}
 		} catch (err) {
 			console.error('Error occurred handling', req.url, err)
 			res.statusCode = 500
