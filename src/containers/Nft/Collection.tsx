@@ -14,6 +14,14 @@ import Link from 'next/link'
 import { ToggleWrapper2 } from '~/components'
 import { useRouter } from 'next/router'
 import { NFTsSearch } from '~/components/Search'
+import { getNFTCollection } from '~/api/categories/nfts'
+import useSWR from 'swr'
+import LocalLoader from '~/components/LocalLoader'
+
+export const useCollectionData = (slug) => {
+	const { data, error } = useSWR(slug, getNFTCollection)
+	return { data, error, loading: !data && !error }
+}
 
 const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
 	ssr: false
@@ -27,20 +35,19 @@ const OrderbookChart = dynamic(() => import('./OrderbookChart'), {
 	ssr: false
 }) as React.FC<IOrderBookChartProps>
 
-export function NFTCollectionContainer({
-	name,
-	data,
-	stats,
-	sales,
-	salesExOutliers,
-	salesMedian1d,
-	address,
-	floorHistory,
-	orderbook
-}) {
+export function NFTCollectionContainer() {
+	const router = useRouter()
+	const { data: collectionData, loading: fetchingData } = useCollectionData(router.query.collection)
+	if (fetchingData) {
+		return (
+			<Layout title={'NFT Collection - DefiLlama'}>
+				<LocalLoader />
+			</Layout>
+		)
+	}
+	const { name, data, stats, sales, salesExOutliers, salesMedian1d, address, floorHistory, orderbook } = collectionData
 	const floorPrice = floorHistory ? floorHistory[floorHistory.length - 1]?.[1] : null
 	const volume24h = stats ? stats[stats.length - 1]?.[1] : null
-	const router = useRouter()
 
 	const includeOutliers = router.isReady && router.query.includeOutliers === 'true' ? true : false
 
@@ -110,7 +117,7 @@ export function NFTCollectionContainer({
 					</ToggleWrapper2>
 					<CollectionScatterChart
 						sales={includeOutliers ? sales : salesExOutliers}
-						salesMedian1d={salesMedian1d}
+						salesMedian1d={salesMedian1d as any}
 						volume={stats}
 					/>
 				</ChartWrapper>
