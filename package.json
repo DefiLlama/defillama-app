@@ -12,7 +12,7 @@
 		"format": "prettier --write .",
 		"build": "./scripts/build.sh",
 		"start": "./scripts/prestart.sh & next start --keepAliveTimeout 61000",
-		"start:server": "./scripts/prestart.sh & ls -a",
+		"start:server": "./scripts/prestart.sh & ls -a .next",
 		"lint": "next lint"
 	},
 	"dependencies": {
