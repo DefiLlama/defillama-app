@@ -12,6 +12,7 @@
 		"format": "prettier --write .",
 		"build": "./scripts/build.sh",
 		"start": "./scripts/prestart.sh & next start --keepAliveTimeout 61000",
+		"start:server": "./scripts/prestart.sh & node dist/server.js",
 		"lint": "next lint"
 	},
 	"dependencies": {
