@@ -1,6 +1,5 @@
 import useSWR from 'swr'
 import { NFT_COLLECTIONS_API } from '~/constants'
-import { nftCollectionIconUrl } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 
@@ -15,7 +14,7 @@ export const useFetchNftCollectionsList = () => {
 					data?.map((item) => ({
 						name: item.name,
 						symbol: null,
-						logo: nftCollectionIconUrl(item.collectionId),
+						logo: item.image,
 						route: `/nfts/collection/${item.collectionId}`
 					})) ?? []
 			)

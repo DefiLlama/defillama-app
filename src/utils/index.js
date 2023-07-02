@@ -80,8 +80,7 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	noOfTokens.forEach((tokens, i) => {
 		description = description.replace(
 			`{tokens[${i}]}`,
-			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${
-				price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
+			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
 			}`
 		)
 	})
@@ -228,10 +227,6 @@ export function tokenIconUrl(name) {
 		.join('')
 		.split('’')
 		.join('')}?w=48&h=48`
-}
-
-export function nftCollectionIconUrl(address) {
-	return `${ICONS_NFT_CDN}/nfts/${address}?w=48&h=48`
 }
 
 export function tokenIconPaletteUrl(name) {

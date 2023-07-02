@@ -5,7 +5,6 @@ import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import TokenLogo from '~/components/TokenLogo'
 import FormattedName from '~/components/FormattedName'
-import { nftCollectionIconUrl } from '~/utils'
 import dynamic from 'next/dynamic'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 import { IChartProps } from '~/components/ECharts/types'
@@ -65,7 +64,7 @@ export function NFTCollectionContainer() {
 			<StatsSection>
 				<DetailsWrapper>
 					<Name>
-						<TokenLogo logo={nftCollectionIconUrl(address)} fallbackLogo={data?.[0]?.image} size={48} />
+						<TokenLogo logo={data[0].image} fallbackLogo={data?.[0]?.image} size={48} />
 						<FormattedName text={name} fontWeight={700} />
 					</Name>
 
