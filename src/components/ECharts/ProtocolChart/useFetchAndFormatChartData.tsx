@@ -986,5 +986,5 @@ const firstDayOfMonth = (dateString) => {
 		y = date.getFullYear(),
 		m = date.getMonth()
 
-	return new Date(y, m).getTime()
+	return new Date(y, m, 1).getTime()
 }
