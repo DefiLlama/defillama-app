@@ -89,29 +89,32 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 }
 
 export const toK = (num) => {
-	if (Number.isNaN(Number(num))) {
+	if ((!num && num !== 0) || Number.isNaN(Number(num))) {
 		return null
 	}
+
+	num = Number(num).toFixed(0)
+
 	// 100 - 999_999
 	if ([4, 5, 6].includes(num.length)) {
-		return (num / 1_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'k'
+		return (+num / 1_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'k'
 	}
 
 	// 1_000_000 - 999_999_999
 	if ([7, 8, 9].includes(num.length)) {
-		return (num / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'm'
+		return (+num / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'm'
 	}
 
 	// 1_000_000_000 - 999_999_999_999
 	if ([10, 11, 12].includes(num.length)) {
-		return (num / 1_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 'b'
+		return (+num / 1_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 'b'
 	}
 
 	if (num.length > 12) {
-		return (num / 1_000_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 't'
+		return (+num / 1_000_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 't'
 	}
 
-	return num.toLocaleString(undefined, { maximumFractionDigits: 0 })
+	return +num.toLocaleString(undefined, { maximumFractionDigits: 0 })
 }
 
 // using a currency library here in case we want to add more in future
@@ -142,7 +145,7 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
 	const normalMark = isNegative ? '-' : ''
 
 	if (num > 1_000_000) {
-		return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0))
+		return (symbol ? currencyMark : normalMark) + toK(num)
 	}
 
 	if (num === 0) {
@@ -191,7 +194,7 @@ export const formattedPeggedPrice = (number, symbol = false, acceptNegatives = f
 	const normalMark = isNegative ? '-' : ''
 
 	if (num > 10000000) {
-		return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0))
+		return (symbol ? currencyMark : normalMark) + toK(num)
 	}
 
 	if (num === 0) {

@@ -1315,6 +1315,8 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 ]
 
 function formatCexInflows(value) {
+	if (Number.isNaN(Number(value))) return null
+
 	let x = value
 	let isNegative = false
 
