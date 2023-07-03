@@ -393,7 +393,7 @@ export default function AreaChart({
 				{
 					...yAxis,
 					axisLabel: {
-						formatter: (value) => toK(value, 4) + ' ' + 'Users',
+						formatter: (value) => toK(value) + ' ' + 'Users',
 						color: () => (isCompare ? '#fff' : colors.returningUsers)
 					},
 					scale: true,
@@ -420,7 +420,7 @@ export default function AreaChart({
 				{
 					...yAxis,
 					axisLabel: {
-						formatter: (value) => toK(value, 4) + ' ' + 'TXs',
+						formatter: (value) => toK(value) + ' ' + 'TXs',
 						color: () => (isCompare ? '#fff' : colors.transactions)
 					},
 					scale: true,

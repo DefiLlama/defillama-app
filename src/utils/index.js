@@ -2,8 +2,7 @@ import * as React from 'react'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { Text } from 'rebass'
-import Numeral from 'numeral'
-import { ICONS_CDN, ICONS_NFT_CDN, ICONS_PALETTE_CDN, timeframeOptions } from '~/constants'
+import { ICONS_CDN, ICONS_PALETTE_CDN, timeframeOptions } from '~/constants'
 export * from './blockExplorers'
 import { colord, extend } from 'colord'
 import lchPlugin from 'colord/plugins/lch'
@@ -80,7 +79,8 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	noOfTokens.forEach((tokens, i) => {
 		description = description.replace(
 			`{tokens[${i}]}`,
-			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
+			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${
+				price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
 			}`
 		)
 	})
@@ -88,8 +88,27 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	return description
 }
 
-export const toK = (num, decimals = 2) => {
-	return Numeral(num).format(`'0.[${new Array(decimals || 2).fill(0).join('')}]a'`)
+export const toK = (num) => {
+	// 100 - 999_999
+	if ([4, 5, 6].includes(num.length)) {
+		return (num / 1_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'k'
+	}
+
+	// 1_000_000 - 999_999_999
+	if ([7, 8, 9].includes(num.length)) {
+		return (num / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'm'
+	}
+
+	// 1_000_000_000 - 999_999_999_999
+	if ([10, 11, 12].includes(num.length)) {
+		return (num / 1_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 'b'
+	}
+
+	if (num.length > 12) {
+		return (num / 1_000_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 't'
+	}
+
+	return num.toLocaleString(undefined, { maximumFractionDigits: 0 })
 }
 
 // using a currency library here in case we want to add more in future
@@ -120,7 +139,7 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
 	const normalMark = isNegative ? '-' : ''
 
 	if (num > 1_000_000) {
-		return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0), 1)
+		return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0))
 	}
 
 	if (num === 0) {
@@ -169,7 +188,7 @@ export const formattedPeggedPrice = (number, symbol = false, acceptNegatives = f
 	const normalMark = isNegative ? '-' : ''
 
 	if (num > 10000000) {
-		return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0), true)
+		return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0))
 	}
 
 	if (num === 0) {

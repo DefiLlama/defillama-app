@@ -261,7 +261,7 @@ export function useDefaults({
 				formatter: (value) =>
 					valueSymbol === '$'
 						? valueSymbol + toK(value)
-						: (valueSymbol === '%' ? value : toK(value, 4)) + ' ' + valueSymbol
+						: (valueSymbol === '%' ? value : toK(value)) + ' ' + valueSymbol
 			},
 			axisLine: {
 				lineStyle: {
@@ -364,5 +364,5 @@ export const formatTooltipValue = (value, symbol) => {
 		? symbol + toK(value)
 		: symbol === '%'
 		? Math.round(value * 100) / 100 + ' %'
-		: (`${value}`.startsWith('0.00') ? toK(value, 3) : toK(value, 1)) + ' ' + symbol
+		: (`${value}`.startsWith('0.00') ? toK(value) : toK(value)) + ' ' + symbol
 }
