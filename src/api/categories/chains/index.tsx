@@ -18,7 +18,9 @@ import { buildPeggedChartData } from '~/utils/stablecoins'
 import { getPeggedOverviewPageData } from '../stablecoins'
 import { getBridgeOverviewPageData } from '../bridges'
 import { maxAgeForNext } from '~/api'
-import { groupBy, mapValues, sumBy } from 'lodash'
+import groupBy from 'lodash/groupBy'
+import mapValues from 'lodash/mapValues'
+import sumBy from 'lodash/sumBy'
 
 const fetch = fetchWithErrorLogging
 

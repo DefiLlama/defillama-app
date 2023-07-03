@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react'
-import { uniq } from 'lodash'
+import uniq from 'lodash/uniq'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'

@@ -89,6 +89,9 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 }
 
 export const toK = (num) => {
+	if (Number.isNaN(Number(num))) {
+		return null
+	}
 	// 100 - 999_999
 	if ([4, 5, 6].includes(num.length)) {
 		return (num / 1_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'k'
