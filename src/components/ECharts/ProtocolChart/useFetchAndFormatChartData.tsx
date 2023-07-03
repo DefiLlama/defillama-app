@@ -880,7 +880,6 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 
 			let date = +defaultDate
 
-			// set date to first day of month
 			if (groupBy === 'monthly') {
 				date = Math.floor(firstDayOfMonth(+defaultDate * 1000) / 1000)
 			}
@@ -984,8 +983,8 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 
 const firstDayOfMonth = (dateString) => {
 	let date = new Date(dateString),
-		y = date.getUTCFullYear(),
-		m = date.getUTCMonth()
+		y = date.getFullYear(),
+		m = date.getMonth()
 
 	return new Date(y, m).getTime()
 }
