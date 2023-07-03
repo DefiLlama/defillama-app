@@ -1,16 +1,17 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { HelpCircle as Question } from 'react-feather'
+import { HelpCircle } from 'react-feather'
 import Tooltip from '~/components/Tooltip'
 
-const QuestionWrapper = styled.span`
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 36px;
+const Question = styled(HelpCircle)`
+	height: 16px;
+	width: 16px;
+	flex-shrink: 0;
+	max-width: initial;
+	cursor: pointer;
 	background-color: ${({ theme }) => theme.bg2};
 	color: ${({ theme }) => theme.text2};
-	flex-shrink: 0;
+	border-radius: 36px;
 
 	:hover,
 	:focus-visible {
@@ -31,9 +32,7 @@ export default function QuestionHelper({
 }) {
 	return (
 		<Tooltip content={disabled ? null : text} style={{ textAlign }}>
-			<QuestionWrapper {...props}>
-				<Question size={16} />
-			</QuestionWrapper>
+			<Question {...props} />
 		</Tooltip>
 	)
 }
