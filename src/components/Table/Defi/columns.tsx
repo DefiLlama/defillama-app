@@ -1274,11 +1274,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'mcapOverTvl',
 		cell: ({ getValue, row }) => {
 			const TooltipContent = () => {
-				return (
-					<>
-						<span>{`Market Cap: $${toK(row.original?.mcap)}`}</span>
-					</>
-				)
+				return <>{row.original.mcap ? <span>{`Market Cap: $${toK(row.original.mcap)}`}</span> : null}</>
 			}
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
