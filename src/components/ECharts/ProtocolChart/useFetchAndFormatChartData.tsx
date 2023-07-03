@@ -881,7 +881,7 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 			let date = +defaultDate
 
 			if (groupBy === 'monthly') {
-				date = Math.floor(firstDayOfMonth(+defaultDate * 1000) / 1000)
+				date = Math.floor(firstDayOfMonth(+defaultDate * 1000) / 1000) + 1000
 			}
 
 			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek < +date : true)) {
