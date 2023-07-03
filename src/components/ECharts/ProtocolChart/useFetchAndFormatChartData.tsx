@@ -875,11 +875,17 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 		let currentDate
 		const cumulative = {}
 
-		for (const date in data) {
-			if (
-				!currentDate ||
-				currentDate + (groupBy === 'weekly' ? oneWeek : groupBy === 'monthly' ? oneMonth : 0) < +date
-			) {
+		for (let defaultDate in data) {
+			if (!defaultDate) return
+
+			let date = +defaultDate
+
+			// set date to first day of month
+			if (groupBy === 'monthly') {
+				date = Math.floor(firstDayOfMonth(+defaultDate * 1000) / 1000)
+			}
+
+			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek < +date : true)) {
 				currentDate = +date
 			}
 
@@ -896,13 +902,14 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 
 				if (BAR_CHARTS.includes(chartType) || forceGroup) {
 					if (groupBy === 'cumulative') {
-						cumulative[chartType] = (cumulative[chartType] || 0) + (+data[date][chartType] || 0)
+						cumulative[chartType] = (cumulative[chartType] || 0) + (+data[defaultDate][chartType] || 0)
 						chartData[currentDate][chartType] = cumulative[chartType]
 					} else {
-						chartData[currentDate][chartType] = (chartData[currentDate][chartType] || 0) + (+data[date][chartType] || 0)
+						chartData[currentDate][chartType] =
+							(chartData[currentDate][chartType] || 0) + (+data[defaultDate][chartType] || 0)
 					}
 				} else {
-					chartData[date][chartType] = +data[date][chartType] || 0
+					chartData[date][chartType] = +data[defaultDate][chartType] || 0
 				}
 			})
 		}
@@ -973,4 +980,12 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 	}
 
 	return Object.entries(tvlDictionary)
+}
+
+const firstDayOfMonth = (dateString) => {
+	let date = new Date(dateString),
+		y = date.getUTCFullYear(),
+		m = date.getUTCMonth()
+
+	return new Date(y, m).getTime()
 }
