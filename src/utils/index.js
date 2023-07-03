@@ -477,11 +477,11 @@ export function download(filename, text) {
 export function nearestUtc(dateString) {
 	const date = new Date(dateString)
 
-	if (date.getUTCHours() >= 12) {
+	if (date.getHours() >= 12) {
 		date.setDate(date.getDate() + 1)
 	}
 
-	date.setUTCHours(0, 0, 0, 0)
+	date.setHours(0, 0, 0, 0)
 
 	return Date.now() < date.getTime() ? Date.now() : date.getTime()
 }

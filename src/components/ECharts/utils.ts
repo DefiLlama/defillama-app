@@ -3,5 +3,5 @@ export function stringToColour() {
 }
 
 export function getUtcDateObject(date: number): string {
-	return new Date(new Date(date * 1000).toUTCString().slice(0, -4)) as unknown as string
+	return new Date(new Date(date * 1000).toString().slice(0, -4)) as unknown as string
 }
