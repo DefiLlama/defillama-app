@@ -100,7 +100,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 		if (
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
-			(isStable(tokenToBorrow) ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow)) ||
+			(tokenToBorrow && (isStable(tokenToBorrow) ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow))) ||
 			removeMetaTag(pool.symbol).includes('AMM') ||
 			pool.borrowable === false ||
 			(pool.project === 'liqee' && (tokenToLend === 'RETH' || tokenToBorrow === 'RETH'))

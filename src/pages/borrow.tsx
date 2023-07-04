@@ -103,7 +103,7 @@ export default function YieldBorrow(data) {
 							<small>Select your collateral token to see real borrow cost!</small>
 						) : null}
 					</label>
-					{/* 
+
 					{borrowToken || collateralToken ? (
 						<label data-checkbox>
 							<input
@@ -119,7 +119,7 @@ export default function YieldBorrow(data) {
 							/>
 							<span data-label>Include Incentives</span>
 						</label>
-					) : null} */}
+					) : null}
 				</FormWrapper>
 				{(borrowToken || collateralToken) && <PoolsList pools={filteredPools} />}
 			</Wrapper>
@@ -266,10 +266,6 @@ const TokensSelect = ({
 			: router.query[query][0]
 		: ''
 
-	// if (router.query[query] && selectedValue !== '' && !searchData[selectedValue]) {
-	// 	router.push({ pathname: '/borrow', query: { ...router.query, [query]: '' } }, undefined, { shallow: true })
-	// }
-
 	const select = useSelectState({
 		...selectProps,
 		defaultValue: '',
@@ -350,6 +346,10 @@ const PoolsList = ({
 		poolMeta: string | null
 		tvlUsd: number
 		borrow: any
+		apyBaseBorrow?: number | null
+		apyBase?: number | null
+		apyReward?: number | null
+		apyRewardBorrow?: number | null
 	}>
 }) => {
 	const [tab, setTab] = React.useState('safe')
@@ -361,6 +361,9 @@ const PoolsList = ({
 				pool.borrow.totalAvailableUsd
 		)
 		.sort((a, b) => b.tvlUsd - a.tvlUsd)
+
+	const router = useRouter()
+	const { borrow, collateral, incentives } = router.query
 
 	return (
 		<PoolsWrapper>
@@ -386,6 +389,25 @@ const PoolsList = ({
 										<span>{pool.projectName}</span>
 									</span>
 								</th>
+
+								{borrow || collateral ? (
+									<td>
+										<span data-metric>
+											<span>
+												{(borrow && collateral
+													? (pool.apyBaseBorrow ?? 0) +
+													  (pool.apyBase ?? 0) +
+													  (incentives === 'true' ? pool.apyReward ?? 0 : pool.apyRewardBorrow ?? 0)
+													: borrow
+													? (pool.apyBaseBorrow ?? 0) + (incentives === 'true' ? pool.apyRewardBorrow ?? 0 : 0)
+													: (pool.apyBase ?? 0) + (incentives === 'true' ? pool.apyReward ?? 0 : 0)
+												).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+												%
+											</span>
+											<span>{borrow && collateral ? 'Net APY' : borrow ? 'Net Borrow APY' : 'Net Supply APY'}</span>
+										</span>
+									</td>
+								) : null}
 
 								<td>
 									<span data-metric>

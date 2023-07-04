@@ -866,7 +866,6 @@ export function useFetchAndFormatChartData({
 }
 
 const oneWeek = 7 * 24 * 60 * 60
-const oneMonth = 30 * 24 * 60 * 60
 
 export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Array<string>, forceGroup?: boolean) => {
 	if (groupBy && ['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
