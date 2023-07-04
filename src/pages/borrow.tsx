@@ -350,6 +350,7 @@ const PoolsList = ({
 		apyBase?: number | null
 		apyReward?: number | null
 		apyRewardBorrow?: number | null
+		ltv?: number | null
 	}>
 }) => {
 	const [tab, setTab] = React.useState('safe')
@@ -390,24 +391,36 @@ const PoolsList = ({
 									</span>
 								</th>
 
-								{borrow || collateral ? (
-									<td>
-										<span data-metric>
-											<span>
-												{(borrow && collateral
-													? (pool.apyBaseBorrow ?? 0) +
-													  (pool.apyBase ?? 0) +
-													  (incentives === 'true' ? pool.apyReward ?? 0 : pool.apyRewardBorrow ?? 0)
-													: borrow
-													? (pool.apyBaseBorrow ?? 0) + (incentives === 'true' ? pool.apyRewardBorrow ?? 0 : 0)
-													: (pool.apyBase ?? 0) + (incentives === 'true' ? pool.apyReward ?? 0 : 0)
-												).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-												%
-											</span>
-											<span>{borrow && collateral ? 'Net APY' : borrow ? 'Net Borrow APY' : 'Net Supply APY'}</span>
+								<td>
+									<span data-metric>
+										<span>
+											{(borrow && collateral
+												? (pool.apyBaseBorrow ?? 0) +
+												  (pool.apyBase ?? 0) +
+												  (incentives === 'true' ? pool.apyReward ?? 0 : pool.apyRewardBorrow ?? 0)
+												: borrow
+												? (pool.apyBaseBorrow ?? 0) + (incentives === 'true' ? pool.apyRewardBorrow ?? 0 : 0)
+												: (pool.apyBase ?? 0) + (incentives === 'true' ? pool.apyReward ?? 0 : 0)
+											).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+											%
 										</span>
-									</td>
-								) : null}
+										<span>{borrow && collateral ? 'Net APY' : borrow ? 'Net Borrow APY' : 'Net Supply APY'}</span>
+									</span>
+								</td>
+
+								<td>
+									<span data-metric>
+										<span>
+											{pool.apyBaseBorrow && pool.ltv
+												? (
+														(pool.apyBaseBorrow ?? 0) +
+														(incentives === 'true' ? pool.apyRewardBorrow ?? 0 : 0) * pool.ltv
+												  ).toLocaleString(undefined, { maximumFractionDigits: 2 }) + '%'
+												: '-'}
+										</span>
+										<span>Cost</span>
+									</span>
+								</td>
 
 								<td>
 									<span data-metric>
