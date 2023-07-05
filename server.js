@@ -20,10 +20,7 @@ app.prepare().then(() => {
 				req.headers['x-forwarded-host'] || req.headers.host
 			}${req.url}`
 			const userAgent = req.headers['user-agent']
-			// the service could be behind a reverse proxy or cloudflare
-			// so we need to get the real ip address
-			const clientIp = req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress
-			console.log(`[${reqId}][${clientIp}][${req.method}] ${fullUrl} - ${userAgent}`)
+			console.log(`[${reqId}][${req.method}] ${fullUrl} - ${userAgent}`)
 
 			try {
 				await handle(req, res, parsedUrl)
