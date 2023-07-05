@@ -108,6 +108,14 @@ export async function getYieldPageData() {
 				? data.tokenNameMapping['AVAX']
 				: t === 'WFTM'
 				? data.tokenNameMapping['FTM']
+				: t === 'WMATIC'
+				? data.tokenNameMapping['MATIC']
+				: t === 'WFTM'
+				? data.tokenNameMapping['FTM']
+				: t === 'WETH'
+				? data.tokenNameMapping['ETH']
+				: t === 'WBNB'
+				? data.tokenNameMapping['BNB']
 				: t === 'HOP' && p.project === 'hop-protocol'
 				? p.projectName
 				: t === 'WOO.E'
