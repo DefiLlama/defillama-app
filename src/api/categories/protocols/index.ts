@@ -119,7 +119,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			.then((r) => r.json())
 			.then((r) => JSON.parse(r.body))
 
-		const { data, metadata, name } = res
+		const { data, metadata, name, tokenAllocation, futures } = res
 
 		const protocolEmissions = {}
 		const emissionCategories = []
@@ -180,6 +180,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: metadata?.events ?? [],
+			tokenAllocation: tokenAllocation ?? {},
+			futures: futures ?? {},
 			categories: emissionCategories,
 			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'Today']] : [],
 			name: name || null,

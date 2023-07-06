@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { useGetProtocolEmissions } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { ChartsWrapper, LazyChart, Section } from '~/layout/ProtocolAndPool'
-import { formatUnlocksEvent } from '~/utils'
+import { capitalizeFirstLetter, formatUnlocksEvent, formattedNum } from '~/utils'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -21,6 +21,8 @@ export interface IEmission {
 	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
 	hallmarks: Array<[number, string]>
 	tokenPrice: { price?: number | null; symbol?: string | null }
+	tokenAllocation: { current: { [category: string]: number }; final: { [category: string]: number } }
+	futures: { openInterest: number; fundingRate: number }
 	pieChartData: Array<{
 		name: string
 		value: number
@@ -62,6 +64,31 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</LazyChart>
 			</ChartsWrapper>
 
+			{data.tokenAllocation.current || data.tokenAllocation.final ? (
+				<SmolSection>
+					<h4>Token Allocation</h4>
+
+					{data.tokenAllocation.current && (
+						<p>{`Current: ${Object.entries(data.tokenAllocation.current)
+							.map(([cat, perc]) => `${capitalizeFirstLetter(cat)} - ${perc}%`)
+							.join(', ')}`}</p>
+					)}
+					{data.tokenAllocation.final && (
+						<p>{`Final: ${Object.entries(data.tokenAllocation.final)
+							.map(([cat, perc]) => `${capitalizeFirstLetter(cat)} - ${perc}%`)
+							.join(', ')}`}</p>
+					)}
+				</SmolSection>
+			) : null}
+
+			{data.futures.openInterest || data.futures.fundingRate ? (
+				<SmolSection>
+					<h4>Futures</h4>
+					{data.futures.openInterest ? <p>{`Open Interest: $${formattedNum(data.futures.openInterest)}`}</p> : null}
+					{data.futures.fundingRate ? <p>{`Funding Rate: ${data.futures.fundingRate}%`}</p> : null}
+				</SmolSection>
+			) : null}
+
 			{data.sources?.length > 0 && (
 				<SmolSection>
 					<h4>Sources</h4>
@@ -93,7 +120,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<h4>Events</h4>
 					<List>
 						{(cutEventsList ? data.events.slice(0, MAX_LENGTH_EVENTS_LIST) : data.events).map((event) => (
-							<li key={event.description}>
+							<li key={JSON.stringify(event)}>
 								{formatUnlocksEvent({
 									description: event.description,
 									noOfTokens: event.noOfTokens ?? [],
