@@ -6,7 +6,7 @@ import { YieldsPoolsTable } from '~/components/Table'
 import { getYieldPageData } from '~/api/categories/yield'
 
 export function ProtocolPools({ protocol, data }) {
-	const { data: poolsList, error } = useSWR('yields-pools-list', () =>
+	const { data: poolsList, error } = useSWR(`yields-pools-list-${protocol}`, () =>
 		getYieldPageData().then(
 			(res) =>
 				res?.props?.pools
