@@ -425,12 +425,6 @@ export function ChainContainer({
 														<td>{formattedNum(userData.transactions, false)}</td>
 													</tr>
 												) : null}
-												{userData.gasUsed ? (
-													<tr>
-														<th>Gas Used (24h)</th>
-														<td>{formattedNum(userData.gasUsed, false)}</td>
-													</tr>
-												) : null}
 											</>
 										}
 									/>

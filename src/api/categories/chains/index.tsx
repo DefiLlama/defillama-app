@@ -1,8 +1,8 @@
 import {
+	ACTIVE_USERS_API,
 	CHART_API,
 	PROTOCOLS_API,
 	PROTOCOL_ACTIVE_USERS_API,
-	PROTOCOL_GAS_USED_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
 	RAISES_API
@@ -58,6 +58,11 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
+	const totalTrackedUserData = await fetch(`${ACTIVE_USERS_API}`)
+		.then((res) => res.json())
+		.catch(() => null)
+
+	const hasUserData = chain ? !!totalTrackedUserData?.[`chain#${chain?.toLowerCase()}`] : false
 	const [
 		chartData,
 		{ protocols, chains, parentProtocols },
@@ -68,7 +73,6 @@ export async function getChainPageData(chain?: string) {
 		inflowsData,
 		activeUsers,
 		transactions,
-		gasUsed,
 		newUsers,
 		raisesData
 	] = await Promise.all([
@@ -127,25 +131,20 @@ export async function getChainPageData(chain?: string) {
 						}
 					})
 					.catch(() => null),
-		!chain || chain === 'All'
+		!chain || chain === 'All' || !hasUserData
 			? null
 			: fetch(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chain}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
-		!chain || chain === 'All'
+		!chain || chain === 'All' || !hasUserData
 			? null
 			: fetch(`${PROTOCOL_TRANSACTIONS_API}/chain$${chain}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
-		!chain || chain === 'All'
-			? null
-			: fetch(`${PROTOCOL_GAS_USED_API}/chain$${chain}`)
-					.then((res) => res.json())
-					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
-					.catch(() => null),
-		!chain || chain === 'All'
+
+		!chain || chain === 'All' || !hasUserData
 			? null
 			: fetch(`${PROTOCOL_NEW_USERS_API}/chain$${chain}`)
 					.then((res) => res.json())
@@ -214,7 +213,7 @@ export async function getChainPageData(chain?: string) {
 			feesAndRevenueData: { totalFees24h: fees?.total24h ?? null, totalRevenue24h: revenue?.total24h ?? null },
 			stablecoinsData,
 			inflowsData,
-			userData: { activeUsers, newUsers, transactions, gasUsed },
+			userData: { activeUsers, newUsers, transactions },
 			raisesChart,
 			...charts
 		},
