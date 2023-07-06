@@ -238,5 +238,50 @@
 		"name": "TradingView",
 		"url": "https://www.tradingview.com/",
 		"logo": "tradingview.jpg"
+	},
+	{
+		"name": "MetaMask",
+		"url": "https://metamask.io/",
+		"logo": "metamask.jpg"
+	},
+	{
+		"name": "DCENT Wallet",
+		"url": "https://store.dcentwallet.com/",
+		"logo": "dcent-wallet.jpg"
+	},
+	{
+		"name": "ELLIPAL",
+		"url": "https://www.ellipal.com/",
+		"logo": "ellipal.jpg"
+	},
+	{
+		"name": "Rabby Wallet",
+		"url": "https://rabby.io/",
+		"logo": "rabby-wallet.jpg"
+	},
+	{
+		"name": "Phantom",
+		"url": "https://phantom.app/",
+		"logo": "phantom.jpg"
+	},
+	{
+		"name": "Rainbow",
+		"url": "https://rainbow.me/",
+		"logo": "rainbow.jpg"
+	},
+	{
+		"name": "SafePal",
+		"url": "https://www.safepal.com/en/",
+		"logo": "rainbow.jpg"
+	},
+	{
+		"name": "Trezor",
+		"url": "https://trezor.io/",
+		"logo": "rainbow.jpg"
+	},
+	{
+		"name": "Ledger",
+		"url": "https://shop.ledger.com/",
+		"logo": "rainbow.jpg"
 	}
 ]
