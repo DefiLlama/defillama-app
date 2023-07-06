@@ -48,7 +48,6 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 }
 
 const getLargeTransactionsData = async (chain: string, startTimestamp: number, endTimestamp: number) => {
-	return []
 	for (let i = 0; i < 5; i++) {
 		try {
 			if (chain) {
