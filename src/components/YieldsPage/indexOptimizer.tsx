@@ -27,6 +27,9 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
+		if (lend === undefined || borrow === undefined) {
+			return []
+		}
 		let filteredPools = findOptimizerPools({
 			pools: lendingPools,
 			tokenToLend: lend,
