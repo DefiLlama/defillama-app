@@ -395,11 +395,12 @@ const PoolsList = ({
 									<span data-metric>
 										<span>
 											{(borrow && collateral
-												? (pool.apyBaseBorrow ?? 0) +
+												? (pool.borrow.apyBaseBorrow ?? 0) +
 												  (pool.apyBase ?? 0) +
-												  (incentives === 'true' ? pool.apyReward ?? 0 : pool.apyRewardBorrow ?? 0)
+												  (incentives === 'true' ? pool.apyReward ?? 0 + pool.borrow.apyRewardBorrow ?? 0 : 0)
 												: borrow
-												? (pool.apyBaseBorrow ?? 0) + (incentives === 'true' ? pool.apyRewardBorrow ?? 0 : 0)
+												? (pool.borrow.apyBaseBorrow ?? 0) +
+												  (incentives === 'true' ? pool.borrow.apyRewardBorrow ?? 0 : 0)
 												: (pool.apyBase ?? 0) + (incentives === 'true' ? pool.apyReward ?? 0 : 0)
 											).toLocaleString(undefined, { maximumFractionDigits: 2 })}
 											%
@@ -411,10 +412,9 @@ const PoolsList = ({
 								<td>
 									<span data-metric>
 										<span>
-											{pool.apyBaseBorrow && pool.ltv
+											{pool.borrow.apyBaseBorrow && pool.ltv
 												? (
-														(pool.apyBaseBorrow ?? 0) +
-														(incentives === 'true' ? pool.apyRewardBorrow ?? 0 : 0) * pool.ltv
+														(incentives === 'true' ? pool.borrow.apyBorrow : pool.borrow.apyBaseBorrow) * pool.ltv
 												  ).toLocaleString(undefined, { maximumFractionDigits: 2 }) + '%'
 												: '-'}
 										</span>
