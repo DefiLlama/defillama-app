@@ -253,13 +253,14 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 }
 // - used in /airdrops, /protocols, /recent, /top-gainers-and-losers, /top-protocols, /watchlist
 export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep) {
-	const { protocols, chains } = await getProtocolsRaw()
+	const { protocols, chains, parentProtocols } = await getProtocolsRaw()
 
 	const filteredProtocols = formatProtocolsData({
 		protocols,
 		protocolProps: propsToKeep
 	})
-	return { protocols: filteredProtocols, chains }
+
+	return { protocols: filteredProtocols, chains, parentProtocols }
 }
 
 // - used in /oracles and /oracles/[name]

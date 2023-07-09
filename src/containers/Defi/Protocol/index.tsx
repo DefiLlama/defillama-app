@@ -504,7 +504,7 @@ function ProtocolContainer({
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
 
-						{!isParentProtocol && <Bookmark readableProtocolName={name} />}
+						<Bookmark readableProtocolName={name} />
 					</Name>
 
 					<AccordionStat style={{ margin: '24px 0 16px' }}>

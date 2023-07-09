@@ -68,8 +68,8 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 		mcap,
 		mcaptvl,
 		extraTvl: {},
-		symbol: undefined,
-		category,
+		symbol: null,
+		category: null,
 		subRows: [...protocols],
 		chainTvls: {}, // TODO cleanup
 		strikeTvl,
