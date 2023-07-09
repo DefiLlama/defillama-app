@@ -56,7 +56,7 @@ export function useGetFeesAndRevenueChartDataByChain(chain?: string) {
 							>
 						}
 					)
-			: null
+			: () => null
 	)
 
 	return { data: data ?? null, loading: !data && data !== null && !error }
