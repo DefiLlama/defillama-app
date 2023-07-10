@@ -107,6 +107,7 @@ export function Flag({ protocol, dataType, isLending }: { protocol: string; data
 								<option value="Governance">Governance</option>
 								<option value="Bridge Volume">Bridge Volume</option>
 								<option value="Events">Events</option>
+								<option value="Raises">Events</option>
 							</select>
 						)}
 					</label>
