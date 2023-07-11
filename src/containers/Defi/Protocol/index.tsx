@@ -456,7 +456,13 @@ function ProtocolContainer({
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
-			<SEO cardName={name} token={name} logo={tokenIconUrl(name)} tvl={formattedNum(totalVolume, true)?.toString()} />
+			<SEO
+				cardName={name}
+				token={name}
+				logo={tokenIconUrl(name)}
+				tvl={formattedNum(totalVolume, true)?.toString()}
+				isCEX={isCEX}
+			/>
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 
@@ -1242,7 +1248,11 @@ function ProtocolContainer({
 							Object.values(methodologyUrls ?? {}).filter((x) => !!x).length > 0) && (
 							<Section>
 								<h3>Methodology</h3>
-								{methodology && <p>TVL: {methodology}</p>}
+								{methodology && (
+									<p>
+										{isCEX ? 'Total Assets' : 'TVL'}: {methodology}
+									</p>
+								)}
 								{helperTexts?.fees && <p>Fees: {helperTexts.fees}</p>}
 								{helperTexts?.revenue && <p>Revenue: {helperTexts.revenue}</p>}
 								{helperTexts?.users && users?.activeUsers ? <p>Users: {helperTexts.users}</p> : null}

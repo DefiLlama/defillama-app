@@ -14,6 +14,7 @@ interface SEOProps {
 	nftPage?: boolean
 	liqsPage?: boolean
 	pageType?: string
+	isCEX?: boolean
 }
 
 const SEO = ({
@@ -25,7 +26,8 @@ const SEO = ({
 	logo,
 	nftPage = false,
 	liqsPage = false,
-	pageType
+	pageType,
+	isCEX
 }: SEOProps) => {
 	const isClient = useIsClient()
 
@@ -60,7 +62,7 @@ const SEO = ({
 		) {
 			valueHeader = '24h volume'
 		} else {
-			valueHeader = 'Total Value Locked'
+			valueHeader = isCEX ? 'Total Assets' : 'Total Value Locked'
 		}
 
 		cardSrc.searchParams.append('valueHeader', valueHeader)
@@ -104,7 +106,8 @@ const SEO = ({
 		isTvlValid,
 		isVolumeChangeValid,
 		pageType,
-		liqsPage
+		liqsPage,
+		isCEX
 	])
 
 	return (

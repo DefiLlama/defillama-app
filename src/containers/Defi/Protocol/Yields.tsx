@@ -10,7 +10,7 @@ export function ProtocolPools({ protocol, data }) {
 		getYieldPageData().then(
 			(res) =>
 				res?.props?.pools
-					?.filter((p) => p.project === protocol && p.apy > 0)
+					?.filter((p) => p.project === protocol)
 					.map((i) => ({
 						...i,
 						tvl: i.tvlUsd,
