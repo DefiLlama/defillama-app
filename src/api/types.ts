@@ -55,6 +55,7 @@ export interface IParentProtocol {
 	twitter?: string | null
 	oracles?: Array<string>
 	forkedFrom?: Array<string>
+	mcap: number | null
 }
 
 interface ICurrentChainTvls {
