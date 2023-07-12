@@ -4,6 +4,8 @@ import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { ChartsWrapper, LazyChart, Section } from '~/layout/ProtocolAndPool'
 import { buildProtocolAddlChartsData } from './utils'
+import { useState } from 'react'
+import styled from 'styled-components'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -24,7 +26,8 @@ export function Treasury({ protocolName }) {
 }
 
 export const TreasuryChart = ({ protocolName }) => {
-	const { data, loading } = useFetchProtocolTreasury(protocolName)
+	const [includeTreasury, setIncludeTreasury] = useState(true)
+	const { data, loading } = useFetchProtocolTreasury(protocolName, includeTreasury)
 
 	if (loading) {
 		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
@@ -56,7 +59,7 @@ export const TreasuryChart = ({ protocolName }) => {
 	}
 
 	const historicalTreasury = formatProtocolsTvlChartData({
-		historicalChainTvls: data?.chainTvls ?? [],
+		historicalChainTvls: data?.chainTvls ?? {},
 		extraTvlEnabled: {}
 	})
 
@@ -66,19 +69,36 @@ export const TreasuryChart = ({ protocolName }) => {
 	})
 
 	return (
-		<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0 }}>
-			<LazyChart style={{ minHeight: '320px' }}>
-				<PieChart chartData={top10Tokens} />
-			</LazyChart>
-			<LazyChart style={{ minHeight: '320px' }}>
-				<AreaChart chartData={historicalTreasury} title="Historical Treasury" valueSymbol="$" />
-			</LazyChart>
-			<LazyChart style={{ minHeight: '320px' }}>
-				<AreaChart chartData={tokenBreakdown} title="Tokens Breakdown" stacks={tokensUnique} />
-			</LazyChart>
-			<LazyChart style={{ minHeight: '320px' }}>
-				<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />
-			</LazyChart>
-		</ChartsWrapper>
+		<>
+			<Checkbox>
+				<input type="checkbox" checked={includeTreasury} onChange={() => setIncludeTreasury(!includeTreasury)} />
+				<span>Include Treasury</span>
+			</Checkbox>
+
+			<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0 }}>
+				<LazyChart style={{ minHeight: '320px' }}>
+					<PieChart chartData={top10Tokens} />
+				</LazyChart>
+				<LazyChart style={{ minHeight: '320px' }}>
+					<AreaChart chartData={historicalTreasury} title="Historical Treasury" valueSymbol="$" />
+				</LazyChart>
+				<LazyChart style={{ minHeight: '320px' }}>
+					<AreaChart chartData={tokenBreakdown} title="Tokens Breakdown" stacks={tokensUnique} />
+				</LazyChart>
+				<LazyChart style={{ minHeight: '320px' }}>
+					<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />
+				</LazyChart>
+			</ChartsWrapper>
+		</>
 	)
 }
+
+const Checkbox = styled.label`
+	margin: 16px 40px auto;
+	display: flex;
+	flex-wrap: nowrap;
+	gap: 8px;
+	align-items: center;
+	justify-content: flex-end;
+	cursor: pointer;
+`

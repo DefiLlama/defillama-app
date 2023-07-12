@@ -112,7 +112,8 @@ export function useFetchAndFormatChartData({
 		isRouterReady && governance === 'true' && governanceApis && governanceApis.length > 0 ? governanceApis : null
 	)
 	const { data: treasuryData, loading: fetchingTreasury } = useFetchProtocolTreasury(
-		isRouterReady && metrics.treasury && treasury === 'true' ? protocol : null
+		isRouterReady && metrics.treasury && treasury === 'true' ? protocol : null,
+		true
 	)
 	const { data: emissions, loading: fetchingEmissions } = useGetProtocolEmissions(
 		isRouterReady && metrics.unlocks && unlocks === 'true' ? protocol : null

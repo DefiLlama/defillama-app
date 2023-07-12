@@ -51,10 +51,19 @@ export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
 	return { data, error, loading }
 }
 
-export const useFetchProtocolTreasury = (protocolName) => {
+export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
 	const { data, error } = useSWR(
-		`treasury/${protocolName}`,
-		protocolName ? () => fetch(`${PROTOCOL_TREASURY_API}/${protocolName}`).then((res) => res.json()) : () => null
+		`treasury/${protocolName}/${includeTreasury}`,
+		protocolName
+			? () =>
+					fetch(`${PROTOCOL_TREASURY_API}/${protocolName}`)
+						.then((res) => res.json())
+						.then((data: any) => {
+							if (!includeTreasury) {
+								return { ...data, chainTvls: { ...data.chainTvls, OwnTokens: {} } }
+							} else return data
+						})
+			: () => null
 	)
 
 	const loading = protocolName && !data && data !== null && !error
