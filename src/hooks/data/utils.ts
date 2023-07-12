@@ -12,23 +12,25 @@ function addElement(key: string, curr: IFormattedProtocol, acc: any) {
 // group protocols so we can show child protocols inside an accordion in a table
 export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol) => {
 	let strikeTvl = false
-	let category = protocols[0].category
+	const categories = new Set()
 	const { mcap, tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, volume_7d, fees_7d, revenue_7d } = protocols.reduce(
 		(acc, curr) => {
 			if (curr.strikeTvl) {
 				strikeTvl = true
 			}
+
+			if (curr.category) {
+				categories.add(curr.category)
+			}
+
 			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
 			;['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth', 'volume_7d', 'fees_7d', 'revenue_7d'].forEach((k) =>
 				addElement(k, curr, acc)
 			)
 
-			if (curr.category !== category) {
-				category = undefined
-			}
 			if (curr.mcap) {
-				acc.mcap = (acc.mcap || 0) + curr.mcap
-			} else acc.mcap = null
+				acc.mcap = acc.mcap + curr.mcap
+			}
 
 			return acc
 		},
@@ -69,7 +71,7 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 		mcaptvl,
 		extraTvl: {},
 		symbol: null,
-		category: null,
+		category: categories.size > 1 ? null : Array.from(categories).join(', '),
 		subRows: [...protocols],
 		chainTvls: {}, // TODO cleanup
 		strikeTvl,
