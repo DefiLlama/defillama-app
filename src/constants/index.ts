@@ -11,7 +11,7 @@ export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amaz
 export const DATASETS_R2_PATH = 'https://defillama-datasets.llama.fi'
 
 export const CHART_API = 'https://defillama-datasets.llama.fi/lite/charts'
-export const PROTOCOLS_API = 'https://defillama-datasets.llama.fi/lite/protocols2'
+export const PROTOCOLS_API = 'https://defillama-datasets.llama.fi/lite/protocols2?b=2'
 export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
 export const CONFIG_API = 'https://api.llama.fi/config'
 export const HOURLY_PROTOCOL_API = 'https://api.llama.fi/hourly'

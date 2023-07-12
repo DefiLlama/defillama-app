@@ -50,7 +50,16 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 	const change7d: number | null = getPercentChange(tvl, tvlPrevWeek)
 	const change1m: number | null = getPercentChange(tvl, tvlPrevMonth)
 
-	const mcaptvl = mcap && tvl ? mcap / tvl : null
+	let mcaptvl = null
+
+	if (tvl) {
+		if (mcap) {
+			mcaptvl = mcap / tvl
+		}
+		if (parent.mcap) {
+			mcaptvl = parent.mcap / tvl
+		}
+	}
 
 	return {
 		name: parent.name,
