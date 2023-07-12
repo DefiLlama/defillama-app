@@ -72,7 +72,7 @@ export const TreasuryChart = ({ protocolName }) => {
 		<>
 			<Checkbox>
 				<input type="checkbox" checked={includeTreasury} onChange={() => setIncludeTreasury(!includeTreasury)} />
-				<span>Include Treasury</span>
+				<span>Include own tokens</span>
 			</Checkbox>
 
 			<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0 }}>
