@@ -44,8 +44,13 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 	const cache = REDIS_URL ? await getCache(cacheKey) : null
 
 	if (process.env.NODE_ENV === 'development') {
-		const response = await fetch(url, options)
-		return response
+		try {
+			const response = await fetch(url, options)
+			return response
+		} catch (error) {
+			console.log('fetch error for', url)
+			console.log(error)
+		}
 	} else if (cache) {
 		const Body = cache.Body
 		const ContentType = cache.ContentType
