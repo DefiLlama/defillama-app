@@ -49,7 +49,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 			return response
 		} catch (error) {
 			console.log('fetch error for', url)
-			console.log(error)
+			throw error
 		}
 	} else if (cache) {
 		const Body = cache.Body
