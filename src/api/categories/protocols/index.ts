@@ -57,7 +57,7 @@ export const getProtocol = async (protocolName: string) => {
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
 	} catch (e) {
-		console.log(e)
+		console.log('[ERROR] generating ', `${PROTOCOL_API}/${protocolName}`, e)
 	}
 }
 
