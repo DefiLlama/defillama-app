@@ -16,13 +16,13 @@ export const getFeesAndRevenueByChain = async ({
 		fetch(apiUrl)
 			.then((res) => res.json())
 			.catch((err) => {
-				console.log('Error at ', apiUrl, err)
+				// console.log('Error at ', apiUrl, err)
 				return {}
 			}),
 		fetch(`${apiUrl}&dataType=dailyRevenue`)
 			.then((res) => res.json())
 			.catch((err) => {
-				console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
+				// console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
 				return {}
 			})
 	])
@@ -40,13 +40,13 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 		fetch(apiUrl)
 			.then((res) => res.json())
 			.catch((err) => {
-				console.log('Error at ', apiUrl, err)
+				// console.log('Error at ', apiUrl, err)
 				return {}
 			}),
 		fetch(`${apiUrl}&dataType=dailyRevenue`)
 			.then((res) => res.json())
 			.catch((err) => {
-				console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
+				// console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
 				return {}
 			})
 	])
