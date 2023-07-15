@@ -178,7 +178,7 @@ export default function PeggedContainer(props) {
 			backgroundColor={transparentize(0.6, props.backgroundColor)}
 			style={{ gap: '48px' }}
 		>
-			<SEO cardName={name} token={name} logo={props.logo} tvl={formattedNum(props.mcap, true)?.toString()} />
+			<SEO stablePage={true} cardName={name} token={name} logo={props.logo} tvl={formattedNum(props.mcap, true)?.toString()} />
 
 			<PeggedSearch
 				step={{

@@ -13,6 +13,7 @@ interface SEOProps {
 	logo?: string
 	nftPage?: boolean
 	liqsPage?: boolean
+	stablePage?: boolean
 	pageType?: string
 	isCEX?: boolean
 }
@@ -26,6 +27,7 @@ const SEO = ({
 	logo,
 	nftPage = false,
 	liqsPage = false,
+	stablePage = false,
 	pageType,
 	isCEX
 }: SEOProps) => {
@@ -52,6 +54,8 @@ const SEO = ({
 			valueHeader = 'Total Volume'
 		} else if (liqsPage) {
 			valueHeader = 'Total Liquidatable Amount'
+		} else if (stablePage) {
+			valueHeader = 'Market Cap'
 		} else if (pageType === ADAPTOR_TYPES.FEES) {
 			valueHeader = '24h fees'
 		} else if (
