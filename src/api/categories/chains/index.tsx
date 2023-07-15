@@ -22,8 +22,6 @@ import groupBy from 'lodash/groupBy'
 import mapValues from 'lodash/mapValues'
 import sumBy from 'lodash/sumBy'
 
-const fetch = fetchWithErrorLogging
-
 const getExtraTvlCharts = (data) => {
 	const {
 		tvl = [],
@@ -58,7 +56,7 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const totalTrackedUserData = await fetch(`${ACTIVE_USERS_API}`)
+	const totalTrackedUserData = await fetchWithErrorLogging(`${ACTIVE_USERS_API}`)
 		.then((res) => res.json())
 		.catch(() => null)
 
@@ -76,8 +74,8 @@ export async function getChainPageData(chain?: string) {
 		newUsers,
 		raisesData
 	] = await Promise.all([
-		fetch(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
-		fetch(PROTOCOLS_API).then((res) => res.json()),
+		fetchWithErrorLogging(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
+		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
 		getDexVolumeByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
 		getCexVolume(),
 		getFeesAndRevenueByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
@@ -133,24 +131,24 @@ export async function getChainPageData(chain?: string) {
 					.catch(() => null),
 		!chain || chain === 'All' || !hasUserData
 			? null
-			: fetch(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chain}`)
+			: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chain}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
 		!chain || chain === 'All' || !hasUserData
 			? null
-			: fetch(`${PROTOCOL_TRANSACTIONS_API}/chain$${chain}`)
+			: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${chain}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
 
 		!chain || chain === 'All' || !hasUserData
 			? null
-			: fetch(`${PROTOCOL_NEW_USERS_API}/chain$${chain}`)
+			: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${chain}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
-		!chain || chain === 'All' ? fetch(RAISES_API).then((r) => r.json()) : null
+		!chain || chain === 'All' ? fetchWithErrorLogging(RAISES_API).then((r) => r.json()) : null
 	])
 
 	const filteredProtocols = formatProtocolsData({
@@ -204,11 +202,11 @@ export async function getChainPageData(chain?: string) {
 			chainOptions: ['All'].concat(chains).map((label) => ({ label, to: setSelectedChain(label) })),
 			protocolsList,
 			volumeData: {
-				totalVolume24h: volume.total24h ?? null,
-				totalVolume7d: volume.total7d ?? null,
-				weeklyChange: volume.change_7dover7d ?? null,
+				totalVolume24h: volume?.total24h ?? null,
+				totalVolume7d: volume?.total7d ?? null,
+				weeklyChange: volume?.change_7dover7d ?? null,
 				dexsDominance:
-					cexVolume && volume.total24h ? +((volume.total24h / (cexVolume + volume.total24h)) * 100).toFixed(2) : null
+					cexVolume && volume?.total24h ? +((volume.total24h / (cexVolume + volume.total24h)) * 100).toFixed(2) : null
 			},
 			feesAndRevenueData: { totalFees24h: fees?.total24h ?? null, totalRevenue24h: revenue?.total24h ?? null },
 			stablecoinsData,

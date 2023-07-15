@@ -19,7 +19,7 @@ export function useGetProtocolsVolumeByChain(chain?: string) {
 export function useGetVolumeChartDataByChain(chain?: string) {
 	const { data, error } = useSWR(`volumeChartDataByChain/${chain}`, () =>
 		getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
-			(data) => data.totalDataChart ?? null
+			(data) => data?.totalDataChart ?? null
 		)
 	)
 

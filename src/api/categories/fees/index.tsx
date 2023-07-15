@@ -1,3 +1,5 @@
+import { fetchOverCache } from '~/utils/perf'
+
 // - used in /fees and /fees/chain/[chain]
 export const getFeesAndRevenueByChain = async ({
 	chain,
@@ -13,17 +15,29 @@ export const getFeesAndRevenueByChain = async ({
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 	const [fees, revenue] = await Promise.all([
-		fetch(apiUrl)
-			.then((res) => res.json())
+		fetchOverCache(apiUrl)
+			.then((res) => {
+				if (res.status === 200) {
+					return res.json()
+				} else {
+					return null
+				}
+			})
 			.catch((err) => {
-				// console.log('Error at ', apiUrl, err)
-				return {}
+				console.log('Error at ', apiUrl, err)
+				return null
 			}),
-		fetch(`${apiUrl}&dataType=dailyRevenue`)
-			.then((res) => res.json())
+		fetchOverCache(`${apiUrl}&dataType=dailyRevenue`)
+			.then((res) => {
+				if (res.status === 200) {
+					return res.json()
+				} else {
+					return null
+				}
+			})
 			.catch((err) => {
-				// console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
-				return {}
+				console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
+				return null
 			})
 	])
 
@@ -37,17 +51,29 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 	}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
 
 	const [fees, revenue] = await Promise.all([
-		fetch(apiUrl)
-			.then((res) => res.json())
+		fetchOverCache(apiUrl)
+			.then((res) => {
+				if (res.status === 200) {
+					return res.json()
+				} else {
+					return null
+				}
+			})
 			.catch((err) => {
-				// console.log('Error at ', apiUrl, err)
-				return {}
+				console.log('Error at ', apiUrl, err)
+				return null
 			}),
-		fetch(`${apiUrl}&dataType=dailyRevenue`)
-			.then((res) => res.json())
+		fetchOverCache(`${apiUrl}&dataType=dailyRevenue`)
+			.then((res) => {
+				if (res.status === 200) {
+					return res.json()
+				} else {
+					return null
+				}
+			})
 			.catch((err) => {
-				// console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
-				return {}
+				console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
+				return null
 			})
 	])
 
@@ -56,7 +82,7 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 
 	// TODO: fix missing parent protocols fees and revenue
 	return (
-		fees.protocols?.map((protocol) => ({
+		fees?.protocols?.map((protocol) => ({
 			...protocol,
 			category: protocol.category,
 			displayName: protocol.displayName ?? protocol.name,
