@@ -446,6 +446,7 @@ export const getPrevTvlFromChart2 = (chart, daysBefore, key) => {
 }
 
 export const getPrevPeggedTotalFromChart = (chart, daysBefore, issuanceType, pegType = '') => {
+	if (!chart) return null
 	const prevChart = chart[chart.length - 1 - daysBefore]
 	if (!prevChart) return null
 	if (!pegType) return Object.values(prevChart?.[issuanceType]).reduce((a, b) => a + b)
@@ -453,6 +454,7 @@ export const getPrevPeggedTotalFromChart = (chart, daysBefore, issuanceType, peg
 }
 
 export const getPrevVolumeFromChart = (chart, daysBefore, txs = false, inflows = false) => {
+	if (!chart) return null
 	const prevChart = chart[chart.length - 1 - daysBefore]
 	if (!prevChart) return null
 	if (inflows) {

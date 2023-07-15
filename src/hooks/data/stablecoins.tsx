@@ -374,7 +374,7 @@ export const useBuildPeggedChartData = (
 			let unformattedTokenInflowData = {}
 			let assetAddedToInflows = assetsOrChainsList.reduce((acc, curr) => ({ ...acc, [curr]: false }), {})
 			chartDataByAssetOrChain.map((charts, i) => {
-				if (!charts.length || !filteredIndexes.includes(i)) return
+				if (!charts || !charts.length || !filteredIndexes.includes(i)) return
 				charts.forEach((chart, j) => {
 					const mcap = getPrevPeggedTotalFromChart([chart], 0, issuanceType) // 'issuanceType' and 'mcap' here are 'circulating' values on /stablecoin pages, and 'mcap' otherwise
 					const prevDayMcap = getPrevPeggedTotalFromChart([charts[j - 1]], 0, issuanceType)

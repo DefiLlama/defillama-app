@@ -21,14 +21,12 @@ import {
 } from '~/api/categories/adaptors'
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { fetchOverCacheJson } from '~/utils/perf'
+import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
 
-const fetch = fetchWithErrorLogging
-
-export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
+export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
 export const getProtocols = () =>
-	fetch(PROTOCOLS_API)
+	fetchWithErrorLogging(PROTOCOLS_API)
 		.then((r) => r.json())
 		.then(({ protocols, chains, parentProtocols }) => ({
 			protocolsDict: protocols.reduce((acc, curr) => {
@@ -42,7 +40,11 @@ export const getProtocols = () =>
 
 export const getProtocol = async (protocolName: string) => {
 	try {
-		const data: IProtocolResponse = await fetchOverCacheJson(`${PROTOCOL_API}/${protocolName}`)
+		const data: IProtocolResponse = await fetchOverCache(`${PROTOCOL_API}/${protocolName}`).then((res) => res.json())
+
+		if (!data || (data as any).statusCode === 400) {
+			throw new Error((data as any).body)
+		}
 
 		let isNewlyListedProtocol = true
 
@@ -54,16 +56,19 @@ export const getProtocol = async (protocolName: string) => {
 
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
 			const hourlyData = await fetchOverCacheJson(`${HOURLY_PROTOCOL_API}/${protocolName}`)
+
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
 	} catch (e) {
 		console.log('[ERROR] generating ', `${PROTOCOL_API}/${protocolName}`, e)
+
+		return null
 	}
 }
 
 export const getAllProtocolEmissions = async () => {
 	try {
-		const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
+		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
 		return res
 			.map((protocol) => {
 				let event = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
@@ -112,10 +117,10 @@ export const getAllProtocolEmissions = async () => {
 
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
-		const list = await fetch(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json())
+		const list = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json())
 		if (!list.includes(protocolName)) return { chartData: [], categories: [] }
 
-		const res = await fetch(`${PROTOCOL_EMISSION_API}/${protocolName}`)
+		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
 			.then((r) => JSON.parse(r.body))
 
@@ -124,7 +129,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const protocolEmissions = {}
 		const emissionCategories = []
 
-		const prices = await fetch(`https://coins.llama.fi/prices/current/${metadata.token}?searchWidth=4h`)
+		const prices = await fetchWithErrorLogging(`https://coins.llama.fi/prices/current/${metadata.token}?searchWidth=4h`)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(err)
@@ -267,7 +272,7 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 export async function getOraclePageData(oracle = null) {
 	try {
 		const [{ chart = {}, oracles = {} }, { protocols }] = await Promise.all(
-			[ORACLE_API, PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
+			[ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
 		)
 
 		const oracleExists = !oracle || oracles[oracle]
@@ -338,7 +343,7 @@ export async function getOraclePageData(oracle = null) {
 export async function getForkPageData(fork = null) {
 	try {
 		const [{ chart = {}, forks = {} }, { protocols }] = await Promise.all(
-			[FORK_API, PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
+			[FORK_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
 		)
 
 		const forkExists = !fork || forks[fork]
@@ -425,7 +430,7 @@ export async function getForkPageData(fork = null) {
 export async function getCategoriesPageData(category = null) {
 	try {
 		const [{ chart = {}, categories = {} }] = await Promise.all(
-			[CATEGORY_API, PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
+			[CATEGORY_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
 		)
 
 		const categoryExists = !category || categories[category]
@@ -474,11 +479,11 @@ export const getNewChainsPageData = async (category: string) => {
 		{ chains: stablesChainData },
 		activeUsers
 	] = await Promise.all([
-		fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
+		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
 		getChainsPageDataByType('dexs'),
 		getChainPageDataByType('fees'),
 		getPeggedAssets(),
-		fetch(ACTIVE_USERS_API).then((res) => res.json())
+		fetchWithErrorLogging(ACTIVE_USERS_API).then((res) => res.json())
 	])
 
 	const categoryLinks = [
@@ -540,10 +545,12 @@ export const getNewChainsPageData = async (category: string) => {
 
 // - used in /lsd
 export async function getLSDPageData() {
-	const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json())))
-	const pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
+	const [{ protocols }] = await Promise.all(
+		[PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
+	)
+	const pools = (await fetchWithErrorLogging(YIELD_POOLS_API).then((r) => r.json())).data
 
-	const lsdRates = await fetch(LSD_RATES_API).then((r) => r.json())
+	const lsdRates = await fetchWithErrorLogging(LSD_RATES_API).then((r) => r.json())
 
 	// filter for LSDs
 	const lsdProtocols = protocols
@@ -553,7 +560,9 @@ export async function getLSDPageData() {
 
 	// get historical data
 	const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
-	const history = await Promise.all(lsdProtocolsSlug.map((p) => fetch(`${PROTOCOL_API}/${p}`).then((r) => r.json())))
+	const history = await Promise.all(
+		lsdProtocolsSlug.map((p) => fetchWithErrorLogging(`${PROTOCOL_API}/${p}`).then((r) => r.json()))
+	)
 
 	let lsdApy = pools
 		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
