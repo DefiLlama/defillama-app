@@ -163,6 +163,15 @@ export const cexData: Array<ICex> = [
 		cgDeriv: 'bitfinex_futures'
 	},
 	{
+		name: 'Bybit',
+		slug: 'Bybit',
+		coin: 'BIT',
+		coinSymbol: 'BIT',
+		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048',
+		cgId: 'bybit_spot',
+		cgDeriv: 'bybit'
+	},
+	{
 		name: 'Crypto.com',
 		slug: 'Crypto-com',
 		coin: 'CRO',
@@ -179,15 +188,6 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',
 		cgId: 'huobi',
 		cgDeriv: 'huobi_dm'
-	},
-	{
-		name: 'Bybit',
-		slug: 'Bybit',
-		coin: 'BIT',
-		coinSymbol: 'BIT',
-		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048',
-		cgId: 'bybit_spot',
-		cgDeriv: 'bybit'
 	},
 	{
 		name: 'Kucoin',
@@ -258,13 +258,6 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
-		name: 'Binance US',
-		slug: 'binance-us',
-		coin: 'BNB',
-		coinSymbol: 'BNB',
-		cgId: 'binance_us'
-	},
-	{
 		name: 'Okcoin',
 		slug: 'okcoin',
 		coin: null,
@@ -285,17 +278,17 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
-		name: 'Cake DeFi',
-		slug: 'cake-defi',
-		coin: null,
-		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
-	},
-	{
 		name: 'WOO X',
 		slug: 'woo-x',
 		coin: 'WOO',
 		coinSymbol: 'WOO',
 		walletsLink: 'https://woo.org/proof-of-reserves'
+	},
+	{
+		name: 'Cake DeFi',
+		slug: 'cake-defi',
+		coin: null,
+		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
 	{
 		name: 'CoinDCX',
@@ -322,6 +315,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://nbx.com/en/proof-of-reserves'
 	},
 	{
+		name: 'BitVenus',
+		slug: 'bitvenus',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Latoken',
 		slug: 'latoken',
 		coin: null,
@@ -334,10 +333,11 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
-		name: 'BitVenus',
-		slug: 'bitvenus',
-		coin: null,
-		walletsLink: null
+		name: 'Binance US',
+		slug: 'binance-us',
+		coin: 'BNB',
+		coinSymbol: 'BNB',
+		cgId: 'binance_us'
 	},
 	{
 		name: 'Coinbase',
