@@ -47,7 +47,7 @@ export const getProtocolData = async (protocol: string) => {
 	])
 
 	if (!protocolRes) {
-		return { notFound: true }
+		return { notFound: true, props: null }
 	}
 
 	let inflowsExist = false
