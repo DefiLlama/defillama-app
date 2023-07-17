@@ -759,13 +759,25 @@ function ProtocolContainer({
 							) : null}
 
 							{borrowedAmount ? (
-								<tr>
-									<th>
-										<span>Borrowed</span>
-										<Flag protocol={protocolData.name} dataType={'Borrowed'} />
-									</th>
-									<td>{formatPrice(borrowedAmount)}</td>
-								</tr>
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									rowHeader={`Borrowed`}
+									dataType={'Token Borrowed'}
+									rowValue={formatPrice(borrowedAmount)}
+									helperText={null}
+									subRows={
+										<>
+											{tvlByChain
+												.filter((c) => c[0].endsWith('-borrowed'))
+												.map((c) => (
+													<tr>
+														<th data-subvalue>{c[0].split('-')[0]}</th>
+														<td data-subvalue>{formatPrice(c[1])}</td>
+													</tr>
+												))}
+										</>
+									}
+								/>
 							) : null}
 
 							{tokenLiquidity && tokenLiquidity.length > 0 ? (
