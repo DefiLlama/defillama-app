@@ -770,7 +770,7 @@ function ProtocolContainer({
 											{tvlByChain
 												.filter((c) => c[0].endsWith('-borrowed'))
 												.map((c) => (
-													<tr>
+													<tr key={c[0]}>
 														<th data-subvalue>{c[0].split('-')[0]}</th>
 														<td data-subvalue>{formatPrice(c[1])}</td>
 													</tr>
