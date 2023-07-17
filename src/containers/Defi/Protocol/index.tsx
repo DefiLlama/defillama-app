@@ -952,7 +952,7 @@ function ProtocolContainer({
 													.sort((a, b) => a.date - b.date)
 													.map((raise) => (
 														<tr key={raise.date + raise.amount}>
-															<th data-subvalue>{new Date(raise.date * 1000).toLocaleDateString()}</th>
+															<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
 															<td data-subvalue>
 																{raise.source ? (
 																	<a target="_blank" rel="noopener noreferrer" href={raise.source}>
