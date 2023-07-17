@@ -487,7 +487,7 @@ function ProtocolContainer({
 			)}
             {name === 'Multichain' && (
               <Announcement warning={true} notCancellable={true}>
-               Please stop using Multichain. The Multichain team does not have access to the Domain Account to redirect or bring down the frontend
+               Please avoid using Multichain. The Multichain team doesn't control the keys and your money will get stuck/lost.
                </Announcement>
             )}
 			<StatsSection>
