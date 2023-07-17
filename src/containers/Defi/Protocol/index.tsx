@@ -485,7 +485,11 @@ function ProtocolContainer({
 					.
 				</Announcement>
 			)}
-
+            {name === 'Multichain' && (
+              <Announcement warning={true} notCancellable={true}>
+               Please avoid using Multichain. The Multichain team doesn't control the keys and your money will get stuck/lost.
+               </Announcement>
+            )}
 			<StatsSection>
 				{otherProtocols?.length > 1 && (
 					<OtherProtocols>
