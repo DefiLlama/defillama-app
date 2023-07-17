@@ -332,6 +332,7 @@ export const cexData: Array<ICex> = [
 		coin: null,
 		walletsLink: null
 	},
+	/*
 	{
 		name: 'Binance US',
 		slug: 'binance-us',
@@ -339,6 +340,7 @@ export const cexData: Array<ICex> = [
 		coinSymbol: 'BNB',
 		cgId: 'binance_us'
 	},
+	*/
 	{
 		name: 'Coinbase',
 		lastAuditDate: 1640908800,
