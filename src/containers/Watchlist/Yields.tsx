@@ -64,7 +64,9 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				category: t.category,
 				volumeUsd1d: t.volumeUsd1d,
 				volumeUsd7d: t.volumeUsd7d,
-				apyBaseInception: t.apyBaseInception
+				apyBaseInception: t.apyBaseInception,
+				apyIncludingLsdApy: t.apyIncludingLsdApy,
+				apyBaseIncludingLsdApy: t.apyBaseIncludingLsdApy
 			}))
 		} else return []
 	}, [isClient, savedProtocolsInWatchlist, protocolsDict])

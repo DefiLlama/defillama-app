@@ -57,7 +57,9 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 					apyMean30d: curr.apyMean30d,
 					volumeUsd1d: curr.volumeUsd1d,
 					volumeUsd7d: curr.volumeUsd7d,
-					apyBaseInception: curr.apyBaseInception
+					apyBaseInception: curr.apyBaseInception,
+					apyIncludingLsdApy: curr.apyIncludingLsdApy,
+					apyBaseIncludingLsdApy: curr.apyBaseIncludingLsdApy
 				})
 			} else return acc
 		}, [])
@@ -126,6 +128,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				show1dVolume={true}
 				show7dVolume={true}
 				showInceptionApy={true}
+				includeLsdApy={true}
 			/>
 
 			{poolsData.length > 0 ? (
