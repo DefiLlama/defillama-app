@@ -35,7 +35,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	}))
 
 	// add lsd apr
-	const lsd = _pools.filter((p) => p.category === 'Liquid Staking' && p.exposure === 'single')
+	const lsd = _pools.filter((p) => p.category === 'Liquid Staking' && p.exposure === 'single' && p.project !== 'stafi')
 	const lsdSymbols = [...new Set(lsd.map((p) => p.symbol))]
 	_pools = _pools.map((p) => {
 		let apyLsd = null
@@ -45,7 +45,13 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 			!['curve-dex', 'olympus-dao', 'convex-finance'].includes(p.project)
 		) {
 			const l = p.underlyingTokens?.length
-			apyLsd = lsd.filter((i) => p.symbol.includes(i.symbol)).reduce((acc, v) => v.apyBase / l + acc, 0)
+			apyLsd = lsd
+				.filter((i) => p.symbol.includes(i.symbol))
+				.reduce(
+					// balancer takes 50% of lsd apr as fee (https://docs.balancer.fi/concepts/governance/protocol-fees.html#wrapped-token-yield-fees)
+					(acc, v) => (['balancer-v2', 'aura'].includes(p.project) ? (v.apyBase * 0.5) / l + acc : v.apyBase / l + acc),
+					0
+				)
 			apyLsd = Number.isFinite(apyLsd) ? apyLsd : null
 		}
 
