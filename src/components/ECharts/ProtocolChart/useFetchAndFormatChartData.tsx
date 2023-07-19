@@ -115,7 +115,7 @@ export function useFetchAndFormatChartData({
 		isRouterReady && metrics.treasury && treasury === 'true' ? protocol : null,
 		true
 	)
-	const { data: emissions, loading: fetchingEmissions } = useGetProtocolEmissions(
+	const { data: unlocksData, loading: fetchingEmissions } = useGetProtocolEmissions(
 		isRouterReady && metrics.unlocks && unlocks === 'true' ? protocol : null
 	)
 	const { data: bridgeVolumeData, loading: fetchingBridgeVolume } = useFetchBridgeVolumeOnAllChains(
@@ -408,7 +408,7 @@ export function useFetchAndFormatChartData({
 			}
 		}
 
-		if (tokenLiquidity === 'true' && tokenLiquidityData) {
+		if (tokenLiquidityData) {
 			chartsUnique.push('Token Liquidity')
 
 			tokenLiquidityData.forEach((item) => {
@@ -423,7 +423,7 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
-		if (bridgeVolume === 'true' && bridgeVolumeData) {
+		if (bridgeVolumeData) {
 			chartsUnique.push('Bridge Deposits')
 			chartsUnique.push('Bridge Withdrawals')
 
@@ -442,7 +442,7 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
-		if (volume === 'true' && volumeData) {
+		if (volumeData) {
 			chartsUnique.push('Volume')
 
 			volumeData.forEach((item) => {
@@ -486,7 +486,7 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
-		if (twitter === 'true') {
+		if (twitterData && twitterData.tweets) {
 			chartsUnique.push('Tweets')
 
 			twitterData?.tweets?.forEach((tweet) => {
@@ -499,9 +499,9 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
-		if (emissions && unlocks === 'true') {
+		if (unlocksData) {
 			chartsUnique.push('Unlocks')
-			emissions.chartData
+			unlocksData.chartData.documented
 				.filter((emission) => +emission.date * 1000 <= Date.now())
 				.forEach((item) => {
 					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
@@ -521,7 +521,7 @@ export function useFetchAndFormatChartData({
 				})
 		}
 
-		if (activeUsers === 'true' && activeUsersData) {
+		if (activeUsersData) {
 			chartsUnique.push('Active Users')
 
 			activeUsersData.forEach(([dateS, noOfUsers]) => {
@@ -534,7 +534,7 @@ export function useFetchAndFormatChartData({
 				chartData[date]['Active Users'] = noOfUsers || 0
 			})
 		}
-		if (newUsers === 'true' && newUsersData) {
+		if (newUsersData) {
 			chartsUnique.push('New Users')
 
 			newUsersData.forEach(([dateS, noOfUsers]) => {
@@ -547,7 +547,7 @@ export function useFetchAndFormatChartData({
 				chartData[date]['New Users'] = noOfUsers || 0
 			})
 		}
-		if (transactions === 'true' && transactionsData) {
+		if (transactionsData) {
 			chartsUnique.push('Transactions')
 
 			transactionsData.forEach(([dateS, noOfTxs]) => {
@@ -560,7 +560,7 @@ export function useFetchAndFormatChartData({
 				chartData[date]['Transactions'] = noOfTxs || 0
 			})
 		}
-		if (gasUsed === 'true' && gasData) {
+		if (gasData) {
 			chartsUnique.push('Gas Used')
 
 			gasData.forEach(([dateS, gasAmount]) => {
@@ -575,7 +575,7 @@ export function useFetchAndFormatChartData({
 					: gasAmount
 			})
 		}
-		if (medianApy === 'true' && medianAPYData) {
+		if (medianAPYData) {
 			chartsUnique.push('Median APY')
 
 			medianAPYData.forEach(({ date: dateS, medianAPY }) => {
@@ -630,7 +630,7 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
-		if (governance === 'true' && governanceData) {
+		if (governanceData) {
 			chartsUnique.push('Total Proposals')
 			chartsUnique.push('Successful Proposals')
 			chartsUnique.push('Max Votes')
@@ -661,7 +661,7 @@ export function useFetchAndFormatChartData({
 			)
 		}
 
-		if (treasury === 'true' && treasuryData) {
+		if (treasuryData) {
 			chartsUnique.push('Treasury')
 			const tData = formatProtocolsTvlChartData({ historicalChainTvls: treasuryData.chainTvls, extraTvlEnabled: {} })
 
@@ -711,7 +711,6 @@ export function useFetchAndFormatChartData({
 		protocolCGData,
 		mcap,
 		geckoId,
-		volume,
 		volumeData,
 		tvl,
 		showNonUsdDenomination,
@@ -720,39 +719,28 @@ export function useFetchAndFormatChartData({
 		fees,
 		revenue,
 		isRouterReady,
-		unlocks,
-		activeUsers,
-		newUsers,
 		activeUsersData,
 		newUsersData,
 		tokenPrice,
 		fdv,
 		fdvData,
 		gasData,
-		gasUsed,
-		transactions,
 		transactionsData,
 		staking,
 		borrowed,
 		historicalChainTvls,
 		medianAPYData,
-		medianApy,
 		usdInflows,
 		usdInflowsData,
 		isHourlyChart,
-		governance,
 		governanceData,
 		extraTvlEnabled,
-		treasury,
 		treasuryData,
-		emissions,
-		bridgeVolume,
+		unlocksData,
 		bridgeVolumeData,
 		tokenVolume,
-		tokenLiquidity,
 		tokenLiquidityData,
-		twitter,
-		twitterData?.tweets
+		twitterData
 	])
 
 	const finalData = React.useMemo(() => {
@@ -861,7 +849,7 @@ export function useFetchAndFormatChartData({
 		isLoading,
 		chartData: finalData,
 		chartsUnique,
-		unlockTokenSymbol: emissions?.tokenPrice?.symbol,
+		unlockTokenSymbol: unlocksData?.tokenPrice?.symbol,
 		valueSymbol
 	}
 }

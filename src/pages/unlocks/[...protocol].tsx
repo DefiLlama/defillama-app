@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging(
 	}) => {
 		const emissions = await getProtocolEmissons(protocol)
 
-		if (emissions.chartData?.length === 0) {
+		if (emissions.chartData?.documented?.length === 0) {
 			return {
 				notFound: true
 			}

@@ -311,7 +311,7 @@ export const getProtocolData = async (protocol: string) => {
 					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
 					medianApy: medianApy.data.length > 0,
 					inflows: inflowsExist,
-					unlocks: emissions.chartData?.length > 0 ? true : false,
+					unlocks: emissions.chartData?.documented?.length > 0 ? true : false,
 					bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
 					treasury: treasury?.tokenBreakdowns ? true : false,
 					tokenLiquidity: protocolData.symbol && tokenLiquidity.length > 0 ? true : false

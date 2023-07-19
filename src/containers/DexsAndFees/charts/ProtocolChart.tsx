@@ -108,7 +108,7 @@ export const ProtocolChart = ({
 				</OtherProtocols>
 			)}
 			{!fullChart ? (
-				<DetailsWrapper style={{ borderTopLeftRadius: ['23', '2']?.length > 1 ? 0 : '12px' }}>
+				<DetailsWrapper style={{ borderTopLeftRadius: tabs?.length > 1 ? 0 : '12px' }}>
 					<>
 						{name && (
 							<Name>

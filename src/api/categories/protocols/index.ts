@@ -118,16 +118,21 @@ export const getAllProtocolEmissions = async () => {
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
 		const list = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json())
-		if (!list.includes(protocolName)) return { chartData: [], categories: [] }
+		if (!list.includes(protocolName)) return { chartData: { documented: [] }, categories: { documented: [] } }
 
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
 			.then((r) => JSON.parse(r.body))
 
-		const { data, metadata, name, tokenAllocation, futures } = res
+		const { metadata, name, futures } = res
 
-		const protocolEmissions = {}
-		const emissionCategories = []
+		const documentedData = res.data.documentedData ?? {
+			data: res.data ?? [],
+			tokenAllocation: res.tokenAllocation ?? {}
+		}
+
+		const protocolEmissions = { documented: {} }
+		const emissionCategories = { documented: [] }
 
 		const prices = await fetchWithErrorLogging(`https://coins.llama.fi/prices/current/${metadata.token}?searchWidth=4h`)
 			.then((res) => res.json())
@@ -138,40 +143,49 @@ export const getProtocolEmissons = async (protocolName: string) => {
 
 		const tokenPrice = prices?.coins?.[metadata.token] ?? {}
 
-		data.forEach((emission) => {
+		documentedData.data.forEach((emission) => {
 			const label = emission.label
 				.split(' ')
 				.map((l) => capitalizeFirstLetter(l))
 				.join(' ')
 
-			if (emissionCategories.includes(label)) {
+			if (emissionCategories['documented'].includes(label)) {
 				return
 			}
 
-			emissionCategories.push(label)
+			emissionCategories['documented'].push(label)
 
 			emission.data.forEach((value) => {
-				if (!protocolEmissions[value.timestamp]) {
-					protocolEmissions[value.timestamp] = {}
+				if (!protocolEmissions['documented'][value.timestamp]) {
+					protocolEmissions['documented'][value.timestamp] = {}
 				}
 
-				protocolEmissions[value.timestamp] = { ...protocolEmissions[value.timestamp], [label]: value.unlocked }
+				protocolEmissions['documented'][value.timestamp] = {
+					...protocolEmissions['documented'][value.timestamp],
+					[label]: value.unlocked
+				}
 			})
 		})
 
-		const chartData = Object.entries(protocolEmissions).map(([date, values]: [string, { [key: string]: number }]) => ({
-			date,
-			...values
-		}))
+		const chartData = {
+			documented: Object.entries(protocolEmissions['documented']).map(
+				([date, values]: [string, { [key: string]: number }]) => ({
+					date,
+					...values
+				})
+			)
+		}
 
-		const pieChartData = Object.entries(chartData[chartData.length - 1] || {})
-			.filter(([key]) => key !== 'date')
-			.map(([name, value]) => ({ name, value }))
+		const pieChartData = {
+			documented: Object.entries(chartData.documented[chartData.documented.length - 1] || {})
+				.filter(([key]) => key !== 'date')
+				.map(([name, value]) => ({ name, value }))
+		}
 
-		const stackColors = {}
+		const stackColors = { documented: {} }
 
-		pieChartData.forEach(({ name }, index) => {
-			stackColors[name] = getColorFromNumber(index, 6)
+		pieChartData['documented'].forEach(({ name }, index) => {
+			stackColors['documented'][name] = getColorFromNumber(index, 6)
 		})
 
 		if (protocolName == 'looksrare') {
@@ -185,17 +199,17 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: metadata?.events ?? [],
-			tokenAllocation: tokenAllocation ?? {},
+			tokenAllocation: { documented: documentedData.tokenAllocation ?? {} },
 			futures: futures ?? {},
 			categories: emissionCategories,
-			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'Today']] : [],
+			hallmarks: documentedData.data?.length > 0 ? [[Date.now() / 1000, 'Today']] : [],
 			name: name || null,
 			tokenPrice
 		}
 	} catch (e) {
 		console.log(e)
 
-		return { chartData: [], categories: [] }
+		return { chartData: { documented: [] }, categories: { documented: [] } }
 	}
 }
 

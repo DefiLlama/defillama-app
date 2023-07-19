@@ -14,20 +14,22 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 }) as React.FC<IPieChartProps>
 
 export interface IEmission {
-	categories: Array<string>
-	chartData: Array<{ [label: string]: number }>
+	categories: { documented: Array<string> }
+	chartData: { documented: Array<{ [label: string]: number }> }
 	sources: Array<string>
 	notes: Array<string>
 	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
 	hallmarks: Array<[number, string]>
 	tokenPrice: { price?: number | null; symbol?: string | null }
-	tokenAllocation: { current: { [category: string]: number }; final: { [category: string]: number } }
+	tokenAllocation: { documented: { current: { [category: string]: number }; final: { [category: string]: number } } }
 	futures: { openInterest: number; fundingRate: number }
-	pieChartData: Array<{
-		name: string
-		value: number
-	}>
-	stackColors: { [stack: string]: string }
+	pieChartData: {
+		documented: Array<{
+			name: string
+			value: number
+		}>
+	}
+	stackColors: { documented: { [stack: string]: string } }
 }
 
 const MAX_LENGTH_EVENTS_LIST = 5
@@ -48,33 +50,38 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		<>
 			<ChartsWrapper style={styles}>
 				<LazyChart>
-					<PieChart title="Allocation" chartData={data.pieChartData} stackColors={data.stackColors} usdFormat={false} />
+					<PieChart
+						title="Allocation"
+						chartData={data.pieChartData.documented}
+						stackColors={data.stackColors.documented}
+						usdFormat={false}
+					/>
 				</LazyChart>
 
 				<LazyChart>
 					<AreaChart
 						title="Vesting Schedule"
-						stacks={data.categories}
-						chartData={data.chartData}
+						stacks={data.categories.documented}
+						chartData={data.chartData.documented}
 						hideDefaultLegend
 						hallmarks={data.hallmarks}
-						stackColors={data.stackColors}
+						stackColors={data.stackColors.documented}
 						isStackedChart
 					/>
 				</LazyChart>
 			</ChartsWrapper>
 
-			{data.tokenAllocation.current || data.tokenAllocation.final ? (
+			{data.tokenAllocation.documented.current || data.tokenAllocation.documented.final ? (
 				<SmolSection>
 					<h4>Token Allocation</h4>
 
-					{data.tokenAllocation.current && (
-						<p>{`Current: ${Object.entries(data.tokenAllocation.current)
+					{data.tokenAllocation.documented.current && (
+						<p>{`Current: ${Object.entries(data.tokenAllocation.documented.current)
 							.map(([cat, perc]) => `${capitalizeFirstLetter(cat)} - ${perc}%`)
 							.join(', ')}`}</p>
 					)}
-					{data.tokenAllocation.final && (
-						<p>{`Final: ${Object.entries(data.tokenAllocation.final)
+					{data.tokenAllocation.documented.final && (
+						<p>{`Final: ${Object.entries(data.tokenAllocation.documented.final)
 							.map(([cat, perc]) => `${capitalizeFirstLetter(cat)} - ${perc}%`)
 							.join(', ')}`}</p>
 					)}

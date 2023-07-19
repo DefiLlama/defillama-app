@@ -264,7 +264,7 @@ export const useGetProtocolsList = ({ chain }) => {
 export const useGetProtocolEmissions = (protocol?: string | null) => {
 	const { data, error } = useSWR(`unlocksData/${protocol}`, protocol ? () => getProtocolEmissons(protocol) : () => null)
 
-	return { data, error, loading: protocol && !data && !error }
+	return { data, error, loading: !data && data !== null && !error }
 }
 
 export const useFetchProtocolTwitter = (twitter?: string | null) => {
