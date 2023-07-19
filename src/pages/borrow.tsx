@@ -396,9 +396,9 @@ const PoolsList = ({
 									<span data-metric>
 										<span>
 											{(borrow && collateral
-												? (incentives === 'true'
-														? pool.apy + pool.borrow.apyBorrow
-														: pool.apyBase + pool.borrow.apyBaseBorrow) * pool.ltv
+												? incentives === 'true'
+													? pool.apy + pool.borrow.apyBorrow * pool.ltv
+													: pool.apyBase + pool.borrow.apyBaseBorrow * pool.ltv
 												: borrow
 												? incentives === 'true'
 													? pool.borrow.apyBorrow

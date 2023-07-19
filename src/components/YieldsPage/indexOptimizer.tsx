@@ -7,7 +7,7 @@ import { useFormatYieldQueryParams } from './hooks'
 import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 
 const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lendingProtocols, searchData }) => {
-	const { query } = useRouter()
+	const { pathname, query } = useRouter()
 	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
 	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
@@ -27,7 +27,9 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
-		if (lend === undefined || borrow === undefined) {
+		if (pathname === '/borrow/advanced' && (lend === '' || borrow === '')) {
+			return []
+		} else if (lend === undefined || borrow === undefined) {
 			return []
 		}
 		let filteredPools = findOptimizerPools({
@@ -73,7 +75,8 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 		minAvailable,
 		maxAvailable,
 		selectedLendingProtocols,
-		customLTV
+		customLTV,
+		pathname
 	])
 
 	const header = `Lending Optimizer Calculator ${

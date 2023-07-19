@@ -87,6 +87,7 @@ export function toFilterPool({
 const isStable = (token) => token?.toUpperCase() === 'USD_STABLES'
 
 export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoutes }) => {
+	if (!tokenToLend && !tokenToBorrow) return []
 	const availableToLend = pools.filter(({ symbol, ltv }) => {
 		if (!tokenToLend || isStable(tokenToLend)) return true
 
