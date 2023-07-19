@@ -218,6 +218,11 @@ export async function getLendBorrowData() {
 				totalAvailableUsd = null
 			} else if (cdpPools.includes(x.pool)) {
 				totalAvailableUsd = x.debtCeilingUsd ? x.debtCeilingUsd - x.totalBorrowUsd : null
+			} else if (p.project === 'compound' && x.debtCeilingUsd > 0) {
+				totalAvailableUsd =
+					x.totalSupplyUsd - x.totalBorrowUsd > x.debtCeilingUsd
+						? x.debtCeilingUsd
+						: x.totalSupplyUsd - x.totalBorrowUsd
 			} else {
 				totalAvailableUsd = x.totalSupplyUsd - x.totalBorrowUsd
 			}
