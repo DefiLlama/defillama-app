@@ -126,7 +126,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 
 		const { metadata, name, futures } = res
 
-		const documentedData = res.data.documentedData ?? {
+		const documentedData = res.documentedData ?? {
 			data: res.data ?? [],
 			tokenAllocation: res.tokenAllocation ?? {}
 		}
