@@ -499,7 +499,7 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
-		if (unlocksData) {
+		if (unlocksData && unlocksData.chartData.documented && unlocksData.chartData.documented.length > 0) {
 			chartsUnique.push('Unlocks')
 			unlocksData.chartData.documented
 				.filter((emission) => +emission.date * 1000 <= Date.now())

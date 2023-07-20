@@ -46,41 +46,46 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const cutEventsList = !isEmissionsPage && data.events?.length > MAX_LENGTH_EVENTS_LIST
 	const styles = isEmissionsPage ? {} : { background: 'none', padding: 0, border: 'none' }
 
+	if (!data) return null
+
 	return (
 		<>
 			<ChartsWrapper style={styles}>
-				<LazyChart>
-					<PieChart
-						title="Allocation"
-						chartData={data.pieChartData.documented}
-						stackColors={data.stackColors.documented}
-						usdFormat={false}
-					/>
-				</LazyChart>
-
-				<LazyChart>
-					<AreaChart
-						title="Vesting Schedule"
-						stacks={data.categories.documented}
-						chartData={data.chartData.documented}
-						hideDefaultLegend
-						hallmarks={data.hallmarks}
-						stackColors={data.stackColors.documented}
-						isStackedChart
-					/>
-				</LazyChart>
+				{data.pieChartData.documented && data.stackColors.documented && (
+					<LazyChart>
+						<PieChart
+							title="Allocation"
+							chartData={data.pieChartData.documented}
+							stackColors={data.stackColors.documented}
+							usdFormat={false}
+						/>
+					</LazyChart>
+				)}
+				{data.categories.documented && data.chartData.documented && data.stackColors.documented && (
+					<LazyChart>
+						<AreaChart
+							title="Vesting Schedule"
+							stacks={data.categories.documented}
+							chartData={data.chartData.documented}
+							hideDefaultLegend
+							hallmarks={data.hallmarks}
+							stackColors={data.stackColors.documented}
+							isStackedChart
+						/>
+					</LazyChart>
+				)}
 			</ChartsWrapper>
 
-			{data.tokenAllocation.documented.current || data.tokenAllocation.documented.final ? (
+			{data.tokenAllocation?.documented?.current || data.tokenAllocation?.documented?.final ? (
 				<SmolSection>
 					<h4>Token Allocation</h4>
 
-					{data.tokenAllocation.documented.current && (
+					{data.tokenAllocation?.documented?.current && (
 						<p>{`Current: ${Object.entries(data.tokenAllocation.documented.current)
 							.map(([cat, perc]) => `${capitalizeFirstLetter(cat)} - ${perc}%`)
 							.join(', ')}`}</p>
 					)}
-					{data.tokenAllocation.documented.final && (
+					{data.tokenAllocation?.documented?.final && (
 						<p>{`Final: ${Object.entries(data.tokenAllocation.documented.final)
 							.map(([cat, perc]) => `${capitalizeFirstLetter(cat)} - ${perc}%`)
 							.join(', ')}`}</p>
