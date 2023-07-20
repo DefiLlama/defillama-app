@@ -32,7 +32,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	const { dataType: selectedDataType = 'Notional volume' } = router.query
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 
-	const { selectedCategories, protocolsList } = React.useMemo(() => {
+	const { selectedCategories, protocolsList, rowLinks } = React.useMemo(() => {
 		const selectedCategories = router.query.category
 			? typeof router.query.category === 'string'
 				? [router.query.category]
@@ -46,8 +46,13 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				? props.protocols.filter((p) => (p.category ? selectedCategories.includes(p.category) : false))
 				: props.protocols
 
-		return { selectedCategories, protocolsList }
-	}, [router.query.category, props.protocols])
+		const rowLinks = ['All', ...props.allChains].map((chain) => ({
+			label: chain,
+			to: chain === 'All' ? `/${props.type}` : `/${props.type}/chains/${chain.toLowerCase()}`
+		}))
+
+		return { selectedCategories, protocolsList, rowLinks }
+	}, [router.query.category, props.protocols, props.allChains, props.type])
 
 	const [charts, setCharts] = React.useState<IJSON<IOverviewContainerProps['totalDataChartBreakdown']>>({
 		totalDataChartBreakdown: props.totalDataChartBreakdown,
@@ -199,12 +204,10 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			{props.allChains ? (
 				<RowLinksWrapper>
 					<RowLinksWithDropdown
-						links={['All', ...props.allChains].map((chain) => ({
-							label: chain,
-							to: chain === 'All' ? `/${props.type}` : `/${props.type}/chains/${chain.toLowerCase()}`
-						}))}
+						links={rowLinks}
 						activeLink={chain}
 						alternativeOthersText="More chains"
+						key={'row links wrapper of ' + props.type}
 					/>
 				</RowLinksWrapper>
 			) : (

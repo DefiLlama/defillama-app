@@ -111,7 +111,8 @@ const SEO = ({
 		isVolumeChangeValid,
 		pageType,
 		liqsPage,
-		isCEX
+		isCEX,
+		stablePage
 	])
 
 	return (
