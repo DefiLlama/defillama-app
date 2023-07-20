@@ -46,10 +46,13 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				? props.protocols.filter((p) => (p.category ? selectedCategories.includes(p.category) : false))
 				: props.protocols
 
-		const rowLinks = ['All', ...props.allChains].map((chain) => ({
-			label: chain,
-			to: chain === 'All' ? `/${props.type}` : `/${props.type}/chains/${chain.toLowerCase()}`
-		}))
+		const rowLinks =
+			props.allChains && props.allChains.length > 0
+				? ['All', ...props.allChains].map((chain) => ({
+						label: chain,
+						to: chain === 'All' ? `/${props.type}` : `/${props.type}/chains/${chain.toLowerCase()}`
+				  }))
+				: null
 
 		return { selectedCategories, protocolsList, rowLinks }
 	}, [router.query.category, props.protocols, props.allChains, props.type])
@@ -201,7 +204,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				selectedType: (selectedDataType as string) ?? undefined,
 				chartTypes: props.type === 'options' && enableBreakdownChart ? ['Notional volume', 'Premium volume'] : undefined
 			})}
-			{props.allChains ? (
+			{rowLinks ? (
 				<RowLinksWrapper>
 					<RowLinksWithDropdown
 						links={rowLinks}
