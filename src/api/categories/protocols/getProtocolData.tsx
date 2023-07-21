@@ -64,7 +64,7 @@ export const getProtocolData = async (protocol: string) => {
 
 	const protocolData = fuseProtocolData(protocolRes)
 
-	const governanceApis =
+	const governanceApis = (
 		protocolData.governanceID?.map((gid) =>
 			gid.startsWith('snapshot:')
 				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|’|')/g, '/')}.json`
@@ -74,6 +74,7 @@ export const getProtocolData = async (protocol: string) => {
 				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|’|')/g, '/')}.json`
 				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|’|')/g, '/')}.json`
 		) ?? []
+	).map((g) => g.toLowerCase())
 
 	const [
 		backgroundColor,
