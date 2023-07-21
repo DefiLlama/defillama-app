@@ -81,14 +81,11 @@ export const getAllProtocolEmissions = async () => {
 					upcomingEvent = [...comingEvents]
 				}
 
-				const tSymbol =
-					protocol.name === 'LooksRare' ? 'LOOKS' : protocol.tokenPrice?.coins?.[protocol.token]?.symbol ?? null
-
 				return {
 					...protocol,
 					upcomingEvent,
-					tPrice: protocol.tokenPrice?.coins?.[protocol.token]?.price ?? null,
-					tSymbol
+					tPrice: protocol.tokenPrice,
+					tSymbol: protocol.symbol
 				}
 			})
 			.sort((a, b) => {
@@ -212,7 +209,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		return { chartData: { documented: [] }, categories: { documented: [] } }
 	}
 }
-
+getProtocolEmissons('aave')
+// ts-node src/api/categories/protocols/index.ts
 export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtocolData => {
 	const tvlBreakdowns = protocolData?.currentChainTvls ?? {}
 
