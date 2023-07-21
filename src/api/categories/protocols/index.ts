@@ -209,8 +209,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		return { chartData: { documented: [] }, categories: { documented: [] } }
 	}
 }
-getProtocolEmissons('aave')
-// ts-node src/api/categories/protocols/index.ts
+
 export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtocolData => {
 	const tvlBreakdowns = protocolData?.currentChainTvls ?? {}
 
