@@ -331,19 +331,21 @@ export const formatRaise = (raise: IRaise) => {
 	}
 
 	if (raise.amount) {
-		text += ` Raised $${formatRaisedAmount(Number(raise.amount))}`
+		text += ` Raised ${formatRaisedAmount(Number(raise.amount))}`
 	}
 
 	if (raise.valuation && Number(raise.valuation)) {
-		text += ` at $${formatRaisedAmount(Number(raise.valuation))} valuation`
+		text += ` at ${formatRaisedAmount(Number(raise.valuation))} valuation`
 	}
 
 	return text
 }
 
 export const formatRaisedAmount = (n: number) => {
+	if (n === 0) return null
+
 	if (n >= 1e3) {
-		return `${(n / 1e3).toLocaleString(undefined, { maximumFractionDigits: 2 })}b`
+		return `$${(n / 1e3).toLocaleString(undefined, { maximumFractionDigits: 2 })}b`
 	}
-	return `${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
+	return `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
 }

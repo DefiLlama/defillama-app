@@ -93,38 +93,33 @@ export const toK = (num) => {
 		return null
 	}
 
-	num = Number(num).toFixed(0)
+	const stringifiedNum = Number(num).toFixed(0)
 
 	// 100 - 999_999
-	if ([4, 5, 6].includes(num.length)) {
-		return (+num / 1_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'k'
+	if ([4, 5, 6].includes(stringifiedNum.length)) {
+		return (+stringifiedNum / 1_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'k'
 	}
 
 	// 1_000_000 - 999_999_999
-	if ([7, 8, 9].includes(num.length)) {
-		return (+num / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'm'
+	if ([7, 8, 9].includes(stringifiedNum.length)) {
+		return (+stringifiedNum / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'm'
 	}
 
 	// 1_000_000_000 - 999_999_999_999
-	if ([10, 11, 12].includes(num.length)) {
-		return (+num / 1_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 'b'
+	if ([10, 11, 12].includes(stringifiedNum.length)) {
+		return (+stringifiedNum / 1_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 'b'
 	}
 
-	if (num.length > 12) {
-		return (+num / 1_000_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 't'
+	if (stringifiedNum.length > 12) {
+		return (+stringifiedNum / 1_000_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 't'
 	}
 
-	return +num.toLocaleString(undefined, { maximumFractionDigits: 0 })
+	return +num.toLocaleString(undefined, {
+		maximumFractionDigits: num > 0.1 ? 1 : num > 0.01 ? 2 : num > 0.0001 ? 3 : 5
+	})
 }
 
-// using a currency library here in case we want to add more in future
-var priceFormatter = new Intl.NumberFormat('en-US', {
-	style: 'currency',
-	currency: 'USD',
-	minimumFractionDigits: 2
-})
-
-export const formattedNum = (number, symbol = false, acceptNegatives = false) => {
+export const formattedNum = (number, symbol = false) => {
 	let currencySymbol
 	if (symbol === true) {
 		currencySymbol = '$'
@@ -158,64 +153,22 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
 
 	if (num > 1_000) {
 		return symbol
-			? currencyMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
-			: normalMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
+			? currencyMark + Number(num.toFixed(0)).toLocaleString()
+			: normalMark + Number(num.toFixed(0)).toLocaleString()
 	}
 
 	if (symbol) {
-		if (num < 0.1) {
-			return currencyMark + Number(parseFloat(num).toFixed(2))
-		} else {
-			let usdString = priceFormatter.format(num)
-			return currencyMark + usdString.slice(1, usdString.length)
-		}
+		return (
+			currencyMark +
+			Number(
+				num.toLocaleString(undefined, { maximumFractionDigits: num > 0.1 ? 1 : num > 0.01 ? 2 : num > 0.0001 ? 3 : 5 })
+			)
+		)
 	}
 
-	return Number(parseFloat(num).toFixed(2))
-}
-
-export const formattedPeggedPrice = (number, symbol = false, acceptNegatives = false) => {
-	let currencySymbol
-	if (symbol === true) {
-		currencySymbol = '$'
-	} else if (symbol === false) {
-		currencySymbol = ''
-	} else {
-		currencySymbol = symbol
-	}
-	if (isNaN(number) || number === '' || number === undefined) {
-		return symbol ? `${currencySymbol}0` : 0
-	}
-	let num = parseFloat(number)
-	const isNegative = num < 0
-	num = Math.abs(num)
-
-	const currencyMark = isNegative ? `${currencySymbol}-` : currencySymbol
-	const normalMark = isNegative ? '-' : ''
-
-	if (num > 10000000) {
-		return (symbol ? currencyMark : normalMark) + toK(num)
-	}
-
-	if (num === 0) {
-		return symbol ? `${currencySymbol}0` : 0
-	}
-
-	if (num < 0.0001 && num > 0) {
-		return symbol ? `< ${currencySymbol}0.0001` : '< 0.0001'
-	}
-
-	if (num > 1000) {
-		return symbol
-			? currencyMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
-			: normalMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
-	}
-
-	if (symbol) {
-		return currencyMark + parseFloat(num).toFixed(2) // this is all pegged is using, should merge with above
-	}
-
-	return Number(parseFloat(num).toFixed(2))
+	return Number(
+		num.toLocaleString(undefined, { maximumFractionDigits: num > 0.1 ? 1 : num > 0.01 ? 2 : num > 0.0001 ? 3 : 5 })
+	)
 }
 
 export const filterCollectionsByCurrency = (collections, displayUsd) =>

@@ -6,7 +6,7 @@ import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
 import { AutoRow } from '~/components/Row'
 import TokenLogo from '~/components/TokenLogo'
-import { formattedNum, formattedPeggedPrice, formattedPercent, peggedAssetIconUrl, slug } from '~/utils'
+import { formattedNum, formattedPercent, peggedAssetIconUrl, slug } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import type { IPeggedAssetsRow } from './types'
 
@@ -88,7 +88,7 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{rowValues.floatingPeg ? <QuestionHelper text="Has a variable, floating, or crawling peg." /> : null}
-					<span>{value ? formattedPeggedPrice(value, true) : '-'}</span>
+					<span>{value ? formattedNum(value, true) : '-'}</span>
 				</AutoRow>
 			)
 		},
@@ -249,7 +249,7 @@ const formatPriceSource = {
 function pegDeviationText(pegDeviationInfo) {
 	const { timestamp, price, priceSource } = pegDeviationInfo
 	const date = new Date(timestamp * 1000).toISOString().slice(0, 10)
-	return `On ${date}, ${formatPriceSource[priceSource]} reported a price of $${formattedPeggedPrice(price)}.`
+	return `On ${date}, ${formatPriceSource[priceSource]} reported a price of $${formattedNum(price)}.`
 }
 
 const Name = styled.span`

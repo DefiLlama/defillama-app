@@ -36,8 +36,7 @@ import {
 	download,
 	getBlockExplorer,
 	toK,
-	peggedAssetIconUrl,
-	formattedPeggedPrice
+	peggedAssetIconUrl
 } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedAssetByChainTable } from '~/components/Table'
@@ -178,7 +177,13 @@ export default function PeggedContainer(props) {
 			backgroundColor={transparentize(0.6, props.backgroundColor)}
 			style={{ gap: '48px' }}
 		>
-			<SEO stablePage={true} cardName={name} token={name} logo={props.logo} tvl={formattedNum(props.mcap, true)?.toString()} />
+			<SEO
+				stablePage={true}
+				cardName={name}
+				token={name}
+				logo={props.logo}
+				tvl={formattedNum(props.mcap, true)?.toString()}
+			/>
 
 			<PeggedSearch
 				step={{
@@ -321,7 +326,7 @@ export const PeggedAssetInfo = ({
 
 							<StatInARow>
 								<span>Price</span>
-								<span>{price === null ? '-' : formattedPeggedPrice(price, true)}</span>
+								<span>{price === null ? '-' : formattedNum(price, true)}</span>
 							</StatInARow>
 
 							{totalCirculating && (

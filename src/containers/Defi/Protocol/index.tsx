@@ -485,11 +485,12 @@ function ProtocolContainer({
 					.
 				</Announcement>
 			)}
-            {name === 'Multichain' && (
-              <Announcement warning={true} notCancellable={true}>
-               Please avoid using Multichain. The Multichain team doesn't control the keys and your money will get stuck/lost.
-               </Announcement>
-            )}
+			{name === 'Multichain' && (
+				<Announcement warning={true} notCancellable={true}>
+					Please avoid using Multichain. The Multichain team doesn't control the keys and your money will get
+					stuck/lost.
+				</Announcement>
+			)}
 			<StatsSection>
 				{otherProtocols?.length > 1 && (
 					<OtherProtocols>
@@ -633,7 +634,7 @@ function ProtocolContainer({
 									protocolName={protocolData.name}
 									dataType="Token Price"
 									rowHeader={`${symbol || 'Token'} Price`}
-									rowValue={'$' + tokenCGData.price.current.toLocaleString('en-US', { maximumFractionDigits: 5 })}
+									rowValue={formatPrice(tokenCGData.price.current)}
 									helperText={null}
 									subRows={
 										<>
@@ -642,9 +643,7 @@ function ProtocolContainer({
 													<th data-subvalue>{`All Time High (${new Date(
 														tokenCGData.price.athDate
 													).toLocaleDateString()})`}</th>
-													<td data-subvalue>
-														{'$' + tokenCGData.price.ath.toLocaleString('en-US', { maximumFractionDigits: 5 })}
-													</td>
+													<td data-subvalue>{formatPrice(tokenCGData.price.ath)}</td>
 												</tr>
 											) : null}
 
@@ -653,9 +652,7 @@ function ProtocolContainer({
 													<th data-subvalue>{`All Time Low (${new Date(
 														tokenCGData.price.atlDate
 													).toLocaleDateString()})`}</th>
-													<td data-subvalue>
-														{'$' + tokenCGData.price.atl.toLocaleString('en-US', { maximumFractionDigits: 5 })}
-													</td>
+													<td data-subvalue>{formatPrice(tokenCGData.price.atl)}</td>
 												</tr>
 											) : null}
 										</>
@@ -949,7 +946,7 @@ function ProtocolContainer({
 										dataType={'Raises'}
 										helperText={null}
 										rowHeader={'Total Raised'}
-										rowValue={`$${formatRaisedAmount(raises.reduce((sum, r) => sum + Number(r.amount), 0))}`}
+										rowValue={formatRaisedAmount(raises.reduce((sum, r) => sum + Number(r.amount), 0))}
 										subRows={
 											<>
 												{raises
@@ -1499,6 +1496,10 @@ export const StatsTable2 = styled(ProtocolStatsTable)`
 		color: ${({ theme }) => theme.text1};
 	}
 
+	td[data-parentValue] {
+		white-space: nowrap;
+	}
+
 	a {
 		text-decoration: underline;
 		text-decoration-color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
@@ -1535,7 +1536,7 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 					</Toggle>
 					{protocolName && dataType ? <Flag protocol={protocolName} dataType={dataType} /> : null}
 				</th>
-				<td>{rowValue}</td>
+				<td data-parentValue>{rowValue}</td>
 			</tr>
 
 			{open && <>{subRows}</>}
