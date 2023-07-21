@@ -81,14 +81,11 @@ export const getAllProtocolEmissions = async () => {
 					upcomingEvent = [...comingEvents]
 				}
 
-				const tSymbol =
-					protocol.name === 'LooksRare' ? 'LOOKS' : protocol.tokenPrice?.coins?.[protocol.token]?.symbol ?? null
-
 				return {
 					...protocol,
 					upcomingEvent,
-					tPrice: protocol.tokenPrice?.coins?.[protocol.token]?.price ?? null,
-					tSymbol
+					tPrice: protocol.tokenPrice,
+					tSymbol: protocol.symbol
 				}
 			})
 			.sort((a, b) => {
