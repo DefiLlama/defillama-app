@@ -496,7 +496,11 @@ function ProtocolContainer({
 				{otherProtocols?.length > 1 && (
 					<OtherProtocols>
 						{otherProtocols.map((p) => (
-							<Link href={`/protocol/${standardizeProtocolName(p)}`} key={p} passHref>
+							<Link
+								href={`/protocol/${standardizeProtocolName(p)}`}
+								key={'navigate to ' + `/protocol/${standardizeProtocolName(p)}`}
+								passHref
+							>
 								<ProtocolLink
 									active={router.asPath === `/protocol/${standardizeProtocolName(p)}` + queryParams}
 									color={backgroundColor}
@@ -554,7 +558,7 @@ function ProtocolContainer({
 									<caption>{isCEX ? 'Assets by chain' : 'Chain Breakdown'}</caption>
 									<tbody>
 										{tvls.map((chainTvl) => (
-											<tr key={chainTvl[0]}>
+											<tr key={JSON.stringify(chainTvl)}>
 												<th>{capitalizeFirstLetter(chainTvl[0])}</th>
 												<td>{formatPrice((chainTvl[1] || 0) as number)}</td>
 											</tr>
@@ -756,7 +760,7 @@ function ProtocolContainer({
 											{tvlByChain
 												.filter((c) => c[0].endsWith('-borrowed'))
 												.map((c) => (
-													<tr key={c[0]}>
+													<tr key={JSON.stringify(c)}>
 														<th data-subvalue>{c[0].split('-')[0]}</th>
 														<td data-subvalue>{formatPrice(c[1])}</td>
 													</tr>
@@ -1133,12 +1137,10 @@ function ProtocolContainer({
 									<span>Forked from:</span>
 									<>
 										{forkedFrom.map((p, index) => (
-											<>
-												<Link href={`/protocol/${slug(p)}`} key={p}>
-													{forkedFrom[index + 1] ? p + ', ' : p}
-												</Link>
+											<React.Fragment key={'forked from' + p}>
+												<Link href={`/protocol/${slug(p)}`}>{forkedFrom[index + 1] ? p + ', ' : p}</Link>
 												<ArrowUpRight size={14} />
-											</>
+											</React.Fragment>
 										))}
 									</>
 								</FlexRow>
@@ -1310,7 +1312,11 @@ function ProtocolContainer({
 
 								<LinksWrapper>
 									{similarProtocols.map((similarProtocol) => (
-										<Link href={`/protocol/${slug(similarProtocol.name)}`} passHref key={similarProtocol.name}>
+										<Link
+											href={`/protocol/${slug(similarProtocol.name)}`}
+											passHref
+											key={'Competitors ' + JSON.stringify(similarProtocol)}
+										>
 											<a target="_blank" style={{ textDecoration: 'underline' }}>{`${
 												similarProtocol.name
 											} (${formatPrice(similarProtocol.tvl)})`}</a>
@@ -1481,7 +1487,7 @@ export const StatsTable2 = styled(ProtocolStatsTable)`
 		color: ${({ theme }) => theme.text1};
 	}
 
-	td[data-parentValue] {
+	td[data-parentvalue] {
 		white-space: nowrap;
 	}
 
@@ -1521,7 +1527,7 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 					</Toggle>
 					{protocolName && dataType ? <Flag protocol={protocolName} dataType={dataType} /> : null}
 				</th>
-				<td data-parentValue>{rowValue}</td>
+				<td data-parentvalue>{rowValue}</td>
 			</tr>
 
 			{open && <>{subRows}</>}
