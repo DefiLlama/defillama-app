@@ -374,6 +374,7 @@ export const getProtocolData = async (protocol: string) => {
 				},
 				marketCap: { current: tokenCGData?.['market_data']?.['market_cap']?.['usd'] ?? null },
 				totalSupply: tokenCGData?.['market_data']?.['total_supply'] ?? null,
+				fdv: { current: tokenCGData?.['market_data']?.['fully_diluted_valuation']?.['usd'] ?? null },
 				volume24h: {
 					total: tokenCGData?.['market_data']?.['total_volume']?.['usd'] ?? null,
 					cex:

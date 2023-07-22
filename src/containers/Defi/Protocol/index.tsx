@@ -239,6 +239,7 @@ interface IProtocolContainerProps {
 			atlDate: number | null
 		}
 		marketCap: { current: number | null }
+		fdv: { current: number | null }
 		totalSupply: number | null
 		volume24h: { total: number | null; cex: number | null; dex: number | null }
 	}
@@ -660,30 +661,14 @@ function ProtocolContainer({
 								/>
 							) : null}
 
-							{tokenCGData?.price?.current && tokenCGData?.totalSupply ? (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									dataType="FDV"
-									rowHeader="Fully Diluted Valuation"
-									rowValue={formatPrice(tokenCGData.price.current * tokenCGData.totalSupply)}
-									helperText={null}
-									subRows={
-										<>
-											<tr>
-												<th data-subvalue>{`All Time High (${new Date(
-													tokenCGData.price.athDate
-												).toLocaleDateString()})`}</th>
-												<td data-subvalue>{formatPrice(tokenCGData.price.ath * tokenCGData.totalSupply)}</td>
-											</tr>
-											<tr>
-												<th data-subvalue>{`All Time Low (${new Date(
-													tokenCGData.price.atlDate
-												).toLocaleDateString()})`}</th>
-												<td data-subvalue>{formatPrice(tokenCGData.price.atl * tokenCGData.totalSupply)}</td>
-											</tr>
-										</>
-									}
-								/>
+							{tokenCGData?.fdv?.current ? (
+								<tr>
+									<th>
+										<span>Fully Diluted Valuation</span>
+										<Flag protocol={protocolData.name} dataType={'FDV'} />
+									</th>
+									<td>{formatPrice(tokenCGData.fdv.current)}</td>
+								</tr>
 							) : null}
 
 							{tokenCGData?.volume24h?.total ? (
