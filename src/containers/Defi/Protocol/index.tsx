@@ -65,6 +65,7 @@ import { Flag } from './Flag'
 import { StablecoinInfo } from './Stablecoin'
 import { AccordionStat } from '~/layout/Stats/Large'
 import { ForksData } from './Forks'
+import { sluggify } from '~/utils/cache-client'
 
 const scams = [
 	'Drachma Exchange',
@@ -167,7 +168,7 @@ const ProtocolStatsTable = styled.table`
 		}
 	}
 
-	td {
+	td:not(.investors) {
 		font-weight: 600;
 		font-size: 1rem;
 		text-align: right;
@@ -941,18 +942,33 @@ function ProtocolContainer({
 												{raises
 													.sort((a, b) => a.date - b.date)
 													.map((raise) => (
-														<tr key={raise.date + raise.amount}>
-															<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
-															<td data-subvalue>
-																{raise.source ? (
-																	<a target="_blank" rel="noopener noreferrer" href={raise.source}>
-																		{formatRaise(raise)}
-																	</a>
-																) : (
-																	formatRaise(raise)
-																)}
-															</td>
-														</tr>
+														<>
+															<tr key={raise.date + raise.amount}>
+																<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
+																<td data-subvalue>
+																	{raise.source ? (
+																		<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+																			{formatRaise(raise)}
+																		</a>
+																	) : (
+																		formatRaise(raise)
+																	)}
+																</td>
+															</tr>
+															<tr key={raise.source}>
+																<td colSpan={2} className="investors">
+																	Investors:{' '}
+																	{(raise as any).leadInvestors
+																		.concat((raise as any).otherInvestors)
+																		.map((i, index, arr) => (
+																			<>
+																				<a href={`/raises/${sluggify(i)}`}>{i}</a>
+																				{index < arr.length - 1 ? ', ' : ''}
+																			</>
+																		))}
+																</td>
+															</tr>
+														</>
 													))}
 											</>
 										}
