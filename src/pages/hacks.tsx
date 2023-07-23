@@ -9,16 +9,16 @@ import { fetchWithErrorLogging } from '~/utils/async'
 const fetch = fetchWithErrorLogging
 
 export const getStaticProps = withPerformanceLogging('hacks', async () => {
-	const data = (await fetch('https://defi-hacks-api.herokuapp.com/').then((r) => r.json())).map((h) => ({
-		chains: h.chain,
+	const data = (await fetch('https://api.llama.fi/hacks?b=2').then((r) => r.json())).map((h) => ({
+		chains: h.chain ?? [],
 		classification: h.classification,
-		date: h.date / 1e3,
-		target: h.target_type,
-		amount: h.funds_lost / 1e6,
+		date: h.date,
+		target: h.targetType,
+		amount: h.amount / 1e6,
 		name: h.name,
 		technique: h.technique,
-		bridge: h.bridge_multichain_application,
-		link: h.link
+		bridge: h.bridgeHack,
+		link: h.source
 	}))
 
 	const monthlyHacks = {}
