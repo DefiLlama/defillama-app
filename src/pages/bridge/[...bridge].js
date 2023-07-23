@@ -24,13 +24,7 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const res = await getBridges()
-
-	const paths = res.bridges.map(({ displayName }) => ({
-		params: { bridge: [standardizeProtocolName(displayName)] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Bridge(props) {
