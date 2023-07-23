@@ -957,7 +957,7 @@ function ProtocolContainer({
 															</tr>
 															<tr key={raise.source}>
 																<td colSpan={2} className="investors">
-																	Investors:{' '}
+																	<b>Investors</b>:{' '}
 																	{(raise as any).leadInvestors
 																		.concat((raise as any).otherInvestors)
 																		.map((i, index, arr) => (
