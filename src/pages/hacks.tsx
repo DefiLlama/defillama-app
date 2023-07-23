@@ -9,7 +9,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 const fetch = fetchWithErrorLogging
 
 export const getStaticProps = withPerformanceLogging('hacks', async () => {
-	const data = (await fetch('https://api.llama.fi/hacks?b=2').then((r) => r.json())).map((h) => ({
+	const data = (await fetch('https://api.llama.fi/hacks').then((r) => r.json())).map((h) => ({
 		chains: h.chain ?? [],
 		classification: h.classification,
 		date: h.date,
