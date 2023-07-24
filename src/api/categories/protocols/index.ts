@@ -118,7 +118,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 	try {
 		const list = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json())
 		if (!list.includes(protocolName))
-			return { chartData: { documented: [], realtime: {} }, categories: { documented: [], realtime: [] } }
+			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
 
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
@@ -249,7 +249,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 	} catch (e) {
 		console.log(e)
 
-		return { chartData: { documented: [], realtime: {} }, categories: { documented: [], realtime: [] } }
+		return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
 	}
 }
 
