@@ -200,7 +200,7 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
 								bridgedTo,
 								minted,
 								dominance,
-								mcaptvl,
+								mcaptvl: mcaptvl !== null ? +mcaptvl.toFixed(2) : null,
 								name: parentName,
 								subRows: [...subChains, childData]
 							}

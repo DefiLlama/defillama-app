@@ -120,24 +120,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('mcaptvl', {
 				header: 'Mcap/TVL',
 				cell: (info) => {
-					if (['Lido'].includes(info.row.original.name)) {
-						console.log({
-							parseFloat: parseFloat(info.getValue()),
-							abs: Math.abs(parseFloat(info.getValue())),
-							final: Number(
-								Math.abs(parseFloat(info.getValue())).toLocaleString(undefined, {
-									maximumFractionDigits:
-										Math.abs(parseFloat(info.getValue())) > 0.1
-											? 1
-											: Math.abs(parseFloat(info.getValue())) > 0.01
-											? 2
-											: Math.abs(parseFloat(info.getValue())) > 0.0001
-											? 3
-											: 5
-								})
-							)
-						})
-					}
 					return <>{info.getValue() ? formattedNum(info.getValue()) : null}</>
 				},
 				sortingFn: 'alphanumericFalsyLast' as any,

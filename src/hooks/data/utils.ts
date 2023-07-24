@@ -54,10 +54,10 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 
 	if (tvl) {
 		if (mcap) {
-			mcaptvl = mcap / tvl
+			mcaptvl = +(mcap / tvl).toFixed(2)
 		}
 		if (parent.mcap) {
-			mcaptvl = parent.mcap / tvl
+			mcaptvl = +(parent.mcap / tvl).toFixed(2)
 		}
 	}
 

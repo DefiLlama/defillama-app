@@ -87,7 +87,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 							stablesMcap += childData.stablesMcap
 							protocols += childData.protocols
 							const subChains = finalData[parentName].subRows || []
-							let mcaptvl = mcap && tvl && mcap / tvl
+							let mcaptvl = mcap && tvl ? +(mcap / tvl).toFixed(2) : null
 
 							finalData[parentName] = {
 								...finalData[parentName],

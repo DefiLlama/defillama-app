@@ -91,7 +91,7 @@ export const formatProtocolsData = ({
 			protocol.change_1d = getPercentChange(protocol.tvl, protocol.tvlPrevDay)
 			protocol.change_7d = getPercentChange(protocol.tvl, protocol.tvlPrevWeek)
 			protocol.change_1m = getPercentChange(protocol.tvl, protocol.tvlPrevMonth)
-			protocol.mcaptvl = p.mcap && protocol.tvl ? p.mcap / protocol.tvl : null
+			protocol.mcaptvl = p.mcap && protocol.tvl ? +(p.mcap / protocol.tvl).toFixed(2) : null
 
 			Object.entries(p.chainTvls).forEach(([sectionName, sectionTvl]) => {
 				if (chain) {

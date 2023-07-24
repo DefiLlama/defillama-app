@@ -89,7 +89,7 @@ export function formatDataWithExtraTvls({
 		let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
 		let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-		const mcaptvl = mcap && finalTvl ? mcap / finalTvl : null
+		const mcaptvl = mcap && finalTvl ? +(mcap / finalTvl).toFixed(2) : null
 
 		return {
 			...props,
@@ -257,7 +257,7 @@ export const formatProtocolsList = ({
 				let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
 				let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-				const mcaptvl = mcap && finalTvl ? mcap / finalTvl : null
+				const mcaptvl = mcap && finalTvl ? +(mcap / finalTvl).toFixed(2) : null
 
 				const currentVolume = volumeData?.find((data) =>
 					props?.parentProtocol || !data?.id ? data.name === name : false
