@@ -120,7 +120,10 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('mcaptvl', {
 				header: 'Mcap/TVL',
 				cell: (info) => {
-					return <>{info.getValue() ? formattedNum(info.getValue()) : null}</>
+					if (['Lido'].includes(info.row.original.name)) {
+						console.log(info.row.original)
+					}
+					return <>{info.getValue() ?? null}</>
 				},
 				sortingFn: 'alphanumericFalsyLast' as any,
 				size: 100,
@@ -398,7 +401,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
-			return <>{info.getValue() && formattedNum(info.getValue())}</>
+			return <>{info.getValue() ?? null}</>
 		},
 		size: 100,
 		meta: {
@@ -497,7 +500,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
-			return <>{info.getValue() && formattedNum(info.getValue())}</>
+			return <>{info.getValue() ?? null}</>
 		},
 		size: 120,
 		meta: {

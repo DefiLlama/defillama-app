@@ -766,7 +766,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
-			return <>{info.getValue() && formattedNum(info.getValue())}</>
+			return <>{info.getValue() ?? null}</>
 		},
 		size: 120,
 		meta: {
