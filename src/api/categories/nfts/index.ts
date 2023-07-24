@@ -371,7 +371,7 @@ export const getNFTCollection = async (slug: string) => {
 	try {
 		let [data, sales, stats, floorHistory, orderbook] = await Promise.all([
 			fetch(`${NFT_COLLECTION_API}/${slug}`).then((r) => r.json()),
-			fetch(`${NFT_COLLECTION_SALES_API}/${slug}`)
+			fetch(`${NFT_COLLECTION_SALES_API}?collectionId=${slug}`)
 				.then((r) => r.json())
 				.then((data) => (data && Array.isArray(data) ? data.map((i) => [i[0] * 1000, i[1]]) : [])),
 			fetch(`${NFT_COLLECTION_STATS_API}/${slug}`).then((r) => r.json()),
