@@ -1,6 +1,8 @@
 import dynamic from 'next/dynamic'
+import { useState } from 'react'
 import styled from 'styled-components'
 import { useGetProtocolEmissions } from '~/api/categories/protocols/client'
+import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { ChartsWrapper, LazyChart, Section } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter, formatUnlocksEvent, formattedNum } from '~/utils'
@@ -14,22 +16,29 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 }) as React.FC<IPieChartProps>
 
 export interface IEmission {
-	categories: { documented: Array<string> }
-	chartData: { documented: Array<{ [label: string]: number }> }
+	categories: { documented: Array<string>; realtime: Array<string> }
+	chartData: { documented: Array<{ [label: string]: number }>; realtime: Array<{ [label: string]: number }> }
 	sources: Array<string>
 	notes: Array<string>
 	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
-	hallmarks: Array<[number, string]>
+	hallmarks: { documented: Array<[number, string]>; realtime: Array<[number, string]> }
 	tokenPrice: { price?: number | null; symbol?: string | null }
-	tokenAllocation: { documented: { current: { [category: string]: number }; final: { [category: string]: number } } }
+	tokenAllocation: {
+		documented: { current: { [category: string]: number }; final: { [category: string]: number } }
+		realtime: { current: { [category: string]: number }; final: { [category: string]: number } }
+	}
 	futures: { openInterest: number; fundingRate: number }
 	pieChartData: {
 		documented: Array<{
 			name: string
 			value: number
 		}>
+		realtime: Array<{
+			name: string
+			value: number
+		}>
 	}
-	stackColors: { documented: { [stack: string]: string } }
+	stackColors: { documented: { [stack: string]: string }; realtime: { [stack: string]: string } }
 }
 
 const MAX_LENGTH_EVENTS_LIST = 5
@@ -43,6 +52,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 	)
 }
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
+	const [dataType, setDataType] = useState<'documented' | 'realtime'>('documented')
 	const cutEventsList = !isEmissionsPage && data.events?.length > MAX_LENGTH_EVENTS_LIST
 	const styles = isEmissionsPage ? {} : { background: 'none', padding: 0, border: 'none' }
 
@@ -50,43 +60,54 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	return (
 		<>
+			{data.chartData.realtime.length > 0 && (
+				<Filters style={{ marginLeft: 'auto' }}>
+					<Denomination as="button" active={dataType === 'documented'} onClick={() => setDataType('documented')}>
+						Documented
+					</Denomination>
+					<Denomination as="button" active={dataType === 'realtime'} onClick={() => setDataType('realtime')}>
+						Realtime
+					</Denomination>
+				</Filters>
+			)}
+
 			<ChartsWrapper style={styles}>
-				{data.pieChartData.documented && data.stackColors.documented && (
+				{data.pieChartData[dataType] && data.stackColors[dataType] && (
 					<LazyChart>
 						<PieChart
 							title="Allocation"
-							chartData={data.pieChartData.documented}
-							stackColors={data.stackColors.documented}
+							chartData={data.pieChartData[dataType]}
+							stackColors={data.stackColors[dataType]}
 							usdFormat={false}
 						/>
 					</LazyChart>
 				)}
-				{data.categories.documented && data.chartData.documented && data.stackColors.documented && (
+				{data.categories[dataType] && data.chartData[dataType] && data.stackColors[dataType] && (
 					<LazyChart>
 						<AreaChart
 							title="Vesting Schedule"
-							stacks={data.categories.documented}
-							chartData={data.chartData.documented}
+							stacks={data.categories[dataType]}
+							chartData={data.chartData[dataType]}
 							hideDefaultLegend
-							hallmarks={data.hallmarks}
-							stackColors={data.stackColors.documented}
+							hallmarks={data.hallmarks[dataType]}
+							stackColors={data.stackColors[dataType]}
 							isStackedChart
 						/>
 					</LazyChart>
 				)}
 			</ChartsWrapper>
 
-			{data.tokenAllocation?.documented?.current || data.tokenAllocation?.documented?.final ? (
+			{data.tokenAllocation?.[dataType]?.current || data.tokenAllocation?.[dataType]?.final ? (
 				<SmolSection>
 					<h4>Token Allocation</h4>
 
-					{data.tokenAllocation?.documented?.current && (
-						<p>{`Current: ${Object.entries(data.tokenAllocation.documented.current)
+					{data.tokenAllocation?.[dataType]?.current && (
+						<p>{`Current: ${Object.entries(data.tokenAllocation[dataType].current)
 							.map(([cat, perc]) => `${capitalizeFirstLetter(cat)} - ${perc}%`)
 							.join(', ')}`}</p>
 					)}
-					{data.tokenAllocation?.documented?.final && (
-						<p>{`Final: ${Object.entries(data.tokenAllocation.documented.final)
+					{data.tokenAllocation?.[dataType]?.final && (
+						<p>{`Final: ${Object.entries(data.tokenAllocation[dataType].final)
 							.map(([cat, perc]) => `${capitalizeFirstLetter(cat)} - ${perc}%`)
 							.join(', ')}`}</p>
 					)}

@@ -117,7 +117,8 @@ export const getAllProtocolEmissions = async () => {
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
 		const list = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json())
-		if (!list.includes(protocolName)) return { chartData: { documented: [] }, categories: { documented: [] } }
+		if (!list.includes(protocolName))
+			return { chartData: { documented: [], realtime: {} }, categories: { documented: [], realtime: [] } }
 
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
@@ -125,13 +126,11 @@ export const getProtocolEmissons = async (protocolName: string) => {
 
 		const { metadata, name, futures } = res
 
-		const documentedData = res.documentedData ?? {
-			data: res.data ?? [],
-			tokenAllocation: res.tokenAllocation ?? {}
-		}
+		const documentedData = res.documentedData ?? {}
+		const realTimeData = res.realTimeData ?? {}
 
-		const protocolEmissions = { documented: {} }
-		const emissionCategories = { documented: [] }
+		const protocolEmissions = { documented: {}, realtime: {} }
+		const emissionCategories = { documented: [], realtime: [] }
 
 		const prices = await fetchWithErrorLogging(`https://coins.llama.fi/prices/current/${metadata.token}?searchWidth=4h`)
 			.then((res) => res.json())
@@ -166,8 +165,38 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			})
 		})
 
+		realTimeData.data.forEach((emission) => {
+			const label = emission.label
+				.split(' ')
+				.map((l) => capitalizeFirstLetter(l))
+				.join(' ')
+
+			if (emissionCategories['realtime'].includes(label)) {
+				return
+			}
+
+			emissionCategories['realtime'].push(label)
+
+			emission.data.forEach((value) => {
+				if (!protocolEmissions['realtime'][value.timestamp]) {
+					protocolEmissions['realtime'][value.timestamp] = {}
+				}
+
+				protocolEmissions['realtime'][value.timestamp] = {
+					...protocolEmissions['realtime'][value.timestamp],
+					[label]: value.unlocked
+				}
+			})
+		})
+
 		const chartData = {
 			documented: Object.entries(protocolEmissions['documented']).map(
+				([date, values]: [string, { [key: string]: number }]) => ({
+					date,
+					...values
+				})
+			),
+			realtime: Object.entries(protocolEmissions['realtime']).map(
 				([date, values]: [string, { [key: string]: number }]) => ({
 					date,
 					...values
@@ -178,13 +207,19 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const pieChartData = {
 			documented: Object.entries(chartData.documented[chartData.documented.length - 1] || {})
 				.filter(([key]) => key !== 'date')
+				.map(([name, value]) => ({ name, value })),
+			realtime: Object.entries(chartData.realtime[chartData.realtime.length - 1] || {})
+				.filter(([key]) => key !== 'date')
 				.map(([name, value]) => ({ name, value }))
 		}
 
-		const stackColors = { documented: {} }
+		const stackColors = { documented: {}, realtime: {} }
 
 		pieChartData['documented'].forEach(({ name }, index) => {
 			stackColors['documented'][name] = getColorFromNumber(index, 6)
+		})
+		pieChartData['realtime'].forEach(({ name }, index) => {
+			stackColors['realtime'][name] = getColorFromNumber(index, 6)
 		})
 
 		if (protocolName == 'looksrare') {
@@ -198,17 +233,23 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: metadata?.events ?? [],
-			tokenAllocation: { documented: documentedData.tokenAllocation ?? {} },
+			tokenAllocation: {
+				documented: documentedData.tokenAllocation ?? {},
+				realtime: realTimeData.tokenAllocation ?? {}
+			},
 			futures: futures ?? {},
 			categories: emissionCategories,
-			hallmarks: documentedData.data?.length > 0 ? [[Date.now() / 1000, 'Today']] : [],
+			hallmarks: {
+				documented: documentedData.data?.length > 0 ? [[Date.now() / 1000, 'Today']] : [],
+				realtime: realTimeData.data?.length > 0 ? [[Date.now() / 1000, 'Today']] : []
+			},
 			name: name || null,
 			tokenPrice
 		}
 	} catch (e) {
 		console.log(e)
 
-		return { chartData: { documented: [] }, categories: { documented: [] } }
+		return { chartData: { documented: [], realtime: {} }, categories: { documented: [], realtime: [] } }
 	}
 }
 
