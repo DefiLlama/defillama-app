@@ -120,6 +120,9 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('mcaptvl', {
 				header: 'Mcap/TVL',
 				cell: (info) => {
+					if (['Lido', 'AAVE', 'MakerDAO'].includes(info.row.original.name)) {
+						console.log(info.row.original, formattedNum(info.getValue()))
+					}
 					return <>{info.getValue() ? formattedNum(info.getValue()) : null}</>
 				},
 				sortingFn: 'alphanumericFalsyLast' as any,
