@@ -141,7 +141,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 
 		const tokenPrice = prices?.coins?.[metadata.token] ?? {}
 
-		documentedData.data.forEach((emission) => {
+		documentedData.data?.forEach((emission) => {
 			const label = emission.label
 				.split(' ')
 				.map((l) => capitalizeFirstLetter(l))
@@ -165,7 +165,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			})
 		})
 
-		realTimeData.data.forEach((emission) => {
+		realTimeData.data?.forEach((emission) => {
 			const label = emission.label
 				.split(' ')
 				.map((l) => capitalizeFirstLetter(l))
