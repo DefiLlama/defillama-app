@@ -32,11 +32,7 @@ export const getStaticProps = withPerformanceLogging('yields/loop', async () => 
 	return {
 		props: {
 			...data,
-			pools: calculateLoopAPY(
-				data.pools.filter((p) => p.category !== 'CDP'),
-				10,
-				null
-			),
+			pools: calculateLoopAPY(data.pools, 10, null),
 			tokens
 		},
 		revalidate: maxAgeForNext([23])
