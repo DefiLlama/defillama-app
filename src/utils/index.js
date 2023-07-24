@@ -129,7 +129,7 @@ export const formattedNum = (number, symbol = false) => {
 		currencySymbol = symbol
 	}
 
-	if (isNaN(number) || number === '' || number === undefined) {
+	if (number === '' || number === undefined || number === null || Number.isNaN(+number)) {
 		return symbol ? `${currencySymbol}0` : 0
 	}
 	let num = parseFloat(number)
