@@ -118,7 +118,7 @@ export async function getBridgeOverviewPageData(chain) {
 
 	const chainVolumeData: IChainData[] = await getChainVolumeData(chain, chainCoingeckoIds)
 
-	const currentTimestamp = Math.floor(new Date().getTime() / 1000)
+	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
 	const prevDayTimestamp = currentTimestamp
 	let bridgeStatsCurrentDay = {}
@@ -233,7 +233,7 @@ export async function getBridgeChainsPageData() {
 		})
 		.map((chain) => chain.name)
 
-	const currentTimestamp = Math.floor(new Date().getTime() / 1000)
+	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
 	const prevDayTimestamp = currentTimestamp - 86400 - 3600
 	let prevDayDataByChain = []
@@ -293,7 +293,7 @@ export async function getBridgePageData(bridge: string) {
 		})
 	)
 
-	const currentTimestamp = Math.floor(new Date().getTime() / 1000)
+	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
 	const prevDayTimestamp = currentTimestamp - 86400 - 3600
 	let prevDayDataByChain = []
@@ -384,7 +384,7 @@ export async function getBridgePageDatanew(bridge: string) {
 
 	volumeDataByChain['All Chains'] = Object.values(volumeOnAllChains)
 
-	const currentTimestamp = Math.floor(new Date().getTime() / 1000)
+	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
 	const prevDayTimestamp = currentTimestamp - 86400 - 3600
 
