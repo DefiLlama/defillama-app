@@ -132,7 +132,7 @@ export const formattedNum = (number, symbol = false) => {
 	if (number === '' || number === undefined || number === null || Number.isNaN(+number)) {
 		return symbol ? `${currencySymbol}0` : 0
 	}
-	let num = parseFloat(number)
+	let num = Number(number)
 	const isNegative = num < 0
 	num = Math.abs(num)
 
@@ -140,7 +140,7 @@ export const formattedNum = (number, symbol = false) => {
 	const normalMark = isNegative ? '-' : ''
 
 	if (num > 1_000_000) {
-		return (symbol ? currencyMark : normalMark) + toK(num)
+		return `${symbol ? currencyMark : normalMark}${toK(num)}`
 	}
 
 	if (num === 0) {
@@ -153,21 +153,18 @@ export const formattedNum = (number, symbol = false) => {
 
 	if (num > 1_000) {
 		return symbol
-			? currencyMark + Number(num.toFixed(0)).toLocaleString()
-			: normalMark + Number(num.toFixed(0)).toLocaleString()
+			? `${currencyMark}${Number(num.toFixed(0)).toLocaleString()}`
+			: `${normalMark}${Number(num.toFixed(0)).toLocaleString()}`
 	}
 
 	if (symbol) {
-		return (
-			currencyMark +
-			Number(
-				num.toLocaleString(undefined, { maximumFractionDigits: num > 0.1 ? 1 : num > 0.01 ? 2 : num > 0.0001 ? 3 : 5 })
-			)
-		)
+		return `${currencyMark}${Number(
+			num.toLocaleString(undefined, { maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5 })
+		)}`
 	}
 
 	return Number(
-		num.toLocaleString(undefined, { maximumFractionDigits: num > 0.1 ? 1 : num > 0.01 ? 2 : num > 0.0001 ? 3 : 5 })
+		num.toLocaleString(undefined, { maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5 })
 	)
 }
 
