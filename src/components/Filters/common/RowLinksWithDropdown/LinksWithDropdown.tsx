@@ -124,7 +124,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 					name={isLinkInDropdown ? activeLink : alternativeOthersText ?? 'Others'}
 					variant="primary"
 					isActive={isLinkInDropdown}
-					options={dropdownLinks}
+					options={links}
 				/>
 			)}
 		</>
