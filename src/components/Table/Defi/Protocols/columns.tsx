@@ -1,6 +1,5 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight, AlertTriangle } from 'react-feather'
-import styled from 'styled-components'
 import Bookmark from '~/components/Bookmark'
 import { AutoColumn } from '~/components/Column'
 import IconsRow from '~/components/IconsRow'
@@ -410,11 +409,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 export const listedAtColumn = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
-	cell: ({ getValue }) => (
-		<ListedAt>
-			<Tooltip2 content={`at ${toNiceDayAndHour(getValue())}`}>{toNiceDaysAgo(getValue())}</Tooltip2>
-		</ListedAt>
-	),
+	cell: ({ getValue }) => toNiceDaysAgo(getValue()),
 	size: 140,
 	meta: {
 		align: 'end' as const
@@ -695,12 +690,3 @@ export const protocolsByTokenColumns: ColumnDef<{ name: string; amountUsd: numbe
 		}
 	}
 ]
-
-const ListedAt = styled.div`
-	width: 120px;
-
-	.tooltip-trigger {
-		margin-left: auto;
-		text-align: end;
-	}
-`
