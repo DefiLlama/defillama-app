@@ -114,7 +114,7 @@ export const toK = (num) => {
 		return (+stringifiedNum / 1_000_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 't'
 	}
 
-	return +num.toLocaleString(undefined, {
+	return num.toLocaleString(undefined, {
 		maximumFractionDigits: num > 0.1 ? 1 : num > 0.01 ? 2 : num > 0.0001 ? 3 : 5
 	})
 }
