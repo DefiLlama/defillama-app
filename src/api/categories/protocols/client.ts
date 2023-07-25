@@ -46,7 +46,7 @@ export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
 			: () => null
 	)
 
-	const loading = protocolName && !data && !error
+	const loading = !data && data !== null && !error
 
 	return { data, error, loading }
 }
@@ -66,7 +66,7 @@ export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
 			: () => null
 	)
 
-	const loading = protocolName && !data && data !== null && !error
+	const loading = !data && data !== null && !error
 
 	return { data, error, loading }
 }

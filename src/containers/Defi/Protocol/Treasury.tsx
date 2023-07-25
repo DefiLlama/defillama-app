@@ -54,10 +54,6 @@ export const TreasuryChart = ({ protocolName }) => {
 		top10Tokens.push({ name: 'Others', value: tokens.slice(11).reduce((acc, curr) => (acc += curr.value), 0) })
 	}
 
-	if (!loading && (!data || top10Tokens.length === 0)) {
-		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
-	}
-
 	const historicalTreasury = formatProtocolsTvlChartData({
 		historicalChainTvls: data?.chainTvls ?? {},
 		extraTvlEnabled: {}
@@ -75,20 +71,24 @@ export const TreasuryChart = ({ protocolName }) => {
 				<span>Include own tokens</span>
 			</Checkbox>
 
-			<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0 }}>
-				<LazyChart style={{ minHeight: '320px' }}>
-					<PieChart chartData={top10Tokens} />
-				</LazyChart>
-				<LazyChart style={{ minHeight: '320px' }}>
-					<AreaChart chartData={historicalTreasury} title="Historical Treasury" valueSymbol="$" />
-				</LazyChart>
-				<LazyChart style={{ minHeight: '320px' }}>
-					<AreaChart chartData={tokenBreakdown} title="Tokens Breakdown" stacks={tokensUnique} />
-				</LazyChart>
-				<LazyChart style={{ minHeight: '320px' }}>
-					<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />
-				</LazyChart>
-			</ChartsWrapper>
+			{!loading && (!data || top10Tokens.length === 0) ? (
+				<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0, minHeight: '360px' }}></ChartsWrapper>
+			) : (
+				<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0 }}>
+					<LazyChart style={{ minHeight: '320px' }}>
+						<PieChart chartData={top10Tokens} />
+					</LazyChart>
+					<LazyChart style={{ minHeight: '320px' }}>
+						<AreaChart chartData={historicalTreasury} title="Historical Treasury" valueSymbol="$" />
+					</LazyChart>
+					<LazyChart style={{ minHeight: '320px' }}>
+						<AreaChart chartData={tokenBreakdown} title="Tokens Breakdown" stacks={tokensUnique} />
+					</LazyChart>
+					<LazyChart style={{ minHeight: '320px' }}>
+						<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />
+					</LazyChart>
+				</ChartsWrapper>
+			)}
 		</>
 	)
 }
