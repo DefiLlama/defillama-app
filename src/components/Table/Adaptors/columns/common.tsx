@@ -158,7 +158,7 @@ export const TotalAllTimeColumn = (
 		accessorKey: accessor,
 		enableSorting: true,
 		cell: (info) => {
-			if (Number.isNaN(formattedNum(info.getValue())) || formattedNum(info.getValue()) === 0) return <></>
+			if (Number.isNaN(formattedNum(info.getValue())) || formattedNum(info.getValue()) === '0') return <></>
 			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
 			const methodology = Object.entries(rawMethodology).find(([name]) => accessor.includes(name))?.[1]
 			return (
