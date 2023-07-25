@@ -314,6 +314,38 @@ function ProtocolContainer({
 		stablecoins
 	} = protocolData
 
+	if (name === 'Pika Protocol') {
+		console.log('log 1', tokenCGData.price.current)
+		console.log('log 2', tokenCGData.price.current.toLocaleString())
+		console.log(
+			'log 3',
+			`${Number(
+				tokenCGData.price.current.toLocaleString(undefined, {
+					maximumFractionDigits:
+						tokenCGData.price.current > 0.1
+							? 2
+							: tokenCGData.price.current > 0.01
+							? 3
+							: tokenCGData.price.current > 0.0001
+							? 4
+							: 5
+				})
+			)}`
+		)
+		console.log(
+			'log 4',
+			`${tokenCGData.price.current.toLocaleString(undefined, {
+				maximumFractionDigits:
+					tokenCGData.price.current > 0.1
+						? 2
+						: tokenCGData.price.current > 0.01
+						? 3
+						: tokenCGData.price.current > 0.0001
+						? 4
+						: 5
+			})}`
+		)
+	}
 	const router = useRouter()
 
 	const { usdInflows: usdInflowsParam, denomination } = router.query

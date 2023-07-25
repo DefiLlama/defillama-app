@@ -130,7 +130,7 @@ export const formattedNum = (number, symbol = false) => {
 	}
 
 	if (number === '' || number === undefined || number === null || Number.isNaN(+number)) {
-		return symbol ? `${currencySymbol}0` : 0
+		return symbol ? `${currencySymbol}0` : `0`
 	}
 	let num = Number(number)
 	const isNegative = num < 0
@@ -144,7 +144,7 @@ export const formattedNum = (number, symbol = false) => {
 	}
 
 	if (num === 0) {
-		return symbol ? `${currencySymbol}0` : 0
+		return symbol ? `${currencySymbol}0` : `0`
 	}
 
 	if (num < 0.0001 && num > 0) {
@@ -158,14 +158,14 @@ export const formattedNum = (number, symbol = false) => {
 	}
 
 	if (symbol) {
-		return `${currencyMark}${Number(
-			num.toLocaleString(undefined, { maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5 })
-		)}`
+		return `${currencyMark}${num.toLocaleString(undefined, {
+			maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5
+		})}`
 	}
 
-	return Number(
-		num.toLocaleString(undefined, { maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5 })
-	)
+	return `${num.toLocaleString(undefined, {
+		maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5
+	})}`
 }
 
 export const filterCollectionsByCurrency = (collections, displayUsd) =>
