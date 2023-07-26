@@ -5,11 +5,12 @@ import { formattedNum, toYearMonth } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { HACKS_API } from '~/constants'
 
 const fetch = fetchWithErrorLogging
 
 export const getStaticProps = withPerformanceLogging('hacks', async () => {
-	const data = (await fetch('https://api.llama.fi/hacks').then((r) => r.json())).map((h) => ({
+	const data = (await fetch(HACKS_API).then((r) => r.json())).map((h) => ({
 		chains: h.chain ?? [],
 		classification: h.classification,
 		date: h.date,

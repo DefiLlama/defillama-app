@@ -198,6 +198,13 @@ const ProtocolStatsTable = styled.table`
 	}
 `
 
+const HackDataWrapper = styled.div`
+	a {
+		margin-top: 6px;
+		width: fit-content;
+	}
+`
+
 interface IProtocolContainerProps {
 	articles: IArticle[]
 	title: string
@@ -249,6 +256,19 @@ interface IProtocolContainerProps {
 	chartDenominations?: Array<{ symbol: string; geckoId: string | null }>
 	protocolHasForks?: boolean
 	twitterData?: { tweets: Array<{ date: string; id: string; message: string }> }
+	hacksData?: {
+		date: number
+		name: string
+		classification: string
+		technique: string
+		amount: number
+		chain: Array<string>
+		bridgeHack: boolean
+		targetType: string
+		source: string
+		returnedFunds: number | null
+		defillamaId: string
+	}
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -287,7 +307,8 @@ function ProtocolContainer({
 	nextEventDescription,
 	methodologyUrls,
 	chartDenominations = [],
-	protocolHasForks = false
+	protocolHasForks = false,
+	hacksData
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -311,9 +332,10 @@ function ProtocolContainer({
 		raises,
 		metrics,
 		isHourlyChart,
-		stablecoins
+		stablecoins,
+		id
 	} = protocolData
-
+	console.log({ hacksData, id })
 	const router = useRouter()
 
 	const { usdInflows: usdInflowsParam, denomination } = router.query
@@ -1140,11 +1162,24 @@ function ProtocolContainer({
 
 							{category && (
 								<FlexRow>
-									<span>Category:</span>
-									<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category.toLowerCase()}`}>
-										{category}
+									<span>Category</span>
+									<span>:</span>
+
+									<Link
+										href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category.toLowerCase()}`}
+										passHref
+									>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+											style={{ height: '33.5px' }}
+										>
+											<span>{category}</span> <ArrowUpRight size={14} />
+										</Button>
 									</Link>
-									<ArrowUpRight size={14} />
 								</FlexRow>
 							)}
 
@@ -1321,6 +1356,59 @@ function ProtocolContainer({
 								</LinksWrapper>
 							</Section>
 						)}
+
+						{hacksData ? (
+							<Section>
+								<h3>Hacks</h3>
+
+								<HackDataWrapper>
+									<FlexRow>
+										<span>Date</span>
+										<span>:</span>
+										<span>{new Date(hacksData.date * 1000).toLocaleDateString()}</span>
+									</FlexRow>
+									<FlexRow>
+										<span>Amount</span>
+										<span>:</span>
+										<span>{formattedNum(hacksData.amount, true)}</span>
+									</FlexRow>
+									<FlexRow>
+										<span>Classification</span>
+										<span>:</span>
+										<span>{hacksData.classification}</span>
+									</FlexRow>
+									<FlexRow>
+										<span>Technique</span>
+										<span>:</span>
+										<span>{hacksData.technique}</span>
+									</FlexRow>
+									<FlexRow>
+										<span>Chain</span>
+										<span>:</span>
+										<span>{hacksData.chain.join(', ')}</span>
+									</FlexRow>
+									<FlexRow>
+										<span>Returned Funds</span>
+										<span>:</span>
+										<span>{formattedNum(hacksData.returnedFunds, true)}</span>
+									</FlexRow>
+
+									{blockExplorerLink && (
+										<Link href={hacksData.source} passHref>
+											<Button
+												as="a"
+												target="_blank"
+												rel="noopener noreferrer"
+												useTextColor={true}
+												color={backgroundColor}
+											>
+												<span>Source</span> <ArrowUpRight size={14} />
+											</Button>
+										</Link>
+									)}
+								</HackDataWrapper>
+							</Section>
+						) : null}
 
 						{similarProtocols && similarProtocols.length > 0 ? (
 							<Section>

@@ -60,7 +60,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	return (
 		<>
-			{data.chartData.realtime.length > 0 && (
+			{data.chartData?.realtime?.length > 0 && (
 				<Filters style={{ marginLeft: 'auto' }}>
 					<Denomination as="button" active={dataType === 'documented'} onClick={() => setDataType('documented')}>
 						Documented
@@ -72,7 +72,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			)}
 
 			<ChartsWrapper style={styles}>
-				{data.pieChartData[dataType] && data.stackColors[dataType] && (
+				{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
 					<LazyChart>
 						<PieChart
 							title="Allocation"
@@ -82,7 +82,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						/>
 					</LazyChart>
 				)}
-				{data.categories[dataType] && data.chartData[dataType] && data.stackColors[dataType] && (
+				{data.categories?.[dataType] && data.chartData?.[dataType] && data.stackColors?.[dataType] && (
 					<LazyChart>
 						<AreaChart
 							title="Vesting Schedule"
@@ -114,7 +114,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</SmolSection>
 			) : null}
 
-			{data.futures.openInterest || data.futures.fundingRate ? (
+			{data.futures?.openInterest || data.futures?.fundingRate ? (
 				<SmolSection>
 					<h4>Futures</h4>
 					{data.futures.openInterest ? <p>{`Open Interest: $${formattedNum(data.futures.openInterest)}`}</p> : null}

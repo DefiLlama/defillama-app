@@ -19,18 +19,20 @@ import {
 	YIELD_CONFIG_API,
 	YIELD_POOLS_API,
 	YIELD_PROJECT_MEDIAN_API,
-	PROTOCOL_GOVERNANCE_TALLY_API
+	PROTOCOL_GOVERNANCE_TALLY_API,
+	HACKS_API
 } from '~/constants'
 import { fetchOverCacheJson } from '~/utils/perf'
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 export const getProtocolData = async (protocol: string) => {
-	const [protocolRes, articles, expenses, treasuries, yields, yieldsConfig, liquidityInfo, forks]: [
+	const [protocolRes, articles, expenses, treasuries, yields, yieldsConfig, liquidityInfo, forks, hacks]: [
 		IProtocolResponse,
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+		any,
 		any,
 		any,
 		any,
@@ -43,7 +45,8 @@ export const getProtocolData = async (protocol: string) => {
 		fetchOverCacheJson(YIELD_POOLS_API),
 		fetchOverCacheJson(YIELD_CONFIG_API),
 		fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json'),
-		getForkPageData()
+		getForkPageData(),
+		fetchOverCacheJson(HACKS_API)
 	])
 
 	if (!protocolRes) {
@@ -408,7 +411,8 @@ export const getProtocolData = async (protocol: string) => {
 				dexs: volumeData?.[0]?.methodologyURL ?? null
 			},
 			chartDenominations,
-			protocolHasForks: (forks?.props?.tokens ?? []).includes(protocolData.name)
+			protocolHasForks: (forks?.props?.tokens ?? []).includes(protocolData.name),
+			hacksData: (protocolData.id ? hacks?.find((hack) => hack.defillamaId === protocolData.id) : null) ?? null
 		},
 		revalidate: maxAgeForNext([22])
 	}
