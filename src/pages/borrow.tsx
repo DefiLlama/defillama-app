@@ -335,25 +335,23 @@ const safeProjects = [
 	'Compound V3'
 ]
 
-const PoolsList = ({
-	pools
-}: {
-	pools: Array<{
-		projectName: string
-		totalAvailableUsd: number
-		chain: string
-		pool: string | null
-		poolMeta: string | null
-		tvlUsd: number
-		borrow: any
-		apyBaseBorrow?: number | null
-		apyBase?: number | null
-		apy?: number | null
-		apyReward?: number | null
-		apyRewardBorrow?: number | null
-		ltv?: number | null
-	}>
-}) => {
+interface IPool {
+	projectName: string
+	totalAvailableUsd: number
+	chain: string
+	pool: string | null
+	poolMeta: string | null
+	tvlUsd: number
+	borrow: any
+	apyBaseBorrow?: number | null
+	apyBase?: number | null
+	apy?: number | null
+	apyReward?: number | null
+	apyRewardBorrow?: number | null
+	ltv?: number | null
+}
+
+const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 	const [tab, setTab] = React.useState('safe')
 
 	const filteredPools = pools
@@ -367,6 +365,16 @@ const PoolsList = ({
 	const router = useRouter()
 	const { borrow, collateral, incentives } = router.query
 
+	const filteredPools2 = {}
+
+	filteredPools.forEach((pool) => {
+		if (!filteredPools2[pool.projectName + pool.chain]) {
+			filteredPools2[pool.projectName + pool.chain] = pool
+		}
+	})
+
+	const finalPools: Array<IPool> = collateral ? filteredPools : Object.values(filteredPools2)
+
 	return (
 		<PoolsWrapper>
 			<TabList>
@@ -378,12 +386,12 @@ const PoolsList = ({
 				</Tab>
 			</TabList>
 
-			{filteredPools.length === 0 ? (
+			{finalPools.length === 0 ? (
 				<p data-emptytext>Couldn't find any pools</p>
 			) : (
 				<tbody>
 					<ProjectsWrapper>
-						{filteredPools.map((pool) => (
+						{finalPools.map((pool) => (
 							<Project key={JSON.stringify(pool)}>
 								<th>
 									<span data-pname>
