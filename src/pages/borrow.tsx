@@ -15,6 +15,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { ComboboxSelectPopover, SelectItem } from '~/components/Filters'
 import { Tab, TabList } from '~/components'
 import { chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
+import { useDebounce } from '~/hooks'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	const {
@@ -79,30 +80,66 @@ export default function YieldBorrow(data) {
 			: router.query['collateral'][0]
 		: null
 
-	const filteredPools = findOptimizerPools({
-		pools: data.pools,
-		tokenToLend: collateralToken,
-		tokenToBorrow: borrowToken,
-		cdpRoutes: data.cdpPools
-	})
+	const filteredPools = React.useMemo(
+		() =>
+			findOptimizerPools({
+				pools: data.pools,
+				tokenToLend: collateralToken,
+				tokenToBorrow: borrowToken,
+				cdpRoutes: data.cdpPools
+			}),
+		[data, collateralToken, borrowToken]
+	)
+
+	const [borrowAmount, setBorrowAmount] = React.useState('')
+	const [collateralAmount, setCollateralAmount] = React.useState('')
+
+	const finalBorrowAmount = useDebounce(borrowAmount, 500)
+	const finalCollateralAmount = useDebounce(collateralAmount, 500)
 
 	return (
 		<Layout title={`Borrow Aggregator - DefiLlama`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
 			<Wrapper>
 				<FormWrapper>
-					<label>
-						<span data-label>Borrow</span>
-						<TokensSelect searchData={data.searchData} query={'borrow'} placeholder="Select token to borrow" />
-					</label>
+					<FormField>
+						<h1>Borrow</h1>
 
-					<label>
-						<span data-label>Collateral</span>
-						<TokensSelect searchData={data.searchData} query={'collateral'} placeholder="Select token for collateral" />
+						<InputWrapper>
+							<InputAmount
+								type="number"
+								placeholder="0.0"
+								value={borrowAmount}
+								onChange={(e) => {
+									if (!Number.isNaN(Number(e.target.value))) {
+										setBorrowAmount(e.target.value)
+									}
+								}}
+							/>
+							<TokensSelect searchData={data.searchData} query={'borrow'} placeholder="Borrow" />
+						</InputWrapper>
+					</FormField>
+
+					<FormField>
+						<h1>Collateral</h1>
+
+						<InputWrapper>
+							<InputAmount
+								type="number"
+								placeholder="0.0"
+								value={collateralAmount}
+								onChange={(e) => {
+									if (!Number.isNaN(Number(e.target.value))) {
+										setCollateralAmount(e.target.value)
+									}
+								}}
+							/>
+							<TokensSelect searchData={data.searchData} query={'collateral'} placeholder="Collateral" />
+						</InputWrapper>
 						{borrowToken && !collateralToken ? (
 							<small>Select your collateral token to see real borrow cost!</small>
 						) : null}
-					</label>
+					</FormField>
 
 					{borrowToken || collateralToken ? (
 						<label data-checkbox>
@@ -121,7 +158,9 @@ export default function YieldBorrow(data) {
 						</label>
 					) : null}
 				</FormWrapper>
-				{(borrowToken || collateralToken) && <PoolsList pools={filteredPools} />}
+				{(borrowToken || collateralToken) && (
+					<PoolsList pools={filteredPools} borrowAmount={finalBorrowAmount} collateralAmount={finalCollateralAmount} />
+				)}
 			</Wrapper>
 		</Layout>
 	)
@@ -185,7 +224,18 @@ const FormWrapper = styled(Content)`
 		margin-top: 2px;
 	}
 
-	height: 252px;
+	height: 18rem;
+`
+
+const FormField = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+
+	h1 {
+		font-size: 1rem;
+		font-weight: 400;
+	}
 `
 
 const PoolsWrapper = styled(Content)`
@@ -197,25 +247,38 @@ const PoolsWrapper = styled(Content)`
 	}
 `
 
+const InputWrapper = styled.span`
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#17181c' : '#eff0f3')};
+	color: ${({ theme }) => theme.text1};
+	padding: 8px;
+	border-radius: 12px;
+
+	:focus-within {
+		outline: ${({ theme }) => '1px solid ' + theme.text1};
+	}
+`
+
 const Menu = styled(AriaSelect)`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 8px;
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#17181c' : '#eff0f3')};
+	gap: 4px;
+	background: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 1)' : 'rgba(246, 246, 246, 1)')};
 	color: ${({ theme }) => theme.text1};
 	padding: 12px;
 	border-radius: 12px;
 	border: none;
 	margin: 0;
-	width: 100%;
+	width: 180px;
 	font-weight: 500;
 	font-size: 1rem;
+	overflow: hidden;
 
-	& > *:first-child {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+	& > *:last-child {
+		flex-shrink: 0;
 	}
 
 	:focus-visible,
@@ -228,7 +291,42 @@ const Menu = styled(AriaSelect)`
 	}
 
 	& > *[data-name] {
+		max-width: 90px;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 		margin-right: auto;
+	}
+`
+
+const InputAmount = styled.input`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#17181c' : '#eff0f3')};
+	color: ${({ theme }) => theme.text1};
+	padding: 12px;
+	border-radius: 12px;
+	border: none;
+	margin: 0;
+	width: 100%;
+	font-weight: 500;
+	font-size: 1.25rem;
+
+	&::-webkit-outer-spin-button,
+	&::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+
+	&[type='number'] {
+		-moz-appearance: textfield;
+	}
+
+	:focus-visible,
+	&[data-focus-visible] {
+		outline: none;
 	}
 `
 
@@ -290,7 +388,7 @@ const TokensSelect = ({
 			<Menu state={select} data-isempty={tokenInSearchData ? false : true}>
 				{tokenInSearchData ? (
 					<>
-						<TokenLogo logo={tokenInSearchData.image2} fallbackLogo={tokenInSearchData.image} />
+						<TokenLogo logo={tokenInSearchData.image2} fallbackLogo={tokenInSearchData.image} size={16} />
 						<span data-name>
 							{tokenInSearchData.symbol === 'USD_STABLES' ? tokenInSearchData.name : tokenInSearchData.symbol}
 						</span>
@@ -298,6 +396,7 @@ const TokensSelect = ({
 				) : (
 					placeholder
 				)}
+
 				<SelectArrow />
 			</Menu>
 
@@ -351,9 +450,17 @@ interface IPool {
 	ltv?: number | null
 }
 
-const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
+const PoolsList = ({
+	pools,
+	borrowAmount,
+	collateralAmount
+}: {
+	pools: Array<IPool>
+	borrowAmount: string
+	collateralAmount: string
+}) => {
 	const [tab, setTab] = React.useState('safe')
-
+	console.log({ borrowAmount })
 	const filteredPools = pools
 		.filter(
 			(pool) =>
