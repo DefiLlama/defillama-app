@@ -373,7 +373,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 		}
 	})
 
-	const finalPools: Array<IPool> = collateral ? filteredPools : Object.values(filteredPools2)
+	const finalPools: Array<IPool> = Object.values(filteredPools2)
 
 	return (
 		<PoolsWrapper>
@@ -403,17 +403,18 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 								<td>
 									<span data-metric>
 										<span>
-											{(borrow && collateral
-												? incentives === 'true'
-													? pool.apy + pool.borrow.apyBorrow * pool.ltv
-													: pool.apyBase + pool.borrow.apyBaseBorrow * pool.ltv
-												: borrow
-												? incentives === 'true'
-													? pool.borrow.apyBorrow
-													: pool.borrow.apyBaseBorrow
-												: incentives === 'true'
-												? pool.apy
-												: pool.apyBase
+											{(
+												(borrow && collateral
+													? incentives === 'true'
+														? pool.apy + pool.borrow.apyBorrow * pool.ltv
+														: pool.apyBase + pool.borrow.apyBaseBorrow * pool.ltv
+													: borrow
+													? incentives === 'true'
+														? pool.borrow.apyBorrow
+														: pool.borrow.apyBaseBorrow
+													: incentives === 'true'
+													? pool.apy
+													: pool.apyBase) ?? 0
 											).toLocaleString(undefined, { maximumFractionDigits: 2 })}
 											%
 										</span>
@@ -421,7 +422,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 									</span>
 								</td>
 
-								<td>
+								{/* <td>
 									<span data-metric>
 										<span>
 											{pool.borrow.apyBaseBorrow && pool.ltv
@@ -440,10 +441,10 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 										<span>{formattedNum(pool.borrow.totalAvailableUsd, true)}</span>
 										<span>Available</span>
 									</span>
-								</td>
+								</td> */}
 
 								<td>
-									<span data-pname>
+									<span data-pname data-cname>
 										<TokenLogo logo={chainIconUrl(pool.chain)} size={20} />
 										<span>{pool.chain}</span>
 									</span>
@@ -487,6 +488,9 @@ const Project = styled.tr`
 		display: flex;
 		align-items: center;
 		gap: 4px;
+	}
+	& > * > *[data-cname] {
+		justify-content: flex-end;
 	}
 
 	& > * > *[data-metric] {
