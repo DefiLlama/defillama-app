@@ -153,6 +153,8 @@ export function useDefaults({
 								? 'Users'
 								: curr.seriesName.includes('New Users')
 								? 'Users'
+								: curr.seriesName.includes('Returning Users')
+								? 'Users'
 								: curr.seriesName.includes('Transactions')
 								? 'TXs'
 								: curr.seriesName === 'TVL' && valueSymbol !== '$'

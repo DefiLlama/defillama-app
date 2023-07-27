@@ -211,7 +211,7 @@ export default function AreaChart({
 					}
 				})
 				data?.usersData.forEach(([date, value, value2]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value2])
+					series[series.length - 1].data.push([getUtcDateObject(date), value2 ?? 0])
 				})
 			}
 
