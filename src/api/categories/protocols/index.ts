@@ -509,7 +509,7 @@ export async function getCategoriesPageData(category = null) {
 			chartData = data
 		}
 
-		const uniqueCategories = Object.keys(categories)
+		const uniqueCategories = Object.keys(categories).filter(c => c !== "CEX")
 		const colors = {}
 
 		Object.keys(categories).map((c, index) => {
