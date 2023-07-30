@@ -59,7 +59,7 @@ export default function ChainChartPage({
 	}
 
 	const { chartDatasets, isFetchingChartData } = useFetchChainChartData({
-		denomination,
+		denomination: typeof denomination === 'string' ? denomination : 'USD',
 		selectedChain,
 		chainGeckoId,
 		volumeData,
