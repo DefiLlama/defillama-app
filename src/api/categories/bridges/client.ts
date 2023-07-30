@@ -8,27 +8,30 @@ export const useFetchBridgeList = () => {
 	return { data, error, loading: !data && !error }
 }
 
+export async function getBridgeChartDataByChain({ chain }) {
+	const data = await getBridgeOverviewPageData(chain)
+		.catch(() => null)
+		.then((data) =>
+			data
+				? data?.chainVolumeData?.map((volume) => [
+						volume?.date ?? null,
+						volume?.Deposits ?? null,
+						volume.Withdrawals ?? null
+				  ])
+				: null
+		)
+		.catch((err) => {
+			console.log(err)
+			return null
+		})
+
+	return data
+}
+
 export const useGetBridgeChartDataByChain = (chain?: string) => {
 	const { data, error } = useSWR(
 		`bridgeChartDataByChain/${chain}`,
-		chain && chain !== 'All'
-			? () =>
-					getBridgeOverviewPageData(chain)
-						.catch(() => null)
-						.then((data) =>
-							data
-								? data?.chainVolumeData?.map((volume) => [
-										volume?.date ?? null,
-										volume?.Deposits ?? null,
-										volume.Withdrawals ?? null
-								  ])
-								: null
-						)
-						.catch((err) => {
-							console.log(err)
-							return null
-						})
-			: () => null
+		chain && chain !== 'All' ? () => getBridgeChartDataByChain({ chain }) : () => null
 	)
 
 	return { data: data ?? null, error, loading: !data && data !== null && !error }

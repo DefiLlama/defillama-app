@@ -16,6 +16,14 @@ import { ISettings } from '~/contexts/types'
 import ReactSelect from '../MultiSelect/ReactSelect'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { getChainPageData } from '~/api/categories/chains'
+import { formatChainTvlChart, formatChartDatasets } from '~/containers/ChainContainer/useFetchChainChartData'
+import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { getDexVolumeByChain } from '~/api/categories/dexs'
+import { getFeesAndRevenueChartDataByChain } from '~/api/categories/chains/client'
+import { getStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
+import { getBridgeChartDataByChain } from '~/api/categories/bridges/client'
+import { fetchProtocolTransactions, getProtocolUsers } from '~/api/categories/protocols/client'
 
 const fetch = fetchWithErrorLogging
 
@@ -62,116 +70,67 @@ const CustomOption = ({ innerProps, label, data }) => (
 	</div>
 )
 
-const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
+const getChainData = async ({ chain, extraTvlsEnabled }: { chain: string; extraTvlsEnabled: ISettings }) => {
 	const {
-		data: {
+		props: {
+			volumeData,
+			feesAndRevenueData,
+			stablecoinsData,
+			inflowsData,
+			userData,
+			raisesChart,
 			chart,
 			extraTvlCharts,
-			chainFeesData,
-			chainVolumeData,
-			bridgeData,
-			feesData,
-			volumeData,
-			txsData,
-			usersData,
 			chainsSet
 		}
-	} = await fetch('https://fe-cache.llama.fi/' + chain).then((r) => r.json())
+	} = await getChainPageData(chain)
 
-	const globalChart = (() => {
-		const globalChart =
-			chart &&
-			chart.map((data) => {
-				let sum = data[1]
-				Object.entries(extraTvlCharts).forEach(([prop, propCharts]: any[]) => {
-					const stakedData = propCharts.find((x) => x[0] === data[0])
+	const chainDenomination = chainCoingeckoIds[chain] ?? chainCoingeckoIdsForGasNotMcap[chain] ?? null
 
-					// find current date and only add values on that date in "data" above
-					if (stakedData) {
-						if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
-							sum -= stakedData[1]
-						}
+	const chainGeckoId = chainDenomination?.geckoId ?? null
 
-						if (prop === 'liquidstaking' && !extraTvlsEnabled['liquidstaking']) {
-							sum -= stakedData[1]
-						}
+	const denomination = 'USD'
 
-						if (prop === 'dcAndLsOverlap') {
-							if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
-								sum += stakedData[1]
-							}
-						}
+	const [volumeChart, feesAndRevenueChart, stablecoinsChartData, inflowsChartData, usersData, txsData] =
+		await Promise.all([
+			() => null,
+			volumeData?.totalVolume24h
+				? getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
+						(data) => data?.totalDataChart ?? null
+				  )
+				: null,
+			feesAndRevenueData?.totalFees24h ? getFeesAndRevenueChartDataByChain({ chain }) : null,
+			(stablecoinsData as any)?.totalMcapCurrent ? getStabelcoinsChartDataByChain({ chain }) : null,
+			inflowsData?.netInflows ? getBridgeChartDataByChain({ chain }) : null,
+			userData.activeUsers ? 'chain$' + getProtocolUsers('chain$' + chain) : null,
+			userData.transactions ? 'chain$' + fetchProtocolTransactions('chain$' + chain) : null
+		])
+	const globalChart = formatChainTvlChart({ chart, extraTvlsEnabled, extraTvlCharts })
 
-						if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
-							sum += stakedData[1]
-						}
-					}
-				})
-				return [data[0], sum]
-			})
-
-		return globalChart
-	})()
-
-	const chainProtocolsVolumes = (() => {
-		const allProtocolVolumes = []
-		chainVolumeData &&
-			chainVolumeData?.protocols?.forEach((prototcol) =>
-				allProtocolVolumes.push(prototcol, ...(prototcol?.subRows || []))
-			)
-
-		return allProtocolVolumes
-	})()
-
-	const chainProtocolsFees = (() => {
-		const allProtocolFees = []
-		chainFeesData &&
-			chainFeesData?.protocols?.forEach((prototcol) => allProtocolFees.push(prototcol, ...(prototcol?.subRows || [])))
-
-		return allProtocolFees
-	})()
-
-	const bridgeChartData = (() => {
-		return bridgeData
-			? bridgeData?.chainVolumeData?.map((volume) => [volume?.date, volume?.Deposits, volume.Withdrawals])
-			: null
-	})()
-
-	const volumeChart = (() =>
-		volumeData?.totalDataChart[0]?.[0][chain]
-			? volumeData?.totalDataChart?.[0].map((val) => [val.date, val[chain]])
-			: null)()
-
-	const feesChart = (() =>
-		feesData?.totalDataChart?.[0].length
-			? feesData?.totalDataChart?.[0]?.map((val) => [val.date, val.Fees, val.Revenue])
-			: null)()
-
-	return {
-		feesChart,
-		volumeChart,
-		bridgeChartData,
-		chainProtocolsFees,
-		chainProtocolsVolumes,
+	const chartDatasets = formatChartDatasets({
+		chainGeckoId,
+		denomination,
+		denominationPriceHistory: null,
+		feesAndRevenueChart,
 		globalChart,
-		chain,
+		inflowsChartData,
+		raisesChart,
+		stablecoinsChartData,
 		txsData,
 		usersData,
-		chains: chainsSet
-	}
+		volumeChart
+	})
+	const [charts] = chartDatasets
+	return { chain, chains: chainsSet, ...charts }
 }
 
-const useCompare = ({
-	chains = ['Ethereum', 'BSC'],
-	extraTvlsEnabled
-}: {
-	chains?: string[]
-	extraTvlsEnabled: ISettings
-}) => {
+const useCompare = ({ query, extraTvlsEnabled }: { query: any; extraTvlsEnabled: ISettings }) => {
+	const chains = query.chains ? [query.chains].flat() : []
+
 	const data = useQueries(
 		chains.map((chain) => ({
 			queryKey: ['compare', JSON.stringify(chain), JSON.stringify(extraTvlsEnabled)],
-			queryFn: () => getChainData(chain, extraTvlsEnabled)
+			queryFn: () => getChainData({ chain, extraTvlsEnabled })
 		}))
 	)
 
@@ -182,7 +141,7 @@ const useCompare = ({
 	)
 
 	return {
-		data: data.map((r) => r?.data),
+		data: data.map((r) => r?.data ?? {}),
 		chains: chainsData.data,
 		isLoading: data.some((r) => r.status === 'loading') || data.some((r) => r.isRefetching) || chainsData.isLoading
 	}
@@ -206,7 +165,7 @@ function ComparePage() {
 
 	const router = useRouter()
 
-	const data = useCompare({ extraTvlsEnabled, chains: router.query?.chains ? [router.query?.chains].flat() : [] })
+	const data = useCompare({ extraTvlsEnabled, query: router?.query ?? {} })
 
 	const onChainSelect = (chains: Array<Record<string, string>>) => {
 		const selectedChains = chains.map((val) => val.value)
@@ -229,7 +188,7 @@ function ComparePage() {
 	React.useEffect(() => {
 		if (!router?.query?.chains) updateRoute('chains', 'Ethereum', router)
 	}, [router])
-
+	console.log(data)
 	return (
 		<>
 			<ProtocolsChainsSearch
@@ -242,7 +201,7 @@ function ComparePage() {
 
 			<ControlsWrapper>
 				<ReactSelect
-					defaultValue={router?.query?.chains || data?.chains?.[0]}
+					defaultValue={router?.query?.chains ?? data?.chains?.[0]}
 					isMulti
 					value={selectedChains}
 					name="colors"
