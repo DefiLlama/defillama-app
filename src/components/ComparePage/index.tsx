@@ -93,17 +93,16 @@ const getChainData = async ({ chain, extraTvlsEnabled }: { chain: string; extraT
 
 	const [volumeChart, feesAndRevenueChart, stablecoinsChartData, inflowsChartData, usersData, txsData] =
 		await Promise.all([
-			() => null,
 			volumeData?.totalVolume24h
 				? getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
 						(data) => data?.totalDataChart ?? null
 				  )
-				: null,
-			feesAndRevenueData?.totalFees24h ? getFeesAndRevenueChartDataByChain({ chain }) : null,
-			(stablecoinsData as any)?.totalMcapCurrent ? getStabelcoinsChartDataByChain({ chain }) : null,
-			inflowsData?.netInflows ? getBridgeChartDataByChain({ chain }) : null,
-			userData.activeUsers ? 'chain$' + getProtocolUsers('chain$' + chain) : null,
-			userData.transactions ? 'chain$' + fetchProtocolTransactions('chain$' + chain) : null
+				: () => null,
+			feesAndRevenueData?.totalFees24h ? getFeesAndRevenueChartDataByChain({ chain }) : () => null,
+			(stablecoinsData as any)?.totalMcapCurrent ? getStabelcoinsChartDataByChain({ chain }) : () => null,
+			inflowsData?.netInflows ? getBridgeChartDataByChain({ chain }) : () => null,
+			userData.activeUsers ? getProtocolUsers('chain$' + chain) : () => null,
+			userData.transactions ? fetchProtocolTransactions('chain$' + chain) : () => null
 		])
 	const globalChart = formatChainTvlChart({ chart, extraTvlsEnabled, extraTvlCharts })
 
@@ -139,11 +138,11 @@ const useCompare = ({ query, extraTvlsEnabled }: { query: any; extraTvlsEnabled:
 			.then((r) => r.json())
 			.then((pData) => pData?.chains?.map((val) => ({ value: val, label: val })))
 	)
-
+	const isLoading = data.some((r) => r.status === 'loading') || data.some((r) => r.isRefetching) || chainsData.isLoading
 	return {
-		data: data.map((r) => r?.data ?? {}),
+		data: isLoading ? [] : data.map((r) => r?.data ?? {}),
 		chains: chainsData.data,
-		isLoading: data.some((r) => r.status === 'loading') || data.some((r) => r.isRefetching) || chainsData.isLoading
+		isLoading
 	}
 }
 
@@ -188,7 +187,7 @@ function ComparePage() {
 	React.useEffect(() => {
 		if (!router?.query?.chains) updateRoute('chains', 'Ethereum', router)
 	}, [router])
-	console.log(data)
+
 	return (
 		<>
 			<ProtocolsChainsSearch
