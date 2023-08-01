@@ -85,7 +85,8 @@ export const getProtocolData = async (protocol: string) => {
 		users,
 		feesProtocols,
 		revenueProtocols,
-		dexs,
+		volumeProtocols,
+		derivatesProtocols,
 		medianApy,
 		tokenCGData,
 		emissions
@@ -113,6 +114,12 @@ export const getProtocolData = async (protocol: string) => {
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
+			}),
+		fetch(`https://api.llama.fi/overview/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
 				return {}
 			}),
 		fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
@@ -158,7 +165,11 @@ export const getProtocolData = async (protocol: string) => {
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
-	const volumeData = dexs?.protocols?.filter(
+	const volumeData = volumeProtocols?.protocols?.filter(
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
+	)
+
+	const derivativesData = derivatesProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
@@ -170,6 +181,7 @@ export const getProtocolData = async (protocol: string) => {
 		'Fees',
 		'Revenue',
 		'Volume',
+		'Derivatives Volume',
 		'Unlocks',
 		'Active Users',
 		'New Users',
@@ -236,8 +248,10 @@ export const getProtocolData = async (protocol: string) => {
 	const fees30d = feesData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const revenue30d = revenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
+	const dailyDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const allTimeDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const metrics = protocolData.metrics || {}
 	const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
 	const projectYields = yields?.data?.filter(({ project }) => project === protocol)
@@ -313,6 +327,7 @@ export const getProtocolData = async (protocol: string) => {
 					...metrics,
 					fees: metrics.fees || dailyFees || allTimeFees ? true : false,
 					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
+					derivatives: metrics.derivatives || dailyDerivativesVolume || allTimeDerivativesVolume ? true : false,
 					medianApy: medianApy.data.length > 0,
 					inflows: inflowsExist,
 					unlocks: emissions.chartData?.documented?.length > 0 ? true : false,
@@ -341,6 +356,8 @@ export const getProtocolData = async (protocol: string) => {
 			revenue30d,
 			dailyVolume,
 			allTimeVolume,
+			dailyDerivativesVolume,
+			allTimeDerivativesVolume,
 			controversialProposals,
 			governanceApis: governanceApis.filter((x) => !!x),
 			treasury: treasury?.tokenBreakdowns ?? null,
@@ -408,7 +425,8 @@ export const getProtocolData = async (protocol: string) => {
 					? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 					: null,
 				fees: feesData?.[0]?.methodologyURL ?? null,
-				dexs: volumeData?.[0]?.methodologyURL ?? null
+				dexs: volumeData?.[0]?.methodologyURL ?? null,
+				derivatives: derivativesData?.[0]?.methodologyURL ?? null
 			},
 			chartDenominations,
 			protocolHasForks: (forks?.props?.tokens ?? []).includes(protocolData.name),

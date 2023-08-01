@@ -30,6 +30,7 @@ export function useFetchAndFormatChartData({
 	tokenPrice,
 	fdv,
 	volume,
+	derivativesVolume,
 	fees,
 	revenue,
 	unlocks,
@@ -134,6 +135,14 @@ export function useFetchAndFormatChartData({
 		type: 'chains',
 		enableBreakdownChart: false,
 		disabled: isRouterReady && volume === 'true' && metrics.dexs ? false : true
+	})
+
+	const { data: derivativesVolumeData, loading: fetchingDerivativesVolume } = useGetOverviewChartData({
+		name: protocol,
+		dataToFetch: 'derivatives',
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: isRouterReady && derivativesVolume === 'true' && metrics.derivatives ? false : true
 	})
 
 	const showNonUsdDenomination =
@@ -457,6 +466,21 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
+		if (derivativesVolumeData) {
+			chartsUnique.push('Derivatives Volume')
+
+			derivativesVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Derivatives Volume'] = showNonUsdDenomination
+					? +item.Derivatives / getPriceAtDate(date, denominationHistory.prices)
+					: item.Derivatives
+			})
+		}
+
 		if (feesAndRevenue) {
 			if (fees === 'true') {
 				chartsUnique.push('Fees')
@@ -712,6 +736,7 @@ export function useFetchAndFormatChartData({
 		mcap,
 		geckoId,
 		volumeData,
+		derivativesVolumeData,
 		tvl,
 		showNonUsdDenomination,
 		denominationHistory?.prices,
@@ -793,6 +818,10 @@ export function useFetchAndFormatChartData({
 		fetchingTypes.push('volume')
 	}
 
+	if (fetchingDerivativesVolume) {
+		fetchingTypes.push('derivatives volume')
+	}
+
 	if (fetchingEmissions) {
 		fetchingTypes.push('unlocks')
 	}
@@ -832,6 +861,7 @@ export function useFetchAndFormatChartData({
 		denominationLoading ||
 		fetchingFees ||
 		fetchingVolume ||
+		fetchingDerivativesVolume ||
 		fetchingActiveUsers ||
 		fetchingNewUsers ||
 		fetchingTransactions ||

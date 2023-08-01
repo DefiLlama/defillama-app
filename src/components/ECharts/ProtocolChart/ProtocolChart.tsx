@@ -43,6 +43,7 @@ const CHART_TYPES = [
 	'tokenLiquidity',
 	'fdv',
 	'volume',
+	'derivativesVolume',
 	'fees',
 	'revenue',
 	'unlocks',
@@ -91,6 +92,7 @@ export default function ProtocolChart({
 		tokenPrice,
 		fdv,
 		volume,
+		derivativesVolume,
 		fees,
 		revenue,
 		unlocks,
@@ -121,6 +123,7 @@ export default function ProtocolChart({
 			tokenPrice,
 			fdv,
 			volume,
+			derivativesVolume,
 			fees,
 			revenue,
 			unlocks,
@@ -177,6 +180,7 @@ export default function ProtocolChart({
 			metrics.bridge ||
 			metrics.fees ||
 			metrics.dexs ||
+			metrics.derivatives ||
 			metrics.unlocks ||
 			activeUsersId ||
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
@@ -360,6 +364,29 @@ export default function ProtocolChart({
 							/>
 							<span data-wrapper="true">
 								<span>Volume</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.derivatives && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="derivativesVolume"
+								checked={derivativesVolume === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, derivativesVolume: derivativesVolume === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Derivatives Volume</span>
 							</span>
 						</Toggle>
 					)}

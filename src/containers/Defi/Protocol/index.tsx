@@ -228,6 +228,8 @@ interface IProtocolContainerProps {
 	dailyRevenue: number | null
 	dailyVolume: number | null
 	allTimeVolume: number | null
+	dailyDerivativesVolume: number | null
+	allTimeDerivativesVolume: number | null
 	controversialProposals: Array<{ title: string; link?: string }> | null
 	governanceApis: Array<string> | null
 	expenses: any
@@ -297,6 +299,8 @@ function ProtocolContainer({
 	dailyRevenue,
 	dailyVolume,
 	allTimeVolume,
+	dailyDerivativesVolume,
+	allTimeDerivativesVolume,
 	controversialProposals,
 	governanceApis,
 	expenses,
@@ -332,8 +336,7 @@ function ProtocolContainer({
 		raises,
 		metrics,
 		isHourlyChart,
-		stablecoins,
-		id
+		stablecoins
 	} = protocolData
 
 	const router = useRouter()
@@ -838,6 +841,31 @@ function ProtocolContainer({
 								/>
 							) : null}
 
+							{dailyDerivativesVolume ? (
+								<RowWithSubRows
+									protocolName={protocolData.name}
+									dataType="Derivatives Volume"
+									rowHeader="Derivatives Volume (annualized)"
+									rowValue={formatPrice(dailyDerivativesVolume * 365)}
+									helperText={null}
+									subRows={
+										<>
+											<tr>
+												<th data-subvalue>{`Volume 24h`}</th>
+												<td data-subvalue>{formatPrice(dailyDerivativesVolume)}</td>
+											</tr>
+
+											{allTimeDerivativesVolume ? (
+												<tr>
+													<th data-subvalue>{`Cumulative Volume`}</th>
+													<td data-subvalue>{formatPrice(allTimeDerivativesVolume)}</td>
+												</tr>
+											) : null}
+										</>
+									}
+								/>
+							) : null}
+
 							{fees30d ? (
 								<RowWithSubRows
 									protocolName={protocolData.name}
@@ -1142,6 +1170,11 @@ function ProtocolContainer({
 							Volume
 						</Tab>
 					)}
+					{metrics.derivatives && (
+						<Tab id="derivatives-volume" color={backgroundColor}>
+							Derivatives Volume
+						</Tab>
+					)}
 					{governanceApis?.length > 0 && (
 						<Tab id="governance" color={backgroundColor}>
 							Governance
@@ -1353,6 +1386,21 @@ function ProtocolContainer({
 											</Button>
 										</Link>
 									)}
+
+									{methodologyUrls?.derivatives && (
+										<Link href={methodologyUrls.derivatives} passHref>
+											<Button
+												as="a"
+												target="_blank"
+												rel="noopener noreferrer"
+												useTextColor={true}
+												color={backgroundColor}
+											>
+												<span>Derivatives Volume code</span>
+												<ArrowUpRight size={14} />
+											</Button>
+										</Link>
+									)}
 								</LinksWrapper>
 							</Section>
 						)}
@@ -1541,6 +1589,12 @@ function ProtocolContainer({
 				{metrics.dexs && (
 					<TabPanel state={tab} tabId="volume">
 						<VolumeCharts data={protocolData} />
+					</TabPanel>
+				)}
+
+				{metrics.derivatives && (
+					<TabPanel state={tab} tabId="derivatives-volume">
+						<VolumeCharts data={protocolData} type="derivatives" />
 					</TabPanel>
 				)}
 

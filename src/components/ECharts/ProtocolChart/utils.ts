@@ -1,5 +1,6 @@
 export const BAR_CHARTS = [
 	'Volume',
+	'Derivatives Volume',
 	'Fees',
 	'Revenue',
 	'Active Users',

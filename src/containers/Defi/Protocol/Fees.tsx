@@ -37,13 +37,13 @@ export function FeesAndRevenueCharts({ data }: { data: IFusedProtocolData }) {
 	)
 }
 
-export function VolumeCharts({ data }: { data: IFusedProtocolData }) {
+export function VolumeCharts({ data, type = 'dexs' }: { data: IFusedProtocolData; type?: 'derivatives' | 'dexs' }) {
 	const hasVersions = (data.otherProtocols ?? []).length > 0
 
 	return (
 		<ChartsWrapper style={{ background: 'none', border: 'none' }}>
-			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'dexs'} />
-			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={'dexs'} /> : null}
+			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={type} />
+			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={type} /> : null}
 		</ChartsWrapper>
 	)
 }

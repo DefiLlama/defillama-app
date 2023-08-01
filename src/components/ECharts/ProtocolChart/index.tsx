@@ -82,8 +82,14 @@ export default function AreaBarChart({
 				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (stacks.includes('Volume') || stacks.includes('Fees') || stacks.includes('Revenue')) {
-			yAxisByIndex['Volume+Fees+Revenue'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (
+			stacks.includes('Volume') ||
+			stacks.includes('Derivatives Volume') ||
+			stacks.includes('Fees') ||
+			stacks.includes('Revenue')
+		) {
+			yAxisByIndex['Volume+Derivatives Volume+Fees+Revenue'] =
+				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
 		if (stacks.includes('Unlocks')) {
@@ -137,8 +143,8 @@ export default function AreaBarChart({
 				options['yAxisIndex'] = yAxisByIndex['TVL+Mcap+FDV+Borrowed+Staking']
 			} else if (['Bridge Deposits', 'Bridge Withdrawals'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Bridge Deposits+Bridge Withdrawals']
-			} else if (['Volume', 'Fees', 'Revenue'].includes(stack)) {
-				options['yAxisIndex'] = yAxisByIndex['Volume+Fees+Revenue']
+			} else if (['Volume', 'Derivatives Volume', 'Fees', 'Revenue'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['Volume+Derivatives Volume+Fees+Revenue']
 			} else if (['Active Users', 'New Users'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Active Users+New Users']
 			} else if (['Total Proposals', 'Successful Proposals'].includes(stack)) {
@@ -310,7 +316,7 @@ export default function AreaBarChart({
 				})
 			}
 
-			if (type === 'Volume+Fees+Revenue') {
+			if (type === 'Volume+Derivatives Volume+Fees+Revenue') {
 				yAxiss.push({
 					...options
 				})
