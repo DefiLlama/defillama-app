@@ -35,7 +35,9 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	}))
 
 	// add lsd apr
-	const lsd = _pools.filter((p) => p.category === 'Liquid Staking' && p.exposure === 'single' && p.project !== 'stafi')
+	const lsd = _pools.filter(
+		(p) => p.category === 'Liquid Staking' && p.exposure === 'single' && p.project !== 'stafi' && p.symbol !== 'ETH'
+	)
 	const lsdSymbols = [...new Set(lsd.map((p) => p.symbol))]
 	_pools = _pools.map((p) => {
 		let apyLsd = null
