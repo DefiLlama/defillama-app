@@ -52,15 +52,15 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					<AutoColumn as="span">
 						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
 
-						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
+						{/* <Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip2>
+						</Tooltip2> */}
 					</AutoColumn>
-					{value === 'SyncDEX Finance' && (
+					{/* {value === 'SyncDEX Finance' && (
 						<Tooltip2 content={'Many users have reported issues with this protocol'}>
 							<AlertTriangle />
 						</Tooltip2>
-					)}
+					)} */}
 				</Name>
 			)
 		},
