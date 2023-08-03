@@ -55,7 +55,7 @@ const Popover2 = styled(TooltipPopver)`
 export default function Tooltip({ content, as, href, shallow, onClick, children, ...props }: ITooltip) {
 	const tooltip = useTooltipState()
 
-	if (!content || content === '' || true) return <>{children}</>
+	if (!content || content === '') return <>{children}</>
 
 	const triggerProps = {
 		...(onClick && { onClick })
@@ -82,7 +82,7 @@ export default function Tooltip({ content, as, href, shallow, onClick, children,
 export function Tooltip2({ content, children, color, fontSize, anchorStyles, placement, ...props }: ITooltip) {
 	const tooltip = useTooltipState({ placement })
 
-	if (!content || content === '' || true) return <>{children}</>
+	if (!content || content === '') return <>{children}</>
 
 	return (
 		<>
