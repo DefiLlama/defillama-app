@@ -28,7 +28,20 @@ const Action = styled.button<IFolder>`
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()
-	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume, showInceptionApy } = query
+	const {
+		show7dBaseApy,
+		show7dIL,
+		show1dVolume,
+		show7dVolume,
+		showInceptionApy,
+		showNetBorrowApy,
+		showBorrowBaseApy,
+		showBorrowRewardApy,
+		showLTV,
+		showTotalSupplied,
+		showTotalBorrowed,
+		showAvailable
+	} = query
 
 	const isClient = useIsClient()
 
@@ -66,7 +79,14 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				volumeUsd7d: t.volumeUsd7d,
 				apyBaseInception: t.apyBaseInception,
 				apyIncludingLsdApy: t.apyIncludingLsdApy,
-				apyBaseIncludingLsdApy: t.apyBaseIncludingLsdApy
+				apyBaseIncludingLsdApy: t.apyBaseIncludingLsdApy,
+				apyBaseBorrow: t.apyBaseBorrow,
+				apyRewardBorrow: t.apyRewardBorrow,
+				apyBorrow: t.apyBorrow,
+				totalSupplyUsd: t.totalSupplyUsd,
+				totalBorrowUsd: t.totalBorrowUsd,
+				totalAvailableUsd: t.totalAvailableUsd,
+				ltv: t.ltv
 			}))
 		} else return []
 	}, [isClient, savedProtocolsInWatchlist, protocolsDict])
@@ -134,6 +154,76 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 					push({ pathname, query: { ...query, showInceptionApy: !enabled } }, undefined, { shallow: true })
 				}}
 				enabled={query.showInceptionApy === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
+
+			<OptionToggle
+				name="Show Borrow APY"
+				toggle={() => {
+					const enabled = showNetBorrowApy === 'true'
+					push({ pathname, query: { ...query, showNetBorrowApy: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.showNetBorrowApy === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
+
+			<OptionToggle
+				name="Show Borrow Base APY"
+				toggle={() => {
+					const enabled = showBorrowBaseApy === 'true'
+					push({ pathname, query: { ...query, showBorrowBaseApy: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.showBorrowBaseApy === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
+
+			<OptionToggle
+				name="Show Borrow Reward APY"
+				toggle={() => {
+					const enabled = showBorrowRewardApy === 'true'
+					push({ pathname, query: { ...query, showBorrowRewardApy: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.showBorrowRewardApy === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
+
+			<OptionToggle
+				name="Show Total Supplied"
+				toggle={() => {
+					const enabled = showTotalSupplied === 'true'
+					push({ pathname, query: { ...query, showTotalSupplied: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.showTotalSupplied === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
+
+			<OptionToggle
+				name="Show Total Borrowed"
+				toggle={() => {
+					const enabled = showTotalBorrowed === 'true'
+					push({ pathname, query: { ...query, showTotalBorrowed: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.showTotalBorrowed === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
+
+			<OptionToggle
+				name="Show Available"
+				toggle={() => {
+					const enabled = showAvailable === 'true'
+					push({ pathname, query: { ...query, showAvailable: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.showAvailable === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
+
+			<OptionToggle
+				name="Show LTV"
+				toggle={() => {
+					const enabled = showLTV === 'true'
+					push({ pathname, query: { ...query, showLTV: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.showLTV === 'true'}
 				style={{ marginLeft: 'auto' }}
 			/>
 

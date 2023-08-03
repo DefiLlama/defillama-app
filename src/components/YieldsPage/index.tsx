@@ -59,7 +59,14 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 					volumeUsd7d: curr.volumeUsd7d,
 					apyBaseInception: curr.apyBaseInception,
 					apyIncludingLsdApy: curr.apyIncludingLsdApy,
-					apyBaseIncludingLsdApy: curr.apyBaseIncludingLsdApy
+					apyBaseIncludingLsdApy: curr.apyBaseIncludingLsdApy,
+					apyBaseBorrow: curr.apyBaseBorrow,
+					apyRewardBorrow: curr.apyRewardBorrow,
+					apyBorrow: curr.apyBorrow,
+					totalSupplyUsd: curr.totalSupplyUsd,
+					totalBorrowUsd: curr.totalBorrowUsd,
+					totalAvailableUsd: curr.totalAvailableUsd,
+					ltv: curr.ltv
 				})
 			} else return acc
 		}, [])
@@ -129,6 +136,13 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				show7dVolume={true}
 				showInceptionApy={true}
 				includeLsdApy={true}
+				showNetBorrowApy={true}
+				showBorrowBaseApy={true}
+				showBorrowRewardApy={true}
+				showTotalSupplied={true}
+				showTotalBorrowed={true}
+				showAvailable={true}
+				showLTV={true}
 			/>
 
 			{poolsData.length > 0 ? (

@@ -41,7 +41,14 @@ export function YieldFilterDropdowns({
 	show1dVolume,
 	show7dVolume,
 	showInceptionApy,
-	includeLsdApy
+	includeLsdApy,
+	showBorrowBaseApy,
+	showBorrowRewardApy,
+	showNetBorrowApy,
+	showLTV,
+	showTotalSupplied,
+	showTotalBorrowed,
+	showAvailable
 }: IDropdownMenusProps) {
 	const router = useRouter()
 
@@ -125,13 +132,31 @@ export function YieldFilterDropdowns({
 
 			{availableRange && <AvailableRange variant="secondary" subMenu={isMobile} />}
 
-			{(show7dBaseApy || show7dIL || show1dVolume || show7dVolume || showInceptionApy) && (
+			{(show7dBaseApy ||
+				show7dIL ||
+				show1dVolume ||
+				show7dVolume ||
+				showInceptionApy ||
+				showBorrowBaseApy ||
+				showBorrowRewardApy ||
+				showNetBorrowApy ||
+				showTotalSupplied ||
+				showTotalBorrowed ||
+				showAvailable ||
+				showLTV) && (
 				<ColumnFilters
 					show7dBaseApy={show7dBaseApy}
 					show7dIL={show7dIL}
 					show1dVolume={show1dVolume}
 					show7dVolume={show7dVolume}
 					showInceptionApy={showInceptionApy}
+					showBorrowBaseApy={showBorrowBaseApy}
+					showBorrowRewardApy={showBorrowRewardApy}
+					showNetBorrowApy={showNetBorrowApy}
+					showTotalSupplied={showTotalSupplied}
+					showTotalBorrowed={showTotalBorrowed}
+					showAvailable={showAvailable}
+					showLTV={showLTV}
 					variant="secondary"
 					subMenu={isMobile}
 				/>
