@@ -73,6 +73,7 @@ export type ProtocolAdaptorSummary = {
 	revenue24h?: number
 	revenue7d?: number
 	revenue30d?: number
+	holdersRevenue30d?: number
 	mcap: number | null
 	pf: number | null
 	ps: number | null

@@ -187,6 +187,15 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 100
 			}),
+			columnHelper.accessor('holdersRevenue30d', {
+				header: 'Holders Revenue 30d',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
 			columnHelper.accessor('userFees_24h', {
 				header: 'User Fees 24h',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,

@@ -282,6 +282,7 @@ export const formatProtocolsList = ({
 					revenue_7d: currentFees?.revenue7d,
 					fees_30d: currentFees?.total30d,
 					revenue_30d: currentFees?.revenue30d,
+					holdersRevenue30d: currentFees?.holdersRevenue30d,
 					treasuryRevenue_24h: currentFees?.dailyProtocolRevenue,
 					supplySideRevenue_24h: currentFees?.dailySupplySideRevenue,
 					userFees_24h: currentFees?.dailyUserFees,
