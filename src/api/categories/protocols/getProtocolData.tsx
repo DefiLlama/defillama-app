@@ -268,6 +268,7 @@ export const getProtocolData = async (protocol: string) => {
 
 	const tokenLiquidity = yieldsConfig
 		? Object.entries(liquidityAggregated)
+				.filter((x) => (yieldsConfig.protocols[x[0]]?.name ? true : false))
 				.map((p) => Object.entries(p[1]).map((c) => [yieldsConfig.protocols[p[0]].name, c[0], c[1]]))
 				.flat()
 				.sort((a, b) => b[2] - a[2])
