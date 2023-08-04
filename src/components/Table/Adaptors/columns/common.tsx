@@ -124,7 +124,8 @@ export const Total24hColumn = (
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.getValue()
-			if (value === '' || Number.isNaN(formattedNum(value))) return <></>
+			if (value === '' || (value === null && alternativeAccessor === 'mcap') || Number.isNaN(formattedNum(value)))
+				return <></>
 			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
 			const methodologyKey = (() => {
 				if (accessor.includes('24h')) return type
