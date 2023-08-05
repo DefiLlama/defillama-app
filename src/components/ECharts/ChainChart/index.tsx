@@ -348,7 +348,7 @@ export default function AreaChart({
 					id: 'TVL',
 					axisLabel: {
 						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : colors.tvl)
+						color: () => (isCompare ? '#fff' : !isThemeDark ? 'rgba(0, 0, 0, 1)' : 'rgba(255, 255, 255, 1)')
 					}
 				},
 				{
