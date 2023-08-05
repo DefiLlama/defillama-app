@@ -54,7 +54,7 @@ interface IUseDefaultsProps {
 	hideLegend?: boolean
 	isStackedChart?: boolean
 	unlockTokenSymbol?: string
-	isDarkMode?: boolean
+	isThemeDark: boolean
 }
 
 export function useDefaults({
@@ -66,11 +66,8 @@ export function useDefaults({
 	hideLegend,
 	isStackedChart,
 	unlockTokenSymbol = '',
-	isDarkMode
+	isThemeDark
 }: IUseDefaultsProps) {
-	const theme = useDarkModeManager()
-	const isDark = isDarkMode ?? theme[0]
-
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
 	const defaults = useMemo(() => {
@@ -78,7 +75,7 @@ export function useDefaults({
 			type: 'image',
 			z: 0,
 			style: {
-				image: isDark ? logoLight.src : logoDark.src,
+				image: isThemeDark ? logoLight.src : logoDark.src,
 				height: 40,
 				opacity: 0.3
 			},
@@ -91,7 +88,7 @@ export function useDefaults({
 			textStyle: {
 				fontFamily: 'sans-serif',
 				fontWeight: 600,
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
 			left: 15
 		}
@@ -245,7 +242,7 @@ export function useDefaults({
 			},
 			axisLine: {
 				lineStyle: {
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 					opacity: 0.2
 				}
 			},
@@ -267,7 +264,7 @@ export function useDefaults({
 			},
 			axisLine: {
 				lineStyle: {
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 					opacity: 0.1
 				}
 			},
@@ -276,7 +273,7 @@ export function useDefaults({
 				fontFamily: 'sans-serif',
 				fontSize: 14,
 				fontWeight: 400,
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
 			splitLine: {
 				lineStyle: {
@@ -291,7 +288,7 @@ export function useDefaults({
 				fontFamily: 'sans-serif',
 				fontSize: 12,
 				fontWeight: 400,
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
 			top: !hideLegend && isSmall ? 30 : 0,
 			right: !hideLegend && isSmall ? null : 20
@@ -308,15 +305,15 @@ export function useDefaults({
 				end: 100,
 				right: 20,
 				textStyle: {
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},
-				borderColor: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+				borderColor: isThemeDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
 				handleStyle: {
-					borderColor: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
-					color: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
+					borderColor: isThemeDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+					color: isThemeDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
 				},
 				moveHandleStyle: {
-					color: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)'
+					color: isThemeDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)'
 				},
 				selectedDataBackground: {
 					lineStyle: {
@@ -328,15 +325,15 @@ export function useDefaults({
 				},
 				emphasis: {
 					handleStyle: {
-						borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
-						color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+						borderColor: isThemeDark ? 'rgba(255, 255, 255, 1)' : '#000',
+						color: isThemeDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
 					},
 					moveHandleStyle: {
-						borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
-						color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'
+						borderColor: isThemeDark ? 'rgba(255, 255, 255, 1)' : '#000',
+						color: isThemeDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'
 					}
 				},
-				fillerColor: isDark ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
+				fillerColor: isThemeDark ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
 				labelFormatter: (val) => {
 					const date = new Date(val)
 					return date.toLocaleDateString()
@@ -347,7 +344,7 @@ export function useDefaults({
 		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom, inflowsTooltip }
 	}, [
 		color,
-		isDark,
+		isThemeDark,
 		isSmall,
 		title,
 		tooltipSort,

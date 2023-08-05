@@ -37,7 +37,7 @@ export default function AreaChart({
 
 	const chartsStack = stacks || customLegendOptions
 
-	const [isDark] = useDarkModeManager()
+	const [isThemeDark] = useDarkModeManager()
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -45,7 +45,8 @@ export default function AreaChart({
 		valueSymbol,
 		tooltipSort,
 		hideLegend: true,
-		isStackedChart
+		isStackedChart,
+		isThemeDark
 	})
 
 	const series = useMemo(() => {
@@ -72,7 +73,7 @@ export default function AreaChart({
 						},
 						{
 							offset: 1,
-							color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+							color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
 						}
 					])
 				},
@@ -85,7 +86,7 @@ export default function AreaChart({
 								xAxis: getUtcDateObject(date),
 								yAxis: 0,
 								label: {
-									color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+									color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 									fontFamily: 'sans-serif',
 									fontSize: 14,
 									fontWeight: 500
@@ -137,7 +138,7 @@ export default function AreaChart({
 											},
 											{
 												offset: 1,
-												color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+												color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
 											}
 									  ])
 									: null
@@ -151,7 +152,7 @@ export default function AreaChart({
 									xAxis: getUtcDateObject(date),
 									yAxis: 0,
 									label: {
-										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+										color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 										fontFamily: 'sans-serif',
 										fontSize: 14,
 										fontWeight: 500
@@ -199,7 +200,7 @@ export default function AreaChart({
 		color,
 		customLegendName,
 		hallmarks,
-		isDark,
+		isThemeDark,
 		legendOptions,
 		stackColors,
 		expandTo100Percent,

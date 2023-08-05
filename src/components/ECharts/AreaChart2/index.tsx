@@ -34,7 +34,7 @@ export default function AreaChart({
 
 	const chartsStack = stacks || customLegendOptions
 
-	const [isDark] = useDarkModeManager()
+	const [isThemeDark] = useDarkModeManager()
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -42,7 +42,8 @@ export default function AreaChart({
 		valueSymbol,
 		tooltipSort,
 		hideLegend: true,
-		isStackedChart
+		isStackedChart,
+		isThemeDark
 	})
 
 	const series = useMemo(() => {
@@ -76,7 +77,7 @@ export default function AreaChart({
 								},
 								{
 									offset: 1,
-									color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+									color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
 								}
 						  ])
 						: null
@@ -93,7 +94,7 @@ export default function AreaChart({
 		})
 
 		return series
-	}, [chartData, chartsStack, color, customLegendName, isDark, stackColors, stacks])
+	}, [chartData, chartsStack, color, customLegendName, isThemeDark, stackColors, stacks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -126,7 +127,7 @@ export default function AreaChart({
 				borderWidth: '0',
 				padding: 0,
 				textStyle: {
-					color: isDark ? 'white' : 'black'
+					color: isThemeDark ? 'white' : 'black'
 				}
 			},
 			title: {
@@ -205,7 +206,7 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, stackColors, isDark, stacks.length])
+	}, [createInstance, defaultChartSettings, series, chartOptions, stackColors, isThemeDark, stacks.length])
 
 	return (
 		<div style={{ position: 'relative' }} {...props}>

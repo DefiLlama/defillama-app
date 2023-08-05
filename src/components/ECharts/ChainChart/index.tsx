@@ -70,7 +70,8 @@ export default function AreaChart({
 		title,
 		valueSymbol: denomination || 'USD',
 		tooltipSort,
-		hideLegend: true
+		hideLegend: true,
+		isThemeDark
 	})
 
 	const [series, activeSeries] = useMemo(() => {

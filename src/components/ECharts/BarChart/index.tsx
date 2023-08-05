@@ -5,6 +5,7 @@ import { getUtcDateObject, stringToColour } from '../utils'
 import type { IBarChartProps } from '../types'
 import { SelectLegendMultiple } from '../shared'
 import { useDefaults } from '../useDefaults'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export default function BarChart({
 	chartData,
@@ -44,12 +45,15 @@ export default function BarChart({
 
 	const hideLegend = hideDefaultLegend || stackKeys.length < 2
 
+	const [isThemeDark] = useDarkModeManager()
+
 	const defaultChartSettings = useDefaults({
 		color,
 		title,
 		valueSymbol,
 		hideLegend,
-		tooltipOrderBottomUp
+		tooltipOrderBottomUp,
+		isThemeDark
 	})
 
 	const series = useMemo(() => {

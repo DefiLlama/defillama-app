@@ -43,7 +43,7 @@ export default function AreaBarChart({
 		tooltipSort,
 		hideLegend: true,
 		unlockTokenSymbol,
-		isDarkMode: isThemeDark
+		isThemeDark
 	})
 
 	const { series, yAxisByIndex } = useMemo(() => {
