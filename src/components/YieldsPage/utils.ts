@@ -25,6 +25,10 @@ export function toFilterPool({
 			// apply default attribute filter function
 			toFilter = toFilter && option.defaultFilterFnOnPage[pathname](curr)
 		}
+
+		if (pathname === '/yields' && option.key === 'apy_zero' && !selectedAttributes.includes(option.key)) {
+			toFilter = toFilter && curr.apy > 0
+		}
 	})
 
 	selectedAttributes.forEach((attribute) => {

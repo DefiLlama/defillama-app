@@ -127,12 +127,10 @@ export const attributeOptions = [
 	},
 	{
 		name: 'APY 0',
-		key: YIELDS_SETTINGS.APY_GREATER_ZERO.toLowerCase(),
+		key: YIELDS_SETTINGS.APY_ZERO.toLowerCase(),
 		help: 'Include pools with supply apy of 0',
 		filterFn: (item) => item.apy >= 0,
-		defaultFilterFnOnPage: {
-			'/yields': (item) => item.apy > 0
-		},
+		defaultFilterFnOnPage: {},
 		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
 	}
 ]
