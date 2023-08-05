@@ -116,6 +116,7 @@ const protocolsByChainTableColumns = [
 	{ name: 'User Fees 24h', key: 'userFees_24h' },
 	{ name: 'Cumulative Fees', key: 'cumulativeFees' },
 	{ name: 'Holders Revenue 24h', key: 'holderRevenue_24h' },
+	{ name: 'Holders Revenue 30d', key: 'holdersRevenue30d' },
 	{ name: 'Treasury Revenue 24h', key: 'treasuryRevenue_24h' },
 	{ name: 'Supply Side Revenue 24h', key: 'supplySideRevenue_24h' },
 	{ name: 'P/S', key: 'pf' },
