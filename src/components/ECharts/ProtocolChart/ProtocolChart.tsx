@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useDefiManager, useDarkModeManager } from '~/contexts/LocalStorage'
 import type { IChartProps } from '../types'
 import { LazyChart } from '~/layout/ProtocolAndPool'
 import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
@@ -83,6 +83,7 @@ export default function ProtocolChart({
 	const router = useRouter()
 
 	const [extraTvlEnabled] = useDefiManager()
+	const [isThemeDark] = useDarkModeManager()
 
 	const {
 		denomination,
@@ -799,7 +800,7 @@ export default function ProtocolChart({
 				chartColors={chartColors}
 				bobo={bobo}
 				unlockTokenSymbol={unlockTokenSymbol}
-				isDarkMode={null}
+				isThemeDark={isThemeDark}
 				isMonthly={groupBy === 'monthly'}
 			/>
 		</Wrapper>
@@ -819,7 +820,7 @@ export const ProtocolChartOnly = ({
 	chartColors,
 	bobo,
 	unlockTokenSymbol,
-	isDarkMode,
+	isThemeDark,
 	isMonthly
 }) => {
 	return (
@@ -847,7 +848,7 @@ export const ProtocolChartOnly = ({
 						})
 					}}
 					unlockTokenSymbol={unlockTokenSymbol}
-					isDarkMode={isDarkMode}
+					isThemeDark={isThemeDark}
 					isMonthly={isMonthly}
 				/>
 			)}

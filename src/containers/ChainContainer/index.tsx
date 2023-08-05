@@ -505,7 +505,13 @@ export function ChainContainer({
 									<LocalLoader style={{ margin: 'auto', height: '360px' }} />
 								) : (
 									router.isReady && (
-										<ChainChart datasets={chartDatasets} title="" denomination={denomination} hideTooltip />
+										<ChainChart
+											datasets={chartDatasets}
+											title=""
+											denomination={denomination}
+											isThemeDark={darkMode}
+											hideTooltip
+										/>
 									)
 								)}
 							</>

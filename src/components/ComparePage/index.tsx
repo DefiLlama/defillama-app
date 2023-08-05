@@ -9,7 +9,7 @@ import styled from 'styled-components'
 import { BreakpointPanel } from '~/components'
 import { Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import LocalLoader from '~/components/LocalLoader'
 
 import { ISettings } from '~/contexts/types'
@@ -161,6 +161,7 @@ const updateRoute = (key, val, router: NextRouter) => {
 
 function ComparePage() {
 	const [extraTvlsEnabled] = useDefiManager()
+	const [darkMode] = useDarkModeManager()
 
 	const router = useRouter()
 
@@ -275,7 +276,7 @@ function ComparePage() {
 					{data.isLoading || !router.isReady ? (
 						<LocalLoader style={{ marginBottom: 'auto' }} />
 					) : (
-						<ChainChart title="" datasets={data?.data} />
+						<ChainChart title="" datasets={data?.data} isThemeDark={darkMode} />
 					)}
 				</BreakpointPanel>
 			</DataWrapper>

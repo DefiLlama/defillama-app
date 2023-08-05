@@ -42,7 +42,7 @@ export default function ChainChartPage({
 	const router = useRouter()
 	const selectedChain = chain ?? 'All'
 
-	const { denomination } = router.query
+	const { denomination, theme } = router.query
 
 	const extraTvlsEnabled = {}
 
@@ -73,12 +73,22 @@ export default function ChainChartPage({
 		extraTvlsEnabled
 	})
 
+	const isThemeDark = router.query.theme === 'dark' ? true : false
+
 	return (
 		<>
 			{isFetchingChartData ? (
 				<LocalLoader style={{ margin: 'auto', height: '360px' }} />
 			) : (
-				router.isReady && <ChainChart datasets={chartDatasets} title="" denomination={denomination} hideTooltip />
+				router.isReady && (
+					<ChainChart
+						datasets={chartDatasets}
+						title=""
+						denomination={denomination}
+						isThemeDark={isThemeDark}
+						hideTooltip
+					/>
+				)
 			)}
 		</>
 	)

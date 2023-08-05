@@ -28,7 +28,7 @@ export interface IChartProps {
 	isStackedChart?: boolean
 	hideGradient?: boolean
 	unlockTokenSymbol?: string
-	isDarkMode?: boolean
+	isThemeDark?: boolean
 	isMonthly?: boolean
 }
 

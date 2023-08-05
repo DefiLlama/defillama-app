@@ -112,7 +112,7 @@ export default function ProtocolChart({
 			twitter,
 			twitterHandle
 		})
-
+	const isThemeDark = router.query.theme === 'dark' ? true : false
 	return (
 		<ProtocolChartOnly
 			isRouterReady={router.isReady}
@@ -127,7 +127,7 @@ export default function ProtocolChart({
 			chartColors={emptyObject}
 			bobo={false}
 			unlockTokenSymbol={unlockTokenSymbol}
-			isDarkMode={false}
+			isThemeDark={isThemeDark}
 			isMonthly={groupBy === 'monthly'}
 		/>
 	)

@@ -3,7 +3,6 @@ import uniq from 'lodash/uniq'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject } from '../utils'
 import { useDefaults } from '../useDefaults'
 import { useRouter } from 'next/router'
@@ -58,16 +57,13 @@ export default function AreaChart({
 	denomination,
 	datasets,
 	hideTooltip,
+	isThemeDark,
 	...props
 }) {
 	const id = useMemo(() => uuid(), [])
 	const { query: route, pathname } = useRouter()
 
 	const isCompare = pathname?.includes('compare')
-
-	const [theme] = useDarkModeManager()
-
-	const isDark = pathname.startsWith('/chart') ? false : theme
 
 	const defaultChartSettings = useDefaults({
 		color: primaryColor,
@@ -106,7 +102,7 @@ export default function AreaChart({
 							},
 							{
 								offset: 1,
-								color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+								color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
 							}
 						])
 					},
@@ -284,7 +280,7 @@ export default function AreaChart({
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
-	}, [datasets, isDark, route, denomination, isCompare])
+	}, [datasets, isThemeDark, route, denomination, isCompare])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -330,7 +326,7 @@ export default function AreaChart({
 							borderWidth: '0',
 							padding: 0,
 							textStyle: {
-								color: isDark ? 'white' : 'black'
+								color: isThemeDark ? 'white' : 'black'
 							},
 							extraCssText: 'box-shadow: none;'
 					  }
@@ -494,7 +490,7 @@ export default function AreaChart({
 		activeSeries,
 		hideTooltip,
 		isCompare,
-		isDark
+		isThemeDark
 	])
 
 	return (

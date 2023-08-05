@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject, stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -28,17 +27,14 @@ export default function AreaBarChart({
 	chartOptions,
 	height = '360px',
 	unlockTokenSymbol = '',
-	isDarkMode,
 	isMonthly,
+	isThemeDark,
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
 	const router = useRouter()
 	const { groupBy } = router.query
 	const isCumulative = router.isReady && groupBy === 'cumulative' ? true : false
-
-	const theme = useDarkModeManager()
-	const isDark = isDarkMode ?? theme[0]
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -47,7 +43,7 @@ export default function AreaBarChart({
 		tooltipSort,
 		hideLegend: true,
 		unlockTokenSymbol,
-		isDarkMode
+		isDarkMode: isThemeDark
 	})
 
 	const { series, yAxisByIndex } = useMemo(() => {
@@ -179,7 +175,7 @@ export default function AreaBarChart({
 											},
 											{
 												offset: 1,
-												color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+												color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
 											}
 									  ])
 									: null
@@ -209,7 +205,7 @@ export default function AreaBarChart({
 							xAxis: getUtcDateObject(date),
 							yAxis: 0,
 							label: {
-								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+								color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 								fontFamily: 'sans-serif',
 								fontSize: 14,
 								fontWeight: 500
@@ -227,7 +223,7 @@ export default function AreaBarChart({
 		}
 
 		return { series, yAxisByIndex }
-	}, [chartData, stacks, color, customLegendName, hallmarks, isDark, stackColors, isCumulative, isMonthly])
+	}, [chartData, stacks, color, customLegendName, hallmarks, isThemeDark, stackColors, isCumulative, isMonthly])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
