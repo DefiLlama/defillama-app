@@ -111,32 +111,36 @@ export const getProtocolUsers = async (protocolId: number | string) => {
 			.then((values) => {
 				return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
 			})
-			.catch((err) => []),
+			.catch(() => null),
 		fetch(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 			.then((res) => res.json())
 			.then((values) => {
 				return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
 			})
-			.catch((err) => [])
+			.catch(() => null)
 	])
 
 	const users: { [date: number]: { activeUsers: number | null; newUsers: number | null } } = {}
 
-	activeUsers.forEach(([date, value]) => {
-		if (!users[date]) {
-			users[date] = { activeUsers: null, newUsers: null }
-		}
+	if (activeUsers) {
+		activeUsers.forEach(([date, value]) => {
+			if (!users[date]) {
+				users[date] = { activeUsers: null, newUsers: null }
+			}
 
-		users[date]['activeUsers'] = value
-	})
+			users[date]['activeUsers'] = value
+		})
+	}
 
-	newUsers.forEach(([date, value]) => {
-		if (!users[date]) {
-			users[date] = { activeUsers: null, newUsers: null }
-		}
+	if (newUsers) {
+		newUsers.forEach(([date, value]) => {
+			if (!users[date]) {
+				users[date] = { activeUsers: null, newUsers: null }
+			}
 
-		users[date]['newUsers'] = value
-	})
+			users[date]['newUsers'] = value
+		})
+	}
 
 	return Object.entries(users).map(([date, { activeUsers, newUsers }]) => [date, activeUsers, newUsers])
 }
