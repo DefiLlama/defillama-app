@@ -6,7 +6,7 @@ import { useSetPopoverStyles } from './utils'
 import { useRouter } from 'next/router'
 import { Tooltip2 } from '../Tooltip'
 import { Code } from 'react-feather'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 
 const Trigger = styled(PopoverDisclosure)`
 	display: flex;
@@ -167,6 +167,7 @@ export function EmbedChart({ color, ...props }) {
 	const router = useRouter()
 
 	const [extraTvlsEnabled] = useDefiManager()
+	const [isDarkTheme] = useDarkModeManager()
 
 	let path = router.asPath === '/' ? '/chain/All' : router.asPath
 
@@ -179,6 +180,8 @@ export function EmbedChart({ color, ...props }) {
 			path += `&include_${option}_in_tvl=true`
 		}
 	}
+
+	path += isDarkTheme ? '&theme=dark' : '&theme=light'
 
 	const url = `<iframe width="640px" height="360px" src="https://defillama.com/chart${path}" title="DefiLlama" frameborder="0"></iframe>`
 
