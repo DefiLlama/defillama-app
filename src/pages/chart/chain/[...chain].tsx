@@ -73,7 +73,7 @@ export default function ChainChartPage({
 		extraTvlsEnabled
 	})
 
-	const isThemeDark = router.query.theme === 'dark' ? true : false
+	const isThemeDark = theme === 'dark' ? true : false
 
 	return (
 		<>

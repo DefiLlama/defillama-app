@@ -10,7 +10,6 @@ import {
 	MarkLineComponent,
 	LegendComponent
 } from 'echarts/components'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
