@@ -123,9 +123,14 @@ export async function getBridgeOverviewPageData(chain) {
 	const prevDayTimestamp = currentTimestamp
 	let bridgeStatsCurrentDay = {}
 	if (chain) {
-		bridgeStatsCurrentDay = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`).then((resp) =>
-			resp.json()
-		)
+		for (let i = 0; i < 5; i++) {
+			try {
+				bridgeStatsCurrentDay = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`).then((resp) =>
+					resp.json()
+				)
+				// can format differently here if needed
+			} catch (e) {}
+		}
 	}
 
 	const numberOfDaysForLargeTx = chain ? 7 : 1
