@@ -287,7 +287,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		}
 	},
 	{
-		header: 'Net Borrow',
+		header: 'Net Borrow APY',
 		accessorKey: 'apyBorrow',
 		enableSorting: true,
 		cell: (info) => {
@@ -296,37 +296,37 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Total net APY for borrowing (Base + Reward).'
+			headerHelperText: 'Total net APY for borrowing (Borrow Base APY + Borrow Reward APY).'
 		}
 	},
 	{
-		header: 'Borrow Base',
+		header: 'Borrow Base APY',
 		accessorKey: 'apyBaseBorrow',
 		enableSorting: true,
 		cell: (info) => {
 			return <>{formattedPercent(info.getValue(), true, 700)}</>
 		},
-		size: 140,
+		size: 160,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Interest borrowers pay to lenders.'
 		}
 	},
 	{
-		header: 'Borrow Reward',
+		header: 'Borrow Reward APY',
 		accessorKey: 'apyRewardBorrow',
 		enableSorting: true,
 		cell: (info) => {
 			return <>{formattedPercent(info.getValue(), true, 700)}</>
 		},
-		size: 140,
+		size: 160,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Incentive reward APY for borrowing.'
 		}
 	},
 	{
-		header: 'LTV',
+		header: 'Max LTV',
 		accessorKey: 'ltv',
 		enableSorting: true,
 		cell: (info) => {
@@ -549,10 +549,10 @@ export const columnSizes = {
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
 		apyChart30d: 110,
-		apyBorrow: 130,
-		apyBaseBorrow: 140,
-		apyRewardBorrow: 160,
-		ltv: 90,
+		apyBorrow: 160,
+		apyBaseBorrow: 170,
+		apyRewardBorrow: 180,
+		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
 		totalAvailableUsd: 120
@@ -575,10 +575,10 @@ export const columnSizes = {
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
 		apyChart30d: 110,
-		apyBorrow: 130,
-		apyBaseBorrow: 140,
-		apyRewardBorrow: 160,
-		ltv: 90,
+		apyBorrow: 160,
+		apyBaseBorrow: 170,
+		apyRewardBorrow: 180,
+		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
 		totalAvailableUsd: 120
