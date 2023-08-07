@@ -56,7 +56,7 @@ export const generateGetOverviewItemPageDate = async (
 	if (type === 'volumes') {
 		label = 'Volume'
 	} else if (type === 'options') {
-		label = 'Notionial volume'
+		label = 'Notional volume'
 	} else {
 		label = capitalizeFirstLetter(type)
 	}
@@ -186,7 +186,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	const tvlData: IJSON<number> = getTVLData(protocolsData, filtredChain)
 	const mcapData = { ...getMCap(protocolsData), ...chainMcap }
-	const label: string = type === 'options' ? 'Notionial volume' : capitalizeFirstLetter(type)
+	const label: string = type === 'options' ? 'Notional volume' : capitalizeFirstLetter(type)
 
 	const allCharts: IChartsList = []
 
