@@ -39,41 +39,41 @@ export default function ChainChartPage({
 	inflowsData,
 	userData
 }) {
-	const router = useRouter()
-	const selectedChain = chain ?? 'All'
+	// const router = useRouter()
+	// const selectedChain = chain ?? 'All'
 
-	const { denomination, theme } = router.query
+	// const { denomination, theme } = router.query
 
-	const extraTvlsEnabled = {}
+	// const extraTvlsEnabled = {}
 
-	for (const setting in DEFI_SETTINGS) {
-		extraTvlsEnabled[DEFI_SETTINGS[setting]] = router.query[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
-	}
+	// for (const setting in DEFI_SETTINGS) {
+	// 	extraTvlsEnabled[DEFI_SETTINGS[setting]] = router.query[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
+	// }
 
-	let chainGeckoId = null
+	// let chainGeckoId = null
 
-	if (selectedChain !== 'All') {
-		let chainDenomination = chainCoingeckoIds[selectedChain] ?? chainCoingeckoIdsForGasNotMcap[selectedChain] ?? null
+	// if (selectedChain !== 'All') {
+	// 	let chainDenomination = chainCoingeckoIds[selectedChain] ?? chainCoingeckoIdsForGasNotMcap[selectedChain] ?? null
 
-		chainGeckoId = chainDenomination?.geckoId ?? null
-	}
+	// 	chainGeckoId = chainDenomination?.geckoId ?? null
+	// }
 
-	const { chartDatasets, isFetchingChartData } = useFetchChainChartData({
-		denomination: typeof denomination === 'string' ? denomination : 'USD',
-		selectedChain,
-		chainGeckoId,
-		volumeData,
-		feesAndRevenueData,
-		stablecoinsData,
-		inflowsData,
-		userData,
-		raisesChart,
-		chart,
-		extraTvlCharts,
-		extraTvlsEnabled
-	})
+	// const { chartDatasets, isFetchingChartData } = useFetchChainChartData({
+	// 	denomination: typeof denomination === 'string' ? denomination : 'USD',
+	// 	selectedChain,
+	// 	chainGeckoId,
+	// 	volumeData,
+	// 	feesAndRevenueData,
+	// 	stablecoinsData,
+	// 	inflowsData,
+	// 	userData,
+	// 	raisesChart,
+	// 	chart,
+	// 	extraTvlCharts,
+	// 	extraTvlsEnabled
+	// })
 
-	const isThemeDark = theme === 'dark' ? true : false
+	// const isThemeDark = theme === 'dark' ? true : false
 
 	return (
 		<>
