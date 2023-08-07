@@ -23,7 +23,13 @@ import {
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
-import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
+import {
+	useYieldChartData,
+	useYieldConfigData,
+	useYieldPoolData,
+	useYieldChartLendBorrow
+} from '~/api/categories/yield/client'
+import { getColorFromNumber } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 
@@ -50,6 +56,8 @@ const PageView = () => {
 	const { data: pool, loading: fetchingPoolData } = useYieldPoolData(query.pool)
 
 	const { data: chart, loading: fetchingChartData } = useYieldChartData(query.pool)
+
+	const { data: chartBorrow, loading: fetchingChartDataBorrow } = useYieldChartLendBorrow(query.pool)
 
 	const poolData = pool?.data ? pool.data[0] : {}
 
@@ -94,12 +102,22 @@ const PageView = () => {
 	const twitter = config?.twitter ?? ''
 	const category = config?.category ?? ''
 
-	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
+	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
+
+	const colors = {}
+	;['Supplied', 'Borrowed', 'Available'].forEach((l, index) => {
+		colors[l] = getColorFromNumber(index, 6)
+	})
 
 	const {
 		finalChartData = [],
 		barChartData = [],
-		areaChartData = []
+		areaChartData = [],
+		// borrow stuff
+		barChartDataSupply = [],
+		barChartDataBorrow = [],
+		areaChartDataBorrow = [],
+		netBorrowChartData = []
 	} = useMemo(() => {
 		if (!chart) return {}
 
@@ -135,12 +153,58 @@ const PageView = () => {
 
 		const areaChartData = data?.length ? data.filter((t) => t[5] !== null).map((t) => [t[0], t[5]]) : []
 
+		// borrow charts
+
+		// - format for chart components
+		const dataBorrow = chartBorrow?.data?.map((el) => [
+			// round time to day
+			Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
+			el.totalSupplyUsd,
+			el.totalBorrowUsd,
+			category === 'CDP' && el.debtCeilingUsd
+				? el.debtCeilingUsd - el.totalBorrowUsd
+				: category === 'CDP'
+				? null
+				: el.totalSupplyUsd === null && el.totalBorrowUsd === null
+				? null
+				: el.totalSupplyUsd - el.totalBorrowUsd,
+			el.apyBase?.toFixed(2) ?? null,
+			el.apyReward?.toFixed(2) ?? null,
+			-el.apyBaseBorrow?.toFixed(2) ?? null,
+			el.apyRewardBorrow?.toFixed(2) ?? null,
+			el.apyBaseBorrow === null && el.apyRewardBorrow === null
+				? null
+				: (-el.apyBaseBorrow + el.apyRewardBorrow).toFixed(2) ?? null
+		])
+
+		const dataBarSupply = dataBorrow?.filter((t) => t[4] !== null || t[5] !== null) ?? []
+		const barChartDataSupply = dataBarSupply.length
+			? dataBarSupply.map((item) => ({ date: item[0], Base: item[4], Reward: item[5] }))
+			: []
+
+		const dataBarBorrow = dataBorrow?.filter((t) => Number.isFinite(t[6]) || t[7] !== null) ?? []
+		const barChartDataBorrow = dataBarBorrow.length
+			? dataBarBorrow.map((item) => ({ date: item[0], Base: item[6], Reward: item[7] }))
+			: []
+
+		const dataArea = dataBorrow?.filter((t) => t[1] !== null && t[2] !== null && t[3] !== null) ?? []
+		const areaChartDataBorrow = dataArea.length
+			? dataArea.map((t) => ({ date: t[0], Supplied: t[1], Borrowed: t[2], Available: t[3] }))
+			: []
+
+		const dataNetBorrowArea = dataBorrow?.filter((t) => t[8] !== null) ?? []
+		const netBorrowChartData = dataNetBorrowArea.length ? dataNetBorrowArea.map((t) => [t[0], t[8]]) : []
+
 		return {
 			finalChartData: data.map((item) => ({ date: item[0], TVL: item[1], APY: item[2] })),
 			barChartData,
-			areaChartData
+			areaChartData,
+			barChartDataSupply,
+			barChartDataBorrow,
+			areaChartDataBorrow,
+			netBorrowChartData
 		}
-	}, [chart])
+	}, [chart, chartBorrow, category])
 
 	return (
 		<>
@@ -199,7 +263,7 @@ const PageView = () => {
 						{barChartData?.length ? (
 							<LazyChart>
 								<StackedBarChart
-									title="Base and Reward APY"
+									title="Supply APY"
 									chartData={barChartData}
 									stacks={barChartStacks}
 									stackColors={stackedBarChartColors}
@@ -210,10 +274,53 @@ const PageView = () => {
 						{areaChartData.length ? (
 							<LazyChart>
 								<AreaChart
-									title="7 day moving average of total APY"
+									title="7 day moving average of Supply APY"
 									chartData={areaChartData}
 									color={backgroundColor}
 									valueSymbol={'%'}
+								/>
+							</LazyChart>
+						) : null}
+					</>
+				)}
+			</ChartsWrapper>
+
+			<ChartsWrapper>
+				{fetchingChartDataBorrow ? (
+					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+				) : (
+					<>
+						{areaChartDataBorrow?.length ? (
+							<LazyChart>
+								<StackedBarChart
+									title="Borrow APY"
+									chartData={barChartDataBorrow}
+									stacks={barChartStacks}
+									stackColors={stackedBarChartColors}
+									valueSymbol={'%'}
+								/>
+							</LazyChart>
+						) : null}
+						{areaChartDataBorrow.length ? (
+							<LazyChart>
+								<AreaChart
+									title="Net Borrow APY"
+									chartData={netBorrowChartData}
+									color={backgroundColor}
+									valueSymbol={'%'}
+								/>
+							</LazyChart>
+						) : null}
+
+						{areaChartDataBorrow?.length ? (
+							<LazyChart>
+								<AreaChart
+									chartData={areaChartDataBorrow}
+									title="Pool Liquidity"
+									customLegendName="Filter"
+									customLegendOptions={['Supplied', 'Borrowed', 'Available']}
+									valueSymbol="$"
+									stackColors={colors}
 								/>
 							</LazyChart>
 						) : null}
