@@ -213,6 +213,7 @@ export async function getChainPageData(chain?: string) {
 			inflowsData,
 			userData: { activeUsers, newUsers, transactions },
 			raisesChart,
+			noContext: false,
 			...charts
 		},
 		revalidate: maxAgeForNext([22])

@@ -1,5 +1,4 @@
-import { useRouter } from 'next/router'
-import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from '~/contexts/LocalStorage'
+import { AppContext } from '~/contexts'
 import { useAnalytics } from '~/hooks'
 import '~/Theme/globals.css'
 
@@ -7,10 +6,9 @@ function App({ Component, pageProps }) {
 	useAnalytics()
 
 	return (
-		<LocalStorageContextProvider>
-			<LocalStorageContextUpdater />
+		<AppContext noContext={pageProps.noContext ?? false}>
 			<Component {...pageProps} />
-		</LocalStorageContextProvider>
+		</AppContext>
 	)
 }
 
