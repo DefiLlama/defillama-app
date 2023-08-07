@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const data = await getChainPageData(chain === 'All' ? null : chain)
-
+		data.props.noContext = true
 		return data
 	}
 )
