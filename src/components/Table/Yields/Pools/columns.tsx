@@ -285,6 +285,139 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			headerHelperText:
 				'Annualised percentage yield from trading fees/supplying inclusive of LSD APY (if applicable). For dexes we use the 24h fees and scale those to a year.'
 		}
+	},
+	{
+		header: 'Net Borrow APY',
+		accessorKey: 'apyBorrow',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true, 700)}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Total net APY for borrowing (Borrow Base APY + Borrow Reward APY).'
+		}
+	},
+	{
+		header: 'Borrow Base APY',
+		accessorKey: 'apyBaseBorrow',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true)}</>
+		},
+		size: 160,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Interest borrowers pay to lenders.'
+		}
+	},
+	{
+		header: 'Borrow Reward APY',
+		accessorKey: 'apyRewardBorrow',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true)}</>
+		},
+		size: 160,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Incentive reward APY for borrowing.'
+		}
+	},
+	{
+		header: 'Max LTV',
+		accessorKey: 'ltv',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span
+					style={{
+						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
+					}}
+				>
+					{info.getValue() ? formattedNum(Number(info.getValue()) * 100) + '%' : null}
+				</span>
+			)
+		},
+		size: 120,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Max loan to value (collateral factor)'
+		}
+	},
+	{
+		header: 'Supplied',
+		accessorKey: 'totalSupplyUsd',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span
+					style={{
+						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
+					}}
+				>
+					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
+				</span>
+			)
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Borrowed',
+		accessorKey: 'totalBorrowUsd',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span
+					style={{
+						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
+					}}
+				>
+					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
+				</span>
+			)
+		},
+		size: 120,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Amount of borrowed collateral'
+		}
+	},
+	{
+		header: 'Available',
+		accessorKey: 'totalAvailableUsd',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span
+					style={{
+						display: 'flex',
+						gap: '4px',
+						justifyContent: 'flex-end',
+						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
+					}}
+				>
+					{info.row.original.project.includes('Morpho') ? (
+						<QuestionHelper
+							text={`Morpho liquidity comes from the underlying lending protocol pool itself. Available P2P Liquidity: ${
+								info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd > 0
+									? '$' + formattedNum(info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd)
+									: '$0'
+							}`}
+						/>
+					) : null}
+					{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}
+				</span>
+			)
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
 	}
 ]
 
@@ -308,7 +441,14 @@ const columnOrders = {
 		'apyChart30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
-		'apyBaseInception'
+		'apyBaseInception',
+		'apyBorrow',
+		'apyBaseBorrow',
+		'apyRewardBorrow',
+		'ltv',
+		'totalSupplyUsd',
+		'totalBorrowUsd',
+		'totalAvailableUsd'
 	],
 	400: [
 		'pool',
@@ -327,7 +467,14 @@ const columnOrders = {
 		'apyChart30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
-		'apyBaseInception'
+		'apyBaseInception',
+		'apyBorrow',
+		'apyBaseBorrow',
+		'apyRewardBorrow',
+		'ltv',
+		'totalSupplyUsd',
+		'totalBorrowUsd',
+		'totalAvailableUsd'
 	],
 	640: [
 		'pool',
@@ -346,7 +493,14 @@ const columnOrders = {
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
-		'apyChart30d'
+		'apyChart30d',
+		'apyBorrow',
+		'apyBaseBorrow',
+		'apyRewardBorrow',
+		'ltv',
+		'totalSupplyUsd',
+		'totalBorrowUsd',
+		'totalAvailableUsd'
 	],
 	1280: [
 		'pool',
@@ -365,7 +519,14 @@ const columnOrders = {
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
-		'apyChart30d'
+		'apyChart30d',
+		'apyBorrow',
+		'apyBaseBorrow',
+		'apyRewardBorrow',
+		'ltv',
+		'totalSupplyUsd',
+		'totalBorrowUsd',
+		'totalAvailableUsd'
 	]
 }
 
@@ -387,7 +548,14 @@ export const columnSizes = {
 		volumeUsd1d: 140,
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
-		apyChart30d: 110
+		apyChart30d: 110,
+		apyBorrow: 160,
+		apyBaseBorrow: 170,
+		apyRewardBorrow: 180,
+		ltv: 110,
+		totalSupplyUsd: 120,
+		totalBorrowUsd: 120,
+		totalAvailableUsd: 120
 	},
 	812: {
 		pool: 250,
@@ -406,7 +574,14 @@ export const columnSizes = {
 		volumeUsd1d: 140,
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
-		apyChart30d: 110
+		apyChart30d: 110,
+		apyBorrow: 160,
+		apyBaseBorrow: 170,
+		apyRewardBorrow: 180,
+		ltv: 110,
+		totalSupplyUsd: 120,
+		totalBorrowUsd: 120,
+		totalAvailableUsd: 120
 	}
 }
 

@@ -28,6 +28,13 @@ export interface IDropdownMenusProps {
 	show1dVolume?: boolean
 	show7dVolume?: boolean
 	showInceptionApy?: boolean
+	showBorrowBaseApy?: boolean
+	showBorrowRewardApy?: boolean
+	showNetBorrowApy?: boolean
+	showLTV?: boolean
+	showTotalSupplied?: boolean
+	showTotalBorrowed?: boolean
+	showAvailable?: boolean
 }
 
 export interface IYieldFiltersProps extends IDropdownMenusProps {

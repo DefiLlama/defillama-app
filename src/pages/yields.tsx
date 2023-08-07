@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import YieldPage from '~/components/YieldsPage'
-import { getYieldPageData } from '~/api/categories/yield'
+import { getYieldPageData, getLendBorrowData } from '~/api/categories/yield'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
@@ -8,7 +8,20 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields', async () => {
 	const data = await getYieldPageData()
-	data.props.pools = data.props.pools.filter((p) => p.apy > 0)
+	const dataBorrow = await getLendBorrowData()
+	data.props.pools = data.props.pools.map((p) => {
+		const x = dataBorrow.props.pools.find((i) => i.pool === p.pool)
+		return {
+			...p,
+			apyBaseBorrow: x?.apyBaseBorrow ?? null,
+			apyRewardBorrow: x?.apyRewardBorrow ?? null,
+			apyBorrow: x?.apyBorrow ?? null,
+			totalSupplyUsd: x?.totalSupplyUsd ?? null,
+			totalBorrowUsd: x?.totalBorrowUsd ?? null,
+			totalAvailableUsd: x?.totalAvailableUsd ?? null,
+			ltv: x?.ltv ?? null
+		}
+	})
 
 	const cgTokens = await getAllCGTokensList()
 

@@ -12,6 +12,13 @@ interface IColumnFiltersProps {
 	show1dVolume?: boolean
 	show7dVolume?: boolean
 	showInceptionApy?: boolean
+	showBorrowBaseApy?: boolean
+	showBorrowRewardApy?: boolean
+	showNetBorrowApy?: boolean
+	showLTV?: boolean
+	showTotalSupplied?: boolean
+	showTotalBorrowed?: boolean
+	showAvailable?: boolean
 }
 
 const optionalFilters = [
@@ -19,13 +26,34 @@ const optionalFilters = [
 	{ name: '7d IL', key: 'show7dIL' },
 	{ name: '1d Volume', key: 'show1dVolume' },
 	{ name: '7d Volume', key: 'show7dVolume' },
-	{ name: 'Inception APY', key: 'showInceptionApy' }
+	{ name: 'Inception APY', key: 'showInceptionApy' },
+	{ name: 'Borrow Base APY', key: 'showBorrowBaseApy' },
+	{ name: 'Borrow Reward APY', key: 'showBorrowRewardApy' },
+	{ name: 'Net Borrow APY', key: 'showNetBorrowApy' },
+	{ name: 'Max LTV', key: 'showLTV' },
+	{ name: 'Supplied', key: 'showTotalSupplied' },
+	{ name: 'Borrowed', key: 'showTotalBorrowed' },
+	{ name: 'Available', key: 'showAvailable' }
 ]
 
 export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColumnFiltersProps) {
 	const router = useRouter()
 
-	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume, showInceptionApy, ...queries } = router.query
+	const {
+		show7dBaseApy,
+		show7dIL,
+		show1dVolume,
+		show7dVolume,
+		showInceptionApy,
+		showNetBorrowApy,
+		showBorrowBaseApy,
+		showBorrowRewardApy,
+		showLTV,
+		showTotalSupplied,
+		showTotalBorrowed,
+		showAvailable,
+		...queries
+	} = router.query
 
 	const options = optionalFilters.filter((op) => props[op.key])
 

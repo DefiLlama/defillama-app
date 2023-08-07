@@ -8,7 +8,21 @@ const columnSizesKeys = getColumnSizesKeys(columnSizes)
 
 export default function YieldsPoolsTable({ data }: IYieldsTableProps) {
 	const router = useRouter()
-	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume, showInceptionApy, includeLsdApy } = router.query
+	const {
+		show7dBaseApy,
+		show7dIL,
+		show1dVolume,
+		show7dVolume,
+		showInceptionApy,
+		includeLsdApy,
+		showNetBorrowApy,
+		showBorrowBaseApy,
+		showBorrowRewardApy,
+		showTotalSupplied,
+		showTotalBorrowed,
+		showAvailable,
+		showLTV
+	} = router.query
 
 	const columnVisibility =
 		includeLsdApy === 'true'
@@ -21,7 +35,14 @@ export default function YieldsPoolsTable({ data }: IYieldsTableProps) {
 					apy: false,
 					apyBase: false,
 					apyIncludingLsdApy: true,
-					apyBaseIncludingLsdApy: true
+					apyBaseIncludingLsdApy: true,
+					apyBorrow: showNetBorrowApy === 'true',
+					apyBaseBorrow: showBorrowBaseApy === 'true',
+					apyRewardBorrow: showBorrowRewardApy === 'true',
+					totalSupplyUsd: showTotalSupplied === 'true',
+					totalBorrowUsd: showTotalBorrowed === 'true',
+					totalAvailableUsd: showAvailable === 'true',
+					ltv: showLTV === 'true'
 			  }
 			: {
 					apyBase7d: show7dBaseApy === 'true',
@@ -32,7 +53,14 @@ export default function YieldsPoolsTable({ data }: IYieldsTableProps) {
 					apy: true,
 					apyBase: true,
 					apyIncludingLsdApy: false,
-					apyBaseIncludingLsdApy: false
+					apyBaseIncludingLsdApy: false,
+					apyBorrow: showNetBorrowApy === 'true',
+					apyBaseBorrow: showBorrowBaseApy === 'true',
+					apyRewardBorrow: showBorrowRewardApy === 'true',
+					totalSupplyUsd: showTotalSupplied === 'true',
+					totalBorrowUsd: showTotalBorrowed === 'true',
+					totalAvailableUsd: showAvailable === 'true',
+					ltv: showLTV === 'true'
 			  }
 
 	return (
