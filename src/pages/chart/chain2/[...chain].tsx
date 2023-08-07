@@ -1,10 +1,10 @@
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/router'
+// import { useRouter } from 'next/router'
 import { getChainPageData } from '~/api/categories/chains'
-import LocalLoader from '~/components/LocalLoader'
-import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { useFetchChainChartData } from '~/containers/ChainContainer/useFetchChainChartData'
-import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+// import LocalLoader from '~/components/LocalLoader'
+// import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+// import { useFetchChainChartData } from '~/containers/ChainContainer/useFetchChainChartData'
+// import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
@@ -77,6 +77,7 @@ export default function ChainChartPage({
 
 	return (
 		<>
+			<p>hello</p>
 			{/* {isFetchingChartData ? (
 				<LocalLoader style={{ margin: 'auto', height: '360px' }} />
 			) : (
