@@ -9,19 +9,17 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging('yields', async () => {
 	const data = await getYieldPageData()
 	const dataBorrow = await getLendBorrowData()
-	// data.props.pools = data.props.pools.filter((p) => p.apy > 0)
 	data.props.pools = data.props.pools.map((p) => {
 		const x = dataBorrow.props.pools.find((i) => i.pool === p.pool)
-		if (x === undefined) return p
 		return {
 			...p,
-			apyBaseBorrow: x.apyBaseBorrow,
-			apyRewardBorrow: x.apyRewardBorrow,
-			apyBorrow: x.apyBorrow,
-			totalSupplyUsd: x.totalSupplyUsd,
-			totalBorrowUsd: x.totalBorrowUsd,
-			totalAvailableUsd: x.totalAvailableUsd,
-			ltv: x.ltv
+			apyBaseBorrow: x?.apyBaseBorrow ?? null,
+			apyRewardBorrow: x?.apyRewardBorrow ?? null,
+			apyBorrow: x?.apyBorrow ?? null,
+			totalSupplyUsd: x?.totalSupplyUsd ?? null,
+			totalBorrowUsd: x?.totalBorrowUsd ?? null,
+			totalAvailableUsd: x?.totalAvailableUsd ?? null,
+			ltv: x?.ltv ?? null
 		}
 	})
 

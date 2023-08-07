@@ -304,7 +304,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBaseBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 700)}</>
+			return <>{formattedPercent(info.getValue(), true)}</>
 		},
 		size: 160,
 		meta: {
@@ -317,7 +317,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyRewardBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 700)}</>
+			return <>{formattedPercent(info.getValue(), true)}</>
 		},
 		size: 160,
 		meta: {
@@ -336,7 +336,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{formattedNum(Number(info.getValue()) * 100) + '%'}
+					{info.getValue() ? formattedNum(Number(info.getValue()) * 100) + '%' : null}
 				</span>
 			)
 		},
