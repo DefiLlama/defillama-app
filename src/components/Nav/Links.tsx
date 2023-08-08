@@ -152,7 +152,6 @@ export const navLinks: ILinks = {
 			{ name: 'Delta Neutral', path: '/yields/strategy' },
 			{ name: 'Long-Short Strats', path: '/yields/strategyLongShort' },
 			{ name: 'Leveraged Lending', path: '/yields/loop' },
-			{ name: 'Borrow', path: '/yields/borrow' },
 			{ name: 'Overview', path: '/yields/overview' },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins' },
 			{ name: 'Projects', path: '/yields/projects' },
