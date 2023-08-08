@@ -78,7 +78,9 @@ const blockExplorers = {
 	pulse: ['https://scan.pulsechain.com/address/', 'PulseChain Scan'],
 	onus: ['https://explorer.onuschain.io/address/', 'OnusChain Explorer'],
 	stark: ['https://starkscan.co/token/', 'StarkScan'],
-	linea: ['https://lineascan.build/token/', 'LineaScan']
+	linea: ['https://lineascan.build/token/', 'LineaScan'],
+	mantle: ['https://explorer.mantle.xyz/address/', 'Mantle Explorer'],
+	base: ['https://basescan.org/address/', 'Basescan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
