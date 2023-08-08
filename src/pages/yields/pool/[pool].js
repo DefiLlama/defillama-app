@@ -17,8 +17,7 @@ import {
 	Symbol,
 	ChartsWrapper,
 	LazyChart,
-	ChartsPlaceholder,
-	ß
+	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
@@ -30,10 +29,6 @@ import {
 	useYieldChartLendBorrow
 } from '~/api/categories/yield/client'
 import { getColorFromNumber } from '~/utils'
-
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -103,11 +98,6 @@ const PageView = () => {
 	const category = config?.category ?? ''
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
-
-	const colors = {}
-	;['Supplied', 'Borrowed', 'Available'].forEach((l, index) => {
-		colors[l] = getColorFromNumber(index, 6)
-	})
 
 	const {
 		finalChartData = [],
@@ -320,7 +310,7 @@ const PageView = () => {
 									customLegendName="Filter"
 									customLegendOptions={['Supplied', 'Borrowed', 'Available']}
 									valueSymbol="$"
-									stackColors={colors}
+									stackColors={liquidityChartColors}
 								/>
 							</LazyChart>
 						) : null}
@@ -382,6 +372,11 @@ const stackedBarChartColors = {
 	Base: backgroundColor,
 	Reward: '#E59421'
 }
+
+const liquidityChartColors = {}
+;[('Supplied', 'Borrowed', 'Available')].forEach((l, index) => {
+	liquidityChartColors[l] = getColorFromNumber(index, 6)
+})
 
 const barChartStacks = {
 	Base: 'a',
