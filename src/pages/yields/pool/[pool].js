@@ -241,12 +241,14 @@ const PageView = () => {
 				</PoolDetails>
 
 				<LazyChart style={{ padding: '20px 0' }}>
-					<Chart chartData={finalChartData} stackColors={mainChartStackColors} stacks={mainChartStacks} title="" />
+					{!isLoading && (
+						<Chart chartData={finalChartData} stackColors={mainChartStackColors} stacks={mainChartStacks} title="" />
+					)}
 				</LazyChart>
 			</StatsSection>
 
 			<ChartsWrapper>
-				{fetchingChartData ? (
+				{isLoading ? (
 					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
 				) : (
 					<>
