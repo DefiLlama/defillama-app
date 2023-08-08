@@ -13,11 +13,6 @@ export const getStaticProps = withPerformanceLogging('yields/borrow', async () =
 	}
 })
 
-export default function YieldBorrow(data) {
-	return (
-		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
-			<Announcement>{disclaimer}</Announcement>
-			<YieldPageBorrow {...data} />
-		</Layout>
-	)
+export default function YieldBorrow() {
+	return <div></div>
 }
