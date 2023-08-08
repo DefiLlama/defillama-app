@@ -95,7 +95,7 @@ import YieldPage from '~/components/YieldsPage'
 import Link from '~/components/Link'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -103,23 +103,6 @@ export const getStaticProps = withPerformanceLogging('yields/halal', async () =>
 	let {
 		props: { ...data }
 	} = await getYieldPageData()
-
-	const cgTokens = await getAllCGTokensList()
-
-	const tokens = []
-	const tokenSymbolsList = []
-
-	cgTokens.forEach((token) => {
-		if (token.symbol) {
-			tokens.push({
-				name: token.name,
-				symbol: token.symbol.toUpperCase(),
-				logo: token.image2 || null,
-				fallbackLogo: token.image || null
-			})
-			tokenSymbolsList.push(token.symbol.toUpperCase())
-		}
-	})
 
 	const pools = data.pools.filter((p) => whitelist.includes(p.projectName))
 
@@ -133,9 +116,7 @@ export const getStaticProps = withPerformanceLogging('yields/halal', async () =>
 					set.add(pool.category)
 					return set
 				}, new Set())
-			),
-			tokens,
-			tokenSymbolsList
+			)
 		},
 		revalidate: maxAgeForNext([23])
 	}
