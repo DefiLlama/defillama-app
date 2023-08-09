@@ -21,6 +21,7 @@ import { stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import 'echarts/lib/component/grid'
 import { UniversalTransition } from 'echarts/features'
+import { lastDayOfMonth } from '../ProtocolChart/useFetchAndFormatChartData'
 
 echarts.use([
 	EBarChart,
@@ -133,13 +134,16 @@ export default function StackedBarChart({
 				trigger: 'axis',
 				confine: true,
 				formatter: function (params) {
-					const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
-						year: 'numeric',
+					let chartdate = new Date(params[0].value[0]).toLocaleDateString('en-US', {
+						year: isMonthly ? undefined : 'numeric',
 						month: 'short',
 						day: 'numeric'
 					})
 
-					const endDate = isMonthly ? null : null
+					chartdate +=
+						params[0].value[2] === 'monthly'
+							? ' - ' + lastDayOfMonth(params[0].value[0]) + ', ' + new Date(params[0].value[0]).getFullYear()
+							: ''
 
 					let vals
 					if (valueSymbol !== '%' && valueSymbol !== 'ETH') {
