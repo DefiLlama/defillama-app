@@ -107,7 +107,7 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
-				let chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
+				let chartdate = new Date(params[0].value[0]).toLocaleDateString('en-US', {
 					year: params[0].value[2] === 'monthly' ? undefined : 'numeric',
 					month: 'short',
 					day: 'numeric'
