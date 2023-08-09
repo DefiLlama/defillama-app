@@ -67,6 +67,11 @@ const nextConfig = {
 				source: '/protocols/cex',
 				destination: '/cexs',
 				permanent: true
+			},
+			{
+				source: '/yields/borrow',
+				destination: '/yields',
+				permanent: true
 			}
 		]
 	},

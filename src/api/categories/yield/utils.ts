@@ -95,11 +95,30 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	// remove any null keys (where no token)
 	tokenNameMapping = Object.fromEntries(Object.entries(tokenNameMapping).filter(([k, _]) => k !== 'null'))
 
+	const symbols = [...new Set(_pools.map((p) => p.symbol.split(' ')[0].split('-')).flat())]
+
+	const tokens = []
+	const tokenSymbolsList = []
+
+	symbols.forEach((token) => {
+		if (token) {
+			tokens.push({
+				name: token,
+				symbol: token,
+				logo: null,
+				fallbackLogo: null
+			})
+			tokenSymbolsList.push(token)
+		}
+	})
+
 	return {
 		pools: poolsList,
 		chainList: Array.from(chainList),
 		projectList: Array.from(projectList),
 		categoryList: Array.from(categoryList),
-		tokenNameMapping
+		tokenNameMapping,
+		tokens,
+		tokenSymbolsList
 	}
 }
