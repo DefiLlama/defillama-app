@@ -1006,3 +1006,11 @@ const firstDayOfMonth = (dateString) => {
 
 	return new Date(y, m, 1).getTime()
 }
+
+export const lastDayOfMonth = (dateString) => {
+	let date = new Date(dateString),
+		y = date.getFullYear(),
+		m = date.getMonth()
+
+	return new Date(y, m + 1, 0).getDate()
+}

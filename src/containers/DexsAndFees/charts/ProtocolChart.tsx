@@ -197,7 +197,13 @@ export const ProtocolChart = ({
 						valueSymbol="$"
 					/>
 				) : (
-					<BarChart title={''} chartData={barsData} stacks={simpleStack} stackColors={stackedBarChartColors} />
+					<BarChart
+						title={''}
+						chartData={barsData}
+						stacks={simpleStack}
+						stackColors={stackedBarChartColors}
+						isMonthly={barInterval === 'Monthly'}
+					/>
 				)}
 			</Wrapper>
 		</StatsSection>
@@ -244,7 +250,13 @@ export const ChartOnly = ({ title, chartData }) => {
 					valueSymbol="$"
 				/>
 			) : (
-				<BarChart title={''} chartData={barsData} stacks={simpleStack} stackColors={stackedBarChartColors} />
+				<BarChart
+					title={''}
+					chartData={barsData}
+					stacks={simpleStack}
+					stackColors={stackedBarChartColors}
+					isMonthly={barInterval === 'Monthly'}
+				/>
 			)}
 		</>
 	)

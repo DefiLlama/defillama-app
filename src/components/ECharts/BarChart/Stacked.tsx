@@ -60,7 +60,8 @@ export default function StackedBarChart({
 	title,
 	color,
 	stackColors,
-	showLegend
+	showLegend,
+	isMonthly
 }: IStackedBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
@@ -137,6 +138,8 @@ export default function StackedBarChart({
 						month: 'short',
 						day: 'numeric'
 					})
+
+					const endDate = isMonthly ? null : null
 
 					let vals
 					if (valueSymbol !== '%' && valueSymbol !== 'ETH') {
@@ -291,7 +294,7 @@ export default function StackedBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, valueSymbol, title, createInstance, series, isDark, color, isSmall, stackColors, showLegend])
+	}, [id, valueSymbol, title, createInstance, series, isDark, color, isSmall, stackColors, showLegend, isMonthly])
 
 	return (
 		<div style={{ position: 'relative' }}>

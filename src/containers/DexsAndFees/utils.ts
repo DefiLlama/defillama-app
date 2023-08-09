@@ -8,6 +8,17 @@ function onlyUnique(value, index, self) {
 
 export const getCleanMonthTimestamp = (timestampInSeconds: number) => {
 	const date = new Date(timestampInSeconds * 1000)
+
+	date.setDate(1)
+
+	return Math.trunc(new Date(date).getTime() / 1000)
+
+	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
+}
+
+export const getMonthEndTimestamp = (timestampInSeconds: number) => {
+	const date = new Date(timestampInSeconds * 1000)
+
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 }
 

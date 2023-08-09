@@ -21,7 +21,8 @@ export default function BarChart({
 	height = '360px',
 	barWidths,
 	stackColors,
-	tooltipOrderBottomUp
+	tooltipOrderBottomUp,
+	isMonthly
 }: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
@@ -75,7 +76,7 @@ export default function BarChart({
 			}
 
 			chartData.forEach(([date, value]) => {
-				series.data.push([getUtcDateObject(date), value])
+				series.data.push([getUtcDateObject(date), value, isMonthly ? 'monthly' : false])
 			})
 
 			return series
@@ -108,13 +109,15 @@ export default function BarChart({
 
 			chartData.forEach(({ date, ...item }) => {
 				selectedStacks.forEach((stack) => {
-					series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
+					series
+						.find((t) => t.name === stack)
+						?.data.push([getUtcDateObject(date), item[stack] || 0, isMonthly ? 'monthly' : false])
 				})
 			})
 
 			return series
 		}
-	}, [barWidths, chartData, color, defaultStacks, seriesConfig, stackColors, stackKeys, selectedStacks])
+	}, [barWidths, chartData, color, defaultStacks, seriesConfig, stackColors, stackKeys, selectedStacks, isMonthly])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

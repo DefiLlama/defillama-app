@@ -49,6 +49,14 @@ export default function AreaBarChart({
 	const { series, yAxisByIndex } = useMemo(() => {
 		const chartColor = color || stringToColour()
 
+		let atleastOneLineChart = false
+
+		stacks.forEach((stack) => {
+			if (!BAR_CHARTS.includes(stack)) {
+				atleastOneLineChart = true
+			}
+		})
+
 		const yAxisByIndex = {}
 
 		if (
@@ -191,7 +199,11 @@ export default function AreaBarChart({
 			stacks.forEach((stack) => {
 				series
 					.find((t) => t.name === stack)
-					?.data.push([getUtcDateObject(date), item[stack] || (stack === 'TVL' ? 0 : '-')])
+					?.data.push([
+						getUtcDateObject(date),
+						item[stack] || (stack === 'TVL' ? 0 : '-'),
+						!atleastOneLineChart && groupBy === 'monthly' ? 'monthly' : false
+					])
 			})
 		})
 
@@ -223,7 +235,18 @@ export default function AreaBarChart({
 		}
 
 		return { series, yAxisByIndex }
-	}, [chartData, stacks, color, customLegendName, hallmarks, isThemeDark, stackColors, isCumulative, isMonthly])
+	}, [
+		chartData,
+		stacks,
+		color,
+		customLegendName,
+		hallmarks,
+		isThemeDark,
+		stackColors,
+		isCumulative,
+		isMonthly,
+		groupBy
+	])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
