@@ -813,6 +813,81 @@ export const chainCoingeckoIds = {
 		geckoId: 'pulsechain',
 		symbol: 'PLS',
 		cmcId: null
+	},
+	XPLA: {
+		geckoId: 'xpla',
+		symbol: 'XPLA',
+		cmcId: '22359'
+	},
+	Neutron: {
+		geckoId: null,
+		symbol: null,
+		cmcId: null
+	},
+	Onus: {
+		geckoId: 'onus',
+		symbol: 'ONUS',
+		cmcId: '15261'
+	},
+	Pokt: {
+		geckoId: 'pocket-network',
+		symbol: 'POKT',
+		cmcId: '11823'
+	},
+	Quasar: {
+		geckoId: null,
+		symbol: 'QSR',
+		cmcId: null
+	},
+	Concordium: {
+		geckoId: 'concordium',
+		symbol: 'CCD',
+		cmcId: '18031'
+	},
+	Chihuahua: {
+		geckoId: 'chihuahua-token',
+		symbol: 'HUAHUA',
+		cmcId: '17208'
+	},
+	Rollux: {
+		geckoId: null,
+		symbol: null,
+		cmcId: null
+	},
+	Tenet: {
+		geckoId: 'tenet-1b000f7b-59cb-4e06-89ce-d62b32d362b9',
+		symbol: 'TENET',
+		cmcId: '24892'
+	},
+	Mantle: {
+		geckoId: 'mantle',
+		symbol: 'MNT',
+		cmcId: '27075'
+	},
+	Neon: {
+		geckoId: 'neon',
+		symbol: 'NEON',
+		cmcId: '26735'
+	},
+	Base: {
+		geckoId: null,
+		symbol: null,
+		cmcId: null
+	},
+	Linea: {
+		geckoId: null,
+		symbol: null,
+		cmcId: null
+	},
+	GravityBridge: {
+		geckoId: null,
+		symbol: null,
+		cmcId: null
+	},
+	'Aura Network': {
+		geckoId: 'aura-network',
+		symbol: 'AURA',
+		cmcId: '20326'
 	}
 }
 
