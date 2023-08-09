@@ -15,6 +15,7 @@ import Link from 'next/link'
 import { DownloadIcon } from '~/components'
 import useWindowSize from '~/hooks/useWindowSize'
 import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
+import { ArrowUpRight } from 'react-feather'
 
 const columnResizeMode = 'onChange'
 
@@ -76,6 +77,12 @@ export function RaisesTable({ raises, downloadCsv }) {
 					placeholder="Search projects..."
 				/>
 
+				<Link href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093" target="_blank">
+					<DownloadButton>
+						<ArrowUpRight size={14} />
+						<span>&nbsp;Methodology & biases</span>
+					</DownloadButton>
+				</Link>
 				<DownloadButton onClick={downloadCsv}>
 					<DownloadIcon />
 					<span>&nbsp;&nbsp;.csv</span>
