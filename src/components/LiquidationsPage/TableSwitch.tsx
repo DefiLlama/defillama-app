@@ -23,7 +23,7 @@ export const TableSwitch = () => {
 	)
 }
 
-const Wrapper = styled.span`
+export const Wrapper = styled.span`
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -42,7 +42,7 @@ interface ISwitch {
 	active: boolean
 }
 
-const Switch = styled.button<ISwitch>`
+export const Switch = styled.button<ISwitch>`
 	display: flex;
 	justify-content: center;
 	align-items: center;

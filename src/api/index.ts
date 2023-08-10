@@ -43,9 +43,7 @@ export async function retryCoingeckoRequest(func, retries) {
 	return {}
 }
 
-export async function getAllCGTokensList(): Promise<
-	Array<{ name: string; symbol?: string; image: string; image2: string }>
-> {
+export async function getAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>> {
 	const data = await fetcher('https://defillama-datasets.llama.fi/tokenlist/sorted.json')
 
 	return data
