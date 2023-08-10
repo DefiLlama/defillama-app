@@ -259,6 +259,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 								customLegendOptions={props.chartData[1]}
 								stacks={simpleStack}
 								hideDefaultLegend={props.disableDefaultLeged}
+								isMonthly={chartInterval === 'Monthly'}
 								/* stackColors={stackedBarChartColors} */
 							/>
 						)}

@@ -22,7 +22,7 @@
 		"ariakit": "^2.0.0-next.43",
 		"colord": "^2.9.3",
 		"dayjs": "^1.11.3",
-		"echarts": "^5.4.2",
+		"echarts": "^5.4.3",
 		"echarts-simple-transform": "^1.0.0",
 		"fathom-client": "^3.4.1",
 		"ioredis": "^5.3.2",

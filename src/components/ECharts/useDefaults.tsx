@@ -15,6 +15,7 @@ import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neu
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { toK } from '~/utils'
 import { useMemo } from 'react'
+import { lastDayOfMonth } from './ProtocolChart/useFetchAndFormatChartData'
 
 const CHART_SYMBOLS = {
 	'Active Users': '',
@@ -106,11 +107,16 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
-				const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
-					year: 'numeric',
+				let chartdate = new Date(params[0].value[0]).toLocaleDateString('en-US', {
+					year: params[0].value[2] === 'monthly' ? undefined : 'numeric',
 					month: 'short',
 					day: 'numeric'
 				})
+
+				chartdate +=
+					params[0].value[2] === 'monthly'
+						? ' - ' + lastDayOfMonth(params[0].value[0]) + ', ' + new Date(params[0].value[0]).getFullYear()
+						: ''
 
 				let vals
 				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1] !== null)
