@@ -9,7 +9,7 @@ const queryClient = new QueryClient()
 
 export const getStaticProps = withPerformanceLogging('correlation', async () => {
 	const coinsData = await getAllCGTokensList()
-	console.log(coinsData)
+	// console.log(coinsData)
 	const props = {
 		coinsData
 	}
