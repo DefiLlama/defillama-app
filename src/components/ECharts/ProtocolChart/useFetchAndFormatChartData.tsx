@@ -899,7 +899,7 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 			let date = +defaultDate
 
 			if (groupBy === 'monthly') {
-				date = Math.floor(firstDayOfMonth(+defaultDate * 1000) / 1000)
+				date = firstDayOfMonth(+defaultDate * 1000)
 			}
 
 			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek < +date : true)) {
@@ -1000,17 +1000,25 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 }
 
 const firstDayOfMonth = (dateString) => {
-	let date = new Date(dateString),
-		y = date.getFullYear(),
-		m = date.getMonth()
+	const date = new Date(dateString)
 
-	return new Date(y, m, 1).getTime()
+	date.setDate(1)
+	date.setHours(0)
+	date.setSeconds(0)
+	date.setMilliseconds(0)
+
+	return date.getTime() / 1000
 }
 
 export const lastDayOfMonth = (dateString) => {
-	let date = new Date(dateString),
-		y = date.getFullYear(),
-		m = date.getMonth()
+	let date = new Date(dateString)
+
+	date.setHours(0)
+	date.setSeconds(0)
+	date.setMilliseconds(0)
+
+	let y = date.getFullYear()
+	let m = date.getMonth()
 
 	return new Date(y, m + 1, 0).getDate()
 }
