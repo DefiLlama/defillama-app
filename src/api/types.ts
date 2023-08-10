@@ -246,4 +246,5 @@ export interface IResponseCGMarketsAPI {
 	symbol: string
 	total_supply: number
 	total_volume: number
+	image2: string
 }
