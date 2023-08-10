@@ -44,7 +44,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 				name: cgToken?.name ?? s,
 				symbol: s,
 				image: cgToken?.image ?? '',
-				image2: cgToken?.image2 ?? ''
+				image2: cgToken?.image ?? ''
 			}
 		})
 
