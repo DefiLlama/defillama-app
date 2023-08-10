@@ -66,10 +66,8 @@ function pearsonCorrelationCoefficient(array1: number[], array2: number[]) {
 }
 
 export default function Correlations({ coinsData }) {
-	console.log(coinsData)
 	const router = useRouter()
 	const queryCoins = router.query?.coin || ([] as Array<string>)
-	console.log(queryCoins)
 	const selectedCoins = useMemo<Record<string, IResponseCGMarketsAPI>>(
 		() =>
 			(queryCoins &&
