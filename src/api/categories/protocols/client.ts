@@ -104,7 +104,7 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 	return { data, error, loading: !data && data !== null && !error }
 }
 
-export const getProtocolUsers = async (protocolId: number | string) => {
+const getProtocolUsers = async (protocolId: number | string) => {
 	const [activeUsers, newUsers] = await Promise.all([
 		fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 			.then((res) => res.json())
@@ -151,20 +151,18 @@ export const useFetchProtocolUsers = (protocolId: number | string | null) => {
 	return { data, error, loading: !data && data !== null && !error }
 }
 
-export const fetchProtocolTransactions = async (protocolId) => {
-	const data = await fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
-		.then((res) => res.json())
-		.then((values) => {
-			return values && values.length > 0 ? values : null
-		})
-		.catch((err) => [])
-
-	return data
-}
 export const useFetchProtocolTransactions = (protocolId: number | string | null) => {
 	const { data, error } = useSWR(
 		`protocolTransactionsApi/${protocolId}`,
-		protocolId ? () => fetchProtocolTransactions(protocolId) : () => null
+		protocolId
+			? () =>
+					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
+						.then((res) => res.json())
+						.then((values) => {
+							return values && values.length > 0 ? values : null
+						})
+						.catch((err) => [])
+			: () => null
 	)
 
 	return { data, error, loading: !data && data !== null && !error }

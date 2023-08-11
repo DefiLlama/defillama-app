@@ -26,40 +26,37 @@ export function useGetVolumeChartDataByChain(chain?: string) {
 	return { data: data ?? null, loading: !data && data !== null && !error }
 }
 
-export async function getFeesAndRevenueChartDataByChain({ chain }) {
-	const data = await getFeesAndRevenueByChain({
-		chain,
-		excludeTotalDataChart: false,
-		excludeTotalDataChartBreakdown: true
-	}).then(({ fees, revenue }) => {
-		const chart: { [date: number]: { fees: number | null; revenue: number | null } } = {}
-
-		fees.totalDataChart?.forEach(([date, fees]) => {
-			if (!chart[date]) {
-				chart[date] = { fees: null, revenue: null }
-			}
-
-			chart[date]['fees'] = fees
-		})
-
-		revenue.totalDataChart?.forEach(([date, revenue]) => {
-			if (!chart[date]) {
-				chart[date] = { fees: null, revenue: null }
-			}
-
-			chart[date]['revenue'] = revenue
-		})
-
-		return Object.entries(chart).map(([date, { fees, revenue }]) => [+date, fees, revenue]) as Array<
-			[number, number, number]
-		>
-	})
-	return data
-}
 export function useGetFeesAndRevenueChartDataByChain(chain?: string) {
 	const { data, error } = useSWR(
 		`feesAndRevenueChartDataByChain/${chain}`,
-		chain && chain !== 'All' ? () => getFeesAndRevenueChartDataByChain({ chain }) : () => null
+		chain && chain !== 'All'
+			? () =>
+					getFeesAndRevenueByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
+						({ fees, revenue }) => {
+							const chart: { [date: number]: { fees: number | null; revenue: number | null } } = {}
+
+							fees.totalDataChart?.forEach(([date, fees]) => {
+								if (!chart[date]) {
+									chart[date] = { fees: null, revenue: null }
+								}
+
+								chart[date]['fees'] = fees
+							})
+
+							revenue.totalDataChart?.forEach(([date, revenue]) => {
+								if (!chart[date]) {
+									chart[date] = { fees: null, revenue: null }
+								}
+
+								chart[date]['revenue'] = revenue
+							})
+
+							return Object.entries(chart).map(([date, { fees, revenue }]) => [+date, fees, revenue]) as Array<
+								[number, number, number]
+							>
+						}
+					)
+			: () => null
 	)
 
 	return { data: data ?? null, loading: !data && data !== null && !error }

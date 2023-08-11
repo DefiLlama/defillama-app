@@ -69,23 +69,83 @@ export const useFetchChainChartData = ({
 		fetchingTransactionsChartData
 
 	const globalChart = useMemo(() => {
-		return formatChainTvlChart({ chart, extraTvlsEnabled, extraTvlCharts })
+		const globalChart = chart.map((data) => {
+			let sum = data[1]
+			Object.entries(extraTvlCharts).forEach(([prop, propCharts]: [string, Array<[number, number]>]) => {
+				const stakedData = propCharts.find((x) => x[0] === data[0])
+
+				// find current date and only add values on that date in "data" above
+				if (stakedData) {
+					if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
+						sum -= stakedData[1]
+					}
+
+					if (prop === 'liquidstaking' && !extraTvlsEnabled['liquidstaking']) {
+						sum -= stakedData[1]
+					}
+
+					if (prop === 'dcAndLsOverlap') {
+						if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
+							sum += stakedData[1]
+						}
+					}
+
+					if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
+						sum += stakedData[1]
+					}
+				}
+			})
+			return [data[0], sum]
+		})
+
+		return globalChart
 	}, [chart, extraTvlsEnabled, extraTvlCharts])
 
 	const chartDatasets = useMemo(() => {
-		return formatChartDatasets({
-			chainGeckoId,
-			denomination,
-			denominationPriceHistory,
-			feesAndRevenueChart,
-			globalChart,
-			inflowsChartData,
-			raisesChart,
-			stablecoinsChartData,
-			txsData,
-			usersData,
-			volumeChart
-		})
+		const priceData =
+			denomination === 'USD' && denominationPriceHistory?.prices
+				? denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
+				: null
+
+		const isNonUSDDenomination = denomination !== 'USD' && denominationPriceHistory && chainGeckoId
+
+		const normalizedDenomination = isNonUSDDenomination
+			? Object.fromEntries(
+					denominationPriceHistory.prices.map(([timestamp, price]) => [getUtcDateObject(timestamp / 1000), price])
+			  )
+			: []
+
+		const finalTvlChart = isNonUSDDenomination
+			? globalChart.map(([date, tvl]) => [date, tvl / normalizedDenomination[getUtcDateObject(date)]])
+			: globalChart
+
+		const finalVolumeChart = isNonUSDDenomination
+			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
+			: volumeChart
+
+		const finalFeesAndRevenueChart = isNonUSDDenomination
+			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
+					date,
+					fees / normalizedDenomination[getUtcDateObject(date)],
+					revenue / normalizedDenomination[getUtcDateObject(date)]
+			  ])
+			: feesAndRevenueChart
+
+		const chartDatasets = [
+			{
+				feesChart: finalFeesAndRevenueChart,
+				volumeChart: finalVolumeChart,
+				globalChart: finalTvlChart,
+				raisesData: raisesChart,
+				totalStablesData: stablecoinsChartData,
+				bridgeData: inflowsChartData,
+				usersData,
+				txsData,
+				priceData
+			}
+		]
+
+		return chartDatasets
 	}, [
 		chainGeckoId,
 		denomination,
@@ -110,96 +170,4 @@ export const useFetchChainChartData = ({
 		totalValueUSD,
 		valueChangeUSD
 	}
-}
-
-export function formatChainTvlChart({ chart, extraTvlsEnabled, extraTvlCharts }) {
-	const globalChart = chart.map((data) => {
-		let sum = data[1]
-		Object.entries(extraTvlCharts).forEach(([prop, propCharts]: [string, Array<[number, number]>]) => {
-			const stakedData = propCharts.find((x) => x[0] === data[0])
-
-			// find current date and only add values on that date in "data" above
-			if (stakedData) {
-				if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
-					sum -= stakedData[1]
-				}
-
-				if (prop === 'liquidstaking' && !extraTvlsEnabled['liquidstaking']) {
-					sum -= stakedData[1]
-				}
-
-				if (prop === 'dcAndLsOverlap') {
-					if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
-						sum += stakedData[1]
-					}
-				}
-
-				if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
-					sum += stakedData[1]
-				}
-			}
-		})
-		return [data[0], sum]
-	})
-
-	return globalChart
-}
-
-export function formatChartDatasets({
-	chainGeckoId,
-	denomination,
-	denominationPriceHistory,
-	feesAndRevenueChart,
-	globalChart,
-	inflowsChartData,
-	raisesChart,
-	stablecoinsChartData,
-	txsData,
-	usersData,
-	volumeChart
-}) {
-	const priceData =
-		denomination === 'USD' && denominationPriceHistory?.prices
-			? denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
-			: null
-
-	const isNonUSDDenomination = denomination !== 'USD' && denominationPriceHistory && chainGeckoId
-
-	const normalizedDenomination = isNonUSDDenomination
-		? Object.fromEntries(
-				denominationPriceHistory.prices.map(([timestamp, price]) => [getUtcDateObject(timestamp / 1000), price])
-		  )
-		: []
-
-	const finalTvlChart = isNonUSDDenomination
-		? globalChart.map(([date, tvl]) => [date, tvl / normalizedDenomination[getUtcDateObject(date)]])
-		: globalChart
-
-	const finalVolumeChart = isNonUSDDenomination
-		? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
-		: volumeChart
-
-	const finalFeesAndRevenueChart = isNonUSDDenomination
-		? feesAndRevenueChart?.map(([date, fees, revenue]) => [
-				date,
-				fees / normalizedDenomination[getUtcDateObject(date)],
-				revenue / normalizedDenomination[getUtcDateObject(date)]
-		  ])
-		: feesAndRevenueChart
-
-	const chartDatasets = [
-		{
-			feesChart: finalFeesAndRevenueChart,
-			volumeChart: finalVolumeChart,
-			globalChart: finalTvlChart,
-			raisesData: raisesChart,
-			totalStablesData: stablecoinsChartData,
-			bridgeData: inflowsChartData,
-			usersData,
-			txsData,
-			priceData
-		}
-	]
-
-	return chartDatasets
 }
