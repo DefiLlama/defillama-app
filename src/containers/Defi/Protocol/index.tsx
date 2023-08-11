@@ -817,7 +817,7 @@ function ProtocolContainer({
 								/>
 							) : null}
 
-							{dailyVolume ? (
+							{allTimeVolume && dailyVolume ? (
 								<RowWithSubRows
 									protocolName={protocolData.name}
 									dataType="Volume"
@@ -835,9 +835,17 @@ function ProtocolContainer({
 										</>
 									}
 								/>
+							) : dailyVolume ? (
+								<tr>
+									<th>
+										<span>Volume 24h</span>
+										<Flag protocol={protocolData.name} dataType={'Volume'} />
+									</th>
+									<td>{formatPrice(dailyVolume)}</td>
+								</tr>
 							) : null}
 
-							{dailyDerivativesVolume ? (
+							{dailyDerivativesVolume && allTimeDerivativesVolume ? (
 								<RowWithSubRows
 									protocolName={protocolData.name}
 									dataType="Derivatives Volume"
@@ -855,6 +863,14 @@ function ProtocolContainer({
 										</>
 									}
 								/>
+							) : dailyDerivativesVolume ? (
+								<tr>
+									<th>
+										<span>Derivatives Volume 24h</span>
+										<Flag protocol={protocolData.name} dataType={'Derivatives Volume'} />
+									</th>
+									<td>{formatPrice(dailyDerivativesVolume)}</td>
+								</tr>
 							) : null}
 
 							{fees30d ? (
