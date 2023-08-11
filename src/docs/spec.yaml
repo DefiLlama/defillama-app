@@ -2,6 +2,8 @@ openapi: 3.0.0
 info:
   description: |
     Docs for defillama's open API
+
+    Need higher rate limits or priority support? We offer a premium plan for 300$/mo. To get it, email 0xngmi@llama.fi
   version: 1.0.0-oas3
   title: DefiLlama API
 tags:
