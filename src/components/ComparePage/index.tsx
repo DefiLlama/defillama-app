@@ -226,10 +226,6 @@ function ComparePage() {
 		.filter(Boolean)
 		.map((chain) => ({ value: chain, label: chain }))
 
-	React.useEffect(() => {
-		if (!router?.query?.chains) updateRoute('chains', 'Ethereum', router)
-	}, [router])
-
 	return (
 		<>
 			<ProtocolsChainsSearch
