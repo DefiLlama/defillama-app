@@ -821,16 +821,11 @@ function ProtocolContainer({
 								<RowWithSubRows
 									protocolName={protocolData.name}
 									dataType="Volume"
-									rowHeader="Volume (annualized)"
-									rowValue={formatPrice(dailyVolume * 365)}
+									rowHeader="Volume 24h"
+									rowValue={formatPrice(dailyVolume)}
 									helperText={null}
 									subRows={
 										<>
-											<tr>
-												<th data-subvalue>{`Volume 24h`}</th>
-												<td data-subvalue>{formatPrice(dailyVolume)}</td>
-											</tr>
-
 											{allTimeVolume ? (
 												<tr>
 													<th data-subvalue>{`Cumulative Volume`}</th>
@@ -846,16 +841,11 @@ function ProtocolContainer({
 								<RowWithSubRows
 									protocolName={protocolData.name}
 									dataType="Derivatives Volume"
-									rowHeader="Derivatives Volume (annualized)"
-									rowValue={formatPrice(dailyDerivativesVolume * 365)}
+									rowHeader="Derivatives Volume 24h"
+									rowValue={formatPrice(dailyDerivativesVolume)}
 									helperText={null}
 									subRows={
 										<>
-											<tr>
-												<th data-subvalue>{`Volume 24h`}</th>
-												<td data-subvalue>{formatPrice(dailyDerivativesVolume)}</td>
-											</tr>
-
 											{allTimeDerivativesVolume ? (
 												<tr>
 													<th data-subvalue>{`Cumulative Volume`}</th>
