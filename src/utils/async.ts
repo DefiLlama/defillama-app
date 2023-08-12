@@ -31,10 +31,18 @@ export async function fetchWithThrows(input: RequestInfo | URL, init?: RequestIn
 
 export async function fetchWithErrorLogging(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 	const start = Date.now()
-	const res = await fetchOverCache(input, init)
-	if (res.status >= 400) {
+	try {
+		const res = await fetchOverCache(input, init)
+		if (res.status >= 400) {
+			const end = Date.now()
+			console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${input}>`)
+		}
+		return res
+	} catch (error) {
 		const end = Date.now()
-		console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${input}>`)
+		console.error(
+			`[HTTP] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${end - start}ms] <${input}>`
+		)
+		return null
 	}
-	return res
 }
