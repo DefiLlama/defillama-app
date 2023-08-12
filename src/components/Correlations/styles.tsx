@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { Wrapper } from '../LiquidationsPage/TableSwitch'
 
 export const Table = styled.table`
 	max-width: 480px;
@@ -117,6 +118,10 @@ export const SearchRow = styled.div`
 export const Body = styled.div`
 	display: flex;
 	margin: 0 auto;
+
+	@media screen and (max-width: ${({ theme: { bpSm } }) => bpSm}) {
+		flex-direction: column;
+	}
 `
 
 export const SelectedBody = styled.div`
@@ -124,4 +129,36 @@ export const SelectedBody = styled.div`
 	overflow: scroll;
 	margin-right: 32px;
 	margin-top: 12px;
+`
+
+export const SearchBody = styled.div`
+	::-webkit-scrollbar {
+		display: none;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background-color: var(--transparent);
+		border: 0px solid var(--transparent);
+	}
+
+	::-webkit-scrollbar-track {
+		background: transparent;
+		width: 0px;
+		height: 0px;
+	}
+	scrollbar-width: none;
+`
+
+export const Add = styled.div`
+	display: flex;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 24px;
+`
+
+export const ToggleWrapper = styled(Wrapper)`
+	@media screen and (max-width: ${({ theme: { bpSm } }) => bpSm}) {
+		display: flex;
+		position: relative;
+	}
 `

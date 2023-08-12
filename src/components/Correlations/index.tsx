@@ -15,55 +15,19 @@ import {
 	SearchRow,
 	SelectedBody,
 	Table,
-	Image
+	Image,
+	SearchBody,
+	Add,
+	ToggleWrapper
 } from './styles'
 import { Switch, Wrapper } from '../LiquidationsPage/TableSwitch'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
-
-const usePriceCharts = (geckoIds, period) => {
-	const data = useQueries<any>(
-		geckoIds.map((id) => ({
-			queryKey: ['price_chart', id, period],
-			queryFn: () =>
-				fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${period}`).then((r) =>
-					r.json()
-				),
-			staleTime: Infinity,
-			cacheTime: Infinity
-		}))
-	)
-	return {
-		data: Object.fromEntries(data.map((res, i) => [geckoIds[i], res.data?.prices?.map((price) => price[1]) || []])),
-		isLoading: data.find((res: any) => res.isLoading)
-	}
-}
-
-function pearsonCorrelationCoefficient(array1: number[], array2: number[]) {
-	const n = array1.length
-	let sum1 = 0
-	let sum2 = 0
-	let sum1Sq = 0
-	let sum2Sq = 0
-	let pSum = 0
-
-	for (let i = 0; i < n; i++) {
-		sum1 += array1[i]
-		sum2 += array2[i]
-		sum1Sq += array1[i] ** 2
-		sum2Sq += array2[i] ** 2
-		pSum += array1[i] * array2[i]
-	}
-
-	const num = pSum - (sum1 * sum2) / n
-	const den = Math.sqrt((sum1Sq - sum1 ** 2 / n) * (sum2Sq - sum2 ** 2 / n))
-
-	if (den === 0) {
-		return 0
-	}
-
-	return (num / den).toFixed(2)
-}
+import { Divider, Panel } from '..'
+import { DashGrid } from '~/pages/press'
+import { FAQ } from './Faq'
+import { usePriceCharts } from './hooks'
+import { pearsonCorrelationCoefficient } from './util'
 
 export default function Correlations({ coinsData }) {
 	const router = useRouter()
@@ -84,20 +48,28 @@ export default function Correlations({ coinsData }) {
 	const parentRef = useRef()
 	const [search, setSearch] = useState('')
 	const [period, setPeriod] = useState(365)
-	const { data: priceChart, isLoading } = usePriceCharts(Object.keys(selectedCoins), period)
+	const { data: priceChart, isLoading } = usePriceCharts(Object.keys(selectedCoins))
 	const coins = Object.values(selectedCoins).filter(Boolean)
-	const correlations = !isLoading
-		? Object.fromEntries(
-				coins.map((coin0) => {
-					const results = coins.map((coin1) => {
-						if (coin1.id === coin0.id) return null
-						const corr = pearsonCorrelationCoefficient(priceChart[coin0.id], priceChart[coin1.id])
-						return corr
-					})
-					return [coin0.id, results]
-				})
-		  )
-		: []
+	const correlations = useMemo(
+		() =>
+			!isLoading
+				? Object.fromEntries(
+						coins.map((coin0) => {
+							const results = coins.map((coin1) => {
+								if (coin1.id === coin0.id) return null
+								const corr = pearsonCorrelationCoefficient(
+									priceChart[coin0.id]?.slice(-period),
+									priceChart[coin1.id]?.slice(-period)
+								)
+								return corr
+							})
+							return [coin0.id, results]
+						})
+				  )
+				: [],
+		[isLoading, period]
+	)
+
 	const filteredCoins = useMemo(() => {
 		return (
 			coinsData &&
@@ -116,13 +88,29 @@ export default function Correlations({ coinsData }) {
 		estimateSize: () => 50
 	})
 
+	useEffect(() => {
+		console.log(queryCoins)
+		if (!queryCoins?.length)
+			router.push(
+				{
+					pathname: router.pathname,
+					query: {
+						...router.query,
+						coin: ['bitcoin', 'ethereum', 'tether', 'binancecoin']
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+	}, [queryCoins])
+
 	const [isModalOpen, setModalOpen] = useState(false)
 
 	return (
 		<>
 			<TYPE.largeHeader>Correlations Matrix</TYPE.largeHeader>
 
-			<Wrapper style={{ position: 'fixed', left: '50%' }}>
+			<ToggleWrapper>
 				<Switch onClick={() => setPeriod(7)} active={period === 7}>
 					7d
 				</Switch>
@@ -132,7 +120,7 @@ export default function Correlations({ coinsData }) {
 				<Switch onClick={() => setPeriod(365)} active={period === 365}>
 					1y
 				</Switch>
-			</Wrapper>
+			</ToggleWrapper>
 			<Body>
 				<SelectedBody>
 					<TYPE.heading>Selected Coins</TYPE.heading>
@@ -169,6 +157,9 @@ export default function Correlations({ coinsData }) {
 							</SearchRow>
 						) : null
 					)}
+					<Add onClick={() => setModalOpen(true)}>
+						<div>+</div>
+					</Add>
 				</SelectedBody>
 				<Table>
 					<thead>
@@ -180,7 +171,7 @@ export default function Correlations({ coinsData }) {
 					</thead>
 					<tbody>
 						{coins.map((coin, i) => (
-							<Row key={coin.id + i}>
+							<Row key={coin.id + i + period}>
 								<HeaderCell>{coin?.symbol?.toUpperCase()}</HeaderCell>
 								{correlations[coin.id]?.map((corr) =>
 									corr === null ? (
@@ -196,7 +187,7 @@ export default function Correlations({ coinsData }) {
 											}}
 										/>
 									) : (
-										<Cell value={Number(corr)} key={corr + coin.id}>
+										<Cell value={Number(corr)} key={corr + coin.id + period}>
 											{corr}
 										</Cell>
 									)
@@ -222,11 +213,11 @@ export default function Correlations({ coinsData }) {
 							style={{ height: '36px' }}
 							autoFocus
 						/>
-						<div
+						<SearchBody
 							ref={parentRef}
 							style={{
 								height: 400,
-								width: 400,
+								width: 300,
 								overflowY: 'auto',
 								contain: 'strict'
 							}}
@@ -285,10 +276,11 @@ export default function Correlations({ coinsData }) {
 									)
 								})}
 							</div>
-						</div>
+						</SearchBody>
 					</ModalContent>
 				</ModalWrapper>
 			</Body>
+			<FAQ />
 		</>
 	)
 }

@@ -82,6 +82,7 @@ const defaultToolsAndFooterLinks = {
 			newTag: true,
 			external: true
 		},
+		{ name: 'Correlation', path: '/correlation', newTag: true },
 		{
 			name: 'Wiki',
 			path: 'https://wiki.defillama.com/wiki/Main_Page',
@@ -171,6 +172,7 @@ export const navLinks: ILinks = {
 				newTag: true,
 				external: true
 			},
+			{ name: 'Correlation', path: '/correlation', newTag: true },
 			{
 				name: 'Wiki',
 				path: 'https://wiki.defillama.com/wiki/Main_Page',
