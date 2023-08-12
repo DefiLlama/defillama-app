@@ -129,6 +129,22 @@ export const SelectedBody = styled.div`
 	overflow: scroll;
 	margin-right: 32px;
 	margin-top: 12px;
+
+	::-webkit-scrollbar {
+		display: none;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background-color: var(--transparent);
+		border: 0px solid var(--transparent);
+	}
+
+	::-webkit-scrollbar-track {
+		background: transparent;
+		width: 0px;
+		height: 0px;
+	}
+	scrollbar-width: none;
 `
 
 export const SearchBody = styled.div`
