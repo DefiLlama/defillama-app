@@ -15,7 +15,7 @@ export const getColor = async (path: string) => {
 		return color
 	} catch (error) {
 		console.log(path, error)
-		console.log('error is handled, return primaryColor')
+		console.log('error is handled, returning primaryColor')
 		return primaryColor
 	}
 }
