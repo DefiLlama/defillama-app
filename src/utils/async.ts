@@ -40,7 +40,9 @@ export async function fetchWithErrorLogging(input: RequestInfo | URL, init?: Req
 		return res
 	} catch (error) {
 		const end = Date.now()
-		console.error(`[HTTP] [error] [fetch] [${error.message}] [${end - start}ms] <${input}>`)
+		console.error(
+			`[HTTP] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${end - start}ms] <${input}>`
+		)
 		return null
 	}
 }
