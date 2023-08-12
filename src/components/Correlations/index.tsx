@@ -89,7 +89,6 @@ export default function Correlations({ coinsData }) {
 	})
 
 	useEffect(() => {
-		console.log(queryCoins)
 		if (!queryCoins?.length)
 			router.push(
 				{

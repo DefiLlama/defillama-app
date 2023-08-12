@@ -423,7 +423,6 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 			}),
 		...allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
 	])
-	console.log('protocolsData, ...dataByChain', 'ok')
 
 	let protocols = dataByChain
 		.map(
