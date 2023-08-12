@@ -1,5 +1,7 @@
 import Layout from '~/layout'
 import styled from 'styled-components'
+import Image from 'next/future/image'
+import lostLlama from '~/assets/404.png'
 
 const Style = styled.div`
 	color: #8e8f91;
@@ -14,7 +16,8 @@ const Style = styled.div`
 export default function HomePage(props) {
 	return (
 		<Layout title="DefiLlama - Page not found">
-			<Style>404 - Page not found</Style>
+			<Style><Image src={lostLlama} width="350" height="350" alt="Want a ride?" style={{ margin: 'auto' }} />
+				404 - Page not found</Style>
 		</Layout>
 	)
 }
