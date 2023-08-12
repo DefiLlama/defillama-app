@@ -420,6 +420,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 		fetch(PROTOCOLS_API).then(handleFetchResponse),
 		...allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
 	])
+	console.log('protocolsData, ...dataByChain', 'ok')
 
 	let protocols = dataByChain
 		.map(
