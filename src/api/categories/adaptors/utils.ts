@@ -136,6 +136,7 @@ export async function getCexVolume() {
 }
 
 export async function handleFetchResponse(res: Response) {
+	console.log('inside handleFetchResponse')
 	try {
 		return await res.json()
 	} catch (e) {
