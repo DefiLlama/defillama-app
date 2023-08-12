@@ -412,12 +412,15 @@ export interface IOverviewProps {
 
 // - used in /[type]/chains
 export const getChainsPageData = async (type: string): Promise<IOverviewProps> => {
-	console.log('getChainsPageData', type)
 	const { allChains, total24h: allChainsTotal24h } = await getOverview(type)
-	console.log('allChains', 'ok')
 
 	const [protocolsData, ...dataByChain] = await Promise.all([
-		fetch(PROTOCOLS_API).then(handleFetchResponse),
+		fetch(PROTOCOLS_API)
+			.then(handleFetchResponse)
+			.catch((err) => {
+				console.log(PROTOCOLS_API, err)
+				return {}
+			}),
 		...allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
 	])
 	console.log('protocolsData, ...dataByChain', 'ok')
