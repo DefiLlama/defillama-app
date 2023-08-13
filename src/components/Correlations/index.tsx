@@ -57,9 +57,12 @@ export default function Correlations({ coinsData }) {
 						coins.map((coin0) => {
 							const results = coins.map((coin1) => {
 								if (coin1.id === coin0.id) return null
+								const chart0 = priceChart[coin0.id]?.slice(-period)
+								const chart1 = priceChart[coin1.id]?.slice(-period)
+								const shortChartLength = chart0.length > chart1?.length ? chart1?.length : chart0?.length
 								const corr = pearsonCorrelationCoefficient(
-									priceChart[coin0.id]?.slice(-period),
-									priceChart[coin1.id]?.slice(-period)
+									chart0.slice(0, shortChartLength),
+									chart1.slice(0, shortChartLength)
 								)
 								return corr
 							})
@@ -67,8 +70,10 @@ export default function Correlations({ coinsData }) {
 						})
 				  )
 				: [],
-		[isLoading, period]
+		[isLoading, period, queryCoins]
 	)
+
+	console.log(correlations, priceChart)
 
 	const filteredCoins = useMemo(() => {
 		return (
