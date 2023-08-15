@@ -888,6 +888,12 @@ export const chainCoingeckoIds = {
 		geckoId: 'aura-network',
 		symbol: 'AURA',
 		cmcId: '20326'
+	},
+	Sei: {
+		geckoId: 'sei-network',
+		symbol: 'SEI',
+		cmcId: '23149',
+		categories: ['Cosmos']
 	}
 }
 
