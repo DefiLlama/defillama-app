@@ -499,7 +499,7 @@ function ProtocolContainer({
 					Project has some red flags and multiple users have reported concerns. Be careful.
 				</Announcement>
 			)}
-			{category === 'Uncollateralized Lending' && (
+			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
 				<Announcement>
 					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this
 					click{' '}
