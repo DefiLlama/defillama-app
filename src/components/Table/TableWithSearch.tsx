@@ -12,7 +12,7 @@ import {
 import VirtualTable from '~/components/Table/Table'
 import { SearchIcon, TableFiltersWithInput } from './shared'
 
-export function TableWithSearch({ data, columns, placeholder, columnToSearch, customFilters }) {
+export function TableWithSearch({ data, columns, placeholder, columnToSearch, customFilters = null }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
