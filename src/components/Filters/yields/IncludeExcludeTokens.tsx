@@ -20,10 +20,11 @@ export function IncludeExcludeTokens({
 
 	const router = useRouter()
 
-	const { token, excludeToken } = router.query
+	const { token, excludeToken, exactToken } = router.query
 
 	const tokensToInclude = token ? (typeof token === 'string' ? [token] : [...token]) : []
 	const tokensToExclude = excludeToken ? (typeof excludeToken === 'string' ? [excludeToken] : [...excludeToken]) : []
+	const tokensThatMatchExactly = exactToken ? (typeof exactToken === 'string' ? [exactToken] : [...exactToken]) : []
 
 	const showMoreResults = () => {
 		setResultsLength((prev) => prev + 5)
@@ -61,6 +62,15 @@ export function IncludeExcludeTokens({
 		})
 	}
 
+	const handleTokenExact = (token: string, action?: 'delete') => {
+		const tokenQueryParams =
+			action === 'delete' ? tokensThatMatchExactly.filter((x) => x !== token) : [...tokensThatMatchExactly, token]
+
+		router.push({ pathname: router.pathname, query: { ...router.query, exactToken: tokenQueryParams } }, undefined, {
+			shallow: true
+		})
+	}
+
 	const options = combobox.matches
 		.filter((t) => !tokensToInclude.includes(t) && !tokensToExclude.includes(t))
 		.map((o) => tokens.find((x) => x.symbol === o))
@@ -79,6 +89,13 @@ export function IncludeExcludeTokens({
 					{tokensToExclude.map((token) => (
 						<IncludeOrExclude key={'excludedtokeninsearch' + token} onClick={() => handleTokenExclude(token, 'delete')}>
 							<span>{`Exclude: ${token}`}</span>
+							<XIcon size={14} />
+						</IncludeOrExclude>
+					))}
+
+					{tokensThatMatchExactly.map((token) => (
+						<IncludeOrExclude key={'exacttokensinsearch' + token} onClick={() => handleTokenExact(token, 'delete')}>
+							<span>{`Exact: ${token}`}</span>
 							<XIcon size={14} />
 						</IncludeOrExclude>
 					))}
@@ -119,6 +136,16 @@ export function IncludeExcludeTokens({
 										}}
 									>
 										Exclude
+									</Action>
+
+									<Action
+										onClick={(e) => {
+											e.stopPropagation()
+
+											handleTokenExact(token.symbol)
+										}}
+									>
+										Exact
 									</Action>
 								</ActionsWrapper>
 							</ResultRow>

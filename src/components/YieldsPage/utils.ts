@@ -9,6 +9,7 @@ export function toFilterPool({
 	selectedAttributes,
 	includeTokens,
 	excludeTokens,
+	exactTokens,
 	selectedCategories,
 	pathname,
 	minTvl,
@@ -48,28 +49,42 @@ export function toFilterPool({
 		.split('-')
 		.map((x) => x.toLowerCase())
 
-	const includeToken =
-		includeTokens.length > 0 && includeTokens[0] !== 'All'
-			? includeTokens
-					.map((t) => t.toLowerCase())
-					.find((token) => {
-						if (tokensInPool.some((x) => x.includes(token.toLowerCase()))) {
-							return true
-						} else if (token === 'eth') {
-							return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
-						} else return false
-					})
-			: true
+	if (exactTokens.length === 0) {
+		const includeToken =
+			includeTokens.length > 0 && includeTokens[0] !== 'All'
+				? includeTokens
+						.map((t) => t.toLowerCase())
+						.find((token) => {
+							if (tokensInPool.some((x) => x.includes(token.toLowerCase()))) {
+								return true
+							} else if (token === 'eth') {
+								return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
+							} else return false
+						})
+				: true
 
-	const excludeToken = !excludeTokens
-		.map((t) => t.toLowerCase())
-		.find((token) => tokensInPool.includes(token.toLowerCase()))
+		const excludeToken = !excludeTokens
+			.map((t) => t.toLowerCase())
+			.find((token) => tokensInPool.includes(token.toLowerCase()))
 
-	toFilter =
-		toFilter &&
-		selectedChains.map((t) => t.toLowerCase()).includes(curr.chain.toLowerCase()) &&
-		includeToken &&
-		excludeToken
+		toFilter =
+			toFilter &&
+			selectedChains.map((t) => t.toLowerCase()).includes(curr.chain.toLowerCase()) &&
+			includeToken &&
+			excludeToken
+	} else {
+		const exactToken = exactTokens
+			.map((t) => t.toLowerCase())
+			.find((token) => {
+				if (tokensInPool.some((x) => x === token.toLowerCase())) {
+					return true
+				} else if (token === 'eth') {
+					return tokensInPool.find((x) => x.includes('weth') && x === token)
+				} else return false
+			})
+
+		toFilter = toFilter && selectedChains.map((t) => t.toLowerCase()).includes(curr.chain.toLowerCase()) && exactToken
+	}
 
 	const isValidTvlRange =
 		(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))

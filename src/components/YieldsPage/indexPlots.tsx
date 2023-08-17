@@ -26,8 +26,15 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
-	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
-		useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	const {
+		selectedProjects,
+		selectedChains,
+		selectedAttributes,
+		includeTokens,
+		excludeTokens,
+		exactTokens,
+		selectedCategories
+	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
@@ -39,6 +46,7 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens
 				selectedAttributes,
 				includeTokens,
 				excludeTokens,
+				exactTokens,
 				selectedCategories,
 				minTvl,
 				maxTvl,
@@ -61,6 +69,7 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens
 		selectedAttributes,
 		includeTokens,
 		excludeTokens,
+		exactTokens,
 		selectedCategories,
 		pathname
 	])
