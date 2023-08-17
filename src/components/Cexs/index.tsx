@@ -58,14 +58,13 @@ const Cexs = ({ cexs }) => {
 		customRange: customRangeInflows[cex.slug]?.outflows
 	}))
 
-	console.log(cexsWithCustomRange)
-
 	const onHourChange = (hours) => {
 		const isValid = hours
 			.map((hour) => (hour === '' ? 0 : hour))
 			.every((hour) => /^([01]?[0-9]|2[0-3])$/.test(hour) || hour === '')
-
-		if (hours[0] > hours[1] || hours[1] < hours[0]) return
+		console.log(startTs, endTs, startTs > endTs, hours)
+		if (hours[0] > hours[1] && startTs > endTs) return
+		if (hours[1] < hours[0] && startTs > endTs) return
 
 		if (isValid) setHours(hours)
 	}
