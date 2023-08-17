@@ -1,4 +1,4 @@
-import { Search } from 'react-feather'
+import { Search, Calendar } from 'react-feather'
 import styled from 'styled-components'
 
 interface INameProps {
@@ -110,6 +110,13 @@ export const SearchWrapper = styled.div`
 `
 
 export const SearchIcon = styled(Search)`
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	color: ${({ theme }) => theme.text3};
+`
+
+export const CalendarIcon = styled(Calendar)`
 	position: absolute;
 	top: 8px;
 	left: 8px;

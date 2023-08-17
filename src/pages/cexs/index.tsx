@@ -1,12 +1,14 @@
+import { QueryClient, QueryClientProvider } from 'react-query'
+
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { Header } from '~/Theme'
 import type { IChainTvl } from '~/api/types'
 import { withPerformanceLogging } from '~/utils/perf'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { cexColumn } from '~/components/Table/Defi/columns'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import Cexs from '~/components/Cexs'
+import 'react-datepicker/dist/react-datepicker.css'
 
 const fetch = fetchWithErrorLogging
 
@@ -563,12 +565,15 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 	}
 })
 
+const queryClient = new QueryClient()
+
 export default function Protocols({ cexs }) {
 	return (
-		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
-			<Header>CEX Transparency</Header>
-
-			<TableWithSearch data={cexs} columns={cexColumn} columnToSearch={'name'} placeholder={'Search exchange...'} />
-		</Layout>
+		<QueryClientProvider client={queryClient}>
+			<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
+				<Header>CEX Transparency</Header>
+				<Cexs cexs={cexs} />
+			</Layout>
+		</QueryClientProvider>
 	)
 }

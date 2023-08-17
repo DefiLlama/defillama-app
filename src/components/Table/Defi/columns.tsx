@@ -897,6 +897,22 @@ export const cexColumn: ColumnDef<any>[] = [
 		}
 	},
 	{
+		header: 'Custom range Inflows',
+		accessorKey: 'customRange',
+		size: 200,
+		cell: (info) => (
+			<InflowOutflow
+				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
+			>
+				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+			</InflowOutflow>
+		),
+		sortingFn: sortingFns.datetime,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Auditor',
 		accessorKey: 'auditor',
 		cell: ({ getValue }) => (

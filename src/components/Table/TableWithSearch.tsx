@@ -12,7 +12,7 @@ import {
 import VirtualTable from '~/components/Table/Table'
 import { SearchIcon, TableFiltersWithInput } from './shared'
 
-export function TableWithSearch({ data, columns, placeholder, columnToSearch }) {
+export function TableWithSearch({ data, columns, placeholder, columnToSearch, customFilters }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -54,12 +54,14 @@ export function TableWithSearch({ data, columns, placeholder, columnToSearch }) 
 				<SearchIcon size={16} />
 
 				<input
+					style={{ marginRight: '8px' }}
 					value={projectName}
 					onChange={(e) => {
 						setProjectName(e.target.value)
 					}}
 					placeholder={placeholder}
 				/>
+				{customFilters}
 			</TableFiltersWithInput>
 			<VirtualTable instance={instance} />
 		</>
