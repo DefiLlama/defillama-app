@@ -34,7 +34,11 @@ const Cexs = ({ cexs }) => {
 		date.setMonth(date.getMonth() - 1)
 		return date
 	})
-	const [endDate, setEndDate] = useState(new Date())
+	const [endDate, setEndDate] = useState(() => {
+		const date = new Date()
+		date.setMonth(date.getDay() - 1)
+		return date
+	})
 	const [hours, setHours] = useState([12, 12])
 	const startTs = (startDate?.getTime() / 1000 + Number(hours[0] || 0) * SECONDS_IN_HOUR).toFixed(0)
 	const endTs = (endDate?.getTime() / 1000 + Number(hours[1] || 0) * SECONDS_IN_HOUR).toFixed(0)
@@ -52,7 +56,7 @@ const Cexs = ({ cexs }) => {
 	const { data: customRangeInflows = {} } = useQuery(['cexs', startTs, endTs], () =>
 		getOutflowsByTimerange(startTs, endTs)
 	)
-
+	console.log(startTs, endTs, customRangeInflows)
 	const cexsWithCustomRange = cexs.map((cex) => ({
 		...cex,
 		customRange: customRangeInflows[cex.slug]?.outflows
