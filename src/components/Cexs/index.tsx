@@ -36,7 +36,7 @@ const Cexs = ({ cexs }) => {
 	})
 	const [endDate, setEndDate] = useState(() => {
 		const date = new Date()
-		date.setMonth(date.getDay() - 1)
+		date.setDate(date.getDate() - 1)
 		return date
 	})
 	const [hours, setHours] = useState([12, 12])

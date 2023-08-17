@@ -9,7 +9,7 @@ export const FilterContainer = styled.div`
 
 	padding-right: 8px;
 	padding-left: 8px;
-	background-color: black;
+	background-color: ${({ theme }) => theme.bg6};
 	border-radius: 8px;
 
 	align-items: center;
