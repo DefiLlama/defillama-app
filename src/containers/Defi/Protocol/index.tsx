@@ -494,7 +494,7 @@ function ProtocolContainer({
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 
-			{['SyncDEX Finance', 'Avatr', 'SatoshiCoreSwap', 'Locus Finance'].includes(name) && (
+			{['SyncDEX Finance', 'Avatr', 'SatoshiCoreSwap', 'Locus Finance', 'Opankeswap'].includes(name) && (
 				<Announcement warning={true} notCancellable={true}>
 					Project has some red flags and multiple users have reported concerns. Be careful.
 				</Announcement>
