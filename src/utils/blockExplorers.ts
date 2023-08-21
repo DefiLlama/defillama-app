@@ -80,7 +80,8 @@ const blockExplorers = {
 	stark: ['https://starkscan.co/token/', 'StarkScan'],
 	linea: ['https://lineascan.build/token/', 'LineaScan'],
 	mantle: ['https://explorer.mantle.xyz/address/', 'Mantle Explorer'],
-	base: ['https://basescan.org/address/', 'Basescan']
+	base: ['https://basescan.org/address/', 'Basescan'],
+	op_bnb: ['https://mainnet.opbnbscan.com/address/', 'opBNBScan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
