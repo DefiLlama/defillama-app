@@ -1,6 +1,7 @@
 import {
 	ACTIVE_USERS_API,
 	CHART_API,
+	DEV_METRICS_API,
 	PROTOCOLS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
@@ -72,7 +73,8 @@ export async function getChainPageData(chain?: string) {
 		activeUsers,
 		transactions,
 		newUsers,
-		raisesData
+		raisesData,
+		devMetricsData
 	] = await Promise.all([
 		fetchWithErrorLogging(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
@@ -148,7 +150,12 @@ export async function getChainPageData(chain?: string) {
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
-		!chain || chain === 'All' ? fetchWithErrorLogging(RAISES_API).then((r) => r.json()) : null
+		!chain || chain === 'All' ? fetchWithErrorLogging(RAISES_API).then((r) => r.json()) : null,
+		!chain || chain === 'All'
+			? null
+			: fetch(`${DEV_METRICS_API}/chain/${chain?.toLowerCase()}.json`)
+					.then((r) => r.json())
+					.catch(() => null)
 	])
 
 	const filteredProtocols = formatProtocolsData({
@@ -210,6 +217,7 @@ export async function getChainPageData(chain?: string) {
 			},
 			feesAndRevenueData: { totalFees24h: fees?.total24h ?? null, totalRevenue24h: revenue?.total24h ?? null },
 			stablecoinsData,
+			devMetricsData,
 			inflowsData,
 			userData: { activeUsers, newUsers, transactions },
 			raisesChart,

@@ -10,7 +10,8 @@ import {
 	useFetchProtocolTransactions,
 	useFetchProtocolTreasury,
 	useGetProtocolEmissions,
-	useFetchProtocolTwitter
+	useFetchProtocolTwitter,
+	useFetchProtocolDevMetrics
 } from '~/api/categories/protocols/client'
 import { nearestUtc } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
@@ -18,6 +19,7 @@ import useSWR from 'swr'
 import { BAR_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/BridgeContainer'
 import { fetchWithErrorLogging } from '~/utils/async'
+import dayjs from 'dayjs'
 
 const fetch = fetchWithErrorLogging
 
@@ -60,7 +62,9 @@ export function useFetchAndFormatChartData({
 	isHourlyChart,
 	usdInflowsData,
 	twitter,
-	twitterHandle
+	twitterHandle,
+	devMetrics,
+	contributersMetrics
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -127,6 +131,10 @@ export function useFetchAndFormatChartData({
 	)
 	const { data: twitterData, loading: fetchingTwitter } = useFetchProtocolTwitter(
 		isRouterReady && twitter === 'true' ? twitterHandle : null
+	)
+
+	const { data: devMetricsData, loading: fetchingDevMetrics } = useFetchProtocolDevMetrics(
+		isRouterReady && (devMetrics === 'true' || contributersMetrics === 'true') ? protocol.id || protocolId : null
 	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
@@ -684,6 +692,37 @@ export function useFetchAndFormatChartData({
 				})
 			)
 		}
+		if (devMetricsData && contributersMetrics === 'true') {
+			chartsUnique.push('Contributers')
+
+			const metricKey = groupBy === 'monthly' ? 'monthly_contributers' : 'weekly_contributers'
+
+			devMetricsData.report?.[metricKey].forEach(({ k, v }) => {
+				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Contributers'] = v || 0
+			})
+		}
+
+		if (devMetricsData && devMetrics === 'true') {
+			chartsUnique.push('Developers')
+
+			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
+
+			devMetricsData.report?.[metricKey].forEach(({ k, v }) => {
+				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Developers'] = v || 0
+			})
+		}
 
 		if (treasuryData) {
 			chartsUnique.push('Treasury')
@@ -765,7 +804,11 @@ export function useFetchAndFormatChartData({
 		bridgeVolumeData,
 		tokenVolume,
 		tokenLiquidityData,
-		twitterData
+		twitterData,
+		devMetrics,
+		devMetricsData,
+		groupBy,
+		contributersMetrics
 	])
 
 	const finalData = React.useMemo(() => {
@@ -855,6 +898,11 @@ export function useFetchAndFormatChartData({
 		fetchingTypes.push('twitter')
 	}
 
+	if (fetchingDevMetrics) {
+		fetchingTypes.push('devMetrics')
+		fetchingTypes.push('contributersMetrics')
+	}
+
 	const isLoading =
 		loading ||
 		fetchingFdv ||
@@ -872,7 +920,8 @@ export function useFetchAndFormatChartData({
 		fetchingEmissions ||
 		fetchingBridgeVolume ||
 		fetchingTokenLiquidity ||
-		fetchingTwitter
+		fetchingTwitter ||
+		fetchingDevMetrics
 
 	return {
 		fetchingTypes,

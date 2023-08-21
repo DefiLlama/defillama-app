@@ -248,3 +248,18 @@ export interface IResponseCGMarketsAPI {
 	total_volume: number
 	image2: string
 }
+
+export interface IProtocolDevActivity {
+	project_id: string
+	last_commit_update_time: string
+	last_report_generated_time: string
+	project_type: string
+	name: string
+	linked_orgs: Array<string>
+	report: {
+		weekly_devs: Array<{ k: string; v: number }>
+		monthly_devs: Array<{ k: string; v: number }>
+		weekly_contributers: Array<{ k: string; v: number }>
+		monthly_contributers: Array<{ k: string; v: number }>
+	}
+}

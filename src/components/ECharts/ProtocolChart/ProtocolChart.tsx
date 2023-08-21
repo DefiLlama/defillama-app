@@ -58,7 +58,9 @@ const CHART_TYPES = [
 	'usdInflows',
 	'governance',
 	'bridgeVolume',
-	'twitter'
+	'twitter',
+	'devMetrics',
+	'contributersMetrics`'
 ]
 
 export default function ProtocolChart({
@@ -111,7 +113,9 @@ export default function ProtocolChart({
 		bridgeVolume,
 		tokenVolume,
 		tokenLiquidity,
-		twitter
+		twitter,
+		devMetrics,
+		contributersMetrics
 	} = router.query
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
@@ -154,7 +158,9 @@ export default function ProtocolChart({
 			isHourlyChart,
 			usdInflowsData,
 			twitter,
-			twitterHandle
+			twitterHandle,
+			devMetrics,
+			contributersMetrics
 		})
 
 	const realPathname =
@@ -725,6 +731,52 @@ export default function ProtocolChart({
 							/>
 							<span data-wrapper="true">
 								<span>Tweets</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.devMetrics && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="devMetrics"
+								checked={devMetrics === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, devMetrics: devMetrics === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Developers</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.devMetrics && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="contributersMetrics"
+								checked={contributersMetrics === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, contributersMetrics: contributersMetrics === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Contributers</span>
 							</span>
 						</Toggle>
 					)}

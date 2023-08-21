@@ -59,7 +59,9 @@ export default function ProtocolChart({
 		tokenVolume,
 		tokenLiquidity,
 		usdInflows: usdInflowsParam,
-		twitter
+		twitter,
+		devMetrics,
+		contributersMetrics
 	} = router.query
 
 	const extraTvlsEnabled = {}
@@ -111,7 +113,9 @@ export default function ProtocolChart({
 			isHourlyChart: protocolData.isHourlyChart,
 			usdInflowsData: usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null,
 			twitter,
-			twitterHandle
+			twitterHandle,
+			devMetrics,
+			contributersMetrics
 		})
 	const isThemeDark = router.query.theme === 'dark' ? true : false
 	return (

@@ -20,7 +20,8 @@ import {
 	YIELD_POOLS_API,
 	YIELD_PROJECT_MEDIAN_API,
 	PROTOCOL_GOVERNANCE_TALLY_API,
-	HACKS_API
+	HACKS_API,
+	DEV_METRICS_API
 } from '~/constants'
 import { fetchOverCacheJson } from '~/utils/perf'
 import { cg_volume_cexs } from '../../../pages/cexs'
@@ -79,6 +80,10 @@ export const getProtocolData = async (protocol: string) => {
 		) ?? []
 	).map((g) => g.toLowerCase())
 
+	const devMetricsProtocolUrl = protocolData.id?.includes('parent')
+		? `${DEV_METRICS_API}/parent/${protocolData?.id?.replace('parent#', '')}.json`
+		: `${DEV_METRICS_API}/${protocolData.id}.json`
+
 	const [
 		backgroundColor,
 		allProtocols,
@@ -89,7 +94,8 @@ export const getProtocolData = async (protocol: string) => {
 		derivatesProtocols,
 		medianApy,
 		tokenCGData,
-		emissions
+		emissions,
+		devMetrics
 	] = await Promise.all([
 		getColor(tokenIconPaletteUrl(protocolData.name)),
 		getProtocolsRaw(),
@@ -128,7 +134,12 @@ export const getProtocolData = async (protocol: string) => {
 					`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 			  ).then((res) => res.json())
 			: {},
-		getProtocolEmissons(protocol)
+		getProtocolEmissons(protocol),
+		fetch(devMetricsProtocolUrl)
+			.then((r) => r.json())
+			.catch((e) => {
+				return null
+			})
 	])
 
 	const governanceData = await Promise.all(
@@ -199,7 +210,9 @@ export const getProtocolData = async (protocol: string) => {
 		'Bridge Withdrawals',
 		'Token Volume',
 		'Token Liquidity',
-		'Tweets'
+		'Tweets',
+		'Developers',
+		'Contributers'
 	]
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
@@ -321,11 +334,13 @@ export const getProtocolData = async (protocol: string) => {
 		props: {
 			articles,
 			protocol,
+			devMetrics,
 			protocolData: {
 				...protocolData,
 				symbol: protocolData.symbol ?? null,
 				metrics: {
 					...metrics,
+					devMetrics: !!devMetrics,
 					fees: metrics.fees || dailyFees || allTimeFees ? true : false,
 					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
 					derivatives: metrics.derivatives || dailyDerivativesVolume || allTimeDerivativesVolume ? true : false,

@@ -13,6 +13,10 @@ const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
 
+const customOffsets = {
+	Contributers: 60
+}
+
 export default function AreaBarChart({
 	chartData,
 	stacks,
@@ -135,6 +139,14 @@ export default function AreaBarChart({
 
 		if (stacks.includes('Tweets')) {
 			yAxisByIndex['Tweets'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('Developers')) {
+			yAxisByIndex['Developers'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('Contributers')) {
+			yAxisByIndex['Contributers'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
 		const series = stacks.map((stack, index) => {
@@ -280,7 +292,7 @@ export default function AreaBarChart({
 				name: '',
 				type: 'value',
 				alignTicks: true,
-				offset: noOffset || index < 2 ? 0 : (yAxiss[yAxiss.length - 1]?.offset ?? 0) + 40
+				offset: noOffset || index < 2 ? 0 : (yAxiss[yAxiss.length - 1]?.offset ?? 0) + (customOffsets[type] || 40)
 			}
 
 			if (type === 'TVL+Mcap+FDV+Borrowed+Staking') {
@@ -470,6 +482,35 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Tweets']
+						}
+					}
+				})
+			}
+
+			if (type === 'Developers') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => value + ' devs'
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Developers']
+						}
+					}
+				})
+			}
+			if (type === 'Contributers') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => value + ' contributers'
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Contributers']
 						}
 					}
 				})

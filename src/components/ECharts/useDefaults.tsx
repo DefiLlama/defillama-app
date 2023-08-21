@@ -29,7 +29,9 @@ const CHART_SYMBOLS = {
 	APY: '%',
 	'Median APY': '%',
 	Treasury: '$',
-	Tweets: ''
+	Tweets: '',
+	Contributers: '',
+	Developers: ''
 }
 
 echarts.use([

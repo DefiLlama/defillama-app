@@ -44,8 +44,8 @@ import {
 	standardizeProtocolName,
 	tokenIconUrl
 } from '~/utils'
-import { useFetchProtocol, useGetTokenPrice } from '~/api/categories/protocols/client'
-import type { IFusedProtocolData } from '~/api/types'
+import { useFetchProtocol, useFetchProtocolTwitter, useGetTokenPrice } from '~/api/categories/protocols/client'
+import type { IFusedProtocolData, IProtocolDevActivity } from '~/api/types'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
 import { TreasuryChart } from './Treasury'
@@ -66,6 +66,7 @@ import { StablecoinInfo } from './Stablecoin'
 import { AccordionStat } from '~/layout/Stats/Large'
 import { ForksData } from './Forks'
 import { sluggify } from '~/utils/cache-client'
+import dayjs from 'dayjs'
 
 const scams = [
 	'Drachma Exchange',
@@ -208,6 +209,7 @@ const HackDataWrapper = styled.div`
 
 interface IProtocolContainerProps {
 	articles: IArticle[]
+	devMetrics: IProtocolDevActivity
 	title: string
 	protocol: string
 	protocolData: IFusedProtocolData
@@ -284,6 +286,7 @@ const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
 function ProtocolContainer({
 	articles,
+	devMetrics,
 	title,
 	protocolData,
 	treasury,
@@ -349,6 +352,17 @@ function ProtocolContainer({
 	const [bobo, setBobo] = React.useState(false)
 
 	const [extraTvlsEnabled, updater] = useDefiManager()
+
+	const { data: twitterData } = useFetchProtocolTwitter(twitter ? twitter : null)
+
+	const weeksFromLastTweet = React.useMemo(() => {
+		if (twitterData) {
+			const lastTweetDate = twitterData.tweets?.slice(-1)?.[0]?.date
+			const weeksFromLastTweet = dayjs().diff(dayjs(lastTweetDate), 'weeks')
+
+			return weeksFromLastTweet
+		}
+	}, [twitterData])
 
 	const totalVolume = React.useMemo(() => {
 		let tvl = 0
@@ -1268,6 +1282,7 @@ function ProtocolContainer({
 									</Link>
 								)}
 							</LinksWrapper>
+							{weeksFromLastTweet > 2 ? <span>Latest tweet was {weeksFromLastTweet} weeks ago.</span> : null}
 						</Section>
 
 						{articles.length > 0 && (
@@ -1284,6 +1299,29 @@ function ProtocolContainer({
 								{articles.map((article, idx) => (
 									<NewsCard key={`news_card_${idx}`} {...article} color={backgroundColor} />
 								))}
+							</Section>
+						)}
+						{devMetrics && (
+							<Section>
+								<FlexRow>
+									<h3>Development Activity</h3> (updated at{' '}
+									{dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})
+								</FlexRow>
+								<FlexRow>
+									<span>Weekly commits:</span> {devMetrics?.report.weekly_devs.slice(-1)[0]?.v}
+								</FlexRow>
+								<FlexRow>
+									<span>Monthly commits:</span> {devMetrics?.report.monthly_devs.slice(-1)[0]?.v}
+								</FlexRow>
+								<FlexRow>
+									<span>Weekly developers:</span> {devMetrics?.report.weekly_contributers.slice(-1)[0]?.v}
+								</FlexRow>
+								<FlexRow>
+									<span>Montly developers:</span> {devMetrics?.report.monthly_contributers.slice(-1)[0]?.v}
+								</FlexRow>
+								<FlexRow>
+									<span>Last commit date:</span> {dayjs(devMetrics.last_commit_update_time).format('DD/MM/YY')}
+								</FlexRow>
 							</Section>
 						)}
 

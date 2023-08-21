@@ -24,7 +24,9 @@ const colors = {
 	raises: '#7700ff',
 	stablecoins: '#00a09d',
 	transactions: '#307622',
-	bridges: '#ffb12b'
+	bridges: '#ffb12b',
+	developers: '#ff6969',
+	contributers: '#39601f'
 }
 
 const colorsArray = [
@@ -278,6 +280,40 @@ export default function AreaChart({
 					series[series.length - 1].data.push([getUtcDateObject(date), outflow + inflow || 0])
 				})
 			}
+
+			if (route.developers === 'true' && data?.developersChart && data?.developersChart?.length > 0) {
+				series.push({
+					name: namePrefix + 'Developers',
+					chartId: 'Developers',
+					type: 'bar',
+					stack: 'developers',
+					data: [],
+					yAxisIndex: 10,
+					itemStyle: {
+						color: getColor(isCompare) || colors.developers
+					}
+				})
+				data?.developersChart?.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+
+			if (route.contributers === 'true' && data?.contributersChart && data?.contributersChart?.length > 0) {
+				series.push({
+					name: namePrefix + 'Contributers',
+					chartId: 'Contributers',
+					type: 'bar',
+					stack: 'contributers',
+					data: [],
+					yAxisIndex: 11,
+					itemStyle: {
+						color: getColor(isCompare) || colors.contributers
+					}
+				})
+				data?.developersChart?.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
@@ -311,7 +347,9 @@ export default function AreaChart({
 			Users: 60,
 			'Stablecoins Mcap': 60,
 			Transactions: 65,
-			Inflows: 55
+			Inflows: 55,
+			Developers: 55,
+			Contributers: 60
 		}
 		let offsetAcc = -60
 
@@ -431,10 +469,30 @@ export default function AreaChart({
 						...yAxis.axisLabel,
 						color: () => (isCompare ? '#fff' : colors.bridges)
 					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Developers',
+					axisLabel: {
+						...yAxis.axisLabel,
+						formatter: (value) => value + ' devs',
+						color: () => (isCompare ? '#fff' : colors.developers)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Contributers',
+					axisLabel: {
+						...yAxis.axisLabel,
+						formatter: (value) => value + ' contributers',
+						color: () => (isCompare ? '#fff' : colors.contributers)
+					}
 				}
 			].map((yAxis: any, i) => {
 				const isActive = activeSeries?.findIndex((id) => id === yAxis.id) !== -1
-				const defaultOffset = offsets[yAxis.id]
+				const defaultOffset = offsets[yAxis.id] || 40
 				const offset = isActive && defaultOffset ? offsetAcc + defaultOffset : 0
 				offsetAcc = isActive && i !== 0 ? offsetAcc + defaultOffset : offsetAcc
 				return {

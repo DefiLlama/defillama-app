@@ -59,7 +59,8 @@ export function ChainContainer({
 	feesAndRevenueData,
 	stablecoinsData,
 	inflowsData,
-	userData
+	userData,
+	devMetricsData
 }) {
 	const {
 		fullProtocolsList,
@@ -162,6 +163,16 @@ export function ChainContainer({
 			id: 'inflows',
 			name: 'Inflows',
 			isVisible: inflowsData?.netInflows ? true : false
+		},
+		{
+			id: 'developers',
+			name: 'Developers',
+			isVisible: devMetricsData ? true : false
+		},
+		{
+			id: 'contributers',
+			name: 'Contributers',
+			isVisible: devMetricsData ? true : false
 		}
 	]
 
@@ -177,7 +188,8 @@ export function ChainContainer({
 		raisesChart,
 		chart,
 		extraTvlCharts,
-		extraTvlsEnabled
+		extraTvlsEnabled,
+		devMetricsData
 	})
 
 	const finalProtocolsList = React.useMemo(() => {

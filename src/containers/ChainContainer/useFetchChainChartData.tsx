@@ -1,4 +1,6 @@
 import { useRouter } from 'next/router'
+import dayjs from 'dayjs'
+
 import {
 	useDenominationPriceHistory,
 	useFetchProtocolTransactions,
@@ -9,7 +11,7 @@ import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/
 import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
 import { useMemo } from 'react'
 import { getUtcDateObject } from '~/components/ECharts/utils'
-import { getPercentChange, getPrevTvlFromChart } from '~/utils'
+import { getPercentChange, getPrevTvlFromChart, nearestUtc } from '~/utils'
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -23,7 +25,8 @@ export const useFetchChainChartData = ({
 	raisesChart,
 	chart,
 	extraTvlCharts,
-	extraTvlsEnabled
+	extraTvlsEnabled,
+	devMetricsData
 }) => {
 	const router = useRouter()
 
@@ -131,6 +134,15 @@ export const useFetchChainChartData = ({
 			  ])
 			: feesAndRevenueChart
 
+		const finalDevsChart = devMetricsData?.report?.monthly_devs?.map(({ k, v }) => [
+			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
+			v
+		])
+		const finalContributersChart = devMetricsData?.report?.monthly_contributers?.map(({ k, v }) => [
+			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
+			v
+		])
+
 		const chartDatasets = [
 			{
 				feesChart: finalFeesAndRevenueChart,
@@ -140,6 +152,8 @@ export const useFetchChainChartData = ({
 				totalStablesData: stablecoinsChartData,
 				bridgeData: inflowsChartData,
 				usersData,
+				contributersChart: finalContributersChart,
+				developersChart: finalDevsChart,
 				txsData,
 				priceData
 			}
@@ -157,7 +171,9 @@ export const useFetchChainChartData = ({
 		stablecoinsChartData,
 		txsData,
 		usersData,
-		volumeChart
+		volumeChart,
+		devMetricsData?.report?.monthly_contributers,
+		devMetricsData?.report?.monthly_devs
 	])
 
 	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)

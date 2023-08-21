@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import useSWR from 'swr'
 import {
+	DEV_METRICS_API,
 	PROTOCOLS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
@@ -18,6 +19,7 @@ import { formatProtocolsData } from './utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchAndFormatGovernanceData } from '~/containers/Defi/Protocol/Governance'
 import { buildProtocolAddlChartsData } from '~/containers/Defi/Protocol/utils'
+import { IProtocolDevActivity } from '~/api/types'
 
 const fetch = fetchWithErrorLogging
 
@@ -278,4 +280,24 @@ export const useFetchProtocolTwitter = (twitter?: string | null) => {
 	)
 
 	return { data, error, loading: twitter && !data && !error }
+}
+
+export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
+	const url = protocol?.includes('parent')
+		? `${DEV_METRICS_API}/parent/${protocol?.replace('parent#', '')}.json`
+		: `${DEV_METRICS_API}/${protocol}.json`
+
+	const { data, error } = useSWR<IProtocolDevActivity>(
+		`devMetrics/${protocol}`,
+		protocol
+			? () =>
+					fetch(url)
+						.then((res) => res.json())
+
+						.catch((err) => null)
+						.then()
+			: () => null
+	)
+
+	return { data, error, loading: !data && data !== null && !error }
 }
