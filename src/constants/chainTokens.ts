@@ -892,8 +892,12 @@ export const chainCoingeckoIds = {
 	Sei: {
 		geckoId: 'sei-network',
 		symbol: 'SEI',
-		cmcId: '23149',
-		categories: ['Cosmos']
+		cmcId: '23149'
+	},
+	Sui: {
+		geckoId: 'sui',
+		symbol: 'SUI',
+		cmcId: '20947'
 	}
 }
 
