@@ -166,12 +166,7 @@ export function ChainContainer({
 		},
 		{
 			id: 'developers',
-			name: 'Developers',
-			isVisible: devMetricsData ? true : false
-		},
-		{
-			id: 'contributers',
-			name: 'Contributers',
+			name: 'Core Developers',
 			isVisible: devMetricsData ? true : false
 		}
 	]

@@ -138,10 +138,6 @@ export const useFetchChainChartData = ({
 			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
 			v
 		])
-		const finalContributersChart = devMetricsData?.report?.monthly_contributers?.map(({ k, v }) => [
-			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
-			v
-		])
 
 		const chartDatasets = [
 			{
@@ -152,7 +148,7 @@ export const useFetchChainChartData = ({
 				totalStablesData: stablecoinsChartData,
 				bridgeData: inflowsChartData,
 				usersData,
-				contributersChart: finalContributersChart,
+
 				developersChart: finalDevsChart,
 				txsData,
 				priceData
@@ -172,7 +168,6 @@ export const useFetchChainChartData = ({
 		txsData,
 		usersData,
 		volumeChart,
-		devMetricsData?.report?.monthly_contributers,
 		devMetricsData?.report?.monthly_devs
 	])
 

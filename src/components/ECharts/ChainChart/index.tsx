@@ -297,23 +297,6 @@ export default function AreaChart({
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
-
-			if (route.contributers === 'true' && data?.contributersChart && data?.contributersChart?.length > 0) {
-				series.push({
-					name: namePrefix + 'Contributers',
-					chartId: 'Contributers',
-					type: 'bar',
-					stack: 'contributers',
-					data: [],
-					yAxisIndex: 11,
-					itemStyle: {
-						color: getColor(isCompare) || colors.contributers
-					}
-				})
-				data?.developersChart?.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
-				})
-			}
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
@@ -348,8 +331,7 @@ export default function AreaChart({
 			'Stablecoins Mcap': 60,
 			Transactions: 65,
 			Inflows: 55,
-			Developers: 55,
-			Contributers: 60
+			Developers: 55
 		}
 		let offsetAcc = -60
 
@@ -478,16 +460,6 @@ export default function AreaChart({
 						...yAxis.axisLabel,
 						formatter: (value) => value + ' devs',
 						color: () => (isCompare ? '#fff' : colors.developers)
-					}
-				},
-				{
-					...yAxis,
-					scale: true,
-					id: 'Contributers',
-					axisLabel: {
-						...yAxis.axisLabel,
-						formatter: (value) => value + ' contributers',
-						color: () => (isCompare ? '#fff' : colors.contributers)
 					}
 				}
 			].map((yAxis: any, i) => {
