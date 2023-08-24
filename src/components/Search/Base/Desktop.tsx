@@ -34,7 +34,7 @@ const OptionsWrapper = styled.div`
 	border-bottom-left-radius: 12px;
 	border-bottom-right-radius: 12px;
 	background-color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(246, 246, 246, 0.6)')};
-	--step-color: ${({ theme }) => (theme.mode === 'dark' ? '#7e96ff' : '#475590')};
+	--step-color: ${({ theme }) => (theme.mode === 'dark' ? '#629ff4' : '#475590')};
 
 	& > p {
 		display: flex;

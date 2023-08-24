@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
-import { TYPE } from '~/Theme'
+import { Header, TYPE } from '~/Theme'
 import Layout from '~/layout'
 import { splitArrayByFalsyValues } from '~/components/Table/utils'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
@@ -43,7 +43,3 @@ export default function TopGainersLosers({ protocols }) {
 		</Layout>
 	)
 }
-
-const Header = styled(TYPE.largeHeader)`
-	margin: 12px 0 -12px !important;
-`

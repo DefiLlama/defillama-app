@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { TYPE } from '~/Theme'
+import { Header, TYPE } from '~/Theme'
 import Layout from '~/layout'
 import { Divider, Panel } from '~/components'
 import { RowBetween } from '~/components/Row'
@@ -22,7 +22,7 @@ function PluginPage() {
 	return (
 		<Layout title="DefiLlama - ChatGPT Plugin" defaultSEO>
 			<RowBetween>
-				<TYPE.largeHeader>DefiLlama ChatGPT Plugin</TYPE.largeHeader>
+				<Header>DefiLlama ChatGPT Plugin</Header>
 			</RowBetween>
 			<Panel style={{ marginTop: '6px' }}>
 				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>

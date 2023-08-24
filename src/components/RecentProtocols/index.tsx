@@ -9,6 +9,7 @@ import { FiltersByChain, HideForkedProtocols, TVLRange } from '~/components/Filt
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { getPercentChange } from '~/utils'
 import { IFormattedProtocol } from '~/api/types'
+import { Header } from '~/Theme'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -141,7 +142,7 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 			<ProtocolsChainsSearch step={{ category: 'Home', name: name }} />
 
 			<TableFilters>
-				<TableHeader>{header}</TableHeader>
+				<Header>{header}</Header>
 
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />

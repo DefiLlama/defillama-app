@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { TYPE } from '~/Theme'
+import { Header, TYPE } from '~/Theme'
 import Layout from '~/layout'
 import { Divider, Panel } from '~/components'
 import { RowBetween } from '~/components/Row'
@@ -22,7 +22,7 @@ function AboutPage() {
 	return (
 		<Layout title="DefiLlama - DeFi Dashboard" defaultSEO>
 			<RowBetween>
-				<TYPE.largeHeader>About</TYPE.largeHeader>
+				<Header>About</Header>
 			</RowBetween>
 			<Panel style={{ marginTop: '6px' }}>
 				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>

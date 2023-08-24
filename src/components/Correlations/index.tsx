@@ -1,5 +1,5 @@
 import { X as XIcon } from 'react-feather'
-import { TYPE } from '~/Theme'
+import { Header, TYPE } from '~/Theme'
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useQueries, useQuery } from 'react-query'
@@ -54,21 +54,21 @@ export default function Correlations({ coinsData }) {
 		() =>
 			!isLoading
 				? Object.fromEntries(
-						coins.map((coin0) => {
-							const results = coins.map((coin1) => {
-								if (coin1.id === coin0.id) return null
-								const chart0 = priceChart[coin0.id]?.slice(-period)
-								const chart1 = priceChart[coin1.id]?.slice(-period)
-								const shortChartLength = chart0.length > chart1?.length ? chart1?.length : chart0?.length
-								const corr = pearsonCorrelationCoefficient(
-									chart0.slice(0, shortChartLength),
-									chart1.slice(0, shortChartLength)
-								)
-								return corr
-							})
-							return [coin0.id, results]
+					coins.map((coin0) => {
+						const results = coins.map((coin1) => {
+							if (coin1.id === coin0.id) return null
+							const chart0 = priceChart[coin0.id]?.slice(-period)
+							const chart1 = priceChart[coin1.id]?.slice(-period)
+							const shortChartLength = chart0.length > chart1?.length ? chart1?.length : chart0?.length
+							const corr = pearsonCorrelationCoefficient(
+								chart0.slice(0, shortChartLength),
+								chart1.slice(0, shortChartLength)
+							)
+							return corr
 						})
-				  )
+						return [coin0.id, results]
+					})
+				)
 				: [],
 		[isLoading, period, queryCoins]
 	)
@@ -83,7 +83,7 @@ export default function Correlations({ coinsData }) {
 					(search === ''
 						? true
 						: coin?.symbol?.toLowerCase().includes(search.toLowerCase()) ||
-						  coin?.name?.toLowerCase().includes(search.toLowerCase())) && !selectedCoins[coin.id]
+						coin?.name?.toLowerCase().includes(search.toLowerCase())) && !selectedCoins[coin.id]
 			)
 		)
 	}, [search, selectedCoins, queryCoins])
@@ -112,7 +112,7 @@ export default function Correlations({ coinsData }) {
 
 	return (
 		<>
-			<TYPE.largeHeader>Correlations Matrix</TYPE.largeHeader>
+			<Header>Correlations Matrix</Header>
 
 			<ToggleWrapper>
 				<Switch onClick={() => setPeriod(7)} active={period === 7}>

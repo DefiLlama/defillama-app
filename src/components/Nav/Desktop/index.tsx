@@ -129,23 +129,26 @@ const Nav = styled.nav`
 			background: #ebebeb;
 			font-size: 0.625rem;
 			border-radius: 4px;
-			padding: 3px;
+			padding: 2px 5px;
 			color: black;
 			position: relative;
 			left: -4px;
-			top: 2px;
+			font-weight: 600;
+			top: 1px;
+			letter-spacing: 0.5px;
 		}
 
 		:hover,
 		:focus-visible {
 			opacity: 1;
 			background-color: ${({ theme }) =>
-				theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};
+		theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};
 		}
 
 		&[data-linkactive='true'] {
-			background-color: #2172e5;
+			background: linear-gradient(135deg, #2172e5, hsl(215 79% 36% / 1));
 			color: white;
+			font-weight:500;
 			opacity: 1;
 		}
 	}

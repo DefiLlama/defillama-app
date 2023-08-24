@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
-import { TYPE } from '~/Theme'
+import { Header, TYPE } from '~/Theme'
 import Layout from '~/layout'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
@@ -102,7 +102,7 @@ export default function Chains({ data, columns }) {
 
 	return (
 		<Layout title="TVL Rankings - DefiLlama" defaultSEO>
-			<TYPE.largeHeader style={{ marginTop: '8px' }}>Top Protocols</TYPE.largeHeader>
+			<Header style={{ marginTop: '8px' }}>Top Protocols</Header>
 			<Table instance={instance} skipVirtualization />
 		</Layout>
 	)

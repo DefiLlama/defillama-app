@@ -6,6 +6,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { Header } from '~/Theme'
 
 const fetch = fetchWithErrorLogging
 
@@ -43,6 +44,7 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 export default function Protocols(props) {
 	return (
 		<Layout title={`Protocol Expenses - DefiLlama`} defaultSEO>
+			<Header>Protocol Expenses</Header>
 			<TableWithSearch
 				data={props.expenses}
 				columns={expensesColumns}
