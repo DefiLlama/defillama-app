@@ -192,10 +192,14 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 
 	const combineEthereumBSC = (tokensKey) => {
 		return beth.chainTvls['Ethereum'][tokensKey].map((i) => {
-			const bethBSC = beth.chainTvls['BSC'][tokensKey].find((j) => j.date === i.date)?.tokens['ETH']
+			const bethBSC = beth.chainTvls['BSC'][tokensKey].find((j) => j.date === i.date)
+
+			const bethOnEthereum = i.tokens['ETH'] ?? i.tokens['WETH']
+			const bethOnBsc = bethBSC?.tokens['ETH'] ?? bethBSC?.tokens['WETH']
+
 			return {
 				date: i.date,
-				tokens: { ETH: i.tokens['ETH'] + bethBSC }
+				tokens: { ETH: bethOnEthereum + bethOnBsc }
 			}
 		})
 	}
