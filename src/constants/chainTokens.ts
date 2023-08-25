@@ -809,7 +809,7 @@ export const chainCoingeckoIds = {
 		symbol: 'FIL',
 		cmcId: '2280'
 	},
-	Pulse: {
+	PulseChain: {
 		geckoId: 'pulsechain',
 		symbol: 'PLS',
 		cmcId: null
