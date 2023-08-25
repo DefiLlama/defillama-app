@@ -17,7 +17,8 @@ export function ProtocolPools({ protocol, data }) {
 						pool: i.symbol,
 						configID: i.pool,
 						chains: [i.chain],
-						project: i.projectName
+						project: i.projectName,
+						projectslug: i.project
 					})) ?? null
 		)
 	)
