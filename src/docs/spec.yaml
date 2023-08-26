@@ -951,7 +951,7 @@ paths:
           description: protocol slug
           schema:
             type: string
-            example: aave
+            example: uniswap
         - name: excludeTotalDataChart
           in: query
           required: false
