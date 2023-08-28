@@ -257,9 +257,9 @@ export interface IProtocolDevActivity {
 	name: string
 	linked_orgs: Array<string>
 	report: {
-		weekly_devs: Array<{ k: string; v: number }>
-		monthly_devs: Array<{ k: string; v: number }>
-		weekly_contributers: Array<{ k: string; v: number }>
-		monthly_contributers: Array<{ k: string; v: number }>
+		weekly_devs: Array<{ k: string; v: number; cc: number }>
+		monthly_devs: Array<{ k: string; v: number; cc: number }>
+		weekly_contributers: Array<{ k: string; v: number; cc: number }>
+		monthly_contributers: Array<{ k: string; v: number; cc: number }>
 	}
 }

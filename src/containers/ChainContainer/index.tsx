@@ -168,6 +168,11 @@ export function ChainContainer({
 			id: 'developers',
 			name: 'Core Developers',
 			isVisible: devMetricsData ? true : false
+		},
+		{
+			id: 'devsCommits',
+			name: 'Commits',
+			isVisible: devMetricsData ? true : false
 		}
 	]
 

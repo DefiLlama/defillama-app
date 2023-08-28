@@ -139,6 +139,11 @@ export const useFetchChainChartData = ({
 			v
 		])
 
+		const finalCommitsChart = devMetricsData?.report?.monthly_devs?.map(({ k, cc }) => [
+			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
+			cc
+		])
+
 		const chartDatasets = [
 			{
 				feesChart: finalFeesAndRevenueChart,
@@ -148,8 +153,8 @@ export const useFetchChainChartData = ({
 				totalStablesData: stablecoinsChartData,
 				bridgeData: inflowsChartData,
 				usersData,
-
 				developersChart: finalDevsChart,
+				commitsChart: finalCommitsChart,
 				txsData,
 				priceData
 			}

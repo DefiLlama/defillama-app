@@ -31,7 +31,9 @@ const CHART_SYMBOLS = {
 	Treasury: '$',
 	Tweets: '',
 	Contributers: '',
-	Developers: ''
+	Developers: '',
+	'Contributers Commits': '',
+	'Devs Commits': ''
 }
 
 echarts.use([

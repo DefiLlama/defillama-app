@@ -61,7 +61,9 @@ export default function ProtocolChart({
 		usdInflows: usdInflowsParam,
 		twitter,
 		devMetrics,
-		contributersMetrics
+		contributersMetrics,
+		contributersCommits,
+		devCommits
 	} = router.query
 
 	const extraTvlsEnabled = {}
@@ -115,7 +117,9 @@ export default function ProtocolChart({
 			twitter,
 			twitterHandle,
 			devMetrics,
-			contributersMetrics
+			contributersMetrics,
+			contributersCommits,
+			devCommits
 		})
 	const isThemeDark = router.query.theme === 'dark' ? true : false
 	return (

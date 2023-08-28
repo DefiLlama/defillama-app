@@ -1308,10 +1308,10 @@ function ProtocolContainer({
 									{dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})
 								</FlexRow>
 								<FlexRow>
-									<span>Weekly commits:</span> {devMetrics?.report.weekly_devs.slice(-1)[0]?.v}
+									<span>Weekly commits:</span> {devMetrics?.report.monthly_contributers.slice(-1)[0]?.cc}
 								</FlexRow>
 								<FlexRow>
-									<span>Monthly commits:</span> {devMetrics?.report.monthly_devs.slice(-1)[0]?.v}
+									<span>Monthly commits:</span> {devMetrics?.report.monthly_contributers.slice(-1)[0]?.cc}
 								</FlexRow>
 								<FlexRow>
 									<span>Weekly developers:</span> {devMetrics?.report.weekly_contributers.slice(-1)[0]?.v}
