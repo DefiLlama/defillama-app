@@ -81,7 +81,9 @@ const blockExplorers = {
 	linea: ['https://lineascan.build/token/', 'LineaScan'],
 	mantle: ['https://explorer.mantle.xyz/address/', 'Mantle Explorer'],
 	base: ['https://basescan.org/address/', 'Basescan'],
-	op_bnb: ['https://mainnet.opbnbscan.com/address/', 'opBNBScan']
+	op_bnb: ['https://mainnet.opbnbscan.com/address/', 'opBNBScan'],
+	mvc: ['https://scan.microvisionchain.com/token/', 'MVCScan'],
+	shibarium: ['https://www.shibariumscan.io/token/', 'ShibariumScan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
