@@ -74,7 +74,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 					totalSupplyUsd: curr.totalSupplyUsd,
 					totalBorrowUsd: curr.totalBorrowUsd,
 					totalAvailableUsd: curr.totalAvailableUsd,
-					ltv: curr.ltv
+					ltv: curr.ltv,
+					lsdTokenOnly: curr.lsdTokenOnly
 				})
 			} else return acc
 		}, [])

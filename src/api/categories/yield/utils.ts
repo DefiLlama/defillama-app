@@ -61,7 +61,11 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 			...p,
 			apyLsd,
 			apyBaseIncludingLsdApy: p.apyBase + apyLsd,
-			apyIncludingLsdApy: p.apy + apyLsd
+			apyIncludingLsdApy: p.apy + apyLsd,
+			lsdTokenOnly: !p.symbol
+				.split('-')
+				.map((s) => lsdSymbols.some((i) => s.includes(i)))
+				.includes(false)
 		}
 	})
 
