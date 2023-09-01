@@ -27,6 +27,14 @@ export const attributeOptions = [
 		disabledOnPages: ['/borrow', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
+		name: 'Multi Exposure',
+		key: YIELDS_SETTINGS.MULTI_EXPOSURE.toLowerCase(),
+		help: 'Select pools with multi token exposure only',
+		filterFn: (item) => item.exposure === 'multi',
+		defaultFilterFnOnPage: {},
+		disabledOnPages: ['/borrow', '/yields/strategy', '/yields/strategyFR']
+	},
+	{
 		name: 'No IL',
 		key: YIELDS_SETTINGS.NO_IL.toLowerCase(),
 		help: 'Select pools with no impermanent loss',
@@ -130,6 +138,14 @@ export const attributeOptions = [
 		key: YIELDS_SETTINGS.APY_ZERO.toLowerCase(),
 		help: 'Include pools with supply apy of 0',
 		filterFn: (item) => item.apy >= 0,
+		defaultFilterFnOnPage: {},
+		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
+	},
+	{
+		name: 'LSD Tokens only',
+		key: YIELDS_SETTINGS.LSD_ONLY.toLowerCase(),
+		help: 'Include pools which contain only Liquid Staking Derivate Tokens',
+		filterFn: (item) => item.lsdTokenOnly === true,
 		defaultFilterFnOnPage: {},
 		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
 	}
