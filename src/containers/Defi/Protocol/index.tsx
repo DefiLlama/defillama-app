@@ -1317,7 +1317,7 @@ function ProtocolContainer({
 									<span>Weekly developers:</span> {devMetrics?.report.weekly_contributers.slice(-1)[0]?.v}
 								</FlexRow>
 								<FlexRow>
-									<span>Montly developers:</span> {devMetrics?.report.monthly_contributers.slice(-1)[0]?.v}
+									<span>Monthly developers:</span> {devMetrics?.report.monthly_contributers.slice(-1)[0]?.v}
 								</FlexRow>
 								<FlexRow>
 									<span>Last commit date:</span> {dayjs(devMetrics.last_commit_update_time).format('DD/MM/YY')}
