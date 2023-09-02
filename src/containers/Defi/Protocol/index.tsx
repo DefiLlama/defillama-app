@@ -1282,7 +1282,6 @@ function ProtocolContainer({
 									</Link>
 								)}
 							</LinksWrapper>
-							{weeksFromLastTweet > 2 ? <span>Latest tweet was {weeksFromLastTweet} weeks ago.</span> : null}
 						</Section>
 
 						{articles.length > 0 && (
