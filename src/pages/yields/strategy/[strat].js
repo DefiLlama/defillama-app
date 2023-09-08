@@ -15,7 +15,12 @@ import {
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection } from '~/layout/Stats/Medium'
-import { useYieldChartData, useYieldChartLendBorrow, useConfigPool } from '~/api/categories/yield/client'
+import {
+	useYieldChartData,
+	useYieldChartLendBorrow,
+	useConfigPool,
+	useYieldConfigData
+} from '~/api/categories/yield/client'
 import styled from 'styled-components'
 import { calculateLoopAPY } from '~/api/categories/yield/index'
 import { toK } from '~/utils'
@@ -45,6 +50,11 @@ const PageView = () => {
 
 	const { data: configData } = useConfigPool(tokens?.length ? tokens.join(',') : '')
 
+	const project = configData?.data?.find((p) => p.config_id === lendToken)?.project
+
+	const { data: config } = useYieldConfigData(project ?? '')
+	const lendProjectCategory = config?.category
+
 	const parseTimestamp = (timestamp) => {
 		return new Date(timestamp.split('T')[0]).getTime() / 1000
 	}
@@ -62,7 +72,7 @@ const PageView = () => {
 		farmTVL,
 		borrowAvailable
 	} = useMemo(() => {
-		if (!lendHistory || !borrowHistory || !farmHistory || !configData) return {}
+		if (!lendHistory || !borrowHistory || !farmHistory || !configData || !lendProjectCategory) return {}
 
 		const lendData = lendHistory?.data?.map((t) => ({
 			...t,
@@ -97,7 +107,9 @@ const PageView = () => {
 		})
 		merged = merged.filter((t) => !Object.values(t).includes(undefined))
 		// filter merged to length where all 3 components (lend/borrow/farm values) are not null
-		merged = merged.filter((t) => t.lendData.apy && t.borrowData.apyBaseBorrow && t.farmData.apy)
+		merged = merged.filter(
+			(t) => t.lendData.apy !== null && t.borrowData.apyBaseBorrow !== null && t.farmData.apy !== null
+		)
 
 		const configs = configData?.data || []
 
@@ -130,8 +142,8 @@ const PageView = () => {
 		const strategyAPY = latestValues?.strategyAPY ?? 0
 		const loopAPY = latestValues?.loopAPY ?? 0
 
-		const finalAPY = lendToken === borrowToken ? loopAPY : strategyAPY
-		const finalChart = lendToken === borrowToken ? loopData : strategyData
+		const finalAPY = lendToken === borrowToken && lendProjectCategory !== 'CDP' ? loopAPY : strategyAPY
+		const finalChart = lendToken === borrowToken && lendProjectCategory !== 'CDP' ? loopData : strategyData
 
 		const barChartDataSupply = merged?.length
 			? merged.map((item) => ({
@@ -170,7 +182,7 @@ const PageView = () => {
 			farmTVL,
 			borrowAvailable
 		}
-	}, [lendHistory, borrowHistory, farmHistory, configData, lendToken, borrowToken])
+	}, [lendHistory, borrowHistory, farmHistory, configData, lendToken, borrowToken, lendProjectCategory])
 
 	return (
 		<>
@@ -237,14 +249,17 @@ const PageView = () => {
 					</FlexRow>
 					<FlexRow>
 						<span>2.</span>
-						Borrow {configData?.data.find((c) => c.config_id === borrowToken)?.symbol} against your{' '}
-						{configData?.data.find((c) => c.config_id === lendToken)?.symbol} collateral with a max LTV of {ltv * 100}%
-						and a borrow APY of {borrowApy?.toFixed(2)}% (
+						Borrow{' '}
+						{lendProjectCategory !== 'CDP'
+							? configData?.data.find((c) => c.config_id === borrowToken)?.symbol
+							: configData?.data.find((c) => c.config_id === borrowToken)?.mintedCoin}{' '}
+						against your {configData?.data.find((c) => c.config_id === lendToken)?.symbol} collateral with a max LTV of{' '}
+						{(ltv * 100).toFixed()}% and a borrow APY of {borrowApy?.toFixed(2)}% (
 						{borrowApy > 0 ? 'You get paid by borrowing' : 'The interest you need to pay'}).
 					</FlexRow>
 
 					{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
-					configData?.data.find((c) => c.config_id === farmToken)?.symbol ? (
+						configData?.data.find((c) => c.config_id === farmToken)?.symbol && lendProjectCategory !== 'CDP' ? (
 						<FlexRow>
 							<span>3.</span>
 							Swap borrowed {configData?.data.find((c) => c.config_id === borrowToken)?.symbol} for{' '}
