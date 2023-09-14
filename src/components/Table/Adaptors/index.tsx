@@ -16,8 +16,9 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { TableFilters } from '../shared'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
-import FilterByPeriod, { PERIODS } from '~/components/Filters/common/FilterByPeriod'
+import RowFilter from '~/components/Filters/common/RowFilter'
 
+export const PERIODS = ['24h', '7d', '30d']
 const columnSizesKeys = Object.keys(volumesColumnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
@@ -134,7 +135,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 						hideSelectedCount
 					/>
 				)}
-				{type === 'fees' ? <FilterByPeriod selectedPeriod={period} setPeriod={setNewPeriod} /> : null}
+				{type === 'fees' ? <RowFilter selectedValue={period} setValue={setNewPeriod} values={PERIODS} /> : null}
 			</TableFilters>
 
 			<VirtualTable instance={instance} />

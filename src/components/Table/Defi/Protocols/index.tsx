@@ -30,6 +30,7 @@ import { SearchIcon, TableFiltersWithInput } from '../../shared'
 import styled from 'styled-components'
 import { TVLRange } from '~/components/Filters'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
+import RowFilter from '~/components/Filters/common/RowFilter'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -99,32 +100,39 @@ export function ProtocolsTable({
 	return <VirtualTable instance={instance} />
 }
 
+enum TABLE_CATEGORIES {
+	FEES = 'Fees',
+	REVENUE = 'Revenue',
+	VOLUME = 'Volume',
+	TVL = 'TVL'
+}
+
 const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
-	{ name: 'TVL', key: 'tvl' },
-	{ name: 'TVL 1d change', key: 'change_1d' },
-	{ name: 'TVL 7d change', key: 'change_7d' },
-	{ name: 'TVL 1m change', key: 'change_1m' },
-	{ name: 'Mcap/TVL', key: 'mcaptvl' },
-	{ name: 'Fees 24h', key: 'fees_24h' },
-	{ name: 'Fees 7d', key: 'fees_7d' },
-	{ name: 'Fees 30d', key: 'fees_30d' },
-	{ name: 'Revenue 24h', key: 'revenue_24h' },
-	{ name: 'Revenue 7d', key: 'revenue_7d' },
-	{ name: 'Revenue 30d', key: 'revenue_30d' },
-	{ name: 'User Fees 24h', key: 'userFees_24h' },
-	{ name: 'Cumulative Fees', key: 'cumulativeFees' },
-	{ name: 'Holders Revenue 24h', key: 'holderRevenue_24h' },
-	{ name: 'Holders Revenue 30d', key: 'holdersRevenue30d' },
-	{ name: 'Treasury Revenue 24h', key: 'treasuryRevenue_24h' },
-	{ name: 'Supply Side Revenue 24h', key: 'supplySideRevenue_24h' },
-	{ name: 'P/S', key: 'pf' },
-	{ name: 'P/F', key: 'ps' },
-	{ name: 'Volume 24h', key: 'volume_24h' },
-	{ name: 'Volume 7d', key: 'volume_7d' },
-	{ name: 'Volume Change 7d', key: 'volumeChange_7d' },
-	{ name: 'Cumulative Volume', key: 'cumulativeVolume' }
+	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
+	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL },
+	{ name: 'TVL 7d change', key: 'change_7d', category: TABLE_CATEGORIES.TVL },
+	{ name: 'TVL 1m change', key: 'change_1m', category: TABLE_CATEGORIES.TVL },
+	{ name: 'Mcap/TVL', key: 'mcaptvl', category: TABLE_CATEGORIES.TVL },
+	{ name: 'Fees 24h', key: 'fees_24h', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'Revenue 7d', key: 'revenue_7d', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'Revenue 30d', key: 'revenue_30d', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Cumulative Fees', key: 'cumulativeFees', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Holders Revenue 24h', key: 'holderRevenue_24h', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'Holders Revenue 30d', key: 'holdersRevenue30d', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'Treasury Revenue 24h', key: 'treasuryRevenue_24h', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'Supply Side Revenue 24h', key: 'supplySideRevenue_24h', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'P/S', key: 'pf', category: TABLE_CATEGORIES.FEES },
+	{ name: 'P/F', key: 'ps', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Volume Change 7d', key: 'volumeChange_7d', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
 ]
 
 export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
@@ -137,6 +145,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
+	const [category, setCategory] = React.useState(null)
 
 	const instance = useReactTable({
 		data,
@@ -194,12 +203,20 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		instance.getToggleAllColumnsVisibilityHandler()({ checked: true } as any)
 	}
 
-	const addOption = (newOptions) => {
+	const addOption = (newOptions, setLocalStorage = true) => {
 		const ops = Object.fromEntries(
 			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id) ? true : false])
 		)
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
+		if (setLocalStorage) window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
+	}
+	const setNewCategory = (newCategory) => {
+		const newOptions = protocolsByChainTableColumns
+			.filter((column) => (column.category !== undefined ? column.category === newCategory : true))
+			.map((op) => op.key)
+
+		addOption(newOptions, false)
+		setCategory(newCategory)
 	}
 
 	const selectedOptions = instance
@@ -211,6 +228,11 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		<>
 			<ListOptions>
 				<ListHeader>Protocol Rankings</ListHeader>
+				<RowFilter
+					setValue={setNewCategory}
+					selectedValue={category}
+					values={Object.values(TABLE_CATEGORIES) as Array<string>}
+				/>
 
 				<ColumnFilters2
 					label={'Columns'}
