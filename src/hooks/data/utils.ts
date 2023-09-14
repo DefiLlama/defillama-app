@@ -18,9 +18,6 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 	let strikeTvl = false
 	const categories = new Set()
 
-	if (parent.name === 'Uniswap') {
-		console.log({ protocols })
-	}
 	const hasAtleastOnceValue = {}
 	const {
 		mcap,

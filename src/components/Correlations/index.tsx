@@ -73,8 +73,6 @@ export default function Correlations({ coinsData }) {
 		[isLoading, period, queryCoins]
 	)
 
-	console.log(correlations, priceChart)
-
 	const filteredCoins = useMemo(() => {
 		return (
 			coinsData &&
