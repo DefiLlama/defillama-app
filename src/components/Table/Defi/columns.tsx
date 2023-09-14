@@ -557,7 +557,7 @@ export const activeInvestorsColumns: ColumnDef<{ name: string; deals: number; pr
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <>{getValue()}</>
+			return <CustomLink href={`/raises/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
 		},
 		size: 120
 	},
