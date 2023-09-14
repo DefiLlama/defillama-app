@@ -257,6 +257,12 @@ export default function AreaBarChart({
 			}
 		}
 
+		series.forEach((seriesItem) => {
+			if (seriesItem.data.length === 0) {
+				seriesItem.large = false
+			}
+		})
+
 		return { series, yAxisByIndex }
 	}, [
 		chartData,
