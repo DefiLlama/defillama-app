@@ -107,31 +107,62 @@ enum TABLE_CATEGORIES {
 	TVL = 'TVL'
 }
 
+enum TABLE_PERIODS {
+	ONE_DAY = '1d',
+	SEVEN_DAYS = '7d',
+	ONE_MONTH = '1m'
+}
+
 const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
 	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
-	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL },
-	{ name: 'TVL 7d change', key: 'change_7d', category: TABLE_CATEGORIES.TVL },
-	{ name: 'TVL 1m change', key: 'change_1m', category: TABLE_CATEGORIES.TVL },
+	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'TVL 7d change', key: 'change_7d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'TVL 1m change', key: 'change_1m', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_MONTH },
 	{ name: 'Mcap/TVL', key: 'mcaptvl', category: TABLE_CATEGORIES.TVL },
-	{ name: 'Fees 24h', key: 'fees_24h', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE },
-	{ name: 'Revenue 7d', key: 'revenue_7d', category: TABLE_CATEGORIES.REVENUE },
-	{ name: 'Revenue 30d', key: 'revenue_30d', category: TABLE_CATEGORIES.REVENUE },
-	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Fees 24h', key: 'fees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
+	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Revenue 7d', key: 'revenue_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Revenue 30d', key: 'revenue_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
+	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Cumulative Fees', key: 'cumulativeFees', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Holders Revenue 24h', key: 'holderRevenue_24h', category: TABLE_CATEGORIES.REVENUE },
-	{ name: 'Holders Revenue 30d', key: 'holdersRevenue30d', category: TABLE_CATEGORIES.REVENUE },
-	{ name: 'Treasury Revenue 24h', key: 'treasuryRevenue_24h', category: TABLE_CATEGORIES.REVENUE },
-	{ name: 'Supply Side Revenue 24h', key: 'supplySideRevenue_24h', category: TABLE_CATEGORIES.REVENUE },
+	{
+		name: 'Holders Revenue 24h',
+		key: 'holderRevenue_24h',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Holders Revenue 30d',
+		key: 'holdersRevenue30d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Treasury Revenue 24h',
+		key: 'treasuryRevenue_24h',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Supply Side Revenue 24h',
+		key: 'supplySideRevenue_24h',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
 	{ name: 'P/S', key: 'pf', category: TABLE_CATEGORIES.FEES },
 	{ name: 'P/F', key: 'ps', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME },
-	{ name: 'Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME },
-	{ name: 'Volume Change 7d', key: 'volumeChange_7d', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
+	{
+		name: 'Volume Change 7d',
+		key: 'volumeChange_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
 	{ name: 'Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
 ]
 
@@ -145,7 +176,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const [category, setCategory] = React.useState(null)
+	const [filterState, setFilterState] = React.useState(null)
 
 	const instance = useReactTable({
 		data,
@@ -210,13 +241,14 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		if (setLocalStorage) window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
-	const setNewCategory = (newCategory) => {
+	const setFilter = (key) => (newState) => {
+		const stateToSet = newState === filterState ? null : newState
 		const newOptions = protocolsByChainTableColumns
-			.filter((column) => (column.category !== undefined ? column.category === newCategory : true))
+			.filter((column) => (column[key] !== undefined && stateToSet !== null ? column[key] === newState : true))
 			.map((op) => op.key)
 
 		addOption(newOptions, false)
-		setCategory(newCategory)
+		setFilterState(stateToSet)
 	}
 
 	const selectedOptions = instance
@@ -229,9 +261,14 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 			<ListOptions>
 				<ListHeader>Protocol Rankings</ListHeader>
 				<RowFilter
-					setValue={setNewCategory}
-					selectedValue={category}
+					setValue={setFilter('category')}
+					selectedValue={filterState}
 					values={Object.values(TABLE_CATEGORIES) as Array<string>}
+				/>
+				<RowFilter
+					setValue={setFilter('period')}
+					selectedValue={filterState}
+					values={Object.values(TABLE_PERIODS) as Array<string>}
 				/>
 
 				<ColumnFilters2
