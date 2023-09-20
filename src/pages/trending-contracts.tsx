@@ -74,13 +74,10 @@ async function getContracts(chain: string, time: number) {
 }
 
 export default function TrendingContracts() {
-	const router = useRouter()
-
-	const { chain } = router.query
-
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'gas_spend' }])
 
 	const [value, setValue] = useState('1d')
+	const [chain, setChain] = useState('Ethereum')
 
 	const time = useDebounce(value, 500)
 
@@ -109,27 +106,11 @@ export default function TrendingContracts() {
 			</TableHeader>
 			<TableFilters>
 				<RowFilter selectedValue={value} setValue={(val: string) => setValue(val)} values={['1d', '7d', '30d']} />
-				<Link href="/trending-contracts?chain=ethereum" shallow>
-					{activeChain === 'ethereum' ? (
-						<ButtonDark as="a">Ethereum</ButtonDark>
-					) : (
-						<ButtonLight as="a">Ethereum</ButtonLight>
-					)}
-				</Link>
-				<Link href="/trending-contracts?chain=polygon" shallow>
-					{activeChain === 'polygon' ? (
-						<ButtonDark as="a">Polygon</ButtonDark>
-					) : (
-						<ButtonLight as="a">Polygon</ButtonLight>
-					)}
-				</Link>
-				<Link href="/trending-contracts?chain=arbitrum" shallow>
-					{activeChain === 'arbitrum' ? (
-						<ButtonDark as="a">Arbitrum</ButtonDark>
-					) : (
-						<ButtonLight as="a">Arbitrum</ButtonLight>
-					)}
-				</Link>
+				<RowFilter
+					selectedValue={chain}
+					setValue={(val: string) => setChain(val)}
+					values={['Ethereum', 'Arbitrum', 'Polygon']}
+				/>
 			</TableFilters>
 
 			{!data && !error ? (
