@@ -88,6 +88,8 @@ const whitelist = [
 	// stopped at protocols with <20M TVL
 ]
 
+const blackListedTokens = ['AUSDT', 'OUSD', 'AUSDC']
+
 import { useState } from 'react'
 import Layout from '~/layout'
 import { PanelThicc, StyledAnchor } from '~/components'
@@ -104,7 +106,9 @@ export const getStaticProps = withPerformanceLogging('yields/halal', async () =>
 		props: { ...data }
 	} = await getYieldPageData()
 
-	const pools = data.pools.filter((p) => whitelist.includes(p.projectName))
+	const pools = data.pools.filter(
+		(p) => whitelist.includes(p.projectName) && !blackListedTokens.some((t) => p.symbol.includes(t))
+	)
 
 	return {
 		props: {
