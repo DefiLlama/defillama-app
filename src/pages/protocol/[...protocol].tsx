@@ -28,16 +28,6 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols({ protocolData, ...props }) {
-	if (protocolData.module === 'dummy.js') {
-		return (
-			<DummyProtocol
-				data={protocolData}
-				title={`${protocolData.name} - DefiLlama`}
-				backgroundColor={props.backgroundColor}
-				protocol={props.protocol}
-			/>
-		)
-	}
 	return (
 		<ProtocolContainer title={`${protocolData.name} - DefiLlama`} protocolData={protocolData} {...(props as any)} />
 	)
