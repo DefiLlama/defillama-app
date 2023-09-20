@@ -33,6 +33,7 @@ const CHART_SYMBOLS = {
 	Contributers: '',
 	Developers: '',
 	'Contributers Commits': '',
+	'Commits': '',
 	'Devs Commits': ''
 }
 
