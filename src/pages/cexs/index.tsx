@@ -174,6 +174,14 @@ export const cexData: Array<ICex> = [
 		cgDeriv: 'bybit'
 	},
 	{
+		name: 'Kraken',
+		slug: 'kraken',
+		coin: null,
+		walletsLink: null,
+        cgId: 'kraken',
+		cgDeriv: 'kraken_futures'
+	},
+	{
 		name: 'Crypto.com',
 		slug: 'Crypto-com',
 		coin: 'CRO',
@@ -199,6 +207,13 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://www.kucoin.com/blog/transparency-and-trust-a-detailed-list-of-kucoin-s-wallets',
 		cgId: 'kucoin',
 		cgDeriv: 'kumex'
+	},
+	{
+		name: 'Bitstamp',
+		slug: 'bitstamp',
+		coin: null,
+		walletsLink: null,
+        cgId: 'bitstamp',
 	},
 	{
 		name: 'Deribit',
@@ -260,12 +275,6 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
-		name: 'Okcoin',
-		slug: 'okcoin',
-		coin: null,
-		walletsLink: 'https://www.okcoin.com/proof-of-reserves/download'
-	},
-	{
 		name: 'Phemex',
 		slug: 'phemex',
 		coin: null,
@@ -293,28 +302,43 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
 	{
-		name: 'CoinDCX',
-		slug: 'coindcx',
-		coin: null,
-		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
-	},
-	{
 		name: 'Coinsquare',
 		slug: 'coinsquare',
 		coin: null,
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
 	},
 	{
-		name: 'Hotbit',
-		slug: 'hotbit',
-		coin: 'HTB',
-		coinSymbol: 'HTB'
+		name: 'CoinW',
+		slug: 'coinw',
+		coin: null,
+		walletsLink: null,
 	},
+
+	{
+		name: 'CoinDCX',
+		slug: 'coindcx',
+		coin: null,
+		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
+	},
+	{
+		name: 'Fastex',
+		slug: 'fastex',
+		coin: 'FTN',
+		coinSymbol: 'FTN',
+		walletsLink: "https://www.fastex.com/proof-of-reserves",
+		cgId: 'fastex',
+      },
 	{
 		name: 'NBX',
 		slug: 'nbx',
 		coin: null,
 		walletsLink: 'https://nbx.com/en/proof-of-reserves'
+	},
+	{
+		name: 'Okcoin',
+		slug: 'okcoin',
+		coin: null,
+		walletsLink: 'https://www.okcoin.com/proof-of-reserves/download'
 	},
 	{
 		name: 'BitVenus',
@@ -334,6 +358,21 @@ export const cexData: Array<ICex> = [
 		coin: null,
 		walletsLink: null
 	},
+	{
+		name: 'Hotbit',
+		slug: 'hotbit',
+		coin: 'HTB',
+		coinSymbol: 'HTB'
+	},
+	{
+		name: 'CoinEx',
+		slug: 'coinex',
+		coin: 'CET',
+		coinSymbol: 'CET',
+		walletsLink: null,
+        cgId: 'coinex',
+		cgDeriv: 'coinex_futures'
+      },
 	/*
 	{
 		name: 'Binance US',
@@ -351,14 +390,6 @@ export const cexData: Array<ICex> = [
 		cgId: 'gdax'
 	},
 	{
-		name: 'Kraken',
-		lastAuditDate: 1656547200,
-		auditor: 'ArmaninoLLP',
-		auditLink: 'https://proof-of-reserves.trustexplorer.io/clients/kraken/',
-		cgId: 'kraken',
-		cgDeriv: 'kraken_futures'
-	},
-	{
 		name: 'Coinone',
 		lastAuditDate: 1666369050,
 		auditor: null,
@@ -369,21 +400,12 @@ export const cexData: Array<ICex> = [
 		name: 'NEXO'
 	},
 	{
-		name: 'CoinEx',
-		cgId: 'coinex',
-		cgDeriv: 'coinex_futures'
-	},
-	{
 		name: 'Gemini',
 		cgId: 'gemini'
 	},
 	{
 		name: 'Coincheck',
 		cgId: 'coincheck'
-	},
-	{
-		name: 'Bitstamp',
-		cgId: 'bitstamp'
 	},
 	{
 		name: 'Bithumb',
