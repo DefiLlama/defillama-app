@@ -686,7 +686,7 @@ export function formatGovernanceData(data: {
 
 	const maxVotes = Object.entries(data.stats.months || {}).map(([date, values]) => {
 		let maxVotes = 0
-		values.proposals.forEach((proposal) => {
+		values.proposals?.forEach((proposal) => {
 			const votes = proposals.find((p) => p.id === proposal)?.['scores_total'] ?? 0
 
 			if (votes > maxVotes) {
