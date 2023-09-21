@@ -63,7 +63,7 @@ const defaultToolsAndFooterLinks = {
 			referrer: true
 		},
 		{
-			name: 'DLNews',
+			name: 'DL News',
 			path: 'https://dlnews.com/',
 			newTag: true,
 			external: true,
