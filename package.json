@@ -52,6 +52,7 @@
 		"@types/react-datepicker": "4.15.0",
 		"@types/styled-components": "^5.1.25",
 		"@types/swagger-ui-react": "^4.11.0",
+		"@types/lodash": "^4.14.198",
 		"eslint": "8.6.0",
 		"eslint-config-next": "^12.3.1",
 		"eslint-config-prettier": "^8.3.0",

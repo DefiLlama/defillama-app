@@ -283,7 +283,7 @@ export const navLinks: ILinks = {
 	Raises: {
 		main: [
 			{ name: 'Overview', path: '/raises' },
-			{ name: 'Active Investors', path: '/raises/active-investors' }
+			{ name: 'Investors', path: '/raises/investors' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <Book size={16} />

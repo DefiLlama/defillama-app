@@ -551,7 +551,11 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 	}
 ]
 
-export const activeInvestorsColumns: ColumnDef<{ name: string; deals: number; projects: string }>[] = [
+export const activeInvestorsColumns: ColumnDef<{
+	name: string
+	deals: number
+	projects: string
+}>[] = [
 	{
 		header: 'Investor',
 		accessorKey: 'name',
@@ -563,10 +567,63 @@ export const activeInvestorsColumns: ColumnDef<{ name: string; deals: number; pr
 	},
 	{
 		header: 'Deals (Last 30d)',
-		accessorKey: 'deals',
+		accessorKey: 'deals30d',
 		cell: ({ getValue }) => {
 			return <>{getValue()}</>
 		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Deals (Last 6 month)',
+		accessorKey: 'deals180d',
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Deals (Last year)',
+		accessorKey: 'deals365d',
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Average Round Amount',
+		accessorKey: 'averageAmount',
+		cell: ({ getValue }) => {
+			return <>${getValue()}m</>
+		},
+		size: 130,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Total Amount',
+		accessorKey: 'totalAmount',
+		cell: ({ getValue }) => {
+			return <>${getValue()}m</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/bridges" iconType="chain" />,
 		size: 100,
 		meta: {
 			align: 'end'
