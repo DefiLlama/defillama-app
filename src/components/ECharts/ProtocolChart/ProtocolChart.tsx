@@ -853,7 +853,7 @@ export default function ProtocolChart({
 					</Filters>
 				)}
 
-				{!isHourlyChart && hasAtleasOneBarChart ? (
+				{hasAtleasOneBarChart ? (
 					<>
 						<Filters color={color}>
 							<Link
