@@ -850,8 +850,8 @@ export function useFetchAndFormatChartData({
 	])
 
 	const finalData = React.useMemo(() => {
-		return groupDataByDays(chartData, isHourlyChart || typeof groupBy !== 'string' ? null : groupBy, chartsUnique)
-	}, [chartData, chartsUnique, isHourlyChart, groupBy])
+		return groupDataByDays(chartData, typeof groupBy !== 'string' ? null : groupBy, chartsUnique)
+	}, [chartData, chartsUnique, groupBy])
 
 	const fetchingTypes = []
 
