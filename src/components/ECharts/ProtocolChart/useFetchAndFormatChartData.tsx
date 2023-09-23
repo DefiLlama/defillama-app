@@ -989,6 +989,10 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 				date = firstDayOfMonth(+defaultDate * 1000)
 			}
 
+			if (groupBy === 'weekly') {
+				date = lastDayOfWeek(+defaultDate * 1000)
+			}
+
 			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek < +date : true)) {
 				currentDate = +date
 			}
@@ -1097,6 +1101,13 @@ const firstDayOfMonth = (dateString) => {
 	return date.getTime() / 1000
 }
 
+const DAY_OF_THE_WEEK = 0 // sunday
+function lastDayOfWeek(dateString) {
+	let date = new Date(dateString)
+	date.setDate(date.getDate() + ((DAY_OF_THE_WEEK + (7 - date.getDay())) % 7))
+
+	return date.getTime() > new Date().getTime() ? new Date().getTime() / 1000 : date.getTime() / 1000
+}
 export const lastDayOfMonth = (dateString) => {
 	let date = new Date(dateString)
 
