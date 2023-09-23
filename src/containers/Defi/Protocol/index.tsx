@@ -621,7 +621,7 @@ function ProtocolContainer({
 									</thead>
 									<tbody>
 										{extraTvls.map(([option, value]) => (
-											<tr key={option}>
+											<tr key={option + value}>
 												<th>
 													<ExtraOption>
 														<Checkbox2
@@ -1014,8 +1014,8 @@ function ProtocolContainer({
 												{raises
 													.sort((a, b) => a.date - b.date)
 													.map((raise) => (
-														<>
-															<tr key={raise.date + raise.amount}>
+														<React.Fragment key={raise.date + raise.amount}>
+															<tr>
 																<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
 																<td data-subvalue>
 																	{raise.source ? (
@@ -1033,14 +1033,14 @@ function ProtocolContainer({
 																	{(raise as any).leadInvestors
 																		.concat((raise as any).otherInvestors)
 																		.map((i, index, arr) => (
-																			<>
+																			<React.Fragment key={'raised from ' + i}>
 																				<a href={`/raises/${sluggify(i)}`}>{i}</a>
 																				{index < arr.length - 1 ? ', ' : ''}
-																			</>
+																			</React.Fragment>
 																		))}
 																</td>
 															</tr>
-														</>
+														</React.Fragment>
 													))}
 											</>
 										}
@@ -1303,9 +1303,9 @@ function ProtocolContainer({
 						)}
 						{devMetrics && (
 							<Section>
-								<FlexRow>
-									<h3>Development Activity</h3> (updated at{' '}
-									{dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})
+								<FlexRow as="span">
+									<h3>Development Activity</h3>{' '}
+									<p>(updated at {dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})</p>
 								</FlexRow>
 								<FlexRow>
 									<span>Weekly commits:</span> {devMetrics?.report.weekly_contributers.slice(-1)[0]?.cc}
