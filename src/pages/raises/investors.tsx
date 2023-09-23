@@ -1,6 +1,6 @@
 import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import * as React from 'react'
-import { flatten, mapValues, sumBy, uniq } from 'lodash'
+import { countBy, flatten, mapValues, sumBy, uniq } from 'lodash'
 import { maxAgeForNext } from '~/api'
 import { activeInvestorsColumns } from '~/components/Table/Defi/columns'
 import VirtualTable from '~/components/Table/Table'
@@ -13,14 +13,24 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import RowFilter from '~/components/Filters/common/RowFilter'
 import { TableFilters } from '~/components/Table/shared'
 
-const periodColumns = ['deals30d', 'deals180d', 'deals365d']
-const columns = [...periodColumns, 'name', 'averageAmount', 'totalAmount', 'chains', 'projects']
+const columns = ['name', 'medianAmount', 'chains', 'projects', 'deals', 'category', 'roundType']
 
 const periodToNumber = {
 	'30d': 30,
 	'180d': 180,
 	'1 year': 365,
 	All: 9999
+}
+
+const findMedian = (arr) => {
+	arr.sort((a, b) => a - b)
+	const middleIndex = Math.floor(arr.length / 2)
+
+	if (arr.length % 2 === 0) {
+		return (arr[middleIndex - 1] + arr[middleIndex]) / 2
+	} else {
+		return arr[middleIndex]
+	}
 }
 
 const fetch = fetchWithErrorLogging
@@ -56,9 +66,7 @@ const ActiveInvestors = ({ data }) => {
 		if (newPeriod === 'All') {
 			setPeriod(newPeriod), addOption(columns)
 		} else {
-			const columnsToRemove = periodColumns.filter((period) => !period?.includes(newPeriod))
 			setPeriod(newPeriod)
-			addOption(columns.filter((id) => !columnsToRemove.includes(id)))
 		}
 	}
 
@@ -72,20 +80,26 @@ const ActiveInvestors = ({ data }) => {
 			}, {}),
 			(raises, name) => {
 				const normalizedRaises = getRaisesByPeriod(raises, periodToNumber[period])
-				const deals30d = getRaisesByPeriod(raises, 30)?.length
-				const deals180d = getRaisesByPeriod(raises, 180)?.length
-				const deals365d = getRaisesByPeriod(raises, 365)?.length
+
+				const categories = Object.entries(countBy(raises?.map((raise) => raise?.category).filter(Boolean)))
+					.sort((a, b) => b[1] - a[1])
+					.map((val) => val[0])
+				const roundTypes = Object.entries(countBy(raises?.map((raise) => raise?.round).filter(Boolean)))
+					.sort((a, b) => b[1] - a[1])
+					.map((val) => val[0])
+
+				const medianAmount = findMedian(raises.map((r) => r?.amount))?.toFixed(2)
 
 				const totalAmount = sumBy(normalizedRaises, 'amount')
 				const averageAmount = totalAmount / normalizedRaises?.length || 0
 				if (totalAmount > 0)
 					return {
-						totalAmount: totalAmount.toFixed(2),
 						averageAmount: averageAmount.toFixed(2),
 						name,
-						deals30d,
-						deals180d,
-						deals365d,
+						medianAmount: medianAmount ?? 0,
+						category: categories[0],
+						roundType: roundTypes[0],
+						deals: normalizedRaises?.length,
 						projects: raises.map((raise) => raise.name).join(', '),
 						chains: uniq(flatten(raises.map((raise) => raise.chains.map((chain) => chain))))
 					}

@@ -566,56 +566,24 @@ export const activeInvestorsColumns: ColumnDef<{
 		size: 120
 	},
 	{
-		header: 'Deals (Last 30d)',
-		accessorKey: 'deals30d',
+		header: 'Deals',
+		accessorKey: 'deals',
 		cell: ({ getValue }) => {
 			return <>{getValue()}</>
 		},
-		size: 100,
+		size: 120,
 		meta: {
 			align: 'end'
 		}
 	},
+
 	{
-		header: 'Deals (Last 6 month)',
-		accessorKey: 'deals180d',
-		cell: ({ getValue }) => {
-			return <>{getValue()}</>
-		},
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Deals (Last year)',
-		accessorKey: 'deals365d',
-		cell: ({ getValue }) => {
-			return <>{getValue()}</>
-		},
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Average Round Amount',
-		accessorKey: 'averageAmount',
+		header: 'Median Amount',
+		accessorKey: 'medianAmount',
 		cell: ({ getValue }) => {
 			return <>${getValue()}m</>
 		},
 		size: 130,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Total Amount',
-		accessorKey: 'totalAmount',
-		cell: ({ getValue }) => {
-			return <>${getValue()}m</>
-		},
-		size: 100,
 		meta: {
 			align: 'end'
 		}
@@ -629,6 +597,25 @@ export const activeInvestorsColumns: ColumnDef<{
 			align: 'end'
 		}
 	},
+
+	{
+		header: 'Top Project Cateogry',
+		accessorKey: 'category',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 120
+	},
+	{
+		header: 'Top Round Type',
+		accessorKey: 'roundType',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 120
+	},
 	{
 		header: 'Projects',
 		accessorKey: 'projects',
@@ -636,7 +623,7 @@ export const activeInvestorsColumns: ColumnDef<{
 		cell: ({ getValue }) => {
 			return <Tooltip2 content={getValue()}>{getValue()}</Tooltip2>
 		},
-		size: 280
+		size: 240
 	}
 ]
 
