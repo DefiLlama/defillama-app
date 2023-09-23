@@ -1105,6 +1105,9 @@ const DAY_OF_THE_WEEK = 0 // sunday
 function lastDayOfWeek(dateString) {
 	let date = new Date(dateString)
 	date.setDate(date.getDate() + ((DAY_OF_THE_WEEK + (7 - date.getDay())) % 7))
+	date.setHours(0)
+	date.setSeconds(0)
+	date.setMilliseconds(0)
 
 	return date.getTime() > new Date().getTime() ? new Date().getTime() / 1000 : date.getTime() / 1000
 }
