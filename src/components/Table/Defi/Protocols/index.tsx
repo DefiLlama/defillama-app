@@ -166,10 +166,38 @@ const protocolsByChainTableColumns = [
 	{ name: 'Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
 ]
 
+const defaultColumns = JSON.stringify({
+	name: true,
+	category: true,
+	tvl: true,
+	change_1d: true,
+	change_7d: true,
+	change_1m: true,
+	mcaptvl: false,
+	fees_24h: true,
+	revenue_24h: true,
+	fees_7d: false,
+	revenue_7d: false,
+	fees_30d: false,
+	revenue_30d: false,
+	holdersRevenue30d: false,
+	userFees_24h: false,
+	cumulativeFees: false,
+	holderRevenue_24h: false,
+	treasuryRevenue_24h: false,
+	supplySideRevenue_24h: false,
+	pf: false,
+	ps: false,
+	volume_24h: true,
+	volume_7d: false,
+	volumeChange_7d: false,
+	cumulativeVolume: false
+})
+
 export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	const optionsKey = 'protocolsTableColumns'
 	const valuesInStorage = JSON.parse(
-		typeof window !== 'undefined' ? window.localStorage.getItem(optionsKey) ?? '{}' : '{}'
+		typeof window !== 'undefined' ? window.localStorage.getItem(optionsKey) ?? defaultColumns : defaultColumns
 	)
 	const [columnVisibility, setColumnVisibility] = React.useState(valuesInStorage)
 
