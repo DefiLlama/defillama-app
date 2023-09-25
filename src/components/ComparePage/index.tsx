@@ -16,6 +16,7 @@ import { ISettings } from '~/contexts/types'
 import ReactSelect from '../MultiSelect/ReactSelect'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { PROTOCOLS_API } from '~/constants'
 
 const fetch = fetchWithErrorLogging
 
@@ -176,7 +177,7 @@ const useCompare = ({
 	)
 
 	const chainsData = useQuery(['chains'], () =>
-		fetch('https://defillama-datasets.llama.fi/lite/protocols2')
+		fetch(PROTOCOLS_API)
 			.then((r) => r.json())
 			.then((pData) => pData?.chains?.map((val) => ({ value: val, label: val })))
 	)

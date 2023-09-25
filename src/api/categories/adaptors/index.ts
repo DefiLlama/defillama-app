@@ -1,5 +1,5 @@
 import type { LiteProtocol, IParentProtocol } from '~/api/types'
-import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
+import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API, MCAPS_API } from '~/constants'
 import { getUniqueArray } from '~/containers/DexsAndFees/utils'
 import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
@@ -160,7 +160,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	} = request
 	const chains = protocols.filter((e) => e.protocolType === 'chain').map((e) => e.name)
 
-	const chainMcaps = await fetch('https://coins.llama.fi/mcaps', {
+	const chainMcaps = await fetch(MCAPS_API, {
 		method: 'POST',
 		body: JSON.stringify({
 			coins: Object.values(chains)
