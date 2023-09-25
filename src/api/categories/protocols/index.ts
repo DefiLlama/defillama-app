@@ -5,7 +5,13 @@ import {
 	getPrevTvlFromChart,
 	standardizeProtocolName
 } from '~/utils'
-import type { IFusedProtocolData, IOracleProtocols, IProtocolResponse, LiteProtocol } from '~/api/types'
+import type {
+	IFusedProtocolData,
+	IOracleProtocols,
+	IProtocolResponse,
+	LiteProtocol,
+	TCompressedChain
+} from '~/api/types'
 import {
 	ACTIVE_USERS_API,
 	CATEGORY_API,
@@ -722,16 +728,17 @@ export async function getDefiChainsPageData(category: string) {
 	const to2Digits = (n: number) => Number(n.toFixed(2))
 
 	// format chains data to use in stacked area chart
-	const stackedDataset = Object.entries(
-		chainsData.reduce((total, chains, i) => {
+	const stackedDataset: { [date: number]: { [chain: string]: { [type: string]: number } } } = chainsData.reduce(
+		(total, chains, i) => {
 			const chainName = chainsUnique[i]
-			Object.entries(chains).forEach(([tvlType, values]: any) => {
-				values.forEach((value: any) => {
+
+			Object.entries(chains).forEach(([tvlType, values]: [string, Array<[number, number]>]) => {
+				values.forEach((value) => {
 					if (value[0] < 1596248105) return
 					if (total[value[0]] === undefined) {
 						total[value[0]] = {}
 					}
-					const b = total[value[0]][chainName]
+					const b: { [type: string]: number } = total[value[0]][chainName]
 					const compressedType = tvlTypes[tvlType]
 					if (compressedType !== undefined) {
 						total[value[0]][chainName] = {
@@ -741,15 +748,17 @@ export async function getDefiChainsPageData(category: string) {
 					}
 				})
 			})
+
 			return total
-		}, {})
+		},
+		{}
 	)
 
 	return {
 		chainsUnique,
 		categories,
 		chainTvls,
-		stackedDataset,
+		stackedDataset: Object.entries(stackedDataset),
 		chainsGroupbyParent,
 		tvlTypes // Object.fromEntries(Object.entries(tvlTypes).map(t=>[t[1], t[0]])) // reverse object
 	}
