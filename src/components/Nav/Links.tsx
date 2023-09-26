@@ -137,7 +137,7 @@ export const navLinks: ILinks = {
 			{ name: 'Oracles', path: '/oracles' },
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },
-			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve' },
+			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve+DEX' },
 			{ name: 'Protocol Expenses', path: '/expenses', newTag: true },
 			{ name: 'Token Usage', path: '/tokenUsage?token=ETH' },
 			{ name: 'Categories', path: '/categories' },

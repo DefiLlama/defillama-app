@@ -116,7 +116,7 @@ export default function CompareProtocolsTvls({
 			{
 				pathname: router.pathname,
 				query: {
-					protocol: values.length ? values : ['MakerDAO', 'Curve DEX']
+					protocol: values
 				}
 			},
 			undefined,
