@@ -266,6 +266,7 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 
 	const peggedChart = await fetchWithThrows(`${PEGGEDCHART_API}/all?stablecoin=${peggedID}`).then((resp) => resp.json())
 	const bridgeInfo = await getPeggedBridgeInfo()
+
 	const pegType = res.pegType
 
 	const totalCirculating = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalCirculating', pegType)

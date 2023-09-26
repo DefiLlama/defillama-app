@@ -25,6 +25,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 				<PoolStrategyWithProjects>
 					<NameYieldPool
 						value={name}
+						// in case of cdp row.original.pool === row.original.borrow.pool
 						configID={`${row.original.pool}_${row.original.borrow.pool}_${row.original.farmPool}`}
 						url={row.original.url}
 						index={index + 1}

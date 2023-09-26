@@ -551,10 +551,56 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 	}
 ]
 
-export const activeInvestorsColumns: ColumnDef<{ name: string; deals: number; projects: string }>[] = [
+export const activeInvestorsColumns: ColumnDef<{
+	name: string
+	deals: number
+	projects: string
+}>[] = [
 	{
 		header: 'Investor',
 		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <CustomLink href={`/raises/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+		},
+		size: 120
+	},
+	{
+		header: 'Deals',
+		accessorKey: 'deals',
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+
+	{
+		header: 'Median Amount',
+		accessorKey: 'medianAmount',
+		cell: ({ getValue }) => {
+			return <>${getValue()}m</>
+		},
+		size: 130,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/bridges" iconType="chain" />,
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+
+	{
+		header: 'Top Project Cateogry',
+		accessorKey: 'category',
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return <>{getValue()}</>
@@ -562,15 +608,13 @@ export const activeInvestorsColumns: ColumnDef<{ name: string; deals: number; pr
 		size: 120
 	},
 	{
-		header: 'Deals (Last 30d)',
-		accessorKey: 'deals',
+		header: 'Top Round Type',
+		accessorKey: 'roundType',
+		enableSorting: false,
 		cell: ({ getValue }) => {
 			return <>{getValue()}</>
 		},
-		size: 100,
-		meta: {
-			align: 'end'
-		}
+		size: 120
 	},
 	{
 		header: 'Projects',
@@ -579,7 +623,7 @@ export const activeInvestorsColumns: ColumnDef<{ name: string; deals: number; pr
 		cell: ({ getValue }) => {
 			return <Tooltip2 content={getValue()}>{getValue()}</Tooltip2>
 		},
-		size: 280
+		size: 240
 	}
 ]
 

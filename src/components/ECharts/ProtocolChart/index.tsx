@@ -6,7 +6,7 @@ import { getUtcDateObject, stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { toK } from '~/utils'
-import { BAR_CHARTS } from './utils'
+import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useRouter } from 'next/router'
 
 const Wrapper = styled.div`
@@ -14,7 +14,9 @@ const Wrapper = styled.div`
 `
 
 const customOffsets = {
-	Contributers: 60
+	Contributers: 60,
+	'Contributers Commits': 80,
+	'Devs Commits': 70
 }
 
 export default function AreaBarChart({
@@ -149,10 +151,19 @@ export default function AreaBarChart({
 			yAxisByIndex['Contributers'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('Devs Commits')) {
+			yAxisByIndex['Devs Commits'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('Contributers Commits')) {
+			yAxisByIndex['Contributers Commits'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
-			const type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
+			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
+			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
 
 			const options = {}
 			if (['TVL', 'Mcap', 'FDV', 'Borrowed', 'Staking'].includes(stack)) {
@@ -245,6 +256,12 @@ export default function AreaBarChart({
 				}
 			}
 		}
+
+		series.forEach((seriesItem) => {
+			if (seriesItem.data.length === 0) {
+				seriesItem.large = false
+			}
+		})
 
 		return { series, yAxisByIndex }
 	}, [
@@ -511,6 +528,35 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Contributers']
+						}
+					}
+				})
+			}
+
+			if (type === 'Devs Commits') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => value + ' commits'
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Devs Commits']
+						}
+					}
+				})
+			}
+			if (type === 'Contributers Commits') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => value + ' commits'
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Contributers Commits']
 						}
 					}
 				})

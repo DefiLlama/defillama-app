@@ -26,7 +26,7 @@ const colors = {
 	transactions: '#307622',
 	bridges: '#ffb12b',
 	developers: '#ff6969',
-	contributers: '#39601f'
+	devsCommits: '#39601f'
 }
 
 const colorsArray = [
@@ -297,6 +297,23 @@ export default function AreaChart({
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
+
+			if (route.devsCommits === 'true' && data?.commitsChart && data?.commitsChart?.length > 0) {
+				series.push({
+					name: namePrefix + 'Commits',
+					chartId: 'Commits',
+					type: 'bar',
+					stack: 'commits',
+					data: [],
+					yAxisIndex: 11,
+					itemStyle: {
+						color: getColor(isCompare) || colors.devsCommits
+					}
+				})
+				data?.commitsChart?.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
@@ -331,7 +348,8 @@ export default function AreaChart({
 			'Stablecoins Mcap': 60,
 			Transactions: 65,
 			Inflows: 55,
-			Developers: 55
+			Developers: 55,
+			Commits: 60
 		}
 		let offsetAcc = -60
 
@@ -460,6 +478,16 @@ export default function AreaChart({
 						...yAxis.axisLabel,
 						formatter: (value) => value + ' devs',
 						color: () => (isCompare ? '#fff' : colors.developers)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Commits',
+					axisLabel: {
+						...yAxis.axisLabel,
+						formatter: (value) => value + ' commits',
+						color: () => (isCompare ? '#fff' : colors.devsCommits)
 					}
 				}
 			].map((yAxis: any, i) => {

@@ -51,7 +51,7 @@ const BridgeInfo = ({ displayName, logo, chains, defaultChain, volumeDataByChain
 	const { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals } = tableDataByChain[currentChain]
 
 	const volumeChartDataByChain = volumeDataByChain[currentChain]
-	const prevDayChart = volumeChartDataByChain[volumeChartDataByChain.length - 1]
+	const prevDayChart = volumeChartDataByChain[volumeChartDataByChain.length - 2]
 	const currentDepositsUSD = prevDayChart?.Deposited ?? 0
 	const currentWithdrawalsUSD = -(prevDayChart?.Withdrawn ?? 0)
 	const currentVolume = currentDepositsUSD + currentWithdrawalsUSD

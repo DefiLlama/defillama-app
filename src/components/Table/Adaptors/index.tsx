@@ -16,7 +16,9 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { TableFilters } from '../shared'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
+import RowFilter from '~/components/Filters/common/RowFilter'
 
+export const PERIODS = ['24h', '7d', '30d']
 const columnSizesKeys = Object.keys(volumesColumnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
@@ -35,6 +37,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
+	const [period, setPeriod] = React.useState(null)
 	const windowSize = useWindowSize()
 
 	const instance = useReactTable({
@@ -80,6 +83,21 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 		.filter((col) => col.getIsVisible())
 		.map((col) => col.id)
 
+	const setNewPeriod = (newPeriod) => {
+		const periodsToRemove = PERIODS.filter((period) => period !== newPeriod)
+		const columnsToRemove = instance
+			.getAllLeafColumns()
+			.filter((col) => periodsToRemove.some((p) => col?.columnDef?.header?.toString().includes(p)))
+			.map((col) => col?.id)
+		const newColumns = instance
+			.getAllColumns()
+			.filter((col) => !columnsToRemove.includes(col.id))
+			.map((col) => col.id)
+
+		setPeriod(newPeriod)
+		addOption(newColumns)
+	}
+
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
@@ -117,6 +135,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 						hideSelectedCount
 					/>
 				)}
+				{type === 'fees' ? <RowFilter selectedValue={period} setValue={setNewPeriod} values={PERIODS} /> : null}
 			</TableFilters>
 
 			<VirtualTable instance={instance} />

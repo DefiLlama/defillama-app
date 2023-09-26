@@ -86,7 +86,8 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				totalSupplyUsd: t.totalSupplyUsd,
 				totalBorrowUsd: t.totalBorrowUsd,
 				totalAvailableUsd: t.totalAvailableUsd,
-				ltv: t.ltv
+				ltv: t.ltv,
+				lsdTokenOnly: t.lsdTokenOnly
 			}))
 		} else return []
 	}, [isClient, savedProtocolsInWatchlist, protocolsDict])

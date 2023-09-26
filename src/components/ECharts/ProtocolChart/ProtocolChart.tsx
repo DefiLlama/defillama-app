@@ -60,7 +60,9 @@ const CHART_TYPES = [
 	'bridgeVolume',
 	'twitter',
 	'devMetrics',
-	'contributersMetrics`'
+	'contributersMetrics',
+	'contributersCommits',
+	'devCommits'
 ]
 
 export default function ProtocolChart({
@@ -115,7 +117,9 @@ export default function ProtocolChart({
 		tokenLiquidity,
 		twitter,
 		devMetrics,
-		contributersMetrics
+		contributersMetrics,
+		contributersCommits,
+		devCommits
 	} = router.query
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
@@ -160,7 +164,9 @@ export default function ProtocolChart({
 			twitter,
 			twitterHandle,
 			devMetrics,
-			contributersMetrics
+			contributersMetrics,
+			contributersCommits,
+			devCommits
 		})
 
 	const realPathname =
@@ -780,6 +786,52 @@ export default function ProtocolChart({
 							</span>
 						</Toggle>
 					)}
+
+					{metrics.devMetrics && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="devCommits"
+								checked={devCommits === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, devCommits: devCommits === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Developers Commits</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.devMetrics && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="contributersCommits"
+								checked={contributersCommits === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, contributersCommits: contributersCommits === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Contributers Commits</span>
+							</span>
+						</Toggle>
+					)}
 				</ToggleWrapper>
 			) : null}
 
@@ -801,7 +853,7 @@ export default function ProtocolChart({
 					</Filters>
 				)}
 
-				{!isHourlyChart && hasAtleasOneBarChart ? (
+				{hasAtleasOneBarChart ? (
 					<>
 						<Filters color={color}>
 							<Link

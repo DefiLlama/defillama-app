@@ -78,7 +78,8 @@ const scams = [
 	'SatoshiCoreSwap',
 	'Swaprum',
 	'Cells Finance',
-	'SkyDex'
+	'SkyDex',
+	'Avault'
 ]
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
@@ -620,7 +621,7 @@ function ProtocolContainer({
 									</thead>
 									<tbody>
 										{extraTvls.map(([option, value]) => (
-											<tr key={option}>
+											<tr key={option + value}>
 												<th>
 													<ExtraOption>
 														<Checkbox2
@@ -1013,8 +1014,8 @@ function ProtocolContainer({
 												{raises
 													.sort((a, b) => a.date - b.date)
 													.map((raise) => (
-														<>
-															<tr key={raise.date + raise.amount}>
+														<React.Fragment key={raise.date + raise.amount}>
+															<tr>
 																<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
 																<td data-subvalue>
 																	{raise.source ? (
@@ -1032,14 +1033,14 @@ function ProtocolContainer({
 																	{(raise as any).leadInvestors
 																		.concat((raise as any).otherInvestors)
 																		.map((i, index, arr) => (
-																			<>
+																			<React.Fragment key={'raised from ' + i}>
 																				<a href={`/raises/${sluggify(i)}`}>{i}</a>
 																				{index < arr.length - 1 ? ', ' : ''}
-																			</>
+																			</React.Fragment>
 																		))}
 																</td>
 															</tr>
-														</>
+														</React.Fragment>
 													))}
 											</>
 										}
@@ -1282,7 +1283,6 @@ function ProtocolContainer({
 									</Link>
 								)}
 							</LinksWrapper>
-							{weeksFromLastTweet > 2 ? <span>Latest tweet was {weeksFromLastTweet} weeks ago.</span> : null}
 						</Section>
 
 						{articles.length > 0 && (
@@ -1303,21 +1303,21 @@ function ProtocolContainer({
 						)}
 						{devMetrics && (
 							<Section>
-								<FlexRow>
-									<h3>Development Activity</h3> (updated at{' '}
-									{dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})
+								<FlexRow as="span">
+									<h3>Development Activity</h3>{' '}
+									<p>(updated at {dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})</p>
 								</FlexRow>
 								<FlexRow>
-									<span>Weekly commits:</span> {devMetrics?.report.weekly_devs.slice(-1)[0]?.v}
+									<span>Weekly commits:</span> {devMetrics?.report.weekly_contributers.slice(-1)[0]?.cc}
 								</FlexRow>
 								<FlexRow>
-									<span>Monthly commits:</span> {devMetrics?.report.monthly_devs.slice(-1)[0]?.v}
+									<span>Monthly commits:</span> {devMetrics?.report.monthly_contributers.slice(-1)[0]?.cc}
 								</FlexRow>
 								<FlexRow>
 									<span>Weekly developers:</span> {devMetrics?.report.weekly_contributers.slice(-1)[0]?.v}
 								</FlexRow>
 								<FlexRow>
-									<span>Montly developers:</span> {devMetrics?.report.monthly_contributers.slice(-1)[0]?.v}
+									<span>Monthly developers:</span> {devMetrics?.report.monthly_contributers.slice(-1)[0]?.v}
 								</FlexRow>
 								<FlexRow>
 									<span>Last commit date:</span> {dayjs(devMetrics.last_commit_update_time).format('DD/MM/YY')}

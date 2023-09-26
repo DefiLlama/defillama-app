@@ -203,10 +203,10 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 
 			<ChartsWrapper style={{ marginTop: '-16px' }}>
 				<LazyChart>
-					<PieChart chartData={investmentByRounds} title="Investment by Rounds" />
+					<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
 				</LazyChart>
 				<LazyChart>
-					<PieChart chartData={raisesByCategory} title="Investments by Category" />
+					<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
 				</LazyChart>
 			</ChartsWrapper>
 

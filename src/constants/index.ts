@@ -125,3 +125,5 @@ export const TWITTER_POSTS_API = 'https://defillama-datasets.llama.fi/dev-metric
 export const HACKS_API = 'https://api.llama.fi/hacks'
 
 export const DEV_METRICS_API = 'https://defillama-datasets.llama.fi/dev-metrics/github'
+
+export const MCAPS_API = 'https://coins.llama.fi/mcaps'

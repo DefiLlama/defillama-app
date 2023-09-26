@@ -16,7 +16,7 @@ import {
 import { nearestUtc } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
 import useSWR from 'swr'
-import { BAR_CHARTS } from './utils'
+import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/BridgeContainer'
 import { fetchWithErrorLogging } from '~/utils/async'
 import dayjs from 'dayjs'
@@ -64,7 +64,9 @@ export function useFetchAndFormatChartData({
 	twitter,
 	twitterHandle,
 	devMetrics,
-	contributersMetrics
+	contributersMetrics,
+	contributersCommits,
+	devCommits
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -134,7 +136,9 @@ export function useFetchAndFormatChartData({
 	)
 
 	const { data: devMetricsData, loading: fetchingDevMetrics } = useFetchProtocolDevMetrics(
-		isRouterReady && (devMetrics === 'true' || contributersMetrics === 'true') ? protocol.id || protocolId : null
+		isRouterReady && [devMetrics, contributersMetrics, contributersCommits, devCommits].some((v) => v === 'true')
+			? protocol.id || protocolId
+			: null
 	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
@@ -724,6 +728,38 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
+		if (devMetricsData && devCommits === 'true') {
+			chartsUnique.push('Devs Commits')
+
+			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
+
+			devMetricsData.report?.[metricKey].forEach(({ k, cc }) => {
+				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Devs Commits'] = cc || 0
+			})
+		}
+
+		if (devMetricsData && contributersCommits === 'true') {
+			chartsUnique.push('Contributers Commits')
+
+			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
+
+			devMetricsData.report?.[metricKey].forEach(({ k, cc }) => {
+				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Contributers Commits'] = cc || 0
+			})
+		}
+
 		if (treasuryData) {
 			chartsUnique.push('Treasury')
 			const tData = formatProtocolsTvlChartData({ historicalChainTvls: treasuryData.chainTvls, extraTvlEnabled: {} })
@@ -808,12 +844,14 @@ export function useFetchAndFormatChartData({
 		devMetrics,
 		devMetricsData,
 		groupBy,
-		contributersMetrics
+		contributersMetrics,
+		contributersCommits,
+		devCommits
 	])
 
 	const finalData = React.useMemo(() => {
-		return groupDataByDays(chartData, isHourlyChart || typeof groupBy !== 'string' ? null : groupBy, chartsUnique)
-	}, [chartData, chartsUnique, isHourlyChart, groupBy])
+		return groupDataByDays(chartData, typeof groupBy !== 'string' ? null : groupBy, chartsUnique)
+	}, [chartData, chartsUnique, groupBy])
 
 	const fetchingTypes = []
 
@@ -951,6 +989,10 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 				date = firstDayOfMonth(+defaultDate * 1000)
 			}
 
+			if (groupBy === 'weekly') {
+				date = lastDayOfWeek(+defaultDate * 1000)
+			}
+
 			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek < +date : true)) {
 				currentDate = +date
 			}
@@ -967,7 +1009,7 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 				}
 
 				if (BAR_CHARTS.includes(chartType) || forceGroup) {
-					if (groupBy === 'cumulative') {
+					if (groupBy === 'cumulative' && !DISABLED_CUMULATIVE_CHARTS.includes(chartType)) {
 						cumulative[chartType] = (cumulative[chartType] || 0) + (+data[defaultDate][chartType] || 0)
 						chartData[currentDate][chartType] = cumulative[chartType]
 					} else {
@@ -1059,6 +1101,16 @@ const firstDayOfMonth = (dateString) => {
 	return date.getTime() / 1000
 }
 
+const DAY_OF_THE_WEEK = 0 // sunday
+function lastDayOfWeek(dateString) {
+	let date = new Date(dateString)
+	date.setDate(date.getDate() + ((DAY_OF_THE_WEEK + (7 - date.getDay())) % 7))
+	date.setHours(0)
+	date.setSeconds(0)
+	date.setMilliseconds(0)
+
+	return date.getTime() > new Date().getTime() ? new Date().getTime() / 1000 : date.getTime() / 1000
+}
 export const lastDayOfMonth = (dateString) => {
 	let date = new Date(dateString)
 

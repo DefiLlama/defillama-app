@@ -131,7 +131,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 	)
 }
 
-const LinkItem = ({ option, activeLink, ...props }) => {
+export const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
 		<Link href={option.to} prefetch={false} passHref>
 			<NavLink data-active={option.label === activeLink} {...props}>
@@ -141,7 +141,7 @@ const LinkItem = ({ option, activeLink, ...props }) => {
 	)
 }
 
-const NavLink = styled.a`
+export const NavLink = styled.a`
 	min-width: fit-content;
 	border-radius: 12px;
 	padding: 8px 12px;

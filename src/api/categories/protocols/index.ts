@@ -1,5 +1,17 @@
-import { capitalizeFirstLetter, getColorFromNumber, standardizeProtocolName } from '~/utils'
-import type { IFusedProtocolData, IOracleProtocols, IProtocolResponse } from '~/api/types'
+import {
+	capitalizeFirstLetter,
+	getColorFromNumber,
+	getPercentChange,
+	getPrevTvlFromChart,
+	standardizeProtocolName
+} from '~/utils'
+import type {
+	IFusedProtocolData,
+	IOracleProtocols,
+	IProtocolResponse,
+	LiteProtocol,
+	TCompressedChain
+} from '~/api/types'
 import {
 	ACTIVE_USERS_API,
 	CATEGORY_API,
@@ -12,7 +24,9 @@ import {
 	PROTOCOL_EMISSIONS_LIST_API,
 	PROTOCOL_EMISSION_API,
 	YIELD_POOLS_API,
-	LSD_RATES_API
+	LSD_RATES_API,
+	CHART_API,
+	MCAPS_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -22,6 +36,7 @@ import {
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
+import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -525,6 +540,27 @@ export async function getCategoriesPageData(category = null) {
 	}
 }
 
+interface IChainGroups {
+	[parent: string]: {
+		[type: string]: string[]
+	}
+}
+
+interface INumOfProtocolsPerChain {
+	[protocol: string]: number
+}
+
+interface IExtraPropPerChain {
+	[chain: string]: {
+		[prop: string]: {
+			tvl: number
+			tvlPrevDay?: number
+			tvlPrevWeek?: number
+			tvlPrevMonth?: number
+		}
+	}
+}
+
 export const getNewChainsPageData = async (category: string) => {
 	const [
 		{ categories, chainTvls, ...rest },
@@ -686,7 +722,7 @@ export function formatGovernanceData(data: {
 
 	const maxVotes = Object.entries(data.stats.months || {}).map(([date, values]) => {
 		let maxVotes = 0
-		values.proposals.forEach((proposal) => {
+		values.proposals?.forEach((proposal) => {
 			const votes = proposals.find((p) => p.id === proposal)?.['scores_total'] ?? 0
 
 			if (votes > maxVotes) {

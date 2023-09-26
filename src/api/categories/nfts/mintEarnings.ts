@@ -658,5 +658,17 @@ export const NFT_MINT_EARNINGS = [
 		usdSales: 6058318.217,
 		startMint: '2021-08-27 16:03:22',
 		endMint: '2021-08-27 16:51:10'
-	}
+	},
+	{
+		contractAddress: '0xb6a37b5d14d502c3ab0ae6f3a0e058bc9517786e',
+		usdSales: 38000000,
+		startMint: '2023-06-27 0:0:0',
+		endMint: '2023-06-27 0:0:0'
+	},
+	{
+		contractAddress: '0xf729f878f95548bc7f14b127c96089cf121505f8',
+		usdSales: 31000000,
+		startMint: '2022-04-23 1:04:48',
+		endMint: '2022-04-23 1:04:48'
+	},
 ].filter((c) => c.usdSales !== '')

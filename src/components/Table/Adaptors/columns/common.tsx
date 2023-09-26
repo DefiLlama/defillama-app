@@ -198,7 +198,8 @@ export const DominanceColumn: ColumnDef<IDexsRow> = {
 	cell: (info) => <>{formattedPercent(info.getValue(), true)}</>,
 	size: 140,
 	meta: {
-		align: 'end'
+		align: 'end',
+		headerHelperText: '% of the 24h total volume'
 	}
 }
 

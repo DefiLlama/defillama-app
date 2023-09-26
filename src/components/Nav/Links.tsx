@@ -63,7 +63,7 @@ const defaultToolsAndFooterLinks = {
 			referrer: true
 		},
 		{
-			name: 'DLNews',
+			name: 'DL News',
 			path: 'https://dlnews.com/',
 			newTag: true,
 			external: true,
@@ -283,7 +283,7 @@ export const navLinks: ILinks = {
 	Raises: {
 		main: [
 			{ name: 'Overview', path: '/raises' },
-			{ name: 'Active Investors', path: '/raises/active-investors' }
+			{ name: 'Investors', path: '/raises/investors' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <Book size={16} />
