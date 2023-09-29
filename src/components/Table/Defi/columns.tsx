@@ -900,7 +900,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			<InflowOutflow
 				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
 			>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</InflowOutflow>
 		),
 		sortingFn: sortingFns.datetime,
@@ -916,7 +916,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			<InflowOutflow
 				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
 			>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</InflowOutflow>
 		),
 		sortingFn: sortingFns.datetime,
@@ -932,7 +932,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			<InflowOutflow
 				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
 			>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</InflowOutflow>
 		),
 		sortingFn: sortingFns.datetime,
@@ -948,7 +948,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			<InflowOutflow
 				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
 			>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</InflowOutflow>
 		),
 		sortingFn: sortingFns.datetime,

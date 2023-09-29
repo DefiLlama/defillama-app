@@ -136,7 +136,7 @@ export const formattedNum = (number, symbol = false) => {
 	const isNegative = num < 0
 	num = Math.abs(num)
 
-	const currencyMark = isNegative ? `${currencySymbol}-` : currencySymbol
+	const currencyMark = isNegative ? `-${currencySymbol}` : currencySymbol
 	const normalMark = isNegative ? '-' : ''
 
 	if (num > 1_000_000) {
