@@ -353,6 +353,28 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'BitMart',
+		slug: 'bitMart',
+		coin: 'BMX',
+		coinSymbol: 'BMX',
+		cgId: 'bitmart',
+		cgDeriv: 'bitmart_futures'
+	},
+	{
+		name: 'Klever Exchange',
+		slug: 'klever-exchange',
+		coin: 'KLV',
+		coinSymbol: 'KLV',
+		cgId: 'klever_exchange',
+	},
+	{
+		name: 'BTSE',
+		slug: 'btse',
+		coin: 'BTSE',
+		coinSymbol: 'BTSE',
+		cgId: 'btse',
+	},
+	{
 		name: 'Bitmake',
 		slug: 'bitmake',
 		coin: null,
@@ -418,11 +440,6 @@ export const cexData: Array<ICex> = [
 	{
 		name: 'Upbit',
 		cgId: 'upbit'
-	},
-	{
-		name: 'Bitmart',
-		cgId: 'bitmart',
-		cgDeriv: 'bitmart_futures'
 	},
 	{
 		name: 'Bittrex',
