@@ -898,6 +898,52 @@ export const chainCoingeckoIds = {
 		geckoId: 'sui',
 		symbol: 'SUI',
 		cmcId: '20947'
+	},
+	ShimmerEVM: {
+		geckoId: 'shimmer',
+		symbol: 'SMR',
+		cmcId: '14801'
+	},
+	MVC: {
+		geckoId: 'microvisionchain',
+		symbol: 'SPACE',
+		cmcId: '24193'
+	},
+	ALV: {
+		geckoId: 'alvey-chain',
+		symbol: 'ALV',
+		cmcId: null
+	},
+	DSC: {
+		geckoId: 'decimal',
+		symbol: 'DEL',
+		cmcId: null
+	},
+	Darwinia: {
+		geckoId: 'darwinia-network-native-token',
+		symbol: 'RING',
+		cmcId: '5798'
+	},
+	Pego: {
+		geckoId: 'pego-network-2',
+		symbol: 'PG',
+		cmcId: '27723'
+	},
+	Kroma: {
+		geckoId: 'kroma',
+		symbol: 'KRO',
+		cmcId: null
+	},
+	Archway: {
+		geckoId: 'archway',
+		symbol: 'ARCH',
+		cmcId: '27358'
+	},
+	HydraDX: {
+		geckoId: 'hydradx',
+		github: ['galacticcouncil'],
+		symbol: 'HDX',
+		cmcId: '6753'
 	}
 }
 
