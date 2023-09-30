@@ -79,7 +79,8 @@ const scams = [
 	'Swaprum',
 	'Cells Finance',
 	'SkyDex',
-	'Avault'
+	'Avault',
+	'Tegro Finance'
 ]
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
