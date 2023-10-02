@@ -43,7 +43,8 @@ async function getContracts(chain: string, time: number) {
 			return {
 				results: await Promise.all(
 					r.map(async (contract) => {
-						let name = undefined
+						let name = contract.name ? { name: contract.name } : undefined
+						if (!name) {
 						try {
 							name = await fetch(
 								`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`
@@ -63,6 +64,7 @@ async function getContracts(chain: string, time: number) {
 								name = undefined
 							}
 						}
+					}
 						return {
 							...contract,
 							name: name?.name
@@ -109,7 +111,7 @@ export default function TrendingContracts() {
 				<RowFilter
 					selectedValue={chain}
 					setValue={(val: string) => setChain(val)}
-					values={['Ethereum', 'Arbitrum', 'Polygon']}
+					values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}
 				/>
 			</TableFilters>
 
@@ -139,7 +141,7 @@ const columns = (chain: string) =>
 				return (
 					<a
 						href={`https://${
-							chain === 'ethereum' ? 'etherscan.io' : chain === 'arbitrum' ? 'arbiscan.io' : 'polygonscan.com'
+							chain === 'ethereum' ? 'etherscan.io' : chain === 'arbitrum' ? 'arbiscan.io' : chain === 'optimism' ? 'optimistic.etherscan.io' : chain === 'base' ? 'basescan.org' : 'polygonscan.com'
 						}/address/${value}`}
 						target="_blank"
 						rel="noopener noreferrer"
