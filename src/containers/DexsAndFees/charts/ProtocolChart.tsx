@@ -264,5 +264,6 @@ export const ChartOnly = ({ title, chartData }) => {
 
 export const stackedBarChartColors = {
 	Fees: '#4f8fea',
-	Revenue: '#E59421'
+	Revenue: '#E59421',
+	Incentives: '#1cd8a6'
 }

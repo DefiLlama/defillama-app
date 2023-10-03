@@ -25,6 +25,8 @@ import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import SEO from '~/components/SEO'
 import type { IProtocolContainerProps } from './types'
 import { ProtocolChart } from './charts/ProtocolChart'
+import useEmissions from './hooks/useEmissions'
+import { sluggify } from '~/utils/cache-client'
 
 function ProtocolContainer(props: IProtocolContainerProps) {
 	useScrollToTop()
@@ -41,6 +43,8 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 			address: splittedAddress.length > 1 ? splittedAddress[1] : splittedAddress[0]
 		}
 	})
+
+	const emissionsChart = useEmissions(sluggify(props.protocolSummary.name))
 
 	const enableVersionsChart = props.protocolSummary.childProtocols?.length > 0
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
@@ -59,6 +63,11 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 			chartData = cd
 			legend = lgnd
 		}
+
+		if (emissionsChart) {
+			chartData = chartData.map((val) => ({ ...val, Incentives: emissionsChart[val.date] ?? 0 }))
+			legend = legend.concat('Incentives')
+		}
 		title = Object.keys(legend).length <= 1 ? `${capitalizeFirstLetter(typeSimple)} by chain` : ''
 		return {
 			dataChart: [chartData, legend] as [IJoin2ReturnType, string[]],
@@ -68,7 +77,8 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 		props.protocolSummary.totalDataChart,
 		props.protocolSummary.totalDataChartBreakdown,
 		useTotalDataChart,
-		typeSimple
+		typeSimple,
+		emissionsChart
 	])
 
 	return (
