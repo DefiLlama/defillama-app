@@ -18,7 +18,7 @@ const useEmissions = (protocol) => {
 				}, {})
 		: {}
 
-	return Object.keys(result).length ? result : null
+	return Object.keys(result ?? {}).length ? result : null
 }
 
 export default useEmissions
