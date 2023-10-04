@@ -768,29 +768,6 @@ export default function ProtocolChart({
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"
-								value="contributersMetrics"
-								checked={contributersMetrics === 'true'}
-								onChange={() =>
-									router.push(
-										{
-											pathname: router.pathname,
-											query: { ...router.query, contributersMetrics: contributersMetrics === 'true' ? false : true }
-										},
-										undefined,
-										{ shallow: true }
-									)
-								}
-							/>
-							<span data-wrapper="true">
-								<span>Contributers</span>
-							</span>
-						</Toggle>
-					)}
-
-					{metrics.devMetrics && (
-						<Toggle backgroundColor={color}>
-							<input
-								type="checkbox"
 								value="devCommits"
 								checked={devCommits === 'true'}
 								onChange={() =>
@@ -805,30 +782,7 @@ export default function ProtocolChart({
 								}
 							/>
 							<span data-wrapper="true">
-								<span>Developers Commits</span>
-							</span>
-						</Toggle>
-					)}
-
-					{metrics.devMetrics && (
-						<Toggle backgroundColor={color}>
-							<input
-								type="checkbox"
-								value="contributersCommits"
-								checked={contributersCommits === 'true'}
-								onChange={() =>
-									router.push(
-										{
-											pathname: router.pathname,
-											query: { ...router.query, contributersCommits: contributersCommits === 'true' ? false : true }
-										},
-										undefined,
-										{ shallow: true }
-									)
-								}
-							/>
-							<span data-wrapper="true">
-								<span>Contributers Commits</span>
+								<span>Developer Commits</span>
 							</span>
 						</Toggle>
 					)}

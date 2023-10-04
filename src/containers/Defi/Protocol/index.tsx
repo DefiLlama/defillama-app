@@ -1309,19 +1309,19 @@ function ProtocolContainer({
 									<p>(updated at {dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})</p>
 								</FlexRow>
 								<FlexRow>
-									<span>Weekly commits:</span> {devMetrics?.report.weekly_contributers.slice(-1)[0]?.cc}
+									<p>
+										Weekly commits: {devMetrics?.report.weekly_contributers.slice(-1)[0]?.cc}
+										<br />
+										Monthly commits: {devMetrics?.report.monthly_contributers.slice(-1)[0]?.cc}
+										<br />
+										Weekly developers: {devMetrics?.report.weekly_contributers.slice(-1)[0]?.v}
+										<br />
+										Monthly developers: {devMetrics?.report.monthly_contributers.slice(-1)[0]?.v}
+									</p>
 								</FlexRow>
 								<FlexRow>
-									<span>Monthly commits:</span> {devMetrics?.report.monthly_contributers.slice(-1)[0]?.cc}
-								</FlexRow>
-								<FlexRow>
-									<span>Weekly developers:</span> {devMetrics?.report.weekly_contributers.slice(-1)[0]?.v}
-								</FlexRow>
-								<FlexRow>
-									<span>Monthly developers:</span> {devMetrics?.report.monthly_contributers.slice(-1)[0]?.v}
-								</FlexRow>
-								<FlexRow>
-									<span>Last commit date:</span> {dayjs(devMetrics.last_commit_update_time).format('DD/MM/YY')}
+									<span>Last commit:</span> {dayjs(devMetrics.last_commit_update_time).fromNow()} (
+									{dayjs(devMetrics.last_commit_update_time).format('YYYY-MM-DD')})
 								</FlexRow>
 							</Section>
 						)}
