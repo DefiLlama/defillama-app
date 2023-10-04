@@ -123,10 +123,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			const rewards = row.original.rewards ?? []
-
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.project) ? <QuestionHelper text={earlyExit} /> : null}
+					{lockupsRewards.includes(row.original.project) ? (
+						<QuestionHelper text={earlyExit} />
+					) : row.original.rewardMeta ? (
+						<QuestionHelper text={row.original.rewardMeta} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
