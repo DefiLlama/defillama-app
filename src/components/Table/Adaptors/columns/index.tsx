@@ -131,6 +131,9 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		allChains ? undefined : Total24hColumn('Market Cap', 'mcap', undefined, undefined, 'Market Cap'),
 		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, undefined, 'Fees (7d)'),
 		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, undefined, 'Fees (30d)'),
+		Total24hColumn('Incentives', 'emission24h', `Cumulative last 24h incentives`, 180, 'Incentives (24h)', true),
+		Total24hColumn('Incentives', 'emission7d', `Cumulative last 7d incentives`, 180, 'Incentives (7d)', true),
+		Total24hColumn('Incentives', 'emission30d', `Cumulative last 30d incentives`, 180, 'Incentives (30d)', true),
 		allChains ? undefined : Total24hColumn('Revenue', 'revenue7d', `Cumulative last 7d revenue`, 150, 'Revenue (7d)'),
 		allChains ? undefined : Total24hColumn('Fees', 'revenue30d', `Cumulative last 30d revenue`, 160, 'Revenue (30d)'),
 		// TotalAllTimeColumn('fees') tmp

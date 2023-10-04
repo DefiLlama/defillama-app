@@ -25,6 +25,7 @@ export const PROTOCOLS_TREASURY = 'https://api.llama.fi/treasuries'
 export const PROTOCOL_EMISSIONS_API = 'https://api.llama.fi/emissions'
 export const PROTOCOL_EMISSIONS_LIST_API = 'https://defillama-datasets.llama.fi/emissionsProtocolsList'
 export const PROTOCOL_EMISSION_API = 'https://api.llama.fi/emission'
+export const EMISSION_BREAKDOWN_API = 'https://api.llama.fi/emissionsBreakdown'
 
 export const GOVERNANCE_SNAPSHOT_API = 'https://defillama-datasets.llama.fi/governance-cache/overview/snapshot.json'
 export const PROTOCOL_GOVERNANCE_SNAPSHOT_API = 'https://defillama-datasets.llama.fi/governance-cache/snapshot'

@@ -1,5 +1,5 @@
 import type { LiteProtocol, IParentProtocol } from '~/api/types'
-import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API, MCAPS_API } from '~/constants'
+import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API, MCAPS_API, EMISSION_BREAKDOWN_API } from '~/constants'
 import { getUniqueArray } from '~/containers/DexsAndFees/utils'
 import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
@@ -8,6 +8,7 @@ import { getCexVolume, handleFetchResponse } from './utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { sluggify } from '~/utils/cache-client'
 
 const fetch = fetchWithErrorLogging
 
@@ -133,17 +134,21 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
 			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
 
-	const [request, protocolsData, feesOrRevenue, cexVolume]: [
+	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown]: [
 		IGetOverviewResponseBody,
 		{ protocols: LiteProtocol[]; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
-		number
+		number,
+		Record<string, Record<string, number>>
 	] = await Promise.all([
 		fetch(getAPIUrl(type, chain, type === 'fees', true)).then(handleFetchResponse),
 		fetch(PROTOCOLS_API).then(handleFetchResponse),
 		fetch(feesOrRevenueApi).then(handleFetchResponse),
-		type === 'dexs' ? getCexVolume() : Promise.resolve(0)
+		type === 'dexs' ? getCexVolume() : Promise.resolve(0),
+		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse)
 	])
+
+	console.log(emissionBreakdown)
 
 	const {
 		protocols = [],
@@ -211,6 +216,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	const protocolsWithSubrows = protocols.reduce((acc, protocol) => {
 		// Assign mainrow and sub-row if has any
+		const slugName = sluggify(protocol?.name)
+
 		let mainRow: undefined | IOverviewProps['protocols'][number] = undefined
 		let subRow: undefined | IOverviewProps['protocols'][number]['subRows'][number] = null
 		if (parentProtocolsMap[protocol.parentProtocol]) {
@@ -246,6 +253,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
 			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
+			emission24h: emissionBreakdown?.[slugName]?.emission24h ?? null,
+			emission7d: emissionBreakdown?.[slugName]?.emission7d ?? null,
+			emission30d: emissionBreakdown?.[slugName]?.emission30d ?? null,
 			tvl: protocolTVL ?? null,
 			dominance: (100 * protocol.total24h) / total24h,
 			module: protocol.module,
