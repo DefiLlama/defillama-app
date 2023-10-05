@@ -148,8 +148,6 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse)
 	])
 
-	console.log(emissionBreakdown)
-
 	const {
 		protocols = [],
 		total24h,
