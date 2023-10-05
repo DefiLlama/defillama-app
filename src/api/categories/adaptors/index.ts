@@ -242,6 +242,10 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 		// Main row, either parent or single protocol
 		const protocolTVL = tvlData[protocol.defillamaId]
+		const emission24h = emissionBreakdown?.[slugName]?.emission24h ?? null
+		const emission7d = emissionBreakdown?.[slugName]?.emission7d ?? null
+		const emission30d = emissionBreakdown?.[slugName]?.emission30d ?? null
+
 		mainRow = {
 			...mainRow,
 			...acc[protocol.parentProtocol],
@@ -251,9 +255,14 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
 			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
-			emission24h: emissionBreakdown?.[slugName]?.emission24h ?? null,
-			emission7d: emissionBreakdown?.[slugName]?.emission7d ?? null,
-			emission30d: emissionBreakdown?.[slugName]?.emission30d ?? null,
+			emission24h: emission24h ?? null,
+			emission7d: emission7d ?? null,
+			emission30d: emission30d ?? null,
+			netEarnings24h:
+				emission24h !== 0 && emission24h ? revenueProtocols?.[protocol.name]?.total24h - emission24h : null,
+			netEarnings7d: emission7d !== 0 && emission7d ? revenueProtocols?.[protocol.name]?.total7d - emission7d : null,
+			netEarnings30d:
+				emission30d !== 0 && emission30d ? revenueProtocols?.[protocol.name]?.total30d - emission30d : null,
 			tvl: protocolTVL ?? null,
 			dominance: (100 * protocol.total24h) / total24h,
 			module: protocol.module,
