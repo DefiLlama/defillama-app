@@ -125,11 +125,8 @@ export const Total24hColumn = (
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.getValue()
-			if (
-				value === '' ||
-				(value === null && (alternativeAccessor === 'mcap' || hideNull)) ||
-				Number.isNaN(formattedNum(value))
-			)
+			if (!Number(value) && hideNull) return <></>
+			if (value === '' || (value === null && alternativeAccessor === 'mcap') || Number.isNaN(formattedNum(value)))
 				return <></>
 			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
 			const methodologyKey = (() => {
