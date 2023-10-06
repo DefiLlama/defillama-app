@@ -1,4 +1,5 @@
 export interface IYieldTableRow {
+	rewardMeta: string
 	id: string
 	pool: string
 	projectslug: string
