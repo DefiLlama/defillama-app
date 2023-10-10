@@ -84,7 +84,8 @@ const blockExplorers = {
 	op_bnb: ['https://mainnet.opbnbscan.com/address/', 'opBNBScan'],
 	mvc: ['https://scan.microvisionchain.com/token/', 'MVCScan'],
 	shibarium: ['https://www.shibariumscan.io/token/', 'ShibariumScan'],
-	beam: ['https://subnets.avax.network/beam/address/', 'Beam Subnet Explorer']
+	beam: ['https://subnets.avax.network/beam/address/', 'Beam Subnet Explorer'],
+	nos: ['https://explorer.l2.trustless.computer/address/', 'NOS Blockscout']
 }
 
 export const getBlockExplorer = (address: string = '') => {
