@@ -8,7 +8,7 @@ import { formattedNum, formattedPercent, slug } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 import { IDexsRow } from '../types'
 
-export const NameColumn = (type: string, allChains?: boolean): ColumnDef<IDexsRow> => ({
+export const NameColumn = (type: string, allChains?: boolean, size = 240): ColumnDef<IDexsRow> => ({
 	header: () => <Name>Name</Name>,
 	accessorKey: 'displayName',
 	enableSorting: false,
@@ -33,7 +33,7 @@ export const NameColumn = (type: string, allChains?: boolean): ColumnDef<IDexsRo
 			</Name>
 		)
 	},
-	size: 240
+	size
 })
 export const ChainsColumn = (type: string): ColumnDef<IDexsRow> => ({
 	header: 'Chains',

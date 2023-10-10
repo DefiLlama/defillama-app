@@ -167,13 +167,12 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		XColumn('P/S', 'ps', undefined, `Market cap / annualized revenue`)
 	].filter((c) => c !== undefined)
 
-export const simpleFeesColumns = (allChains?: boolean, isSimple?: boolean): ColumnDef<IDexsRow>[] =>
+export const simpleFeesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
-		NameColumn('fees', allChains),
-		allChains ? undefined : ChainsColumn('fees/simple'),
-		Total24hColumn('Fees', undefined, undefined, 140),
-		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, undefined, 'Fees (7d)'),
-		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, undefined, 'Fees (30d)')
+		NameColumn('fees', allChains, 140),
+		Total24hColumn('Fees', undefined, undefined, 120),
+		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, 120, 'Fees (7d)'),
+		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, 120, 'Fees (30d)')
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen
