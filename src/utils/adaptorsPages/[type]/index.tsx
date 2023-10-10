@@ -1,4 +1,5 @@
 import { GetStaticProps, GetStaticPropsContext } from 'next'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/adaptors'
@@ -45,10 +46,12 @@ export const getStaticPropsByType = (type: string) => {
 }
 
 const AllChainsDexs = (props: IOverviewContainerProps) => {
+	const router = useRouter()
+	const isSimpleFees = router?.pathname?.includes('/fees/simple')
 	return (
 		<Layout title={`${capitalizeFirstLetter(props.type)} - DefiLlama`}>
 			<SEO pageType={props.type} />
-			<OverviewContainer {...props} />
+			<OverviewContainer {...props} isSimpleFees={isSimpleFees} />
 		</Layout>
 	)
 }

@@ -28,6 +28,7 @@ export type IOverviewContainerProps = IOverviewProps
 
 export default function OverviewContainer(props: IOverviewContainerProps) {
 	const chain = props.chain ?? 'All'
+	const isSimpleFees = props.isSimpleFees
 	const router = useRouter()
 	const { dataType: selectedDataType = 'Notional volume' } = router.query
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
@@ -50,12 +51,15 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			props.allChains && props.allChains.length > 0
 				? ['All', ...props.allChains].map((chain) => ({
 						label: chain,
-						to: chain === 'All' ? `/${props.type}` : `/${props.type}/chains/${chain.toLowerCase()}`
+						to:
+							chain === 'All'
+								? `/${props.type}/${isSimpleFees ? 'simple' : ''}`
+								: `/${props.type}${isSimpleFees ? '/simple' : ''}/chains/${chain.toLowerCase()}`
 				  }))
 				: null
 
 		return { selectedCategories, protocolsList, rowLinks }
-	}, [router.query.category, props.protocols, props.allChains, props.type])
+	}, [router.query.category, props.protocols, props.allChains, props.type, isSimpleFees])
 
 	const [charts, setCharts] = React.useState<IJSON<IOverviewContainerProps['totalDataChartBreakdown']>>({
 		totalDataChartBreakdown: props.totalDataChartBreakdown,
@@ -219,6 +223,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 
 			{protocolsList && protocolsList.length > 0 ? (
 				<OverviewTable
+					isSimpleFees={props.isSimpleFees}
 					data={protocolsList}
 					type={props.type}
 					allChains={isChainsPage}

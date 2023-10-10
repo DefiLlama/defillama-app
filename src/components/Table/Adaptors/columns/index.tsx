@@ -17,12 +17,12 @@ import {
 	XColumn
 } from './common'
 
-export const getColumnsByType = (type: string, allChains?: boolean) => {
+export const getColumnsByType = (type: string, allChains?: boolean, isSimple?: boolean) => {
 	switch (type) {
 		case 'dexs':
 			return volumesColumns(allChains)
 		case 'fees':
-			return feesColumns(allChains)
+			return isSimple ? simpleFeesColumns(allChains) : feesColumns(allChains)
 		case 'incentives':
 			return incentivesColumns(allChains)
 		case 'options':
@@ -165,6 +165,15 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		TotalAllTimeColumn('fees'),
 		XColumn('P/F', 'pf', undefined, `Market cap / annualized fees`),
 		XColumn('P/S', 'ps', undefined, `Market cap / annualized revenue`)
+	].filter((c) => c !== undefined)
+
+export const simpleFeesColumns = (allChains?: boolean, isSimple?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('fees', allChains),
+		allChains ? undefined : ChainsColumn('fees/simple'),
+		Total24hColumn('Fees', undefined, undefined, 140),
+		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, undefined, 'Fees (7d)'),
+		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, undefined, 'Fees (30d)')
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen

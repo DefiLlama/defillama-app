@@ -276,7 +276,10 @@ export const navLinks: ILinks = {
 		icon: <BarChart size={16} />
 	},
 	'Fees/Revenue': {
-		main: [],
+		main: [
+			{ name: 'Simple', path: '/fees/simple' },
+			{ name: 'Advanced', path: '/fees' }
+		],
 		...defaultToolsAndFooterLinks,
 		icon: <PieChart size={16} />
 	},
@@ -315,7 +318,6 @@ export const navLinks: ILinks = {
 
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
-	{ name: 'Fees/Revenue', url: '/fees' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Unlocks', url: '/unlocks' },
 	{ name: 'Governance', url: '/governance' },

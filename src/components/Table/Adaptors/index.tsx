@@ -30,7 +30,7 @@ const columnsOptions = (type, allChains) => [
 		.map((c: any) => ({ name: c.header as string, key: c.accessorKey as string }))
 ]
 
-export function OverviewTable({ data, type, allChains, categories, selectedCategories }) {
+export function OverviewTable({ data, type, allChains, categories, selectedCategories, isSimpleFees }) {
 	const optionsKey = 'table-columns-' + type
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'total24h' }])
@@ -42,7 +42,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 
 	const instance = useReactTable({
 		data,
-		columns: getColumnsByType(type, allChains),
+		columns: getColumnsByType(type, allChains, isSimpleFees),
 		state: {
 			sorting,
 			expanded,
@@ -117,15 +117,17 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 	return (
 		<>
 			<TableFilters style={{ justifyContent: 'flex-end' }}>
-				<ColumnFilters2
-					label={'Columns'}
-					options={columnsOptions(type, allChains)}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectedOptions={selectedOptions}
-					addOption={addOption}
-					subMenu={false}
-				/>
+				{isSimpleFees ? null : (
+					<ColumnFilters2
+						label={'Columns'}
+						options={columnsOptions(type, allChains)}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						selectedOptions={selectedOptions}
+						addOption={addOption}
+						subMenu={false}
+					/>
+				)}
 
 				{categories?.length > 0 && type !== 'dexs' && (
 					<FiltersByCategory

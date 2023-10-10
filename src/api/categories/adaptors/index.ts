@@ -427,6 +427,7 @@ export interface IOverviewProps {
 	type: string
 	dexsDominance?: number
 	categories?: Array<string>
+	isSimpleFees?: boolean
 }
 
 // - used in /[type]/chains
