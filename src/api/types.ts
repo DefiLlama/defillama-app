@@ -263,3 +263,5 @@ export interface IProtocolDevActivity {
 		monthly_contributers: Array<{ k: string; v: number; cc: number }>
 	}
 }
+
+export type NftVolumeData = Array<{ date: string; volume: number }>

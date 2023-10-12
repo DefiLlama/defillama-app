@@ -13,7 +13,7 @@ import {
 	useFetchProtocolTwitter,
 	useFetchProtocolDevMetrics
 } from '~/api/categories/protocols/client'
-import { nearestUtc } from '~/utils'
+import { nearestUtc, slug } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
 import useSWR from 'swr'
 import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
@@ -66,7 +66,9 @@ export function useFetchAndFormatChartData({
 	devMetrics,
 	contributersMetrics,
 	contributersCommits,
-	devCommits
+	devCommits,
+	nftVolume,
+	nftVolumeData
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -728,6 +730,20 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
+		if (nftVolumeData?.length && nftVolume === 'true') {
+			chartsUnique.push('NFT Volume')
+
+			nftVolumeData.forEach(({ date, volume }) => {
+				const ts = Math.floor(nearestUtc(dayjs(date).toDate().getTime()) / 1000)
+
+				if (!chartData[ts]) {
+					chartData[ts] = {}
+				}
+
+				chartData[ts]['NFT Volume'] = volume || 0
+			})
+		}
+
 		if (devMetricsData && devCommits === 'true') {
 			chartsUnique.push('Devs Commits')
 
@@ -846,7 +862,9 @@ export function useFetchAndFormatChartData({
 		groupBy,
 		contributersMetrics,
 		contributersCommits,
-		devCommits
+		devCommits,
+		nftVolume,
+		nftVolumeData
 	])
 
 	const finalData = React.useMemo(() => {

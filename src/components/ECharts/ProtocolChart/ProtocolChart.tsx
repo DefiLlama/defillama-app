@@ -10,6 +10,7 @@ import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
 import { BAR_CHARTS } from './utils'
 import { useFetchAndFormatChartData } from './useFetchAndFormatChartData'
 import { EmbedChart } from '~/components/Popover'
+import { NftVolumeData } from '~/api/types'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -33,6 +34,7 @@ interface IProps {
 	tokenSymbol?: string
 	protocolId: string
 	twitterHandle?: string
+	nftVolumeData: NftVolumeData
 }
 
 const CHART_TYPES = [
@@ -82,7 +84,8 @@ export default function ProtocolChart({
 	tokenSymbol,
 	protocolId,
 	chartDenominations,
-	twitterHandle
+	twitterHandle,
+	nftVolumeData
 }: IProps) {
 	const router = useRouter()
 
@@ -119,7 +122,8 @@ export default function ProtocolChart({
 		devMetrics,
 		contributersMetrics,
 		contributersCommits,
-		devCommits
+		devCommits,
+		nftVolume
 	} = router.query
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
@@ -166,7 +170,9 @@ export default function ProtocolChart({
 			devMetrics,
 			contributersMetrics,
 			contributersCommits,
-			devCommits
+			devCommits,
+			nftVolume,
+			nftVolumeData
 		})
 
 	const realPathname =
@@ -783,6 +789,29 @@ export default function ProtocolChart({
 							/>
 							<span data-wrapper="true">
 								<span>Developer Commits</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.nftVolume && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="nftVolume"
+								checked={nftVolume === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, nftVolume: nftVolume === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>NFT Volume</span>
 							</span>
 						</Toggle>
 					)}

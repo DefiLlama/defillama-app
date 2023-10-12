@@ -1,4 +1,4 @@
-import { formatPercentage, selectColor, timeFromNow, tokenIconPaletteUrl } from '~/utils'
+import { formatPercentage, selectColor, slug, timeFromNow, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {
@@ -21,18 +21,32 @@ import {
 	YIELD_PROJECT_MEDIAN_API,
 	PROTOCOL_GOVERNANCE_TALLY_API,
 	HACKS_API,
-	DEV_METRICS_API
+	DEV_METRICS_API,
+	NFT_MARKETPLACES_STATS_API,
+	NFT_MARKETPLACES_VOLUME_API
 } from '~/constants'
 import { fetchOverCacheJson } from '~/utils/perf'
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 export const getProtocolData = async (protocol: string) => {
-	const [protocolRes, articles, expenses, treasuries, yields, yieldsConfig, liquidityInfo, forks, hacks]: [
+	const [
+		protocolRes,
+		articles,
+		expenses,
+		treasuries,
+		yields,
+		yieldsConfig,
+		liquidityInfo,
+		forks,
+		hacks,
+		nftMarketplaces
+	]: [
 		IProtocolResponse,
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+		any,
 		any,
 		any,
 		any,
@@ -47,7 +61,8 @@ export const getProtocolData = async (protocol: string) => {
 		fetchOverCacheJson(YIELD_CONFIG_API),
 		fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json'),
 		getForkPageData(),
-		fetchOverCacheJson(HACKS_API)
+		fetchOverCacheJson(HACKS_API),
+		fetch(NFT_MARKETPLACES_STATS_API).then((r) => r.json())
 	])
 
 	if (!protocolRes) {
@@ -55,6 +70,24 @@ export const getProtocolData = async (protocol: string) => {
 	}
 
 	let inflowsExist = false
+
+	let nftDataExist = !!nftMarketplaces?.find((market) => slug(market.exchangeName) === slug(protocol))
+	let nftVolumeData = []
+
+	if (nftDataExist) {
+		nftVolumeData = await fetch(NFT_MARKETPLACES_VOLUME_API)
+			.then((r) => r.json())
+			.then((r) => {
+				const chartByDate = r
+					.filter((r) => slug(r.exchangeName) === slug(protocol))
+					.map(({ day, sum }) => {
+						return { date: day, volume: sum }
+					})
+				return chartByDate
+			})
+
+		nftDataExist = (nftVolumeData?.length ?? 0) > 0
+	}
 
 	if (protocolRes.chainTvls) {
 		Object.keys(protocolRes.chainTvls).forEach((chain) => {
@@ -214,7 +247,8 @@ export const getProtocolData = async (protocol: string) => {
 		'Developers',
 		'Contributers',
 		'Devs Commits',
-		'Contributers Commits'
+		'Contributers Commits',
+		'NFT Volume'
 	]
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
@@ -337,6 +371,7 @@ export const getProtocolData = async (protocol: string) => {
 			articles,
 			protocol,
 			devMetrics,
+			nftVolumeData,
 			protocolData: {
 				...protocolData,
 				symbol: protocolData.symbol ?? null,
@@ -351,7 +386,8 @@ export const getProtocolData = async (protocol: string) => {
 					unlocks: emissions.chartData?.documented?.length > 0 ? true : false,
 					bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
 					treasury: treasury?.tokenBreakdowns ? true : false,
-					tokenLiquidity: protocolData.symbol && tokenLiquidity.length > 0 ? true : false
+					tokenLiquidity: protocolData.symbol && tokenLiquidity.length > 0 ? true : false,
+					nftVolume: nftDataExist
 				}
 			},
 			backgroundColor,

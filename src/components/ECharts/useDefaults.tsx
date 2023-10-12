@@ -33,8 +33,9 @@ const CHART_SYMBOLS = {
 	Contributers: '',
 	Developers: '',
 	'Contributers Commits': '',
-	'Commits': '',
-	'Devs Commits': ''
+	Commits: '',
+	'Devs Commits': '',
+	'NFT Volume': 'ETH'
 }
 
 echarts.use([

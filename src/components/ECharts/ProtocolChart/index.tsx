@@ -16,7 +16,8 @@ const Wrapper = styled.div`
 const customOffsets = {
 	Contributers: 60,
 	'Contributers Commits': 80,
-	'Devs Commits': 70
+	'Devs Commits': 70,
+	'NFT Volume': 65
 }
 
 export default function AreaBarChart({
@@ -157,6 +158,10 @@ export default function AreaBarChart({
 
 		if (stacks.includes('Contributers Commits')) {
 			yAxisByIndex['Contributers Commits'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('NFT Volume')) {
+			yAxisByIndex['NFT Volume'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
 		const series = stacks.map((stack, index) => {
@@ -557,6 +562,21 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Contributers Commits']
+						}
+					}
+				})
+			}
+
+			if (type === 'NFT Volume') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => value + ' ETH'
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['NFT Volume']
 						}
 					}
 				})

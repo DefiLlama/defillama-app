@@ -18,7 +18,8 @@ export const BAR_CHARTS = [
 	'Developers',
 	'Contributers',
 	'Devs Commits',
-	'Contributers Commits'
+	'Contributers Commits',
+	'NFT Volume'
 ]
 
 export const DISABLED_CUMULATIVE_CHARTS = ['Developers', 'Contributers', , 'Devs Commits', 'Contributers Commits']

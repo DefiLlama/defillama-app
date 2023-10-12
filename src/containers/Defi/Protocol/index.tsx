@@ -45,7 +45,7 @@ import {
 	tokenIconUrl
 } from '~/utils'
 import { useFetchProtocol, useFetchProtocolTwitter, useGetTokenPrice } from '~/api/categories/protocols/client'
-import type { IFusedProtocolData, IProtocolDevActivity } from '~/api/types'
+import type { IFusedProtocolData, IProtocolDevActivity, NftVolumeData } from '~/api/types'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
 import { TreasuryChart } from './Treasury'
@@ -213,6 +213,7 @@ const HackDataWrapper = styled.div`
 interface IProtocolContainerProps {
 	articles: IArticle[]
 	devMetrics: IProtocolDevActivity
+	nftVolumeData: NftVolumeData
 	title: string
 	protocol: string
 	protocolData: IFusedProtocolData
@@ -319,7 +320,8 @@ function ProtocolContainer({
 	methodologyUrls,
 	chartDenominations = [],
 	protocolHasForks = false,
-	hacksData
+	hacksData,
+	nftVolumeData
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -1141,6 +1143,7 @@ function ProtocolContainer({
 					tokenSymbol={symbol}
 					protocolId={protocolData.id}
 					chartDenominations={chartDenominations}
+					nftVolumeData={nftVolumeData}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
