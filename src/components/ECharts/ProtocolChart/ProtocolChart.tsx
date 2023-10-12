@@ -64,7 +64,8 @@ const CHART_TYPES = [
 	'devMetrics',
 	'contributersMetrics',
 	'contributersCommits',
-	'devCommits'
+	'devCommits',
+	'nftVolume'
 ]
 
 export default function ProtocolChart({
