@@ -733,14 +733,14 @@ export function useFetchAndFormatChartData({
 		if (nftVolumeData?.length && nftVolume === 'true') {
 			chartsUnique.push('NFT Volume')
 
-			nftVolumeData.forEach(({ date, volume }) => {
+			nftVolumeData.forEach(({ date, volume, volumeUsd }) => {
 				const ts = Math.floor(nearestUtc(dayjs(date).toDate().getTime()) / 1000)
 
 				if (!chartData[ts]) {
 					chartData[ts] = {}
 				}
 
-				chartData[ts]['NFT Volume'] = volume || 0
+				chartData[ts]['NFT Volume'] = (showNonUsdDenomination ? volume : volumeUsd) || 0
 			})
 		}
 

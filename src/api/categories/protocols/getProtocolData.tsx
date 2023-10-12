@@ -80,8 +80,8 @@ export const getProtocolData = async (protocol: string) => {
 			.then((r) => {
 				const chartByDate = r
 					.filter((r) => slug(r.exchangeName) === slug(protocol))
-					.map(({ day, sum }) => {
-						return { date: day, volume: sum }
+					.map(({ day, sum, sumUsd }) => {
+						return { date: day, volume: sum, volumeUsd: sumUsd }
 					})
 				return chartByDate
 			})

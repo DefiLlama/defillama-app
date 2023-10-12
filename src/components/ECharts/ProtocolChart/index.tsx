@@ -570,9 +570,7 @@ export default function AreaBarChart({
 			if (type === 'NFT Volume') {
 				yAxiss.push({
 					...options,
-					axisLabel: {
-						formatter: (value) => value + ' ETH'
-					},
+
 					axisLine: {
 						show: true,
 						lineStyle: {
