@@ -1,4 +1,4 @@
-import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 
 export const protocolsAndChainsOptions = [
 	{
@@ -30,4 +30,9 @@ export const protocolsAndChainsOptions = [
 		name: 'Vesting',
 		key: DEFI_SETTINGS.VESTING
 	}
+]
+
+export const feesOptions = [
+	{ name: 'Bribes', key: FEES_SETTINGS.BRIBES, help: null },
+	{ name: 'Token Tax', key: FEES_SETTINGS.TOKENTAX, help: null }
 ]

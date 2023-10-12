@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { ListWrapper } from '~/components/Filters/protocols/Desktop'
+import { DesktopFeesFilters, ListWrapper } from '~/components/Filters/protocols/Desktop'
 import OptionToggle from '~/components/OptionToggle'
 import { DesktopSearch } from '../Base'
 import type { ICommonSearchProps } from '../types'
 import { useGetAdaptorsSearchList } from './hooks'
+import { TabletFeesFilters } from '~/components/Filters/protocols/Tablet'
 
 interface IAdaptorSearchProps extends ICommonSearchProps {
 	onlyChains?: boolean
@@ -15,41 +16,51 @@ interface IAdaptorSearchProps extends ICommonSearchProps {
 }
 
 export default function AdaptorsSearch(props: IAdaptorSearchProps) {
-	const [isToggleEnabled, setIsToggleEnabled] = useState(!!props.toggleStatus)
 	const { data, loading } = useGetAdaptorsSearchList(props.type, props.onlyChains)
-
-	useEffect(() => {
-		setIsToggleEnabled(props.toggleStatus)
-	}, [props.toggleStatus])
 
 	return (
 		<DesktopSearch
 			{...props}
 			data={data}
 			loading={loading}
-			filters={
-				props.enableToggle && (
-					<ListWrapper>
-						<ListItem>
-							<OptionToggle
-								isLoading={!props.onToggleClick}
-								name="Protocol breakdown"
-								toggle={() => {
-									setIsToggleEnabled((prev) => {
-										props.onToggleClick(!prev)
-										return !prev
-									})
-									return {} //
-								}}
-								help="Breakdown charts by protocol"
-								enabled={isToggleEnabled}
-							/>
-						</ListItem>
-						<ListItem></ListItem>
-					</ListWrapper>
-				)
-			}
+			filters={props.enableToggle ? <BreakdownToggle {...props} /> : props.type === 'fees' ? <FeesToggles /> : null}
 		/>
+	)
+}
+
+const BreakdownToggle = (props) => {
+	const [isToggleEnabled, setIsToggleEnabled] = useState(!!props.toggleStatus)
+
+	useEffect(() => {
+		setIsToggleEnabled(props.toggleStatus)
+	}, [props.toggleStatus])
+	return (
+		<ListWrapper>
+			<ListItem>
+				<OptionToggle
+					isLoading={!props.onToggleClick}
+					name="Protocol breakdown"
+					toggle={() => {
+						setIsToggleEnabled((prev) => {
+							props.onToggleClick(!prev)
+							return !prev
+						})
+						return {} //
+					}}
+					help="Breakdown charts by protocol"
+					enabled={isToggleEnabled}
+				/>
+			</ListItem>
+		</ListWrapper>
+	)
+}
+
+const FeesToggles = () => {
+	return (
+		<>
+			<DesktopFeesFilters options={null} />
+			<TabletFeesFilters options={null} />
+		</>
 	)
 }
 

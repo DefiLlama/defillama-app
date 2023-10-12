@@ -69,6 +69,11 @@ export const BAR_MIN_WIDTH_IN_CHART = 'BAR_MIN_WIDTH_IN_CHART'
 
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING }
 
+const BRIBES = 'bribes'
+const TOKENTAX = 'tokentax'
+
+export const FEES_SETTINGS = { BRIBES, TOKENTAX }
+
 export const YIELDS_SETTINGS = {
 	AUDITED,
 	MILLION_DOLLAR,
@@ -128,6 +133,7 @@ export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES
 
 const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
 export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS)
+export const FEES_SETTINGS_KEYS = Object.values(FEES_SETTINGS)
 export const STABLECOINS_SETTINGS_KEYS = Object.values(STABLECOINS_SETTINGS)
 export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
@@ -139,6 +145,7 @@ const UPDATABLE_KEYS = [
 	YIELDS_WATCHLIST,
 	SELECTED_PORTFOLIO,
 	...DEFI_SETTINGS_KEYS,
+	...FEES_SETTINGS_KEYS,
 	...DEFI_CHAINS_KEYS,
 	...STABLECOINS_SETTINGS_KEYS,
 	...NFT_SETTINGS_KEYS,
@@ -179,6 +186,7 @@ function init() {
 	const defaultLocalStorage = {
 		[DARK_MODE]: true,
 		...DEFI_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		...FEES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: prop === UNRELEASED ? false : true }), {}),
 		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...LIQS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
@@ -309,6 +317,9 @@ export function useChartManager() {
 // DEFI
 export function useDefiManager() {
 	return useSettingsManager(DEFI_SETTINGS_KEYS)
+}
+export function useFeesManager() {
+	return useSettingsManager(FEES_SETTINGS_KEYS)
 }
 
 // DEFI_CHAINS

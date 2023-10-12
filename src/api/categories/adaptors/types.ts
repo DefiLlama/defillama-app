@@ -115,4 +115,6 @@ type ExtraTypes = {
 	dailySupplySideRevenue?: number | null
 	dailyProtocolRevenue?: number | null
 	dailyPremiumVolume?: number | null
+	dailyBribesRevenue?: number | null
+	dailyTokenTaxes?: number | null
 }

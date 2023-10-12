@@ -24,6 +24,7 @@ import { useRouter } from 'next/router'
 import { OtherProtocols, ProtocolLink } from '~/containers/Defi/Protocol/Common'
 import Link from 'next/link'
 import { Wrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
+import { useFeesManager } from '~/contexts/LocalStorage'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -94,6 +95,8 @@ export const ProtocolChart = ({
 
 	const barsData = React.useMemo(() => aggregateDataByInterval(barInterval, chartData)(), [chartData, barInterval])
 
+	const [enabledSettings] = useFeesManager()
+
 	return (
 		<StatsSection>
 			{childProtocols && childProtocols.length > 0 && (
@@ -140,7 +143,14 @@ export const ProtocolChart = ({
 											  )})`
 											: `Revenue (24h)`}
 									</span>
-									<span>{formattedNum(data.dailyRevenue || '0', true)}</span>
+									<span>
+										{formattedNum(
+											(data.dailyRevenue ?? 0) +
+												(enabledSettings.bribes ? (data as any).dailyBribesRevenue ?? 0 : 0) +
+												(enabledSettings.tokentax ? (data as any).dailyTokenTaxes ?? 0 : 0),
+											true
+										)}
+									</span>
 								</Stat>
 							</StatWrapper>
 						) : null}

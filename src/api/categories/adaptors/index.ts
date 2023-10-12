@@ -78,6 +78,8 @@ export const generateGetOverviewItemPageDate = async (
 		...item,
 		logo: getLlamaoLogo(item.logo),
 		dailyRevenue: secondType?.total24h ?? null,
+		dailyBribesRevenue: secondType?.dailyBribesRevenue ?? null,
+		dailyTokenTaxes: secondType?.dailyTokenTaxes ?? null,
 		type,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)]
 	}

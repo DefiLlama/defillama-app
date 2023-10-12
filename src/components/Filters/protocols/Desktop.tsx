@@ -4,8 +4,8 @@ import { SelectItem, ItemsSelected, SelectButton, SelectPopover } from '../commo
 import OptionToggle from '~/components/OptionToggle'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
-import { useDefiManager } from '~/contexts/LocalStorage'
-import { protocolsAndChainsOptions } from './options'
+import { useDefiManager, useFeesManager } from '~/contexts/LocalStorage'
+import { feesOptions, protocolsAndChainsOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 
@@ -71,6 +71,36 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 					</>
 				) : (
 					tvlOptions.map((option) => (
+						<ListItem key={option.key}>
+							<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
+						</ListItem>
+					))
+				)}
+			</ListWrapper>
+		</Wrapper>
+	)
+}
+
+export const DesktopFeesFilters = ({ options, ...props }) => {
+	const [extraTvlEnabled, updater] = useFeesManager()
+
+	return (
+		<Wrapper>
+			<label>INCLUDE IN FEES:</label>
+			<ListWrapper {...props}>
+				{feesOptions.length > 3 ? (
+					<>
+						{feesOptions.slice(0, 3).map((option) => (
+							<ListItem key={option.key}>
+								<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
+							</ListItem>
+						))}
+						<ListItem>
+							<AddlOptions options={feesOptions.slice(3)} />
+						</ListItem>
+					</>
+				) : (
+					feesOptions.map((option) => (
 						<ListItem key={option.key}>
 							<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
 						</ListItem>

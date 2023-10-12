@@ -14,6 +14,7 @@ import { useRouter } from 'next/router'
 import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { AnnouncementWrapper } from '~/components/Announcement'
+import { useFeesManager } from '~/contexts/LocalStorage'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -32,6 +33,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	const router = useRouter()
 	const { dataType: selectedDataType = 'Notional volume' } = router.query
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
+	const [enabledSettings] = useFeesManager()
 
 	const { selectedCategories, protocolsList, rowLinks } = React.useMemo(() => {
 		const selectedCategories = router.query.category
@@ -60,6 +62,25 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 
 		return { selectedCategories, protocolsList, rowLinks }
 	}, [router.query.category, props.protocols, props.allChains, props.type, isSimpleFees])
+
+	const finalProtocolsList = React.useMemo(() => {
+		if (props.type === 'fees') {
+			return protocolsList.map((protocol) => {
+				let revenue24h = protocol.revenue24h
+
+				if (revenue24h && !Number.isNaN(Number(revenue24h))) {
+					revenue24h =
+						+revenue24h +
+						(enabledSettings.bribes ? protocol.dailyBribesRevenue ?? 0 : 0) +
+						(enabledSettings.tokentax ? protocol.dailyTokenTaxes ?? 0 : 0)
+				}
+
+				return { ...protocol, revenue24h }
+			})
+		}
+
+		return protocolsList
+	}, [protocolsList, enabledSettings, props.type])
 
 	const [charts, setCharts] = React.useState<IJSON<IOverviewContainerProps['totalDataChartBreakdown']>>({
 		totalDataChartBreakdown: props.totalDataChartBreakdown,
@@ -224,7 +245,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			{protocolsList && protocolsList.length > 0 ? (
 				<OverviewTable
 					isSimpleFees={props.isSimpleFees}
-					data={protocolsList}
+					data={finalProtocolsList}
 					type={props.type}
 					allChains={isChainsPage}
 					categories={props.categories}
