@@ -64,9 +64,15 @@ export const generateGetOverviewItemPageDate = async (
 	const allCharts: IChartsList = []
 	if (item.totalDataChart) allCharts.push([label, item.totalDataChart])
 	let secondType: ProtocolAdaptorSummaryResponse
+	let thirdType: ProtocolAdaptorSummaryResponse
+	let fourthType: ProtocolAdaptorSummaryResponse
 	let secondLabel: string
 	if (type === 'fees') {
-		secondType = await getOverviewItem(type, protocolName, 'dailyRevenue')
+		;[secondType, thirdType, fourthType] = await Promise.all([
+			getOverviewItem(type, protocolName, 'dailyRevenue'),
+			getOverviewItem(type, protocolName, 'dailyBribesRevenue'),
+			getOverviewItem(type, protocolName, 'dailyTokenTaxes')
+		])
 		secondLabel = 'Revenue'
 	} else if (type === 'options') {
 		secondType = await getOverviewItem(type, protocolName, 'dailyPremiumVolume')
@@ -78,8 +84,8 @@ export const generateGetOverviewItemPageDate = async (
 		...item,
 		logo: getLlamaoLogo(item.logo),
 		dailyRevenue: secondType?.total24h ?? null,
-		dailyBribesRevenue: secondType?.dailyBribesRevenue ?? null,
-		dailyTokenTaxes: secondType?.dailyTokenTaxes ?? null,
+		dailyBribesRevenue: secondType?.total24h ?? null,
+		dailyTokenTaxes: secondType?.total24h ?? null,
 		type,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)]
 	}
