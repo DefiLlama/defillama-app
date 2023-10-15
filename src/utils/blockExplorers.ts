@@ -85,7 +85,8 @@ const blockExplorers = {
 	mvc: ['https://scan.microvisionchain.com/token/', 'MVCScan'],
 	shibarium: ['https://www.shibariumscan.io/token/', 'ShibariumScan'],
 	beam: ['https://subnets.avax.network/beam/address/', 'Beam Subnet Explorer'],
-	nos: ['https://explorer.l2.trustless.computer/address/', 'NOS Blockscout']
+	nos: ['https://explorer.l2.trustless.computer/address/', 'NOS Blockscout'],
+	scroll: ['https://blockscout.scroll.io/address/', 'Scroll Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
