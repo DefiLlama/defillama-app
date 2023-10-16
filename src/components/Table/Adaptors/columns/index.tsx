@@ -131,6 +131,8 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		allChains ? undefined : Total24hColumn('Market Cap', 'mcap', undefined, undefined, 'Market Cap'),
 		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, undefined, 'Fees (7d)'),
 		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, undefined, 'Fees (30d)'),
+		Total24hColumn('Fees', 'total1y', `Cumulative last 1y fees`, undefined, 'Fees (1y)', true),
+		Total24hColumn('Fees', 'average1y', `Monthly Average 1y fees`, undefined, 'Avg Fees (1y)', true),
 		Total24hColumn('Incentives', 'emission24h', `Cumulative last 24h incentives`, 180, 'Incentives (24h)', true),
 		Total24hColumn('Incentives', 'emission7d', `Cumulative last 7d incentives`, 180, 'Incentives (7d)', true),
 		Total24hColumn('Incentives', 'emission30d', `Cumulative last 30d incentives`, 180, 'Incentives (30d)', true),
@@ -152,7 +154,11 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 			true
 		),
 		allChains ? undefined : Total24hColumn('Revenue', 'revenue7d', `Cumulative last 7d revenue`, 150, 'Revenue (7d)'),
-		allChains ? undefined : Total24hColumn('Fees', 'revenue30d', `Cumulative last 30d revenue`, 160, 'Revenue (30d)'),
+		allChains
+			? undefined
+			: Total24hColumn('Revenue', 'revenue30d', `Cumulative last 30d revenue`, 160, 'Revenue (30d)'),
+		Total24hColumn('Revenue', 'revenue1y', `Cumulative last 1y revenue`, 160, 'Revenue (1y)', true),
+		Total24hColumn('Avg Revenue', 'averageRevenue1y', `Monthly Average 1y revenue`, 180, 'Avg Revenue (1y)', true),
 		// TotalAllTimeColumn('fees') tmp
 		allChains ? undefined : Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
 		allChains ? undefined : Total24hColumn('Treasury revenue', 'dailyProtocolRevenue', undefined, 190),
@@ -172,7 +178,8 @@ export const simpleFeesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		NameColumn('fees', allChains, 140),
 		Total24hColumn('Fees', undefined, undefined, 120),
 		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, 120, 'Fees (7d)'),
-		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, 120, 'Fees (30d)')
+		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, 120, 'Fees (30d)'),
+		Total24hColumn('Fees', 'total1y', `Cumulative last 1y fees`, 120, 'Fees (1y)')
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen
@@ -262,9 +269,13 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'total7d',
 		'change_7dover7d',
 		'total30d',
+		'total1y',
+		'average1y',
 		'change_30dover30d',
 		'revenue7d',
 		'revenue30d',
+		'revenue1y',
+		'averageRevenue1y',
 		'dailyRevenue',
 		'dailyProtocolRevenue',
 		'dailySupplySideRevenue',
@@ -286,11 +297,15 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'dailyHoldersRevenue',
 		'mcap',
 		'total7d',
+		'revenue7d',
 		'change_7dover7d',
 		'total30d',
 		'change_30dover30d',
-		'revenue7d',
 		'revenue30d',
+		'average1y',
+		'total1y',
+		'averageRevenue1y',
+		'revenue1y',
 		'dailyRevenue',
 		'dailyProtocolRevenue',
 		'dailySupplySideRevenue',

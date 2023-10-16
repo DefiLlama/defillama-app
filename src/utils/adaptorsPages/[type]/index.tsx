@@ -48,6 +48,7 @@ export const getStaticPropsByType = (type: string) => {
 const AllChainsDexs = (props: IOverviewContainerProps) => {
 	const router = useRouter()
 	const isSimpleFees = router?.pathname?.includes('/fees/simple')
+
 	return (
 		<Layout title={`${capitalizeFirstLetter(props.type)} - DefiLlama`}>
 			<SEO pageType={props.type} />

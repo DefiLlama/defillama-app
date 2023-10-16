@@ -193,6 +193,11 @@ export interface IFormattedProtocol extends LiteProtocol {
 	revenue_24h?: number | null
 	fees_30d?: number | null
 	revenue_30d?: number | null
+	fees_1y?: number | null
+	revenue?: number | null
+	revenue_1y?: number | null
+	average_1y?: number | null
+	average_revenue_1y?: number | null
 	holdersRevenue30d?: number | null
 	userFees_24h?: number | null
 	cumulativeFees?: number | null

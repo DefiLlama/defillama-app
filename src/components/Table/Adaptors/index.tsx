@@ -18,7 +18,7 @@ import { TableFilters } from '../shared'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
 import RowFilter from '~/components/Filters/common/RowFilter'
 
-export const PERIODS = ['24h', '7d', '30d']
+export const PERIODS = ['24h', '7d', '30d', '1y']
 const columnSizesKeys = Object.keys(volumesColumnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
