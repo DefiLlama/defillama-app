@@ -219,7 +219,7 @@ export const formatProtocolsList = ({
 				let finalTvlPrevMonth: number | null = tvlPrevMonth
 				let strikeTvl = false
 
-				// keep liquid staking in same positon in table but strike its tvl
+				// keep liquid staking in same position in table but strike its tvl
 				if (props.category === 'Liquid Staking' && !extraTvlsEnabled['liquidstaking']) {
 					strikeTvl = true
 				}

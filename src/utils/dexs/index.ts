@@ -27,7 +27,7 @@ export const formatVolumeHistoryToChartDataByChain = (
 			const volumeAccrossProtocols = Object.entries(protVolumes).reduce((acc, [_, volume]) => {
 				//different version
 				if (typeof volume === 'number') return (acc += volume)
-				// return sum accross protocols
+				// return sum across protocols
 				return acc
 			}, 0)
 			acc.push({
