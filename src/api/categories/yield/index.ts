@@ -165,7 +165,12 @@ export async function getLendBorrowData() {
 	// treating fraxlend as cdp category otherwise the output
 	// from optimizer will be wrong (it would use the crossproduct
 	// btw collaterals eg eth -> crv, wbtc -> crv etc. instead of collateral -> frax only)
-	props.pools = props.pools.map((p) => ({ ...p, category: p.project === 'fraxlend' ? 'CDP' : p.category }))
+	props.pools = props.pools.map((p) => ({
+		...p,
+		category: p.project === 'fraxlend' ? 'CDP' : p.category,
+		// on fraxlend apyBase = 0 on collateral, apyBase = optional lending of borrowed frax
+		apyBase: p.project === 'fraxlend' ? null : p.apyBase
+	}))
 
 	// restrict pool data to lending and cdp
 	const categoriesToKeep = ['Lending', 'Undercollateralized Lending', 'CDP', 'NFT Lending']
