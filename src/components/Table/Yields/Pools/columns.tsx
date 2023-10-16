@@ -108,7 +108,16 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBase',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return (
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+					{info.row.original.project === 'Fraxlend' ? (
+						<QuestionHelper
+							text={'Supply APY is for FRAX being lent to the pool, you do not earn interest on your collateral!'}
+						/>
+					) : null}
+					{formattedPercent(info.getValue(), true)}
+				</span>
+			)
 		},
 		size: 140,
 		meta: {
@@ -125,7 +134,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			const rewards = row.original.rewards ?? []
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-                    {lockupsRewards.includes(row.original.project) ? (
+					{lockupsRewards.includes(row.original.project) ? (
 						<QuestionHelper text={earlyExit} />
 					) : row.original.rewardMeta ? (
 						<QuestionHelper text={row.original.rewardMeta} />
