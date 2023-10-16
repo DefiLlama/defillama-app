@@ -178,8 +178,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 100
 			}),
-			columnHelper.accessor('revenue_30d', {
-				header: 'Revenue 30d',
+			columnHelper.accessor('fees_1y', {
+				header: 'Monthly Avg 1Y',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -187,6 +187,34 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 100
 			}),
+			columnHelper.accessor('revenue_1y', {
+				header: 'Revenue 1Y',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
+			columnHelper.accessor('average_1y', {
+				header: 'Revenue 30d Fees',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
+			columnHelper.accessor('average_revenue_1y', {
+				header: 'Monthly Avg 1Y Rev',
+				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end'
+				},
+				size: 100
+			}),
+
 			columnHelper.accessor('holdersRevenue30d', {
 				header: 'Holders Revenue 30d',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,

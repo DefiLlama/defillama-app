@@ -154,6 +154,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		protocols = [],
 		total24h,
 		total7d,
+		total1y,
+		average1y,
 		change_1d,
 		change_7d,
 		change_1m,
@@ -163,6 +165,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		totalDataChartBreakdown,
 		allChains
 	} = request
+
 	const chains = protocols.filter((e) => e.protocolType === 'chain').map((e) => e.name)
 
 	const chainMcaps = await fetch(MCAPS_API, {
@@ -232,6 +235,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
 				revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
+				revenue1y: revenueProtocols?.[protocol.name]?.total1y ?? null,
+				averageRevenue1y: revenueProtocols?.[protocol.name]?.average1y ?? null,
 				mcap: mcapData[protocol.name] || null,
 				pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total30d),
 				ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d)
@@ -257,6 +262,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
 			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
+			revenue1y: revenueProtocols?.[protocol.name]?.total1y ?? null,
+			averageRevenue1y: revenueProtocols?.[protocol.name]?.average1y ?? null,
 			emission24h: emission24h ?? null,
 			emission7d: emission7d ?? null,
 			emission30d: emission30d ?? null,
@@ -279,11 +286,18 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total24h'), null)
 			mainRow.total7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total7d'), null)
 			mainRow.total30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total30d'), null)
+			mainRow.total1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total1y'), null)
+			mainRow.average1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('average1y'), null)
 			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalAllTime'), null)
 			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('tvl'), null)
 			mainRow.revenue24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue24h'), null)
 			mainRow.revenue7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue7d'), null)
 			mainRow.revenue30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue30d'), null)
+			mainRow.revenue1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue1y'), null)
+			mainRow.averageRevenue1y = acc[protocol.parentProtocol].subRows.reduce(
+				reduceSumByAttribute('averageRevenue1y'),
+				null
+			)
 			mainRow.dailyRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyRevenue'), null)
 			mainRow.dailyUserFees = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyUserFees'), null)
 			mainRow.dailyCreatorRevenue = acc[protocol.parentProtocol].subRows.reduce(
@@ -339,6 +353,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		change_7d,
 		change_1m,
 		change_7dover7d,
+		total1y,
+		average1y: average1y ?? null,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		chain: filtredChain ?? null,
 		tvlData,
@@ -420,6 +436,8 @@ export interface IOverviewProps {
 	change_7d?: IGetOverviewResponseBody['change_7d']
 	change_1m?: IGetOverviewResponseBody['change_1m']
 	change_7dover7d?: IGetOverviewResponseBody['change_7dover7d']
+	total1y?: IGetOverviewResponseBody['total1y']
+	average1y?: IGetOverviewResponseBody['average1y']
 	totalDataChart: [IJoin2ReturnType, string[]]
 	chain: string
 	tvlData?: IJSON<number>
@@ -464,7 +482,9 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 				dailyCreatorRevenue,
 				dailySupplySideRevenue,
 				dailyProtocolRevenue,
-				dailyPremiumVolume
+				dailyPremiumVolume,
+				total1y,
+				average1y
 			}) => {
 				if (!protocols) return undefined
 				const tvlData = getTVLData(protocolsData, chain)
@@ -486,6 +506,8 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					change_1d,
 					change_7d,
 					change_1m,
+					total1y,
+					average1y: average1y ?? null,
 					dominance: (100 * total24h) / allChainsTotal24h,
 					chains: [chain],
 					totalAllTime: protocols.reduce((acc, curr) => (acc += curr.totalAllTime), 0),
