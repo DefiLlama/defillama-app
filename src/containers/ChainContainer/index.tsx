@@ -418,7 +418,7 @@ export function ChainContainer({
 
 								{userData.activeUsers ? (
 									<RowWithSubRows
-										rowHeader={'Active Users (24h)'}
+										rowHeader={'Active Addresses (24h)'}
 										rowValue={formattedNum(userData.activeUsers, false)}
 										helperText={null}
 										protocolName={null}
@@ -427,7 +427,7 @@ export function ChainContainer({
 											<>
 												{userData.newUsers ? (
 													<tr>
-														<th>New Users (24h)</th>
+														<th>New Addresses (24h)</th>
 														<td>{formattedNum(userData.newUsers, false)}</td>
 													</tr>
 												) : null}
