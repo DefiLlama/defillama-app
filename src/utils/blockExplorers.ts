@@ -86,7 +86,8 @@ const blockExplorers = {
 	shibarium: ['https://www.shibariumscan.io/token/', 'ShibariumScan'],
 	beam: ['https://subnets.avax.network/beam/address/', 'Beam Subnet Explorer'],
 	nos: ['https://explorer.l2.trustless.computer/address/', 'NOS Blockscout'],
-	scroll: ['https://blockscout.scroll.io/address/', 'Scroll Explorer']
+	scroll: ['https://blockscout.scroll.io/address/', 'Scroll Explorer'],
+	radixdlt: ['https://dashboard.radixdlt.com/resource/', 'Radix Dashboard']
 }
 
 export const getBlockExplorer = (address: string = '') => {
