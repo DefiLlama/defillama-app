@@ -304,7 +304,7 @@ export function useFetchAndFormatChartData({
 		}
 
 		if (geckoId && protocolCGData) {
-			if (mcap === 'true') {
+			if (mcap === 'true' && protocolCGData['market_caps'] && protocolCGData['market_caps'].length > 0) {
 				chartsUnique.push('Mcap')
 
 				protocolCGData['market_caps'].forEach(([dateMs, Mcap]) => {
