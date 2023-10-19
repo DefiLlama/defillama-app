@@ -12,7 +12,8 @@ export interface Protocol {
 	id: string
 	name: string
 	address?: string | null
-	symbol: string
+	symbol?: string | null
+	assetToken?: string | null
 	url: string
 	description?: string | null
 	chain: string

@@ -82,10 +82,10 @@ const ActiveInvestors = ({ data }) => {
 				const normalizedRaises = getRaisesByPeriod(raises, periodToNumber[period])
 
 				const categories = Object.entries(countBy(raises?.map((raise) => raise?.category).filter(Boolean)))
-					.sort((a, b) => b[1] - a[1])
+					.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
 					.map((val) => val[0])
 				const roundTypes = Object.entries(countBy(raises?.map((raise) => raise?.round).filter(Boolean)))
-					.sort((a, b) => b[1] - a[1])
+					.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
 					.map((val) => val[0])
 
 				const medianAmount = findMedian(raises.map((r) => r?.amount))?.toFixed(2)

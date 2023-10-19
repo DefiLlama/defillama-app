@@ -327,6 +327,7 @@ function ProtocolContainer({
 		address = '',
 		name,
 		symbol,
+		assetToken,
 		url,
 		description,
 		audits,
@@ -684,7 +685,7 @@ function ProtocolContainer({
 								<RowWithSubRows
 									protocolName={protocolData.name}
 									dataType="Token Price"
-									rowHeader={`${symbol || 'Token'} Price`}
+									rowHeader={`${assetToken ?? symbol ?? 'Token'} Price`}
 									rowValue={formatPrice(tokenCGData.price.current)}
 									helperText={null}
 									subRows={
