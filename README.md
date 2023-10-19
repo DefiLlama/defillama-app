@@ -17,7 +17,6 @@ yarn dev
 ```
 
 ### Updating API docs
-
 1. Get the API spec in /docs/spec.yaml and paste it into https://editor.swagger.io/
 2. Modify it
 3. Generate a json file by clicking "File" -> "Convert and save as JSON"
