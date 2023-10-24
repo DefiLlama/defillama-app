@@ -63,6 +63,13 @@ const defaultToolsAndFooterLinks = {
 			referrer: true
 		},
 		{
+			name: 'LlamaFolio',
+			path: 'https://llamafolio.com/',
+			newTag: true,
+			external: true,
+			referrer: true
+		},
+		{
 			name: 'DL News',
 			path: 'https://dlnews.com/',
 			newTag: true,
