@@ -36,7 +36,7 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	const finalData = getChartData({ ...data.props })
 
 	return {
-		props: { ...finalData },
+		props: { ...finalData, tokensList: finalData.tokensList.filter((lsd) => lsd.name !== 'diva') },
 		revalidate: maxAgeForNext([22])
 	}
 })
