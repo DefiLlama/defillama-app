@@ -3,6 +3,7 @@ import styled from 'styled-components'
 export const StatsSection = styled.div`
 	display: grid;
 	grid-template-columns: 1fr;
+
 	border-radius: 12px;
 	background: ${({ theme }) => theme.bg6};
 	border: ${({ theme }) => '1px solid ' + theme.divider};
