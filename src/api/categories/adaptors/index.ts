@@ -1,7 +1,7 @@
 import type { LiteProtocol, IParentProtocol } from '~/api/types'
 import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API, MCAPS_API, EMISSION_BREAKDOWN_API } from '~/constants'
 import { getUniqueArray } from '~/containers/DexsAndFees/utils'
-import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, getPercentChange } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { getCexVolume, handleFetchResponse } from './utils'
@@ -286,18 +286,22 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total30d),
 			ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d)
 		}
+
 		// Stats for parent protocol
 		if (acc[protocol.parentProtocol]) {
 			// stats
 			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total24h'), null)
+			const total48hto24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total48hto24h'), null)
 			mainRow.total7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total7d'), null)
 			mainRow.total30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total30d'), null)
 			mainRow.total1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total1y'), null)
 			mainRow.average1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('average1y'), null)
 			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalAllTime'), null)
-			mainRow.change_1d = null
-			mainRow.change_7d = null
-			mainRow.change_1m = null
+			let change_7d_abs = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('change_7d_abs'), null)
+			let change_1m_abs = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('change_1m_abs'), null)
+			mainRow.change_1d = getPercentChange(mainRow.total24h, total48hto24h)
+			mainRow.change_7d = getPercentChange(mainRow.total24h, mainRow.total24h - change_7d_abs)
+			mainRow.change_1m = getPercentChange(mainRow.total24h, mainRow.total24h - change_1m_abs)
 			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('tvl'), null)
 			mainRow.revenue24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue24h'), null)
 			mainRow.revenue7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue7d'), null)
