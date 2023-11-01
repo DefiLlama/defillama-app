@@ -10,7 +10,6 @@ yarn
 ```
 
 ###### Running locally
-
 ```bash
 yarn dev
 ```
