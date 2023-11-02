@@ -286,7 +286,7 @@ export function useSettingsManager(settings: Array<string>): [ISettings, TUpdate
 				let toggled = false
 				if (isClient) {
 					toggled = state[setting]
-					// prevent flash of these toggles when page loads intially
+					// prevent flash of these toggles when page loads initially
 				} else if (setting === 'emulator') {
 					toggled = true
 				} else toggled = false
