@@ -54,7 +54,7 @@ export function DefiWatchlistContainer() {
 				feesData: chainProtocolsFees
 			})
 
-			return protocols.filter((p) => savedProtocolsInWatchlist.includes(p.name))
+			return (protocols as any).filter((p) => savedProtocolsInWatchlist.includes(p.name))
 		} else return []
 	}, [
 		isClient,
