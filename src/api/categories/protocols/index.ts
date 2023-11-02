@@ -84,7 +84,7 @@ export const getProtocol = async (protocolName: string) => {
 export const getAllProtocolEmissions = async () => {
 	try {
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
-		const parsedRes = JSON.parse(res.body).data
+		const parsedRes = res
 		return parsedRes
 			.map((protocol) => {
 				let event = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
