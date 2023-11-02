@@ -3,12 +3,15 @@ import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 import { Header, TYPE } from '~/Theme'
 import { Panel } from '~/components'
-import { ProtocolsTable } from '~/components/Table'
 import Row from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { Menu } from '~/components/DropdownMenu'
 import { useIsClient } from '~/hooks'
-import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
+import { DEFAULT_PORTFOLIO_NAME, useDefiManager, useWatchlist } from '~/contexts/LocalStorage'
+import { formatProtocolsList } from '~/hooks/data/defi'
+import { useGetProtocolsList } from '~/api/categories/protocols/client'
+import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
+import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 
 interface IFolder {
 	isSaved?: boolean
@@ -25,7 +28,15 @@ const Action = styled.button<IFolder>`
 	}
 `
 
-export function DefiWatchlistContainer({ protocolsDict }) {
+export function DefiWatchlistContainer() {
+	const [extraTvlsEnabled] = useDefiManager()
+
+	const { fullProtocolsList, parentProtocols, isLoading: fetchingProtocolsList } = useGetProtocolsList({ chain: 'All' })
+	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain('All')
+
+	const { data: chainProtocolsFees, loading: fetchingProtocolsFeesAndRevenueByChain } =
+		useGetProtocolsFeesAndRevenueByChain('All')
+
 	const isClient = useIsClient()
 
 	const { addPortfolio, removePortfolio, savedProtocols, portfolios, selectedPortfolio, setSelectedPortfolio } =
@@ -35,9 +46,25 @@ export function DefiWatchlistContainer({ protocolsDict }) {
 
 	const filteredProtocols = useMemo(() => {
 		if (isClient) {
-			return protocolsDict.filter((p) => savedProtocolsInWatchlist.includes(p.name))
+			const protocols = formatProtocolsList({
+				extraTvlsEnabled,
+				protocols: fullProtocolsList,
+				parentProtocols,
+				volumeData: chainProtocolsVolumes,
+				feesData: chainProtocolsFees
+			})
+
+			return (protocols as any).filter((p) => savedProtocolsInWatchlist.includes(p.name))
 		} else return []
-	}, [isClient, protocolsDict, savedProtocolsInWatchlist])
+	}, [
+		isClient,
+		fullProtocolsList,
+		savedProtocolsInWatchlist,
+		extraTvlsEnabled,
+		parentProtocols,
+		chainProtocolsVolumes,
+		chainProtocolsFees
+	])
 
 	return (
 		<>
@@ -64,8 +91,12 @@ export function DefiWatchlistContainer({ protocolsDict }) {
 				)}
 			</Row>
 
-			{filteredProtocols.length ? (
-				<ProtocolsTable data={filteredProtocols} />
+			{fetchingProtocolsList || fetchingProtocolsVolumeByChain || fetchingProtocolsFeesAndRevenueByChain ? (
+				<Panel>
+					<p style={{ textAlign: 'center' }}>Fetching protocols...</p>
+				</Panel>
+			) : filteredProtocols.length ? (
+				<ProtocolsByChainTable data={filteredProtocols} />
 			) : (
 				<Panel>
 					<p style={{ textAlign: 'center' }}>You have not saved any protocols.</p>

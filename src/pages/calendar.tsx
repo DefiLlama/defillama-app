@@ -26,9 +26,13 @@ import { useRouter } from 'next/router'
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
 
+
 	
 
 	const parsedRes = JSON.parse(res.body).data
+
+
+
 	const emissions = parsedRes.map((protocol) => {
 
 		const unlocksByDate = {}

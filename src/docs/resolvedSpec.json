@@ -1445,7 +1445,7 @@
 						"description": "protocol slug",
 						"schema": {
 							"type": "string",
-							"example": "aave"
+							"example": "uniswap"
 						}
 					},
 					{

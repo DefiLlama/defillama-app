@@ -1556,7 +1556,7 @@
 
 	Trex.prototype = {
 		/**
-		 * T-rex player initaliser.
+		 * T-rex player initialiser.
 		 * Sets the t-rex to blink at random intervals.
 		 */
 		init: function () {
@@ -1963,7 +1963,7 @@
 		 * Update the distance meter.
 		 * @param {number} distance
 		 * @param {number} deltaTime
-		 * @return {boolean} Whether the acheivement sound fx should be played.
+		 * @return {boolean} Whether the achievement sound fx should be played.
 		 */
 		update: function (deltaTime, distance) {
 			var paint = true
@@ -1980,7 +1980,7 @@
 				}
 
 				if (distance > 0) {
-					// Acheivement unlocked
+					// Achievement unlocked
 					if (distance % this.config.ACHIEVEMENT_DISTANCE == 0) {
 						// Flash score and play sound.
 						this.acheivement = true
@@ -1995,7 +1995,7 @@
 					this.digits = this.defaultString.split('')
 				}
 			} else {
-				// Control flashing of the score on reaching acheivement.
+				// Control flashing of the score on reaching achievement.
 				if (this.flashIterations <= this.config.FLASH_ITERATIONS) {
 					this.flashTimer += deltaTime
 
