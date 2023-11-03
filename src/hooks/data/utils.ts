@@ -14,7 +14,7 @@ function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastO
 }
 
 // group protocols so we can show child protocols inside an accordion in a table
-export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol) => {
+export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noSubrows?: boolean) => {
 	let strikeTvl = false
 	const categories = new Set()
 
@@ -153,7 +153,7 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 		extraTvl: {},
 		symbol: null,
 		category: categories.size > 1 ? null : Array.from(categories).join(', '),
-		subRows: [...protocols],
+		subRows: noSubrows ? null : [...protocols],
 		chainTvls: {}, // TODO cleanup
 		strikeTvl,
 		isParentProtocol: true
@@ -162,7 +162,8 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 
 export const groupProtocols = (
 	protocols: Readonly<IFormattedProtocol[]>,
-	parentProtocols: Readonly<IParentProtocol[]>
+	parentProtocols: Readonly<IParentProtocol[]>,
+	noSubrows?: boolean
 ) => {
 	let data = [...protocols]
 
@@ -170,8 +171,11 @@ export const groupProtocols = (
 		const list = protocols.filter((p) => p.parentProtocol === item.id)
 
 		if (list.length >= 2) {
-			data = data.filter((p) => p.parentProtocol !== item.id)
-			data.push(groupData(list, item))
+			if (!noSubrows) {
+				data = data.filter((p) => p.parentProtocol !== item.id)
+			}
+
+			data.push(groupData(list, item, noSubrows))
 		}
 	})
 
