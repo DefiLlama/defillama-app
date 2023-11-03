@@ -82,7 +82,7 @@ export default function ProtocolChart({
 	governanceApis,
 	isHourlyChart,
 	isCEX,
-	tokenSymbol,
+	tokenSymbol = 'Token',
 	protocolId,
 	chartDenominations,
 	twitterHandle,
