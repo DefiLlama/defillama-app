@@ -265,8 +265,8 @@ export const cexData: Array<ICex> = [
 	{
 		name: 'Swissborg',
 		slug: 'swissborg',
-		coin: 'CHSB',
-		coinSymbol: 'CHSB',
+		coin: 'BORG',
+		coinSymbol: 'BORG',
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
