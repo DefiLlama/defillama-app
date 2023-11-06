@@ -1053,10 +1053,17 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 }
 
 const getPriceAtDate = (date: string | number, history: Array<[number, number]>) => {
+	if (!history) return 0
 	let priceAtDate = history.find((x) => x[0] === Number(date) * 1000)
 
 	if (!priceAtDate) {
-		priceAtDate = history.find((x) => -432000000 < x[0] - Number(date) * 1000 && x[0] - Number(date) * 1000 < 432000000)
+		if (Number(date) * 1000 > history[history.length - 1][1]) {
+			priceAtDate = history[history.length - 1]
+		} else {
+			priceAtDate = history.find(
+				(x) => -432000000 < x[0] - Number(date) * 1000 && x[0] - Number(date) * 1000 < 432000000
+			)
+		}
 	}
 
 	return priceAtDate?.[1] ?? 0
