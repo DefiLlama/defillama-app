@@ -49,9 +49,10 @@ export function DefiWatchlistContainer() {
 			const protocols = formatProtocolsList({
 				extraTvlsEnabled,
 				protocols: fullProtocolsList,
-				parentProtocols,
 				volumeData: chainProtocolsVolumes,
-				feesData: chainProtocolsFees
+				feesData: chainProtocolsFees,
+				parentProtocols: parentProtocols,
+				noSubrows: true
 			})
 
 			return (protocols as any).filter((p) => savedProtocolsInWatchlist.includes(p.name))

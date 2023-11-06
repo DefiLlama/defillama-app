@@ -1141,7 +1141,7 @@ function ProtocolContainer({
 					governanceApis={governanceApis}
 					isHourlyChart={isHourlyChart}
 					isCEX={isCEX}
-					tokenSymbol={symbol}
+					tokenSymbol={symbol ?? 'Token'}
 					protocolId={protocolData.id}
 					chartDenominations={chartDenominations}
 					nftVolumeData={nftVolumeData}

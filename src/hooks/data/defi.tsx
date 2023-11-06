@@ -197,13 +197,15 @@ export const formatProtocolsList = ({
 	parentProtocols,
 	extraTvlsEnabled,
 	volumeData,
-	feesData
+	feesData,
+	noSubrows
 }: {
 	protocols: IFormattedProtocol[]
 	parentProtocols: IParentProtocol[]
 	extraTvlsEnabled: ISettings
 	volumeData?: IOverviewProps['protocols']
 	feesData?: IOverviewProps['protocols']
+	noSubrows?: boolean
 }) => {
 	const checkExtras = {
 		...extraTvlsEnabled,
@@ -303,5 +305,5 @@ export const formatProtocolsList = ({
 				}
 		  })
 
-	return parentProtocols ? groupProtocols(updatedProtocols, parentProtocols) : updatedProtocols
+	return parentProtocols ? groupProtocols(updatedProtocols, parentProtocols, noSubrows) : updatedProtocols
 }

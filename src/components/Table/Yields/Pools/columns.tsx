@@ -114,6 +114,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						<QuestionHelper
 							text={'Supply APY is for FRAX being lent to the pool, you do not earn interest on your collateral!'}
 						/>
+					) : info.row.original.project === 'Sommelier' ? (
+						<QuestionHelper text={'Calculated over a 24h period! Enable 7d Base APY column for a larger period'} />
 					) : null}
 					{formattedPercent(info.getValue(), true)}
 				</span>
