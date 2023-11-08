@@ -178,6 +178,7 @@ export default function Correlations({ coinsData }) {
 								{correlations[coin.id]?.map((corr) =>
 									corr === null ? (
 										<Image
+											key={corr}
 											alt={''}
 											src={coin.image}
 											height={'24px'}
