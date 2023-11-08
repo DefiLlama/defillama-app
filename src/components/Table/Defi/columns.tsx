@@ -1219,6 +1219,18 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		meta: {
 			align: 'end'
 		}
+	},
+	{
+		header: 'Mcap',
+		accessorKey: 'mcap',
+		id: 'mcap',
+		cell: (info) => {
+			return <>{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}</>
+		},
+		size: 128,
+		meta: {
+			align: 'end'
+		}
 	}
 ]
 

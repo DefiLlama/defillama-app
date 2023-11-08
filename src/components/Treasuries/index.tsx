@@ -31,7 +31,8 @@ export const getTreasuryData = (url: string) => async () => {
 						{}
 					),
 					coreTvl: t.tvl,
-					tvl: t.tvl + (t.chainTvls?.['OwnTokens'] ?? 0)
+					tvl: t.tvl + (t.chainTvls?.['OwnTokens'] ?? 0),
+					mcap: t.mcap === 0 ? null : t.mcap
 				}))
 				.sort((a, b) => b.coreTvl - a.coreTvl)
 		},
