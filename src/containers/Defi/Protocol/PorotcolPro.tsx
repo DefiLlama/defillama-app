@@ -1,7 +1,9 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/future/image'
+import Image from 'next/image'
+
 import Link from 'next/link'
+
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
@@ -20,7 +22,6 @@ import {
 	LazyChart,
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
-import { StatsSection } from '~/layout/Stats/Medium'
 import { Checkbox2 } from '~/components'
 import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
@@ -37,18 +38,9 @@ import QuestionHelper from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
-import {
-	capitalizeFirstLetter,
-	formatPercentage,
-	formattedNum,
-	getBlockExplorer,
-	slug,
-	standardizeProtocolName,
-	tokenIconUrl
-} from '~/utils'
+import { capitalizeFirstLetter, formatPercentage, formattedNum, getBlockExplorer, slug, tokenIconUrl } from '~/utils'
 import { useFetchProtocol, useFetchProtocolTwitter, useGetTokenPrice } from '~/api/categories/protocols/client'
 import type { IFusedProtocolData, IProtocolDevActivity, NftVolumeData } from '~/api/types'
-import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
 import { TreasuryChart } from './Treasury'
 import type { IArticle } from '~/api/categories/news'
@@ -59,7 +51,7 @@ import { DLNewsLogo } from '~/components/News/Logo'
 import Announcement from '~/components/Announcement'
 import { useTabState, TabPanel } from 'ariakit'
 import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
-import { GridContent, TabLayout, TabList, Tab, OtherProtocols, ProtocolLink } from './Common'
+import { GridContent, TabLayout, TabList, Tab, ProtocolLink } from './Common'
 import { GovernanceData } from './Governance'
 import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
 import { ProtocolPools } from './Yields'
@@ -104,13 +96,14 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
 
-const SortbaleBody = styled.div``
+const SortbaleBody = styled.div`
+	cursor: pointer;
+`
 
 export function SortableItem(props) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: props.id })
-
 	const style = {
-		transform: CSS.Transform.toString(transform),
+		transform: CSS.Translate.toString(transform),
 		transition
 	}
 

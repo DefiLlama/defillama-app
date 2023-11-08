@@ -1,21 +1,14 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import Announcement from '~/components/Announcement'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { RowLinksWithDropdown } from '~/components/Filters'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { StatsSection } from '~/layout/Stats/Medium'
-import LocalLoader from '~/components/LocalLoader'
+
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { chainIconUrl, formattedNum, getTokenDominance } from '~/utils'
-import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
-import Image from 'next/image'
-
-import llamaLogo from '~/assets/peeking-llama.png'
 import { DetailsWrapper, DownloadButton, Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import Link from 'next/link'
@@ -24,30 +17,71 @@ import { ChevronRight, DownloadCloud } from 'react-feather'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
 import SEO from '~/components/SEO'
-import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
+import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProProtocols'
 import TokenLogo from '~/components/TokenLogo'
-import { EmbedChart } from '~/components/Popover'
-import { primaryColor } from '~/constants/colors'
-import { useFetchChainChartData } from './useFetchChainChartData'
+import { useFetchChainChartData } from './useProFetchChainChartData'
+import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
+import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import { useState } from 'react'
+import { SortableItem } from '../Defi/Protocol/PorotcolPro'
+import ReactSelect from '~/components/MultiSelect/ReactSelect'
+import { capitalize } from 'lodash'
 
-const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
+const ChartsBody = styled.div<{ itemsCount }>`
+	width: 100%;
+	display: grid;
+	grid-template-columns: ${({ itemsCount }) => `repeat(${itemsCount >= 2 ? 2 : itemsCount}, 1fr)`};
+	grid-gap: 10px;
+	margin-top: 16px;
+	& > div {
+		height: 100%;
+	}
+	& > div > div {
+		height: 100%;
+	}
+`
+
+export const Filters = styled.div`
+	display: flex;
+	vertical-align: center;
+	border-radius: 12px;
+	background-color: ${({ theme }) => (theme.mode === 'dark' ? '#090a0b' : 'white')};
+	box-shadow: ${({ theme }) => theme.shadowSm};
+	width: fit-content;
+	padding: 16px;
+`
+
+const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart/ProChart'), {
 	ssr: false
 })
 
 const Game: any = dynamic(() => import('~/game'))
 
-const updateRoute = (key, val, router) => {
-	router.push(
-		{
-			query: {
-				...router.query,
-				[key]: val
-			}
-		},
-		undefined,
-		{ shallow: true }
-	)
-}
+export const StatsSection = styled.div`
+	border-radius: 12px;
+	background: ${({ theme }) => theme.bg6};
+	box-shadow: ${({ theme }) => theme.shadowSm};
+	position: relative;
+	isolation: isolate;
+	height: 100%;
+`
+
+export const ChartBody = styled.div`
+	border-radius: 12px;
+	background: ${({ theme }) => theme.bg6};
+	box-shadow: ${({ theme }) => theme.shadowSm};
+	padding-top: 8px;
+`
+
+export const FilterHeader = styled.div`
+	font-size: 18px;
+	line-height: 2;
+	margin-right: 16px;
+	margin-left: 16px;
+	margin-top: 4px;
+`
+
+const defaultBlocks = ['stats', 'tvl']
 
 export function ChainContainer({
 	selectedChain = 'All',
@@ -70,6 +104,15 @@ export function ChainContainer({
 		isLoading: fetchingProtocolsList
 	} = useGetProtocolsList({ chain: selectedChain })
 
+	const [items, setItems] = useState(defaultBlocks)
+
+	const sensors = useSensors(
+		useSensor(PointerSensor),
+		useSensor(KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates
+		})
+	)
+
 	const [extraTvlsEnabled] = useDefiManager()
 
 	const router = useRouter()
@@ -80,19 +123,6 @@ export function ChainContainer({
 
 	const [easterEgg, setEasterEgg] = React.useState(false)
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
-	const activateEasterEgg = () => {
-		if (easterEgg) {
-			if (!darkMode) {
-				toggleDarkMode()
-			}
-			window.location.reload()
-		} else {
-			if (darkMode) {
-				toggleDarkMode()
-			}
-			setEasterEgg(true)
-		}
-	}
 
 	let CHAIN_SYMBOL = null
 	let chainGeckoId = null
@@ -115,7 +145,29 @@ export function ChainContainer({
 
 	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
+	const { totalValueUSD, valueChangeUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
+		denomination,
+		selectedChain,
+		chainGeckoId,
+		volumeData,
+		feesAndRevenueData,
+		stablecoinsData,
+		inflowsData,
+		userData,
+		raisesChart,
+		chart,
+		extraTvlCharts,
+		extraTvlsEnabled,
+		devMetricsData,
+		selectedCharts: items.reduce((acc, item) => ({ ...acc, [item]: 'true' }), {})
+	})
+
 	const chartOptions = [
+		{
+			id: 'stats',
+			name: 'Overview',
+			isVisible: true
+		},
 		{
 			id: 'tvl',
 			name: 'TVL',
@@ -139,7 +191,7 @@ export function ChainContainer({
 		{
 			id: 'price',
 			name: 'Price',
-			isVisible: DENOMINATIONS.length > 1
+			isVisible: DENOMINATIONS.length > 1 && chartDatasets[0]?.priceData
 		},
 		{
 			id: 'users',
@@ -154,7 +206,7 @@ export function ChainContainer({
 		{
 			id: 'raises',
 			name: 'Raises',
-			isVisible: selectedChain === 'All'
+			isVisible: selectedChain === 'All' && chartDatasets[0]?.raisesData
 		},
 		{
 			id: 'stables',
@@ -178,21 +230,7 @@ export function ChainContainer({
 		}
 	]
 
-	const { totalValueUSD, valueChangeUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
-		denomination,
-		selectedChain,
-		chainGeckoId,
-		volumeData,
-		feesAndRevenueData,
-		stablecoinsData,
-		inflowsData,
-		userData,
-		raisesChart,
-		chart,
-		extraTvlCharts,
-		extraTvlsEnabled,
-		devMetricsData
-	})
+	console.log(chartDatasets)
 
 	const finalProtocolsList = React.useMemo(() => {
 		const list =
@@ -238,45 +276,25 @@ export function ChainContainer({
 	const percentChange = valueChangeUSD?.toFixed(2)
 	const dominance = getTokenDominance(topToken, totalValueUSD)
 
-	return (
-		<>
-			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={percentChange} />
+	const onChainChange = ({ to }) => {
+		setItems(defaultBlocks)
+		router.push(
+			{
+				pathname: to
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
 
-			{/*<Announcement>
-				<Image
-					src="https://icons.llamao.fi/icons/memes/gib.png?w=36&h=36"
-					alt="Cute"
-					width={18}
-					height={18}
-					unoptimized
-					style={{ marginRight: '0.25rem', display: 'inline' }}
-				/>
-				{'  '}We've released our{' '}
-				<Link href={`/nfts`}>
-					<a>
-						NFT dashboard <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
-					</a>
-				</Link>
-				{' !'}
-			</Announcement>*/}
+	const onChartChange = (value) => {
+		console.log(value)
+		setItems(value.map((v) => v.value))
+	}
 
-			<ProtocolsChainsSearch
-				step={{
-					category: 'Home',
-					name: selectedChain === 'All' ? 'All Protocols' : selectedChain
-				}}
-			/>
-
-			<LayoutWrapper>
-				<ChainsSelect>
-					<RowLinksWithDropdown
-						links={chainOptions}
-						activeLink={selectedChain}
-						alternativeOthersText="Chains"
-						variant="secondary"
-					/>
-				</ChainsSelect>
-
+	const Items = {
+		stats: (
+			<SortableItem id={'stats'} key={'stats'}>
 				<StatsSection>
 					<OverallMetricsWrapper>
 						{selectedChain !== 'All' && (
@@ -440,96 +458,68 @@ export function ChainContainer({
 							</tbody>
 						</StatsTable2>
 					</OverallMetricsWrapper>
-
-					<ChartWrapper>
-						{easterEgg ? (
-							<Game />
-						) : (
-							<>
-								<FiltersWrapper>
-									<ToggleWrapper>
-										{chartOptions.map(
-											({ id, name, isVisible }) =>
-												isVisible && (
-													<Toggle key={id + 'chart-option'}>
-														<input
-															type="checkbox"
-															onClick={() => {
-																updateRoute(
-																	id,
-																	id === 'tvl'
-																		? router.query[id] !== 'false'
-																			? 'false'
-																			: 'true'
-																		: router.query[id] === 'true'
-																		? 'false'
-																		: 'true',
-																	router
-																)
-															}}
-															checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
-														/>
-														<span data-wrapper="true">
-															<span>{name}</span>
-														</span>
-													</Toggle>
-												)
-										)}
-									</ToggleWrapper>
-
-									{/* {selectedChain !== 'All' ? (
-										<Toggle style={{ marginRight: 'auto' }}>
-											<input
-												type="checkbox"
-												onClick={() => {
-													window.open(`/compare?chains=${selectedChain}`)
-												}}
-												checked={true}
-											/>
-											<span data-wrapper="true">
-												<span>Compare chain</span>
-											</span>
-										</Toggle>
-									) : null} */}
-
-									{DENOMINATIONS.length > 1 && (
-										<Filters>
-											{DENOMINATIONS.map((D) => (
-												<Denomination
-													active={denomination === D}
-													key={'denomination' + D}
-													onClick={() => updateRoute('currency', D, router)}
-												>
-													{D}
-												</Denomination>
-											))}
-										</Filters>
-									)}
-
-									<EmbedChart color={primaryColor} />
-								</FiltersWrapper>
-
-								{isFetchingChartData ? (
-									<LocalLoader style={{ margin: 'auto', height: '360px' }} />
-								) : (
-									router.isReady && (
-										<ChainChart
-											datasets={chartDatasets}
-											title=""
-											denomination={denomination}
-											isThemeDark={darkMode}
-											hideTooltip
-										/>
-									)
-								)}
-							</>
-						)}
-					</ChartWrapper>
-					<EasterLlama onClick={activateEasterEgg}>
-						<Image src={llamaLogo} width="41px" height="34px" alt="Activate Easter Egg" />
-					</EasterLlama>
 				</StatsSection>
+			</SortableItem>
+		)
+	}
 
+	return (
+		<>
+			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={percentChange} />
+
+			<ProtocolsChainsSearch
+				step={{
+					category: 'Home',
+					name: selectedChain === 'All' ? 'All Protocols' : selectedChain
+				}}
+			/>
+			<Filters>
+				<div style={{ width: 'fit-content', display: 'flex' }}>
+					<FilterHeader>Select chain</FilterHeader>
+					<ReactSelect options={chainOptions} placeholder="Select chain" onChange={onChainChange} />
+				</div>
+
+				<div style={{ width: 'fit-content', display: 'flex' }}>
+					<FilterHeader>and pick charts</FilterHeader>
+					<ReactSelect
+						isMulti
+						value={items.map((val) => ({ value: val, label: capitalize(val) }))}
+						name="colors"
+						options={chartOptions
+							.filter(({ isVisible }) => isVisible)
+							.map(({ id, name }) => ({ value: id, label: capitalize(name) }))}
+						className="basic-multi-select"
+						classNamePrefix="select"
+						onChange={onChartChange}
+					/>
+				</div>
+			</Filters>
+			<LayoutWrapper>
+				<ChartsBody itemsCount={items.length}>
+					<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+						<SortableContext items={items} strategy={rectSortingStrategy}>
+							{items.map((id, i) =>
+								Items[id] ? (
+									Items[id]
+								) : (
+									<SortableItem id={id} key={id + items.length}>
+										<ChartBody>
+											<FilterHeader>{chartOptions.find((opt) => opt.id === id).name}</FilterHeader>
+											<ChainChart
+												datasets={chartDatasets}
+												title=""
+												denomination={denomination}
+												isThemeDark={darkMode}
+												chartType={id}
+												isFirstChart={i === 0 || i === 1}
+											/>
+										</ChartBody>
+									</SortableItem>
+								)
+							)}
+						</SortableContext>
+					</DndContext>
+				</ChartsBody>
 				{finalProtocolsList.length > 0 ? (
 					<ProtocolsByChainTable data={finalProtocolsList} />
 				) : (
@@ -538,6 +528,19 @@ export function ChainContainer({
 			</LayoutWrapper>
 		</>
 	)
+
+	function handleDragEnd(event) {
+		const { active, over } = event
+
+		if (active.id !== over.id) {
+			setItems((items) => {
+				const oldIndex = items.indexOf(active.id)
+				const newIndex = items.indexOf(over.id)
+
+				return arrayMove(items, oldIndex, newIndex)
+			})
+		}
+	}
 }
 
 export const LayoutWrapper = styled.div`
@@ -619,10 +622,5 @@ export const OverallMetricsWrapper = styled(DetailsWrapper)`
 
 	& > *[data-tvl] {
 		margin-bottom: 8px;
-	}
-
-	@media screen and (min-width: 80rem) {
-		max-width: 300px;
-		border-right: ${({ theme }) => '1px solid ' + theme.divider};
 	}
 `

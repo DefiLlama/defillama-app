@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { useDefiManager, useDarkModeManager } from '~/contexts/LocalStorage'
