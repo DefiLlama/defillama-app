@@ -45,7 +45,8 @@ export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
 					getProtocol(protocolName)
 						.then((protocolData) => buildProtocolAddlChartsData({ protocolData, extraTvlsEnabled }))
 						.catch(() => null)
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	const loading = !data && data !== null && !error
@@ -65,7 +66,8 @@ export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
 								return { ...data, chainTvls: { ...data.chainTvls, OwnTokens: {} } }
 							} else return data
 						})
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	const loading = !data && data !== null && !error
@@ -84,7 +86,8 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 							return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
 						})
 						.catch((err) => [])
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
@@ -100,7 +103,8 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 							return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
 						})
 						.catch((err) => [])
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
@@ -148,7 +152,9 @@ const getProtocolUsers = async (protocolId: number | string) => {
 }
 
 export const useFetchProtocolUsers = (protocolId: number | string | null) => {
-	const { data, error } = useSWR(`users/${protocolId}`, protocolId ? () => getProtocolUsers(protocolId) : () => null)
+	const { data, error } = useSWR(`users/${protocolId}`, protocolId ? () => getProtocolUsers(protocolId) : () => null, {
+		errorRetryCount: 0
+	})
 
 	return { data, error, loading: !data && data !== null && !error }
 }
@@ -164,7 +170,8 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 							return values && values.length > 0 ? values : null
 						})
 						.catch((err) => [])
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
@@ -181,7 +188,8 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 							return values && values.length > 0 ? values : null
 						})
 						.catch((err) => [])
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
@@ -215,14 +223,17 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 						.catch((err) => {
 							return []
 						})
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
 }
 
 export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | null) => {
-	const { data, error } = useSWR(JSON.stringify(governanceApis), () => fetchAndFormatGovernanceData(governanceApis))
+	const { data, error } = useSWR(JSON.stringify(governanceApis), () => fetchAndFormatGovernanceData(governanceApis), {
+		errorRetryCount: 0
+	})
 
 	return { data, error, loading: !data && data !== null && !error }
 }
@@ -239,7 +250,7 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 export const useGetTokenPrice = (geckoId?: string) => {
 	let url = `https://coins.llama.fi/prices/current/coingecko:${geckoId}`
 
-	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url))
+	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url), { errorRetryCount: 0 })
 
 	return { data: data?.coins?.[`coingecko:${geckoId}`], error, loading: geckoId && !data && !error }
 }
@@ -268,7 +279,11 @@ export const useGetProtocolsList = ({ chain }) => {
 }
 
 export const useGetProtocolEmissions = (protocol?: string | null) => {
-	const { data, error } = useSWR(`unlocksData/${protocol}`, protocol ? () => getProtocolEmissons(protocol) : () => null)
+	const { data, error } = useSWR(
+		`unlocksData/${protocol}`,
+		protocol ? () => getProtocolEmissons(protocol) : () => null,
+		{ errorRetryCount: 0 }
+	)
 
 	return { data, error, loading: !data && data !== null && !error }
 }
@@ -276,7 +291,8 @@ export const useGetProtocolEmissions = (protocol?: string | null) => {
 export const useFetchProtocolTwitter = (twitter?: string | null) => {
 	const { data, error } = useSWR(
 		`twitterData1/${twitter}`,
-		twitter ? () => fetch(TWITTER_POSTS_API + `/${twitter?.toLowerCase()}.json`).then((r) => r.json()) : () => null
+		twitter ? () => fetch(TWITTER_POSTS_API + `/${twitter?.toLowerCase()}.json`).then((r) => r.json()) : () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: twitter && !data && !error }
@@ -296,7 +312,8 @@ export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
 
 						.catch((err) => null)
 						.then()
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
