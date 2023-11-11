@@ -13,6 +13,8 @@ import { useMemo } from 'react'
 import { getUtcDateObject } from '~/components/ECharts/utils'
 import { getPercentChange, getPrevTvlFromChart, nearestUtc } from '~/utils'
 
+const getChainChartData = async () => {}
+
 export const useFetchChainChartData = ({
 	denomination,
 	selectedChain,
@@ -30,7 +32,6 @@ export const useFetchChainChartData = ({
 	selectedCharts
 }) => {
 	const router = { query: selectedCharts }
-	console.log({ router })
 
 	const { data: denominationPriceHistory, loading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
 		denomination !== 'USD' ? chainGeckoId : null
@@ -139,15 +140,6 @@ export const useFetchChainChartData = ({
 			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
 			cc
 		])
-
-		console.log({
-			fetchingVolumeChartDataByChain,
-			fetchingFeesAndRevenueChartDataByChain,
-			fetchingStablecoinsChartDataByChain,
-			fetchingInflowsChartData,
-			fetchingUsersChartData,
-			fetchingTransactionsChartData
-		})
 
 		const chartDatasets = [
 			{

@@ -320,7 +320,6 @@ export default function AreaChart({
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
 	}, [datasets, isThemeDark, route, denomination, isCompare])
-	console.log({ datasets, chartType })
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
 

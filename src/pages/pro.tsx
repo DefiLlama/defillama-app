@@ -2,7 +2,8 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/chains'
 import { withPerformanceLogging } from '~/utils/perf'
-import { ChainContainer } from '~/containers/ChainContainer/ProChain'
+import { ChainContainer } from '~/containers/ProContainer'
+import { QueryClient, QueryClientProvider } from 'react-query'
 
 export const getStaticProps = withPerformanceLogging('index/pro', async () => {
 	const data = await getChainPageData()
@@ -18,10 +19,13 @@ export const getStaticProps = withPerformanceLogging('index/pro', async () => {
 	}
 })
 
+const queryClient = new QueryClient()
 export default function HomePage(props) {
 	return (
-		<Layout title="DefiLlama - DeFi Dashboard">
-			<ChainContainer {...props} />
-		</Layout>
+		<QueryClientProvider client={queryClient}>
+			<Layout title="DefiLlama - DeFi Dashboard">
+				<ChainContainer {...props} />
+			</Layout>
+		</QueryClientProvider>
 	)
 }

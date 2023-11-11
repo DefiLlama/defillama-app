@@ -309,7 +309,7 @@ const ProotocolDataWrapper = styled(ChartsWrapper)`
 	margin-top: 0;
 `
 
-const ChartTypes = {
+export const ChartTypes = {
 	tvl: 'TVL',
 	mcap: 'MCAP',
 	tokenPrice: 'Token Price',
@@ -341,7 +341,7 @@ const ChartTypes = {
 	borrowed: 'Borrowed'
 }
 
-const chartExist: Record<keyof typeof ChartTypes, (props: any) => boolean> = {
+export const chartExist: Record<keyof typeof ChartTypes, (props: any) => boolean> = {
 	tvl: () => true,
 	mcap: ({ geckoId }) => !!geckoId,
 	tokenPrice: ({ geckoId }) => !!geckoId,
@@ -1714,7 +1714,6 @@ function ProtocolContainer({
 
 	function handleDragEnd(event) {
 		const { active, over } = event
-		console.log(event)
 
 		if (active.id !== over.id) {
 			setItems((items) => {

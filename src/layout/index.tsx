@@ -46,7 +46,6 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 			</Head>
 
 			{defaultSEO && <SEO />}
-
 			<ThemeProvider>
 				<GlobalStyle />
 				<Nav />

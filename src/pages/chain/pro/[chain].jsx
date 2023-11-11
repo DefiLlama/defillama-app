@@ -6,7 +6,7 @@ import { getChainPageData } from '~/api/categories/chains'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
-import { ChainContainer } from '~/containers/ChainContainer/ProChain'
+import { ChainContainer } from '~/containers/ProContainer'
 
 const fetch = fetchWithErrorLogging
 
