@@ -24,15 +24,13 @@ const SelectedItem = ({ name, setItems, items }) => {
 				style={{ width: 'fit-content' }}
 				menuIsOpen={false}
 				placeholder="Search..."
-				onChange={(items: Array<string>) =>
-					setItems((item) => {
-						if (item.length > 0) {
-							const newItems = items?.filter((selectedItem) => !selectedItem?.includes(`${name}-${item[0]?.value}`))
-							return newItems
-						}
-						return items.filter((selectedItem) => !selectedItem.includes(`${name}-`))
-					})
-				}
+				onChange={(selectedItems: Array<Record<string, string>>) => {
+					setItems((items) =>
+						items
+							.filter((item) => !item.includes(`chain-${name}`))
+							.concat(selectedItems.map((item) => `chain-${name}-${item.value}`))
+					)
+				}}
 				value={items.map((item) => ({ label: getType(item), value: item }))}
 			/>
 		</SelectedItemBody>

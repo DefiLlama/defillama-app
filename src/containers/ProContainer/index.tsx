@@ -107,7 +107,6 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 			coordinateGetter: sortableKeyboardCoordinates
 		})
 	)
-
 	const selectedChains = items.filter((item) => item.includes('chain-')).map((item) => item.split('-')[1])
 
 	const { data: chainData, isLoading } = useCompare({ chains: selectedChains, extraTvlsEnabled: {} })
