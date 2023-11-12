@@ -126,10 +126,9 @@ const ItemsSelect = ({ chains, setItems, setProtocolProps }: Props) => {
 	const protocolOptions = fullProtocolsList
 		.map(({ name }) => ({ label: name, value: sluggify(name), type: 'protocol' }))
 		.slice(0, 1000)
-	const { availableCharts, data } = useAvailableCharts({ itemType: 'protocol', name: selectedItem?.label })
+	const { availableCharts, data } = useAvailableCharts({ itemType: selectedItem?.type, name: selectedItem?.label })
 
 	const chartOptions = availableCharts?.map(({ id, name }) => ({ label: name, value: id }))
-
 	const reset = () => {
 		setSelectedChain(null)
 		setSelectedCharts([])
