@@ -321,11 +321,11 @@ export const ChartTypes = {
 	unlocks: 'Unlocks',
 	activeUsers: 'Active Users',
 	newUsers: 'New Users',
-	events: 'Events',
+	// events: 'Events',
 	transactions: 'Transactions',
 	gasUsed: 'Gas Used',
-	medianApy: 'Median Apy',
-	usdInflows: 'Inflows',
+	// medianApy: 'Median Apy',
+	// usdInflows: 'Inflows',
 	governance: 'Governance',
 	treasury: 'Treasury',
 	bridgeVolume: 'Bridge Volume',
@@ -336,7 +336,7 @@ export const ChartTypes = {
 	contributersMetrics: 'Contributers',
 	contributersCommits: 'Contributers Commits',
 	devCommits: 'Devs Commits',
-	nftVolume: 'NFT Volume',
+	// nftVolume: 'NFT Volume',
 	staking: 'Staking',
 	borrowed: 'Borrowed'
 }

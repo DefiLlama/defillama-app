@@ -8,8 +8,7 @@ import { sluggify } from '~/utils/cache-client'
 import Modal from '~/components/Modal'
 import useSWR from 'swr'
 import { getChainData } from '~/components/ComparePage'
-import { useFetchAndFormatChartData } from '~/components/ECharts/ProtocolDNDChart/useFetchAndFormatChartData'
-import { ChainState } from '.'
+import { ChartTypes } from '../Defi/Protocol/PorotcolPro'
 
 export const Filters = styled.div`
 	display: flex;
@@ -74,20 +73,60 @@ export const chainChartOptions = [
 ]
 
 const useAvailableCharts = ({ itemType, name }: { itemType: 'protocol' | 'chain'; name: string }) => {
-	const { data, error } = useSWR(`pro/chain/${name}`, () => getChainData(name, {}))
-	const availableCharts = chainChartOptions.filter((opt) => !!data?.[opt.key]?.length)
-	return { data, availableCharts }
+	const { data, error } = useSWR(`pro/chain/${name}`, () =>
+		itemType === 'chain'
+			? getChainData(name, {})
+			: fetch(`https://fe-cache.llama.fi/protocol/${name}`).then((r) => r.json())
+	)
+	if (itemType === 'chain') {
+		const availableCharts = chainChartOptions.filter((opt) => !!data?.[opt.key]?.length)
+		return { data, availableCharts }
+	} else {
+		if (!data?.availableCharts) return { data, availableCharts: null }
+		const availableCharts = Object.entries(data?.availableCharts)
+			.filter(([_, isAvailable]) => isAvailable)
+			.map(([key]) => (ChartTypes[key] ? { id: key, name: ChartTypes[key] } : null))
+			.filter(Boolean)
+		return { data, availableCharts }
+	}
 }
 interface Props {
 	chains: Array<{ label: string; to: string }>
 	setItems: (item) => void
+	setProtocolProps: (item) => void
 }
-const ItemsSelect = ({ chains, setItems }: Props) => {
-	const { fullProtocolsList, parentProtocols, isLoading: fetchingProtocolsList } = useGetProtocolsList({ chain: 'All' })
-	const [selectedChain, setSelectedChain] = useState(null)
+
+const getProtocolData = (data) => {
+	const chartProps = {
+		twitterHandle: data?.protocolData.twitter,
+		protocol: data?.protocol,
+		color: data?.backgroundColor,
+		historicalChainTvls: data?.protocolData.historicalChainTvls,
+		hallmarks: data?.protocolData.hallmarks,
+		geckoId: data?.protocolData.gecko_id,
+		chartColors: data?.chartColors,
+		metrics: data?.protocolData.metrics,
+		activeUsersId: data?.users ? data?.protocolData.id : null,
+		governanceApis: data?.governanceApis,
+		isHourlyChart: false,
+		isCEX: false,
+		tokenSymbol: data?.protocolData.symbol,
+		protocolId: data?.protocolData.id,
+		chartDenominations: data?.chartDenominations,
+		nftVolumeData: data?.nftVolumeData
+	}
+
+	return chartProps
+}
+
+const ItemsSelect = ({ chains, setItems, setProtocolProps }: Props) => {
+	const { fullProtocolsList } = useGetProtocolsList({ chain: 'All' })
+	const [selectedItem, setSelectedChain] = useState(null)
 	const [selectedCharts, setSelectedCharts] = useState([])
-	const protocolOptions = fullProtocolsList.map(({ name }) => ({ label: name, value: sluggify(name) }))
-	const { availableCharts } = useAvailableCharts({ itemType: 'protocol', name: selectedChain?.label })
+	const protocolOptions = fullProtocolsList
+		.map(({ name }) => ({ label: name, value: sluggify(name), type: 'protocol' }))
+		.slice(0, 1000)
+	const { availableCharts, data } = useAvailableCharts({ itemType: 'protocol', name: selectedItem?.label })
 
 	const chartOptions = availableCharts?.map(({ id, name }) => ({ label: name, value: id }))
 
@@ -96,7 +135,12 @@ const ItemsSelect = ({ chains, setItems }: Props) => {
 		setSelectedCharts([])
 	}
 	const onCloseClick = () => {
-		setItems((items) => items.concat(selectedCharts.map((chart) => `chain-${selectedChain.label}-${chart.value}`)))
+		setItems((items) =>
+			items.concat(selectedCharts.map((chart) => `${selectedItem.type}-${selectedItem.label}-${chart.value}`))
+		)
+		if (selectedItem.type === 'protocol') {
+			setProtocolProps((props) => ({ ...props, [selectedItem.value]: getProtocolData(data?.protocol) }))
+		}
 		reset()
 	}
 	return (
@@ -108,17 +152,19 @@ const ItemsSelect = ({ chains, setItems }: Props) => {
 						<ReactSelect
 							style={{ width: '300px' }}
 							filterOption={createFilter({ ignoreAccents: false, ignoreCase: false })}
-							options={chains.map(({ label }) => ({ label, value: sluggify(label) }))}
+							options={chains
+								.map(({ label }) => ({ label, value: sluggify(label), type: 'chain' }))
+								.concat(protocolOptions)}
 							placeholder="Search..."
 							onChange={(val: { label: string; to: string }) => setSelectedChain(val)}
-							value={selectedChain}
+							value={selectedItem}
 						/>
 					</FilterRow>
 					<FilterRow>
 						<FilterHeader>Pick charts</FilterHeader>
 						<ReactSelect
 							isMulti
-							isDisabled={!selectedChain}
+							isDisabled={!selectedItem}
 							style={{ width: '300px' }}
 							filterOption={createFilter({ ignoreAccents: false, ignoreCase: false })}
 							options={chartOptions}

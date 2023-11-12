@@ -201,11 +201,6 @@ export default function ProtocolChart({
 
 	return (
 		<Wrapper>
-			<FiltersWrapper>
-				<TYPE.heading>{name}</TYPE.heading>
-				<EmbedChart color={color} />
-			</FiltersWrapper>
-
 			<ProtocolChartOnly
 				isRouterReady={router.isReady}
 				isLoading={isLoading}
@@ -276,7 +271,6 @@ export const ProtocolChartOnly = ({
 }
 
 export const Wrapper = styled.div`
-	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#1c1e23' : '#ece3e3')};
 	border-radius: 12px;
 	gap: 16px;
 	padding: 16px 0;

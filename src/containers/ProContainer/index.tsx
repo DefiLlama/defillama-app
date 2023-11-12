@@ -4,33 +4,22 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
-import { formatProtocolsList } from '~/hooks/data/defi'
 
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { chainIconUrl, formattedNum, getTokenDominance } from '~/utils'
-import { DetailsWrapper, DownloadButton, Name } from '~/layout/ProtocolAndPool'
-import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
-import Link from 'next/link'
+import { DetailsWrapper } from '~/layout/ProtocolAndPool'
 
-import { ChevronRight, DownloadCloud } from 'react-feather'
-import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
-import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
-import SEO from '~/components/SEO'
-import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProProtocols'
-import TokenLogo from '~/components/TokenLogo'
-import { useFetchChainChartData } from './useProFetchChainChartData'
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useState } from 'react'
 import { ChartTypes, SortableItem } from '../Defi/Protocol/PorotcolPro'
-import ReactSelect from '~/components/MultiSelect/ReactSelect'
-import { capitalize, groupBy, mapValues } from 'lodash'
+import { groupBy, mapValues } from 'lodash'
 import ProtocolChart from '~/components/ECharts/ProtocolDNDChart/ProtocolChart'
 import ItemsSelect, { chainChartOptions, FilterHeader } from './ItemsSelect'
 import { useCompare } from '~/components/ComparePage'
 import SelectedItem from './SelectedItem'
 import LocalLoader from '~/components/LocalLoader'
+import { sluggify } from '~/utils/cache-client'
 
 const ChartsBody = styled.div<{ itemsCount }>`
 	width: 100%;
@@ -87,9 +76,10 @@ export interface ChainState {
 	charts: string[]
 }
 
-const getName = (itemStr) => {
+export const getName = (itemStr) => {
 	const [type, name, chartType] = itemStr.split('-')
 	if (type === 'chain') return `${name} ` + chainChartOptions.find((opt) => opt.id === chartType)?.name
+	return `${name} ${ChartTypes[chartType]}`
 }
 
 export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsList }) {
@@ -100,6 +90,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 	} = useGetProtocolsList({ chain: selectedChain })
 
 	const [items, setItems] = useState(defaultBlocks)
+	const [protocolProps, setProtocolProps] = useState({})
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -107,7 +98,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 			coordinateGetter: sortableKeyboardCoordinates
 		})
 	)
-	const selectedChains = items.filter((item) => item.includes('chain-')).map((item) => item.split('-')[1])
+	const selectedChains = items?.filter((item) => item.includes('chain-')).map((item) => item.split('-')[1])
 
 	const { data: chainData, isLoading } = useCompare({ chains: selectedChains, extraTvlsEnabled: {} })
 	const [extraTvlsEnabled] = useDefiManager()
@@ -115,8 +106,6 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 	const router = useRouter()
 
 	const denomination = router.query?.currency ?? 'USD'
-
-	const { minTvl, maxTvl } = router.query
 
 	const [darkMode] = useDarkModeManager()
 
@@ -133,57 +122,20 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 		}
 	}
 
-	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } =
-		useGetProtocolsVolumeByChain(selectedChain)
-
-	const { data: chainProtocolsFees, loading: fetchingProtocolsFeesAndRevenueByChain } =
-		useGetProtocolsFeesAndRevenueByChain(selectedChain)
-	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
-
-	const finalProtocolsList = React.useMemo(() => {
-		const list =
-			!fetchingProtocolsList && fullProtocolsList
-				? formatProtocolsList({
-						extraTvlsEnabled,
-						protocols: fullProtocolsList,
-						parentProtocols,
-						volumeData: chainProtocolsVolumes,
-						feesData: chainProtocolsFees
-				  })
-				: protocolsList
-
-		const isValidTvlRange =
-			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
-
-		return isValidTvlRange
-			? list.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
-			: list
-	}, [
-		extraTvlsEnabled,
-		fetchingProtocolsList,
-		fullProtocolsList,
-		parentProtocols,
-		protocolsList,
-		chainProtocolsVolumes,
-		chainProtocolsFees,
-		minTvl,
-		maxTvl
-	])
-
 	const renderChart = (key, i) => {
 		const [type, name, chartType] = key.split('-')
 		if (type === 'protocol') {
 			const [, protocol, chartType] = key.split('-')
-
-			// return (
-			// 	// <ProtocolChart
-			// 	// 	protocol={protocol}
-			// 	// 	enabled={{ tvl: 'false', [chartType]: 'true' }}
-			// 	// 	name={ChartTypes[chartType]}
-			// 	// 	metrics={{ [chartType]: true }}
-			// 	// 	color={'#333'}
-			// 	// />
-			// )
+			console.log(protocol, chartType)
+			return (
+				<ProtocolChart
+					{...protocolProps[sluggify(protocol)]}
+					protocol={protocol}
+					enabled={{ tvl: 'false', [chartType]: 'true' }}
+					name={ChartTypes[chartType]}
+					color={'#333'}
+				/>
+			)
 		} else {
 			const dataset = chainData?.filter(Boolean).find(({ chain }) => chain === name)
 			if (!dataset) return null
@@ -205,6 +157,11 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 		(groupItems) => groupItems.map((item) => item?.split('-')[2])
 	)
 
+	const itemsByTypes = mapValues(
+		groupBy(items, (item) => item.split('-')[0]),
+		(groupItems) => groupItems.map((item) => item?.split('-')[1])
+	)
+	console.log(protocolProps)
 	return (
 		<>
 			<ProtocolsChainsSearch
@@ -215,16 +172,24 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 			/>
 			<SelectedItems>
 				{Object.entries(itemsByGroups).map(([name, items]) => {
-					return <SelectedItem key={name} setItems={setItems} items={items} name={name} />
+					return (
+						<SelectedItem
+							key={name}
+							setItems={setItems}
+							items={items}
+							name={name}
+							type={itemsByTypes.chain?.includes(name) ? 'chain' : 'protocol'}
+						/>
+					)
 				})}
 
-				<ItemsSelect chains={chainOptions} setItems={setItems} />
+				<ItemsSelect chains={chainOptions} setItems={setItems} setProtocolProps={setProtocolProps} />
 			</SelectedItems>
 			<LayoutWrapper>
 				{isLoading ? (
 					<LocalLoader />
 				) : (
-					<ChartsBody itemsCount={items.length}>
+					<ChartsBody itemsCount={items?.length}>
 						<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 							<SortableContext items={items} strategy={rectSortingStrategy}>
 								{items.map((id, i) => (
