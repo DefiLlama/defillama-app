@@ -86,13 +86,11 @@ export default function ProtocolChart({
 	governanceApis,
 	isHourlyChart,
 	isCEX,
-	tokenSymbol,
 	protocolId,
 	chartDenominations,
 	twitterHandle,
 	nftVolumeData,
-	enabled,
-	name
+	enabled
 }: IProps) {
 	const router = useRouter()
 
@@ -132,6 +130,8 @@ export default function ProtocolChart({
 		devCommits,
 		nftVolume
 	} = enabled || router.query
+
+	const { period } = router.query as { period: string }
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
 		useFetchAndFormatChartData({
@@ -179,7 +179,8 @@ export default function ProtocolChart({
 			contributersCommits,
 			devCommits,
 			nftVolume,
-			nftVolumeData
+			nftVolumeData,
+			period
 		})
 
 	const realPathname =

@@ -20,6 +20,7 @@ import { useCompare } from '~/components/ComparePage'
 import SelectedItem from './SelectedItem'
 import LocalLoader from '~/components/LocalLoader'
 import { sluggify } from '~/utils/cache-client'
+import RowFilter from '~/components/Filters/common/RowFilter'
 
 const ChartsBody = styled.div<{ itemsCount }>`
 	width: 100%;
@@ -83,13 +84,10 @@ export const getName = (itemStr) => {
 }
 
 export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsList }) {
-	const {
-		fullProtocolsList,
-		parentProtocols,
-		isLoading: fetchingProtocolsList
-	} = useGetProtocolsList({ chain: selectedChain })
-
 	const [items, setItems] = useState(defaultBlocks)
+	const router = useRouter()
+
+	const { period } = router.query
 	const [protocolProps, setProtocolProps] = useState({})
 
 	const sensors = useSensors(
@@ -101,9 +99,6 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 	const selectedChains = items?.filter((item) => item.includes('chain-')).map((item) => item.split('-')[1])
 
 	const { data: chainData, isLoading } = useCompare({ chains: selectedChains, extraTvlsEnabled: {} })
-	const [extraTvlsEnabled] = useDefiManager()
-
-	const router = useRouter()
 
 	const denomination = router.query?.currency ?? 'USD'
 
@@ -186,6 +181,21 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 				<ItemsSelect chains={chainOptions} setItems={setItems} setProtocolProps={setProtocolProps} />
 			</SelectedItems>
 			<LayoutWrapper>
+				<RowFilter
+					style={{ width: 'fit-content', marginBottom: '-8px' }}
+					selectedValue={period as string}
+					values={['7d', '30d', '180d']}
+					setValue={(val) =>
+						router.push(
+							{
+								pathname: router.pathname,
+								query: { ...router.query, period: val === period ? undefined : val }
+							},
+							undefined,
+							{ shallow: true }
+						)
+					}
+				/>
 				{isLoading ? (
 					<LocalLoader />
 				) : (

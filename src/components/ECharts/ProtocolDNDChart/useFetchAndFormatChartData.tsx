@@ -68,7 +68,8 @@ export function useFetchAndFormatChartData({
 	contributersCommits,
 	devCommits,
 	nftVolume,
-	nftVolumeData
+	nftVolumeData,
+	period = ''
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -979,10 +980,11 @@ export function useFetchAndFormatChartData({
 		fetchingTwitter ||
 		fetchingDevMetrics
 
+	console.log({ 1: finalData.slice(-Number(period.replace('d', ''))), 2: finalData })
 	return {
 		fetchingTypes,
 		isLoading,
-		chartData: finalData,
+		chartData: period ? finalData.slice(-Number(period.replace('d', ''))) : finalData,
 		chartsUnique,
 		unlockTokenSymbol: unlocksData?.tokenPrice?.symbol,
 		valueSymbol

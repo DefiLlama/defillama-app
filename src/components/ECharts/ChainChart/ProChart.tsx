@@ -66,6 +66,7 @@ export default function AreaChart({
 }) {
 	const id = useMemo(() => uuid(), [])
 	const { query: routerRoute, pathname } = useRouter()
+	const period = Number((routerRoute.period as string)?.replace('d', ''))
 	const route = chartType ? { tvl: 'false', [chartType]: 'true' } : routerRoute
 	const isCompare = pathname?.includes('compare')
 
@@ -318,8 +319,13 @@ export default function AreaChart({
 			}
 		})
 
-		return [series.reverse(), uniq(series.map((val) => val.chartId))]
-	}, [datasets, isThemeDark, route, denomination, isCompare])
+		return [
+			period
+				? series.reverse().map(({ data, ...rest }) => ({ ...rest, data: data.slice(-Number(period)) }))
+				: series.reverse(),
+			uniq(series.map((val) => val.chartId))
+		]
+	}, [datasets, isThemeDark, route, denomination, isCompare, period])
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
 
