@@ -165,6 +165,13 @@ export const cexData: Array<ICex> = [
 		cgDeriv: 'bitfinex_futures'
 	},
 	{
+		name: 'Robinhood',
+		slug: 'robinhood',
+		coin: null,
+		walletsLink: null,
+        cgId: null,
+	},
+	{
 		name: 'Bybit',
 		slug: 'Bybit',
 		coin: 'BIT',
@@ -258,8 +265,8 @@ export const cexData: Array<ICex> = [
 	{
 		name: 'Swissborg',
 		slug: 'swissborg',
-		coin: 'CHSB',
-		coinSymbol: 'CHSB',
+		coin: 'BORG',
+		coinSymbol: 'BORG',
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{

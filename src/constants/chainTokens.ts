@@ -800,7 +800,7 @@ export const chainCoingeckoIds = {
 		cmcId: null
 	},
 	Oasys: {
-		geckoId: 'Oasys',
+		geckoId: 'oasys',
 		symbol: 'OAS',
 		cmcId: '22265'
 	},

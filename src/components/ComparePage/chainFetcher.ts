@@ -28,7 +28,7 @@ export const fetchChain = async ({ chain }) => {
 		])
 
 	return {
-		...data.props,
+		...(data?.props || {}),
 		volumeData: volumeData || null,
 		chainVolumeData: chainVolumeData || null,
 		feesData: feesData || null,
