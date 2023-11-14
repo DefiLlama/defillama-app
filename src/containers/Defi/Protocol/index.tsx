@@ -81,6 +81,7 @@ const scams = [
 	'SkyDex',
 	'Avault',
 	'Tegro Finance',
+	'Lendora Protocol',
 	'MantaSwap'
 ]
 
