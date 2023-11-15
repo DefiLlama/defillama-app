@@ -180,7 +180,7 @@ export function useDefaults({
 						'Others' +
 						'&nbsp;&nbsp;' +
 						formatTooltipValue(
-							toK(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)),
+							otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0),
 							valueSymbol
 						) +
 						'</li>'
@@ -370,8 +370,10 @@ export function useDefaults({
 
 export const formatTooltipValue = (value, symbol) => {
 	return symbol === '$'
-		? symbol + toK(value)
+		? `${symbol}${toK(value)}`
 		: symbol === '%'
 		? Math.round(value * 100) / 100 + ' %'
-		: (`${value}`.startsWith('0.00') ? toK(value) : toK(value)) + ' ' + symbol
+		: `${value}`.startsWith('0.00')
+		? toK(value)
+		: `${toK(value)} ${symbol}`
 }
