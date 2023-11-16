@@ -9,18 +9,18 @@ import Modal from '~/components/Modal'
 import useSWR from 'swr'
 import { getChainData } from '~/components/ComparePage'
 import { ChartTypes } from '../Defi/Protocol/PorotcolPro'
+import { transparentize } from 'polished'
 
 export const Filters = styled.div`
 	display: flex;
 	vertical-align: center;
 	border-radius: 12px;
-	background-color: ${({ theme }) => (theme.mode === 'dark' ? 'black' : 'white')};
+	background-color: ${({ theme }) => transparentize(0.9, theme.primary1)};
 	box-shadow: ${({ theme }) => theme.shadowSm};
 	width: fit-content;
 	height: fit-content;
 	padding: 8px;
-	margin-top: 8px;
-	min-height: 56px;
+	min-height: 38px;
 `
 export const FilterHeader = styled.div`
 	font-size: 14px;
@@ -120,10 +120,11 @@ const getProtocolData = (data) => {
 }
 
 const ItemsSelect = ({ chains, setItems, setProtocolProps }: Props) => {
-	const { fullProtocolsList } = useGetProtocolsList({ chain: 'All' })
+	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain: 'All' })
 	const [selectedItem, setSelectedChain] = useState(null)
 	const [selectedCharts, setSelectedCharts] = useState([])
-	const protocolOptions = fullProtocolsList
+	const protocolOptions = parentProtocols
+		.concat(fullProtocolsList)
 		.map(({ name }) => ({ label: name, value: sluggify(name), type: 'protocol' }))
 		.slice(0, 1000)
 	const { availableCharts, data } = useAvailableCharts({ itemType: selectedItem?.type, name: selectedItem?.label })

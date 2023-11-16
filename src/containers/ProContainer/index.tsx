@@ -13,7 +13,7 @@ import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, us
 import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useState } from 'react'
 import { ChartTypes, SortableItem } from '../Defi/Protocol/PorotcolPro'
-import { groupBy, mapValues } from 'lodash'
+import { groupBy as lodahGroupBy, mapValues } from 'lodash'
 import ProtocolChart from '~/components/ECharts/ProtocolDNDChart/ProtocolChart'
 import ItemsSelect, { chainChartOptions, FilterHeader } from './ItemsSelect'
 import { useCompare } from '~/components/ComparePage'
@@ -58,6 +58,12 @@ export const ChartBody = styled.div`
 	padding-top: 8px;
 `
 
+export const Filters = styled.div`
+	display: flex;
+	gap: 8px;
+	margin-bottom: 8px;
+`
+
 export const SelectedItems = styled.div`
 	display: flex;
 	flex-wrap: wrap;
@@ -87,7 +93,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 	const [items, setItems] = useState(defaultBlocks)
 	const router = useRouter()
 
-	const { period } = router.query
+	const { period, groupBy } = router.query
 	const [protocolProps, setProtocolProps] = useState({})
 
 	const sensors = useSensors(
@@ -126,7 +132,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 				<ProtocolChart
 					{...protocolProps[sluggify(protocol)]}
 					protocol={protocol}
-					enabled={{ tvl: 'false', [chartType]: 'true' }}
+					enabled={{ tvl: 'false', [chartType]: 'true', groupBy }}
 					name={ChartTypes[chartType]}
 					color={'#333'}
 				/>
@@ -148,15 +154,14 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 	}
 
 	const itemsByGroups = mapValues(
-		groupBy(items, (item) => item.split('-')[1]),
+		lodahGroupBy(items, (item) => item.split('-')[1]),
 		(groupItems) => groupItems.map((item) => item?.split('-')[2])
 	)
 
 	const itemsByTypes = mapValues(
-		groupBy(items, (item) => item.split('-')[0]),
+		lodahGroupBy(items, (item) => item.split('-')[0]),
 		(groupItems) => groupItems.map((item) => item?.split('-')[1])
 	)
-	console.log(protocolProps)
 	return (
 		<>
 			<ProtocolsChainsSearch
@@ -180,11 +185,11 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 
 				<ItemsSelect chains={chainOptions} setItems={setItems} setProtocolProps={setProtocolProps} />
 			</SelectedItems>
-			<LayoutWrapper>
+			<Filters>
 				<RowFilter
-					style={{ width: 'fit-content', marginBottom: '-8px' }}
+					style={{ width: 'fit-content', height: '100%' }}
 					selectedValue={period as string}
-					values={['7d', '30d', '180d']}
+					values={['7d', '30d', '90d', '180d', '365d']}
 					setValue={(val) =>
 						router.push(
 							{
@@ -196,6 +201,23 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 						)
 					}
 				/>
+				<RowFilter
+					style={{ width: 'fit-content', height: '100%' }}
+					selectedValue={groupBy as string}
+					values={['daily', 'weekly', 'monthly', 'cumulative']}
+					setValue={(val) =>
+						router.push(
+							{
+								pathname: router.pathname,
+								query: { ...router.query, groupBy: val === groupBy ? undefined : val }
+							},
+							undefined,
+							{ shallow: true }
+						)
+					}
+				/>
+			</Filters>
+			<LayoutWrapper>
 				{isLoading ? (
 					<LocalLoader />
 				) : (

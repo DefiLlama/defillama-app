@@ -1,3 +1,4 @@
+import { transparentize } from 'polished'
 import styled from 'styled-components'
 import ReactSelect from '~/components/MultiSelect/ReactSelect'
 import { ChartTypes } from '../Defi/Protocol/PorotcolPro'
@@ -5,12 +6,11 @@ import { chainChartOptions } from './ItemsSelect'
 
 const SelectedItemBody = styled.div`
 	display: flex;
-	padding: 8px 16px;
-	background-color: ${({ theme }) => (theme.mode === 'dark' ? 'black' : 'white')};
+	padding: 0px 16px;
+	background-color: ${({ theme }) => transparentize(0.9, theme.primary1)};
 	box-shadow: ${({ theme }) => theme.shadowSm};
 	width: fit-content;
 	border-radius: 12px;
-	margin-top: 8px;
 `
 
 const getName = (item, type) =>
@@ -25,6 +25,14 @@ const SelectedItem = ({ name, setItems, items, type }) => {
 				isMulti
 				isClearable={false}
 				style={{ width: 'fit-content' }}
+				styles={{
+					control: (provided) => ({
+						...provided,
+						background: 'transparent',
+						border: 'none',
+						boxShadow: 'none'
+					})
+				}}
 				menuIsOpen={false}
 				placeholder="Search..."
 				onChange={(_, { removedValue }: any) => {

@@ -1,4 +1,4 @@
-import ProtocolContainer from '~/containers/Defi/Protocol/PorotcolPro'
+import ProtocolContainer from '~/containers/Defi/Protocol'
 import { standardizeProtocolName } from '~/utils'
 import { getProtocols } from '~/api/categories/protocols'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'

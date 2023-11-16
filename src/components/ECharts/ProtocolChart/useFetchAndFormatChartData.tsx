@@ -1040,6 +1040,13 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 			})
 		}
 
+		console.log(
+			Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
+				date,
+				...values
+			}))
+		)
+
 		return Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
 			date,
 			...values

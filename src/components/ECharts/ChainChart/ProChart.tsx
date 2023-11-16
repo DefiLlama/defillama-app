@@ -8,10 +8,13 @@ import { useDefaults } from '../useDefaults'
 import { useRouter } from 'next/router'
 import { primaryColor } from '~/constants/colors'
 import { toK } from '~/utils'
+import { cumulativeSum, groupByTimeFrame } from './utils'
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
+
+const groupableCharts = ['feesChart', 'volumeChart', 'txsData', 'usersData']
 
 const colors = {
 	tvl: '#335cd7',
@@ -45,6 +48,19 @@ const colorsArray = [
 	'#ff0080'
 ]
 
+const getAreaColor = (color, isThemeDark) => ({
+	color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+		{
+			offset: 0,
+			color
+		},
+		{
+			offset: 1,
+			color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+		}
+	])
+})
+
 const initGetColor = () => {
 	let colorOffset = 0
 
@@ -67,7 +83,11 @@ export default function AreaChart({
 	const id = useMemo(() => uuid(), [])
 	const { query: routerRoute, pathname } = useRouter()
 	const period = Number((routerRoute.period as string)?.replace('d', ''))
-	const route = chartType ? { tvl: 'false', [chartType]: 'true' } : routerRoute
+	const { groupBy } = routerRoute
+	const route = useMemo(
+		() => (chartType ? { tvl: 'false', [chartType]: 'true' } : routerRoute),
+		[chartType, routerRoute]
+	)
 	const isCompare = pathname?.includes('compare')
 
 	const defaultChartSettings = useDefaults({
@@ -82,36 +102,44 @@ export default function AreaChart({
 	const [series, activeSeries] = useMemo(() => {
 		const getColor = initGetColor()
 		const series = []
-		datasets.forEach((data, i) => {
+		datasets.forEach((chartData, i) => {
+			let data = chartData
+			if (groupBy) {
+				const groupedData = {}
+				Object.entries(chartData).forEach(([key, val]: [string, Array<[number, number]>]) => {
+					if (Array.isArray(val?.[0])) {
+						const periodData = period ? val?.slice(-period) : val
+						groupedData[key] = groupableCharts.includes(key)
+							? groupBy === 'cumulative'
+								? cumulativeSum(periodData)
+								: groupByTimeFrame(periodData, groupBy)
+							: val
+					}
+				})
+				data = groupedData
+			}
+
 			const namePrefix = isCompare ? data?.chain + ' ' : ''
 
 			if (route.tvl !== 'false') {
 				const color = getColor(isCompare) || colors.tvl
+				const areaColor = getAreaColor(color, isThemeDark)
+
 				series.push({
 					name: namePrefix + 'TVL',
 					chartId: 'TVL',
 					type: 'line',
 					yAxisIndex: 0,
+					symbol: 'none',
 					emphasis: {
 						focus: 'series',
 						shadowBlur: 10
 					},
-					symbol: 'none',
+
 					itemStyle: {
 						color
 					},
-					areaStyle: {
-						color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-							{
-								offset: 0,
-								color
-							},
-							{
-								offset: 1,
-								color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-							}
-						])
-					},
+					areaStyle: areaColor,
 					data: [],
 					show: true
 				} as Record<string, any>)
@@ -120,16 +148,20 @@ export default function AreaChart({
 				})
 			}
 			if (route.volume === 'true' && data?.volumeChart) {
+				const color = getColor(isCompare) || colors.volume
+				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Volume',
 					chartId: 'Volume',
-					type: 'bar',
+					symbol: 'none',
+					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
 					yAxisIndex: 1,
 					show: route.volume === 'true',
 					itemStyle: {
-						color: getColor(isCompare) || colors.volume
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.volumeChart.forEach(([date, value]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
@@ -137,15 +169,19 @@ export default function AreaChart({
 			}
 
 			if (route.fees === 'true' && data?.feesChart) {
+				const color = getColor(isCompare) || colors.fees
+				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Fees',
 					chartId: 'Fees',
-					type: 'bar',
+					symbol: 'none',
+					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
 					yAxisIndex: 2,
 					itemStyle: {
-						color: getColor(isCompare) || colors.fees
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.feesChart.forEach(([date, value]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
@@ -153,15 +189,19 @@ export default function AreaChart({
 			}
 
 			if (route.revenue === 'true' && data?.feesChart) {
+				const color = getColor(isCompare) || colors.revenue
+				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Revenue',
 					chartId: 'Revenue',
-					type: 'bar',
+					symbol: 'none',
+					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
 					yAxisIndex: 3,
 					itemStyle: {
-						color: getColor(isCompare) || colors.revenue
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.feesChart.forEach(([date, _, value]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
@@ -169,16 +209,20 @@ export default function AreaChart({
 			}
 
 			if (route.price === 'true' && data?.priceData && denomination === 'USD') {
+				const color = getColor(isCompare) || colors.price
+				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Price',
 					chartId: 'Price',
 					symbol: 'none',
 					type: 'line',
 					data: [],
+
 					yAxisIndex: 4,
 					itemStyle: {
-						color: getColor(isCompare) || colors.price
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.priceData.forEach(([date, value]) => {
 					if (Number(date) > Number(data?.globalChart[0][0]))
@@ -187,16 +231,20 @@ export default function AreaChart({
 			}
 
 			if (route.users === 'true' && data?.usersData?.length > 0) {
+				const color = getColor(isCompare) || colors.returningUsers
+				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Returning Users',
 					chartId: 'Users',
 					stack: 'Users',
-					type: 'bar',
+					symbol: 'none',
+					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
 					yAxisIndex: 5,
 					itemStyle: {
-						color: getColor(isCompare) || colors.returningUsers
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.usersData.forEach(([date, value, value2]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), (value ?? 0) - (value2 ?? 0)])
@@ -205,12 +253,14 @@ export default function AreaChart({
 					name: namePrefix + 'New Users',
 					chartId: 'Users',
 					stack: 'Users',
-					type: 'bar',
+					symbol: 'none',
+					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
 					yAxisIndex: 5,
 					itemStyle: {
-						color: getColor(isCompare) || colors.newUsers
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.usersData.forEach(([date, value, value2]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), value2 ?? 0])
@@ -218,15 +268,19 @@ export default function AreaChart({
 			}
 
 			if (route.raises === 'true' && data?.raisesData) {
+				const color = getColor(isCompare) || colors.raises
+				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: 'Raises',
 					chartId: 'Raises',
 					type: 'bar',
+					symbol: 'none',
 					data: [],
 					yAxisIndex: 6,
 					itemStyle: {
-						color: getColor(isCompare) || colors.raises
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 
 				data?.globalChart.forEach(([date, value]) => {
@@ -235,6 +289,8 @@ export default function AreaChart({
 			}
 
 			if (route.stables === 'true' && data?.totalStablesData) {
+				const color = getColor(isCompare) || colors.stablecoins
+				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Stablecoins Mcap',
 					chartId: 'Stablecoins Mcap',
@@ -243,8 +299,9 @@ export default function AreaChart({
 					data: [],
 					yAxisIndex: 7,
 					itemStyle: {
-						color: getColor(isCompare) || colors.stablecoins
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.totalStablesData.forEach((data) => {
 					series[series.length - 1].data.push([getUtcDateObject(data.date), data.Mcap])
@@ -252,15 +309,20 @@ export default function AreaChart({
 			}
 
 			if (route.txs === 'true' && data?.txsData?.length > 0) {
+				const color = getColor(isCompare) || colors.transactions
+				const areaColor = getAreaColor(color, isThemeDark)
+
 				series.push({
 					name: namePrefix + 'Transactions',
 					chartId: 'Transactions',
-					type: 'bar',
+					symbol: 'none',
+					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
 					yAxisIndex: 8,
 					itemStyle: {
-						color: getColor(isCompare) || colors.transactions
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.txsData.forEach(([date, value]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
@@ -268,16 +330,20 @@ export default function AreaChart({
 			}
 
 			if (route.inflows === 'true' && data?.bridgeData && data?.bridgeData?.length > 0) {
+				const color = getColor(isCompare) || colors.bridges
+				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Net Inflows',
 					chartId: 'Inflows',
 					type: 'bar',
 					stack: 'bridge',
+					symbol: 'none',
 					data: [],
 					yAxisIndex: 9,
 					itemStyle: {
-						color: getColor(isCompare) || colors.bridges
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.bridgeData.forEach(([date, inflow, outflow]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), outflow + inflow || 0])
@@ -285,16 +351,20 @@ export default function AreaChart({
 			}
 
 			if (route.developers === 'true' && data?.developersChart && data?.developersChart?.length > 0) {
+				const color = getColor(isCompare) || colors.developers
+				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Developers',
 					chartId: 'Developers',
 					type: 'bar',
 					stack: 'developers',
+					symbol: 'none',
 					data: [],
 					yAxisIndex: 10,
 					itemStyle: {
-						color: getColor(isCompare) || colors.developers
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.developersChart?.forEach(([date, value]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
@@ -302,6 +372,8 @@ export default function AreaChart({
 			}
 
 			if (route.devsCommits === 'true' && data?.commitsChart && data?.commitsChart?.length > 0) {
+				const color = getColor(isCompare) || colors.devsCommits
+				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Commits',
 					chartId: 'Commits',
@@ -310,8 +382,9 @@ export default function AreaChart({
 					data: [],
 					yAxisIndex: 11,
 					itemStyle: {
-						color: getColor(isCompare) || colors.devsCommits
-					}
+						color
+					},
+					areaStyle: areaColor
 				})
 				data?.commitsChart?.forEach(([date, value]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), value])

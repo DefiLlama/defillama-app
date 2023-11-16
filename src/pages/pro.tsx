@@ -23,7 +23,7 @@ const queryClient = new QueryClient()
 export default function HomePage(props) {
 	return (
 		<QueryClientProvider client={queryClient}>
-			<Layout title="DefiLlama - DeFi Dashboard">
+			<Layout style={{ gap: '8px' }} title="DefiLlama - DeFi Dashboard">
 				<ChainContainer {...props} />
 			</Layout>
 		</QueryClientProvider>

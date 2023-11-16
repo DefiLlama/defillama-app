@@ -210,8 +210,8 @@ export default function ProtocolChart({
 				color={color}
 				valueSymbol={valueSymbol}
 				chartsUnique={chartsUnique}
-				events={events}
-				hallmarks={hallmarks}
+				events={[]}
+				hallmarks={[]}
 				chartColors={chartColors}
 				bobo={bobo}
 				unlockTokenSymbol={unlockTokenSymbol}
