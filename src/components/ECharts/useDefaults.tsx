@@ -21,6 +21,9 @@ const CHART_SYMBOLS = {
 	'Active Users': '',
 	'Returning Users': '',
 	'New Users': '',
+	'Active Addresses': '',
+	'Returning Addresses': '',
+	'New Addresses': '',
 	Transactions: '',
 	'Total Proposals': '',
 	'Successful Proposals': '',
@@ -156,12 +159,10 @@ export function useDefaults({
 							curr.value[1],
 							curr.seriesName === 'Unlocks'
 								? unlockTokenSymbol
-								: curr.seriesName.includes('Active Users')
-								? 'Users'
-								: curr.seriesName.includes('New Users')
-								? 'Users'
-								: curr.seriesName.includes('Returning Users')
-								? 'Users'
+								: curr.seriesName.includes('New Users') ||
+								  curr.seriesName.includes('Active Users') ||
+								  curr.seriesName.includes('Returning Users')
+								? 'Addresses'
 								: curr.seriesName.includes('Transactions')
 								? 'TXs'
 								: curr.seriesName === 'TVL' && valueSymbol !== '$'

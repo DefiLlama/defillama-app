@@ -36,8 +36,8 @@ export function useFetchAndFormatChartData({
 	fees,
 	revenue,
 	unlocks,
-	activeUsers,
-	newUsers,
+	activeAddresses,
+	newAddresses,
 	events,
 	transactions,
 	gasUsed,
@@ -102,11 +102,11 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
 	})
 
-	const { data: activeUsersData, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(
-		isRouterReady && activeUsers === 'true' && activeUsersId ? activeUsersId : null
+	const { data: activeAddressesData, loading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
+		isRouterReady && activeAddresses === 'true' && activeUsersId ? activeUsersId : null
 	)
-	const { data: newUsersData, loading: fetchingNewUsers } = useFetchProtocolNewUsers(
-		isRouterReady && newUsers === 'true' && activeUsersId ? activeUsersId : null
+	const { data: newAddressesData, loading: fetchingNewAddresses } = useFetchProtocolNewUsers(
+		isRouterReady && newAddresses === 'true' && activeUsersId ? activeUsersId : null
 	)
 	const { data: transactionsData, loading: fetchingTransactions } = useFetchProtocolTransactions(
 		isRouterReady && transactions === 'true' && activeUsersId ? activeUsersId : null
@@ -559,30 +559,30 @@ export function useFetchAndFormatChartData({
 				})
 		}
 
-		if (activeUsersData) {
-			chartsUnique.push('Active Users')
+		if (activeAddressesData) {
+			chartsUnique.push('Active Addresses')
 
-			activeUsersData.forEach(([dateS, noOfUsers]) => {
+			activeAddressesData.forEach(([dateS, noOfUsers]) => {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date]['Active Users'] = noOfUsers || 0
+				chartData[date]['Active Addresses'] = noOfUsers || 0
 			})
 		}
-		if (newUsersData) {
-			chartsUnique.push('New Users')
+		if (newAddressesData) {
+			chartsUnique.push('New Addresses')
 
-			newUsersData.forEach(([dateS, noOfUsers]) => {
+			newAddressesData.forEach(([dateS, noOfUsers]) => {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date]['New Users'] = noOfUsers || 0
+				chartData[date]['New Addresses'] = noOfUsers || 0
 			})
 		}
 		if (transactionsData) {
@@ -835,8 +835,8 @@ export function useFetchAndFormatChartData({
 		fees,
 		revenue,
 		isRouterReady,
-		activeUsersData,
-		newUsersData,
+		activeAddressesData,
+		newAddressesData,
 		tokenPrice,
 		fdv,
 		fdvData,
@@ -925,11 +925,11 @@ export function useFetchAndFormatChartData({
 		fetchingTypes.push('unlocks')
 	}
 
-	if (fetchingActiveUsers) {
-		fetchingTypes.push('active users')
+	if (fetchingActiveAddresses) {
+		fetchingTypes.push('active addresses')
 	}
-	if (fetchingNewUsers) {
-		fetchingTypes.push('new users')
+	if (fetchingNewAddresses) {
+		fetchingTypes.push('new addresses')
 	}
 	if (fetchingTransactions) {
 		fetchingTypes.push('transactions')
@@ -966,8 +966,8 @@ export function useFetchAndFormatChartData({
 		fetchingFees ||
 		fetchingVolume ||
 		fetchingDerivativesVolume ||
-		fetchingActiveUsers ||
-		fetchingNewUsers ||
+		fetchingActiveAddresses ||
+		fetchingNewAddresses ||
 		fetchingTransactions ||
 		fetchingGasUsed ||
 		fetchingMedianAPY ||

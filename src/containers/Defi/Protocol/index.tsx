@@ -1389,7 +1389,7 @@ function ProtocolContainer({
 								)}
 								{helperTexts?.fees && <p>Fees: {helperTexts.fees}</p>}
 								{helperTexts?.revenue && <p>Revenue: {helperTexts.revenue}</p>}
-								{helperTexts?.users && users?.activeUsers ? <p>Users: {helperTexts.users}</p> : null}
+								{helperTexts?.users && users?.activeUsers ? <p>Addresses: {helperTexts.users}</p> : null}
 
 								<LinksWrapper>
 									{methodologyUrls?.tvl && (

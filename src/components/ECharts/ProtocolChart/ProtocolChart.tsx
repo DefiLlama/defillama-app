@@ -49,8 +49,8 @@ const CHART_TYPES = [
 	'fees',
 	'revenue',
 	'unlocks',
-	'activeUsers',
-	'newUsers',
+	'activeAddresses',
+	'newAddresses',
 	'transactions',
 	'gasUsed',
 	'events',
@@ -105,8 +105,8 @@ export default function ProtocolChart({
 		fees,
 		revenue,
 		unlocks,
-		activeUsers,
-		newUsers,
+		activeAddresses,
+		newAddresses,
 		events,
 		transactions,
 		gasUsed,
@@ -141,8 +141,8 @@ export default function ProtocolChart({
 			fees,
 			revenue,
 			unlocks,
-			activeUsers,
-			newUsers,
+			activeAddresses,
+			newAddresses,
 			events,
 			transactions,
 			gasUsed,
@@ -485,13 +485,13 @@ export default function ProtocolChart({
 							<Toggle backgroundColor={color}>
 								<input
 									type="checkbox"
-									value="activeUsers"
-									checked={activeUsers === 'true'}
+									value="activeAddresses"
+									checked={activeAddresses === 'true'}
 									onChange={() =>
 										router.push(
 											{
 												pathname: router.pathname,
-												query: { ...router.query, activeUsers: activeUsers === 'true' ? false : true }
+												query: { ...router.query, activeAddresses: activeAddresses === 'true' ? false : true }
 											},
 											undefined,
 											{ shallow: true }
@@ -499,19 +499,19 @@ export default function ProtocolChart({
 									}
 								/>
 								<span data-wrapper="true">
-									<span>Active Users</span>
+									<span>Active Addresses</span>
 								</span>
 							</Toggle>
 							<Toggle backgroundColor={color}>
 								<input
 									type="checkbox"
-									value="newUsers"
-									checked={newUsers === 'true'}
+									value="newAddresses"
+									checked={newAddresses === 'true'}
 									onChange={() =>
 										router.push(
 											{
 												pathname: router.pathname,
-												query: { ...router.query, newUsers: newUsers === 'true' ? false : true }
+												query: { ...router.query, newAddresses: newAddresses === 'true' ? false : true }
 											},
 											undefined,
 											{ shallow: true }
@@ -519,7 +519,7 @@ export default function ProtocolChart({
 									}
 								/>
 								<span data-wrapper="true">
-									<span>New Users</span>
+									<span>New Addresses</span>
 								</span>
 							</Toggle>
 							<Toggle backgroundColor={color}>

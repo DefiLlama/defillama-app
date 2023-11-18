@@ -724,7 +724,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
-		header: 'Active Users',
+		header: 'Active Addresses',
 		accessorKey: 'users',
 		cell: (info) => <>{info.getValue() === 0 || formattedNum(info.getValue())}</>,
 		size: 120,

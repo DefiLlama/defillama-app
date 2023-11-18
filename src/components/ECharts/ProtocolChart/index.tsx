@@ -107,8 +107,9 @@ export default function AreaBarChart({
 			yAxisByIndex['Unlocks'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (stacks.includes('Active Users') || stacks.includes('New Users')) {
-			yAxisByIndex['Active Users+New Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('Active Addresses') || stacks.includes('New Addresses')) {
+			yAxisByIndex['Active Addresses+New Addresses'] =
+				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
 		if (stacks.includes('Transactions')) {
@@ -177,8 +178,8 @@ export default function AreaBarChart({
 				options['yAxisIndex'] = yAxisByIndex['Bridge Deposits+Bridge Withdrawals']
 			} else if (['Volume', 'Derivatives Volume', 'Fees', 'Revenue'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Volume+Derivatives Volume+Fees+Revenue']
-			} else if (['Active Users', 'New Users'].includes(stack)) {
-				options['yAxisIndex'] = yAxisByIndex['Active Users+New Users']
+			} else if (['Active Addresses', 'New Addresses'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['Active Addresses+New Addresses']
 			} else if (['Total Proposals', 'Successful Proposals'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Total Proposals+Successful Proposals']
 			} else {
@@ -390,7 +391,7 @@ export default function AreaBarChart({
 				})
 			}
 
-			if (type === 'Active Users+New Users') {
+			if (type === 'Active Addresses+New Addresses') {
 				yAxiss.push({
 					...options,
 					axisLabel: {
