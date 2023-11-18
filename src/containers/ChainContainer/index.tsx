@@ -140,8 +140,8 @@ export function ChainContainer({
 			isVisible: DENOMINATIONS.length > 1
 		},
 		{
-			id: 'users',
-			name: 'Users',
+			id: 'addresses',
+			name: 'Addresses',
 			isVisible: userData.activeUsers ? true : false
 		},
 		{

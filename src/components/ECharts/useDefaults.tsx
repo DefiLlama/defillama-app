@@ -159,10 +159,10 @@ export function useDefaults({
 							curr.value[1],
 							curr.seriesName === 'Unlocks'
 								? unlockTokenSymbol
-								: curr.seriesName.includes('New Users') ||
-								  curr.seriesName.includes('Active Users') ||
-								  curr.seriesName.includes('Returning Users')
+								: curr.seriesName.includes('Users')
 								? 'Addresses'
+								: curr.seriesName.includes('Addresses')
+								? ''
 								: curr.seriesName.includes('Transactions')
 								? 'TXs'
 								: curr.seriesName === 'TVL' && valueSymbol !== '$'

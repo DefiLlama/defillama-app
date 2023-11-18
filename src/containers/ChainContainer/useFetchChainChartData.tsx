@@ -55,7 +55,7 @@ export const useFetchChainChartData = ({
 	)
 
 	const { data: usersData, loading: fetchingUsersChartData } = useFetchProtocolUsers(
-		userData.activeUsers && router.query.users === 'true' ? 'chain$' + selectedChain : null
+		userData.activeUsers && router.query.addresses === 'true' ? 'chain$' + selectedChain : null
 	)
 
 	const { data: txsData, loading: fetchingTransactionsChartData } = useFetchProtocolTransactions(

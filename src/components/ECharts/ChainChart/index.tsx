@@ -183,11 +183,11 @@ export default function AreaChart({
 				})
 			}
 
-			if (route.users === 'true' && data?.usersData?.length > 0) {
+			if (route.addresses === 'true' && data?.usersData?.length > 0) {
 				series.push({
-					name: namePrefix + 'Returning Users',
-					chartId: 'Users',
-					stack: 'Users',
+					name: namePrefix + 'Returning Addresses',
+					chartId: 'Addresses',
+					stack: 'Addresses',
 					type: 'bar',
 					data: [],
 					yAxisIndex: 5,
@@ -199,9 +199,9 @@ export default function AreaChart({
 					series[series.length - 1].data.push([getUtcDateObject(date), (value ?? 0) - (value2 ?? 0)])
 				})
 				series.push({
-					name: namePrefix + 'New Users',
-					chartId: 'Users',
-					stack: 'Users',
+					name: namePrefix + 'New Addresses',
+					chartId: 'Addresses',
+					stack: 'Addresses',
 					type: 'bar',
 					data: [],
 					yAxisIndex: 5,
@@ -344,7 +344,7 @@ export default function AreaChart({
 			Revenue: 65,
 			Price: 65,
 			Raises: 65,
-			Users: 60,
+			Addresses: 60,
 			'Stablecoins Mcap': 60,
 			Transactions: 65,
 			Inflows: 55,
@@ -428,11 +428,11 @@ export default function AreaChart({
 				{
 					...yAxis,
 					axisLabel: {
-						formatter: (value) => toK(value) + ' ' + 'Users',
+						formatter: (value) => toK(value) + ' ' + 'Addresses',
 						color: () => (isCompare ? '#fff' : colors.returningUsers)
 					},
 					scale: true,
-					id: 'Users'
+					id: 'Addresses'
 				},
 				{
 					...yAxis,
