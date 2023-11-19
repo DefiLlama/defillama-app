@@ -13,7 +13,7 @@ import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, us
 import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useState } from 'react'
 import { ChartTypes, SortableItem } from '../Defi/Protocol/PorotcolPro'
-import { groupBy as lodahGroupBy, mapValues } from 'lodash'
+import { chain, groupBy as lodahGroupBy, mapValues } from 'lodash'
 import ProtocolChart from '~/components/ECharts/ProtocolDNDChart/ProtocolChart'
 import ItemsSelect, { chainChartOptions, FilterHeader } from './ItemsSelect'
 import { useCompare } from '~/components/ComparePage'
@@ -21,6 +21,9 @@ import SelectedItem from './SelectedItem'
 import LocalLoader from '~/components/LocalLoader'
 import { sluggify } from '~/utils/cache-client'
 import RowFilter from '~/components/Filters/common/RowFilter'
+import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
+import { formatProtocolsList } from '~/hooks/data/defi'
+import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 
 const ChartsBody = styled.div<{ itemsCount }>`
 	width: 100%;
@@ -56,6 +59,7 @@ export const ChartBody = styled.div`
 	background: ${({ theme }) => theme.bg6};
 	box-shadow: ${({ theme }) => theme.shadowSm};
 	padding-top: 8px;
+	padding: 8px;
 `
 
 export const Filters = styled.div`
@@ -75,7 +79,8 @@ const defaultBlocks = [
 	'chain-Arbitrum-txs',
 	'chain-Ethereum-revenue',
 	'chain-Arbitrum-revenue',
-	'chain-BSC-fees'
+	'chain-BSC-fees',
+	'chain-Ethereum-table'
 ]
 
 export interface ChainState {
@@ -83,10 +88,39 @@ export interface ChainState {
 	charts: string[]
 }
 
+// @ts-ignore
+export class SmartPointerSensor extends PointerSensor {
+	static activators = [
+		{
+			eventName: 'onPointerDown' as any,
+			// @ts-ignore
+			handler: ({ nativeEvent: event }: PointerEvent) => {
+				console.log(!event.isPrimary || event.button !== 0 || isInteractiveElement(event.target as Element))
+				if (!event.isPrimary || event.button !== 0 || isInteractiveElement(event.target as Element)) {
+					return false
+				}
+
+				return true
+			}
+		}
+	]
+}
+
+function isInteractiveElement(element: Element | null) {
+	const interactiveElements = ['button', 'input', 'textarea', 'select', 'option', 'a']
+	if (element?.tagName && interactiveElements.includes(element.tagName.toLowerCase())) {
+		return true
+	}
+
+	return false
+}
+
 export const getName = (itemStr) => {
 	const [type, name, chartType] = itemStr.split('-')
-	if (type === 'chain') return `${name} ` + chainChartOptions.find((opt) => opt.id === chartType)?.name
-	return `${name} ${ChartTypes[chartType]}`
+	if (type === 'chain')
+		return chartType === 'table' ? null : `${name} ` + chainChartOptions.find((opt) => opt.id === chartType)?.name
+	if (type === 'protocol') `${name} ${ChartTypes[chartType]}`
+	return null
 }
 
 export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsList }) {
@@ -97,11 +131,12 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 	const [protocolProps, setProtocolProps] = useState({})
 
 	const sensors = useSensors(
-		useSensor(PointerSensor),
+		useSensor(SmartPointerSensor),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates
 		})
 	)
+
 	const selectedChains = items?.filter((item) => item.includes('chain-')).map((item) => item.split('-')[1])
 
 	const { data: chainData, isLoading } = useCompare({ chains: selectedChains, extraTvlsEnabled: {} })
@@ -137,7 +172,8 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 					color={'#333'}
 				/>
 			)
-		} else {
+		} else if (type === 'chain') {
+			if (chartType === 'table') return <ProtocolsByChainTable chain={name} />
 			const dataset = chainData?.filter(Boolean).find(({ chain }) => chain === name)
 			if (!dataset) return null
 			return (

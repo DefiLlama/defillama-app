@@ -79,7 +79,9 @@ const useAvailableCharts = ({ itemType, name }: { itemType: 'protocol' | 'chain'
 			: fetch(`https://fe-cache.llama.fi/protocol/${name}`).then((r) => r.json())
 	)
 	if (itemType === 'chain') {
-		const availableCharts = chainChartOptions.filter((opt) => !!data?.[opt.key]?.length)
+		const availableCharts = chainChartOptions
+			.filter((opt) => !!data?.[opt.key]?.length)
+			.concat([{ id: 'table', name: 'Table', isVisible: true, key: 'table' }])
 		return { data, availableCharts }
 	} else {
 		if (!data?.availableCharts) return { data, availableCharts: null }
