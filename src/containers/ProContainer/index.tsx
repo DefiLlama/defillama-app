@@ -79,7 +79,6 @@ const defaultBlocks = [
 	'chain-Arbitrum-txs',
 	'chain-Ethereum-revenue',
 	'chain-Arbitrum-revenue',
-	'chain-BSC-fees',
 	'chain-Ethereum-table'
 ]
 
@@ -261,7 +260,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 						<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 							<SortableContext items={items} strategy={rectSortingStrategy}>
 								{items.map((id, i) => (
-									<SortableItem id={id} key={id + items.length}>
+									<SortableItem id={id} key={id + items.length} isTable={id.includes('table')}>
 										<ChartBody>
 											<FilterHeader>{getName(id)}</FilterHeader>
 											{renderChart(id, i)}

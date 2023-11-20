@@ -345,7 +345,6 @@ const Body = styled.div`
 `
 
 const PTable = styled(Wrapper)`
-	max-width: 800px;
 	max-height: 700px;
 	margin-bottom: 8px;
 	table {

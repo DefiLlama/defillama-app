@@ -69,6 +69,11 @@ export const chainChartOptions = [
 		id: 'inflows',
 		name: 'Inflows',
 		key: 'bridges'
+	},
+	{
+		id: 'table',
+		name: 'Table',
+		key: 'table'
 	}
 ]
 

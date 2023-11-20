@@ -98,6 +98,7 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 
 const SortbaleBody = styled.div`
 	cursor: pointer;
+	grid-column: ${({ isTable }) => (isTable ? '1/-1' : 'auto')};
 `
 
 export function SortableItem(props) {
@@ -108,7 +109,7 @@ export function SortableItem(props) {
 	}
 
 	return (
-		<SortbaleBody ref={setNodeRef} style={style} {...attributes} {...listeners}>
+		<SortbaleBody ref={setNodeRef} style={style} {...props} {...attributes} {...listeners}>
 			{props.children}
 		</SortbaleBody>
 	)
