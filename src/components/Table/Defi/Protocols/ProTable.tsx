@@ -347,9 +347,14 @@ const Body = styled.div`
 const PTable = styled(Wrapper)`
 	max-height: 700px;
 	margin-bottom: 8px;
+	border: none;
+	display: flex;
+	background-color: transparent;
 	table {
 		table-layout: auto;
 		max-width: 700px;
+		width: 100%;
+		margin: 0 auto;
 	}
 
 	th:first-child {
