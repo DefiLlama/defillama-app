@@ -30,7 +30,10 @@ import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 export const getProtocolData = async (protocol: string) => {
-	const [protocolRes]: [IProtocolResponse] = await Promise.all([getProtocol(protocol)])
+	const [protocolRes, articles]: [IProtocolResponse, IArticle[]] = await Promise.all([
+		getProtocol(protocol),
+		fetchArticles({ tags: protocol })
+	])
 
 	if (!protocolRes) {
 		return { notFound: true, props: null }
