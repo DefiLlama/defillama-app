@@ -932,38 +932,6 @@ function ProtocolContainer({
 								/>
 							) : null}
 
-							{users?.activeUsers ? (
-								<RowWithSubRows
-									helperText={helperTexts.users}
-									protocolName={protocolData.name}
-									dataType="Users"
-									rowHeader={'Active Addresses 24h'}
-									rowValue={formattedNum(users.activeUsers, false)}
-									subRows={
-										<>
-											{users.newUsers ? (
-												<tr>
-													<th data-subvalue>New Addresses 24h</th>
-													<td data-subvalue>{formattedNum(users.newUsers, false)}</td>
-												</tr>
-											) : null}
-											{users.transactions ? (
-												<tr>
-													<th data-subvalue>Transactions 24h</th>
-													<td data-subvalue>{formattedNum(users.transactions, false)}</td>
-												</tr>
-											) : null}
-											{users.gasUsd ? (
-												<tr>
-													<th data-subvalue>Gas Used 24h</th>
-													<td data-subvalue>{formatPrice(users.gasUsd)}</td>
-												</tr>
-											) : null}
-										</>
-									}
-								/>
-							) : null}
-
 							{treasury && (
 								<RowWithSubRows
 									protocolName={protocolData.name}
