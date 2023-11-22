@@ -881,6 +881,7 @@ function ProtocolContainer({
 									dataType="Fees"
 									rowHeader="Fees (annualized)"
 									rowValue={formatPrice(fees30d * 12.2)}
+									helperText={''}
 									subRows={
 										<>
 											<tr>
@@ -912,6 +913,7 @@ function ProtocolContainer({
 									dataType="Revenue"
 									rowHeader="Revenue (annualized)"
 									rowValue={formatPrice(revenue30d * 12.2)}
+									helperText={''}
 									subRows={
 										<>
 											<tr>
