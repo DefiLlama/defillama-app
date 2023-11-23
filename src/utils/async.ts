@@ -1,4 +1,4 @@
-import { fetchOverCache } from './perf'
+import { FetchOverCacheOptions, fetchOverCache } from './perf'
 
 export function withErrorLogging<T extends any[], R>(
 	fn: (...args: T) => Promise<R>,
@@ -19,47 +19,48 @@ export function withErrorLogging<T extends any[], R>(
 	}
 }
 
-export async function fetchWithThrows(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+export async function fetchWithThrows(url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> {
 	const start = Date.now()
-	const res = await fetchOverCache(input, init)
+	const res = await fetchOverCache(url, options)
 	if (res.status >= 400) {
 		const end = Date.now()
-		throw new Error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${input}>`)
+		throw new Error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
 	}
 	return res
 }
 
-export async function fetchWithErrorLogging(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+export async function fetchWithErrorLogging(
+	url: RequestInfo | URL,
+	options?: FetchOverCacheOptions
+): Promise<Response> {
 	const start = Date.now()
 	try {
-		const res = await fetchOverCache(input, init)
+		const res = await fetchOverCache(url, options)
 		if (res.status >= 400) {
 			const end = Date.now()
-			console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${input}>`)
+			console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
 		}
 		return res
 	} catch (error) {
 		try {
-			const res = await fetchOverCache(input, init)
+			const res = await fetchOverCache(url, options)
 			if (res.status >= 400) {
 				const end = Date.now()
-				console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${input}>`)
+				console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
 			}
 			return res
 		} catch (error) {
 			try {
-				const res = await fetchOverCache(input, init)
+				const res = await fetchOverCache(url, options)
 				if (res.status >= 400) {
 					const end = Date.now()
-					console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${input}>`)
+					console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
 				}
 				return res
 			} catch (error) {
 				const end = Date.now()
 				console.error(
-					`[HTTP] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${
-						end - start
-					}ms] <${input}>`
+					`[HTTP] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${end - start}ms] <${url}>`
 				)
 				return null
 			}

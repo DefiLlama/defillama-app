@@ -91,8 +91,8 @@ export const getNFTData = async () => {
 	try {
 		// const chart = await fetch(NFT_CHART_API).then((r) => r.json())
 		const [collections, volumes] = await Promise.all([
-			fetch(NFT_COLLECTIONS_API).then((r) => r.json()),
-			fetch(NFT_VOLUME_API).then((r) => r.json())
+			fetch(NFT_COLLECTIONS_API, { timeout: 60_000 }).then((r) => r.json()),
+			fetch(NFT_VOLUME_API, { timeout: 60_000 }).then((r) => r.json())
 		])
 		// const statistics = getNFTStatistics(chart)
 
@@ -203,7 +203,7 @@ export const getNFTCollectionEarnings = async () => {
 				'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/nfts/output/parentCompanies.json'
 			).then((res) => res.json()),
 			fetch(NFT_ROYALTIES_API).then((r) => r.json()),
-			fetch(NFT_COLLECTIONS_API).then((r) => r.json())
+			fetch(NFT_COLLECTIONS_API, { timeout: 60_000 }).then((r) => r.json())
 		])
 
 		const collectionEarnings = collections
@@ -323,7 +323,7 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 
 export const getNFTCollections = async () => {
 	try {
-		const { data: collections } = await fetch(NFT_COLLECTIONS_API).then((r) => r.json())
+		const { data: collections } = await fetch(NFT_COLLECTIONS_API, { timeout: 60_000 }).then((r) => r.json())
 		return collections
 	} catch (e) {
 		console.log(e)
@@ -332,7 +332,9 @@ export const getNFTCollections = async () => {
 
 export const getNFTCollectionsByChain = async (chain: string) => {
 	try {
-		const { data: collections } = await fetch(`${NFT_COLLECTIONS_API}/chain/${chain}`).then((r) => r.json())
+		const { data: collections } = await fetch(`${NFT_COLLECTIONS_API}/chain/${chain}`, { timeout: 60_000 }).then((r) =>
+			r.json()
+		)
 		return collections
 	} catch (e) {
 		console.log(e)
@@ -341,7 +343,9 @@ export const getNFTCollectionsByChain = async (chain: string) => {
 
 export const getNFTCollectionsByMarketplace = async (marketplace: string) => {
 	try {
-		const { data: collections } = await fetch(`${NFT_COLLECTIONS_API}/marketplace/${marketplace}`).then((r) => r.json())
+		const { data: collections } = await fetch(`${NFT_COLLECTIONS_API}/marketplace/${marketplace}`, {
+			timeout: 60_000
+		}).then((r) => r.json())
 		return collections
 	} catch (e) {
 		console.log(e)
