@@ -30,11 +30,12 @@ import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 export const getProtocolData = async (protocol: string) => {
-	const [protocolRes, articles, expenses, treasuries, yields, yieldsConfig]: [
+	const [protocolRes, articles, expenses, treasuries, yields, yieldsConfig, liquidityInfo]: [
 		IProtocolResponse,
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+		any,
 		any,
 		any
 	] = await Promise.all([
@@ -43,7 +44,8 @@ export const getProtocolData = async (protocol: string) => {
 		fetchOverCacheJson(PROTOCOLS_EXPENSES_API),
 		fetchOverCacheJson(PROTOCOLS_TREASURY),
 		fetchOverCacheJson(YIELD_POOLS_API),
-		fetchOverCacheJson(YIELD_CONFIG_API)
+		fetchOverCacheJson(YIELD_CONFIG_API),
+		fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json')
 	])
 
 	if (!protocolRes) {
