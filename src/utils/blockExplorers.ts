@@ -87,7 +87,8 @@ const blockExplorers = {
 	beam: ['https://subnets.avax.network/beam/address/', 'Beam Subnet Explorer'],
 	nos: ['https://explorer.l2.trustless.computer/address/', 'NOS Blockscout'],
 	scroll: ['https://blockscout.scroll.io/address/', 'Scroll Explorer'],
-	radixdlt: ['https://dashboard.radixdlt.com/resource/', 'Radix Dashboard']
+	radixdlt: ['https://dashboard.radixdlt.com/resource/', 'Radix Dashboard'],
+	lightlink: ['https://phoenix.lightlink.io/token/','LightLink Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
