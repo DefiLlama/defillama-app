@@ -17,15 +17,12 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const avgLoad =
-			cpus()
-				.slice(0, 5)
-				.reduce((sum, core) => {
-					const total = Object.values(core.times).reduce((sum, v) => sum + v)
-					const load = 1 - core.times.idle / total
-					return sum + load
-				}, 0) / 5
-		if (avgLoad > 0.8) {
+		const hotCpus = cpus().filter((core) => {
+			const total = Object.values(core.times).reduce((sum, v) => sum + v)
+			const load = 1 - core.times.idle / total
+			return load > 0.8
+		}).length
+		if (hotCpus >= 5) {
 			return {
 				revalidate: 1,
 				props: {
