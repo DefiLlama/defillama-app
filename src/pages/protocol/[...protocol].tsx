@@ -22,7 +22,7 @@ export const getStaticProps = withPerformanceLogging(
 				.slice(0, 5)
 				.reduce((sum, core) => {
 					const total = Object.values(core.times).reduce((sum, v) => sum + v)
-					const load = core.times.idle / total
+					const load = 1 - core.times.idle / total
 					return sum + load
 				}, 0) / 5
 		if (avgLoad > 0.8) {
@@ -49,15 +49,15 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-const useCollectionData = (slug) => {
+const useProtocolData = (slug) => {
 	const { data, error } = useSWR(slug, getProtocolData)
 	return { data, error, loading: !data && !error }
 }
 
 export default function Protocols({ clientSide, protocolData, ...props }) {
 	const router = useRouter()
+	const { data, loading: fetchingData } = useProtocolData(clientSide === true ? router.query.protocol : null)
 	if (clientSide === true) {
-		const { data, loading: fetchingData } = useCollectionData(router.query.protocol)
 		if (fetchingData) {
 			return (
 				<Layout title={'Protocol - DefiLlama'}>
