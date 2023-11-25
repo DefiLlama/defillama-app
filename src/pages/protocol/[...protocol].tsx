@@ -8,7 +8,7 @@ import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import LocalLoader from '~/components/LocalLoader'
 import useSWR from 'swr'
-import { cpus } from 'os'
+import { getCpusUsage } from '~/utils/cache-client'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/[...protocol]',
@@ -17,12 +17,18 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const hotCpus = cpus().filter((core) => {
-			const total = Object.values(core.times).reduce((sum, v) => sum + v)
-			const load = 1 - core.times.idle / total
-			return load > 0.8
-		}).length
-		if (true) {
+		const cpuUsage = await getCpusUsage()
+		let isHot = false
+		if (!cpuUsage) {
+			isHot = true
+		}
+
+		const hotCpus = cpuUsage?.filter((usage) => usage > 0.8)
+		if (hotCpus?.length >= 5) {
+			isHot = true
+		}
+
+		if (isHot) {
 			return {
 				revalidate: 1,
 				props: {
