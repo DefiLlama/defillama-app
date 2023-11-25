@@ -67,6 +67,34 @@ export const setCache = async (payload: RedisCachePayload, ttl?: string | number
 	}
 }
 
+export const getCpusUsage = async () => {
+	if (!redis) {
+		return null
+	}
+
+	try {
+		const res = await redis.get('cpu_usage')
+		if (res === null) {
+			return null
+		}
+		const usage = JSON.parse(res) as {
+			cpusUsage: number[]
+			timestamp: number
+		}
+
+		// max age = 20 minutes
+		if (Date.now() - usage.timestamp > 1000 * 60 * 20) {
+			return null
+		}
+
+		return usage.cpusUsage
+	} catch (error) {
+		console.error('[error] [cache] [failed to get cpu usage]')
+		console.error(error)
+		return null
+	}
+}
+
 export const getCache = async (Key: string) => {
 	if (!redis) {
 		return null
