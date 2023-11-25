@@ -29,6 +29,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (isHot) {
+			console.log('oooooooo issa hawt', protocol)
 			return {
 				revalidate: 1,
 				props: {
