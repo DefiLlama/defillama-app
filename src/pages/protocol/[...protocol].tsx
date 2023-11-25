@@ -22,7 +22,7 @@ export const getStaticProps = withPerformanceLogging(
 			const load = 1 - core.times.idle / total
 			return load > 0.8
 		}).length
-		if (hotCpus >= 5) {
+		if (true) {
 			return {
 				revalidate: 1,
 				props: {
