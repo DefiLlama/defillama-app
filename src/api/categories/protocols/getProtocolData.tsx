@@ -30,27 +30,7 @@ import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 export const getProtocolData = async (protocol: string) => {
-	const [protocolRes, articles, expenses, treasuries, yields, yieldsConfig, liquidityInfo, forks, hacks]: [
-		IProtocolResponse,
-		IArticle[],
-		any,
-		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
-		any,
-		any,
-		any,
-		any,
-		any
-	] = await Promise.all([
-		getProtocol(protocol),
-		fetchArticles({ tags: protocol }),
-		fetchOverCacheJson(PROTOCOLS_EXPENSES_API),
-		fetchOverCacheJson(PROTOCOLS_TREASURY),
-		fetchOverCacheJson(YIELD_POOLS_API),
-		fetchOverCacheJson(YIELD_CONFIG_API),
-		fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json'),
-		getForkPageData(),
-		fetchOverCacheJson(HACKS_API)
-	])
+	const [protocolRes]: [IProtocolResponse] = await Promise.all([getProtocol(protocol)])
 
 	if (!protocolRes) {
 		return { notFound: true, props: null }
