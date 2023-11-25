@@ -17,15 +17,19 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const cpuUsage = await getCpusUsage()
 		let isHot = false
-		if (!cpuUsage) {
-			isHot = true
-		}
+		const IS_RUNTIME = !!process.env.IS_RUNTIME
 
-		const hotCpus = cpuUsage?.filter((usage) => usage > 0.8)
-		if (hotCpus?.length >= 5) {
-			isHot = true
+		if (IS_RUNTIME) {
+			const cpuUsage = await getCpusUsage()
+			if (!cpuUsage) {
+				isHot = true
+			}
+
+			const hotCpus = cpuUsage?.filter((usage) => usage > 0.8)
+			if (hotCpus?.length >= 5) {
+				isHot = true
+			}
 		}
 
 		if (isHot) {
