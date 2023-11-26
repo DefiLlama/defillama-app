@@ -25,18 +25,69 @@ import {
 	NFT_MARKETPLACES_STATS_API,
 	NFT_MARKETPLACES_VOLUME_API
 } from '~/constants'
-import { fetchOverCacheJson } from '~/utils/perf'
+import { fetchOverCacheJson, fetchOverCache } from '~/utils/perf'
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 export const getProtocolData = async (protocol: string) => {
-	const [protocolRes]: [IProtocolResponse] = await Promise.all([getProtocol(protocol)])
+	const [
+		protocolRes,
+		articles,
+		expenses,
+		treasuries,
+		yields,
+		yieldsConfig,
+		liquidityInfo,
+		forks,
+		hacks,
+		nftMarketplaces
+	]: [
+		IProtocolResponse,
+		IArticle[],
+		any,
+		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any
+	] = await Promise.all([
+		getProtocol(protocol),
+		fetchArticles({ tags: protocol }),
+		fetchOverCacheJson(PROTOCOLS_EXPENSES_API),
+		fetchOverCacheJson(PROTOCOLS_TREASURY),
+		fetchOverCacheJson(YIELD_POOLS_API),
+		fetchOverCacheJson(YIELD_CONFIG_API),
+		fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json'),
+		getForkPageData(),
+		fetchOverCacheJson(HACKS_API),
+		fetchOverCache(NFT_MARKETPLACES_STATS_API).then((r) => r.json())
+	])
 
 	if (!protocolRes) {
 		return { notFound: true, props: null }
 	}
 
 	let inflowsExist = false
+
+	let nftDataExist = !!nftMarketplaces?.find((market) => slug(market.exchangeName) === slug(protocol))
+	let nftVolumeData = []
+
+	if (nftDataExist) {
+		nftVolumeData = await fetchOverCache(NFT_MARKETPLACES_VOLUME_API)
+			.then((r) => r.json())
+			.then((r) => {
+				const chartByDate = r
+					.filter((r) => slug(r.exchangeName) === slug(protocol))
+					.map(({ day, sum, sumUsd }) => {
+						return { date: day, volume: sum, volumeUsd: sumUsd }
+					})
+				return chartByDate
+			})
+
+		nftDataExist = (nftVolumeData?.length ?? 0) > 0
+	}
 
 	if (protocolRes.chainTvls) {
 		Object.keys(protocolRes.chainTvls).forEach((chain) => {
@@ -66,41 +117,91 @@ export const getProtocolData = async (protocol: string) => {
 		? `${DEV_METRICS_API}/parent/${protocolData?.id?.replace('parent#', '')}.json`
 		: `${DEV_METRICS_API}/${protocolData.id}.json`
 
-	const [allProtocols, users, feesProtocols, revenueProtocols, volumeProtocols, derivatesProtocols] = await Promise.all(
-		[
-			getProtocolsRaw(),
-			fetch(ACTIVE_USERS_API)
-				.then((res) => res.json())
-				.then((data) => data?.[protocolData.id] ?? null),
-			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(
-				`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
-			)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetch(`https://api.llama.fi/overview/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				})
-		]
+	const [
+		backgroundColor,
+		allProtocols,
+		users,
+		feesProtocols,
+		revenueProtocols,
+		volumeProtocols,
+		derivatesProtocols,
+		medianApy,
+		tokenCGData,
+		emissions,
+		devMetrics
+	] = await Promise.all([
+		getColor(tokenIconPaletteUrl(protocolData.name)),
+		getProtocolsRaw(),
+		fetchOverCache(ACTIVE_USERS_API)
+			.then((res) => res.json())
+			.then((data) => data?.[protocolData.id] ?? null),
+		fetchOverCache(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
+			}),
+		fetchOverCache(
+			`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
+		)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
+			}),
+		fetchOverCache(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
+			}),
+		fetchOverCache(
+			`https://api.llama.fi/overview/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+		)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
+			}),
+		fetchOverCache(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
+		protocolData.gecko_id
+			? fetchOverCache(
+					`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+			  ).then((res) => res.json())
+			: {},
+		getProtocolEmissons(protocol),
+		fetchOverCache(devMetricsProtocolUrl)
+			.then((r) => r.json())
+			.catch((e) => {
+				return null
+			})
+	])
+
+	const governanceData = await Promise.all(
+		governanceApis.map((gapi) =>
+			gapi
+				? fetchOverCache(gapi)
+						.then((res) => res.json())
+						.then((data) => {
+							return Object.values(data.proposals)
+								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+								.slice(0, 3)
+						})
+						.catch((err) => {
+							console.log(err)
+							return []
+						})
+				: null
+		)
 	)
+
 	let controversialProposals = []
+
+	governanceData.forEach((item) => {
+		if (item && item.length > 0) {
+			controversialProposals = [...controversialProposals, ...item]
+		}
+	})
 
 	const feesData = feesProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
@@ -152,6 +253,8 @@ export const getProtocolData = async (protocol: string) => {
 		'NFT Volume'
 	]
 
+	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
+
 	const similarProtocols =
 		allProtocols && protocolData.category
 			? allProtocols.protocols
@@ -201,6 +304,57 @@ export const getProtocolData = async (protocol: string) => {
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const metrics = protocolData.metrics || {}
+	const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
+	const projectYields = yields?.data?.filter(({ project }) => project === protocol)
+
+	// token liquidity
+	const tokenPools =
+		yields?.data && yieldsConfig ? liquidityInfo.find((p) => p.id === protocolData.id)?.tokenPools ?? [] : []
+
+	const liquidityAggregated = tokenPools.reduce((agg, pool) => {
+		if (!agg[pool.project]) agg[pool.project] = {}
+		agg[pool.project][pool.chain] = pool.tvlUsd + (agg[pool.project][pool.chain] ?? 0)
+		return agg
+	}, {} as any)
+
+	const tokenLiquidity = yieldsConfig
+		? Object.entries(liquidityAggregated)
+				.filter((x) => (yieldsConfig.protocols[x[0]]?.name ? true : false))
+				.map((p) => Object.entries(p[1]).map((c) => [yieldsConfig.protocols[p[0]].name, c[0], c[1]]))
+				.flat()
+				.sort((a, b) => b[2] - a[2])
+		: []
+
+	const protocolUpcomingEvent = emissions.events?.find((e) => e.timestamp >= Date.now() / 1000)
+	let upcomingEvent = []
+	if (
+		!protocolUpcomingEvent ||
+		(protocolUpcomingEvent.noOfTokens.length === 1 && protocolUpcomingEvent.noOfTokens[0] === 0)
+	) {
+		upcomingEvent = [{ timestamp: null }]
+	} else {
+		const comingEvents = emissions.events.filter((e) => e.timestamp === protocolUpcomingEvent.timestamp)
+		upcomingEvent = [...comingEvents]
+	}
+
+	const tokensUnlockedInNextEvent = upcomingEvent
+		.map((x) => x.noOfTokens ?? [])
+		.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
+
+	const tokenValue = tokenCGData?.['market_data']?.['current_price']?.['usd']
+		? tokensUnlockedInNextEvent * tokenCGData['market_data']['current_price']['usd']
+		: null
+
+	const unlockPercent =
+		tokenValue && tokenCGData?.['market_data']?.['market_cap']?.['usd']
+			? (tokenValue / tokenCGData['market_data']['market_cap']['usd']) * 100
+			: null
+	const nextEventDescription =
+		tokensUnlockedInNextEvent && unlockPercent
+			? `${unlockPercent ? formatPercentage(unlockPercent) + '% ' : ''}`
+			: `${tokensUnlockedInNextEvent.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${
+					protocolData.symbol ?? 'tokens'
+			  }`
 
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 
@@ -216,33 +370,33 @@ export const getProtocolData = async (protocol: string) => {
 
 	return {
 		props: {
-			articles: [],
+			articles,
 			protocol,
-			devMetrics: {},
-			nftVolumeData: {},
+			devMetrics,
+			nftVolumeData,
 			protocolData: {
 				...protocolData,
 				symbol: protocolData.symbol ?? null,
 				metrics: {
 					...metrics,
-					devMetrics: false,
+					devMetrics: !!devMetrics,
 					fees: metrics.fees || dailyFees || allTimeFees ? true : false,
 					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
 					derivatives: metrics.derivatives || dailyDerivativesVolume || allTimeDerivativesVolume ? true : false,
-					medianApy: false,
+					medianApy: medianApy.data.length > 0,
 					inflows: inflowsExist,
-					unlocks: false,
-					bridge: false,
-					treasury: false,
-					tokenLiquidity: false,
-					nftVolume: false
+					unlocks: emissions.chartData?.documented?.length > 0 ? true : false,
+					bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
+					treasury: treasury?.tokenBreakdowns ? true : false,
+					tokenLiquidity: protocolData.symbol && tokenLiquidity.length > 0 ? true : false,
+					nftVolume: nftDataExist
 				}
 			},
-			backgroundColor: '#ffffff',
+			backgroundColor,
 			similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
 				similarProtocols.find((p) => p.name === protocolName)
 			),
-			chartColors: [],
+			chartColors: colorTones,
 			users: users
 				? {
 						activeUsers: users.users?.value ?? null,
@@ -262,6 +416,66 @@ export const getProtocolData = async (protocol: string) => {
 			allTimeDerivativesVolume,
 			controversialProposals,
 			governanceApis: governanceApis.filter((x) => !!x),
+			treasury: treasury?.tokenBreakdowns ?? null,
+			yields:
+				yields && yields.data && projectYields.length > 0
+					? {
+							noOfPoolsTracked: projectYields.length,
+							averageAPY: projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
+					  }
+					: null,
+			helperTexts: {
+				fees:
+					feesData.length > 1
+						? 'Sum of all fees from ' +
+						  (feesData.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
+						: feesData?.[0]?.methodology?.['Fees'] ?? null,
+				revenue:
+					revenueData.length > 1
+						? 'Sum of all revenue from ' +
+						  (revenueData.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
+						: revenueData?.[0]?.methodology?.['Revenue'] ?? null,
+				users:
+					'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.'
+			},
+			expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null,
+			tokenLiquidity,
+			tokenCGData: {
+				price: {
+					current: tokenCGData?.['market_data']?.['current_price']?.['usd'] ?? null,
+					ath: tokenCGData?.['market_data']?.['ath']?.['usd'] ?? null,
+					athDate: tokenCGData?.['market_data']?.['ath_date']?.['usd'] ?? null,
+					atl: tokenCGData?.['market_data']?.['atl']?.['usd'] ?? null,
+					atlDate: tokenCGData?.['market_data']?.['atl_date']?.['usd'] ?? null
+				},
+				marketCap: { current: tokenCGData?.['market_data']?.['market_cap']?.['usd'] ?? null },
+				totalSupply: tokenCGData?.['market_data']?.['total_supply'] ?? null,
+				fdv: { current: tokenCGData?.['market_data']?.['fully_diluted_valuation']?.['usd'] ?? null },
+				volume24h: {
+					total: tokenCGData?.['market_data']?.['total_volume']?.['usd'] ?? null,
+					cex:
+						tokenCGData?.['tickers']?.reduce(
+							(acc, curr) =>
+								(acc +=
+									curr['trust_score'] !== 'red' && cg_volume_cexs.includes(curr.market.identifier)
+										? curr.converted_volume.usd ?? 0
+										: 0),
+							0
+						) ?? null,
+					dex:
+						tokenCGData?.['tickers']?.reduce(
+							(acc, curr) =>
+								(acc +=
+									curr['trust_score'] === 'red' || cg_volume_cexs.includes(curr.market.identifier)
+										? 0
+										: curr.converted_volume.usd ?? 0),
+							0
+						) ?? null
+				}
+			},
+			nextEventDescription: upcomingEvent[0]?.timestamp
+				? `${nextEventDescription} will be unlocked ${timeFromNow(upcomingEvent[0].timestamp)}`
+				: null,
 			methodologyUrls: {
 				tvl: protocolData.module
 					? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
@@ -271,8 +485,8 @@ export const getProtocolData = async (protocol: string) => {
 				derivatives: derivativesData?.[0]?.methodologyURL ?? null
 			},
 			chartDenominations,
-			protocolHasForks: false,
-			hacksData: null
+			protocolHasForks: (forks?.props?.tokens ?? []).includes(protocolData.name),
+			hacksData: (protocolData.id ? hacks?.find((hack) => hack.defillamaId === protocolData.id) : null) ?? null
 		},
 		revalidate: maxAgeForNext([22])
 	}
