@@ -774,6 +774,24 @@ function ProtocolContainer({
 										</th>
 										<td>{formatPrice(stakedAmount)}</td>
 									</tr>
+									{tokenCGData?.marketCap?.current ? (
+										<tr style={{ position: 'relative', top: '-6px' }}>
+											<td
+												style={{
+													opacity: '0.6',
+													fontFamily: 'var(--inter)',
+													fontWeight: 400,
+													fontSize: '0.875rem',
+													padding: '0px'
+												}}
+												colSpan={2}
+											>
+												{`(${((stakedAmount / tokenCGData.marketCap.current) * 100).toLocaleString(undefined, {
+													maximumFractionDigits: 2
+												})}% of mcap)`}
+											</td>
+										</tr>
+									) : null}
 								</>
 							) : null}
 
@@ -881,7 +899,7 @@ function ProtocolContainer({
 									dataType="Fees"
 									rowHeader="Fees (annualized)"
 									rowValue={formatPrice(fees30d * 12.2)}
-									helperText={''}
+									helperText={explainAnnualized(helperTexts.fees)}
 									subRows={
 										<>
 											<tr>
@@ -913,7 +931,7 @@ function ProtocolContainer({
 									dataType="Revenue"
 									rowHeader="Revenue (annualized)"
 									rowValue={formatPrice(revenue30d * 12.2)}
-									helperText={''}
+									helperText={explainAnnualized(helperTexts.revenue)}
 									subRows={
 										<>
 											<tr>
@@ -925,6 +943,38 @@ function ProtocolContainer({
 												<tr>
 													<th data-subvalue>{`Revenue 24h`}</th>
 													<td data-subvalue>{formatPrice(dailyRevenue)}</td>
+												</tr>
+											) : null}
+										</>
+									}
+								/>
+							) : null}
+
+							{users?.activeUsers ? (
+								<RowWithSubRows
+									helperText={helperTexts.users}
+									protocolName={protocolData.name}
+									dataType="Users"
+									rowHeader={'Active Addresses 24h'}
+									rowValue={formattedNum(users.activeUsers, false)}
+									subRows={
+										<>
+											{users.newUsers ? (
+												<tr>
+													<th data-subvalue>New Addresses 24h</th>
+													<td data-subvalue>{formattedNum(users.newUsers, false)}</td>
+												</tr>
+											) : null}
+											{users.transactions ? (
+												<tr>
+													<th data-subvalue>Transactions 24h</th>
+													<td data-subvalue>{formattedNum(users.transactions, false)}</td>
+												</tr>
+											) : null}
+											{users.gasUsd ? (
+												<tr>
+													<th data-subvalue>Gas Used 24h</th>
+													<td data-subvalue>{formatPrice(users.gasUsd)}</td>
 												</tr>
 											) : null}
 										</>
@@ -1241,7 +1291,7 @@ function ProtocolContainer({
 							</LinksWrapper>
 						</Section>
 
-						{articles.length > 0 && (
+						{articles && articles.length > 0 && (
 							<Section>
 								<RowBetween>
 									<h3>Latest from DL News</h3>
@@ -1257,7 +1307,27 @@ function ProtocolContainer({
 								))}
 							</Section>
 						)}
-
+						{devMetrics && (
+							<Section>
+								<FlexRow as="span">
+									<h3>Development Activity</h3>{' '}
+									<p>(updated at {dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})</p>
+								</FlexRow>
+								<FlexRow>
+									Weekly commits: {devMetrics?.report.weekly_contributers.slice(-1)[0]?.cc}
+									<br />
+									Monthly commits: {devMetrics?.report.monthly_contributers.slice(-1)[0]?.cc}
+									<br />
+									Weekly developers: {devMetrics?.report.weekly_contributers.slice(-1)[0]?.v}
+									<br />
+									Monthly developers: {devMetrics?.report.monthly_contributers.slice(-1)[0]?.v}
+								</FlexRow>
+								<FlexRow>
+									<span>Last commit:</span> {dayjs(devMetrics.last_commit_update_time).fromNow()} (
+									{dayjs(devMetrics.last_commit_update_time).format('YYYY-MM-DD')})
+								</FlexRow>
+							</Section>
+						)}
 						{(address || protocolData.gecko_id || blockExplorerLink) && (
 							<Section>
 								<h3>Token Information</h3>
