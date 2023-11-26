@@ -3,7 +3,7 @@ import { standardizeProtocolName } from '~/utils'
 import { getProtocols } from '~/api/categories/protocols'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
+import { getProtocolData, getProtocolDataLite } from '~/api/categories/protocols/getProtocolData'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import LocalLoader from '~/components/LocalLoader'
@@ -25,13 +25,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (isHot) {
-			console.log('oooooooo issa hawt', protocol)
-			return {
-				revalidate: 1,
-				props: {
-					clientSide: true
-				}
-			}
+			const data = await getProtocolDataLite(protocol)
+			return data
 		} else {
 			const data = await getProtocolData(protocol)
 			return data
