@@ -62,10 +62,6 @@ export const getProtocolDataLite = async (protocol: string) => {
 		) ?? []
 	).map((g) => g.toLowerCase())
 
-	const devMetricsProtocolUrl = protocolData.id?.includes('parent')
-		? `${DEV_METRICS_API}/parent/${protocolData?.id?.replace('parent#', '')}.json`
-		: `${DEV_METRICS_API}/${protocolData.id}.json`
-
 	const [allProtocols, users, feesProtocols, revenueProtocols, volumeProtocols, derivatesProtocols] = await Promise.all(
 		[
 			getProtocolsRaw(),
@@ -117,40 +113,6 @@ export const getProtocolDataLite = async (protocol: string) => {
 	const derivativesData = derivatesProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
-
-	const chartTypes = [
-		'TVL',
-		'Mcap',
-		'Token Price',
-		'FDV',
-		'Fees',
-		'Revenue',
-		'Volume',
-		'Derivatives Volume',
-		'Unlocks',
-		'Active Addresses',
-		'New Addresses',
-		'Transactions',
-		'Gas Used',
-		'Staking',
-		'Borrowed',
-		'Median APY',
-		'USD Inflows',
-		'Total Proposals',
-		'Successful Proposals',
-		'Max Votes',
-		'Treasury',
-		'Bridge Deposits',
-		'Bridge Withdrawals',
-		'Token Volume',
-		'Token Liquidity',
-		'Tweets',
-		'Developers',
-		'Contributers',
-		'Devs Commits',
-		'Contributers Commits',
-		'NFT Volume'
-	]
 
 	const similarProtocols =
 		allProtocols && protocolData.category
