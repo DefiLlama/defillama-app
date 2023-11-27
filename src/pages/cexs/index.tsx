@@ -169,7 +169,7 @@ export const cexData: Array<ICex> = [
 		slug: 'robinhood',
 		coin: null,
 		walletsLink: null,
-        cgId: null,
+		cgId: null
 	},
 	{
 		name: 'Bybit',
@@ -185,7 +185,7 @@ export const cexData: Array<ICex> = [
 		slug: 'kraken',
 		coin: null,
 		walletsLink: null,
-        cgId: 'kraken',
+		cgId: 'kraken',
 		cgDeriv: 'kraken_futures'
 	},
 	{
@@ -220,7 +220,7 @@ export const cexData: Array<ICex> = [
 		slug: 'bitstamp',
 		coin: null,
 		walletsLink: null,
-        cgId: 'bitstamp',
+		cgId: 'bitstamp'
 	},
 	{
 		name: 'Deribit',
@@ -318,7 +318,7 @@ export const cexData: Array<ICex> = [
 		name: 'CoinW',
 		slug: 'coinw',
 		coin: null,
-		walletsLink: null,
+		walletsLink: null
 	},
 
 	{
@@ -332,9 +332,9 @@ export const cexData: Array<ICex> = [
 		slug: 'fastex',
 		coin: 'FTN',
 		coinSymbol: 'FTN',
-		walletsLink: "https://www.fastex.com/proof-of-reserves",
-		cgId: 'fastex',
-      },
+		walletsLink: 'https://www.fastex.com/proof-of-reserves',
+		cgId: 'fastex'
+	},
 	{
 		name: 'NBX',
 		slug: 'nbx',
@@ -372,14 +372,14 @@ export const cexData: Array<ICex> = [
 		slug: 'klever-exchange',
 		coin: 'KLV',
 		coinSymbol: 'KLV',
-		cgId: 'klever_exchange',
+		cgId: 'klever_exchange'
 	},
 	{
 		name: 'BTSE',
 		slug: 'btse',
 		coin: 'BTSE',
 		coinSymbol: 'BTSE',
-		cgId: 'btse',
+		cgId: 'btse'
 	},
 	{
 		name: 'Bitmake',
@@ -399,9 +399,9 @@ export const cexData: Array<ICex> = [
 		coin: 'CET',
 		coinSymbol: 'CET',
 		walletsLink: null,
-        cgId: 'coinex',
+		cgId: 'coinex',
 		cgDeriv: 'coinex_futures'
-      },
+	},
 	/*
 	{
 		name: 'Binance US',
@@ -529,7 +529,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 			if (c.slug === undefined) {
 				return c
 			} else {
-				const res = await Promise.allSettled([
+				const res = await Promise.all([
 					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
 					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
 						r.json()
@@ -542,9 +542,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 					)
 				])
 
-				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = res.map((r) =>
-					r.status === 'fulfilled' ? r.value : {}
-				)
+				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = res
 
 				let cexTvl = 0
 
