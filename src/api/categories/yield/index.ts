@@ -120,6 +120,8 @@ export async function getYieldPageData() {
 				? p.projectName
 				: t === 'WOO.E'
 				? data.tokenNameMapping['WOO']
+				: t === 'SOLID' && p.project === 'solidly-v3'
+				? p.projectName
 				: data.tokenNameMapping[t]
 		})
 		p['rewardTokensNames'] = xy.filter((t) => t)
