@@ -36,6 +36,13 @@ import RowFilter from '~/components/Filters/common/RowFilter'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
+import SortIcon from '../../SortIcon'
+
+const Footer = styled.div`
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+`
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -260,6 +267,7 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
+		onSortingChange: setSorting,
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
@@ -308,7 +316,15 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 									return (
 										<th key={header.id} colSpan={header.colSpan}>
 											{header.isPlaceholder ? null : (
-												<div>{flexRender(header.column.columnDef.header, header.getContext())}</div>
+												<a
+													style={{ display: 'flex', gap: '4px' }}
+													onClick={() => {
+														header.column.toggleSorting()
+													}}
+												>
+													{flexRender(header.column.columnDef.header, header.getContext())}
+													{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+												</a>
 											)}
 										</th>
 									)
@@ -329,11 +345,22 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 					</tbody>
 				</table>
 			</PTable>
-			<RowFilter
-				selectedValue={null}
-				setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}
-				values={['Previous', 'Next']}
-			/>
+			<Footer>
+				<RowFilter
+					selectedValue={null}
+					setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}
+					values={['Previous', 'Next']}
+				/>
+				<div style={{ display: 'flex' }}>
+					<div style={{ marginTop: '6px', marginRight: '8px' }}>Per page</div>
+					<RowFilter
+						style={{ alignSelf: 'flex-end' }}
+						selectedValue={String(table.getState().pagination.pageSize)}
+						values={['10', '30', '50']}
+						setValue={(val) => table.setPageSize(Number(val))}
+					/>
+				</div>
+			</Footer>
 		</Body>
 	)
 }
@@ -342,10 +369,10 @@ const Body = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	height: 100%;
 `
 
 const PTable = styled(Wrapper)`
-	max-height: 700px;
 	margin-bottom: 8px;
 	border: none;
 	display: flex;
