@@ -60,6 +60,12 @@ export const stablecoinPegTypeOptions = [
 		key: STABLECOINS_SETTINGS.PEGGEDVAR,
 		filterFn: (item) => item.pegType === 'peggedVAR',
 		help: 'Show stablecoins with a variable or floating peg'
+	},
+	{
+		name: 'CAD',
+		key: STABLECOINS_SETTINGS.PEGGEDCAD,
+		filterFn: (item) => item.pegType === 'peggedCAD',
+		help: 'Show stablecoins pegged to CAD'
 	}
 ]
 
