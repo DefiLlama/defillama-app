@@ -113,8 +113,19 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 		fetchOverCache(RAISES_API).then((r) => r.json())
 	])
 
+	const parents = protocolsRaw.parentProtocols.reduce((acc, p) => {
+		if (p.gecko_id) {
+			acc[p.id] = true
+		}
+		return acc
+	}, {})
 	const protocols = protocolsRaw.protocols
-		.filter((token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name))
+		.filter(
+			(token) =>
+				(token.symbol === null || token.symbol === '-') &&
+				!exclude.includes(token.name) &&
+				parents[token.parentProtocol] === undefined
+		)
 		.map((p) => ({
 			listedAt: 1624728920,
 			totalRaised: raises
