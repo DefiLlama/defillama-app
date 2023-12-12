@@ -387,7 +387,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		cell: ({ row }) => {
 			let { timestamp } = row.original.upcomingEvent[0]
 
-			if (!timestamp) return null
+			if (!timestamp || timestamp < Date.now() / 1e3) return null
 
 			return (
 				<UpcomingEvent
