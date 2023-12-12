@@ -816,6 +816,19 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		meta: {
 			align: 'end'
 		}
+	},
+	{
+		header: 'Total Bridged',
+		accessorKey: 'totalAssets',
+		cell: (info) => {
+			const value = info.getValue()
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
 	}
 ]
 

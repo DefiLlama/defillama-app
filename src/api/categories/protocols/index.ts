@@ -25,8 +25,7 @@ import {
 	PROTOCOL_EMISSION_API,
 	YIELD_POOLS_API,
 	LSD_RATES_API,
-	CHART_API,
-	MCAPS_API
+	CHAINS_ASSETS
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -568,13 +567,15 @@ export const getNewChainsPageData = async (category: string) => {
 		{ protocols: dexsProtocols },
 		{ protocols: feesAndRevenueProtocols },
 		{ chains: stablesChainData },
-		activeUsers
+		activeUsers,
+		chainsAssets
 	] = await Promise.all([
 		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
 		getChainsPageDataByType('dexs'),
 		getChainPageDataByType('fees'),
 		getPeggedAssets(),
-		fetchWithErrorLogging(ACTIVE_USERS_API).then((res) => res.json())
+		fetchWithErrorLogging(ACTIVE_USERS_API).then((res) => res.json()),
+		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json())
 	])
 
 	const categoryLinks = [
@@ -611,22 +612,21 @@ export const getNewChainsPageData = async (category: string) => {
 			categories: categoryLinks,
 			colorsByChain: colors,
 			chainTvls: chainTvls.map((chain) => {
-				const { total24h, revenue24h } =
-					feesAndRevenueChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
+				const name = chain.name.toLowerCase()
+				const totalAssets = chainsAssets[name]?.total?.total ?? null
+				const { total24h, revenue24h } = feesAndRevenueChains.find((x) => x.name.toLowerCase() === name) || {}
 
-				const { total24h: dexsTotal24h } =
-					dexsChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
+				const { total24h: dexsTotal24h } = dexsChains.find((x) => x.name.toLowerCase() === name) || {}
 
-				const users = Object.entries(activeUsers).find(
-					([name]) => name.toLowerCase() === 'chain#' + chain.name.toLowerCase()
-				)
+				const users = Object.entries(activeUsers).find(([name]) => name.toLowerCase() === 'chain#' + name)
 
 				return {
 					...chain,
+					totalAssets: totalAssets ? +Number(totalAssets).toFixed(2) : null,
 					totalVolume24h: dexsTotal24h || 0,
 					totalFees24h: total24h || 0,
 					totalRevenue24h: revenue24h || 0,
-					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.mcap ?? 0,
+					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === name)?.mcap ?? 0,
 					users: (users?.[1] as any)?.users?.value ?? 0
 				}
 			})
