@@ -79,13 +79,14 @@ export const generateGetOverviewItemPageDate = async (
 		secondLabel = 'Premium volume'
 	}
 	if (secondLabel && secondType?.totalDataChart) allCharts.push([secondLabel, secondType.totalDataChart])
+	if (thirdType?.totalDataChart) allCharts.push(['Bribes', thirdType.totalDataChart])
 
 	return {
 		...item,
 		logo: getLlamaoLogo(item.logo),
 		dailyRevenue: secondType?.total24h ?? null,
-		dailyBribesRevenue: secondType?.total24h ?? null,
-		dailyTokenTaxes: secondType?.total24h ?? null,
+		dailyBribesRevenue: thirdType?.total24h ?? null,
+		dailyTokenTaxes: fourthType?.total24h ?? null,
 		type,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)]
 	}
@@ -331,6 +332,10 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			)
 			mainRow.dailySupplySideRevenue = acc[protocol.parentProtocol].subRows.reduce(
 				reduceSumByAttribute('dailySupplySideRevenue'),
+				null
+			)
+			mainRow.dailyBribesRevenue = acc[protocol.parentProtocol].subRows.reduce(
+				reduceSumByAttribute('dailyBribesRevenue'),
 				null
 			)
 			mainRow.mcap = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('mcap'), null)
