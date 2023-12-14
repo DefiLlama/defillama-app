@@ -143,18 +143,20 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
 			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
 
-	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown]: [
+	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData]: [
 		IGetOverviewResponseBody,
 		{ protocols: LiteProtocol[]; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
 		number,
-		Record<string, Record<string, number>>
+		Record<string, Record<string, number>>,
+		IGetOverviewResponseBody
 	] = await Promise.all([
 		fetch(getAPIUrl(type, chain, type === 'fees', true)).then(handleFetchResponse),
 		fetch(PROTOCOLS_API).then(handleFetchResponse),
 		fetch(feesOrRevenueApi).then(handleFetchResponse),
 		type === 'dexs' ? getCexVolume() : Promise.resolve(0),
-		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse)
+		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse),
+		fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse)
 	])
 
 	const {
@@ -260,6 +262,11 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		const emission7d = emissionBreakdown?.[slugName]?.emission7d ?? null
 		const emission30d = emissionBreakdown?.[slugName]?.emission30d ?? null
 
+		const protocolBribes = bribesData?.protocols?.find(({ name }) => name === protocol.name)
+		const bribes24h = protocolBribes?.total24h
+		const bribes7d = protocolBribes?.total7d
+		const bribes30d = protocolBribes?.total30d
+
 		mainRow = {
 			...mainRow,
 			...acc[protocol.parentProtocol],
@@ -274,6 +281,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			emission24h: emission24h ?? null,
 			emission7d: emission7d ?? null,
 			emission30d: emission30d ?? null,
+			bribes24h: bribes24h ?? null,
+			bribes7d: bribes7d ?? null,
+			bribes30d: bribes30d ?? null,
 			netEarnings24h:
 				emission24h !== 0 && emission24h ? revenueProtocols?.[protocol.name]?.total24h - emission24h : null,
 			netEarnings7d: emission7d !== 0 && emission7d ? revenueProtocols?.[protocol.name]?.total7d - emission7d : null,

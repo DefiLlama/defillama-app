@@ -67,6 +67,9 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 		if (props.type === 'fees') {
 			return protocolsList.map((protocol) => {
 				let revenue24h = protocol.revenue24h
+				let revenue7d = protocol.revenue7d
+				let revenue30d = protocol.revenue30d
+
 				let dailyHoldersRevenue = protocol.dailyHoldersRevenue
 
 				if (revenue24h && !Number.isNaN(Number(revenue24h))) {
@@ -74,12 +77,14 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 						+revenue24h +
 						(enabledSettings.bribes ? protocol.dailyBribesRevenue ?? 0 : 0) +
 						(enabledSettings.tokentax ? protocol.dailyTokenTaxes ?? 0 : 0)
+					revenue7d = +revenue7d + (enabledSettings.bribes ? protocol.bribes7d ?? 0 : 0)
+					revenue30d = +revenue30d + (enabledSettings.bribes ? protocol.bribes30d ?? 0 : 0)
 				}
 				if (dailyHoldersRevenue && !Number.isNaN(Number(dailyHoldersRevenue))) {
 					dailyHoldersRevenue = +dailyHoldersRevenue + (enabledSettings.bribes ? protocol.dailyBribesRevenue ?? 0 : 0)
 				}
 
-				return { ...protocol, revenue24h, dailyHoldersRevenue }
+				return { ...protocol, revenue24h, revenue30d, revenue7d, dailyHoldersRevenue }
 			})
 		}
 

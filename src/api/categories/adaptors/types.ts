@@ -78,6 +78,9 @@ export type ProtocolAdaptorSummary = {
 	revenue7d?: number
 	revenue30d?: number
 	revenue1y?: number
+	bribes24h?: number
+	bribes7d?: number
+	bribes30d?: number
 	averageRevenue1y?: number
 	emission24h?: number
 	emission7d?: number
