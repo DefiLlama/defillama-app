@@ -88,7 +88,8 @@ export const descriptions = {
 	'Liquidity manager': 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs',
 	'Staking Pool': `Refers to platforms where users stake their assets on native blockchains to help secure the network and earn rewards. Unlike Liquid Staking, users don't receive a token representing their staked assets, and their funds are locked up during the staking period, limiting participation in other DeFi activities`,
 	'Decentralized Stablecoin': `Coins pegged to USD through decentralized mechanisms`,
-	SoFi: 'Social Finance Networks'
+	SoFi: 'Social Finance Networks',
+	'DEX Aggregator': `A platform that sources liquidity from various decentralized exchanges to provide optimal trade execution in terms of price and slippage`
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
