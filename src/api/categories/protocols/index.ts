@@ -568,14 +568,16 @@ export const getNewChainsPageData = async (category: string) => {
 		{ protocols: feesAndRevenueProtocols },
 		{ chains: stablesChainData },
 		activeUsers,
-		chainsAssets
+		chainsAssets,
+		chainNftsVolume
 	] = await Promise.all([
 		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
 		getChainsPageDataByType('dexs'),
 		getChainPageDataByType('fees'),
 		getPeggedAssets(),
 		fetchWithErrorLogging(ACTIVE_USERS_API).then((res) => res.json()),
-		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json())
+		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json()),
+		fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
 	])
 
 	const categoryLinks = [
@@ -614,6 +616,7 @@ export const getNewChainsPageData = async (category: string) => {
 			chainTvls: chainTvls.map((chain) => {
 				const name = chain.name.toLowerCase()
 				const totalAssets = chainsAssets[name]?.total?.total ?? null
+				const nftVolume = chainNftsVolume[name] ?? null
 				const { total24h, revenue24h } = feesAndRevenueChains.find((x) => x.name.toLowerCase() === name) || {}
 
 				const { total24h: dexsTotal24h } = dexsChains.find((x) => x.name.toLowerCase() === name) || {}
@@ -623,6 +626,7 @@ export const getNewChainsPageData = async (category: string) => {
 				return {
 					...chain,
 					totalAssets: totalAssets ? +Number(totalAssets).toFixed(2) : null,
+					nftVolume: nftVolume ? +Number(nftVolume).toFixed(2) : null,
 					totalVolume24h: dexsTotal24h || 0,
 					totalFees24h: total24h || 0,
 					totalRevenue24h: revenue24h || 0,
