@@ -670,7 +670,17 @@ export async function getLSDPageData() {
 				)
 				.join(' ')
 		}))
-	lsdApy = lsdApy.map((p) => ({ ...p, name: p.project === 'binance-staked-eth' ? 'Binance staked ETH' : p.name }))
+	lsdApy = lsdApy.map((p) => ({
+		...p,
+		name:
+			p.project === 'binance-staked-eth'
+				? 'Binance staked ETH'
+				: p.project === 'bedrock-unieth'
+				? 'Bedrock uniETH'
+				: p.project === 'mantle-staked-eth'
+				? 'Mantle Staked ETH'
+				: p.name
+	}))
 
 	const nameGeckoMapping = {}
 	for (const p of history) {
