@@ -276,6 +276,7 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Overview', path: '/dexs' },
 			{ name: 'Chains', path: '/dexs/chains' },
+			{ name: 'Aggregators', path: '/aggregators', newTag: true },
 			{ name: 'Derivatives', path: '/derivatives' },
 			{ name: 'Options', path: '/options' }
 		],
