@@ -214,7 +214,7 @@ export const CategoryColumn: ColumnDef<IDexsRow> = {
 	}
 }
 export const TVLColumn: ColumnDef<IDexsRow> = {
-	header: 'TVL',
+	header: 'DEX TVL',
 	accessorKey: 'tvl',
 	enableSorting: true,
 	cell: (info) => {

@@ -114,9 +114,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-				...p,
-				tvl: p?.chainTvls?.[chain]?.tvl ?? null
-		  }))
+			...p,
+			tvl: p?.chainTvls?.[chain]?.tvl ?? null
+		}))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -218,9 +218,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? {}
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -525,7 +525,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					tvl: protocols.reduce((acc, curr) => {
 						// TODO: This should be mapped using defillamaId to get accurate tvl!
 						const tvl = tvlData[curr.defillamaId]
-						acc += !Number.isNaN(tvl) ? tvl : 0
+						acc += !Number.isNaN(tvl) && tvl ? tvl : 0
 						return acc
 					}, 0),
 					change_7dover7d,
@@ -607,4 +607,4 @@ export function notUndefined<T>(x: T | undefined): x is T {
 	return x !== undefined
 }
 
-export function formatOverviewProtocolsList() {}
+export function formatOverviewProtocolsList() { }
