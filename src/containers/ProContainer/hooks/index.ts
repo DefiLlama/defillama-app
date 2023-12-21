@@ -1,5 +1,5 @@
+import { utils } from 'ethers'
 import { useEffect, useState } from 'react'
-import { recoverMessageAddress } from 'viem'
 import { useAccount, useSignMessage } from 'wagmi'
 
 export const useLocalStorage = (key, initialValue) => {
@@ -49,20 +49,16 @@ export const useVerified = ({ verify } = { verify: () => null }) => {
 	useEffect(() => {
 		;(async () => {
 			if (variables?.message && signMessageData) {
-				const recoveredAddress = await recoverMessageAddress({
-					message: variables?.message,
-					signature: signMessageData
-				})
+				const recoveredAddress = utils.verifyMessage(variables?.message, signMessageData)
+
 				if (recoveredAddress === wallet.address) {
 					setIsVerified(true)
 					setSignature(signMessageData)
 					verify()
 				}
 			} else if (signature) {
-				const recoveredAddress = await recoverMessageAddress({
-					message: message,
-					signature: signature
-				})
+				const recoveredAddress = utils.verifyMessage(message, signature)
+
 				if (recoveredAddress === wallet.address) {
 					setIsVerified(true)
 					verify()

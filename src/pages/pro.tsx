@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { connectorsForWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit'
-import { configureChains, createConfig, WagmiConfig } from 'wagmi'
+import { configureChains, createClient, WagmiConfig } from 'wagmi'
 import { mainnet, optimism } from 'wagmi/chains'
 import { rabbyWallet, injectedWallet, walletConnectWallet, metaMaskWallet } from '@rainbow-me/rainbowkit/wallets'
 import { publicProvider } from 'wagmi/providers/public'
@@ -15,7 +15,7 @@ import { ChainContainer } from '~/containers/ProContainer'
 
 import '@rainbow-me/rainbowkit/styles.css'
 
-const { chains, publicClient } = configureChains([mainnet, optimism], [publicProvider()])
+const { chains, provider } = configureChains([mainnet, optimism], [publicProvider()])
 const projectId = 'testtttt'
 
 const connectors = connectorsForWallets([
@@ -29,10 +29,10 @@ const connectors = connectorsForWallets([
 		]
 	}
 ])
-const wagmiConfig = createConfig({
+const wagmiConfig = createClient({
 	autoConnect: true,
 	connectors,
-	publicClient
+	provider
 })
 
 export const getStaticProps = withPerformanceLogging('index/pro', async () => {
@@ -57,10 +57,10 @@ const ButtonWrapper = styled.div`
 const queryClient = new QueryClient()
 export default function HomePage(props) {
 	return (
-		<WagmiConfig config={wagmiConfig}>
+		<WagmiConfig client={wagmiConfig}>
 			<RainbowKitProvider chains={chains}>
 				<QueryClientProvider client={queryClient}>
-					<Layout style={{ gap: '8px' }} title="DefiLlama - DeFi Dashboard">
+					<Layout style={{ gap: '8px', width: '100%' }} title="DefiLlama - DeFi Dashboard">
 						<ButtonWrapper>
 							<ConnectButton />
 						</ButtonWrapper>
