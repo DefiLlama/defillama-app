@@ -28,7 +28,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 		header: '24h Change',
 		accessorKey: 'changes24h',
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue() as number
 			const isNegative = value < 0
 			const isZero = value === 0
 			const isSmol = Math.abs(value as number) < 0.01

@@ -22,8 +22,9 @@ import LocalLoader from '~/components/LocalLoader'
 import { sluggify } from '~/utils/cache-client'
 import RowFilter from '~/components/Filters/common/RowFilter'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
-import { formatProtocolsList } from '~/hooks/data/defi'
-import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
+import Subscribe from './Subscribe'
+import { useVerified } from './hooks'
+import useIsSubscribed from './queries/useIsSubscribed'
 
 const ChartsBody = styled.div<{ itemsCount }>`
 	width: 100%;
@@ -126,6 +127,8 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 	const [items, setItems] = useState(defaultBlocks)
 	const router = useRouter()
 
+	const isSubscribedToChain = useIsSubscribed()
+	const { isVerified, setIsVerified } = useVerified()
 	const { period, groupBy } = router.query
 	const [protocolProps, setProtocolProps] = useState({})
 
@@ -197,6 +200,17 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 		lodahGroupBy(items, (item) => item.split('-')[0]),
 		(groupItems) => groupItems.map((item) => item?.split('-')[1])
 	)
+
+	if (!isSubscribedToChain.data || !isVerified)
+		return (
+			<Subscribe
+				refresh={() => {
+					isSubscribedToChain.refetch()
+				}}
+				verify={() => setIsVerified(true)}
+			/>
+		)
+
 	return (
 		<>
 			<ProtocolsChainsSearch
