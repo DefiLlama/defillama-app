@@ -29,7 +29,7 @@ const blockExplorers = {
 	callisto: ['https://explorer.callisto.network/address/', 'Callisto Explorer'],
 	aurora: ['https://explorer.mainnet.aurora.dev/address/', 'Aurora Explorer'],
 	boba: ['https://bobascan.com/address/', 'Boba Explorer'],
-	elrond: ['https://elrondscan.com/token/', 'Elrondscan'],
+	elrond: ['https://explorer.multiversx.com/tokens/', 'MultiversX Explorer'],
 	xdc: ['https://explorer.xinfin.network/token/', 'XDC Explorer'],
 	csc: ['https://www.coinex.net/address/', 'CSC Explorer'],
 	cardano: ['https://cardanoscan.io/token/', 'Cardanoscan'],
