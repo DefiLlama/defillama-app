@@ -5,7 +5,7 @@ import ThemeProvider, { GlobalStyle } from '~/Theme'
 import SEO from '~/components/SEO'
 import Nav from '~/components/Nav'
 
-const PageWrapper = styled.div`
+const PageWrapper = styled.div<{ fullWidth: boolean }>`
 	flex: 1;
 	display: flex;
 	flex-direction: column;
@@ -14,6 +14,7 @@ const PageWrapper = styled.div`
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		margin: 28px 28px 28px 248px;
+		width: ${({ fullWidth }) => fullWidth && 'calc(100vw - 258px);'};
 	}
 `
 
@@ -35,6 +36,7 @@ interface ILayoutProps {
 	defaultSEO?: boolean
 	backgroundColor?: string
 	style?: React.CSSProperties
+	fullWidth?: boolean
 }
 
 export default function Layout({ title, children, defaultSEO = false, ...props }: ILayoutProps) {
@@ -49,7 +51,7 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 			<ThemeProvider>
 				<GlobalStyle />
 				<Nav />
-				<PageWrapper>
+				<PageWrapper {...props}>
 					<Center {...props}>{children}</Center>
 				</PageWrapper>
 			</ThemeProvider>

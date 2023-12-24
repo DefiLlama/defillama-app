@@ -60,7 +60,7 @@ export default function HomePage(props) {
 		<WagmiConfig client={wagmiConfig}>
 			<RainbowKitProvider chains={chains}>
 				<QueryClientProvider client={queryClient}>
-					<Layout style={{ gap: '8px', width: '100%' }} title="DefiLlama - DeFi Dashboard">
+					<Layout style={{ gap: '8px' }} title="DefiLlama - DeFi Dashboard" fullWidth>
 						<ButtonWrapper>
 							<ConnectButton />
 						</ButtonWrapper>

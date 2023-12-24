@@ -1,11 +1,13 @@
 import styled from 'styled-components'
-import logo from '~/public/llama.png'
-import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 import { ExternalLink } from 'react-feather'
 import { useState } from 'react'
 import React from 'react'
+import { useAccount } from 'wagmi'
+import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useVerified } from '../hooks'
+import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 
+import logo from '~/public/llama.png'
 const Body = styled.div`
 	margin-top: 120px;
 	text-align: center;
@@ -37,6 +39,8 @@ const External = styled.a`
 
 const Subscribe = ({ refresh, verify }) => {
 	const [isPaymentOpen, setIsPaymentOpen] = useState(false)
+	const wallet = useAccount()
+	const { openConnectModal } = useConnectModal()
 	const { signMessage, isVerified, message } = useVerified({ verify })
 
 	const startPayment = () => {
@@ -77,7 +81,9 @@ const Subscribe = ({ refresh, verify }) => {
 						</div>
 					</>
 				)}
-				{isVerified ? (
+				{!wallet.isConnected ? (
+					<Button onClick={openConnectModal}>Connect</Button>
+				) : isVerified ? (
 					<Button onClick={startPayment}>{isPaymentOpen ? 'Close' : 'Subscribe'}</Button>
 				) : (
 					<Button onClick={onSignClick}>Sign In</Button>
