@@ -15,7 +15,8 @@ const Body = styled.div`
 	justify-content: center;
 	flex-direction: column;
 	align-items: center;
-	width: 100vh;
+	width: 600px;
+	margin: 0 auto;
 `
 
 const Content = styled.div`
