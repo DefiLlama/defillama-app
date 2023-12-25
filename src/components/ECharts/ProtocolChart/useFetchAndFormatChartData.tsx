@@ -1011,7 +1011,7 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 				date = lastDayOfWeek(+defaultDate * 1000)
 			}
 
-			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek < +date : true)) {
+			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek <= +date : true)) {
 				currentDate = +date
 			}
 
