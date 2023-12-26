@@ -567,7 +567,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 					if (!spotEx) {
 						console.error(c.name + ' is not in spot list')
 					} else {
-						extra.spotVolume = spotEx.trade_volume_24h_btc_normalized * btcPrice
+						extra.spotVolume = spotEx.trade_volume_24h_btc * btcPrice
 					}
 				}
 				if (c.cgDeriv) {
