@@ -86,7 +86,7 @@ export const descriptions = {
 		'Protocol that allows you to lend against known parties that can borrow without collaterall',
 	'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top',
 	'Liquidity manager': 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs',
-	'Staking Pool': `Refers to platforms where users stake their assets on native blockchains to help secure the network and earn rewards. Unlike Liquid Staking, users don't receive a token representing their staked assets, and their funds are locked up during the staking period, limiting participation in other DeFi activities`,
+	'Staking Pool': `Refers to platforms where users stake their assets using smart contracts on native blockchains to help secure the network and earn rewards but don't receive a receipt token to use in other Defi apps like with Liquid Staking projects`,
 	'Decentralized Stablecoin': `Coins pegged to USD through decentralized mechanisms`,
 	SoFi: 'Social Finance Networks',
 	'DEX Aggregator': `A platform that sources liquidity from various decentralized exchanges to provide optimal trade execution in terms of price and slippage`
