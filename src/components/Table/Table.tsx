@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Table, flexRender, RowData } from '@tanstack/react-table'
-import { defaultRangeExtractor, useWindowVirtualizer } from '@tanstack/react-virtual'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import styled from 'styled-components'
 import SortIcon from './SortIcon'
 import QuestionHelper from '../QuestionHelper'
@@ -42,37 +42,11 @@ export default function VirtualTable({
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
 		estimateSize: () => rowSize || 50,
-		overscan: 20,
-		rangeExtractor: React.useCallback(
-			(range) => {
-				if (!tableTop) {
-					return defaultRangeExtractor(range)
-				}
-
-				const cutoff = tableTop / 40
-
-				let startIndex = range.startIndex
-
-				if (range.startIndex <= cutoff) {
-					startIndex = 1
-				}
-
-				if (range.startIndex - cutoff > 0) {
-					startIndex = range.startIndex - Math.round(cutoff)
-				}
-
-				return defaultRangeExtractor({ ...range, startIndex })
-			},
-			[tableTop]
-		)
+		overscan: 5,
+		scrollMargin: tableTop
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
-
-	const paddingTop = virtualItems.length > 0 ? virtualItems?.[0]?.start || 0 : 0
-
-	const paddingBottom =
-		virtualItems.length > 0 ? rowVirtualizer.getTotalSize() - (virtualItems?.[virtualItems.length - 1]?.end || 0) : 0
 
 	return (
 		<Wrapper ref={tableContainerRef} data-resizable={columnResizeMode ? true : false} data-tablewrapper {...props}>
@@ -122,16 +96,30 @@ export default function VirtualTable({
 						</tr>
 					))}
 				</thead>
-				<tbody>
-					{paddingTop > 0 && !skipVirtualization && (
-						<tr>
-							<td style={{ height: `${paddingTop}px` }} />
-						</tr>
-					)}
-
+				<tbody
+					style={
+						skipVirtualization
+							? {}
+							: {
+									height: `${rowVirtualizer.getTotalSize()}px`,
+									width: '100%',
+									position: 'relative'
+							  }
+					}
+				>
 					{(skipVirtualization ? rows : virtualItems).map((row) => {
 						const rowTorender = skipVirtualization ? row : rows[row.index]
-						const trStyle: React.CSSProperties = rowTorender.original.disabled ? { opacity: 0.3 } : undefined
+						const trStyle: React.CSSProperties = skipVirtualization
+							? {}
+							: {
+									position: 'absolute',
+									top: 0,
+									left: 0,
+									width: '100%',
+									height: `${row.size}px`,
+									transform: `translateY(${row.start - rowVirtualizer.options.scrollMargin}px)`,
+									opacity: rowTorender.original.disabled ? 0.3 : 1
+							  }
 
 						return (
 							<React.Fragment key={rowTorender.id}>
@@ -156,12 +144,6 @@ export default function VirtualTable({
 							</React.Fragment>
 						)
 					})}
-
-					{paddingBottom > 0 && !skipVirtualization && (
-						<tr>
-							<td style={{ height: `${paddingBottom}px` }} />
-						</tr>
-					)}
 				</tbody>
 			</table>
 		</Wrapper>
