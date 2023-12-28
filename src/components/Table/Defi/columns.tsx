@@ -583,7 +583,7 @@ export const activeInvestorsColumns: ColumnDef<{
 		cell: ({ getValue }) => {
 			return <>${getValue()}m</>
 		},
-		size: 130,
+		size: 140,
 		meta: {
 			align: 'end'
 		}
@@ -605,7 +605,7 @@ export const activeInvestorsColumns: ColumnDef<{
 		cell: ({ getValue }) => {
 			return <>{getValue()}</>
 		},
-		size: 120
+		size: 160
 	},
 	{
 		header: 'Top Round Type',
@@ -660,7 +660,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		header: capitalizeFirstLetter(s),
 		accessorKey: s,
 		enableSorting: false,
-		size: s === 'classification' ? 100 : 200,
+		size: s === 'classification' ? 140 : 200,
 		...(s === 'classification' && {
 			meta: {
 				headerHelperText:
@@ -671,7 +671,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 	{
 		header: 'Link',
 		accessorKey: 'link',
-		size: 33,
+		size: 40,
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<ButtonYields

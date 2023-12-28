@@ -95,7 +95,7 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 		header: 'Total Mcap Issued On',
 		accessorKey: 'minted',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
-		size: 140,
+		size: 180,
 		meta: {
 			align: 'end'
 		}
@@ -104,7 +104,7 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 		header: 'Total Mcap Bridged To',
 		accessorKey: 'bridgedTo',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
-		size: 140,
+		size: 180,
 		meta: {
 			align: 'end'
 		}
@@ -113,7 +113,7 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 		header: 'Stables Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: ({ getValue }) => <>{getValue() && formattedNum(getValue(), false)}</>,
-		size: 120,
+		size: 160,
 		meta: {
 			align: 'end'
 		}

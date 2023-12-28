@@ -71,7 +71,8 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 		meta: {
 			align: 'end',
 			headerHelperText: 'The USD value of all the collateral that would be sold if all positions went into liquidation.'
-		}
+		},
+		size: 200
 	},
 	{
 		header: 'Amount within -20%',
@@ -84,7 +85,8 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 		meta: {
 			align: 'end',
 			headerHelperText: 'Amount of liquidable positions that are within -20% of liquidation price.'
-		}
+		},
+		size: 200
 	}
 ]
 export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] = [
