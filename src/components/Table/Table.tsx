@@ -4,6 +4,7 @@ import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import styled from 'styled-components'
 import SortIcon from './SortIcon'
 import QuestionHelper from '../QuestionHelper'
+import { useRouter } from 'next/router'
 
 interface ITableProps {
 	instance: Table<any>
@@ -28,6 +29,7 @@ export default function VirtualTable({
 	renderSubComponent,
 	...props
 }: ITableProps) {
+	const router = useRouter()
 	const [tableTop, setTableTop] = React.useState(0)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 
@@ -47,19 +49,19 @@ export default function VirtualTable({
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
-
+	const isChainPage = router.pathname === '/' || router.pathname.startsWith('/chain')
 	return (
 		<Wrapper ref={tableContainerRef} {...props}>
 			<div style={{ display: 'flex', flexDirection: 'column' }}>
 				{instance.getHeaderGroups().map((headerGroup) => (
-					<div key={headerGroup.id} style={{ display: 'flex' }}>
+					<div key={headerGroup.id} style={{ display: 'flex', position: 'relative' }}>
 						{headerGroup.headers.map((header) => {
 							// get header text alignment
 							const meta = header.column.columnDef.meta
 							const value = flexRender(header.column.columnDef.header, header.getContext())
 
 							return (
-								<Cell key={header.id} style={{ minWidth: header.getSize() ?? '100px' }}>
+								<Cell key={header.id} data-chainpage={isChainPage} style={{ minWidth: header.getSize() ?? '100px' }}>
 									<TableHeader align={meta?.align ?? (headerGroup.depth === 0 ? 'center' : 'start')}>
 										{header.isPlaceholder ? null : (
 											<>
@@ -94,7 +96,8 @@ export default function VirtualTable({
 					const rowTorender = skipVirtualization ? row : rows[row.index]
 					const trStyle: React.CSSProperties = skipVirtualization
 						? {
-								display: 'flex'
+								display: 'flex',
+								position: 'relative'
 						  }
 						: {
 								position: 'absolute',
@@ -115,7 +118,11 @@ export default function VirtualTable({
 									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 
 									return (
-										<Cell key={cell.id} style={{ minWidth: cell.column.getSize() ?? '100px', textAlign }}>
+										<Cell
+											key={cell.id}
+											data-chainpage={isChainPage}
+											style={{ minWidth: cell.column.getSize() ?? '100px', textAlign }}
+										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</Cell>
 									)
@@ -162,8 +169,17 @@ const Cell = styled.div`
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	background-color: ${({ theme }) => theme.background};
 	border-bottom: 1px solid ${({ theme }) => theme.divider};
 	border-right: 1px solid ${({ theme }) => theme.divider};
+	&[data-chainpage='true'] {
+		background-color: ${({ theme }) => theme.bg6};
+	}
+	&:first-child {
+		position: sticky;
+		left: 0;
+		z-index: 1;
+	}
 `
 
 interface ITableHeader {
