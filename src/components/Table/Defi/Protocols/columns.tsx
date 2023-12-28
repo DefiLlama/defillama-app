@@ -149,7 +149,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 120
 			}),
 			columnHelper.accessor('fees_7d', {
 				header: 'Fees 7d',
@@ -167,7 +167,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 120
 			}),
 			columnHelper.accessor('fees_30d', {
 				header: 'Fees 30d',
@@ -194,7 +194,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 140
 			}),
 			columnHelper.accessor('revenue_1y', {
 				header: 'Revenue 1Y',
@@ -203,7 +203,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 120
 			}),
 			columnHelper.accessor('average_1y', {
 				header: 'Revenue 30d Fees',
@@ -212,7 +212,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 160
 			}),
 			columnHelper.accessor('average_revenue_1y', {
 				header: 'Monthly Avg 1Y Rev',
@@ -221,7 +221,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 180
 			}),
 
 			columnHelper.accessor('holdersRevenue30d', {
@@ -277,7 +277,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 180
+				size: 200
 			}),
 			columnHelper.accessor('pf', {
 				header: 'P/F',
@@ -340,7 +340,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 120
+				size: 160
 			})
 		]
 	})

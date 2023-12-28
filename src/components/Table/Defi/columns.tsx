@@ -1229,7 +1229,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		cell: (info) => {
 			return <>{'$' + formattedNum(info.getValue())}</>
 		},
-		size: 128,
+		size: 180,
 		meta: {
 			align: 'end'
 		}
