@@ -62,7 +62,12 @@ export default function VirtualTable({
 
 							return (
 								<Cell key={header.id} data-chainpage={isChainPage} style={{ minWidth: header.getSize() ?? '100px' }}>
-									<TableHeader align={meta?.align ?? (headerGroup.depth === 0 ? 'center' : 'start')}>
+									<TableHeader
+										align={
+											meta?.align ??
+											(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
+										}
+									>
 										{header.isPlaceholder ? null : (
 											<>
 												{header.column.getCanSort() ? (
