@@ -88,7 +88,8 @@ const blockExplorers = {
 	nos: ['https://explorer.l2.trustless.computer/address/', 'NOS Blockscout'],
 	scroll: ['https://blockscout.scroll.io/address/', 'Scroll Explorer'],
 	radixdlt: ['https://dashboard.radixdlt.com/resource/', 'Radix Dashboard'],
-	lightlink: ['https://phoenix.lightlink.io/token/','LightLink Explorer']
+	lightlink: ['https://phoenix.lightlink.io/token/','LightLink Explorer'],
+	zkfair: ['https://scan.zkfair.io/address/','Zkfair Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
