@@ -8,6 +8,7 @@ import { useVerified } from '../hooks'
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 
 import logo from '~/public/llama.png'
+import { CheckIcon } from './Icon'
 const Body = styled.div`
 	margin-top: 120px;
 	text-align: center;
@@ -37,6 +38,36 @@ const External = styled.a`
 	gap: 4px;
 	margin: 0 auto;
 `
+
+const ListBody = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: center;
+`
+
+const ListItem = styled.div`
+	display: flex;
+	gap: 8px;
+	align-items: center;
+`
+
+const PricePerMonth = styled.div`
+	font-size: 32px;
+	font-weight: bold;
+`
+
+interface Props {
+	price: number
+}
+
+const PriceComponent: React.FC<Props> = ({ price }) => {
+	return (
+		<PricePerMonth>
+			<span style={{ color: 'gray' }}>{price}$</span> / <span style={{ fontSize: '18px' }}>month</span>
+		</PricePerMonth>
+	)
+}
 
 const Subscribe = ({ refresh, verify }) => {
 	const [isPaymentOpen, setIsPaymentOpen] = useState(false)
@@ -72,22 +103,39 @@ const Subscribe = ({ refresh, verify }) => {
 		<Body>
 			<img src={logo.src} width="120px" height="120px" alt="logo" />
 			<Content>
-				<h2>DefiLlama Pro</h2>
+				<h1>DefiLlama Pro</h1>
+				<PriceComponent price={111} />
 				{isPaymentOpen ? null : (
 					<>
-						<h3>You don't have active subscription</h3>
 						<div>
 							Upgrade now for advanced DeFi analytics and insights! With DefiLlama Pro, you'll get access to a
 							customizable dashboard, multiple protocols view, and more.
 						</div>
 					</>
-				)}
+				)}{' '}
 				{!wallet.isConnected ? (
 					<Button onClick={openConnectModal}>Connect</Button>
 				) : isVerified ? (
-					<Button onClick={startPayment}>{isPaymentOpen ? 'Close' : 'Subscribe'}</Button>
+					<Button onClick={startPayment}>{isPaymentOpen ? 'Close' : 'Subscribe now'}</Button>
 				) : (
 					<Button onClick={onSignClick}>Sign In</Button>
+				)}
+				{isPaymentOpen ? null : (
+					<ListBody>
+						<h3>Plan Includes:</h3>
+						<ListItem>
+							<CheckIcon />
+							Customizable dashboard with multiple protocols view
+						</ListItem>
+						<ListItem>
+							<CheckIcon />
+							Access to CSV export
+						</ListItem>
+						<ListItem>
+							<CheckIcon />
+							Premium DefiLlama API access
+						</ListItem>
+					</ListBody>
 				)}
 				{isPaymentOpen ? (
 					<iframe
@@ -98,7 +146,6 @@ const Subscribe = ({ refresh, verify }) => {
 						}
 					/>
 				) : null}
-
 				<External href="https://twitter.com/DefiLlama" target="popup">
 					Learn More <ExternalLink size={16} />
 				</External>
