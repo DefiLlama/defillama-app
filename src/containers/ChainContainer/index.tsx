@@ -424,7 +424,7 @@ export function ChainContainer({
 						</StatsTable2>
 						<CSVDownloadButton
 							isLight
-							style={{ width: '100px', marginTop: 'auto', marginLeft: 'auto' }}
+							style={{ width: '100px', marginTop: 'auto', marginLeft: '-12px' }}
 							onClick={() => {
 								window.open(
 									`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
