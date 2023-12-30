@@ -1108,17 +1108,17 @@ function ProtocolContainer({
 							)}
 						</tbody>
 					</StatsTable2>
+
+					<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
 					{!isParentProtocol ? (
 						<CSVDownloadButton
 							onClick={() => {
 								window.open(`https://api.llama.fi/dataset/${protocol}.csv`)
 							}}
-							style={{ marginTop: '16px', width: '100px', marginLeft: 'auto' }}
+							style={{ marginTop: '16px', width: '100px' }}
 							isLight
 						/>
 					) : null}
-
-					<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
