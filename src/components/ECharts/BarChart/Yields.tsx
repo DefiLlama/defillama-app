@@ -15,7 +15,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { YieldsChartWrapper } from '../shared'
 import { download } from '~/utils'
-import { DownloadButton, DownloadIcon } from '~/components'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 echarts.use([
 	ToolboxComponent,
@@ -191,10 +191,7 @@ export default function BarChartYields({ chartData }: IChartProps) {
 	return (
 		<YieldsChartWrapper>
 			<Wrapper id={id} style={{ height: '600px', margin: 'auto 0' }}></Wrapper>
-			<DownloadButton as="button" onClick={downloadCsv}>
-				<DownloadIcon />
-				<span>&nbsp;&nbsp;.csv</span>
-			</DownloadButton>
+			<CSVDownloadButton onClick={downloadCsv} style={{ float: 'right' }} />
 		</YieldsChartWrapper>
 	)
 }

@@ -1,6 +1,13 @@
 import * as React from 'react'
 import Head from 'next/head'
 import styled from 'styled-components'
+import { connectorsForWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit'
+import { configureChains, createClient, WagmiConfig } from 'wagmi'
+import { mainnet, optimism } from 'wagmi/chains'
+import { rabbyWallet, injectedWallet, walletConnectWallet, metaMaskWallet } from '@rainbow-me/rainbowkit/wallets'
+import { publicProvider } from 'wagmi/providers/public'
+import '@rainbow-me/rainbowkit/styles.css'
+
 import ThemeProvider, { GlobalStyle } from '~/Theme'
 import SEO from '~/components/SEO'
 import Nav from '~/components/Nav'
@@ -39,6 +46,26 @@ interface ILayoutProps {
 	fullWidth?: boolean
 }
 
+const { chains, provider } = configureChains([mainnet, optimism], [publicProvider()])
+const projectId = 'testtttt'
+
+const connectors = connectorsForWallets([
+	{
+		groupName: 'Recommended',
+		wallets: [
+			injectedWallet({ chains }),
+			metaMaskWallet({ chains, projectId }),
+			// walletConnectWallet({ projectId, chains }),
+			rabbyWallet({ chains })
+		]
+	}
+])
+const wagmiConfig = createClient({
+	autoConnect: true,
+	connectors,
+	provider
+})
+
 export default function Layout({ title, children, defaultSEO = false, ...props }: ILayoutProps) {
 	return (
 		<>
@@ -48,11 +75,16 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 			</Head>
 
 			{defaultSEO && <SEO />}
+
 			<ThemeProvider>
 				<GlobalStyle />
 				<Nav />
 				<PageWrapper {...props}>
-					<Center {...props}>{children}</Center>
+					<WagmiConfig client={wagmiConfig}>
+						<RainbowKitProvider chains={chains}>
+							<Center {...props}>{children}</Center>
+						</RainbowKitProvider>
+					</WagmiConfig>
 				</PageWrapper>
 			</ThemeProvider>
 		</>

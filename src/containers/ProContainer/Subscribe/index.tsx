@@ -1,14 +1,15 @@
 import styled from 'styled-components'
 import { ExternalLink } from 'react-feather'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import React from 'react'
 import { useAccount } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { useVerified } from '../hooks'
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 
 import logo from '~/public/llama.png'
 import { CheckIcon } from './Icon'
+import { useVerified } from '../hooks/useVerified'
+
 const Body = styled.div`
 	margin-top: 120px;
 	text-align: center;

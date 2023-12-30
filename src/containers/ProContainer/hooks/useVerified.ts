@@ -1,37 +1,8 @@
 import { utils } from 'ethers'
+import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
-
-export const useLocalStorage = (key, initialValue) => {
-	const [value, setValue] = useState(initialValue)
-
-	useEffect(() => {
-		if (typeof window !== 'undefined') {
-			const storedValue = localStorage.getItem(key)
-
-			if (storedValue) {
-				try {
-					const parsedValue = JSON.parse(storedValue)
-					setValue(parsedValue)
-				} catch (error) {
-					console.error('Error parsing JSON from local storage:', error)
-					localStorage.setItem(key, JSON.stringify(initialValue))
-				}
-			} else {
-				localStorage.setItem(key, JSON.stringify(initialValue))
-			}
-		}
-	}, [key, initialValue])
-
-	const updateValue = (newValue) => {
-		if (typeof window !== 'undefined') {
-			setValue(newValue)
-			localStorage.setItem(key, JSON.stringify(newValue))
-		}
-	}
-
-	return [value, updateValue]
-}
+import { useLocalStorage } from '~/hooks/useLocalStorage'
 
 export const useVerified = ({ verify } = { verify: () => null }) => {
 	const { data: signMessageData, signMessage, variables } = useSignMessage()
@@ -42,7 +13,7 @@ export const useVerified = ({ verify } = { verify: () => null }) => {
 		(value: string) => void
 	]
 	const message = `DefiLlama Pro Sign In. Confirming ownership of wallet: ${wallet.address?.toLowerCase()}. Please Sign this message to verify your ownership!`
-
+	const router = useRouter()
 	useEffect(() => {
 		setIsVerified(false)
 	}, [wallet.address])
@@ -66,6 +37,12 @@ export const useVerified = ({ verify } = { verify: () => null }) => {
 			}
 		})()
 	}, [signMessageData, variables?.message, isVerified, signature, wallet.address, setSignature, message, verify])
+
+	useEffect(() => {
+		if (isVerified && router.query.from) {
+			router.push(router.query.from as string)
+		}
+	}, [isVerified, router])
 
 	return { isVerified, setIsVerified, signMessage, message }
 }

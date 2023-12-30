@@ -1,9 +1,4 @@
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { connectorsForWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit'
-import { configureChains, createClient, WagmiConfig } from 'wagmi'
-import { mainnet, optimism } from 'wagmi/chains'
-import { rabbyWallet, injectedWallet, walletConnectWallet, metaMaskWallet } from '@rainbow-me/rainbowkit/wallets'
-import { publicProvider } from 'wagmi/providers/public'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import styled from 'styled-components'
 
@@ -12,28 +7,6 @@ import { maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/chains'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ChainContainer } from '~/containers/ProContainer'
-
-import '@rainbow-me/rainbowkit/styles.css'
-
-const { chains, provider } = configureChains([mainnet, optimism], [publicProvider()])
-const projectId = 'testtttt'
-
-const connectors = connectorsForWallets([
-	{
-		groupName: 'Recommended',
-		wallets: [
-			injectedWallet({ chains }),
-			metaMaskWallet({ chains, projectId }),
-			walletConnectWallet({ projectId, chains }),
-			rabbyWallet({ chains })
-		]
-	}
-])
-const wagmiConfig = createClient({
-	autoConnect: true,
-	connectors,
-	provider
-})
 
 export const getStaticProps = withPerformanceLogging('index/pro', async () => {
 	const data = await getChainPageData()
@@ -57,17 +30,13 @@ const ButtonWrapper = styled.div`
 const queryClient = new QueryClient()
 export default function HomePage(props) {
 	return (
-		<WagmiConfig client={wagmiConfig}>
-			<RainbowKitProvider chains={chains}>
-				<QueryClientProvider client={queryClient}>
-					<Layout style={{ gap: '8px' }} title="DefiLlama - DeFi Dashboard" fullWidth>
-						<ButtonWrapper>
-							<ConnectButton />
-						</ButtonWrapper>
-						<ChainContainer {...props} />
-					</Layout>
-				</QueryClientProvider>{' '}
-			</RainbowKitProvider>
-		</WagmiConfig>
+		<QueryClientProvider client={queryClient}>
+			<Layout style={{ gap: '8px' }} title="DefiLlama - DeFi Dashboard" fullWidth>
+				<ButtonWrapper>
+					<ConnectButton />
+				</ButtonWrapper>
+				<ChainContainer {...props} />
+			</Layout>
+		</QueryClientProvider>
 	)
 }

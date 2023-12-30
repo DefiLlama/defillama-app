@@ -67,6 +67,7 @@ import { AccordionStat } from '~/layout/Stats/Large'
 import { ForksData } from './Forks'
 import { sluggify } from '~/utils/cache-client'
 import dayjs from 'dayjs'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 const scams = [
 	'Drachma Exchange',
@@ -583,20 +584,6 @@ function ProtocolContainer({
 								</span>
 								<span>{formatPrice(totalVolume || '0')}</span>
 							</span>
-
-							{!isParentProtocol && (
-								<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-									<DownloadButton
-										as="a"
-										color={backgroundColor}
-										style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
-										target="_blank"
-									>
-										<DownloadCloud size={14} />
-										<span>&nbsp;&nbsp;.csv</span>
-									</DownloadButton>
-								</Link>
-							)}
 						</summary>
 
 						<span>
@@ -1079,7 +1066,6 @@ function ProtocolContainer({
 									}
 								/>
 							) : null}
-
 							{expenses && (
 								<RowWithSubRows
 									protocolName={protocolData.name}
@@ -1122,6 +1108,15 @@ function ProtocolContainer({
 							)}
 						</tbody>
 					</StatsTable2>
+					{!isParentProtocol ? (
+						<CSVDownloadButton
+							onClick={() => {
+								window.open(`https://api.llama.fi/dataset/${protocol}.csv`)
+							}}
+							style={{ marginTop: '16px', width: '100px', marginLeft: 'auto' }}
+							isLight
+						/>
+					) : null}
 
 					<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
 				</ProtocolDetailsWrapper>

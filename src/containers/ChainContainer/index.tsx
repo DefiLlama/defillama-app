@@ -29,6 +29,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { EmbedChart } from '~/components/Popover'
 import { primaryColor } from '~/constants/colors'
 import { useFetchChainChartData } from './useFetchChainChartData'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -295,24 +296,6 @@ export function ChainContainer({
 									<span>Total Value Locked</span>
 									<span>{tvl}</span>
 								</span>
-
-								<Link
-									href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
-										.filter((t) => t[1] === true)
-										.map((t) => `${t[0]}=true`)
-										.join('&')}`}
-									passHref
-								>
-									<DownloadButton
-										as="a"
-										style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
-										target="_blank"
-										rel="noreferrer"
-									>
-										<DownloadCloud size={14} />
-										<span>&nbsp;&nbsp;.csv</span>
-									</DownloadButton>
-								</Link>
 							</summary>
 
 							<span style={{ gap: '8px' }}>
@@ -439,6 +422,18 @@ export function ChainContainer({
 								) : null}
 							</tbody>
 						</StatsTable2>
+						<CSVDownloadButton
+							isLight
+							style={{ width: '100px', marginTop: 'auto', marginLeft: 'auto' }}
+							onClick={() => {
+								window.open(
+									`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
+										.filter((t) => t[1] === true)
+										.map((t) => `${t[0]}=true`)
+										.join('&')}`
+								)
+							}}
+						/>
 					</OverallMetricsWrapper>
 
 					<ChartWrapper>

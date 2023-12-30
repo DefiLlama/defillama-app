@@ -5,9 +5,8 @@ import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
-import { DownloadIcon } from '..'
-import { DownloadButton } from '~/containers/Raises/RaisesTable'
 import { ProtocolsTableWithSearch } from '../Table/Defi/Protocols'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
 
 interface IAllTokensPageProps {
 	title?: string
@@ -82,20 +81,19 @@ function ProtocolList({
 
 			<div style={{ display: 'flex', gap: '8px' }}>
 				<Header>{title}</Header>
-
-				{csvDownload === true && (
-					<a
-						href={`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)
-							.filter((t) => t[1] === true)
-							.map((t) => `${t[0]}=true`)
-							.join('&')}`}
-					>
-						<DownloadButton>
-							<DownloadIcon />
-							<span>&nbsp;&nbsp;.csv</span>
-						</DownloadButton>
-					</a>
-				)}
+				{csvDownload ? (
+					<CSVDownloadButton
+						style={{ marginLeft: 'auto' }}
+						onClick={() => {
+							window.open(
+								`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)
+									.filter((t) => t[1] === true)
+									.map((t) => `${t[0]}=true`)
+									.join('&')}`
+							)
+						}}
+					/>
+				) : null}
 			</div>
 
 			{showChainList && (

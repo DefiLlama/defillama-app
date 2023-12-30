@@ -23,8 +23,8 @@ import { sluggify } from '~/utils/cache-client'
 import RowFilter from '~/components/Filters/common/RowFilter'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
 import Subscribe from './Subscribe'
-import { useVerified } from './hooks'
 import useIsSubscribed from './queries/useIsSubscribed'
+import { useVerified } from './hooks/useVerified'
 
 const ChartsBody = styled.div<{ itemsCount }>`
 	width: 100%;

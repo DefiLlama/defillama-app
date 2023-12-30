@@ -43,6 +43,7 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedAssetByChainTable } from '~/components/Table'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { Stat, StatInARow } from '~/layout/Stats/Large'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -318,10 +319,6 @@ export const PeggedAssetInfo = ({
 								<span>Market Cap</span>
 								<span>
 									<span>{formattedNum(mcap || '0', true)}</span>
-									<DownloadButton onClick={downloadCsv} color={backgroundColor}>
-										<DownloadCloud size={14} />
-										<span>&nbsp;&nbsp;.csv</span>
-									</DownloadButton>
 								</span>
 							</Stat>
 
@@ -370,6 +367,7 @@ export const PeggedAssetInfo = ({
 									</tbody>
 								</DetailsTable>
 							)}
+							<CSVDownloadButton onClick={downloadCsv} isLight />
 						</DetailsWrapper>
 					</TabPanel>
 
