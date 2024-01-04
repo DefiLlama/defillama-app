@@ -103,7 +103,12 @@ const exclude = [
 	'Crescent Dex',
 	'Lago Bridge',
 	'Ostable',
-	'Oswap AMM'
+	'Oswap AMM',
+	'WBTC',
+	'Binance staked ETH',
+	'Coinbase Wrapped Staked ETH',
+	'hBTC',
+	'Mantle Staked ETH',
 ]
 
 export const getStaticProps = withPerformanceLogging('airdrops', async () => {
