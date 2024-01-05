@@ -104,7 +104,7 @@ export default function Correlations({ coinsData }) {
 				undefined,
 				{ shallow: true }
 			)
-	}, [queryCoins])
+	}, [queryCoins, router])
 
 	const [isModalOpen, setModalOpen] = useState(false)
 
@@ -178,6 +178,7 @@ export default function Correlations({ coinsData }) {
 								{correlations[coin.id]?.map((corr) =>
 									corr === null ? (
 										<Image
+											key={coin.image}
 											alt={''}
 											src={coin.image}
 											height={'24px'}

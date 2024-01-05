@@ -39,7 +39,7 @@ export function LTV({ placeholder }: { placeholder: string }) {
 	)
 }
 
-const Wrapper = styled.div`
+export const Wrapper = styled.div`
 	position: relative;
 	display: flex;
 	flex: nowrap;
