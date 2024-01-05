@@ -49,6 +49,10 @@ export interface IYieldsOptimizerTableRow extends IYieldTableRow {
 	projectName: string
 	rewardTokensNames: string[]
 	totalAvailableUsd: number
+	lendUSDAmount: number
+	borrowUSDAmount: number
+	lendAmount: number
+	borrowAmount: number
 }
 
 export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
