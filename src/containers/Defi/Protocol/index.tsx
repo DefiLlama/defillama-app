@@ -83,7 +83,8 @@ const scams = [
 	'Tegro Finance',
 	'Lendora Protocol',
 	'MantaSwap',
-	'Onchain Trade'
+	'Onchain Trade',
+	'Venuswap'
 ]
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
