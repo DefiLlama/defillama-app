@@ -4,7 +4,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { DownloadIcon } from '..'
 import { DownloadButton } from '~/containers/Raises/RaisesTable'
 import { ProtocolsTableWithSearch } from '../Table/Defi/Protocols'
@@ -41,6 +41,8 @@ function ProtocolList({
 	csvDownload = false,
 	categoryChart
 }: IAllTokensPageProps) {
+	const [isDark] = useDarkModeManager()
+
 	const router = useRouter()
 	const handleRouting = (chain) => {
 		if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
@@ -114,7 +116,7 @@ function ProtocolList({
 			)}
 
 			{router.isReady ? (
-				<ChainChart datasets={[{ globalChart: categoryChart }]} title="" isThemeDark hideTooltip />
+				<ChainChart datasets={[{ globalChart: categoryChart }]} title="" isThemeDark={isDark} hideTooltip />
 			) : null}
 
 			<ProtocolsTableWithSearch
