@@ -25,7 +25,8 @@ import {
 	PROTOCOL_EMISSION_API,
 	YIELD_POOLS_API,
 	LSD_RATES_API,
-	CHAINS_ASSETS
+	CHAINS_ASSETS,
+	CHART_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -315,9 +316,22 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 		})
 	})
 
+	let categoryChart = null
+	if (chain) {
+		categoryChart = (
+			await fetchWithErrorLogging(`${CHART_API}/categories/${capitalizeFirstLetter(category)}`).then((r) => r.json())
+		)[chain?.toLowerCase()]
+	} else {
+		const res = await fetchWithErrorLogging(`${CATEGORY_API}`).then((r) => r.json())
+		categoryChart = Object.entries(res.chart)
+			.map(([date, value]) => [date, value[category]?.tvl])
+			.filter(([date, val]) => !!val)
+	}
+
 	let filteredProtocols = formatProtocolsData({ category, protocols, chain })
 
 	return {
+		categoryChart,
 		filteredProtocols,
 		chain: chain ?? 'All',
 		category,

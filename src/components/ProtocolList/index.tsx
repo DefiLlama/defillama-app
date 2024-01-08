@@ -8,6 +8,12 @@ import { useDefiManager } from '~/contexts/LocalStorage'
 import { DownloadIcon } from '..'
 import { DownloadButton } from '~/containers/Raises/RaisesTable'
 import { ProtocolsTableWithSearch } from '../Table/Defi/Protocols'
+import { useRouter } from 'next/router'
+import dynamic from 'next/dynamic'
+
+const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
+	ssr: false
+})
 
 interface IAllTokensPageProps {
 	title?: string
@@ -21,6 +27,7 @@ interface IAllTokensPageProps {
 	chartData?: any
 	color?: string
 	csvDownload?: boolean
+	categoryChart?: Array<[number, number]>
 }
 
 function ProtocolList({
@@ -31,8 +38,10 @@ function ProtocolList({
 	filteredProtocols,
 	showChainList = true,
 	parentProtocols,
-	csvDownload = false
+	csvDownload = false,
+	categoryChart
 }: IAllTokensPageProps) {
+	const router = useRouter()
 	const handleRouting = (chain) => {
 		if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
 		return `/protocols/${category?.toLowerCase()}/${chain}`
@@ -103,6 +112,10 @@ function ProtocolList({
 					<RowLinksWithDropdown links={chainOptions} activeLink={chain} />
 				</RowLinksWrapper>
 			)}
+
+			{router.isReady ? (
+				<ChainChart datasets={[{ globalChart: categoryChart }]} title="" isThemeDark hideTooltip />
+			) : null}
 
 			<ProtocolsTableWithSearch
 				data={protocolTotals}
