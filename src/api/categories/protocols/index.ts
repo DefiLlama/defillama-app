@@ -301,6 +301,7 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 // used in /protocols/[category]
 export async function getProtocolsPageData(category?: string, chain?: string) {
 	const { protocols, chains, parentProtocols } = await getProtocols()
+	const normalizedCategory = category.split(' ').map(capitalizeFirstLetter).join(' ')
 
 	const chainsSet = new Set()
 
@@ -319,7 +320,7 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 	let categoryChart = null
 	if (chain) {
 		categoryChart = (
-			await fetchWithErrorLogging(`${CHART_API}/categories/${capitalizeFirstLetter(category)}`).then((r) => r.json())
+			await fetchWithErrorLogging(`${CHART_API}/categories/${normalizedCategory}`).then((r) => r.json())
 		)[chain?.toLowerCase()]
 	} else {
 		const res = await fetchWithErrorLogging(`${CATEGORY_API}`).then((r) => r.json())
