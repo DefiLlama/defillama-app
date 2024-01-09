@@ -45,8 +45,8 @@ function ProtocolList({
 
 	const router = useRouter()
 	const handleRouting = (chain) => {
-		if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
-		return `/protocols/${category?.toLowerCase()}/${chain}`
+		if (chain === 'All') return `/protocols/${category}`
+		return `/protocols/${category}/${chain}`
 	}
 	const chainOptions = ['All', ...chains].map((label) => ({
 		label,
@@ -115,7 +115,7 @@ function ProtocolList({
 				</RowLinksWrapper>
 			)}
 
-			{router.isReady && categoryChart ? (
+			{router.isReady && categoryChart !== null ? (
 				<ChainChart datasets={[{ globalChart: categoryChart }]} title="" isThemeDark={isDark} hideTooltip />
 			) : null}
 
