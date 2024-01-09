@@ -115,7 +115,7 @@ function ProtocolList({
 				</RowLinksWrapper>
 			)}
 
-			{router.isReady ? (
+			{router.isReady && categoryChart ? (
 				<ChainChart datasets={[{ globalChart: categoryChart }]} title="" isThemeDark={isDark} hideTooltip />
 			) : null}
 
