@@ -319,9 +319,9 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 
 	let categoryChart = null
 	if (chain) {
-		categoryChart = (
-			await fetchWithErrorLogging(`${CHART_API}/categories/${normalizedCategory}`).then((r) => r.json())
-		)[chain?.toLowerCase()]
+		// categoryChart = (
+		// 	await fetchWithErrorLogging(`${CHART_API}/categories/${normalizedCategory}`).then((r) => r.json())
+		// )[chain?.toLowerCase()]
 	} else {
 		const res = await fetchWithErrorLogging(`${CATEGORY_API}`).then((r) => r.json())
 		categoryChart = Object.entries(res.chart)
