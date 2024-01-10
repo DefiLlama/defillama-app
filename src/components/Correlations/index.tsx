@@ -23,8 +23,6 @@ import {
 import { Switch, Wrapper } from '../LiquidationsPage/TableSwitch'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
-import { Divider, Panel } from '..'
-import { DashGrid } from '~/pages/press'
 import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
