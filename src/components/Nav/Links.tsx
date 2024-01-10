@@ -52,27 +52,29 @@ const defaultToolsAndFooterLinks = {
 		{
 			name: 'DefiLlama Extension',
 			path: 'https://chrome.google.com/webstore/detail/defillama/phgiabfbjodhgckcffppiboooeiecgeg',
-			newTag: true,
 			external: true
 		},
 		{
 			name: 'LlamaNodes',
 			path: 'https://llamanodes.com/',
-			newTag: true,
 			external: true,
 			referrer: true
 		},
 		{
 			name: 'LlamaFolio',
 			path: 'https://llamafolio.com/',
-			newTag: true,
 			external: true,
 			referrer: true
 		},
 		{
 			name: 'DL News',
 			path: 'https://dlnews.com/',
-			newTag: true,
+			external: true,
+			referrer: true
+		},
+		{
+			name: 'Llama U',
+			path: 'https://www.dlnews.com/articles/llama-u',
 			external: true,
 			referrer: true
 		},
@@ -82,11 +84,10 @@ const defaultToolsAndFooterLinks = {
 			name: 'Roundup',
 			path: '/roundup'
 		},
-		{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
+		{ name: 'Trending Contracts', path: '/trending-contracts' },
 		{
 			name: 'Token Liquidity',
 			path: '/liquidity',
-			newTag: true,
 			external: true
 		},
 		{ name: 'Correlation', path: '/correlation', newTag: true },
