@@ -48,25 +48,20 @@ import { useFetchProtocol, useFetchProtocolTwitter, useGetTokenPrice } from '~/a
 import type { IFusedProtocolData, IProtocolDevActivity, NftVolumeData } from '~/api/types'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
-import { TreasuryChart } from './Treasury'
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
-import { UnlocksCharts } from './Emissions'
 import { RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
 import Announcement from '~/components/Announcement'
-import { useTabState, TabPanel } from 'ariakit'
+import { useTabState, TabPanel as AriakitTabPanel } from 'ariakit'
 import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
 import { GridContent, TabLayout, TabList, Tab, OtherProtocols, ProtocolLink } from './Common'
-import { GovernanceData } from './Governance'
 import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
-import { ProtocolPools } from './Yields'
 import { Flag } from './Flag'
-import { StablecoinInfo } from './Stablecoin'
 import { AccordionStat } from '~/layout/Stats/Large'
-import { ForksData } from './Forks'
 import { sluggify } from '~/utils/cache-client'
 import dayjs from 'dayjs'
+import { useInView } from 'react-intersection-observer'
 
 const scams = [
 	'Drachma Exchange',
@@ -98,6 +93,31 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
+
+const ProtocolPools = dynamic(() => import('./Yields').then((m) => m.ProtocolPools), {
+	ssr: false,
+	loading: () => <></>
+}) as React.FC<any>
+const TreasuryChart = dynamic(() => import('./Treasury').then((m) => m.TreasuryChart), {
+	ssr: false,
+	loading: () => <></>
+}) as React.FC<any>
+const UnlocksCharts = dynamic(() => import('./Emissions').then((m) => m.UnlocksCharts), {
+	ssr: false,
+	loading: () => <></>
+}) as React.FC<any>
+const StablecoinInfo = dynamic(() => import('./Stablecoin').then((m) => m.StablecoinInfo), {
+	ssr: false,
+	loading: () => <></>
+}) as React.FC<any>
+const ForksData = dynamic(() => import('./Forks').then((m) => m.ForksData), {
+	ssr: false,
+	loading: () => <></>
+}) as React.FC<any>
+const GovernanceData = dynamic(() => import('./Governance').then((m) => m.GovernanceData), {
+	ssr: false,
+	loading: () => <></>
+}) as React.FC<any>
 
 const Bobo = styled.button`
 	position: absolute;
@@ -1682,6 +1702,15 @@ const Toggle = styled.button`
 		}
 	}
 `
+
+const TabPanel = ({ children, ...props }: any) => {
+	const { ref, inView } = useInView({ trackVisibility: true, delay: 100 })
+	return (
+		<AriakitTabPanel ref={ref} {...props}>
+			{inView ? children : null}
+		</AriakitTabPanel>
+	)
+}
 
 export const StatsTable2 = styled(ProtocolStatsTable)`
 	th[data-subvalue],

@@ -1,4 +1,3 @@
-import { useInView } from 'react-intersection-observer'
 import styled from 'styled-components'
 import useSWR from 'swr'
 import { getPeggedAssetPageData } from '~/api/categories/stablecoins'
@@ -6,10 +5,6 @@ import { primaryColor } from '~/constants/colors'
 import { PeggedAssetInfo } from '~/containers/PeggedContainer'
 
 export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
-	const { ref, inView } = useInView({
-		triggerOnce: true
-	})
-
 	const { data, error } = useSWR(`stablecoinInfo/${assetName}`, () => getPeggedAssetPageData(assetName))
 
 	if (!data && !error) {
@@ -29,8 +24,8 @@ export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
 	}
 
 	return (
-		<Wrapper ref={ref} style={{ minHeight: '460px' }}>
-			{inView && <PeggedAssetInfo {...data.props} backgroundColor={primaryColor} />}
+		<Wrapper>
+			<PeggedAssetInfo {...data.props} backgroundColor={primaryColor} />
 		</Wrapper>
 	)
 }
