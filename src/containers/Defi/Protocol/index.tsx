@@ -61,6 +61,12 @@ import { Flag } from './Flag'
 import { AccordionStat } from '~/layout/Stats/Large'
 import { sluggify } from '~/utils/cache-client'
 import dayjs from 'dayjs'
+import { ProtocolPools } from './Yields'
+import { TreasuryChart } from './Treasury'
+import { UnlocksCharts } from './Emissions'
+import { StablecoinInfo } from './Stablecoin'
+import { ForksData } from './Forks'
+import { GovernanceData } from './Governance'
 import { useInView } from 'react-intersection-observer'
 
 const scams = [
@@ -81,7 +87,6 @@ const scams = [
 	'Onchain Trade',
 	'Venuswap'
 ]
-
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
@@ -93,31 +98,6 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
-
-const ProtocolPools = dynamic(() => import('./Yields').then((m) => m.ProtocolPools), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<any>
-const TreasuryChart = dynamic(() => import('./Treasury').then((m) => m.TreasuryChart), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<any>
-const UnlocksCharts = dynamic(() => import('./Emissions').then((m) => m.UnlocksCharts), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<any>
-const StablecoinInfo = dynamic(() => import('./Stablecoin').then((m) => m.StablecoinInfo), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<any>
-const ForksData = dynamic(() => import('./Forks').then((m) => m.ForksData), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<any>
-const GovernanceData = dynamic(() => import('./Governance').then((m) => m.GovernanceData), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<any>
 
 const Bobo = styled.button`
 	position: absolute;
