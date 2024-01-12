@@ -15,7 +15,8 @@ import {
 	Unlock,
 	Image as ImageIcon,
 	Shuffle,
-	FileText
+	FileText,
+	TrendingUp
 } from 'react-feather'
 
 export interface IMainLink {
@@ -224,6 +225,12 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Repeat size={16} />
 	},
+	'BTC ETFs': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <TrendingUp size={16} />,
+		newTag: true
+	},
 	NFT: {
 		main: [
 			{ name: 'Collections', path: '/nfts' },
@@ -231,8 +238,7 @@ export const navLinks: ILinks = {
 			{ name: 'Earnings', path: '/nfts/earnings' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <ImageIcon size={16} />,
-		newTag: true
+		icon: <ImageIcon size={16} />
 	},
 	Unlocks: {
 		main: [],
@@ -333,5 +339,5 @@ export const linksWithNoSubMenu = [
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lsd' },
-	{ name: 'BTC ETF', url: '/etfs' }
+	{ name: 'BTC ETFs', url: '/etfs' }
 ]

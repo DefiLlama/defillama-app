@@ -1445,7 +1445,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 110
+		size: 180
 	},
 	{
 		header: 'Name',
@@ -1484,6 +1484,16 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		size: 150
 	},
 	{
+		header: 'Market Share',
+		accessorKey: 'marketShare',
+		cell: ({ getValue }) => <>{formatPercentage(getValue()) + '%'}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Based on Volume'
+		},
+		size: 150
+	},
+	{
 		header: 'AUM',
 		accessorKey: 'aum',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
@@ -1503,16 +1513,6 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 			align: 'end'
 		},
 		size: 50
-	},
-	{
-		header: 'Market Share',
-		accessorKey: 'marketShare',
-		cell: ({ getValue }) => <>{formatPercentage(getValue()) + '%'}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Based on Volume'
-		},
-		size: 150
 	}
 ]
 
