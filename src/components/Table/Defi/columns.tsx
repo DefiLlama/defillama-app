@@ -1433,7 +1433,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					<CustomLink href={`/protocol/${nameSlug}`}>{getValue()}</CustomLink>
+					<CustomLink href={row.original.url}>{getValue()}</CustomLink>
 				</Name>
 			)
 		},

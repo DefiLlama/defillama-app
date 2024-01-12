@@ -84,6 +84,8 @@ export interface IETFRow {
 	issuer: string
 	etf_name: string
 	custodian: string
+	pct_fee: number
+	url: string
 	price: number
 	volume: number
 	aum: number
