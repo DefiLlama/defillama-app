@@ -1428,7 +1428,6 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const nameSlug = row.original.ticker.replace(/\s+/g, '-').toLowerCase()
 
 			return (
 				<Name>
@@ -1500,7 +1499,20 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 			const value = getValue() as number
 			return <>{value && value.toFixed(2) + '%'}</>
 		},
+		meta: {
+			align: 'end'
+		},
 		size: 50
+	},
+	{
+		header: 'Market Share',
+		accessorKey: 'marketShare',
+		cell: ({ getValue }) => <>{formatPercentage(getValue()) + '%'}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Based on Volume'
+		},
+		size: 150
 	}
 ]
 

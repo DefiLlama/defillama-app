@@ -9,15 +9,15 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ETFColumn } from '~/components/Table/Defi/columns'
 
 export const getStaticProps = withPerformanceLogging('lsd', async () => {
-	const data = await getETFData()
+	let data = await getETFData()
+	const totalVolume = data.props.etf.reduce((acc, a) => acc + a.volume, 0)
+	data.props.etf = data.props.etf.map((i) => ({ ...i, marketShare: (i.volume / totalVolume) * 100 }))
 
 	return {
 		props: { etf: data.props.etf },
 		revalidate: maxAgeForNext([22])
 	}
 })
-
-// `
 
 const PageView = ({ etf }) => {
 	return (
