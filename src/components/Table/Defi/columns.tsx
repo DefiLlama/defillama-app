@@ -1503,7 +1503,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		size: 150
 	},
 	{
-		header: 'Fee',
+		header: 'Terminal fee',
 		accessorKey: 'pct_fee',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
