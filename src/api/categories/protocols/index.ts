@@ -26,7 +26,8 @@ import {
 	YIELD_POOLS_API,
 	LSD_RATES_API,
 	CHAINS_ASSETS,
-	CHART_API
+	CHART_API,
+	ETF_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -720,6 +721,15 @@ export async function getLSDPageData() {
 			lsdRates,
 			nameGeckoMapping,
 			lsdApy
+		}
+	}
+}
+
+export async function getETFData() {
+	const etf = await fetchWithErrorLogging(ETF_API).then((r) => r.json())
+	return {
+		props: {
+			etf
 		}
 	}
 }

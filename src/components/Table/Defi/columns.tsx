@@ -26,7 +26,16 @@ import {
 } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
-import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow, IEmission, IGovernance } from './types'
+import type {
+	ICategoryRow,
+	IChainsRow,
+	IForksRow,
+	IOraclesRow,
+	ILSDRow,
+	IEmission,
+	IGovernance,
+	IETFRow
+} from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
 
@@ -1409,6 +1418,101 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			headerHelperText: 'Protocol Fee'
 		},
 		size: 90
+	}
+]
+
+export const ETFColumn: ColumnDef<IETFRow>[] = [
+	{
+		header: 'Ticker',
+		accessorKey: 'ticker',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<CustomLink href={row.original.url}>{getValue()}</CustomLink>
+				</Name>
+			)
+		},
+		size: 50
+	},
+	{
+		header: 'Issuer',
+		accessorKey: 'issuer',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 180
+	},
+	{
+		header: 'Name',
+		accessorKey: 'etf_name',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 300
+	},
+	{
+		header: 'Custodian',
+		accessorKey: 'custodian',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: 'Price',
+		accessorKey: 'price',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 50
+	},
+	{
+		header: 'Volume',
+		accessorKey: 'volume',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 150
+	},
+	{
+		header: 'Market Share',
+		accessorKey: 'marketShare',
+		cell: ({ getValue }) => <>{formatPercentage(getValue()) + '%'}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Based on Volume'
+		},
+		size: 150
+	},
+	{
+		header: 'AUM',
+		accessorKey: 'aum',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 150
+	},
+	{
+		header: 'Terminal fee',
+		accessorKey: 'pct_fee',
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <>{value && value.toFixed(2) + '%'}</>
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 50
 	}
 ]
 
