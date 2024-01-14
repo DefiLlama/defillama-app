@@ -522,6 +522,11 @@ function ProtocolContainer({
 					Project has some red flags and multiple users have reported concerns. Be careful.
 				</Announcement>
 			)}
+			{name === '01' && (
+               <Announcement warning={true} notCancellable={true}>
+                    01 Exchange was winded down. Please withdraw your remaining assets.
+               </Announcement>
+             )}
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
 				<Announcement>
 					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this
