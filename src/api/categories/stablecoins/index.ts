@@ -48,7 +48,6 @@ const getChainTVLData = async (chain: string, chainCoingeckoIds) => {
 
 export async function getPeggedOverviewPageData(chain) {
 	const { peggedAssets, chains } = await getPeggedAssets()
-	const { chainCoingeckoIds } = await fetch(CONFIG_API).then((r) => r.json())
 
 	const priceData = await getPeggedPrices()
 	const rateData = await getPeggedRates()
@@ -57,6 +56,7 @@ export async function getPeggedOverviewPageData(chain) {
 	let chartDataByPeggedAsset = []
 	let peggedAssetNames: string[] = [] // fix name of this variable
 	let peggedNameToChartDataIndex: object = {}
+	let lastTimestamp = 0
 	chartDataByPeggedAsset = await Promise.all(
 		peggedAssets.map(async (elem, i) => {
 			if (peggedAssetNames.includes(elem.symbol)) {
@@ -81,12 +81,24 @@ export async function getPeggedOverviewPageData(chain) {
 							mcap: chart.totalCirculatingUSD
 						}
 					})
+					lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
 					return formattedCharts
 				} catch (e) { }
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
 		})
 	)
+	chartDataByPeggedAsset.forEach((chart) => {
+		const last = chart[chart.length - 1]
+		let lastDate = Number(last.date)
+		while (lastDate < lastTimestamp) {
+			lastDate += 24 * 3600
+			chart.push({
+				...last,
+				date: lastDate
+			})
+		}
+	})
 
 	const chainList = await chains
 		.sort((a, b) => {
