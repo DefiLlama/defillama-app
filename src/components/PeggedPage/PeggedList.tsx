@@ -210,7 +210,7 @@ function PeggedAssetsOverview({
 
 	const dominance = getPeggedDominance(topToken, totalMcapCurrent)
 
-	const totalMcapLabel = ['Mcap', 'TVL']
+	const totalMcapLabel = ['Mcap']
 
 	const path = selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`
 
