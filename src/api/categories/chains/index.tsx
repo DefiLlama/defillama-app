@@ -88,7 +88,6 @@ export async function getChainPageData(chain?: string) {
 					data?.peggedAssetNames,
 					Object.values(data?.peggedNameToChartDataIndex || {}),
 					'mcap',
-					data?.chainTVLData,
 					!chain || chain === 'All' ? 'All' : chain
 				)
 				let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
