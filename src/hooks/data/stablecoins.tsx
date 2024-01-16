@@ -337,7 +337,6 @@ export const useBuildPeggedChartData = (
 	assetsOrChainsList,
 	filteredIndexes?,
 	issuanceType = 'mcap',
-	chainTVLData?,
 	selectedChain?,
 	totalChartTooltipLabel = 'Mcap'
 ) => {
@@ -419,26 +418,12 @@ export const useBuildPeggedChartData = (
 				}
 			})
 
-			const peggedAreaTotalData = chainTVLData
-				? chainTVLData.tvl
-						.map(([date, tvl]) => {
-							if (date < 1609372800) return
-							if (!backfilledChains.includes(selectedChain) && date < 1652241600) return
-							const mcap = unformattedTotalData[date] ?? 0
-							if (mcap === 0) return
-							return {
-								date: date,
-								[totalChartTooltipLabel]: mcap,
-								TVL: tvl
-							}
-						})
-						.filter((entry) => entry)
-				: Object.entries(unformattedTotalData).map(([date, mcap]) => {
-						return {
-							date: date,
-							[totalChartTooltipLabel]: mcap
-						}
-				  })
+			const peggedAreaTotalData = Object.entries(unformattedTotalData).map(([date, mcap]) => {
+				return {
+					date: date,
+					[totalChartTooltipLabel]: mcap
+				}
+			})
 
 			const stackedDataset = Object.entries(stackedDatasetObject)
 
@@ -493,7 +478,6 @@ export const useBuildPeggedChartData = (
 			assetsOrChainsList,
 			filteredIndexes,
 			issuanceType,
-			chainTVLData,
 			selectedChain,
 			totalChartTooltipLabel
 		])

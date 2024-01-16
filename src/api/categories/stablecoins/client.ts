@@ -15,23 +15,22 @@ export const useGetStabelcoinsChartDataByChain = (chain?: string) => {
 		`stablecoinsChartDataByChain/${chain}`,
 		chain
 			? () =>
-					getPeggedOverviewPageData(chain === 'All' ? null : chain)
-						.then((data) => {
-							const { peggedAreaTotalData } = buildPeggedChartData(
-								data?.chartDataByPeggedAsset,
-								data?.peggedAssetNames,
-								Object.values(data?.peggedNameToChartDataIndex || {}),
-								'mcap',
-								data?.chainTVLData,
-								chain
-							)
+				getPeggedOverviewPageData(chain === 'All' ? null : chain)
+					.then((data) => {
+						const { peggedAreaTotalData } = buildPeggedChartData(
+							data?.chartDataByPeggedAsset,
+							data?.peggedAssetNames,
+							Object.values(data?.peggedNameToChartDataIndex || {}),
+							'mcap',
+							chain
+						)
 
-							return peggedAreaTotalData
-						})
-						.catch((err) => {
-							console.log(err)
-							return null
-						})
+						return peggedAreaTotalData
+					})
+					.catch((err) => {
+						console.log(err)
+						return null
+					})
 			: () => null
 	)
 
