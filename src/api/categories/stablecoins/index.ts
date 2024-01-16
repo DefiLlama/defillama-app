@@ -81,15 +81,20 @@ export async function getPeggedOverviewPageData(chain) {
 							mcap: chart.totalCirculatingUSD
 						}
 					})
-					lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
+					if (formattedCharts.length > 0) {
+						lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
+					}
 					return formattedCharts
 				} catch (e) { }
 			}
-			throw new Error(`${CHART_API}/${elem} is broken`)
+			throw new Error(`${PEGGEDCHART_API}/${elem} is broken`)
 		})
 	)
 	chartDataByPeggedAsset.forEach((chart) => {
 		const last = chart[chart.length - 1]
+		if (!last) {
+			return
+		}
 		let lastDate = Number(last.date)
 		while (lastDate < lastTimestamp) {
 			lastDate += 24 * 3600
