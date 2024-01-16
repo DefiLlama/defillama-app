@@ -89,4 +89,7 @@ export interface IETFRow {
 	price: number
 	volume: number
 	aum: number
+	shares: number
+	btc: number
+	flows: number
 }

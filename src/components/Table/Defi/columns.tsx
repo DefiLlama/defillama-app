@@ -1510,6 +1510,15 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		},
 		size: 150
 	},
+	{
+		header: 'Flows',
+		accessorKey: 'flows',
+		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 150
+	},
 	// {
 	// 	header: 'Market Share',
 	// 	accessorKey: 'marketShare',
