@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 
 	return {
 		props: { etf: data.props.etf },
-		revalidate: maxAgeForNext([22])
+		revalidate: 5 * 60
 	}
 })
 
