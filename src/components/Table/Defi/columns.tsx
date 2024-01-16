@@ -1496,7 +1496,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 	{
 		header: 'AUM',
 		accessorKey: 'aum',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
 		meta: {
 			align: 'end'
 		},
