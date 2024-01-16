@@ -39,7 +39,7 @@ const getChainTVLData = async (chain: string, chainCoingeckoIds) => {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${CHART_API}/${chain}`).then((resp) => resp.json())
-				} catch (e) {}
+				} catch (e) { }
 			}
 			throw new Error(`${CHART_API}/${chain} is broken`)
 		} else return null
@@ -82,7 +82,7 @@ export async function getPeggedOverviewPageData(chain) {
 						}
 					})
 					return formattedCharts
-				} catch (e) {}
+				} catch (e) { }
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
 		})
@@ -111,8 +111,6 @@ export async function getPeggedOverviewPageData(chain) {
 		})
 	})
 
-	const chainTVLData: IChainData[] = await getChainTVLData(chain, chainCoingeckoIds)
-
 	const filteredPeggedAssets = formatPeggedAssetsData({
 		peggedAssets,
 		chartDataByPeggedAsset,
@@ -128,7 +126,6 @@ export async function getPeggedOverviewPageData(chain) {
 		peggedAssetNames,
 		peggedNameToChartDataIndex,
 		chartDataByPeggedAsset,
-		chainTVLData,
 		chain: chain ?? 'All'
 	}
 }
@@ -156,7 +153,7 @@ export async function getPeggedChainsPageData() {
 				for (let i = 0; i < 5; i++) {
 					try {
 						return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-					} catch (e) {}
+					} catch (e) { }
 				}
 
 				throw new Error(`${CHART_API}/${elem} is broken`)
@@ -200,7 +197,7 @@ export async function getPeggedChainsPageData() {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${PEGGEDCHART_API}/${chain}?startts=1652241600`).then((resp) => resp.json())
-				} catch (e) {}
+				} catch (e) { }
 			}
 			throw new Error(`${PEGGEDCHART_API}/${chain} is broken`)
 		})
@@ -213,7 +210,7 @@ export async function getPeggedChainsPageData() {
 				try {
 					const res = await fetch(`${PEGGEDDOMINANCE_API}/${chain}`).then((resp) => resp.json())
 					return res
-				} catch (e) {}
+				} catch (e) { }
 			}
 			throw new Error(`${PEGGEDDOMINANCE_API}/${chain} is broken`)
 		})
