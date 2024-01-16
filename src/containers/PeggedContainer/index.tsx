@@ -244,7 +244,6 @@ export const PeggedAssetInfo = ({
 		[...Array(chainsUnique.length).keys()],
 		'circulating',
 		undefined,
-		undefined,
 		totalChartTooltipLabel[0]
 	)
 
