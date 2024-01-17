@@ -124,7 +124,8 @@ export default function ProtocolChart({
 		contributersMetrics,
 		contributersCommits,
 		devCommits,
-		nftVolume
+		nftVolume,
+		aggregators
 	} = router.query
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
@@ -173,7 +174,8 @@ export default function ProtocolChart({
 			contributersCommits,
 			devCommits,
 			nftVolume,
-			nftVolumeData
+			nftVolumeData,
+			aggregators
 		})
 
 	const realPathname =
@@ -813,6 +815,29 @@ export default function ProtocolChart({
 							/>
 							<span data-wrapper="true">
 								<span>NFT Volume</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.aggregators && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="aggregators"
+								checked={aggregators === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, aggregators: aggregators === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Aggregators Volume</span>
 							</span>
 						</Toggle>
 					)}

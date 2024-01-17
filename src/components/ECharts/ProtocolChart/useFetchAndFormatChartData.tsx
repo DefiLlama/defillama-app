@@ -68,7 +68,8 @@ export function useFetchAndFormatChartData({
 	contributersCommits,
 	devCommits,
 	nftVolume,
-	nftVolumeData
+	nftVolumeData,
+	aggregators
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -157,6 +158,14 @@ export function useFetchAndFormatChartData({
 		type: 'chains',
 		enableBreakdownChart: false,
 		disabled: isRouterReady && derivativesVolume === 'true' && metrics.derivatives ? false : true
+	})
+
+	const { data: aggregatorsVolumeData, loading: fetchingAggregatorsVolume } = useGetOverviewChartData({
+		name: protocol,
+		dataToFetch: 'aggregators',
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: isRouterReady && metrics.aggregators && aggregators === 'true' ? false : true
 	})
 
 	const showNonUsdDenomination =
@@ -492,6 +501,21 @@ export function useFetchAndFormatChartData({
 				chartData[date]['Derivatives Volume'] = showNonUsdDenomination
 					? +item.Derivatives / getPriceAtDate(date, denominationHistory.prices)
 					: item.Derivatives
+			})
+		}
+
+		if (aggregatorsVolumeData) {
+			chartsUnique.push('Aggregators Volume')
+
+			aggregatorsVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Aggregators Volume'] = showNonUsdDenomination
+					? +item.Aggregators / getPriceAtDate(date, denominationHistory.prices)
+					: item.Aggregators
 			})
 		}
 
@@ -864,7 +888,8 @@ export function useFetchAndFormatChartData({
 		contributersCommits,
 		devCommits,
 		nftVolume,
-		nftVolumeData
+		nftVolumeData,
+		aggregatorsVolumeData
 	])
 
 	const finalData = React.useMemo(() => {
@@ -919,6 +944,10 @@ export function useFetchAndFormatChartData({
 
 	if (fetchingDerivativesVolume) {
 		fetchingTypes.push('derivatives volume')
+	}
+
+	if (fetchingAggregatorsVolume) {
+		fetchingTypes.push('aggregators volume')
 	}
 
 	if (fetchingEmissions) {
@@ -977,7 +1006,8 @@ export function useFetchAndFormatChartData({
 		fetchingBridgeVolume ||
 		fetchingTokenLiquidity ||
 		fetchingTwitter ||
-		fetchingDevMetrics
+		fetchingDevMetrics ||
+		fetchingAggregatorsVolume
 
 	return {
 		fetchingTypes,

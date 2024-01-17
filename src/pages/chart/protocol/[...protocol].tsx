@@ -65,7 +65,8 @@ export default function ProtocolChart({
 		contributersMetrics,
 		contributersCommits,
 		devCommits,
-		nftVolume
+		nftVolume,
+		aggregators
 	} = router.query
 
 	const extraTvlsEnabled = {}
@@ -123,7 +124,8 @@ export default function ProtocolChart({
 			contributersCommits,
 			devCommits,
 			nftVolume,
-			nftVolumeData
+			nftVolumeData,
+			aggregators
 		})
 	const isThemeDark = router.query.theme === 'dark' ? true : false
 	return (
