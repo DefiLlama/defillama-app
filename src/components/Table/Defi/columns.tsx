@@ -1438,24 +1438,24 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		},
 		size: 50
 	},
-	{
-		header: 'Issuer',
-		accessorKey: 'issuer',
-		cell: ({ getValue }) => <>{getValue()}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 180
-	},
 	// {
-	// 	header: 'Name',
-	// 	accessorKey: 'etf_name',
+	// 	header: 'Issuer',
+	// 	accessorKey: 'issuer',
 	// 	cell: ({ getValue }) => <>{getValue()}</>,
 	// 	meta: {
 	// 		align: 'end'
 	// 	},
-	// 	size: 300
+	// 	size: 180
 	// },
+	{
+		header: 'Name',
+		accessorKey: 'etf_name',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 300
+	},
 	{
 		header: 'Custodian',
 		accessorKey: 'custodian',
@@ -1492,24 +1492,24 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		},
 		size: 150
 	},
-	{
-		header: 'Shares',
-		accessorKey: 'shares',
-		cell: ({ getValue }) => <>{getValue() !== null ? formattedNum(getValue()) : null}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 150
-	},
-	{
-		header: 'BTC',
-		accessorKey: 'btc',
-		cell: ({ getValue }) => <>{getValue() !== null ? formattedNum(getValue()) : null}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 150
-	},
+	// {
+	// 	header: 'Shares',
+	// 	accessorKey: 'shares',
+	// 	cell: ({ getValue }) => <>{getValue() !== null ? formattedNum(getValue()) : null}</>,
+	// 	meta: {
+	// 		align: 'end'
+	// 	},
+	// 	size: 150
+	// },
+	// {
+	// 	header: 'BTC',
+	// 	accessorKey: 'btc',
+	// 	cell: ({ getValue }) => <>{getValue() !== null ? formattedNum(getValue()) : null}</>,
+	// 	meta: {
+	// 		align: 'end'
+	// 	},
+	// 	size: 150
+	// },
 	{
 		header: 'Flows',
 		accessorKey: 'flows',
