@@ -15,7 +15,7 @@ export const FAQ = () => (
 				The Pearson Correlation Coefficient quantifies the estimated strength of the linear association between two
 				variables. It ranges from +1 to -1: +1 indicates a perfect positive linear correlation, -1 a perfect negative
 				linear correlation, 0 indicates no linear correlation. The chart in the background represents the change in the
-				correlation over time (rolling correlation with a rolling window width of 20 data points).
+				correlation over time
 			</div>
 			<Divider />
 			<div style={{ paddingBottom: '8px' }}>
