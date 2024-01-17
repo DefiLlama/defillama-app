@@ -178,3 +178,12 @@ export const ToggleWrapper = styled(Wrapper)`
 		position: relative;
 	}
 `
+
+export const Description = styled.div`
+	display: flex;
+	text-align: center;
+	margin: 0 auto;
+	font-size: 14px;
+	color: ${({ theme }) => theme.text2};
+	width: 500px;
+`
