@@ -1447,6 +1447,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 	// 	},
 	// 	size: 180
 	// },
+	//
 	{
 		header: 'Name',
 		accessorKey: 'etf_name',
