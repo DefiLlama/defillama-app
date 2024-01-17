@@ -10,7 +10,7 @@ import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
 import { BAR_CHARTS } from './utils'
 import { useFetchAndFormatChartData } from './useFetchAndFormatChartData'
 import { EmbedChart } from '~/components/Popover'
-import { NftVolumeData } from '~/api/types'
+import { IFusedProtocolData, NftVolumeData } from '~/api/types'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -35,6 +35,7 @@ interface IProps {
 	protocolId: string
 	twitterHandle?: string
 	nftVolumeData: NftVolumeData
+	protocolData?: IFusedProtocolData
 }
 
 const CHART_TYPES = [
@@ -86,7 +87,8 @@ export default function ProtocolChart({
 	protocolId,
 	chartDenominations,
 	twitterHandle,
-	nftVolumeData
+	nftVolumeData,
+	protocolData
 }: IProps) {
 	const router = useRouter()
 
@@ -204,6 +206,7 @@ export default function ProtocolChart({
 			metrics.dexs ||
 			metrics.derivatives ||
 			metrics.unlocks ||
+			metrics.aggregators ||
 			activeUsersId ||
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
@@ -212,26 +215,28 @@ export default function ProtocolChart({
 			(governanceApis && governanceApis.length > 0) ||
 			metrics.treasury ? (
 				<ToggleWrapper>
-					<Toggle backgroundColor={color}>
-						<input
-							type="checkbox"
-							value="tvl"
-							checked={tvl !== 'false'}
-							onChange={() =>
-								router.push(
-									{
-										pathname: router.pathname,
-										query: { ...router.query, tvl: tvl === 'false' ? true : false }
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}
-						/>
-						<span data-wrapper="true">
-							<span>{isCEX ? 'Total Assets' : 'TVL'}</span>
-						</span>
-					</Toggle>
+					{protocolData?.tvlByChain?.length > 0 ? (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="tvl"
+								checked={tvl !== 'false'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, tvl: tvl === 'false' ? true : false }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>{isCEX ? 'Total Assets' : 'TVL'}</span>
+							</span>
+						</Toggle>
+					) : null}
 
 					{geckoId && (
 						<>

@@ -523,10 +523,10 @@ function ProtocolContainer({
 				</Announcement>
 			)}
 			{name === '01' && (
-               <Announcement warning={true} notCancellable={true}>
-                    01 Exchange was winded down. Please withdraw your remaining assets.
-               </Announcement>
-             )}
+				<Announcement warning={true} notCancellable={true}>
+					01 Exchange was winded down. Please withdraw your remaining assets.
+				</Announcement>
+			)}
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
 				<Announcement>
 					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this
@@ -1134,6 +1134,7 @@ function ProtocolContainer({
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
+					protocolData={protocolData}
 					twitterHandle={protocolData.twitter}
 					protocol={protocol}
 					color={backgroundColor}
