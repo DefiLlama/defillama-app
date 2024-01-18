@@ -732,8 +732,8 @@ export async function getETFData() {
 	)
 
 	const totalAum = overview.reduce((acc, a) => acc + a.aum, 0)
-	const pieChartDataAum = overview.map((i) => ({ name: i.ticker, value: i.aum }))
-	const pieChartDataVolume = overview.map((i) => ({ name: i.ticker, value: i.volume }))
+	const aumOverview = overview.map((i) => ({ name: i.ticker, value: i.aum }))
+	const volumeOverview = overview.map((i) => ({ name: i.ticker, value: i.volume }))
 
 	const reformat = (fieldName) => {
 		let totalValuesByTimestamp = {}
@@ -762,8 +762,12 @@ export async function getETFData() {
 		return Object.values(reformattedData)
 	}
 
-	const areaChartDataAum = reformat('aum')
-	const areaChartDataVolume = reformat('volume')
+	const aumHistory = reformat('aum')
+	const volumeHistory = reformat('volume')
+	const flowsHistory = reformat('flows').reduce((acc, { date, ...values }) => {
+		acc[date] = values
+		return acc
+	}, {})
 
 	const tickerColors = {}
 	overview
@@ -781,21 +785,15 @@ export async function getETFData() {
 		barChartStacks[ticker] = 'A'
 	}
 
-	// wip
-	const barChartDataFlows = areaChartDataAum.reduce((acc, { date, ...values }) => {
-		acc[date] = values
-		return acc
-	}, {})
-
 	return {
 		props: {
 			overview,
 			totalAum,
-			pieChartDataAum,
-			pieChartDataVolume,
-			areaChartDataAum,
-			areaChartDataVolume,
-			barChartDataFlows,
+			aumOverview,
+			volumeOverview,
+			aumHistory,
+			volumeHistory,
+			flowsHistory,
 			barChartStacks,
 			tickers,
 			tickerColors

@@ -40,11 +40,11 @@ export const getStaticProps = withPerformanceLogging('etfs', async () => {
 const PageView = ({
 	overview,
 	totalAum,
-	pieChartDataAum,
-	pieChartDataVolume,
-	areaChartDataAum,
-	areaChartDataVolume,
-	barChartDataFlows,
+	aumOverview,
+	volumeOverview,
+	aumHistory,
+	volumeHistory,
+	flowsHistory,
 	barChartStacks,
 	tickers,
 	tickerColors
@@ -52,7 +52,7 @@ const PageView = ({
 	const [tab, setTab] = React.useState('aum')
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
 
-	const flowsData = groupDataByDays(barChartDataFlows, groupBy, tickers, true)
+	const flowsData = groupDataByDays(flowsHistory, groupBy, tickers, true)
 
 	return (
 		<>
@@ -79,10 +79,10 @@ const PageView = ({
 				<TabContainer>
 					{tab === 'aum' ? (
 						<ChartsWrapper>
-							<PieChart chartData={pieChartDataAum} stackColors={tickerColors} usdFormat={false} />
+							<PieChart chartData={aumOverview} stackColors={tickerColors} usdFormat={false} />
 
 							<AreaChart
-								chartData={areaChartDataAum}
+								chartData={aumHistory}
 								stacks={tickers}
 								stackColors={tickerColors}
 								customLegendName="Ticker"
@@ -94,10 +94,10 @@ const PageView = ({
 						</ChartsWrapper>
 					) : tab === 'volume' ? (
 						<ChartsWrapper>
-							<PieChart chartData={pieChartDataVolume} stackColors={tickerColors} usdFormat={false} />
+							<PieChart chartData={volumeOverview} stackColors={tickerColors} usdFormat={false} />
 
 							<AreaChart
-								chartData={areaChartDataVolume}
+								chartData={volumeHistory}
 								stacks={tickers}
 								stackColors={tickerColors}
 								customLegendName="Ticker"
@@ -127,7 +127,7 @@ const PageView = ({
 								</Denomination>
 							</Filters>
 
-							{/* <BarChart
+							<BarChart
 								chartData={flowsData}
 								hideDefaultLegend
 								customLegendName="Ticker"
@@ -136,7 +136,7 @@ const PageView = ({
 								stackColors={tickerColors}
 								valueSymbol="$"
 								title=""
-							/> */}
+							/>
 						</>
 					) : null}
 				</TabContainer>
