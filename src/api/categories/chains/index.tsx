@@ -164,7 +164,9 @@ export async function getChainPageData(chain?: string) {
 		!chain || chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json())
 	])
 
-	const chainTreasury = treasuriesData?.find((t) => t?.name?.toLowerCase().includes(` ${chain?.toLowerCase()} `))
+	const chainTreasury = treasuriesData?.find(
+		(t) => t?.name?.toLowerCase().startsWith(`${chain?.toLowerCase()}`) && ['Services', 'Chain'].includes(t?.category)
+	)
 
 	const filteredProtocols = formatProtocolsData({
 		chain,
