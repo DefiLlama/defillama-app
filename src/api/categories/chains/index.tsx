@@ -1,8 +1,10 @@
 import {
 	ACTIVE_USERS_API,
+	CHAINS_API,
 	CHART_API,
 	DEV_METRICS_API,
 	PROTOCOLS_API,
+	PROTOCOLS_TREASURY,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
@@ -61,6 +63,9 @@ export async function getChainPageData(chain?: string) {
 		.then((res) => res.json())
 		.catch(() => null)
 
+	const chainsConfig = await fetchWithErrorLogging(CHAINS_API).then((res) => res.json())
+	const currentChain = chainsConfig.find((c) => c.name.toLowerCase() === chain?.toLowerCase())
+
 	const hasUserData = chain ? !!totalTrackedUserData?.[`chain#${chain?.toLowerCase()}`] : false
 	const [
 		chartData,
@@ -74,7 +79,8 @@ export async function getChainPageData(chain?: string) {
 		transactions,
 		newUsers,
 		raisesData,
-		devMetricsData
+		devMetricsData,
+		treasuriesData
 	] = await Promise.all([
 		fetchWithErrorLogging(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
@@ -154,8 +160,11 @@ export async function getChainPageData(chain?: string) {
 			? null
 			: fetch(`${DEV_METRICS_API}/chain/${chain?.toLowerCase()}.json`)
 					.then((r) => r.json())
-					.catch(() => null)
+					.catch(() => null),
+		!chain || chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json())
 	])
+
+	const chainTreasury = treasuriesData?.find((t) => t?.name?.toLowerCase().includes(` ${chain?.toLowerCase()} `))
 
 	const filteredProtocols = formatProtocolsData({
 		chain,
@@ -204,6 +213,8 @@ export async function getChainPageData(chain?: string) {
 	return {
 		props: {
 			...(chain && { chain }),
+			chainTokenInfo: currentChain ?? null,
+			chainTreasury: chainTreasury ?? null,
 			chainsSet: chains,
 			chainOptions: ['All'].concat(chains).map((label) => ({ label, to: setSelectedChain(label) })),
 			protocolsList,
