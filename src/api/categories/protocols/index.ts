@@ -27,7 +27,8 @@ import {
 	LSD_RATES_API,
 	CHAINS_ASSETS,
 	CHART_API,
-	ETF_API
+	ETF_OVERVIEW_API,
+	ETF_HISTORY_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -726,10 +727,78 @@ export async function getLSDPageData() {
 }
 
 export async function getETFData() {
-	const etf = await fetchWithErrorLogging(ETF_API).then((r) => r.json())
+	const [overview, history] = await Promise.all(
+		[ETF_OVERVIEW_API, ETF_HISTORY_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
+	)
+
+	const totalAum = overview.reduce((acc, a) => acc + a.aum, 0)
+	const pieChartDataAum = overview.map((i) => ({ name: i.ticker, value: i.aum }))
+	const pieChartDataVolume = overview.map((i) => ({ name: i.ticker, value: i.volume }))
+
+	const reformat = (fieldName) => {
+		let totalValuesByTimestamp = {}
+		history.forEach((entry) => {
+			if (!totalValuesByTimestamp[entry.timestamp]) {
+				totalValuesByTimestamp[entry.timestamp] = 0
+			}
+			totalValuesByTimestamp[entry.timestamp] += entry[fieldName]
+		})
+
+		let reformattedData = {}
+		history.forEach((entry) => {
+			const timestamp = entry.timestamp
+			const ticker = entry.ticker
+			const value = entry[fieldName]
+			const totalValueDay = totalValuesByTimestamp[timestamp]
+
+			if (!reformattedData[timestamp]) {
+				reformattedData[timestamp] = { date: timestamp }
+			}
+			// relative
+			// reformattedData[timestamp][ticker] = (value / totalValueDay) * 100
+			reformattedData[timestamp][ticker] = value
+		})
+
+		return Object.values(reformattedData)
+	}
+
+	const areaChartDataAum = reformat('aum')
+	const areaChartDataVolume = reformat('volume')
+
+	const tickerColors = {}
+	overview
+		.map((i) => i.ticker)
+		.forEach((ticker, index) => {
+			tickerColors[ticker] = getColorFromNumber(index, 10)
+		})
+
+	tickerColors['Others'] = '#AAAAAA'
+
+	const tickers = Object.keys(tickerColors)
+
+	const barChartStacks = {}
+	for (const ticker of tickers) {
+		barChartStacks[ticker] = 'A'
+	}
+
+	// wip
+	const barChartDataFlows = areaChartDataAum.reduce((acc, { date, ...values }) => {
+		acc[date] = values
+		return acc
+	}, {})
+
 	return {
 		props: {
-			etf
+			overview,
+			totalAum,
+			pieChartDataAum,
+			pieChartDataVolume,
+			areaChartDataAum,
+			areaChartDataVolume,
+			barChartDataFlows,
+			barChartStacks,
+			tickers,
+			tickerColors
 		}
 	}
 }

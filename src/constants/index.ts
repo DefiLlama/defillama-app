@@ -88,7 +88,8 @@ export const YIELD_PERPS_API = 'https://yields.llama.fi/perps'
 export const YIELD_PROJECT_MEDIAN_API = 'https://yields.llama.fi/medianProject'
 
 export const LSD_RATES_API = 'https://yields.llama.fi/lsdRates'
-export const ETF_API = 'https://etfs.llama.fi/overview'
+export const ETF_OVERVIEW_API = 'https://etfs.llama.fi/overview'
+export const ETF_HISTORY_API = 'https://etfs.llama.fi/history'
 
 export const LIQUIDATIONS_HISTORICAL_R2_PATH = DATASETS_R2_PATH + '/liqs'
 
