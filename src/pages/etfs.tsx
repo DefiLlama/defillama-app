@@ -85,7 +85,7 @@ const PageView = ({
 								chartData={areaChartDataAum}
 								stacks={tickers}
 								stackColors={tickerColors}
-								customLegendName="Tickers"
+								customLegendName="Ticker"
 								customLegendOptions={tickers}
 								hideDefaultLegend
 								valueSymbol="$"
@@ -100,7 +100,7 @@ const PageView = ({
 								chartData={areaChartDataVolume}
 								stacks={tickers}
 								stackColors={tickerColors}
-								customLegendName="Tickers"
+								customLegendName="Ticker"
 								customLegendOptions={tickers}
 								hideDefaultLegend
 								valueSymbol="$"
@@ -130,7 +130,7 @@ const PageView = ({
 							{/* <BarChart
 								chartData={flowsData}
 								hideDefaultLegend
-								customLegendName="Tickers"
+								customLegendName="Ticker"
 								customLegendOptions={tickers}
 								stacks={barChartStacks}
 								stackColors={tickerColors}
