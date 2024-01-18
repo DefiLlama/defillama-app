@@ -127,7 +127,7 @@ const PageView = ({
 								</Denomination>
 							</Filters>
 
-							<BarChart
+							{/* <BarChart
 								chartData={flowsData}
 								hideDefaultLegend
 								customLegendName="Tickers"
@@ -136,7 +136,7 @@ const PageView = ({
 								stackColors={tickerColors}
 								valueSymbol="$"
 								title=""
-							/>
+							/> */}
 						</>
 					) : null}
 				</TabContainer>
