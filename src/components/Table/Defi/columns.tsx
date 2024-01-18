@@ -1436,16 +1436,16 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 				</Name>
 			)
 		},
-		size: 50
+		size: 100
 	},
 	{
-		header: 'Name',
-		accessorKey: 'etf_name',
+		header: 'Issuer',
+		accessorKey: 'issuer',
 		cell: ({ getValue }) => <>{getValue()}</>,
 		meta: {
 			align: 'end'
 		},
-		size: 300
+		size: 160
 	},
 	{
 		header: 'AUM',
@@ -1454,7 +1454,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 150
+		size: 120
 	},
 	{
 		header: 'Volume',
@@ -1463,7 +1463,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 150
+		size: 120
 	},
 	{
 		header: 'Flows',
@@ -1472,7 +1472,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 150
+		size: 120
 	},
 	{
 		header: 'Price',
@@ -1481,7 +1481,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 50
+		size: 100
 	},
 	{
 		header: 'Terminal fee',
@@ -1493,7 +1493,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 50
+		size: 120
 	},
 	{
 		header: 'Custodian',
@@ -1502,7 +1502,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 110
+		size: 120
 	}
 ]
 
