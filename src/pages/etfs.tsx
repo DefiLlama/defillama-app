@@ -28,7 +28,7 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-export const getStaticProps = withPerformanceLogging('lsd', async () => {
+export const getStaticProps = withPerformanceLogging('etfs', async () => {
 	const data = await getETFData()
 
 	return {
@@ -85,7 +85,7 @@ const PageView = ({
 								chartData={areaChartDataAum}
 								stacks={tickers}
 								stackColors={tickerColors}
-								customLegendName="TICKER"
+								customLegendName="Tickers"
 								customLegendOptions={tickers}
 								hideDefaultLegend
 								valueSymbol="$"
@@ -100,7 +100,7 @@ const PageView = ({
 								chartData={areaChartDataVolume}
 								stacks={tickers}
 								stackColors={tickerColors}
-								customLegendName="TICKER"
+								customLegendName="Tickers"
 								customLegendOptions={tickers}
 								hideDefaultLegend
 								valueSymbol="$"
@@ -130,7 +130,7 @@ const PageView = ({
 							<BarChart
 								chartData={flowsData}
 								hideDefaultLegend
-								customLegendName="Protocol"
+								customLegendName="Tickers"
 								customLegendOptions={tickers}
 								stacks={barChartStacks}
 								stackColors={tickerColors}
