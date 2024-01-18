@@ -60,7 +60,9 @@ export function ChainContainer({
 	stablecoinsData,
 	inflowsData,
 	userData,
-	devMetricsData
+	devMetricsData,
+	chainTokenInfo,
+	chainTreasury
 }) {
 	const {
 		fullProtocolsList,
@@ -112,6 +114,23 @@ export function ChainContainer({
 		useGetProtocolsFeesAndRevenueByChain(selectedChain)
 
 	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
+
+	const { totalValueUSD, valueChangeUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
+		denomination,
+		selectedChain,
+		chainGeckoId,
+		volumeData,
+		feesAndRevenueData,
+		stablecoinsData,
+		inflowsData,
+		userData,
+		raisesChart,
+		chart,
+		extraTvlCharts,
+		extraTvlsEnabled,
+		devMetricsData,
+		chainTokenInfo
+	})
 
 	const chartOptions = [
 		{
@@ -173,24 +192,18 @@ export function ChainContainer({
 			id: 'devsCommits',
 			name: 'Commits',
 			isVisible: devMetricsData ? true : false
+		},
+		{
+			id: 'chainTokenPrice',
+			name: `${chainTokenInfo?.tokenSymbol} Price`,
+			isVisible: chartDatasets?.[0]?.chainTokenMcapData?.length ? true : false
+		},
+		{
+			id: 'chainTokenMcap',
+			name: `${chainTokenInfo?.tokenSymbol} MCap`,
+			isVisible: chartDatasets?.[0]?.chainTokenMcapData?.length ? true : false
 		}
 	]
-
-	const { totalValueUSD, valueChangeUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
-		denomination,
-		selectedChain,
-		chainGeckoId,
-		volumeData,
-		feesAndRevenueData,
-		stablecoinsData,
-		inflowsData,
-		userData,
-		raisesChart,
-		chart,
-		extraTvlCharts,
-		extraTvlsEnabled,
-		devMetricsData
-	})
 
 	const finalProtocolsList = React.useMemo(() => {
 		const list =
@@ -429,6 +442,43 @@ export function ChainContainer({
 													<tr>
 														<th>Transactions (24h)</th>
 														<td>{formattedNum(userData.transactions, false)}</td>
+													</tr>
+												) : null}
+											</>
+										}
+									/>
+								) : null}
+								{chainTreasury ? (
+									<RowWithSubRows
+										rowHeader={'Treasury'}
+										rowValue={formattedNum(chainTreasury?.tvl, true)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{chainTreasury.tokenBreakdowns?.stablecoins ? (
+													<tr>
+														<th>Stablecoins</th>
+														<td>{formattedNum(chainTreasury.tokenBreakdowns?.stablecoins, true)}</td>
+													</tr>
+												) : null}
+												{chainTreasury.tokenBreakdowns?.majors ? (
+													<tr>
+														<th>Major Tokens (ETH, BTC)</th>
+														<td>{formattedNum(chainTreasury.tokenBreakdowns?.majors, true)}</td>
+													</tr>
+												) : null}
+												{chainTreasury.tokenBreakdowns?.others ? (
+													<tr>
+														<th>Other Tokens</th>
+														<td>{formattedNum(chainTreasury.tokenBreakdowns?.others, true)}</td>
+													</tr>
+												) : null}
+												{chainTreasury.tokenBreakdowns?.ownTokens ? (
+													<tr>
+														<th>Own Tokens</th>
+														<td>{formattedNum(chainTreasury.tokenBreakdowns?.ownTokens, true)}</td>
 													</tr>
 												) : null}
 											</>

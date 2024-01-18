@@ -26,7 +26,8 @@ export const useFetchChainChartData = ({
 	chart,
 	extraTvlCharts,
 	extraTvlsEnabled,
-	devMetricsData
+	devMetricsData,
+	chainTokenInfo
 }) => {
 	const router = useRouter()
 
@@ -62,6 +63,10 @@ export const useFetchChainChartData = ({
 		userData.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
 	)
 
+	const { data: priceChartData, loading: fetchingPriceChartData } = useDenominationPriceHistory(
+		chainTokenInfo?.gecko_id
+	)
+
 	const isFetchingChartData =
 		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
 		fetchingVolumeChartDataByChain ||
@@ -69,7 +74,8 @@ export const useFetchChainChartData = ({
 		fetchingStablecoinsChartDataByChain ||
 		fetchingInflowsChartData ||
 		fetchingUsersChartData ||
-		fetchingTransactionsChartData
+		fetchingTransactionsChartData ||
+		fetchingPriceChartData
 
 	const globalChart = useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -126,6 +132,16 @@ export const useFetchChainChartData = ({
 			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
 			: volumeChart
 
+		const finalPriceChart = isNonUSDDenomination
+			? null
+			: priceChartData?.prices?.map(([date, price]) => [dayjs(Math.floor(date)).utc().startOf('day').unix(), price])
+		const finalMcapChart = isNonUSDDenomination
+			? null
+			: priceChartData?.market_caps?.map(([date, price]) => [
+					dayjs(Math.floor(date)).utc().startOf('day').unix(),
+					price
+			  ])
+
 		const finalFeesAndRevenueChart = isNonUSDDenomination
 			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
 					date,
@@ -156,7 +172,9 @@ export const useFetchChainChartData = ({
 				developersChart: finalDevsChart,
 				commitsChart: finalCommitsChart,
 				txsData,
-				priceData
+				priceData,
+				chainTokenPriceData: finalPriceChart,
+				chainTokenMcapData: finalMcapChart
 			}
 		]
 
@@ -173,7 +191,9 @@ export const useFetchChainChartData = ({
 		txsData,
 		usersData,
 		volumeChart,
-		devMetricsData?.report?.monthly_devs
+		devMetricsData?.report?.monthly_devs,
+		priceChartData?.prices,
+		priceChartData?.market_caps
 	])
 
 	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)

@@ -26,7 +26,9 @@ const colors = {
 	transactions: '#307622',
 	bridges: '#ffb12b',
 	developers: '#ff6969',
-	devsCommits: '#39601f'
+	devsCommits: '#39601f',
+	tokenPrice: '#c7da1f',
+	tokenMcap: '#1fda38'
 }
 
 const colorsArray = [
@@ -314,6 +316,42 @@ export default function AreaChart({
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
+
+			if (route.chainTokenPrice === 'true' && data?.chainTokenPriceData && denomination === 'USD') {
+				series.push({
+					name: namePrefix + 'Token Price',
+					chartId: 'Token Price',
+					symbol: 'none',
+					type: 'line',
+					data: [],
+					yAxisIndex: 12,
+					itemStyle: {
+						color: getColor(isCompare) || colors.tokenPrice
+					}
+				})
+				data?.chainTokenPriceData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+
+			if (route.chainTokenMcap === 'true' && data?.chainTokenMcapData) {
+				series.push({
+					name: namePrefix + 'Token Mcap',
+					chartId: 'Token Mcap',
+					symbol: 'none',
+					type: 'line',
+					data: [],
+					yAxisIndex: 13,
+					itemStyle: {
+						color: getColor(isCompare) || colors.tokenMcap
+					}
+				})
+				data?.chainTokenMcapData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
@@ -349,7 +387,9 @@ export default function AreaChart({
 			Transactions: 65,
 			Inflows: 55,
 			Developers: 55,
-			Commits: 60
+			Commits: 60,
+			'Token Price': 55,
+			'Token Mcap': 55
 		}
 		let offsetAcc = -60
 
@@ -488,6 +528,24 @@ export default function AreaChart({
 						...yAxis.axisLabel,
 						formatter: (value) => value + ' commits',
 						color: () => (isCompare ? '#fff' : colors.devsCommits)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Token Price',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.tokenPrice)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Token Mcap',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.tokenMcap)
 					}
 				}
 			].map((yAxis: any, i) => {

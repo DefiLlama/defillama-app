@@ -122,6 +122,7 @@ export const ICONS_PALETTE_CDN = 'https://icons.llamao.fi/palette'
 // export const ICONS_PALETTE_CDN = 'https://palette.llamao.fi/palette'
 
 export const COINS_API = 'https://coins.llama.fi/prices'
+export const PRICE_CHART_API = 'https://coins.llama.fi/chart'
 
 export const TWITTER_POSTS_API = 'https://defillama-datasets.llama.fi/dev-metrics/twitter-files'
 
