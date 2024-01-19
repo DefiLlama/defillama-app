@@ -27,6 +27,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { EmbedChart } from '~/components/Popover'
 import { primaryColor } from '~/constants/colors'
 import { useFetchChainChartData } from './useFetchChainChartData'
+import { last } from 'lodash'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -484,6 +485,20 @@ export function ChainContainer({
 											</>
 										}
 									/>
+								) : null}
+
+								{chartDatasets[0]?.chainTokenMcapData?.length ? (
+									<tr>
+										<th>{chainTokenInfo?.tokenSymbol} Price</th>
+										<td>{formattedNum(last(chartDatasets[0]?.chainTokenPriceData)[1], true)}</td>
+									</tr>
+								) : null}
+
+								{chartDatasets[0]?.chainTokenMcapData?.length ? (
+									<tr>
+										<th>{chainTokenInfo?.tokenSymbol} Market Cap</th>
+										<td>{formattedNum(last(chartDatasets[0]?.chainTokenMcapData)[1], true)}</td>
+									</tr>
 								) : null}
 							</tbody>
 						</StatsTable2>
