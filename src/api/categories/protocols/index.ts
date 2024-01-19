@@ -773,10 +773,8 @@ export async function getETFData() {
 	overview
 		.map((i) => i.ticker)
 		.forEach((ticker, index) => {
-			tickerColors[ticker] = getColorFromNumber(index, 10)
+			tickerColors[ticker] = getColorFromNumber(index, 11)
 		})
-
-	tickerColors['Others'] = '#AAAAAA'
 
 	const tickers = Object.keys(tickerColors)
 

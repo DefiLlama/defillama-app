@@ -49,7 +49,7 @@ const PageView = ({
 	tickers,
 	tickerColors
 }) => {
-	const [tab, setTab] = React.useState('aum')
+	const [tab, setTab] = React.useState('flows')
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
 
 	const flowsData = groupDataByDays(flowsHistory, groupBy, tickers, true)
@@ -65,14 +65,14 @@ const PageView = ({
 
 			<ChartsContainer>
 				<TabList>
-					<Tab onClick={() => setTab('aum')} aria-selected={tab === 'aum'}>
-						AUM
+					<Tab onClick={() => setTab('flows')} aria-selected={tab === 'flows'}>
+						Flows
 					</Tab>
 					<Tab onClick={() => setTab('volume')} aria-selected={tab === 'volume'}>
 						Volume
 					</Tab>
-					<Tab onClick={() => setTab('flows')} aria-selected={tab === 'flows'}>
-						Flows
+					<Tab onClick={() => setTab('aum')} aria-selected={tab === 'aum'}>
+						AUM
 					</Tab>
 				</TabList>
 
