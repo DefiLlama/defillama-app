@@ -49,7 +49,7 @@ const PageView = ({
 	tickers,
 	tickerColors
 }) => {
-	const [tab, setTab] = React.useState('flows')
+	const [tab, setTab] = React.useState('volume')
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
 
 	const flowsData = groupDataByDays(flowsHistory, groupBy, tickers, true)
@@ -65,9 +65,9 @@ const PageView = ({
 
 			<ChartsContainer>
 				<TabList>
-					<Tab onClick={() => setTab('flows')} aria-selected={tab === 'flows'}>
+					{/* <Tab onClick={() => setTab('flows')} aria-selected={tab === 'flows'}>
 						Flows
-					</Tab>
+					</Tab> */}
 					<Tab onClick={() => setTab('volume')} aria-selected={tab === 'volume'}>
 						Volume
 					</Tab>
@@ -127,7 +127,7 @@ const PageView = ({
 								</Denomination>
 							</Filters>
 
-							<BarChart
+							{/* <BarChart
 								chartData={flowsData}
 								hideDefaultLegend
 								customLegendName="Ticker"
@@ -136,7 +136,7 @@ const PageView = ({
 								stackColors={tickerColors}
 								valueSymbol="$"
 								title=""
-							/>
+							/> */}
 						</>
 					) : null}
 				</TabContainer>
