@@ -225,12 +225,6 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Repeat size={16} />
 	},
-	// 'BTC ETFs': {
-	// 	main: [],
-	// 	...defaultToolsAndFooterLinks,
-	// 	icon: <TrendingUp size={16} />,
-	// 	newTag: true
-	// },
 	NFT: {
 		main: [
 			{ name: 'Collections', path: '/nfts' },
@@ -323,6 +317,12 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Layers size={16} />
+	},
+	'Crypto ETFs': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <TrendingUp size={16} />,
+		newTag: true
 	}
 	// NFTs: {
 	// 	main: [],
@@ -338,6 +338,6 @@ export const linksWithNoSubMenu = [
 	{ name: 'Governance', url: '/governance' },
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
-	{ name: 'ETH Liquid Staking', url: '/lsd' }
-	// { name: 'BTC ETFs', url: '/etfs' }
+	{ name: 'ETH Liquid Staking', url: '/lsd' },
+	{ name: 'Crypto ETFs', url: '/crypto-etf' }
 ]
