@@ -65,14 +65,14 @@ const PageView = ({
 
 			<ChartsContainer>
 				<TabList>
-					{/* <Tab onClick={() => setTab('flows')} aria-selected={tab === 'flows'}>
-						Flows
-					</Tab> */}
 					<Tab onClick={() => setTab('volume')} aria-selected={tab === 'volume'}>
 						Volume
 					</Tab>
 					<Tab onClick={() => setTab('aum')} aria-selected={tab === 'aum'}>
 						AUM
+					</Tab>
+					<Tab onClick={() => setTab('flows')} aria-selected={tab === 'flows'}>
+						Flows
 					</Tab>
 				</TabList>
 
@@ -127,7 +127,7 @@ const PageView = ({
 								</Denomination>
 							</Filters>
 
-							{/* <BarChart
+							<BarChart
 								chartData={flowsData}
 								hideDefaultLegend
 								customLegendName="Ticker"
@@ -136,7 +136,7 @@ const PageView = ({
 								stackColors={tickerColors}
 								valueSymbol="$"
 								title=""
-							/> */}
+							/>
 						</>
 					) : null}
 				</TabContainer>
