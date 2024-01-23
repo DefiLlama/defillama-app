@@ -28,6 +28,8 @@ import { EmbedChart } from '~/components/Popover'
 import { primaryColor } from '~/constants/colors'
 import { useFetchChainChartData } from './useFetchChainChartData'
 import { last } from 'lodash'
+import { formatRaise, formatRaisedAmount } from '../Defi/Protocol/utils'
+import { sluggify } from '~/utils/cache-client'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -63,7 +65,8 @@ export function ChainContainer({
 	userData,
 	devMetricsData,
 	chainTokenInfo,
-	chainTreasury
+	chainTreasury,
+	chainRaises
 }) {
 	const {
 		fullProtocolsList,
@@ -486,6 +489,50 @@ export function ChainContainer({
 										}
 									/>
 								) : null}
+								{chainRaises && chainRaises.length > 0 && (
+									<RowWithSubRows
+										protocolName={null}
+										dataType={'Raises'}
+										helperText={null}
+										rowHeader={'Total Raised'}
+										rowValue={formatRaisedAmount(chainRaises.reduce((sum, r) => sum + Number(r.amount), 0))}
+										subRows={
+											<>
+												{chainRaises
+													.sort((a, b) => a.date - b.date)
+													.map((raise) => (
+														<React.Fragment key={raise.date + raise.amount}>
+															<tr>
+																<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
+																<td data-subvalue>
+																	{raise.source ? (
+																		<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+																			{formatRaise(raise)}
+																		</a>
+																	) : (
+																		formatRaise(raise)
+																	)}
+																</td>
+															</tr>
+															<tr key={raise.source}>
+																<td colSpan={2} className="investors">
+																	<b>Investors</b>:{' '}
+																	{(raise as any).leadInvestors
+																		.concat((raise as any).otherInvestors)
+																		.map((i, index, arr) => (
+																			<React.Fragment key={'raised from ' + i}>
+																				<a href={`/raises/${sluggify(i)}`}>{i}</a>
+																				{index < arr.length - 1 ? ', ' : ''}
+																			</React.Fragment>
+																		))}
+																</td>
+															</tr>
+														</React.Fragment>
+													))}
+											</>
+										}
+									/>
+								)}
 
 								{chartDatasets[0]?.chainTokenMcapData?.length ? (
 									<tr>

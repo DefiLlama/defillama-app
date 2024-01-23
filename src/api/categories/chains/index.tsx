@@ -155,7 +155,7 @@ export async function getChainPageData(chain?: string) {
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
-		!chain || chain === 'All' ? fetchWithErrorLogging(RAISES_API).then((r) => r.json()) : null,
+		fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
 		!chain || chain === 'All'
 			? null
 			: fetch(`${DEV_METRICS_API}/chain/${chain?.toLowerCase()}.json`)
@@ -167,6 +167,7 @@ export async function getChainPageData(chain?: string) {
 	const chainTreasury = treasuriesData?.find(
 		(t) => t?.name?.toLowerCase().startsWith(`${chain?.toLowerCase()}`) && ['Services', 'Chain'].includes(t?.category)
 	)
+	const chainRaises = raisesData?.raises?.filter((r) => r?.defillamaId === `chain#${chain?.toLowerCase()}`)
 
 	const filteredProtocols = formatProtocolsData({
 		chain,
@@ -205,7 +206,7 @@ export async function getChainPageData(chain?: string) {
 		})
 
 	const raisesChart =
-		raisesData && raisesData?.raises
+		(!chain || chain === 'All') && raisesData && raisesData?.raises
 			? mapValues(
 					groupBy(raisesData.raises, (val) => val.date),
 					(raises) => sumBy(raises, 'amount')
@@ -217,6 +218,7 @@ export async function getChainPageData(chain?: string) {
 			...(chain && { chain }),
 			chainTokenInfo: currentChain ?? null,
 			chainTreasury: chainTreasury ?? null,
+			chainRaises: chainRaises ?? null,
 			chainsSet: chains,
 			chainOptions: ['All'].concat(chains).map((label) => ({ label, to: setSelectedChain(label) })),
 			protocolsList,
