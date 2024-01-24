@@ -1,3 +1,7 @@
+import groupBy from 'lodash/groupBy'
+import mapValues from 'lodash/mapValues'
+import sumBy from 'lodash/sumBy'
+
 import {
 	ACTIVE_USERS_API,
 	CHAINS_API,
@@ -13,6 +17,8 @@ import {
 import { formatProtocolsData } from '../protocols/utils'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchOverCache } from '~/utils/perf'
+import { maxAgeForNext } from '~/api'
 import { getDexVolumeByChain } from '../dexs'
 import { getCexVolume } from '../adaptors/utils'
 import { getFeesAndRevenueByChain } from '../fees'
@@ -20,10 +26,7 @@ import { getPeggedDominance, getPercentChange } from '~/utils'
 import { buildPeggedChartData } from '~/utils/stablecoins'
 import { getPeggedOverviewPageData } from '../stablecoins'
 import { getBridgeOverviewPageData } from '../bridges'
-import { maxAgeForNext } from '~/api'
-import groupBy from 'lodash/groupBy'
-import mapValues from 'lodash/mapValues'
-import sumBy from 'lodash/sumBy'
+import { getOverview } from '../adaptors'
 
 const getExtraTvlCharts = (data) => {
 	const {
@@ -80,7 +83,8 @@ export async function getChainPageData(chain?: string) {
 		newUsers,
 		raisesData,
 		devMetricsData,
-		treasuriesData
+		treasuriesData,
+		cgData
 	] = await Promise.all([
 		fetchWithErrorLogging(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
@@ -161,9 +165,13 @@ export async function getChainPageData(chain?: string) {
 			: fetch(`${DEV_METRICS_API}/chain/${chain?.toLowerCase()}.json`)
 					.then((r) => r.json())
 					.catch(() => null),
-		!chain || chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json())
+		!chain || chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
+		currentChain?.gecko_id
+			? fetchOverCache(
+					`https://pro-api.coingecko.com/api/v3/coins/${currentChain?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+			  ).then((res) => res.json())
+			: {}
 	])
-
 	const chainTreasury = treasuriesData?.find(
 		(t) => t?.name?.toLowerCase().startsWith(`${chain?.toLowerCase()}`) && ['Services', 'Chain'].includes(t?.category)
 	)
@@ -216,7 +224,7 @@ export async function getChainPageData(chain?: string) {
 	return {
 		props: {
 			...(chain && { chain }),
-			chainTokenInfo: currentChain ?? null,
+			chainTokenInfo: currentChain ? { ...currentChain, ...(cgData || {}) } : null,
 			chainTreasury: chainTreasury ?? null,
 			chainRaises: chainRaises ?? null,
 			chainsSet: chains,

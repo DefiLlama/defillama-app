@@ -28,7 +28,9 @@ const colors = {
 	developers: '#ff6969',
 	devsCommits: '#39601f',
 	tokenPrice: '#c7da1f',
-	tokenMcap: '#1fda38'
+	tokenMcap: '#1fda38',
+	derivatives: '#305a00',
+	aggregators: '#ff7b00'
 }
 
 const colorsArray = [
@@ -352,6 +354,41 @@ export default function AreaChart({
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
+
+			if (route.aggregators === 'true' && data?.aggregatorsData) {
+				series.push({
+					name: namePrefix + 'Aggregators Volume',
+					chartId: 'Aggregators',
+					symbol: 'none',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 14,
+					itemStyle: {
+						color: getColor(isCompare) || colors.aggregators
+					}
+				})
+				data?.aggregatorsData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+			if (route.derivatives === 'true' && data?.derivativesData) {
+				series.push({
+					name: namePrefix + 'Derivatives Volume',
+					chartId: 'Derivatives',
+					symbol: 'none',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 15,
+					itemStyle: {
+						color: getColor(isCompare) || colors.derivatives
+					}
+				})
+				data?.derivativesData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
@@ -389,7 +426,9 @@ export default function AreaChart({
 			Developers: 55,
 			Commits: 60,
 			'Token Price': 55,
-			'Token Mcap': 55
+			'Token Mcap': 55,
+			Aggregators: 55,
+			Derivatives: 55
 		}
 		let offsetAcc = -60
 
@@ -546,6 +585,24 @@ export default function AreaChart({
 					axisLabel: {
 						...yAxis.axisLabel,
 						color: () => (isCompare ? '#fff' : colors.tokenMcap)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Aggregators',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.aggregators)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Derivatives',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.derivatives)
 					}
 				}
 			].map((yAxis: any, i) => {

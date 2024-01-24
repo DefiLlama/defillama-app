@@ -6,7 +6,11 @@ import {
 	useFetchProtocolTransactions,
 	useFetchProtocolUsers
 } from '~/api/categories/protocols/client'
-import { useGetFeesAndRevenueChartDataByChain, useGetVolumeChartDataByChain } from '~/api/categories/chains/client'
+import {
+	useGetFeesAndRevenueChartDataByChain,
+	useGetItemOverviewByChain,
+	useGetVolumeChartDataByChain
+} from '~/api/categories/chains/client'
 import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
 import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
 import { useMemo } from 'react'
@@ -67,6 +71,16 @@ export const useFetchChainChartData = ({
 		chainTokenInfo?.gecko_id
 	)
 
+	const { data: derivativesData, loading: fetchingDerivativesData } = useGetItemOverviewByChain(
+		selectedChain,
+		'derivatives'
+	)
+
+	const { data: aggregatorsData, loading: fetchingAggregatorsData } = useGetItemOverviewByChain(
+		selectedChain,
+		'aggregators'
+	)
+
 	const isFetchingChartData =
 		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
 		fetchingVolumeChartDataByChain ||
@@ -75,7 +89,9 @@ export const useFetchChainChartData = ({
 		fetchingInflowsChartData ||
 		fetchingUsersChartData ||
 		fetchingTransactionsChartData ||
-		fetchingPriceChartData
+		fetchingPriceChartData ||
+		fetchingAggregatorsData ||
+		fetchingDerivativesData
 
 	const globalChart = useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -142,6 +158,9 @@ export const useFetchChainChartData = ({
 					price
 			  ])
 
+		const finalAggregatorsChart = isNonUSDDenomination ? null : aggregatorsData?.totalDataChart
+		const finalDerivativesChart = isNonUSDDenomination ? null : derivativesData?.totalDataChart
+
 		const finalFeesAndRevenueChart = isNonUSDDenomination
 			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
 					date,
@@ -174,7 +193,9 @@ export const useFetchChainChartData = ({
 				txsData,
 				priceData,
 				chainTokenPriceData: finalPriceChart,
-				chainTokenMcapData: finalMcapChart
+				chainTokenMcapData: finalMcapChart,
+				aggregatorsData: finalAggregatorsChart,
+				derivativesData: finalDerivativesChart
 			}
 		]
 
@@ -193,7 +214,9 @@ export const useFetchChainChartData = ({
 		volumeChart,
 		devMetricsData?.report?.monthly_devs,
 		priceChartData?.prices,
-		priceChartData?.market_caps
+		priceChartData?.market_caps,
+		derivativesData,
+		aggregatorsData
 	])
 
 	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)

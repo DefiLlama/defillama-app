@@ -206,7 +206,9 @@ export function ChainContainer({
 			id: 'chainTokenMcap',
 			name: `${chainTokenInfo?.tokenSymbol} MCap`,
 			isVisible: chartDatasets?.[0]?.chainTokenMcapData?.length ? true : false
-		}
+		},
+		{ id: 'derivatives', name: 'Derivatives Volume', isVisible: chartDatasets?.[0]?.derivativesData ? true : false },
+		{ id: 'aggregators', name: 'Aggregators Volume', isVisible: chartDatasets?.[0]?.aggregatorsData ? true : false }
 	]
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -534,17 +536,23 @@ export function ChainContainer({
 									/>
 								)}
 
-								{chartDatasets[0]?.chainTokenMcapData?.length ? (
+								{chainTokenInfo?.market_data ? (
 									<tr>
 										<th>{chainTokenInfo?.tokenSymbol} Price</th>
-										<td>{formattedNum(last(chartDatasets[0]?.chainTokenPriceData)[1], true)}</td>
+										<td>{formattedNum(chainTokenInfo?.market_data?.current_price?.usd, true)}</td>
 									</tr>
 								) : null}
 
-								{chartDatasets[0]?.chainTokenMcapData?.length ? (
+								{chainTokenInfo?.market_data ? (
 									<tr>
 										<th>{chainTokenInfo?.tokenSymbol} Market Cap</th>
-										<td>{formattedNum(last(chartDatasets[0]?.chainTokenMcapData)[1], true)}</td>
+										<td>{formattedNum(chainTokenInfo?.market_data?.market_cap?.usd, true)}</td>
+									</tr>
+								) : null}
+								{chainTokenInfo?.market_data ? (
+									<tr>
+										<th>{chainTokenInfo?.tokenSymbol} FDV</th>
+										<td>{formattedNum(chainTokenInfo?.market_data?.fully_diluted_valuation?.usd, true)}</td>
 									</tr>
 								) : null}
 							</tbody>
