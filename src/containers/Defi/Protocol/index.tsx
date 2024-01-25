@@ -356,7 +356,7 @@ function ProtocolContainer({
 
 	const { usdInflows: usdInflowsParam, denomination } = router.query
 
-	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
+	const { explorers } = getBlockExplorer(address)
 
 	const [bobo, setBobo] = React.useState(false)
 
@@ -1336,7 +1336,7 @@ function ProtocolContainer({
 								</FlexRow>
 							</Section>
 						)}
-						{(address || protocolData.gecko_id || blockExplorerLink) && (
+						{(address || protocolData.gecko_id || explorers) && (
 							<Section>
 								<h3>Token Information</h3>
 
@@ -1364,19 +1364,20 @@ function ProtocolContainer({
 										</Link>
 									)}
 
-									{blockExplorerLink && (
-										<Link href={blockExplorerLink} passHref>
-											<Button
-												as="a"
-												target="_blank"
-												rel="noopener noreferrer"
-												useTextColor={true}
-												color={backgroundColor}
-											>
-												<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
-											</Button>
-										</Link>
-									)}
+									{explorers &&
+										explorers.map(({ blockExplorerLink, blockExplorerName }) => (
+											<Link href={blockExplorerLink} passHref key={blockExplorerName}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
+													<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
+												</Button>
+											</Link>
+										))}
 								</LinksWrapper>
 							</Section>
 						)}
@@ -1497,19 +1498,17 @@ function ProtocolContainer({
 										<span>{formattedNum(hacksData.returnedFunds, true)}</span>
 									</FlexRow>
 
-									{blockExplorerLink && (
-										<Link href={hacksData.source} passHref>
-											<Button
-												as="a"
-												target="_blank"
-												rel="noopener noreferrer"
-												useTextColor={true}
-												color={backgroundColor}
-											>
-												<span>Source</span> <ArrowUpRight size={14} />
-											</Button>
-										</Link>
-									)}
+									<Link href={hacksData.source} passHref>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
+											<span>Source</span> <ArrowUpRight size={14} />
+										</Button>
+									</Link>
 								</HackDataWrapper>
 							</Section>
 						) : null}
