@@ -3,16 +3,16 @@ import { capitalizeFirstLetter } from '.'
 const blockExplorers = {
 	ethereum: [
 		['https://etherscan.io/token/', 'Etherscan'],
-		['https://eth.blockscout.com/token/', 'BlockScout'],
+		['https://eth.blockscout.com/token/', 'Blockscout'],
 	],
 	bsc: ['https://bscscan.com/address/', 'Bscscan'],
 	xdai: [
 		['https://gnosisscan.io/address/', 'GnosisScan'],
-		['https://gnosis.blockscout.com/token/', 'BlockScout'],
+		['https://gnosis.blockscout.com/token/', 'Blockscout'],
 	],
 	optimism: [
 		['https://optimistic.etherscan.io/address/', 'Etherscan'],
-		['https://optimism.blockscout.com/token/', 'BlockScout'],
+		['https://optimism.blockscout.com/token/', 'Blockscout'],
 	],
 	avax: ['https://snowtrace.io/address/', 'Snowtrace'],
 	fantom: ['https://ftmscan.com/address/', 'FTMscan'],
@@ -81,7 +81,7 @@ const blockExplorers = {
 	loop: ['https://explorer.mainnetloop.com/token/', 'LoopExplorer'],
 	era: [
 		['https://explorer.zksync.io/address/', 'zkSync Explorer'],
-		['https://zksync.blockscout.com/token/', 'BlockScout'],
+		['https://zksync.blockscout.com/token/', 'Blockscout'],
 	],
 	map: ['https://maposcan.io/address/', 'Maposcan'],
 	conflux: ['https://evm.confluxscan.net/address/', 'Conflux Scan'],
@@ -95,7 +95,7 @@ const blockExplorers = {
 	mantle: ['https://explorer.mantle.xyz/address/', 'Mantle Explorer'],
 	base: [
 		['https://basescan.org/address/', 'Basescan'],
-		['https://base.blockscout.com/token/', 'BlockScout'],
+		['https://base.blockscout.com/token/', 'Blockscout'],
 	],
 	op_bnb: ['https://mainnet.opbnbscan.com/address/', 'opBNBScan'],
 	mvc: ['https://scan.microvisionchain.com/token/', 'MVCScan'],
