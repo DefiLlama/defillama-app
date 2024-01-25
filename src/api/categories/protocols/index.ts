@@ -257,6 +257,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			},
 			futures: futures ?? {},
 			categories: emissionCategories,
+			categoriesBreakdown: res?.categories ?? null,
 			hallmarks: {
 				documented: documentedData.data?.length > 0 ? [[Date.now() / 1000, 'Today']] : [],
 				realtime: realTimeData.data?.length > 0 ? [[Date.now() / 1000, 'Today']] : []

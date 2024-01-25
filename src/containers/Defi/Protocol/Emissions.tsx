@@ -1,9 +1,11 @@
+import { omit, sum } from 'lodash'
 import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import styled from 'styled-components'
 import { useGetProtocolEmissions } from '~/api/categories/protocols/client'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import OptionToggle from '~/components/OptionToggle'
 import { ChartsWrapper, LazyChart, Section } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter, formatUnlocksEvent, formattedNum } from '~/utils'
 
@@ -17,6 +19,7 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 
 export interface IEmission {
 	categories: { documented: Array<string>; realtime: Array<string> }
+	categoriesBreakdown: Record<string, string[]>
 	chartData: { documented: Array<{ [label: string]: number }>; realtime: Array<{ [label: string]: number }> }
 	sources: Array<string>
 	notes: Array<string>
@@ -53,13 +56,42 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 }
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
 	const [dataType, setDataType] = useState<'documented' | 'realtime'>('documented')
+	const [isTreasuryIncluded, setIsTreasuryIncluded] = useState(false)
 	const cutEventsList = !isEmissionsPage && data.events?.length > MAX_LENGTH_EVENTS_LIST
 	const styles = isEmissionsPage ? {} : { background: 'none', padding: 0, border: 'none' }
-
 	if (!data) return null
+
+	const chartData = data.chartData?.[dataType]
+		?.map((chartItem) => {
+			return Object.entries(chartItem).reduce((acc, [key, value]) => {
+				if (data?.categoriesBreakdown?.noncirculating?.includes(key)) {
+					if (isTreasuryIncluded) acc[key] = value
+					else return acc
+				}
+				acc[key] = value
+				return acc
+			}, {})
+		})
+		.filter((chartItem) => sum(Object.values(omit(chartItem, 'date'))) > 0)
+
+	const pieChartData = data.pieChartData?.[dataType]
+		?.map((pieChartItem) => {
+			if (data?.categoriesBreakdown?.noncirculating?.includes(pieChartItem.name)) {
+				if (isTreasuryIncluded) return pieChartItem
+				else return null
+			}
+			return pieChartItem
+		})
+		.filter(Boolean)
 
 	return (
 		<>
+			<OptionToggle
+				name="Include Treasury"
+				toggle={() => setIsTreasuryIncluded((prev) => !prev)}
+				help="Include Non-Circulating Supply in the chart."
+				enabled={isTreasuryIncluded}
+			/>
 			{data.chartData?.realtime?.length > 0 && (
 				<Filters style={{ marginLeft: 'auto' }}>
 					<Denomination as="button" active={dataType === 'documented'} onClick={() => setDataType('documented')}>
@@ -76,7 +108,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<LazyChart>
 						<PieChart
 							title="Allocation"
-							chartData={data.pieChartData[dataType]}
+							chartData={pieChartData}
 							stackColors={data.stackColors[dataType]}
 							usdFormat={false}
 						/>
@@ -87,7 +119,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						<AreaChart
 							title="Vesting Schedule"
 							stacks={data.categories[dataType]}
-							chartData={data.chartData[dataType]}
+							chartData={chartData}
 							hideDefaultLegend
 							hallmarks={data.hallmarks[dataType]}
 							stackColors={data.stackColors[dataType]}
