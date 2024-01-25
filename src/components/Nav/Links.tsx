@@ -279,7 +279,9 @@ export const navLinks: ILinks = {
 			{ name: 'Chains', path: '/dexs/chains' },
 			{ name: 'Aggregators', path: '/aggregators', newTag: true },
 			{ name: 'Derivatives', path: '/derivatives' },
-			{ name: 'Options', path: '/options' }
+			{ name: 'Derivatives (Chains)', path: '/derivatives/chains' },
+			{ name: 'Options', path: '/options' },
+			{ name: 'Options (Chains)', path: '/options/chains' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart size={16} />
