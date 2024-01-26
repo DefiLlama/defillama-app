@@ -1716,11 +1716,12 @@ const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol,
 			})
 		)
 		.join('\n\n')
+		.trim()
 
 	return (
 		<Tooltip content={tooltipContent} placement="left">
 			<EventWrapper>
-				{noOfTokens && unlockPercent ? (
+				{tokenValue ? (
 					<span>
 						<span>{unlockPercent ? formatPercentage(unlockPercent) + '%' : ''}</span>
 						<span>{formattedNum(tokenValue, true)}</span>
