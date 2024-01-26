@@ -1,17 +1,7 @@
-import {
-	capitalizeFirstLetter,
-	getColorFromNumber,
-	getPercentChange,
-	getPrevTvlFromChart,
-	standardizeProtocolName
-} from '~/utils'
-import type {
-	IFusedProtocolData,
-	IOracleProtocols,
-	IProtocolResponse,
-	LiteProtocol,
-	TCompressedChain
-} from '~/api/types'
+import { mapValues } from 'lodash'
+
+import { capitalizeFirstLetter, getColorFromNumber, standardizeProtocolName } from '~/utils'
+import type { IFusedProtocolData, IOracleProtocols, IProtocolResponse } from '~/api/types'
 import {
 	ACTIVE_USERS_API,
 	CATEGORY_API,
@@ -38,7 +28,6 @@ import {
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
-import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -360,7 +349,7 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 }
 
 // - used in /oracles and /oracles/[name]
-export async function getOraclePageData(oracle = null) {
+export async function getOraclePageData(oracle = null, chain = null) {
 	try {
 		const [{ chart = {}, oracles = {} }, { protocols }] = await Promise.all(
 			[ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
@@ -374,13 +363,28 @@ export async function getOraclePageData(oracle = null) {
 			}
 		}
 
-		const filteredProtocols = formatProtocolsData({ oracle, protocols })
+		const filteredProtocols = formatProtocolsData({ oracle, protocols, chain })
 
 		let chartData = Object.entries(chart)
 
 		const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
 			.sort((a, b) => b[1].tvl - a[1].tvl)
 			.map((orc) => orc[0])
+
+		const chainsByOracle = mapValues(
+			protocols.reduce((acc, curr) => {
+				if (curr.oracles) {
+					curr.oracles.forEach((oracle) => {
+						if (!acc[oracle]) {
+							acc[oracle] = []
+						}
+						acc[oracle].push(curr.chains)
+					})
+				}
+				return acc
+			}, {}),
+			(chains) => [...new Set(chains.flat())]
+		)
 
 		if (oracle) {
 			let data = []
@@ -413,6 +417,7 @@ export async function getOraclePageData(oracle = null) {
 
 		return {
 			props: {
+				chainsByOracle,
 				tokens: oraclesUnique,
 				tokenLinks: oracleLinks,
 				token: oracle,

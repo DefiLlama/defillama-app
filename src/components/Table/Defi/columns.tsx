@@ -55,6 +55,17 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 		}
 	},
 	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="" disableLinks iconType="chain" />,
+		size: 200,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Chains secured by the oracle'
+		}
+	},
+	{
 		header: 'Protocols Secured',
 		accessorKey: 'protocolsSecured',
 		meta: {
