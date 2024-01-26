@@ -16,7 +16,6 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
-		"@sentry/nextjs": "^7.34.0",
 		"@tanstack/react-table": "^8.9.2",
 		"@tanstack/react-virtual": "^3.0.1",
 		"ariakit": "^2.0.0-next.43",
@@ -27,11 +26,11 @@
 		"fathom-client": "^3.4.1",
 		"ioredis": "^5.3.2",
 		"lodash": "^4.17.21",
-		"next": "12.3.1",
+		"next": "14.1.0",
 		"polished": "^4.2.2",
-		"react": "^17.0.2",
+		"react": "18.2.0",
 		"react-datepicker": "^4.16.0",
-		"react-dom": "^17.0.2",
+		"react-dom": "^18.2.0",
 		"react-feather": "^2.0.10",
 		"react-intersection-observer": "^9.2.2",
 		"react-markdown": "^8.0.3",
@@ -54,7 +53,7 @@
 		"@types/styled-components": "^5.1.25",
 		"@types/swagger-ui-react": "^4.11.0",
 		"eslint": "8.6.0",
-		"eslint-config-next": "^12.3.1",
+		"eslint-config-next": "^14.1.0",
 		"eslint-config-prettier": "^8.3.0",
 		"prettier": "^2.5.1",
 		"typescript": "4.7.4"
