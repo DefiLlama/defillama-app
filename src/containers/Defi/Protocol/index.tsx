@@ -480,13 +480,13 @@ function ProtocolContainer({
 	const stakedAmount =
 		historicalChainTvls?.['staking']?.tvl?.length > 0
 			? historicalChainTvls?.['staking']?.tvl[historicalChainTvls?.['staking']?.tvl.length - 1]?.totalLiquidityUSD ??
-			  null
+				null
 			: null
 
 	const borrowedAmount =
 		historicalChainTvls?.['borrowed']?.tvl?.length > 0
 			? historicalChainTvls?.['borrowed']?.tvl[historicalChainTvls?.['borrowed']?.tvl.length - 1]?.totalLiquidityUSD ??
-			  null
+				null
 			: null
 
 	const defaultSelectedId = router.asPath.split('#')?.[1] ?? 'information'
@@ -1158,7 +1158,7 @@ function ProtocolContainer({
 
 				<Bobo onClick={() => setBobo(!bobo)}>
 					<span className="visually-hidden">Enable Goblin Mode</span>
-					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
+					<Image src={boboLogo} width="34" height="34" alt="bobo cheers" />
 				</Bobo>
 			</StatsSection>
 

@@ -18,7 +18,15 @@ interface CustomLinkProps extends BasicLinkProps {
 	target?: React.HTMLAttributeAnchorTarget
 }
 
-const WrappedLink = ({ external, children, ...rest }: { external: boolean; children: React.ReactNode }) => (
+const WrappedLink = ({
+	external,
+	children,
+	...rest
+}: {
+	external?: boolean
+	children: React.ReactNode
+	href?: string
+}) => (
 	<RebassLink
 		target={external ? '_blank' : null}
 		rel={external ? 'noopener noreferrer' : null}
@@ -44,7 +52,7 @@ export const CustomLinkStyle = styled.a`
 export const CustomLink = ({ href, children, target, ...props }: CustomLinkProps) => {
 	// Must add passHref to Link
 	return (
-		<RouterLink href={href} passHref prefetch={false}>
+		<RouterLink href={href} passHref prefetch={false} legacyBehavior>
 			<CustomLinkStyle target={target} {...props}>
 				{children}
 			</CustomLinkStyle>
@@ -53,7 +61,7 @@ export const CustomLink = ({ href, children, target, ...props }: CustomLinkProps
 }
 
 export const BasicLink = ({ href, children, shallow, ...props }: BasicLinkProps) => (
-	<RouterLink href={href} passHref prefetch={false} shallow={shallow}>
+	<RouterLink href={href} passHref prefetch={false} shallow={shallow} legacyBehavior>
 		<a {...props}>{children}</a>
 	</RouterLink>
 )

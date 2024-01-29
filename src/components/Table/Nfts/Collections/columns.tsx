@@ -31,7 +31,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 			<>
 				{info.getValue() ? (
 					<ValueWithETH>
-						<span>{info.getValue()}</span>
+						<span>{info.getValue() as string}</span>
 						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
 							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
@@ -73,7 +73,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 			<>
 				{info.getValue() ? (
 					<ValueWithETH>
-						<span>{info.getValue()}</span>
+						<span>{info.getValue() as string}</span>
 						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
 							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
@@ -97,7 +97,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 			<>
 				{info.getValue() ? (
 					<ValueWithETH>
-						<span>{info.getValue()}</span>
+						<span>{info.getValue() as string}</span>
 						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
 							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>

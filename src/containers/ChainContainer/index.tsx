@@ -220,7 +220,7 @@ export function ChainContainer({
 						parentProtocols,
 						volumeData: chainProtocolsVolumes,
 						feesData: chainProtocolsFees
-				  })
+					})
 				: protocolsList
 
 		const isValidTvlRange =
@@ -581,8 +581,8 @@ export function ChainContainer({
 																			? 'false'
 																			: 'true'
 																		: router.query[id] === 'true'
-																		? 'false'
-																		: 'true',
+																			? 'false'
+																			: 'true',
 																	router
 																)
 															}}
@@ -645,7 +645,7 @@ export function ChainContainer({
 						)}
 					</ChartWrapper>
 					<EasterLlama onClick={activateEasterEgg}>
-						<Image src={llamaLogo} width="41px" height="34px" alt="Activate Easter Egg" />
+						<Image src={llamaLogo} width="41" height="34" alt="Activate Easter Egg" />
 					</EasterLlama>
 				</StatsSection>
 
