@@ -53,7 +53,7 @@ function PluginPage() {
 					</TYPE.main>
 					<TYPE.main>
 						If you have any feedback or bug reports, please log them here:{' '}
-						<Link legacyBehavior href="https://form.typeform.com/to/tJkEGYxQ">
+						<Link external href="https://form.typeform.com/to/tJkEGYxQ">
 							Feedback Form
 						</Link>
 					</TYPE.main>
@@ -68,11 +68,11 @@ function PluginPage() {
 					</TYPE.main>
 					<TYPE.main>
 						The DefiLlama Plugin uses{' '}
-						<Link legacyBehavior href="https://posthog.com/">
+						<Link external href="https://posthog.com/">
 							PostHog
 						</Link>{' '}
 						to track anonymized product analytics. Visit{' '}
-						<Link legacyBehavior href="https://posthog.com/privacy">
+						<Link external href="https://posthog.com/privacy">
 							PostHog’s Privacy Policy
 						</Link>{' '}
 						to learn more about how they handle data.

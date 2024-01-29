@@ -30,14 +30,10 @@ function AboutPage() {
 					<Divider />
 					<TYPE.main>
 						DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
-						<Link legacyBehavior href="https://github.com/DefiLlama/DefiLlama-Adapters">
-							open-source
-						</Link>{' '}
-						and maintained by a team of passionate individuals and{' '}
-						<Link legacyBehavior href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors">
-							contributors
-						</Link>{' '}
-						from hundreds of protocols.
+						<Link href="https://github.com/DefiLlama/DefiLlama-Adapters">open-source</Link> and maintained by a team of
+						passionate individuals and{' '}
+						<Link href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors">contributors</Link> from
+						hundreds of protocols.
 					</TYPE.main>
 					<TYPE.main>Our focus is on accurate data and transparent methodology.</TYPE.main>
 				</DashGrid>
@@ -48,29 +44,13 @@ function AboutPage() {
 					<Divider />
 					<TYPE.main>
 						The best way to contact us and the one in which you'll get a reply the fastest is through our{' '}
-						<Link legacyBehavior href="https://discord.defillama.com">
-							Discord
-						</Link>
-						. If you want communication to be private you can use{' '}
-						<Link legacyBehavior href="https://twitter.com/defillama">
-							Twitter
-						</Link>{' '}
-						as a slower alternative, or, as an even slower option, you can also contact us by email at{' '}
-						<Link legacyBehavior href="mailto:0xngmi@llama.fi">
-							0xngmi@llama.fi
-						</Link>{' '}
-						or{' '}
-						<Link legacyBehavior href="mailto:contact@llama-corp.com">
-							contact@llama-corp.com
-						</Link>
-						.
+						<Link href="https://discord.defillama.com">Discord</Link>. If you want communication to be private you can
+						use <Link href="https://twitter.com/defillama">Twitter</Link> as a slower alternative, or, as an even slower
+						option, you can also contact us by email at <Link href="mailto:0xngmi@llama.fi">0xngmi@llama.fi</Link> or{' '}
+						<Link href="mailto:contact@llama-corp.com">contact@llama-corp.com</Link>.
 					</TYPE.main>
 					<TYPE.main>
-						DeFiLlama is a part of{' '}
-						<Link legacyBehavior href="https://twitter.com/llamacorporg">
-							Llama Corp
-						</Link>
-						.
+						DeFiLlama is a part of <Link href="https://twitter.com/llamacorporg">Llama Corp</Link>.
 					</TYPE.main>
 					<TYPE.main>
 						Llama Corp is a collective building out the decentralized future with data analytics, infrastructure,
@@ -83,18 +63,11 @@ function AboutPage() {
 					<TYPE.main area="account">Acknowledgements</TYPE.main>
 					<Divider />
 					<TYPE.main>
-						Thanks to{' '}
-						<Link legacyBehavior href="https://www.coingecko.com/">
-							CoinGecko
-						</Link>{' '}
-						for the continued support.
+						Thanks to <Link href="https://www.coingecko.com/">CoinGecko</Link> for the continued support.
 					</TYPE.main>
 					<Divider />
 					<TYPE.main>
-						DeFiLlama&apos;s design is based on{' '}
-						<Link legacyBehavior href="https://github.com/Uniswap/uniswap-info">
-							Uniswap.info
-						</Link>
+						DeFiLlama&apos;s design is based on <Link href="https://github.com/Uniswap/uniswap-info">Uniswap.info</Link>
 					</TYPE.main>
 				</DashGrid>
 			</Panel>

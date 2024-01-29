@@ -219,7 +219,6 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 							<LinksWrapper>
 								<Link
 									legacyBehavior
-									legacyBehavior
 									href={`https://www.coingecko.com/en/coins/${props.protocolSummary.gecko_id}`}
 									passHref
 								>
