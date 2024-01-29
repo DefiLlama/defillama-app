@@ -343,7 +343,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: 'Deposited',
-		accessorKey: 'withdrawn',
+		accessorKey: 'deposited',
 		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
 		size: 120,
 		meta: {
@@ -352,7 +352,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: 'Withdrawn',
-		accessorKey: 'deposited',
+		accessorKey: 'withdrawn',
 		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
 		size: 120,
 		meta: {
@@ -404,7 +404,7 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: 'Deposited',
-		accessorKey: 'withdrawn',
+		accessorKey: 'deposited',
 		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
 		size: 120,
 		meta: {
@@ -413,7 +413,7 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: 'Withdrawn',
-		accessorKey: 'deposited',
+		accessorKey: 'withdrawn',
 		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
 		size: 120,
 		meta: {
