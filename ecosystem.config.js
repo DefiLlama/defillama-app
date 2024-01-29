@@ -2,7 +2,7 @@ module.exports = {
 	apps: [
 		{
 			script: 'yarn start',
-			instances: 4,
+			instances: 8,
 			name: 'defillama.com'
 		}
 	]

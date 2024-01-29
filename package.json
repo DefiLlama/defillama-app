@@ -45,14 +45,14 @@
 		"uuid": "^8.3.2"
 	},
 	"devDependencies": {
-		"@next/bundle-analyzer": "^14.1.0",
+		"@next/bundle-analyzer": "14.1.0",
 		"@types/lodash": "^4.14.198",
 		"@types/node": "20.11.10",
 		"@types/react": "18.2.48",
 		"@types/react-datepicker": "4.19.5",
 		"@types/swagger-ui-react": "^4.11.0",
 		"eslint": "8.56.0",
-		"eslint-config-next": "^14.1.0",
+		"eslint-config-next": "14.1.0",
 		"eslint-config-prettier": "^9.1.0",
 		"prettier": "^3.2.4",
 		"tsx": "^4.7.0",
