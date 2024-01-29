@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import styled from 'styled-components'
 import { useYieldApp } from '~/hooks'
 import { LogoWrapper, Header } from '../shared'

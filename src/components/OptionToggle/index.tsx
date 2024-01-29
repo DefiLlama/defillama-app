@@ -2,7 +2,7 @@ import { CSSProperties } from 'react'
 import ReactSwitch from 'react-switch'
 import styled from 'styled-components'
 import HeadHelp from '~/components/HeadHelp'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import Loading from '~/assets/loading_circle.svg'
 import LocalLoader from '../LocalLoader'
 

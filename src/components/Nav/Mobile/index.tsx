@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { Header, LogoWrapper } from '../shared'
