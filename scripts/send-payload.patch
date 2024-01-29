@@ -1,0 +1,14 @@
+--- ../node_modules/next/dist/server/send-payload.js
++++ ../node_modules/next/dist/server/send-payload.js
+@@ -56,7 +56,9 @@
+         res.setHeader("X-Powered-By", "Next.js");
+     }
+     if (typeof revalidate !== "undefined") {
+-        res.setHeader("Cache-Control", (0, _revalidate.formatRevalidate)(revalidate));
++        if (!(typeof revalidate === "number" && revalidate > 0)) {
++            res.setHeader("Cache-Control", (0, _revalidate.formatRevalidate)(revalidate));
++        }
+     }
+     const payload = result.isDynamic ? null : result.toUnchunkedString();
+     if (payload !== null) {
+\ No newline at end of file

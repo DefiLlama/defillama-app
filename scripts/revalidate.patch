@@ -1,0 +1,15 @@
+--- ../node_modules/next/dist/server/lib/revalidate.js
++++ ../node_modules/next/dist/server/lib/revalidate.js
+@@ -13,9 +13,9 @@
+     if (revalidate === 0) {
+         return "private, no-cache, no-store, max-age=0, must-revalidate";
+     } else if (typeof revalidate === "number") {
+-        return `s-maxage=${revalidate}, stale-while-revalidate`;
++        // return `s-maxage=${revalidate}, stale-while-revalidate`;
+     }
+-    return `s-maxage=${_constants.CACHE_ONE_YEAR}, stale-while-revalidate`;
++    return `s-maxage=${_constants.CACHE_ONE_YEAR}`;
+ }
+ 
+ //# sourceMappingURL=revalidate.js.map
+\ No newline at end of file

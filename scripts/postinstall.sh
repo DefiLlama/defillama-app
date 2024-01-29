@@ -14,8 +14,8 @@ if ! grep -q '"next": "14.1.0"' package.json; then
   exit 1
 fi
 
-# patch ./node_modules/next/dist/server/send-payload/revalidate-headers.js <scripts/revalidate-headers.patch
-# patch ./node_modules/next/dist/server/response-cache/index.js <scripts/response-cache.patch
-# patch ./node_modules/next/dist/server/base-server.js <scripts/base-server.patch
+patch ./node_modules/next/dist/server/send-payload.js <scripts/send-payload.patch
+patch ./node_modules/next/dist/server/lib/revalidate.js <scripts/revalidate.patch
+patch ./node_modules/next/dist/server/base-server.js <scripts/base-server.patch
 
 echo "TODO: Patched Next.js"

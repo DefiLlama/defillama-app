@@ -1,5 +1,5 @@
---- ./node_modules/next/dist/server/base-server.js
-+++ ./node_modules/next/dist/server/base-server.js
+--- ../node_modules/next/dist/server/base-server.js
++++ ../node_modules/next/dist/server/base-server.js
 @@ -1007,6 +1007,7 @@
      }
      async renderToResponseWithComponentsImpl({ req, res, pathname, renderOpts: opts }, { components, query }) {
