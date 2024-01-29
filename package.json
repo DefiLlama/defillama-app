@@ -16,7 +16,6 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
-		"@ariakit/react": "^0.4.1",
 		"@tanstack/react-table": "^8.9.2",
 		"@tanstack/react-virtual": "^3.0.1",
 		"ariakit": "^2.0.0-next.43",
