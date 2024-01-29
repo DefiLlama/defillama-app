@@ -269,7 +269,7 @@ export function ChainContainer({
 					style={{ marginRight: '0.25rem', display: 'inline' }}
 				/>
 				{'  '}We've released our{' '}
-				<Link href={`/nfts`}>
+				<Link legacyBehavior href={`/nfts`}>
 					<a>
 						NFT dashboard <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
 					</a>
@@ -314,6 +314,7 @@ export function ChainContainer({
 								</span>
 
 								<Link
+									legacyBehavior
 									href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
 										.filter((t) => t[1] === true)
 										.map((t) => `${t[0]}=true`)

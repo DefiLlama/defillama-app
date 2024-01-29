@@ -854,6 +854,7 @@ export default function ProtocolChart({
 					<Filters color={color} style={{ marginRight: 'auto' }}>
 						{chartDenominations.map((D) => (
 							<Link
+								legacyBehavior
 								href={realPathname + `denomination=${D.symbol}` + (groupBy ? `&groupBy=${groupBy}` : '')}
 								key={D.symbol}
 								shallow
@@ -871,6 +872,7 @@ export default function ProtocolChart({
 					<>
 						<Filters color={color}>
 							<Link
+								legacyBehavior
 								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=daily'}
 								shallow
 								passHref
@@ -878,6 +880,7 @@ export default function ProtocolChart({
 								<Denomination active={groupBy === 'daily' || !groupBy}>Daily</Denomination>
 							</Link>
 							<Link
+								legacyBehavior
 								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=weekly'}
 								shallow
 								passHref
@@ -885,6 +888,7 @@ export default function ProtocolChart({
 								<Denomination active={groupBy === 'weekly'}>Weekly</Denomination>
 							</Link>
 							<Link
+								legacyBehavior
 								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=monthly'}
 								shallow
 								passHref
@@ -892,6 +896,7 @@ export default function ProtocolChart({
 								<Denomination active={groupBy === 'monthly'}>Monthly</Denomination>
 							</Link>
 							<Link
+								legacyBehavior
 								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=cumulative'}
 								shallow
 								passHref

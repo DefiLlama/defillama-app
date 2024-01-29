@@ -90,7 +90,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 					{logo ? <TokenLogo logo={logo} data-lgonly /> : <FallbackLogo />}
 
 					{row.subRows?.length === 0 ? (
-						<Link href={`royalties/${row.original.defillamaId}`}>
+						<Link legacyBehavior href={`royalties/${row.original.defillamaId}`}>
 							<span>{value}</span>
 						</Link>
 					) : (

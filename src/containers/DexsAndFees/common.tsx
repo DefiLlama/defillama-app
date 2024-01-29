@@ -225,7 +225,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						{props.chartTypes && (
 							<Filters color={'#4f8fea'}>
 								{props.chartTypes.map((dataType) => (
-									<Link href={`/options?dataType=${dataType}`} key={dataType} shallow passHref>
+									<Link legacyBehavior href={`/options?dataType=${dataType}`} key={dataType} shallow passHref>
 										<FlatDenomination active={dataType === props.selectedType}>{dataType}</FlatDenomination>
 									</Link>
 								))}

@@ -102,7 +102,7 @@ export const ProtocolChart = ({
 			{childProtocols && childProtocols.length > 0 && (
 				<OtherProtocols>
 					{tabs.map((p) => (
-						<Link href={`/${type}/${standardizeProtocolName(p)}`} key={p} passHref>
+						<Link legacyBehavior href={`/${type}/${standardizeProtocolName(p)}`} key={p} passHref>
 							<ProtocolLink active={router.asPath === `/${type}/${standardizeProtocolName(p)}`} color={'#fff'}>
 								{p}
 							</ProtocolLink>

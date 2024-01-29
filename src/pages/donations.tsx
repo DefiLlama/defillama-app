@@ -65,7 +65,7 @@ function PressPage({ protocols }) {
 								['Chainlist', 'https://gitcoin.co/grants/7791/chainlist']
 							].map((el) => (
 								<li key={el[0]}>
-									<Link href={el[1]} external>
+									<Link legacyBehavior href={el[1]} external>
 										{el[0]}
 									</Link>
 								</li>
@@ -80,7 +80,7 @@ function PressPage({ protocols }) {
 						<ul>
 							{protocols.map((p) => (
 								<li key={p.name}>
-									<Link href={p.url} external>
+									<Link legacyBehavior href={p.url} external>
 										{p.name}
 									</Link>
 								</li>

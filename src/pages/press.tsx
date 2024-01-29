@@ -84,10 +84,14 @@ function PressPage() {
 					<Divider />
 					<TYPE.main>
 						DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
-						<Link href="https://github.com/DefiLlama/DefiLlama-Adapters">open-source</Link> and maintained by a team of
-						passionate individuals and{' '}
-						<Link href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors">contributors</Link> from
-						hundreds of protocols.
+						<Link legacyBehavior href="https://github.com/DefiLlama/DefiLlama-Adapters">
+							open-source
+						</Link>{' '}
+						and maintained by a team of passionate individuals and{' '}
+						<Link legacyBehavior href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors">
+							contributors
+						</Link>{' '}
+						from hundreds of protocols.
 					</TYPE.main>
 					<TYPE.main>Our focus is on accurate data and transparent methodology.</TYPE.main>
 				</DashGrid>
@@ -97,12 +101,25 @@ function PressPage() {
 					<TYPE.main area="account">Contact</TYPE.main>
 					<Divider />
 					<TYPE.main>
-						Contact us on <Link href="https://twitter.com/defillama">Twitter</Link> or{' '}
-						<Link href="https://discord.defillama.com">Discord</Link> or by email{' '}
-						<Link href="mailto:contact@llama-corp.com">contact@llama-corp.com</Link>
+						Contact us on{' '}
+						<Link legacyBehavior href="https://twitter.com/defillama">
+							Twitter
+						</Link>{' '}
+						or{' '}
+						<Link legacyBehavior href="https://discord.defillama.com">
+							Discord
+						</Link>{' '}
+						or by email{' '}
+						<Link legacyBehavior href="mailto:contact@llama-corp.com">
+							contact@llama-corp.com
+						</Link>
 					</TYPE.main>
 					<TYPE.main>
-						DeFiLlama is a part of <Link href="https://twitter.com/llamacorporg">Llama Corp</Link>.
+						DeFiLlama is a part of{' '}
+						<Link legacyBehavior href="https://twitter.com/llamacorporg">
+							Llama Corp
+						</Link>
+						.
 					</TYPE.main>
 					<TYPE.main>
 						Llama Corp is a collective building out the decentralized future with data analytics, infrastructure,
@@ -122,7 +139,7 @@ function PressPage() {
 					</TYPE.main>
 					<PanelWrapper mt={[0, 0, '1rem']}>
 						{pressList.map((imageFilename) => (
-							<Link href={imageFilename[1]} key={imageFilename[0]}>
+							<Link legacyBehavior href={imageFilename[1]} key={imageFilename[0]}>
 								<PressPanel imageFilename={imageFilename[0]} />
 							</Link>
 						))}
@@ -134,7 +151,11 @@ function PressPage() {
 					<TYPE.heading>Branding Assets</TYPE.heading>
 					<Divider />
 					<TYPE.main>
-						You can download all our branding assets from <Link href="/defillama-press-kit.zip">here</Link>.
+						You can download all our branding assets from{' '}
+						<Link legacyBehavior href="/defillama-press-kit.zip">
+							here
+						</Link>
+						.
 					</TYPE.main>
 				</DashGrid>
 			</Panel>

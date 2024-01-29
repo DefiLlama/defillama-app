@@ -412,7 +412,7 @@ export const PeggedAssetInfo = ({
 						<LinksWrapper>
 							{blockExplorerLink !== undefined && (
 								<span>
-									<Link href={blockExplorerLink} passHref>
+									<Link legacyBehavior href={blockExplorerLink} passHref>
 										<Button
 											as="a"
 											target="_blank"
@@ -428,7 +428,7 @@ export const PeggedAssetInfo = ({
 
 							{url && (
 								<span>
-									<Link href={url} passHref>
+									<Link legacyBehavior href={url} passHref>
 										<Button
 											as="a"
 											target="_blank"
@@ -445,7 +445,7 @@ export const PeggedAssetInfo = ({
 
 							{twitter && (
 								<span>
-									<Link href={twitter} passHref>
+									<Link legacyBehavior href={twitter} passHref>
 										<Button
 											as="a"
 											target="_blank"
@@ -462,7 +462,7 @@ export const PeggedAssetInfo = ({
 
 							{wiki && (
 								<span>
-									<Link href={wiki} passHref>
+									<Link legacyBehavior href={wiki} passHref>
 										<Button
 											as="a"
 											target="_blank"
@@ -479,7 +479,7 @@ export const PeggedAssetInfo = ({
 
 							{onCoinGecko === 'true' && (
 								<span>
-									<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} passHref>
+									<Link legacyBehavior href={`https://www.coingecko.com/en/coins/${gecko_id}`} passHref>
 										<Button
 											as="a"
 											target="_blank"
@@ -495,6 +495,7 @@ export const PeggedAssetInfo = ({
 							)}
 
 							<Link
+								legacyBehavior
 								href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
 								passHref
 							>

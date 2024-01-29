@@ -29,7 +29,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 				{data?.otherProtocols?.length > 1 && (
 					<OtherProtocols style={{ margin: '-24px -24px -12px' }}>
 						{data.otherProtocols.map((p) => (
-							<Link href={`/protocol/${standardizeProtocolName(p)}`} key={p} passHref>
+							<Link legacyBehavior href={`/protocol/${standardizeProtocolName(p)}`} key={p} passHref>
 								<ProtocolLink
 									active={router.asPath === `/protocol/${standardizeProtocolName(p)}`}
 									color={backgroundColor}
@@ -50,7 +50,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 
 				<LinksWrapper>
 					{data.url && (
-						<Link href={data.url} passHref>
+						<Link legacyBehavior href={data.url} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 								<span>Website</span> <ArrowUpRight size={14} />
 							</Button>
@@ -58,7 +58,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 					)}
 
 					{data.twitter && (
-						<Link href={`https://twitter.com/${data.twitter}`} passHref>
+						<Link legacyBehavior href={`https://twitter.com/${data.twitter}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 								<span>Twitter</span> <ArrowUpRight size={14} />
 							</Button>
@@ -67,6 +67,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 
 					{data.treasury && (
 						<Link
+							legacyBehavior
 							href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/treasury/${data.treasury}`}
 							passHref
 						>

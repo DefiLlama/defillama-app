@@ -133,7 +133,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 
 export const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
-		<Link href={option.to} prefetch={false} passHref>
+		<Link legacyBehavior href={option.to} prefetch={false} passHref>
 			<NavLink data-active={option.label === activeLink} {...props}>
 				{option.label}
 			</NavLink>

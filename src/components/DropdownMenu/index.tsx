@@ -36,7 +36,7 @@ export function Menu({ options, name, color, isExternal, onItemClick, variant = 
 							<Item>{value}</Item>
 						</a>
 					) : (
-						<Link href={value} key={value + i} passHref>
+						<Link legacyBehavior href={value} key={value + i} passHref>
 							<Item>{value}</Item>
 						</Link>
 					)

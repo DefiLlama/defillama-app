@@ -192,7 +192,7 @@ export default function Protocol({ data, governanceType }) {
 
 				<LinksWrapper>
 					{data.metadata.domain && (
-						<Link href={`https://${data.metadata.domain}`} passHref>
+						<Link legacyBehavior href={`https://${data.metadata.domain}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>Website</span> <ArrowUpRight size={14} />
 							</Button>
@@ -200,7 +200,7 @@ export default function Protocol({ data, governanceType }) {
 					)}
 
 					{data.metadata.twitter && (
-						<Link href={`https://twitter.com/${data.metadata.twitter}`} passHref>
+						<Link legacyBehavior href={`https://twitter.com/${data.metadata.twitter}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>Twitter</span> <ArrowUpRight size={14} />
 							</Button>
@@ -208,7 +208,7 @@ export default function Protocol({ data, governanceType }) {
 					)}
 
 					{data.metadata.github && (
-						<Link href={`https://github.com/${data.metadata.github}`} passHref>
+						<Link legacyBehavior href={`https://github.com/${data.metadata.github}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>Github</span>
 								<ArrowUpRight size={14} />
@@ -217,7 +217,7 @@ export default function Protocol({ data, governanceType }) {
 					)}
 
 					{data.metadata.coingecko && (
-						<Link href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`} passHref>
+						<Link legacyBehavior href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>View on CoinGecko</span> <ArrowUpRight size={14} />
 							</Button>

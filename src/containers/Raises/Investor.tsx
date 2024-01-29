@@ -100,7 +100,7 @@ function RaisesTable({ raises, downloadCsv }) {
 					<DownloadIcon />
 					<span>&nbsp;&nbsp;.csv</span>
 				</DownloadButton>
-				<Link href="https://api.llama.fi/raises" target="_blank">
+				<Link legacyBehavior href="https://api.llama.fi/raises" target="_blank">
 					<DownloadButton>
 						<DownloadIcon />
 						<span>&nbsp;&nbsp;.json</span>

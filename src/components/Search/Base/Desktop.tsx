@@ -115,7 +115,7 @@ const Options = ({ step, filters }: IOptionsProps) => {
 	return (
 		<OptionsWrapper>
 			<p>
-				<Link href={`/${step.route || step.category.toLowerCase()}`} prefetch={false}>
+				<Link legacyBehavior href={`/${step.route || step.category.toLowerCase()}`} prefetch={false}>
 					{step.category}
 				</Link>
 				<ArrowRight size={16} />
