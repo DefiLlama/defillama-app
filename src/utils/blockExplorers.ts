@@ -105,7 +105,8 @@ const blockExplorers = {
 	scroll: ['https://blockscout.scroll.io/address/', 'Scroll Explorer'],
 	radixdlt: ['https://dashboard.radixdlt.com/resource/', 'Radix Dashboard'],
 	lightlink: ['https://phoenix.lightlink.io/token/', 'LightLink Explorer'],
-	zkfair: ['https://scan.zkfair.io/address/', 'Zkfair Explorer']
+	zkfair: ['https://scan.zkfair.io/address/', 'Zkfair Explorer'],
+	bitnet: ['https://btnscan.com/address/', 'BTNScan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
