@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
+import { Header } from '~/Theme'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { formatChartTvlsByDay } from '~/hooks/data'
-import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
+import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance, toK } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
@@ -23,14 +24,21 @@ const chartColors = {
 	TVS: '#4f8fea'
 }
 
-export const getStaticProps = withPerformanceLogging('oracles/[oracle]', async ({ params: { oracle } }) => {
-	const data = await getOraclePageData(oracle)
+export const getStaticProps = withPerformanceLogging(
+	'oracles/[...oracle]',
+	async ({
+		params: {
+			oracle: [oracle, chain]
+		}
+	}) => {
+		const data = await getOraclePageData(oracle, chain)
 
-	return {
-		...data,
-		revalidate: maxAgeForNext([22])
+		return {
+			...data,
+			revalidate: maxAgeForNext([22])
+		}
 	}
-})
+)
 
 export async function getStaticPaths() {
 	const { oracles = {} } = await getOraclePageData()
@@ -46,22 +54,21 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
+const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chainChartData }) => {
 	const [extraTvlsEnabled] = useDefiManager()
-
 	const { protocolsData, finalChartData, totalVolume, volumeChangeUSD } = useMemo(() => {
 		const protocolsData = formatDataWithExtraTvls({
 			data: filteredProtocols,
 			extraTvlsEnabled
 		})
 
-		const finalChartData = formatChartTvlsByDay({ data: chartData, extraTvlsEnabled, key: 'TVS' })
+		const finalChartData = formatChartTvlsByDay({ data: chainChartData || chartData, extraTvlsEnabled, key: 'TVS' })
 
 		const totalVolume = getPrevTvlFromChart2(finalChartData, 0, 'TVS')
 		const tvlPrevDay = getPrevTvlFromChart2(finalChartData, 1, 'TVS')
 		const volumeChangeUSD = getPercentChange(totalVolume, tvlPrevDay)
 		return { protocolsData, finalChartData, totalVolume, volumeChangeUSD }
-	}, [chartData, extraTvlsEnabled, filteredProtocols])
+	}, [chainChartData, chartData, extraTvlsEnabled, filteredProtocols])
 
 	const topToken = {}
 
@@ -79,7 +86,9 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
 	return (
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Oracles', name: token, route: 'oracles' }} />
-
+			<Header>
+				Total Value Secured by {token} {chain ? `on ${chain}` : null}
+			</Header>
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
 					<BreakpointPanel>
@@ -101,7 +110,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
 			</ChartAndValuesWrapper>
 
 			<RowLinksWrapper>
-				<RowLinksWithDropdown links={tokenLinks} activeLink={token} />
+				<RowLinksWithDropdown links={tokenLinks} activeLink={chain || token} />
 			</RowLinksWrapper>
 
 			<ProtocolsTableWithSearch data={protocolsData} />

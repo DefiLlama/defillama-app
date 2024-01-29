@@ -351,7 +351,7 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 // - used in /oracles and /oracles/[name]
 export async function getOraclePageData(oracle = null, chain = null) {
 	try {
-		const [{ chart = {}, oracles = {} }, { protocols }] = await Promise.all(
+		const [{ chart = {}, chainChart = {}, oracles = {} }, { protocols }] = await Promise.all(
 			[ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
 		)
 
@@ -366,6 +366,19 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		const filteredProtocols = formatProtocolsData({ oracle, protocols, chain })
 
 		let chartData = Object.entries(chart)
+		const chainChartData = chain
+			? Object.entries(chainChart)
+					.map(([date, data]) => {
+						const chainName = chain
+						const chainData = Object.entries(data[oracle] || {})
+							.map(([name, value]) =>
+								name.includes(chainName) ? [name.replace(chainName, '').replace('-', '') || 'tvl', value] : null
+							)
+							.filter(Boolean)
+						return Object.values(chainData).length ? [date, Object.fromEntries(chainData)] : null
+					})
+					.filter(Boolean)
+			: null
 
 		const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
 			.sort((a, b) => b[1].tvl - a[1].tvl)
@@ -403,9 +416,13 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			oraclesProtocols[orc] = oracles[orc]?.length
 		}
 
-		let oracleLinks = [{ label: 'All', to: `/oracles` }].concat(
-			oraclesUnique.map((o: string) => ({ label: o, to: `/oracles/${o}` }))
-		)
+		let oracleLinks = oracle
+			? [{ label: 'All chains', to: `/oracles/${oracle}` }].concat(
+					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
+			  )
+			: [{ label: 'All oracles', to: `/oracles` }].concat(
+					oraclesUnique.map((o: string) => ({ label: o, to: `/oracles/${o}` }))
+			  )
 
 		const colors = {}
 
@@ -417,6 +434,8 @@ export async function getOraclePageData(oracle = null, chain = null) {
 
 		return {
 			props: {
+				chain: chain ?? null,
+				chainChartData,
 				chainsByOracle,
 				tokens: oraclesUnique,
 				tokenLinks: oracleLinks,
