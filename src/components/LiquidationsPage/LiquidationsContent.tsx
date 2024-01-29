@@ -55,7 +55,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				</Row>
 				<Bobo onClick={() => setBobo(!bobo)}>
 					<span className="visually-hidden">Enable Goblin Mode</span>
-					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
+					<Image src={boboLogo} width="34" height="34" alt="bobo cheers" />
 				</Bobo>
 				<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />
 			</BreakpointPanel>

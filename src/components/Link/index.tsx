@@ -1,12 +1,11 @@
 import * as React from 'react'
 import { Link as RebassLink } from 'rebass'
 import RouterLink from 'next/link'
-import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import { lighten, darken } from 'polished'
 
 interface BasicLinkProps {
-	href: string
+	href?: string
 	style?: React.CSSProperties
 	children: React.ReactNode
 	shallow?: boolean
@@ -19,7 +18,7 @@ interface CustomLinkProps extends BasicLinkProps {
 	target?: React.HTMLAttributeAnchorTarget
 }
 
-const WrappedLink = ({ external, children, ...rest }) => (
+const WrappedLink = ({ external, children, ...rest }: { external: boolean; children: React.ReactNode }) => (
 	<RebassLink
 		target={external ? '_blank' : null}
 		rel={external ? 'noopener noreferrer' : null}
@@ -30,12 +29,8 @@ const WrappedLink = ({ external, children, ...rest }) => (
 	</RebassLink>
 )
 
-WrappedLink.propTypes = {
-	external: PropTypes.bool
-}
-
 const Link = styled(WrappedLink)`
-	color: ${({ color, theme }) => (color ? color : theme.link)};
+	color: ${({ theme }) => theme.link};
 `
 
 export default Link

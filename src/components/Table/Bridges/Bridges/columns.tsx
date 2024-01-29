@@ -129,7 +129,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue()
 			if (value) {
 				return (
-					<Text as="span" color={value > 0 ? '#3fb950' : '#f85149'}>
+					<Text as="span" color={(value as number) > 0 ? '#3fb950' : '#f85149'}>
 						${formattedNum(info.getValue())}
 					</Text>
 				)
@@ -166,7 +166,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue()
 			if (value) {
 				return (
-					<Text as="span" color={value > 0 ? '#3fb950' : '#f85149'}>
+					<Text as="span" color={(value as number) > 0 ? '#3fb950' : '#f85149'}>
 						${formattedNum(info.getValue())}
 					</Text>
 				)
