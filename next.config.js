@@ -97,6 +97,7 @@ const nextConfig = {
 		const commitHash = require('child_process').execSync('git rev-parse HEAD').toString().trim()
 		return commitHash
 	},
+	cacheMaxMemorySize: 0,
 	experimental: {
 		largePageDataBytes: 6_000_000
 	}
