@@ -108,7 +108,7 @@ const exclude = [
 	'Binance staked ETH',
 	'Coinbase Wrapped Staked ETH',
 	'hBTC',
-	'Mantle Staked ETH',
+	'Mantle Staked ETH'
 ]
 
 export const getStaticProps = withPerformanceLogging('airdrops', async () => {

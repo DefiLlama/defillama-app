@@ -5,6 +5,7 @@
 .next
 out
 /public
+pnpm-lock.yaml
 
 # testing
 /coverage

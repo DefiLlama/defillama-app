@@ -102,9 +102,9 @@ export const aggregateDataByInterval =
 				const v = ((intervalAcc[label] as number) ?? 0) + value
 				if (v !== 0) intervalAcc[label] = v
 				return intervalAcc
-			}, acc[cleanDate] ?? ({} as typeof acc[number]))
+			}, acc[cleanDate] ?? ({} as (typeof acc)[number]))
 			return acc
-		}, {} as typeof chartData[0])
+		}, {} as (typeof chartData)[0])
 
 		return Object.entries(monthBarsDataMap).map(([date, bar]) => ({ ...bar, date }))
 	}
