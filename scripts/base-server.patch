@@ -1,23 +1,24 @@
 --- ./node_modules/next/dist/server/base-server.js
 +++ ./node_modules/next/dist/server/base-server.js
-@@ -444,6 +444,8 @@
-         };
+@@ -1007,6 +1007,7 @@
      }
-     async renderToResponseWithComponents({ req , res , pathname , renderOpts: opts  }, { components , query  }) {
-+        // disable iframe
+     async renderToResponseWithComponentsImpl({ req, res, pathname, renderOpts: opts }, { components, query }) {
+         var _components_Component, _this_nextConfig_i18n, _this_nextConfig_i18n1, _cacheEntry_value;
 +        res.setHeader("X-Frame-Options", "SAMEORIGIN");
-         var ref, ref4, ref5, ref6, ref7;
-         const is404Page = pathname === "/404";
-         const is500Page = pathname === "/500";
-@@ -802,6 +804,11 @@
+         const is404Page = // For edge runtime 404 page, /_not-found needs to be treated as 404 page
+         process.env.NEXT_RUNTIME === "edge" && pathname === "/_not-found" || pathname === "/404";
+         // Strip the internal headers.
+\ No newline at end of file
+@@ -1589,6 +1590,11 @@
              // set x-nextjs-cache header to match the header
              // we set for the image-optimizer
-             res.setHeader("x-nextjs-cache", isManualRevalidate ? "REVALIDATED" : cacheEntry.isMiss ? "MISS" : cacheEntry.isStale ? "STALE" : "HIT");
+             res.setHeader("x-nextjs-cache", isOnDemandRevalidate ? "REVALIDATED" : cacheEntry.isMiss ? "MISS" : cacheEntry.isStale ? "STALE" : "HIT");
 +            if (cacheEntry.isMiss && cacheEntry.revalidate) {
 +                res.setHeader('Expires', new Date(Date.now() + cacheEntry.revalidate * 1000).toUTCString())
 +            } else if (cacheEntry.revalidateAfter) {
 +                res.setHeader("Expires", new Date(cacheEntry.revalidateAfter).toUTCString());
 +            }
          }
-         const { revalidate , value: cachedData  } = cacheEntry;
-         const revalidateOptions = typeof revalidate !== "undefined" && (!this.renderOpts.dev || hasServerProps && !isDataReq) ? {
+         const { value: cachedData } = cacheEntry;
+         // If the cache value is an image, we should error early.
+\ No newline at end of file
