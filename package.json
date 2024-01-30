@@ -6,13 +6,14 @@
 	"homepage": "https://defillama.com",
 	"license": "GPL-3.0-or-later",
 	"scripts": {
-		"analyze": "ANALYZE=true yarn build",
+		"analyze": "ANALYZE=true pnpm build",
 		"postinstall": "./scripts/postinstall.sh",
 		"dev": "next dev",
 		"format": "prettier --write .",
 		"build": "./scripts/build.sh",
-		"start": "./scripts/prestart.sh & next start --keepAliveTimeout 61000",
-		"start:server": "./scripts/prestart.sh & node server.js",
+		"rotate": "./scripts/rotate.sh",
+		"start": "pm2 start",
+		"start:server": "node server.js",
 		"lint": "next lint"
 	},
 	"dependencies": {

@@ -3,7 +3,8 @@ const { parse } = require('url')
 const next = require('next')
 
 const hostname = 'localhost'
-const port = 3000
+const port = process.env.PORT || 3000
+console.log(`> Starting server on http://${hostname}:${port}`)
 // when using middleware `hostname` and `port` must be provided below
 const app = next({ hostname, port })
 const handle = app.getRequestHandler()
