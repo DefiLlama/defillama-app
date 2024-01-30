@@ -4,10 +4,10 @@
 set -a
 [ -f .env ] && . .env
 
-pm2 delete ecosystem.config.js
-
 COMMIT_HASH=$(git rev-parse --short HEAD)
 APP_NAME=dla-$COMMIT_HASH
+
+pm2 delete $APP_NAME
 
 # post message to discord
 if [ -z "$BUILD_STATUS_WEBHOOK" ]; then

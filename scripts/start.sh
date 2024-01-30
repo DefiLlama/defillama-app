@@ -40,7 +40,7 @@ send_message() {
     return
   fi
 
-  curl -H "Content-Type: application/json" -X POST -d '{"content": "'$APP_NAME' startup '$1'"}' $BUILD_STATUS_WEBHOOK
+  curl -H "Content-Type: application/json" -X POST -d "{\"content\": \"$APP_NAME startup $1\"}" $BUILD_STATUS_WEBHOOK
 }
 
 if [ $ONLINE_COUNT -ne $TOTAL_COUNT ]; then
