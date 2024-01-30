@@ -27,3 +27,5 @@ yarn-error.log*
 .gitignore
 .prettierignore
 .eslintignore
+
+.cfcache_cleared
