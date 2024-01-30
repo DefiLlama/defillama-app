@@ -37,3 +37,4 @@ apply_patch() {
 apply_patch ./node_modules/next/dist/server/send-payload.js scripts/send-payload.patch
 apply_patch ./node_modules/next/dist/server/lib/revalidate.js scripts/revalidate.patch
 apply_patch ./node_modules/next/dist/server/base-server.js scripts/base-server.patch
+apply_patch ./node_modules/next/dist/server/response-cache/utils.js scripts/response-cache-utils.patch

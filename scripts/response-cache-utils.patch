@@ -1,0 +1,11 @@
+--- ../node_modules/next/dist/server/response-cache/utils.js
++++ ../node_modules/next/dist/server/response-cache/utils.js
+@@ -50,6 +50,7 @@
+         isMiss: response.isMiss,
+         isStale: response.isStale,
+         revalidate: response.revalidate,
++        revalidateAfter: response.revalidateAfter,
+         value: ((_response_value1 = response.value) == null ? void 0 : _response_value1.kind) === "PAGE" ? {
+             kind: "PAGE",
+             html: _renderresult.default.fromStatic(response.value.html),
+\ No newline at end of file
