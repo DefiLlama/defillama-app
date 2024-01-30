@@ -15,4 +15,4 @@ if [ -z "$BUILD_STATUS_WEBHOOK" ]; then
   exit 0
 fi
 
-curl -H "Content-Type: application/json" -X POST -d '{"content": "App stopped: '$APP_NAME'"}' $BUILD_STATUS_WEBHOOK
+curl -H "Content-Type: application/json" -X POST -d '{"content": "$APP_NAME stopped successfully"}' $BUILD_STATUS_WEBHOOK
