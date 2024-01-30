@@ -12,7 +12,8 @@
 		"format": "prettier --write .",
 		"build": "./scripts/build.sh",
 		"rotate": "./scripts/rotate.sh",
-		"start": "pm2 start",
+		"start": "./scripts/start.sh",
+		"stop": "./scripts/stop.sh",
 		"start:server": "node server.js",
 		"lint": "next lint"
 	},
