@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { exec } from 'child_process'
-import { readFile, writeFile } from 'fs/promises'
+const { exec } = require('child_process')
+const { readFile, writeFile } = require('fs').promises
 
 /**
  * Switches the port that Caddy is reverse-proxying for a given domain.
