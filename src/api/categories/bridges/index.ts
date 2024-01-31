@@ -249,7 +249,6 @@ export async function getBridgeChainsPageData() {
 					const charts = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`).then((resp) =>
 						resp.json()
 					)
-					// can format differently here if needed
 					return { ...charts, name: chain.name }
 				} catch (e) {}
 			}

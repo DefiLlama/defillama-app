@@ -126,7 +126,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		header: '24h Net Flow',
 		accessorKey: 'prevDayNetFlow',
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue() as any
 			if (value) {
 				return (
 					<Text as="span" color={value > 0 ? '#3fb950' : '#f85149'}>
@@ -143,7 +143,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 	},
 	{
 		header: '24h Deposits',
-		accessorKey: 'prevDayUsdWithdrawals',
+		accessorKey: 'prevDayUsdDeposits',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
 		meta: {
@@ -152,7 +152,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 	},
 	{
 		header: '24h Withdrawals',
-		accessorKey: 'prevDayUsdDeposits',
+		accessorKey: 'prevDayUsdWithdrawals',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
 		meta: {
@@ -163,7 +163,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		header: '7d Net Flow',
 		accessorKey: 'prevWeekNetFlow',
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue() as any
 			if (value) {
 				return (
 					<Text as="span" color={value > 0 ? '#3fb950' : '#f85149'}>
