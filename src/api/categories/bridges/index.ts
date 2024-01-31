@@ -250,7 +250,7 @@ export async function getBridgeChainsPageData() {
 						resp.json()
 					)
 					// can format differently here if needed
-					return charts
+					return { ...charts, name: chain.name }
 				} catch (e) {}
 			}
 			throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)

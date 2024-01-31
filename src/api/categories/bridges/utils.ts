@@ -31,6 +31,7 @@ export type DailyBridgeStats = {
 			txs: number
 		}
 	}
+	name?: string
 }
 
 export const bridgePropertiesToKeep = [
@@ -110,7 +111,10 @@ export const formatChainsData = ({
 		const name = chain.name
 		const chartIndex = chainToChartDataIndex[name]
 		const charts = chartDataByChain[chartIndex] ?? null
-		const prevDayData = prevDayDataByChain[chartIndex] ?? null
+		const prevDayData =
+			prevDayDataByChain?.find(({ name }) => {
+				return name === chain.name
+			}) ?? null
 		const prevDayChart = charts?.[charts.length - 1]
 		const prevDayUsdDeposits = prevDayChart?.depositUSD
 		const prevDayUsdWithdrawals = prevDayChart?.withdrawUSD
