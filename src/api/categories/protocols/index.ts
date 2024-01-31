@@ -782,8 +782,11 @@ export async function getETFData() {
 				reformattedData[timestamp] = { date: timestamp }
 			}
 			// relative
-			// reformattedData[timestamp][ticker] = (value / totalValueDay) * 100
-			reformattedData[timestamp][ticker] = value
+			if (fieldName === 'flows') {
+				reformattedData[timestamp][ticker] = value
+			} else {
+				reformattedData[timestamp][ticker] = (value / totalValueDay) * 100
+			}
 		})
 
 		return Object.values(reformattedData)

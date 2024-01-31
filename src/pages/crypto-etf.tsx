@@ -88,8 +88,9 @@ const PageView = ({
 								customLegendName="Ticker"
 								customLegendOptions={tickers}
 								hideDefaultLegend
-								valueSymbol="$"
+								valueSymbol="%"
 								title=""
+								expandTo100Percent={true}
 							/>
 						</ChartsWrapper>
 					) : tab === 'volume' ? (
@@ -103,8 +104,9 @@ const PageView = ({
 								customLegendName="Ticker"
 								customLegendOptions={tickers}
 								hideDefaultLegend
-								valueSymbol="$"
+								valueSymbol="%"
 								title=""
+								expandTo100Percent={true}
 							/>
 						</ChartsWrapper>
 					) : tab === 'flows' ? (
