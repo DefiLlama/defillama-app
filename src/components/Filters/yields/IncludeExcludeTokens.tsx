@@ -180,19 +180,19 @@ const SearchWrapper = styled.div`
 	border-radius: 8px;
 	padding: 8px 0;
 
-	:focus-within {
+	&:focus-within {
 		outline: 1px solid ${({ theme }) => theme.text1};
 	}
 
 	&[data-alwaysdisplay='true'] {
 		display: flex;
 
-		svg {
+		& > svg {
 			display: block;
 		}
 	}
 
-	svg {
+	& > svg {
 		color: #646466;
 	}
 
@@ -230,7 +230,7 @@ const InputWrapper = styled.div`
 		border-radius: 8px;
 		padding: 0 32px;
 
-		:focus-visible {
+		&:focus-visible {
 			outline: none;
 		}
 	}
@@ -246,8 +246,8 @@ const ResultRow = styled.div`
 	color: ${({ theme }) => theme.text1};
 	overflow: hidden;
 
-	:hover,
-	:focus-visible {
+	&:hover,
+	&:focus-visible {
 		background-color: ${({ theme }) => theme.bg2};
 	}
 

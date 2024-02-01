@@ -211,7 +211,7 @@ const TableWrapper = styled(VirtualTable)`
 	table {
 		table-layout: auto;
 
-		tr > :first-child {
+		tr > *:first-child {
 			position: relative;
 		}
 

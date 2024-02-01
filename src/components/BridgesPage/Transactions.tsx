@@ -84,7 +84,7 @@ const DateInputField = styled.div`
 	border-radius: 12px;
 	outline: none;
 
-	::placeholder {
+	&::placeholder {
 		color: ${({ theme }) => theme.text3};
 		font-size: 1rem;
 	}

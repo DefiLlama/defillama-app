@@ -16,7 +16,7 @@ const Item = styled.div`
 		margin-right: 6px;
 	}
 
-	:hover {
+	&:hover {
 		cursor: pointer;
 		background-color: ${({ theme }) => theme.bg2};
 	}

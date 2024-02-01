@@ -41,12 +41,12 @@ export const Tab = styled(AriaktiTab)`
 		border-left: ${({ theme }) => '1px solid ' + theme.divider};
 	}
 
-	:first-child {
+	&:first-child {
 		border-top-left-radius: 12px;
 	}
 
-	:hover,
-	:focus-visible {
+	&:hover,
+	&:focus-visible {
 		background-color: ${({ color }) => transparentize(0.9, color)};
 	}
 `
@@ -79,12 +79,12 @@ export const ProtocolLink = styled.a<IProtocolLink>`
 
 	border-bottom: ${({ active, color, theme }) => '1px solid ' + (active ? color : theme.divider)};
 
-	:first-child {
+	&:first-child {
 		border-top-left-radius: 12px;
 	}
 
-	:hover,
-	:focus-visible {
+	&:hover,
+	&:focus-visible {
 		background-color: ${({ color }) => transparentize(0.9, color)};
 	}
 `

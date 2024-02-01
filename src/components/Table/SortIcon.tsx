@@ -49,11 +49,11 @@ const Caret = styled.span<ICaret>`
 	flex-shrink: 0;
 	position: relative;
 
-	:first-of-type {
+	&:first-of-type {
 		top: 2px;
 	}
 
-	:last-of-type {
+	&:last-of-type {
 		bottom: 2px;
 	}
 `

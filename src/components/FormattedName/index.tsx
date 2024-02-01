@@ -23,7 +23,7 @@ const TextWrapper = styled.span<WrapperProps>`
 	font-size: ${({ fontSize }) => fontSize ?? 'inherit'};
 	font-weight: ${({ fontWeight }) => fontWeight};
 
-	:hover {
+	&:hover {
 		cursor: pointer;
 	}
 

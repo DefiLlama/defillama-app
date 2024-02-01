@@ -8,9 +8,9 @@ const CopyIcon = styled.button`
 	align-items: center;
 	padding: 2px 0;
 
-	:hover,
-	:active,
-	:focus-visible {
+	&:hover,
+	&:active,
+	&:focus-visible {
 		opacity: 0.8;
 	}
 

@@ -10,7 +10,7 @@ export const Header = styled.header`
 	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
 
 	scrollbar-width: none;
-	::-webkit-scrollbar {
+	&::-webkit-scrollbar {
 		display: none;
 	}
 
@@ -38,7 +38,7 @@ export const LogoWrapper = styled.a`
 	transition: transform 0.3s ease;
 	margin-right: auto;
 
-	:focus-visible {
+	&:focus-visible {
 		outline: 1px solid white;
 	}
 
@@ -50,7 +50,7 @@ export const LogoWrapper = styled.a`
 	}
 
 	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		:hover {
+		&:hover {
 			transform: rotate(-5deg);
 		}
 
@@ -73,11 +73,11 @@ export const NavLink = styled(BasicLink)`
 		opacity: 1;
 	}
 
-	:hover {
+	&:hover {
 		opacity: 1;
 	}
 
-	:focus-visible {
+	&:focus-visible {
 		outline: 1px solid ${({ theme }) => theme.text1};
 		opacity: 1;
 	}

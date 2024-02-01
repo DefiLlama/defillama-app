@@ -136,8 +136,8 @@ const Nav = styled.nav`
 			top: 2px;
 		}
 
-		:hover,
-		:focus-visible {
+		&:hover,
+		&:focus-visible {
 			opacity: 1;
 			background-color: ${({ theme }) =>
 				theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};

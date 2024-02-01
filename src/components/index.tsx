@@ -49,7 +49,7 @@ export const StyledAnchor = styled.a`
 	align-items: center;
 	gap: 0.2rem;
 	margin-left: 0.2rem;
-	:hover {
+	&:hover {
 		text-decoration: underline;
 	}
 
@@ -91,14 +91,14 @@ export const BreakpointPanel = styled(Panel)`
 	padding: 18px 25px;
 	justify-content: center;
 
-	& > h1,
-	& > h2 {
+	h1,
+	h2 {
 		min-width: 0;
 		font-weight: 500;
 		font-size: 1rem;
 	}
 
-	& > p {
+	p {
 		margin: 4px 0 -6px;
 		font-weight: 600;
 		font-size: 2rem;
@@ -130,7 +130,7 @@ export const IconWrapper = styled.div`
 	justify-content: center;
 	color: ${({ theme }) => theme.text1};
 
-	:hover {
+	&:hover {
 		cursor: pointer;
 		opacity: 0.7;
 	}
@@ -147,7 +147,7 @@ interface IHover {
 }
 
 export const Hover = styled.div<IHover>`
-	:hover {
+	&:hover {
 		cursor: pointer;
 		opacity: ${({ fade }) => fade && '0.7'};
 	}
@@ -200,7 +200,7 @@ export const SubNavEl = styled.li<ISubNavEl>`
 	font-weight: ${({ isActive }) => (isActive ? 600 : 500)};
 	border-bottom: 1px solid rgba(0, 0, 0, 0);
 
-	:hover {
+	&:hover {
 		cursor: pointer;
 		border-bottom: 1px solid ${({ theme }) => theme.bg3};
 	}
@@ -214,12 +214,12 @@ export const FormSubmitBtn = styled.button`
 	font-weight: 400;
 	border-radius: 8px;
 
-	:hover,
-	:focus-visible {
+	&:hover,
+	&:focus-visible {
 		background: #4190ff;
 	}
 
-	:disabled {
+	&:disabled {
 		opacity: 0.5;
 	}
 `
@@ -277,7 +277,7 @@ export const Checkbox2 = styled.input`
 	place-content: center;
 	cursor: pointer;
 
-	::before {
+	&::before {
 		content: '';
 		width: 0.5em;
 		height: 0.5em;
@@ -288,11 +288,11 @@ export const Checkbox2 = styled.input`
 		clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 	}
 
-	:checked::before {
+	&:checked::before {
 		transform: scale(1);
 	}
 
-	:focus-visible {
+	&:focus-visible {
 		outline-offset: max(2px, 0.15em);
 	}
 `
@@ -316,7 +316,7 @@ export const ToggleWrapper = styled.label`
 
 export const ToggleWrapper2 = styled(ToggleWrapper)`
 	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		:first-of-type {
+		&:first-of-type {
 			margin-left: auto;
 		}
 	}
@@ -342,12 +342,12 @@ export const Tab = styled.button`
 		border-left: ${({ theme }) => '1px solid ' + theme.divider};
 	}
 
-	:first-child {
+	&:first-child {
 		border-top-left-radius: 12px;
 	}
 
-	:hover,
-	:focus-visible {
+	&:hover,
+	&:focus-visible {
 		background-color: ${transparentize(0.9, primaryColor)};
 	}
 `

@@ -14,7 +14,7 @@ const Container = styled.a`
 	flex-direction: column;
 	gap: 12px;
 
-	:hover {
+	&:hover {
 		background-color: ${({ color }) => transparentize(0.8, color)};
 	}
 

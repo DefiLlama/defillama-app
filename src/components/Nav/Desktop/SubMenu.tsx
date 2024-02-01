@@ -101,7 +101,7 @@ const Details = styled.details`
 			left: -4px;
 		}
 
-		:hover {
+		&:hover {
 			background-color: ${({ theme }) =>
 				theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};
 		}
@@ -123,7 +123,7 @@ const MainLink = styled.a`
 	font-weight: 600;
 	opacity: 1 !important;
 
-	:hover {
+	&:hover {
 		& > *[data-mainlinkicon] {
 			animation: ${wiggle} 0.4s ease;
 		}

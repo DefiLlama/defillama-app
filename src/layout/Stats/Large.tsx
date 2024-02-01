@@ -162,7 +162,7 @@ export const AccordionStat = styled.details`
 		gap: 16px;
 	}
 
-	:hover {
+	&:hover {
 		summary {
 			& > *[data-summaryheader] {
 				& > *:first-child {
