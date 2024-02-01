@@ -152,7 +152,7 @@ export default function Popover({ trigger, content, variant = 'primary', color, 
 const CopyContent = styled.div`
 	padding: 8px;
 
-	& > p {
+	p {
 		padding: 8px;
 		background: ${({ theme }) => (theme.mode === 'dark' ? 'black' : 'white')};
 		border-radius: 10px;

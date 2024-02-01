@@ -17,13 +17,13 @@ export const Name = styled.span<INameProps>`
 		left: -2px;
 	}
 
-	& > a {
+	a {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		whitespace: nowrap;
 	}
 
-	& > a:hover {
+	a:hover {
 		text-decoration: underline;
 	}
 

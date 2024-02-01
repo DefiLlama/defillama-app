@@ -345,7 +345,7 @@ export const DialogForm = styled.form`
 
 export const PopoverForm = styled(DialogForm)`
 	@media screen and (min-width: 640px) {
-		& > label {
+		label {
 			margin: 12px 12px 0;
 		}
 	}

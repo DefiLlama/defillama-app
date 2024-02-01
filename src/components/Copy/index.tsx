@@ -14,7 +14,7 @@ const CopyIcon = styled.button`
 		opacity: 0.8;
 	}
 
-	& > svg {
+	svg {
 		color: ${({ theme }) => theme.text1};
 	}
 `

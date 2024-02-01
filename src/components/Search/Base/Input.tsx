@@ -85,7 +85,7 @@ const IconWrapper = styled.button`
 	width: fit-content;
 	padding: 0;
 
-	& > svg {
+	svg {
 		color: ${({ theme }) => theme.text3};
 	}
 
@@ -93,7 +93,7 @@ const IconWrapper = styled.button`
 		top: 8px;
 		left: 8px;
 
-		& > svg {
+		svg {
 			color: #646466;
 		}
 	}

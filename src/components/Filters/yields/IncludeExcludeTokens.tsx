@@ -187,12 +187,12 @@ const SearchWrapper = styled.div`
 	&[data-alwaysdisplay='true'] {
 		display: flex;
 
-		& > svg {
+		svg {
 			display: block;
 		}
 	}
 
-	& > svg {
+	svg {
 		color: #646466;
 	}
 

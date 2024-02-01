@@ -17,7 +17,7 @@ const Header = styled.h1`
 	font-size: revert !important;
 	text-align: center;
 
-	& > a {
+	a {
 		position: relative;
 		top: 4px;
 	}
@@ -32,22 +32,22 @@ const Text = styled.div`
 	white-space: nowrap;
 	text-overflow: ellipsis;
 
-	& > a {
+	a {
 		color: ${({ theme }) => theme.link};
 		text-decoration: underline;
 	}
 
-	& > p {
+	p {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		margin: 0.3rem 0;
 	}
 
-	& > h2 {
+	h2 {
 		margin: 2rem 0 1rem 0;
 	}
 
-	& > h3 {
+	h3 {
 		margin: 1rem 0 0.6rem 0;
 	}
 `
