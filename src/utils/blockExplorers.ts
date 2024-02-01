@@ -124,8 +124,8 @@ export const getBlockExplorer = (address: string = '') => {
 			blockExplorerLink: e[0] + chainAddress,
 			blockExplorerName: e[1]
 		}))
-		blockExplorerLink = explorers[0][0] + chainAddress
-		blockExplorerName = explorers[0][1]
+		blockExplorerLink = explorers[0].blockExplorerLink + chainAddress
+		blockExplorerName = explorers[0].blockExplorerName
 	}
 	chainName = chain
 		? chain
