@@ -944,6 +944,11 @@ export const chainCoingeckoIds = {
 		github: ['galacticcouncil'],
 		symbol: 'HDX',
 		cmcId: '6753'
+	},
+	Flow: {
+		geckoId: 'flow',
+		symbol: 'FLOW',
+		cmcId: '4558'
 	}
 }
 
