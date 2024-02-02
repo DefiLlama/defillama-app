@@ -34,7 +34,7 @@ import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import QuestionHelper from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
-import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS, FEES_SETTINGS, useDefiManager, useTvlAndFeesManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
 	formatPercentage,
@@ -68,6 +68,7 @@ import { StablecoinInfo } from './Stablecoin'
 import { ForksData } from './Forks'
 import { GovernanceData } from './Governance'
 import { useInView } from 'react-intersection-observer'
+import { feesOptions } from '~/components/Filters/protocols/options'
 
 const scams = [
 	'Drachma Exchange',
@@ -233,9 +234,13 @@ interface IProtocolContainerProps {
 	} | null
 	fees30d: number | null
 	revenue30d: number | null
+	tokenTaxesRevenue30d: number | null
+	bribesRevenue30d: number | null
 	allTimeFees: number | null
 	dailyFees: number | null
 	dailyRevenue: number | null
+	dailyBribesRevenue: number | null
+	dailyTokenTaxes: number | null
 	dailyVolume: number | null
 	allTimeVolume: number | null
 	dailyDerivativesVolume: number | null
@@ -308,6 +313,10 @@ function ProtocolContainer({
 	allTimeFees,
 	dailyFees,
 	dailyRevenue,
+	dailyBribesRevenue,
+	dailyTokenTaxes,
+	bribesRevenue30d,
+	tokenTaxesRevenue30d,
 	dailyVolume,
 	allTimeVolume,
 	dailyDerivativesVolume,
@@ -360,7 +369,7 @@ function ProtocolContainer({
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const [extraTvlsEnabled, updater] = useDefiManager()
+	const [extraTvlsEnabled, updater] = useTvlAndFeesManager()
 
 	const { data: twitterData } = useFetchProtocolTwitter(twitter ? twitter : null)
 
@@ -449,6 +458,17 @@ function ProtocolContainer({
 		}
 	)
 
+	const feesToggle = []
+
+	if (dailyBribesRevenue) {
+		feesToggle.push(feesOptions.find((f) => f.key === FEES_SETTINGS.BRIBES))
+	}
+	if (dailyTokenTaxes) {
+		feesToggle.push(feesOptions.find((f) => f.key === FEES_SETTINGS.TOKENTAX))
+	}
+
+	const toggleOptions = [...tvlOptions, ...feesToggle]
+
 	const tvls = Object.entries(tvlsByChain)
 
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
@@ -505,6 +525,18 @@ function ProtocolContainer({
 		return formattedNum(value, true)
 	}
 
+	let revenue30dFinal = revenue30d
+	let dailyRevenueFinal = dailyRevenue
+
+	if (extraTvlsEnabled[FEES_SETTINGS.BRIBES]) {
+		dailyRevenueFinal = dailyRevenue + (dailyBribesRevenue ?? 0)
+		revenue30dFinal = revenue30d + (bribesRevenue30d ?? 0)
+	}
+	if (extraTvlsEnabled[FEES_SETTINGS.TOKENTAX]) {
+		dailyRevenueFinal = dailyRevenue + (dailyTokenTaxes ?? 0)
+		revenue30dFinal = revenue30dFinal + (tokenTaxesRevenue30d ?? 0)
+	}
+
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO
@@ -515,7 +547,7 @@ function ProtocolContainer({
 				isCEX={isCEX}
 			/>
 
-			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
+			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={toggleOptions} />
 
 			{['SyncDEX Finance', 'Avatr', 'SatoshiCoreSwap', 'Opankeswap', 'PolyLend'].includes(name) && (
 				<Announcement warning={true} notCancellable={true}>
@@ -932,12 +964,12 @@ function ProtocolContainer({
 								/>
 							) : null}
 
-							{revenue30d ? (
+							{revenue30dFinal ? (
 								<RowWithSubRows
 									protocolName={protocolData.name}
 									dataType="Revenue"
 									rowHeader="Revenue (annualized)"
-									rowValue={formatPrice(revenue30d * 12.2)}
+									rowValue={formatPrice(revenue30dFinal * 12.2)}
 									helperText={explainAnnualized(helperTexts.revenue)}
 									subRows={
 										<>
@@ -946,10 +978,10 @@ function ProtocolContainer({
 												<td data-subvalue>{formatPrice(revenue30d)}</td>
 											</tr>
 
-											{dailyRevenue ? (
+											{dailyRevenueFinal ? (
 												<tr>
 													<th data-subvalue>{`Revenue 24h`}</th>
-													<td data-subvalue>{formatPrice(dailyRevenue)}</td>
+													<td data-subvalue>{formatPrice(dailyRevenueFinal)}</td>
 												</tr>
 											) : null}
 										</>

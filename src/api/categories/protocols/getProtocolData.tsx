@@ -154,9 +154,13 @@ export const getProtocolDataLite = async (protocol: string) => {
 	})
 
 	const dailyRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyRevenue || 0), 0) ?? null
+	const dailyBribesRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyBribesRevenue || 0), 0) ?? null
+	const dailyTokenTaxes = revenueData?.reduce((acc, curr) => (acc += curr.dailyTokenTaxes || 0), 0) ?? null
 	const dailyFees = feesData?.reduce((acc, curr) => (acc += curr.dailyFees || 0), 0) ?? null
 	const fees30d = feesData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const revenue30d = revenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
+	const bribesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.bribesRevenue30d || 0), 0) ?? null
+	const tokenTaxesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.tokenTaxesRevenue30d || 0), 0) ?? null
 	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const dailyDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
@@ -234,7 +238,11 @@ export const getProtocolDataLite = async (protocol: string) => {
 			},
 			chartDenominations,
 			protocolHasForks: false,
-			hacksData: null
+			hacksData: null,
+			dailyBribesRevenue,
+			dailyTokenTaxes,
+			bribesRevenue30d,
+			tokenTaxesRevenue30d
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -506,9 +514,13 @@ export const getProtocolData = async (protocol: string) => {
 	})
 
 	const dailyRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyRevenue || 0), 0) ?? null
+	const dailyBribesRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyBribesRevenue || 0), 0) ?? null
+	const dailyTokenTaxes = revenueData?.reduce((acc, curr) => (acc += curr.dailyTokenTaxes || 0), 0) ?? null
 	const dailyFees = feesData?.reduce((acc, curr) => (acc += curr.dailyFees || 0), 0) ?? null
 	const fees30d = feesData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const revenue30d = revenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
+	const bribesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.bribesRevenue30d || 0), 0) ?? null
+	const tokenTaxesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.tokenTaxesRevenue30d || 0), 0) ?? null
 	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const dailyDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
@@ -697,7 +709,11 @@ export const getProtocolData = async (protocol: string) => {
 			},
 			chartDenominations,
 			protocolHasForks: (forks?.props?.tokens ?? []).includes(protocolData.name),
-			hacksData: (protocolData.id ? hacks?.find((hack) => hack.defillamaId === protocolData.id) : null) ?? null
+			hacksData: (protocolData.id ? hacks?.find((hack) => hack.defillamaId === protocolData.id) : null) ?? null,
+			dailyBribesRevenue,
+			dailyTokenTaxes,
+			bribesRevenue30d,
+			tokenTaxesRevenue30d
 		},
 		revalidate: maxAgeForNext([22])
 	}

@@ -335,6 +335,9 @@ export function useDefiManager() {
 export function useFeesManager() {
 	return useSettingsManager(FEES_SETTINGS_KEYS)
 }
+export function useTvlAndFeesManager() {
+	return useSettingsManager([...DEFI_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS])
+}
 
 // DEFI_CHAINS
 export function useDefiChainsManager() {
