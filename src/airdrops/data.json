@@ -18,5 +18,10 @@
     "twitter": "JupiterExchange",
     "startTime": "2024-01-31T00:00:00Z",
     "endTime": 1722438000
+  },
+  {
+    "name": "AltLayer",
+    "page": "https://airdrop.altlayer.io",
+    "twitter": "alt_layer"
   }
 ]
