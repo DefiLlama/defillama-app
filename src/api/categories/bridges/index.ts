@@ -25,8 +25,8 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 						// i.e., a withdrawal from the chain. Will eventually change that.
 						return {
 							date: chart.date,
-							Deposits: chart.withdrawUSD,
-							Withdrawals: -chart.depositUSD
+							Deposits: chart.depositUSD,
+							Withdrawals: -chart.withdrawUSD
 						}
 					})
 					return formattedChart
