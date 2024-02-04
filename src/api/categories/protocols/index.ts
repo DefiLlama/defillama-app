@@ -727,6 +727,8 @@ export async function getLSDPageData() {
 				? 'Mantle Staked ETH'
 				: p.project === 'dinero-pirexeth'
 				? 'Dinero-PirexETH'
+				: p.project === 'mev-protocol'
+				? 'MEV Protocol'
 				: p.name
 	}))
 
