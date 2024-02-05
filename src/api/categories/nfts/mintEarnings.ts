@@ -670,5 +670,5 @@ export const NFT_MINT_EARNINGS = [
 		usdSales: 31000000,
 		startMint: '2022-04-23 1:04:48',
 		endMint: '2022-04-23 1:04:48'
-	},
+	}
 ].filter((c) => c.usdSales !== '')

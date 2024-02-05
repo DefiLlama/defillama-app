@@ -136,7 +136,7 @@ export function Menu() {
 						} else {
 							return (
 								<Fragment key={link.name}>
-									<Link href={link.path} key={link.path} prefetch={false} passHref>
+									<Link legacyBehavior href={link.path} key={link.path} prefetch={false} passHref>
 										<a target="_blank" rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}>
 											<span style={{ width: '32px', display: 'inline-block' }}></span>
 											<span>{link.name}</span>
@@ -160,7 +160,7 @@ export function Menu() {
 						} else {
 							return (
 								<Fragment key={link.name}>
-									<Link href={link.path} key={link.path} prefetch={false} passHref>
+									<Link legacyBehavior href={link.path} key={link.path} prefetch={false} passHref>
 										<a target="_blank" rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}>
 											<span style={{ width: '32px', display: 'inline-block' }}></span>
 											<span>{link.name}</span>
@@ -182,7 +182,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 
 	if (noSubMenu || (name === 'Yields' && !router.pathname.startsWith('/yields'))) {
 		return (
-			<Link href={noSubMenu?.url ?? '/yields'} passHref>
+			<Link legacyBehavior href={noSubMenu?.url ?? '/yields'} passHref>
 				<MainLink target={noSubMenu?.external && '_blank'}>{name}</MainLink>
 			</Link>
 		)
@@ -196,7 +196,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 			</summary>
 			<SubMenuWrapper>
 				{navLinks[name].main.map((subLink) => (
-					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
+					<Link legacyBehavior href={subLink.path} key={subLink.path} prefetch={false} passHref>
 						<a>
 							<span style={{ width: '32px', display: 'inline-block' }}></span>
 							<span>{subLink.name}</span>

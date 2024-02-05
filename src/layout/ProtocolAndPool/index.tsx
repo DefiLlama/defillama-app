@@ -67,7 +67,7 @@ export const Section = styled.div`
 		padding-bottom: 0;
 	}
 
-	:nth-child(n + 2) {
+	&:nth-child(n + 2) {
 		border-top: ${({ theme }) => '1px solid ' + theme.text5};
 	}
 
@@ -83,21 +83,21 @@ export const Section = styled.div`
 	@media screen and (min-width: 80rem) {
 		grid-column: span 1;
 
-		:nth-child(2) {
+		&:nth-child(2) {
 			border-top: 1px solid transparent;
 			padding-top: 0;
 		}
 
-		:nth-child(odd) {
+		&:nth-child(odd) {
 			border-right: ${({ theme }) => '1px solid ' + theme.text5};
 		}
 
-		:nth-child(even) {
+		&:nth-child(even) {
 			padding-left: 24px;
 		}
 
 		&:only-child,
-		:nth-child(odd):last-child {
+		&:nth-child(odd):last-child {
 			border-right: 1px solid transparent;
 			grid-column: span 2;
 		}
@@ -195,7 +195,7 @@ export const ExtraOption = styled.label`
 	align-items: center;
 	gap: 8px;
 
-	:hover {
+	&:hover {
 		cursor: pointer;
 	}
 `
@@ -227,7 +227,7 @@ export const ChartWrapper = styled.div`
 	@media screen and (min-width: 80rem) {
 		grid-column: span 1;
 
-		:last-child:nth-child(2n - 1) {
+		&:last-child:nth-child(2n - 1) {
 			grid-column: span 2;
 		}
 	}

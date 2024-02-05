@@ -218,7 +218,7 @@ const Menu = styled(AriaSelect)`
 		white-space: nowrap;
 	}
 
-	:focus-visible,
+	&:focus-visible,
 	&[data-focus-visible] {
 		outline: ${({ theme }) => '1px solid ' + theme.text1};
 	}

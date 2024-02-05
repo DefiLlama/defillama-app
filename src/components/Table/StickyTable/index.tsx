@@ -12,11 +12,9 @@ interface ITableProps {
 	rowSize?: number
 }
 
-declare module '@tanstack/table-core' {
-	interface ColumnMeta<TData extends RowData, TValue> {
-		align?: 'start' | 'end'
-		headerHelperText?: string
-	}
+interface ColumnMeta<TData extends RowData, TValue> {
+	align?: 'start' | 'end'
+	headerHelperText?: string
 }
 
 export default function VirtualTable({ instance, skipVirtualization, rowSize, ...props }: ITableProps) {
@@ -127,7 +125,7 @@ export default function VirtualTable({ instance, skipVirtualization, rowSize, ..
 								<tr key={headerGroup.id}>
 									{headerGroup.headers.map((header) => {
 										// get header text alignment
-										const meta = header.column.columnDef.meta
+										const meta = header.column.columnDef.meta as ColumnMeta<any, any>
 										const value = flexRender(header.column.columnDef.header, header.getContext())
 
 										return (
@@ -185,7 +183,8 @@ export default function VirtualTable({ instance, skipVirtualization, rowSize, ..
 									<tr key={row.id} style={trStyle}>
 										{row.getVisibleCells().map((cell) => {
 											// get header text alignment
-											const textAlign = cell.column.columnDef.meta?.align ?? 'start'
+											const meta = cell.column.columnDef.meta as ColumnMeta<any, any>
+											const textAlign = meta?.align ?? 'start'
 
 											return (
 												<td key={cell.id} style={{ width: cell.column.getSize(), textAlign }}>

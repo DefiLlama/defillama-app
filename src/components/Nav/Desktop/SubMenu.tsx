@@ -14,7 +14,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 
 	if (noSubMenu || (name === 'Yields' && !active)) {
 		return (
-			<Link href={noSubMenu?.url ?? '/yields'} prefetch={false} passHref>
+			<Link legacyBehavior href={noSubMenu?.url ?? '/yields'} prefetch={false} passHref>
 				<MainLink data-linkactive={active} target={noSubMenu?.external && '_blank'}>
 					<span data-mainlinkicon>{navLinks[name].icon}</span>
 					<span>{name}</span>
@@ -37,7 +37,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 
 			<SubMenuWrapper>
 				{navLinks[name].main.map((subLink) => (
-					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
+					<Link legacyBehavior href={subLink.path} key={subLink.path} prefetch={false} passHref>
 						<a data-linkactive={subLink.path === pathname}>
 							<span style={{ width: '16px', display: 'inline-block' }}></span>
 							<span>{subLink.name}</span>
@@ -101,7 +101,7 @@ const Details = styled.details`
 			left: -4px;
 		}
 
-		:hover {
+		&:hover {
 			background-color: ${({ theme }) =>
 				theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};
 		}
@@ -123,7 +123,7 @@ const MainLink = styled.a`
 	font-weight: 600;
 	opacity: 1 !important;
 
-	:hover {
+	&:hover {
 		& > *[data-mainlinkicon] {
 			animation: ${wiggle} 0.4s ease;
 		}

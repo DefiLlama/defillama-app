@@ -65,7 +65,7 @@ export default function Tooltip({ content, as, href, shallow, onClick, children,
 		<>
 			<TooltipAnchor state={tooltip} as={as} className="tooltip-trigger" {...triggerProps}>
 				{href ? (
-					<Link href={href} shallow={shallow} prefetch={false} passHref>
+					<Link legacyBehavior href={href} shallow={shallow} prefetch={false} passHref>
 						<a>{children}</a>
 					</Link>
 				) : (

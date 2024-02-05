@@ -110,7 +110,7 @@ const AssetButtonLink = (props: { options: ISearchItem[]; value: string }) => {
 	const { options, value } = props
 	const matchingOption = getMatchingOption(options, value)
 	return (
-		<Link href={matchingOption.route} passHref>
+		<Link legacyBehavior href={matchingOption.route} passHref>
 			<Item value={value} focusOnHover setValueOnClick={false} role="link">
 				<MatchingOptionWrapper>
 					<TokenLogo logo={matchingOption.logo} size={20} />

@@ -45,26 +45,26 @@ async function getContracts(chain: string, time: number) {
 					r.map(async (contract) => {
 						let name = contract.name ? { name: contract.name } : undefined
 						if (!name) {
-						try {
-							name = await fetch(
-								`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`
-							).then((r) => r.json())
-							if (name.name === undefined) {
-								throw new Error('RolodETH: No name')
-							}
-						} catch (e) {
 							try {
 								name = await fetch(
-									`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`
+									`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`
 								).then((r) => r.json())
-								if (name.name === '') {
-									throw new Error('Etherescan: Contract not verified')
+								if (name.name === undefined) {
+									throw new Error('RolodETH: No name')
 								}
 							} catch (e) {
-								name = undefined
+								try {
+									name = await fetch(
+										`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`
+									).then((r) => r.json())
+									if (name.name === '') {
+										throw new Error('Etherescan: Contract not verified')
+									}
+								} catch (e) {
+									name = undefined
+								}
 							}
 						}
-					}
 						return {
 							...contract,
 							name: name?.name
@@ -141,7 +141,15 @@ const columns = (chain: string) =>
 				return (
 					<a
 						href={`https://${
-							chain === 'ethereum' ? 'etherscan.io' : chain === 'arbitrum' ? 'arbiscan.io' : chain === 'optimism' ? 'optimistic.etherscan.io' : chain === 'base' ? 'basescan.org' : 'polygonscan.com'
+							chain === 'ethereum'
+								? 'etherscan.io'
+								: chain === 'arbitrum'
+								? 'arbiscan.io'
+								: chain === 'optimism'
+								? 'optimistic.etherscan.io'
+								: chain === 'base'
+								? 'basescan.org'
+								: 'polygonscan.com'
 						}/address/${value}`}
 						target="_blank"
 						rel="noopener noreferrer"

@@ -13,7 +13,7 @@ import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { chainIconUrl, formattedNum, getTokenDominance } from '~/utils'
 import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { DetailsWrapper, DownloadButton, Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
@@ -220,7 +220,7 @@ export function ChainContainer({
 						parentProtocols,
 						volumeData: chainProtocolsVolumes,
 						feesData: chainProtocolsFees
-				  })
+					})
 				: protocolsList
 
 		const isValidTvlRange =
@@ -269,7 +269,7 @@ export function ChainContainer({
 					style={{ marginRight: '0.25rem', display: 'inline' }}
 				/>
 				{'  '}We've released our{' '}
-				<Link href={`/nfts`}>
+				<Link legacyBehavior href={`/nfts`}>
 					<a>
 						NFT dashboard <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
 					</a>
@@ -314,6 +314,7 @@ export function ChainContainer({
 								</span>
 
 								<Link
+									legacyBehavior
 									href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
 										.filter((t) => t[1] === true)
 										.map((t) => `${t[0]}=true`)
@@ -580,8 +581,8 @@ export function ChainContainer({
 																			? 'false'
 																			: 'true'
 																		: router.query[id] === 'true'
-																		? 'false'
-																		: 'true',
+																			? 'false'
+																			: 'true',
 																	router
 																)
 															}}
@@ -644,7 +645,7 @@ export function ChainContainer({
 						)}
 					</ChartWrapper>
 					<EasterLlama onClick={activateEasterEgg}>
-						<Image src={llamaLogo} width="41px" height="34px" alt="Activate Easter Egg" />
+						<Image src={llamaLogo} width="41" height="34" alt="Activate Easter Egg" />
 					</EasterLlama>
 				</StatsSection>
 

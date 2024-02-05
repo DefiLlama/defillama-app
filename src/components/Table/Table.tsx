@@ -14,11 +14,9 @@ interface ITableProps {
 	renderSubComponent?: ({ row }: { row: any }) => JSX.Element
 }
 
-declare module '@tanstack/table-core' {
-	interface ColumnMeta<TData extends RowData, TValue> {
-		align?: 'start' | 'end'
-		headerHelperText?: string
-	}
+interface ColumnMeta<TData extends RowData, TValue> {
+	align?: 'start' | 'end'
+	headerHelperText?: string
 }
 
 export default function VirtualTable({
@@ -57,7 +55,7 @@ export default function VirtualTable({
 					<div key={headerGroup.id} style={{ display: 'flex', position: 'relative' }}>
 						{headerGroup.headers.map((header) => {
 							// get header text alignment
-							const meta = header.column.columnDef.meta
+							const meta = header.column.columnDef.meta as ColumnMeta<any, any>
 							const value = flexRender(header.column.columnDef.header, header.getContext())
 
 							return (
@@ -94,7 +92,7 @@ export default function VirtualTable({
 								height: `${rowVirtualizer.getTotalSize()}px`,
 								width: '100%',
 								position: 'relative'
-						  }
+							}
 				}
 			>
 				{(skipVirtualization ? rows : virtualItems).map((row) => {
@@ -103,7 +101,7 @@ export default function VirtualTable({
 						? {
 								display: 'flex',
 								position: 'relative'
-						  }
+							}
 						: {
 								position: 'absolute',
 								top: 0,
@@ -113,7 +111,7 @@ export default function VirtualTable({
 								transform: `translateY(${row.start - rowVirtualizer.options.scrollMargin}px)`,
 								opacity: rowTorender.original.disabled ? 0.3 : 1,
 								display: 'flex'
-						  }
+							}
 
 					return (
 						<React.Fragment key={rowTorender.id}>

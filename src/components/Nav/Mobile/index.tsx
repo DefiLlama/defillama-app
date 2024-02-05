@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { Header, LogoWrapper } from '../shared'
@@ -19,7 +19,7 @@ export default function MobileNav() {
 
 	return (
 		<Wrapper>
-			<Link href="/" passHref>
+			<Link legacyBehavior href="/" passHref>
 				<LogoWrapper>
 					<span className="visually-hidden">Navigate to Home Page</span>
 					<Image src={Logo} alt="Navigate to Home Page" priority />

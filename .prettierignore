@@ -5,6 +5,7 @@
 .next
 out
 /public
+pnpm-lock.yaml
 
 # testing
 /coverage
@@ -23,8 +24,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-/.vscode
-
 .gitignore
 .prettierignore
 .eslintignore
+
+.cfcache_cleared

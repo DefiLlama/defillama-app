@@ -1,8 +1,5 @@
 // This file sets a custom webpack configuration to use your Next.js app
-// with Sentry.
 // https://nextjs.org/docs/api-reference/next.config.js/introduction
-// https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-const { withSentryConfig } = require('@sentry/nextjs')
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
 	enabled: process.env.ANALYZE === 'true'
@@ -100,13 +97,10 @@ const nextConfig = {
 		const commitHash = require('child_process').execSync('git rev-parse HEAD').toString().trim()
 		return commitHash
 	},
+	cacheMaxMemorySize: 0,
 	experimental: {
 		largePageDataBytes: 6_000_000
 	}
 }
 
 module.exports = withBundleAnalyzer(nextConfig)
-
-// if (process.env.SENTRY_DSN) {
-// 	module.exports = withSentryConfig(module.exports, { silent: true }, { hideSourceMaps: true })
-// }

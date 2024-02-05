@@ -1,6 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
@@ -500,13 +500,13 @@ function ProtocolContainer({
 	const stakedAmount =
 		historicalChainTvls?.['staking']?.tvl?.length > 0
 			? historicalChainTvls?.['staking']?.tvl[historicalChainTvls?.['staking']?.tvl.length - 1]?.totalLiquidityUSD ??
-			  null
+				null
 			: null
 
 	const borrowedAmount =
 		historicalChainTvls?.['borrowed']?.tvl?.length > 0
 			? historicalChainTvls?.['borrowed']?.tvl[historicalChainTvls?.['borrowed']?.tvl.length - 1]?.totalLiquidityUSD ??
-			  null
+				null
 			: null
 
 	const defaultSelectedId = router.asPath.split('#')?.[1] ?? 'information'
@@ -584,6 +584,7 @@ function ProtocolContainer({
 					<OtherProtocols>
 						{otherProtocols.map((p) => (
 							<Link
+								legacyBehavior
 								href={`/protocol/${standardizeProtocolName(p)}`}
 								key={'navigate to ' + `/protocol/${standardizeProtocolName(p)}`}
 								passHref
@@ -625,7 +626,7 @@ function ProtocolContainer({
 							</span>
 
 							{!isParentProtocol && (
-								<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+								<Link legacyBehavior href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
 									<DownloadButton
 										as="a"
 										color={backgroundColor}
@@ -1189,7 +1190,7 @@ function ProtocolContainer({
 
 				<Bobo onClick={() => setBobo(!bobo)}>
 					<span className="visually-hidden">Enable Goblin Mode</span>
-					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
+					<Image src={boboLogo} width="34" height="34" alt="bobo cheers" />
 				</Bobo>
 			</StatsSection>
 
@@ -1267,6 +1268,7 @@ function ProtocolContainer({
 									<span>:</span>
 
 									<Link
+										legacyBehavior
 										href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category.toLowerCase()}`}
 										passHref
 									>
@@ -1290,7 +1292,9 @@ function ProtocolContainer({
 									<>
 										{forkedFrom.map((p, index) => (
 											<React.Fragment key={'forked from' + p}>
-												<Link href={`/protocol/${slug(p)}`}>{forkedFrom[index + 1] ? p + ', ' : p}</Link>
+												<Link legacyBehavior href={`/protocol/${slug(p)}`}>
+													{forkedFrom[index + 1] ? p + ', ' : p}
+												</Link>
 												<ArrowUpRight size={14} />
 											</React.Fragment>
 										))}
@@ -1302,7 +1306,7 @@ function ProtocolContainer({
 
 							<LinksWrapper>
 								{url && (
-									<Link href={url} passHref>
+									<Link legacyBehavior href={url} passHref>
 										<Button
 											as="a"
 											target="_blank"
@@ -1316,7 +1320,7 @@ function ProtocolContainer({
 								)}
 
 								{twitter && (
-									<Link href={`https://twitter.com/${twitter}`} passHref>
+									<Link legacyBehavior href={`https://twitter.com/${twitter}`} passHref>
 										<Button
 											as="a"
 											target="_blank"
@@ -1335,7 +1339,7 @@ function ProtocolContainer({
 							<Section>
 								<RowBetween>
 									<h3>Latest from DL News</h3>
-									<Link href="https://www.dlnews.com" passHref>
+									<Link legacyBehavior href="https://www.dlnews.com" passHref>
 										<a>
 											<DLNewsLogo width={102} height={22} />
 										</a>
@@ -1383,7 +1387,7 @@ function ProtocolContainer({
 
 								<LinksWrapper>
 									{protocolData.gecko_id && (
-										<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
+										<Link legacyBehavior href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
 											<Button
 												as="a"
 												target="_blank"
@@ -1398,7 +1402,7 @@ function ProtocolContainer({
 
 									{explorers &&
 										explorers.map(({ blockExplorerLink, blockExplorerName }) => (
-											<Link href={blockExplorerLink} passHref key={blockExplorerName}>
+											<Link legacyBehavior href={blockExplorerLink} passHref key={blockExplorerName}>
 												<Button
 													as="a"
 													target="_blank"
@@ -1432,7 +1436,7 @@ function ProtocolContainer({
 
 								<LinksWrapper>
 									{methodologyUrls?.tvl && (
-										<Link href={methodologyUrls.tvl} passHref>
+										<Link legacyBehavior href={methodologyUrls.tvl} passHref>
 											<Button
 												as="a"
 												target="_blank"
@@ -1447,7 +1451,7 @@ function ProtocolContainer({
 									)}
 
 									{methodologyUrls?.fees && (
-										<Link href={methodologyUrls.fees} passHref>
+										<Link legacyBehavior href={methodologyUrls.fees} passHref>
 											<Button
 												as="a"
 												target="_blank"
@@ -1462,7 +1466,7 @@ function ProtocolContainer({
 									)}
 
 									{methodologyUrls?.dexs && (
-										<Link href={methodologyUrls.dexs} passHref>
+										<Link legacyBehavior href={methodologyUrls.dexs} passHref>
 											<Button
 												as="a"
 												target="_blank"
@@ -1477,7 +1481,7 @@ function ProtocolContainer({
 									)}
 
 									{methodologyUrls?.derivatives && (
-										<Link href={methodologyUrls.derivatives} passHref>
+										<Link legacyBehavior href={methodologyUrls.derivatives} passHref>
 											<Button
 												as="a"
 												target="_blank"
@@ -1530,7 +1534,7 @@ function ProtocolContainer({
 										<span>{formattedNum(hacksData.returnedFunds, true)}</span>
 									</FlexRow>
 
-									<Link href={hacksData.source} passHref>
+									<Link legacyBehavior href={hacksData.source} passHref>
 										<Button
 											as="a"
 											target="_blank"
@@ -1552,6 +1556,7 @@ function ProtocolContainer({
 								<LinksWrapper>
 									{similarProtocols.map((similarProtocol) => (
 										<Link
+											legacyBehavior
 											href={`/protocol/${slug(similarProtocol.name)}`}
 											passHref
 											key={'Competitors ' + JSON.stringify(similarProtocol)}

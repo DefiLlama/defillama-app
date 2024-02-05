@@ -106,8 +106,8 @@ const Close = styled.button`
 	margin: auto 0;
 	padding: 6px 8px;
 	border-radius: 12px;
-	:hover,
-	:focus-visible {
+	&:hover,
+	&:focus-visible {
 		background-color: hsl(215deg 79% 51% / 24%);
 	}
 

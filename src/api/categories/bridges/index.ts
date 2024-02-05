@@ -71,42 +71,45 @@ export async function getBridgeOverviewPageData(chain) {
 	let chartDataByBridge = []
 	let bridgeNames: string[] = []
 	let bridgeNameToChartDataIndex: object = {}
+	const blacklistedIds = new Set([47])
 	chartDataByBridge = await Promise.all(
-		bridges.map(async (elem, i) => {
-			bridgeNames.push(elem.displayName)
-			bridgeNameToChartDataIndex[elem.displayName] = i
-			for (let i = 0; i < 5; i++) {
-				try {
-					let charts = []
-					if (!chain) {
-						charts = await fetch(`${BRIDGEVOLUME_API}/all?id=${elem.id}`).then((resp) => resp.json())
-					} else {
-						charts = await fetch(`${BRIDGEVOLUME_API}/${chain}?id=${elem.id}`).then((resp) => resp.json())
-					}
-					// can format differently here if needed
-					let formattedCharts
-					if (!chain) {
-						formattedCharts = charts.map((chart) => {
-							return {
-								date: chart.date,
-								volume: (chart.withdrawUSD + chart.depositUSD) / 2,
-								txs: chart.depositTxs + chart.withdrawTxs
-							}
-						})
-					} else {
-						formattedCharts = charts.map((chart) => {
-							return {
-								date: chart.date,
-								volume: chart.withdrawUSD + chart.depositUSD,
-								txs: chart.depositTxs + chart.withdrawTxs
-							}
-						})
-					}
-					return formattedCharts
-				} catch (e) {}
-			}
-			throw new Error(`${BRIDGEVOLUME_API}/?id=${elem.id} is broken`)
-		})
+		bridges
+			.filter((elem) => !blacklistedIds.has(elem.id))
+			.map(async (elem, i) => {
+				bridgeNames.push(elem.displayName)
+				bridgeNameToChartDataIndex[elem.displayName] = i
+				for (let i = 0; i < 5; i++) {
+					try {
+						let charts = []
+						if (!chain) {
+							charts = await fetch(`${BRIDGEVOLUME_API}/all?id=${elem.id}`).then((resp) => resp.json())
+						} else {
+							charts = await fetch(`${BRIDGEVOLUME_API}/${chain}?id=${elem.id}`).then((resp) => resp.json())
+						}
+						// can format differently here if needed
+						let formattedCharts
+						if (!chain) {
+							formattedCharts = charts.map((chart) => {
+								return {
+									date: chart.date,
+									volume: (chart.withdrawUSD + chart.depositUSD) / 2,
+									txs: chart.depositTxs + chart.withdrawTxs
+								}
+							})
+						} else {
+							formattedCharts = charts.map((chart) => {
+								return {
+									date: chart.date,
+									volume: chart.withdrawUSD + chart.depositUSD,
+									txs: chart.depositTxs + chart.withdrawTxs
+								}
+							})
+						}
+						return formattedCharts
+					} catch (e) {}
+				}
+				console.error(`Bridge is broken for ${JSON.stringify(elem)}`)
+			})
 	)
 
 	// order of chains will update every 24 hrs, can consider changing metric sorted by here

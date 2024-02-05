@@ -1,8 +1,19 @@
 {
-	"editor.formatOnSave": true,
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.tabSize": 2,
 	"[shellscript]": {
 		"editor.defaultFormatter": "foxundermoon.shell-format"
+	},
+	"[typescript]": {
+		"editor.formatOnSave": true
+	},
+	"[typescriptreact]": {
+		"editor.formatOnSave": true
+	},
+	"[javascript]": {
+		"editor.formatOnSave": true
+	},
+	"[javascriptreact]": {
+		"editor.formatOnSave": true
 	}
 }

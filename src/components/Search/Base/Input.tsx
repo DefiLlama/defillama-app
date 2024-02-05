@@ -52,7 +52,7 @@ const MobileInputField = styled.input`
 	border-radius: 4px 4px 0px 0px;
 	outline: none;
 
-	::placeholder {
+	&::placeholder {
 		color: ${({ theme }) => theme.text3};
 		font-size: 1rem;
 	}

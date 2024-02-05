@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import styled from 'styled-components'
 import { useYieldApp } from '~/hooks'
 import { LogoWrapper, Header } from '../shared'
@@ -21,7 +21,7 @@ export default function DesktopNav() {
 
 	return (
 		<Wrapper as="aside">
-			<Link href="/" passHref>
+			<Link legacyBehavior href="/" passHref>
 				<LogoWrapper>
 					<span className="visually-hidden">Navigate to Home Page</span>
 					<Image src={darkMode ? logoLight : logoDark} alt="Navigate to Home Page" priority />
@@ -49,7 +49,7 @@ export default function DesktopNav() {
 					} else {
 						return (
 							<React.Fragment key={link.name}>
-								<Link href={link.path} key={link.path} prefetch={false} passHref>
+								<Link legacyBehavior href={link.path} key={link.path} prefetch={false} passHref>
 									<a
 										target={link.external && '_blank'}
 										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
@@ -76,7 +76,7 @@ export default function DesktopNav() {
 					} else {
 						return (
 							<React.Fragment key={link.name}>
-								<Link href={link.path} key={link.path} prefetch={false} passHref>
+								<Link legacyBehavior href={link.path} key={link.path} prefetch={false} passHref>
 									<a
 										target={link.external && '_blank'}
 										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
@@ -136,8 +136,8 @@ const Nav = styled.nav`
 			top: 2px;
 		}
 
-		:hover,
-		:focus-visible {
+		&:hover,
+		&:focus-visible {
 			opacity: 1;
 			background-color: ${({ theme }) =>
 				theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};

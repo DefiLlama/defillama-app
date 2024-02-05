@@ -38,7 +38,7 @@ const TextWrapper = styled.div<ITextProps>`
 	display: flex;
 	align-items: center;
 	white-space: nowrap;
-	:hover {
+	&:hover {
 		cursor: pointer;
 	}
 

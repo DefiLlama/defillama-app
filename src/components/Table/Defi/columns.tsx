@@ -46,10 +46,10 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+			const value = getValue() as string
 			return (
 				<Name>
-					<span>{index + 1}</span> <CustomLink href={`/oracles/${getValue()}`}>{getValue()}</CustomLink>
+					<span>{index + 1}</span> <CustomLink href={`/oracles/${value}`}>{value}</CustomLink>
 				</Name>
 			)
 		}
@@ -99,14 +99,14 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+			const value = getValue() as string
 			return (
 				<Name>
 					<span>{index + 1}</span>
 
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<CustomLink href={`/forks/${getValue()}`}>{getValue()}</CustomLink>
+					<CustomLink href={`/forks/${value}`}>{value}</CustomLink>
 				</Name>
 			)
 		}
@@ -146,10 +146,10 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+			const value = getValue() as string
 			return (
 				<Name>
-					<span>{index + 1}</span> <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink>
+					<span>{index + 1}</span> <CustomLink href={`/protocols/${value}`}>{value}</CustomLink>
 				</Name>
 			)
 		},
@@ -187,7 +187,8 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Name>{getValue()}</Name>
+			const value = getValue() as string
+			return <Name>{value}</Name>
 		},
 		size: 180
 	},
@@ -210,9 +211,10 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		size: 140,
 		enableSorting: false,
 		cell: ({ getValue }) => {
+			const value = getValue() as string
 			return (
-				<Tooltip2 content={getValue() as string} style={{ padding: '12px' }}>
-					{getValue()}
+				<Tooltip2 content={value} style={{ padding: '12px' }}>
+					{value}
 				</Tooltip2>
 			)
 		}
@@ -285,12 +287,12 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+			const value = getValue() as string
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink href={`/unlocks/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<CustomLink href={`/unlocks/${standardizeProtocolName(value)}`}>{value}</CustomLink>
 				</Name>
 			)
 		},
@@ -442,14 +444,14 @@ export const calendarColumns: ColumnDef<any>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+			const value = getValue() as string
 			return (
 				<Name>
 					<span>{index + 1}</span>
 					{row.original.type === 'Unlock' ? (
-						<CustomLink href={`/unlocks/${standardizeProtocolName(row.original.link)}`}>{getValue()}</CustomLink>
+						<CustomLink href={`/unlocks/${standardizeProtocolName(row.original.link)}`}>{value}</CustomLink>
 					) : (
-						getValue()
+						value
 					)}
 				</Name>
 			)
@@ -479,12 +481,12 @@ export const expensesColumns: ColumnDef<any>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+			const value = getValue() as string
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink href={`/protocol/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<CustomLink href={`/protocol/${standardizeProtocolName(value)}`}>{value}</CustomLink>
 				</Name>
 			)
 		},
@@ -536,7 +538,7 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+			const value = getValue() as string
 			return (
 				<Name depth={row.depth}>
 					<AccordionButton
@@ -547,8 +549,8 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 						{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
 					</AccordionButton>
 					<span>{index + 1}</span>
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink href={`/governance/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<CustomLink href={`/governance/${standardizeProtocolName(value)}`}>{value}</CustomLink>
 				</Name>
 			)
 		},
@@ -590,7 +592,8 @@ export const activeInvestorsColumns: ColumnDef<{
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <CustomLink href={`/raises/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+			const value = getValue() as string
+			return <CustomLink href={`/raises/${standardizeProtocolName(value)}`}>{value}</CustomLink>
 		},
 		size: 120
 	},
@@ -650,7 +653,8 @@ export const activeInvestorsColumns: ColumnDef<{
 		accessorKey: 'projects',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Tooltip2 content={getValue()}>{getValue()}</Tooltip2>
+			const value = getValue() as string
+			return <Tooltip2 content={value}>{value}</Tooltip2>
 		},
 		size: 240
 	}
@@ -662,7 +666,8 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Name>{getValue()}</Name>
+			const value = getValue() as string
+			return <Name>{value}</Name>
 		},
 		size: 200
 	},
@@ -724,7 +729,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+			const value = getValue() as string
 			return (
 				<Name depth={row.depth}>
 					{row.subRows?.length > 0 && (
@@ -737,8 +742,8 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 						</AccordionButton>
 					)}
 					<span>{index + 1}</span>
-					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink href={`/chain/${getValue()}`}>{getValue()}</CustomLink>
+					<TokenLogo logo={chainIconUrl(value)} />
+					<CustomLink href={`/chain/${value}`}>{value}</CustomLink>
 				</Name>
 			)
 		},
@@ -881,14 +886,14 @@ export const cexColumn: ColumnDef<any>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+			const value = getValue() as string
 			return (
 				<Name>
 					<span>{index + 1}</span>
 					{row.original.slug === undefined ? (
-						getValue()
+						value
 					) : (
-						<CustomLink href={`/cex/${slug(row.original.slug)}`}>{getValue()}</CustomLink>
+						<CustomLink href={`/cex/${slug(row.original.slug)}`}>{value}</CustomLink>
 					)}
 				</Name>
 			)
@@ -1297,11 +1302,11 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const nameSlug = row.original.name.replace(/\s+/g, '-').toLowerCase()
-
+			const value = getValue() as string
 			return (
 				<Name>
 					<span>{index + 1}</span> <TokenLogo logo={row.original.logo} data-lgonly />
-					<CustomLink href={`/protocol/${nameSlug}`}>{getValue()}</CustomLink>
+					<CustomLink href={`/protocol/${nameSlug}`}>{value}</CustomLink>
 				</Name>
 			)
 		},
@@ -1403,9 +1408,10 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			const TooltipContent = () => {
 				return <>{row.original.mcap ? <span>{`Market Cap: $${toK(row.original.mcap)}`}</span> : null}</>
 			}
+			const value = getValue() as any // idk wot dis is kek
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					<Tooltip content={<TooltipContent />}>{getValue() ? getValue() : null}</Tooltip>
+					<Tooltip content={<TooltipContent />}>{value ? value : null}</Tooltip>
 				</AutoRow>
 			)
 		},
@@ -1448,11 +1454,11 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+			const value = getValue() as string
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					<CustomLink href={row.original.url}>{getValue()}</CustomLink>
+					<CustomLink href={row.original.url}>{value}</CustomLink>
 				</Name>
 			)
 		},

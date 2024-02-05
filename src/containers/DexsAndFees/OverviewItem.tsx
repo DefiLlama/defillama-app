@@ -149,7 +149,9 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						<FlexRow>
 							<span>Category</span>
 							<span>:</span>
-							<Link href={`/overview/${props.protocolSummary.type}`}>{props.protocolSummary.category}</Link>
+							<Link legacyBehavior href={`/overview/${props.protocolSummary.type}`}>
+								{props.protocolSummary.category}
+							</Link>
 						</FlexRow>
 					)}
 
@@ -159,7 +161,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 							<span>:</span>
 							<>
 								{props.protocolSummary.forkedFrom.map((p, index) => (
-									<Link href={`/protocol/${p}`} key={p}>
+									<Link legacyBehavior href={`/protocol/${p}`} key={p}>
 										{props.protocolSummary.forkedFrom[index + 1] ? p + ', ' : p}
 									</Link>
 								))}
@@ -173,7 +175,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 
 					<LinksWrapper>
 						{props.protocolSummary.url && (
-							<Link href={props.protocolSummary.url} passHref>
+							<Link legacyBehavior href={props.protocolSummary.url} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Website</span> <ArrowUpRight size={14} />
 								</Button>
@@ -181,7 +183,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						)}
 
 						{props.protocolSummary.twitter && (
-							<Link href={`https://twitter.com/${props.protocolSummary.twitter}`} passHref>
+							<Link legacyBehavior href={`https://twitter.com/${props.protocolSummary.twitter}`} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Twitter</span> <ArrowUpRight size={14} />
 								</Button>
@@ -203,7 +205,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 										)}`}</span>
 										<span>{blockExplorer.address.slice(0, 8) + '...' + blockExplorer.address?.slice(36, 42)}</span>
 										<CopyHelper toCopy={blockExplorer.address} disabled={!blockExplorer.address} />
-										<Link href={blockExplorer.blockExplorerLink} passHref>
+										<Link legacyBehavior href={blockExplorer.blockExplorerLink} passHref>
 											<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 												<span>View on {blockExplorer.blockExplorerName}</span> <ArrowUpRight size={14} />
 											</Button>
@@ -215,7 +217,11 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 
 						{props.protocolSummary.gecko_id && (
 							<LinksWrapper>
-								<Link href={`https://www.coingecko.com/en/coins/${props.protocolSummary.gecko_id}`} passHref>
+								<Link
+									legacyBehavior
+									href={`https://www.coingecko.com/en/coins/${props.protocolSummary.gecko_id}`}
+									passHref
+								>
 									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 										<span>View on CoinGecko</span> <ArrowUpRight size={14} />
 									</Button>
@@ -236,7 +242,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						) : null}
 
 						<LinksWrapper>
-							<Link href={props.protocolSummary.methodologyURL} passHref>
+							<Link legacyBehavior href={props.protocolSummary.methodologyURL} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Check the code</span>
 									<ArrowUpRight size={14} />

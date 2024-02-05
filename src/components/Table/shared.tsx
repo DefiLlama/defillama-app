@@ -69,7 +69,7 @@ export const PoolStrategyWithProjects = styled.div`
 	gap: 16px;
 	font-size: 12px;
 
-	img {
+	& > img {
 		height: 16px;
 		width: 16px;
 	}
@@ -90,7 +90,7 @@ export const SearchWrapper = styled.div`
 	bottom: -6px;
 	margin-left: auto;
 
-	input {
+	& > input {
 		width: 100%;
 		margin-right: auto;
 		border-radius: 8px;
@@ -103,7 +103,7 @@ export const SearchWrapper = styled.div`
 	}
 
 	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		input {
+		& > input {
 			max-width: 400px;
 		}
 	}
@@ -131,7 +131,7 @@ export const TableFiltersWithInput = styled.div`
 	margin: 0 0 -20px;
 	position: relative;
 
-	input {
+	& > input {
 		width: 100%;
 		margin-right: auto;
 		border-radius: 8px;
@@ -144,7 +144,7 @@ export const TableFiltersWithInput = styled.div`
 	}
 
 	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		input {
+		& > input {
 			max-width: 400px;
 		}
 	}

@@ -13,7 +13,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
-			const name = getValue()
+			const name = getValue() as string
 			const icon = row.original.exchangeName.toLowerCase().replace(' aggregator', '').replace(' ', '-')
 
 			return (

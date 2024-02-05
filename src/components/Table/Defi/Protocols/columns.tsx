@@ -70,7 +70,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
-		cell: ({ getValue }) => (getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink> : ''),
+		cell: ({ getValue }) =>
+			getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue() as string}</CustomLink> : '',
 		size: 140,
 		meta: {
 			align: 'end'
@@ -400,7 +401,8 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'category',
-		cell: ({ getValue }) => (getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink> : ''),
+		cell: ({ getValue }) =>
+			getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue() as string}</CustomLink> : '',
 		size: 140
 	},
 	{

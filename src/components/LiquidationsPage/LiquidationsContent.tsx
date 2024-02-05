@@ -10,7 +10,7 @@ import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 import { useStackBy } from './utils'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import boboLogo from '~/assets/boboSmug.png'
 
 const Bobo = styled.button`
@@ -55,7 +55,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				</Row>
 				<Bobo onClick={() => setBobo(!bobo)}>
 					<span className="visually-hidden">Enable Goblin Mode</span>
-					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
+					<Image src={boboLogo} width="34" height="34" alt="bobo cheers" />
 				</Bobo>
 				<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />
 			</BreakpointPanel>

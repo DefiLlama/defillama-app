@@ -326,14 +326,16 @@ const PageView = () => {
 					<FlexRow>
 						<span>Category</span>
 						<span>:</span>
-						<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+						<Link legacyBehavior href={`/protocols/${category.toLowerCase()}`}>
+							{category}
+						</Link>
 					</FlexRow>
 
 					<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
 
 					<LinksWrapper>
 						{(url || isLoading) && (
-							<Link href={url} passHref>
+							<Link legacyBehavior href={url} passHref>
 								<Button
 									as="a"
 									target="_blank"
@@ -348,7 +350,7 @@ const PageView = () => {
 						)}
 
 						{twitter && (
-							<Link href={`https://twitter.com/${twitter}`} passHref>
+							<Link legacyBehavior href={`https://twitter.com/${twitter}`} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 									<span>Twitter</span> <ArrowUpRight size={14} />
 								</Button>

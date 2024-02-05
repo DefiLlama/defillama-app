@@ -14,7 +14,7 @@ const Container = styled.a`
 	flex-direction: column;
 	gap: 12px;
 
-	:hover {
+	&:hover {
 		background-color: ${({ color }) => transparentize(0.8, color)};
 	}
 
@@ -75,7 +75,7 @@ interface INewsCardProps extends IArticle {
 
 export const NewsCard = ({ imgSrc, href, headline, date, color }: INewsCardProps) => {
 	return (
-		<Link href={href} passHref>
+		<Link legacyBehavior href={href} passHref>
 			<Container color={color} target="_blank">
 				{imgSrc && <Img src={imgSrc} alt={headline} />}
 				<Content>

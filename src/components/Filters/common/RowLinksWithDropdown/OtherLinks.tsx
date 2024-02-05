@@ -39,7 +39,7 @@ export function OtherLinks({ options, name, variant, isActive, ...props }: IProp
 				{combobox.matches.length > 0 ? (
 					<List state={combobox}>
 						{combobox.matches.map((value, i) => (
-							<Link href={value} key={value + i} prefetch={false} passHref>
+							<Link legacyBehavior href={value} key={value + i} prefetch={false} passHref>
 								<Item value={value} focusOnHover setValueOnClick={false} role="link">
 									{options.find((l) => l.to === value)?.label ?? value}
 								</Item>

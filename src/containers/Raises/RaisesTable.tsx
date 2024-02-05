@@ -77,7 +77,7 @@ export function RaisesTable({ raises, downloadCsv }) {
 					placeholder="Search projects..."
 				/>
 
-				<Link href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093" target="_blank">
+				<Link legacyBehavior href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093" target="_blank">
 					<DownloadButton>
 						<ArrowUpRight size={14} />
 						<span>&nbsp;Methodology & biases</span>
@@ -87,7 +87,7 @@ export function RaisesTable({ raises, downloadCsv }) {
 					<DownloadIcon />
 					<span>&nbsp;&nbsp;.csv</span>
 				</DownloadButton>
-				<Link href="https://api.llama.fi/raises" target="_blank">
+				<Link legacyBehavior href="https://api.llama.fi/raises" target="_blank">
 					<DownloadButton>
 						<DownloadIcon />
 						<span>&nbsp;&nbsp;.json</span>

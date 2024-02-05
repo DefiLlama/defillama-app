@@ -36,7 +36,7 @@ const OptionsWrapper = styled.div`
 	background-color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(246, 246, 246, 0.6)')};
 	--step-color: ${({ theme }) => (theme.mode === 'dark' ? '#7e96ff' : '#475590')};
 
-	& > p {
+	p {
 		display: flex;
 		align-items: center;
 		gap: 8px;
@@ -115,7 +115,7 @@ const Options = ({ step, filters }: IOptionsProps) => {
 	return (
 		<OptionsWrapper>
 			<p>
-				<Link href={`/${step.route || step.category.toLowerCase()}`} prefetch={false}>
+				<Link legacyBehavior href={`/${step.route || step.category.toLowerCase()}`} prefetch={false}>
 					{step.category}
 				</Link>
 				<ArrowRight size={16} />

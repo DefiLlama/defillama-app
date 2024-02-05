@@ -292,9 +292,8 @@ function ComparePage() {
 								}
 							].map(({ id, name, key }) =>
 								data?.data?.some((val) => val?.[key] && val?.[key]?.length > 0) ? (
-									<Toggle>
+									<Toggle key={id}>
 										<input
-											key={id}
 											type="checkbox"
 											onClick={() => {
 												updateRoute(id, router.query[id] === 'true' ? 'false' : 'true', router)

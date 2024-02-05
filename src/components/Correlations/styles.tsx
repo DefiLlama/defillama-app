@@ -9,7 +9,7 @@ export const Table = styled.table`
 `
 
 export const Row = styled.tr`
-	:hover {
+	&:hover {
 		background-color: rgba(0, 153, 255, 0.5);
 	}
 `
@@ -20,7 +20,7 @@ export const Cell = styled.td<{ value?: number }>`
 	position: relative;
 	background-color: ${(props) =>
 		Number(props.value) > 0 ? `rgba(53, 222, 59, ${props.value})` : `rgb(255,0,0, ${-props.value})`};
-	:hover::after {
+	&:hover::after {
 		content: '';
 		position: absolute;
 		background-color: rgba(0, 153, 255, 0.5);
@@ -36,7 +36,7 @@ export const ButtonCell = styled.td`
 	width: 50px;
 	height: 50px;
 	font-size: 24px;
-	:hover {
+	&:hover {
 		background-color: rgba(0, 153, 255, 0.5);
 	}
 	cursor: pointer;
@@ -130,16 +130,16 @@ export const SelectedBody = styled.div`
 	margin-right: 32px;
 	margin-top: 12px;
 
-	::-webkit-scrollbar {
+	&::-webkit-scrollbar {
 		display: none;
 	}
 
-	::-webkit-scrollbar-thumb {
+	&::-webkit-scrollbar-thumb {
 		background-color: var(--transparent);
 		border: 0px solid var(--transparent);
 	}
 
-	::-webkit-scrollbar-track {
+	&::-webkit-scrollbar-track {
 		background: transparent;
 		width: 0px;
 		height: 0px;
@@ -148,16 +148,16 @@ export const SelectedBody = styled.div`
 `
 
 export const SearchBody = styled.div`
-	::-webkit-scrollbar {
+	&::-webkit-scrollbar {
 		display: none;
 	}
 
-	::-webkit-scrollbar-thumb {
+	&::-webkit-scrollbar-thumb {
 		background-color: var(--transparent);
 		border: 0px solid var(--transparent);
 	}
 
-	::-webkit-scrollbar-track {
+	&::-webkit-scrollbar-track {
 		background: transparent;
 		width: 0px;
 		height: 0px;

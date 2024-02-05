@@ -83,7 +83,7 @@ export function NFTCollectionContainer() {
 						<span>{data?.[0]?.totalSupply}</span>
 					</Stat>
 
-					<Link href={`https://etherscan.io/token/${address.split(':')[0]}`} passHref>
+					<Link legacyBehavior href={`https://etherscan.io/token/${address.split(':')[0]}`} passHref>
 						<Button
 							as="a"
 							target="_blank"

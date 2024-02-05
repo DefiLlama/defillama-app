@@ -133,7 +133,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 
 export const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
-		<Link href={option.to} prefetch={false} passHref>
+		<Link legacyBehavior href={option.to} prefetch={false} passHref>
 			<NavLink data-active={option.label === activeLink} {...props}>
 				{option.label}
 			</NavLink>
@@ -153,8 +153,8 @@ export const NavLink = styled.a`
 	background-color: ${({ theme }) =>
 		theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};
 
-	:hover,
-	:focus-visible {
+	&:hover,
+	&:focus-visible {
 		background-color: ${({ theme }) =>
 			theme.mode === 'dark' ? transparentize(0.8, '#629ff4') : transparentize(0.8, '#2172E5')};
 	}
@@ -163,8 +163,8 @@ export const NavLink = styled.a`
 		background-color: #2172e5;
 		color: white;
 
-		:hover,
-		:focus-visible {
+		&:hover,
+		&:focus-visible {
 			background-color: ${darken(0.1, '#2172E5')};
 		}
 	}

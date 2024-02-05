@@ -79,6 +79,7 @@ export const ChainLogo = ({
 		return (
 			<Tooltip2 content={chain}>
 				<Link
+					legacyBehavior
 					key={chain}
 					href={
 						url.includes('/yields?chain')

@@ -50,7 +50,7 @@ export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 		accessorKey: 'collections',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), false)}</>
+			return <>{(getValue() as number) <= 0 ? '--' : formattedNum(getValue(), false)}</>
 		},
 		meta: {
 			align: 'end'
@@ -71,7 +71,7 @@ export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 		accessorKey: 'totalVolumeUSD',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
+			return <>{(getValue() as number) <= 0 ? '--' : formattedNum(getValue(), true)}</>
 		},
 		meta: {
 			align: 'end'
@@ -122,7 +122,7 @@ export const marketplacesColumns: ColumnDef<INftsCollectionRow>[] = [
 		accessorKey: 'collections',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), false)}</>
+			return <>{(getValue() as number) <= 0 ? '--' : formattedNum(getValue(), false)}</>
 		},
 		meta: {
 			align: 'end'
@@ -143,7 +143,7 @@ export const marketplacesColumns: ColumnDef<INftsCollectionRow>[] = [
 		accessorKey: 'totalVolumeUSD',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
+			return <>{(getValue() as number) <= 0 ? '--' : formattedNum(getValue(), true)}</>
 		},
 		meta: {
 			align: 'end'

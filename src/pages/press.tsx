@@ -59,7 +59,7 @@ export const DashGrid = styled.div`
 	grid-template-areas: 'account';
 	padding: 0 4px;
 
-	> * {
+	& > * {
 		justify-content: flex-end;
 	}
 `

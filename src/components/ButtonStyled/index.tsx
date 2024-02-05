@@ -26,7 +26,7 @@ const Dull = styled(Base)`
 	height: 100%;
 	font-weight: 400;
 	&:hover,
-	:focus-visible {
+	&:focus-visible {
 		background-color: rgba(255, 255, 255, 0.25);
 		border-color: rgba(255, 255, 255, 0.25);
 	}
@@ -64,8 +64,8 @@ export const ButtonLight = styled(Base)<IButtonLightProps>`
 		color: ${({ color, theme }) => (color ? darken(0.1, color) : theme.primary1)};
 	}
 
-	:hover,
-	:focus-visible {
+	&:hover,
+	&:focus-visible {
 		background-color: ${({ color, theme }) =>
 			color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1)};
 	}
@@ -78,8 +78,8 @@ export const ButtonDark = styled(Base)`
 	border-radius: 12px;
 	white-space: nowrap;
 
-	:hover,
-	:focus-visible {
+	&:hover,
+	&:focus-visible {
 		background-color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.primary1))};
 	}
 `
@@ -90,7 +90,7 @@ export const ButtonFaded = styled(Base)`
 	color: (255, 255, 255, 0.5);
 	white-space: nowrap;
 
-	:hover {
+	&:hover {
 		opacity: 0.5;
 	}
 `
@@ -116,7 +116,7 @@ export const OptionButton = styled.button<IOptionButton>`
 	background: ${({ active, theme }) => (active ? theme.bg3 : 'none')};
 	color: ${({ theme }) => theme.text1};
 
-	:hover {
+	&:hover {
 		cursor: ${({ disabled }) => !disabled && 'pointer'};
 	}
 `
