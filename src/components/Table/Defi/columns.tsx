@@ -426,7 +426,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 						description: row.original.upcomingEvent.map((x) => x.description),
 						price: row.original.tPrice,
 						symbol: row.original.tSymbol,
-						mcap: row.original.mcap
+						mcap: row.original.mcap,
+						maxSupply: row.original.maxSupply
 					}}
 				/>
 			)
@@ -1706,10 +1707,11 @@ const LightText = styled.span`
 	min-width: 120px;
 `
 
-const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol, mcap }) => {
+const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol, mcap, maxSupply }) => {
 	const tokens = noOfTokens.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
 	const tokenValue = price ? tokens * price : null
-	const unlockPercent = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
+	const unlockPercent = maxSupply ? (tokens / maxSupply) * 100 : null
+	const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
 
 	const timeLeft = timestamp - Date.now() / 1e3
 	const days = Math.floor(timeLeft / 86400)
@@ -1743,7 +1745,10 @@ const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol,
 			<EventWrapper>
 				{tokenValue ? (
 					<span>
-						<span>{unlockPercent ? formatPercentage(unlockPercent) + '%' : ''}</span>
+						<span>
+							{(unlockPercent ? formatPercentage(unlockPercent) + '%' : '') +
+								(unlockPercentFloat ? ` (${formatPercentage(unlockPercentFloat)}% of float)` : '')}
+						</span>
 						<span>{formattedNum(tokenValue, true)}</span>
 					</span>
 				) : (
@@ -1918,7 +1923,6 @@ const EventWrapper = styled.span`
 	}
 
 	& > *:first-child {
-		inline-size: 68px;
 		overflow-wrap: break-word;
 		white-space: normal;
 	}
