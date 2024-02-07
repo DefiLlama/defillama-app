@@ -351,9 +351,8 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 // - used in /oracles and /oracles/[name]
 export async function getOraclePageData(oracle = null, chain = null) {
 	try {
-		const [{ chart = {}, chainChart = {}, oracles = {} }, { protocols }] = await Promise.all(
-			[ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
-		)
+		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle: chainsByOracleData }, { protocols }] =
+			await Promise.all([ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json())))
 
 		const oracleExists = !oracle || oracles[oracle]
 
@@ -396,7 +395,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 				}
 				return acc
 			}, {}),
-			(chains) => [...new Set(chains.flat())]
+			(chains, oracle) => chainsByOracleData?.[oracle] ?? [...new Set(chains.flat())]
 		)
 
 		if (oracle) {
