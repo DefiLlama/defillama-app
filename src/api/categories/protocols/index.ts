@@ -831,6 +831,21 @@ export async function getETFData() {
 	}
 }
 
+export async function getAirdropDirectoryData() {
+	const airdrops = await fetchWithErrorLogging(
+		'https://raw.githubusercontent.com/DefiLlama/defillama-app/main/src/airdrops/data.json'
+	).then((r) => r.json())
+
+	return {
+		props: {
+			airdrops: airdrops.map((i) => ({
+				...i,
+				endTime: i.endTime ? new Date(i?.endTime * 1000).toISOString().replace(/\.\d{3}/, '') : null
+			}))
+		}
+	}
+}
+
 export function formatGovernanceData(data: {
 	proposals: Array<{ scores: Array<number>; choices: Array<string>; id: string }>
 	stats: {
