@@ -727,6 +727,8 @@ export async function getLSDPageData() {
 				? 'Mantle Staked ETH'
 				: p.project === 'dinero-pirexeth'
 				? 'Dinero-PirexETH'
+				: p.project === 'mev-protocol'
+				? 'MEV Protocol'
 				: p.name
 	}))
 
@@ -825,6 +827,21 @@ export async function getETFData() {
 			barChartStacks,
 			tickers,
 			tickerColors
+		}
+	}
+}
+
+export async function getAirdropDirectoryData() {
+	const airdrops = await fetchWithErrorLogging(
+		'https://raw.githubusercontent.com/DefiLlama/defillama-app/main/src/airdrops/data.json'
+	).then((r) => r.json())
+
+	return {
+		props: {
+			airdrops: airdrops.map((i) => ({
+				...i,
+				endTime: i.endTime ? new Date(i?.endTime * 1000).toISOString().replace(/\.\d{3}/, '') : null
+			}))
 		}
 	}
 }

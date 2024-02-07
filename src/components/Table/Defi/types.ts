@@ -93,3 +93,11 @@ export interface IETFRow {
 	btc: number
 	flows: number
 }
+
+export interface AirdropRow {
+	name: string
+	page: string
+	twitter: string
+	explorer: string
+	tokens: string
+}

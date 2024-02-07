@@ -34,7 +34,8 @@ import type {
 	ILSDRow,
 	IEmission,
 	IGovernance,
-	IETFRow
+	IETFRow,
+	AirdropRow
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
@@ -1523,6 +1524,93 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 			align: 'end'
 		},
 		size: 120
+	}
+]
+
+export const AirdropColumn: ColumnDef<AirdropRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			return <Name>{getValue()}</Name>
+		},
+		size: 120
+	},
+	{
+		header: 'Claim Page',
+		accessorKey: 'page',
+		size: 100,
+		enableSorting: false,
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<ButtonYields
+					as="a"
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			) : null
+	},
+	{
+		header: 'Explorer',
+		accessorKey: 'explorer',
+		size: 80,
+		enableSorting: false,
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<ButtonYields
+					as="a"
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			) : null
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue, row }) => {
+			return (
+				<IconsRow
+					links={getValue() as Array<string>}
+					url="/oracles"
+					urlPrefix={`/${row.original.name}`}
+					iconType="chain"
+				/>
+			)
+		},
+		size: 80,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Start',
+		accessorKey: 'startTime',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 190
+	},
+	{
+		header: 'End',
+		accessorKey: 'endTime',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 190
 	}
 ]
 
