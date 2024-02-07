@@ -60,14 +60,7 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 		accessorKey: 'chains',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			return (
-				<IconsRow
-					links={getValue() as Array<string>}
-					url="/oracles"
-					urlPrefix={`/${row.original.name}`}
-					iconType="chain"
-				/>
-			)
+			return <IconsRow links={getValue() as Array<string>} url="/oracles/chain" iconType="chain" />
 		},
 		size: 200,
 		meta: {

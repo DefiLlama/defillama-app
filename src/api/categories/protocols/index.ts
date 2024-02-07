@@ -415,12 +415,14 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			oraclesProtocols[orc] = oracles[orc]?.length
 		}
 
+		const uniqueChains = [...new Set(Object.values(chainsByOracle).flat())]
+
 		let oracleLinks = oracle
 			? [{ label: 'All chains', to: `/oracles/${oracle}` }].concat(
 					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
 			  )
-			: [{ label: 'All oracles', to: `/oracles` }].concat(
-					oraclesUnique.map((o: string) => ({ label: o, to: `/oracles/${o}` }))
+			: [{ label: 'All', to: `/oracles/` }].concat(
+					uniqueChains.map((c: string) => ({ label: c, to: `/oracles/chain/${c}` }))
 			  )
 
 		const colors = {}
@@ -453,6 +455,93 @@ export async function getOraclePageData(oracle = null, chain = null) {
 	}
 }
 
+export async function getOraclePageDataByChain(chain: string) {
+	try {
+		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle: chainsByOracleData }, { protocols }] =
+			await Promise.all([ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json())))
+
+		const filteredProtocols = formatProtocolsData({ protocols, chain })
+
+		let chartData = Object.entries(chart)
+		const chainChartData = chain
+			? Object.entries(chainChart)
+					.map(([date, data]) => {
+						const chainName = chain
+						const chainData = Object.entries(data)
+							.map(([oracle, dayData]) => {
+								const chainData = Object.entries(dayData)
+									.map(([name, value]) =>
+										name.includes(chainName) ? [name.replace(chainName, '').replace('-', '') || 'tvl', value] : null
+									)
+									.filter(Boolean)
+								return Object.values(chainData).length ? [oracle, Object.fromEntries(chainData)] : null
+							})
+							.filter(Boolean)
+						return Object.values(chainData).length ? [date, Object.fromEntries(chainData)] : null
+					})
+					.filter(Boolean)
+			: null
+
+		const chainsByOracle = mapValues(
+			protocols.reduce((acc, curr) => {
+				if (curr.oracles) {
+					curr.oracles.forEach((oracle) => {
+						if (!acc[oracle]) {
+							acc[oracle] = []
+						}
+						acc[oracle].push(curr.chains)
+					})
+				}
+				return acc
+			}, {}),
+			(chains, oracle) => chainsByOracleData?.[oracle] ?? [...new Set(chains.flat())]
+		)
+
+		const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
+			.sort((a, b) => b[1].tvl - a[1].tvl)
+			.map((orc) => orc[0])
+			.filter((orc) => chainsByOracle[orc]?.includes(chain))
+
+		const oraclesProtocols: IOracleProtocols = {}
+
+		for (const orc in oracles) {
+			oraclesProtocols[orc] = protocols.filter((p) => p.oracles?.includes(orc) && p.chains.includes(chain)).length
+		}
+
+		const uniqueChains = [...new Set(Object.values(chainsByOracle).flat())]
+
+		const oracleLinks = [{ label: 'All chains', to: `/oracles/` }].concat(
+			uniqueChains.map((c: string) => ({ label: c, to: `/oracles/chain/${c}` }))
+		)
+
+		const colors = {}
+
+		oraclesUnique.forEach((chain, index) => {
+			colors[chain] = getColorFromNumber(index, 6)
+		})
+
+		colors['Others'] = '#AAAAAA'
+
+		return {
+			props: {
+				chain: chain ?? null,
+				chainChartData,
+				chainsByOracle,
+				tokens: oraclesUnique,
+				tokenLinks: oracleLinks,
+				tokensProtocols: oraclesProtocols,
+				filteredProtocols,
+				chartData: chainChartData,
+				oraclesColors: colors
+			}
+		}
+	} catch (e) {
+		console.log(e)
+		return {
+			notFound: true
+		}
+	}
+}
 // - used in /forks and /forks/[name]
 export async function getForkPageData(fork = null) {
 	try {
