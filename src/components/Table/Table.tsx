@@ -106,11 +106,10 @@ export default function VirtualTable({
 						  }
 						: {
 								position: 'absolute',
-								top: 0,
+								top: `${row.start - rowVirtualizer.options.scrollMargin}px`,
 								left: 0,
 								width: '100%',
 								height: `${row.size}px`,
-								transform: `translateY(${row.start - rowVirtualizer.options.scrollMargin}px)`,
 								opacity: rowTorender.original.disabled ? 0.3 : 1,
 								display: 'flex'
 						  }

@@ -165,8 +165,8 @@ const IconsRow = ({
 			))}
 			{!!hoverChains.length && links.length > 2 && (
 				<>
-					<HovercardAnchor state={hovercard}>
-						<TokenCounter>{`+${hoverChains.length}`}</TokenCounter>
+					<HovercardAnchor as={TokenCounter} state={hovercard}>
+						{`+${hoverChains.length}`}
 					</HovercardAnchor>
 					<Popover state={hovercard}>
 						{
