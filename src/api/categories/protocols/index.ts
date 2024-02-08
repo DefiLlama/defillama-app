@@ -813,8 +813,8 @@ export async function getLSDPageData() {
 				? 'Bedrock uniETH'
 				: p.project === 'mantle-staked-eth'
 				? 'Mantle Staked ETH'
-				: p.project === 'dinero-pirexeth'
-				? 'Dinero-PirexETH'
+				: p.project === 'dinero-(pirex-eth)'
+				? 'Dinero (Pirex ETH)'
 				: p.project === 'mev-protocol'
 				? 'MEV Protocol'
 				: p.name
