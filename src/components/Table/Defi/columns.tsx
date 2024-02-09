@@ -26,7 +26,17 @@ import {
 } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
-import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow, IEmission, IGovernance } from './types'
+import type {
+	ICategoryRow,
+	IChainsRow,
+	IForksRow,
+	IOraclesRow,
+	ILSDRow,
+	IEmission,
+	IGovernance,
+	IETFRow,
+	AirdropRow
+} from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
 
@@ -43,6 +53,19 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 					<span>{index + 1}</span> <CustomLink href={`/oracles/${getValue()}`}>{getValue()}</CustomLink>
 				</Name>
 			)
+		}
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue, row }) => {
+			return <IconsRow links={getValue() as Array<string>} url="/oracles/chain" iconType="chain" />
+		},
+		size: 200,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Chains secured by the oracle'
 		}
 	},
 	{
@@ -387,7 +410,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		cell: ({ row }) => {
 			let { timestamp } = row.original.upcomingEvent[0]
 
-			if (!timestamp) return null
+			if (!timestamp || timestamp < Date.now() / 1e3) return null
 
 			return (
 				<UpcomingEvent
@@ -397,7 +420,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 						description: row.original.upcomingEvent.map((x) => x.description),
 						price: row.original.tPrice,
 						symbol: row.original.tSymbol,
-						mcap: row.original.mcap
+						mcap: row.original.mcap,
+						maxSupply: row.original.maxSupply
 					}}
 				/>
 			)
@@ -583,7 +607,7 @@ export const activeInvestorsColumns: ColumnDef<{
 		cell: ({ getValue }) => {
 			return <>${getValue()}m</>
 		},
-		size: 130,
+		size: 140,
 		meta: {
 			align: 'end'
 		}
@@ -605,7 +629,7 @@ export const activeInvestorsColumns: ColumnDef<{
 		cell: ({ getValue }) => {
 			return <>{getValue()}</>
 		},
-		size: 120
+		size: 160
 	},
 	{
 		header: 'Top Round Type',
@@ -660,7 +684,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		header: capitalizeFirstLetter(s),
 		accessorKey: s,
 		enableSorting: false,
-		size: s === 'classification' ? 100 : 200,
+		size: s === 'classification' ? 140 : 200,
 		...(s === 'classification' && {
 			meta: {
 				headerHelperText:
@@ -671,7 +695,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 	{
 		header: 'Link',
 		accessorKey: 'link',
-		size: 33,
+		size: 40,
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<ButtonYields
@@ -724,7 +748,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
-		header: 'Active Users',
+		header: 'Active Addresses',
 		accessorKey: 'users',
 		cell: (info) => <>{info.getValue() === 0 || formattedNum(info.getValue())}</>,
 		size: 120,
@@ -811,6 +835,32 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
 			return <>{info.getValue() ?? null}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Total Bridged',
+		accessorKey: 'totalAssets',
+		cell: (info) => {
+			const value = info.getValue()
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'NFT Volume',
+		accessorKey: 'nftVolume',
+		cell: (info) => {
+			const value = info.getValue()
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
 		},
 		size: 120,
 		meta: {
@@ -1203,7 +1253,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		cell: (info) => {
 			return <>{'$' + formattedNum(info.getValue())}</>
 		},
-		size: 128,
+		size: 180,
 		meta: {
 			align: 'end'
 		}
@@ -1383,6 +1433,178 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			headerHelperText: 'Protocol Fee'
 		},
 		size: 90
+	}
+]
+
+export const ETFColumn: ColumnDef<IETFRow>[] = [
+	{
+		header: 'Ticker',
+		accessorKey: 'ticker',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<CustomLink href={row.original.url}>{getValue()}</CustomLink>
+				</Name>
+			)
+		},
+		size: 100
+	},
+	{
+		header: 'Issuer',
+		accessorKey: 'issuer',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 160
+	},
+	{
+		header: 'AUM',
+		accessorKey: 'aum',
+		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Volume',
+		accessorKey: 'volume',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Flows',
+		accessorKey: 'flows',
+		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Price',
+		accessorKey: 'price',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Terminal fee',
+		accessorKey: 'pct_fee',
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <>{value && value.toFixed(2) + '%'}</>
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Custodian',
+		accessorKey: 'custodian',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	}
+]
+
+export const AirdropColumn: ColumnDef<AirdropRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			return <Name>{getValue()}</Name>
+		},
+		size: 120
+	},
+	{
+		header: 'Claim Page',
+		accessorKey: 'page',
+		size: 100,
+		enableSorting: false,
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<ButtonYields
+					as="a"
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			) : null
+	},
+	{
+		header: 'Explorer',
+		accessorKey: 'explorer',
+		size: 80,
+		enableSorting: false,
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<ButtonYields
+					as="a"
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			) : null
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue, row }) => {
+			return (
+				<IconsRow
+					links={getValue() as Array<string>}
+					url="/oracles"
+					urlPrefix={`/${row.original.name}`}
+					iconType="chain"
+				/>
+			)
+		},
+		size: 80,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Start',
+		accessorKey: 'startTime',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 190
+	},
+	{
+		header: 'End',
+		accessorKey: 'endTime',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 190
 	}
 ]
 
@@ -1566,10 +1788,11 @@ const LightText = styled.span`
 	min-width: 120px;
 `
 
-const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol, mcap }) => {
+const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol, mcap, maxSupply }) => {
 	const tokens = noOfTokens.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
 	const tokenValue = price ? tokens * price : null
-	const unlockPercent = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
+	const unlockPercent = maxSupply ? (tokens / maxSupply) * 100 : null
+	const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
 
 	const timeLeft = timestamp - Date.now() / 1e3
 	const days = Math.floor(timeLeft / 86400)
@@ -1596,13 +1819,17 @@ const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol,
 			})
 		)
 		.join('\n\n')
+		.trim()
 
 	return (
 		<Tooltip content={tooltipContent} placement="left">
 			<EventWrapper>
-				{noOfTokens && unlockPercent ? (
+				{tokenValue ? (
 					<span>
-						<span>{unlockPercent ? formatPercentage(unlockPercent) + '%' : ''}</span>
+						<span>
+							{(unlockPercent ? formatPercentage(unlockPercent) + '%' : '') +
+								(unlockPercentFloat ? ` (${formatPercentage(unlockPercentFloat)}% of float)` : '')}
+						</span>
 						<span>{formattedNum(tokenValue, true)}</span>
 					</span>
 				) : (
@@ -1777,7 +2004,6 @@ const EventWrapper = styled.span`
 	}
 
 	& > *:first-child {
-		inline-size: 68px;
 		overflow-wrap: break-word;
 		white-space: normal;
 	}

@@ -104,7 +104,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 		accessorKey: 'dominance',
 		enableSorting: true,
 		cell: (info) => <>{formattedPercent(info.getValue(), true)}</>,
-		size: 140,
+		size: 120,
 		meta: {
 			align: 'end',
 			headerHelperText: '% of the 24h total volume'

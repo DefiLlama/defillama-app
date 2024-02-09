@@ -41,7 +41,14 @@ const LSD_ONLY = 'LSD_ONLY'
 export const UNRELEASED = 'unreleased'
 const PEGGEDUSD = 'PEGGEDUSD'
 const PEGGEDEUR = 'PEGGEDEUR'
+const PEGGEDSGD = 'PEGGEDSGD'
+const PEGGEDJPY = 'PEGGEDJPY'
+const PEGGEDCNY = 'PEGGEDCNY'
+const PEGGEDUAH = 'PEGGEDUAH'
+const PEGGEDARS = 'PEGGEDARS'
+const PEGGEDGBP = 'PEGGEDGBP'
 const PEGGEDVAR = 'PEGGEDVAR'
+const PEGGEDCAD = 'PEGGEDCAD'
 const FIATSTABLES = 'FIATSTABLES'
 const CRYPTOSTABLES = 'CRYPTOSTABLES'
 const ALGOSTABLES = 'ALGOSTABLES'
@@ -94,7 +101,14 @@ export const YIELDS_SETTINGS = {
 export const STABLECOINS_SETTINGS = {
 	PEGGEDUSD,
 	PEGGEDEUR,
+	PEGGEDSGD,
+	PEGGEDJPY,
+	PEGGEDCNY,
+	PEGGEDUAH,
+	PEGGEDARS,
+	PEGGEDGBP,
 	PEGGEDVAR,
+	PEGGEDCAD,
 	FIATSTABLES,
 	CRYPTOSTABLES,
 	ALGOSTABLES,
@@ -320,6 +334,9 @@ export function useDefiManager() {
 }
 export function useFeesManager() {
 	return useSettingsManager(FEES_SETTINGS_KEYS)
+}
+export function useTvlAndFeesManager() {
+	return useSettingsManager([...DEFI_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS])
 }
 
 // DEFI_CHAINS

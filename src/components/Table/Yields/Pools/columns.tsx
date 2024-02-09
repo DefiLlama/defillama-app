@@ -215,7 +215,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				</CustomLink>
 			)
 		},
-		size: 110,
+		size: 120,
 		meta: {
 			align: 'end'
 		}

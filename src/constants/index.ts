@@ -10,8 +10,8 @@ export const timeframeOptions = {
 export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com'
 export const DATASETS_R2_PATH = 'https://defillama-datasets.llama.fi'
 
-export const CHART_API = 'https://defillama-datasets.llama.fi/lite/charts'
-export const PROTOCOLS_API = 'https://defillama-datasets.llama.fi/lite/protocols2?b=2'
+export const CHART_API = 'https://api.llama.fi/lite/charts'
+export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2?b=2'
 export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
 export const CONFIG_API = 'https://api.llama.fi/config'
 export const HOURLY_PROTOCOL_API = 'https://api.llama.fi/hourly'
@@ -88,10 +88,13 @@ export const YIELD_PERPS_API = 'https://yields.llama.fi/perps'
 export const YIELD_PROJECT_MEDIAN_API = 'https://yields.llama.fi/medianProject'
 
 export const LSD_RATES_API = 'https://yields.llama.fi/lsdRates'
+export const ETF_OVERVIEW_API = 'https://etfs.llama.fi/overview'
+export const ETF_HISTORY_API = 'https://etfs.llama.fi/history'
 
 export const LIQUIDATIONS_HISTORICAL_R2_PATH = DATASETS_R2_PATH + '/liqs'
 
 export const CHAINS_API = 'https://api.llama.fi/chains'
+export const CHAINS_ASSETS = 'https://api.llama.fi/chainAssets'
 
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
@@ -120,6 +123,7 @@ export const ICONS_PALETTE_CDN = 'https://icons.llamao.fi/palette'
 // export const ICONS_PALETTE_CDN = 'https://palette.llamao.fi/palette'
 
 export const COINS_API = 'https://coins.llama.fi/prices'
+export const PRICE_CHART_API = 'https://coins.llama.fi/chart'
 
 export const TWITTER_POSTS_API = 'https://defillama-datasets.llama.fi/dev-metrics/twitter-files'
 

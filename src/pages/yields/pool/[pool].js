@@ -54,7 +54,7 @@ const PageView = () => {
 
 	const { data: chartBorrow, loading: fetchingChartDataBorrow } = useYieldChartLendBorrow(query.pool)
 
-	const poolData = pool?.data ? pool.data[0] : {}
+	const poolData = pool?.data?.[0] ?? {}
 
 	const { data: config, loading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
@@ -154,10 +154,10 @@ const PageView = () => {
 			category === 'CDP' && el.debtCeilingUsd
 				? el.debtCeilingUsd - el.totalBorrowUsd
 				: category === 'CDP'
-				? null
-				: el.totalSupplyUsd === null && el.totalBorrowUsd === null
-				? null
-				: el.totalSupplyUsd - el.totalBorrowUsd,
+					? null
+					: el.totalSupplyUsd === null && el.totalBorrowUsd === null
+						? null
+						: el.totalSupplyUsd - el.totalBorrowUsd,
 			el.apyBase?.toFixed(2) ?? null,
 			el.apyReward?.toFixed(2) ?? null,
 			-el.apyBaseBorrow?.toFixed(2) ?? null,
@@ -376,9 +376,9 @@ const stackedBarChartColors = {
 }
 
 const liquidityChartColors = {}
-;[('Supplied', 'Borrowed', 'Available')].forEach((l, index) => {
-	liquidityChartColors[l] = getColorFromNumber(index, 6)
-})
+	;[('Supplied', 'Borrowed', 'Available')].forEach((l, index) => {
+		liquidityChartColors[l] = getColorFromNumber(index, 6)
+	})
 
 const barChartStacks = {
 	Base: 'a',

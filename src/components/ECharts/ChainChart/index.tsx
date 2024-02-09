@@ -26,7 +26,11 @@ const colors = {
 	transactions: '#307622',
 	bridges: '#ffb12b',
 	developers: '#ff6969',
-	devsCommits: '#39601f'
+	devsCommits: '#39601f',
+	tokenPrice: '#c7da1f',
+	tokenMcap: '#1fda38',
+	derivatives: '#305a00',
+	aggregators: '#ff7b00'
 }
 
 const colorsArray = [
@@ -183,11 +187,11 @@ export default function AreaChart({
 				})
 			}
 
-			if (route.users === 'true' && data?.usersData?.length > 0) {
+			if (route.addresses === 'true' && data?.usersData?.length > 0) {
 				series.push({
-					name: namePrefix + 'Returning Users',
-					chartId: 'Users',
-					stack: 'Users',
+					name: namePrefix + 'Returning Addresses',
+					chartId: 'Addresses',
+					stack: 'Addresses',
 					type: 'bar',
 					data: [],
 					yAxisIndex: 5,
@@ -199,9 +203,9 @@ export default function AreaChart({
 					series[series.length - 1].data.push([getUtcDateObject(date), (value ?? 0) - (value2 ?? 0)])
 				})
 				series.push({
-					name: namePrefix + 'New Users',
-					chartId: 'Users',
-					stack: 'Users',
+					name: namePrefix + 'New Addresses',
+					chartId: 'Addresses',
+					stack: 'Addresses',
 					type: 'bar',
 					data: [],
 					yAxisIndex: 5,
@@ -314,6 +318,77 @@ export default function AreaChart({
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
+
+			if (route.chainTokenPrice === 'true' && data?.chainTokenPriceData && denomination === 'USD') {
+				series.push({
+					name: namePrefix + 'Token Price',
+					chartId: 'Token Price',
+					symbol: 'none',
+					type: 'line',
+					data: [],
+					yAxisIndex: 12,
+					itemStyle: {
+						color: getColor(isCompare) || colors.tokenPrice
+					}
+				})
+				data?.chainTokenPriceData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+
+			if (route.chainTokenMcap === 'true' && data?.chainTokenMcapData) {
+				series.push({
+					name: namePrefix + 'Token Mcap',
+					chartId: 'Token Mcap',
+					symbol: 'none',
+					type: 'line',
+					data: [],
+					yAxisIndex: 13,
+					itemStyle: {
+						color: getColor(isCompare) || colors.tokenMcap
+					}
+				})
+				data?.chainTokenMcapData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+
+			if (route.aggregators === 'true' && data?.aggregatorsData) {
+				series.push({
+					name: namePrefix + 'Aggregators Volume',
+					chartId: 'Aggregators',
+					symbol: 'none',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 14,
+					itemStyle: {
+						color: getColor(isCompare) || colors.aggregators
+					}
+				})
+				data?.aggregatorsData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
+			if (route.derivatives === 'true' && data?.derivativesData) {
+				series.push({
+					name: namePrefix + 'Derivatives Volume',
+					chartId: 'Derivatives',
+					symbol: 'none',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 15,
+					itemStyle: {
+						color: getColor(isCompare) || colors.derivatives
+					}
+				})
+				data?.derivativesData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
@@ -344,12 +419,16 @@ export default function AreaChart({
 			Revenue: 65,
 			Price: 65,
 			Raises: 65,
-			Users: 60,
+			Addresses: 60,
 			'Stablecoins Mcap': 60,
 			Transactions: 65,
 			Inflows: 55,
 			Developers: 55,
-			Commits: 60
+			Commits: 60,
+			'Token Price': 55,
+			'Token Mcap': 55,
+			Aggregators: 55,
+			Derivatives: 55
 		}
 		let offsetAcc = -60
 
@@ -428,11 +507,11 @@ export default function AreaChart({
 				{
 					...yAxis,
 					axisLabel: {
-						formatter: (value) => toK(value) + ' ' + 'Users',
+						formatter: (value) => toK(value) + ' ' + 'Addresses',
 						color: () => (isCompare ? '#fff' : colors.returningUsers)
 					},
 					scale: true,
-					id: 'Users'
+					id: 'Addresses'
 				},
 				{
 					...yAxis,
@@ -488,6 +567,42 @@ export default function AreaChart({
 						...yAxis.axisLabel,
 						formatter: (value) => value + ' commits',
 						color: () => (isCompare ? '#fff' : colors.devsCommits)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Token Price',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.tokenPrice)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Token Mcap',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.tokenMcap)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Aggregators',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.aggregators)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Derivatives',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.derivatives)
 					}
 				}
 			].map((yAxis: any, i) => {

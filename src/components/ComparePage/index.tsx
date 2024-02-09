@@ -275,8 +275,8 @@ function ComparePage() {
 								},
 
 								{
-									id: 'users',
-									name: 'Active Users',
+									id: 'addresses',
+									name: 'Active Addresses',
 									key: 'usersData'
 								},
 								{

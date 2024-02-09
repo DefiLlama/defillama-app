@@ -5,7 +5,7 @@ import styled from 'styled-components'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IMenuProps {
-	options: string[]
+	options: string[] | string
 	name: string
 	color?: string
 	isExternal?: boolean
@@ -15,6 +15,7 @@ interface IMenuProps {
 
 export function Menu({ options, name, color, isExternal, onItemClick, variant = 'primary', ...props }: IMenuProps) {
 	const [isLarge, renderCallback] = useSetPopoverStyles()
+	const _options = typeof options === 'string' ? [options] : options
 
 	const menu = useMenuState({ gutter: 8, animated: true, renderCallback })
 
@@ -25,7 +26,7 @@ export function Menu({ options, name, color, isExternal, onItemClick, variant = 
 				<MenuButtonArrow />
 			</Button>
 			<Popover state={menu} modal={!isLarge}>
-				{options.map((value, i) => {
+				{_options.map((value, i) => {
 					return onItemClick ? (
 						<Item as="button" key={value + i} onClick={() => onItemClick(value)}>
 							{value}

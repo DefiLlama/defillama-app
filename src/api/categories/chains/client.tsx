@@ -1,6 +1,7 @@
 import useSWR from 'swr'
 import { getDexVolumeByChain } from '../dexs'
 import { getFeesAndRevenueByChain, getFeesAndRevenueProtocolsByChain } from '../fees'
+import { getOverview } from '../adaptors'
 
 export function useGetProtocolsVolumeByChain(chain?: string) {
 	const { data, error } = useSWR(
@@ -66,6 +67,15 @@ export function useGetProtocolsFeesAndRevenueByChain(chain?: string) {
 	const { data, error } = useSWR(
 		`protocolsFeesAndRevenueByChain/${chain}`,
 		chain ? () => getFeesAndRevenueProtocolsByChain({ chain }) : () => null
+	)
+
+	return { data, loading: !data && data !== null && !error }
+}
+
+export const useGetItemOverviewByChain = (chain?: string, item?: string) => {
+	const { data, error } = useSWR(
+		`itemOverviewByChain/${chain}/${item}`,
+		chain ? () => getOverview(item, chain?.toLowerCase(), undefined, true, true) : () => null
 	)
 
 	return { data, loading: !data && data !== null && !error }

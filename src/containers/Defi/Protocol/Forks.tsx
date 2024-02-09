@@ -1,13 +1,8 @@
-import { useInView } from 'react-intersection-observer'
 import useSWR from 'swr'
 import { getForkPageData } from '~/api/categories/protocols'
 import { ForkContainer } from '~/containers/ForkContainer'
 
 export function ForksData({ protocolName }: { protocolName: string }) {
-	const { ref, inView } = useInView({
-		triggerOnce: true
-	})
-
 	const { data, error } = useSWR(`/forks/${protocolName}`, () =>
 		getForkPageData(protocolName).then((data) => ({
 			chartData: data.props.chartData,
@@ -29,8 +24,8 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 	}
 
 	return (
-		<div ref={ref} style={{ minHeight: '460px' }}>
-			{inView && <ForkContainer {...data} skipTableVirtualization />}
+		<div style={{ minHeight: '460px' }}>
+			<ForkContainer {...data} skipTableVirtualization />
 		</div>
 	)
 }

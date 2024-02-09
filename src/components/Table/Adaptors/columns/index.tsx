@@ -80,6 +80,7 @@ export const derivativesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 		Change7dColumn,
 		Change1mColumn,
 		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Open Interest', 'dailyOpenInterest', 'updated daily at 00:00UTC', undefined, 'Open Interest', true),
 		TotalAllTimeColumn('volume'),
 		allChains ? undefined : VolumeTVLColumn,
 		DominanceColumn
@@ -226,7 +227,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 100
+		dominance: 120
 	},
 	600: {
 		name: 200,
@@ -236,7 +237,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 100
+		dominance: 120
 	},
 	900: {
 		name: 240,
@@ -246,7 +247,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 100
+		dominance: 120
 	}
 }
 

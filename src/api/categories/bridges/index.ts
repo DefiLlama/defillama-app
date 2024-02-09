@@ -25,8 +25,8 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 						// i.e., a withdrawal from the chain. Will eventually change that.
 						return {
 							date: chart.date,
-							Deposits: chart.withdrawUSD,
-							Withdrawals: -chart.depositUSD
+							Deposits: chart.depositUSD,
+							Withdrawals: -chart.withdrawUSD
 						}
 					})
 					return formattedChart
@@ -249,8 +249,7 @@ export async function getBridgeChainsPageData() {
 					const charts = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`).then((resp) =>
 						resp.json()
 					)
-					// can format differently here if needed
-					return charts
+					return { ...charts, name: chain.name }
 				} catch (e) {}
 			}
 			throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)

@@ -4,9 +4,15 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { useDefiManager } from '~/contexts/LocalStorage'
-import { ProtocolsTableWithSearch } from '../Table/Defi/Protocols'
 import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
+import { ProtocolsTableWithSearch } from '../Table/Defi/Protocols'
+import { useRouter } from 'next/router'
+import dynamic from 'next/dynamic'
+
+const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
+	ssr: false
+})
 
 interface IAllTokensPageProps {
 	title?: string
@@ -20,6 +26,7 @@ interface IAllTokensPageProps {
 	chartData?: any
 	color?: string
 	csvDownload?: boolean
+	categoryChart?: Array<[number, number]>
 }
 
 function ProtocolList({
@@ -30,11 +37,15 @@ function ProtocolList({
 	filteredProtocols,
 	showChainList = true,
 	parentProtocols,
-	csvDownload = false
+	csvDownload = false,
+	categoryChart
 }: IAllTokensPageProps) {
+	const [isDark] = useDarkModeManager()
+
+	const router = useRouter()
 	const handleRouting = (chain) => {
-		if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
-		return `/protocols/${category?.toLowerCase()}/${chain}`
+		if (chain === 'All') return `/protocols/${category}`
+		return `/protocols/${category}/${chain}`
 	}
 	const chainOptions = ['All', ...chains].map((label) => ({
 		label,
@@ -101,6 +112,10 @@ function ProtocolList({
 					<RowLinksWithDropdown links={chainOptions} activeLink={chain} />
 				</RowLinksWrapper>
 			)}
+
+			{router.isReady && categoryChart ? (
+				<ChainChart datasets={[{ globalChart: categoryChart }]} title="" isThemeDark={isDark} hideTooltip />
+			) : null}
 
 			<ProtocolsTableWithSearch
 				data={protocolTotals}

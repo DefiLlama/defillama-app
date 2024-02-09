@@ -3,8 +3,8 @@ export const BAR_CHARTS = [
 	'Derivatives Volume',
 	'Fees',
 	'Revenue',
-	'Active Users',
-	'New Users',
+	'Active Addresses',
+	'New Addresses',
 	'Transactions',
 	'Gas Used',
 	'USD Inflows',
@@ -19,7 +19,8 @@ export const BAR_CHARTS = [
 	'Contributers',
 	'Devs Commits',
 	'Contributers Commits',
-	'NFT Volume'
+	'NFT Volume',
+	'Aggregators Volume'
 ]
 
 export const DISABLED_CUMULATIVE_CHARTS = ['Developers', 'Contributers', , 'Devs Commits', 'Contributers Commits']

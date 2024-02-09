@@ -54,6 +54,7 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 		header: item,
 		accessorKey: item,
 		enableSorting: false,
+		size: 200,
 		meta: {
 			headerHelperText: descriptions[item as string] ?? null
 		}

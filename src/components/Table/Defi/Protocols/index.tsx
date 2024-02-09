@@ -447,6 +447,7 @@ export function RecentlyListedProtocolsTable({ data }: { data: Array<IProtocolRo
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const windowSize = useWindowSize()
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const router = useRouter()
 
@@ -456,12 +457,15 @@ export function RecentlyListedProtocolsTable({ data }: { data: Array<IProtocolRo
 		state: {
 			sorting,
 			expanded,
-			columnSizing
+			columnSizing,
+			columnFilters
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
 		onSortingChange: setSorting,
 		onColumnSizingChange: setColumnSizing,
+		onColumnFiltersChange: setColumnFilters,
+		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
@@ -474,8 +478,34 @@ export function RecentlyListedProtocolsTable({ data }: { data: Array<IProtocolRo
 
 		instance.setColumnSizing(columnSizes[cSize])
 	}, [windowSize, instance])
+	const [projectName, setProjectName] = React.useState('')
 
-	return <VirtualTable instance={instance} />
+	React.useEffect(() => {
+		const columns = instance.getColumn('name')
+
+		const id = setTimeout(() => {
+			columns.setFilterValue(projectName)
+		}, 200)
+
+		return () => clearTimeout(id)
+	}, [projectName, instance])
+
+	return (
+		<>
+			<TableFiltersWithInput>
+				<SearchIcon size={16} />
+
+				<input
+					value={projectName}
+					onChange={(e) => {
+						setProjectName(e.target.value)
+					}}
+					placeholder="Search protocols..."
+				/>
+			</TableFiltersWithInput>
+			<VirtualTable instance={instance} />
+		</>
+	)
 }
 
 export function TopGainersAndLosers({ data }: { data: Array<IProtocolRow> }) {

@@ -36,8 +36,8 @@ export function useFetchAndFormatChartData({
 	fees,
 	revenue,
 	unlocks,
-	activeUsers,
-	newUsers,
+	activeAddresses,
+	newAddresses,
 	events,
 	transactions,
 	gasUsed,
@@ -68,7 +68,8 @@ export function useFetchAndFormatChartData({
 	contributersCommits,
 	devCommits,
 	nftVolume,
-	nftVolumeData
+	nftVolumeData,
+	aggregators
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -102,11 +103,11 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
 	})
 
-	const { data: activeUsersData, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(
-		isRouterReady && activeUsers === 'true' && activeUsersId ? activeUsersId : null
+	const { data: activeAddressesData, loading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
+		isRouterReady && activeAddresses === 'true' && activeUsersId ? activeUsersId : null
 	)
-	const { data: newUsersData, loading: fetchingNewUsers } = useFetchProtocolNewUsers(
-		isRouterReady && newUsers === 'true' && activeUsersId ? activeUsersId : null
+	const { data: newAddressesData, loading: fetchingNewAddresses } = useFetchProtocolNewUsers(
+		isRouterReady && newAddresses === 'true' && activeUsersId ? activeUsersId : null
 	)
 	const { data: transactionsData, loading: fetchingTransactions } = useFetchProtocolTransactions(
 		isRouterReady && transactions === 'true' && activeUsersId ? activeUsersId : null
@@ -157,6 +158,14 @@ export function useFetchAndFormatChartData({
 		type: 'chains',
 		enableBreakdownChart: false,
 		disabled: isRouterReady && derivativesVolume === 'true' && metrics.derivatives ? false : true
+	})
+
+	const { data: aggregatorsVolumeData, loading: fetchingAggregatorsVolume } = useGetOverviewChartData({
+		name: protocol,
+		dataToFetch: 'aggregators',
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: isRouterReady && metrics.aggregators && aggregators === 'true' ? false : true
 	})
 
 	const showNonUsdDenomination =
@@ -495,6 +504,21 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
+		if (aggregatorsVolumeData) {
+			chartsUnique.push('Aggregators Volume')
+
+			aggregatorsVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Aggregators Volume'] = showNonUsdDenomination
+					? +item.Aggregators / getPriceAtDate(date, denominationHistory.prices)
+					: item.Aggregators
+			})
+		}
+
 		if (feesAndRevenue) {
 			if (fees === 'true') {
 				chartsUnique.push('Fees')
@@ -559,30 +583,30 @@ export function useFetchAndFormatChartData({
 				})
 		}
 
-		if (activeUsersData) {
-			chartsUnique.push('Active Users')
+		if (activeAddressesData) {
+			chartsUnique.push('Active Addresses')
 
-			activeUsersData.forEach(([dateS, noOfUsers]) => {
+			activeAddressesData.forEach(([dateS, noOfUsers]) => {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date]['Active Users'] = noOfUsers || 0
+				chartData[date]['Active Addresses'] = noOfUsers || 0
 			})
 		}
-		if (newUsersData) {
-			chartsUnique.push('New Users')
+		if (newAddressesData) {
+			chartsUnique.push('New Addresses')
 
-			newUsersData.forEach(([dateS, noOfUsers]) => {
+			newAddressesData.forEach(([dateS, noOfUsers]) => {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date]['New Users'] = noOfUsers || 0
+				chartData[date]['New Addresses'] = noOfUsers || 0
 			})
 		}
 		if (transactionsData) {
@@ -835,8 +859,8 @@ export function useFetchAndFormatChartData({
 		fees,
 		revenue,
 		isRouterReady,
-		activeUsersData,
-		newUsersData,
+		activeAddressesData,
+		newAddressesData,
 		tokenPrice,
 		fdv,
 		fdvData,
@@ -864,7 +888,8 @@ export function useFetchAndFormatChartData({
 		contributersCommits,
 		devCommits,
 		nftVolume,
-		nftVolumeData
+		nftVolumeData,
+		aggregatorsVolumeData
 	])
 
 	const finalData = React.useMemo(() => {
@@ -921,15 +946,19 @@ export function useFetchAndFormatChartData({
 		fetchingTypes.push('derivatives volume')
 	}
 
+	if (fetchingAggregatorsVolume) {
+		fetchingTypes.push('aggregators volume')
+	}
+
 	if (fetchingEmissions) {
 		fetchingTypes.push('unlocks')
 	}
 
-	if (fetchingActiveUsers) {
-		fetchingTypes.push('active users')
+	if (fetchingActiveAddresses) {
+		fetchingTypes.push('active addresses')
 	}
-	if (fetchingNewUsers) {
-		fetchingTypes.push('new users')
+	if (fetchingNewAddresses) {
+		fetchingTypes.push('new addresses')
 	}
 	if (fetchingTransactions) {
 		fetchingTypes.push('transactions')
@@ -966,8 +995,8 @@ export function useFetchAndFormatChartData({
 		fetchingFees ||
 		fetchingVolume ||
 		fetchingDerivativesVolume ||
-		fetchingActiveUsers ||
-		fetchingNewUsers ||
+		fetchingActiveAddresses ||
+		fetchingNewAddresses ||
 		fetchingTransactions ||
 		fetchingGasUsed ||
 		fetchingMedianAPY ||
@@ -977,7 +1006,8 @@ export function useFetchAndFormatChartData({
 		fetchingBridgeVolume ||
 		fetchingTokenLiquidity ||
 		fetchingTwitter ||
-		fetchingDevMetrics
+		fetchingDevMetrics ||
+		fetchingAggregatorsVolume
 
 	return {
 		fetchingTypes,
@@ -1011,7 +1041,7 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 				date = lastDayOfWeek(+defaultDate * 1000)
 			}
 
-			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek < +date : true)) {
+			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek <= +date : true)) {
 				currentDate = +date
 			}
 

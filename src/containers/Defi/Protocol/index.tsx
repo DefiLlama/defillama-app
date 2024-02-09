@@ -34,7 +34,7 @@ import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import QuestionHelper from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
-import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS, FEES_SETTINGS, useDefiManager, useTvlAndFeesManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
 	formatPercentage,
@@ -48,26 +48,28 @@ import { useFetchProtocol, useFetchProtocolTwitter, useGetTokenPrice } from '~/a
 import type { IFusedProtocolData, IProtocolDevActivity, NftVolumeData } from '~/api/types'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
-import { TreasuryChart } from './Treasury'
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
-import { UnlocksCharts } from './Emissions'
 import { RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
 import Announcement from '~/components/Announcement'
-import { useTabState, TabPanel } from 'ariakit'
+import { useTabState, TabPanel as AriakitTabPanel } from 'ariakit'
 import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
 import { GridContent, TabLayout, TabList, Tab, OtherProtocols, ProtocolLink } from './Common'
-import { GovernanceData } from './Governance'
 import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
-import { ProtocolPools } from './Yields'
 import { Flag } from './Flag'
-import { StablecoinInfo } from './Stablecoin'
 import { AccordionStat } from '~/layout/Stats/Large'
-import { ForksData } from './Forks'
 import { sluggify } from '~/utils/cache-client'
 import dayjs from 'dayjs'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { ProtocolPools } from './Yields'
+import { TreasuryChart } from './Treasury'
+import { UnlocksCharts } from './Emissions'
+import { StablecoinInfo } from './Stablecoin'
+import { ForksData } from './Forks'
+import { GovernanceData } from './Governance'
+import { useInView } from 'react-intersection-observer'
+import { feesOptions } from '~/components/Filters/protocols/options'
 
 const scams = [
 	'Drachma Exchange',
@@ -82,9 +84,11 @@ const scams = [
 	'SkyDex',
 	'Avault',
 	'Tegro Finance',
-	'MantaSwap'
+	'Lendora Protocol',
+	'MantaSwap',
+	'Onchain Trade',
+	'Venuswap'
 ]
-
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
@@ -231,9 +235,13 @@ interface IProtocolContainerProps {
 	} | null
 	fees30d: number | null
 	revenue30d: number | null
+	tokenTaxesRevenue30d: number | null
+	bribesRevenue30d: number | null
 	allTimeFees: number | null
 	dailyFees: number | null
 	dailyRevenue: number | null
+	dailyBribesRevenue: number | null
+	dailyTokenTaxes: number | null
 	dailyVolume: number | null
 	allTimeVolume: number | null
 	dailyDerivativesVolume: number | null
@@ -306,6 +314,10 @@ function ProtocolContainer({
 	allTimeFees,
 	dailyFees,
 	dailyRevenue,
+	dailyBribesRevenue,
+	dailyTokenTaxes,
+	bribesRevenue30d,
+	tokenTaxesRevenue30d,
 	dailyVolume,
 	allTimeVolume,
 	dailyDerivativesVolume,
@@ -354,11 +366,11 @@ function ProtocolContainer({
 
 	const { usdInflows: usdInflowsParam, denomination } = router.query
 
-	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
+	const { explorers } = getBlockExplorer(address)
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const [extraTvlsEnabled, updater] = useDefiManager()
+	const [extraTvlsEnabled, updater] = useTvlAndFeesManager()
 
 	const { data: twitterData } = useFetchProtocolTwitter(twitter ? twitter : null)
 
@@ -447,6 +459,17 @@ function ProtocolContainer({
 		}
 	)
 
+	const feesToggle = []
+
+	if (dailyBribesRevenue) {
+		feesToggle.push(feesOptions.find((f) => f.key === FEES_SETTINGS.BRIBES))
+	}
+	if (dailyTokenTaxes) {
+		feesToggle.push(feesOptions.find((f) => f.key === FEES_SETTINGS.TOKENTAX))
+	}
+
+	const toggleOptions = [...tvlOptions, ...feesToggle]
+
 	const tvls = Object.entries(tvlsByChain)
 
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
@@ -503,6 +526,18 @@ function ProtocolContainer({
 		return formattedNum(value, true)
 	}
 
+	let revenue30dFinal = revenue30d
+	let dailyRevenueFinal = dailyRevenue
+
+	if (extraTvlsEnabled[FEES_SETTINGS.BRIBES]) {
+		dailyRevenueFinal = dailyRevenue + (dailyBribesRevenue ?? 0)
+		revenue30dFinal = revenue30d + (bribesRevenue30d ?? 0)
+	}
+	if (extraTvlsEnabled[FEES_SETTINGS.TOKENTAX]) {
+		dailyRevenueFinal = dailyRevenue + (dailyTokenTaxes ?? 0)
+		revenue30dFinal = revenue30dFinal + (tokenTaxesRevenue30d ?? 0)
+	}
+
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO
@@ -513,11 +548,16 @@ function ProtocolContainer({
 				isCEX={isCEX}
 			/>
 
-			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
+			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={toggleOptions} />
 
 			{['SyncDEX Finance', 'Avatr', 'SatoshiCoreSwap', 'Opankeswap', 'PolyLend'].includes(name) && (
 				<Announcement warning={true} notCancellable={true}>
 					Project has some red flags and multiple users have reported concerns. Be careful.
+				</Announcement>
+			)}
+			{name === '01' && (
+				<Announcement warning={true} notCancellable={true}>
+					01 Exchange was winded down. Please withdraw your remaining assets.
 				</Announcement>
 			)}
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
@@ -760,8 +800,7 @@ function ProtocolContainer({
 										</th>
 										<td>{formatPrice(stakedAmount)}</td>
 									</tr>
-
-									{tokenCGData.marketCap.current ? (
+									{tokenCGData?.marketCap?.current ? (
 										<tr style={{ position: 'relative', top: '-6px' }}>
 											<td
 												style={{
@@ -912,12 +951,12 @@ function ProtocolContainer({
 								/>
 							) : null}
 
-							{revenue30d ? (
+							{revenue30dFinal ? (
 								<RowWithSubRows
 									protocolName={protocolData.name}
 									dataType="Revenue"
 									rowHeader="Revenue (annualized)"
-									rowValue={formatPrice(revenue30d * 12.2)}
+									rowValue={formatPrice(revenue30dFinal * 12.2)}
 									helperText={explainAnnualized(helperTexts.revenue)}
 									subRows={
 										<>
@@ -926,10 +965,10 @@ function ProtocolContainer({
 												<td data-subvalue>{formatPrice(revenue30d)}</td>
 											</tr>
 
-											{dailyRevenue ? (
+											{dailyRevenueFinal ? (
 												<tr>
 													<th data-subvalue>{`Revenue 24h`}</th>
-													<td data-subvalue>{formatPrice(dailyRevenue)}</td>
+													<td data-subvalue>{formatPrice(dailyRevenueFinal)}</td>
 												</tr>
 											) : null}
 										</>
@@ -1122,6 +1161,7 @@ function ProtocolContainer({
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart
+					protocolData={protocolData}
 					twitterHandle={protocolData.twitter}
 					protocol={protocol}
 					color={backgroundColor}
@@ -1286,7 +1326,7 @@ function ProtocolContainer({
 							</LinksWrapper>
 						</Section>
 
-						{articles.length > 0 && (
+						{articles && articles.length > 0 && (
 							<Section>
 								<RowBetween>
 									<h3>Latest from DL News</h3>
@@ -1323,8 +1363,7 @@ function ProtocolContainer({
 								</FlexRow>
 							</Section>
 						)}
-
-						{(address || protocolData.gecko_id || blockExplorerLink) && (
+						{(address || protocolData.gecko_id || explorers) && (
 							<Section>
 								<h3>Token Information</h3>
 
@@ -1352,19 +1391,20 @@ function ProtocolContainer({
 										</Link>
 									)}
 
-									{blockExplorerLink && (
-										<Link href={blockExplorerLink} passHref>
-											<Button
-												as="a"
-												target="_blank"
-												rel="noopener noreferrer"
-												useTextColor={true}
-												color={backgroundColor}
-											>
-												<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
-											</Button>
-										</Link>
-									)}
+									{explorers &&
+										explorers.map(({ blockExplorerLink, blockExplorerName }) => (
+											<Link href={blockExplorerLink} passHref key={blockExplorerName}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
+													<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
+												</Button>
+											</Link>
+										))}
 								</LinksWrapper>
 							</Section>
 						)}
@@ -1383,7 +1423,7 @@ function ProtocolContainer({
 								)}
 								{helperTexts?.fees && <p>Fees: {helperTexts.fees}</p>}
 								{helperTexts?.revenue && <p>Revenue: {helperTexts.revenue}</p>}
-								{helperTexts?.users && users?.activeUsers ? <p>Users: {helperTexts.users}</p> : null}
+								{helperTexts?.users && users?.activeUsers ? <p>Addresses: {helperTexts.users}</p> : null}
 
 								<LinksWrapper>
 									{methodologyUrls?.tvl && (
@@ -1485,19 +1525,17 @@ function ProtocolContainer({
 										<span>{formattedNum(hacksData.returnedFunds, true)}</span>
 									</FlexRow>
 
-									{blockExplorerLink && (
-										<Link href={hacksData.source} passHref>
-											<Button
-												as="a"
-												target="_blank"
-												rel="noopener noreferrer"
-												useTextColor={true}
-												color={backgroundColor}
-											>
-												<span>Source</span> <ArrowUpRight size={14} />
-											</Button>
-										</Link>
-									)}
+									<Link href={hacksData.source} passHref>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
+											<span>Source</span> <ArrowUpRight size={14} />
+										</Button>
+									</Link>
 								</HackDataWrapper>
 							</Section>
 						) : null}
@@ -1676,6 +1714,15 @@ const Toggle = styled.button`
 		}
 	}
 `
+
+const TabPanel = ({ children, ...props }: any) => {
+	const { ref, inView } = useInView({ trackVisibility: true, delay: 100 })
+	return (
+		<AriakitTabPanel ref={ref} {...props}>
+			{inView ? children : null}
+		</AriakitTabPanel>
+	)
+}
 
 export const StatsTable2 = styled(ProtocolStatsTable)`
 	th[data-subvalue],

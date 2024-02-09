@@ -15,7 +15,8 @@ import {
 	Unlock,
 	Image as ImageIcon,
 	Shuffle,
-	FileText
+	FileText,
+	TrendingUp
 } from 'react-feather'
 
 export interface IMainLink {
@@ -52,27 +53,29 @@ const defaultToolsAndFooterLinks = {
 		{
 			name: 'DefiLlama Extension',
 			path: 'https://chrome.google.com/webstore/detail/defillama/phgiabfbjodhgckcffppiboooeiecgeg',
-			newTag: true,
 			external: true
 		},
 		{
 			name: 'LlamaNodes',
 			path: 'https://llamanodes.com/',
-			newTag: true,
 			external: true,
 			referrer: true
 		},
 		{
 			name: 'LlamaFolio',
 			path: 'https://llamafolio.com/',
-			newTag: true,
 			external: true,
 			referrer: true
 		},
 		{
 			name: 'DL News',
 			path: 'https://dlnews.com/',
-			newTag: true,
+			external: true,
+			referrer: true
+		},
+		{
+			name: 'Llama U',
+			path: 'https://www.dlnews.com/articles/llama-u',
 			external: true,
 			referrer: true
 		},
@@ -82,11 +85,10 @@ const defaultToolsAndFooterLinks = {
 			name: 'Roundup',
 			path: '/roundup'
 		},
-		{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
+		{ name: 'Trending Contracts', path: '/trending-contracts' },
 		{
 			name: 'Token Liquidity',
 			path: '/liquidity',
-			newTag: true,
 			external: true
 		},
 		{ name: 'Correlation', path: '/correlation', newTag: true },
@@ -230,8 +232,7 @@ export const navLinks: ILinks = {
 			{ name: 'Earnings', path: '/nfts/earnings' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <ImageIcon size={16} />,
-		newTag: true
+		icon: <ImageIcon size={16} />
 	},
 	Unlocks: {
 		main: [],
@@ -276,8 +277,11 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Overview', path: '/dexs' },
 			{ name: 'Chains', path: '/dexs/chains' },
+			{ name: 'Aggregators', path: '/aggregators', newTag: true },
 			{ name: 'Derivatives', path: '/derivatives' },
-			{ name: 'Options', path: '/options' }
+			{ name: 'Derivatives (Chains)', path: '/derivatives/chains' },
+			{ name: 'Options', path: '/options' },
+			{ name: 'Options (Chains)', path: '/options/chains' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart size={16} />
@@ -315,6 +319,12 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Layers size={16} />
+	},
+	'Crypto ETFs': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <TrendingUp size={16} />,
+		newTag: true
 	}
 	// NFTs: {
 	// 	main: [],
@@ -330,5 +340,6 @@ export const linksWithNoSubMenu = [
 	{ name: 'Governance', url: '/governance' },
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
-	{ name: 'ETH Liquid Staking', url: '/lsd' }
+	{ name: 'ETH Liquid Staking', url: '/lsd' },
+	{ name: 'Crypto ETFs', url: '/crypto-etf' }
 ]

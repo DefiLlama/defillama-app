@@ -78,3 +78,26 @@ export interface IGovernance {
 	propsalsInLast30Days: number
 	successfulPropsalsInLast30Days: number
 }
+
+export interface IETFRow {
+	ticker: string
+	issuer: string
+	etf_name: string
+	custodian: string
+	pct_fee: number
+	url: string
+	price: number
+	volume: number
+	aum: number
+	shares: number
+	btc: number
+	flows: number
+}
+
+export interface AirdropRow {
+	name: string
+	page: string
+	twitter: string
+	explorer: string
+	tokens: string
+}

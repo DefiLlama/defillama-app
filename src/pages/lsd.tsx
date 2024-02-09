@@ -119,6 +119,7 @@ const PageView = ({
 								hideDefaultLegend
 								valueSymbol="%"
 								title=""
+								expandTo100Percent={true}
 							/>
 						</ChartsWrapper>
 					) : (

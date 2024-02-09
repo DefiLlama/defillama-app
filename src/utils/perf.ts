@@ -35,7 +35,7 @@ export const withPerformanceLogging = <T extends {}>(
 	}
 }
 
-export type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean }
+export type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean; timeout?: number }
 
 export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
 	const start = Date.now()
@@ -73,31 +73,52 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 
 		return new Response(blob, responseInit)
 	} else {
-		const response = await fetch(url, options)
-		const arrayBuffer = await response.arrayBuffer()
-		const Body = Buffer.from(arrayBuffer)
-		const ContentType = response.headers.get('Content-Type')
-		const StatusCode = response.status
-		const StatusText = response.statusText
-		const payload: RedisCachePayload = {
-			Key: cacheKey,
-			Body,
-			ContentType,
-			StatusCode,
-			StatusText
+		let responseInit: ResponseInit
+		let blob: Blob
+		let StatusCode: number
+		const timeout = options?.timeout ?? 30000
+		try {
+			const controller = new AbortController()
+			const id = setTimeout(() => controller.abort(), timeout)
+			const response = await fetch(url, { ...options, signal: controller.signal })
+			clearTimeout(id)
+
+			const arrayBuffer = await response.arrayBuffer()
+			const Body = Buffer.from(arrayBuffer)
+			const ContentType = response.headers.get('Content-Type')
+			StatusCode = response.status
+			const StatusText = response.statusText
+			const payload: RedisCachePayload = {
+				Key: cacheKey,
+				Body,
+				ContentType,
+				StatusCode,
+				StatusText
+			}
+
+			// if error, cache for 10 minutes only
+			const ttl = StatusCode >= 400 ? 600 : options?.ttl || maxAgeForNext([21])
+			await setCache(payload, ttl)
+			blob = new Blob([arrayBuffer])
+
+			responseInit = {
+				status: StatusCode,
+				statusText: StatusText,
+				headers: new Headers({
+					'Content-Type': ContentType
+				})
+			}
+		} catch (error) {
+			StatusCode = 504
+			responseInit = {
+				status: StatusCode,
+				statusText: 'Gateway Timeout after ' + timeout + 'ms',
+				headers: new Headers({
+					'Content-Type': 'text/plain'
+				})
+			}
 		}
 
-		// if error, cache for 10 minutes only
-		const ttl = StatusCode >= 400 ? 600 : options?.ttl || maxAgeForNext([21])
-		await setCache(payload, ttl)
-		const blob = new Blob([arrayBuffer])
-		const responseInit = {
-			status: StatusCode,
-			statusText: StatusText,
-			headers: new Headers({
-				'Content-Type': ContentType
-			})
-		}
 		const end = Date.now()
 		IS_RUNTIME &&
 			!options?.silent &&

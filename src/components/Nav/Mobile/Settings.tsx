@@ -2,10 +2,17 @@ import { Select, SelectItem, SelectItemCheck, SelectPopover, useSelectState } fr
 import styled from 'styled-components'
 import { Settings as SettingsIcon } from 'react-feather'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { DARK_MODE, useDarkModeManager, useDefiManager, useNftsManager } from '~/contexts/LocalStorage'
+import {
+	DARK_MODE,
+	useDarkModeManager,
+	useDefiManager,
+	useNftsManager,
+	useTvlAndFeesManager
+} from '~/contexts/LocalStorage'
 import { protocolsAndChainsOptions } from '~/components/Filters'
 import { nftOptions } from '~/components/Filters/nfts/options'
 import { useRouter } from 'next/router'
+import { feesOptions } from '~/components/Filters/protocols/options'
 
 export function Settings() {
 	const [darkMode] = useDarkModeManager()
@@ -101,7 +108,11 @@ const useAppSettings = () => {
 		return { options: nftOptions, useSettings: useNftsManager }
 	}
 
-	return { options: protocolsAndChainsOptions, useSettings: useDefiManager }
+	if (router.pathname.startsWith('/protocol')) {
+		return { options: [...protocolsAndChainsOptions, ...feesOptions], useSettings: useTvlAndFeesManager }
+	}
+
+	return { options: protocolsAndChainsOptions, useSettings: useTvlAndFeesManager }
 }
 
 // TODO remove repeated styles

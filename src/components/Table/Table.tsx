@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { Table, flexRender, RowData } from '@tanstack/react-table'
-import { defaultRangeExtractor, useWindowVirtualizer } from '@tanstack/react-virtual'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import styled from 'styled-components'
 import SortIcon from './SortIcon'
 import QuestionHelper from '../QuestionHelper'
+import { useRouter } from 'next/router'
 
 interface ITableProps {
 	instance: Table<any>
@@ -28,6 +29,7 @@ export default function VirtualTable({
 	renderSubComponent,
 	...props
 }: ITableProps) {
+	const router = useRouter()
 	const [tableTop, setTableTop] = React.useState(0)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 
@@ -42,128 +44,103 @@ export default function VirtualTable({
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
 		estimateSize: () => rowSize || 50,
-		overscan: 20,
-		rangeExtractor: React.useCallback(
-			(range) => {
-				if (!tableTop) {
-					return defaultRangeExtractor(range)
-				}
-
-				const cutoff = tableTop / 40
-
-				let startIndex = range.startIndex
-
-				if (range.startIndex <= cutoff) {
-					startIndex = 1
-				}
-
-				if (range.startIndex - cutoff > 0) {
-					startIndex = range.startIndex - Math.round(cutoff)
-				}
-
-				return defaultRangeExtractor({ ...range, startIndex })
-			},
-			[tableTop]
-		)
+		overscan: 5,
+		scrollMargin: tableTop
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
-
-	const paddingTop = virtualItems.length > 0 ? virtualItems?.[0]?.start || 0 : 0
-
-	const paddingBottom =
-		virtualItems.length > 0 ? rowVirtualizer.getTotalSize() - (virtualItems?.[virtualItems.length - 1]?.end || 0) : 0
-
+	const isChainPage = router.pathname === '/' || router.pathname.startsWith('/chain')
 	return (
-		<Wrapper ref={tableContainerRef} data-resizable={columnResizeMode ? true : false} data-tablewrapper {...props}>
-			<table>
-				<thead>
-					{instance.getHeaderGroups().map((headerGroup) => (
-						<tr key={headerGroup.id}>
-							{headerGroup.headers.map((header) => {
-								// get header text alignment
-								const meta = header.column.columnDef.meta
-								const value = flexRender(header.column.columnDef.header, header.getContext())
+		<Wrapper ref={tableContainerRef} {...props}>
+			<div style={{ display: 'flex', flexDirection: 'column' }}>
+				{instance.getHeaderGroups().map((headerGroup) => (
+					<div key={headerGroup.id} style={{ display: 'flex', position: 'relative' }}>
+						{headerGroup.headers.map((header) => {
+							// get header text alignment
+							const meta = header.column.columnDef.meta
+							const value = flexRender(header.column.columnDef.header, header.getContext())
 
-								return (
-									<th key={header.id} colSpan={header.colSpan} style={{ width: header.getSize() }}>
-										<TableHeader align={meta?.align ?? 'start'}>
-											{header.isPlaceholder ? null : (
-												<>
-													{header.column.getCanSort() ? (
-														<button onClick={() => header.column.toggleSorting()}>{value}</button>
-													) : (
-														value
-													)}
-												</>
-											)}
-											{meta?.headerHelperText && <Helper text={meta?.headerHelperText} />}
-											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+							return (
+								<Cell key={header.id} data-chainpage={isChainPage} style={{ minWidth: header.getSize() ?? '100px' }}>
+									<TableHeader
+										align={
+											meta?.align ??
+											(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
+										}
+									>
+										{header.isPlaceholder ? null : (
+											<>
+												{header.column.getCanSort() ? (
+													<button onClick={() => header.column.toggleSorting()}>{value}</button>
+												) : (
+													value
+												)}
+											</>
+										)}
+										{meta?.headerHelperText && <Helper text={meta?.headerHelperText} />}
+										{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+									</TableHeader>
+								</Cell>
+							)
+						})}
+					</div>
+				))}
+			</div>
+			<div
+				style={
+					skipVirtualization
+						? {}
+						: {
+								height: `${rowVirtualizer.getTotalSize()}px`,
+								width: '100%',
+								position: 'relative'
+						  }
+				}
+			>
+				{(skipVirtualization ? rows : virtualItems).map((row) => {
+					const rowTorender = skipVirtualization ? row : rows[row.index]
+					const trStyle: React.CSSProperties = skipVirtualization
+						? {
+								display: 'flex',
+								position: 'relative'
+						  }
+						: {
+								position: 'absolute',
+								top: `${row.start - rowVirtualizer.options.scrollMargin}px`,
+								left: 0,
+								width: '100%',
+								height: `${row.size}px`,
+								opacity: rowTorender.original.disabled ? 0.3 : 1,
+								display: 'flex'
+						  }
 
-											{columnResizeMode && (
-												<div
-													{...{
-														onMouseDown: header.getResizeHandler(),
-														onTouchStart: header.getResizeHandler(),
-														className: `resizer ${header.column.getIsResizing() ? 'isResizing' : ''}`,
-														style: {
-															transform:
-																columnResizeMode === 'onEnd' && header.column.getIsResizing()
-																	? `translateX(${instance.getState().columnSizingInfo.deltaOffset}px)`
-																	: ''
-														}
-													}}
-												/>
-											)}
-										</TableHeader>
-									</th>
-								)
-							})}
-						</tr>
-					))}
-				</thead>
-				<tbody>
-					{paddingTop > 0 && !skipVirtualization && (
-						<tr>
-							<td style={{ height: `${paddingTop}px` }} />
-						</tr>
-					)}
+					return (
+						<React.Fragment key={rowTorender.id}>
+							<div style={trStyle}>
+								{rowTorender.getVisibleCells().map((cell) => {
+									// get header text alignment
+									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 
-					{(skipVirtualization ? rows : virtualItems).map((row) => {
-						const rowTorender = skipVirtualization ? row : rows[row.index]
-						const trStyle: React.CSSProperties = rowTorender.original.disabled ? { opacity: 0.3 } : undefined
-
-						return (
-							<React.Fragment key={rowTorender.id}>
-								<tr style={trStyle}>
-									{rowTorender.getVisibleCells().map((cell) => {
-										// get header text alignment
-										const textAlign = cell.column.columnDef.meta?.align ?? 'start'
-
-										return (
-											<td key={cell.id} style={{ width: cell.column.getSize(), textAlign }}>
-												{flexRender(cell.column.columnDef.cell, cell.getContext())}
-											</td>
-										)
-									})}
-								</tr>
-								{renderSubComponent && rowTorender.getIsExpanded() && (
-									<tr>
-										{/* 2nd row is a custom 1 cell row */}
-										<td colSpan={rowTorender.getVisibleCells().length}>{renderSubComponent({ row: rowTorender })}</td>
-									</tr>
-								)}
-							</React.Fragment>
-						)
-					})}
-
-					{paddingBottom > 0 && !skipVirtualization && (
-						<tr>
-							<td style={{ height: `${paddingBottom}px` }} />
-						</tr>
-					)}
-				</tbody>
-			</table>
+									return (
+										<Cell
+											key={cell.id}
+											data-chainpage={isChainPage}
+											style={{ minWidth: cell.column.getSize() ?? '100px', textAlign }}
+										>
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										</Cell>
+									)
+								})}
+							</div>
+							{renderSubComponent && rowTorender.getIsExpanded() && (
+								<>
+									<div>{renderSubComponent({ row: rowTorender })}</div>
+								</>
+							)}
+						</React.Fragment>
+					)
+				})}
+			</div>
 		</Wrapper>
 	)
 }
@@ -178,54 +155,7 @@ export const Wrapper = styled.div`
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 	border-radius: 12px;
 	overflow-x: auto;
-
-	&[data-resizable='true'] {
-		th,
-		td {
-			border-right: 1px solid ${({ theme }) => theme.divider};
-		}
-	}
-
-	table {
-		table-layout: fixed;
-		width: 100%;
-		border-collapse: separate;
-		border-spacing: 0;
-	}
-
-	thead {
-		position: sticky;
-		top: 0;
-		margin: 0;
-
-		th {
-			z-index: 1;
-
-			:first-of-type {
-				border-radius: 12px 0 0 0;
-			}
-
-			:last-of-type {
-				border-radius: 0 12px 0 0;
-			}
-		}
-	}
-
-	th,
-	td {
-		padding: 12px;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		background-color: ${({ theme }) => theme.background};
-		border-bottom: 1px solid ${({ theme }) => theme.divider};
-	}
-
-	tr > *:first-child {
-		position: sticky;
-		left: 0;
-		z-index: 1;
-	}
+	margin: 0 auto;
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		max-width: calc(100vw - 276px);
@@ -236,13 +166,33 @@ export const Wrapper = styled.div`
 	}
 `
 
+const Cell = styled.div`
+	flex: 1;
+	flex-shrink: 0;
+	padding: 12px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	background-color: ${({ theme }) => theme.background};
+	border-bottom: 1px solid ${({ theme }) => theme.divider};
+	border-right: 1px solid ${({ theme }) => theme.divider};
+	&[data-chainpage='true'] {
+		background-color: ${({ theme }) => theme.bg6};
+	}
+	&:first-child {
+		position: sticky;
+		left: 0;
+		z-index: 1;
+	}
+`
+
 interface ITableHeader {
-	align: 'start' | 'end'
+	align: 'start' | 'end' | 'center'
 }
 
 const TableHeader = styled.span<ITableHeader>`
 	display: flex;
-	justify-content: ${({ align }) => (align === 'end' ? 'flex-end' : 'flex-start')};
+	justify-content: ${({ align }) => (align === 'center' ? 'center' : align === 'end' ? 'flex-end' : 'flex-start')};
 	align-items: center;
 	flex-wrap: nowrap;
 	gap: 4px;

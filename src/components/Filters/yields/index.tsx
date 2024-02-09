@@ -8,6 +8,7 @@ import { SlidingMenu } from '~/components/SlidingMenu'
 import { YieldFilterDropdowns } from './Dropdowns'
 import { DropdownsWrapper, Header, SearchWrapper, Wrapper } from '../v2Base'
 import type { IYieldFiltersProps } from './types'
+import { InputFilter } from './Amount'
 
 export function YieldFiltersV2({
 	header,
@@ -52,6 +53,8 @@ export function YieldFiltersV2({
 								<YieldsSearch value={borrow} searchData={strategyInputsData} />
 
 								<LTV placeholder={ltvPlaceholder} />
+								<InputFilter placeholder="Lend Amount" filterKey="lendAmount" />
+								<InputFilter placeholder="Borrow Amount" filterKey="borrowAmount" />
 							</>
 						)}
 					</SearchWrapper>

@@ -67,10 +67,9 @@ function PeggedAssetsOverview({
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
-	chainTVLData,
 	backgroundColor
 }) {
-	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Token Market Caps' : 'USD Inflows')
+	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Total Market Cap' : 'USD Inflows')
 
 	const chartTypeList =
 		selectedChain !== 'All'
@@ -150,14 +149,7 @@ function PeggedAssetsOverview({
 	])
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
-		useBuildPeggedChartData(
-			chartDataByPeggedAsset,
-			peggedAssetNames,
-			filteredIndexes,
-			'mcap',
-			chainTVLData,
-			selectedChain
-		)
+		useBuildPeggedChartData(chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, 'mcap', selectedChain)
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, query) }))
 
@@ -219,7 +211,7 @@ function PeggedAssetsOverview({
 
 	const dominance = getPeggedDominance(topToken, totalMcapCurrent)
 
-	const totalMcapLabel = ['Mcap', 'TVL']
+	const totalMcapLabel = ['Mcap']
 
 	const path = selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`
 

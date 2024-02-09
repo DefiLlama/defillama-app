@@ -42,6 +42,7 @@ export interface IYieldsProjectsTableRow {
 
 export interface IYieldsTableProps {
 	data: Array<IYieldTableRow>
+	skipVirtualization?: boolean
 }
 
 export interface IYieldsOptimizerTableRow extends IYieldTableRow {
@@ -49,6 +50,10 @@ export interface IYieldsOptimizerTableRow extends IYieldTableRow {
 	projectName: string
 	rewardTokensNames: string[]
 	totalAvailableUsd: number
+	lendUSDAmount: number
+	borrowUSDAmount: number
+	lendAmount: number
+	borrowAmount: number
 }
 
 export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {

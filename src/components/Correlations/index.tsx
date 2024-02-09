@@ -2,7 +2,6 @@ import { X as XIcon } from 'react-feather'
 import { TYPE } from '~/Theme'
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
-import { useQueries, useQuery } from 'react-query'
 import {
 	Body,
 	ButtonCell,
@@ -18,13 +17,12 @@ import {
 	Image,
 	SearchBody,
 	Add,
-	ToggleWrapper
+	ToggleWrapper,
+	Description
 } from './styles'
 import { Switch, Wrapper } from '../LiquidationsPage/TableSwitch'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
-import { Divider, Panel } from '..'
-import { DashGrid } from '~/pages/press'
 import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
@@ -104,7 +102,7 @@ export default function Correlations({ coinsData }) {
 				undefined,
 				{ shallow: true }
 			)
-	}, [queryCoins])
+	}, [queryCoins, router])
 
 	const [isModalOpen, setModalOpen] = useState(false)
 
@@ -123,6 +121,7 @@ export default function Correlations({ coinsData }) {
 					1y
 				</Switch>
 			</ToggleWrapper>
+
 			<Body>
 				<SelectedBody>
 					<TYPE.heading>Selected Coins</TYPE.heading>
@@ -178,7 +177,7 @@ export default function Correlations({ coinsData }) {
 								{correlations[coin.id]?.map((corr) =>
 									corr === null ? (
 										<Image
-											key={corr}
+											key={coin.image}
 											alt={''}
 											src={coin.image}
 											height={'24px'}
@@ -283,6 +282,10 @@ export default function Correlations({ coinsData }) {
 					</ModalContent>
 				</ModalWrapper>
 			</Body>
+			<Description>
+				Correlation is calculated by using each day as a single data point, and this calculation depends on the selected
+				period. For example, if you select a period of one year, the correlation will be computed from 365 data points.
+			</Description>
 			<FAQ />
 		</>
 	)

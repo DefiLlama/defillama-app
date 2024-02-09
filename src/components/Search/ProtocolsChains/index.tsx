@@ -3,6 +3,8 @@ import { DesktopSearch } from '../Base'
 import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
 import { DesktopProtocolFilters, TabletProtocolsFilters } from '~/components/Filters/protocols'
 import { useGetDefiSearchList } from './hooks'
+import { DesktopTvlAndFeesFilters } from '~/components/Filters/protocols/Desktop'
+import { TabletTvlAndFeesFilters } from '~/components/Filters/protocols/Tablet'
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -21,12 +23,20 @@ export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
 const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) => {
 	const router = useRouter()
 
-	if (router.pathname?.includes('/protocol/') && (!options || options.length === 0)) return null
+	if (router.pathname?.includes('/protocol/')) {
+		if (!options || options.length === 0) return null
+
+		return (
+			<>
+				<DesktopTvlAndFeesFilters options={options} />
+				<TabletTvlAndFeesFilters options={options} />
+			</>
+		)
+	}
 
 	return (
 		<>
 			<DesktopProtocolFilters options={options} />
-
 			<TabletProtocolsFilters options={options} />
 		</>
 	)

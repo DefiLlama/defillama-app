@@ -79,13 +79,14 @@ export const generateGetOverviewItemPageDate = async (
 		secondLabel = 'Premium volume'
 	}
 	if (secondLabel && secondType?.totalDataChart) allCharts.push([secondLabel, secondType.totalDataChart])
+	if (thirdType?.totalDataChart) allCharts.push(['Bribes', thirdType.totalDataChart])
 
 	return {
 		...item,
 		logo: getLlamaoLogo(item.logo),
 		dailyRevenue: secondType?.total24h ?? null,
-		dailyBribesRevenue: secondType?.total24h ?? null,
-		dailyTokenTaxes: secondType?.total24h ?? null,
+		dailyBribesRevenue: thirdType?.total24h ?? null,
+		dailyTokenTaxes: fourthType?.total24h ?? null,
 		type,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)]
 	}
@@ -113,9 +114,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-				...p,
-				tvl: p?.chainTvls?.[chain]?.tvl ?? null
-		  }))
+			...p,
+			tvl: p?.chainTvls?.[chain]?.tvl ?? null
+		}))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -142,18 +143,20 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
 			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
 
-	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown]: [
+	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData]: [
 		IGetOverviewResponseBody,
 		{ protocols: LiteProtocol[]; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
 		number,
-		Record<string, Record<string, number>>
+		Record<string, Record<string, number>>,
+		IGetOverviewResponseBody
 	] = await Promise.all([
 		fetch(getAPIUrl(type, chain, type === 'fees', true)).then(handleFetchResponse),
 		fetch(PROTOCOLS_API).then(handleFetchResponse),
 		fetch(feesOrRevenueApi).then(handleFetchResponse),
 		type === 'dexs' ? getCexVolume() : Promise.resolve(0),
-		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse)
+		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse),
+		fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse)
 	])
 
 	const {
@@ -215,9 +218,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? {}
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -259,6 +262,11 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		const emission7d = emissionBreakdown?.[slugName]?.emission7d ?? null
 		const emission30d = emissionBreakdown?.[slugName]?.emission30d ?? null
 
+		const protocolBribes = bribesData?.protocols?.find(({ name }) => name === protocol.name)
+		const bribes24h = protocolBribes?.total24h
+		const bribes7d = protocolBribes?.total7d
+		const bribes30d = protocolBribes?.total30d
+
 		mainRow = {
 			...mainRow,
 			...acc[protocol.parentProtocol],
@@ -273,6 +281,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			emission24h: emission24h ?? null,
 			emission7d: emission7d ?? null,
 			emission30d: emission30d ?? null,
+			bribes24h: bribes24h ?? null,
+			bribes7d: bribes7d ?? null,
+			bribes30d: bribes30d ?? null,
 			netEarnings24h:
 				emission24h !== 0 && emission24h ? revenueProtocols?.[protocol.name]?.total24h - emission24h : null,
 			netEarnings7d: emission7d !== 0 && emission7d ? revenueProtocols?.[protocol.name]?.total7d - emission7d : null,
@@ -331,6 +342,10 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			)
 			mainRow.dailySupplySideRevenue = acc[protocol.parentProtocol].subRows.reduce(
 				reduceSumByAttribute('dailySupplySideRevenue'),
+				null
+			)
+			mainRow.dailyBribesRevenue = acc[protocol.parentProtocol].subRows.reduce(
+				reduceSumByAttribute('dailyBribesRevenue'),
 				null
 			)
 			mainRow.mcap = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('mcap'), null)
@@ -510,7 +525,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					tvl: protocols.reduce((acc, curr) => {
 						// TODO: This should be mapped using defillamaId to get accurate tvl!
 						const tvl = tvlData[curr.defillamaId]
-						acc += !Number.isNaN(tvl) ? tvl : 0
+						acc += !Number.isNaN(tvl) && tvl ? tvl : 0
 						return acc
 					}, 0),
 					change_7dover7d,
@@ -592,4 +607,4 @@ export function notUndefined<T>(x: T | undefined): x is T {
 	return x !== undefined
 }
 
-export function formatOverviewProtocolsList() {}
+export function formatOverviewProtocolsList() { }

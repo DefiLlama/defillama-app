@@ -1,17 +1,7 @@
-import {
-	capitalizeFirstLetter,
-	getColorFromNumber,
-	getPercentChange,
-	getPrevTvlFromChart,
-	standardizeProtocolName
-} from '~/utils'
-import type {
-	IFusedProtocolData,
-	IOracleProtocols,
-	IProtocolResponse,
-	LiteProtocol,
-	TCompressedChain
-} from '~/api/types'
+import { mapValues } from 'lodash'
+
+import { capitalizeFirstLetter, getColorFromNumber, standardizeProtocolName } from '~/utils'
+import type { IFusedProtocolData, IOracleProtocols, IProtocolResponse } from '~/api/types'
 import {
 	ACTIVE_USERS_API,
 	CATEGORY_API,
@@ -25,8 +15,10 @@ import {
 	PROTOCOL_EMISSION_API,
 	YIELD_POOLS_API,
 	LSD_RATES_API,
+	CHAINS_ASSETS,
 	CHART_API,
-	MCAPS_API
+	ETF_OVERVIEW_API,
+	ETF_HISTORY_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -36,7 +28,6 @@ import {
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
-import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -255,6 +246,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			},
 			futures: futures ?? {},
 			categories: emissionCategories,
+			categoriesBreakdown: res?.categories ?? null,
 			hallmarks: {
 				documented: documentedData.data?.length > 0 ? [[Date.now() / 1000, 'Today']] : [],
 				realtime: realTimeData.data?.length > 0 ? [[Date.now() / 1000, 'Today']] : []
@@ -301,6 +293,7 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 // used in /protocols/[category]
 export async function getProtocolsPageData(category?: string, chain?: string) {
 	const { protocols, chains, parentProtocols } = await getProtocols()
+	const normalizedCategory = category?.toLowerCase().replace(' ', '_')
 
 	const chainsSet = new Set()
 
@@ -316,9 +309,26 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 		})
 	})
 
+	let categoryChart = null
+	if (chain) {
+		try {
+			categoryChart = (
+				await fetchWithErrorLogging(`${CHART_API}/categories/${normalizedCategory}`).then((r) => r.json())
+			)[chain?.toLowerCase()]
+		} catch (e) {
+			categoryChart = null
+		}
+	} else {
+		const res = await fetchWithErrorLogging(`${CATEGORY_API}`).then((r) => r.json())
+		categoryChart = Object.entries(res.chart)
+			.map(([date, value]) => [date, value[category]?.tvl])
+			.filter(([_, val]) => !!val)
+	}
+
 	let filteredProtocols = formatProtocolsData({ category, protocols, chain })
 
 	return {
+		categoryChart,
 		filteredProtocols,
 		chain: chain ?? 'All',
 		category,
@@ -339,11 +349,10 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 }
 
 // - used in /oracles and /oracles/[name]
-export async function getOraclePageData(oracle = null) {
+export async function getOraclePageData(oracle = null, chain = null) {
 	try {
-		const [{ chart = {}, oracles = {} }, { protocols }] = await Promise.all(
-			[ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
-		)
+		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle: chainsByOracleData }, { protocols }] =
+			await Promise.all([ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json())))
 
 		const oracleExists = !oracle || oracles[oracle]
 
@@ -353,13 +362,41 @@ export async function getOraclePageData(oracle = null) {
 			}
 		}
 
-		const filteredProtocols = formatProtocolsData({ oracle, protocols })
+		const filteredProtocols = formatProtocolsData({ oracle, protocols, chain })
 
 		let chartData = Object.entries(chart)
+		const chainChartData = chain
+			? Object.entries(chainChart)
+					.map(([date, data]) => {
+						const chainName = chain
+						const chainData = Object.entries(data[oracle] || {})
+							.map(([name, value]) =>
+								name.includes(chainName) ? [name.replace(chainName, '').replace('-', '') || 'tvl', value] : null
+							)
+							.filter(Boolean)
+						return Object.values(chainData).length ? [date, Object.fromEntries(chainData)] : null
+					})
+					.filter(Boolean)
+			: null
 
 		const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
 			.sort((a, b) => b[1].tvl - a[1].tvl)
 			.map((orc) => orc[0])
+
+		const chainsByOracle = mapValues(
+			protocols.reduce((acc, curr) => {
+				if (curr.oracles) {
+					curr.oracles.forEach((oracle) => {
+						if (!acc[oracle]) {
+							acc[oracle] = []
+						}
+						acc[oracle].push(curr.chains)
+					})
+				}
+				return acc
+			}, {}),
+			(chains, oracle) => chainsByOracleData?.[oracle] ?? [...new Set(chains.flat())]
+		)
 
 		if (oracle) {
 			let data = []
@@ -378,9 +415,15 @@ export async function getOraclePageData(oracle = null) {
 			oraclesProtocols[orc] = oracles[orc]?.length
 		}
 
-		let oracleLinks = [{ label: 'All', to: `/oracles` }].concat(
-			oraclesUnique.map((o: string) => ({ label: o, to: `/oracles/${o}` }))
-		)
+		const uniqueChains = [...new Set(Object.values(chainsByOracle).flat())]
+
+		let oracleLinks = oracle
+			? [{ label: 'All chains', to: `/oracles/${oracle}` }].concat(
+					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
+			  )
+			: [{ label: 'All', to: `/oracles/` }].concat(
+					uniqueChains.map((c: string) => ({ label: c, to: `/oracles/chain/${c}` }))
+			  )
 
 		const colors = {}
 
@@ -392,6 +435,9 @@ export async function getOraclePageData(oracle = null) {
 
 		return {
 			props: {
+				chain: chain ?? null,
+				chainChartData,
+				chainsByOracle,
 				tokens: oraclesUnique,
 				tokenLinks: oracleLinks,
 				token: oracle,
@@ -409,6 +455,93 @@ export async function getOraclePageData(oracle = null) {
 	}
 }
 
+export async function getOraclePageDataByChain(chain: string) {
+	try {
+		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle: chainsByOracleData }, { protocols }] =
+			await Promise.all([ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json())))
+
+		const filteredProtocols = formatProtocolsData({ protocols, chain })
+
+		let chartData = Object.entries(chart)
+		const chainChartData = chain
+			? Object.entries(chainChart)
+					.map(([date, data]) => {
+						const chainName = chain
+						const chainData = Object.entries(data)
+							.map(([oracle, dayData]) => {
+								const chainData = Object.entries(dayData)
+									.map(([name, value]) =>
+										name.includes(chainName) ? [name.replace(chainName, '').replace('-', '') || 'tvl', value] : null
+									)
+									.filter(Boolean)
+								return Object.values(chainData).length ? [oracle, Object.fromEntries(chainData)] : null
+							})
+							.filter(Boolean)
+						return Object.values(chainData).length ? [date, Object.fromEntries(chainData)] : null
+					})
+					.filter(Boolean)
+			: null
+
+		const chainsByOracle = mapValues(
+			protocols.reduce((acc, curr) => {
+				if (curr.oracles) {
+					curr.oracles.forEach((oracle) => {
+						if (!acc[oracle]) {
+							acc[oracle] = []
+						}
+						acc[oracle].push(curr.chains)
+					})
+				}
+				return acc
+			}, {}),
+			(chains, oracle) => chainsByOracleData?.[oracle] ?? [...new Set(chains.flat())]
+		)
+
+		const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
+			.sort((a, b) => b[1].tvl - a[1].tvl)
+			.map((orc) => orc[0])
+			.filter((orc) => chainsByOracle[orc]?.includes(chain))
+
+		const oraclesProtocols: IOracleProtocols = {}
+
+		for (const orc in oracles) {
+			oraclesProtocols[orc] = protocols.filter((p) => p.oracles?.includes(orc) && p.chains.includes(chain)).length
+		}
+
+		const uniqueChains = [...new Set(Object.values(chainsByOracle).flat())]
+
+		const oracleLinks = [{ label: 'All chains', to: `/oracles/` }].concat(
+			uniqueChains.map((c: string) => ({ label: c, to: `/oracles/chain/${c}` }))
+		)
+
+		const colors = {}
+
+		oraclesUnique.forEach((chain, index) => {
+			colors[chain] = getColorFromNumber(index, 6)
+		})
+
+		colors['Others'] = '#AAAAAA'
+
+		return {
+			props: {
+				chain: chain ?? null,
+				chainChartData,
+				chainsByOracle,
+				tokens: oraclesUnique,
+				tokenLinks: oracleLinks,
+				tokensProtocols: oraclesProtocols,
+				filteredProtocols,
+				chartData: chainChartData,
+				oraclesColors: colors
+			}
+		}
+	} catch (e) {
+		console.log(e)
+		return {
+			notFound: true
+		}
+	}
+}
 // - used in /forks and /forks/[name]
 export async function getForkPageData(fork = null) {
 	try {
@@ -568,13 +701,17 @@ export const getNewChainsPageData = async (category: string) => {
 		{ protocols: dexsProtocols },
 		{ protocols: feesAndRevenueProtocols },
 		{ chains: stablesChainData },
-		activeUsers
+		activeUsers,
+		chainsAssets,
+		chainNftsVolume
 	] = await Promise.all([
 		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
 		getChainsPageDataByType('dexs'),
 		getChainPageDataByType('fees'),
 		getPeggedAssets(),
-		fetchWithErrorLogging(ACTIVE_USERS_API).then((res) => res.json())
+		fetchWithErrorLogging(ACTIVE_USERS_API).then((res) => res.json()),
+		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json()),
+		fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
 	])
 
 	const categoryLinks = [
@@ -611,22 +748,23 @@ export const getNewChainsPageData = async (category: string) => {
 			categories: categoryLinks,
 			colorsByChain: colors,
 			chainTvls: chainTvls.map((chain) => {
-				const { total24h, revenue24h } =
-					feesAndRevenueChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
+				const name = chain.name.toLowerCase()
+				const totalAssets = chainsAssets[name]?.total?.total ?? null
+				const nftVolume = chainNftsVolume[name] ?? null
+				const { total24h, revenue24h } = feesAndRevenueChains.find((x) => x.name.toLowerCase() === name) || {}
 
-				const { total24h: dexsTotal24h } =
-					dexsChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
+				const { total24h: dexsTotal24h } = dexsChains.find((x) => x.name.toLowerCase() === name) || {}
 
-				const users = Object.entries(activeUsers).find(
-					([name]) => name.toLowerCase() === 'chain#' + chain.name.toLowerCase()
-				)
+				const users = Object.entries(activeUsers).find(([name]) => name.toLowerCase() === 'chain#' + name)
 
 				return {
 					...chain,
+					totalAssets: totalAssets ? +Number(totalAssets).toFixed(2) : null,
+					nftVolume: nftVolume ? +Number(nftVolume).toFixed(2) : null,
 					totalVolume24h: dexsTotal24h || 0,
 					totalFees24h: total24h || 0,
 					totalRevenue24h: revenue24h || 0,
-					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.mcap ?? 0,
+					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === name)?.mcap ?? 0,
 					users: (users?.[1] as any)?.users?.value ?? 0
 				}
 			})
@@ -647,7 +785,7 @@ export async function getLSDPageData() {
 	const lsdProtocols = protocols
 		.filter((p) => (p.category === 'Liquid Staking' || ['Stafi'].includes(p.name)) && p.chains.includes('Ethereum'))
 		.map((p) => p.name)
-		.filter((p) => p !== 'Genius')
+		.filter((p) => !['StakeHound', 'Genius', 'SharedStake'].includes(p))
 
 	// get historical data
 	const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
@@ -666,7 +804,21 @@ export async function getLSDPageData() {
 				)
 				.join(' ')
 		}))
-	lsdApy = lsdApy.map((p) => ({ ...p, name: p.project === 'binance-staked-eth' ? 'Binance staked ETH' : p.name }))
+	lsdApy = lsdApy.map((p) => ({
+		...p,
+		name:
+			p.project === 'binance-staked-eth'
+				? 'Binance staked ETH'
+				: p.project === 'bedrock-unieth'
+				? 'Bedrock uniETH'
+				: p.project === 'mantle-staked-eth'
+				? 'Mantle Staked ETH'
+				: p.project === 'dinero-(pirex-eth)'
+				? 'Dinero (Pirex ETH)'
+				: p.project === 'mev-protocol'
+				? 'MEV Protocol'
+				: p.name
+	}))
 
 	const nameGeckoMapping = {}
 	for (const p of history) {
@@ -687,6 +839,97 @@ export async function getLSDPageData() {
 			lsdRates,
 			nameGeckoMapping,
 			lsdApy
+		}
+	}
+}
+
+export async function getETFData() {
+	const [overview, history] = await Promise.all(
+		[ETF_OVERVIEW_API, ETF_HISTORY_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
+	)
+
+	const totalAum = overview.reduce((acc, a) => acc + a.aum, 0)
+	const aumOverview = overview.map((i) => ({ name: i.ticker, value: i.aum }))
+	const volumeOverview = overview.map((i) => ({ name: i.ticker, value: i.volume }))
+
+	const reformat = (fieldName) => {
+		let totalValuesByTimestamp = {}
+		history.forEach((entry) => {
+			if (!totalValuesByTimestamp[entry.timestamp]) {
+				totalValuesByTimestamp[entry.timestamp] = 0
+			}
+			totalValuesByTimestamp[entry.timestamp] += entry[fieldName]
+		})
+
+		let reformattedData = {}
+		history.forEach((entry) => {
+			const timestamp = entry.timestamp
+			const ticker = entry.ticker
+			const value = entry[fieldName]
+			const totalValueDay = totalValuesByTimestamp[timestamp]
+
+			if (!reformattedData[timestamp]) {
+				reformattedData[timestamp] = { date: timestamp }
+			}
+			// relative
+			if (fieldName === 'flows') {
+				reformattedData[timestamp][ticker] = value
+			} else {
+				reformattedData[timestamp][ticker] = (value / totalValueDay) * 100
+			}
+		})
+
+		return Object.values(reformattedData)
+	}
+
+	const aumHistory = reformat('aum')
+	const volumeHistory = reformat('volume')
+	const flowsHistory = reformat('flows').reduce((acc, { date, ...values }) => {
+		acc[date] = values
+		return acc
+	}, {})
+
+	const tickerColors = {}
+	overview
+		.map((i) => i.ticker)
+		.forEach((ticker, index) => {
+			tickerColors[ticker] = getColorFromNumber(index, 11)
+		})
+
+	const tickers = Object.keys(tickerColors)
+
+	const barChartStacks = {}
+	for (const ticker of tickers) {
+		barChartStacks[ticker] = 'A'
+	}
+
+	return {
+		props: {
+			overview,
+			totalAum,
+			aumOverview,
+			volumeOverview,
+			aumHistory,
+			volumeHistory,
+			flowsHistory,
+			barChartStacks,
+			tickers,
+			tickerColors
+		}
+	}
+}
+
+export async function getAirdropDirectoryData() {
+	const airdrops = await fetchWithErrorLogging(
+		'https://raw.githubusercontent.com/DefiLlama/defillama-app/main/src/airdrops/data.json'
+	).then((r) => r.json())
+
+	return {
+		props: {
+			airdrops: airdrops.map((i) => ({
+				...i,
+				endTime: i.endTime ? new Date(i?.endTime * 1000).toISOString().replace(/\.\d{3}/, '') : null
+			}))
 		}
 	}
 }

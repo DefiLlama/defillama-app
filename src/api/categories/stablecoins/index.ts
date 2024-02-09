@@ -39,7 +39,7 @@ const getChainTVLData = async (chain: string, chainCoingeckoIds) => {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${CHART_API}/${chain}`).then((resp) => resp.json())
-				} catch (e) {}
+				} catch (e) { }
 			}
 			throw new Error(`${CHART_API}/${chain} is broken`)
 		} else return null
@@ -48,7 +48,6 @@ const getChainTVLData = async (chain: string, chainCoingeckoIds) => {
 
 export async function getPeggedOverviewPageData(chain) {
 	const { peggedAssets, chains } = await getPeggedAssets()
-	const { chainCoingeckoIds } = await fetch(CONFIG_API).then((r) => r.json())
 
 	const priceData = await getPeggedPrices()
 	const rateData = await getPeggedRates()
@@ -57,6 +56,7 @@ export async function getPeggedOverviewPageData(chain) {
 	let chartDataByPeggedAsset = []
 	let peggedAssetNames: string[] = [] // fix name of this variable
 	let peggedNameToChartDataIndex: object = {}
+	let lastTimestamp = 0
 	chartDataByPeggedAsset = await Promise.all(
 		peggedAssets.map(async (elem, i) => {
 			if (peggedAssetNames.includes(elem.symbol)) {
@@ -81,12 +81,29 @@ export async function getPeggedOverviewPageData(chain) {
 							mcap: chart.totalCirculatingUSD
 						}
 					})
+					if (formattedCharts.length > 0) {
+						lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
+					}
 					return formattedCharts
-				} catch (e) {}
+				} catch (e) { }
 			}
-			throw new Error(`${CHART_API}/${elem} is broken`)
+			throw new Error(`${PEGGEDCHART_API}/${elem} is broken`)
 		})
 	)
+	chartDataByPeggedAsset.forEach((chart) => {
+		const last = chart[chart.length - 1]
+		if (!last) {
+			return
+		}
+		let lastDate = Number(last.date)
+		while (lastDate < lastTimestamp) {
+			lastDate += 24 * 3600
+			chart.push({
+				...last,
+				date: lastDate
+			})
+		}
+	})
 
 	const chainList = await chains
 		.sort((a, b) => {
@@ -111,8 +128,6 @@ export async function getPeggedOverviewPageData(chain) {
 		})
 	})
 
-	const chainTVLData: IChainData[] = await getChainTVLData(chain, chainCoingeckoIds)
-
 	const filteredPeggedAssets = formatPeggedAssetsData({
 		peggedAssets,
 		chartDataByPeggedAsset,
@@ -128,7 +143,6 @@ export async function getPeggedOverviewPageData(chain) {
 		peggedAssetNames,
 		peggedNameToChartDataIndex,
 		chartDataByPeggedAsset,
-		chainTVLData,
 		chain: chain ?? 'All'
 	}
 }
@@ -156,7 +170,7 @@ export async function getPeggedChainsPageData() {
 				for (let i = 0; i < 5; i++) {
 					try {
 						return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-					} catch (e) {}
+					} catch (e) { }
 				}
 
 				throw new Error(`${CHART_API}/${elem} is broken`)
@@ -200,7 +214,7 @@ export async function getPeggedChainsPageData() {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${PEGGEDCHART_API}/${chain}?startts=1652241600`).then((resp) => resp.json())
-				} catch (e) {}
+				} catch (e) { }
 			}
 			throw new Error(`${PEGGEDCHART_API}/${chain} is broken`)
 		})
@@ -213,7 +227,7 @@ export async function getPeggedChainsPageData() {
 				try {
 					const res = await fetch(`${PEGGEDDOMINANCE_API}/${chain}`).then((resp) => resp.json())
 					return res
-				} catch (e) {}
+				} catch (e) { }
 			}
 			throw new Error(`${PEGGEDDOMINANCE_API}/${chain} is broken`)
 		})

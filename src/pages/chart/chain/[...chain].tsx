@@ -38,7 +38,8 @@ export default function ChainChartPage({
 	stablecoinsData,
 	inflowsData,
 	userData,
-	devMetricsData
+	devMetricsData,
+	chainTokenInfo
 }) {
 	const router = useRouter()
 	const selectedChain = chain ?? 'All'
@@ -72,7 +73,8 @@ export default function ChainChartPage({
 		chart,
 		extraTvlCharts,
 		extraTvlsEnabled,
-		devMetricsData
+		devMetricsData,
+		chainTokenInfo
 	})
 
 	const isThemeDark = theme === 'dark' ? true : false

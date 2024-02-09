@@ -93,10 +93,10 @@ export function formatDataWithExtraTvls({
 
 		return {
 			...props,
-			tvl: finalTvl,
-			tvlPrevDay: finalTvlPrevDay,
-			tvlPrevWeek: finalTvlPrevWeek,
-			tvlPrevMonth: finalTvlPrevMonth,
+			tvl: finalTvl < 0 ? 0 : finalTvl,
+			tvlPrevDay: finalTvlPrevDay < 0 ? 0 : finalTvlPrevDay,
+			tvlPrevWeek: finalTvlPrevWeek < 0 ? 0 : finalTvlPrevWeek,
+			tvlPrevMonth: finalTvlPrevMonth < 0 ? 0 : finalTvlPrevMonth,
 			change_1d: change1d,
 			change_7d: change7d,
 			change_1m: change1m,
