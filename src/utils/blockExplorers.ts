@@ -3,16 +3,16 @@ import { capitalizeFirstLetter } from '.'
 const blockExplorers = {
 	ethereum: [
 		['https://etherscan.io/token/', 'Etherscan'],
-		['https://eth.blockscout.com/token/', 'Blockscout'],
+		['https://eth.blockscout.com/token/', 'Blockscout']
 	],
 	bsc: ['https://bscscan.com/address/', 'Bscscan'],
 	xdai: [
 		['https://gnosisscan.io/address/', 'GnosisScan'],
-		['https://gnosis.blockscout.com/token/', 'Blockscout'],
+		['https://gnosis.blockscout.com/token/', 'Blockscout']
 	],
 	optimism: [
 		['https://optimistic.etherscan.io/address/', 'Etherscan'],
-		['https://optimism.blockscout.com/token/', 'Blockscout'],
+		['https://optimism.blockscout.com/token/', 'Blockscout']
 	],
 	avax: ['https://snowtrace.io/address/', 'Snowtrace'],
 	fantom: ['https://ftmscan.com/address/', 'FTMscan'],
@@ -81,7 +81,7 @@ const blockExplorers = {
 	loop: ['https://explorer.mainnetloop.com/token/', 'LoopExplorer'],
 	era: [
 		['https://explorer.zksync.io/address/', 'zkSync Explorer'],
-		['https://zksync.blockscout.com/token/', 'Blockscout'],
+		['https://zksync.blockscout.com/token/', 'Blockscout']
 	],
 	map: ['https://maposcan.io/address/', 'Maposcan'],
 	conflux: ['https://evm.confluxscan.net/address/', 'Conflux Scan'],
@@ -95,7 +95,7 @@ const blockExplorers = {
 	mantle: ['https://explorer.mantle.xyz/address/', 'Mantle Explorer'],
 	base: [
 		['https://basescan.org/address/', 'Basescan'],
-		['https://base.blockscout.com/token/', 'Blockscout'],
+		['https://base.blockscout.com/token/', 'Blockscout']
 	],
 	op_bnb: ['https://mainnet.opbnbscan.com/address/', 'opBNBScan'],
 	mvc: ['https://scan.microvisionchain.com/token/', 'MVCScan'],
@@ -106,7 +106,8 @@ const blockExplorers = {
 	radixdlt: ['https://dashboard.radixdlt.com/resource/', 'Radix Dashboard'],
 	lightlink: ['https://phoenix.lightlink.io/token/', 'LightLink Explorer'],
 	zkfair: ['https://scan.zkfair.io/address/', 'Zkfair Explorer'],
-	bitnet: ['https://btnscan.com/address/', 'BTNScan']
+	bitnet: ['https://btnscan.com/address/', 'BTNScan'],
+	aptos: ['https://aptoscan.com/coin/', 'Aptoscan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
@@ -120,7 +121,7 @@ export const getBlockExplorer = (address: string = '') => {
 	const [chain, chainAddress] = address.split(':')
 	const explorer = blockExplorers[chain]
 	if (explorer !== undefined) {
-		explorers = (explorer[0].length === 2 ? explorer : [explorer]).map(e => ({
+		explorers = (explorer[0].length === 2 ? explorer : [explorer]).map((e) => ({
 			blockExplorerLink: e[0] + chainAddress,
 			blockExplorerName: e[1]
 		}))
@@ -129,9 +130,9 @@ export const getBlockExplorer = (address: string = '') => {
 	}
 	chainName = chain
 		? chain
-			.split('_')
-			.map((x) => capitalizeFirstLetter(x))
-			.join(' ')
+				.split('_')
+				.map((x) => capitalizeFirstLetter(x))
+				.join(' ')
 		: 'Ethereum'
 
 	return {
