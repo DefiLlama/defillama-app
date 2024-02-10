@@ -107,7 +107,8 @@ const blockExplorers = {
 	lightlink: ['https://phoenix.lightlink.io/token/', 'LightLink Explorer'],
 	zkfair: ['https://scan.zkfair.io/address/', 'Zkfair Explorer'],
 	bitnet: ['https://btnscan.com/address/', 'BTNScan'],
-	aptos: ['https://aptoscan.com/account/', 'Aptoscan']
+	aptos: ['https://aptoscan.com/account/', 'Aptoscan'],
+	zeta: ['https://zetachain.blockscout.com/token/', 'Zeta Blockscout'],
 }
 
 export const getBlockExplorer = (address: string = '') => {
