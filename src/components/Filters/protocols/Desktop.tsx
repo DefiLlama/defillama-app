@@ -62,7 +62,7 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 					<>
 						{tvlOptions.slice(0, 3).map((option) => (
 							<ListItem key={option.key}>
-								<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
+								<OptionToggle {...option} toggle={updater(option.key, true)} enabled={extraTvlEnabled[option.key]} />
 							</ListItem>
 						))}
 						<ListItem>
@@ -72,7 +72,7 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 				) : (
 					tvlOptions.map((option) => (
 						<ListItem key={option.key}>
-							<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
+							<OptionToggle {...option} toggle={updater(option.key, true)} enabled={extraTvlEnabled[option.key]} />
 						</ListItem>
 					))
 				)}

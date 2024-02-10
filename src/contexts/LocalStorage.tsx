@@ -3,7 +3,7 @@ import { createContext, useContext, useReducer, useMemo, useCallback, useEffect 
 import { trackGoal } from 'fathom-client'
 import { standardizeProtocolName } from '~/utils'
 import { useIsClient } from '~/hooks'
-import { useRouter } from 'next/router'
+import { NextRouter, useRouter } from 'next/router'
 import { ISettings, IWatchlist, TUpdater } from './types'
 
 const DEFILLAMA = 'DEFILLAMA'
@@ -293,12 +293,34 @@ export function useDarkModeManager() {
 export function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
 	const [state, { updateKey }] = useLocalStorageContext()
 	const isClient = useIsClient()
+	const router = useRouter()
+
+	const updateStateFromRouter = (setting: string, router?: NextRouter) => {
+		let routerValue = router.query[setting]
+		if (typeof routerValue === 'string' && ['true', 'false'].includes(routerValue)) {
+			routerValue = JSON.parse(routerValue)
+			if (routerValue !== state[setting]) updateKey(setting, routerValue)
+		}
+	}
+
+	const updateRouter = (key: string, newState: boolean) => {
+		router.push(
+			{
+				pathname: router.pathname,
+				query: { ...router.query, [key]: newState }
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
 
 	const toggledSettings: ISettings = useMemo(
 		() =>
 			settings.reduce((acc, setting) => {
 				let toggled = false
 				if (isClient) {
+					updateStateFromRouter(setting, router)
+
 					toggled = state[setting]
 					// prevent flash of these toggles when page loads initially
 				} else if (setting === 'emulator') {
@@ -311,8 +333,10 @@ export function useSettingsManager(settings: Array<string>): [ISettings, TUpdate
 		[state, isClient, settings]
 	)
 
-	const updater = (key: string) => () => {
-		updateKey(key, !state[key])
+	const updater = (key: string, shouldUpdateRouter?: boolean) => () => {
+		const newState = !state[key]
+		if (shouldUpdateRouter) updateRouter(key, newState)
+		updateKey(key, newState)
 	}
 
 	return [toggledSettings, updater]
