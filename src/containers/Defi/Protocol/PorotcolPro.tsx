@@ -96,7 +96,7 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
 
-const SortbaleBody = styled.div`
+const SortbaleBody = styled.div<{ isTable: boolean }>`
 	cursor: pointer;
 	grid-column: ${({ isTable }) => (isTable ? '1/-1' : 'auto')};
 `

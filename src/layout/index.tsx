@@ -12,7 +12,7 @@ import ThemeProvider, { GlobalStyle } from '~/Theme'
 import SEO from '~/components/SEO'
 import Nav from '~/components/Nav'
 
-const PageWrapper = styled.div<{ fullWidth: boolean }>`
+const PageWrapper = styled.div<{ fullWidth?: boolean }>`
 	flex: 1;
 	display: flex;
 	flex-direction: column;
