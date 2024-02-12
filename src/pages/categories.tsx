@@ -89,7 +89,10 @@ export const descriptions = {
 	'Staking Pool': `Refers to platforms where users stake their assets using smart contracts on native blockchains to help secure the network and earn rewards but don't receive a receipt token to use in other Defi apps like with Liquid Staking projects`,
 	'Decentralized Stablecoin': `Coins pegged to USD through decentralized mechanisms`,
 	SoFi: 'Social Finance Networks',
-	'DEX Aggregator': `A platform that sources liquidity from various decentralized exchanges to provide optimal trade execution in terms of price and slippage`
+	'DEX Aggregator': `A platform that sources liquidity from various decentralized exchanges to provide optimal trade execution in terms of price and slippage`,
+	Restaking: 'Protocols that allow you to stake the same ETH natively and in others protocols',
+    'Liquid Restaking': 'Projects where their LST (Liquid Staking Token) is 100 % natively an Liquid Restaking token (LRT)',
+    Wallets: 'Protocols where you have a form of digital storage to secure access to your crypto.',
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
