@@ -92,13 +92,11 @@ const ProApi = () => {
 			'Window',
 			`width=600,height=800,left=${window.screen.width / 2 - 300},top=${window.screen.height / 2 - 400}`
 		)
-
-		const timer = setInterval(function () {
-			if (paymentWindow.closed) {
-				clearInterval(timer)
+		window.addEventListener('message', function (e) {
+			if (e.data === 'payment_success') {
 				signIn({ address: wallet.address })
 			}
-		}, 1000)
+		})
 	}
 
 	return (
