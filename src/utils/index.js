@@ -347,7 +347,7 @@ export function selectColor(number, color) {
 }
 
 export const getColorFromNumber = (index, length) => {
-	//use defillama blue as starting
+	// use defillama blue as starting
 	return colord({
 		l: 48.792 + (index / (length + 1)) * 30,
 		c: 67 + (index / (length + 1)) * 20,
