@@ -48,11 +48,11 @@ const nextConfig = {
 				destination: '/recent',
 				permanent: true
 			},
-			// {
-			// 	source: '/liquidations',
-			// 	destination: '/liquidations/eth',
-			// 	permanent: false
-			// },
+			{
+				source: '/liquidations',
+				destination: '/liquidations/eth',
+				permanent: false
+			},
 			{
 				source: '/yields/optimizer',
 				destination: '/borrow',

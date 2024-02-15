@@ -134,7 +134,7 @@ const isYields = (pathname: string) =>
 	pathname === '/yields' || pathname.startsWith('/yields/') || pathname.startsWith('/yields?')
 const isStables = (pathname: string) =>
 	pathname === '/stablecoins' || pathname.startsWith('/stablecoin/') || pathname.startsWith('/stablecoins/')
-// const isLiquidations = (pathname: string) => pathname === '/liquidations' || pathname.startsWith('/liquidations/')
+const isLiquidations = (pathname: string) => pathname === '/liquidations' || pathname.startsWith('/liquidations/')
 const isDexs = (pathname: string) =>
 	pathname === '/dexs' || pathname.startsWith('/dexs/') || pathname.startsWith('/dex/')
 const isFees = (pathname: string) =>
@@ -151,8 +151,8 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 			return isYields(pathname)
 		case 'Stables':
 			return isStables(pathname)
-		// case 'Liquidations':
-		// 	return isLiquidations(pathname)
+		case 'Liquidations':
+			return isLiquidations(pathname)
 		case 'Volumes':
 			return isDexs(pathname)
 		case 'Fees/Revenue':
@@ -171,7 +171,7 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 			return (
 				!isYields(pathname) &&
 				!isStables(pathname) &&
-				// !isLiquidations(pathname) &&
+				!isLiquidations(pathname) &&
 				!isDexs(pathname) &&
 				!isFees(pathname) &&
 				!isRaises(pathname) &&
