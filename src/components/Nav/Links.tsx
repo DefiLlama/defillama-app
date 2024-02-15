@@ -334,7 +334,7 @@ export const navLinks: ILinks = {
 }
 
 export const linksWithNoSubMenu = [
-	{ name: 'Liquidations', url: '/liquidations/eth' },
+	// { name: 'Liquidations', url: '/liquidations/eth' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Unlocks', url: '/unlocks' },
 	{ name: 'Governance', url: '/governance' },

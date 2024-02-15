@@ -4,7 +4,7 @@ import { Search } from 'react-feather'
 import styled from 'styled-components'
 import { MobileInput } from './Input'
 import { useDebounce } from '~/hooks'
-import { useGetLiquidationSearchList } from '../Liquidations/hooks'
+// import { useGetLiquidationSearchList } from '../Liquidations/hooks'
 import { IDefiSearchListProps, useGetDefiSearchList } from '../ProtocolsChains/hooks'
 import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
 import { MobileResults } from './Results/Mobile'
@@ -48,9 +48,9 @@ const useMobileSearchResult = () => {
 		return useGetStablecoinsSearchList
 	}
 
-	if (router.pathname.startsWith('/liquidations')) {
-		return useGetLiquidationSearchList
-	}
+	// if (router.pathname.startsWith('/liquidations')) {
+	// 	return useGetLiquidationSearchList
+	// }
 
 	if (router.pathname.startsWith('/dex')) {
 		return useGetDexesSearchList
