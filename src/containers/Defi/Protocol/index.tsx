@@ -1721,7 +1721,7 @@ const Toggle = styled.button`
 `
 
 const TabPanel = ({ children, ...props }: any) => {
-	const { ref, inView } = useInView({ trackVisibility: true, delay: 100 })
+	const { ref, inView } = useInView({ rootMargin: '300px' })
 	return (
 		<AriakitTabPanel ref={ref} {...props}>
 			{inView ? children : null}

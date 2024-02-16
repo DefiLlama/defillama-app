@@ -108,25 +108,25 @@ const blockExplorers = {
 	zkfair: ['https://scan.zkfair.io/address/', 'Zkfair Explorer'],
 	bitnet: ['https://btnscan.com/address/', 'BTNScan'],
 	aptos: ['https://aptoscan.com/account/', 'Aptoscan'],
-	zeta: ['https://zetachain.blockscout.com/token/', 'Zeta Blockscout'],
+	zeta: ['https://zetachain.blockscout.com/token/', 'Zeta Blockscout']
 }
 
 export const getBlockExplorer = (address: string = '') => {
 	let blockExplorerLink, blockExplorerName, chainName, explorers
-	if (typeof address !== 'string' || address === '') {
+	if (!address || typeof address !== 'string' || address === '') {
 		return { blockExplorerLink, blockExplorerName, chainName, explorers }
 	}
-	if (!address?.includes(':')) {
+	if (!address.includes(':')) {
 		address = `ethereum:${address}`
 	}
 	const [chain, chainAddress] = address.split(':')
 	const explorer = blockExplorers[chain]
-	if (explorer !== undefined) {
+	if (explorer) {
 		explorers = (explorer[0].length === 2 ? explorer : [explorer]).map((e) => ({
 			blockExplorerLink: e[0] + chainAddress,
 			blockExplorerName: e[1]
 		}))
-		blockExplorerLink = explorers[0].blockExplorerLink + chainAddress
+		blockExplorerLink = explorers[0].blockExplorerLink
 		blockExplorerName = explorers[0].blockExplorerName
 	}
 	chainName = chain
