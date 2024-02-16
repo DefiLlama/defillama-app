@@ -11,10 +11,11 @@ import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
 import type { IDexChartsProps } from './types'
 import { useRouter } from 'next/router'
-import { capitalizeFirstLetter } from '~/utils'
+import { capitalizeFirstLetter, download } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { AnnouncementWrapper } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
+import { ButtonDark } from '~/components/ButtonStyled'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -31,6 +32,36 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	const chain = props.chain ?? 'All'
 	const isSimpleFees = props.isSimpleFees
 	const router = useRouter()
+
+	const downloadCsv = React.useCallback(() => {
+		const rows = {
+			displayName: 'Name',
+			total24h: 'Total 24h',
+			tvl: 'DEX TVL',
+			change_7dover7d: 'Change 7d/7d',
+			total7d: 'Total 7d',
+			total30d: 'Total 30d',
+			change_1d: 'Change 1d',
+			change_7d: 'Change 7d',
+			change_1m: 'Change 1m',
+			total1y: 'Total 1y'
+		}
+
+		const columnsToPick = Object.keys(rows)
+
+		const data = props.protocols.map((p) => {
+			const row = []
+			columnsToPick.forEach((r) => {
+				row.push(p[r])
+			})
+			return row
+		})
+
+		const header = columnsToPick.map((c) => rows[c]).join(',')
+		const rowsData = data.map((d) => d.join(',')).join('\n')
+
+		download('protocols.csv', header + '\n' + rowsData)
+	}, [props.protocols])
 	const { dataType: selectedDataType = 'Notional volume' } = router.query
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 	const [enabledSettings] = useFeesManager()
@@ -216,8 +247,16 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					enableBreakdownChart && charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
 				}
 			/>
+
 			<StyledHeaderWrapper>
-				<TitleByType type={props.type} chain={chain} />
+				<div>
+					<TitleByType type={props.type} chain={chain} />
+					{props.chain === 'all' && props.type === 'dexs' ? (
+						<ButtonDark onClick={downloadCsv} style={{ marginLeft: '16px' }}>
+							Download CSV
+						</ButtonDark>
+					) : null}
+				</div>
 				<p style={{ fontSize: '.60em', textAlign: 'end' }}>Updated daily at 00:00UTC</p>
 			</StyledHeaderWrapper>
 			{getChartByType(props.type, {
