@@ -105,7 +105,7 @@ const sendMessages = async () => {
 
 	if (BUILD_STATUS !== '0') {
 		if (LLAMAS_LIST) {
-			const llamaMessage = `${EMOJI_CRINGE} ${authorMention}\n${EMOJI_TIRESOME} ${buildLlamasMentions}\n${EMOJI_BINOCULARS} ${BUILD_STATUS_DASHBOARD}`
+			const llamaMessage = `${EMOJI_CRINGE} ${authorMention}\n${EMOJI_BINOCULARS} ${BUILD_STATUS_DASHBOARD}`
 			const llamaBody = { content: llamaMessage }
 			await fetch(BUILD_STATUS_WEBHOOK, {
 				method: 'POST',

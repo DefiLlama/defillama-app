@@ -315,6 +315,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 			const splitValue = value.split('#')
 			const [symbol, token] = splitValue
 			const { blockExplorerLink } = getBlockExplorer(token)
+
 			if (value) {
 				return (
 					<LinkToBlockExplorer href={blockExplorerLink} target="_blank" rel="noopener noreferrer">

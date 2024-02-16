@@ -100,7 +100,7 @@ function ProtocolList({
 								`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)
 									.filter((t) => t[1] === true)
 									.map((t) => `${t[0]}=true`)
-									.join('&')}`
+									.join('&')}	${category === 'Liquid Staking' ? 'liquidstaking=true' : ''}`
 							)
 						}}
 					/>

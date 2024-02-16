@@ -1349,13 +1349,13 @@ function ProtocolContainer({
 									<p>(updated at {dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})</p>
 								</FlexRow>
 								<FlexRow>
-									Weekly commits: {devMetrics?.report.weekly_contributers.slice(-1)[0]?.cc}
+									Weekly commits: {devMetrics?.report?.weekly_contributers.slice(-1)[0]?.cc}
 									<br />
-									Monthly commits: {devMetrics?.report.monthly_contributers.slice(-1)[0]?.cc}
+									Monthly commits: {devMetrics?.report?.monthly_contributers.slice(-1)[0]?.cc}
 									<br />
-									Weekly developers: {devMetrics?.report.weekly_contributers.slice(-1)[0]?.v}
+									Weekly developers: {devMetrics?.report?.weekly_contributers.slice(-1)[0]?.v}
 									<br />
-									Monthly developers: {devMetrics?.report.monthly_contributers.slice(-1)[0]?.v}
+									Monthly developers: {devMetrics?.report?.monthly_contributers.slice(-1)[0]?.v}
 								</FlexRow>
 								<FlexRow>
 									<span>Last commit:</span> {dayjs(devMetrics.last_commit_update_time).fromNow()} (
@@ -1716,7 +1716,7 @@ const Toggle = styled.button`
 `
 
 const TabPanel = ({ children, ...props }: any) => {
-	const { ref, inView } = useInView({ trackVisibility: true, delay: 100 })
+	const { ref, inView } = useInView({ rootMargin: '300px' })
 	return (
 		<AriakitTabPanel ref={ref} {...props}>
 			{inView ? children : null}
