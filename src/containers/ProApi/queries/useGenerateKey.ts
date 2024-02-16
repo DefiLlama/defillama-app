@@ -1,7 +1,9 @@
+import toast from 'react-hot-toast'
 import { useMutation, useQueryClient } from 'react-query'
 import { SERVER_API } from '../lib/constants'
 
 export async function generateNewApiKey({ authToken }: { authToken?: string | null }) {
+	const toastId = toast.loading('Generating new API Key')
 	try {
 		if (!authToken) {
 			throw new Error('Not Authorized')
@@ -21,6 +23,8 @@ export async function generateNewApiKey({ authToken }: { authToken?: string | nu
 		return newApiKey?.apiKey ?? null
 	} catch (error: any) {
 		throw new Error(error.message)
+	} finally {
+		toast.dismiss(toastId)
 	}
 }
 
@@ -29,6 +33,7 @@ export function useGenerateNewApiKey() {
 
 	return useMutation(generateNewApiKey, {
 		onSuccess: () => {
+			toast.success('API Key generated')
 			queryClient.invalidateQueries()
 		}
 	})

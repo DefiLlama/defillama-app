@@ -2,7 +2,7 @@ import { useQuery } from 'react-query'
 import request, { gql } from 'graphql-request'
 import { llamaAddress, periodDuration, subgraphApi, token } from '../lib/constants'
 
-interface ISub {
+export interface ISub {
 	expirationDate: string
 	id: string
 	initialPeriod: string
@@ -13,9 +13,10 @@ interface ISub {
 	amountPerCycle: string
 	realExpiration: string
 	accumulator: string
+	creationTx: string
 }
 
-interface IFormattedSub {
+export interface IFormattedSub {
 	id: string
 	receiver: string
 	startTimestamp: number
@@ -30,6 +31,23 @@ interface IFormattedSub {
 	realExpiration: number
 	subDuration: string
 	accumulator: number
+	creationTx: string
+	status: string
+}
+
+const getStatusPriority = (status) => {
+	switch (status) {
+		case 'Active':
+			return 1
+		case 'Not Started Yet':
+			return 2
+		case 'Canceled':
+			return 3
+		case 'Expired':
+			return 4
+		default:
+			return 5
+	}
 }
 
 async function getSubscriptions(address?: `0x${string}` | null) {
@@ -38,7 +56,7 @@ async function getSubscriptions(address?: `0x${string}` | null) {
 
 		const subs = gql`
           {
-              subs(where: { owner: "${address.toLowerCase()}", receiver: "${llamaAddress.toLowerCase()}" } orderBy: expirationDate orderDirection: desc ) {
+              subs(where: { owner: "${address.toLowerCase()}", receiver: "${llamaAddress.toLowerCase()}" } orderBy: realExpiration orderDirection: desc ) {
                   id
                   receiver
                   startTimestamp
@@ -49,61 +67,84 @@ async function getSubscriptions(address?: `0x${string}` | null) {
                   amountPerCycle
                   realExpiration
                   accumulator
+									creationTx
               }
           }
       `
 		const data: { subs: Array<ISub> } = await request(subgraphApi, subs)
 
-		return (data.subs ?? []).map((sub) => {
-			const id = sub.id
-			const receiver = sub.receiver
-			const startTimestamp = +sub.startTimestamp
-			const unsubscribed = sub.unsubscribed
-			const initialShares = +sub.initialShares
-			const initialPeriod = +sub.initialPeriod
-			const expirationDate = +sub.expirationDate
-			const amountPerCycle = +sub.amountPerCycle
-			const realExpiration = +sub.realExpiration
-			const accumulator = +sub.accumulator
-			const fullPeriodStartingTime = initialPeriod + periodDuration
-			const partialPeriodTime = fullPeriodStartingTime - startTimestamp
-			const fullCycles = (expirationDate - initialPeriod) / periodDuration
-			const amountPaidFully = fullCycles * amountPerCycle
-			const partialCycles = partialPeriodTime / periodDuration
-			const amountPaidPartially = partialCycles * amountPerCycle
+		return (data.subs ?? [])
+			.map((sub) => {
+				const id = sub.id
+				const receiver = sub.receiver
+				const startTimestamp = +sub.startTimestamp
+				const unsubscribed = sub.unsubscribed
+				const initialShares = +sub.initialShares
+				const initialPeriod = +sub.initialPeriod
+				const expirationDate = +sub.expirationDate
+				const amountPerCycle = +sub.amountPerCycle
+				const realExpiration = +sub.realExpiration
+				const accumulator = +sub.accumulator
+				const fullPeriodStartingTime = initialPeriod + periodDuration
+				const partialPeriodTime = fullPeriodStartingTime - startTimestamp
+				const fullCycles = (expirationDate - initialPeriod) / periodDuration
+				const amountPaidFully = fullCycles * amountPerCycle
+				const partialCycles = partialPeriodTime / periodDuration
+				const amountPaidPartially = partialCycles * amountPerCycle
 
-			let subDuration = `${fullCycles} ${periodDuration === 24 * 60 * 60 ? 'days' : 'month'}`
+				let subDuration = `${fullCycles} ${periodDuration === 24 * 60 * 60 ? 'days' : 'month'}`
 
-			if (partialCycles) {
-				subDuration += `,`
+				if (partialCycles) {
+					subDuration += `,`
 
-				const [hours, minutes] = (partialCycles * 24).toString().split('.')
+					const [hours, minutes] = (partialCycles * 24).toString().split('.')
 
-				if (hours) {
-					subDuration += ` ${hours} hours`
+					if (hours) {
+						subDuration += ` ${hours} hours`
+					}
+
+					if (minutes) {
+						subDuration += ` ${(+minutes * 60).toString().slice(0, 2)} minutes`
+					}
 				}
 
-				if (minutes) {
-					subDuration += ` ${(+minutes * 60).toString().slice(0, 2)} minutes`
-				}
-			}
-			return {
-				id,
-				receiver,
-				startTimestamp,
-				unsubscribed,
-				initialShares,
-				initialPeriod,
-				expirationDate,
-				periodDuration,
-				fullPeriodStartingTime,
-				totalAmountPaid: +((amountPaidPartially + amountPaidFully) / 10 ** token.decimals).toFixed(2),
-				amountPerCycle,
-				realExpiration,
-				subDuration,
-				accumulator
-			} as IFormattedSub
-		})
+				const isCanceled = realExpiration === startTimestamp
+
+				const status = (() => {
+					if (isCanceled) {
+						return 'Canceled'
+					}
+					if (realExpiration > new Date().getTime() / 1000) {
+						if (startTimestamp > new Date().getTime() / 1000) {
+							return 'Not Started Yet'
+						}
+						return 'Active'
+					}
+					return 'Expired'
+				})()
+
+				return {
+					id,
+					receiver,
+					startTimestamp,
+					unsubscribed,
+					initialShares,
+					initialPeriod,
+					expirationDate,
+					periodDuration,
+					fullPeriodStartingTime,
+					totalAmountPaid: +((amountPaidPartially + amountPaidFully) / 10 ** token.decimals).toFixed(2),
+					amountPerCycle,
+					realExpiration,
+					subDuration,
+					accumulator,
+					creationTx: sub.creationTx,
+					status
+				} as IFormattedSub
+			})
+			.sort((a, b) => {
+				return getStatusPriority(a.status) - getStatusPriority(b.status)
+			})
 	} catch (error: any) {
 		throw new Error(error.message ?? 'Failed to fetch subscriptions')
 	}

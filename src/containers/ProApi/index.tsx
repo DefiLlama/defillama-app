@@ -2,7 +2,6 @@ import styled from 'styled-components'
 import React from 'react'
 import { useAccount } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import dayjs from 'dayjs'
 import { Copy } from 'react-feather'
 
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
@@ -13,6 +12,8 @@ import { useGetSubs } from './queries/useGetSubs'
 import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
 import { useGenerateNewApiKey } from './queries/useGenerateKey'
 import logo from '~/public/llama.png'
+import Subscriptions from './Subscriptions'
+import toast from 'react-hot-toast'
 
 const Body = styled.div`
 	margin-top: 120px;
@@ -77,6 +78,23 @@ const PriceComponent: React.FC<Props> = ({ price }) => {
 	)
 }
 
+const Box = styled.div`
+	display: flex;
+	flex-direction: column;
+	font-size: 16px;
+	width: 100%;
+	border-radius: 10px;
+	transition: all 0.3s ease;
+	padding: 15px;
+	background-color: ${({ theme }) => theme.bg1};
+	color: ${({ theme }) => theme.text1};
+	gap: 16px;
+
+	&:hover {
+		background-color: ${({ theme }) => theme.hover}; // Hover effect
+	}
+`
+
 const ProApi = () => {
 	const wallet = useAccount()
 	const { openConnectModal } = useConnectModal()
@@ -86,14 +104,14 @@ const ProApi = () => {
 	const { data: authTokenAfterSigningIn, mutate: signIn } = useSignInWithEthereum()
 	const authToken = currentAuthToken || authTokenAfterSigningIn
 
-	const startPayment = () => {
+	const startPayment = (isTopUp = false) => {
 		const paymentWindow = window.open(
 			`https://subscriptions.llamapay.io/subscribe?to=${llamaAddress}&amount=${subscriptionAmount}&brandColor=%232351be&closeAfterPayment=true`,
 			'Window',
 			`width=600,height=800,left=${window.screen.width / 2 - 300},top=${window.screen.height / 2 - 400}`
 		)
 		window.addEventListener('message', function (e) {
-			if (e.data === 'payment_success') {
+			if (e.data === 'payment_success' && !isTopUp) {
 				signIn({ address: wallet.address })
 			}
 		})
@@ -103,27 +121,26 @@ const ProApi = () => {
 		<Body>
 			<img src={logo.src} width="120px" height="120px" alt="logo" />
 			<Content>
-				<h1>DefiLlama Pro API</h1>
+				<div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+					<h1>DefiLlama Pro API</h1>
+					{authToken ? (
+						<ButtonLight onClick={() => window.open('/pro-api/docs', '_blank')}>Open API Docs </ButtonLight>
+					) : null}
+				</div>
+
 				{authToken ? null : (
 					<>
 						<PriceComponent price={300} />
 						<div>Upgrade now for increased api limits and premium api endpoints.</div>
 					</>
 				)}
-
 				{!wallet.isConnected ? (
 					<Button onClick={openConnectModal}>Connect</Button>
 				) : !authToken && !(subs?.[0]?.realExpiration > new Date().getTime() / 1000) ? (
-					<Button onClick={startPayment}>Subscribe</Button>
-				) : authToken ? (
-					<Buttons>
-						<ButtonLight onClick={() => window.open('/pro-api/docs', '_blank')}>Open API Docs </ButtonLight>
-						<ButtonDark onClick={() => generateApiKey({ authToken })}>Generate new API Key </ButtonDark>
-					</Buttons>
-				) : (
+					<Button onClick={() => startPayment()}>Subscribe</Button>
+				) : authToken ? null : (
 					<Button onClick={() => signIn({ address: wallet.address })}>Sign In</Button>
 				)}
-
 				{!authToken ? (
 					<ListBody>
 						<h2>Plan Includes:</h2>
@@ -137,22 +154,36 @@ const ProApi = () => {
 						</ListItem>
 					</ListBody>
 				) : (
-					<ListBody>
-						<h2>Subscription Info</h2>
-						<ListItem>
-							<h4>API Key</h4>: {newApiKey || authToken || 'Not Subscribed'}
-							<span onClick={() => navigator.clipboard.writeText('Copy this text to clipboard')}>
-								<Copy style={{ height: '16px', cursor: 'pointer' }} />
-							</span>
-						</ListItem>
-						<ListItem>
-							<h4>Expiration Date</h4>:{' '}
-							{subs?.[0]?.realExpiration
-								? dayjs(subs?.[0]?.realExpiration * 1000).format('MMM D, YYYY')
-								: 'Not Subscribed'}
-						</ListItem>
-					</ListBody>
+					<>
+						<div style={{ display: 'flex', marginTop: '16px' }}>
+							<h2>API Key </h2>
+						</div>
+
+						<Box>
+							<div style={{ display: 'flex' }}>
+								<h4>API Key</h4>: {newApiKey || authToken || 'Not Subscribed'}
+								<span
+									onClick={() => {
+										navigator.clipboard.writeText('Copy this text to clipboard')
+										toast.success('API Key copied to clipboard')
+									}}
+								>
+									<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
+								</span>
+							</div>
+							<ButtonDark
+								onClick={() => {
+									generateApiKey({ authToken })
+								}}
+								style={{ width: '120px' }}
+							>
+								Generate new API Key{' '}
+							</ButtonDark>
+						</Box>
+						<Subscriptions startPayment={startPayment} />
+					</>
 				)}
+				<></>
 			</Content>
 		</Body>
 	)

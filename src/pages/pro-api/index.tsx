@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import styled from 'styled-components'
+import { Toaster } from 'react-hot-toast'
 
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
@@ -24,6 +25,7 @@ const ButtonWrapper = styled.div`
 export default function HomePage(props) {
 	return (
 		<Layout style={{ gap: '8px' }} title="DefiLlama - Pro API" fullWidth>
+			<Toaster />
 			<QueryClientProvider client={queryClient}>
 				<ButtonWrapper>
 					<ConnectButton />
