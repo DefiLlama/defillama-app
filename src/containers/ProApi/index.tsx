@@ -102,7 +102,7 @@ const ProApi = () => {
 	const authToken = currentAuthToken || authTokenAfterSigningIn || ghAuth?.apiKey
 
 	const startPayment = (isTopUp = false) => {
-		const paymentWindow = window.open(
+		window.open(
 			`https://subscriptions.llamapay.io/subscribe?to=${llamaAddress}&amount=${subscriptionAmount}&brandColor=%232351be&closeAfterPayment=true`,
 			'Window',
 			`width=600,height=800,left=${window.screen.width / 2 - 300},top=${window.screen.height / 2 - 400}`
