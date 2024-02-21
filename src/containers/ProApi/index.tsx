@@ -100,6 +100,7 @@ const ProApi = () => {
 	const { data: authTokenAfterSigningIn, mutate: signIn } = useSignInWithEthereum()
 	const { data: currentKey } = useGetCurrentKey({ authToken: currentAuthToken })
 	const authToken = currentAuthToken || authTokenAfterSigningIn || ghAuth?.apiKey
+	const apiKey = newApiKey || currentKey || ghAuth?.apiKey
 
 	const startPayment = (isTopUp = false) => {
 		window.open(
@@ -169,10 +170,10 @@ const ProApi = () => {
 
 						<Box>
 							<div style={{ display: 'flex' }}>
-								<h4>API Key</h4>: {newApiKey || currentKey || authToken || 'Not Subscribed'}
+								<h4>API Key</h4>: {apiKey || 'Not Subscribed'}
 								<span
 									onClick={() => {
-										navigator.clipboard.writeText('Copy this text to clipboard')
+										navigator.clipboard.writeText(apiKey)
 										toast.success('API Key copied to clipboard')
 									}}
 								>
