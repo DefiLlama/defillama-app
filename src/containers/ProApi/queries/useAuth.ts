@@ -1,7 +1,9 @@
 import { verifyMessage } from 'ethers/lib/utils.js'
+import toast from 'react-hot-toast'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useAccount, useNetwork } from 'wagmi'
 import { signMessage } from 'wagmi/actions'
+
 import { FRONTEND_DOMAIN, optimism, SERVER_API } from '../lib/constants'
 import { getSIWEMessage } from '../lib/siwe'
 
@@ -21,7 +23,6 @@ async function checkTokenValidity({ address }: { address?: string | null }) {
 
 export async function getAuthToken({ address }: { address?: string | null }) {
 	try {
-		console.log({ address })
 		if (!address) {
 			return null
 		}
@@ -70,10 +71,12 @@ export async function signAndGetAuthToken({ address }: { address?: string | null
 		const isVerified = verifyMessage(siweMessage, data) === address
 
 		if (!data) {
+			toast.error('Failed to generate signature')
 			throw new Error('Failed to generate signature')
 		}
 
 		if (!isVerified) {
+			toast.error('Failed to verify signature')
 			throw new Error('Failed to verify signature')
 		}
 
@@ -95,14 +98,16 @@ export async function signAndGetAuthToken({ address }: { address?: string | null
 
 		return verifyRes.key
 	} catch (error: any) {
+		toast.error(error.message)
 		throw new Error(error.message)
 	}
 }
 
 export function useSignInWithEthereum() {
 	const queryClient = useQueryClient()
+	const wallet = useAccount()
 
-	return useMutation(signAndGetAuthToken, {
+	return useMutation(['signIn', wallet.address], signAndGetAuthToken, {
 		onSuccess: () => {
 			queryClient.invalidateQueries()
 		}

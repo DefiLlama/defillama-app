@@ -2,7 +2,7 @@ import toast from 'react-hot-toast'
 import { useMutation, useQueryClient } from 'react-query'
 import { SERVER_API } from '../lib/constants'
 
-export async function generateNewApiKey({ authToken }: { authToken?: string | null }) {
+export const generateNewApiKey = async ({ authToken }: { authToken?: string | null }) => {
 	const toastId = toast.loading('Generating new API Key')
 	try {
 		if (!authToken) {
@@ -12,7 +12,7 @@ export async function generateNewApiKey({ authToken }: { authToken?: string | nu
 		const newApiKey = await fetch(`${SERVER_API}/auth/generate`, {
 			method: 'POST',
 			headers: {
-				authorization: authToken
+				Authorization: authToken
 			}
 		}).then((r) => r.json())
 
@@ -22,6 +22,7 @@ export async function generateNewApiKey({ authToken }: { authToken?: string | nu
 
 		return newApiKey?.apiKey ?? null
 	} catch (error: any) {
+		toast.error(error.message)
 		throw new Error(error.message)
 	} finally {
 		toast.dismiss(toastId)

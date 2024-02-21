@@ -8,7 +8,7 @@ async function getCurrentKey(authToken?: string | null) {
 		const currentToken = await fetch(`${SERVER_API}/auth/api-key`, {
 			method: 'GET',
 			headers: {
-				authorization: authToken
+				Authorization: authToken
 			}
 		}).then((r) => r.json())
 

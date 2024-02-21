@@ -1,8 +1,9 @@
 import styled from 'styled-components'
-import React from 'react'
-import { useAccount } from 'wagmi'
+import React, { useEffect } from 'react'
+import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { Copy } from 'react-feather'
+import toast from 'react-hot-toast'
 
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 import { CheckIcon } from '../ProContainer/Subscribe/Icon'
@@ -13,7 +14,9 @@ import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
 import { useGenerateNewApiKey } from './queries/useGenerateKey'
 import logo from '~/public/llama.png'
 import Subscriptions from './Subscriptions'
-import toast from 'react-hot-toast'
+import useGithubAuth from './queries/useGithubAuth'
+import SignInWithGithub from './SignInWithGithub'
+import { useGetCurrentKey } from './queries/useGetCurrentKey'
 
 const Body = styled.div`
 	margin-top: 120px;
@@ -55,17 +58,6 @@ const PricePerMonth = styled.div`
 	font-weight: bold;
 `
 
-const Buttons = styled.div`
-	display: flex;
-	gap: 16px;
-	width: 100%;
-	justify-content: center;
-
-	button {
-		width: 100%;
-	}
-`
-
 interface Props {
 	price: number
 }
@@ -78,7 +70,7 @@ const PriceComponent: React.FC<Props> = ({ price }) => {
 	)
 }
 
-const Box = styled.div`
+export const Box = styled.div`
 	display: flex;
 	flex-direction: column;
 	font-size: 16px;
@@ -89,20 +81,25 @@ const Box = styled.div`
 	background-color: ${({ theme }) => theme.bg1};
 	color: ${({ theme }) => theme.text1};
 	gap: 16px;
-
-	&:hover {
-		background-color: ${({ theme }) => theme.hover}; // Hover effect
-	}
 `
 
 const ProApi = () => {
 	const wallet = useAccount()
+	const network = useNetwork()
+	const { switchNetwork } = useSwitchNetwork()
+	useEffect(() => {
+		if (network?.chain?.id && network?.chain?.id !== 10) {
+			switchNetwork?.(10)
+		}
+	}, [network?.chain?.id, switchNetwork])
+	const { data: ghAuth } = useGithubAuth()
 	const { openConnectModal } = useConnectModal()
 	const { data: currentAuthToken } = useGetAuthToken()
 	const { data: subs } = useGetSubs({ address: wallet?.address })
 	const { data: newApiKey, mutate: generateApiKey } = useGenerateNewApiKey()
 	const { data: authTokenAfterSigningIn, mutate: signIn } = useSignInWithEthereum()
-	const authToken = currentAuthToken || authTokenAfterSigningIn
+	const { data: currentKey } = useGetCurrentKey({ authToken: currentAuthToken })
+	const authToken = currentAuthToken || authTokenAfterSigningIn || ghAuth?.apiKey
 
 	const startPayment = (isTopUp = false) => {
 		const paymentWindow = window.open(
@@ -127,20 +124,31 @@ const ProApi = () => {
 						<ButtonLight onClick={() => window.open('/pro-api/docs', '_blank')}>Open API Docs </ButtonLight>
 					) : null}
 				</div>
-
 				{authToken ? null : (
 					<>
 						<PriceComponent price={300} />
 						<div>Upgrade now for increased api limits and premium api endpoints.</div>
 					</>
 				)}
-				{!wallet.isConnected ? (
-					<Button onClick={openConnectModal}>Connect</Button>
-				) : !authToken && !(subs?.[0]?.realExpiration > new Date().getTime() / 1000) ? (
-					<Button onClick={() => startPayment()}>Subscribe</Button>
+
+				{ghAuth?.login ? (
+					<Box>
+						<SignInWithGithub />
+					</Box>
 				) : authToken ? null : (
-					<Button onClick={() => signIn({ address: wallet.address })}>Sign In</Button>
+					<Box>
+						{!wallet.isConnected ? (
+							<Button onClick={openConnectModal}>Connect Wallet</Button>
+						) : !authToken && !(subs?.[0]?.realExpiration > new Date().getTime() / 1000) ? (
+							<Button onClick={() => startPayment()}>Subscribe</Button>
+						) : authToken ? null : (
+							<Button onClick={() => signIn({ address: wallet.address })}>Sign In</Button>
+						)}
+						OR
+						<SignInWithGithub />
+					</Box>
 				)}
+
 				{!authToken ? (
 					<ListBody>
 						<h2>Plan Includes:</h2>
@@ -161,7 +169,7 @@ const ProApi = () => {
 
 						<Box>
 							<div style={{ display: 'flex' }}>
-								<h4>API Key</h4>: {newApiKey || authToken || 'Not Subscribed'}
+								<h4>API Key</h4>: {newApiKey || currentKey || authToken || 'Not Subscribed'}
 								<span
 									onClick={() => {
 										navigator.clipboard.writeText('Copy this text to clipboard')
@@ -171,16 +179,18 @@ const ProApi = () => {
 									<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
 								</span>
 							</div>
-							<ButtonDark
-								onClick={() => {
-									generateApiKey({ authToken })
-								}}
-								style={{ width: '120px' }}
-							>
-								Generate new API Key{' '}
-							</ButtonDark>
+							{authToken && ghAuth?.isContributor ? null : (
+								<ButtonDark
+									onClick={() => {
+										generateApiKey({ authToken })
+									}}
+									style={{ width: '120px' }}
+								>
+									Generate new API Key{' '}
+								</ButtonDark>
+							)}
 						</Box>
-						<Subscriptions startPayment={startPayment} />
+						{subs?.length ? <Subscriptions startPayment={startPayment} /> : null}
 					</>
 				)}
 				<></>
