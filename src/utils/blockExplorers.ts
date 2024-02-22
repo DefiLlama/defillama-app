@@ -19,7 +19,7 @@ const blockExplorers = {
 	heco: ['https://hecoinfo.com/address/', 'HecoInfo'],
 	wan: ['https://wanscan.org/token/', 'Wanscan'],
 	polygon: ['https://polygonscan.com/address/', 'PolygonScan'],
-	rootstock: ['https://explorer.rsk.co/address/', 'Rootstock Explorer'],
+	rsk: ['https://rootstock.blockscout.com/token/', 'Rootstock Explorer'],
 	solana: ['https://solscan.io/token/', 'Solscan'],
 	tezos: ['https://tzkt.io/', 'TzKT'],
 	moonriver: ['https://blockscout.moonriver.moonbeam.network/address/', 'Blockscout'],
