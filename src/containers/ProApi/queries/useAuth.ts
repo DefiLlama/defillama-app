@@ -56,7 +56,7 @@ export async function signAndGetAuthToken({ address }: { address?: string | null
 		if (!address) {
 			throw new Error('Invalid arguments')
 		}
-		const host = window.location.host
+		const host = window.location.origin
 
 		const siweMessage = getSIWEMessage({
 			domain: host,
