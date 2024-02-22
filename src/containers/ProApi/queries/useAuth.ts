@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useAccount, useNetwork } from 'wagmi'
 import { signMessage } from 'wagmi/actions'
 
-import { FRONTEND_DOMAIN, optimism, SERVER_API } from '../lib/constants'
+import { optimism, SERVER_API } from '../lib/constants'
 import { getSIWEMessage } from '../lib/siwe'
 
 async function checkTokenValidity({ address }: { address?: string | null }) {
@@ -56,12 +56,13 @@ export async function signAndGetAuthToken({ address }: { address?: string | null
 		if (!address) {
 			throw new Error('Invalid arguments')
 		}
+		const host = window.location.host
 
 		const siweMessage = getSIWEMessage({
-			domain: FRONTEND_DOMAIN,
+			domain: host,
 			address,
-			statement: `Sign in to ${FRONTEND_DOMAIN} to get API Key`,
-			uri: FRONTEND_DOMAIN,
+			statement: `Sign in to ${host} to get API Key`,
+			uri: host,
 			version: '1',
 			chainId: optimism.id,
 			nonce: `${Math.floor(Math.random() * 64)}`

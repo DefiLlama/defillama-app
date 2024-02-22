@@ -170,7 +170,7 @@ const ProApi = () => {
 
 						<Box>
 							<div style={{ display: 'flex' }}>
-								<h4>API Key</h4>: {apiKey || 'Not Subscribed'}
+								<h4>API Key</h4>: {apiKey || '-'}
 								<span
 									onClick={() => {
 										navigator.clipboard.writeText(apiKey)

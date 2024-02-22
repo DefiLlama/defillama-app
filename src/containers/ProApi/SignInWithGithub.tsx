@@ -3,6 +3,7 @@ import { GitHub } from 'react-feather'
 import styled from 'styled-components'
 
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
+import { GH_CLIENT_ID } from './lib/constants'
 import useGithubAuth from './queries/useGithubAuth'
 
 const GithubButton = styled(ButtonComponent)`
@@ -63,7 +64,7 @@ const SignInWithGithub = () => {
 	}
 	return (
 		<div>
-			<a href={`https://github.com/login/oauth/authorize?client_id=434392c1d50567bcc6a9`}>
+			<a href={`https://github.com/login/oauth/authorize?client_id=${GH_CLIENT_ID}`}>
 				<GithubButton>
 					Sign in with GitHub <GitHub />
 				</GithubButton>
