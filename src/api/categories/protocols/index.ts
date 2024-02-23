@@ -783,9 +783,10 @@ export async function getLSDPageData() {
 
 	// filter for LSDs
 	const lsdProtocols = protocols
-		.filter((p) => (p.category === 'Liquid Staking' || ['Stafi'].includes(p.name)) && p.chains.includes('Ethereum'))
+		.filter((p) => p.category === 'Liquid Staking' && p.chains.includes('Ethereum'))
 		.map((p) => p.name)
 		.filter((p) => !['StakeHound', 'Genius', 'SharedStake'].includes(p))
+		.concat('Crypto.com Staked ETH')
 
 	// get historical data
 	const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
