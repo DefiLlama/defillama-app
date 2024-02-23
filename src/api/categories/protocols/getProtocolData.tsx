@@ -273,15 +273,42 @@ export const getProtocolData = async (protocol: string) => {
 		any
 	] = await Promise.all([
 		getProtocol(protocol),
-		fetchArticles({ tags: protocol }),
-		fetchOverCacheJson(PROTOCOLS_EXPENSES_API),
-		fetchOverCacheJson(PROTOCOLS_TREASURY),
-		fetchOverCacheJson(YIELD_POOLS_API),
-		fetchOverCacheJson(YIELD_CONFIG_API),
-		fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json'),
-		getForkPageData(),
-		fetchOverCacheJson(HACKS_API),
-		fetchOverCache(NFT_MARKETPLACES_STATS_API).then((r) => r.json())
+		fetchArticles({ tags: protocol }).catch((err) => {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:',protocol, err instanceof Error ? err.message : '')
+			return []
+		}),
+		fetchOverCacheJson(PROTOCOLS_EXPENSES_API).catch((err) => {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_EXPENSES]:',protocol, err instanceof Error ? err.message : '')
+			return []
+		}),
+		fetchOverCacheJson(PROTOCOLS_TREASURY).catch((err) => {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_TREASURY]:',protocol, err instanceof Error ? err.message : '')
+			return []
+		}),
+		fetchOverCacheJson(YIELD_POOLS_API).catch((err) => {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:',protocol, err instanceof Error ? err.message : '')
+			return {}
+		}),
+		fetchOverCacheJson(YIELD_CONFIG_API).catch((err) => {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELDCONFIG]:',protocol, err instanceof Error ? err.message : '')
+			return null
+		}),
+		fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json').catch((err) => {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_LIQUIDITYINFO]:',protocol, err instanceof Error ? err.message : '')
+			return []
+		}),
+		getForkPageData().catch((err) => {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_FORKS]:',protocol, err instanceof Error ? err.message : '')
+			return {}
+		}),
+		fetchOverCacheJson(HACKS_API).catch((err) => {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_HACKS]:',protocol, err instanceof Error ? err.message : '')
+			return []
+		}),
+		fetchOverCache(NFT_MARKETPLACES_STATS_API).then((r) => r.json()).catch((err) => {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_NFTMARKETPLACES]:',protocol, err instanceof Error ? err.message : '')
+			return []
+		}),
 	])
 
 	if (!protocolRes) {
