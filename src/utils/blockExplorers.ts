@@ -14,7 +14,7 @@ const blockExplorers = {
 		['https://optimistic.etherscan.io/address/', 'Etherscan'],
 		['https://optimism.blockscout.com/token/', 'Blockscout']
 	],
-	avax: ['https://snowtrace.io/address/', 'Snowtrace'],
+	avax: ['https://snowscan.xyz/address/', 'SnowScan'],
 	fantom: ['https://ftmscan.com/address/', 'FTMscan'],
 	heco: ['https://hecoinfo.com/address/', 'HecoInfo'],
 	wan: ['https://wanscan.org/token/', 'Wanscan'],
