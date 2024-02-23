@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { TYPE } from '~/Theme'
+import { Header, TYPE } from '~/Theme'
 import Layout from '~/layout'
 import { Divider, Panel } from '~/components'
 import { RowBetween } from '~/components/Row'
@@ -14,7 +14,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 function Section({ title, children }) {
 	return (
 		<>
-			<TYPE.largeHeader>{title}</TYPE.largeHeader>
+			<Header>{title}</Header>
 			<TYPE.main>{children}</TYPE.main>
 		</>
 	)
@@ -40,7 +40,7 @@ function PressPage({ protocols }) {
 	return (
 		<Layout title="Donations - DefiLlama" defaultSEO>
 			<RowBetween>
-				<TYPE.largeHeader>Donations</TYPE.largeHeader>
+				<Header>Donations</Header>
 			</RowBetween>
 			<Panel style={{ marginTop: '6px' }}>
 				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>

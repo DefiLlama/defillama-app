@@ -95,15 +95,17 @@ const Details = styled.details`
 			background: #ebebeb;
 			font-size: 0.625rem;
 			border-radius: 4px;
-			padding: 3px;
+			padding: 2px 5px;
 			color: black;
 			position: relative;
 			left: -4px;
+			font-weight: 600;
+			letter-spacing: 0.5px;
 		}
 
 		:hover {
 			background-color: ${({ theme }) =>
-				theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};
+		theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};
 		}
 	}
 

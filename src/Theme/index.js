@@ -96,9 +96,9 @@ export const TYPE = {
 
 export const Header = styled.h1`
 	color: ${({ theme }) => theme['text1']};
-	font-size: 24px;
-	font-weight: 500;
-	margin: 0 0 -20px;
+	font-size: 30px;
+	font-weight: 700;
+	margin-right: auto;
 `
 
 const slideUp = keyframes`

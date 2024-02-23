@@ -16,7 +16,9 @@ import { ISettings } from '~/contexts/types'
 import ReactSelect from '../MultiSelect/ReactSelect'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { Header } from '~/Theme'
 import { PROTOCOLS_API } from '~/constants'
+
 
 const fetch = fetchWithErrorLogging
 
@@ -236,7 +238,7 @@ function ComparePage() {
 					name: 'Open Protocol'
 				}}
 			/>
-			<h2>Compare chains </h2>
+			<Header>Compare chains </Header>
 
 			<ControlsWrapper>
 				<ReactSelect

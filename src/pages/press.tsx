@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { Box } from 'rebass'
-import { TYPE } from '~/Theme'
+import { Header, TYPE } from '~/Theme'
 import Layout from '~/layout'
 import { Divider, Panel } from '~/components'
 import { RowBetween } from '~/components/Row'
@@ -76,7 +76,7 @@ function PressPage() {
 	return (
 		<Layout title="Press - DefiLlama" defaultSEO>
 			<RowBetween>
-				<TYPE.largeHeader>Press & Media</TYPE.largeHeader>
+				<Header>Press & Media</Header>
 			</RowBetween>
 			<Panel style={{ marginTop: '6px' }}>
 				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
