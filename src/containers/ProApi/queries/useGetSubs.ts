@@ -1,6 +1,6 @@
 import { useQuery } from 'react-query'
 import request, { gql } from 'graphql-request'
-import { llamaAddress, periodDuration, subgraphApi, token } from '../lib/constants'
+import { llamaAddress, periodDuration, subgraphApi, subscriptionAmount, token } from '../lib/constants'
 
 export interface ISub {
 	expirationDate: string
@@ -72,14 +72,15 @@ async function getSubscriptions(address?: `0x${string}` | null) {
           }
       `
 		const data: { subs: Array<ISub> } = await request(subgraphApi, subs)
+		const now = new Date().getTime() / 1000
 
-		return (data.subs ?? [])
+		const subsRes = (data.subs ?? [])
 			.map((sub) => {
 				const id = sub.id
 				const receiver = sub.receiver
 				const startTimestamp = +sub.startTimestamp
 				const unsubscribed = sub.unsubscribed
-				const initialShares = +sub.initialShares
+				const initialShares = sub.initialShares
 				const initialPeriod = +sub.initialPeriod
 				const expirationDate = +sub.expirationDate
 				const amountPerCycle = +sub.amountPerCycle
@@ -142,18 +143,25 @@ async function getSubscriptions(address?: `0x${string}` | null) {
 					status
 				} as IFormattedSub
 			})
+			.filter(({ amountPerCycle }) => amountPerCycle >= subscriptionAmount * 10 ** token.decimals)
 			.sort((a, b) => {
 				return getStatusPriority(a.status) - getStatusPriority(b.status)
 			})
+
+		return {
+			subs: subsRes,
+			isSubscribed: subsRes.filter((sub) => sub.realExpiration > now && sub.startTimestamp < now).length > 0
+		}
 	} catch (error: any) {
 		throw new Error(error.message ?? 'Failed to fetch subscriptions')
 	}
 }
 
 export const useGetSubs = ({ address }: { address?: `0x${string}` | null }) => {
-	return useQuery(['subs', address], () => getSubscriptions(address), {
+	const res = useQuery(['subs', address], () => getSubscriptions(address), {
 		enabled: address ? true : false,
 		cacheTime: 20_000,
 		refetchInterval: 20_000
 	})
+	return { ...res, data: res.data ?? { subs: [], isSubscribed: false } }
 }

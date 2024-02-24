@@ -92,7 +92,8 @@ export async function signAndGetAuthToken({ address }: { address?: string | null
 		}).then((r) => r.json())
 
 		if (!verifyRes.key) {
-			throw new Error('Failed to generate auth token')
+			toast.error(verifyRes?.message)
+			throw new Error(verifyRes?.message)
 		}
 
 		window.localStorage.setItem(`auth_token_${address}`, verifyRes.key)

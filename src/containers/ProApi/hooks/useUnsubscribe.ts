@@ -25,9 +25,9 @@ const useUnsubscribe = (sub: IFormattedSub) => {
 			sub.initialShares
 		].map((x) => (typeof x === 'number' ? ethers.utils.parseUnits(x.toString(), 0) : x)),
 		chainId: optimism.id,
-		onError: (err) => {
-			const msg = (err as any)?.shortMessage ?? err.message
-			toast.error(msg, { id: 'error-confirming-unsub-tx' + (unsubscribeTxData?.hash ?? '') })
+		onError: (err: any) => {
+			const msg = err.reason ?? err.message
+			toast.error(msg)
 		}
 	})
 

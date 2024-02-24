@@ -124,7 +124,7 @@ const Subscription = ({
 			</td>
 
 			<td>
-				{sub.status === 'Not Started Yet' ? (
+				{sub.status === 'Not Started Yet' || sub.status === 'Active' ? (
 					<div style={{ display: 'flex', gap: '8px' }}>
 						<SaveButton onClick={() => startPayment(true)}>Top Up</SaveButton>
 						<DeleteButton onClick={() => unsubscribe.unsubscribe()}>Unsubscribe</DeleteButton>
@@ -148,7 +148,9 @@ const Subscription = ({
 const Subscriptions = ({ startPayment }) => {
 	const wallet = useAccount()
 
-	const { data: subs } = useGetSubs({ address: wallet?.address })
+	const {
+		data: { subs }
+	} = useGetSubs({ address: wallet?.address })
 
 	const { data: subBalances } = useQuery(['subBalances', subs?.length], async () => {
 		const res = await Promise.all(subs.map((sub) => calculateSubBalance({ sub })))

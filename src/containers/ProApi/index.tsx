@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { Copy } from 'react-feather'
@@ -95,7 +95,9 @@ const ProApi = () => {
 	const { data: ghAuth } = useGithubAuth()
 	const { openConnectModal } = useConnectModal()
 	const { data: currentAuthToken } = useGetAuthToken()
-	const { data: subs } = useGetSubs({ address: wallet?.address })
+	const {
+		data: { subs, isSubscribed }
+	} = useGetSubs({ address: wallet?.address })
 	const { data: newApiKey, mutate: generateApiKey } = useGenerateNewApiKey()
 	const { data: authTokenAfterSigningIn, mutate: signIn } = useSignInWithEthereum()
 	const { data: currentKey } = useGetCurrentKey({ authToken: currentAuthToken })
@@ -140,7 +142,7 @@ const ProApi = () => {
 					<Box>
 						{!wallet.isConnected ? (
 							<Button onClick={openConnectModal}>Connect Wallet</Button>
-						) : !authToken && !(subs?.[0]?.realExpiration > new Date().getTime() / 1000) ? (
+						) : !authToken && !isSubscribed ? (
 							<Button onClick={() => startPayment()}>Subscribe</Button>
 						) : authToken ? null : (
 							<Button onClick={() => signIn({ address: wallet.address })}>Sign In</Button>
