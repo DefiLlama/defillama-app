@@ -21,7 +21,7 @@ export interface IFormattedSub {
 	receiver: string
 	startTimestamp: number
 	unsubscribed: boolean
-	initialShares: number
+	initialShares: number | string
 	initialPeriod: number
 	expirationDate: number
 	periodDuration: number
