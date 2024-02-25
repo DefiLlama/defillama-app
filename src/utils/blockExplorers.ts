@@ -141,5 +141,5 @@ export const getBlockExplorer = (address: string = '') => {
 		blockExplorerName: blockExplorerName ?? 'unknown',
 		chainName,
 		explorers
-	}
+	} //rebuild
 }
