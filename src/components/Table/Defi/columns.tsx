@@ -509,18 +509,19 @@ export const expensesColumns: ColumnDef<any>[] = [
 		header: 'Source',
 		accessorKey: 'sources',
 		enableSorting: false,
-		cell: ({ getValue }) => (
-			<ButtonYields
-				as="a"
-				href={getValue()[0] as string}
-				target="_blank"
-				rel="noopener noreferrer"
-				data-lgonly
-				useTextColor={true}
-			>
-				<ArrowUpRight size={14} />
-			</ButtonYields>
-		)
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<ButtonYields
+					as="a"
+					href={getValue()[0] as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			) : null
 	}
 ]
 
