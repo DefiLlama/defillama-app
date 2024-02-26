@@ -1,15 +1,19 @@
 let redis = null as null | import('ioredis').Redis
 const REDIS_URL = process.env.REDIS_URL as string
 const USE_REDIS = !!process.env.USE_REDIS
+const EXT_REDIS_URL = process.env.EXT_REDIS_URL as string | undefined
+const IS_RUNTIME = !!process.env.IS_RUNTIME
 
 if (typeof window === 'undefined' && USE_REDIS) {
 	// Server-side execution
 	const { Redis } = require('ioredis') as typeof import('ioredis')
-	console.log('[cache] [connecting to redis]', REDIS_URL)
-	redis = REDIS_URL ? new Redis(REDIS_URL) : null
+	const redisUrl = IS_RUNTIME ? REDIS_URL : EXT_REDIS_URL
+
+	console.log('[cache] [connecting to redis]', redisUrl)
+	redis = redisUrl ? new Redis(redisUrl) : null
 
 	redis.on('error', (error) => {
-		console.error('[cache] [redis error]', REDIS_URL)
+		console.error('[cache] [redis error]', redisUrl)
 		console.error(error)
 	})
 }

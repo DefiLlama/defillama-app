@@ -19,7 +19,7 @@ const blockExplorers = {
 	heco: ['https://hecoinfo.com/address/', 'HecoInfo'],
 	wan: ['https://wanscan.org/token/', 'Wanscan'],
 	polygon: ['https://polygonscan.com/address/', 'PolygonScan'],
-	rootstock: ['https://explorer.rsk.co/address/', 'Rootstock Explorer'],
+	rsk: ['https://rootstock.blockscout.com/token/', 'Rootstock Explorer'],
 	solana: ['https://solscan.io/token/', 'Solscan'],
 	tezos: ['https://tzkt.io/', 'TzKT'],
 	moonriver: ['https://blockscout.moonriver.moonbeam.network/address/', 'Blockscout'],
@@ -44,7 +44,7 @@ const blockExplorers = {
 	csc: ['https://www.coinex.net/address/', 'CSC Explorer'],
 	cardano: ['https://cardanoscan.io/token/', 'Cardanoscan'],
 	astar: ['https://blockscout.com/astar/address/', 'Blockscout'],
-	algorand: ['https://algoexplorer.io/asset/', 'Algoexplorer'],
+	algorand: ['https://allo.info/asset/', 'Allo'],
 	evmos: ['https://evm.evmos.org/address/', 'Evmos Explorer'],
 	klaytn: ['https://scope.klaytn.com/token/', 'Klaytn Scope'],
 	proton: ['https://www.protonscan.io/tokens/', 'Protonscan'],
@@ -141,5 +141,5 @@ export const getBlockExplorer = (address: string = '') => {
 		blockExplorerName: blockExplorerName ?? 'unknown',
 		chainName,
 		explorers
-	}
+	} //rebuild again
 }

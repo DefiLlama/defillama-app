@@ -420,10 +420,10 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		let oracleLinks = oracle
 			? [{ label: 'All chains', to: `/oracles/${oracle}` }].concat(
 					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
-			  )
+				)
 			: [{ label: 'All', to: `/oracles/` }].concat(
 					uniqueChains.map((c: string) => ({ label: c, to: `/oracles/chain/${c}` }))
-			  )
+				)
 
 		const colors = {}
 
@@ -783,9 +783,10 @@ export async function getLSDPageData() {
 
 	// filter for LSDs
 	const lsdProtocols = protocols
-		.filter((p) => (p.category === 'Liquid Staking' || ['Stafi'].includes(p.name)) && p.chains.includes('Ethereum'))
+		.filter((p) => p.category === 'Liquid Staking' && p.chains.includes('Ethereum'))
 		.map((p) => p.name)
 		.filter((p) => !['StakeHound', 'Genius', 'SharedStake'].includes(p))
+		.concat('Crypto.com Staked ETH')
 
 	// get historical data
 	const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
@@ -810,14 +811,14 @@ export async function getLSDPageData() {
 			p.project === 'binance-staked-eth'
 				? 'Binance staked ETH'
 				: p.project === 'bedrock-unieth'
-				? 'Bedrock uniETH'
-				: p.project === 'mantle-staked-eth'
-				? 'Mantle Staked ETH'
-				: p.project === 'dinero-(pirex-eth)'
-				? 'Dinero (Pirex ETH)'
-				: p.project === 'mev-protocol'
-				? 'MEV Protocol'
-				: p.name
+					? 'Bedrock uniETH'
+					: p.project === 'mantle-staked-eth'
+						? 'Mantle Staked ETH'
+						: p.project === 'dinero-(pirex-eth)'
+							? 'Dinero (Pirex ETH)'
+							: p.project === 'mev-protocol'
+								? 'MEV Protocol'
+								: p.name
 	}))
 
 	const nameGeckoMapping = {}

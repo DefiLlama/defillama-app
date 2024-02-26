@@ -16,9 +16,9 @@ export const getStaticProps = withPerformanceLogging('oracles', async ({ params:
 })
 
 export async function getStaticPaths() {
-	const {
-		props: { chainsByOracle }
-	} = await getOraclePageData()
+	const { props } = await getOraclePageData()
+
+	const chainsByOracle = props ? props?.chainsByOracle : {}
 
 	const chainsLits = [...new Set(Object.values(chainsByOracle).flat())]
 

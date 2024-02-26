@@ -217,7 +217,11 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 
 	const historicData = chartData
 		.map((protocol) => {
-			const tokensArray = protocol.chainTvls['Ethereum'].tokens
+			const tokensArray =
+				protocol.name === 'Crypto.com Staked ETH'
+					? protocol.chainTvls['Cronos'].tokens
+					: protocol.chainTvls['Ethereum'].tokens
+
 			return tokensArray.map((t, i, arr) => {
 				const date = (d) => Math.floor(d.date / 24 / 60 / 60) * 60 * 60 * 24
 				if (i > 0 && date(arr[i - 1]) == date(t)) {
@@ -274,7 +278,8 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	const secDay = 86400
 	const tokenTvls = chartData
 		.map((protocol) => {
-			const p = protocol.chainTvls['Ethereum']
+			const p =
+				protocol.name === 'Crypto.com Staked ETH' ? protocol.chainTvls['Cronos'] : protocol.chainTvls['Ethereum']
 
 			if (p.tokens.length < 1) {
 				return {
