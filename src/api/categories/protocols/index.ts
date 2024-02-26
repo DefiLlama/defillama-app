@@ -46,7 +46,11 @@ export const getProtocols = () =>
 
 export const getProtocol = async (protocolName: string) => {
 	try {
-		const data: IProtocolResponse = await fetch(`${PROTOCOL_API}/${protocolName}`).then((res) => res.json())
+		const data: IProtocolResponse = await fetchOverCache(`${PROTOCOL_API}/${protocolName}`)
+			.then((res) => (res) => res.json())
+			.catch()
+			.then(() => fetch(`${PROTOCOL_API}/${protocolName}`))
+			.then((res) => res.json())
 
 		if (!data || (data as any).statusCode === 400) {
 			throw new Error((data as any).body)
