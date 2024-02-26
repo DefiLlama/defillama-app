@@ -1120,9 +1120,9 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 							if (prevDate && new Date(prevDate * 1000).getUTCHours() === 0) {
 								// find date in tvlDictionary
 								for (
-									let i = prevDate;
+									let i = prevDate + 1;
 									i <= Number((new Date().getTime() / 1000).toFixed(0)) && nearestDate === date;
-									i += 86400
+									i++
 								) {
 									if (tvlDictionary[i]) {
 										nearestDate = i
