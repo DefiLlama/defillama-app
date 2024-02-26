@@ -27,10 +27,8 @@ class MyDocument extends Document {
 		return (
 			<Html lang="en">
 				<Head>
-					<link
-						href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap"
-						rel="stylesheet"
-					/>
+					<link href="/fonts/inter.woff2" rel="preload" as="font" crossOrigin="anonymous" />
+					<link href="/fonts/jetbrains.ttf" rel="preload" as="font" crossOrigin="anonymous" />
 				</Head>
 				<body>
 					<Main />
