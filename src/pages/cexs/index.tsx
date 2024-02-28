@@ -198,8 +198,8 @@ export const cexData: Array<ICex> = [
 		cgDeriv: 'crypto_com_futures'
 	},
 	{
-		name: 'Huobi',
-		slug: 'Huobi',
+		name: 'HTX',
+		slug: 'htx',
 		coin: 'HT',
 		coinSymbol: 'HT',
 		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',

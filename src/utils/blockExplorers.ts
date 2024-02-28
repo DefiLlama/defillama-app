@@ -109,7 +109,8 @@ const blockExplorers = {
 	bitnet: ['https://btnscan.com/address/', 'BTNScan'],
 	aptos: ['https://aptoscan.com/account/', 'Aptoscan'],
 	zeta: ['https://zetachain.blockscout.com/token/', 'Zeta Blockscout'],
-	merlin: ['https://scan.merlinchain.io/token/', 'Merlin Explorer']
+	manta_atlantic: ['https://manta.subscan.io/account/', 'Manta Atlantic Subscan'],
+  merlin: ['https://scan.merlinchain.io/token/', 'Merlin Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {

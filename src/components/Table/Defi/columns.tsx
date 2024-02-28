@@ -384,16 +384,16 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Unlocks per day',
 		id: 'nextEvent',
-		accessorFn: (row) => (row.tPrice && row.nextEvent?.toUnlock ? +row.tPrice * row.nextEvent.toUnlock : 0),
+		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : 0),
 		cell: ({ getValue, row }) => {
 			const symbol = row.original.tSymbol
 
-			if (!row.original.nextEvent?.toUnlock) return '-'
+			if (!row.original.unlocksPerDay) return '-'
 
 			return (
 				<AutoColumn gap="4px">
-					<Tooltip content={row.original.nextEvent.toUnlock.toFixed(2)}>
-						{formattedNum(row.original.nextEvent.toUnlock) + (symbol ? ` ${symbol}` : '')}
+					<Tooltip content={row.original.unlocksPerDay.toFixed(2)}>
+						{formattedNum(row.original.unlocksPerDay) + (symbol ? ` ${symbol.toUpperCase()}` : '')}
 					</Tooltip>
 					<LightText>{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}</LightText>
 				</AutoColumn>
