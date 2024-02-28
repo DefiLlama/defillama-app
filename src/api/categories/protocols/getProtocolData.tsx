@@ -67,7 +67,9 @@ export const getProtocolDataLite = async (protocol: string) => {
 			getProtocolsRaw(),
 			fetch(ACTIVE_USERS_API)
 				.then((res) => res.json())
-				.then((data) => data?.[protocolData.id] ?? null),
+				.then((data) => data?.[protocolData.id] ?? null)
+				.catch(() => null),
+			null,
 			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 				.then((res) => res.json())
 				.catch((err) => {
@@ -274,41 +276,43 @@ export const getProtocolData = async (protocol: string) => {
 	] = await Promise.all([
 		getProtocol(protocol),
 		fetchArticles({ tags: protocol }).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:',protocol, err instanceof Error ? err.message : '')
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:', protocol, err instanceof Error ? err.message : '')
 			return []
 		}),
 		fetchOverCacheJson(PROTOCOLS_EXPENSES_API).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_EXPENSES]:',protocol, err instanceof Error ? err.message : '')
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_EXPENSES]:', protocol, err instanceof Error ? err.message : '')
 			return []
 		}),
 		fetchOverCacheJson(PROTOCOLS_TREASURY).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_TREASURY]:',protocol, err instanceof Error ? err.message : '')
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_TREASURY]:', protocol, err instanceof Error ? err.message : '')
 			return []
 		}),
 		fetchOverCacheJson(YIELD_POOLS_API).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:',protocol, err instanceof Error ? err.message : '')
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
 			return {}
 		}),
 		fetchOverCacheJson(YIELD_CONFIG_API).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELDCONFIG]:',protocol, err instanceof Error ? err.message : '')
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELDCONFIG]:', protocol, err instanceof Error ? err.message : '')
 			return null
 		}),
 		fetchOverCacheJson('https://defillama-datasets.llama.fi/liquidity.json').catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_LIQUIDITYINFO]:',protocol, err instanceof Error ? err.message : '')
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_LIQUIDITYINFO]:', protocol, err instanceof Error ? err.message : '')
 			return []
 		}),
 		getForkPageData().catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_FORKS]:',protocol, err instanceof Error ? err.message : '')
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_FORKS]:', protocol, err instanceof Error ? err.message : '')
 			return {}
 		}),
 		fetchOverCacheJson(HACKS_API).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_HACKS]:',protocol, err instanceof Error ? err.message : '')
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_HACKS]:', protocol, err instanceof Error ? err.message : '')
 			return []
 		}),
-		fetchOverCache(NFT_MARKETPLACES_STATS_API).then((r) => r.json()).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_NFTMARKETPLACES]:',protocol, err instanceof Error ? err.message : '')
-			return []
-		}),
+		fetchOverCache(NFT_MARKETPLACES_STATS_API)
+			.then((r) => r.json())
+			.catch((err) => {
+				console.log('[HTTP]:[ERROR]:[PROTOCOL_NFTMARKETPLACES]:', protocol, err instanceof Error ? err.message : '')
+				return []
+			})
 	])
 
 	if (!protocolRes) {
@@ -380,7 +384,9 @@ export const getProtocolData = async (protocol: string) => {
 		getProtocolsRaw(),
 		fetchOverCache(ACTIVE_USERS_API)
 			.then((res) => res.json())
-			.then((data) => data?.[protocolData.id] ?? null),
+			.then((data) => data?.[protocolData.id] ?? null)
+			.catch(() => null),
+		null,
 		fetchOverCache(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 			.then((res) => res.json())
 			.catch((err) => {
@@ -409,11 +415,17 @@ export const getProtocolData = async (protocol: string) => {
 				console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
 				return {}
 			}),
-		fetchOverCache(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`).then((res) => res.json()),
+		fetchOverCache(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
+			.then((res) => res.json())
+			.catch(() => {
+				return { data: [] }
+			}),
 		protocolData.gecko_id
 			? fetchOverCache(
 					`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
-			  ).then((res) => res.json())
+			  )
+					.then((res) => res.json())
+					.catch(() => {})
 			: {},
 		getProtocolEmissons(protocol),
 		fetchOverCache(devMetricsProtocolUrl)
@@ -575,7 +587,7 @@ export const getProtocolData = async (protocol: string) => {
 				.sort((a, b) => b[2] - a[2])
 		: []
 
-	const protocolUpcomingEvent = emissions.events?.find((e) => e.timestamp >= Date.now() / 1000)
+	const protocolUpcomingEvent = emissions?.events?.find((e) => e.timestamp >= Date.now() / 1000)
 	let upcomingEvent = []
 	if (
 		!protocolUpcomingEvent ||
@@ -583,7 +595,7 @@ export const getProtocolData = async (protocol: string) => {
 	) {
 		upcomingEvent = [{ timestamp: null }]
 	} else {
-		const comingEvents = emissions.events.filter((e) => e.timestamp === protocolUpcomingEvent.timestamp)
+		const comingEvents = emissions?.events?.filter((e) => e.timestamp === protocolUpcomingEvent.timestamp) ?? []
 		upcomingEvent = [...comingEvents]
 	}
 
@@ -635,7 +647,7 @@ export const getProtocolData = async (protocol: string) => {
 					derivatives: metrics.derivatives || dailyDerivativesVolume || allTimeDerivativesVolume ? true : false,
 					medianApy: medianApy.data.length > 0,
 					inflows: inflowsExist,
-					unlocks: emissions.chartData?.documented?.length > 0 ? true : false,
+					unlocks: emissions?.chartData?.documented?.length > 0 ? true : false,
 					bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
 					treasury: treasury?.tokenBreakdowns ? true : false,
 					tokenLiquidity: protocolData.symbol && tokenLiquidity.length > 0 ? true : false,
