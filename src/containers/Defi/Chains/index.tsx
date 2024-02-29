@@ -74,10 +74,14 @@ export default function ChainsContainer({
 		React.useMemo(() => {
 			// add extra tvls like staking pool2 based on toggles selected
 			const dataByChain = formatDataWithExtraTvls({
-				data: chainTvls.filter((chain) => (minTvl ? chain.tvl > minTvl : true) && (maxTvl ? chain.tvl < maxTvl : true)),
+				data: chainTvls,
 				applyLqAndDc: true,
 				extraTvlsEnabled
-			})
+			}).filter(
+				(chain) =>
+					(typeof minTvl === 'string' ? chain.tvl > +minTvl : true) &&
+					(typeof maxTvl === 'string' ? chain.tvl < +maxTvl : true)
+			)
 
 			// format chains data to use in pie chart
 			const onlyChainTvls = dataByChain.map((chain) => ({
