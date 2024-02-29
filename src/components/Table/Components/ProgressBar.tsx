@@ -11,7 +11,7 @@ const ProgressBarContainer = styled.div`
 
 const Progress = styled.div<{ width?: number }>`
 	width: ${(props) => props.width}%;
-	background-color: #2948bc;
+	background-color: #3255d7;
 	height: 10px;
 	border-radius: 10px;
 	display: flex;
@@ -26,7 +26,7 @@ const Column = styled.div`
 	align-items: flex-start;
 	gap: 8px;
 	width: 100%;
-	padding: 16px 8px;
+	padding: 0px 8px;
 `
 const Row = styled.div`
 	display: flex;
@@ -43,7 +43,7 @@ const ProgressBar = ({ percent, tokenPrice, symbol, name, maxSupply }) => {
 	return (
 		<Column>
 			<Row>
-				<div style={{ color: '#2948bc' }}>{formattedNum(percent)}%</div>
+				<div style={{ color: '#3255d7' }}>{formattedNum(percent)}%</div>
 				<LigthText>
 					{formattedNum(maxSupply)} {tokenSymbol}
 				</LigthText>

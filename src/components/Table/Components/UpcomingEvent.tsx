@@ -51,7 +51,7 @@ const TooltipBody = styled.div`
 	position: absolute;
 	z-index: 1;
 	top: 90px;
-	width: 380px;
+	width: 390px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
