@@ -1,6 +1,6 @@
 import { RecentProtocols } from '~/components/RecentProtocols'
 import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API, RAISES_API } from '~/constants'
 import { fetchOverCache, withPerformanceLogging } from '~/utils/perf'
@@ -114,10 +114,11 @@ const exclude = [
 ]
 
 export const getStaticProps = withPerformanceLogging('airdrops', async () => {
-	const [protocolsRaw, { forks }, { raises }] = await Promise.all([
+	const [protocolsRaw, { forks }, { raises }, claimableAirdrops] = await Promise.all([
 		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls', 'defillamaId']),
 		fetchOverCache(FORK_API).then((r) => r.json()),
-		fetchOverCache(RAISES_API).then((r) => r.json())
+		fetchOverCache(RAISES_API).then((r) => r.json()),
+		getAirdropDirectoryData()
 	])
 
 	const parents = protocolsRaw.parentProtocols.reduce((acc, p) => {
@@ -161,7 +162,8 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 		props: {
 			protocols,
 			chainList: protocolsRaw.chains,
-			forkedList
+			forkedList,
+			claimableAirdrops
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -179,7 +181,6 @@ export default function Protocols(props) {
 				title="Airdroppable protocols - Defi Llama"
 				name="Airdrops"
 				header="Tokenless protocols that may airdrop 🧑‍🌾"
-				claimableAirdrops={claimableAirdrops}
 				{...props}
 			/>
 		</>

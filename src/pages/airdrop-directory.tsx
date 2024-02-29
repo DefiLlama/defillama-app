@@ -10,10 +10,10 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { AirdropColumn } from '~/components/Table/Defi/columns'
 
 export const getStaticProps = withPerformanceLogging('etfs', async () => {
-	const data = await getAirdropDirectoryData()
+	const airdrops = await getAirdropDirectoryData()
 
 	return {
-		props: { ...data.props },
+		props: { airdrops },
 		revalidate: maxAgeForNext([22])
 	}
 })
