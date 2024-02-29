@@ -23,8 +23,6 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		selectedCategories
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
 	React.useEffect(() => {
-		setLoading(true)
-
 		const timer = setTimeout(() => setLoading(false), 1000)
 		return () => clearTimeout(timer)
 	}, [])
@@ -32,7 +30,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 	React.useEffect(() => {
 		setLoading(true)
 
-		const timer = setTimeout(() => setLoading(false), 1000)
+		const timer = setTimeout(() => setLoading(false), 500)
 		return () => clearTimeout(timer)
 	}, [
 		selectedProjects,
