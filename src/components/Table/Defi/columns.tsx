@@ -324,7 +324,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		id: 'totalLocked',
 		accessorFn: (row) => (row.maxSupply && row.totalLocked ? row.totalLocked / row.maxSupply : 0),
 		cell: ({ row }) => {
-			const percetage = ((row.original.totalLocked / row.original.maxSupply) * 100).toPrecision(2)
+			const percetage = (100 - (row.original.totalLocked / row.original.maxSupply) * 100).toPrecision(2)
 
 			return (
 				<ProgressBar
