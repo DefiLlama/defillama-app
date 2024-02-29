@@ -4,12 +4,14 @@ import { Panel } from '~/components'
 import { YieldsPoolsTable } from '~/components/Table'
 import { YieldFiltersV2 } from '~/components/Filters'
 import { AnnouncementWrapper } from '~/components/Announcement'
+import LocalLoader from '../LocalLoader'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
 	const { query, pathname, push } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
+	const [loading, setLoading] = React.useState(false)
 
 	const {
 		selectedProjects,
@@ -20,7 +22,21 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		exactTokens,
 		selectedCategories
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	React.useEffect(() => {
+		setLoading(true)
 
+		const timer = setTimeout(() => setLoading(false), 1000)
+		return () => clearTimeout(timer)
+	}, [
+		selectedProjects,
+		selectedChains,
+		selectedAttributes,
+		includeTokens,
+		excludeTokens,
+		exactTokens,
+		selectedCategories,
+		pools
+	])
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
 			const toFilter = toFilterPool({
@@ -155,7 +171,11 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				showLTV={true}
 			/>
 
-			{poolsData.length > 0 ? (
+			{loading ? (
+				<div>
+					<LocalLoader />
+				</div>
+			) : poolsData.length > 0 ? (
 				<YieldsPoolsTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
