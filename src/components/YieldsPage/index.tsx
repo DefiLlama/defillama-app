@@ -11,7 +11,7 @@ import { toFilterPool } from './utils'
 const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
 	const { query, pathname, push } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
-	const [loading, setLoading] = React.useState(false)
+	const [loading, setLoading] = React.useState(true)
 
 	const {
 		selectedProjects,
@@ -22,6 +22,13 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		exactTokens,
 		selectedCategories
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	React.useEffect(() => {
+		setLoading(true)
+
+		const timer = setTimeout(() => setLoading(false), 1000)
+		return () => clearTimeout(timer)
+	}, [])
+
 	React.useEffect(() => {
 		setLoading(true)
 
