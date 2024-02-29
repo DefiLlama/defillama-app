@@ -8,8 +8,8 @@ import { formattedNum, tokenIconUrl } from '~/utils'
 const Wrapper = styled.div`
 	display: flex;
 	justify-content: space-between;
-	background-color: ${({ theme }) => theme.bg1};
-	padding: 16px;
+	background-color: ${({ theme }) => (theme.mode === 'dark' ? '#121316' : theme.bg1)};
+	padding: 8px;
 	border-radius: 10px;
 	width: 390px;
 `
@@ -31,16 +31,18 @@ const Time = styled.div`
 	display: flex;
 	gap: 4px;
 	align-items: center;
+	margin-top: 6px;
 `
 
 const TimeBox = styled.div`
 	background-color: ${({ theme }) => theme.bg4};
 	border-radius: 8px;
-	width: 40px;
-	height: 40px;
+	min-width: 30px;
+	height: 30px;
 	text-align: center;
+	font-size: 14px;
 	vertical-align: middle;
-	line-height: 40px;
+	line-height: 30px;
 `
 
 const LigthText = styled.span`
@@ -50,14 +52,14 @@ const LigthText = styled.span`
 const TooltipBody = styled.div`
 	position: absolute;
 	z-index: 1;
-	top: 90px;
+	top: 70px;
+	border-radius: 10px;
 	width: 390px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: ${({ theme }) => theme.bg1};
+	background-color: ${({ theme }) => (theme.mode === 'dark' ? '#121316' : theme.bg1)};
 	padding: 8px;
-	border-radius: 10px;
 	border: 1px solid ${({ theme }) => theme.bg4};
 `
 
@@ -145,7 +147,7 @@ const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol,
 										{name}
 										<LigthText>
 											{formattedNum(percentage)}%{' '}
-											{unlockPercentFloat ? <>({formattedNum(unlockPercentFloat)}% of float)</> : null}
+											{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
 										</LigthText>
 									</Column>
 									<Column style={{ alignItems: 'end' }}>

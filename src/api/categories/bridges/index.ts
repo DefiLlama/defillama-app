@@ -245,10 +245,12 @@ export async function getBridgeChainsPageData() {
 	let prevDayDataByChain = []
 	prevDayDataByChain = await Promise.all(
 		chains.map(async (chain) => {
-			try {
-				const charts = await fetchOverCacheJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`)
-				return { ...charts, name: chain.name }
-			} catch (e) {}
+			for (let i = 0; i < 5; i++) {
+				try {
+					const charts = await fetchOverCacheJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`)
+					return { ...charts, name: chain.name }
+				} catch (e) {}
+			}
 			throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)
 		})
 	)
