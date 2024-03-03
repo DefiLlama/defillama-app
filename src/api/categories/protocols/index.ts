@@ -755,7 +755,7 @@ export const getNewChainsPageData = async (category: string) => {
 
 				const { total24h: dexsTotal24h } = dexsChains.find((x) => x.name.toLowerCase() === name) || {}
 
-				const users = Object.entries(activeUsers).find(([name]) => name.toLowerCase() === 'chain#' + name)
+				const users = activeUsers['chain#' + name]
 
 				return {
 					...chain,
@@ -765,7 +765,7 @@ export const getNewChainsPageData = async (category: string) => {
 					totalFees24h: total24h || 0,
 					totalRevenue24h: revenue24h || 0,
 					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === name)?.mcap ?? 0,
-					users: (users?.[1] as any)?.users?.value ?? 0
+					users: users?.users?.value ?? 0
 				}
 			})
 		}
