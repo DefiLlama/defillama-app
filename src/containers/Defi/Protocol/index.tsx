@@ -1149,7 +1149,7 @@ function ProtocolContainer({
 
 											<tr>
 												<th data-subvalue>
-													<a href={expenses.sources[0]}>
+													<a href={expenses.sources?.[0] ?? null}>
 														Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
 													</a>
 												</th>
