@@ -170,6 +170,7 @@ const UPDATABLE_KEYS = [
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
+const UPDATE_KEY_OPTIONALLY_PERSIST = 'UPDATE_KEY_OPTIONALLY_PERSIST'
 
 const LocalStorageContext = createContext(null)
 
@@ -187,6 +188,17 @@ function reducer(state, { type, payload }) {
 				return {
 					...state,
 					[key]: value
+				}
+			}
+		}
+		case UPDATE_KEY_OPTIONALLY_PERSIST: {
+			const { key, value, persist } = payload
+			if (!UPDATABLE_KEYS.some((k) => k === key)) {
+				throw Error(`Unexpected key in LocalStorageContext reducer: '${key}'.`)
+			} else {
+				return {
+					...state,
+					[key]: { value: value, persist }
 				}
 			}
 		}
@@ -230,6 +242,10 @@ export default function Provider({ children }) {
 		dispatch({ type: UPDATE_KEY, payload: { key, value } })
 	}, [])
 
+	const updateKeyOptionallyPersist = useCallback((key, value, persist: boolean = false) => {
+		dispatch({ type: UPDATE_KEY_OPTIONALLY_PERSIST, payload: { key, value, persist } })
+	}, [])
+
 	// Change format from save addresses to save protocol names, so backwards compatible
 	const savedDefiProtocols: IWatchlist = state[DEFI_WATCHLIST]
 	const savedYieldsProtocols: IWatchlist = state[YIELDS_WATCHLIST]
@@ -256,9 +272,9 @@ export default function Provider({ children }) {
 	const values = useMemo(
 		() => [
 			{ ...state, [DEFI_WATCHLIST]: newSavedDefiProtocols, [YIELDS_WATCHLIST]: newSavedYieldsProtocols },
-			{ updateKey }
+			{ updateKey, updateKeyOptionallyPersist }
 		],
-		[state, updateKey, newSavedDefiProtocols, newSavedYieldsProtocols]
+		[state, updateKey, updateKeyOptionallyPersist, newSavedDefiProtocols, newSavedYieldsProtocols]
 	)
 
 	return <LocalStorageContext.Provider value={values}>{children}</LocalStorageContext.Provider>
@@ -268,7 +284,22 @@ export function Updater() {
 	const [state] = useLocalStorageContext()
 
 	useEffect(() => {
-		window.localStorage.setItem(DEFILLAMA, JSON.stringify(state))
+		const toPersist = Object.entries(state).reduce((acc, [key, value]) => {
+			const persist = (value as { value: unknown; persist?: boolean })?.persist
+			// Optionally persisted values are object type with a value and persist key
+			// Local storage is only updated if persist is true
+			if (typeof value === 'object' && 'value' in value && persist === true) {
+				acc[key] = value.value
+
+				// If the value is a boolean, it is persisted
+			} else if (typeof value === 'boolean') {
+				acc[key] = value
+			}
+
+			return acc
+		}, {})
+
+		window.localStorage.setItem(DEFILLAMA, JSON.stringify(toPersist))
 	})
 
 	return null
@@ -291,15 +322,22 @@ export function useDarkModeManager() {
 
 // TODO fix unnecessary rerenders on all state managers
 export function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
-	const [state, { updateKey }] = useLocalStorageContext()
+	const [state, { updateKey, updateKeyOptionallyPersist }] = useLocalStorageContext()
 	const isClient = useIsClient()
 	const router = useRouter()
 
 	const updateStateFromRouter = (setting: string, router?: NextRouter) => {
+		// Per product needs, only defi settings are updated from the router
+		if (!DEFI_SETTINGS_KEYS.includes(setting)) return
+
 		let routerValue = router.query[setting]
 		if (typeof routerValue === 'string' && ['true', 'false'].includes(routerValue)) {
 			routerValue = JSON.parse(routerValue)
-			if (routerValue !== state[setting]) updateKey(setting, routerValue)
+
+			if (routerValue !== state[setting]?.value) {
+				const persist = !!state[setting]?.persist
+				updateKeyOptionallyPersist(setting, routerValue, persist)
+			}
 		}
 	}
 
@@ -321,7 +359,7 @@ export function useSettingsManager(settings: Array<string>): [ISettings, TUpdate
 				if (isClient) {
 					updateStateFromRouter(setting, router)
 
-					toggled = state[setting]
+					toggled = state[setting].value ?? state[setting]
 					// prevent flash of these toggles when page loads initially
 				} else if (setting === 'emulator') {
 					toggled = true
@@ -334,9 +372,16 @@ export function useSettingsManager(settings: Array<string>): [ISettings, TUpdate
 	)
 
 	const updater = (key: string, shouldUpdateRouter?: boolean) => () => {
-		const newState = !state[key]
-		if (shouldUpdateRouter) updateRouter(key, newState)
-		updateKey(key, newState)
+		// Router values override local storage values
+		const oldState = state[key]?.value ?? state[key]
+		const newState = !oldState
+
+		if (shouldUpdateRouter) {
+			updateRouter(key, newState)
+			updateKeyOptionallyPersist(key, newState, true)
+		} else {
+			updateKey(key, newState)
+		}
 	}
 
 	return [toggledSettings, updater]
