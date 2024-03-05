@@ -88,7 +88,12 @@ export default function Protocols({ data }) {
 				</SearchWrapper>
 			</TableHeaderAndSearch>
 
-			<TableWrapper instance={instance} skipVirtualization />
+			<TableWrapper
+				instance={instance}
+				skipVirtualization
+				cellStyles={{ padding: '8px', whiteSpace: 'nowrap' }}
+				stripedBg
+			/>
 		</Layout>
 	)
 }

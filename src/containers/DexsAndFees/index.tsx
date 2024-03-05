@@ -202,7 +202,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 		const rowsData = data.map((d) => d.join(',')).join('\n')
 
 		download('protocols.csv', header + '\n' + rowsData)
-	}, [props.protocols])
+	}, [chartData])
 
 	return (
 		<>

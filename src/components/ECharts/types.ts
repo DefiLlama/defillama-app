@@ -30,6 +30,7 @@ export interface IChartProps {
 	unlockTokenSymbol?: string
 	isThemeDark?: boolean
 	isMonthly?: boolean
+	customYAxis?: Array<string>
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {

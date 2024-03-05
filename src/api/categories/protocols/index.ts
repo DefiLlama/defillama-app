@@ -240,6 +240,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: metadata?.events ?? [],
+			token: metadata?.token ?? null,
+			geckoId: res?.gecko_id ?? null,
 			tokenAllocation: {
 				documented: documentedData.tokenAllocation ?? {},
 				realtime: realTimeData.tokenAllocation ?? {}
@@ -420,10 +422,10 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		let oracleLinks = oracle
 			? [{ label: 'All chains', to: `/oracles/${oracle}` }].concat(
 					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
-				)
+			  )
 			: [{ label: 'All', to: `/oracles/` }].concat(
 					uniqueChains.map((c: string) => ({ label: c, to: `/oracles/chain/${c}` }))
-				)
+			  )
 
 		const colors = {}
 
@@ -755,7 +757,7 @@ export const getNewChainsPageData = async (category: string) => {
 
 				const { total24h: dexsTotal24h } = dexsChains.find((x) => x.name.toLowerCase() === name) || {}
 
-				const users = Object.entries(activeUsers).find(([name]) => name.toLowerCase() === 'chain#' + name)
+				const users = activeUsers['chain#' + name]
 
 				return {
 					...chain,
@@ -765,7 +767,7 @@ export const getNewChainsPageData = async (category: string) => {
 					totalFees24h: total24h || 0,
 					totalRevenue24h: revenue24h || 0,
 					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === name)?.mcap ?? 0,
-					users: (users?.[1] as any)?.users?.value ?? 0
+					users: users?.users?.value ?? 0
 				}
 			})
 		}
@@ -811,14 +813,14 @@ export async function getLSDPageData() {
 			p.project === 'binance-staked-eth'
 				? 'Binance staked ETH'
 				: p.project === 'bedrock-unieth'
-					? 'Bedrock uniETH'
-					: p.project === 'mantle-staked-eth'
-						? 'Mantle Staked ETH'
-						: p.project === 'dinero-(pirex-eth)'
-							? 'Dinero (Pirex ETH)'
-							: p.project === 'mev-protocol'
-								? 'MEV Protocol'
-								: p.name
+				? 'Bedrock uniETH'
+				: p.project === 'mantle-staked-eth'
+				? 'Mantle Staked ETH'
+				: p.project === 'dinero-(pirex-eth)'
+				? 'Dinero (Pirex ETH)'
+				: p.project === 'mev-protocol'
+				? 'MEV Protocol'
+				: p.name
 	}))
 
 	const nameGeckoMapping = {}
@@ -925,14 +927,10 @@ export async function getAirdropDirectoryData() {
 		'https://raw.githubusercontent.com/DefiLlama/defillama-app/main/src/airdrops/data.json'
 	).then((r) => r.json())
 
-	return {
-		props: {
-			airdrops: airdrops.map((i) => ({
-				...i,
-				endTime: i.endTime ? new Date(i?.endTime * 1000).toISOString().replace(/\.\d{3}/, '') : null
-			}))
-		}
-	}
+	return airdrops.map((i) => ({
+		...i,
+		endTime: i.endTime ? new Date(i?.endTime * 1000).toISOString().replace(/\.\d{3}/, '') : null
+	}))
 }
 
 export function formatGovernanceData(data: {

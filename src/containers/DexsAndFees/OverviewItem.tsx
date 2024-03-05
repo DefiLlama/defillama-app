@@ -73,7 +73,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 		if (props.protocolSummary.type === 'fees') {
 			chartData = chartData.map((val) => ({
 				...val,
-				Revenue: +val.Revenue + +(enabledSettings.bribes ? val.Bribes : 0),
+				Revenue: +val.Revenue + +(enabledSettings.bribes ? val.Bribes || 0 : 0),
 				Bribes: undefined
 			}))
 			legend = legend.filter((r) => r !== 'Bribes')

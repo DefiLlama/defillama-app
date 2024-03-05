@@ -39,6 +39,8 @@ import type {
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
+import UpcomingEvent from '../Components/UpcomingEvent'
+import ProgressBar from '../Components/ProgressBar'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -282,7 +284,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 
 			return (
 				<Name>
-					<span>{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<CustomLink href={`/unlocks/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
 				</Name>
@@ -298,7 +299,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		},
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 120
 	},
 	{
 		header: 'Mcap',
@@ -313,89 +315,45 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		},
 		meta: {
 			align: 'end'
-		}
-	},
-	{
-		header: 'Max Supply',
-		id: 'maxSupply',
-		accessorFn: (row) => (row.tPrice && row.maxSupply ? +row.tPrice * row.maxSupply : 0),
-		cell: ({ getValue, row }) => {
-			const symbol = row.original.tSymbol
-			const value = row.original.maxSupply
-
-			return (
-				<AutoColumn gap="4px">
-					<Tooltip content={value.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-						{formattedNum(value) + (symbol ? ` ${symbol}` : '')}
-					</Tooltip>
-					<LightText>{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}</LightText>
-				</AutoColumn>
-			)
 		},
-		meta: {
-			align: 'end'
-		}
+		size: 120
 	},
-	// {
-	// 	header: 'Circulating Supply',
-	// 	accessorKey: 'circSupply',
-	// 	cell: ({ getValue, row }) => {
-	// 		const symbol = row.original.tSymbol
-	// 		const value = getValue() as number
-	// 		const usdValue = row.original.tPrice && value ? formattedNum((+row.original.tPrice * value).toFixed(2)) : ''
 
-	// 		return (
-	// 			<AutoColumn gap="4px">
-	// 				<Tooltip content={value.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-	// 					{formattedNum(value) + (symbol ? ` ${symbol}` : '')}
-	// 				</Tooltip>
-	// 				<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
-	// 			</AutoColumn>
-	// 		)
-	// 	},
-	// 	meta: {
-	// 		align: 'end'
-	// 	}
-	// },
 	{
-		header: 'Total Locked %',
+		header: 'Unlocked % | Max',
 		id: 'totalLocked',
 		accessorFn: (row) => (row.maxSupply && row.totalLocked ? row.totalLocked / row.maxSupply : 0),
-		cell: ({ getValue, row }) => {
-			const symbol = row.original.tSymbol
-			const percetage = (row.original.totalLocked / row.original.maxSupply) * 100
+		cell: ({ row }) => {
+			const percetage = (100 - (row.original.totalLocked / row.original.maxSupply) * 100).toPrecision(2)
 
 			return (
-				<AutoColumn gap="4px">
-					<Tooltip content={row.original.totalLocked.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-						{percetage.toFixed(2) + '%'}
-					</Tooltip>
-					<LightText>
-						{getValue() ? '$' + formattedNum((row.original.totalLocked * row.original.tPrice).toFixed(2)) : ''}
-					</LightText>
-				</AutoColumn>
+				<ProgressBar
+					percent={percetage}
+					maxSupply={row.original.maxSupply}
+					symbol={row.original.tSymbol}
+					tokenPrice={row.original.tokenPrice}
+					name={row.original.name}
+				/>
 			)
 		},
-		size: 140,
+		size: 240,
 		meta: {
 			align: 'end'
 		}
 	},
 	{
-		header: 'Unlocks per day',
+		header: 'Daily unlocks',
 		id: 'nextEvent',
-		accessorFn: (row) => (row.tPrice && row.nextEvent?.toUnlock ? +row.tPrice * row.nextEvent.toUnlock : 0),
+		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : 0),
 		cell: ({ getValue, row }) => {
 			const symbol = row.original.tSymbol
 
-			if (!row.original.nextEvent?.toUnlock) return '-'
+			if (!row.original.unlocksPerDay) return '-'
 
 			return (
 				<AutoColumn gap="4px">
-					<Tooltip content={row.original.nextEvent.toUnlock.toFixed(2)}>
-						{formattedNum(row.original.nextEvent.toUnlock) + (symbol ? ` ${symbol}` : '')}
-					</Tooltip>
-					<LightText>{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}</LightText>
+					{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}
+					<LightText>{formattedNum(row.original.unlocksPerDay) + (symbol ? ` ${symbol.toUpperCase()}` : '')}</LightText>
 				</AutoColumn>
 			)
 		},
@@ -421,12 +379,13 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 						price: row.original.tPrice,
 						symbol: row.original.tSymbol,
 						mcap: row.original.mcap,
-						maxSupply: row.original.maxSupply
+						maxSupply: row.original.maxSupply,
+						row: row.original
 					}}
 				/>
 			)
 		},
-		size: 800
+		size: 420
 	}
 ]
 
@@ -1788,95 +1747,6 @@ const LightText = styled.span`
 	opacity: 0.6;
 	min-width: 120px;
 `
-
-const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol, mcap, maxSupply }) => {
-	const tokens = noOfTokens.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
-	const tokenValue = price ? tokens * price : null
-	const unlockPercent = maxSupply ? (tokens / maxSupply) * 100 : null
-	const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
-
-	const timeLeft = timestamp - Date.now() / 1e3
-	const days = Math.floor(timeLeft / 86400)
-	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
-	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)
-	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
-
-	const [_, rerender] = useState(1)
-
-	useEffect(() => {
-		const id = setInterval(() => rerender((value) => value + 1), 1000)
-
-		return () => clearInterval(id)
-	}, [])
-
-	const tooltipContent = description
-		.map((item, index) =>
-			formatUnlocksEvent({
-				description: item,
-				noOfTokens: noOfTokens?.[index] ?? [],
-				timestamp,
-				price,
-				symbol
-			})
-		)
-		.join('\n\n')
-		.trim()
-
-	return (
-		<Tooltip content={tooltipContent} placement="left">
-			<EventWrapper>
-				{tokenValue ? (
-					<span>
-						<span>
-							{(unlockPercent ? formatPercentage(unlockPercent) + '%' : '') +
-								(unlockPercentFloat ? ` (${formatPercentage(unlockPercentFloat)}% of float)` : '')}
-						</span>
-						<span>{formattedNum(tokenValue, true)}</span>
-					</span>
-				) : (
-					<span>{`${tokens.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${symbol ?? 'tokens'}`}</span>
-				)}
-
-				<span data-divider></span>
-
-				<TimeLeft>
-					<span>
-						<span>{days}</span>
-						<span>D</span>
-					</span>
-
-					<span data-divider></span>
-
-					<span>
-						<span>{hours}</span>
-						<span>H</span>
-					</span>
-
-					<span data-divider></span>
-
-					<span>
-						<span>{minutes}</span>
-						<span>M</span>
-					</span>
-
-					<span data-divider></span>
-
-					<span>
-						<span>{seconds}</span>
-						<span>S</span>
-					</span>
-				</TimeLeft>
-
-				<span data-divider></span>
-
-				<span>
-					<span>{toNiceDayMonthYear(timestamp)}</span>
-					<span>{toNiceHour(timestamp)}</span>
-				</span>
-			</EventWrapper>
-		</Tooltip>
-	)
-}
 
 const SimpleUpcomingEvent = ({ timestamp, name }) => {
 	const timeLeft = timestamp - Date.now() / 1e3

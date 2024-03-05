@@ -8,4 +8,4 @@ export interface ISettings {
 	[item: string]: boolean
 }
 
-export type TUpdater = (key: string) => () => void
+export type TUpdater = (key: string, shouldUpdateRouter?: boolean) => () => void

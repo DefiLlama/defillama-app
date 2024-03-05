@@ -9,6 +9,10 @@ import { FiltersByChain, HideForkedProtocols, TVLRange } from '~/components/Filt
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { getPercentChange } from '~/utils'
 import { IFormattedProtocol } from '~/api/types'
+import { FlexRow } from '~/layout/ProtocolAndPool'
+import { ButtonLight } from '../ButtonStyled'
+import { ArrowUpRight } from 'react-feather'
+import styled from 'styled-components'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -27,9 +31,18 @@ interface IRecentProtocolProps {
 	protocols: any
 	chainList: string[]
 	forkedList?: { [name: string]: boolean }
+	claimableAirdrops?: Array<{ name: string; page: string }>
 }
 
-export function RecentProtocols({ title, name, header, protocols, chainList, forkedList }: IRecentProtocolProps) {
+export function RecentProtocols({
+	title,
+	name,
+	header,
+	protocols,
+	chainList,
+	forkedList,
+	claimableAirdrops
+}: IRecentProtocolProps) {
 	const { query } = useRouter()
 	const { chain, hideForks, minTvl, maxTvl } = query
 
@@ -140,6 +153,24 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 		<Layout title={title} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: name }} />
 
+			{claimableAirdrops ? (
+				<FlexRow>
+					{claimableAirdrops.map((protocol) => (
+						<Button
+							as="a"
+							href={protocol.page}
+							target="_blank"
+							rel="noreferrer noopener"
+							key={`claim-${protocol.page}`}
+							color="green"
+						>
+							<span>{protocol.name}</span>
+							<ArrowUpRight size={14} />
+						</Button>
+					))}
+				</FlexRow>
+			) : null}
+
 			<TableFilters>
 				<TableHeader>{header}</TableHeader>
 
@@ -160,3 +191,15 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 		</Layout>
 	)
 }
+
+export const Button = styled(ButtonLight)`
+	display: flex;
+	gap: 4px;
+	align-items: center;
+	padding: 8px 12px;
+	font-size: 0.875rem;
+	font-weight: 500;
+	white-space: nowrap;
+	font-family: var(--font-inter);
+	color: green;
+`

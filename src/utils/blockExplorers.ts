@@ -108,7 +108,11 @@ const blockExplorers = {
 	zkfair: ['https://scan.zkfair.io/address/', 'Zkfair Explorer'],
 	bitnet: ['https://btnscan.com/address/', 'BTNScan'],
 	aptos: ['https://aptoscan.com/account/', 'Aptoscan'],
-	zeta: ['https://zetachain.blockscout.com/token/', 'Zeta Blockscout']
+	zeta: ['https://zetachain.blockscout.com/token/', 'Zeta Blockscout'],
+	manta_atlantic: ['https://manta.subscan.io/account/', 'Manta Atlantic Subscan'],
+    merlin: ['https://scan.merlinchain.io/token/', 'Merlin Explorer'],
+	bitrock: ['https://explorer.bit-rock.io/token/', 'Bitrock Explorer'],
+	blast: ['https://blastscan.io/token/', 'Blastscan']
 }
 
 export const getBlockExplorer = (address: string = '') => {

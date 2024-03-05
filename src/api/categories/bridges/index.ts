@@ -3,6 +3,7 @@ import { formatBridgesData, formatChainsData } from './utils'
 import type { IChainData } from '~/api/types'
 import { CONFIG_API, BRIDGEDAYSTATS_API, BRIDGES_API, BRIDGEVOLUME_API, BRIDGELARGETX_API } from '~/constants'
 import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchOverCacheJson } from '~/utils/perf'
 
 const fetch = fetchWithErrorLogging
 
@@ -246,9 +247,7 @@ export async function getBridgeChainsPageData() {
 		chains.map(async (chain) => {
 			for (let i = 0; i < 5; i++) {
 				try {
-					const charts = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`).then((resp) =>
-						resp.json()
-					)
+					const charts = await fetchOverCacheJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`)
 					return { ...charts, name: chain.name }
 				} catch (e) {}
 			}

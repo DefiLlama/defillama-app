@@ -1,27 +1,31 @@
 [
-  {
-    "name": "Dymension",
-    "page": "https://genesis.dymension.xyz/",
-    "twitter": "dymension"
-  },
-  {
-    "name": "Mode",
-    "page": "https://app.mode.network/early/",
-    "twitter": "modenetwork"
-  },
-  {
-    "name": "Jupiter",
-    "page": "https://lfg.jup.ag/jup",
-    "explorer": "https://solana.fm/address/JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN?cluster=mainnet-alpha",
-    "token": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-    "chains": ["solana"],
-    "twitter": "JupiterExchange",
-    "startTime": "2024-01-31T00:00:00Z",
-    "endTime": 1722438000
-  },
-  {
-    "name": "AltLayer",
-    "page": "https://airdrop.altlayer.io",
-    "twitter": "alt_layer"
-  }
+	{
+		"name": "Mode",
+		"page": "https://app.mode.network/early/",
+		"twitter": "modenetwork"
+	},
+	{
+		"name": "Jupiter",
+		"page": "https://lfg.jup.ag/jup",
+		"explorer": "https://solana.fm/address/JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN?cluster=mainnet-alpha",
+		"token": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+		"chains": ["solana"],
+		"twitter": "JupiterExchange",
+		"startTime": "2024-01-31T00:00:00Z",
+		"endTime": 1722438000
+	},
+	{
+		"name": "AltLayer",
+		"page": "https://airdrop.altlayer.io",
+		"twitter": "alt_layer"
+	},
+	{
+		"name": "Starknet",
+		"page": "https://provisions.starknet.io/",
+		"explorer": "https://starkscan.co/token/0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+		"token": "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+		"twitter": "Starknet",
+		"startTime": "2024-02-20T12:00:00Z",
+		"endTime": 1718884800
+	}
 ]

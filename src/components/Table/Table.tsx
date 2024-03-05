@@ -12,6 +12,8 @@ interface ITableProps {
 	rowSize?: number
 	columnResizeMode?: 'onChange' | 'onEnd'
 	renderSubComponent?: ({ row }: { row: any }) => JSX.Element
+	cellStyles?: React.CSSProperties
+	stripedBg?: boolean
 }
 
 declare module '@tanstack/table-core' {
@@ -27,6 +29,8 @@ export default function VirtualTable({
 	columnResizeMode,
 	rowSize,
 	renderSubComponent,
+	cellStyles = {},
+	stripedBg = false,
 	...props
 }: ITableProps) {
 	const router = useRouter()
@@ -97,7 +101,7 @@ export default function VirtualTable({
 						  }
 				}
 			>
-				{(skipVirtualization ? rows : virtualItems).map((row) => {
+				{(skipVirtualization ? rows : virtualItems).map((row, i) => {
 					const rowTorender = skipVirtualization ? row : rows[row.index]
 					const trStyle: React.CSSProperties = skipVirtualization
 						? {
@@ -116,16 +120,17 @@ export default function VirtualTable({
 
 					return (
 						<React.Fragment key={rowTorender.id}>
-							<div style={trStyle}>
+							<div style={trStyle} className="row">
 								{rowTorender.getVisibleCells().map((cell) => {
 									// get header text alignment
 									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 
 									return (
 										<Cell
+											ligther={stripedBg && i % 2 === 0}
 											key={cell.id}
 											data-chainpage={isChainPage}
-											style={{ minWidth: cell.column.getSize() ?? '100px', textAlign }}
+											style={{ minWidth: cell.column.getSize() ?? '100px', textAlign, ...(cellStyles || {}) }}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</Cell>
@@ -166,14 +171,14 @@ export const Wrapper = styled.div`
 	}
 `
 
-const Cell = styled.div`
+const Cell = styled.div<{ ligther?: boolean }>`
 	flex: 1;
 	flex-shrink: 0;
 	padding: 12px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	background-color: ${({ theme }) => theme.background};
+	background-color: ${({ theme, ligther }) => (ligther && theme.mode === 'dark' ? '#1c1d22' : theme.background)};
 	border-bottom: 1px solid ${({ theme }) => theme.divider};
 	border-right: 1px solid ${({ theme }) => theme.divider};
 	&[data-chainpage='true'] {

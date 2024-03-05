@@ -1123,8 +1123,13 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 						// roundup timestamps on last tvl values in chart
 						if (index > historicalChainTvls[section].tvl!.length - 2 && !tvlDictionary[date]) {
 							const prevDate = historicalChainTvls[section].tvl[index - 1]?.date
+
 							// only change timestamp if prev timestamp is at UTC 00:00
-							if (prevDate && new Date(prevDate * 1000).getUTCHours() === 0) {
+							if (
+								prevDate &&
+								new Date(prevDate * 1000).getUTCHours() === 0 &&
+								new Date(date * 1000).getUTCHours() !== 0
+							) {
 								// find date in tvlDictionary
 								for (
 									let i = prevDate + 1;
