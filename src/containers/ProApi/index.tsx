@@ -17,6 +17,8 @@ import Subscriptions from './Subscriptions'
 import useGithubAuth from './queries/useGithubAuth'
 import SignInWithGithub from './SignInWithGithub'
 import { useGetCurrentKey } from './queries/useGetCurrentKey'
+import { Description } from '~/components/Correlations/styles'
+import { useSaveEmail } from './queries/useEmail'
 
 const Body = styled.div`
 	margin-top: 120px;
@@ -83,6 +85,25 @@ export const Box = styled.div`
 	gap: 16px;
 `
 
+const Input = styled.input`
+	padding: 10px;
+	border: none;
+	border-radius: 10px;
+	height: 32px;
+	color: ${({ theme }) => theme.text1};
+	background-color: ${({ theme }) => theme.bg7};
+
+	&:focus {
+		outline: none;
+	}
+
+	&::placeholder {
+		color: ${({ theme }) => theme.text3};
+	}
+
+	width: 200px;
+`
+
 const ProApi = () => {
 	const wallet = useAccount()
 	const network = useNetwork()
@@ -92,6 +113,7 @@ const ProApi = () => {
 			switchNetwork?.(10)
 		}
 	}, [network?.chain?.id, switchNetwork])
+
 	const { data: ghAuth } = useGithubAuth()
 	const { openConnectModal } = useConnectModal()
 	const { data: currentAuthToken } = useGetAuthToken()
@@ -101,8 +123,19 @@ const ProApi = () => {
 	const { data: newApiKey, mutate: generateApiKey } = useGenerateNewApiKey()
 	const { data: authTokenAfterSigningIn, mutate: signIn } = useSignInWithEthereum()
 	const { data: currentKey } = useGetCurrentKey({ authToken: currentAuthToken })
+
 	const authToken = currentAuthToken || authTokenAfterSigningIn || ghAuth?.apiKey
-	const apiKey = newApiKey || currentKey || ghAuth?.apiKey
+	const apiKey = newApiKey || currentKey?.apiKey || ghAuth?.apiKey
+
+	const { mutate: saveEmail } = useSaveEmail({ authToken })
+
+	const [email, setEmail] = React.useState(currentKey?.email)
+
+	useEffect(() => {
+		if (currentKey?.email) {
+			setEmail(currentKey?.email)
+		}
+	}, [currentKey?.email])
 
 	const startPayment = (isTopUp = false) => {
 		window.open(
@@ -167,7 +200,7 @@ const ProApi = () => {
 				) : (
 					<>
 						<div style={{ display: 'flex', marginTop: '16px' }}>
-							<h2>API Key </h2>
+							<h2>API Key</h2>
 						</div>
 
 						<Box>
@@ -193,6 +226,41 @@ const ProApi = () => {
 								</ButtonDark>
 							)}
 						</Box>
+
+						{ghAuth?.login ? null : (
+							<>
+								<div style={{ display: 'flex', marginTop: '16px' }}>
+									<h2>Personal Info</h2>
+								</div>
+
+								<Box>
+									<div style={{ display: 'flex' }}>
+										<h4>Address</h4>: {wallet?.address}
+										<span
+											onClick={() => {
+												navigator.clipboard.writeText(wallet?.address)
+												toast.success('Address copied to clipboard')
+											}}
+										>
+											<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
+										</span>
+									</div>
+									<div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+										<h4>Email:</h4>
+										<div style={{ display: 'flex', gap: '8px' }}>
+											<Input placeholder="Add Email..." value={email} onChange={(e) => setEmail(e.target.value)} />{' '}
+											<ButtonDark onClick={() => saveEmail({ email, authToken })}>Save</ButtonDark>
+										</div>
+									</div>
+									<div>
+										<Description style={{ textAlign: 'left', margin: 'auto', width: 'auto', marginTop: '-12px' }}>
+											We will use your email to send you important updates and notifications about your subscription.
+										</Description>
+									</div>
+								</Box>
+							</>
+						)}
+
 						{subs?.length ? <Subscriptions startPayment={startPayment} /> : null}
 					</>
 				)}
