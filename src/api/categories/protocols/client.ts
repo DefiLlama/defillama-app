@@ -325,7 +325,13 @@ export const useGeckoId = (addressData: string | null) => {
 	const { data, error } = useSWR(
 		`geckoId/${addressData}`,
 		address
-			? () => fetch(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`).then((res) => res.json())
+			? async () => {
+					if (chain === 'coingecko') return { id: address }
+					const res = await fetch(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`).then((res) =>
+						res.json()
+					)
+					return res
+			  }
 			: () => null,
 		{ errorRetryCount: 0 }
 	)

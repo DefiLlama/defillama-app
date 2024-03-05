@@ -66,7 +66,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const normilizePriceChart = Object.fromEntries(
 		Object.entries(priceChart.data || {}).map(([name, chart]: [string, Array<[number, number]>]) => [
 			name,
-			Object.fromEntries(chart.map(([date, price]) => [Math.floor(date / 1e3), price]))
+			Object.fromEntries((chart || []).map(([date, price]) => [Math.floor(date / 1e3), price]))
 		])
 	)
 
