@@ -289,7 +289,7 @@ export function Updater() {
 			// Optionally persisted values are object type with a value and persist key
 			// Local storage is only updated if persist is true
 			if (typeof value === 'object' && 'value' in value && persist === true) {
-				acc[key] = value.value
+				acc[key] = (value as any).value
 
 				// If the value is a boolean, it is persisted
 			} else if (typeof value === 'boolean') {
