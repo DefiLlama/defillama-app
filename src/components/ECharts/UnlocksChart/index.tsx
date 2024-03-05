@@ -272,7 +272,9 @@ export default function AreaChart({
 					position: index === 0 ? 'left' : 'right',
 					id: name,
 					name,
+					nameLocation: 'center',
 					nameTextStyle: {
+						padding: [10, 0, 40, 0],
 						color: stackColors ? stackColors[name] : stringToColour()
 					},
 					axisLabel: {
