@@ -6,8 +6,9 @@ import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/catego
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import OptionToggle from '~/components/OptionToggle'
-import { ChartsWrapper, LazyChart, Section } from '~/layout/ProtocolAndPool'
-import { capitalizeFirstLetter, formatUnlocksEvent, formattedNum } from '~/utils'
+import TokenLogo from '~/components/TokenLogo'
+import { ChartsWrapper, LazyChart, Name, Section } from '~/layout/ProtocolAndPool'
+import { capitalizeFirstLetter, formatUnlocksEvent, formattedNum, tokenIconUrl } from '~/utils'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/UnlocksChart'), {
 	ssr: false
@@ -44,6 +45,7 @@ export interface IEmission {
 	stackColors: { documented: { [stack: string]: string }; realtime: { [stack: string]: string } }
 	token?: string
 	geckoId?: string
+	name: string
 }
 
 const MAX_LENGTH_EVENTS_LIST = 5
@@ -71,7 +73,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	)
 
 	const cutEventsList = !isEmissionsPage && data.events?.length > MAX_LENGTH_EVENTS_LIST
-	const styles = isEmissionsPage ? {} : { background: 'none', padding: 0, border: 'none' }
+	const styles: Record<string, string> = isEmissionsPage
+		? { display: 'flex', flexDirection: 'column' }
+		: { background: 'none', border: 'none' }
 	if (!data) return null
 
 	const chartData = data.chartData?.[dataType]
@@ -93,7 +97,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 				if (!data.categories?.[dataType]?.includes('Market Cap')) {
 					data.categories[dataType].push('Market Cap')
-					data.stackColors[dataType]['Market Cap'] = '#5ffe21'
+					data.stackColors[dataType]['Market Cap'] = '#0c5dff'
 				}
 			}
 			if (price && isPriceEnabled) {
@@ -120,20 +124,28 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	return (
 		<>
-			<div style={{ gap: '8px', display: 'flex' }}>
-				<OptionToggle
-					name="Include Treasury"
-					toggle={() => setIsTreasuryIncluded((prev) => !prev)}
-					help="Include Non-Circulating Supply in the chart."
-					enabled={isTreasuryIncluded}
-				/>
-				{normilizePriceChart?.prices ? (
-					<OptionToggle
-						name="Show Price and Market Cap"
-						toggle={() => setIsPriceEnabled((prev) => !prev)}
-						enabled={isPriceEnabled}
-					/>
+			<div style={{ display: 'flex', justifyContent: isEmissionsPage ? 'space-between' : 'flex-end' }}>
+				{isEmissionsPage ? (
+					<Name>
+						<TokenLogo logo={tokenIconUrl(data.name)} />
+						<span>{data.name}</span>
+					</Name>
 				) : null}
+				<div style={{ gap: '8px', display: 'flex', justifyContent: 'flex-end', padding: '8px' }}>
+					<OptionToggle
+						name="Include Treasury"
+						toggle={() => setIsTreasuryIncluded((prev) => !prev)}
+						help="Include Non-Circulating Supply in the chart."
+						enabled={isTreasuryIncluded}
+					/>
+					{normilizePriceChart?.prices ? (
+						<OptionToggle
+							name="Show Price and Market Cap"
+							toggle={() => setIsPriceEnabled((prev) => !prev)}
+							enabled={isPriceEnabled}
+						/>
+					) : null}
+				</div>
 			</div>
 			{data.chartData?.realtime?.length > 0 && (
 				<Filters style={{ marginLeft: 'auto' }}>
@@ -147,16 +159,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			)}
 
 			<ChartsWrapper style={styles}>
-				{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
-					<LazyChart>
-						<PieChart
-							title="Allocation"
-							chartData={pieChartData}
-							stackColors={data.stackColors[dataType]}
-							usdFormat={false}
-						/>
-					</LazyChart>
-				)}
 				{data.categories?.[dataType] && data.chartData?.[dataType] && data.stackColors?.[dataType] && (
 					<LazyChart>
 						<AreaChart
@@ -168,6 +170,16 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							hallmarks={data.hallmarks[dataType]}
 							stackColors={data.stackColors[dataType]}
 							isStackedChart
+						/>
+					</LazyChart>
+				)}
+				{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
+					<LazyChart>
+						<PieChart
+							title="Allocation"
+							chartData={pieChartData}
+							stackColors={data.stackColors[dataType]}
+							usdFormat={false}
 						/>
 					</LazyChart>
 				)}
