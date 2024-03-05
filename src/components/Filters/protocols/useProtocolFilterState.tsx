@@ -13,10 +13,10 @@ export function useProtocolsFilterState(props?: { [key: string]: any }) {
 	const onChange = (values) => {
 		if (values.length < selectedOptions.length) {
 			const off = selectedOptions.find((o) => !values.includes(o))
-			updater(off)()
+			updater(off, true)()
 		} else {
 			const on = values.find((o) => !selectedOptions.includes(o))
-			updater(on)()
+			updater(on, true)()
 		}
 	}
 
