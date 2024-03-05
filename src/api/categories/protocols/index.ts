@@ -240,6 +240,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: metadata?.events ?? [],
+			token: metadata?.token ?? null,
+			geckoId: res?.gecko_id ?? null,
 			tokenAllocation: {
 				documented: documentedData.tokenAllocation ?? {},
 				realtime: realTimeData.tokenAllocation ?? {}
@@ -420,10 +422,10 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		let oracleLinks = oracle
 			? [{ label: 'All chains', to: `/oracles/${oracle}` }].concat(
 					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
-				)
+			  )
 			: [{ label: 'All', to: `/oracles/` }].concat(
 					uniqueChains.map((c: string) => ({ label: c, to: `/oracles/chain/${c}` }))
-				)
+			  )
 
 		const colors = {}
 
@@ -811,14 +813,14 @@ export async function getLSDPageData() {
 			p.project === 'binance-staked-eth'
 				? 'Binance staked ETH'
 				: p.project === 'bedrock-unieth'
-					? 'Bedrock uniETH'
-					: p.project === 'mantle-staked-eth'
-						? 'Mantle Staked ETH'
-						: p.project === 'dinero-(pirex-eth)'
-							? 'Dinero (Pirex ETH)'
-							: p.project === 'mev-protocol'
-								? 'MEV Protocol'
-								: p.name
+				? 'Bedrock uniETH'
+				: p.project === 'mantle-staked-eth'
+				? 'Mantle Staked ETH'
+				: p.project === 'dinero-(pirex-eth)'
+				? 'Dinero (Pirex ETH)'
+				: p.project === 'mev-protocol'
+				? 'MEV Protocol'
+				: p.name
 	}))
 
 	const nameGeckoMapping = {}

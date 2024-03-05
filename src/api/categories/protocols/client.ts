@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import useSWR from 'swr'
 import {
+	CACHE_SERVER,
 	DEV_METRICS_API,
 	PROTOCOLS_API,
 	PROTOCOL_ACTIVE_USERS_API,
@@ -317,4 +318,27 @@ export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
+}
+
+export const useGeckoId = (addressData: string | null) => {
+	const [chain, address] = addressData?.split(':') ?? [null, null]
+	const { data, error } = useSWR(
+		`geckoId/${addressData}`,
+		address
+			? () => fetch(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`).then((res) => res.json())
+			: () => null,
+		{ errorRetryCount: 0 }
+	)
+
+	return { data, id: data?.id, error, loading: !data && data !== null && !error }
+}
+
+export const usePriceChart = (geckoId?: string) => {
+	const { data, error } = useSWR(
+		geckoId ? `priceChart/${geckoId}` : null,
+		() => fetch(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res) => res.json()),
+		{ errorRetryCount: 0 }
+	)
+
+	return { data: data?.data, error, loading: geckoId && !data && !error }
 }

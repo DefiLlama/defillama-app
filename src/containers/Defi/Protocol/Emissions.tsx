@@ -2,14 +2,14 @@ import { omit, sum } from 'lodash'
 import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import styled from 'styled-components'
-import { useGetProtocolEmissions } from '~/api/categories/protocols/client'
+import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import OptionToggle from '~/components/OptionToggle'
 import { ChartsWrapper, LazyChart, Section } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter, formatUnlocksEvent, formattedNum } from '~/utils'
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+const AreaChart = dynamic(() => import('~/components/ECharts/UnlocksChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
@@ -42,6 +42,8 @@ export interface IEmission {
 		}>
 	}
 	stackColors: { documented: { [stack: string]: string }; realtime: { [stack: string]: string } }
+	token?: string
+	geckoId?: string
 }
 
 const MAX_LENGTH_EVENTS_LIST = 5
@@ -57,13 +59,25 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
 	const [dataType, setDataType] = useState<'documented' | 'realtime'>('documented')
 	const [isTreasuryIncluded, setIsTreasuryIncluded] = useState(false)
+	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
+	const { id: geckoId } = useGeckoId(data.token ?? '')
+	const priceChart = usePriceChart(data.geckoId ?? geckoId)
+
+	const normilizePriceChart = Object.fromEntries(
+		Object.entries(priceChart.data || {}).map(([name, chart]: [string, Array<[number, number]>]) => [
+			name,
+			Object.fromEntries(chart.map(([date, price]) => [Math.floor(date / 1e3), price]))
+		])
+	)
+
 	const cutEventsList = !isEmissionsPage && data.events?.length > MAX_LENGTH_EVENTS_LIST
 	const styles = isEmissionsPage ? {} : { background: 'none', padding: 0, border: 'none' }
 	if (!data) return null
 
 	const chartData = data.chartData?.[dataType]
 		?.map((chartItem) => {
-			return Object.entries(chartItem).reduce((acc, [key, value]) => {
+			const date = chartItem.date
+			const res = Object.entries(chartItem).reduce((acc, [key, value]) => {
 				if (data?.categoriesBreakdown?.noncirculating?.includes(key)) {
 					if (isTreasuryIncluded) acc[key] = value
 					else return acc
@@ -71,6 +85,26 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				acc[key] = value
 				return acc
 			}, {})
+
+			const mcap = normilizePriceChart?.mcaps?.[date]
+			const price = normilizePriceChart?.prices?.[date]
+			if (mcap && isPriceEnabled) {
+				res['Market Cap'] = mcap
+
+				if (!data.categories?.[dataType]?.includes('Market Cap')) {
+					data.categories[dataType].push('Market Cap')
+					data.stackColors[dataType]['Market Cap'] = '#5ffe21'
+				}
+			}
+			if (price && isPriceEnabled) {
+				res['Price'] = price
+				if (!data.categories?.[dataType]?.includes('Price')) {
+					data.categories[dataType].push('Price')
+					data.stackColors[dataType]['Price'] = '#ff4e21'
+				}
+			}
+
+			return res
 		})
 		.filter((chartItem) => sum(Object.values(omit(chartItem, 'date'))) > 0)
 
@@ -86,12 +120,21 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	return (
 		<>
-			<OptionToggle
-				name="Include Treasury"
-				toggle={() => setIsTreasuryIncluded((prev) => !prev)}
-				help="Include Non-Circulating Supply in the chart."
-				enabled={isTreasuryIncluded}
-			/>
+			<div style={{ gap: '8px', display: 'flex' }}>
+				<OptionToggle
+					name="Include Treasury"
+					toggle={() => setIsTreasuryIncluded((prev) => !prev)}
+					help="Include Non-Circulating Supply in the chart."
+					enabled={isTreasuryIncluded}
+				/>
+				{normilizePriceChart?.prices ? (
+					<OptionToggle
+						name="Show Price and Market Cap"
+						toggle={() => setIsPriceEnabled((prev) => !prev)}
+						enabled={isPriceEnabled}
+					/>
+				) : null}
+			</div>
 			{data.chartData?.realtime?.length > 0 && (
 				<Filters style={{ marginLeft: 'auto' }}>
 					<Denomination as="button" active={dataType === 'documented'} onClick={() => setDataType('documented')}>
@@ -117,7 +160,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				{data.categories?.[dataType] && data.chartData?.[dataType] && data.stackColors?.[dataType] && (
 					<LazyChart>
 						<AreaChart
-							title="Vesting Schedule"
+							customYAxis={isPriceEnabled ? ['Market Cap', 'Price'] : []}
+							title="Schedule"
 							stacks={data.categories[dataType]}
 							chartData={chartData}
 							hideDefaultLegend
