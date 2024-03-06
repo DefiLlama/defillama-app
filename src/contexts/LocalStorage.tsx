@@ -359,7 +359,7 @@ export function useSettingsManager(settings: Array<string>): [ISettings, TUpdate
 				if (isClient) {
 					updateStateFromRouter(setting, router)
 
-					toggled = state[setting].value ?? state[setting]
+					toggled = state[setting]?.value ?? state[setting]
 					// prevent flash of these toggles when page loads initially
 				} else if (setting === 'emulator') {
 					toggled = true
