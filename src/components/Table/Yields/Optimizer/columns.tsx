@@ -52,12 +52,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		accessorKey: 'chains',
 		enableSorting: false,
 		cell: (info) => (
-			<IconsRow
-				disableLinks
-				links={info.row.original.chains as Array<string>}
-				url="/yields/borrow?chain"
-				iconType="chain"
-			/>
+			<IconsRow disableLinks links={info.row.original.chains as Array<string>} url="/yields?chain" iconType="chain" />
 		),
 		meta: {
 			align: 'end'

@@ -39,11 +39,7 @@ export function NameYieldPool({
 	maxCharacters = 10,
 	bookmark = true
 }: INameYieldPoolProps) {
-	const tokenUrl = borrow
-		? `/yields/borrow/${configID}`
-		: strategy
-		? `/yields/strategy/${configID}`
-		: `/yields/pool/${configID}`
+	const tokenUrl = strategy ? `/yields/strategy/${configID}` : `/yields/pool/${configID}`
 
 	return (
 		<Wrapper>
@@ -72,7 +68,7 @@ export function NameYieldPool({
 
 export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, ...props }: INameYield) {
 	const iconUrl = tokenIconUrl(project)
-	const tokenUrl = borrow ? `/yields/borrow?project=${projectslug}` : `/yields?project=${projectslug}`
+	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
 		<AirdropWrapper {...props}>
