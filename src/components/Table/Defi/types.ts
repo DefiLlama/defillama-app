@@ -1,3 +1,5 @@
+import { ChainAssets } from '~/hooks/data/defi'
+
 export interface IOraclesRow {
 	name: string
 	protocolsSecured: number
@@ -30,6 +32,7 @@ export interface IChain {
 
 export interface IChainsRow extends IChain {
 	subRows?: Array<IChain>
+	chainAssets?: ChainAssets
 }
 
 export interface ILSDRow {

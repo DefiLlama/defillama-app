@@ -41,6 +41,7 @@ import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
 import UpcomingEvent from '../Components/UpcomingEvent'
 import ProgressBar from '../Components/ProgressBar'
+import TooltipNew from '~/components/Tooltip/TootltipNew'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -751,6 +752,52 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			return <>{'$' + formattedNum(info.getValue())}</>
 		},
 		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Bridged TVL',
+		accessorKey: 'chainAssets',
+		cell: ({ getValue }) => {
+			const chainAssets: any = getValue()
+			if (!chainAssets) return null
+			const totalValue = formattedNum(chainAssets.total.total, true)
+			const chainAssetsBreakdown = (
+				<div style={{ width: '200px' }}>
+					{chainAssets.native && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Native:</span>
+							<span>{formattedNum(chainAssets.native.total, true)}</span>
+						</div>
+					)}
+					{chainAssets.canonical && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Canonical:</span>
+							<span>{formattedNum(chainAssets.canonical.total, true)}</span>
+						</div>
+					)}
+
+					{chainAssets.thirdParty && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Third Party:</span>
+							<span>{formattedNum(chainAssets.thirdParty.total, true)}</span>
+						</div>
+					)}
+				</div>
+			)
+			return <TooltipNew content={chainAssetsBreakdown}>{totalValue}</TooltipNew>
+		},
+		sortingFn: (rowA, rowB) => {
+			const valueA = rowA.original?.chainAssets?.total.total
+			const valueB = rowB.original?.chainAssets?.total.total
+
+			if (valueA === undefined || valueA === null) return 1
+			if (valueB === undefined || valueB === null) return -1
+
+			return parseFloat(valueB) - parseFloat(valueA)
+		},
+		size: 200,
 		meta: {
 			align: 'end'
 		}
@@ -1600,6 +1647,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 	0: [
 		'name',
 		'tvl',
+		'chainAssets',
 		'change_7d',
 		'protocols',
 		'users',
@@ -1615,6 +1663,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'name',
 		'change_7d',
 		'tvl',
+		'chainAssets',
 		'protocols',
 		'users',
 		'change_1d',
@@ -1631,6 +1680,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'users',
 		'change_7d',
 		'tvl',
+		'chainAssets',
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
@@ -1647,6 +1697,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'change_7d',
 		'change_1m',
 		'tvl',
+		'chainAssets',
 		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',

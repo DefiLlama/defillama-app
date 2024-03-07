@@ -145,7 +145,7 @@ export function RecentProtocols({
 		return { data, selectedChains }
 	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
 
-	const protocolsData = useCalcStakePool2Tvl(data) as Array<IFormattedProtocol>
+	const protocolsData = useCalcStakePool2Tvl(data)
 
 	const { pathname } = useRouter()
 

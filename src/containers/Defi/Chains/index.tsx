@@ -64,7 +64,8 @@ export default function ChainsContainer({
 	categories,
 	chainsGroupbyParent,
 	tvlTypes,
-	colorsByChain
+	colorsByChain,
+	chainAssets
 }) {
 	const { query } = useRouter()
 	const { minTvl, maxTvl } = query
@@ -76,7 +77,8 @@ export default function ChainsContainer({
 			const dataByChain = formatDataWithExtraTvls({
 				data: chainTvls,
 				applyLqAndDc: true,
-				extraTvlsEnabled
+				extraTvlsEnabled,
+				chainAssets
 			}).filter(
 				(chain) =>
 					(typeof minTvl === 'string' ? chain.tvl > +minTvl : true) &&

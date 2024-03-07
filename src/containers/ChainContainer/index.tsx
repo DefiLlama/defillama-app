@@ -66,14 +66,14 @@ export function ChainContainer({
 	devMetricsData,
 	chainTokenInfo,
 	chainTreasury,
-	chainRaises
+	chainRaises,
+	chainAssets
 }) {
 	const {
 		fullProtocolsList,
 		parentProtocols,
 		isLoading: fetchingProtocolsList
 	} = useGetProtocolsList({ chain: selectedChain })
-
 	const [extraTvlsEnabled] = useDefiManager()
 
 	const router = useRouter()
@@ -535,6 +535,42 @@ export function ChainContainer({
 										}
 									/>
 								)}
+								{chainAssets ? (
+									<RowWithSubRows
+										rowHeader="Bridged TVL"
+										rowValue={formattedNum(chainAssets.total.total, true)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{chainAssets ? (
+													<>
+														{chainAssets.native.total ? (
+															<tr>
+																<th>Native</th>
+																<td>{formattedNum(chainAssets.native.total, true)}</td>
+															</tr>
+														) : null}
+														{chainAssets.canonical.total ? (
+															<tr>
+																<th>Canonical</th>
+																<td>{formattedNum(chainAssets.canonical.total, true)}</td>
+															</tr>
+														) : null}
+
+														{chainAssets.thirdParty.total ? (
+															<tr>
+																<th>Third Party</th>
+																<td>{formattedNum(chainAssets.thirdParty.total, true)}</td>
+															</tr>
+														) : null}
+													</>
+												) : null}
+											</>
+										}
+									/>
+								) : null}
 
 								{chainTokenInfo?.market_data ? (
 									<tr>

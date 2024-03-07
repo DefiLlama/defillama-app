@@ -5,6 +5,7 @@ import sumBy from 'lodash/sumBy'
 import {
 	ACTIVE_USERS_API,
 	CHAINS_API,
+	CHAINS_ASSETS,
 	CHART_API,
 	DEV_METRICS_API,
 	PROTOCOLS_API,
@@ -65,6 +66,8 @@ export async function getChainPageData(chain?: string) {
 	const totalTrackedUserData = await fetchWithErrorLogging(`${ACTIVE_USERS_API}`)
 		.then((res) => res.json())
 		.catch(() => null)
+
+	const chainAssets = await fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json())
 
 	const chainsConfig = await fetchWithErrorLogging(CHAINS_API).then((res) => res.json())
 	const currentChain = chainsConfig.find((c) => c.name.toLowerCase() === chain?.toLowerCase())
@@ -227,6 +230,7 @@ export async function getChainPageData(chain?: string) {
 			chainTokenInfo: currentChain ? { ...currentChain, ...(cgData || {}) } : null,
 			chainTreasury: chainTreasury ?? null,
 			chainRaises: chainRaises ?? null,
+			chainAssets: chainAssets[chain?.toLowerCase()] ?? null,
 			chainsSet: chains,
 			chainOptions: ['All'].concat(chains).map((label) => ({ label, to: setSelectedChain(label) })),
 			protocolsList,

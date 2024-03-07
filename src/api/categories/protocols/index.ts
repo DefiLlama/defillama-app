@@ -749,6 +749,7 @@ export const getNewChainsPageData = async (category: string) => {
 			category,
 			categories: categoryLinks,
 			colorsByChain: colors,
+			chainAssets: chainsAssets ?? null,
 			chainTvls: chainTvls.map((chain) => {
 				const name = chain.name.toLowerCase()
 				const totalAssets = chainsAssets[name]?.total?.total ?? null
