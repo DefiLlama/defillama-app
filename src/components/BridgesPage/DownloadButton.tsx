@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { DownloadIcon } from '~/components'
 import { download, toNiceCsvDate } from '~/utils'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
 
 const DownloadButtonContainer = styled.button`
 	display: none;
@@ -19,7 +19,7 @@ const DownloadButtonContainer = styled.button`
 `
 export const LargeTxDownloadButton = ({ data }: { data: any }) => {
 	return (
-		<DownloadButtonContainer
+		<CSVDownloadButton
 			onClick={async () => {
 				const rows = [
 					[
@@ -57,9 +57,6 @@ export const LargeTxDownloadButton = ({ data }: { data: any }) => {
 					})
 				download(`bridge-transactions.csv`, rows.map((r) => r.join(',')).join('\n'))
 			}}
-		>
-			<DownloadIcon />
-			<span>&nbsp;&nbsp;Download all transactions</span>
-		</DownloadButtonContainer>
+		/>
 	)
 }

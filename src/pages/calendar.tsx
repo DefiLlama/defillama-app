@@ -25,7 +25,11 @@ import { useRouter } from 'next/router'
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
-	const parsedRes = res
+	let parsedRes = []
+	try {
+		parsedRes = JSON.parse(res.body).data
+	} catch (e) {}
+
 	const emissions = parsedRes.map((protocol) => {
 		const unlocksByDate = {}
 		protocol.events.forEach((e) => {
@@ -55,7 +59,7 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 
 	return {
 		props: {
-			emissions: emissions.filter((p) => p.unlock)
+			emissions: emissions.filter((p) => p.unlock) || []
 		},
 		revalidate: maxAgeForNext([22])
 	}

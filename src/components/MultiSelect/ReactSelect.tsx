@@ -62,8 +62,8 @@ const customStyles = {
 	})
 }
 
-const ReactSelect = ({ options, styles, ...props }: Props) => (
-	<Wrapper>
+const ReactSelect = ({ options, styles, style, ...props }: Props & { style?: Record<string, string> }) => (
+	<Wrapper style={style}>
 		<Select
 			styles={{ ...customStyles, ...styles }}
 			options={options}

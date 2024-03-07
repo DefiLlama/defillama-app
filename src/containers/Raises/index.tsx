@@ -12,6 +12,7 @@ import { formattedNum } from '~/utils'
 import { RaisesTable } from './RaisesTable'
 import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -68,6 +69,11 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<span>Total Funding Amount</span>
 						<span>${formattedNum(totalAmountRaised)}</span>
 					</Stat>
+					<CSVDownloadButton
+						onClick={() => downloadCsv({ raises })}
+						isLight
+						style={{ width: '100px', marginTop: 'auto' }}
+					/>
 				</DetailsWrapper>
 
 				<ChartWrapper>

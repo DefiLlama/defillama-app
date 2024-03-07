@@ -61,6 +61,7 @@ import { Flag } from './Flag'
 import { AccordionStat } from '~/layout/Stats/Large'
 import { sluggify } from '~/utils/cache-client'
 import dayjs from 'dayjs'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 import { ProtocolPools } from './Yields'
 import { TreasuryChart } from './Treasury'
 import { UnlocksCharts } from './Emissions'
@@ -623,20 +624,6 @@ function ProtocolContainer({
 								</span>
 								<span>{formatPrice(totalVolume || '0')}</span>
 							</span>
-
-							{!isParentProtocol && (
-								<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-									<DownloadButton
-										as="a"
-										color={backgroundColor}
-										style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
-										target="_blank"
-									>
-										<DownloadCloud size={14} />
-										<span>&nbsp;&nbsp;.csv</span>
-									</DownloadButton>
-								</Link>
-							)}
 						</summary>
 
 						<span>
@@ -1118,7 +1105,6 @@ function ProtocolContainer({
 									}
 								/>
 							) : null}
-
 							{expenses && (
 								<RowWithSubRows
 									protocolName={protocolData.name}
@@ -1163,6 +1149,15 @@ function ProtocolContainer({
 					</StatsTable2>
 
 					<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
+					{!isParentProtocol ? (
+						<CSVDownloadButton
+							onClick={() => {
+								window.open(`https://api.llama.fi/dataset/${protocol}.csv`)
+							}}
+							style={{ marginTop: '16px', width: '100px' }}
+							isLight
+						/>
+					) : null}
 				</ProtocolDetailsWrapper>
 
 				<ProtocolChart

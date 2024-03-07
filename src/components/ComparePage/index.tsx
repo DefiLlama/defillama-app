@@ -63,7 +63,7 @@ const CustomOption = ({ innerProps, label, data }) => (
 	</div>
 )
 
-const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
+export const getChainData = async (chain: string, extraTvlsEnabled?: ISettings) => {
 	const {
 		data: {
 			chart,
@@ -162,13 +162,7 @@ const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
 	}
 }
 
-const useCompare = ({
-	chains = ['Ethereum', 'BSC'],
-	extraTvlsEnabled
-}: {
-	chains?: string[]
-	extraTvlsEnabled: ISettings
-}) => {
+export const useCompare = ({ chains = [], extraTvlsEnabled }: { chains?: string[]; extraTvlsEnabled: ISettings }) => {
 	const data = useQueries(
 		chains.map((chain) => ({
 			queryKey: ['compare', JSON.stringify(chain), JSON.stringify(extraTvlsEnabled)],

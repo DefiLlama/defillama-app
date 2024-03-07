@@ -19,7 +19,7 @@ interface CustomLinkProps extends BasicLinkProps {
 	target?: React.HTMLAttributeAnchorTarget
 }
 
-const WrappedLink = ({ external, children, ...rest }) => (
+const WrappedLink = ({ external, children, ...rest }: any) => (
 	<RebassLink
 		target={external ? '_blank' : null}
 		rel={external ? 'noopener noreferrer' : null}

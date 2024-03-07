@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { DownloadIcon } from '~/components'
 import { download } from '~/utils'
 import { getLiquidationsCsvData } from '~/utils/liquidations'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
 
 const DownloadButtonContainer = styled.button`
 	display: none;
@@ -20,15 +21,12 @@ const DownloadButtonContainer = styled.button`
 `
 export const DownloadButton = ({ symbol }: { symbol: string }) => {
 	return (
-		<DownloadButtonContainer
+		<CSVDownloadButton
 			onClick={async () => {
 				const csvString = await getLiquidationsCsvData(symbol)
 				download(`${symbol}-all-positions.csv`, csvString)
 			}}
-		>
-			<DownloadIcon />
-			<span>&nbsp;&nbsp;Download all positions</span>
-		</DownloadButtonContainer>
+		/>
 	)
 }
 
