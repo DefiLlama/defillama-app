@@ -549,7 +549,7 @@ function ProtocolContainer({
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={toggleOptions} />
 
-			{['SyncDEX Finance', 'Avatr', 'SatoshiCoreSwap', 'Opankeswap', 'PolyLend'].includes(name) && (
+			{['SyncDEX Finance', 'Avatr', 'SatoshiCoreSwap', 'Opankeswap', 'PolyLend', 'Syncus'].includes(name) && (
 				<Announcement warning={true} notCancellable={true}>
 					Project has some red flags and multiple users have reported concerns. Be careful.
 				</Announcement>
