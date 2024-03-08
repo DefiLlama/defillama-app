@@ -12,6 +12,11 @@ export const protocolsAndChainsOptions = [
 		help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
 	},
 	{
+		name: 'Gov Tokens',
+		key: DEFI_SETTINGS.GOV_TOKENS,
+		help: 'Include governance tokens'
+	},
+	{
 		name: 'Borrows',
 		key: DEFI_SETTINGS.BORROWED,
 		help: 'Include borrowed coins in lending protocols'

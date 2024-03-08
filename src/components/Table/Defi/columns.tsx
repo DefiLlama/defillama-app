@@ -778,6 +778,12 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 						</div>
 					)}
 
+					{chainAssets.ownTokens && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Own Tokens:</span>
+							<span>{formattedNum(chainAssets.ownTokens.total, true)}</span>
+						</div>
+					)}
 					{chainAssets.thirdParty && (
 						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
 							<span>Third Party:</span>
