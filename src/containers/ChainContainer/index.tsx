@@ -546,20 +546,20 @@ export function ChainContainer({
 											<>
 												{chainAssets ? (
 													<>
-														{chainAssets.native.total ? (
+														{chainAssets.native?.total ? (
 															<tr>
 																<th>Native</th>
 																<td>{formattedNum(chainAssets.native.total, true)}</td>
 															</tr>
 														) : null}
-														{chainAssets.canonical.total ? (
+														{chainAssets.canonical?.total ? (
 															<tr>
 																<th>Canonical</th>
 																<td>{formattedNum(chainAssets.canonical.total, true)}</td>
 															</tr>
 														) : null}
 
-														{chainAssets.thirdParty.total ? (
+														{chainAssets.thirdParty?.total ? (
 															<tr>
 																<th>Third Party</th>
 																<td>{formattedNum(chainAssets.thirdParty.total, true)}</td>
