@@ -382,6 +382,13 @@ export const cexData: Array<ICex> = [
 		cgId: 'btse'
 	},
 	{
+		name: 'Backpack',
+		slug: 'backpack',
+		coin: null,
+		coinSymbol: null,
+		walletsLink: "https://dune.com/21co/backpack-exchange",
+	},
+	{
 		name: 'Bitmake',
 		slug: 'bitmake',
 		coin: null,
