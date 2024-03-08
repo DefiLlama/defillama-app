@@ -75,7 +75,6 @@ export function ChainContainer({
 		isLoading: fetchingProtocolsList
 	} = useGetProtocolsList({ chain: selectedChain })
 	const [extraTvlsEnabled] = useDefiManager()
-
 	const router = useRouter()
 
 	const denomination = router.query?.currency ?? 'USD'
@@ -208,7 +207,8 @@ export function ChainContainer({
 			isVisible: chartDatasets?.[0]?.chainTokenMcapData?.length ? true : false
 		},
 		{ id: 'derivatives', name: 'Derivatives Volume', isVisible: chartDatasets?.[0]?.derivativesData ? true : false },
-		{ id: 'aggregators', name: 'Aggregators Volume', isVisible: chartDatasets?.[0]?.aggregatorsData ? true : false }
+		{ id: 'aggregators', name: 'Aggregators Volume', isVisible: chartDatasets?.[0]?.aggregatorsData ? true : false },
+		{ id: 'chainAssets', name: 'Bridged TVL', isVisible: chartDatasets?.[0]?.chainAssetsData ? true : false }
 	]
 
 	const finalProtocolsList = React.useMemo(() => {

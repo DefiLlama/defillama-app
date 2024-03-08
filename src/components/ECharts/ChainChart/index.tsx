@@ -30,7 +30,8 @@ const colors = {
 	tokenPrice: '#c7da1f',
 	tokenMcap: '#1fda38',
 	derivatives: '#305a00',
-	aggregators: '#ff7b00'
+	aggregators: '#ff7b00',
+	chainAssets: '#fa7b00'
 }
 
 const colorsArray = [
@@ -389,6 +390,22 @@ export default function AreaChart({
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
+			if (route.chainAssets === 'true' && data?.chainAssetsData) {
+				series.push({
+					name: namePrefix + 'Bridged TVL',
+					chartId: 'Chain Assets',
+					symbol: 'none',
+					type: 'line',
+					data: [],
+					yAxisIndex: 16,
+					itemStyle: {
+						color: getColor(isCompare) || colors.chainAssets
+					}
+				})
+				data?.chainAssetsData.forEach(([date, value]) => {
+					series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
@@ -603,6 +620,15 @@ export default function AreaChart({
 					axisLabel: {
 						...yAxis.axisLabel,
 						color: () => (isCompare ? '#fff' : colors.derivatives)
+					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Chain Assets',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.chainAssets)
 					}
 				}
 			].map((yAxis: any, i) => {

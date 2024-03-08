@@ -6,6 +6,7 @@ import {
 	ACTIVE_USERS_API,
 	CHAINS_API,
 	CHAINS_ASSETS,
+	CHAINS_ASSETS_CHART,
 	CHART_API,
 	DEV_METRICS_API,
 	PROTOCOLS_API,
@@ -68,6 +69,10 @@ export async function getChainPageData(chain?: string) {
 		.catch(() => null)
 
 	const chainAssets = await fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json())
+	const chainAssetsChart =
+		chain && chain !== 'All'
+			? await fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`).then((r) => r.json())
+			: null
 
 	const chainsConfig = await fetchWithErrorLogging(CHAINS_API).then((res) => res.json())
 	const currentChain = chainsConfig.find((c) => c.name.toLowerCase() === chain?.toLowerCase())
@@ -229,6 +234,7 @@ export async function getChainPageData(chain?: string) {
 			...(chain && { chain }),
 			chainTokenInfo: currentChain ? { ...currentChain, ...(cgData || {}) } : null,
 			chainTreasury: chainTreasury ?? null,
+			chainAssetsChart: chainAssetsChart ?? null,
 			chainRaises: chainRaises ?? null,
 			chainAssets: chainAssets[chain?.toLowerCase()] ?? null,
 			chainsSet: chains,
