@@ -295,6 +295,7 @@ export const formatProtocolsList = ({
 
 				return {
 					...props,
+					extraTvl,
 					name,
 					tvl: finalTvl,
 					tvlPrevDay: finalTvlPrevDay,

@@ -14,7 +14,7 @@ function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastO
 }
 
 // group protocols so we can show child protocols inside an accordion in a table
-export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noSubrows?: boolean) => {
+const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noSubrows?: boolean) => {
 	let strikeTvl = false
 	const categories = new Set()
 
@@ -51,6 +51,10 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 			}
 
 			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
+
+			if (curr?.extraTvl?.excludeParent?.tvl) {
+				acc.tvl -= curr.extraTvl.excludeParent.tvl
+			}
 			;[
 				'tvlPrevDay',
 				'tvlPrevWeek',
