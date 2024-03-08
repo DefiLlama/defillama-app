@@ -116,9 +116,19 @@ export function formatDataWithExtraTvls({
 
 		const mcaptvl = mcap && finalTvl ? +(mcap / finalTvl).toFixed(2) : null
 
+		let assets = null
+
+		if (chainAssets) {
+			assets = chainAssets?.[props?.name?.toLowerCase()]
+			if (assets && !extraTvlsEnabled.govtokens && assets?.ownTokens) {
+				const total = assets.total.total - assets.ownTokens.total
+				assets = { ...assets, total: { ...assets.total, total } }
+			}
+		}
+
 		return {
 			...props,
-			chainAssets: chainAssets ? chainAssets?.[props?.name?.toLowerCase()] : null,
+			chainAssets: assets ?? null,
 			tvl: finalTvl < 0 ? 0 : finalTvl,
 			tvlPrevDay: finalTvlPrevDay < 0 ? 0 : finalTvlPrevDay,
 			tvlPrevWeek: finalTvlPrevWeek < 0 ? 0 : finalTvlPrevWeek,
