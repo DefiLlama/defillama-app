@@ -7,6 +7,7 @@ import {
 	useFetchProtocolUsers
 } from '~/api/categories/protocols/client'
 import {
+	useGetChainAssetsChart,
 	useGetFeesAndRevenueChartDataByChain,
 	useGetItemOverviewByChain,
 	useGetVolumeChartDataByChain
@@ -81,6 +82,8 @@ export const useFetchChainChartData = ({
 		'aggregators'
 	)
 
+	const { data: chainAssetsChart, loading: fetchingChainAssetsChart } = useGetChainAssetsChart(selectedChain)
+
 	const isFetchingChartData =
 		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
 		fetchingVolumeChartDataByChain ||
@@ -91,7 +94,8 @@ export const useFetchChainChartData = ({
 		fetchingTransactionsChartData ||
 		fetchingPriceChartData ||
 		fetchingAggregatorsData ||
-		fetchingDerivativesData
+		fetchingDerivativesData ||
+		fetchingChainAssetsChart
 
 	const globalChart = useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -179,6 +183,20 @@ export const useFetchChainChartData = ({
 			cc
 		])
 
+		const finalChainAssetsChart = chainAssetsChart?.map(({ data, timestamp }) => {
+			const ts = Math.floor(
+				nearestUtc(
+					dayjs(timestamp * 1000)
+						.toDate()
+						.getTime()
+				) / 1000
+			)
+			if (!extraTvlsEnabled?.govtokens && data.ownTokens) {
+				return [ts, data.total.total - data.ownTokens.total]
+			}
+			return [ts, data.total.total]
+		})
+
 		const chartDatasets = [
 			{
 				feesChart: finalFeesAndRevenueChart,
@@ -195,7 +213,8 @@ export const useFetchChainChartData = ({
 				chainTokenPriceData: finalPriceChart,
 				chainTokenMcapData: finalMcapChart,
 				aggregatorsData: finalAggregatorsChart,
-				derivativesData: finalDerivativesChart
+				derivativesData: finalDerivativesChart,
+				chainAssetsData: finalChainAssetsChart
 			}
 		]
 
@@ -216,7 +235,8 @@ export const useFetchChainChartData = ({
 		priceChartData?.prices,
 		priceChartData?.market_caps,
 		derivativesData,
-		aggregatorsData
+		aggregatorsData,
+		chainAssetsChart
 	])
 
 	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)
