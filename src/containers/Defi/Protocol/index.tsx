@@ -86,7 +86,8 @@ const scams = [
 	'Lendora Protocol',
 	'MantaSwap',
 	'Onchain Trade',
-	'Venuswap'
+	'Venuswap',
+	'Scroll Swap'
 ]
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
