@@ -1011,7 +1011,7 @@ function ProtocolContainer({
 													dataType="Fees"
 													rowHeader="Fees (annualized)"
 													rowValue={formatPrice(fees30d * 12.2)}
-													helperText={explainAnnualized(helperTexts.fees)}
+													helperText={explainAnnualized(helperTexts?.fees)}
 													subRows={
 														<>
 															<tr>
@@ -1043,7 +1043,7 @@ function ProtocolContainer({
 													dataType="Revenue"
 													rowHeader="Revenue (annualized)"
 													rowValue={formatPrice(revenue30dFinal * 12.2)}
-													helperText={explainAnnualized(helperTexts.revenue)}
+													helperText={explainAnnualized(helperTexts?.revenue)}
 													subRows={
 														<>
 															<tr>
@@ -1064,7 +1064,7 @@ function ProtocolContainer({
 
 											{users?.activeUsers ? (
 												<RowWithSubRows
-													helperText={helperTexts.users}
+													helperText={helperTexts?.users}
 													protocolName={protocolData.name}
 													dataType="Users"
 													rowHeader={'Active Addresses 24h'}
