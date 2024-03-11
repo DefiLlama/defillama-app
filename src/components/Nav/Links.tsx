@@ -140,6 +140,7 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Overview', path: '/' },
 			{ name: 'Chains', path: '/chains' },
+			{ name: 'Bridged TVL', path: '/bridged', newTag: true },
 			{ name: 'Compare Chains', path: '/compare?chains=Optimism&chains=Arbitrum' },
 			{ name: 'Airdrops', path: '/airdrops' },
 			{ name: 'Treasuries', path: '/treasuries', newTag: true },
@@ -147,7 +148,7 @@ export const navLinks: ILinks = {
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },
 			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve+DEX' },
-			{ name: 'Protocol Expenses', path: '/expenses', newTag: true },
+			{ name: 'Protocol Expenses', path: '/expenses' },
 			{ name: 'Token Usage', path: '/tokenUsage?token=ETH' },
 			{ name: 'Categories', path: '/categories' },
 			{ name: 'Recent', path: '/recent' },

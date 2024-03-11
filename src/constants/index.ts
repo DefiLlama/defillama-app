@@ -95,6 +95,7 @@ export const LIQUIDATIONS_HISTORICAL_R2_PATH = DATASETS_R2_PATH + '/liqs'
 
 export const CHAINS_API = 'https://api.llama.fi/chains'
 export const CHAINS_ASSETS = 'https://api.llama.fi/chainAssets'
+export const CHAINS_API_V2 = 'https://api.llama.fi/chains2'
 
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
