@@ -105,3 +105,11 @@ export interface AirdropRow {
 	explorer: string
 	tokens: string
 }
+
+export interface IBridgedRow {
+	name: string
+	total: ChainAssets['total']
+	thirdParty: ChainAssets['thirdParty']
+	canonical: ChainAssets['canonical']
+	ownTokens: ChainAssets['ownTokens']
+}

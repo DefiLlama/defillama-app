@@ -35,7 +35,8 @@ import type {
 	IEmission,
 	IGovernance,
 	IETFRow,
-	AirdropRow
+	AirdropRow,
+	IBridgedRow
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
@@ -878,6 +879,100 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		size: 120,
 		meta: {
 			align: 'end'
+		}
+	}
+]
+
+const keySorting = (key: string) => (rowA, rowB) => {
+	const valueA = rowA.original?.[key]?.total
+	const valueB = rowB.original?.[key]?.total
+
+	if (valueA === undefined || valueA === null) return 1
+	if (valueB === undefined || valueB === null) return -1
+
+	return parseFloat(valueB) - parseFloat(valueA)
+}
+
+export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
+	{
+		header: () => <Name>Name</Name>,
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name depth={row.depth}>
+					{row.subRows?.length > 0 && (
+						<AccordionButton
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+						</AccordionButton>
+					)}
+					<span>{index + 1}</span>
+					<TokenLogo logo={chainIconUrl(getValue())} />
+					<CustomLink href={`/chain/${getValue()}`}>{getValue()}</CustomLink>
+				</Name>
+			)
+		},
+		size: 200
+	},
+	{
+		header: 'Total Bridged',
+		accessorKey: 'total',
+		enableSorting: true,
+		sortingFn: keySorting('total'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Native',
+		accessorKey: 'native',
+		enableSorting: true,
+		sortingFn: keySorting('native'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Canonical',
+		accessorKey: 'canonical',
+		enableSorting: true,
+		sortingFn: keySorting('canonical'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Own Tokens',
+		accessorKey: 'ownTokens',
+		enableSorting: true,
+		sortingFn: keySorting('ownTokens'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Third Party',
+		accessorKey: 'thirdParty',
+		enableSorting: true,
+		sortingFn: keySorting('thirdParty'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
 		}
 	}
 ]

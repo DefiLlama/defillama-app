@@ -10,14 +10,22 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
 	customPath?: IBaseSearchProps['customPath']
 	options?: { name: string; key: string }[]
+	hideFilters?: boolean
 }
 
 export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
-	const { includedSets = Object.values(SETS), customPath, options } = props
+	const { includedSets = Object.values(SETS), customPath, options, hideFilters = false } = props
 
 	const { data, loading } = useGetDefiSearchList({ includedSets, customPath })
 
-	return <DesktopSearch {...props} data={data} loading={loading} filters={<TvlOptions options={options} />} />
+	return (
+		<DesktopSearch
+			{...props}
+			data={data}
+			loading={loading}
+			filters={hideFilters ? null : <TvlOptions options={options} />}
+		/>
+	)
 }
 
 const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) => {

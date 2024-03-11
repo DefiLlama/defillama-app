@@ -18,7 +18,8 @@ import {
 	CHAINS_ASSETS,
 	CHART_API,
 	ETF_OVERVIEW_API,
-	ETF_HISTORY_API
+	ETF_HISTORY_API,
+	CHAINS_API_V2
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -981,4 +982,10 @@ export function formatGovernanceData(data: {
 	})
 
 	return { maxVotes, activity, proposals }
+}
+
+export async function getChainsBridged() {
+	const assets = await fetchWithErrorLogging(CHAINS_ASSETS).then((r) => r.json())
+	const chains = await fetch(`${CHAINS_API_V2}/All`).then((r) => r.json())
+	return { chains, assets }
 }

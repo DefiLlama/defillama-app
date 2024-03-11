@@ -37,6 +37,10 @@ export interface ChainAssets {
 		breakdown: Breakdown
 		total: string
 	}
+	ownTokens: {
+		breakdown: Breakdown
+		total: string
+	}
 }
 
 interface IFormattedDataWithExtraTvlProps {
