@@ -55,9 +55,11 @@ export const OtherProtocols = styled.nav`
 	grid-column: span 1;
 	display: flex;
 	overflow-x: auto;
+	width: fit-content;
 	background: ${({ theme }) => theme.bg7};
 	font-weight: 500;
-	border-radius: 12px 12px 0 0;
+	border-radius: 12px;
+	margin-bottom: 8px;
 
 	@media screen and (min-width: 80rem) {
 		grid-column: span 2;
@@ -77,7 +79,7 @@ export const ProtocolLink = styled.a<IProtocolLink>`
 		border-left: ${({ theme }) => '1px solid ' + theme.divider};
 	}
 
-	border-bottom: ${({ active, color, theme }) => '1px solid ' + (active ? color : theme.divider)};
+	background-color: ${({ active, color }) => (active ? transparentize(0.9, color) : 'transparent')};
 
 	:first-child {
 		border-top-left-radius: 12px;
