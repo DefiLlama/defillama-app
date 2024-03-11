@@ -539,7 +539,7 @@ function ProtocolContainer({
 	}
 
 	return (
-		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
+		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '16px' }}>
 			<SEO
 				cardName={name}
 				token={name}
@@ -580,619 +580,6 @@ function ProtocolContainer({
 					stuck/lost.
 				</Announcement>
 			)}
-			<StatsSection>
-				{otherProtocols?.length > 1 && (
-					<OtherProtocols>
-						{otherProtocols.map((p) => (
-							<Link
-								href={`/protocol/${standardizeProtocolName(p)}`}
-								key={'navigate to ' + `/protocol/${standardizeProtocolName(p)}`}
-								passHref
-							>
-								<ProtocolLink
-									active={router.asPath === `/protocol/${standardizeProtocolName(p)}` + queryParams}
-									color={backgroundColor}
-								>
-									{p}
-								</ProtocolLink>
-							</Link>
-						))}
-					</OtherProtocols>
-				)}
-
-				<ProtocolDetailsWrapper style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
-					{scams.includes(name) && <p>There's been multiple hack reports in this protocol</p>}
-
-					<Name>
-						<TokenLogo logo={tokenIconUrl(name)} size={24} />
-						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
-
-						<Bookmark readableProtocolName={name} />
-					</Name>
-
-					<AccordionStat style={{ margin: '24px 0 16px' }}>
-						<summary>
-							<span data-arrowicon>
-								<ChevronRight size={20} />
-							</span>
-
-							<span data-summaryheader>
-								<span>
-									<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
-									<Flag protocol={protocolData.name} dataType={'TVL'} isLending={category === 'Lending'} />
-								</span>
-								<span>{formatPrice(totalVolume || '0')}</span>
-							</span>
-
-							{!isParentProtocol && (
-								<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-									<DownloadButton
-										as="a"
-										color={backgroundColor}
-										style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
-										target="_blank"
-									>
-										<DownloadCloud size={14} />
-										<span>&nbsp;&nbsp;.csv</span>
-									</DownloadButton>
-								</Link>
-							)}
-						</summary>
-
-						<span>
-							{tvls.length > 0 && (
-								<ProtocolStatsTable>
-									<caption>{isCEX ? 'Assets by chain' : 'Chain Breakdown'}</caption>
-									<tbody>
-										{tvls.map((chainTvl) => (
-											<tr key={JSON.stringify(chainTvl)}>
-												<th>{capitalizeFirstLetter(chainTvl[0])}</th>
-												<td>{formatPrice((chainTvl[1] || 0) as number)}</td>
-											</tr>
-										))}
-									</tbody>
-								</ProtocolStatsTable>
-							)}
-
-							{extraTvls.length > 0 && (
-								<ProtocolStatsTable>
-									<thead>
-										<tr>
-											<th>Include in TVL (optional)</th>
-											<td className="question-helper">
-												<QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
-											</td>
-										</tr>
-									</thead>
-									<tbody>
-										{extraTvls.map(([option, value]) => (
-											<tr key={option + value}>
-												<th>
-													<ExtraOption>
-														<Checkbox2
-															type="checkbox"
-															value={option}
-															checked={extraTvlsEnabled[option]}
-															onChange={updater(option)}
-														/>
-														<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
-															{capitalizeFirstLetter(option)}
-														</span>
-													</ExtraOption>
-												</th>
-												<td>{formatPrice(value)}</td>
-											</tr>
-										))}
-									</tbody>
-								</ProtocolStatsTable>
-							)}
-						</span>
-					</AccordionStat>
-
-					<StatsTable2>
-						<tbody>
-							{tokenCGData?.marketCap?.current ? (
-								<>
-									<tr>
-										<th>
-											<span>Market Cap</span>
-											<Flag protocol={protocolData.name} dataType={'Market Cap'} />
-										</th>
-										<td>{formatPrice(tokenCGData.marketCap.current)}</td>
-									</tr>
-
-									{nextEventDescription ? (
-										<tr style={{ position: 'relative', top: '-6px' }}>
-											<td
-												style={{
-													opacity: '0.6',
-													fontFamily: 'var(--inter)',
-													fontWeight: 400,
-													fontSize: '0.875rem',
-													padding: '0px',
-													textAlign: 'right'
-												}}
-												colSpan={2}
-											>
-												{nextEventDescription}
-											</td>
-										</tr>
-									) : null}
-								</>
-							) : null}
-
-							{tokenCGData?.price?.current ? (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									dataType="Token Price"
-									rowHeader={`${assetToken ?? symbol ?? 'Token'} Price`}
-									rowValue={formatPrice(tokenCGData.price.current)}
-									helperText={null}
-									subRows={
-										<>
-											{tokenCGData.price.ath ? (
-												<tr>
-													<th data-subvalue>{`All Time High (${new Date(
-														tokenCGData.price.athDate
-													).toLocaleDateString()})`}</th>
-													<td data-subvalue>{formatPrice(tokenCGData.price.ath)}</td>
-												</tr>
-											) : null}
-
-											{tokenCGData.price.atl ? (
-												<tr>
-													<th data-subvalue>{`All Time Low (${new Date(
-														tokenCGData.price.atlDate
-													).toLocaleDateString()})`}</th>
-													<td data-subvalue>{formatPrice(tokenCGData.price.atl)}</td>
-												</tr>
-											) : null}
-										</>
-									}
-								/>
-							) : null}
-
-							{tokenCGData?.fdv?.current ? (
-								<tr>
-									<th>
-										<span>Fully Diluted Valuation</span>
-										<Flag protocol={protocolData.name} dataType={'FDV'} />
-									</th>
-									<td>{formatPrice(tokenCGData.fdv.current)}</td>
-								</tr>
-							) : null}
-
-							{tokenCGData?.volume24h?.total ? (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									rowHeader={`24h ${symbol || 'Token'} Volume`}
-									dataType={'Token Volume'}
-									rowValue={formatPrice(tokenCGData.volume24h.total)}
-									helperText={null}
-									subRows={
-										<>
-											{tokenCGData?.volume24h?.cex ? (
-												<tr>
-													<th data-subvalue>CEX Volume</th>
-													<td data-subvalue>{formatPrice(tokenCGData.volume24h.cex)}</td>
-												</tr>
-											) : null}
-											{tokenCGData?.volume24h?.dex ? (
-												<>
-													<tr>
-														<th data-subvalue>DEX Volume</th>
-														<td data-subvalue>{formatPrice(tokenCGData.volume24h.dex)}</td>
-													</tr>
-													<tr style={{ position: 'relative', top: '-6px' }}>
-														<td
-															style={{
-																opacity: '0.6',
-																fontFamily: 'var(--inter)',
-																fontWeight: 400,
-																fontSize: '0.875rem',
-																padding: '0px'
-															}}
-															colSpan={2}
-														>{`(${formatPercentage(
-															(tokenCGData.volume24h.dex / tokenCGData.volume24h.total) * 100
-														)}%)`}</td>
-													</tr>
-												</>
-											) : null}
-										</>
-									}
-								/>
-							) : null}
-
-							{stakedAmount ? (
-								<>
-									<tr>
-										<th>
-											<span>Staked</span>
-											<Flag protocol={protocolData.name} dataType={'Staked'} />
-										</th>
-										<td>{formatPrice(stakedAmount)}</td>
-									</tr>
-									{tokenCGData?.marketCap?.current ? (
-										<tr style={{ position: 'relative', top: '-6px' }}>
-											<td
-												style={{
-													opacity: '0.6',
-													fontFamily: 'var(--inter)',
-													fontWeight: 400,
-													fontSize: '0.875rem',
-													padding: '0px'
-												}}
-												colSpan={2}
-											>
-												{`(${((stakedAmount / tokenCGData.marketCap.current) * 100).toLocaleString(undefined, {
-													maximumFractionDigits: 2
-												})}% of mcap)`}
-											</td>
-										</tr>
-									) : null}
-								</>
-							) : null}
-
-							{borrowedAmount ? (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									rowHeader={`Borrowed`}
-									dataType={'Token Borrowed'}
-									rowValue={formatPrice(borrowedAmount)}
-									helperText={null}
-									subRows={
-										<>
-											{tvlByChain
-												.filter((c) => c[0].endsWith('-borrowed'))
-												.map((c) => (
-													<tr key={JSON.stringify(c)}>
-														<th data-subvalue>{c[0].split('-')[0]}</th>
-														<td data-subvalue>{formatPrice(c[1])}</td>
-													</tr>
-												))}
-										</>
-									}
-								/>
-							) : null}
-
-							{tokenLiquidity && tokenLiquidity.length > 0 ? (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									dataType="Token Liquidity"
-									rowHeader={`${symbol || 'Token'} Liquidity`}
-									rowValue={formatPrice(tokenLiquidity.reduce((acc, curr) => (acc += curr[2]), 0))}
-									helperText={null}
-									subRows={
-										<>
-											{tokenLiquidity.map((item) => (
-												<tr key={'token-liq' + item[0] + item[1] + item[2]}>
-													<th data-subvalue>{`${item[0]} (${item[1]})`}</th>
-													<td data-subvalue>{formatPrice(item[2])}</td>
-												</tr>
-											))}
-										</>
-									}
-								/>
-							) : null}
-
-							{allTimeVolume && dailyVolume ? (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									dataType="Volume"
-									rowHeader="Volume 24h"
-									rowValue={formatPrice(dailyVolume)}
-									helperText={null}
-									subRows={
-										<>
-											{allTimeVolume ? (
-												<tr>
-													<th data-subvalue>{`Cumulative Volume`}</th>
-													<td data-subvalue>{formatPrice(allTimeVolume)}</td>
-												</tr>
-											) : null}
-										</>
-									}
-								/>
-							) : dailyVolume ? (
-								<tr>
-									<th>
-										<span>Volume 24h</span>
-										<Flag protocol={protocolData.name} dataType={'Volume'} />
-									</th>
-									<td>{formatPrice(dailyVolume)}</td>
-								</tr>
-							) : null}
-
-							{dailyDerivativesVolume && allTimeDerivativesVolume ? (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									dataType="Derivatives Volume"
-									rowHeader="Derivatives Volume 24h"
-									rowValue={formatPrice(dailyDerivativesVolume)}
-									helperText={null}
-									subRows={
-										<>
-											{allTimeDerivativesVolume ? (
-												<tr>
-													<th data-subvalue>{`Cumulative Volume`}</th>
-													<td data-subvalue>{formatPrice(allTimeDerivativesVolume)}</td>
-												</tr>
-											) : null}
-										</>
-									}
-								/>
-							) : dailyDerivativesVolume ? (
-								<tr>
-									<th>
-										<span>Derivatives Volume 24h</span>
-										<Flag protocol={protocolData.name} dataType={'Derivatives Volume'} />
-									</th>
-									<td>{formatPrice(dailyDerivativesVolume)}</td>
-								</tr>
-							) : null}
-
-							{fees30d ? (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									dataType="Fees"
-									rowHeader="Fees (annualized)"
-									rowValue={formatPrice(fees30d * 12.2)}
-									helperText={explainAnnualized(helperTexts.fees)}
-									subRows={
-										<>
-											<tr>
-												<th data-subvalue>{`Fees 30d`}</th>
-												<td data-subvalue>{formatPrice(fees30d)}</td>
-											</tr>
-
-											{dailyFees ? (
-												<tr>
-													<th data-subvalue>{`Fees 24h`}</th>
-													<td data-subvalue>{formatPrice(dailyFees)}</td>
-												</tr>
-											) : null}
-
-											{allTimeFees ? (
-												<tr>
-													<th data-subvalue>{`Cumulative Fees`}</th>
-													<td data-subvalue>{formatPrice(allTimeFees)}</td>
-												</tr>
-											) : null}
-										</>
-									}
-								/>
-							) : null}
-
-							{revenue30dFinal ? (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									dataType="Revenue"
-									rowHeader="Revenue (annualized)"
-									rowValue={formatPrice(revenue30dFinal * 12.2)}
-									helperText={explainAnnualized(helperTexts.revenue)}
-									subRows={
-										<>
-											<tr>
-												<th data-subvalue>{`Revenue 30d`}</th>
-												<td data-subvalue>{formatPrice(revenue30d)}</td>
-											</tr>
-
-											{dailyRevenueFinal ? (
-												<tr>
-													<th data-subvalue>{`Revenue 24h`}</th>
-													<td data-subvalue>{formatPrice(dailyRevenueFinal)}</td>
-												</tr>
-											) : null}
-										</>
-									}
-								/>
-							) : null}
-
-							{users?.activeUsers ? (
-								<RowWithSubRows
-									helperText={helperTexts.users}
-									protocolName={protocolData.name}
-									dataType="Users"
-									rowHeader={'Active Addresses 24h'}
-									rowValue={formattedNum(users.activeUsers, false)}
-									subRows={
-										<>
-											{users.newUsers ? (
-												<tr>
-													<th data-subvalue>New Addresses 24h</th>
-													<td data-subvalue>{formattedNum(users.newUsers, false)}</td>
-												</tr>
-											) : null}
-											{users.transactions ? (
-												<tr>
-													<th data-subvalue>Transactions 24h</th>
-													<td data-subvalue>{formattedNum(users.transactions, false)}</td>
-												</tr>
-											) : null}
-											{users.gasUsd ? (
-												<tr>
-													<th data-subvalue>Gas Used 24h</th>
-													<td data-subvalue>{formatPrice(users.gasUsd)}</td>
-												</tr>
-											) : null}
-										</>
-									}
-								/>
-							) : null}
-
-							{treasury && (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									helperText={null}
-									rowHeader={'Treasury'}
-									rowValue={formatPrice(
-										Object.entries(treasury).reduce((acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]), 0)
-									)}
-									dataType={'Treasury'}
-									subRows={
-										<>
-											{Object.entries(treasury).map(([cat, tre]) => {
-												return (
-													<tr key={'treasury' + cat + tre}>
-														<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
-														<td data-subvalue>{formatPrice(tre)}</td>
-													</tr>
-												)
-											})}
-										</>
-									}
-								/>
-							)}
-
-							<>
-								{raises && raises.length > 0 && (
-									<RowWithSubRows
-										protocolName={protocolData.name}
-										dataType={'Raises'}
-										helperText={null}
-										rowHeader={'Total Raised'}
-										rowValue={formatRaisedAmount(raises.reduce((sum, r) => sum + Number(r.amount), 0))}
-										subRows={
-											<>
-												{raises
-													.sort((a, b) => a.date - b.date)
-													.map((raise) => (
-														<React.Fragment key={raise.date + raise.amount}>
-															<tr>
-																<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
-																<td data-subvalue>
-																	{raise.source ? (
-																		<a target="_blank" rel="noopener noreferrer" href={raise.source}>
-																			{formatRaise(raise)}
-																		</a>
-																	) : (
-																		formatRaise(raise)
-																	)}
-																</td>
-															</tr>
-															<tr key={raise.source}>
-																<td colSpan={2} className="investors">
-																	<b>Investors</b>:{' '}
-																	{(raise as any).leadInvestors
-																		.concat((raise as any).otherInvestors)
-																		.map((i, index, arr) => (
-																			<React.Fragment key={'raised from ' + i}>
-																				<a href={`/raises/${sluggify(i)}`}>{i}</a>
-																				{index < arr.length - 1 ? ', ' : ''}
-																			</React.Fragment>
-																		))}
-																</td>
-															</tr>
-														</React.Fragment>
-													))}
-											</>
-										}
-									/>
-								)}
-							</>
-
-							{controversialProposals && controversialProposals.length > 0 ? (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									dataType={'Governance'}
-									helperText={null}
-									rowHeader={'Top Controversial Proposals'}
-									rowValue={null}
-									subRows={
-										<>
-											{controversialProposals.map((proposal) => (
-												<tr key={proposal.title}>
-													<td data-subvalue style={{ textAlign: 'left' }}>
-														{proposal.link ? (
-															<a href={proposal.link} target="_blank" rel="noreferrer noopener">
-																{proposal.title}
-															</a>
-														) : (
-															proposal.title
-														)}
-													</td>
-												</tr>
-											))}
-										</>
-									}
-								/>
-							) : null}
-
-							{expenses && (
-								<RowWithSubRows
-									protocolName={protocolData.name}
-									dataType={'Expenses'}
-									helperText={null}
-									rowHeader={'Annual operational expenses'}
-									rowValue={formatPrice(
-										Object.values((expenses.annualUsdCost || {}) as { [key: string]: number }).reduce(
-											(acc, curr) => (acc += curr),
-											0
-										)
-									)}
-									subRows={
-										<>
-											<tr>
-												<th data-subvalue>Headcount</th>
-												<td data-subvalue>{expenses.headcount}</td>
-											</tr>
-
-											{Object.entries(expenses.annualUsdCost || {}).map(([cat, exp]: [string, number]) => {
-												return (
-													<tr key={'expenses' + cat + exp}>
-														<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
-														<td data-subvalue>{formatPrice(exp)}</td>
-													</tr>
-												)
-											})}
-
-											<tr>
-												<th data-subvalue>
-													<a href={expenses.sources?.[0] ?? null}>
-														Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
-													</a>
-												</th>
-												<td data-subvalue></td>
-											</tr>
-										</>
-									}
-								/>
-							)}
-						</tbody>
-					</StatsTable2>
-
-					<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
-				</ProtocolDetailsWrapper>
-
-				<ProtocolChart
-					protocolData={protocolData}
-					twitterHandle={protocolData.twitter}
-					protocol={protocol}
-					color={backgroundColor}
-					historicalChainTvls={historicalChainTvls}
-					hallmarks={hallmarks}
-					bobo={bobo}
-					geckoId={gecko_id}
-					chartColors={chartColors}
-					metrics={metrics}
-					activeUsersId={users ? protocolData.id : null}
-					usdInflowsData={usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null}
-					governanceApis={governanceApis}
-					isHourlyChart={isHourlyChart}
-					isCEX={isCEX}
-					tokenSymbol={symbol ?? 'Token'}
-					protocolId={protocolData.id}
-					chartDenominations={chartDenominations}
-					nftVolumeData={nftVolumeData}
-				/>
-
-				<Bobo onClick={() => setBobo(!bobo)}>
-					<span className="visually-hidden">Enable Goblin Mode</span>
-					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
-				</Bobo>
-			</StatsSection>
 
 			<TabLayout>
 				<TabList state={tab}>
@@ -1257,6 +644,621 @@ function ProtocolContainer({
 				</TabList>
 
 				<TabPanel state={tab} tabId="information">
+					<StatsSection style={{ borderRadius: '0px' }}>
+						{otherProtocols?.length > 1 && (
+							<OtherProtocols>
+								{otherProtocols.map((p) => (
+									<Link
+										href={`/protocol/${standardizeProtocolName(p)}`}
+										key={'navigate to ' + `/protocol/${standardizeProtocolName(p)}`}
+										passHref
+									>
+										<ProtocolLink
+											active={router.asPath === `/protocol/${standardizeProtocolName(p)}` + queryParams}
+											color={backgroundColor}
+										>
+											{p}
+										</ProtocolLink>
+									</Link>
+								))}
+							</OtherProtocols>
+						)}
+
+						<ProtocolDetailsWrapper>
+							{scams.includes(name) && <p>There's been multiple hack reports in this protocol</p>}
+
+							<Name>
+								<TokenLogo logo={tokenIconUrl(name)} size={24} />
+								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
+								<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
+
+								<Bookmark readableProtocolName={name} />
+							</Name>
+
+							<AccordionStat style={{ margin: '24px 0 16px' }}>
+								<summary>
+									<span data-arrowicon>
+										<ChevronRight size={20} />
+									</span>
+									<span data-summaryheader>
+										<span>
+											<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
+											<Flag protocol={protocolData.name} dataType={'TVL'} isLending={category === 'Lending'} />
+										</span>
+										<span>{formatPrice(totalVolume || '0')}</span>
+									</span>
+
+									{!isParentProtocol && (
+										<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+											<DownloadButton
+												as="a"
+												color={backgroundColor}
+												style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
+												target="_blank"
+											>
+												<DownloadCloud size={14} />
+												<span>&nbsp;&nbsp;.csv</span>
+											</DownloadButton>
+										</Link>
+									)}
+								</summary>
+
+								<span>
+									{tvls.length > 0 && (
+										<ProtocolStatsTable>
+											<caption>{isCEX ? 'Assets by chain' : 'Chain Breakdown'}</caption>
+											<tbody>
+												{tvls.map((chainTvl) => (
+													<tr key={JSON.stringify(chainTvl)}>
+														<th>{capitalizeFirstLetter(chainTvl[0])}</th>
+														<td>{formatPrice((chainTvl[1] || 0) as number)}</td>
+													</tr>
+												))}
+											</tbody>
+										</ProtocolStatsTable>
+									)}
+
+									{extraTvls.length > 0 && (
+										<ProtocolStatsTable>
+											<thead>
+												<tr>
+													<th>Include in TVL (optional)</th>
+													<td className="question-helper">
+														<QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
+													</td>
+												</tr>
+											</thead>
+											<tbody>
+												{extraTvls.map(([option, value]) => (
+													<tr key={option + value}>
+														<th>
+															<ExtraOption>
+																<Checkbox2
+																	type="checkbox"
+																	value={option}
+																	checked={extraTvlsEnabled[option]}
+																	onChange={updater(option)}
+																/>
+																<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
+																	{capitalizeFirstLetter(option)}
+																</span>
+															</ExtraOption>
+														</th>
+														<td>{formatPrice(value)}</td>
+													</tr>
+												))}
+											</tbody>
+										</ProtocolStatsTable>
+									)}
+								</span>
+							</AccordionStat>
+
+							<StatsTable2>
+								<tbody>
+									{tokenCGData?.marketCap?.current ? (
+										<>
+											<tr>
+												<th>
+													<span>Market Cap</span>
+													<Flag protocol={protocolData.name} dataType={'Market Cap'} />
+												</th>
+												<td>{formatPrice(tokenCGData.marketCap.current)}</td>
+											</tr>
+
+											{nextEventDescription ? (
+												<tr style={{ position: 'relative', top: '-6px' }}>
+													<td
+														style={{
+															opacity: '0.6',
+															fontFamily: 'var(--inter)',
+															fontWeight: 400,
+															fontSize: '0.875rem',
+															padding: '0px',
+															textAlign: 'right'
+														}}
+														colSpan={2}
+													>
+														{nextEventDescription}
+													</td>
+												</tr>
+											) : null}
+										</>
+									) : null}
+
+									{tokenCGData?.price?.current ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType="Token Price"
+											rowHeader={`${assetToken ?? symbol ?? 'Token'} Price`}
+											rowValue={formatPrice(tokenCGData.price.current)}
+											helperText={null}
+											subRows={
+												<>
+													{tokenCGData.price.ath ? (
+														<tr>
+															<th data-subvalue>{`All Time High (${new Date(
+																tokenCGData.price.athDate
+															).toLocaleDateString()})`}</th>
+															<td data-subvalue>{formatPrice(tokenCGData.price.ath)}</td>
+														</tr>
+													) : null}
+
+													{tokenCGData.price.atl ? (
+														<tr>
+															<th data-subvalue>{`All Time Low (${new Date(
+																tokenCGData.price.atlDate
+															).toLocaleDateString()})`}</th>
+															<td data-subvalue>{formatPrice(tokenCGData.price.atl)}</td>
+														</tr>
+													) : null}
+												</>
+											}
+										/>
+									) : null}
+
+									{tokenCGData?.fdv?.current ? (
+										<tr>
+											<th>
+												<span>Fully Diluted Valuation</span>
+												<Flag protocol={protocolData.name} dataType={'FDV'} />
+											</th>
+											<td>{formatPrice(tokenCGData.fdv.current)}</td>
+										</tr>
+									) : null}
+
+									{tokenCGData?.volume24h?.total ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											rowHeader={`24h ${symbol || 'Token'} Volume`}
+											dataType={'Token Volume'}
+											rowValue={formatPrice(tokenCGData.volume24h.total)}
+											helperText={null}
+											subRows={
+												<>
+													{tokenCGData?.volume24h?.cex ? (
+														<tr>
+															<th data-subvalue>CEX Volume</th>
+															<td data-subvalue>{formatPrice(tokenCGData.volume24h.cex)}</td>
+														</tr>
+													) : null}
+													{tokenCGData?.volume24h?.dex ? (
+														<>
+															<tr>
+																<th data-subvalue>DEX Volume</th>
+																<td data-subvalue>{formatPrice(tokenCGData.volume24h.dex)}</td>
+															</tr>
+															<tr style={{ position: 'relative', top: '-6px' }}>
+																<td
+																	style={{
+																		opacity: '0.6',
+																		fontFamily: 'var(--inter)',
+																		fontWeight: 400,
+																		fontSize: '0.875rem',
+																		padding: '0px'
+																	}}
+																	colSpan={2}
+																>{`(${formatPercentage(
+																	(tokenCGData.volume24h.dex / tokenCGData.volume24h.total) * 100
+																)}%)`}</td>
+															</tr>
+														</>
+													) : null}
+												</>
+											}
+										/>
+									) : null}
+
+									{stakedAmount ? (
+										<>
+											<tr>
+												<th>
+													<span>Staked</span>
+													<Flag protocol={protocolData.name} dataType={'Staked'} />
+												</th>
+												<td>{formatPrice(stakedAmount)}</td>
+											</tr>
+											{tokenCGData?.marketCap?.current ? (
+												<tr style={{ position: 'relative', top: '-6px' }}>
+													<td
+														style={{
+															opacity: '0.6',
+															fontFamily: 'var(--inter)',
+															fontWeight: 400,
+															fontSize: '0.875rem',
+															padding: '0px'
+														}}
+														colSpan={2}
+													>
+														{`(${((stakedAmount / tokenCGData.marketCap.current) * 100).toLocaleString(undefined, {
+															maximumFractionDigits: 2
+														})}% of mcap)`}
+													</td>
+												</tr>
+											) : null}
+										</>
+									) : null}
+
+									{borrowedAmount ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											rowHeader={`Borrowed`}
+											dataType={'Token Borrowed'}
+											rowValue={formatPrice(borrowedAmount)}
+											helperText={null}
+											subRows={
+												<>
+													{tvlByChain
+														.filter((c) => c[0].endsWith('-borrowed'))
+														.map((c) => (
+															<tr key={JSON.stringify(c)}>
+																<th data-subvalue>{c[0].split('-')[0]}</th>
+																<td data-subvalue>{formatPrice(c[1])}</td>
+															</tr>
+														))}
+												</>
+											}
+										/>
+									) : null}
+
+									{tokenLiquidity && tokenLiquidity.length > 0 ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType="Token Liquidity"
+											rowHeader={`${symbol || 'Token'} Liquidity`}
+											rowValue={formatPrice(tokenLiquidity.reduce((acc, curr) => (acc += curr[2]), 0))}
+											helperText={null}
+											subRows={
+												<>
+													{tokenLiquidity.map((item) => (
+														<tr key={'token-liq' + item[0] + item[1] + item[2]}>
+															<th data-subvalue>{`${item[0]} (${item[1]})`}</th>
+															<td data-subvalue>{formatPrice(item[2])}</td>
+														</tr>
+													))}
+												</>
+											}
+										/>
+									) : null}
+
+									{allTimeVolume && dailyVolume ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType="Volume"
+											rowHeader="Volume 24h"
+											rowValue={formatPrice(dailyVolume)}
+											helperText={null}
+											subRows={
+												<>
+													{allTimeVolume ? (
+														<tr>
+															<th data-subvalue>{`Cumulative Volume`}</th>
+															<td data-subvalue>{formatPrice(allTimeVolume)}</td>
+														</tr>
+													) : null}
+												</>
+											}
+										/>
+									) : dailyVolume ? (
+										<tr>
+											<th>
+												<span>Volume 24h</span>
+												<Flag protocol={protocolData.name} dataType={'Volume'} />
+											</th>
+											<td>{formatPrice(dailyVolume)}</td>
+										</tr>
+									) : null}
+
+									{dailyDerivativesVolume && allTimeDerivativesVolume ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType="Derivatives Volume"
+											rowHeader="Derivatives Volume 24h"
+											rowValue={formatPrice(dailyDerivativesVolume)}
+											helperText={null}
+											subRows={
+												<>
+													{allTimeDerivativesVolume ? (
+														<tr>
+															<th data-subvalue>{`Cumulative Volume`}</th>
+															<td data-subvalue>{formatPrice(allTimeDerivativesVolume)}</td>
+														</tr>
+													) : null}
+												</>
+											}
+										/>
+									) : dailyDerivativesVolume ? (
+										<tr>
+											<th>
+												<span>Derivatives Volume 24h</span>
+												<Flag protocol={protocolData.name} dataType={'Derivatives Volume'} />
+											</th>
+											<td>{formatPrice(dailyDerivativesVolume)}</td>
+										</tr>
+									) : null}
+
+									{fees30d ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType="Fees"
+											rowHeader="Fees (annualized)"
+											rowValue={formatPrice(fees30d * 12.2)}
+											helperText={explainAnnualized(helperTexts.fees)}
+											subRows={
+												<>
+													<tr>
+														<th data-subvalue>{`Fees 30d`}</th>
+														<td data-subvalue>{formatPrice(fees30d)}</td>
+													</tr>
+
+													{dailyFees ? (
+														<tr>
+															<th data-subvalue>{`Fees 24h`}</th>
+															<td data-subvalue>{formatPrice(dailyFees)}</td>
+														</tr>
+													) : null}
+
+													{allTimeFees ? (
+														<tr>
+															<th data-subvalue>{`Cumulative Fees`}</th>
+															<td data-subvalue>{formatPrice(allTimeFees)}</td>
+														</tr>
+													) : null}
+												</>
+											}
+										/>
+									) : null}
+
+									{revenue30dFinal ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType="Revenue"
+											rowHeader="Revenue (annualized)"
+											rowValue={formatPrice(revenue30dFinal * 12.2)}
+											helperText={explainAnnualized(helperTexts.revenue)}
+											subRows={
+												<>
+													<tr>
+														<th data-subvalue>{`Revenue 30d`}</th>
+														<td data-subvalue>{formatPrice(revenue30d)}</td>
+													</tr>
+
+													{dailyRevenueFinal ? (
+														<tr>
+															<th data-subvalue>{`Revenue 24h`}</th>
+															<td data-subvalue>{formatPrice(dailyRevenueFinal)}</td>
+														</tr>
+													) : null}
+												</>
+											}
+										/>
+									) : null}
+
+									{users?.activeUsers ? (
+										<RowWithSubRows
+											helperText={helperTexts.users}
+											protocolName={protocolData.name}
+											dataType="Users"
+											rowHeader={'Active Addresses 24h'}
+											rowValue={formattedNum(users.activeUsers, false)}
+											subRows={
+												<>
+													{users.newUsers ? (
+														<tr>
+															<th data-subvalue>New Addresses 24h</th>
+															<td data-subvalue>{formattedNum(users.newUsers, false)}</td>
+														</tr>
+													) : null}
+													{users.transactions ? (
+														<tr>
+															<th data-subvalue>Transactions 24h</th>
+															<td data-subvalue>{formattedNum(users.transactions, false)}</td>
+														</tr>
+													) : null}
+													{users.gasUsd ? (
+														<tr>
+															<th data-subvalue>Gas Used 24h</th>
+															<td data-subvalue>{formatPrice(users.gasUsd)}</td>
+														</tr>
+													) : null}
+												</>
+											}
+										/>
+									) : null}
+
+									{treasury && (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											helperText={null}
+											rowHeader={'Treasury'}
+											rowValue={formatPrice(
+												Object.entries(treasury).reduce(
+													(acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]),
+													0
+												)
+											)}
+											dataType={'Treasury'}
+											subRows={
+												<>
+													{Object.entries(treasury).map(([cat, tre]) => {
+														return (
+															<tr key={'treasury' + cat + tre}>
+																<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
+																<td data-subvalue>{formatPrice(tre)}</td>
+															</tr>
+														)
+													})}
+												</>
+											}
+										/>
+									)}
+
+									<>
+										{raises && raises.length > 0 && (
+											<RowWithSubRows
+												protocolName={protocolData.name}
+												dataType={'Raises'}
+												helperText={null}
+												rowHeader={'Total Raised'}
+												rowValue={formatRaisedAmount(raises.reduce((sum, r) => sum + Number(r.amount), 0))}
+												subRows={
+													<>
+														{raises
+															.sort((a, b) => a.date - b.date)
+															.map((raise) => (
+																<React.Fragment key={raise.date + raise.amount}>
+																	<tr>
+																		<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
+																		<td data-subvalue>
+																			{raise.source ? (
+																				<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+																					{formatRaise(raise)}
+																				</a>
+																			) : (
+																				formatRaise(raise)
+																			)}
+																		</td>
+																	</tr>
+																	<tr key={raise.source}>
+																		<td colSpan={2} className="investors">
+																			<b>Investors</b>:{' '}
+																			{(raise as any).leadInvestors
+																				.concat((raise as any).otherInvestors)
+																				.map((i, index, arr) => (
+																					<React.Fragment key={'raised from ' + i}>
+																						<a href={`/raises/${sluggify(i)}`}>{i}</a>
+																						{index < arr.length - 1 ? ', ' : ''}
+																					</React.Fragment>
+																				))}
+																		</td>
+																	</tr>
+																</React.Fragment>
+															))}
+													</>
+												}
+											/>
+										)}
+									</>
+
+									{controversialProposals && controversialProposals.length > 0 ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType={'Governance'}
+											helperText={null}
+											rowHeader={'Top Controversial Proposals'}
+											rowValue={null}
+											subRows={
+												<>
+													{controversialProposals.map((proposal) => (
+														<tr key={proposal.title}>
+															<td data-subvalue style={{ textAlign: 'left' }}>
+																{proposal.link ? (
+																	<a href={proposal.link} target="_blank" rel="noreferrer noopener">
+																		{proposal.title}
+																	</a>
+																) : (
+																	proposal.title
+																)}
+															</td>
+														</tr>
+													))}
+												</>
+											}
+										/>
+									) : null}
+
+									{expenses && (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType={'Expenses'}
+											helperText={null}
+											rowHeader={'Annual operational expenses'}
+											rowValue={formatPrice(
+												Object.values((expenses.annualUsdCost || {}) as { [key: string]: number }).reduce(
+													(acc, curr) => (acc += curr),
+													0
+												)
+											)}
+											subRows={
+												<>
+													<tr>
+														<th data-subvalue>Headcount</th>
+														<td data-subvalue>{expenses.headcount}</td>
+													</tr>
+
+													{Object.entries(expenses.annualUsdCost || {}).map(([cat, exp]: [string, number]) => {
+														return (
+															<tr key={'expenses' + cat + exp}>
+																<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
+																<td data-subvalue>{formatPrice(exp)}</td>
+															</tr>
+														)
+													})}
+
+													<tr>
+														<th data-subvalue>
+															<a href={expenses.sources?.[0] ?? null}>
+																Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
+															</a>
+														</th>
+														<td data-subvalue></td>
+													</tr>
+												</>
+											}
+										/>
+									)}
+								</tbody>
+							</StatsTable2>
+
+							<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
+						</ProtocolDetailsWrapper>
+
+						<ProtocolChart
+							protocolData={protocolData}
+							twitterHandle={protocolData.twitter}
+							protocol={protocol}
+							color={backgroundColor}
+							historicalChainTvls={historicalChainTvls}
+							hallmarks={hallmarks}
+							bobo={bobo}
+							geckoId={gecko_id}
+							chartColors={chartColors}
+							metrics={metrics}
+							activeUsersId={users ? protocolData.id : null}
+							usdInflowsData={usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null}
+							governanceApis={governanceApis}
+							isHourlyChart={isHourlyChart}
+							isCEX={isCEX}
+							tokenSymbol={symbol ?? 'Token'}
+							protocolId={protocolData.id}
+							chartDenominations={chartDenominations}
+							nftVolumeData={nftVolumeData}
+						/>
+
+						<Bobo onClick={() => setBobo(!bobo)}>
+							<span className="visually-hidden">Enable Goblin Mode</span>
+							<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
+						</Bobo>
+					</StatsSection>
 					<GridContent>
 						<Section>
 							<h3>{isCEX ? 'Exchange Information' : 'Protocol Information'}</h3>
