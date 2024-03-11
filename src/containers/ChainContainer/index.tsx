@@ -538,7 +538,10 @@ export function ChainContainer({
 								{chainAssets ? (
 									<RowWithSubRows
 										rowHeader="Bridged TVL"
-										rowValue={formattedNum(chainAssets.total.total, true)}
+										rowValue={formattedNum(
+											chainAssets.total.total - (extraTvlsEnabled.govtokens ? 0 : chainAssets?.ownTokens?.total),
+											true
+										)}
 										helperText={null}
 										protocolName={null}
 										dataType={null}
@@ -552,6 +555,13 @@ export function ChainContainer({
 																<td>{formattedNum(chainAssets.native.total, true)}</td>
 															</tr>
 														) : null}
+														{extraTvlsEnabled.govtokens && chainAssets.ownTokens?.total ? (
+															<tr>
+																<th>Own Tokens</th>
+																<td>{formattedNum(chainAssets.ownTokens.total, true)}</td>
+															</tr>
+														) : null}
+
 														{chainAssets.canonical?.total ? (
 															<tr>
 																<th>Canonical</th>
