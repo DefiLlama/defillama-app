@@ -153,8 +153,8 @@ const protocolsByChainTableColumns = [
 		category: TABLE_CATEGORIES.REVENUE,
 		period: TABLE_PERIODS.ONE_DAY
 	},
-	{ name: 'P/S', key: 'pf', category: TABLE_CATEGORIES.FEES },
-	{ name: 'P/F', key: 'ps', category: TABLE_CATEGORIES.FEES },
+	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
+	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
 	{ name: 'Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
 	{
