@@ -9,7 +9,8 @@ import {
 	ColumnOrderState,
 	ColumnSizingState,
 	ColumnFiltersState,
-	getFilteredRowModel
+	getFilteredRowModel,
+	ColumnDef
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
 import {
@@ -347,13 +348,16 @@ export function ProtocolsTableWithSearch({
 	data,
 	addlColumns,
 	removeColumns,
-	skipVirtualization
+	skipVirtualization,
+	columns
 }: {
 	data: Array<IProtocolRow>
 	addlColumns?: Array<string>
 	removeColumns?: Array<string>
 	skipVirtualization?: boolean
+	columns?: ColumnDef<any>[]
 }) {
+	const columnsToUse = columns ?? protocolsColumns
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -366,10 +370,10 @@ export function ProtocolsTableWithSearch({
 		() =>
 			addlColumns || removeColumns
 				? [
-						...protocolsColumns.filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
+						...(columnsToUse as any).filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
 						...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
 				  ]
-				: protocolsColumns,
+				: columnsToUse,
 		[addlColumns, removeColumns]
 	)
 

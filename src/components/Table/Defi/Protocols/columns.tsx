@@ -439,6 +439,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		},
 		size: 100
 	},
+
 	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
@@ -461,6 +462,73 @@ export const listedAtColumn = {
 		align: 'end' as const
 	}
 }
+
+export const categoryProtocolsColumns: ColumnDef<IProtocolRow>[] = [
+	...protocolsColumns,
+	{
+		header: 'Fees 24h',
+		accessorKey: 'fees_24h',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Fees 7d',
+		accessorKey: 'fees_7d',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Fees 30d',
+		accessorKey: 'fees_30d',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Revenue 24h',
+		accessorKey: 'revenue_24h',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Revenue 7d',
+		accessorKey: 'revenue_7d',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Volume 24h',
+		accessorKey: 'volume_24h',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Volume 7d',
+		accessorKey: 'volume_7d',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	}
+]
 
 export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
 	...protocolsColumns.slice(0, 3),

@@ -53,7 +53,8 @@ export default function VirtualTable({
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
-	const isChainPage = router.pathname === '/' || router.pathname.startsWith('/chain')
+	const isChainPage =
+		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
 	return (
 		<Wrapper ref={tableContainerRef} {...props}>
 			<div style={{ display: 'flex', flexDirection: 'column' }}>

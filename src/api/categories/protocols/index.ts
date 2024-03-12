@@ -29,6 +29,8 @@ import {
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
+import { getFeesAndRevenueProtocolsByChain } from '../fees'
+import { getDexVolumeByChain } from '../dexs'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -297,6 +299,14 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 export async function getProtocolsPageData(category?: string, chain?: string) {
 	const { protocols, chains, parentProtocols } = await getProtocols()
 	const normalizedCategory = category?.toLowerCase().replace(' ', '_')
+	const feesRes = await getFeesAndRevenueProtocolsByChain({
+		chain
+	})
+	const volumesRes = await getDexVolumeByChain({
+		chain,
+		excludeTotalDataChart: true,
+		excludeTotalDataChartBreakdown: true
+	})
 
 	const chainsSet = new Set()
 
@@ -334,6 +344,9 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 		categoryChart,
 		filteredProtocols,
 		chain: chain ?? 'All',
+		protocols,
+		fees: feesRes,
+		volumesRes: volumesRes.protocols,
 		category,
 		chains: chains.filter((chain) => chainsSet.has(chain)),
 		parentProtocols
