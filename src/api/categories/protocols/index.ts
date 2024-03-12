@@ -346,7 +346,7 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 		chain: chain ?? 'All',
 		protocols,
 		fees: feesRes,
-		volumesRes: volumesRes.protocols,
+		volumes: volumesRes.protocols,
 		category,
 		chains: chains.filter((chain) => chainsSet.has(chain)),
 		parentProtocols
