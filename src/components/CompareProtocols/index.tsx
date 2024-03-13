@@ -37,7 +37,7 @@ const useProtocols = (protocols: string[], chain?: string) => {
 				return {
 					chain: x.name,
 					globalChart: formatProtocolsTvlChartData({
-						historicalChainTvls: chain ? { [chain]: historicalChainTvls[chain] } : historicalChainTvls,
+						historicalChainTvls: chain ? { [chain]: historicalChainTvls[chain] || {} } : historicalChainTvls,
 						extraTvlEnabled
 					}).filter((x) => +x[0] % 86400 === 0)
 				}
@@ -50,7 +50,7 @@ const useProtocols = (protocols: string[], chain?: string) => {
 }
 
 const CompareProtocols = ({ protocols, chain }: { protocols: string[]; chain: string }) => {
-	const { isLoading, chartData } = useProtocols(protocols)
+	const { isLoading, chartData } = useProtocols(protocols, chain)
 	const [isDark] = useDarkModeManager()
 
 	return (

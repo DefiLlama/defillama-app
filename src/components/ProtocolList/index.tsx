@@ -108,8 +108,7 @@ function ProtocolList({
 		return data.map((p) => ({
 			...p,
 			compare: addOrRemoveCompare,
-			isCompared: compareProtocols.includes(p.name),
-			kek: console.log(compareProtocols.includes(p.name), compareProtocols, p.name, 'KEKEKE')
+			isCompared: compareProtocols.includes(p.name)
 		}))
 	}, [extraTvlsEnabled, protocols, parentProtocols, category, chain, compareProtocols])
 
