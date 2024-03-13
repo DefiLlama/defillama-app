@@ -59,17 +59,20 @@ export default function AreaChart({
 	title,
 	tooltipSort = true,
 	height = '360px',
+	width = null,
 	expandTo100Percent = false,
 	denomination,
 	datasets,
 	hideTooltip,
 	isThemeDark,
+	compareMode,
+	showLegend = false,
 	...props
 }) {
 	const id = useMemo(() => uuid(), [])
 	const { query: route, pathname } = useRouter()
 
-	const isCompare = pathname?.includes('compare')
+	const isCompare = pathname?.includes('compare') || compareMode
 
 	const defaultChartSettings = useDefaults({
 		color: primaryColor,
@@ -404,7 +407,7 @@ export default function AreaChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
 		dataZoom[1] = {
 			...dataZoom[1],
@@ -413,7 +416,7 @@ export default function AreaChart({
 		} as any
 
 		const offsets = {
-			TVL: undefined,
+			TVL: 60,
 			Volume: 60,
 			Fees: 55,
 			Revenue: 65,
@@ -434,7 +437,11 @@ export default function AreaChart({
 
 		chartInstance.setOption({
 			graphic: { ...graphic },
-
+			legend: {
+				...legend,
+				left: 75,
+				show: showLegend
+			},
 			tooltip: {
 				...tooltip,
 				...(hideTooltip
@@ -668,7 +675,10 @@ export default function AreaChart({
 	])
 
 	return (
-		<div style={{ position: 'relative', minHeight: height }} {...props}>
+		<div
+			style={{ position: 'relative', minHeight: height, minWidth: width ?? 'auto', width: width ? '100%' : undefined }}
+			{...props}
+		>
 			<Wrapper id={id} style={{ minHeight: height, margin: 'auto 0' }}></Wrapper>
 		</div>
 	)

@@ -12,7 +12,7 @@ import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { LayoutWrapper, OverallMetricsWrapper } from '~/containers/ChainContainer'
 import { StatsSection } from '~/layout/Stats/Medium'
-import { chainIconUrl, formattedNum, getPercentChange } from '~/utils'
+import { chainIconUrl, formattedNum, getPercentChange, slug } from '~/utils'
 import TokenLogo from '../TokenLogo'
 import { Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
@@ -20,6 +20,9 @@ import { ChevronRight } from 'react-feather'
 import { RowWithSubRows, StatsTable2 } from '~/containers/Defi/Protocol'
 import { categoryProtocolsColumns } from '../Table/Defi/Protocols/columns'
 import { IOverviewProps } from '~/api/categories/adaptors'
+import Modal from '../Modal'
+import CompareProtocols from '../CompareProtocols'
+import { ButtonDark } from '../ButtonStyled'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -57,6 +60,8 @@ function ProtocolList({
 }: IAllTokensPageProps) {
 	const [isDark] = useDarkModeManager()
 	const router = useRouter()
+	const [compareProtocols, setCompareProtocols] = React.useState<string[]>([])
+	const [isCompareModalOpen, setIsCompareModalOpen] = React.useState(false)
 	const handleRouting = (chain) => {
 		if (chain === 'All') return `/protocols/${category}`
 		return `/protocols/${category}/${chain}`
@@ -79,6 +84,18 @@ function ProtocolList({
 
 	const [extraTvlsEnabled] = useDefiManager()
 
+	React.useEffect(() => {
+		setCompareProtocols([])
+	}, [chain, category])
+
+	const addOrRemoveCompare = React.useCallback(
+		(protocol) => {
+			setCompareProtocols((prev) =>
+				prev.indexOf(protocol) === -1 ? [...prev, protocol] : prev.filter((p) => p !== protocol)
+			)
+		},
+		[compareProtocols, setCompareProtocols, category, chain]
+	)
 	const protocolTotals = React.useMemo(() => {
 		const data = formatProtocolsList({
 			extraTvlsEnabled,
@@ -88,8 +105,13 @@ function ProtocolList({
 			volumeData: volumes
 		})
 
-		return data
-	}, [extraTvlsEnabled, protocols, parentProtocols])
+		return data.map((p) => ({
+			...p,
+			compare: addOrRemoveCompare,
+			isCompared: compareProtocols.includes(p.name),
+			kek: console.log(compareProtocols.includes(p.name), compareProtocols, p.name, 'KEKEKE')
+		}))
+	}, [extraTvlsEnabled, protocols, parentProtocols, category, chain, compareProtocols])
 
 	const { tvl, dominance, topToken, percentChange, totals } = React.useMemo(() => {
 		const tvlVal = protocolTotals?.reduce((acc, protocol) => acc + protocol.tvl, 0)
@@ -115,7 +137,6 @@ function ProtocolList({
 			acc[field] = aggregateField(protocolTotals, field)
 			return acc
 		}, {})
-		console.log(totals)
 		return { tvl, dominance, topToken, percentChange, totals }
 	}, [protocolTotals, categoryChart])
 	if (!title) {
@@ -124,11 +145,20 @@ function ProtocolList({
 			title = `${category} TVL Rankings`
 		}
 	}
-	const columnsToRemove = Object.entries(totals)
-		.filter((t) => !(t[1] > 0))
-		.map((t) => t[0])
-
+	const columnsToRemove = React.useMemo(
+		() =>
+			(category ? ['category'] : []).concat(
+				Object.entries(totals)
+					.filter((t) => !(t[1] > 0))
+					.map((t) => t[0])
+			),
+		[totals, category]
+	)
 	const routeName = category ? (chain === 'All' ? 'All Chains' : chain) : 'All Protocols'
+
+	const datasets = React.useMemo(() => {
+		return [{ globalChart: categoryChart }]
+	}, [categoryChart])
 
 	return (
 		<>
@@ -274,7 +304,7 @@ function ProtocolList({
 							</StatsTable2>
 						</OverallMetricsWrapper>
 						{router.isReady && categoryChart ? (
-							<ChainChart datasets={[{ globalChart: categoryChart }]} title="" isThemeDark={isDark} hideTooltip />
+							<ChainChart datasets={datasets} title="" isThemeDark={isDark} hideTooltip />
 						) : null}
 					</StatsSection>
 				) : null}
@@ -287,9 +317,20 @@ function ProtocolList({
 							? ['borrowed', 'supplied', 'suppliedTvl']
 							: null
 					}
-					removeColumns={(category ? ['category'] : []).concat(columnsToRemove)}
+					removeColumns={columnsToRemove}
 				/>
 			</LayoutWrapper>
+			{compareProtocols.length > 0 && (
+				<ButtonDark
+					style={{ position: 'fixed', bottom: '16px', right: '16px' }}
+					onClick={() => setIsCompareModalOpen(true)}
+				>
+					Compare Protocols ({compareProtocols.length})
+				</ButtonDark>
+			)}
+			<Modal isOpen={isCompareModalOpen} onClose={() => setIsCompareModalOpen(false)} title="Compare Protocols">
+				<CompareProtocols protocols={compareProtocols.map(slug)} chain={chain} />
+			</Modal>
 		</>
 	)
 }
