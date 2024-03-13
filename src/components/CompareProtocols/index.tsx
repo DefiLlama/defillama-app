@@ -30,20 +30,25 @@ const useProtocols = (protocols: string[], chain?: string) => {
 
 	const [extraTvlEnabled] = useDefiManager()
 	const chartData = React.useMemo(() => {
-		const formattedData =
-			data?.map((x) => {
-				const { historicalChainTvls } = fuseProtocolData(x)
+		try {
+			const formattedData =
+				data?.map((x) => {
+					const { historicalChainTvls } = fuseProtocolData(x)
+					return {
+						chain: x.name,
+						globalChart: formatProtocolsTvlChartData({
+							historicalChainTvls:
+								chain && chain !== 'All' ? { [chain]: historicalChainTvls[chain] || {} } : historicalChainTvls,
+							extraTvlEnabled
+						}).filter((x) => +x[0] % 86400 === 0)
+					}
+				}) ?? []
 
-				return {
-					chain: x.name,
-					globalChart: formatProtocolsTvlChartData({
-						historicalChainTvls: chain ? { [chain]: historicalChainTvls[chain] || {} } : historicalChainTvls,
-						extraTvlEnabled
-					}).filter((x) => +x[0] % 86400 === 0)
-				}
-			}) ?? []
-
-		return formattedData
+			return formattedData
+		} catch (e) {
+			console.error(e)
+			return []
+		}
 	}, [data, extraTvlEnabled])
 
 	return { data, isLoading, chartData }
