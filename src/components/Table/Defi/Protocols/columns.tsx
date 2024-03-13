@@ -548,6 +548,33 @@ export const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 		}
 	},
 	listedAtColumn,
+	{
+		header: 'Total Tx',
+		accessorKey: 'totalTxs',
+		cell: ({ getValue }) => <>{getValue() ? `${toK(getValue())}` : ''}</>,
+		size: 120,
+		meta: {
+			align: 'end' as const
+		}
+	},
+	{
+		header: 'Total Users',
+		accessorKey: 'totalUsers',
+		cell: ({ getValue }) => <>{getValue() ? `${toK(getValue())}` : ''}</>,
+		size: 120,
+		meta: {
+			align: 'end' as const
+		}
+	},
+	{
+		header: 'Tx over Users',
+		accessorKey: 'txsOverUsers',
+		cell: ({ getValue }) => <>{getValue() ? `${toK(getValue())}` : ''}</>,
+		size: 120,
+		meta: {
+			align: 'end' as const
+		}
+	},
 	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
 ]
 
