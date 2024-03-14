@@ -466,7 +466,6 @@ export const listedAtColumn = {
 }
 
 export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
-	...protocolsColumns.filter((c: any) => c.accessorKey !== 'name'),
 	{
 		header: 'Compare',
 		accessorKey: 'compare',
@@ -487,6 +486,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 			align: 'center' as any
 		}
 	},
+	...protocolsColumns.filter((c: any) => c.accessorKey !== 'name'),
 	{
 		header: () => <Name>Name</Name>,
 		accessorKey: 'name',
