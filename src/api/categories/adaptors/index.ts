@@ -114,9 +114,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-			...p,
-			tvl: p?.chainTvls?.[chain]?.tvl ?? null
-		}))
+				...p,
+				tvl: p?.chainTvls?.[chain]?.tvl ?? null
+		  }))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -173,7 +173,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		totalDataChart,
 		totalDataChartBreakdown,
 		allChains
-	} = request
+	} = type === 'options' ? feesOrRevenue : request
 
 	const chains = protocols.filter((e) => e.protocolType === 'chain').map((e) => e.name)
 
@@ -203,7 +203,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	const tvlData: IJSON<number> = getTVLData(protocolsData, filtredChain)
 	const mcapData = { ...getMCap(protocolsData), ...chainMcap }
-	const label: string = type === 'options' ? 'Notional volume' : capitalizeFirstLetter(type)
+	const label: string = type === 'options' ? 'Premium Volume' : capitalizeFirstLetter(type)
 
 	const allCharts: IChartsList = []
 
@@ -212,15 +212,15 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	}
 
 	if (type === 'options' && feesOrRevenue?.totalDataChart) {
-		allCharts.push(['Premium volume', feesOrRevenue.totalDataChart])
+		allCharts.push(['Notional Volume', request.totalDataChart])
 	}
 
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-				{} as IJSON<ProtocolAdaptorSummary>
-			) ?? {}
+					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+					{} as IJSON<ProtocolAdaptorSummary>
+			  ) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -476,10 +476,11 @@ export interface IOverviewProps {
 	dexsDominance?: number
 	categories?: Array<string>
 	isSimpleFees?: boolean
+	premium?: IOverviewProps
 }
 
 // - used in /[type]/chains
-export const getChainsPageData = async (type: string): Promise<IOverviewProps> => {
+export const getChainsPageData = async (type: string, dataType?: string): Promise<IOverviewProps> => {
 	const { allChains, total24h: allChainsTotal24h } = await getOverview(type)
 
 	const [protocolsData, ...dataByChain] = await Promise.all([
@@ -489,7 +490,12 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 				console.log(PROTOCOLS_API, err)
 				return {}
 			}),
-		...allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
+		...allChains.map((chain) =>
+			getOverview(type, chain, dataType, true, true).then((res) => ({
+				...res,
+				chain
+			}))
+		)
 	])
 
 	let protocols = dataByChain

@@ -33,7 +33,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	const isSimpleFees = props.isSimpleFees
 	const router = useRouter()
 
-	const { dataType: selectedDataType = 'Notional volume' } = router.query
+	const { dataType: selectedDataType = 'Premium Volume' } = router.query
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 	const [enabledSettings] = useFeesManager()
 
@@ -101,9 +101,9 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	// Needs to be improved! Too dirty
 	const { data, error, loading } = useFetchCharts(
 		props.type,
-		chain === 'All' ? undefined : chain,
+		chain === 'all' ? undefined : chain,
 		undefined,
-		props.type === 'fees' || chain === 'all'
+		props.type === 'options' ? false : props.type === 'fees' || chain === 'all'
 	)
 	const {
 		data: secondTypeData,
@@ -111,11 +111,10 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 		loading: secondTypeLoading
 	} = useFetchCharts(
 		props.type,
-		chain === 'All' ? undefined : chain,
+		chain === 'all' ? undefined : chain,
 		'dailyPremiumVolume',
 		props.type !== 'options' || chain === 'all'
 	)
-
 	const isChainsPage = chain === 'all'
 
 	React.useEffect(() => {
@@ -139,13 +138,13 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			setEnableBreakdownChart(false)
 			setCharts((val) => ({
 				...val,
-				['totalDataChartBreakdownPremium volume']: undefined
+				['totalDataChartBreakdownPremium Volume']: undefined
 			}))
 		}
 		if (secondTypeData && !secondTypeError && !secondTypeLoading)
 			setCharts((val) => ({
 				...val,
-				['totalDataChartBreakdownPremium volume']: secondTypeData?.totalDataChartBreakdown
+				['totalDataChartBreakdownPremium Volume']: secondTypeData?.totalDataChartBreakdown
 			}))
 	}, [secondTypeData, secondTypeLoading, secondTypeError, props.chain])
 
@@ -160,7 +159,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			const arr = Object.values(
 				charts[
 					`totalDataChartBreakdown${
-						!selectedDataType || selectedDataType === 'Notional volume' ? '' : selectedDataType
+						!selectedDataType || selectedDataType === 'Notional Volume' ? '' : selectedDataType
 					}`
 				]?.map<IJSON<number | string>>((cd) => {
 					return {
@@ -183,6 +182,22 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				}
 			})
 			return [arr, Object.values(displayNameMap)]
+		}
+
+		if (props.type === 'options' && chain !== 'all') {
+			const [chart] = props.totalDataChart
+			const arr = chart.map<IJoin2ReturnType[number]>((cd) => {
+				return {
+					date: cd.date,
+					[selectedDataType as string]: cd[selectedDataType as string]
+				}
+			})
+			return [arr, [selectedDataType as string]]
+		}
+		if (props.type === 'options' && chain === 'all') {
+			const chart = selectedDataType === 'Notional Volume' ? props.totalDataChart : props.premium.totalDataChart
+
+			return chart
 		}
 		return props.totalDataChart
 	}, [enableBreakdownChart, charts, props.totalDataChart, props.protocols, selectedDataType])
@@ -263,7 +278,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				fullChart: isChainsPage,
 				disableDefaultLeged: isChainsPage ? true : enableBreakdownChart,
 				selectedType: (selectedDataType as string) ?? undefined,
-				chartTypes: props.type === 'options' && enableBreakdownChart ? ['Notional volume', 'Premium volume'] : undefined
+				chartTypes: props.type === 'options' ? ['Premium Volume', 'Notional Volume'] : undefined
 			})}
 			{rowLinks ? (
 				<RowLinksWrapper>
