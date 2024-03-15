@@ -159,7 +159,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			const arr = Object.values(
 				charts[
 					`totalDataChartBreakdown${
-						!selectedDataType || selectedDataType === 'Notional Volume' ? '' : selectedDataType
+						props.type === 'options' ? (selectedDataType === 'Notional Volume' ? '' : 'Premium Volume') : ''
 					}`
 				]?.map<IJSON<number | string>>((cd) => {
 					return {
@@ -200,7 +200,16 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			return chart
 		}
 		return props.totalDataChart
-	}, [enableBreakdownChart, charts, props.totalDataChart, props.protocols, selectedDataType])
+	}, [
+		enableBreakdownChart,
+		props.type,
+		props.totalDataChart,
+		props.protocols,
+		props?.premium?.totalDataChart,
+		chain,
+		charts,
+		selectedDataType
+	])
 
 	const downloadCsv = React.useCallback(() => {
 		const columnsToPick = ['date', ...chartData[1]]
