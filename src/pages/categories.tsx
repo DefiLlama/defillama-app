@@ -91,8 +91,7 @@ export const descriptions = {
 	SoFi: 'Social Finance Networks',
 	'DEX Aggregator': `A platform that sources liquidity from various decentralized exchanges to provide optimal trade execution in terms of price and slippage`,
 	Restaking: 'Protocols that allow you to stake the same ETH natively and in others protocols',
-	'Liquid Restaking':
-		'Projects where their LST (Liquid Staking Token) is 100 % natively an Liquid Restaking token (LRT)',
+	'Liquid Restaking': 'Protocols that create a liquid token for restaking',
 	Wallets: 'Protocols where you have a form of digital storage to secure access to your crypto.',
 	NftFi: 'NFT leverage protocols'
 }
