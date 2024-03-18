@@ -198,6 +198,7 @@ export const useFetchChainChartData = ({
 			}
 			return [ts, data.total]
 		})
+
 		const chartDatasets = [
 			{
 				feesChart: finalFeesAndRevenueChart,
@@ -221,23 +222,24 @@ export const useFetchChainChartData = ({
 
 		return chartDatasets
 	}, [
-		chainGeckoId,
 		denomination,
 		denominationPriceHistory,
-		feesAndRevenueChart,
+		chainGeckoId,
 		globalChart,
-		inflowsChartData,
-		raisesChart,
-		stablecoinsChartData,
-		txsData,
-		usersData,
 		volumeChart,
-		devMetricsData?.report?.monthly_devs,
 		priceChartData?.prices,
 		priceChartData?.market_caps,
-		derivativesData,
-		aggregatorsData,
-		chainAssetsChart
+		aggregatorsData?.totalDataChart,
+		derivativesData?.totalDataChart,
+		feesAndRevenueChart,
+		devMetricsData?.report?.monthly_devs,
+		chainAssetsChart,
+		raisesChart,
+		stablecoinsChartData,
+		inflowsChartData,
+		usersData,
+		txsData,
+		extraTvlsEnabled?.govtokens
 	])
 
 	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)

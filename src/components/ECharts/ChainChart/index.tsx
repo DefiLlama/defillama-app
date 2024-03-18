@@ -698,7 +698,8 @@ export default function AreaChart({
 		activeSeries,
 		hideTooltip,
 		isCompare,
-		isThemeDark
+		isThemeDark,
+		showLegend
 	])
 
 	return (
