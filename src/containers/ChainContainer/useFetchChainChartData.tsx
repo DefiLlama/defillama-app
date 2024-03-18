@@ -185,18 +185,19 @@ export const useFetchChainChartData = ({
 
 		const finalChainAssetsChart = chainAssetsChart?.map(({ data, timestamp }) => {
 			const ts = Math.floor(
-				nearestUtc(
-					dayjs(timestamp * 1000)
-						.toDate()
-						.getTime()
-				) / 1000
+				dayjs(timestamp * 1000)
+					.utc()
+					.set('hour', 0)
+					.set('minute', 0)
+					.set('second', 0)
+					.toDate()
+					.getTime() / 1000
 			)
 			if (!extraTvlsEnabled?.govtokens && data.ownTokens) {
-				return [ts, data.total.total - data.ownTokens.total]
+				return [ts, data.total - data.ownTokens]
 			}
-			return [ts, data.total.total]
+			return [ts, data.total]
 		})
-
 		const chartDatasets = [
 			{
 				feesChart: finalFeesAndRevenueChart,

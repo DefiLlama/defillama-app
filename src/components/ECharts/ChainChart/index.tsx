@@ -624,6 +624,7 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
+					min: 0,
 					scale: true,
 					id: 'Chain Assets',
 					axisLabel: {
