@@ -37,5 +37,10 @@
 		"name": "Aevo",
 		"page": "https://app.aevo.xyz/aevo",
 		"twitter": "aevoxyz"
+	},
+	{
+		"name": "ether.fi",
+		"page": "https://claim.ether.fi/",
+		"twitter": "ether_fi"
 	}
 ]
