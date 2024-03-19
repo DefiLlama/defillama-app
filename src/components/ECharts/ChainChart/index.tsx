@@ -30,7 +30,8 @@ const colors = {
 	tokenPrice: '#c7da1f',
 	tokenMcap: '#1fda38',
 	derivatives: '#305a00',
-	aggregators: '#ff7b00'
+	aggregators: '#ff7b00',
+	tokenVolume: '#ff008c'
 }
 
 const colorsArray = [
@@ -392,6 +393,24 @@ export default function AreaChart({
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
+
+			if (route.chainTokenVolume === 'true' && data?.chainTokenVolumeData) {
+				series.push({
+					name: namePrefix + 'Token Volume',
+					chartId: 'Token Volume',
+					symbol: 'none',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 16,
+					itemStyle: {
+						color: getColor(isCompare) || colors.tokenVolume
+					}
+				})
+				data?.chainTokenVolumeData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
@@ -431,7 +450,8 @@ export default function AreaChart({
 			'Token Price': 55,
 			'Token Mcap': 55,
 			Aggregators: 55,
-			Derivatives: 55
+			Derivatives: 55,
+			'Token Volume': 60
 		}
 		let offsetAcc = -60
 
@@ -611,6 +631,15 @@ export default function AreaChart({
 						...yAxis.axisLabel,
 						color: () => (isCompare ? '#fff' : colors.derivatives)
 					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Token Volume',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.tokenVolume)
+					}
 				}
 			].map((yAxis: any, i) => {
 				const isActive = activeSeries?.findIndex((id) => id === yAxis.id) !== -1
@@ -671,7 +700,8 @@ export default function AreaChart({
 		activeSeries,
 		hideTooltip,
 		isCompare,
-		isThemeDark
+		isThemeDark,
+		showLegend
 	])
 
 	return (
