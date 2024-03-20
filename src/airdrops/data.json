@@ -42,5 +42,10 @@
 		"name": "ether.fi",
 		"page": "https://claim.ether.fi/",
 		"twitter": "ether_fi"
+	},
+	{
+		"name": "Polyhedra Network",
+		"page": "https://polyhedra.foundation",
+		"twitter": "PolyhedraZK"
 	}
 ]
