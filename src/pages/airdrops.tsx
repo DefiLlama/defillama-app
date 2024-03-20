@@ -1,6 +1,10 @@
 import { RecentProtocols } from '~/components/RecentProtocols'
 import { maxAgeForNext } from '~/api'
-import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import {
+	getAirdropDirectoryData,
+	getSimpleProtocolsPageData,
+	getTotalProtocolUsersData
+} from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API, RAISES_API } from '~/constants'
 import { fetchOverCache, withPerformanceLogging } from '~/utils/perf'
@@ -114,11 +118,12 @@ const exclude = [
 ]
 
 export const getStaticProps = withPerformanceLogging('airdrops', async () => {
-	const [protocolsRaw, { forks }, { raises }, claimableAirdrops] = await Promise.all([
+	const [protocolsRaw, { forks }, { raises }, claimableAirdrops, totalProtocolUsers] = await Promise.all([
 		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls', 'defillamaId']),
 		fetchOverCache(FORK_API).then((r) => r.json()),
 		fetchOverCache(RAISES_API).then((r) => r.json()),
-		getAirdropDirectoryData()
+		getAirdropDirectoryData(),
+		getTotalProtocolUsersData()
 	])
 
 	const parents = protocolsRaw.parentProtocols.reduce((acc, p) => {
@@ -127,7 +132,7 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 		}
 		return acc
 	}, {})
-	const protocols = protocolsRaw.protocols
+	let protocols = protocolsRaw.protocols
 		.filter(
 			(token) =>
 				(token.symbol === null || token.symbol === '-') &&
@@ -149,6 +154,13 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 			...p
 		}))
 		.sort((a, b) => a.listedAt - b.listedAt)
+
+	protocols = protocols.map((p) => ({
+		...p,
+		totalTxs: totalProtocolUsers[p.defillamaId]?.totalTxs ?? null,
+		totalUsers: totalProtocolUsers[p.defillamaId]?.totalUsers ?? null,
+		txsOverUsers: totalProtocolUsers[p.defillamaId]?.txsOverUsers ?? null
+	}))
 
 	const forkedList: { [name: string]: boolean } = {}
 
