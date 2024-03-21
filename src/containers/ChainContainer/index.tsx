@@ -232,7 +232,7 @@ export function ChainContainer({
 			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
 		return isValidTvlRange
-			? list.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
+			? list.filter((p) => (minTvl ? p.tvl >= minTvl : true) && (maxTvl ? p.tvl <= maxTvl : true))
 			: list
 	}, [
 		extraTvlsEnabled,
