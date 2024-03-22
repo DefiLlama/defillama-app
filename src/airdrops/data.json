@@ -47,5 +47,10 @@
 		"name": "Polyhedra Network",
 		"page": "https://polyhedra.foundation",
 		"twitter": "PolyhedraZK"
+	},
+	{
+		"name": "NIM Network",
+		"page": "https://claim.nim.network/",
+		"twitter": "nim_network"
 	}
 ]
