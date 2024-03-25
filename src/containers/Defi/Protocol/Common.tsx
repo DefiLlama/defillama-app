@@ -60,9 +60,14 @@ export const OtherProtocols = styled.nav`
 	font-weight: 500;
 	border-radius: 12px;
 	margin-bottom: 8px;
+	flex-wrap: wrap;
 
 	@media screen and (min-width: 80rem) {
 		grid-column: span 2;
+	}
+
+	& > * {
+		flex: 1;
 	}
 `
 
