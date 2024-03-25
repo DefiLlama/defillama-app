@@ -13,7 +13,7 @@ import Pagination from './Pagination'
 import { ExternalLink } from '~/components/Link'
 import {
 	Body,
-	Box,
+	Box as BoxComponent,
 	BoxContainer,
 	ChartWrapper,
 	Header,
@@ -70,9 +70,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		})
 		return index === -1 ? 0 : index
 	}, [sortedEvents])
-	const styles: Record<string, string> = isEmissionsPage
-		? { display: 'flex', flexDirection: 'column' }
-		: { background: 'none', border: 'none' }
+	const styles: Record<string, string> = { display: 'flex', flexDirection: 'column' }
+
 	if (!data) return null
 
 	const chartData = data.chartData?.[dataType]
@@ -119,6 +118,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		})
 		.filter(Boolean)
 	const unlockedPercent = (data.meta.totalLocked / data.meta.maxSupply) * 100
+
+	const Box = (props) => (
+		<BoxComponent
+			{...props}
+			style={!isEmissionsPage ? { background: 'none', border: 'none', marginTop: '8px' } : { ...(props?.style || {}) }}
+		/>
+	)
 
 	return (
 		<>
