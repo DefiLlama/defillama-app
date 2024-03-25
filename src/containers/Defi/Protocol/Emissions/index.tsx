@@ -53,6 +53,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const tokenPrice = priceChart.data?.prices?.[priceChart.data?.prices?.length - 1]?.[1]
 	const tokenMcap = priceChart.data?.mcaps?.[priceChart.data?.mcaps?.length - 1]?.[1]
 	const tokenVolume = priceChart.data?.volumes?.[priceChart.data?.volumes?.length - 1]?.[1]
+	const ystdPrice = priceChart.data?.prices?.[priceChart.data?.prices?.length - 2]?.[1]
+	const percentChange = tokenPrice && ystdPrice ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
 	const normilizePriceChart = Object.fromEntries(
 		Object.entries(priceChart.data || {}).map(([name, chart]: [string, Array<[number, number]>]) => [
 			name,
@@ -224,14 +226,21 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			<BoxContainer>
 				{tokenPrice ? (
 					<Box>
-						<Header>Token Metrics</Header>
-
-						<Body>
-							<Row>
-								<span>Price</span>
-								<Value>{tokenPrice ? `$${formattedNum(tokenPrice)}` : 'N/A'}</Value>
-							</Row>
-							<Separator />
+						<Value style={{ alignSelf: 'start' }}>Price</Value>
+						<div style={{ alignSelf: 'start', display: 'flex', gap: '6px', textAlign: 'center' }}>
+							<Header>{tokenPrice ? `$${formattedNum(tokenPrice)}` : 'N/A'}</Header>
+							<Value
+								style={{
+									color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)',
+									marginTop: '4px',
+									fontSize: '14px'
+								}}
+							>
+								{percentChange > 0 ? '+' : '-'}
+								{percentChange}%
+							</Value>
+						</div>
+						<Body style={{ marginTop: '8px' }}>
 							<Row>
 								<span>Market Cap</span>
 								<Value>{tokenMcap ? `$${formattedNum(tokenMcap)}` : 'N/A'}</Value>
@@ -241,6 +250,15 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								<span>Volume (24h)</span>
 								<Value>{tokenVolume ? `$${formattedNum(tokenVolume)}` : 'N/A'}</Value>
 							</Row>
+							{data?.meta?.circSupply ? (
+								<>
+									<Separator />
+									<Row>
+										<span>Circulating Supply</span>
+										<Value>{formattedNum(data.meta.circSupply)}</Value>
+									</Row>
+								</>
+							) : null}
 						</Body>
 					</Box>
 				) : null}
