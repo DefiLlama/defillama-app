@@ -544,7 +544,7 @@ export function ChainContainer({
 									<RowWithSubRows
 										rowHeader="Bridged TVL"
 										rowValue={formattedNum(
-											chainAssets.total.total - (extraTvlsEnabled.govtokens ? 0 : chainAssets?.ownTokens?.total),
+											chainAssets.total.total + (extraTvlsEnabled.govtokens ? chainAssets?.ownTokens?.total || 0 : 0),
 											true
 										)}
 										helperText={null}
