@@ -88,7 +88,8 @@ const scams = [
 	'MantaSwap',
 	'Onchain Trade',
 	'Venuswap',
-	'Scroll Swap'
+	'Scroll Swap',
+	'StakeSteak'
 ]
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
