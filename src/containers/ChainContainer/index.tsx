@@ -322,7 +322,7 @@ export function ChainContainer({
 									href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
 										.filter((t) => t[1] === true)
 										.map((t) => `${t[0]}=true`)
-										.join('&')}`}
+										.join('&')}`.replaceAll(' ', '_')}
 									passHref
 								>
 									<DownloadButton

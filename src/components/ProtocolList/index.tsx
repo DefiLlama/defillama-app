@@ -180,7 +180,7 @@ function ProtocolList({
 							.map((t) => `${t[0]}=true`)
 							.join('&')}
 							${category === 'Liquid Staking' ? 'liquidstaking=true' : ''}
-							`}
+							`.replaceAll(' ', '_')}
 					>
 						<DownloadButton>
 							<DownloadIcon />
