@@ -306,7 +306,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 						<Pagination
 							startIndex={upcomingEventIndex}
-							items={sortedEvents.map(([ts, events]) => (
+							items={sortedEvents.map(([ts, events]: any) => (
 								<UpcomingEvent
 									key={ts}
 									{...{
