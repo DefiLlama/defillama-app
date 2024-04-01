@@ -48,7 +48,23 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 
 		const protocolsList =
 			categoriesToFilter.length > 0
-				? props.protocols.filter((p) => (p.category ? selectedCategories.includes(p.category) : false))
+				? props.protocols
+						.filter((p) => {
+							const parentFilter = p?.subRows?.some((r) => selectedCategories.includes(r.category))
+							const toFilter = parentFilter
+								? parentFilter
+								: p.category
+								? selectedCategories.includes(p.category)
+								: false
+							return toFilter
+						})
+						.map((p) => {
+							if (p?.subRows?.length > 0) {
+								p.subRows = p.subRows.filter((r) => selectedCategories.includes(r.category))
+							}
+
+							return p
+						})
 				: props.protocols
 
 		const rowLinks =
