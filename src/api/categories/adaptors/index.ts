@@ -120,7 +120,7 @@ function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
-			acc[pd.defillamaId] = pd.tvl
+			acc[pd.name] = pd.tvl
 			return acc
 		}, {}) ?? {}
 	)
@@ -238,8 +238,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				...protocol,
 				logo: getLlamaoLogo(protocol.logo),
 				displayName: protocol.displayName ?? protocol.name,
-				tvl: tvlData[protocol.defillamaId] ?? null,
-				volumetvl: tvlData[protocol.defillamaId] ? protocol.total24h / tvlData[protocol.defillamaId] : null,
+				tvl: tvlData[protocol.name] ?? null,
+				volumetvl: tvlData[protocol.name] ? protocol.total24h / tvlData[protocol.name] : null,
 				dominance: (100 * protocol.total24h) / total24h,
 				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
@@ -257,7 +257,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		} else mainRow = protocol
 
 		// Main row, either parent or single protocol
-		const protocolTVL = tvlData[protocol.defillamaId]
+		const protocolTVL = tvlData[protocol.name]
 		const emission24h = emissionBreakdown?.[slugName]?.emission24h ?? null
 		const emission7d = emissionBreakdown?.[slugName]?.emission7d ?? null
 		const emission30d = emissionBreakdown?.[slugName]?.emission30d ?? null
@@ -530,7 +530,7 @@ export const getChainsPageData = async (type: string, dataType?: string): Promis
 					total24h,
 					tvl: protocols.reduce((acc, curr) => {
 						// TODO: This should be mapped using defillamaId to get accurate tvl!
-						const tvl = tvlData[curr.defillamaId]
+						const tvl = tvlData[curr.name]
 						acc += !Number.isNaN(tvl) && tvl ? tvl : 0
 						return acc
 					}, 0),
@@ -613,4 +613,4 @@ export function notUndefined<T>(x: T | undefined): x is T {
 	return x !== undefined
 }
 
-export function formatOverviewProtocolsList() { }
+export function formatOverviewProtocolsList() {}
