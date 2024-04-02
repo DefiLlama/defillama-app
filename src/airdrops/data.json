@@ -29,6 +29,13 @@
 		"endTime": 1718884800
 	},
 	{
+		"name": "Ethena",
+		"page": "https://claim.ethena.fi/",
+		"explorer": "https://etherscan.io/token/0x57e114B691Db790C35207b2e685D4A43181e6061",
+		"token": "0x57e114B691Db790C35207b2e685D4A43181e6061",
+		"twitter": "ethena_labs"
+	},
+	{
 		"name": "Wormhole",
 		"page": "https://airdrop.wormhole.com/",
 		"twitter": "wormholecrypto"
