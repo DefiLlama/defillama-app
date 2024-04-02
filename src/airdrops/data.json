@@ -52,5 +52,10 @@
 		"name": "NIM Network",
 		"page": "https://claim.nim.network/",
 		"twitter": "nim_network"
+	},
+	{
+		"name": "Ethena",
+		"page": "https://claim.ethena.fi/",
+		"twitter": "ethena_labs"
 	}
 ]
