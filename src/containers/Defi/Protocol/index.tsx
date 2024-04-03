@@ -804,18 +804,18 @@ function ProtocolContainer({
 													<>
 														{tokenCGData.price.ath ? (
 															<tr>
-																<th data-subvalue>{`All Time High (${new Date(
+																<SubrowTh data-subvalue>{`All Time High (${new Date(
 																	tokenCGData.price.athDate
-																).toLocaleDateString()})`}</th>
+																).toLocaleDateString()})`}</SubrowTh>
 																<td data-subvalue>{formatPrice(tokenCGData.price.ath)}</td>
 															</tr>
 														) : null}
 
 														{tokenCGData.price.atl ? (
 															<tr>
-																<th data-subvalue>{`All Time Low (${new Date(
+																<SubrowTh data-subvalue>{`All Time Low (${new Date(
 																	tokenCGData.price.atlDate
-																).toLocaleDateString()})`}</th>
+																).toLocaleDateString()})`}</SubrowTh>
 																<td data-subvalue>{formatPrice(tokenCGData.price.atl)}</td>
 															</tr>
 														) : null}
@@ -845,14 +845,14 @@ function ProtocolContainer({
 													<>
 														{tokenCGData?.volume24h?.cex ? (
 															<tr>
-																<th data-subvalue>CEX Volume</th>
+																<SubrowTh data-subvalue>CEX Volume</SubrowTh>
 																<td data-subvalue>{formatPrice(tokenCGData.volume24h.cex)}</td>
 															</tr>
 														) : null}
 														{tokenCGData?.volume24h?.dex ? (
 															<>
 																<tr>
-																	<th data-subvalue>DEX Volume</th>
+																	<SubrowTh data-subvalue>DEX Volume</SubrowTh>
 																	<td data-subvalue>{formatPrice(tokenCGData.volume24h.dex)}</td>
 																</tr>
 																<tr style={{ position: 'relative', top: '-6px' }}>
@@ -919,7 +919,7 @@ function ProtocolContainer({
 															.filter((c) => c[0].endsWith('-borrowed'))
 															.map((c) => (
 																<tr key={JSON.stringify(c)}>
-																	<th data-subvalue>{c[0].split('-')[0]}</th>
+																	<SubrowTh data-subvalue>{c[0].split('-')[0]}</SubrowTh>
 																	<td data-subvalue>{formatPrice(c[1])}</td>
 																</tr>
 															))}
@@ -939,7 +939,7 @@ function ProtocolContainer({
 													<>
 														{tokenLiquidity.map((item) => (
 															<tr key={'token-liq' + item[0] + item[1] + item[2]}>
-																<th data-subvalue>{`${item[0]} (${item[1]})`}</th>
+																<SubrowTh data-subvalue>{`${item[0]} (${item[1]})`}</SubrowTh>
 																<td data-subvalue>{formatPrice(item[2])}</td>
 															</tr>
 														))}
@@ -959,7 +959,7 @@ function ProtocolContainer({
 													<>
 														{allTimeVolume ? (
 															<tr>
-																<th data-subvalue>{`Cumulative Volume`}</th>
+																<SubrowTh data-subvalue>{`Cumulative Volume`}</SubrowTh>
 																<td data-subvalue>{formatPrice(allTimeVolume)}</td>
 															</tr>
 														) : null}
@@ -987,7 +987,7 @@ function ProtocolContainer({
 													<>
 														{allTimeDerivativesVolume ? (
 															<tr>
-																<th data-subvalue>{`Cumulative Volume`}</th>
+																<SubrowTh data-subvalue>{`Cumulative Volume`}</SubrowTh>
 																<td data-subvalue>{formatPrice(allTimeDerivativesVolume)}</td>
 															</tr>
 														) : null}
@@ -1014,20 +1014,20 @@ function ProtocolContainer({
 												subRows={
 													<>
 														<tr>
-															<th data-subvalue>{`Fees 30d`}</th>
+															<SubrowTh data-subvalue>{`Fees 30d`}</SubrowTh>
 															<td data-subvalue>{formatPrice(fees30d)}</td>
 														</tr>
 
 														{dailyFees ? (
 															<tr>
-																<th data-subvalue>{`Fees 24h`}</th>
+																<SubrowTh data-subvalue>{`Fees 24h`}</SubrowTh>
 																<td data-subvalue>{formatPrice(dailyFees)}</td>
 															</tr>
 														) : null}
 
 														{allTimeFees ? (
 															<tr>
-																<th data-subvalue>{`Cumulative Fees`}</th>
+																<SubrowTh data-subvalue>{`Cumulative Fees`}</SubrowTh>
 																<td data-subvalue>{formatPrice(allTimeFees)}</td>
 															</tr>
 														) : null}
@@ -1046,13 +1046,13 @@ function ProtocolContainer({
 												subRows={
 													<>
 														<tr>
-															<th data-subvalue>{`Revenue 30d`}</th>
+															<SubrowTh data-subvalue>{`Revenue 30d`}</SubrowTh>
 															<td data-subvalue>{formatPrice(revenue30d)}</td>
 														</tr>
 
 														{dailyRevenueFinal ? (
 															<tr>
-																<th data-subvalue>{`Revenue 24h`}</th>
+																<SubrowTh data-subvalue>{`Revenue 24h`}</SubrowTh>
 																<td data-subvalue>{formatPrice(dailyRevenueFinal)}</td>
 															</tr>
 														) : null}
@@ -1072,19 +1072,19 @@ function ProtocolContainer({
 													<>
 														{users.newUsers ? (
 															<tr>
-																<th data-subvalue>New Addresses 24h</th>
+																<SubrowTh data-subvalue>New Addresses 24h</SubrowTh>
 																<td data-subvalue>{formattedNum(users.newUsers, false)}</td>
 															</tr>
 														) : null}
 														{users.transactions ? (
 															<tr>
-																<th data-subvalue>Transactions 24h</th>
+																<SubrowTh data-subvalue>Transactions 24h</SubrowTh>
 																<td data-subvalue>{formattedNum(users.transactions, false)}</td>
 															</tr>
 														) : null}
 														{users.gasUsd ? (
 															<tr>
-																<th data-subvalue>Gas Used 24h</th>
+																<SubrowTh data-subvalue>Gas Used 24h</SubrowTh>
 																<td data-subvalue>{formatPrice(users.gasUsd)}</td>
 															</tr>
 														) : null}
@@ -1093,34 +1093,36 @@ function ProtocolContainer({
 											/>
 										) : null}
 
-										{treasury && (
-											<RowWithSubRows
-												protocolName={protocolData.name}
-												helperText={null}
-												rowHeader={'Treasury'}
-												rowValue={formatPrice(
-													Object.entries(treasury).reduce(
-														(acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]),
-														0
-													)
-												)}
-												dataType={'Treasury'}
-												subRows={
-													<>
-														{Object.entries(treasury).map(([cat, tre]) => {
-															return (
-																<tr key={'treasury' + cat + tre}>
-																	<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
-																	<td data-subvalue>{formatPrice(tre)}</td>
-																</tr>
-															)
-														})}
-													</>
-												}
-											/>
-										)}
+										{
+											treasury && (
+												<RowWithSubRows
+													protocolName={protocolData.name}
+													helperText={null}
+													rowHeader={'Treasury'}
+													rowValue={formatPrice(
+														Object.entries(treasury).reduce(
+															(acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]),
+															0
+														)
+													)}
+													dataType={'Treasury'}
+													subRows={
+														<>
+															{Object.entries(treasury).map(([cat, tre]) => {
+																return (
+																	<tr key={'treasury' + cat + tre}>
+																		<SubrowTh data-subvalue>{capitalizeFirstLetter(cat)}</SubrowTh>
+																		<td data-subvalue>{formatPrice(tre)}</td>
+																	</tr>
+																)
+															})}
+														</>
+													}
+												/>
+											)
+										}
 
-										<>
+										;<>
 											{raises && raises.length > 0 && (
 												<RowWithSubRows
 													protocolName={protocolData.name}
@@ -1135,7 +1137,9 @@ function ProtocolContainer({
 																.map((raise) => (
 																	<React.Fragment key={raise.date + raise.amount}>
 																		<tr>
-																			<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
+																			<SubrowTh data-subvalue>
+																				{new Date(raise.date * 1000).toISOString().split('T')[0]}
+																			</SubrowTh>
 																			<td data-subvalue>
 																				{raise.source ? (
 																					<a target="_blank" rel="noopener noreferrer" href={raise.source}>
@@ -1167,73 +1171,77 @@ function ProtocolContainer({
 											)}
 										</>
 
-										{controversialProposals && controversialProposals.length > 0 ? (
-											<RowWithSubRows
-												protocolName={protocolData.name}
-												dataType={'Governance'}
-												helperText={null}
-												rowHeader={'Top Controversial Proposals'}
-												rowValue={null}
-												subRows={
-													<>
-														{controversialProposals.map((proposal) => (
-															<tr key={proposal.title}>
-																<td data-subvalue style={{ textAlign: 'left' }}>
-																	{proposal.link ? (
-																		<a href={proposal.link} target="_blank" rel="noreferrer noopener">
-																			{proposal.title}
-																		</a>
-																	) : (
-																		proposal.title
-																	)}
-																</td>
-															</tr>
-														))}
-													</>
-												}
-											/>
-										) : null}
-
-										{expenses && (
-											<RowWithSubRows
-												protocolName={protocolData.name}
-												dataType={'Expenses'}
-												helperText={null}
-												rowHeader={'Annual operational expenses'}
-												rowValue={formatPrice(
-													Object.values((expenses.annualUsdCost || {}) as { [key: string]: number }).reduce(
-														(acc, curr) => (acc += curr),
-														0
-													)
-												)}
-												subRows={
-													<>
-														<tr>
-															<th data-subvalue>Headcount</th>
-															<td data-subvalue>{expenses.headcount}</td>
-														</tr>
-
-														{Object.entries(expenses.annualUsdCost || {}).map(([cat, exp]: [string, number]) => {
-															return (
-																<tr key={'expenses' + cat + exp}>
-																	<th data-subvalue>{capitalizeFirstLetter(cat)}</th>
-																	<td data-subvalue>{formatPrice(exp)}</td>
+										{
+											controversialProposals && controversialProposals.length > 0 ? (
+												<RowWithSubRows
+													protocolName={protocolData.name}
+													dataType={'Governance'}
+													helperText={null}
+													rowHeader={'Top Controversial Proposals'}
+													rowValue={null}
+													subRows={
+														<>
+															{controversialProposals.map((proposal) => (
+																<tr key={proposal.title}>
+																	<td data-subvalue style={{ textAlign: 'left' }}>
+																		{proposal.link ? (
+																			<a href={proposal.link} target="_blank" rel="noreferrer noopener">
+																				{proposal.title}
+																			</a>
+																		) : (
+																			proposal.title
+																		)}
+																	</td>
 																</tr>
-															)
-														})}
+															))}
+														</>
+													}
+												/>
+											) : null
+										}
 
-														<tr>
-															<th data-subvalue>
-																<a href={expenses.sources?.[0] ?? null}>
-																	Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
-																</a>
-															</th>
-															<td data-subvalue></td>
-														</tr>
-													</>
-												}
-											/>
-										)}
+										{
+											expenses && (
+												<RowWithSubRows
+													protocolName={protocolData.name}
+													dataType={'Expenses'}
+													helperText={null}
+													rowHeader={'Annual operational expenses'}
+													rowValue={formatPrice(
+														Object.values((expenses.annualUsdCost || {}) as { [key: string]: number }).reduce(
+															(acc, curr) => (acc += curr),
+															0
+														)
+													)}
+													subRows={
+														<>
+															<tr>
+																<SubrowTh data-subvalue>Headcount</SubrowTh>
+																<td data-subvalue>{expenses.headcount}</td>
+															</tr>
+
+															{Object.entries(expenses.annualUsdCost || {}).map(([cat, exp]: [string, number]) => {
+																return (
+																	<tr key={'expenses' + cat + exp}>
+																		<SubrowTh data-subvalue>{capitalizeFirstLetter(cat)}</SubrowTh>
+																		<td data-subvalue>{formatPrice(exp)}</td>
+																	</tr>
+																)
+															})}
+
+															<tr>
+																<SubrowTh data-subvalue>
+																	<a href={expenses.sources?.[0] ?? null}>
+																		Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
+																	</a>
+																</SubrowTh>
+																<td data-subvalue></td>
+															</tr>
+														</>
+													}
+												/>
+											)
+										}
 									</tbody>
 								</StatsTable2>
 
@@ -1793,5 +1801,9 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 		</>
 	)
 }
+
+export const SubrowTh = styled.th`
+	margin-left: 1em;
+`
 
 export default ProtocolContainer
