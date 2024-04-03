@@ -157,10 +157,11 @@ export const useFetchChainChartData = ({
 			: priceChartData?.prices?.map(([date, price]) => [dayjs(Math.floor(date)).utc().startOf('day').unix(), price])
 		const finalMcapChart = isNonUSDDenomination
 			? null
-			: priceChartData?.market_caps?.map(([date, price]) => [
-					dayjs(Math.floor(date)).utc().startOf('day').unix(),
-					price
-			  ])
+			: priceChartData?.mcaps?.map(([date, price]) => [dayjs(Math.floor(date)).utc().startOf('day').unix(), price])
+
+		const finalTokenVolumeChart = isNonUSDDenomination
+			? null
+			: priceChartData?.volumes?.map(([date, price]) => [dayjs(Math.floor(date)).utc().startOf('day').unix(), price])
 
 		const finalAggregatorsChart = isNonUSDDenomination ? null : aggregatorsData?.totalDataChart
 		const finalDerivativesChart = isNonUSDDenomination ? null : derivativesData?.totalDataChart
@@ -214,6 +215,7 @@ export const useFetchChainChartData = ({
 				priceData,
 				chainTokenPriceData: finalPriceChart,
 				chainTokenMcapData: finalMcapChart,
+				chainTokenVolumeData: finalTokenVolumeChart,
 				aggregatorsData: finalAggregatorsChart,
 				derivativesData: finalDerivativesChart,
 				chainAssetsData: finalChainAssetsChart
@@ -228,7 +230,9 @@ export const useFetchChainChartData = ({
 		globalChart,
 		volumeChart,
 		priceChartData?.prices,
-		priceChartData?.market_caps,
+
+		priceChartData?.mcaps,
+		priceChartData?.volumes,
 		aggregatorsData?.totalDataChart,
 		derivativesData?.totalDataChart,
 		feesAndRevenueChart,
@@ -239,7 +243,8 @@ export const useFetchChainChartData = ({
 		inflowsChartData,
 		usersData,
 		txsData,
-		extraTvlsEnabled?.govtokens
+		extraTvlsEnabled?.govtokens,
+		txsData
 	])
 
 	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)

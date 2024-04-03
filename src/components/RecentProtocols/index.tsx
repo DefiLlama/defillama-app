@@ -136,7 +136,7 @@ export function RecentProtocols({
 
 		if (isValidTvlRange) {
 			const filteredProtocols = data.filter(
-				(protocol) => (minTvl ? protocol.tvl > minTvl : true) && (maxTvl ? protocol.tvl < maxTvl : true)
+				(protocol) => (minTvl ? protocol.tvl >= minTvl : true) && (maxTvl ? protocol.tvl <= maxTvl : true)
 			)
 
 			return { data: filteredProtocols, selectedChains }

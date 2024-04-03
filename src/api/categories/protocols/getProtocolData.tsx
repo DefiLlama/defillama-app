@@ -164,10 +164,23 @@ export const getProtocolDataLite = async (protocol: string) => {
 	const bribesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.bribesRevenue30d || 0), 0) ?? null
 	const tokenTaxesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.tokenTaxesRevenue30d || 0), 0) ?? null
 	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
-	const dailyDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
-	const allTimeDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const dailyDerivativesVolume =
+		derivativesData?.reduce((acc, curr) => {
+			if (curr.dailyVolume && curr.dailyVolume > 0) {
+				acc += curr.dailyVolume
+			}
+			return acc
+		}, 0) ?? null
+	const allTimeDerivativesVolume =
+		derivativesData?.reduce((acc, curr) => {
+			if (curr.totalAllTime && curr.totalAllTime > 0) {
+				acc += curr.totalAllTime
+			}
+			return acc
+		}, 0) ?? null
+
 	const metrics = protocolData.metrics || {}
 
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
@@ -196,7 +209,7 @@ export const getProtocolDataLite = async (protocol: string) => {
 					devMetrics: false,
 					fees: metrics.fees || dailyFees || allTimeFees ? true : false,
 					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
-					derivatives: metrics.derivatives || dailyDerivativesVolume || allTimeDerivativesVolume ? true : false,
+					derivatives: metrics.derivatives || (dailyDerivativesVolume && allTimeDerivativesVolume) ? true : false,
 					medianApy: false,
 					inflows: inflowsExist,
 					unlocks: false,

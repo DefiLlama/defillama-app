@@ -6,10 +6,7 @@ import {
 	Body,
 	ButtonCell,
 	Cell,
-	CloseButton,
 	HeaderCell,
-	ModalContent,
-	ModalWrapper,
 	Row,
 	SearchRow,
 	SelectedBody,
@@ -26,6 +23,7 @@ import { useRouter } from 'next/router'
 import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
+import { CloseButton, ModalContent, ModalWrapper } from '../Modal/styles'
 
 export default function Correlations({ coinsData }) {
 	const router = useRouter()

@@ -31,7 +31,8 @@ const colors = {
 	tokenMcap: '#1fda38',
 	derivatives: '#305a00',
 	aggregators: '#ff7b00',
-	chainAssets: '#fa7b00'
+	chainAssets: '#fa7b00',
+	tokenVolume: '#ff008c'
 }
 
 const colorsArray = [
@@ -60,17 +61,20 @@ export default function AreaChart({
 	title,
 	tooltipSort = true,
 	height = '360px',
+	width = null,
 	expandTo100Percent = false,
 	denomination,
 	datasets,
 	hideTooltip,
 	isThemeDark,
+	compareMode,
+	showLegend = false,
 	...props
 }) {
 	const id = useMemo(() => uuid(), [])
 	const { query: route, pathname } = useRouter()
 
-	const isCompare = pathname?.includes('compare')
+	const isCompare = pathname?.includes('compare') || compareMode
 
 	const defaultChartSettings = useDefaults({
 		color: primaryColor,
@@ -406,6 +410,23 @@ export default function AreaChart({
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
+			if (route.chainTokenVolume === 'true' && data?.chainTokenVolumeData) {
+				series.push({
+					name: namePrefix + 'Token Volume',
+					chartId: 'Token Volume',
+					symbol: 'none',
+					type: 'bar',
+					data: [],
+					yAxisIndex: 17,
+					itemStyle: {
+						color: getColor(isCompare) || colors.tokenVolume
+					}
+				})
+				data?.chainTokenVolumeData.forEach(([date, value]) => {
+					if (Number(date) > Number(data?.globalChart[0][0]))
+						series[series.length - 1].data.push([getUtcDateObject(date), value])
+				})
+			}
 		})
 
 		return [series.reverse(), uniq(series.map((val) => val.chartId))]
@@ -421,7 +442,7 @@ export default function AreaChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
 		dataZoom[1] = {
 			...dataZoom[1],
@@ -430,7 +451,7 @@ export default function AreaChart({
 		} as any
 
 		const offsets = {
-			TVL: undefined,
+			TVL: 60,
 			Volume: 60,
 			Fees: 55,
 			Revenue: 65,
@@ -445,13 +466,18 @@ export default function AreaChart({
 			'Token Price': 55,
 			'Token Mcap': 55,
 			Aggregators: 55,
-			Derivatives: 55
+			Derivatives: 55,
+			'Token Volume': 60
 		}
 		let offsetAcc = -60
 
 		chartInstance.setOption({
 			graphic: { ...graphic },
-
+			legend: {
+				...legend,
+				left: 75,
+				show: showLegend
+			},
 			tooltip: {
 				...tooltip,
 				...(hideTooltip
@@ -631,6 +657,15 @@ export default function AreaChart({
 						...yAxis.axisLabel,
 						color: () => (isCompare ? '#fff' : colors.chainAssets)
 					}
+				},
+				{
+					...yAxis,
+					scale: true,
+					id: 'Token Volume',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : colors.tokenVolume)
+					}
 				}
 			].map((yAxis: any, i) => {
 				const isActive = activeSeries?.findIndex((id) => id === yAxis.id) !== -1
@@ -691,11 +726,15 @@ export default function AreaChart({
 		activeSeries,
 		hideTooltip,
 		isCompare,
-		isThemeDark
+		isThemeDark,
+		showLegend
 	])
 
 	return (
-		<div style={{ position: 'relative', minHeight: height }} {...props}>
+		<div
+			style={{ position: 'relative', minHeight: height, minWidth: width ?? 'auto', width: width ? '100%' : undefined }}
+			{...props}
+		>
 			<Wrapper id={id} style={{ minHeight: height, margin: 'auto 0' }}></Wrapper>
 		</div>
 	)

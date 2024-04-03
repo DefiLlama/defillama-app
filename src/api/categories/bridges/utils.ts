@@ -130,7 +130,7 @@ export const formatChainsData = ({
 			prevWeekUsdDeposits += chart.depositUSD
 			prevWeekUsdWithdrawals += chart.withdrawUSD
 		}
-		const prevWeekNetFlow = prevWeekUsdDeposits - prevWeekUsdWithdrawals
+		const prevWeekNetFlow = prevWeekUsdWithdrawals - prevWeekUsdDeposits
 
 		let topTokenDepositedSymbol = null,
 			topTokenWithdrawnSymbol = null,

@@ -55,4 +55,8 @@ export interface IPieChartProps {
 		[stack: string]: string
 	}
 	usdFormat?: boolean
+	radius?: [string, string]
+	showLegend?: boolean
+	formatTooltip?: (params: any) => string
+	customLabel?: Record<string, any>
 }

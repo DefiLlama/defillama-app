@@ -128,7 +128,7 @@ export const TableFiltersWithInput = styled.div`
 	align-items: center;
 	gap: 8px;
 	flex-wrap: wrap;
-	margin: 0 0 -20px;
+	margin: 0 0 -10px;
 	position: relative;
 
 	input {

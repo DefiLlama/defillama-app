@@ -240,12 +240,15 @@ export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | n
 }
 
 export const useDenominationPriceHistory = (geckoId?: string) => {
-	let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=0&to=`
+	let url = `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`
 
 	// append end time to fetcher params to keep query key consistent b/w renders and avoid over fetching
-	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Date.now()))
+	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url).then((r) => r.data), {
+		errorRetryCount: 0
+	})
+	const res = data && data?.prices?.length > 0 ? data : { prices: [], mcaps: [], volumes: [] }
 
-	return { data, error, loading: geckoId && !data && !error }
+	return { data: res, error, loading: geckoId && !data && !error }
 }
 
 export const useGetTokenPrice = (geckoId?: string) => {

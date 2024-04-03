@@ -206,6 +206,11 @@ export function ChainContainer({
 			name: `${chainTokenInfo?.tokenSymbol} MCap`,
 			isVisible: chartDatasets?.[0]?.chainTokenMcapData?.length ? true : false
 		},
+		{
+			id: 'chainTokenVolume',
+			name: `${chainTokenInfo?.tokenSymbol} Volume`,
+			isVisible: chartDatasets?.[0]?.chainTokenVolumeData?.length ? true : false
+		},
 		{ id: 'derivatives', name: 'Derivatives Volume', isVisible: chartDatasets?.[0]?.derivativesData ? true : false },
 		{ id: 'aggregators', name: 'Aggregators Volume', isVisible: chartDatasets?.[0]?.aggregatorsData ? true : false },
 		{ id: 'chainAssets', name: 'Bridged TVL', isVisible: chartDatasets?.[0]?.chainAssetsData ? true : false }
@@ -227,7 +232,7 @@ export function ChainContainer({
 			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
 		return isValidTvlRange
-			? list.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
+			? list.filter((p) => (minTvl ? p.tvl >= minTvl : true) && (maxTvl ? p.tvl <= maxTvl : true))
 			: list
 	}, [
 		extraTvlsEnabled,
@@ -317,7 +322,7 @@ export function ChainContainer({
 									href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
 										.filter((t) => t[1] === true)
 										.map((t) => `${t[0]}=true`)
-										.join('&')}`}
+										.join('&')}`.replaceAll(' ', '_')}
 									passHref
 								>
 									<DownloadButton
@@ -539,7 +544,7 @@ export function ChainContainer({
 									<RowWithSubRows
 										rowHeader="Bridged TVL"
 										rowValue={formattedNum(
-											chainAssets.total.total - (extraTvlsEnabled.govtokens ? 0 : chainAssets?.ownTokens?.total),
+											chainAssets.total.total + (extraTvlsEnabled.govtokens ? chainAssets?.ownTokens?.total || 0 : 0),
 											true
 										)}
 										helperText={null}
@@ -549,13 +554,12 @@ export function ChainContainer({
 											<>
 												{chainAssets ? (
 													<>
-														{chainAssets.native.total ? (
+														{chainAssets.native?.total ? (
 															<tr>
 																<th>Native</th>
 																<td>{formattedNum(chainAssets.native.total, true)}</td>
 															</tr>
 														) : null}
-
 														{extraTvlsEnabled.govtokens && chainAssets.ownTokens?.total ? (
 															<tr>
 																<th>Own Tokens</th>
@@ -570,7 +574,7 @@ export function ChainContainer({
 															</tr>
 														) : null}
 
-														{chainAssets.thirdParty.total ? (
+														{chainAssets.thirdParty?.total ? (
 															<tr>
 																<th>Third Party</th>
 																<td>{formattedNum(chainAssets.thirdParty.total, true)}</td>

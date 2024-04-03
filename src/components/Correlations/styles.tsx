@@ -46,53 +46,8 @@ export const HeaderCell = styled(Cell)`
 	font-weight: bold;
 `
 
-export const ModalWrapper = styled.div<{ open: boolean }>`
-	display: ${(props) => (props.open ? 'block' : 'none')};
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0, 0, 0, 0.5);
-	z-index: 999;
-	input {
-		width: 100%;
-		margin-right: auto;
-		border-radius: 8px;
-		padding: 8px;
-		padding-left: 32px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
-
-		font-size: 0.875rem;
-		border: none;
-	}
-`
-
-export const ModalContent = styled.div`
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	padding: 40px;
-	background-color: ${({ theme }) => theme.background};
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Shadow */
-	border-radius: 10px;
-	min-height: 520px;
-	overflow: scroll;
-`
-
 export const List = styled.div`
 	padding: 8px;
-`
-
-export const CloseButton = styled.button`
-	position: absolute;
-	top: 10px;
-	right: 10px;
-	background: none;
-	border: none;
-	font-size: 20px;
-	cursor: pointer;
 `
 
 export const Image = styled.img`

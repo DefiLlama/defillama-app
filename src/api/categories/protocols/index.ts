@@ -29,6 +29,8 @@ import {
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
+import { getFeesAndRevenueProtocolsByChain } from '../fees'
+import { getDexVolumeByChain } from '../dexs'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -127,6 +129,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const list = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json())
 		if (!list.includes(protocolName))
 			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
+
+		const allEmmisions = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((r) => r.json())
 
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
@@ -238,6 +242,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			chartData,
 			pieChartData,
 			stackColors,
+			meta: allEmmisions?.find((p) => p?.token === metadata?.token) ?? {},
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: metadata?.events ?? [],
@@ -297,6 +302,14 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 export async function getProtocolsPageData(category?: string, chain?: string) {
 	const { protocols, chains, parentProtocols } = await getProtocols()
 	const normalizedCategory = category?.toLowerCase().replace(' ', '_')
+	const feesRes = await getFeesAndRevenueProtocolsByChain({
+		chain
+	})
+	const volumesRes = await getDexVolumeByChain({
+		chain,
+		excludeTotalDataChart: true,
+		excludeTotalDataChartBreakdown: true
+	})
 
 	const chainsSet = new Set()
 
@@ -334,6 +347,9 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 		categoryChart,
 		filteredProtocols,
 		chain: chain ?? 'All',
+		protocols,
+		fees: feesRes,
+		volumes: volumesRes.protocols,
 		category,
 		chains: chains.filter((chain) => chainsSet.has(chain)),
 		parentProtocols

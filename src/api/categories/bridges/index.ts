@@ -195,7 +195,7 @@ export async function getBridgeChainsPageData() {
 		const charts = chartDataByChain[i]
 		charts.map((chart) => {
 			const date = chart.date
-			const netFlow = chart.withdrawUSD - chart.depositUSD
+			const netFlow = chart.depositUSD - chart.withdrawUSD
 			unformattedChartData[date] = unformattedChartData[date] || {}
 			unformattedChartData[date][chain.name] = netFlow
 		})

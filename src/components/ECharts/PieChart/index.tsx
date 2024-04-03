@@ -16,13 +16,17 @@ export default function PieChart({
 	chartData,
 	title,
 	usdFormat = true,
+	radius = null,
+	showLegend = false,
+	formatTooltip = null,
+	customLabel,
 	...props
 }: IPieChartProps) {
 	const id = useMemo(() => uuid(), [])
 	const [isDark] = useDarkModeManager()
 
 	const series = useMemo(() => {
-		const series = {
+		const series: Record<string, any> = {
 			name: '',
 			type: 'pie',
 			left: 0,
@@ -32,7 +36,11 @@ export default function PieChart({
 			label: {
 				fontFamily: 'sans-serif',
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-				formatter: '{b}: ({d}%)'
+				formatter: '{b}: ({d}%)',
+				show: showLegend ? false : true
+			},
+			tooltip: {
+				formatter: formatTooltip
 			},
 			emphasis: {
 				itemStyle: {
@@ -50,9 +58,12 @@ export default function PieChart({
 				}
 			}))
 		}
+		if (radius) {
+			series.radius = radius
+		}
 
 		return series
-	}, [chartData, isDark, stackColors, title])
+	}, [title, isDark, showLegend, formatTooltip, chartData, radius, stackColors])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -87,6 +98,23 @@ export default function PieChart({
 				top: 0,
 				right: 0
 			},
+			legend: {
+				show: showLegend,
+				left: 'right',
+				orient: 'vertical',
+				data: chartData.map((item) => item.name),
+				icon: 'circle',
+				itemWidth: 10,
+				itemHeight: 10,
+				itemGap: 10,
+				textStyle: {
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				},
+				formatter: function (name) {
+					const maxLength = 18
+					return name.length > maxLength ? name.slice(0, maxLength) + '...' : name
+				}
+			},
 			series
 		})
 
@@ -100,7 +128,7 @@ export default function PieChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, series, isDark, title, usdFormat])
+	}, [createInstance, series, isDark, title, usdFormat, showLegend, chartData])
 
 	return (
 		<div style={{ position: 'relative' }} {...props}>

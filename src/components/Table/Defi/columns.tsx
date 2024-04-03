@@ -377,12 +377,14 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 					{...{
 						noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
 						timestamp,
+						event: row.original.upcomingEvent,
 						description: row.original.upcomingEvent.map((x) => x.description),
 						price: row.original.tPrice,
 						symbol: row.original.tSymbol,
 						mcap: row.original.mcap,
 						maxSupply: row.original.maxSupply,
-						row: row.original
+						row: row.original,
+						name: row.original.name
 					}}
 				/>
 			)

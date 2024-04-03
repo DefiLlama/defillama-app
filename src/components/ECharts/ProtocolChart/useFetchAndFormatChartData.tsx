@@ -313,10 +313,10 @@ export function useFetchAndFormatChartData({
 		}
 
 		if (geckoId && protocolCGData) {
-			if (mcap === 'true' && protocolCGData['market_caps'] && protocolCGData['market_caps'].length > 0) {
+			if (mcap === 'true' && protocolCGData['mcaps'] && protocolCGData['mcaps'].length > 0) {
 				chartsUnique.push('Mcap')
 
-				protocolCGData['market_caps'].forEach(([dateMs, Mcap]) => {
+				protocolCGData['mcaps'].forEach(([dateMs, Mcap]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = {}
@@ -330,14 +330,13 @@ export function useFetchAndFormatChartData({
 				if (
 					tvlData.length > 0 &&
 					tvl !== 'false' &&
-					protocolCGData['market_caps'].length > 0 &&
-					protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][0] <
-						+tvlData[tvlData.length - 1][0] * 1000
+					protocolCGData['mcaps']?.length > 0 &&
+					protocolCGData['mcaps'][protocolCGData['mcaps'].length - 1][0] < +tvlData[tvlData.length - 1][0] * 1000
 				) {
 					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
-					const Mcap = protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][1]
+					const Mcap = protocolCGData['mcaps']?.[protocolCGData['mcaps'].length - 1][1]
 
 					chartData[date]['Mcap'] = showNonUsdDenomination
 						? Mcap / getPriceAtDate(date, denominationHistory.prices)
@@ -410,7 +409,7 @@ export function useFetchAndFormatChartData({
 			if (tokenVolume === 'true') {
 				chartsUnique.push('Token Volume')
 
-				protocolCGData['total_volumes'].forEach(([dateMs, price]) => {
+				protocolCGData['volumes'].forEach(([dateMs, price]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = {}
@@ -424,14 +423,13 @@ export function useFetchAndFormatChartData({
 				if (
 					tvlData.length > 0 &&
 					tvl !== 'false' &&
-					protocolCGData['total_volumes'].length > 0 &&
-					protocolCGData['total_volumes'][protocolCGData['total_volumes'].length - 1][0] <
-						+tvlData[tvlData.length - 1][0] * 1000
+					protocolCGData['volumes'].length > 0 &&
+					protocolCGData['volumes'][protocolCGData['volumes'].length - 1][0] < +tvlData[tvlData.length - 1][0] * 1000
 				) {
 					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
-					const tokenVolume = protocolCGData['total_volumes'][protocolCGData['total_volumes'].length - 1][1]
+					const tokenVolume = protocolCGData['volumes'][protocolCGData['volumes'].length - 1][1]
 
 					chartData[date]['Token Volume'] = showNonUsdDenomination
 						? tokenVolume / getPriceAtDate(date, denominationHistory.prices)

@@ -6,7 +6,6 @@ Check it out live: [https://defillama.com](https://defillama.com)
 ```bash
 yarn
 ```
-
 ###### Running locally
 ```bash
 yarn dev

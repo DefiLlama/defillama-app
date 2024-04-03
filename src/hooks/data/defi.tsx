@@ -124,8 +124,9 @@ export function formatDataWithExtraTvls({
 
 		if (chainAssets) {
 			assets = chainAssets?.[props?.name?.toLowerCase()]
-			if (assets && !extraTvlsEnabled.govtokens && assets?.ownTokens) {
-				const total = assets.total.total - assets.ownTokens.total
+
+			if (assets && extraTvlsEnabled.govtokens && assets?.ownTokens) {
+				const total = assets.total.total + assets.ownTokens.total
 				assets = { ...assets, total: { ...assets.total, total } }
 			}
 		}
@@ -309,6 +310,7 @@ export const formatProtocolsList = ({
 
 				return {
 					...props,
+					extraTvl,
 					name,
 					tvl: finalTvl,
 					tvlPrevDay: finalTvlPrevDay,

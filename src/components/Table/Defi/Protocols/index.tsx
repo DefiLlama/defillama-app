@@ -9,7 +9,8 @@ import {
 	ColumnOrderState,
 	ColumnSizingState,
 	ColumnFiltersState,
-	getFilteredRowModel
+	getFilteredRowModel,
+	ColumnDef
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
 import {
@@ -153,8 +154,8 @@ const protocolsByChainTableColumns = [
 		category: TABLE_CATEGORIES.REVENUE,
 		period: TABLE_PERIODS.ONE_DAY
 	},
-	{ name: 'P/S', key: 'pf', category: TABLE_CATEGORIES.FEES },
-	{ name: 'P/F', key: 'ps', category: TABLE_CATEGORIES.FEES },
+	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
+	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
 	{ name: 'Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
 	{
@@ -347,13 +348,16 @@ export function ProtocolsTableWithSearch({
 	data,
 	addlColumns,
 	removeColumns,
-	skipVirtualization
+	skipVirtualization,
+	columns
 }: {
 	data: Array<IProtocolRow>
 	addlColumns?: Array<string>
 	removeColumns?: Array<string>
 	skipVirtualization?: boolean
+	columns?: ColumnDef<any>[]
 }) {
+	const columnsToUse = React.useMemo(() => columns ?? protocolsColumns, [columns])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -366,11 +370,11 @@ export function ProtocolsTableWithSearch({
 		() =>
 			addlColumns || removeColumns
 				? [
-						...protocolsColumns.filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
+						...(columnsToUse as any).filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
 						...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
 				  ]
-				: protocolsColumns,
-		[addlColumns, removeColumns]
+				: columnsToUse,
+		[addlColumns, removeColumns, columnsToUse]
 	)
 
 	const instance = useReactTable({
