@@ -119,7 +119,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			return pieChartItem
 		})
 		.filter(Boolean)
-	const unlockedPercent = (data.meta.totalLocked / data.meta.maxSupply) * 100
+	const unlockedPercent = 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
 
 	const Box = (props) => (
 		<BoxComponent
