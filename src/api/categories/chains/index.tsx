@@ -71,7 +71,9 @@ export async function getChainPageData(chain?: string) {
 	const chainAssets = await fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json())
 	const chainAssetsChart =
 		chain && chain !== 'All'
-			? await fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`).then((r) => r.json())
+			? await fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`)
+					.then((r) => r.json())
+					.catch(() => null)
 			: null
 
 	const chainsConfig = await fetchWithErrorLogging(CHAINS_API).then((res) => res.json())
