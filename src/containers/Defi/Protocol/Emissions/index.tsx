@@ -236,7 +236,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									fontSize: '14px'
 								}}
 							>
-								{percentChange > 0 ? '+' : '-'}
+								{percentChange > 0 && '+'}
 								{percentChange}%
 							</Value>
 						</div>
