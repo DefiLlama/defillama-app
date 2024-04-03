@@ -19,7 +19,8 @@ import {
 	CHART_API,
 	ETF_OVERVIEW_API,
 	ETF_HISTORY_API,
-	CHAINS_API_V2
+	CHAINS_API_V2,
+	TOTAL_PROTOCOL_USERS_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -949,6 +950,20 @@ export async function getAirdropDirectoryData() {
 		...i,
 		endTime: i.endTime ? new Date(i?.endTime * 1000).toISOString().replace(/\.\d{3}/, '') : null
 	}))
+}
+
+export async function getTotalProtocolUsersData() {
+	const protocolUsers_ = await fetchWithErrorLogging(TOTAL_PROTOCOL_USERS_API).then((r) => r.json())
+
+	const protcolUsers = {}
+	for (const p of protocolUsers_) {
+		protcolUsers[p.protocolid] = {
+			totalTxs: +p.total_txs,
+			totalUsers: +p.total_users,
+			txsOverUsers: +p.txs_over_users
+		}
+	}
+	return protcolUsers
 }
 
 export function formatGovernanceData(data: {

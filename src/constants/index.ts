@@ -136,3 +136,5 @@ export const DEV_METRICS_API = 'https://defillama-datasets.llama.fi/dev-metrics/
 export const MCAPS_API = 'https://coins.llama.fi/mcaps'
 
 export const CACHE_SERVER = 'https://fe-cache.llama.fi'
+
+export const TOTAL_PROTOCOL_USERS_API = 'https://api.llama.fi/totalProtocolUsers'
