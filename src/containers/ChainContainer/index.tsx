@@ -563,7 +563,7 @@ export function ChainContainer({
 																<td>{formattedNum(chainAssets.native.total, true)}</td>
 															</tr>
 														) : null}
-														{extraTvlsEnabled.govtokens && chainAssets.ownTokens?.total ? (
+														{chainAssets.ownTokens?.total ? (
 															<tr>
 																<SubrowTh>
 																	Own Tokens
