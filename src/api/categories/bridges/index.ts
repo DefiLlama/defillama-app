@@ -251,7 +251,7 @@ export async function getBridgeChainsPageData() {
 					return { ...charts, name: chain.name }
 				} catch (e) {}
 			}
-			throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)
+			//throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)
 		})
 	)
 
