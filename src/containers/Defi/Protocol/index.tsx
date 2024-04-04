@@ -1122,7 +1122,7 @@ function ProtocolContainer({
 											)
 										}
 
-										;<>
+										<>
 											{raises && raises.length > 0 && (
 												<RowWithSubRows
 													protocolName={protocolData.name}
