@@ -98,7 +98,7 @@ export async function getBridgeOverviewPageData(chain) {
 						formattedCharts = charts.map((chart) => {
 							return {
 								date: chart.date,
-								volume: chart.withdrawUSD + chart.depositUSD,
+								volume: (chart.withdrawUSD + chart.depositUSD) / 2,
 								txs: chart.depositTxs + chart.withdrawTxs
 							}
 						})
