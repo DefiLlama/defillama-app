@@ -937,7 +937,15 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		header: 'Change 24h',
 		accessorKey: 'change_24h',
 		enableSorting: true,
-		sortingFn: keySorting('change_24h'),
+		sortingFn: (rowA, rowB) => {
+			const valueA = String(rowA.original.change_24h)
+			const valueB = String(rowB.original.change_24h)
+
+			if (valueA === undefined || valueA === null) return 1
+			if (valueB === undefined || valueB === null) return -1
+
+			return parseFloat(valueB) - parseFloat(valueA)
+		},
 		cell: (info) => {
 			const value = info.getValue()
 			if (!value) return <></>

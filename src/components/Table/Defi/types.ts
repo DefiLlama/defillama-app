@@ -112,4 +112,5 @@ export interface IBridgedRow {
 	thirdParty: ChainAssets['thirdParty']
 	canonical: ChainAssets['canonical']
 	ownTokens: ChainAssets['ownTokens']
+	change_24h: number
 }
