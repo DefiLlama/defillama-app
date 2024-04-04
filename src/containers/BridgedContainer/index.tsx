@@ -7,7 +7,7 @@ import { bridgedColumns, chainsColumn } from '~/components/Table/Defi/columns'
 import VirtualTable from '~/components/Table/Table'
 import { sluggify } from '~/utils/cache-client'
 
-export default function ChainsContainer({ assets, chains }) {
+export default function ChainsContainer({ assets, chains, flows1d }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
 	const data = chains?.chainsUnique
@@ -15,10 +15,12 @@ export default function ChainsContainer({ assets, chains }) {
 			const slug = sluggify(chain)
 
 			const chainAssets = assets?.[slug]
+			const chainFlows = flows1d?.[slug]
 
 			return {
 				name: chain,
-				...(chainAssets || {})
+				...(chainAssets || {}),
+				change_24h: chainFlows?.total
 			}
 		})
 		.filter((row) => row?.total)

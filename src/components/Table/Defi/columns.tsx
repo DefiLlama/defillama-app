@@ -934,6 +934,17 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		}
 	},
 	{
+		header: 'Change 24h',
+		accessorKey: 'change_24h',
+		enableSorting: true,
+		sortingFn: keySorting('change_24h'),
+		cell: (info) => {
+			const value = info.getValue()
+			if (!value) return <></>
+			return <div style={{ color: Number(value) > 0 ? '#198600' : '#d92929' }}>{formattedPercent(value)}</div>
+		}
+	},
+	{
 		header: 'Native',
 		accessorKey: 'native',
 		enableSorting: true,
