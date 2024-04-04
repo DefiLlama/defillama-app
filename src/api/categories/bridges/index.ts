@@ -243,7 +243,7 @@ export async function getBridgeChainsPageData() {
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
 	const prevDayTimestamp = currentTimestamp - 86400 - 3600
 	let prevDayDataByChain = []
-	prevDayDataByChain = await Promise.all(
+	prevDayDataByChain = (await Promise.all(
 		chains.map(async (chain) => {
 			for (let i = 0; i < 5; i++) {
 				try {
@@ -253,7 +253,7 @@ export async function getBridgeChainsPageData() {
 			}
 			//throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)
 		})
-	)
+	)).filter(t => t !== undefined)
 
 	const filteredChains = formatChainsData({
 		chains,
