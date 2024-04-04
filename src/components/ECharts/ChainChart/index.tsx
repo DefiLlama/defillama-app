@@ -207,20 +207,22 @@ export default function AreaChart({
 				data?.usersData.forEach(([date, value, value2]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), (value ?? 0) - (value2 ?? 0)])
 				})
-				series.push({
-					name: namePrefix + 'New Addresses',
-					chartId: 'Addresses',
-					stack: 'Addresses',
-					type: 'bar',
-					data: [],
-					yAxisIndex: 5,
-					itemStyle: {
-						color: getColor(isCompare) || colors.newUsers
-					}
-				})
-				data?.usersData.forEach(([date, value, value2]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value2 ?? 0])
-				})
+				if (data?.usersData?.[0]?.[2] !== undefined) {
+					series.push({
+						name: namePrefix + 'New Addresses',
+						chartId: 'Addresses',
+						stack: 'Addresses',
+						type: 'bar',
+						data: [],
+						yAxisIndex: 5,
+						itemStyle: {
+							color: getColor(isCompare) || colors.newUsers
+						}
+					})
+					data?.usersData.forEach(([date, value, value2]) => {
+						series[series.length - 1].data.push([getUtcDateObject(date), value2 ?? 0])
+					})
+				}
 			}
 
 			if (route.raises === 'true' && data?.raisesData) {
@@ -550,7 +552,7 @@ export default function AreaChart({
 				{
 					...yAxis,
 					axisLabel: {
-						formatter: (value) => toK(value) + ' ' + 'Addresses',
+						formatter: (value) => toK(value) + ' ' + 'Addr',
 						color: () => (isCompare ? '#fff' : colors.returningUsers)
 					},
 					scale: true,
@@ -672,9 +674,14 @@ export default function AreaChart({
 				const defaultOffset = offsets[yAxis.id] || 40
 				const offset = isActive && defaultOffset ? offsetAcc + defaultOffset : 0
 				offsetAcc = isActive && i !== 0 ? offsetAcc + defaultOffset : offsetAcc
+				const color = isCompare ? series.find((s) => s.chartId === yAxis.id)?.itemStyle?.color : yAxis.axisLabel.color
 				return {
 					...yAxis,
-					offset
+					offset,
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: color || yAxis.axisLabel.color
+					}
 				}
 			}),
 			dataZoom: [...dataZoom],
