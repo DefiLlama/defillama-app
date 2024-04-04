@@ -31,10 +31,6 @@ export const DataWrapper = styled.div`
 	#chartWrapper {
 		flex: 1;
 	}
-
-	@media screen and (min-width: 105rem) {
-		flex-direction: row;
-	}
 `
 
 export const ControlsWrapper = styled.div`
