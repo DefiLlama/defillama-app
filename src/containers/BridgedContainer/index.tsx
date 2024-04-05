@@ -20,10 +20,10 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 			return {
 				name: chain,
 				...(chainAssets || {}),
-				change_24h: chainFlows?.total
+				change_24h: chainFlows?.total.perc
 			}
 		})
-		.filter((row) => row?.total)
+		.filter((row) => row?.total.perc)
 
 	const instance = useReactTable({
 		data,
