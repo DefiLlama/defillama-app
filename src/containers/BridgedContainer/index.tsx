@@ -20,7 +20,7 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 			return {
 				name: chain,
 				...(chainAssets || {}),
-				change_24h: chainFlows?.total.perc
+				change_24h: chainFlows?.total?.perc
 			}
 		})
 		.filter((row) => row?.total)
