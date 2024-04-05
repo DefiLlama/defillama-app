@@ -59,5 +59,10 @@
 		"name": "NIM Network",
 		"page": "https://claim.nim.network/",
 		"twitter": "nim_network"
+	},
+	{
+		"name": "Kamino",
+		"page": "https://app.kamino.finance/genesis",
+		"twitter": "KaminoFinance"
 	}
 ]
