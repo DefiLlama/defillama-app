@@ -23,7 +23,7 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 				change_24h: chainFlows?.total.perc
 			}
 		})
-		.filter((row) => row?.total.perc)
+		.filter((row) => row?.total)
 
 	const instance = useReactTable({
 		data,
