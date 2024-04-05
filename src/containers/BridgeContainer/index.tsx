@@ -58,8 +58,8 @@ const BridgeInfo = ({ displayName, logo, chains, defaultChain, volumeDataByChain
 
 	let volPercentChange = '0 '
 
-	if (volumeChartDataByChain.length > 2) {
-		const prev2DayChart = volumeChartDataByChain[volumeChartDataByChain.length - 2]
+	if (volumeChartDataByChain.length > 3) {
+		const prev2DayChart = volumeChartDataByChain[volumeChartDataByChain.length - 3]
 		const prevDepositsUSD = prev2DayChart.Deposited ?? 0
 		const prevWithdrawalsUSD = -(prev2DayChart.Withdrawn ?? 0)
 		const prevVolume = prevDepositsUSD + prevWithdrawalsUSD
