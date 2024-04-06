@@ -183,8 +183,7 @@ export const useFetchChainChartData = ({
 			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
 			cc
 		])
-
-		const finalChainAssetsChart = chainAssetsChart?.map(({ data, timestamp }) => {
+		const finalChainAssetsChart = chainAssetsChart?.filter(Boolean).map(({ data, timestamp }) => {
 			const ts = Math.floor(
 				dayjs(timestamp * 1000)
 					.utc()
