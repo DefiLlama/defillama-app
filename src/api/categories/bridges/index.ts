@@ -387,7 +387,9 @@ export async function getBridgePageDatanew(bridge: string) {
 		volumeDataByChain[chains[index]] = chartData
 	})
 
-	volumeDataByChain['All Chains'] = Object.values(volumeOnAllChains)
+	volumeDataByChain['All Chains'] = destinationChain
+		? volumeDataByChain?.[destinationChain] ?? []
+		: Object.values(volumeOnAllChains)
 
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
