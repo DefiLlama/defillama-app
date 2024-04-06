@@ -387,9 +387,8 @@ export async function getBridgePageDatanew(bridge: string) {
 		volumeDataByChain[chains[index]] = chartData
 	})
 
-	volumeDataByChain['All Chains'] = destinationChain
-		? volumeDataByChain?.[destinationChain] ?? []
-		: Object.values(volumeOnAllChains)
+	volumeDataByChain['All Chains'] =
+		destinationChain !== 'false' ? volumeDataByChain?.[destinationChain] ?? [] : Object.values(volumeOnAllChains)
 
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
@@ -436,11 +435,13 @@ export async function getBridgePageDatanew(bridge: string) {
 		prevDayDataByChain[chains[index]] = data
 	})
 
-	if (destinationChain) {
+	if (destinationChain !== 'false') {
 		prevDayDataByChain[destinationChain] = prevDayDataByChain['All Chains']
 	}
 
-	const chainsList = ['All Chains', ...chains, destinationChain].filter((chain) => chain)
+	const chainsList = ['All Chains', ...chains, destinationChain !== false ? destinationChain : null].filter(
+		(chain) => chain
+	)
 
 	const tableDataByChain = {}
 	chainsList.forEach((currentChain) => {
