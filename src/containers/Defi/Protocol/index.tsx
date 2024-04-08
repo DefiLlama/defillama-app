@@ -526,11 +526,6 @@ function ProtocolContainer({
 	React.useEffect(() => {
 		router.push(router.asPath.split('#')[0] + '#' + tab.selectedId, undefined, { shallow: true })
 	}, [tab?.selectedId])
-
-	React.useEffect(() => {
-		tab.select('information')
-	}, [protocol])
-
 	const { data: chainPrice, loading: fetchingChainPrice } = useGetTokenPrice(chartDenominations?.[1]?.geckoId)
 
 	const formatPrice = (value?: number | string | null): string | number | null => {
@@ -603,12 +598,13 @@ function ProtocolContainer({
 					<OtherProtocols>
 						{otherProtocols.map((p) => (
 							<Link
-								href={`/protocol/${standardizeProtocolName(p)}`}
+								href={`/protocol/${standardizeProtocolName(p)}` + '#information'}
 								key={'navigate to ' + `/protocol/${standardizeProtocolName(p)}`}
 								passHref
 							>
 								<ProtocolLink
-									active={router.asPath === `/protocol/${standardizeProtocolName(p)}` + queryParams}
+									onClick={() => tab.select('information')}
+									active={router.asPath.includes(`/protocol/${standardizeProtocolName(p)}`)}
 									color={backgroundColor}
 								>
 									{p}
