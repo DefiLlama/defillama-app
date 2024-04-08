@@ -53,9 +53,16 @@ import { NewsCard } from '~/components/News/Card'
 import { RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
 import Announcement from '~/components/Announcement'
-import { useTabState, TabPanel as AriakitTabPanel } from 'ariakit'
+import { useTabState } from 'ariakit'
 import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
-import { GridContent, TabLayout, TabList, Tab, OtherProtocols, ProtocolLink } from './Common'
+import {
+	GridContent,
+	TabLayout,
+	CustomTabList as TabList,
+	CustomTab as Tab,
+	OtherProtocols,
+	ProtocolLink
+} from './Common'
 import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
 import { Flag } from './Flag'
 import { AccordionStat } from '~/layout/Stats/Large'
@@ -367,7 +374,6 @@ function ProtocolContainer({
 	const router = useRouter()
 
 	const { usdInflows: usdInflowsParam, denomination } = router.query
-	// const [loading, setLoading] = React.useState(true)
 
 	const { explorers } = getBlockExplorer(address)
 
@@ -376,11 +382,6 @@ function ProtocolContainer({
 	const [extraTvlsEnabled, updater] = useTvlAndFeesManager()
 
 	const { data: twitterData } = useFetchProtocolTwitter(twitter ? twitter : null)
-
-	// React.useEffect(() => {
-	// 	const timer = setTimeout(() => setLoading(false), 1000)
-	// 	return () => clearTimeout(timer)
-	// }, [])
 
 	const weeksFromLastTweet = React.useMemo(() => {
 		if (twitterData) {
@@ -522,6 +523,14 @@ function ProtocolContainer({
 
 	const tab = useTabState({ defaultSelectedId })
 
+	React.useEffect(() => {
+		router.push(router.asPath.split('#')[0] + '#' + tab.selectedId, undefined, { shallow: true })
+	}, [tab?.selectedId])
+
+	React.useEffect(() => {
+		tab.select('information')
+	}, [protocol])
+
 	const { data: chainPrice, loading: fetchingChainPrice } = useGetTokenPrice(chartDenominations?.[1]?.geckoId)
 
 	const formatPrice = (value?: number | string | null): string | number | null => {
@@ -610,62 +619,62 @@ function ProtocolContainer({
 				)}
 
 				<TabLayout>
-					<TabList state={tab}>
-						<Tab id="information" color={backgroundColor}>
+					<TabList>
+						<Tab id="information" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 							Information
 						</Tab>
 						{showCharts && (
-							<Tab id="tvl-charts" color={backgroundColor}>
+							<Tab id="tvl-charts" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								{isCEX ? 'Assets' : 'TVL'}
 							</Tab>
 						)}
 						{stablecoins && stablecoins.length > 0 && (
-							<Tab id="stablecoin-info" color={backgroundColor}>
+							<Tab id="stablecoin-info" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Stablecoin Info
 							</Tab>
 						)}
 						{metrics.bridge && (
-							<Tab id="bridge" color={backgroundColor}>
+							<Tab id="bridge" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Bridge Info
 							</Tab>
 						)}
 						{treasury && (
-							<Tab id="treasury" color={backgroundColor}>
+							<Tab id="treasury" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Treasury
 							</Tab>
 						)}
 						{metrics.unlocks && (
-							<Tab id="unlocks" color={backgroundColor}>
+							<Tab id="unlocks" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Unlocks
 							</Tab>
 						)}
 						{yields && (
-							<Tab id="yields" color={backgroundColor}>
+							<Tab id="yields" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Yields
 							</Tab>
 						)}
 						{metrics.fees && (
-							<Tab id="fees-revenue" color={backgroundColor}>
+							<Tab id="fees-revenue" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Fees and Revenue
 							</Tab>
 						)}
 						{metrics.dexs && (
-							<Tab id="volume" color={backgroundColor}>
+							<Tab id="volume" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Volume
 							</Tab>
 						)}
 						{metrics.derivatives && (
-							<Tab id="derivatives-volume" color={backgroundColor}>
+							<Tab id="derivatives-volume" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Derivatives Volume
 							</Tab>
 						)}
 						{governanceApis?.length > 0 && (
-							<Tab id="governance" color={backgroundColor}>
+							<Tab id="governance" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Governance
 							</Tab>
 						)}
 						{protocolHasForks && (
-							<Tab id="forks" color={backgroundColor}>
+							<Tab id="forks" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Forks
 							</Tab>
 						)}
@@ -1093,34 +1102,32 @@ function ProtocolContainer({
 											/>
 										) : null}
 
-										{
-											treasury && (
-												<RowWithSubRows
-													protocolName={protocolData.name}
-													helperText={null}
-													rowHeader={'Treasury'}
-													rowValue={formatPrice(
-														Object.entries(treasury).reduce(
-															(acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]),
-															0
-														)
-													)}
-													dataType={'Treasury'}
-													subRows={
-														<>
-															{Object.entries(treasury).map(([cat, tre]) => {
-																return (
-																	<tr key={'treasury' + cat + tre}>
-																		<SubrowTh data-subvalue>{capitalizeFirstLetter(cat)}</SubrowTh>
-																		<td data-subvalue>{formatPrice(tre)}</td>
-																	</tr>
-																)
-															})}
-														</>
-													}
-												/>
-											)
-										}
+										{treasury && (
+											<RowWithSubRows
+												protocolName={protocolData.name}
+												helperText={null}
+												rowHeader={'Treasury'}
+												rowValue={formatPrice(
+													Object.entries(treasury).reduce(
+														(acc, curr) => (acc += curr[0] === 'ownTokens' ? 0 : curr[1]),
+														0
+													)
+												)}
+												dataType={'Treasury'}
+												subRows={
+													<>
+														{Object.entries(treasury).map(([cat, tre]) => {
+															return (
+																<tr key={'treasury' + cat + tre}>
+																	<SubrowTh data-subvalue>{capitalizeFirstLetter(cat)}</SubrowTh>
+																	<td data-subvalue>{formatPrice(tre)}</td>
+																</tr>
+															)
+														})}
+													</>
+												}
+											/>
+										)}
 
 										<>
 											{raises && raises.length > 0 && (
@@ -1171,77 +1178,73 @@ function ProtocolContainer({
 											)}
 										</>
 
-										{
-											controversialProposals && controversialProposals.length > 0 ? (
-												<RowWithSubRows
-													protocolName={protocolData.name}
-													dataType={'Governance'}
-													helperText={null}
-													rowHeader={'Top Controversial Proposals'}
-													rowValue={null}
-													subRows={
-														<>
-															{controversialProposals.map((proposal) => (
-																<tr key={proposal.title}>
-																	<td data-subvalue style={{ textAlign: 'left' }}>
-																		{proposal.link ? (
-																			<a href={proposal.link} target="_blank" rel="noreferrer noopener">
-																				{proposal.title}
-																			</a>
-																		) : (
-																			proposal.title
-																		)}
-																	</td>
+										{controversialProposals && controversialProposals.length > 0 ? (
+											<RowWithSubRows
+												protocolName={protocolData.name}
+												dataType={'Governance'}
+												helperText={null}
+												rowHeader={'Top Controversial Proposals'}
+												rowValue={null}
+												subRows={
+													<>
+														{controversialProposals.map((proposal) => (
+															<tr key={proposal.title}>
+																<td data-subvalue style={{ textAlign: 'left' }}>
+																	{proposal.link ? (
+																		<a href={proposal.link} target="_blank" rel="noreferrer noopener">
+																			{proposal.title}
+																		</a>
+																	) : (
+																		proposal.title
+																	)}
+																</td>
+															</tr>
+														))}
+													</>
+												}
+											/>
+										) : null}
+
+										{expenses && (
+											<RowWithSubRows
+												protocolName={protocolData.name}
+												dataType={'Expenses'}
+												helperText={null}
+												rowHeader={'Annual operational expenses'}
+												rowValue={formatPrice(
+													Object.values((expenses.annualUsdCost || {}) as { [key: string]: number }).reduce(
+														(acc, curr) => (acc += curr),
+														0
+													)
+												)}
+												subRows={
+													<>
+														<tr>
+															<SubrowTh data-subvalue>Headcount</SubrowTh>
+															<td data-subvalue>{expenses.headcount}</td>
+														</tr>
+
+														{Object.entries(expenses.annualUsdCost || {}).map(([cat, exp]: [string, number]) => {
+															return (
+																<tr key={'expenses' + cat + exp}>
+																	<SubrowTh data-subvalue>{capitalizeFirstLetter(cat)}</SubrowTh>
+																	<td data-subvalue>{formatPrice(exp)}</td>
 																</tr>
-															))}
-														</>
-													}
-												/>
-											) : null
-										}
+															)
+														})}
 
-										{
-											expenses && (
-												<RowWithSubRows
-													protocolName={protocolData.name}
-													dataType={'Expenses'}
-													helperText={null}
-													rowHeader={'Annual operational expenses'}
-													rowValue={formatPrice(
-														Object.values((expenses.annualUsdCost || {}) as { [key: string]: number }).reduce(
-															(acc, curr) => (acc += curr),
-															0
-														)
-													)}
-													subRows={
-														<>
-															<tr>
-																<SubrowTh data-subvalue>Headcount</SubrowTh>
-																<td data-subvalue>{expenses.headcount}</td>
-															</tr>
-
-															{Object.entries(expenses.annualUsdCost || {}).map(([cat, exp]: [string, number]) => {
-																return (
-																	<tr key={'expenses' + cat + exp}>
-																		<SubrowTh data-subvalue>{capitalizeFirstLetter(cat)}</SubrowTh>
-																		<td data-subvalue>{formatPrice(exp)}</td>
-																	</tr>
-																)
-															})}
-
-															<tr>
-																<SubrowTh data-subvalue>
-																	<a href={expenses.sources?.[0] ?? null}>
-																		Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
-																	</a>
-																</SubrowTh>
-																<td data-subvalue></td>
-															</tr>
-														</>
-													}
-												/>
-											)
-										}
+														<tr>
+															<SubrowTh data-subvalue>
+																<a href={expenses.sources?.[0] ?? null}>
+																	Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
+																</a>
+															</SubrowTh>
+															<td data-subvalue></td>
+														</tr>
+													</>
+												}
+											/>
+										)}
 									</tbody>
 								</StatsTable2>
 
@@ -1734,12 +1737,7 @@ const Toggle = styled.button`
 `
 
 const TabPanel = ({ children, ...props }: any) => {
-	const { ref, inView } = useInView({ rootMargin: '300px' })
-	return (
-		<AriakitTabPanel ref={ref} {...props}>
-			{inView ? children : null}
-		</AriakitTabPanel>
-	)
+	return <div>{props?.state?.selectedId === props?.tabId ? children : null}</div>
 }
 
 export const StatsTable2 = styled(ProtocolStatsTable)`
