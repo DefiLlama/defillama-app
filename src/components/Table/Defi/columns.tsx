@@ -916,7 +916,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 					)}
 					<span>{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink href={`/chain/${getValue()}`}>{getValue()}</CustomLink>
+					<CustomLink href={`/bridged/${getValue()}`}>{getValue()}</CustomLink>
 				</Name>
 			)
 		},
@@ -994,6 +994,24 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 			const value = info.getValue()?.total
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
+		}
+	}
+]
+
+export const bridgedChainColumns: ColumnDef<any>[] = [
+	{
+		header: 'Token',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <Name>{getValue()}</Name>
+		}
+	},
+	{
+		header: 'Total Bridged',
+		accessorKey: 'value',
+		cell: ({ getValue }) => {
+			return <>{'$' + formattedNum(getValue())}</>
 		}
 	}
 ]

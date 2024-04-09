@@ -1001,9 +1001,10 @@ export function formatGovernanceData(data: {
 	return { maxVotes, activity, proposals }
 }
 
-export async function getChainsBridged() {
+export async function getChainsBridged(chain?: string) {
 	const assets = await fetchWithErrorLogging(CHAINS_ASSETS).then((r) => r.json())
 	const chains = await fetch(`${CHAINS_API_V2}/All`).then((r) => r.json())
 	const flows1d = await fetch(CHAIN_ASSETS_FLOWS + '/24h').then((r) => r.json())
-	return { chains, assets, flows1d }
+	const chainData = assets[chain] ?? null
+	return { chains, assets, flows1d, chainData }
 }
