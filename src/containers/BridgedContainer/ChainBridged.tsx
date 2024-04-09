@@ -26,7 +26,6 @@ const Stats = styled(StatsSection)`
 	flex-direction: row;
 	align-items: center;
 	justify-content: center;
-	max-width: 1200px;
 
 	@media screen and (max-width: 768px) {
 		flex-direction: column;
@@ -63,14 +62,14 @@ export default function ChainBridged({ chainData, chain }) {
 	})
 	return (
 		<>
-			<ProtocolsChainsSearch
-				hideFilters
-				step={{
-					category: 'Chains',
-					name: 'All Chains'
-				}}
-			/>
 			<Layout title={`${chain}: Bridged TVL - DefiLlama`} style={{ gap: '24px' }}>
+				<ProtocolsChainsSearch
+					hideFilters
+					step={{
+						category: 'Chains',
+						name: 'All Chains'
+					}}
+				/>
 				<SEO cardName={chain} token={chain} />
 				<Stats>
 					<DetailsWrapper style={{ paddingTop: '0px', background: 'none' }}>
