@@ -45,8 +45,7 @@ export default function ChainBridged({ chainData, chain }) {
 	const otherTotal = otherTokens.reduce((acc, [_, value]) => acc + +value, 0)
 	const tokens = [...top10Tokens, ['Other', otherTotal]]
 	const screenWidth = useWindowSize()
-	const [sorting, setSorting] = React.useState<SortingState>([])
-
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'value', desc: true }])
 	const instance = useReactTable({
 		data: Object.entries(chainData?.[chartType]?.breakdown).map(([name, value]) => ({
 			name: name?.toLowerCase() === name ? name?.toUpperCase() : name,
