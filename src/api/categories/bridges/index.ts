@@ -559,6 +559,7 @@ export async function getBridgePageDatanew(bridge: string) {
 		chains: ['All Chains', ...chains],
 		defaultChain: 'All Chains',
 		volumeDataByChain,
-		tableDataByChain
+		tableDataByChain,
+		config: bridgeData
 	}
 }

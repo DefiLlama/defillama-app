@@ -2,7 +2,7 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import { DetailsWrapper, LazyChart, Name } from '~/layout/ProtocolAndPool'
+import { Button, DetailsWrapper, LazyChart, Name } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { BridgesSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
@@ -17,6 +17,8 @@ import { BridgeChainSelector } from '~/components/BridgesPage/BridgeChainSelecto
 import { Filters, Denomination } from '~/components/ECharts/ProtocolChart/Misc'
 import useSWR from 'swr'
 import { getBridgePageDatanew } from '~/api/categories/bridges'
+import Link from 'next/link'
+import { ArrowUpRight } from 'react-feather'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -41,7 +43,15 @@ const TableNoticeWrapper = styled.div`
 	}
 `
 
-const BridgeInfo = ({ displayName, logo, chains, defaultChain, volumeDataByChain, tableDataByChain }) => {
+const BridgeInfo = ({
+	displayName,
+	logo,
+	chains,
+	defaultChain,
+	volumeDataByChain,
+	tableDataByChain,
+	config = {} as Record<string, string>
+}) => {
 	const [chartType, setChartType] = React.useState('Inflows')
 	const [currentChain, setChain] = React.useState(defaultChain)
 
@@ -97,6 +107,25 @@ const BridgeInfo = ({ displayName, logo, chains, defaultChain, volumeDataByChain
 						<span>Volume Change (24h)</span>
 						<span>{volPercentChange + '%'}</span>
 					</Stat>
+					{config?.url ? (
+						<Link href={config.url} passHref>
+							<Button
+								as="a"
+								target="_blank"
+								rel="noopener noreferrer"
+								useTextColor={true}
+								style={{
+									width: '120px',
+									display: 'flex',
+									justifyContent: 'center',
+									marginLeft: '-8px',
+									marginTop: '-16px'
+								}}
+							>
+								<span>Website</span> <ArrowUpRight size={14} />
+							</Button>
+						</Link>
+					) : null}
 				</DetailsWrapper>
 
 				<div
