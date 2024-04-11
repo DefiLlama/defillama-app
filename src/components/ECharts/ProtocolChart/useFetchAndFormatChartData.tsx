@@ -69,7 +69,8 @@ export function useFetchAndFormatChartData({
 	devCommits,
 	nftVolume,
 	nftVolumeData,
-	aggregators
+	aggregators,
+	premiumVolume
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -160,6 +161,14 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && derivativesVolume === 'true' && metrics.derivatives ? false : true
 	})
 
+	const { data: optionsVolumeData, loading: fetchingOptionsVolume } = useGetOverviewChartData({
+		name: protocol,
+		dataToFetch: 'options',
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: isRouterReady && premiumVolume === 'true' && metrics.options ? false : true
+	})
+
 	const { data: aggregatorsVolumeData, loading: fetchingAggregatorsVolume } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'aggregators',
@@ -227,6 +236,13 @@ export function useFetchAndFormatChartData({
 				}
 
 				chartData[date]['TVL'] = showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL
+			})
+		}
+
+		if (isHourlyChart && tvl !== 'false') {
+			tvlData.forEach(([dateS, TVL]) => {
+				const date = nearestUtc(+dateS * 1000) / 1000
+				chartData[date] = chartData[dateS]
 			})
 		}
 
@@ -499,6 +515,21 @@ export function useFetchAndFormatChartData({
 				chartData[date]['Derivatives Volume'] = showNonUsdDenomination
 					? +item.Derivatives / getPriceAtDate(date, denominationHistory.prices)
 					: item.Derivatives
+			})
+		}
+
+		if (optionsVolumeData) {
+			chartsUnique.push('Premium Volume')
+
+			optionsVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Premium Volume'] = showNonUsdDenomination
+					? +item['Premium volume'] / getPriceAtDate(date, denominationHistory.prices)
+					: item['Premium volume']
 			})
 		}
 
@@ -845,49 +876,50 @@ export function useFetchAndFormatChartData({
 			chartsUnique
 		}
 	}, [
-		protocolCGData,
-		mcap,
+		isRouterReady,
+		tvl,
+		historicalChainTvls,
+		extraTvlEnabled,
+		staking,
+		borrowed,
 		geckoId,
+		protocolCGData,
+		tokenLiquidityData,
+		bridgeVolumeData,
 		volumeData,
 		derivativesVolumeData,
-		tvl,
-		showNonUsdDenomination,
-		denominationHistory?.prices,
+		optionsVolumeData,
+		aggregatorsVolumeData,
 		feesAndRevenue,
-		fees,
-		revenue,
-		isRouterReady,
+		twitterData,
+		unlocksData,
 		activeAddressesData,
 		newAddressesData,
+		transactionsData,
+		gasData,
+		medianAPYData,
+		isHourlyChart,
+		usdInflows,
+		usdInflowsData,
+		governanceData,
+		devMetricsData,
+		contributersMetrics,
+		devMetrics,
+		nftVolumeData,
+		nftVolume,
+		devCommits,
+		contributersCommits,
+		treasuryData,
+		showNonUsdDenomination,
+		denominationHistory.prices,
+		mcap,
 		tokenPrice,
 		fdv,
 		fdvData,
-		gasData,
-		transactionsData,
-		staking,
-		borrowed,
-		historicalChainTvls,
-		medianAPYData,
-		usdInflows,
-		usdInflowsData,
-		isHourlyChart,
-		governanceData,
-		extraTvlEnabled,
-		treasuryData,
-		unlocksData,
-		bridgeVolumeData,
 		tokenVolume,
-		tokenLiquidityData,
-		twitterData,
-		devMetrics,
-		devMetricsData,
-		groupBy,
-		contributersMetrics,
-		contributersCommits,
-		devCommits,
-		nftVolume,
-		nftVolumeData,
-		aggregatorsVolumeData
+		fees,
+		revenue,
+		groupBy
 	])
 
 	const finalData = React.useMemo(() => {

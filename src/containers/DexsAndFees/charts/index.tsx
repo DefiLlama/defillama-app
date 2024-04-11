@@ -79,14 +79,13 @@ export const ChartByType2: React.FC<IChartByType> = (props) => {
 export const useGetDexsAndFeesChartData = (props) => {
 	const [protocolSummary, setProtocolSummary] = React.useState(props.protocolSummary)
 	const { data, error } = useFetchChartsSummary(props.type, props.protocolName, undefined, !!props.protocolSummary)
-
 	React.useEffect(() => {
 		if (data && !error) {
 			setProtocolSummary(data)
 		}
 	}, [data, error])
 
-	const enableBreakdownChart = props.breakdownChart ?? true
+	const enableBreakdownChart = props.type === 'options' ? false : props.breakdownChart ?? true
 	const fullChart = props.fullChart ?? true
 	const typeSimple = volumeTypes.includes(props.type) ? 'volume' : props.type
 

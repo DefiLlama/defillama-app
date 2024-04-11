@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const protocolData = await getProtocol(protocol)
-		
+
 		if (isHot && !protocolData?.id?.includes('parent#')) {
 			const data = await getProtocolDataLite(protocol)
 			return data

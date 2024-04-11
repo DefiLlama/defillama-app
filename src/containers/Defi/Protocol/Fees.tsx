@@ -37,7 +37,13 @@ export function FeesAndRevenueCharts({ data }: { data: IFusedProtocolData }) {
 	)
 }
 
-export function VolumeCharts({ data, type = 'dexs' }: { data: IFusedProtocolData; type?: 'derivatives' | 'dexs' }) {
+export function VolumeCharts({
+	data,
+	type = 'dexs'
+}: {
+	data: IFusedProtocolData
+	type?: 'derivatives' | 'dexs' | 'aggregators' | 'options'
+}) {
 	const hasVersions = (data.otherProtocols ?? []).length > 0
 
 	return (
