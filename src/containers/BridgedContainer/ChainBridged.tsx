@@ -21,18 +21,7 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
 
-const Stats = styled(StatsSection)`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-
-	@media screen and (max-width: 768px) {
-		flex-direction: column;
-		align-items: flex-start;
-		padding-top: 24px;
-	}
-`
+const Stats = styled(StatsSection)``
 
 export default function ChainBridged({ chainData, chain }) {
 	const [chartType, setChartType] = React.useState('total')
@@ -71,7 +60,7 @@ export default function ChainBridged({ chainData, chain }) {
 				/>
 				<SEO cardName={chain} token={chain} />
 				<Stats>
-					<DetailsWrapper style={{ paddingTop: '0px', background: 'none' }}>
+					<DetailsWrapper style={{ background: 'none' }}>
 						<Name>
 							<TokenLogo logo={chainIconUrl(chain)} size={24} />
 							<FormattedName text={chain + ' Bridged TVL'} fontWeight={700} />
@@ -79,7 +68,7 @@ export default function ChainBridged({ chainData, chain }) {
 
 						<Stat>
 							<span>Total</span>
-							<span>{formattedNum(chainData?.total.total, true)}</span>
+							<span>{formattedNum(+chainData?.total.total + (+chainData?.ownTokens?.total ?? 0), true)}</span>
 						</Stat>
 						<Stat>
 							<span>Canonical</span>
@@ -93,6 +82,12 @@ export default function ChainBridged({ chainData, chain }) {
 							<span>Third Party</span>
 							<span>{formattedNum(chainData?.thirdParty.total, true)}</span>
 						</Stat>
+						{chainData?.ownTokens?.total ? (
+							<Stat>
+								<span>Own Tokens</span>
+								<span>{formattedNum(chainData?.ownTokens.total, true)}</span>
+							</Stat>
+						) : null}
 					</DetailsWrapper>
 					<div
 						style={{
@@ -102,7 +97,7 @@ export default function ChainBridged({ chainData, chain }) {
 							alignItems: 'center',
 							gap: '16px',
 							marginTop: '16px',
-							padding: '24px 24px 20px 0',
+							padding: '8px 24px 20px 0',
 							minHeight: '460px'
 						}}
 					>
@@ -113,7 +108,8 @@ export default function ChainBridged({ chainData, chain }) {
 								{ type: 'total', name: 'Total' },
 								{ type: 'canonical', name: 'Canonical' },
 								{ type: 'native', name: 'Native' },
-								{ type: 'thirdParty', name: 'Third Party' }
+								{ type: 'thirdParty', name: 'Third Party' },
+								{ type: 'ownTokens', name: 'Own Tokens' }
 							].map(({ type, name }) =>
 								chainData[type]?.total !== '0' ? (
 									<Denomination as="button" active={chartType === type} onClick={() => setChartType(type)}>
