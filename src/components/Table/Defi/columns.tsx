@@ -587,7 +587,7 @@ export const activeInvestorsColumns: ColumnDef<{
 	},
 
 	{
-		header: 'Top Project Cateogry',
+		header: 'Top Project Category',
 		accessorKey: 'category',
 		enableSorting: false,
 		cell: ({ getValue }) => {
