@@ -111,23 +111,4 @@ export default function Chains({ data, columns }) {
 
 const Table = styled(VirtualTable)`
 	height: 85vh;
-
-	thead {
-		z-index: 2;
-	}
-
-	thead > tr > th:first-child {
-		position: sticky;
-		left: 0;
-		top: 0;
-	}
-
-	td,
-	th {
-		border-right: 1px solid ${({ theme }) => theme.divider};
-	}
-
-	tr:hover {
-		background: ${({ theme }) => theme.bg1};
-	}
 `
