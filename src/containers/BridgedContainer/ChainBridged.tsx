@@ -68,7 +68,12 @@ export default function ChainBridged({ chainData, chain }) {
 
 						<Stat>
 							<span>Total</span>
-							<span>{formattedNum(+chainData?.total.total + (+chainData?.ownTokens?.total ?? 0), true)}</span>
+							<span>
+								{formattedNum(
+									+chainData?.total.total + (+chainData?.ownTokens?.total ? +chainData?.ownTokens?.total : 0),
+									true
+								)}
+							</span>
 						</Stat>
 						<Stat>
 							<span>Canonical</span>
@@ -109,14 +114,16 @@ export default function ChainBridged({ chainData, chain }) {
 								{ type: 'canonical', name: 'Canonical' },
 								{ type: 'native', name: 'Native' },
 								{ type: 'thirdParty', name: 'Third Party' },
-								{ type: 'ownTokens', name: 'Own Tokens' }
-							].map(({ type, name }) =>
-								chainData[type]?.total !== '0' ? (
-									<Denomination as="button" active={chartType === type} onClick={() => setChartType(type)}>
-										{name}
-									</Denomination>
-								) : null
-							)}
+								chainData?.ownTokens?.total ? { type: 'ownTokens', name: 'Own Tokens' } : null
+							]
+								.filter(Boolean)
+								.map(({ type, name }) =>
+									chainData[type]?.total !== '0' ? (
+										<Denomination as="button" active={chartType === type} onClick={() => setChartType(type)}>
+											{name}
+										</Denomination>
+									) : null
+								)}
 						</Filters>
 
 						<div style={{ width: Math.min(+screenWidth.width / 1.5, 600) + 'px' }}>
