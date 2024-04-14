@@ -99,7 +99,8 @@ const scams = [
 	'StakeSteak',
 	'Glori Finance',
 	'ZebraDAO',
-	'Leaper Finance'
+	'Leaper Finance',
+	'ShibaNova'
 ]
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
