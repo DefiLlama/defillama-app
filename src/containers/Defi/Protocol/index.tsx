@@ -96,7 +96,10 @@ const scams = [
 	'Onchain Trade',
 	'Venuswap',
 	'Scroll Swap',
-	'StakeSteak'
+	'StakeSteak',
+	'Glori Finance',
+	'ZebraDAO',
+	'Leaper Finance'
 ]
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
