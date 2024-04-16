@@ -1,5 +1,4 @@
 import { useQuery } from 'react-query'
-import request, { gql } from 'graphql-request'
 import { llamaAddress, periodDuration, subgraphApi, subscriptionAmount, token } from '../lib/constants'
 
 export interface ISub {
@@ -54,7 +53,7 @@ async function getSubscriptions(address?: `0x${string}` | null) {
 	try {
 		if (!address) return null
 
-		const subs = gql`
+		const subs = `
           {
               subs(where: { owner: "${address.toLowerCase()}", receiver: "${llamaAddress.toLowerCase()}" } orderBy: realExpiration orderDirection: desc ) {
                   id
@@ -71,7 +70,12 @@ async function getSubscriptions(address?: `0x${string}` | null) {
               }
           }
       `
-		const data: { subs: Array<ISub> } = await request(subgraphApi, subs)
+		const data: { subs: Array<ISub> } = await fetch(subgraphApi, {
+			method: 'POST',
+			body: JSON.stringify({
+				query: subs
+			})
+		}).then(r => r.json())
 		const now = new Date().getTime() / 1000
 
 		const subsRes = (data.subs ?? [])
