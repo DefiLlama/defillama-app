@@ -119,7 +119,7 @@ export default function ChainBridged({ chainData, chain }) {
 								.filter(Boolean)
 								.map(({ type, name }) =>
 									chainData[type]?.total !== '0' ? (
-										<Denomination as="button" active={chartType === type} onClick={() => setChartType(type)}>
+										<Denomination as="button" active={chartType === type} onClick={() => setChartType(type)} key={name}>
 											{name}
 										</Denomination>
 									) : null

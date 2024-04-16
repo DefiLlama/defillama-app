@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic'
 import { useQueries, useQuery } from 'react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
-import styled from 'styled-components'
 
 import { BreakpointPanel } from '~/components'
 import { Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
@@ -45,7 +44,7 @@ const CustomOption = ({ innerProps, label, data }) => (
 	</div>
 )
 
-const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
+export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
 	const data = await fetch('https://fe-cache.llama.fi/' + chain).then((r) => r.json())
 	const {
 		chart,
