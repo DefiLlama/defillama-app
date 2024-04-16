@@ -64,5 +64,12 @@
 		"name": "Kamino",
 		"page": "https://app.kamino.finance/genesis",
 		"twitter": "KaminoFinance"
+	},
+	{
+		"name": "Parcl",
+		"page": "https://claims.parcllimited.com/",
+		"explorer": "https://solscan.io/token/4LLbsb5ReP3yEtYzmXewyGjcir5uXtKFURtaEUVC2AHs",
+		"token": "4LLbsb5ReP3yEtYzmXewyGjcir5uXtKFURtaEUVC2AHs",
+		"twitter": "Parcl"
 	}
 ]
