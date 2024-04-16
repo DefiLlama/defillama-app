@@ -108,17 +108,13 @@ const ProApi = () => {
 	const wallet = useAccount()
 	const network = useNetwork()
 	const { switchNetwork } = useSwitchNetwork()
-	useEffect(() => {
-		if (network?.chain?.id && network?.chain?.id !== 10) {
-			switchNetwork?.(10)
-		}
-	}, [network?.chain?.id, switchNetwork])
 
 	const { data: ghAuth } = useGithubAuth()
 	const { openConnectModal } = useConnectModal()
 	const { data: currentAuthToken } = useGetAuthToken()
 	const {
-		data: { subs, isSubscribed }
+		data: { subs, isSubscribed },
+		refetch: refetchSubs
 	} = useGetSubs({ address: wallet?.address })
 	const { data: newApiKey, mutate: generateApiKey } = useGenerateNewApiKey()
 	const { data: authTokenAfterSigningIn, mutate: signIn } = useSignInWithEthereum()
@@ -146,6 +142,7 @@ const ProApi = () => {
 		window.addEventListener('message', function (e) {
 			if (e.data === 'payment_success' && !isTopUp) {
 				signIn({ address: wallet.address })
+				setTimeout(() => refetchSubs(), 1500)
 			}
 		})
 	}
@@ -178,7 +175,16 @@ const ProApi = () => {
 						) : !authToken && !isSubscribed ? (
 							<Button onClick={() => startPayment()}>Subscribe</Button>
 						) : authToken ? null : (
-							<Button onClick={() => signIn({ address: wallet.address })}>Sign In</Button>
+							<Button
+								onClick={() => {
+									if (network?.chain?.id !== 10) {
+										switchNetwork?.(10)
+									}
+									signIn({ address: wallet.address })
+								}}
+							>
+								Sign In
+							</Button>
 						)}
 						OR
 						<SignInWithGithub />

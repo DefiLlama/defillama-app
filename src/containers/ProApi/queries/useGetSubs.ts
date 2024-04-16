@@ -75,7 +75,7 @@ async function getSubscriptions(address?: `0x${string}` | null) {
 			body: JSON.stringify({
 				query: subs
 			})
-		}).then(r => r.json())
+		}).then((r) => r.json())
 		const now = new Date().getTime() / 1000
 
 		const subsRes = (data.data.subs ?? [])
@@ -164,8 +164,8 @@ async function getSubscriptions(address?: `0x${string}` | null) {
 export const useGetSubs = ({ address }: { address?: `0x${string}` | null }) => {
 	const res = useQuery(['subs', address], () => getSubscriptions(address), {
 		enabled: address ? true : false,
-		cacheTime: 20_000,
-		refetchInterval: 20_000
+		cacheTime: 10_000,
+		refetchInterval: 10_000
 	})
 	return { ...res, data: res.data ?? { subs: [], isSubscribed: false } }
 }

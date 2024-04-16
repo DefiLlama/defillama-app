@@ -3,6 +3,7 @@ import { CSSProperties } from 'react'
 import styled from 'styled-components'
 import { useVerified } from '~/containers/ProContainer/hooks/useVerified'
 import { ButtonDark, ButtonLight } from '.'
+import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
 
 interface BadgeProps {
 	text: string
@@ -43,12 +44,12 @@ const CSVDownloadButton = ({
 	const router = useRouter()
 	const Button = isLight ? ButtonLight : ButtonDark
 	const text = customText || 'Download .csv'
-	if (!isVerified) {
+	if (!isVerified && IS_PRO_API_ENABLED) {
 		return (
 			<Button
 				style={style}
 				onClick={() => {
-					router.push({ pathname: '/pro', query: { from: router.pathname } }, undefined, { shallow: true })
+					router.push({ pathname: '/pro-api', query: { from: router.pathname } }, undefined, { shallow: true })
 				}}
 			>
 				{text} <Badge text="DefiLlama Pro" isLight={isLight} />
@@ -58,7 +59,7 @@ const CSVDownloadButton = ({
 
 	return (
 		<Button onClick={onClick} style={style}>
-			{text} <Badge text="DefiLlama Pro" isLight={isLight} />
+			{text} {IS_PRO_API_ENABLED ? <Badge text="DefiLlama Pro" isLight={isLight} /> : null}
 		</Button>
 	)
 }

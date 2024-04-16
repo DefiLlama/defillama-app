@@ -44,3 +44,5 @@ export const subsContract = new ethers.Contract(
 	SUBSCRIPTIONS_ABI,
 	new ethers.providers.JsonRpcProvider('https://mainnet.optimism.io/')
 )
+
+export const IS_PRO_API_ENABLED = false
