@@ -70,7 +70,7 @@ async function getSubscriptions(address?: `0x${string}` | null) {
               }
           }
       `
-		const data: { subs: Array<ISub> } = await fetch(subgraphApi, {
+		const data: { data: { subs: Array<ISub> } } = await fetch(subgraphApi, {
 			method: 'POST',
 			body: JSON.stringify({
 				query: subs
@@ -78,7 +78,7 @@ async function getSubscriptions(address?: `0x${string}` | null) {
 		}).then(r => r.json())
 		const now = new Date().getTime() / 1000
 
-		const subsRes = (data.subs ?? [])
+		const subsRes = (data.data.subs ?? [])
 			.map((sub) => {
 				const id = sub.id
 				const receiver = sub.receiver
