@@ -2,6 +2,8 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import styled from 'styled-components'
+import { useRouter } from 'next/router'
+
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
@@ -110,6 +112,7 @@ export const aggregateDataByInterval =
 	}
 
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
+	const router = useRouter()
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
 	const [chartInterval, changeChartInterval] = useChartInterval()
 	const dataType = volumeTypes.includes(props.type) ? 'volume' : props.type
@@ -225,7 +228,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						{props.chartTypes && (
 							<Filters color={'#4f8fea'}>
 								{props.chartTypes.map((dataType) => (
-									<Link href={`/options?dataType=${dataType}`} key={dataType} shallow passHref>
+									<Link href={`${router.asPath.split('?')[0]}?dataType=${dataType}`} key={dataType} shallow passHref>
 										<FlatDenomination active={dataType === props.selectedType}>{dataType}</FlatDenomination>
 									</Link>
 								))}

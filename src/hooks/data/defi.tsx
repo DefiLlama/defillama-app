@@ -16,12 +16,40 @@ interface IData {
 	name: string
 }
 
+interface Breakdown {
+	[key: string]: string
+}
+
+export interface ChainAssets {
+	canonical: {
+		total: string
+		breakdown: Breakdown
+	}
+	native: {
+		total: string
+		breakdown: Breakdown
+	}
+	thirdParty: {
+		total: string
+		breakdown: Breakdown
+	}
+	total: {
+		breakdown: Breakdown
+		total: string
+	}
+	ownTokens: {
+		breakdown: Breakdown
+		total: string
+	}
+}
+
 interface IFormattedDataWithExtraTvlProps {
 	data: Readonly<Array<IData>>
 	defaultSortingColumn?: string
 	dir?: string
 	applyLqAndDc?: boolean
 	extraTvlsEnabled: ISettings
+	chainAssets?: ChainAssets
 }
 
 export function formatDataWithExtraTvls({
@@ -29,7 +57,8 @@ export function formatDataWithExtraTvls({
 	defaultSortingColumn,
 	dir,
 	applyLqAndDc,
-	extraTvlsEnabled
+	extraTvlsEnabled,
+	chainAssets
 }: IFormattedDataWithExtraTvlProps) {
 	const updatedProtocols = data.map(({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
 		let finalTvl: number | null = tvl
@@ -91,8 +120,20 @@ export function formatDataWithExtraTvls({
 
 		const mcaptvl = mcap && finalTvl ? +(mcap / finalTvl).toFixed(2) : null
 
+		let assets = null
+
+		if (chainAssets) {
+			assets = chainAssets?.[props?.name?.toLowerCase()]
+
+			if (assets && extraTvlsEnabled.govtokens && assets?.ownTokens) {
+				const total = assets.total.total + assets.ownTokens.total
+				assets = { ...assets, total: { ...assets.total, total } }
+			}
+		}
+
 		return {
 			...props,
+			chainAssets: assets ?? null,
 			tvl: finalTvl < 0 ? 0 : finalTvl,
 			tvlPrevDay: finalTvlPrevDay < 0 ? 0 : finalTvlPrevDay,
 			tvlPrevWeek: finalTvlPrevWeek < 0 ? 0 : finalTvlPrevWeek,
@@ -269,6 +310,7 @@ export const formatProtocolsList = ({
 
 				return {
 					...props,
+					extraTvl,
 					name,
 					tvl: finalTvl,
 					tvlPrevDay: finalTvlPrevDay,

@@ -52,12 +52,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		accessorKey: 'chains',
 		enableSorting: false,
 		cell: (info) => (
-			<IconsRow
-				disableLinks
-				links={info.row.original.chains as Array<string>}
-				url="/yields/borrow?chain"
-				iconType="chain"
-			/>
+			<IconsRow disableLinks links={info.row.original.chains as Array<string>} url="/yields?chain" iconType="chain" />
 		),
 		meta: {
 			align: 'end'
@@ -143,38 +138,6 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		}
 	},
 	{
-		header: 'Base Borrow APY',
-		accessorKey: 'borrowBase',
-		enableSorting: true,
-		cell: (info) => {
-			return (
-				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true)}
-				</ColoredAPY>
-			)
-		},
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Base Borrow APY',
-		accessorKey: 'borrowBase',
-		enableSorting: true,
-		cell: (info) => {
-			return (
-				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true)}
-				</ColoredAPY>
-			)
-		},
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
 		header: 'Base APY',
 		accessorKey: 'totalBase',
 		enableSorting: true,
@@ -202,23 +165,6 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			align: 'end'
 		}
 	},
-	{
-		header: 'Base Borrow APY',
-		accessorKey: 'borrowBase',
-		enableSorting: true,
-		cell: (info) => {
-			return (
-				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true)}
-				</ColoredAPY>
-			)
-		},
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-
 	{
 		header: 'Net APY',
 		accessorKey: 'totalReward',

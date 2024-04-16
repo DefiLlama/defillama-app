@@ -114,13 +114,13 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-			...p,
-			tvl: p?.chainTvls?.[chain]?.tvl ?? null
-		}))
+				...p,
+				tvl: p?.chainTvls?.[chain]?.tvl ?? null
+		  }))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
-			acc[pd.defillamaId] = pd.tvl
+			acc[pd.name] = pd.tvl
 			return acc
 		}, {}) ?? {}
 	)
@@ -173,7 +173,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		totalDataChart,
 		totalDataChartBreakdown,
 		allChains
-	} = request
+	} = type === 'options' ? feesOrRevenue : request
 
 	const chains = protocols.filter((e) => e.protocolType === 'chain').map((e) => e.name)
 
@@ -203,7 +203,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	const tvlData: IJSON<number> = getTVLData(protocolsData, filtredChain)
 	const mcapData = { ...getMCap(protocolsData), ...chainMcap }
-	const label: string = type === 'options' ? 'Notional volume' : capitalizeFirstLetter(type)
+	const label: string = type === 'options' ? 'Premium Volume' : capitalizeFirstLetter(type)
 
 	const allCharts: IChartsList = []
 
@@ -212,15 +212,15 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	}
 
 	if (type === 'options' && feesOrRevenue?.totalDataChart) {
-		allCharts.push(['Premium volume', feesOrRevenue.totalDataChart])
+		allCharts.push(['Notional Volume', request.totalDataChart])
 	}
 
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-				{} as IJSON<ProtocolAdaptorSummary>
-			) ?? {}
+					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+					{} as IJSON<ProtocolAdaptorSummary>
+			  ) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -238,8 +238,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				...protocol,
 				logo: getLlamaoLogo(protocol.logo),
 				displayName: protocol.displayName ?? protocol.name,
-				tvl: tvlData[protocol.defillamaId] ?? null,
-				volumetvl: tvlData[protocol.defillamaId] ? protocol.total24h / tvlData[protocol.defillamaId] : null,
+				tvl: tvlData[protocol.name] ?? null,
+				volumetvl: tvlData[protocol.name] ? protocol.total24h / tvlData[protocol.name] : null,
 				dominance: (100 * protocol.total24h) / total24h,
 				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
@@ -257,7 +257,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		} else mainRow = protocol
 
 		// Main row, either parent or single protocol
-		const protocolTVL = tvlData[protocol.defillamaId]
+		const protocolTVL = tvlData[protocol.name]
 		const emission24h = emissionBreakdown?.[slugName]?.emission24h ?? null
 		const emission7d = emissionBreakdown?.[slugName]?.emission7d ?? null
 		const emission30d = emissionBreakdown?.[slugName]?.emission30d ?? null
@@ -476,10 +476,11 @@ export interface IOverviewProps {
 	dexsDominance?: number
 	categories?: Array<string>
 	isSimpleFees?: boolean
+	premium?: IOverviewProps
 }
 
 // - used in /[type]/chains
-export const getChainsPageData = async (type: string): Promise<IOverviewProps> => {
+export const getChainsPageData = async (type: string, dataType?: string): Promise<IOverviewProps> => {
 	const { allChains, total24h: allChainsTotal24h } = await getOverview(type)
 
 	const [protocolsData, ...dataByChain] = await Promise.all([
@@ -489,7 +490,12 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 				console.log(PROTOCOLS_API, err)
 				return {}
 			}),
-		...allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
+		...allChains.map((chain) =>
+			getOverview(type, chain, dataType, true, true).then((res) => ({
+				...res,
+				chain
+			}))
+		)
 	])
 
 	let protocols = dataByChain
@@ -524,7 +530,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					total24h,
 					tvl: protocols.reduce((acc, curr) => {
 						// TODO: This should be mapped using defillamaId to get accurate tvl!
-						const tvl = tvlData[curr.defillamaId]
+						const tvl = tvlData[curr.name]
 						acc += !Number.isNaN(tvl) && tvl ? tvl : 0
 						return acc
 					}, 0),
@@ -607,4 +613,4 @@ export function notUndefined<T>(x: T | undefined): x is T {
 	return x !== undefined
 }
 
-export function formatOverviewProtocolsList() { }
+export function formatOverviewProtocolsList() {}

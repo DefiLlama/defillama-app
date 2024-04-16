@@ -164,10 +164,23 @@ export const getProtocolDataLite = async (protocol: string) => {
 	const bribesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.bribesRevenue30d || 0), 0) ?? null
 	const tokenTaxesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.tokenTaxesRevenue30d || 0), 0) ?? null
 	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
-	const dailyDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
-	const allTimeDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const dailyDerivativesVolume =
+		derivativesData?.reduce((acc, curr) => {
+			if (curr.dailyVolume && curr.dailyVolume > 0) {
+				acc += curr.dailyVolume
+			}
+			return acc
+		}, 0) ?? null
+	const allTimeDerivativesVolume =
+		derivativesData?.reduce((acc, curr) => {
+			if (curr.totalAllTime && curr.totalAllTime > 0) {
+				acc += curr.totalAllTime
+			}
+			return acc
+		}, 0) ?? null
+
 	const metrics = protocolData.metrics || {}
 
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
@@ -196,7 +209,7 @@ export const getProtocolDataLite = async (protocol: string) => {
 					devMetrics: false,
 					fees: metrics.fees || dailyFees || allTimeFees ? true : false,
 					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
-					derivatives: metrics.derivatives || dailyDerivativesVolume || allTimeDerivativesVolume ? true : false,
+					derivatives: metrics.derivatives || (dailyDerivativesVolume && allTimeDerivativesVolume) ? true : false,
 					medianApy: false,
 					inflows: inflowsExist,
 					unlocks: false,
@@ -378,7 +391,9 @@ export const getProtocolData = async (protocol: string) => {
 		medianApy,
 		tokenCGData,
 		emissions,
-		devMetrics
+		devMetrics,
+		aggregatorProtocols,
+		optionsProtocols
 	] = await Promise.all([
 		getColor(tokenIconPaletteUrl(protocolData.name)),
 		getProtocolsRaw(),
@@ -431,6 +446,22 @@ export const getProtocolData = async (protocol: string) => {
 			.then((r) => r.json())
 			.catch((e) => {
 				return null
+			}),
+		fetchOverCache(
+			`https://api.llama.fi/overview/aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+		)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch options protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
+			}),
+		fetchOverCache(
+			`https://api.llama.fi/overview/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+		)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch options protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
 			})
 	])
 
@@ -476,6 +507,14 @@ export const getProtocolData = async (protocol: string) => {
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
+	const aggregatorsData = aggregatorProtocols?.protocols?.filter(
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
+	)
+
+	const optionsData = optionsProtocols?.protocols?.filter(
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
+	)
+
 	const chartTypes = [
 		'TVL',
 		'Mcap',
@@ -507,7 +546,8 @@ export const getProtocolData = async (protocol: string) => {
 		'Contributers',
 		'Devs Commits',
 		'Contributers Commits',
-		'NFT Volume'
+		'NFT Volume',
+		'Premium Volume'
 	]
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
@@ -561,6 +601,9 @@ export const getProtocolData = async (protocol: string) => {
 	const tokenTaxesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.tokenTaxesRevenue30d || 0), 0) ?? null
 	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const dailyDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
+	const dailyAggregatorsVolume = aggregatorsData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
+	const allTimeAggregatorsVolume = aggregatorsData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const dailyOptionsVolume = optionsData?.reduce((acc, curr) => (acc += curr.dailyPremiumVolume || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
@@ -644,6 +687,8 @@ export const getProtocolData = async (protocol: string) => {
 					fees: metrics.fees || dailyFees || allTimeFees ? true : false,
 					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
 					derivatives: metrics.derivatives || dailyDerivativesVolume || allTimeDerivativesVolume ? true : false,
+					aggregators: metrics.aggregators || dailyAggregatorsVolume || allTimeAggregatorsVolume ? true : false,
+					options: metrics.options || dailyOptionsVolume ? true : false,
 					medianApy: medianApy.data.length > 0,
 					inflows: inflowsExist,
 					unlocks: emissions?.chartData?.documented?.length > 0 ? true : false,
@@ -675,6 +720,9 @@ export const getProtocolData = async (protocol: string) => {
 			allTimeVolume,
 			dailyDerivativesVolume,
 			allTimeDerivativesVolume,
+			dailyAggregatorsVolume,
+			allTimeAggregatorsVolume,
+			dailyOptionsVolume,
 			controversialProposals,
 			governanceApis: governanceApis.filter((x) => !!x),
 			treasury: treasury?.tokenBreakdowns ?? null,

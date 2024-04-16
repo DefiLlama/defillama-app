@@ -170,9 +170,9 @@ function BridgesOverview({
 				monthTotalVolume += Number(bridge?.monthlyVolume) || 0
 			})
 		} else {
-			for (let i = 0; i < 31; i++) {
+			for (let i = 1; i < 31; i++) {
 				const dailyVolume = getPrevVolumeFromChart(chainVolumeData, i, false, selectedChain !== 'All')
-				if (i < 1) {
+				if (i < 2) {
 					dayTotalVolume += dailyVolume
 				}
 				if (i < 8) {

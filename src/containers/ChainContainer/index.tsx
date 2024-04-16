@@ -21,7 +21,7 @@ import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 
 import { ChevronRight, DownloadCloud } from 'react-feather'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
-import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
+import { RowWithSubRows, StatsTable2, SubrowTh } from '../Defi/Protocol'
 import SEO from '~/components/SEO'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import TokenLogo from '~/components/TokenLogo'
@@ -29,8 +29,10 @@ import { EmbedChart } from '~/components/Popover'
 import { primaryColor } from '~/constants/colors'
 import { useFetchChainChartData } from './useFetchChainChartData'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+
 import { formatRaise, formatRaisedAmount } from '../Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
+import QuestionHelper from '~/components/QuestionHelper'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -67,16 +69,15 @@ export function ChainContainer({
 	devMetricsData,
 	chainTokenInfo,
 	chainTreasury,
-	chainRaises
+	chainRaises,
+	chainAssets
 }) {
 	const {
 		fullProtocolsList,
 		parentProtocols,
 		isLoading: fetchingProtocolsList
 	} = useGetProtocolsList({ chain: selectedChain })
-
 	const [extraTvlsEnabled] = useDefiManager()
-
 	const router = useRouter()
 
 	const denomination = router.query?.currency ?? 'USD'
@@ -208,8 +209,14 @@ export function ChainContainer({
 			name: `${chainTokenInfo?.tokenSymbol} MCap`,
 			isVisible: chartDatasets?.[0]?.chainTokenMcapData?.length ? true : false
 		},
+		{
+			id: 'chainTokenVolume',
+			name: `${chainTokenInfo?.tokenSymbol} Volume`,
+			isVisible: chartDatasets?.[0]?.chainTokenVolumeData?.length ? true : false
+		},
 		{ id: 'derivatives', name: 'Derivatives Volume', isVisible: chartDatasets?.[0]?.derivativesData ? true : false },
-		{ id: 'aggregators', name: 'Aggregators Volume', isVisible: chartDatasets?.[0]?.aggregatorsData ? true : false }
+		{ id: 'aggregators', name: 'Aggregators Volume', isVisible: chartDatasets?.[0]?.aggregatorsData ? true : false },
+		{ id: 'chainAssets', name: 'Bridged TVL', isVisible: chartDatasets?.[0]?.chainAssetsData ? true : false }
 	]
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -228,7 +235,7 @@ export function ChainContainer({
 			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
 		return isValidTvlRange
-			? list.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
+			? list.filter((p) => (minTvl ? p.tvl >= minTvl : true) && (maxTvl ? p.tvl <= maxTvl : true))
 			: list
 	}, [
 		extraTvlsEnabled,
@@ -341,13 +348,13 @@ export function ChainContainer({
 											<>
 												{stablecoinsData.change7d ? (
 													<tr>
-														<th>Change (7d)</th>
+														<SubrowTh>Change (7d)</SubrowTh>
 														<td>{stablecoinsData.change7d}%</td>
 													</tr>
 												) : null}
 												{stablecoinsData.dominance ? (
 													<tr>
-														<th>{stablecoinsData.topToken.symbol} Dominance</th>
+														<SubrowTh>{stablecoinsData.topToken.symbol} Dominance</SubrowTh>
 														<td>{stablecoinsData.dominance}%</td>
 													</tr>
 												) : null}
@@ -381,16 +388,16 @@ export function ChainContainer({
 											<>
 												{volumeData.totalVolume7d ? (
 													<tr>
-														<th>Volume (7d)</th>
+														<SubrowTh>Volume (7d)</SubrowTh>
 														<td>{formattedNum(volumeData.totalVolume7d, true)}</td>
 													</tr>
 												) : null}
 												<tr>
-													<th>Weekly Change</th>
+													<SubrowTh>Weekly Change</SubrowTh>
 													<td>{volumeData.weeklyChange}%</td>
 												</tr>
 												<tr>
-													<th>DEX vs CEX dominance</th>
+													<SubrowTh>DEX vs CEX dominance</SubrowTh>
 													<td>{volumeData.dexsDominance}%</td>
 												</tr>
 											</>
@@ -423,13 +430,13 @@ export function ChainContainer({
 											<>
 												{userData.newUsers ? (
 													<tr>
-														<th>New Addresses (24h)</th>
+														<SubrowTh>New Addresses (24h)</SubrowTh>
 														<td>{formattedNum(userData.newUsers, false)}</td>
 													</tr>
 												) : null}
 												{userData.transactions ? (
 													<tr>
-														<th>Transactions (24h)</th>
+														<SubrowTh>Transactions (24h)</SubrowTh>
 														<td>{formattedNum(userData.transactions, false)}</td>
 													</tr>
 												) : null}
@@ -448,25 +455,25 @@ export function ChainContainer({
 											<>
 												{chainTreasury.tokenBreakdowns?.stablecoins ? (
 													<tr>
-														<th>Stablecoins</th>
+														<SubrowTh>Stablecoins</SubrowTh>
 														<td>{formattedNum(chainTreasury.tokenBreakdowns?.stablecoins, true)}</td>
 													</tr>
 												) : null}
 												{chainTreasury.tokenBreakdowns?.majors ? (
 													<tr>
-														<th>Major Tokens (ETH, BTC)</th>
+														<SubrowTh>Major Tokens (ETH, BTC)</SubrowTh>
 														<td>{formattedNum(chainTreasury.tokenBreakdowns?.majors, true)}</td>
 													</tr>
 												) : null}
 												{chainTreasury.tokenBreakdowns?.others ? (
 													<tr>
-														<th>Other Tokens</th>
+														<SubrowTh>Other Tokens</SubrowTh>
 														<td>{formattedNum(chainTreasury.tokenBreakdowns?.others, true)}</td>
 													</tr>
 												) : null}
 												{chainTreasury.tokenBreakdowns?.ownTokens ? (
 													<tr>
-														<th>Own Tokens</th>
+														<SubrowTh>Own Tokens</SubrowTh>
 														<td>{formattedNum(chainTreasury.tokenBreakdowns?.ownTokens, true)}</td>
 													</tr>
 												) : null}
@@ -518,6 +525,64 @@ export function ChainContainer({
 										}
 									/>
 								)}
+								{chainAssets ? (
+									<RowWithSubRows
+										rowHeader="Bridged TVL"
+										rowValue={formattedNum(
+											chainAssets.total.total + (extraTvlsEnabled.govtokens ? chainAssets?.ownTokens?.total || 0 : 0),
+											true
+										)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{chainAssets ? (
+													<>
+														{chainAssets.native?.total ? (
+															<tr>
+																<SubrowTh>
+																	Native
+																	<QuestionHelper text="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)" />
+																</SubrowTh>
+																<td>{formattedNum(chainAssets.native.total, true)}</td>
+															</tr>
+														) : null}
+														{chainAssets.ownTokens?.total ? (
+															<tr>
+																<SubrowTh>
+																	Own Tokens
+																	<QuestionHelper text="Marketcap of the governance token of the chain" />
+																</SubrowTh>
+																<td>{formattedNum(chainAssets.ownTokens.total, true)}</td>
+															</tr>
+														) : null}
+
+														{chainAssets.canonical?.total ? (
+															<tr>
+																<SubrowTh>
+																	Canonical
+																	<QuestionHelper text="Tokens that were bridged to the chain through the canonical bridge" />
+																</SubrowTh>
+																<td>{formattedNum(chainAssets.canonical.total, true)}</td>
+															</tr>
+														) : null}
+
+														{chainAssets.thirdParty?.total ? (
+															<tr>
+																<SubrowTh>
+																	Third Party
+																	<QuestionHelper text="Tokens that were bridged to the chain through third party bridges" />
+																</SubrowTh>
+																<td>{formattedNum(chainAssets.thirdParty.total, true)}</td>
+															</tr>
+														) : null}
+													</>
+												) : null}
+											</>
+										}
+									/>
+								) : null}
 
 								{chainTokenInfo?.market_data ? (
 									<tr>

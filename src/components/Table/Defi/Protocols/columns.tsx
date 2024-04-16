@@ -1,5 +1,7 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight, AlertTriangle } from 'react-feather'
+import { Checkbox } from 'ariakit'
+
 import Bookmark from '~/components/Bookmark'
 import { AutoColumn } from '~/components/Column'
 import IconsRow from '~/components/IconsRow'
@@ -11,7 +13,7 @@ import { useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDayAndHour, toNiceDaysAgo } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
-import { IProtocolRow } from './types'
+import { IProtocolRow, IProtocolRowWithCompare } from './types'
 
 const columnHelper = createColumnHelper<IProtocolRow>()
 
@@ -442,6 +444,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		},
 		size: 100
 	},
+
 	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
@@ -464,6 +467,139 @@ export const listedAtColumn = {
 		align: 'end' as const
 	}
 }
+
+export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
+	{
+		header: 'Compare',
+		accessorKey: 'compare',
+		enableSorting: false,
+		cell: ({ row }) => {
+			return (
+				<div style={{ display: 'flex', justifyContent: 'center' }}>
+					<Checkbox
+						onChange={() => row.original?.compare?.(row.original.name)}
+						checked={row.original?.isCompared}
+						id={`compare-${row.original.name}`}
+					/>
+				</div>
+			)
+		},
+		size: 80,
+		meta: {
+			align: 'center' as any
+		}
+	},
+	...protocolsColumns.filter((c: any) => c.accessorKey !== 'name'),
+	{
+		header: () => <Name>Name</Name>,
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const value = getValue() as string
+			const Chains = () => (
+				<AutoColumn>
+					{row.original.chains.map((chain) => (
+						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
+					))}
+				</AutoColumn>
+			)
+
+			return (
+				<Name>
+					{row.subRows?.length > 0 ? (
+						<AccordionButton
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+						</AccordionButton>
+					) : null}
+
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+
+					<AutoColumn as="span">
+						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+
+						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
+							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+						</Tooltip2>
+					</AutoColumn>
+					{value === 'SyncDEX Finance' && (
+						<Tooltip2 content={'Many users have reported issues with this protocol'}>
+							<AlertTriangle />
+						</Tooltip2>
+					)}
+				</Name>
+			)
+		},
+		size: 240
+	},
+
+	{
+		header: 'Fees 24h',
+		accessorKey: 'fees_24h',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Fees 7d',
+		accessorKey: 'fees_7d',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Fees 30d',
+		accessorKey: 'fees_30d',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Revenue 24h',
+		accessorKey: 'revenue_24h',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Revenue 7d',
+		accessorKey: 'revenue_7d',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Volume 24h',
+		accessorKey: 'volume_24h',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Volume 7d',
+		accessorKey: 'volume_7d',
+		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	}
+]
 
 export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
 	...protocolsColumns.slice(0, 3),
@@ -590,6 +726,7 @@ export const protocolAddlColumns = {
 // values: table columns order
 export const columnOrders = formatColumnOrder({
 	0: [
+		'compare',
 		'name',
 		'tvl',
 		'change_7d',
@@ -602,6 +739,7 @@ export const columnOrders = formatColumnOrder({
 		'mcaptvl'
 	],
 	480: [
+		'compare',
 		'name',
 		'change_7d',
 		'tvl',
@@ -614,6 +752,7 @@ export const columnOrders = formatColumnOrder({
 		'mcaptvl'
 	],
 	1024: [
+		'compare',
 		'name',
 		'category',
 		'change_1d',
@@ -629,6 +768,7 @@ export const columnOrders = formatColumnOrder({
 
 export const columnSizes = {
 	0: {
+		compare: 80,
 		name: 180,
 		category: 140,
 		change_1d: 100,
@@ -639,6 +779,7 @@ export const columnSizes = {
 		totalRaised: 180
 	},
 	1024: {
+		compare: 80,
 		name: 240,
 		category: 140,
 		change_1d: 100,
@@ -649,6 +790,7 @@ export const columnSizes = {
 		totalRaised: 180
 	},
 	1280: {
+		compare: 80,
 		name: 200,
 		category: 140,
 		change_1d: 100,

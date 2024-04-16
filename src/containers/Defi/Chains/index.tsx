@@ -65,7 +65,8 @@ export default function ChainsContainer({
 	categories,
 	chainsGroupbyParent,
 	tvlTypes,
-	colorsByChain
+	colorsByChain,
+	chainAssets
 }) {
 	const { query } = useRouter()
 	const { minTvl, maxTvl } = query
@@ -77,11 +78,12 @@ export default function ChainsContainer({
 			const dataByChain = formatDataWithExtraTvls({
 				data: chainTvls,
 				applyLqAndDc: true,
-				extraTvlsEnabled
+				extraTvlsEnabled,
+				chainAssets
 			}).filter(
 				(chain) =>
-					(typeof minTvl === 'string' ? chain.tvl > +minTvl : true) &&
-					(typeof maxTvl === 'string' ? chain.tvl < +maxTvl : true)
+					(typeof minTvl === 'string' && minTvl !== '' ? chain.tvl >= +minTvl : true) &&
+					(typeof maxTvl === 'string' && maxTvl !== '' ? chain.tvl <= +maxTvl : true)
 			)
 
 			// format chains data to use in pie chart

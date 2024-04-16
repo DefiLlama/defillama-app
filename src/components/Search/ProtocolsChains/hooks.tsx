@@ -75,11 +75,21 @@ export function useGetDefiSearchList({
 			  })) ?? []
 			: []
 
+		const includeCategories = includedSets?.includes(SETS.CATEGORIES)
+
+		const categoriesData = includeCategories
+			? data?.protocolCategories?.map((category) => ({
+					name: `${category} → Protocols`,
+					logo: null,
+					route: `/protocols/${category}`
+			  })) ?? []
+			: []
+
 		const sets = pathname.startsWith('/nft')
 			? [...chainData, ...parentProtocols, ...protocolData]
 			: pathname.startsWith('/protocol')
 			? [...parentProtocols, ...protocolData, ...chainData]
-			: [...chainData, ...parentProtocols, ...protocolData]
+			: [...categoriesData, ...chainData, ...parentProtocols, ...protocolData]
 
 		if (includedSets?.includes(SETS.GROUPED_CHAINS)) {
 			let _groupedChains = groupedChains

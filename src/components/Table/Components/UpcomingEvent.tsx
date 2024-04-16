@@ -5,13 +5,14 @@ import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ isProtocolPage: boolean }>`
 	display: flex;
 	justify-content: space-between;
 	background-color: ${({ theme }) => (theme.mode === 'dark' ? '#121316' : theme.bg1)};
 	padding: 8px;
 	border-radius: 10px;
 	width: 390px;
+	${({ isProtocolPage }) => (isProtocolPage ? 'border-radius:10px 10px 0px 0px; ' : '10px')}
 `
 
 const Column = styled.div`
@@ -49,7 +50,7 @@ const LigthText = styled.span`
 	color: ${({ theme }) => theme.text3};
 `
 
-const TooltipBody = styled.div`
+const TooltipBody = styled.div<{ isProtocolPage: boolean }>`
 	position: absolute;
 	z-index: 1;
 	top: 70px;
@@ -61,6 +62,9 @@ const TooltipBody = styled.div`
 	background-color: ${({ theme }) => (theme.mode === 'dark' ? '#121316' : theme.bg1)};
 	padding: 8px;
 	border: 1px solid ${({ theme }) => theme.bg4};
+	${({ isProtocolPage }) => isProtocolPage && 'border-top: none;'}
+	${({ isProtocolPage }) => isProtocolPage && 'border: none; '}
+	${({ isProtocolPage }) => isProtocolPage && 'border-radius: 0px 0px 10px 10px; '}
 `
 
 const HorizontalLine = styled.div`
@@ -69,9 +73,20 @@ const HorizontalLine = styled.div`
 	background-color: ${({ theme }) => theme.bg4};
 `
 
-const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol, mcap, maxSupply, row }) => {
-	const tokenPrice = row?.tokenPrice?.[0]
-	const tokenSymbol = tokenPrice?.symbol?.toUpperCase() || symbol?.toUpperCase() || row?.name
+const UpcomingEvent = ({
+	noOfTokens = [],
+	timestamp,
+	event,
+	price,
+	symbol,
+	mcap,
+	maxSupply,
+	name,
+	tooltipStyles = null,
+	isProtocolPage = false
+}) => {
+	const tokenPrice = price
+	const tokenSymbol = tokenPrice?.symbol?.toUpperCase() || symbol?.toUpperCase()
 	const tokens = noOfTokens.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
 	const tokenValue = price ? tokens * price : null
 	const unlockPercent = maxSupply ? (tokens / maxSupply) * 100 : null
@@ -84,11 +99,11 @@ const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol,
 	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
 	const [_, rerender] = useState(1)
 	const [isTooltipOpen, setIsTooltipOpen] = useState(false)
-	const currentUnlockBreakdown = row.upcomingEvent.map(({ description, noOfTokens, timestamp }) => {
+	const currentUnlockBreakdown = event.map(({ description, noOfTokens, timestamp }) => {
 		const regex =
-			/of (.+?) tokens will be unlocked|will increase from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp}|from (.+?) on {timestamp}/
-		const match = description?.match(regex)
-		const name = match?.[1] || match?.[2] || match?.[3] || ''
+			/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
+		const matches = description.match(regex)
+		const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
 		const amount = sum(noOfTokens)
 		return {
 			name,
@@ -98,44 +113,62 @@ const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol,
 	})
 
 	useEffect(() => {
+		if (timeLeft <= 0) return
 		const id = setInterval(() => rerender((value) => value + 1), 1000)
 
 		return () => clearInterval(id)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	return (
 		<>
-			<Wrapper onMouseEnter={() => setIsTooltipOpen(true)} onMouseLeave={() => setIsTooltipOpen(false)}>
+			<Wrapper
+				onMouseEnter={() => setIsTooltipOpen(true)}
+				onMouseLeave={() => setIsTooltipOpen(false)}
+				isProtocolPage={isProtocolPage}
+			>
 				<Column>
-					{tokenValue ? formattedNum(tokenValue, true) : '-'}
+					{tokenValue ? (
+						formattedNum(tokenValue, true)
+					) : (
+						<div style={{ marginTop: '16px' }}>{formattedNum(unlockPercent)}%</div>
+					)}
 					{unlockPercent ? (
 						<LigthText>
-							{formattedNum(unlockPercent)}%{' '}
+							{tokenValue ? formattedNum(unlockPercent) + '%' : null}
 							{unlockPercentFloat ? <>({formattedNum(unlockPercentFloat)}% of float)</> : null}
 						</LigthText>
 					) : null}
 				</Column>
 				<Column>
-					<Time>
-						<TimeBox>{days}D</TimeBox>
-						<TimeBox>{hours}H</TimeBox>
-						<TimeBox>{minutes}M</TimeBox>
-						<TimeBox>{seconds}S</TimeBox>
-					</Time>
+					{timeLeft > 0 ? (
+						<Time>
+							<TimeBox>{days}D</TimeBox>
+							<TimeBox>{hours}H</TimeBox>
+							<TimeBox>{minutes}M</TimeBox>
+							<TimeBox>{seconds}S</TimeBox>
+						</Time>
+					) : (
+						<Time style={{ justifyContent: 'flex-end' }}>
+							<TimeBox style={{ width: 'fit-content', padding: '0px 8px' }}>{Math.abs(days)} days ago</TimeBox>
+						</Time>
+					)}
 				</Column>
 			</Wrapper>
-			{isTooltipOpen ? (
-				<TooltipBody>
+			{isTooltipOpen || tooltipStyles ? (
+				<TooltipBody style={tooltipStyles} isProtocolPage={isProtocolPage}>
 					<Column>
-						<Row>
-							<Column>
-								<Row style={{ justifyContent: 'start', gap: '8px' }}>
-									<TokenLogo logo={tokenIconUrl(row.name)} size={30} />
-									{tokenSymbol}
-								</Row>
-							</Column>
-							{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}
-						</Row>
+						{isProtocolPage ? null : (
+							<Row>
+								<Column>
+									<Row style={{ justifyContent: 'start', gap: '8px' }}>
+										<TokenLogo logo={tokenIconUrl(name)} size={30} />
+										{tokenSymbol}
+									</Row>
+								</Column>
+								{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}
+							</Row>
+						)}
 						<HorizontalLine />
 						{currentUnlockBreakdown.map(({ name, amount }) => {
 							const percentage = (amount / maxSupply) * 100

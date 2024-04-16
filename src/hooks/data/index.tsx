@@ -28,7 +28,7 @@ export const useCalcStakePool2Tvl = (
 		})
 	}, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir, applyLqAndDc])
 
-	return protocolTotals
+	return protocolTotals as unknown as Array<IFormattedProtocol>
 }
 
 export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {

@@ -35,12 +35,14 @@ import type {
 	IEmission,
 	IGovernance,
 	IETFRow,
-	AirdropRow
+	AirdropRow,
+	IBridgedRow
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
 import UpcomingEvent from '../Components/UpcomingEvent'
 import ProgressBar from '../Components/ProgressBar'
+import TooltipNew from '~/components/Tooltip/TootltipNew'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -375,12 +377,14 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 					{...{
 						noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
 						timestamp,
+						event: row.original.upcomingEvent,
 						description: row.original.upcomingEvent.map((x) => x.description),
 						price: row.original.tPrice,
 						symbol: row.original.tSymbol,
 						mcap: row.original.mcap,
 						maxSupply: row.original.maxSupply,
-						row: row.original
+						row: row.original,
+						name: row.original.name
 					}}
 				/>
 			)
@@ -583,7 +587,7 @@ export const activeInvestorsColumns: ColumnDef<{
 	},
 
 	{
-		header: 'Top Project Cateogry',
+		header: 'Top Project Category',
 		accessorKey: 'category',
 		enableSorting: false,
 		cell: ({ getValue }) => {
@@ -756,6 +760,58 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
+		header: 'Bridged TVL',
+		accessorKey: 'chainAssets',
+		cell: ({ getValue }) => {
+			const chainAssets: any = getValue()
+			if (!chainAssets) return null
+			const totalValue = formattedNum(chainAssets.total.total, true)
+			const chainAssetsBreakdown = (
+				<div style={{ width: '200px' }}>
+					{chainAssets.native && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Native:</span>
+							<span>{formattedNum(chainAssets.native.total, true)}</span>
+						</div>
+					)}
+					{chainAssets.canonical && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Canonical:</span>
+							<span>{formattedNum(chainAssets.canonical.total, true)}</span>
+						</div>
+					)}
+
+					{chainAssets.ownTokens && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Own Tokens:</span>
+							<span>{formattedNum(chainAssets.ownTokens.total, true)}</span>
+						</div>
+					)}
+					{chainAssets.thirdParty && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Third Party:</span>
+							<span>{formattedNum(chainAssets.thirdParty.total, true)}</span>
+						</div>
+					)}
+				</div>
+			)
+			return <TooltipNew content={chainAssetsBreakdown}>{totalValue}</TooltipNew>
+		},
+		sortingFn: (rowA, rowB) => {
+			const valueA = rowA.original?.chainAssets?.total.total
+			const valueB = rowB.original?.chainAssets?.total.total
+
+			if (valueA === undefined || valueA === null) return 1
+			if (valueB === undefined || valueB === null) return -1
+
+			return parseFloat(valueB) - parseFloat(valueA)
+		},
+		size: 200,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Stables',
 		accessorKey: 'stablesMcap',
 		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
@@ -825,6 +881,137 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		size: 120,
 		meta: {
 			align: 'end'
+		}
+	}
+]
+
+const keySorting = (key: string) => (rowA, rowB) => {
+	const valueA = rowA.original?.[key]?.total
+	const valueB = rowB.original?.[key]?.total
+
+	if (valueA === undefined || valueA === null) return 1
+	if (valueB === undefined || valueB === null) return -1
+
+	return parseFloat(valueB) - parseFloat(valueA)
+}
+
+export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
+	{
+		header: () => <Name>Name</Name>,
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name depth={row.depth}>
+					{row.subRows?.length > 0 && (
+						<AccordionButton
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+						</AccordionButton>
+					)}
+					<span>{index + 1}</span>
+					<TokenLogo logo={chainIconUrl(getValue())} />
+					<CustomLink href={`/bridged/${getValue()}`}>{getValue()}</CustomLink>
+				</Name>
+			)
+		},
+		size: 200
+	},
+	{
+		header: 'Total Bridged',
+		accessorKey: 'total',
+		enableSorting: true,
+		sortingFn: keySorting('total'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Change 24h',
+		accessorKey: 'change_24h',
+		enableSorting: true,
+		sortingFn: (rowA, rowB) => {
+			const valueA = String(rowA.original.change_24h)
+			const valueB = String(rowB.original.change_24h)
+
+			if (valueA === undefined || valueA === null) return 1
+			if (valueB === undefined || valueB === null) return -1
+
+			return parseFloat(valueB) - parseFloat(valueA)
+		},
+		cell: (info) => {
+			const value = info.getValue()
+			if (!value) return <></>
+			return <div style={{ color: Number(value) > 0 ? '#198600' : '#d92929' }}>{formattedPercent(value)}</div>
+		}
+	},
+	{
+		header: 'Native',
+		accessorKey: 'native',
+		enableSorting: true,
+		sortingFn: keySorting('native'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Canonical',
+		accessorKey: 'canonical',
+		enableSorting: true,
+		sortingFn: keySorting('canonical'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Own Tokens',
+		accessorKey: 'ownTokens',
+		enableSorting: true,
+		sortingFn: keySorting('ownTokens'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Third Party',
+		accessorKey: 'thirdParty',
+		enableSorting: true,
+		sortingFn: keySorting('thirdParty'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	}
+]
+
+export const bridgedChainColumns: ColumnDef<any>[] = [
+	{
+		header: 'Token',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <Name>{getValue()}</Name>
+		}
+	},
+	{
+		header: 'Total Bridged',
+		accessorKey: 'value',
+		cell: ({ getValue }) => {
+			return <>{'$' + formattedNum(getValue())}</>
 		}
 	}
 ]
@@ -1600,6 +1787,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 	0: [
 		'name',
 		'tvl',
+		'chainAssets',
 		'change_7d',
 		'protocols',
 		'users',
@@ -1615,6 +1803,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'name',
 		'change_7d',
 		'tvl',
+		'chainAssets',
 		'protocols',
 		'users',
 		'change_1d',
@@ -1631,6 +1820,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'users',
 		'change_7d',
 		'tvl',
+		'chainAssets',
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
@@ -1647,6 +1837,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'change_7d',
 		'change_1m',
 		'tvl',
+		'chainAssets',
 		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',

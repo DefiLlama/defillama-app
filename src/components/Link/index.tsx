@@ -1,9 +1,8 @@
 import * as React from 'react'
 import { Link as RebassLink } from 'rebass'
 import RouterLink from 'next/link'
-import PropTypes from 'prop-types'
 import styled from 'styled-components'
-import { lighten, darken } from 'polished'
+import { ExternalLink as ExternalIcon } from 'react-feather'
 
 interface BasicLinkProps {
 	href: string
@@ -30,8 +29,31 @@ const WrappedLink = ({ external, children, ...rest }: any) => (
 	</RebassLink>
 )
 
-WrappedLink.propTypes = {
-	external: PropTypes.bool
+const StyledLink = styled.a`
+	display: inline-flex;
+	align-items: center;
+	text-decoration: none;
+	color: ${({ theme }) => theme.primary1};
+	font-weight: 500;
+	transition: color 0.2s ease;
+
+	&:hover {
+		color: ${({ theme }) => theme.text1};
+	}
+`
+
+const ExternalLinkIcon = styled(ExternalIcon)`
+	margin-left: 0.5rem;
+	color: inherit;
+`
+
+export const ExternalLink = ({ href, children, ...props }) => {
+	return (
+		<StyledLink href={href} target="_blank" rel="noopener noreferrer" {...props}>
+			{children}
+			<ExternalLinkIcon size={16} />
+		</StyledLink>
+	)
 }
 
 const Link = styled(WrappedLink)`

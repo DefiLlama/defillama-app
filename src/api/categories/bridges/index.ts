@@ -98,7 +98,7 @@ export async function getBridgeOverviewPageData(chain) {
 						formattedCharts = charts.map((chart) => {
 							return {
 								date: chart.date,
-								volume: chart.withdrawUSD + chart.depositUSD,
+								volume: (chart.withdrawUSD + chart.depositUSD) / 2,
 								txs: chart.depositTxs + chart.withdrawTxs
 							}
 						})
@@ -195,7 +195,7 @@ export async function getBridgeChainsPageData() {
 		const charts = chartDataByChain[i]
 		charts.map((chart) => {
 			const date = chart.date
-			const netFlow = chart.withdrawUSD - chart.depositUSD
+			const netFlow = chart.depositUSD - chart.withdrawUSD
 			unformattedChartData[date] = unformattedChartData[date] || {}
 			unformattedChartData[date][chain.name] = netFlow
 		})
@@ -243,17 +243,19 @@ export async function getBridgeChainsPageData() {
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
 	const prevDayTimestamp = currentTimestamp - 86400 - 3600
 	let prevDayDataByChain = []
-	prevDayDataByChain = await Promise.all(
-		chains.map(async (chain) => {
-			for (let i = 0; i < 5; i++) {
-				try {
-					const charts = await fetchOverCacheJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`)
-					return { ...charts, name: chain.name }
-				} catch (e) {}
-			}
-			throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)
-		})
-	)
+	prevDayDataByChain = (
+		await Promise.all(
+			chains.map(async (chain) => {
+				for (let i = 0; i < 5; i++) {
+					try {
+						const charts = await fetchOverCacheJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`)
+						return { ...charts, name: chain.name }
+					} catch (e) {}
+				}
+				//throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)
+			})
+		)
+	).filter((t) => t !== undefined)
 
 	const filteredChains = formatChainsData({
 		chains,
@@ -335,7 +337,7 @@ export async function getBridgePageDatanew(bridge: string) {
 		(obj) => standardizeProtocolName(obj.displayName) === standardizeProtocolName(bridge)
 	)[0]
 
-	const { id, chains, icon, displayName } = bridgeData
+	const { id, chains, icon, displayName, destinationChain } = bridgeData
 
 	const [iconType, iconName] = icon.split(':')
 	// get logo based on icon type (chain or protocol)
@@ -385,7 +387,8 @@ export async function getBridgePageDatanew(bridge: string) {
 		volumeDataByChain[chains[index]] = chartData
 	})
 
-	volumeDataByChain['All Chains'] = Object.values(volumeOnAllChains)
+	volumeDataByChain['All Chains'] =
+		destinationChain !== 'false' ? volumeDataByChain?.[destinationChain] ?? [] : Object.values(volumeOnAllChains)
 
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
@@ -432,7 +435,13 @@ export async function getBridgePageDatanew(bridge: string) {
 		prevDayDataByChain[chains[index]] = data
 	})
 
-	const chainsList = ['All Chains', ...chains]
+	if (destinationChain !== 'false') {
+		prevDayDataByChain[destinationChain] = prevDayDataByChain['All Chains']
+	}
+
+	const chainsList = ['All Chains', ...chains, destinationChain !== false ? destinationChain : null].filter(
+		(chain) => chain
+	)
 
 	const tableDataByChain = {}
 	chainsList.forEach((currentChain) => {
@@ -550,6 +559,7 @@ export async function getBridgePageDatanew(bridge: string) {
 		chains: ['All Chains', ...chains],
 		defaultChain: 'All Chains',
 		volumeDataByChain,
-		tableDataByChain
+		tableDataByChain,
+		config: bridgeData
 	}
 }

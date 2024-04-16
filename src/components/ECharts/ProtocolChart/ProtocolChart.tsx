@@ -48,6 +48,7 @@ const CHART_TYPES = [
 	'fdv',
 	'volume',
 	'derivativesVolume',
+	'premiumVolume',
 	'fees',
 	'revenue',
 	'unlocks',
@@ -128,7 +129,8 @@ export default function ProtocolChart({
 		contributersCommits,
 		devCommits,
 		nftVolume,
-		aggregators
+		aggregators,
+		premiumVolume
 	} = router.query
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
@@ -142,6 +144,7 @@ export default function ProtocolChart({
 			fdv,
 			volume,
 			derivativesVolume,
+			premiumVolume,
 			fees,
 			revenue,
 			unlocks,
@@ -206,6 +209,7 @@ export default function ProtocolChart({
 			metrics.fees ||
 			metrics.dexs ||
 			metrics.derivatives ||
+			metrics.options ||
 			metrics.unlocks ||
 			metrics.aggregators ||
 			activeUsersId ||
@@ -415,6 +419,29 @@ export default function ProtocolChart({
 							/>
 							<span data-wrapper="true">
 								<span>Derivatives Volume</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.options && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="premiumVolume"
+								checked={premiumVolume === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, premiumVolume: premiumVolume === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Options Volume</span>
 							</span>
 						</Toggle>
 					)}

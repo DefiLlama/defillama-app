@@ -18,7 +18,9 @@ import {
 	CHAINS_ASSETS,
 	CHART_API,
 	ETF_OVERVIEW_API,
-	ETF_HISTORY_API
+	ETF_HISTORY_API,
+	CHAINS_API_V2,
+	CHAIN_ASSETS_FLOWS
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -28,6 +30,8 @@ import {
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
+import { getFeesAndRevenueProtocolsByChain } from '../fees'
+import { getDexVolumeByChain } from '../dexs'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -126,6 +130,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const list = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json())
 		if (!list.includes(protocolName))
 			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
+
+		const allEmmisions = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((r) => r.json())
 
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
@@ -237,6 +243,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			chartData,
 			pieChartData,
 			stackColors,
+			meta: allEmmisions?.find((p) => p?.token === metadata?.token) ?? {},
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: metadata?.events ?? [],
@@ -296,6 +303,14 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 export async function getProtocolsPageData(category?: string, chain?: string) {
 	const { protocols, chains, parentProtocols } = await getProtocols()
 	const normalizedCategory = category?.toLowerCase().replace(' ', '_')
+	const feesRes = await getFeesAndRevenueProtocolsByChain({
+		chain
+	})
+	const volumesRes = await getDexVolumeByChain({
+		chain,
+		excludeTotalDataChart: true,
+		excludeTotalDataChartBreakdown: true
+	})
 
 	const chainsSet = new Set()
 
@@ -333,6 +348,9 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 		categoryChart,
 		filteredProtocols,
 		chain: chain ?? 'All',
+		protocols,
+		fees: feesRes,
+		volumes: volumesRes.protocols,
 		category,
 		chains: chains.filter((chain) => chainsSet.has(chain)),
 		parentProtocols
@@ -749,6 +767,7 @@ export const getNewChainsPageData = async (category: string) => {
 			category,
 			categories: categoryLinks,
 			colorsByChain: colors,
+			chainAssets: chainsAssets ?? null,
 			chainTvls: chainTvls.map((chain) => {
 				const name = chain.name.toLowerCase()
 				const totalAssets = chainsAssets[name]?.total?.total ?? null
@@ -980,4 +999,12 @@ export function formatGovernanceData(data: {
 	})
 
 	return { maxVotes, activity, proposals }
+}
+
+export async function getChainsBridged(chain?: string) {
+	const assets = await fetchWithErrorLogging(CHAINS_ASSETS).then((r) => r.json())
+	const chains = await fetch(`${CHAINS_API_V2}/All`).then((r) => r.json())
+	const flows1d = await fetch(CHAIN_ASSETS_FLOWS + '/24h').then((r) => r.json())
+	const chainData = assets[chain] ?? null
+	return { chains, assets, flows1d, chainData }
 }

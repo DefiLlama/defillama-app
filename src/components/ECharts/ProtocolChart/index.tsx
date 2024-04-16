@@ -165,6 +165,10 @@ export default function AreaBarChart({
 			yAxisByIndex['NFT Volume'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('Premium Volume')) {
+			yAxisByIndex['Premium Volume'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
@@ -576,6 +580,17 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['NFT Volume']
+						}
+					}
+				})
+			}
+			if (type === 'Premium Volume') {
+				yAxiss.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Premium Volume']
 						}
 					}
 				})

@@ -46,8 +46,7 @@ function AboutPage() {
 						The best way to contact us and the one in which you'll get a reply the fastest is through our{' '}
 						<Link href="https://discord.defillama.com">Discord</Link>. If you want communication to be private you can
 						use <Link href="https://twitter.com/defillama">Twitter</Link> as a slower alternative, or, as an even slower
-						option, you can also contact us by email at{' '}
-						<Link href="mailto:0xngmi@llama.fi">0xngmi@llama.fi</Link> or{' '}
+						option, you can also contact us by email at <Link href="mailto:0xngmi@llama.fi">0xngmi@llama.fi</Link> or{' '}
 						<Link href="mailto:contact@llama-corp.com">contact@llama-corp.com</Link>.
 					</TYPE.main>
 					<TYPE.main>
@@ -64,11 +63,7 @@ function AboutPage() {
 					<TYPE.main area="account">Acknowledgements</TYPE.main>
 					<Divider />
 					<TYPE.main>
-						Thanks to <Link href="https://www.coingecko.com/">CoinGecko</Link> for the continued support.
-					</TYPE.main>
-					<Divider />
-					<TYPE.main>
-						DeFiLlama&apos;s design is based on <Link href="https://github.com/Uniswap/uniswap-info">Uniswap.info</Link>
+						Thanks to <Link href="https://allium.so/">Allium</Link> for their indexer service.
 					</TYPE.main>
 				</DashGrid>
 			</Panel>

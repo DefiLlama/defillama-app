@@ -69,7 +69,8 @@ export function useFetchAndFormatChartData({
 	devCommits,
 	nftVolume,
 	nftVolumeData,
-	aggregators
+	aggregators,
+	premiumVolume
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -160,6 +161,14 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && derivativesVolume === 'true' && metrics.derivatives ? false : true
 	})
 
+	const { data: optionsVolumeData, loading: fetchingOptionsVolume } = useGetOverviewChartData({
+		name: protocol,
+		dataToFetch: 'options',
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: isRouterReady && premiumVolume === 'true' && metrics.options ? false : true
+	})
+
 	const { data: aggregatorsVolumeData, loading: fetchingAggregatorsVolume } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'aggregators',
@@ -227,6 +236,13 @@ export function useFetchAndFormatChartData({
 				}
 
 				chartData[date]['TVL'] = showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL
+			})
+		}
+
+		if (isHourlyChart && tvl !== 'false') {
+			tvlData.forEach(([dateS, TVL]) => {
+				const date = nearestUtc(+dateS * 1000) / 1000
+				chartData[date] = chartData[dateS]
 			})
 		}
 
@@ -313,10 +329,10 @@ export function useFetchAndFormatChartData({
 		}
 
 		if (geckoId && protocolCGData) {
-			if (mcap === 'true' && protocolCGData['market_caps'] && protocolCGData['market_caps'].length > 0) {
+			if (mcap === 'true' && protocolCGData['mcaps'] && protocolCGData['mcaps'].length > 0) {
 				chartsUnique.push('Mcap')
 
-				protocolCGData['market_caps'].forEach(([dateMs, Mcap]) => {
+				protocolCGData['mcaps'].forEach(([dateMs, Mcap]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = {}
@@ -330,14 +346,13 @@ export function useFetchAndFormatChartData({
 				if (
 					tvlData.length > 0 &&
 					tvl !== 'false' &&
-					protocolCGData['market_caps'].length > 0 &&
-					protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][0] <
-						+tvlData[tvlData.length - 1][0] * 1000
+					protocolCGData['mcaps']?.length > 0 &&
+					protocolCGData['mcaps'][protocolCGData['mcaps'].length - 1][0] < +tvlData[tvlData.length - 1][0] * 1000
 				) {
 					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
-					const Mcap = protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][1]
+					const Mcap = protocolCGData['mcaps']?.[protocolCGData['mcaps'].length - 1][1]
 
 					chartData[date]['Mcap'] = showNonUsdDenomination
 						? Mcap / getPriceAtDate(date, denominationHistory.prices)
@@ -410,7 +425,7 @@ export function useFetchAndFormatChartData({
 			if (tokenVolume === 'true') {
 				chartsUnique.push('Token Volume')
 
-				protocolCGData['total_volumes'].forEach(([dateMs, price]) => {
+				protocolCGData['volumes'].forEach(([dateMs, price]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = {}
@@ -424,14 +439,13 @@ export function useFetchAndFormatChartData({
 				if (
 					tvlData.length > 0 &&
 					tvl !== 'false' &&
-					protocolCGData['total_volumes'].length > 0 &&
-					protocolCGData['total_volumes'][protocolCGData['total_volumes'].length - 1][0] <
-						+tvlData[tvlData.length - 1][0] * 1000
+					protocolCGData['volumes'].length > 0 &&
+					protocolCGData['volumes'][protocolCGData['volumes'].length - 1][0] < +tvlData[tvlData.length - 1][0] * 1000
 				) {
 					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
-					const tokenVolume = protocolCGData['total_volumes'][protocolCGData['total_volumes'].length - 1][1]
+					const tokenVolume = protocolCGData['volumes'][protocolCGData['volumes'].length - 1][1]
 
 					chartData[date]['Token Volume'] = showNonUsdDenomination
 						? tokenVolume / getPriceAtDate(date, denominationHistory.prices)
@@ -501,6 +515,21 @@ export function useFetchAndFormatChartData({
 				chartData[date]['Derivatives Volume'] = showNonUsdDenomination
 					? +item.Derivatives / getPriceAtDate(date, denominationHistory.prices)
 					: item.Derivatives
+			})
+		}
+
+		if (optionsVolumeData) {
+			chartsUnique.push('Premium Volume')
+
+			optionsVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Premium Volume'] = showNonUsdDenomination
+					? +item['Premium volume'] / getPriceAtDate(date, denominationHistory.prices)
+					: item['Premium volume']
 			})
 		}
 
@@ -847,49 +876,50 @@ export function useFetchAndFormatChartData({
 			chartsUnique
 		}
 	}, [
-		protocolCGData,
-		mcap,
+		isRouterReady,
+		tvl,
+		historicalChainTvls,
+		extraTvlEnabled,
+		staking,
+		borrowed,
 		geckoId,
+		protocolCGData,
+		tokenLiquidityData,
+		bridgeVolumeData,
 		volumeData,
 		derivativesVolumeData,
-		tvl,
-		showNonUsdDenomination,
-		denominationHistory?.prices,
+		optionsVolumeData,
+		aggregatorsVolumeData,
 		feesAndRevenue,
-		fees,
-		revenue,
-		isRouterReady,
+		twitterData,
+		unlocksData,
 		activeAddressesData,
 		newAddressesData,
+		transactionsData,
+		gasData,
+		medianAPYData,
+		isHourlyChart,
+		usdInflows,
+		usdInflowsData,
+		governanceData,
+		devMetricsData,
+		contributersMetrics,
+		devMetrics,
+		nftVolumeData,
+		nftVolume,
+		devCommits,
+		contributersCommits,
+		treasuryData,
+		showNonUsdDenomination,
+		denominationHistory.prices,
+		mcap,
 		tokenPrice,
 		fdv,
 		fdvData,
-		gasData,
-		transactionsData,
-		staking,
-		borrowed,
-		historicalChainTvls,
-		medianAPYData,
-		usdInflows,
-		usdInflowsData,
-		isHourlyChart,
-		governanceData,
-		extraTvlEnabled,
-		treasuryData,
-		unlocksData,
-		bridgeVolumeData,
 		tokenVolume,
-		tokenLiquidityData,
-		twitterData,
-		devMetrics,
-		devMetricsData,
-		groupBy,
-		contributersMetrics,
-		contributersCommits,
-		devCommits,
-		nftVolume,
-		nftVolumeData,
-		aggregatorsVolumeData
+		fees,
+		revenue,
+		groupBy
 	])
 
 	const finalData = React.useMemo(() => {

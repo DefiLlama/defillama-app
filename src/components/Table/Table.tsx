@@ -53,10 +53,23 @@ export default function VirtualTable({
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
-	const isChainPage = router.pathname === '/' || router.pathname.startsWith('/chain')
+	const isChainPage =
+		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
+	let minTableWidth = 0
+	for (const headerGroup of instance.getHeaderGroups()) {
+		for (const header of headerGroup.headers) {
+			minTableWidth += header.getSize() ?? 0
+		}
+	}
 	return (
 		<Wrapper ref={tableContainerRef} {...props}>
-			<div style={{ display: 'flex', flexDirection: 'column' }}>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					...(skipVirtualization ? { minWidth: `${minTableWidth}px` } : {})
+				}}
+			>
 				{instance.getHeaderGroups().map((headerGroup) => (
 					<div key={headerGroup.id} style={{ display: 'flex', position: 'relative' }}>
 						{headerGroup.headers.map((header) => {
@@ -65,7 +78,7 @@ export default function VirtualTable({
 							const value = flexRender(header.column.columnDef.header, header.getContext())
 
 							return (
-								<Cell key={header.id} data-chainpage={isChainPage} style={{ minWidth: header.getSize() ?? '100px' }}>
+								<Cell key={header.id} data-chainpage={isChainPage} style={{ minWidth: `${header.getSize() ?? 100}px` }}>
 									<TableHeader
 										align={
 											meta?.align ??
@@ -93,7 +106,7 @@ export default function VirtualTable({
 			<div
 				style={
 					skipVirtualization
-						? {}
+						? { minWidth: `${minTableWidth}px` }
 						: {
 								height: `${rowVirtualizer.getTotalSize()}px`,
 								width: '100%',
@@ -120,7 +133,7 @@ export default function VirtualTable({
 
 					return (
 						<React.Fragment key={rowTorender.id}>
-							<div style={trStyle} className="row">
+							<div style={trStyle}>
 								{rowTorender.getVisibleCells().map((cell) => {
 									// get header text alignment
 									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
@@ -130,7 +143,7 @@ export default function VirtualTable({
 											ligther={stripedBg && i % 2 === 0}
 											key={cell.id}
 											data-chainpage={isChainPage}
-											style={{ minWidth: cell.column.getSize() ?? '100px', textAlign, ...(cellStyles || {}) }}
+											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign, ...(cellStyles || {}) }}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</Cell>

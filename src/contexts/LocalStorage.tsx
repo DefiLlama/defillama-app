@@ -16,6 +16,7 @@ const BORROWED = 'borrowed'
 const DOUBLE_COUNT = 'doublecounted'
 const LIQUID_STAKING = 'liquidstaking'
 const VESTING = 'vesting'
+const GOV_TOKENS = 'govtokens'
 
 // NFT
 const DISPLAY_USD = 'DISPLAY_USD'
@@ -49,6 +50,7 @@ const PEGGEDARS = 'PEGGEDARS'
 const PEGGEDGBP = 'PEGGEDGBP'
 const PEGGEDVAR = 'PEGGEDVAR'
 const PEGGEDCAD = 'PEGGEDCAD'
+const PEGGEDAUD = 'PEGGEDAUD'
 const FIATSTABLES = 'FIATSTABLES'
 const CRYPTOSTABLES = 'CRYPTOSTABLES'
 const ALGOSTABLES = 'ALGOSTABLES'
@@ -74,7 +76,7 @@ const DIMENSIONS_CHART_INTERVAL_KEY = 'DIMENSIONS:CHART_INTERVAL'
 
 export const BAR_MIN_WIDTH_IN_CHART = 'BAR_MIN_WIDTH_IN_CHART'
 
-export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING }
+export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS }
 
 const BRIBES = 'bribes'
 const TOKENTAX = 'tokentax'
@@ -109,6 +111,7 @@ export const STABLECOINS_SETTINGS = {
 	PEGGEDGBP,
 	PEGGEDVAR,
 	PEGGEDCAD,
+	PEGGEDAUD,
 	FIATSTABLES,
 	CRYPTOSTABLES,
 	ALGOSTABLES,
@@ -359,7 +362,7 @@ export function useSettingsManager(settings: Array<string>): [ISettings, TUpdate
 				if (isClient) {
 					updateStateFromRouter(setting, router)
 
-					toggled = state[setting].value ?? state[setting]
+					toggled = state[setting]?.value ?? state[setting]
 					// prevent flash of these toggles when page loads initially
 				} else if (setting === 'emulator') {
 					toggled = true

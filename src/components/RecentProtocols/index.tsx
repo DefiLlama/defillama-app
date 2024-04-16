@@ -136,7 +136,7 @@ export function RecentProtocols({
 
 		if (isValidTvlRange) {
 			const filteredProtocols = data.filter(
-				(protocol) => (minTvl ? protocol.tvl > minTvl : true) && (maxTvl ? protocol.tvl < maxTvl : true)
+				(protocol) => (minTvl ? protocol.tvl >= minTvl : true) && (maxTvl ? protocol.tvl <= maxTvl : true)
 			)
 
 			return { data: filteredProtocols, selectedChains }
@@ -145,7 +145,7 @@ export function RecentProtocols({
 		return { data, selectedChains }
 	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
 
-	const protocolsData = useCalcStakePool2Tvl(data) as Array<IFormattedProtocol>
+	const protocolsData = useCalcStakePool2Tvl(data)
 
 	const { pathname } = useRouter()
 

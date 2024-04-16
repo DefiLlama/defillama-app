@@ -71,9 +71,9 @@ export const formatBridgesData = ({
 			let dayTotalVolume, weekTotalVolume, monthTotalVolume
 			dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
 			// start from i = 1 to exclude current day
-			for (let i = 0; i < 31; i++) {
+			for (let i = 1; i < 31; i++) {
 				const dailyVolume = getPrevVolumeFromChart(chart, i)
-				if (i < 1) {
+				if (i < 2) {
 					dayTotalVolume += dailyVolume
 				}
 				if (i < 8) {
@@ -130,7 +130,7 @@ export const formatChainsData = ({
 			prevWeekUsdDeposits += chart.depositUSD
 			prevWeekUsdWithdrawals += chart.withdrawUSD
 		}
-		const prevWeekNetFlow = prevWeekUsdDeposits - prevWeekUsdWithdrawals
+		const prevWeekNetFlow = prevWeekUsdWithdrawals - prevWeekUsdDeposits
 
 		let topTokenDepositedSymbol = null,
 			topTokenWithdrawnSymbol = null,

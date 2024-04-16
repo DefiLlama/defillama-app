@@ -93,7 +93,7 @@ export function toFilterPool({
 		(minApy !== undefined && !Number.isNaN(Number(minApy))) || (maxApy !== undefined && !Number.isNaN(Number(maxApy)))
 
 	if (isValidTvlRange) {
-		toFilter = toFilter && (minTvl ? curr.tvlUsd > minTvl : true) && (maxTvl ? curr.tvlUsd < maxTvl : true)
+		toFilter = toFilter && (minTvl ? curr.tvlUsd >= minTvl : true) && (maxTvl ? curr.tvlUsd <= maxTvl : true)
 	}
 
 	if (isValidApyRange) {
@@ -488,7 +488,7 @@ export const filterPool = ({
 		(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
 	if (isValidTvlRange) {
-		toFilter = toFilter && (minTvl ? pool.farmTvlUsd > minTvl : true) && (maxTvl ? pool.tvlUsd < maxTvl : true)
+		toFilter = toFilter && (minTvl ? pool.farmTvlUsd >= minTvl : true) && (maxTvl ? pool.tvlUsd <= maxTvl : true)
 	}
 
 	const isValidAvailableRange =
