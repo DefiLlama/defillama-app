@@ -153,9 +153,6 @@ const ProApi = () => {
 			<Content>
 				<div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
 					<h1>DefiLlama Pro API</h1>
-					{authToken ? (
-						<ButtonLight onClick={() => window.open('/pro-api/docs', '_blank')}>Open API Docs </ButtonLight>
-					) : null}
 				</div>
 				{authToken ? null : (
 					<>
@@ -222,14 +219,17 @@ const ProApi = () => {
 								</span>
 							</div>
 							{authToken && ghAuth?.isContributor ? null : (
-								<ButtonDark
-									onClick={() => {
-										generateApiKey({ authToken })
-									}}
-									style={{ width: '120px' }}
-								>
-									Generate new API Key{' '}
-								</ButtonDark>
+								<div style={{ display: 'flex' }}>
+									<ButtonDark
+										onClick={() => {
+											generateApiKey({ authToken })
+										}}
+										style={{ width: '120px', marginRight: '0.5em' }}
+									>
+										Re-roll API Key{' '}
+									</ButtonDark>
+									<ButtonDark onClick={() => window.open('/pro-api/docs', '_blank')}>Open API Docs </ButtonDark>
+								</div>
 							)}
 						</Box>
 

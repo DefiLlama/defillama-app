@@ -1,13 +1,13 @@
 {
 	"openapi": "3.0.3",
 	"info": {
-		"version": "1",
 		"title": "DefiLlama Pro - OpenAPI 3.0",
+		"version": "1.0.0",
 		"description": "Docs for DefiLlama's Pro API"
 	},
 	"servers": [
 		{
-			"url": "https://api.llama.fi"
+			"url": "https://pro-api.llama.fi/APIKEY"
 		}
 	],
 	"tags": [
@@ -20,15 +20,11 @@
 			"description": "Data from our stablecoins dashboard - pro"
 		},
 		{
-			"name": "bridges",
-			"description": "Data from our bridges dashboard - pro"
-		},
-		{
 			"name": "active users",
 			"description": "Data about active users on our chains and protocols dashboards"
 		},
 		{
-			"name": "emissions",
+			"name": "Unlocks",
 			"description": "Data about token unlocks from our Unlocks dashboard"
 		},
 		{
@@ -45,9 +41,11 @@
 		}
 	],
 	"paths": {
-		"/hourly/{protocol}": {
+		"/api/hourly/{protocol}": {
 			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Lists the hourly tvl of a certain protocol",
 				"parameters": [
 					{
@@ -68,9 +66,11 @@
 				}
 			}
 		},
-		"/tokenProtocols/{symbol}": {
+		"/api/tokenProtocols/{symbol}": {
 			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Lists the amount of a certain token within all protocols",
 				"parameters": [
 					{
@@ -91,9 +91,11 @@
 				}
 			}
 		},
-		"/inflows/{protocol}/{timestamp}": {
+		"/api/inflows/{protocol}/{timestamp}": {
 			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Lists the amount of inflows and outflows for a protocol at a given date",
 				"parameters": [
 					{
@@ -124,20 +126,11 @@
 				}
 			}
 		},
-		"/mcaps": {
+		"/api/chainAssets": {
 			"get": {
-				"tags": ["TVL"],
-				"summary": "List all market caps",
-				"responses": {
-					"200": {
-						"description": "successful operation"
-					}
-				}
-			}
-		},
-		"/chainAssets": {
-			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Get assets of all chains",
 				"responses": {
 					"200": {
@@ -146,15 +139,12 @@
 				}
 			}
 		},
-		"/stablecoindominance/{chain}": {
+		"/stablecoins/stablecoindominance/{chain}": {
 			"get": {
-				"tags": ["stablecoins"],
-				"summary": "Get stablecoin dominance per chain along with the info about the larges coin in a chain",
-				"servers": [
-					{
-						"url": "https://stablecoins.llama.fi"
-					}
+				"tags": [
+					"stablecoins"
 				],
+				"summary": "Get stablecoin dominance per chain along with the info about the larges coin in a chain",
 				"parameters": [
 					{
 						"name": "chain",
@@ -184,53 +174,12 @@
 				}
 			}
 		},
-		"/largetransactions/{chain}": {
+		"/api/activeUsers": {
 			"get": {
-				"tags": ["bridges"],
-				"summary": "Get the largest transaction for a bridges on a particular chain",
-				"servers": [
-					{
-						"url": "https://bridges.llama.fi"
-					}
+				"tags": [
+					"active users"
 				],
-				"parameters": [
-					{
-						"name": "chain",
-						"in": "path",
-						"required": true,
-						"description": "chain slug, you can get these from /chains. Call also use 'all' for volume on all chains.",
-						"schema": {
-							"type": "string",
-							"example": "Ethereum"
-						}
-					},
-					{
-						"name": "id",
-						"in": "query",
-						"required": false,
-						"description": "bridge ID, you can get these from /bridges",
-						"schema": {
-							"type": "integer",
-							"example": 5
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "successful operation"
-					}
-				}
-			}
-		},
-		"/activeUsers": {
-			"get": {
-				"tags": ["active users"],
 				"summary": "Get active users on our chains and protocols pages",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
-				],
 				"responses": {
 					"200": {
 						"description": "successful operation"
@@ -238,15 +187,12 @@
 				}
 			}
 		},
-		"/userData/{type}/{protocolId}": {
+		"/api/userData/{type}/{protocolId}": {
 			"get": {
-				"tags": ["active users"],
-				"summary": "Get user data by type and protocol",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
+				"tags": [
+					"active users"
 				],
+				"summary": "Get user data by type and protocol",
 				"parameters": [
 					{
 						"name": "protocolId",
@@ -276,15 +222,12 @@
 				}
 			}
 		},
-		"/emissions": {
+		"/api/emissions": {
 			"get": {
-				"tags": ["emissions"],
-				"summary": "List of all tokens with along with unlocks data",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
+				"tags": [
+					"Unlocks"
 				],
+				"summary": "List of all tokens along with basic info for each",
 				"responses": {
 					"200": {
 						"description": "successful operation"
@@ -292,15 +235,12 @@
 				}
 			}
 		},
-		"/emission/{protocol}": {
+		"/api/emission/{protocol}": {
 			"get": {
-				"tags": ["emissions"],
-				"summary": "List of all tokens with along with unlocks data",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
+				"tags": [
+					"Unlocks"
 				],
+				"summary": "Unlocks data for a given token/protocol. You can find a list of available slugs to query by querying /emissions and then extracting the key `gecko_id`",
 				"parameters": [
 					{
 						"name": "protocol",
@@ -320,47 +260,12 @@
 				}
 			}
 		},
-		"/emissionsList": {
+		"/api/categories": {
 			"get": {
-				"tags": ["emissions"],
-				"summary": "List of all tokens with along with unlocks data",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
+				"tags": [
+					"main page"
 				],
-				"responses": {
-					"200": {
-						"description": "successful operation"
-					}
-				}
-			}
-		},
-		"/emissionsBreakdown": {
-			"get": {
-				"tags": ["emissions"],
-				"summary": "List of all tokens with along with unlocks data",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "successful operation"
-					}
-				}
-			}
-		},
-		"/categories": {
-			"get": {
-				"tags": ["main page"],
 				"summary": "Overview of all categories accross all protocols",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
-				],
 				"responses": {
 					"200": {
 						"description": "successful operation"
@@ -368,15 +273,12 @@
 				}
 			}
 		},
-		"/forks": {
+		"/api/forks": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all categories accross all protocols",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
-				],
 				"responses": {
 					"200": {
 						"description": "successful operation"
@@ -384,15 +286,12 @@
 				}
 			}
 		},
-		"/oracles": {
+		"/api/oracles": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all categories accross all protocols",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
-				],
 				"responses": {
 					"200": {
 						"description": "successful operation"
@@ -400,15 +299,12 @@
 				}
 			}
 		},
-		"/hacks": {
+		"/api/hacks": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all hacks on our Hacks dashboard",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
-				],
 				"responses": {
 					"200": {
 						"description": "successful operation"
@@ -416,15 +312,12 @@
 				}
 			}
 		},
-		"/raises": {
+		"/api/raises": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all raises on our Raises dashboard",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
-				],
 				"responses": {
 					"200": {
 						"description": "successful operation"
@@ -432,9 +325,11 @@
 				}
 			}
 		},
-		"/treasuries": {
+		"/api/treasuries": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "List all protocols on our Treasuries dashboard",
 				"responses": {
 					"200": {
@@ -443,9 +338,11 @@
 				}
 			}
 		},
-		"/entities": {
+		"/api/entities": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "List all entities",
 				"responses": {
 					"200": {
@@ -454,9 +351,11 @@
 				}
 			}
 		},
-		"/contractName2/{chain}/{contract}": {
+		"/api/contractName2/{chain}/{contract}": {
 			"get": {
-				"tags": ["trending contracts"],
+				"tags": [
+					"trending contracts"
+				],
 				"summary": "Provides the name of contracts on a determined chain",
 				"parameters": [
 					{
@@ -487,9 +386,11 @@
 				}
 			}
 		},
-		"/historicalLiquidity/{token}": {
+		"/api/historicalLiquidity/{token}": {
 			"get": {
-				"tags": ["token liquidity"],
+				"tags": [
+					"token liquidity"
+				],
 				"summary": "Provides the name of contracts on a determined chain",
 				"parameters": [
 					{

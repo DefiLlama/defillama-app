@@ -1,21 +1,20 @@
 openapi: 3.0.3
 info:
   title: DefiLlama Pro - OpenAPI 3.0
+  version: 1.0.0
   description: |-
     Docs for DefiLlama's Pro API
 
 servers:
-  - url: https://api.llama.fi
+  - url: https://pro-api.llama.fi/APIKEY
 tags:
   - name: TVL
     description: Retrieve TVL data - pro
   - name: stablecoins
     description: Data from our stablecoins dashboard - pro
-  - name: bridges
-    description: Data from our bridges dashboard - pro
   - name: active users
     description: Data about active users on our chains and protocols dashboards
-  - name: emissions
+  - name: Unlocks
     description: Data about token unlocks from our Unlocks dashboard
   - name: main page
     description: Data from dashboards on our side menu
@@ -25,7 +24,7 @@ tags:
     description: Provides the available liquidity for swapping from one token to another on a specific chain
 
 paths:
-  /hourly/{protocol}:
+  /api/hourly/{protocol}:
     get:
       tags:
         - TVL
@@ -41,7 +40,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /tokenProtocols/{symbol}:
+  /api/tokenProtocols/{symbol}:
     get:
       tags:
         - TVL
@@ -57,7 +56,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /inflows/{protocol}/{timestamp}:
+  /api/inflows/{protocol}/{timestamp}:
     get:
       tags:
         - TVL
@@ -80,15 +79,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /mcaps:
-    get:
-      tags:
-        - TVL
-      summary: List all market caps
-      responses:
-        '200':
-          description: successful operation
-  /chainAssets:
+  /api/chainAssets:
     get:
       tags:
         - TVL
@@ -97,13 +88,11 @@ paths:
         '200':
           description: successful operation
 
-  /stablecoindominance/{chain}:
+  /stablecoins/stablecoindominance/{chain}:
     get:
       tags:
         - stablecoins
       summary: Get stablecoin dominance per chain along with the info about the larges coin in a chain
-      servers:
-        - url: https://stablecoins.llama.fi
       parameters:
         - name: chain
           in: path
@@ -123,49 +112,19 @@ paths:
         '200':
           description: successful operation
 
-  /largetransactions/{chain}:
-    get:
-      tags:
-        - bridges
-      summary: Get the largest transaction for a bridges on a particular chain
-      servers:
-        - url: https://bridges.llama.fi
-      parameters:
-        - name: chain
-          in: path
-          required: true
-          description: chain slug, you can get these from /chains. Call also use 'all' for volume on all chains.
-          schema:
-            type: string
-            example: Ethereum
-        - name: id
-          in: query
-          required: false
-          description: bridge ID, you can get these from /bridges
-          schema:
-            type: integer
-            example: 5
-      responses:
-        '200':
-          description: successful operation
-
-  /activeUsers:
+  /api/activeUsers:
     get:
       tags:
         - active users
       summary: Get active users on our chains and protocols pages
-      servers:
-        - url: https://api.llama.fi
       responses:
         '200':
           description: successful operation
-  /userData/{type}/{protocolId}:
+  /api/userData/{type}/{protocolId}:
     get:
       tags:
         - active users
       summary: Get user data by type and protocol
-      servers:
-        - url: https://api.llama.fi
       parameters:
         - name: protocolId
           in: path
@@ -185,23 +144,19 @@ paths:
         '200':
           description: successful operation
 
-  /emissions:
+  /api/emissions:
     get:
       tags:
-        - emissions
-      summary: List of all tokens with along with unlocks data
-      servers:
-        - url: https://api.llama.fi
+        - Unlocks
+      summary: List of all tokens along with basic info for each
       responses:
         '200':
           description: successful operation
-  /emission/{protocol}:
+  /api/emission/{protocol}:
     get:
       tags:
-        - emissions
-      summary: List of all tokens with along with unlocks data
-      servers:
-        - url: https://api.llama.fi
+        - Unlocks
+      summary: Unlocks data for a given token/protocol. You can find a list of available slugs to query by querying /emissions and then extracting the key `gecko_id`
       parameters:
         - name: protocol
           in: path
@@ -213,78 +168,48 @@ paths:
       responses:
         '200':
           description: successful operation
-  /emissionsList:
-    get:
-      tags:
-        - emissions
-      summary: List of all tokens with along with unlocks data
-      servers:
-        - url: https://api.llama.fi
-      responses:
-        '200':
-          description: successful operation
-  /emissionsBreakdown:
-    get:
-      tags:
-        - emissions
-      summary: List of all tokens with along with unlocks data
-      servers:
-        - url: https://api.llama.fi
-      responses:
-        '200':
-          description: successful operation
 
-  /categories:
+  /api/categories:
     get:
       tags:
         - main page
       summary: Overview of all categories accross all protocols
-      servers:
-        - url: https://api.llama.fi
       responses:
         '200':
           description: successful operation
-  /forks:
+  /api/forks:
     get:
       tags:
         - main page
       summary: Overview of all categories accross all protocols
-      servers:
-        - url: https://api.llama.fi
       responses:
         '200':
           description: successful operation
-  /oracles:
+  /api/oracles:
     get:
       tags:
         - main page
       summary: Overview of all categories accross all protocols
-      servers:
-        - url: https://api.llama.fi
       responses:
         '200':
           description: successful operation
-  /hacks:
+  /api/hacks:
     get:
       tags:
         - main page
       summary: Overview of all hacks on our Hacks dashboard
-      servers:
-        - url: https://api.llama.fi
       responses:
         '200':
           description: successful operation
-  /raises:
+  /api/raises:
     get:
       tags:
         - main page
       summary: Overview of all raises on our Raises dashboard
-      servers:
-        - url: https://api.llama.fi
       responses:
         '200':
           description: successful operation
-  /treasuries:
+  /api/treasuries:
     get:
       tags:
         - main page
@@ -292,7 +217,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /entities:
+  /api/entities:
     get:
       tags:
         - main page
@@ -301,7 +226,7 @@ paths:
         '200':
           description: successful operation
 
-  /contractName2/{chain}/{contract}:
+  /api/contractName2/{chain}/{contract}:
     get:
       tags:
         - trending contracts
@@ -325,7 +250,7 @@ paths:
         '200':
           description: successful operation
 
-  /historicalLiquidity/{token}:
+  /api/historicalLiquidity/{token}:
     get:
       tags:
         - token liquidity
