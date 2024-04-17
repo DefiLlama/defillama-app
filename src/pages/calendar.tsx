@@ -61,7 +61,6 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 })
 
 export default function Protocols({ emissions }) {
-	console.log(emissions)
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const { pathname, query } = useRouter()
