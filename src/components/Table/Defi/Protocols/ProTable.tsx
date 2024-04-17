@@ -8,30 +8,15 @@ import {
 	getExpandedRowModel,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	flexRender
 } from '@tanstack/react-table'
 import VirtualTable, { Wrapper } from '~/components/Table/Table'
-import {
-	columnOrders,
-	columnSizes,
-	protocolAddlColumns,
-	protocolsColumns,
-	recentlyListedProtocolsColumns,
-	topGainersAndLosersColumns,
-	protocolsByTokenColumns,
-	airdropsColumns,
-	protocolsByChainColumns
-} from './columns'
+import { columnOrders, columnSizes, protocolAddlColumns, protocolsColumns, protocolsByChainColumns } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
-import { useRouter } from 'next/router'
-import { SearchIcon, TableFiltersWithInput } from '../../shared'
 import styled from 'styled-components'
-import { TVLRange } from '~/components/Filters'
-import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import RowFilter from '~/components/Filters/common/RowFilter'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
@@ -388,8 +373,12 @@ const PTable = styled(Wrapper)`
 		min-width: 180px;
 	}
 
-	th:not(:first-child) > * {
+	th > * {
 		padding-left: 12px;
+		padding: 12px;
+	}
+	td {
+		padding: 12px;
 	}
 
 	thead > tr:first-child {

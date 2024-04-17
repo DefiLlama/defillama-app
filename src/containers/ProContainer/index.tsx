@@ -2,8 +2,7 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { useRouter } from 'next/router'
-import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
-import { useGetProtocolsList } from '~/api/categories/protocols/client'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -14,7 +13,6 @@ import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordi
 import { useState } from 'react'
 import { ChartTypes, SortableItem } from '../Defi/Protocol/PorotcolPro'
 import { chain, groupBy as lodahGroupBy, mapValues } from 'lodash'
-import ProtocolChart from '~/components/ECharts/ProtocolDNDChart/ProtocolChart'
 import ItemsSelect, { chainChartOptions, FilterHeader } from './ItemsSelect'
 import { useCompare } from '~/components/ComparePage'
 import SelectedItem from './SelectedItem'
@@ -22,9 +20,9 @@ import LocalLoader from '~/components/LocalLoader'
 import { sluggify } from '~/utils/cache-client'
 import RowFilter from '~/components/Filters/common/RowFilter'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
-import Subscribe from './Subscribe'
 import useIsSubscribed from './queries/useIsSubscribed'
 import { useVerified } from './hooks/useVerified'
+import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 
 const ChartsBody = styled.div<{ itemsCount }>`
 	width: 100%;
@@ -119,7 +117,7 @@ export const getName = (itemStr) => {
 	const [type, name, chartType] = itemStr.split('-')
 	if (type === 'chain')
 		return chartType === 'table' ? null : `${name} ` + chainChartOptions.find((opt) => opt.id === chartType)?.name
-	if (type === 'protocol') `${name} ${ChartTypes[chartType]}`
+	if (type === 'protocol') return `${name} ${ChartTypes[chartType]}`
 	return null
 }
 
@@ -164,7 +162,6 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 		const [type, name, chartType] = key.split('-')
 		if (type === 'protocol') {
 			const [, protocol, chartType] = key.split('-')
-			console.log(protocol, chartType)
 			return (
 				<ProtocolChart
 					{...protocolProps[sluggify(protocol)]}
@@ -200,16 +197,6 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 		lodahGroupBy(items, (item) => item.split('-')[0]),
 		(groupItems) => groupItems.map((item) => item?.split('-')[1])
 	)
-
-	if (!isSubscribedToChain.data || !isVerified)
-		return (
-			<Subscribe
-				refresh={() => {
-					isSubscribedToChain.refetch()
-				}}
-				verify={() => setIsVerified(true)}
-			/>
-		)
 
 	return (
 		<>

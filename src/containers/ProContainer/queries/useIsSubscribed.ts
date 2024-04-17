@@ -26,14 +26,18 @@ query Subs($now: BigInt, $userAddress: Bytes, $receiver: Bytes, $minAmountPerCyc
 		.then((r) => r.data.subs.length > 0)
 }
 
-const useIsDubscribed = () => {
+const useIsSubscribed = () => {
 	const wallet = useAccount()
 
-	const res = useQuery(['isSubscribedToChain', wallet.address], () =>
-		isSubscribed(`0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437`.toLowerCase(), 1e17, wallet.address.toLowerCase())
+	const res = useQuery(['isSubscribed', wallet.address], () =>
+		isSubscribed(
+			`0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437`.toLowerCase(),
+			SUBSCRIPTION_PRICE,
+			wallet.address.toLowerCase()
+		)
 	)
 
 	return res
 }
 
-export default useIsDubscribed
+export default useIsSubscribed

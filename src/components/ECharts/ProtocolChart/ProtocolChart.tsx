@@ -37,6 +37,7 @@ interface IProps {
 	twitterHandle?: string
 	nftVolumeData: NftVolumeData
 	protocolData?: IFusedProtocolData
+	enabled: Record<string, boolean>
 }
 
 const CHART_TYPES = [
@@ -90,7 +91,8 @@ export default function ProtocolChart({
 	chartDenominations,
 	twitterHandle,
 	nftVolumeData,
-	protocolData
+	protocolData,
+	enabled
 }: IProps) {
 	const router = useRouter()
 
@@ -131,7 +133,7 @@ export default function ProtocolChart({
 		nftVolume,
 		aggregators,
 		premiumVolume
-	} = router.query
+	} = enabled || router.query
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
 		useFetchAndFormatChartData({
@@ -200,6 +202,26 @@ export default function ProtocolChart({
 
 		return acc
 	}, false)
+
+	if (enabled)
+		return (
+			<ProtocolChartOnly
+				isRouterReady={router.isReady}
+				isLoading={isLoading}
+				fetchingTypes={fetchingTypes}
+				chartData={chartData}
+				color={color}
+				valueSymbol={valueSymbol}
+				chartsUnique={chartsUnique}
+				events={events}
+				hallmarks={hallmarks}
+				chartColors={chartColors}
+				bobo={bobo}
+				unlockTokenSymbol={unlockTokenSymbol}
+				isThemeDark={isThemeDark}
+				isMonthly={groupBy === 'monthly'}
+			/>
+		)
 
 	return (
 		<Wrapper>

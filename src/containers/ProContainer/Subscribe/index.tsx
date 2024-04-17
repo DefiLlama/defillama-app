@@ -105,7 +105,7 @@ const Subscribe = ({ refresh, verify }) => {
 			<img src={logo.src} width="120px" height="120px" alt="logo" />
 			<Content>
 				<h1>DefiLlama Pro</h1>
-				<PriceComponent price={111} />
+				<PriceComponent price={100} />
 				{isPaymentOpen ? null : (
 					<>
 						<div>

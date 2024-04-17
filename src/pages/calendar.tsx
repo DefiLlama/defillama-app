@@ -25,12 +25,8 @@ import { useRouter } from 'next/router'
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
-	let parsedRes = []
-	try {
-		parsedRes = JSON.parse(res.body).data
-	} catch (e) {}
 
-	const emissions = parsedRes.map((protocol) => {
+	const emissions = res.map((protocol) => {
 		const unlocksByDate = {}
 		protocol.events.forEach((e) => {
 			if (e.timestamp < Date.now() / 1000 || (e.noOfTokens.length === 1 && e.noOfTokens[0] === 0)) return
@@ -46,13 +42,12 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 			return max
 		}, unlocksList[0])
 
-		const tSymbol =
-			protocol.name === 'LooksRare' ? 'LOOKS' : protocol.tokenPrice?.coins?.[protocol.token]?.symbol ?? null
+		const tSymbol = protocol.name === 'LooksRare' ? 'LOOKS' : protocol.tokenPrice?.[0]?.symbol ?? null
 
 		return {
 			...protocol,
 			unlock: maxUnlock,
-			tPrice: protocol.tokenPrice?.coins?.[protocol.token]?.price ?? null,
+			tPrice: protocol.tokenPrice?.[0]?.price ?? null,
 			tSymbol
 		}
 	})
@@ -66,6 +61,7 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 })
 
 export default function Protocols({ emissions }) {
+	console.log(emissions)
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const { pathname, query } = useRouter()
