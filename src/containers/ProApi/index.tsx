@@ -154,7 +154,7 @@ const ProApi = () => {
 				<div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
 					<h1>DefiLlama Pro API</h1>
 				</div>
-				{authToken ? null : (
+				{authToken && isSubscribed ? null : (
 					<>
 						<PriceComponent price={300} />
 						<div>Upgrade now for increased api limits and premium api endpoints.</div>
@@ -165,11 +165,11 @@ const ProApi = () => {
 					<Box>
 						<SignInWithGithub />
 					</Box>
-				) : authToken ? null : (
+				) : authToken && isSubscribed ? null : (
 					<Box>
 						{!wallet.isConnected ? (
 							<Button onClick={openConnectModal}>Connect Wallet</Button>
-						) : !authToken && !isSubscribed ? (
+						) : !authToken || !isSubscribed ? (
 							<Button onClick={() => startPayment()}>Subscribe</Button>
 						) : authToken ? null : (
 							<Button
@@ -188,7 +188,7 @@ const ProApi = () => {
 					</Box>
 				)}
 
-				{!authToken ? (
+				{!authToken || !isSubscribed ? (
 					<ListBody>
 						<h2>Plan Includes:</h2>
 						<ListItem>

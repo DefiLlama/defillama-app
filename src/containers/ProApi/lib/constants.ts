@@ -1,5 +1,4 @@
 import { ethers } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils.js'
 import { SUBSCRIPTIONS_ABI } from './abi.subscriptions'
 
 export const contractAddress = '0x543e186ae5c7fea674c489f50215ee8036e87897'
@@ -24,7 +23,7 @@ export const periodDuration = 24 * 60 * 60
 export const DIVISOR = 1e18
 
 export const llamaAddress = '0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437'.toLowerCase()
-export const subscriptionAmount = 2
+export const subscriptionAmount = 300
 
 export const SERVER_API = 'https://7zlw4f9i3e.execute-api.eu-central-1.amazonaws.com/prod'
 

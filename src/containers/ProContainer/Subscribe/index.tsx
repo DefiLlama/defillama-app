@@ -9,6 +9,8 @@ import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 import logo from '~/public/llama.png'
 import { CheckIcon } from './Icon'
 import { useVerified } from '../hooks/useVerified'
+import { llamaAddress } from '~/containers/ProApi/lib/constants'
+import { SUBSCRIPTION_PRICE } from '../constants'
 
 const Body = styled.div`
 	margin-top: 120px;
@@ -75,24 +77,19 @@ const Subscribe = ({ refresh, verify }) => {
 	const wallet = useAccount()
 	const { openConnectModal } = useConnectModal()
 	const { signMessage, isVerified, message } = useVerified({ verify })
-
 	const startPayment = () => {
-		if (isPaymentOpen) {
-			setIsPaymentOpen(false)
-			return
-		}
-		setIsPaymentOpen(true)
-
-		window.addEventListener(
-			'message',
-			(event) => {
-				if (event.data.subscribed === true) {
-					setIsPaymentOpen(false)
-					setTimeout(() => refresh(), 1000)
-				}
-			},
-			false
+		window.open(
+			`https://subscriptions.llamapay.io/subscribe?to=${llamaAddress}&amount=${
+				SUBSCRIPTION_PRICE / 1e18
+			}&brandColor=%232351be&closeAfterPayment=true`,
+			'Window',
+			`width=600,height=800,left=${window.screen.width / 2 - 300},top=${window.screen.height / 2 - 400}`
 		)
+		window.addEventListener('message', function (e) {
+			if (e.data === 'payment_success') {
+				setTimeout(() => refresh(), 1500)
+			}
+		})
 	}
 
 	const onSignClick = () => {
@@ -106,47 +103,32 @@ const Subscribe = ({ refresh, verify }) => {
 			<Content>
 				<h1>DefiLlama Pro</h1>
 				<PriceComponent price={100} />
-				{isPaymentOpen ? null : (
-					<>
-						<div>
-							Upgrade now for advanced DeFi analytics and insights! With DefiLlama Pro, you'll get access to a
-							customizable dashboard, multiple protocols view, and more.
-						</div>
-					</>
-				)}{' '}
+
+				<>
+					<div>
+						Upgrade now for advanced DeFi analytics and insights! With DefiLlama Pro, you'll get access to a
+						customizable dashboard, multiple protocols view, and more.
+					</div>
+				</>
 				{!wallet.isConnected ? (
 					<Button onClick={openConnectModal}>Connect</Button>
 				) : isVerified ? (
-					<Button onClick={startPayment}>{isPaymentOpen ? 'Close' : 'Subscribe now'}</Button>
+					<Button onClick={startPayment}>{'Subscribe now'}</Button>
 				) : (
 					<Button onClick={onSignClick}>Sign In</Button>
 				)}
-				{isPaymentOpen ? null : (
-					<ListBody>
-						<h3>Plan Includes:</h3>
-						<ListItem>
-							<CheckIcon />
-							Customizable dashboard with multiple protocols view
-						</ListItem>
-						<ListItem>
-							<CheckIcon />
-							Access to CSV export
-						</ListItem>
-						<ListItem>
-							<CheckIcon />
-							Premium DefiLlama API access
-						</ListItem>
-					</ListBody>
-				)}
-				{isPaymentOpen ? (
-					<iframe
-						height={800}
-						width={500}
-						src={
-							'https://subscriptions.llamapay.io/subscribe?to=0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437&amount=0.1&brandColor=%232351be'
-						}
-					/>
-				) : null}
+
+				<ListBody>
+					<h3>Plan Includes:</h3>
+					<ListItem>
+						<CheckIcon />
+						Customizable dashboard with multiple protocols view
+					</ListItem>
+					<ListItem>
+						<CheckIcon />
+						Priority support
+					</ListItem>
+				</ListBody>
 				<External href="https://twitter.com/DefiLlama" target="popup">
 					Learn More <ExternalLink size={16} />
 				</External>
