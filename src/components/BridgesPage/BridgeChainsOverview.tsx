@@ -1,15 +1,12 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/router'
 import { BreakpointPanel, ChartAndValuesWrapper } from '~/components'
 import { Header } from '~/Theme'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { BridgesSearch } from '~/components/Search'
 import { BridgeChainsTable } from '~/components/Table'
-import { ButtonDark } from '~/components/ButtonStyled'
 import { toNiceCsvDate, download } from '~/utils'
-import { useVerified } from '~/containers/ProContainer/hooks/useVerified'
 import CSVDownloadButton from '../ButtonStyled/CsvButton'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {

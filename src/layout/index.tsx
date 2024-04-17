@@ -47,7 +47,7 @@ interface ILayoutProps {
 }
 
 const { chains, provider } = configureChains([mainnet, optimism], [publicProvider()])
-const projectId = 'testtttt'
+const projectId = 'abcbcfd99b02bb0d7057fc19b2f8a2ad'
 
 const connectors = connectorsForWallets([
 	{
@@ -55,7 +55,7 @@ const connectors = connectorsForWallets([
 		wallets: [
 			injectedWallet({ chains }),
 			metaMaskWallet({ chains, projectId }),
-			// walletConnectWallet({ projectId, chains }),
+			walletConnectWallet({ projectId, chains }),
 			rabbyWallet({ chains })
 		]
 	}

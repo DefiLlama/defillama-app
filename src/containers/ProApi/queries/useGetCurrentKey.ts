@@ -20,6 +20,8 @@ async function getCurrentKey(authToken?: string | null) {
 					localStorage.removeItem(key)
 				}
 			}
+		} else {
+			window.localStorage.setItem(`pro_apikey`, currentToken?.apiKey)
 		}
 
 		return currentToken?.apiKey ? currentToken : null
