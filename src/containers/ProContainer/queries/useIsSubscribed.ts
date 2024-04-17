@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query'
 import { useAccount } from 'wagmi'
+import { SUBSCRIPTION_PRICE } from '../constants'
 
 function isSubscribed(toAddress, amount, userAddress) {
 	return fetch('https://api.thegraph.com/subgraphs/name/0xngmi/llamasubs-optimism', {

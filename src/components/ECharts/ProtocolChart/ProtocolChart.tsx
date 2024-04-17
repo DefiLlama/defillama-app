@@ -37,7 +37,7 @@ interface IProps {
 	twitterHandle?: string
 	nftVolumeData: NftVolumeData
 	protocolData?: IFusedProtocolData
-	enabled: Record<string, boolean>
+	enabled?: Record<string, boolean>
 }
 
 const CHART_TYPES = [
@@ -92,7 +92,7 @@ export default function ProtocolChart({
 	twitterHandle,
 	nftVolumeData,
 	protocolData,
-	enabled
+	enabled = null
 }: IProps) {
 	const router = useRouter()
 
