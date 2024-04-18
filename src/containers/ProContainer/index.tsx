@@ -158,6 +158,15 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 			CHAIN_SYMBOL = chainDenomination.symbol
 		}
 	}
+	if (!isSubscribedToChain.data || !isVerified)
+		return (
+			<Subscribe
+				refresh={() => {
+					isSubscribedToChain.refetch()
+				}}
+				verify={() => setIsVerified(true)}
+			/>
+		)
 
 	const renderChart = (key, i) => {
 		const [type, name, chartType] = key.split('-')
