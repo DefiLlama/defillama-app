@@ -71,5 +71,10 @@
 		"explorer": "https://solscan.io/token/4LLbsb5ReP3yEtYzmXewyGjcir5uXtKFURtaEUVC2AHs",
 		"token": "4LLbsb5ReP3yEtYzmXewyGjcir5uXtKFURtaEUVC2AHs",
 		"twitter": "Parcl"
+	},
+	{
+		"name": "Omni Network",
+		"page": "https://claims.omni.network",
+		"twitter": "OmniFDN"
 	}
 ]
