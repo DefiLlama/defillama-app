@@ -197,10 +197,13 @@ const Body = styled.div`
 	flex-direction: column;
 	align-items: center;
 	height: 100%;
+	padding: 16px;
 `
 
 const PTable = styled(Wrapper)`
 	margin-bottom: 8px;
+	margin-top: 24px;
+
 	border: none;
 	display: flex;
 	background-color: transparent;

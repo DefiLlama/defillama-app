@@ -696,7 +696,7 @@ export function ChainContainer({
 											title=""
 											denomination={denomination}
 											isThemeDark={darkMode}
-											hideTooltip
+											hideTooltip={false}
 										/>
 									)
 								)}

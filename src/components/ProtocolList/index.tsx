@@ -297,7 +297,7 @@ function ProtocolList({
 							</StatsTable2>
 						</OverallMetricsWrapper>
 						{router.isReady && categoryChart ? (
-							<ChainChart datasets={datasets} title="" isThemeDark={isDark} hideTooltip />
+							<ChainChart datasets={datasets} title="" isThemeDark={isDark} hideTooltip={false} />
 						) : null}
 					</StatsSection>
 				) : null}

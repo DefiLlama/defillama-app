@@ -287,7 +287,7 @@ function ComparePage() {
 					{data.isLoading || !router.isReady ? (
 						<LocalLoader style={{ marginBottom: 'auto' }} />
 					) : (
-						<ChainChart title="" datasets={data?.data} isThemeDark={isDark} />
+						<ChainChart title="" datasets={data?.data} isThemeDark={isDark} hideTooltip={false} />
 					)}
 				</BreakpointPanel>
 				<Grid>

@@ -39,7 +39,7 @@ const ChartsBody = styled.div<{ itemsCount }>`
 	}
 `
 
-const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart/ProChart'), {
+const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart/index'), {
 	ssr: false
 })
 
@@ -158,15 +158,6 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 			CHAIN_SYMBOL = chainDenomination.symbol
 		}
 	}
-	if (!isSubscribedToChain.data || !isVerified)
-		return (
-			<Subscribe
-				refresh={() => {
-					isSubscribedToChain.refetch()
-				}}
-				verify={() => setIsVerified(true)}
-			/>
-		)
 
 	const renderChart = (key, i) => {
 		const [type, name, chartType] = key.split('-')
@@ -192,6 +183,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 					denomination={denomination}
 					isThemeDark={darkMode}
 					chartType={chartType}
+					hideTooltip={false}
 					isFirstChart={i === 0 || i === 1}
 				/>
 			)
