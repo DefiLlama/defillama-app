@@ -11,8 +11,8 @@ import { DetailsWrapper } from '~/layout/ProtocolAndPool'
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useState } from 'react'
-import { ChartTypes, SortableItem } from '../Defi/Protocol/PorotcolPro'
-import { chain, groupBy as lodahGroupBy, mapValues } from 'lodash'
+import { ChartTypes, SortableItem } from '../Defi/Protocol/ProtocolPro'
+import { groupBy as lodahGroupBy, mapValues } from 'lodash'
 import ItemsSelect, { chainChartOptions, FilterHeader } from './ItemsSelect'
 import { useCompare } from '~/components/ComparePage'
 import SelectedItem from './SelectedItem'
@@ -273,7 +273,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 								{items.map((id, i) => (
 									<SortableItem id={id} key={id + items.length} isTable={id.includes('table')}>
 										<ChartBody>
-											<FilterHeader>{getName(id)}</FilterHeader>
+											<FilterHeader style={{ fontWeight: 'bold' }}>{getName(id)}</FilterHeader>
 											{renderChart(id, i)}
 										</ChartBody>
 									</SortableItem>

@@ -1,7 +1,7 @@
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import ReactSelect from '~/components/MultiSelect/ReactSelect'
-import { ChartTypes } from '../Defi/Protocol/PorotcolPro'
+import { ChartTypes } from '../Defi/Protocol/ProtocolPro'
 import { chainChartOptions } from './ItemsSelect'
 
 const SelectedItemBody = styled.div`

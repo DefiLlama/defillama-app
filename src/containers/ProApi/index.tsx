@@ -106,8 +106,7 @@ const Input = styled.input`
 
 const ProApi = () => {
 	const wallet = useAccount()
-	const network = useNetwork()
-	const { switchNetwork } = useSwitchNetwork()
+	const intervalRef = useRef<NodeJS.Timeout>()
 
 	const { data: ghAuth } = useGithubAuth()
 	const { openConnectModal } = useConnectModal()
@@ -142,10 +141,18 @@ const ProApi = () => {
 		window.addEventListener('message', function (e) {
 			if (e.data === 'payment_success' && !isTopUp) {
 				signIn({ address: wallet.address })
-				setTimeout(() => refetchSubs(), 1500)
+				intervalRef.current = setInterval(() => refetchSubs(), 500)
 			}
 		})
 	}
+
+	useEffect(() => {
+		return () => {
+			if (intervalRef.current && isSubscribed) {
+				clearInterval(intervalRef.current)
+			}
+		}
+	}, [isSubscribed])
 
 	return (
 		<Body>
@@ -156,7 +163,7 @@ const ProApi = () => {
 				</div>
 				{authToken && isSubscribed ? null : (
 					<>
-						<PriceComponent price={300} />
+						<PriceComponent price={subscriptionAmount} />
 						<div>Upgrade now for increased api limits and premium api endpoints.</div>
 					</>
 				)}
@@ -174,9 +181,6 @@ const ProApi = () => {
 						) : authToken ? null : (
 							<Button
 								onClick={() => {
-									if (network?.chain?.id !== 10) {
-										switchNetwork?.(10)
-									}
 									signIn({ address: wallet.address })
 								}}
 							>

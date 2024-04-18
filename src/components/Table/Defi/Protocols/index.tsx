@@ -101,20 +101,20 @@ export function ProtocolsTable({
 	return <VirtualTable instance={instance} />
 }
 
-enum TABLE_CATEGORIES {
+export enum TABLE_CATEGORIES {
 	FEES = 'Fees',
 	REVENUE = 'Revenue',
 	VOLUME = 'Volume',
 	TVL = 'TVL'
 }
 
-enum TABLE_PERIODS {
+export enum TABLE_PERIODS {
 	ONE_DAY = '1d',
 	SEVEN_DAYS = '7d',
 	ONE_MONTH = '1m'
 }
 
-const protocolsByChainTableColumns = [
+export const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
 	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
@@ -167,7 +167,7 @@ const protocolsByChainTableColumns = [
 	{ name: 'Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
 ]
 
-const defaultColumns = JSON.stringify({
+export const defaultColumns = JSON.stringify({
 	name: true,
 	category: true,
 	tvl: true,
@@ -546,7 +546,7 @@ export function ProtocolsByToken({ data }: { data: Array<{ name: string; amountU
 	return <VirtualTable instance={instance} />
 }
 
-const ListOptions = styled.div`
+export const ListOptions = styled.div`
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -559,7 +559,7 @@ const ListOptions = styled.div`
 	}
 `
 
-const ListHeader = styled.h3`
+export const ListHeader = styled.h3`
 	font-size: 1.125rem;
 	color: ${({ theme }) => theme.text1};
 	font-weight: 500;

@@ -8,7 +8,7 @@ import { sluggify } from '~/utils/cache-client'
 import Modal from './Modal'
 import useSWR from 'swr'
 import { getChainData } from '~/components/ComparePage'
-import { ChartTypes } from '../Defi/Protocol/PorotcolPro'
+import { ChartTypes } from '../Defi/Protocol/ProtocolPro'
 import { transparentize } from 'polished'
 
 export const Filters = styled.div`

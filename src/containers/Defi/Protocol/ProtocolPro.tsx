@@ -23,7 +23,6 @@ export function SortableItem(props) {
 		</SortbaleBody>
 	)
 }
-
 export const ChartTypes = {
 	tvl: 'TVL',
 	mcap: 'MCAP',
@@ -36,11 +35,8 @@ export const ChartTypes = {
 	unlocks: 'Unlocks',
 	activeUsers: 'Active Users',
 	newUsers: 'New Users',
-	// events: 'Events',
 	transactions: 'Transactions',
 	gasUsed: 'Gas Used',
-	// medianApy: 'Median Apy',
-	// usdInflows: 'Inflows',
 	governance: 'Governance',
 	treasury: 'Treasury',
 	bridgeVolume: 'Bridge Volume',
@@ -51,7 +47,6 @@ export const ChartTypes = {
 	contributersMetrics: 'Contributers',
 	contributersCommits: 'Contributers Commits',
 	devCommits: 'Devs Commits',
-	// nftVolume: 'NFT Volume',
 	staking: 'Staking',
 	borrowed: 'Borrowed'
 }

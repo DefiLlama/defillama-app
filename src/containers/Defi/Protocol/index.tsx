@@ -75,9 +75,7 @@ import { UnlocksCharts } from './Emissions'
 import { StablecoinInfo } from './Stablecoin'
 import { ForksData } from './Forks'
 import { GovernanceData } from './Governance'
-import { useInView } from 'react-intersection-observer'
 import { feesOptions } from '~/components/Filters/protocols/options'
-import LocalLoader from '~/components/LocalLoader'
 
 const scams = [
 	'Drachma Exchange',

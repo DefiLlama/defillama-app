@@ -6,15 +6,12 @@ import {
 	getSortedRowModel,
 	ExpandedState,
 	getExpandedRowModel,
-	ColumnOrderState,
-	ColumnSizingState,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	flexRender
 } from '@tanstack/react-table'
-import VirtualTable, { Wrapper } from '~/components/Table/Table'
-import { columnOrders, columnSizes, protocolAddlColumns, protocolsColumns, protocolsByChainColumns } from './columns'
-import useWindowSize from '~/hooks/useWindowSize'
+import { Wrapper } from '~/components/Table/Table'
+import { protocolsByChainColumns } from './columns'
 import { IProtocolRow } from './types'
 import styled from 'styled-components'
 import RowFilter from '~/components/Filters/common/RowFilter'
@@ -22,175 +19,20 @@ import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import SortIcon from '../../SortIcon'
+import {
+	ListHeader,
+	ListOptions,
+	TABLE_CATEGORIES,
+	TABLE_PERIODS,
+	defaultColumns,
+	protocolsByChainTableColumns
+} from '.'
 
 const Footer = styled.div`
 	display: flex;
 	justify-content: space-between;
 	width: 100%;
 `
-
-const columnSizesKeys = Object.keys(columnSizes)
-	.map((x) => Number(x))
-	.sort((a, b) => Number(b) - Number(a))
-
-export function ProtocolsTable({
-	data,
-	addlColumns,
-	removeColumns
-}: {
-	data: Array<IProtocolRow>
-	addlColumns?: Array<string>
-	removeColumns?: Array<string>
-}) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
-	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
-
-	const columnsData = React.useMemo(
-		() =>
-			addlColumns || removeColumns
-				? [
-						...protocolsColumns.filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
-						...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
-				  ]
-				: protocolsColumns,
-		[addlColumns, removeColumns]
-	)
-
-	const instance = useReactTable({
-		data,
-		columns: columnsData,
-		state: {
-			sorting,
-			expanded,
-			columnOrder,
-			columnSizing
-		},
-		onExpandedChange: setExpanded,
-		getSubRows: (row: IProtocolRow) => row.subRows,
-		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel(),
-		pageCount: 10
-	})
-
-	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = windowSize.width
-			? columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
-			: defaultOrder
-
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
-
-		instance.setColumnSizing(columnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [windowSize, instance])
-
-	return <VirtualTable instance={instance} />
-}
-
-enum TABLE_CATEGORIES {
-	FEES = 'Fees',
-	REVENUE = 'Revenue',
-	VOLUME = 'Volume',
-	TVL = 'TVL'
-}
-
-enum TABLE_PERIODS {
-	ONE_DAY = '1d',
-	SEVEN_DAYS = '7d',
-	ONE_MONTH = '1m'
-}
-
-const protocolsByChainTableColumns = [
-	{ name: 'Name', key: 'name' },
-	{ name: 'Category', key: 'category' },
-	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
-	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'TVL 7d change', key: 'change_7d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.SEVEN_DAYS },
-	{ name: 'TVL 1m change', key: 'change_1m', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_MONTH },
-	{ name: 'Mcap/TVL', key: 'mcaptvl', category: TABLE_CATEGORIES.TVL },
-	{ name: 'Fees 24h', key: 'fees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
-	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
-	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Revenue 7d', key: 'revenue_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
-	{ name: 'Revenue 30d', key: 'revenue_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
-	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Cumulative Fees', key: 'cumulativeFees', category: TABLE_CATEGORIES.FEES },
-	{
-		name: 'Holders Revenue 24h',
-		key: 'holderRevenue_24h',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_DAY
-	},
-	{
-		name: 'Holders Revenue 30d',
-		key: 'holdersRevenue30d',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_MONTH
-	},
-	{
-		name: 'Treasury Revenue 24h',
-		key: 'treasuryRevenue_24h',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_DAY
-	},
-	{
-		name: 'Supply Side Revenue 24h',
-		key: 'supplySideRevenue_24h',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_DAY
-	},
-	{ name: 'P/S', key: 'pf', category: TABLE_CATEGORIES.FEES },
-	{ name: 'P/F', key: 'ps', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
-	{
-		name: 'Volume Change 7d',
-		key: 'volumeChange_7d',
-		category: TABLE_CATEGORIES.VOLUME,
-		period: TABLE_PERIODS.SEVEN_DAYS
-	},
-	{ name: 'Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
-]
-
-const defaultColumns = JSON.stringify({
-	name: true,
-	category: true,
-	tvl: true,
-	change_1d: true,
-	change_7d: true,
-	change_1m: true,
-	mcaptvl: false,
-	fees_24h: true,
-	revenue_24h: true,
-	fees_7d: false,
-	revenue_7d: false,
-	fees_30d: false,
-	revenue_30d: false,
-	holdersRevenue30d: false,
-	userFees_24h: false,
-	cumulativeFees: false,
-	holderRevenue_24h: false,
-	treasuryRevenue_24h: false,
-	supplySideRevenue_24h: false,
-	pf: false,
-	ps: false,
-	volume_24h: true,
-	volume_7d: false,
-	volumeChange_7d: false,
-	cumulativeVolume: false
-})
 
 export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain })
@@ -394,25 +236,4 @@ const PTable = styled(Wrapper)`
 			min-width: 240px;
 		}
 	}
-`
-
-const ListOptions = styled.div`
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	margin-bottom: 16px;
-	justify-content: space-between;
-	flex-wrap: wrap;
-
-	button {
-		font-weight: 600;
-	}
-`
-
-const ListHeader = styled.h3`
-	font-size: 14px;
-	margin-bottom: 16px;
-	color: ${({ theme }) => theme.text1};
-	white-space: nowrap;
-	margin-right: auto;
 `
