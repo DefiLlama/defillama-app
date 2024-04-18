@@ -94,7 +94,8 @@ export const descriptions = {
 	'Liquid Restaking': 'Protocols that create a liquid token for restaking',
 	Wallets: 'Protocols where you have a form of digital storage to secure access to your crypto.',
 	NftFi: 'NFT leverage protocols',
-	'Telegram Bot': 'Trading bots for Telegram users'
+	'Telegram Bot': 'Trading bots for Telegram users',
+	Ponzi: 'Farms promising high rates of return, where the money from new investors is used to pay earlier investors'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
