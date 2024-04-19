@@ -76,5 +76,10 @@
 		"name": "Omni Network",
 		"page": "https://claims.omni.network",
 		"twitter": "OmniFDN"
+	},
+	{
+		"name": "Avail Network",
+		"page": "https://claim.availproject.org",
+		"twitter": "AvailProject"
 	}
 ]
