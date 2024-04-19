@@ -16,8 +16,10 @@ import {
 	Image as ImageIcon,
 	Shuffle,
 	FileText,
-	TrendingUp
+	TrendingUp,
+	FilePlus
 } from 'react-feather'
+import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
 
 export interface IMainLink {
 	name: string
@@ -335,6 +337,15 @@ export const navLinks: ILinks = {
 	// }
 }
 
+if (IS_PRO_API_ENABLED) {
+	navLinks['Pro API'] = {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <FilePlus size={16} />,
+		newTag: true
+	}
+}
+
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
 	{ name: 'Hacks', url: '/hacks' },
@@ -343,5 +354,6 @@ export const linksWithNoSubMenu = [
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lsd' },
-	{ name: 'Crypto ETFs', url: '/crypto-etf' }
+	{ name: 'Crypto ETFs', url: '/crypto-etf' },
+	{ name: 'Pro API', url: '/pro-api' }
 ]

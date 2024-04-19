@@ -1,0 +1,1 @@
+export const SUBSCRIPTION_PRICE = 100e18

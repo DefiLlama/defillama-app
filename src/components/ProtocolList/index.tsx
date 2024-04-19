@@ -4,9 +4,8 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
-import { DownloadIcon } from '..'
-import { DownloadButton } from '~/containers/Raises/RaisesTable'
 import { ProtocolsTableWithSearch } from '../Table/Defi/Protocols'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
@@ -170,24 +169,19 @@ function ProtocolList({
 			/>
 			<div style={{ display: 'flex', gap: '8px' }}>
 				<Header>{title}</Header>
-
-				{csvDownload === true && (
-					<a
-						href={`https://api.llama.fi/simpleChainDataset/${chain}?category=${category}&${Object.entries(
-							extraTvlsEnabled
-						)
-							.filter((t) => t[1] === true)
-							.map((t) => `${t[0]}=true`)
-							.join('&')}
-							${category === 'Liquid Staking' ? 'liquidstaking=true' : ''}
-							`.replaceAll(' ', '_')}
-					>
-						<DownloadButton>
-							<DownloadIcon />
-							<span>&nbsp;&nbsp;.csv</span>
-						</DownloadButton>
-					</a>
-				)}
+				{csvDownload ? (
+					<CSVDownloadButton
+						style={{ marginLeft: 'auto' }}
+						onClick={() => {
+							window.open(
+								`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)
+									.filter((t) => t[1] === true)
+									.map((t) => `${t[0]}=true`)
+									.join('&')}${category === 'Liquid Staking' ? 'liquidstaking=true' : ''}`.replaceAll(' ', '_')
+							)
+						}}
+					/>
+				) : null}
 			</div>
 
 			<LayoutWrapper>
@@ -303,7 +297,7 @@ function ProtocolList({
 							</StatsTable2>
 						</OverallMetricsWrapper>
 						{router.isReady && categoryChart ? (
-							<ChainChart datasets={datasets} title="" isThemeDark={isDark} hideTooltip />
+							<ChainChart datasets={datasets} title="" isThemeDark={isDark} hideTooltip={false} />
 						) : null}
 					</StatsSection>
 				) : null}

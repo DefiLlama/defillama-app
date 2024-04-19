@@ -13,11 +13,12 @@ import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { chainIconUrl, formattedNum, getTokenDominance } from '~/utils'
 import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
-import Image from 'next/future/image'
+import Image from 'next/image'
+
 import llamaLogo from '~/assets/peeking-llama.png'
 import { DetailsWrapper, DownloadButton, Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
-import Link from 'next/link'
+
 import { ChevronRight, DownloadCloud } from 'react-feather'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { RowWithSubRows, StatsTable2, SubrowTh } from '../Defi/Protocol'
@@ -27,6 +28,8 @@ import TokenLogo from '~/components/TokenLogo'
 import { EmbedChart } from '~/components/Popover'
 import { primaryColor } from '~/constants/colors'
 import { useFetchChainChartData } from './useFetchChainChartData'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+
 import { formatRaise, formatRaisedAmount } from '../Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
 import QuestionHelper from '~/components/QuestionHelper'
@@ -317,24 +320,6 @@ export function ChainContainer({
 									<span>Total Value Locked</span>
 									<span>{tvl}</span>
 								</span>
-
-								<Link
-									href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
-										.filter((t) => t[1] === true)
-										.map((t) => `${t[0]}=true`)
-										.join('&')}`.replaceAll(' ', '_')}
-									passHref
-								>
-									<DownloadButton
-										as="a"
-										style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
-										target="_blank"
-										rel="noreferrer"
-									>
-										<DownloadCloud size={14} />
-										<span>&nbsp;&nbsp;.csv</span>
-									</DownloadButton>
-								</Link>
 							</summary>
 
 							<span style={{ gap: '8px' }}>
@@ -620,6 +605,18 @@ export function ChainContainer({
 								) : null}
 							</tbody>
 						</StatsTable2>
+						<CSVDownloadButton
+							isLight
+							style={{ width: '100px', marginTop: 'auto', marginLeft: '-12px' }}
+							onClick={() => {
+								window.open(
+									`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
+										.filter((t) => t[1] === true)
+										.map((t) => `${t[0]}=true`)
+										.join('&')}`.replaceAll(' ', '_')
+								)
+							}}
+						/>
 					</OverallMetricsWrapper>
 
 					<ChartWrapper>
@@ -699,7 +696,7 @@ export function ChainContainer({
 											title=""
 											denomination={denomination}
 											isThemeDark={darkMode}
-											hideTooltip
+											hideTooltip={false}
 										/>
 									)
 								)}

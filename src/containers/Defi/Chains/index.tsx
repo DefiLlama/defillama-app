@@ -13,6 +13,7 @@ import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/de
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { useGroupChainsByParent } from '~/hooks/data'
 import { ChainsSelect, LayoutWrapper } from '~/containers/ChainContainer'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 import { useRouter } from 'next/router'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
@@ -154,7 +155,7 @@ export default function ChainsContainer({
 
 				<HeaderWrapper>
 					<Header>Total Value Locked All Chains</Header>
-					<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
+					<CSVDownloadButton onClick={downloadCsv} />
 				</HeaderWrapper>
 
 				<ChartsWrapper>

@@ -8,6 +8,7 @@ import { BRIDGETX_API } from '~/constants'
 import { download, toNiceCsvDate } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
 
 const fetch = fetchWithErrorLogging
 
@@ -215,7 +216,7 @@ const BridgeTransactionsPage = ({ bridges }) => {
 						placeholder={placeholder}
 						click={(item) => setPlaceholder(item)}
 					/>
-					<StyledFormSubmit onClick={() => setPlaceholder('Search...')}>Generate CSV</StyledFormSubmit>
+					<CSVDownloadButton onClick={() => form.submit()} />
 				</SearchWrapper>
 			</Form>
 

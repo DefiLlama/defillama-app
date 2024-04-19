@@ -9,7 +9,7 @@ import QuestionHelper from '~/components/QuestionHelper'
 import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 
-export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
+export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 	{
 		header: 'Pool',
 		accessorKey: 'pool',

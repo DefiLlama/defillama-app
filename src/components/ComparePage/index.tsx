@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic'
 import { useQueries, useQuery } from 'react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
-import styled from 'styled-components'
 
 import { BreakpointPanel } from '~/components'
 import { Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
@@ -45,7 +44,7 @@ const CustomOption = ({ innerProps, label, data }) => (
 	</div>
 )
 
-const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
+export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
 	const data = await fetch('https://fe-cache.llama.fi/' + chain).then((r) => r.json())
 	const {
 		chart,
@@ -143,13 +142,7 @@ const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
 	}
 }
 
-const useCompare = ({
-	chains = ['Ethereum', 'BSC'],
-	extraTvlsEnabled
-}: {
-	chains?: string[]
-	extraTvlsEnabled: ISettings
-}) => {
+export const useCompare = ({ chains = [], extraTvlsEnabled }: { chains?: string[]; extraTvlsEnabled: ISettings }) => {
 	const data = useQueries(
 		chains.map((chain) => ({
 			queryKey: ['compare', JSON.stringify(chain), JSON.stringify(extraTvlsEnabled)],
@@ -294,7 +287,7 @@ function ComparePage() {
 					{data.isLoading || !router.isReady ? (
 						<LocalLoader style={{ marginBottom: 'auto' }} />
 					) : (
-						<ChainChart title="" datasets={data?.data} isThemeDark={isDark} />
+						<ChainChart title="" datasets={data?.data} isThemeDark={isDark} hideTooltip={false} />
 					)}
 				</BreakpointPanel>
 				<Grid>

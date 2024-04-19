@@ -163,7 +163,7 @@ export default function VirtualTable({
 	)
 }
 
-const Wrapper = styled.div`
+export const Wrapper = styled.div`
 	position: relative;
 	width: 100%;
 	max-width: calc(100vw - 32px);

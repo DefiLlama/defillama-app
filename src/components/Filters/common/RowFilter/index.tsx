@@ -1,13 +1,13 @@
 import styled from 'styled-components'
 import { NavLink } from '../RowLinksWithDropdown/LinksWithDropdown'
 import { darken, transparentize } from 'polished'
+import { capitalize } from 'lodash'
 
 const Body = styled.div`
 	display: flex;
 	border-radius: 8px;
 	border: 1px solid ${({ theme }) => theme.bg1};
 	height: 100%;
-	height: 34px;
 	background-color: transparent;
 
 	& > :first-child {
@@ -21,7 +21,6 @@ const Body = styled.div`
 
 const Button = styled(NavLink)`
 	border-radius: 0px;
-	width: 33%;
 	background-color: ${({ theme }) => transparentize(0.9, theme.primary1)};
 	color: ${({ theme }) => theme.text1};
 `
@@ -39,7 +38,7 @@ const RowFilter = ({ selectedValue, setValue, values, style }: IProps) => {
 			{values.map((value) => {
 				return (
 					<Button data-active={value === selectedValue} key={value} onClick={() => setValue(value)}>
-						{value}
+						{capitalize(value)}
 					</Button>
 				)
 			})}

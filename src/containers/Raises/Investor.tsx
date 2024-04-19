@@ -27,6 +27,7 @@ import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
 import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
 import { ChevronRight } from 'react-feather'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -96,16 +97,8 @@ function RaisesTable({ raises, downloadCsv }) {
 					placeholder="Search projects..."
 				/>
 
-				<DownloadButton onClick={downloadCsv}>
-					<DownloadIcon />
-					<span>&nbsp;&nbsp;.csv</span>
-				</DownloadButton>
-				<Link href="https://api.llama.fi/raises" target="_blank">
-					<DownloadButton>
-						<DownloadIcon />
-						<span>&nbsp;&nbsp;.json</span>
-					</DownloadButton>
-				</Link>
+				<CSVDownloadButton onClick={downloadCsv} />
+				<CSVDownloadButton customText="Download .json" onClick={() => window.open('https://api.llama.fi/raises')} />
 			</TableFiltersWithInput>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />

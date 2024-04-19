@@ -19,6 +19,7 @@ const columnHelper = createColumnHelper<IProtocolRow>()
 
 export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	{
+		id: 'name',
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
@@ -69,6 +70,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		size: 240
 	},
 	{
+		id: 'category',
+
 		header: 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
@@ -79,7 +82,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		}
 	},
 	columnHelper.group({
-		id: 'TVL',
+		id: 'tvl',
 		header: 'TVL',
 		columns: [
 			columnHelper.accessor('tvl', {
@@ -132,7 +135,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		]
 	}),
 	columnHelper.group({
-		id: 'Fees & Revenue',
+		id: 'fees',
 		header: 'Fees & Revenue',
 		columns: [
 			columnHelper.accessor('fees_24h', {
@@ -304,7 +307,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		]
 	}),
 	columnHelper.group({
-		id: 'Volume',
+		id: 'volume',
 		header: 'Volume',
 		columns: [
 			columnHelper.accessor('volume_24h', {

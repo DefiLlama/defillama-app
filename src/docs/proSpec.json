@@ -1,0 +1,415 @@
+{
+	"openapi": "3.0.3",
+	"info": {
+		"title": "DefiLlama Pro - OpenAPI 3.0",
+		"version": "1.0.0",
+		"description": "Docs for DefiLlama's Pro API"
+	},
+	"servers": [
+		{
+			"url": "https://pro-api.llama.fi/APIKEY"
+		}
+	],
+	"tags": [
+		{
+			"name": "TVL",
+			"description": "Retrieve TVL data - pro"
+		},
+		{
+			"name": "stablecoins",
+			"description": "Data from our stablecoins dashboard - pro"
+		},
+		{
+			"name": "active users",
+			"description": "Data about active users on our chains and protocols dashboards"
+		},
+		{
+			"name": "Unlocks",
+			"description": "Data about token unlocks from our Unlocks dashboard"
+		},
+		{
+			"name": "main page",
+			"description": "Data from dashboards on our side menu"
+		},
+		{
+			"name": "trending contracts",
+			"description": "Provides a list of trending contracts on specific chains"
+		},
+		{
+			"name": "token liquidity",
+			"description": "Provides the available liquidity for swapping from one token to another on a specific chain"
+		}
+	],
+	"paths": {
+		"/api/hourly/{protocol}": {
+			"get": {
+				"tags": [
+					"TVL"
+				],
+				"summary": "Lists the hourly tvl of a certain protocol",
+				"parameters": [
+					{
+						"name": "protocol",
+						"in": "path",
+						"description": "protocol slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "compound-v3"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/tokenProtocols/{symbol}": {
+			"get": {
+				"tags": [
+					"TVL"
+				],
+				"summary": "Lists the amount of a certain token within all protocols",
+				"parameters": [
+					{
+						"name": "symbol",
+						"in": "path",
+						"description": "token slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "usdt"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/inflows/{protocol}/{timestamp}": {
+			"get": {
+				"tags": [
+					"TVL"
+				],
+				"summary": "Lists the amount of inflows and outflows for a protocol at a given date",
+				"parameters": [
+					{
+						"name": "protocol",
+						"in": "path",
+						"description": "protocol slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "compound-v3"
+						}
+					},
+					{
+						"name": "timestamp",
+						"in": "path",
+						"description": "unix timestamp",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"example": 1700006400
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/chainAssets": {
+			"get": {
+				"tags": [
+					"TVL"
+				],
+				"summary": "Get assets of all chains",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/stablecoins/stablecoindominance/{chain}": {
+			"get": {
+				"tags": [
+					"stablecoins"
+				],
+				"summary": "Get stablecoin dominance per chain along with the info about the larges coin in a chain",
+				"parameters": [
+					{
+						"name": "chain",
+						"in": "path",
+						"required": true,
+						"description": "chain slug, you can get these from /chains or the chains property on /protocols",
+						"schema": {
+							"type": "string",
+							"example": "Ethereum"
+						}
+					},
+					{
+						"name": "stablecoin",
+						"in": "query",
+						"required": false,
+						"description": "stablecoin ID, you can get these from /stablecoins",
+						"schema": {
+							"type": "integer",
+							"example": 1
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/activeUsers": {
+			"get": {
+				"tags": [
+					"active users"
+				],
+				"summary": "Get active users on our chains and protocols pages",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/userData/{type}/{protocolId}": {
+			"get": {
+				"tags": [
+					"active users"
+				],
+				"summary": "Get user data by type and protocol",
+				"parameters": [
+					{
+						"name": "protocolId",
+						"in": "path",
+						"description": "protocol id",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"example": 1
+						}
+					},
+					{
+						"name": "type",
+						"in": "path",
+						"description": "protocol id",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "activeUsers"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/emissions": {
+			"get": {
+				"tags": [
+					"Unlocks"
+				],
+				"summary": "List of all tokens along with basic info for each",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/emission/{protocol}": {
+			"get": {
+				"tags": [
+					"Unlocks"
+				],
+				"summary": "Unlocks data for a given token/protocol. You can find a list of available slugs to query by querying /emissions and then extracting the key `gecko_id`",
+				"parameters": [
+					{
+						"name": "protocol",
+						"in": "path",
+						"description": "protocol slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "aave"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/categories": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "Overview of all categories accross all protocols",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/forks": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "Overview of all categories accross all protocols",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/oracles": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "Overview of all categories accross all protocols",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/hacks": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "Overview of all hacks on our Hacks dashboard",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/raises": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "Overview of all raises on our Raises dashboard",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/treasuries": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "List all protocols on our Treasuries dashboard",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/entities": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "List all entities",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/contractName2/{chain}/{contract}": {
+			"get": {
+				"tags": [
+					"trending contracts"
+				],
+				"summary": "Provides the name of contracts on a determined chain",
+				"parameters": [
+					{
+						"name": "chain",
+						"in": "path",
+						"description": "chain slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "arbitrum"
+						}
+					},
+					{
+						"name": "contract",
+						"in": "path",
+						"description": "contract address",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "0x29469395eaf6f95920e59f858042f0e28d98a20b"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/historicalLiquidity/{token}": {
+			"get": {
+				"tags": [
+					"token liquidity"
+				],
+				"summary": "Provides the name of contracts on a determined chain",
+				"parameters": [
+					{
+						"name": "token",
+						"in": "path",
+						"description": "token slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "usdt"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		}
+	}
+}
