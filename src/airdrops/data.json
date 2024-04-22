@@ -17,7 +17,8 @@
 	{
 		"name": "AltLayer",
 		"page": "https://airdrop.altlayer.io",
-		"twitter": "alt_layer"
+		"twitter": "alt_layer",
+		"endTime": 1
 	},
 	{
 		"name": "Starknet",
@@ -33,7 +34,8 @@
 		"page": "https://claim.ethena.fi/",
 		"explorer": "https://etherscan.io/token/0x57e114B691Db790C35207b2e685D4A43181e6061",
 		"token": "0x57e114B691Db790C35207b2e685D4A43181e6061",
-		"twitter": "ethena_labs"
+		"twitter": "ethena_labs",
+		"endTime": 1711929600
 	},
 	{
 		"name": "Wormhole",
@@ -53,7 +55,8 @@
 	{
 		"name": "Polyhedra Network",
 		"page": "https://polyhedra.foundation",
-		"twitter": "PolyhedraZK"
+		"twitter": "PolyhedraZK",
+		"endTime": 1
 	},
 	{
 		"name": "NIM Network",
@@ -80,6 +83,7 @@
 	{
 		"name": "Avail Network",
 		"page": "https://claim.availproject.org",
-		"twitter": "AvailProject"
+		"twitter": "AvailProject",
+		"endTime": 1714867189839
 	}
 ]
