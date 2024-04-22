@@ -946,10 +946,11 @@ export async function getAirdropDirectoryData() {
 		'https://raw.githubusercontent.com/DefiLlama/defillama-app/main/src/airdrops/data.json'
 	).then((r) => r.json())
 
-	return airdrops.map((i) => ({
-		...i,
-		endTime: i.endTime ? new Date(i?.endTime * 1000).toISOString().replace(/\.\d{3}/, '') : null
-	}))
+	const now = Date.now()
+	return airdrops.filter((i) => {
+		if (!i.endTime) return true
+		return i.endTime < 1e12 ? i.endTime * 1000 > now : i.endTime > now
+	})
 }
 
 export function formatGovernanceData(data: {
