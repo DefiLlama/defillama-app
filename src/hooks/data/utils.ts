@@ -52,8 +52,12 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 
 			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
 
-			if (curr?.extraTvl?.excludeParent?.tvl) {
-				acc.tvl -= curr.extraTvl.excludeParent.tvl
+			if (curr?.extraTvl?.excludeParent) {
+				["tvl", "tvlPrevDay", "tvlPrevWeek", "tvlPrevMonth"].forEach(key => {
+					if (curr.extraTvl.excludeParent[key]) {
+						acc[key] -= curr.extraTvl.excludeParent[key]
+					}
+				})
 			}
 			;[
 				'tvlPrevDay',
