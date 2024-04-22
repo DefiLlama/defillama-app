@@ -34,7 +34,7 @@ export const SUBSCRIPTION_AMOUNT_DIVISOR = ethers.BigNumber.from(10).pow(18)
 
 export const MAINNET_ENS_RESOLVER = '0x3671aE578E63FdF66ad4F3E12CC0c0d71Ac7510C'
 
-export const GH_CLIENT_ID = '434392c1d50567bcc6a9' // 'a4875845f837e731e0b4' //
+export const GH_CLIENT_ID = 'a4875845f837e731e0b4'
 
 export const subsContractAddress = '0x8B6473801e466E543BAf0cB6c7Ea1C9321C3C816'
 
