@@ -327,11 +327,6 @@ export function ChainContainer({
 									<span>Change (24h)</span>
 									<span>{percentChange || 0}%</span>
 								</StatInARow>
-
-								<StatInARow>
-									<span>{topToken.name} Dominance</span>
-									<span>{dominance}%</span>
-								</StatInARow>
 							</span>
 						</AccordionStat>
 
