@@ -4,7 +4,6 @@ import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categ
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API, RAISES_API } from '~/constants'
 import { fetchOverCache, withPerformanceLogging } from '~/utils/perf'
-import airdrops from '~/airdrops/data.json'
 
 const exclude = [
 	'DeerFi',
@@ -168,11 +167,6 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 		revalidate: maxAgeForNext([22])
 	}
 })
-
-const claimableAirdrops = airdrops.map((i) => ({
-	...i,
-	endTime: i.endTime ? new Date(i?.endTime * 1000).toISOString().replace(/\.\d{3}/, '') : null
-}))
 
 export default function Protocols(props) {
 	return (

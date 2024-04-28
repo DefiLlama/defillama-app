@@ -942,12 +942,10 @@ export async function getETFData() {
 }
 
 export async function getAirdropDirectoryData() {
-	const airdrops = await fetchWithErrorLogging(
-		'https://raw.githubusercontent.com/DefiLlama/defillama-app/main/src/airdrops/data.json'
-	).then((r) => r.json())
+	const airdrops = await fetchWithErrorLogging('https://airdrops.llama.fi/config').then((r) => r.json())
 
 	const now = Date.now()
-	return airdrops.filter((i) => {
+	return Object.values(airdrops).filter((i: { endTime?: number }) => {
 		if (!i.endTime) return true
 		return i.endTime < 1e12 ? i.endTime * 1000 > now : i.endTime > now
 	})

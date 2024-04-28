@@ -31,7 +31,7 @@ interface IRecentProtocolProps {
 	protocols: any
 	chainList: string[]
 	forkedList?: { [name: string]: boolean }
-	claimableAirdrops?: Array<{ name: string; page: string }>
+	claimableAirdrops?: Array<{ name: string; page: string; title?: string }>
 }
 
 export function RecentProtocols({
@@ -164,7 +164,7 @@ export function RecentProtocols({
 							key={`claim-${protocol.page}`}
 							color="green"
 						>
-							<span>{protocol.name}</span>
+							<span>{protocol.name ?? protocol.title}</span>
 							<ArrowUpRight size={14} />
 						</Button>
 					))}
