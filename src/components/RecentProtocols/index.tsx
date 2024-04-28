@@ -154,7 +154,7 @@ export function RecentProtocols({
 			<ProtocolsChainsSearch step={{ category: 'Home', name: name }} />
 
 			{claimableAirdrops ? (
-				<FlexRow>
+				<FlexRow style={{ flexWrap: 'wrap' }}>
 					{claimableAirdrops.map((protocol) => (
 						<Button
 							as="a"
