@@ -20,7 +20,8 @@ import {
 	ETF_OVERVIEW_API,
 	ETF_HISTORY_API,
 	CHAINS_API_V2,
-	CHAIN_ASSETS_FLOWS
+	CHAIN_ASSETS_FLOWS,
+	BRIDGEINFLOWS_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -1001,9 +1002,25 @@ export function formatGovernanceData(data: {
 }
 
 export async function getChainsBridged(chain?: string) {
-	const assets = await fetchWithErrorLogging(CHAINS_ASSETS).then((r) => r.json())
-	const chains = await fetch(`${CHAINS_API_V2}/All`).then((r) => r.json())
-	const flows1d = await fetch(CHAIN_ASSETS_FLOWS + '/24h').then((r) => r.json())
+	const [assets, chains, flows1d, inflows] = await Promise.all([
+		fetchWithErrorLogging(CHAINS_ASSETS).then((r) => r.json()),
+		fetchWithErrorLogging(`${CHAINS_API_V2}/All`).then((r) => r.json()),
+		fetchWithErrorLogging(CHAIN_ASSETS_FLOWS + '/24h').then((r) => r.json()),
+		chain
+			? fetchWithErrorLogging(`${BRIDGEINFLOWS_API}/${chain}/1d`)
+					.then((res) => res.json())
+					.then((data) => data.map((item) => ({ ...item.data, date: item.timestamp })))
+			: null
+	])
 	const chainData = assets[chain] ?? null
-	return { chains, assets, flows1d, chainData }
+	const tokenInflowNames = new Set<string>()
+	for (const inflow of inflows) {
+		for (const token of Object.keys(inflow)) {
+			if (token !== 'date') {
+				tokenInflowNames.add(token)
+			}
+		}
+	}
+
+	return { chains, assets, flows1d, chainData, inflows, tokenInflowNames: Array.from(tokenInflowNames) }
 }
