@@ -19,11 +19,9 @@ async function displayAirdrops() {
 		const address = prompt('Provide EVM address to check airdrops for:')
 		const [others, eigen] = await Promise.all([
 			fetch(`https://airdrops.llama.fi/check/${address.toLowerCase()}`).then((r) => r.json()),
-			fetch(
-				`https://claims.eigenfoundation.org/clique-eigenlayer-api/campaign/eigenlayer/credentials?walletAddress=${address.toLowerCase()}`
-			)
+			fetch(`https://airdrops.llama.fi/eigen/${address.toLowerCase()}`)
 				.then((r) => r.json())
-				.then((r) => r.data.pipelines.tokenQualified)
+				.then((r) => r.tokenQualified)
 		])
 		console.log(Object.values(others), others)
 		const allAirdrops = Object.entries(Object.values(others)[0] ?? {}).concat(eigen > 0 ? [['eigenlayer', eigen]] : [])
