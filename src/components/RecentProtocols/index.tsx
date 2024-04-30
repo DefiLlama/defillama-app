@@ -1,41 +1,21 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import { Panel } from '~/components'
+import { FormSubmitBtn, Panel } from '~/components'
 import { RecentlyListedProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
 import { FiltersByChain, HideForkedProtocols, TVLRange } from '~/components/Filters'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { getPercentChange } from '~/utils'
-import { IFormattedProtocol } from '~/api/types'
 import { FlexRow } from '~/layout/ProtocolAndPool'
 import { ButtonLight } from '../ButtonStyled'
-import { ArrowUpRight } from 'react-feather'
+import { ArrowUpRight, X } from 'react-feather'
 import styled from 'styled-components'
-
-async function displayAirdrops() {
-	try {
-		const address = prompt('Provide EVM address to check airdrops for:')
-		const [others, eigen] = await Promise.all([
-			fetch(`https://airdrops.llama.fi/check/${address.toLowerCase()}`).then((r) => r.json()),
-			fetch(`https://airdrops.llama.fi/eigen/${address.toLowerCase()}`)
-				.then((r) => r.json())
-				.then((r) => r.tokenQualified)
-				.catch((e) => 0)
-		])
-		console.log(Object.values(others), others)
-		const allAirdrops = Object.entries(Object.values(others)[0] ?? {}).concat(eigen > 0 ? [['eigenlayer', eigen]] : [])
-		alert(
-			allAirdrops.length > 0
-				? allAirdrops.map((a) => `${a[0]}: ${a[1]}`).join('\n')
-				: 'No airdrops detected for this address'
-		)
-	} catch (e) {
-		console.log(e)
-		alert('There was an error fetching your data')
-	}
-}
+import { useDialogState, Dialog } from 'ariakit/dialog'
+import { DialogForm } from '../Filters/common/Base'
+import { useMutation } from 'react-query'
+import { airdropsEligibilityCheck } from './airdrops'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -172,6 +152,16 @@ export function RecentProtocols({
 
 	const { pathname } = useRouter()
 
+	const airdropCheckerDialog = useDialogState()
+
+	const {
+		data: eligibleAirdrops,
+		mutate: checkEligibleAirdrops,
+		isLoading: fetchingEligibleAirdrops,
+		error: errorFetchingEligibleAirdrops,
+		reset: resetEligibilityCheck
+	} = useMutation(airdropsEligibilityCheck)
+
 	return (
 		<Layout title={title} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: name }} />
@@ -191,7 +181,58 @@ export function RecentProtocols({
 							<ArrowUpRight size={14} />
 						</Button>
 					))}
-					<ButtonLight onClick={displayAirdrops}>Check airdrops for address</ButtonLight>
+					<ButtonLight
+						onClick={() => {
+							resetEligibilityCheck()
+							airdropCheckerDialog.toggle()
+						}}
+					>
+						Check airdrops for address
+					</ButtonLight>
+					<Dialog state={airdropCheckerDialog} className="dialog">
+						<CloseButton
+							onClick={() => {
+								resetEligibilityCheck()
+								airdropCheckerDialog.toggle()
+							}}
+						>
+							<X size={20} />
+						</CloseButton>
+						{eligibleAirdrops ? (
+							eligibleAirdrops.length === 0 ? (
+								<Error>No airdrops detected for this address</Error>
+							) : (
+								<List>
+									{eligibleAirdrops.map((airdrop) => (
+										<li key={`${airdrop[0]}:${airdrop[1]}`}>
+											<p>{airdrop[0]}</p>
+											<p>{airdrop[1]}</p>
+										</li>
+									))}
+								</List>
+							)
+						) : (
+							<DialogForm
+								onSubmit={(e) => {
+									e.preventDefault()
+									const form = e.target as HTMLFormElement
+									checkEligibleAirdrops({ address: form.address.value })
+								}}
+								data-variant="secondary"
+							>
+								<label>
+									<span>Provide EVM address to check airdrops for:</span>
+									<input name="address" required disabled={fetchingEligibleAirdrops} />
+								</label>
+								<FormSubmitBtn name="submit-btn" disabled={fetchingEligibleAirdrops}>
+									{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
+								</FormSubmitBtn>
+								{errorFetchingEligibleAirdrops ? (
+									<Error>{(errorFetchingEligibleAirdrops as any)?.message ?? 'Failed to fetch'}</Error>
+								) : null}
+							</DialogForm>
+						)}
+					</Dialog>
 				</FlexRow>
 			) : null}
 
@@ -226,4 +267,27 @@ export const Button = styled(ButtonLight)`
 	white-space: nowrap;
 	font-family: var(--font-inter);
 	color: green;
+`
+
+const CloseButton = styled.button`
+	margin: 0 -8px -16px auto;
+`
+
+const List = styled.ul`
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	list-style: none;
+	padding: 0px;
+
+	li {
+		display: flex;
+		justify-content: space-between;
+		gap: 16px;
+	}
+`
+
+const Error = styled.p`
+	color: red;
+	text-align: center;
 `
