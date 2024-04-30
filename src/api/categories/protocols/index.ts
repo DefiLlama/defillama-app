@@ -946,7 +946,8 @@ export async function getAirdropDirectoryData() {
 	const airdrops = await fetchWithErrorLogging('https://airdrops.llama.fi/config').then((r) => r.json())
 
 	const now = Date.now()
-	return Object.values(airdrops).filter((i: { endTime?: number }) => {
+	return Object.values(airdrops).filter((i: { endTime?: number, isActive: boolean, page?: string }) => {
+		if (i.isActive === false || !i.page) return false
 		if (!i.endTime) return true
 		return i.endTime < 1e12 ? i.endTime * 1000 > now : i.endTime > now
 	})
