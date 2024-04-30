@@ -22,6 +22,7 @@ async function displayAirdrops() {
 			fetch(`https://airdrops.llama.fi/eigen/${address.toLowerCase()}`)
 				.then((r) => r.json())
 				.then((r) => r.tokenQualified)
+				.catch((e) => 0)
 		])
 		console.log(Object.values(others), others)
 		const allAirdrops = Object.entries(Object.values(others)[0] ?? {}).concat(eigen > 0 ? [['eigenlayer', eigen]] : [])
