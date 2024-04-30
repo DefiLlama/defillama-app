@@ -14,6 +14,30 @@ import { ButtonLight } from '../ButtonStyled'
 import { ArrowUpRight } from 'react-feather'
 import styled from 'styled-components'
 
+async function displayAirdrops() {
+	try {
+		const address = prompt('Provide EVM address to check airdrops for:')
+		const [others, eigen] = await Promise.all([
+			fetch(`https://airdrops.llama.fi/check/${address.toLowerCase()}`).then((r) => r.json()),
+			fetch(
+				`https://claims.eigenfoundation.org/clique-eigenlayer-api/campaign/eigenlayer/credentials?walletAddress=${address.toLowerCase()}`
+			)
+				.then((r) => r.json())
+				.then((r) => r.data.pipelines.tokenQualified)
+		])
+		console.log(Object.values(others), others)
+		const allAirdrops = Object.entries(Object.values(others)[0] ?? {}).concat(eigen > 0 ? [['eigenlayer', eigen]] : [])
+		alert(
+			allAirdrops.length > 0
+				? allAirdrops.map((a) => `${a[0]}: ${a[1]}`).join('\n')
+				: 'No airdrops detected for this address'
+		)
+	} catch (e) {
+		console.log(e)
+		alert('There was an error fetching your data')
+	}
+}
+
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
 		if (typeof chainQueryParam === 'string') {
@@ -168,6 +192,7 @@ export function RecentProtocols({
 							<ArrowUpRight size={14} />
 						</Button>
 					))}
+					<ButtonLight onClick={displayAirdrops}>Check airdrops for address</ButtonLight>
 				</FlexRow>
 			) : null}
 
