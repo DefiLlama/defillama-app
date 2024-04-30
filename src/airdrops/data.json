@@ -85,5 +85,16 @@
 		"page": "https://claim.availproject.org",
 		"twitter": "AvailProject",
 		"endTime": 1714867189839
+	},
+	{
+		"name": "Renzo",
+		"page": "https://claim.renzoprotocol.com/",
+		"twitter": "RenzoProtocol"
+	},
+	{
+		"name": "EigenLayer",
+		"page": "https://claims.eigenfoundation.org/",
+		"twitter": "eigenlayer",
+		"endTime": 1720310470
 	}
 ]
