@@ -1010,7 +1010,7 @@ export async function getChainsBridged(chain?: string) {
 			? fetchWithErrorLogging(`${BRIDGEINFLOWS_API}/${chain}/1d`)
 					.then((res) => res.json())
 					.then((data) => data.map((item) => ({ ...item.data, date: item.timestamp })))
-			: null
+			: []
 	])
 	const chainData = assets[chain] ?? null
 	const tokenInflowNames = new Set<string>()
