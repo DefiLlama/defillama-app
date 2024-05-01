@@ -83,25 +83,29 @@ export const getAllProtocolEmissions = async () => {
 		const parsedRes = res
 		return parsedRes
 			.map((protocol) => {
-				let event = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
-				let upcomingEvent = []
+				try {
+					let event = protocol.events?.find((e) => e.timestamp >= Date.now() / 1000)
+					let upcomingEvent = []
 
-				if (!event || (event.noOfTokens.length === 1 && event.noOfTokens[0] === 0)) {
-					upcomingEvent = [{ timestamp: null }]
-				} else {
-					const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
-					upcomingEvent = [...comingEvents]
-				}
-				const coin = protocol.tokenPrice?.[0] ?? {}
-				const tSymbol = protocol.name === 'LooksRare' ? 'LOOKS' : coin.symbol ?? null
+					if (!event || (event.noOfTokens.length === 1 && event.noOfTokens[0] === 0)) {
+						upcomingEvent = [{ timestamp: null }]
+					} else {
+						const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
+						upcomingEvent = [...comingEvents]
+					}
+					const coin = protocol.tokenPrice?.[0] ?? {}
+					const tSymbol = protocol.name === 'LooksRare' ? 'LOOKS' : coin.symbol ?? null
 
-				return {
-					...protocol,
-					upcomingEvent,
-					tPrice: coin.price ?? null,
-					tSymbol
+					return {
+						...protocol,
+						upcomingEvent,
+						tPrice: coin.price ?? null,
+						tSymbol
+					}
+				} catch (e) {
+					return null
 				}
-			})
+			}).filter(Boolean)
 			.sort((a, b) => {
 				const x = a.upcomingEvent?.[0]?.timestamp
 				const y = b.upcomingEvent?.[0]?.timestamp
