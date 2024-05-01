@@ -16,6 +16,8 @@ import { useDialogState, Dialog } from 'ariakit/dialog'
 import { DialogForm } from '../Filters/common/Base'
 import { useMutation } from 'react-query'
 import { airdropsEligibilityCheck } from './airdrops'
+import QuestionHelper from '../QuestionHelper'
+import { AutoRow } from '../Row'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -177,7 +179,7 @@ export function RecentProtocols({
 							key={`claim-${protocol.page}`}
 							color="green"
 						>
-							<span>{protocol.name ?? protocol.title}</span>
+							<span>{protocol.name}</span>
 							<ArrowUpRight size={14} />
 						</Button>
 					))}
@@ -202,14 +204,47 @@ export function RecentProtocols({
 							eligibleAirdrops.length === 0 ? (
 								<Error>No airdrops detected for this address</Error>
 							) : (
-								<List>
-									{eligibleAirdrops.map((airdrop) => (
-										<li key={`${airdrop[0]}:${airdrop[1]}`}>
-											<p>{airdrop[0]}</p>
-											<p>{airdrop[1]}</p>
-										</li>
-									))}
-								</List>
+								<AirdropTable>
+									<thead>
+										<tr>
+											<th>Protocol Name</th>
+											<th>Token Amount</th>
+										</tr>
+									</thead>
+									<tbody>
+										{eligibleAirdrops.map((airdrop) => (
+											<tr key={`${airdrop.name}:${airdrop.claimableAmount}`}>
+												<th>{airdrop.name}</th>
+												<td>
+													{airdrop.isActive ? (
+														<span data-claimable={true}>
+															<span>{airdrop.claimableAmount}</span>
+															{airdrop.page ? (
+																<Button
+																	as="a"
+																	href={airdrop.page}
+																	target="_blank"
+																	rel="noreferrer noopener"
+																	key={`claim-${airdrop.page}`}
+																	color="green"
+																	style={{ padding: '2px 6px', fontSize: '12px' }}
+																>
+																	<span>Claim</span>
+																	<ArrowUpRight size={14} />
+																</Button>
+															) : null}
+														</span>
+													) : (
+														<span data-claimable={false}>
+															{/* <QuestionHelper text="Claim Ended" /> */}
+															<span>{airdrop.claimableAmount} - Claim Ended</span>
+														</span>
+													)}
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</AirdropTable>
 							)
 						) : (
 							<DialogForm
@@ -290,4 +325,30 @@ const List = styled.ul`
 const Error = styled.p`
 	color: red;
 	text-align: center;
+`
+
+const AirdropTable = styled.table`
+	border-collapse: collapse;
+
+	th,
+	td {
+		padding: 8px;
+		font-weight: 400;
+		text-align: center;
+		border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
+	}
+
+	td > span {
+		display: flex;
+		justify-content: center;
+		gap: 4px;
+	}
+
+	td > span[data-claimable='false'] {
+		opacity: 0.7;
+	}
+
+	thead > tr > th {
+		font-weight: 600;
+	}
 `
