@@ -28,7 +28,7 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 
 	const emissions = res.map((protocol) => {
 		const unlocksByDate = {}
-		protocol.events.forEach((e) => {
+		protocol.events?.forEach((e) => {
 			if (e.timestamp < Date.now() / 1000 || (e.noOfTokens.length === 1 && e.noOfTokens[0] === 0)) return
 			unlocksByDate[e.timestamp] =
 				(unlocksByDate[e.timestamp] ?? 0) +
