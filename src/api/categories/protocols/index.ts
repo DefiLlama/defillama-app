@@ -80,6 +80,7 @@ export const getProtocol = async (protocolName: string) => {
 export const getAllProtocolEmissions = async () => {
 	try {
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
+		const coins = await fetchWithErrorLogging(`https://coins.llama.fi/prices/current/${res.filter(p => p.gecko_id).map(p => "coingecko:" + p.gecko_id).join(',')}`).then((res) => res.json())
 		const parsedRes = res
 		return parsedRes
 			.map((protocol) => {
@@ -93,16 +94,17 @@ export const getAllProtocolEmissions = async () => {
 						const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
 						upcomingEvent = [...comingEvents]
 					}
-					const coin = protocol.tokenPrice?.[0] ?? {}
-					const tSymbol = protocol.name === 'LooksRare' ? 'LOOKS' : coin.symbol ?? null
+					const coin = coins.coins["coingecko:" + protocol.gecko_id]
+					const tSymbol = coin?.symbol ?? null
 
 					return {
 						...protocol,
 						upcomingEvent,
-						tPrice: coin.price ?? null,
+						tPrice: coin?.price ?? null,
 						tSymbol
 					}
 				} catch (e) {
+					console.log("error", protocol.name, e)
 					return null
 				}
 			}).filter(Boolean)
