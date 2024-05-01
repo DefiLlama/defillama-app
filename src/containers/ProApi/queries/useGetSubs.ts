@@ -49,9 +49,19 @@ const getStatusPriority = (status) => {
 	}
 }
 
+const manualApprovals = {
+	"0x0ef48d013dbb91397ee88dcb54c694ad39696bb7": true
+}
+
 async function getSubscriptions(address?: `0x${string}` | null) {
 	try {
 		if (!address) return null
+		if (manualApprovals[address.toLowerCase()] === true) {
+			return {
+				subs: [],
+				isSubscribed: true
+			}
+		}
 
 		const subs = `
           {
