@@ -50,7 +50,8 @@ const getStatusPriority = (status) => {
 }
 
 const manualApprovals = {
-	"0x0ef48d013dbb91397ee88dcb54c694ad39696bb7": true
+	"0x0ef48d013dbb91397ee88dcb54c694ad39696bb7": true,
+	"0xfe0663304863822e9cf4e18c968673ae224662c6": true
 }
 
 async function getSubscriptions(address?: `0x${string}` | null) {

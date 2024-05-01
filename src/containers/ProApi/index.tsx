@@ -176,7 +176,7 @@ const ProApi = () => {
 					<Box>
 						{!wallet.isConnected ? (
 							<Button onClick={openConnectModal}>Connect Wallet</Button>
-						) : !authToken || !isSubscribed ? (
+						) : !isSubscribed ? (
 							<Button onClick={() => startPayment()}>Subscribe</Button>
 						) : authToken ? null : (
 							<Button
