@@ -19,6 +19,7 @@ import SignInWithGithub from './SignInWithGithub'
 import { useGetCurrentKey } from './queries/useGetCurrentKey'
 import { Description } from '~/components/Correlations/styles'
 import { useSaveEmail } from './queries/useEmail'
+import DiscordButton from './DiscordButton'
 
 const Body = styled.div`
 	margin-top: 120px;
@@ -192,7 +193,7 @@ const ProApi = () => {
 					</Box>
 				)}
 
-				{!authToken || !isSubscribed ? (
+				{/* {!authToken || !isSubscribed ? (
 					<ListBody>
 						<h2>Plan Includes:</h2>
 						<ListItem>
@@ -204,76 +205,79 @@ const ProApi = () => {
 							Access to premium API endpoints
 						</ListItem>
 					</ListBody>
-				) : (
-					<>
-						<div style={{ display: 'flex', marginTop: '16px' }}>
-							<h2>API Key</h2>
+				) : ( */}
+				<>
+					<div style={{ display: 'flex', marginTop: '16px' }}>
+						<h2>API Key</h2>
+					</div>
+
+					<Box>
+						<div style={{ display: 'flex' }}>
+							<h4>API Key</h4>: {apiKey || '-'}
+							<span
+								onClick={() => {
+									navigator.clipboard.writeText(apiKey)
+									toast.success('API Key copied to clipboard')
+								}}
+							>
+								<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
+							</span>
 						</div>
-
-						<Box>
+						{authToken && ghAuth?.isContributor ? null : (
 							<div style={{ display: 'flex' }}>
-								<h4>API Key</h4>: {apiKey || '-'}
-								<span
+								<ButtonDark
 									onClick={() => {
-										navigator.clipboard.writeText(apiKey)
-										toast.success('API Key copied to clipboard')
+										generateApiKey({ authToken })
 									}}
+									style={{ width: '120px', marginRight: '0.5em' }}
 								>
-									<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
-								</span>
+									Re-roll API Key{' '}
+								</ButtonDark>
+								<ButtonDark onClick={() => window.open('/pro-api/docs', '_blank')}>Open API Docs </ButtonDark>
 							</div>
-							{authToken && ghAuth?.isContributor ? null : (
-								<div style={{ display: 'flex' }}>
-									<ButtonDark
-										onClick={() => {
-											generateApiKey({ authToken })
-										}}
-										style={{ width: '120px', marginRight: '0.5em' }}
-									>
-										Re-roll API Key{' '}
-									</ButtonDark>
-									<ButtonDark onClick={() => window.open('/pro-api/docs', '_blank')}>Open API Docs </ButtonDark>
-								</div>
-							)}
-						</Box>
-
-						{ghAuth?.login ? null : (
-							<>
-								<div style={{ display: 'flex', marginTop: '16px' }}>
-									<h2>Personal Info</h2>
-								</div>
-
-								<Box>
-									<div style={{ display: 'flex' }}>
-										<h4>Address</h4>: {wallet?.address}
-										<span
-											onClick={() => {
-												navigator.clipboard.writeText(wallet?.address)
-												toast.success('Address copied to clipboard')
-											}}
-										>
-											<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
-										</span>
-									</div>
-									<div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-										<h4>Email:</h4>
-										<div style={{ display: 'flex', gap: '8px' }}>
-											<Input placeholder="Add Email..." value={email} onChange={(e) => setEmail(e.target.value)} />{' '}
-											<ButtonDark onClick={() => saveEmail({ email, authToken })}>Save</ButtonDark>
-										</div>
-									</div>
-									<div>
-										<Description style={{ textAlign: 'left', margin: 'auto', width: 'auto', marginTop: '-12px' }}>
-											We will use your email to send you important updates and notifications about your subscription.
-										</Description>
-									</div>
-								</Box>
-							</>
 						)}
+					</Box>
 
-						{subs?.length ? <Subscriptions startPayment={startPayment} /> : null}
-					</>
-				)}
+					{ghAuth?.login ? null : (
+						<>
+							<div style={{ display: 'flex', marginTop: '16px' }}>
+								<h2>Personal Info</h2>
+							</div>
+
+							<Box>
+								<div style={{ display: 'flex' }}>
+									<h4>Address</h4>: {wallet?.address}
+									<span
+										onClick={() => {
+											navigator.clipboard.writeText(wallet?.address)
+											toast.success('Address copied to clipboard')
+										}}
+									>
+										<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
+									</span>
+								</div>
+								<div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+									<h4>Email:</h4>
+									<div style={{ display: 'flex', gap: '8px' }}>
+										<Input placeholder="Add Email..." value={email} onChange={(e) => setEmail(e.target.value)} />{' '}
+										<ButtonDark onClick={() => saveEmail({ email, authToken })}>Save</ButtonDark>
+									</div>
+								</div>
+								<div>
+									<Description style={{ textAlign: 'left', margin: 'auto', width: 'auto', marginTop: '-12px' }}>
+										We will use your email to send you important updates and notifications about your subscription.
+									</Description>
+								</div>
+								<div style={{ display: 'flex', gap: '8px' }}>
+									<DiscordButton />
+								</div>
+							</Box>
+						</>
+					)}
+
+					{subs?.length ? <Subscriptions startPayment={startPayment} /> : null}
+				</>
+				{/* )} */}
 				<></>
 			</Content>
 		</Body>
