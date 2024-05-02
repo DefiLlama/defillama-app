@@ -162,8 +162,6 @@ export function RecentProtocols({
 		reset: resetEligibilityCheck
 	} = useMutation(airdropsEligibilityCheck)
 
-	const [airdropAddressFields, setAirdropAddressField] = useState(1)
-
 	return (
 		<Layout title={title} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: name }} />
@@ -186,7 +184,6 @@ export function RecentProtocols({
 					<ButtonLight
 						onClick={() => {
 							resetEligibilityCheck()
-							setAirdropAddressField(1)
 							airdropCheckerDialog.toggle()
 						}}
 					>
@@ -196,7 +193,6 @@ export function RecentProtocols({
 						<CloseButton
 							onClick={() => {
 								resetEligibilityCheck()
-								setAirdropAddressField(1)
 								airdropCheckerDialog.toggle()
 							}}
 						>
@@ -270,27 +266,16 @@ export function RecentProtocols({
 									e.preventDefault()
 									const form = e.target as HTMLFormElement
 									checkEligibleAirdrops({
-										addresses: Object.values(Object.fromEntries(new FormData(form))).filter(
-											(x) => typeof x === 'string'
-										)
+										addresses: form.address.value.split(',').map((x) => x.trim())
 									})
 								}}
 								data-variant="secondary"
 							>
-								<FormHeader>Provide EVM address to check airdrops for:</FormHeader>
-								{new Array(airdropAddressFields).fill('a').map((_, i) => (
-									<input
-										name={`address#${i}`}
-										required
-										disabled={fetchingEligibleAirdrops}
-										key={`airdrop-address-field-${i}`}
-										placeholder="0x..."
-									/>
-								))}
-								<AddAddress onClick={() => setAirdropAddressField((prev) => prev + 1)} type="button">
-									<Plus size={12} />
-									<span>Add Address</span>
-								</AddAddress>
+								<label>
+									<span>Provide EVM address(s) to check airdrops for:</span>
+									<textarea name="address" required disabled={fetchingEligibleAirdrops} />
+								</label>
+
 								<FormSubmitBtn name="submit-btn" disabled={fetchingEligibleAirdrops}>
 									{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
 								</FormSubmitBtn>
@@ -383,17 +368,4 @@ const TableWrapper = styled.div`
 	position: relative;
 	width: 100%;
 	overflow: auto;
-`
-
-const AddAddress = styled.button`
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	font-size: 12px;
-	padding: 4px;
-`
-
-const FormHeader = styled.h1`
-	font-size: 16px;
-	font-weight: 400;
 `

@@ -27,8 +27,11 @@ export async function airdropsEligibilityCheck({ addresses }: { addresses: Array
 					page: config[airdrop[0]]?.page ?? null,
 					token: config[airdrop[0]]?.token ?? null,
 					tokenSymbol: config[airdrop[0]]?.tokenSymbol ?? null,
-					isActive: config[airdrop[0]]?.isActive ?? false
+					isActive: config[airdrop[0]]?.endTime
+						? new Date().getTime() < new Date(config[airdrop[0]].endTime * 1000).getTime()
+						: config[airdrop[0]]?.isActive ?? false
 				}))
+				.filter((x) => x.isActive)
 				.concat(
 					eigens && eigens[address].tokenQualified > 0
 						? [
