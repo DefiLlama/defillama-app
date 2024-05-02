@@ -279,7 +279,6 @@ const ProApi = () => {
 					</>
 				)}
 			</Content>
-			<DiscordButton />
 		</Body>
 	)
 }
