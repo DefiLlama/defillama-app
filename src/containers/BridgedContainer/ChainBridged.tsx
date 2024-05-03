@@ -131,8 +131,8 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 								)}
 						</Filters>
 
-						<div style={{ width: Math.min(+screenWidth.width / 1.5, 600) + 'px' }}>
-							{chartType !== 'inflows' ? (
+						{chartType !== 'inflows' ? (
+							<div style={{ width: Math.min(+screenWidth.width / 1.5, 600) + 'px' }}>
 								<PieChart
 									chartData={tokens.map(([name, value]: [string, string]) => ({
 										name,
@@ -140,7 +140,9 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 									}))}
 									usdFormat={false}
 								/>
-							) : (
+							</div>
+						) : (
+							<div style={{ width: '100%' }}>
 								<BarChart
 									chartData={inflows}
 									title=""
@@ -149,8 +151,8 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 									customLegendOptions={tokenInflowNames}
 									// chartOptions={inflowsChartOptions}
 								/>
-							)}
-						</div>
+							</div>
+						)}
 					</div>
 				</Stats>
 				{chartType !== 'inflows' ? <VirtualTable instance={instance} cellStyles={{ overflow: 'visible' }} /> : null}
