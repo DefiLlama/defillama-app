@@ -54,7 +54,7 @@ export default function VirtualTable({
 		function focusSearchBar(e: KeyboardEvent) {
 			if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
 				e.preventDefault()
-				window.alert("Native browser search isn't supported, please use search boxes instead")
+				window.alert("Native browser search isn't supported, please use search boxes / ctrl-k / cmd-k instead")
 			}
 		}
 
