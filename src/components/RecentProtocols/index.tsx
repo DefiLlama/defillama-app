@@ -266,14 +266,24 @@ export function RecentProtocols({
 									e.preventDefault()
 									const form = e.target as HTMLFormElement
 									checkEligibleAirdrops({
-										addresses: form.address.value.split(',').map((x) => x.trim())
+										addresses: form.address.value
+											.split('\n')
+											.join(',')
+											.split(',')
+											.map((x) => x.trim())
+											.filter((x) => x.length > 0)
 									})
 								}}
 								data-variant="secondary"
 							>
 								<label>
 									<span>Provide EVM address(s) to check airdrops for:</span>
-									<textarea name="address" required disabled={fetchingEligibleAirdrops} />
+									<textarea
+										name="address"
+										required
+										disabled={fetchingEligibleAirdrops}
+										placeholder="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045, 0x71a15Ac12ee91BF7c83D08506f3a3588143898B5"
+									/>
 								</label>
 
 								<FormSubmitBtn name="submit-btn" disabled={fetchingEligibleAirdrops}>
