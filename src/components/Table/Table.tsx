@@ -45,6 +45,24 @@ export default function VirtualTable({
 		}
 	}, [skipVirtualization])
 
+	React.useEffect(() => {
+		if (!skipVirtualization) {
+		}
+	}, [skipVirtualization])
+
+	React.useEffect(() => {
+		function focusSearchBar(e: KeyboardEvent) {
+			if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
+				e.preventDefault()
+				window.alert("Native browser search isn't supported, please use search boxes instead")
+			}
+		}
+
+		window.addEventListener('keydown', focusSearchBar)
+
+		return () => window.removeEventListener('keydown', focusSearchBar)
+	}, [])
+
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
 		estimateSize: () => rowSize || 50,
