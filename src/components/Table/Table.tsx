@@ -5,6 +5,8 @@ import styled from 'styled-components'
 import SortIcon from './SortIcon'
 import QuestionHelper from '../QuestionHelper'
 import { useRouter } from 'next/router'
+import toast from 'react-hot-toast'
+import { AlertTriangle } from 'react-feather'
 
 interface ITableProps {
 	instance: Table<any>
@@ -54,7 +56,10 @@ export default function VirtualTable({
 		function focusSearchBar(e: KeyboardEvent) {
 			if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
 				e.preventDefault()
-				window.alert("Native browser search isn't supported, please use search boxes / ctrl-k / cmd-k instead")
+				toast.error("Native browser search isn't supported, please use search boxes / ctrl-k / cmd-k instead", {
+					id: 'native-search-warn',
+					icon: <AlertTriangle color="red" size={16} style={{ flexShrink: 0 }} />
+				})
 			}
 		}
 

@@ -7,6 +7,7 @@ import { mainnet, optimism } from 'wagmi/chains'
 import { rabbyWallet, injectedWallet, walletConnectWallet, metaMaskWallet } from '@rainbow-me/rainbowkit/wallets'
 import { publicProvider } from 'wagmi/providers/public'
 import '@rainbow-me/rainbowkit/styles.css'
+import { Toaster } from 'react-hot-toast'
 
 import ThemeProvider, { GlobalStyle } from '~/Theme'
 import SEO from '~/components/SEO'
@@ -86,6 +87,7 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 						</RainbowKitProvider>
 					</WagmiConfig>
 				</PageWrapper>
+				<Toaster />
 			</ThemeProvider>
 		</>
 	)
