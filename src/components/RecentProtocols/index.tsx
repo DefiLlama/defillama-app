@@ -277,7 +277,7 @@ export function RecentProtocols({
 								data-variant="secondary"
 							>
 								<label>
-									<span>Provide EVM address(s) to check airdrops for:</span>
+									<span>Provide EVM / SOL address(s) to check airdrops for:</span>
 									<textarea
 										name="address"
 										required
