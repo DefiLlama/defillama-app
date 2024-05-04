@@ -554,6 +554,35 @@ export default function AreaChart({
 		denomination,
 		isThemeDark
 	])
+
+	let unique = []
+	const days = {}
+	series.forEach(({ name, data }) => {
+		if (data == null || data.length === 0) {
+			return
+		}
+		unique.push(name)
+		data.forEach((day) => {
+			const ts = new Date(day[0]).toDateString()
+			if (days[ts] === undefined) {
+				days[ts] = {}
+			}
+			days[ts][name] = day[1]
+		})
+	})
+	const rows = Object.entries(days)
+		.sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+		.map(([timestamp, dayInfo]) =>
+			[new Date(timestamp).getTime() / 1e3, timestamp].concat(unique.map((name) => dayInfo[name] ?? ''))
+		)
+	console.log(
+		[['UNIX Timestamp', 'Date', ...unique]]
+			.concat(rows)
+			.map((r) => r.join(','))
+			.join('\n')
+	)
+
+
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
 
