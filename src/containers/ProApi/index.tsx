@@ -121,7 +121,6 @@ const ProApi = () => {
 	const { data: currentKey } = useGetCurrentKey({ authToken: currentAuthToken })
 	const signIn = (data: any) => signInRaw({ ...data, refetchToken })
 
-	console.log(currentAuthToken, ghAuth?.apiKey)
 	const authToken = currentAuthToken || ghAuth?.apiKey
 	const apiKey = newApiKey || currentKey?.apiKey || ghAuth?.apiKey
 

@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query'
 import { SERVER_API } from '../lib/constants'
+import { generateNewApiKey } from './useGenerateKey'
 
 async function getCurrentKey(authToken?: string | null) {
 	try {
@@ -21,6 +22,9 @@ async function getCurrentKey(authToken?: string | null) {
 				}
 			}
 		} else {
+			if (currentToken?.apiKey === null) {
+				currentToken.apiKey = await generateNewApiKey({ authToken })
+			}
 			window.localStorage.setItem(`pro_apikey`, currentToken?.apiKey)
 		}
 
