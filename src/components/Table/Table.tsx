@@ -55,8 +55,7 @@ export default function VirtualTable({
 	React.useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
 			if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
-				e.preventDefault()
-				toast.error("Native browser search isn't supported, please use search boxes / ctrl-k / cmd-k instead", {
+				toast.error("Native browser search isn't well supported, please use search boxes / ctrl-k / cmd-k instead", {
 					id: 'native-search-warn',
 					icon: <AlertTriangle color="red" size={16} style={{ flexShrink: 0 }} />
 				})
