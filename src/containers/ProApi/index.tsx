@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 import { CheckIcon } from '../ProContainer/Subscribe/Icon'
-import { useGetAuthToken, useSignInWithEthereum } from './queries/useAuth'
+import { logout, useGetAuthToken, useSignInWithEthereum } from './queries/useAuth'
 import { llamaAddress, subscriptionAmount } from './lib/constants'
 import { useGetSubs } from './queries/useGetSubs'
 import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
@@ -111,16 +111,18 @@ const ProApi = () => {
 
 	const { data: ghAuth } = useGithubAuth()
 	const { openConnectModal } = useConnectModal()
-	const { data: currentAuthToken } = useGetAuthToken()
+	const { data: currentAuthToken, refetch: refetchToken } = useGetAuthToken()
 	const {
 		data: { subs, isSubscribed },
 		refetch: refetchSubs
 	} = useGetSubs({ address: wallet?.address })
 	const { data: newApiKey, mutate: generateApiKey } = useGenerateNewApiKey()
-	const { data: authTokenAfterSigningIn, mutate: signIn } = useSignInWithEthereum()
+	const { mutate: signInRaw } = useSignInWithEthereum()
 	const { data: currentKey } = useGetCurrentKey({ authToken: currentAuthToken })
+	const signIn = (data: any) => signInRaw({ ...data, refetchToken })
 
-	const authToken = currentAuthToken || authTokenAfterSigningIn || ghAuth?.apiKey
+	console.log(currentAuthToken, ghAuth?.apiKey)
+	const authToken = currentAuthToken || ghAuth?.apiKey
 	const apiKey = newApiKey || currentKey?.apiKey || ghAuth?.apiKey
 
 	const { mutate: saveEmail } = useSaveEmail({ authToken })
@@ -175,11 +177,7 @@ const ProApi = () => {
 					</Box>
 				) : authToken && isSubscribed ? null : (
 					<Box>
-						{!wallet.isConnected ? (
-							<Button onClick={openConnectModal}>Connect Wallet</Button>
-						) : !isSubscribed ? (
-							<Button onClick={() => startPayment()}>Subscribe</Button>
-						) : authToken ? null : (
+						{isSubscribed ? (
 							<Button
 								onClick={() => {
 									signIn({ address: wallet.address })
@@ -187,9 +185,17 @@ const ProApi = () => {
 							>
 								Sign In
 							</Button>
+						) : (
+							<>
+								{!wallet.isConnected ? (
+									<Button onClick={openConnectModal}>Connect Wallet</Button>
+								) : (
+									<Button onClick={() => startPayment()}>Subscribe</Button>
+								)}
+								OR
+								<SignInWithGithub />
+							</>
 						)}
-						OR
-						<SignInWithGithub />
 					</Box>
 				)}
 
@@ -233,7 +239,17 @@ const ProApi = () => {
 									>
 										Re-roll API Key{' '}
 									</ButtonDark>
-									<ButtonDark onClick={() => window.open('/pro-api/docs', '_blank')}>Open API Docs </ButtonDark>
+									<ButtonDark onClick={() => window.open('/pro-api/docs', '_blank')} style={{ marginRight: '0.5em' }}>
+										Open API Docs{' '}
+									</ButtonDark>
+									<ButtonDark
+										onClick={() => {
+											logout({ address: wallet.address })
+											refetchToken()
+										}}
+									>
+										Log out
+									</ButtonDark>
 								</div>
 							)}
 						</Box>

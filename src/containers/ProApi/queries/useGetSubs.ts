@@ -1,5 +1,5 @@
 import { useQuery } from 'react-query'
-import { llamaAddress, periodDuration, subgraphApi, subscriptionAmount, token } from '../lib/constants'
+import { SERVER_API, llamaAddress, periodDuration, subgraphApi, subscriptionAmount, token } from '../lib/constants'
 
 export interface ISub {
 	expirationDate: string
@@ -49,18 +49,18 @@ const getStatusPriority = (status) => {
 	}
 }
 
-const manualApprovals = {
-	"0x0ef48d013dbb91397ee88dcb54c694ad39696bb7": true,
-	"0xfe0663304863822e9cf4e18c968673ae224662c6": true
-}
-
 async function getSubscriptions(address?: `0x${string}` | null) {
 	try {
 		if (!address) return null
-		if (manualApprovals[address.toLowerCase()] === true) {
+		const { subscribed } = await fetch(`${SERVER_API}/auth/subscribed/${address}`, {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		}).then((r) => r.json())
+		if (subscribed === false) {
 			return {
 				subs: [],
-				isSubscribed: true
+				isSubscribed: false
 			}
 		}
 
@@ -165,7 +165,7 @@ async function getSubscriptions(address?: `0x${string}` | null) {
 
 		return {
 			subs: subsRes,
-			isSubscribed: subsRes.filter((sub) => sub.realExpiration > now && sub.startTimestamp < now).length > 0
+			isSubscribed: true
 		}
 	} catch (error: any) {
 		throw new Error(error.message ?? 'Failed to fetch subscriptions')
