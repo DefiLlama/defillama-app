@@ -43,6 +43,7 @@ import { useEffect, useState } from 'react'
 import UpcomingEvent from '../Components/UpcomingEvent'
 import ProgressBar from '../Components/ProgressBar'
 import TooltipNew from '~/components/Tooltip/TootltipNew'
+import { sluggify } from '~/utils/cache-client'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -916,7 +917,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 					)}
 					<span>{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink href={`/bridged/${getValue()}`}>{getValue()}</CustomLink>
+					<CustomLink href={`/bridged/${sluggify(getValue())}`}>{getValue()}</CustomLink>
 				</Name>
 			)
 		},
