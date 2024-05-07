@@ -917,7 +917,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 					)}
 					<span>{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink href={`/bridged/${sluggify(getValue())}`}>{getValue()}</CustomLink>
+					<CustomLink href={`/bridged/${sluggify(getValue() as any)}`}>{getValue()}</CustomLink>
 				</Name>
 			)
 		},
