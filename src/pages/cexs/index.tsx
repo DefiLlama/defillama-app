@@ -354,6 +354,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'NonKYC',
+		slug: 'nonkyc',
+		coin: null,
+		walletsLink: "https://nonkyc.io/allreserves"
+	},
+	{
 		name: 'Latoken',
 		slug: 'latoken',
 		coin: null,
