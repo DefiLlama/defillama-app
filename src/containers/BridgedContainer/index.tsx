@@ -5,20 +5,20 @@ import { Header } from '~/Theme'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { bridgedColumns, chainsColumn } from '~/components/Table/Defi/columns'
 import VirtualTable from '~/components/Table/Table'
+import { capitalizeFirstLetter } from '~/utils'
 import { sluggify } from '~/utils/cache-client'
 
 export default function ChainsContainer({ assets, chains, flows1d }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
-	const data = chains?.chainsUnique
-		.map((chain) => {
-			const slug = sluggify(chain)
-
+	const data = Object.keys(assets)
+		.map((slug) => {
+			const name = chains?.chainsUnique.find((c) => sluggify(c) == slug) ?? capitalizeFirstLetter(slug)
 			const chainAssets = assets?.[slug]
 			const chainFlows = flows1d?.[slug]
 
 			return {
-				name: chain,
+				name,
 				...(chainAssets || {}),
 				change_24h: chainFlows?.total?.perc
 			}
