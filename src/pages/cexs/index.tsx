@@ -354,6 +354,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'Flipster',
+		slug: 'flipster',
+		coin: null,
+		walletsLink: "https://flipster.io/support/proof-of-reserves"
+	},
+	{
 		name: 'NonKYC',
 		slug: 'nonkyc',
 		coin: null,
