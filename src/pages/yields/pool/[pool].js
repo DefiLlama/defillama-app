@@ -70,7 +70,7 @@ const PageView = () => {
 	}
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
-
+	const apyMean30d = poolData.apyMean30d?.toFixed(2) ?? 0
 	const apyDelta20pct = (apy * 0.8).toFixed(2)
 
 	const tvlUsd = toK(poolData.tvlUsd ?? 0)
@@ -154,10 +154,10 @@ const PageView = () => {
 			category === 'CDP' && el.debtCeilingUsd
 				? el.debtCeilingUsd - el.totalBorrowUsd
 				: category === 'CDP'
-					? null
-					: el.totalSupplyUsd === null && el.totalBorrowUsd === null
-						? null
-						: el.totalSupplyUsd - el.totalBorrowUsd,
+				? null
+				: el.totalSupplyUsd === null && el.totalBorrowUsd === null
+				? null
+				: el.totalSupplyUsd - el.totalBorrowUsd,
 			el.apyBase?.toFixed(2) ?? null,
 			el.apyReward?.toFixed(2) ?? null,
 			-el.apyBaseBorrow?.toFixed(2) ?? null,
@@ -224,6 +224,11 @@ const PageView = () => {
 					<Stat>
 						<span>Total Value Locked</span>
 						<span style={{ color: '#4f8fea' }}>${tvlUsd}</span>
+					</Stat>
+
+					<Stat>
+						<span>30d Avg APY</span>
+						<span style={{ color: '#fd3c99' }}>{apyMean30d}%</span>
 					</Stat>
 
 					<Stat>
@@ -376,9 +381,9 @@ const stackedBarChartColors = {
 }
 
 const liquidityChartColors = {}
-	;[('Supplied', 'Borrowed', 'Available')].forEach((l, index) => {
-		liquidityChartColors[l] = getColorFromNumber(index, 6)
-	})
+;[('Supplied', 'Borrowed', 'Available')].forEach((l, index) => {
+	liquidityChartColors[l] = getColorFromNumber(index, 6)
+})
 
 const barChartStacks = {
 	Base: 'a',
