@@ -2,7 +2,7 @@ export async function airdropsEligibilityCheck({ addresses }: { addresses: Array
 	try {
 		const [others, eigens, config] = await Promise.all([
 			fetch(`https://airdrops.llama.fi/check/${addresses.join(',').toLowerCase()}`).then((r) => r.json()),
-			fetch(`https://airdrops.llama.fi/eigens/${addresses.join(',').toLowerCase()}`).then((r) => r.json()),
+			fetch(`https://airdrops.llama.fi/eigens/${addresses.join(',').toLowerCase()}`).then((r) => r.json()).catch(e => null),
 			fetch('https://airdrops.llama.fi/config').then((res) => res.json())
 		])
 
