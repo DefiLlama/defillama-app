@@ -33,6 +33,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
 import { getFeesAndRevenueProtocolsByChain } from '../fees'
 import { getDexVolumeByChain } from '../dexs'
+import { sluggify } from '~/utils/cache-client'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -1014,7 +1015,7 @@ export async function getChainsBridged(chain?: string) {
 		fetchWithErrorLogging(`${CHAINS_API_V2}/All`).then((r) => r.json()),
 		fetchWithErrorLogging(CHAIN_ASSETS_FLOWS + '/24h').then((r) => r.json()),
 		chain
-			? fetchWithErrorLogging(`${BRIDGEINFLOWS_API}/${chain}/1d`)
+			? fetchWithErrorLogging(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
 					.then((res) => res.json())
 					.then((data) => data.map((item) => ({ ...item.data, date: item.timestamp })))
 			: []

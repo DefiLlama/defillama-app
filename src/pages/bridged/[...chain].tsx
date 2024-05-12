@@ -14,7 +14,7 @@ export const getStaticProps = withPerformanceLogging(
 			chain: [chain]
 		}
 	}) => {
-		const data = await getChainsBridged(chain?.toLowerCase())
+		const data = await getChainsBridged(chain)
 
 		return {
 			props: { ...data, chain, chainName: capitalizeFirstLetter(chain) },
