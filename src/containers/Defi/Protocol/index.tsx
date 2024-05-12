@@ -553,7 +553,7 @@ function ProtocolContainer({
 					Project has some red flags and multiple users have reported concerns. Be careful.
 				</Announcement>
 			)}
-			{['iZiSwap'].includes(name) && (
+			{['iZiSwap', 'iZUMi Finance'].includes(name) && (
 				<Announcement warning={true} notCancellable={true}>
 					Most of the TVL on this protocol is just inflating TVL with non-productive positions
 				</Announcement>
