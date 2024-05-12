@@ -90,6 +90,20 @@ export function FiltersByCategory({
 		)
 	}
 
+	const selectOnlyOne = (option: string) => {
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					category: option
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	const focusItemRef = useRef(null)
 
 	const isSelected = selectedCategories.length > 0 && selectedCategories.length !== categoryList.length
@@ -105,6 +119,7 @@ export function FiltersByCategory({
 					selectedOptions={selectedCategories}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
+					selectOnlyOne={selectOnlyOne}
 					focusItemRef={focusItemRef}
 					variant={variant}
 					pathname={pathname}
@@ -155,6 +170,7 @@ export function FiltersByCategory({
 					selectedOptions={selectedCategories}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
+					selectOnlyOne={selectOnlyOne}
 					focusItemRef={focusItemRef}
 					variant={variant}
 					pathname={pathname}

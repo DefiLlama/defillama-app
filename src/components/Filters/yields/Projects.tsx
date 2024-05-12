@@ -100,6 +100,21 @@ export function YieldProjects({
 		)
 	}
 
+	const selectOnlyOne = (option: string) => {
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					...(query && (isFarmingProtocolFilter ? { lendingProtocol } : { farmProtocol })),
+					[query || 'project']: option
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	const focusItemRef = useRef(null)
 
 	const isSelected = selectedProjects.length > 0 && selectedProjects.length !== projectList.length
@@ -119,6 +134,7 @@ export function YieldProjects({
 					selectedOptions={selectedProjects}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
+					selectOnlyOne={selectOnlyOne}
 					focusItemRef={focusItemRef}
 					variant={variant}
 					pathname={pathname}
@@ -169,6 +185,7 @@ export function YieldProjects({
 					selectedOptions={selectedProjects}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
+					selectOnlyOne={selectOnlyOne}
 					focusItemRef={focusItemRef}
 					variant={variant}
 					pathname={pathname}

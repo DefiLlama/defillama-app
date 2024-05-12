@@ -98,6 +98,20 @@ export function Investors({
 		)
 	}
 
+	const selectOnlyOne = (option: string) => {
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					investor: option
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	// Resets combobox value when popover is collapsed
 	if (!selectState.mounted && combobox.value) {
 		combobox.setValue('')
@@ -118,6 +132,7 @@ export function Investors({
 					selectedOptions={selectedInvestors}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
+					selectOnlyOne={selectOnlyOne}
 					focusItemRef={focusItemRef}
 					variant={variant}
 					pathname={pathname}
@@ -168,6 +183,7 @@ export function Investors({
 					selectedOptions={selectedInvestors}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
+					selectOnlyOne={selectOnlyOne}
 					focusItemRef={focusItemRef}
 					variant={variant}
 					pathname={pathname}
