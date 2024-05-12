@@ -92,6 +92,20 @@ export function Chains({ chains = [], selectedChains, pathname, variant = 'prima
 		)
 	}
 
+	const selectOnlyOne = (option: string) => {
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					chain: option
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	// Resets combobox value when popover is collapsed
 	if (!selectState.mounted && combobox.value) {
 		combobox.setValue('')
@@ -112,6 +126,7 @@ export function Chains({ chains = [], selectedChains, pathname, variant = 'prima
 					selectedOptions={selectedChains}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
+					selectOnlyOne={selectOnlyOne}
 					focusItemRef={focusItemRef}
 					variant={variant}
 					pathname={pathname}
@@ -162,6 +177,7 @@ export function Chains({ chains = [], selectedChains, pathname, variant = 'prima
 					selectedOptions={selectedChains}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
+					selectOnlyOne={selectOnlyOne}
 					focusItemRef={focusItemRef}
 					variant={variant}
 					pathname={pathname}
