@@ -76,7 +76,7 @@ import { StablecoinInfo } from './Stablecoin'
 import { ForksData } from './Forks'
 import { GovernanceData } from './Governance'
 import { feesOptions } from '~/components/Filters/protocols/options'
-import { scams } from '~/constants/index.ts'
+import { scams } from '~/constants'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
