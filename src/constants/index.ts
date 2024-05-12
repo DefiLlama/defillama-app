@@ -138,3 +138,28 @@ export const DEV_METRICS_API = 'https://defillama-datasets.llama.fi/dev-metrics/
 export const MCAPS_API = 'https://coins.llama.fi/mcaps'
 
 export const CACHE_SERVER = 'https://fe-cache.llama.fi'
+
+export const scams = ['SyncDEX Finance', 'Avatr', 'SatoshiCoreSwap', 'Opankeswap', 'PolyLend', 'Syncus',
+	'Drachma Exchange',
+	'StableDoin',
+	'CroLend Finance',
+	'Agora',
+	'MinerSwap',
+	'Mosquitos Finance',
+	'SatoshiCoreSwap',
+	'Swaprum',
+	'Cells Finance',
+	'SkyDex',
+	'Avault',
+	'Tegro Finance',
+	'Lendora Protocol',
+	'MantaSwap',
+	'Onchain Trade',
+	'Venuswap',
+	'Scroll Swap',
+	'StakeSteak',
+	'Glori Finance',
+	'ZebraDAO',
+	'Leaper Finance',
+	'ShibaNova'
+]

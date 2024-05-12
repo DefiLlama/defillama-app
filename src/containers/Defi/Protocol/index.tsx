@@ -76,31 +76,8 @@ import { StablecoinInfo } from './Stablecoin'
 import { ForksData } from './Forks'
 import { GovernanceData } from './Governance'
 import { feesOptions } from '~/components/Filters/protocols/options'
+import { scams } from '~/constants/index.ts'
 
-const scams = [
-	'Drachma Exchange',
-	'StableDoin',
-	'CroLend Finance',
-	'Agora',
-	'MinerSwap',
-	'Mosquitos Finance',
-	'SatoshiCoreSwap',
-	'Swaprum',
-	'Cells Finance',
-	'SkyDex',
-	'Avault',
-	'Tegro Finance',
-	'Lendora Protocol',
-	'MantaSwap',
-	'Onchain Trade',
-	'Venuswap',
-	'Scroll Swap',
-	'StakeSteak',
-	'Glori Finance',
-	'ZebraDAO',
-	'Leaper Finance',
-	'ShibaNova'
-]
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
@@ -571,9 +548,14 @@ function ProtocolContainer({
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={toggleOptions} />
 
-			{['SyncDEX Finance', 'Avatr', 'SatoshiCoreSwap', 'Opankeswap', 'PolyLend', 'Syncus'].includes(name) && (
+			{scams.includes(name) && (
 				<Announcement warning={true} notCancellable={true}>
 					Project has some red flags and multiple users have reported concerns. Be careful.
+				</Announcement>
+			)}
+			{['iZiSwap'].includes(name) && (
+				<Announcement warning={true} notCancellable={true}>
+					Most of the TVL on this protocol is just inflating TVL with non-productive positions
 				</Announcement>
 			)}
 			{name === '01' && (
@@ -697,8 +679,6 @@ function ProtocolContainer({
 					<TabPanel state={tab} tabId="information">
 						<StatsSection style={{ borderRadius: '0px' }}>
 							<ProtocolDetailsWrapper style={{ borderRadius: '0px' }}>
-								{scams.includes(name) && <p>There's been multiple hack reports in this protocol</p>}
-
 								<Name>
 									<TokenLogo logo={tokenIconUrl(name)} size={24} />
 									<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
