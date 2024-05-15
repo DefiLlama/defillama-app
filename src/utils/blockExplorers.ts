@@ -112,7 +112,10 @@ const blockExplorers = {
 	manta_atlantic: ['https://manta.subscan.io/account/', 'Manta Atlantic Subscan'],
     merlin: ['https://scan.merlinchain.io/token/', 'Merlin Explorer'],
 	bitrock: ['https://explorer.bit-rock.io/token/', 'Bitrock Explorer'],
-	blast: ['https://blastscan.io/token/', 'Blastscan']
+	blast: ['https://blastscan.io/token/', 'Blastscan'],
+	mode: ['https://modescan.io/token/', 'Modescan'],
+	btr: ['https://www.btrscan.com/token/', 'BTRscan'],
+	degen: ['https://explorer.degen.tips/token/', 'DegenExplorer'],
 }
 
 export const getBlockExplorer = (address: string = '') => {
