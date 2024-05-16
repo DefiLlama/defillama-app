@@ -7,31 +7,9 @@ import { signMessage } from 'wagmi/actions'
 import { optimism, SERVER_API } from '../lib/constants'
 import { getSIWEMessage } from '../lib/siwe'
 
-function checkTokenValidity({ address }: { address?: string | null }) {
-	try {
-		if (!address) return false
-
-		const auth_token = window.localStorage.getItem(`auth_token_${address}`) ?? null
-
-		if (auth_token) return true
-
-		return false
-	} catch (error: any) {
-		throw new Error(error.message)
-	}
-}
-
 export function getAuthToken({ address }: { address?: string | null }) {
 	try {
 		if (!address) {
-			return null
-		}
-
-		const isTokenInLocalStorageValid = checkTokenValidity({
-			address
-		})
-
-		if (!isTokenInLocalStorageValid) {
 			return null
 		}
 
