@@ -1,10 +1,12 @@
 import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import * as React from 'react'
 import { Header } from '~/Theme'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { bridgedColumns, chainsColumn } from '~/components/Table/Defi/columns'
 import VirtualTable from '~/components/Table/Table'
+import { download } from '~/utils'
 import { sluggify } from '~/utils/cache-client'
 
 export default function ChainsContainer({ assets, chains, flows1d }) {
@@ -36,6 +38,26 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 		getSortedRowModel: getSortedRowModel()
 	})
 
+	const onCSVDownload = () => {
+		const csvData = data.map((row) => {
+			return {
+				Chain: row.name,
+				Total: row.total?.total,
+				Change_24h: row?.change_24h,
+				Canonical: row?.canonical?.total,
+				OwnTokens: row?.ownTokens?.total,
+				ThirdParty: row?.thirdParty?.total,
+				Native: row?.native?.total
+			}
+		})
+		const headers = Object.keys(csvData[0])
+		const csv = [headers.join(',')]
+			.concat(csvData.map((row) => headers.map((header) => row[header]).join(',')))
+			.join('\n')
+
+		download('bridged-chains.csv', csv)
+	}
+
 	return (
 		<>
 			<ProtocolsChainsSearch
@@ -45,7 +67,9 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 					name: 'All Chains'
 				}}
 			/>
-			<Header>Bridged TVL for All chains</Header>
+			<Header style={{ display: 'flex', justifyContent: 'space-between' }}>
+				Bridged TVL for All chains <CSVDownloadButton onClick={onCSVDownload} />
+			</Header>
 			<VirtualTable instance={instance} cellStyles={{ overflow: 'visible' }} />
 		</>
 	)
