@@ -7,7 +7,9 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
 import { FiltersByChain, HideForkedProtocols, TVLRange } from '~/components/Filters'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-import { getPercentChange } from '~/utils'
+
+import { download, getPercentChange } from '~/utils'
+import { IFormattedProtocol } from '~/api/types'
 import { FlexRow } from '~/layout/ProtocolAndPool'
 import { ButtonLight } from '../ButtonStyled'
 import { ArrowUpRight, Plus, X } from 'react-feather'
@@ -16,6 +18,7 @@ import { useDialogState, Dialog } from 'ariakit/dialog'
 import { DialogForm } from '../Filters/common/Base'
 import { useMutation } from 'react-query'
 import { airdropsEligibilityCheck } from './airdrops'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -149,6 +152,24 @@ export function RecentProtocols({
 	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
 
 	const protocolsData = useCalcStakePool2Tvl(data)
+	const downloadCSV = () => {
+		const headers = ['Name', 'Chain', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At']
+		const csvData = protocolsData.map((row) => {
+			return {
+				Name: row.name,
+				Chain: row.chains.join(', '),
+				TVL: row.tvl,
+				'Change 1d': row.change_1d,
+				'Change 7d': row.change_7d,
+				'Change 1m': row.change_1m,
+				'Listed At': new Date(row.listedAt * 1000).toLocaleDateString()
+			}
+		})
+		download(
+			'protocols.csv',
+			[headers, ...csvData.map((row) => headers.map((header) => row[header]).join(','))].join('\n')
+		)
+	}
 
 	const { pathname } = useRouter()
 
@@ -304,6 +325,7 @@ export function RecentProtocols({
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 					<TVLRange />
+					<CSVDownloadButton onClick={downloadCSV} isLight style={{ color: 'inherit', fontWeight: 'normal' }} />
 				</Dropdowns>
 				{forkedList && <HideForkedProtocols />}
 			</TableFilters>

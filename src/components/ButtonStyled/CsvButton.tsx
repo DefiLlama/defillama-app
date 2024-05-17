@@ -29,20 +29,26 @@ const Badge: React.FC<BadgeProps> = ({ text, color, isLight }) => {
 	)
 }
 
+const GrayButton = styled(ButtonDark)`
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+`
+
 const CSVDownloadButton = ({
 	onClick,
 	style = {},
 	isLight = false,
-	customText = ''
+	customText = '',
+	isGray = false
 }: {
 	onClick: () => void
 	style?: CSSProperties
 	isLight?: boolean
 	customText?: string
+	isGray?: boolean
 }) => {
 	const { isVerified } = useVerified()
 	const router = useRouter()
-	const Button = isLight ? ButtonLight : ButtonDark
+	const Button = isGray ? GrayButton : isLight ? ButtonLight : ButtonDark
 	const text = customText || 'Download .csv'
 	if (!isVerified && IS_PRO_API_ENABLED) {
 		return (

@@ -16,6 +16,7 @@ import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { AnnouncementWrapper } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
 import { ButtonDark } from '~/components/ButtonStyled'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -228,21 +229,38 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	])
 
 	const downloadCsv = React.useCallback(() => {
-		const columnsToPick = ['date', ...chartData[1]]
-
-		const data = chartData[0].map((p) => {
-			const row = []
-			columnsToPick.forEach((r) => {
-				row.push(p[r])
-			})
-			return row
+		const header = [
+			'Protocol',
+			'Category',
+			'Change 1d',
+			'Change 7d',
+			'Change 1m',
+			'Total 1d',
+			'Total 7d',
+			'Total 1m',
+			'Revenue 24h',
+			'Revenue 7d',
+			'Revenue 30d'
+		]
+		const data = finalProtocolsList.map((protocol) => {
+			return [
+				protocol.displayName,
+				protocol.category,
+				protocol.change_1d,
+				protocol.change_7d,
+				protocol.change_1m,
+				protocol.total24h,
+				protocol.total7d,
+				protocol.total30d,
+				protocol.revenue24h,
+				protocol.revenue7d,
+				protocol.revenue30d
+			]
 		})
+		const csv = [header, ...data].map((row) => row.join(',')).join('\n')
 
-		const header = columnsToPick.join(',')
-		const rowsData = data.map((d) => d.join(',')).join('\n')
-
-		download('protocols.csv', header + '\n' + rowsData)
-	}, [chartData])
+		download(`${props.type}-protocols.csv`, csv)
+	}, [finalProtocolsList, props.type])
 
 	return (
 		<>
@@ -279,11 +297,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			<StyledHeaderWrapper>
 				<div>
 					<TitleByType type={props.type} chain={chain} />
-					{props.chain === 'all' && props.type === 'dexs' ? (
-						<ButtonDark onClick={downloadCsv} style={{ marginLeft: '16px' }}>
-							Download CSV
-						</ButtonDark>
-					) : null}
+
+					<CSVDownloadButton onClick={downloadCsv} style={{ marginLeft: '8px' }} />
 				</div>
 				<p style={{ fontSize: '.60em', textAlign: 'end' }}>Updated daily at 00:00UTC</p>
 			</StyledHeaderWrapper>

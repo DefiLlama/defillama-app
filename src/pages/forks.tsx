@@ -14,6 +14,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { forksColumn } from '~/components/Table/Defi/columns'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { download } from '~/utils'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -79,11 +81,27 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, forkedTokensData])
 
+	const downloadCSV = () => {
+		const headers = ['Name', 'Forked Protocols', 'TVL', 'Forked TVL / Original TVL %']
+		const csvData = tokensList.map((row) => {
+			return {
+				Name: row.name,
+				'Forked Protocols': row.forkedProtocols,
+				TVL: row.tvl,
+				'Forked TVL / Original TVL %': row.ftot
+			}
+		})
+		const csv = [headers].concat(csvData.map((row) => headers.map((header) => row[header]))).join('\n')
+		download('forks.csv', csv)
+	}
+
 	return (
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Forks' }} />
 
-			<Header>Total Value Locked All Forks</Header>
+			<Header style={{ display: 'flex', justifyContent: 'space-between' }}>
+				Total Value Locked All Forks <CSVDownloadButton onClick={downloadCSV} />
+			</Header>
 
 			<ChartsWrapper>
 				<PieChart chartData={tokenTvls} stackColors={forkColors} />
