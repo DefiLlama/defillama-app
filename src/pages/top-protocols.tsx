@@ -4,7 +4,7 @@ import { TYPE } from '~/Theme'
 import Layout from '~/layout'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
-import { chainIconUrl, slug } from '~/utils'
+import { chainIconUrl, download, slug } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import VirtualTable from '~/components/Table/Table'
@@ -13,6 +13,7 @@ import { IFormattedProtocol } from '~/api/types'
 import { Name } from '~/components/Table/shared'
 import { descriptions } from './categories'
 import { withPerformanceLogging } from '~/utils/perf'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
@@ -94,6 +95,20 @@ export default function Chains({ data, columns }) {
 		],
 		[columns]
 	)
+	const downloadCSV = () => {
+		const headers = ['Chain', ...columns.map((column) => column.header)]
+		const csvData = data.map((row) => {
+			return {
+				Chain: row.chain,
+				...Object.fromEntries(columns.map((column) => [column.header, row[column.header]]))
+			}
+		})
+
+		const csv = [headers, ...csvData.map((row) => headers.map((header) => row[header]))]
+			.map((row) => row.join(','))
+			.join('\n')
+		download('top-protocols.csv', csv)
+	}
 
 	const instance = useReactTable({
 		data,
@@ -103,7 +118,10 @@ export default function Chains({ data, columns }) {
 
 	return (
 		<Layout title="TVL Rankings - DefiLlama" defaultSEO>
-			<TYPE.largeHeader style={{ marginTop: '8px' }}>Top Protocols</TYPE.largeHeader>
+			<TYPE.largeHeader style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
+				Top Protocols
+				<CSVDownloadButton onClick={downloadCSV} />
+			</TYPE.largeHeader>
 			<Table instance={instance} skipVirtualization />
 		</Layout>
 	)
