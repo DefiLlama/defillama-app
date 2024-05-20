@@ -13,6 +13,8 @@ import {
 import VirtualTable from '~/components/Table/Table'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { download } from '~/utils'
 
 const fetch = fetchWithErrorLogging
 
@@ -60,6 +62,37 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 
 	const [projectName, setProjectName] = React.useState('')
 
+	const downloadCSV = () => {
+		const headers = [
+			'Name',
+			'Category',
+			'Own Tokens',
+			'Stablecoins',
+			'Major Tokens',
+			'Other Tokens',
+			'TVL',
+			'Change 1d',
+			'Change 7d',
+			'Change 1m'
+		]
+		const data = treasuries.map((row) => {
+			return {
+				Name: row.name,
+				Category: row.category,
+				'Own Tokens': row.ownTokens,
+				Stablecoins: row.stablecoins,
+				'Major Tokens': row.majors,
+				'Other Tokens': row.others,
+				TVL: row.tvl,
+				'Change 1d': row.change_1d,
+				'Change 7d': row.change_7d,
+				'Change 1m': row.change_1m
+			}
+		})
+		const csv = [headers.join(',')].concat(data.map((row) => headers.map((header) => row[header]).join(','))).join('\n')
+		download('treasuries.csv', csv)
+	}
+
 	React.useEffect(() => {
 		const projectsColumns = instance.getColumn('name')
 		const id = setTimeout(() => {
@@ -71,7 +104,9 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 	return (
 		<>
 			<TableHeaderAndSearch>
-				<Header>Protocol Treasuries</Header>
+				<Header>
+					Protocol Treasuries <CSVDownloadButton onClick={downloadCSV} isLight />
+				</Header>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />

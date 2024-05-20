@@ -11,6 +11,8 @@ import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { fetcher } from '~/utils/useSWR'
 import Announcement from '~/components/Announcement'
 import { withPerformanceLogging } from '~/utils/perf'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { download } from '~/utils'
 
 export default function Tokens({ searchData }) {
 	const router = useRouter()
@@ -49,6 +51,19 @@ export default function Tokens({ searchData }) {
 		)
 	}, [protocols, includeCentraliseExchanges])
 
+	const downloadCSV = () => {
+		const data = filteredProtocols.map((p) => {
+			return {
+				Protocol: p.name,
+				Amount: p.amountUsd,
+				'Amount (USD)': p.amountUsd
+			}
+		})
+		const headers = ['Protocol', 'Amount', 'Amount (USD)']
+		const csv = [headers.join(',')].concat(data.map((row) => headers.map((header) => row[header]).join(','))).join('\n')
+		download(`protocols-by-token-${tokenSybmol}.csv`, csv)
+	}
+
 	return (
 		<Layout title="Token Usage - DefiLlama" defaultSEO style={layoutStyles}>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
@@ -62,6 +77,8 @@ export default function Tokens({ searchData }) {
 					<>
 						<TableFilters>
 							<TableHeader>{`${tokenSybmol.toUpperCase()} usage in protocols`}</TableHeader>
+							<CSVDownloadButton onClick={downloadCSV} />
+
 							{/* <ToggleWrapper>
 								<input
 									type="checkbox"

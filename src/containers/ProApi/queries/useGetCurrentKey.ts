@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query'
 import { SERVER_API } from '../lib/constants'
+
 import { generateNewApiKey } from './useGenerateKey'
 
 async function getCurrentKey(authToken?: string | null) {

@@ -7,9 +7,31 @@ import { signMessage } from 'wagmi/actions'
 import { optimism, SERVER_API } from '../lib/constants'
 import { getSIWEMessage } from '../lib/siwe'
 
+function checkTokenValidity({ address }: { address?: string | null }) {
+	try {
+		if (!address) return false
+
+		const auth_token = window.localStorage.getItem(`auth_token_${address}`) ?? null
+
+		if (auth_token) return true
+
+		return false
+	} catch (error: any) {
+		throw new Error(error.message)
+	}
+}
+
 export function getAuthToken({ address }: { address?: string | null }) {
 	try {
 		if (!address) {
+			return null
+		}
+
+		const isTokenInLocalStorageValid = checkTokenValidity({
+			address
+		})
+
+		if (!isTokenInLocalStorageValid) {
 			return null
 		}
 
@@ -33,7 +55,13 @@ export function useGetAuthToken() {
 	)
 }
 
-export async function signAndGetAuthToken({ address, refetchToken }: { address?: string | null, refetchToken: Function }) {
+export async function signAndGetAuthToken({
+	address,
+	refetchToken
+}: {
+	address?: string | null
+	refetchToken: Function
+}) {
 	try {
 		if (!address) {
 			throw new Error('Invalid arguments')
@@ -79,9 +107,9 @@ export async function signAndGetAuthToken({ address, refetchToken }: { address?:
 		}
 
 		window.localStorage.setItem(`auth_token_${address.toLowerCase()}`, verifyRes.key)
-		refetchToken()
+		refetchToken?.()
 
-		return
+		return verifyRes.key
 	} catch (error: any) {
 		toast.error(error.message)
 		throw new Error(error.message)

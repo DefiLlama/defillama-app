@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 import { CheckIcon } from '../ProContainer/Subscribe/Icon'
+
 import { logout, useGetAuthToken, useSignInWithEthereum } from './queries/useAuth'
 import { llamaAddress, subscriptionAmount } from './lib/constants'
 import { useGetSubs } from './queries/useGetSubs'
@@ -111,17 +112,18 @@ const ProApi = () => {
 
 	const { data: ghAuth } = useGithubAuth()
 	const { openConnectModal } = useConnectModal()
+
 	const { data: currentAuthToken, refetch: refetchToken } = useGetAuthToken()
 	const {
 		data: { subs, isSubscribed },
 		refetch: refetchSubs
 	} = useGetSubs({ address: wallet?.address })
 	const { data: newApiKey, mutate: generateApiKey } = useGenerateNewApiKey()
-	const { mutate: signInRaw } = useSignInWithEthereum()
+	const { data: authTokenAfterSigningIn, mutate: signIn } = useSignInWithEthereum()
 	const { data: currentKey } = useGetCurrentKey({ authToken: currentAuthToken })
-	const signIn = (data: any) => signInRaw({ ...data, refetchToken })
 
-	const authToken = currentAuthToken || ghAuth?.apiKey
+	const authToken = currentAuthToken || authTokenAfterSigningIn || ghAuth?.apiKey
+
 	const apiKey = newApiKey || currentKey?.apiKey || ghAuth?.apiKey
 
 	const { mutate: saveEmail } = useSaveEmail({ authToken })
@@ -142,7 +144,7 @@ const ProApi = () => {
 		)
 		window.addEventListener('message', function (e) {
 			if (e.data === 'payment_success' && !isTopUp) {
-				signIn({ address: wallet.address })
+				signIn({ address: wallet.address, refetchToken })
 				intervalRef.current = setInterval(() => refetchSubs(), 500)
 			}
 		})
@@ -176,25 +178,21 @@ const ProApi = () => {
 					</Box>
 				) : authToken && isSubscribed ? null : (
 					<Box>
-						{isSubscribed ? (
+						{!wallet.isConnected ? (
+							<Button onClick={openConnectModal}>Connect Wallet</Button>
+						) : !authToken || !isSubscribed ? (
+							<Button onClick={() => startPayment()}>Subscribe</Button>
+						) : authToken ? null : (
 							<Button
 								onClick={() => {
-									signIn({ address: wallet.address })
+									signIn({ address: wallet.address, refetchToken })
 								}}
 							>
 								Sign In
 							</Button>
-						) : (
-							<>
-								{!wallet.isConnected ? (
-									<Button onClick={openConnectModal}>Connect Wallet</Button>
-								) : (
-									<Button onClick={() => startPayment()}>Subscribe</Button>
-								)}
-								OR
-								<SignInWithGithub />
-							</>
 						)}
+						OR
+						<SignInWithGithub />
 					</Box>
 				)}
 
@@ -228,6 +226,7 @@ const ProApi = () => {
 									<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
 								</span>
 							</div>
+
 							{authToken && ghAuth?.isContributor ? null : (
 								<div style={{ display: 'flex' }}>
 									<ButtonDark
@@ -238,6 +237,7 @@ const ProApi = () => {
 									>
 										Re-roll API Key{' '}
 									</ButtonDark>
+
 									<ButtonDark onClick={() => window.open('/pro-api/docs', '_blank')} style={{ marginRight: '0.5em' }}>
 										Open API Docs{' '}
 									</ButtonDark>

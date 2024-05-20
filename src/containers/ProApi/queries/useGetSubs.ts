@@ -1,4 +1,5 @@
 import { useQuery } from 'react-query'
+
 import { SERVER_API, llamaAddress, periodDuration, subgraphApi, subscriptionAmount, token } from '../lib/constants'
 
 export interface ISub {
@@ -52,10 +53,11 @@ const getStatusPriority = (status) => {
 async function getSubscriptions(address?: `0x${string}` | null) {
 	try {
 		if (!address) return null
+
 		const { subscribed } = await fetch(`${SERVER_API}/auth/subscribed/${address}`, {
 			headers: {
 				'Content-Type': 'application/json'
-			},
+			}
 		}).then((r) => r.json())
 		if (subscribed === false) {
 			return {
@@ -165,7 +167,7 @@ async function getSubscriptions(address?: `0x${string}` | null) {
 
 		return {
 			subs: subsRes,
-			isSubscribed: true
+			isSubscribed: subsRes.filter((sub) => sub.realExpiration > now && sub.startTimestamp < now).length > 0
 		}
 	} catch (error: any) {
 		throw new Error(error.message ?? 'Failed to fetch subscriptions')
