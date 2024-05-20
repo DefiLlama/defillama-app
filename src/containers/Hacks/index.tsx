@@ -129,14 +129,14 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 	)
 }
 
-const SearchIcon = styled(Search)`
+export const SearchIcon = styled(Search)`
 	position: absolute;
 	top: 8px;
 	left: 8px;
 	color: ${({ theme }) => theme.text3};
 `
 
-const TableFilters = styled.div`
+export const TableFilters = styled.div`
 	display: flex;
 	align-items: center;
 	gap: 8px;
