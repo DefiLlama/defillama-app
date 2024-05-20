@@ -1,8 +1,7 @@
 export async function airdropsEligibilityCheck({ addresses }: { addresses: Array<string> }) {
 	try {
-		const [others, eigens, config] = await Promise.all([
+		const [others, config] = await Promise.all([
 			fetch(`https://airdrops.llama.fi/check/${addresses.join(',').toLowerCase()}`).then((r) => r.json()),
-			fetch(`https://airdrops.llama.fi/eigens/${addresses.join(',').toLowerCase()}`).then((r) => r.json()).catch(e => null),
 			fetch('https://airdrops.llama.fi/config').then((res) => res.json())
 		])
 
@@ -32,20 +31,6 @@ export async function airdropsEligibilityCheck({ addresses }: { addresses: Array
 						: config[airdrop[0]]?.isActive ?? false
 				}))
 				.filter((x) => x.isActive)
-				.concat(
-					eigens && eigens[address].tokenQualified > 0
-						? [
-								{
-									name: 'EigenLayer',
-									claimableAmount: eigens[address].tokenQualified,
-									page: config['eigen']?.page ?? null,
-									token: config['eigen']?.token ?? null,
-									tokenSymbol: config['eigen']?.tokenSymbol ?? null,
-									isActive: true
-								}
-						  ]
-						: []
-				)
 		])
 
 		return allAirdrops
