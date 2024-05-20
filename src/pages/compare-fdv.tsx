@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging('correlation', async () => 
 export default function Compare({ coinsData }) {
 	return (
 		<QueryClientProvider client={queryClient}>
-			<Layout title={`Compare FDV - DefiLlama`}>
+			<Layout title={`Price with FDV of - DefiLlama`}>
 				<CompareFdv coinsData={coinsData} />
 			</Layout>
 		</QueryClientProvider>
