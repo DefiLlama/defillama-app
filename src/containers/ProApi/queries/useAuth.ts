@@ -107,7 +107,7 @@ export async function signAndGetAuthToken({
 		}
 
 		window.localStorage.setItem(`auth_token_${address.toLowerCase()}`, verifyRes.key)
-		refetchToken()
+		refetchToken?.()
 
 		return verifyRes.key
 	} catch (error: any) {

@@ -144,7 +144,7 @@ const ProApi = () => {
 		)
 		window.addEventListener('message', function (e) {
 			if (e.data === 'payment_success' && !isTopUp) {
-				signIn({ address: wallet.address })
+				signIn({ address: wallet.address, refetchToken })
 				intervalRef.current = setInterval(() => refetchSubs(), 500)
 			}
 		})
@@ -185,7 +185,7 @@ const ProApi = () => {
 						) : authToken ? null : (
 							<Button
 								onClick={() => {
-									signIn({ address: wallet.address })
+									signIn({ address: wallet.address, refetchToken })
 								}}
 							>
 								Sign In
