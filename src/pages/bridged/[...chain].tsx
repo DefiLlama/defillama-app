@@ -1,6 +1,6 @@
 import * as React from 'react'
 import BridgeContainer from '~/containers/BridgeContainer'
-import { standardizeProtocolName } from '~/utils'
+import { capitalizeFirstLetter, standardizeProtocolName } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getBridgePageDatanew, getBridges } from '~/api/categories/bridges'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -14,10 +14,10 @@ export const getStaticProps = withPerformanceLogging(
 			chain: [chain]
 		}
 	}) => {
-		const data = await getChainsBridged(chain?.toLowerCase())
+		const data = await getChainsBridged(chain)
 
 		return {
-			props: { ...data, chain },
+			props: { ...data, chain, chainName: capitalizeFirstLetter(chain) },
 			revalidate: maxAgeForNext([22])
 		}
 	}

@@ -141,7 +141,7 @@ export const ProtocolChart = ({
 											? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
 													+chartData[0][chartData[0].length - 1][0]
 											  )})`
-											: `Revenue (24h)`}
+											: `${type === 'options' ? 'Premium Volume' : 'Revenue'} (24h)`}
 									</span>
 									<span>
 										{formattedNum(

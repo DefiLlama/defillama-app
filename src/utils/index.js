@@ -320,7 +320,7 @@ export const getPercentChange = (valueNow, value24HoursAgo) => {
 export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)
 
 export const standardizeProtocolName = (tokenName = '') =>
-	tokenName.toLowerCase().split(' ').join('-').split("'").join('')
+	tokenName?.toLowerCase().split(' ').join('-').split("'").join('')
 
 export const slug = standardizeProtocolName
 

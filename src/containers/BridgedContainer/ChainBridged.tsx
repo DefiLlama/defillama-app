@@ -11,7 +11,7 @@ import TokenLogo from '~/components/TokenLogo'
 import FormattedName from '~/components/FormattedName'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import dynamic from 'next/dynamic'
-import { IPieChartProps } from '~/components/ECharts/types'
+import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import styled from 'styled-components'
 import useWindowSize from '~/hooks/useWindowSize'
 import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
@@ -20,15 +20,18 @@ import VirtualTable from '~/components/Table/Table'
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+	ssr: false
+}) as React.FC<IBarChartProps>
 
 const Stats = styled(StatsSection)``
 
-export default function ChainBridged({ chainData, chain }) {
+export default function ChainBridged({ chainData, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
 	const [chartType, setChartType] = React.useState('total')
-	const top10Tokens = Object.entries(chainData?.[chartType]?.breakdown)
+	const top10Tokens = Object.entries(chainData?.[chartType]?.breakdown ?? [])
 		.sort((a, b) => +b[1] - +a[1])
 		.slice(0, 10)
-	const otherTokens = Object.entries(chainData?.[chartType]?.breakdown)
+	const otherTokens = Object.entries(chainData?.[chartType]?.breakdown ?? [])
 		.sort((a, b) => +b[1] - +a[1])
 		.slice(10)
 	const otherTotal = otherTokens.reduce((acc, [_, value]) => acc + +value, 0)
@@ -36,7 +39,7 @@ export default function ChainBridged({ chainData, chain }) {
 	const screenWidth = useWindowSize()
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'value', desc: true }])
 	const instance = useReactTable({
-		data: Object.entries(chainData?.[chartType]?.breakdown).map(([name, value]) => ({
+		data: Object.entries(chainData?.[chartType]?.breakdown ?? []).map(([name, value]) => ({
 			name: name?.toLowerCase() === name ? name?.toUpperCase() : name,
 			value
 		})),
@@ -48,9 +51,10 @@ export default function ChainBridged({ chainData, chain }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
+
 	return (
 		<>
-			<Layout title={`${chain}: Bridged TVL - DefiLlama`} style={{ gap: '24px' }}>
+			<Layout title={`${chainName}: Bridged TVL - DefiLlama`} style={{ gap: '24px' }}>
 				<ProtocolsChainsSearch
 					hideFilters
 					step={{
@@ -58,12 +62,12 @@ export default function ChainBridged({ chainData, chain }) {
 						name: 'All Chains'
 					}}
 				/>
-				<SEO cardName={chain} token={chain} />
+				<SEO cardName={chainName} token={chain} />
 				<Stats>
 					<DetailsWrapper style={{ background: 'none' }}>
 						<Name>
 							<TokenLogo logo={chainIconUrl(chain)} size={24} />
-							<FormattedName text={chain + ' Bridged TVL'} fontWeight={700} />
+							<FormattedName text={chainName + ' Bridged TVL'} fontWeight={700} />
 						</Name>
 
 						<Stat>
@@ -114,6 +118,7 @@ export default function ChainBridged({ chainData, chain }) {
 								{ type: 'canonical', name: 'Canonical' },
 								{ type: 'native', name: 'Native' },
 								{ type: 'thirdParty', name: 'Third Party' },
+								inflows ? { type: 'inflows', name: 'Inflows' } : null,
 								chainData?.ownTokens?.total ? { type: 'ownTokens', name: 'Own Tokens' } : null
 							]
 								.filter(Boolean)
@@ -126,18 +131,31 @@ export default function ChainBridged({ chainData, chain }) {
 								)}
 						</Filters>
 
-						<div style={{ width: Math.min(+screenWidth.width / 1.5, 600) + 'px' }}>
-							<PieChart
-								chartData={tokens.map(([name, value]: [string, string]) => ({
-									name,
-									value: +value
-								}))}
-								usdFormat={false}
-							/>
-						</div>
+						{chartType !== 'inflows' ? (
+							<div style={{ width: Math.min(+screenWidth.width / 1.5, 600) + 'px' }}>
+								<PieChart
+									chartData={tokens.map(([name, value]: [string, string]) => ({
+										name,
+										value: +value
+									}))}
+									usdFormat={false}
+								/>
+							</div>
+						) : (
+							<div style={{ width: '100%' }}>
+								<BarChart
+									chartData={inflows}
+									title=""
+									hideDefaultLegend={true}
+									customLegendName="Token"
+									customLegendOptions={tokenInflowNames}
+									// chartOptions={inflowsChartOptions}
+								/>
+							</div>
+						)}
 					</div>
 				</Stats>
-				<VirtualTable instance={instance} cellStyles={{ overflow: 'visible' }} />
+				{chartType !== 'inflows' ? <VirtualTable instance={instance} cellStyles={{ overflow: 'visible' }} /> : null}
 			</Layout>
 		</>
 	)

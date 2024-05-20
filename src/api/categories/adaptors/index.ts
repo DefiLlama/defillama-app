@@ -30,9 +30,11 @@ export const getOverviewItem = (
 	protocolName: string,
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryResponse> =>
-	fetch(`${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`).then(
-		handleFetchResponse
-	)
+	fetch(
+		`${ADAPTORS_SUMMARY_BASE_API}/${
+			type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
+		}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`
+	).then(handleFetchResponse)
 export const getOverview = (
 	type: string,
 	chain?: string,

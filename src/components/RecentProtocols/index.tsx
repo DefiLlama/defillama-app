@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import { Panel } from '~/components'
+import { FormSubmitBtn, Panel } from '~/components'
 import { RecentlyListedProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
@@ -9,11 +9,16 @@ import { FiltersByChain, HideForkedProtocols, TVLRange } from '~/components/Filt
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { download, getPercentChange } from '~/utils'
 import { IFormattedProtocol } from '~/api/types'
+
 import { FlexRow } from '~/layout/ProtocolAndPool'
 import { ButtonLight } from '../ButtonStyled'
-import { ArrowUpRight } from 'react-feather'
+import { ArrowUpRight, Plus, X } from 'react-feather'
 import styled from 'styled-components'
 import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { useDialogState, Dialog } from 'ariakit/dialog'
+import { DialogForm } from '../Filters/common/Base'
+import { useMutation } from 'react-query'
+import { airdropsEligibilityCheck } from './airdrops'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -32,7 +37,7 @@ interface IRecentProtocolProps {
 	protocols: any
 	chainList: string[]
 	forkedList?: { [name: string]: boolean }
-	claimableAirdrops?: Array<{ name: string; page: string }>
+	claimableAirdrops?: Array<{ name: string; page: string; title?: string }>
 }
 
 export function RecentProtocols({
@@ -168,12 +173,22 @@ export function RecentProtocols({
 
 	const { pathname } = useRouter()
 
+	const airdropCheckerDialog = useDialogState()
+
+	const {
+		data: eligibleAirdrops,
+		mutate: checkEligibleAirdrops,
+		isLoading: fetchingEligibleAirdrops,
+		error: errorFetchingEligibleAirdrops,
+		reset: resetEligibilityCheck
+	} = useMutation(airdropsEligibilityCheck)
+
 	return (
 		<Layout title={title} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: name }} />
 
 			{claimableAirdrops ? (
-				<FlexRow>
+				<FlexRow style={{ flexWrap: 'wrap' }}>
 					{claimableAirdrops.map((protocol) => (
 						<Button
 							as="a"
@@ -187,6 +202,120 @@ export function RecentProtocols({
 							<ArrowUpRight size={14} />
 						</Button>
 					))}
+					<ButtonLight
+						onClick={() => {
+							resetEligibilityCheck()
+							airdropCheckerDialog.toggle()
+						}}
+					>
+						Check airdrops for address
+					</ButtonLight>
+					<Dialog state={airdropCheckerDialog} className="dialog">
+						<CloseButton
+							onClick={() => {
+								resetEligibilityCheck()
+								airdropCheckerDialog.toggle()
+							}}
+						>
+							<X size={20} />
+						</CloseButton>
+						{eligibleAirdrops ? (
+							eligibleAirdrops.length === 0 ? (
+								<Error>No airdrops detected for this address</Error>
+							) : (
+								<TableWrapper>
+									{eligibleAirdrops.map((address) => (
+										<AirdropTable key={`airdrop of ${address[0]}`}>
+											<thead>
+												<tr>
+													<th colSpan={2}>{address[0]}</th>
+												</tr>
+												<tr>
+													<th>Protocol Name</th>
+													<th>Token Amount</th>
+												</tr>
+											</thead>
+											<tbody>
+												{address[1].length === 0 ? (
+													<tr>
+														<td colSpan={2}>
+															<Error>No airdrops detected for this address</Error>
+														</td>
+													</tr>
+												) : (
+													address[1].map((airdrop) => (
+														<tr key={`${airdrop.name}:${airdrop.claimableAmount}`}>
+															<th>{airdrop.name}</th>
+															<td>
+																{airdrop.isActive ? (
+																	<span data-claimable={true}>
+																		<span>{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`}</span>
+																		{airdrop.page ? (
+																			<Button
+																				as="a"
+																				href={airdrop.page}
+																				target="_blank"
+																				rel="noreferrer noopener"
+																				key={`claim-${airdrop.page}`}
+																				color="green"
+																				style={{ padding: '2px 6px', fontSize: '12px' }}
+																			>
+																				<span>Claim</span>
+																				<ArrowUpRight size={14} />
+																			</Button>
+																		) : null}
+																	</span>
+																) : (
+																	<span data-claimable={false}>
+																		<span>
+																			{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`} - Claim Ended
+																		</span>
+																	</span>
+																)}
+															</td>
+														</tr>
+													))
+												)}
+											</tbody>
+										</AirdropTable>
+									))}
+								</TableWrapper>
+							)
+						) : (
+							<DialogForm
+								onSubmit={(e) => {
+									e.preventDefault()
+									const form = e.target as HTMLFormElement
+									checkEligibleAirdrops({
+										addresses: form.address.value
+											.split('\n')
+											.join(',')
+											.split(',')
+											.map((x) => x.trim())
+											.filter((x) => x.length > 0)
+									})
+								}}
+								data-variant="secondary"
+							>
+								<label>
+									<span>Provide EVM / SOL address(s) to check airdrops for:</span>
+									<textarea
+										name="address"
+										required
+										disabled={fetchingEligibleAirdrops}
+										placeholder="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045, 0x71a15Ac12ee91BF7c83D08506f3a3588143898B5"
+									/>
+								</label>
+
+								<FormSubmitBtn name="submit-btn" disabled={fetchingEligibleAirdrops}>
+									{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
+								</FormSubmitBtn>
+								{errorFetchingEligibleAirdrops ? (
+									<Error>{(errorFetchingEligibleAirdrops as any)?.message ?? 'Failed to fetch'}</Error>
+								) : null}
+							</DialogForm>
+						)}
+					</Dialog>
 				</FlexRow>
 			) : null}
 
@@ -222,4 +351,53 @@ export const Button = styled(ButtonLight)`
 	white-space: nowrap;
 	font-family: var(--font-inter);
 	color: green;
+`
+
+const CloseButton = styled.button`
+	margin: 0 -8px -16px auto;
+`
+
+const Error = styled.p`
+	color: red;
+	text-align: center;
+`
+
+const AirdropTable = styled.table`
+	border-collapse: collapse;
+	width: 100%;
+
+	th,
+	td {
+		padding: 8px;
+		font-weight: 400;
+		text-align: center;
+		white-space: nowrap;
+		border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
+	}
+
+	td > span {
+		display: flex;
+		justify-content: center;
+		gap: 4px;
+	}
+
+	td > span[data-claimable='false'] {
+		position: relative;
+		opacity: 0.7;
+	}
+
+	thead > tr > th {
+		font-weight: 600;
+	}
+
+	&:not(first-child) {
+		margin-top: 16px;
+	}
+`
+
+const TableWrapper = styled.div`
+	isolation: isolate;
+	position: relative;
+	width: 100%;
+	overflow: auto;
 `

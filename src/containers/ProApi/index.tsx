@@ -7,7 +7,8 @@ import toast from 'react-hot-toast'
 
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 import { CheckIcon } from '../ProContainer/Subscribe/Icon'
-import { useGetAuthToken, useSignInWithEthereum } from './queries/useAuth'
+
+import { logout, useGetAuthToken, useSignInWithEthereum } from './queries/useAuth'
 import { llamaAddress, subscriptionAmount } from './lib/constants'
 import { useGetSubs } from './queries/useGetSubs'
 import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
@@ -19,6 +20,7 @@ import SignInWithGithub from './SignInWithGithub'
 import { useGetCurrentKey } from './queries/useGetCurrentKey'
 import { Description } from '~/components/Correlations/styles'
 import { useSaveEmail } from './queries/useEmail'
+import DiscordButton from './DiscordButton'
 
 const Body = styled.div`
 	margin-top: 120px;
@@ -110,7 +112,8 @@ const ProApi = () => {
 
 	const { data: ghAuth } = useGithubAuth()
 	const { openConnectModal } = useConnectModal()
-	const { data: currentAuthToken } = useGetAuthToken()
+
+	const { data: currentAuthToken, refetch: refetchToken } = useGetAuthToken()
 	const {
 		data: { subs, isSubscribed },
 		refetch: refetchSubs
@@ -120,6 +123,7 @@ const ProApi = () => {
 	const { data: currentKey } = useGetCurrentKey({ authToken: currentAuthToken })
 
 	const authToken = currentAuthToken || authTokenAfterSigningIn || ghAuth?.apiKey
+
 	const apiKey = newApiKey || currentKey?.apiKey || ghAuth?.apiKey
 
 	const { mutate: saveEmail } = useSaveEmail({ authToken })
@@ -222,6 +226,7 @@ const ProApi = () => {
 									<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
 								</span>
 							</div>
+
 							{authToken && ghAuth?.isContributor ? null : (
 								<div style={{ display: 'flex' }}>
 									<ButtonDark
@@ -232,7 +237,18 @@ const ProApi = () => {
 									>
 										Re-roll API Key{' '}
 									</ButtonDark>
-									<ButtonDark onClick={() => window.open('/pro-api/docs', '_blank')}>Open API Docs </ButtonDark>
+
+									<ButtonDark onClick={() => window.open('/pro-api/docs', '_blank')} style={{ marginRight: '0.5em' }}>
+										Open API Docs{' '}
+									</ButtonDark>
+									<ButtonDark
+										onClick={() => {
+											logout({ address: wallet.address })
+											refetchToken()
+										}}
+									>
+										Log out
+									</ButtonDark>
 								</div>
 							)}
 						</Box>
@@ -267,6 +283,9 @@ const ProApi = () => {
 											We will use your email to send you important updates and notifications about your subscription.
 										</Description>
 									</div>
+									<div style={{ display: 'flex', gap: '8px' }}>
+										<DiscordButton />
+									</div>
 								</Box>
 							</>
 						)}
@@ -274,7 +293,6 @@ const ProApi = () => {
 						{subs?.length ? <Subscriptions startPayment={startPayment} /> : null}
 					</>
 				)}
-				<></>
 			</Content>
 		</Body>
 	)

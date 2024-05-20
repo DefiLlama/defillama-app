@@ -43,6 +43,7 @@ import { useEffect, useState } from 'react'
 import UpcomingEvent from '../Components/UpcomingEvent'
 import ProgressBar from '../Components/ProgressBar'
 import TooltipNew from '~/components/Tooltip/TootltipNew'
+import { sluggify } from '~/utils/cache-client'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{

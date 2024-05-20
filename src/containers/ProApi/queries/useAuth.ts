@@ -35,10 +35,14 @@ export function getAuthToken({ address }: { address?: string | null }) {
 			return null
 		}
 
-		return window.localStorage.getItem(`auth_token_${address}`) ?? null
+		return window.localStorage.getItem(`auth_token_${address.toLowerCase()}`) ?? null
 	} catch (error: any) {
 		throw new Error(error?.message)
 	}
+}
+
+export function logout({ address }: { address?: string | null }) {
+	return window.localStorage.removeItem(`auth_token_${address.toLowerCase()}`)
 }
 
 export function useGetAuthToken() {
@@ -51,7 +55,13 @@ export function useGetAuthToken() {
 	)
 }
 
-export async function signAndGetAuthToken({ address }: { address?: string | null }) {
+export async function signAndGetAuthToken({
+	address,
+	refetchToken
+}: {
+	address?: string | null
+	refetchToken: Function
+}) {
 	try {
 		if (!address) {
 			throw new Error('Invalid arguments')
@@ -96,7 +106,8 @@ export async function signAndGetAuthToken({ address }: { address?: string | null
 			throw new Error(verifyRes?.message)
 		}
 
-		window.localStorage.setItem(`auth_token_${address}`, verifyRes.key)
+		window.localStorage.setItem(`auth_token_${address.toLowerCase()}`, verifyRes.key)
+		refetchToken()
 
 		return verifyRes.key
 	} catch (error: any) {

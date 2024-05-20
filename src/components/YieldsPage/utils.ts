@@ -48,6 +48,7 @@ export function toFilterPool({
 		.split('(')[0]
 		.split('-')
 		.map((x) => x.toLowerCase())
+		.map((x) => x.trim())
 
 	if (exactTokens.length === 0) {
 		const includeToken =

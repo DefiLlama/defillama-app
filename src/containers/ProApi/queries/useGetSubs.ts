@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query'
-import { llamaAddress, periodDuration, subgraphApi, subscriptionAmount, token } from '../lib/constants'
+
+import { SERVER_API, llamaAddress, periodDuration, subgraphApi, subscriptionAmount, token } from '../lib/constants'
 
 export interface ISub {
 	expirationDate: string
@@ -52,6 +53,18 @@ const getStatusPriority = (status) => {
 async function getSubscriptions(address?: `0x${string}` | null) {
 	try {
 		if (!address) return null
+
+		const { subscribed } = await fetch(`${SERVER_API}/auth/subscribed/${address}`, {
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		}).then((r) => r.json())
+		if (subscribed === false) {
+			return {
+				subs: [],
+				isSubscribed: false
+			}
+		}
 
 		const subs = `
           {

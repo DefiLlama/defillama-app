@@ -49,6 +49,7 @@ const CSVDownloadButton = ({
 	const { isVerified } = useVerified()
 	const router = useRouter()
 	const Button = isGray ? GrayButton : isLight ? ButtonLight : ButtonDark
+
 	const text = customText || 'Download .csv'
 	if (!isVerified && IS_PRO_API_ENABLED) {
 		return (

@@ -20,6 +20,7 @@ import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/BridgeContainer'
 import { fetchWithErrorLogging } from '~/utils/async'
 import dayjs from 'dayjs'
+import { CACHE_SERVER } from '~/constants'
 
 const fetch = fetchWithErrorLogging
 
@@ -87,10 +88,7 @@ export function useFetchAndFormatChartData({
 	const { data: fdvData = null, error: fdvError } = useSWR(
 		`fdv-${geckoId && fdv === 'true' && isRouterReady ? geckoId : null}`,
 		geckoId && fdv === 'true' && isRouterReady
-			? () =>
-					fetch(
-						`https://api.coingecko.com/api/v3/coins/${geckoId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
-					).then((res) => res.json())
+			? () => fetch(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.json())
 			: () => null
 	)
 
@@ -394,7 +392,7 @@ export function useFetchAndFormatChartData({
 			if (fdv === 'true' && fdvData) {
 				chartsUnique.push('FDV')
 
-				const totalSupply = fdvData['market_data']['total_supply']
+				const totalSupply = fdvData['data']['total_supply']
 
 				protocolCGData['prices'].forEach(([dateMs, price]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)

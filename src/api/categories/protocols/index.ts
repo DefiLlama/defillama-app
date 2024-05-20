@@ -20,7 +20,8 @@ import {
 	ETF_OVERVIEW_API,
 	ETF_HISTORY_API,
 	CHAINS_API_V2,
-	CHAIN_ASSETS_FLOWS
+	CHAIN_ASSETS_FLOWS,
+	BRIDGEINFLOWS_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -32,6 +33,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
 import { getFeesAndRevenueProtocolsByChain } from '../fees'
 import { getDexVolumeByChain } from '../dexs'
+import { sluggify } from '~/utils/cache-client'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -79,28 +81,34 @@ export const getProtocol = async (protocolName: string) => {
 export const getAllProtocolEmissions = async () => {
 	try {
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
+		const coins = await fetchWithErrorLogging(`https://coins.llama.fi/prices/current/${res.filter(p => p.gecko_id).map(p => "coingecko:" + p.gecko_id).join(',')}`).then((res) => res.json())
 		const parsedRes = res
 		return parsedRes
 			.map((protocol) => {
-				let event = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
-				let upcomingEvent = []
+				try {
+					let event = protocol.events?.find((e) => e.timestamp >= Date.now() / 1000)
+					let upcomingEvent = []
 
-				if (!event || (event.noOfTokens.length === 1 && event.noOfTokens[0] === 0)) {
-					upcomingEvent = [{ timestamp: null }]
-				} else {
-					const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
-					upcomingEvent = [...comingEvents]
-				}
-				const coin = protocol.tokenPrice?.[0] ?? {}
-				const tSymbol = protocol.name === 'LooksRare' ? 'LOOKS' : coin.symbol ?? null
+					if (!event || (event.noOfTokens.length === 1 && event.noOfTokens[0] === 0)) {
+						upcomingEvent = [{ timestamp: null }]
+					} else {
+						const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
+						upcomingEvent = [...comingEvents]
+					}
+					const coin = coins.coins["coingecko:" + protocol.gecko_id]
+					const tSymbol = coin?.symbol ?? null
 
-				return {
-					...protocol,
-					upcomingEvent,
-					tPrice: coin.price ?? null,
-					tSymbol
+					return {
+						...protocol,
+						upcomingEvent,
+						tPrice: coin?.price ?? null,
+						tSymbol
+					}
+				} catch (e) {
+					console.log("error", protocol.name, e)
+					return null
 				}
-			})
+			}).filter(Boolean)
 			.sort((a, b) => {
 				const x = a.upcomingEvent?.[0]?.timestamp
 				const y = b.upcomingEvent?.[0]?.timestamp
@@ -942,14 +950,14 @@ export async function getETFData() {
 }
 
 export async function getAirdropDirectoryData() {
-	const airdrops = await fetchWithErrorLogging(
-		'https://raw.githubusercontent.com/DefiLlama/defillama-app/main/src/airdrops/data.json'
-	).then((r) => r.json())
+	const airdrops = await fetchWithErrorLogging('https://airdrops.llama.fi/config').then((r) => r.json())
 
-	return airdrops.map((i) => ({
-		...i,
-		endTime: i.endTime ? new Date(i?.endTime * 1000).toISOString().replace(/\.\d{3}/, '') : null
-	}))
+	const now = Date.now()
+	return Object.values(airdrops).filter((i: { endTime?: number, isActive: boolean, page?: string }) => {
+		if (i.isActive === false || !i.page) return false
+		if (!i.endTime) return true
+		return i.endTime < 1e12 ? i.endTime * 1000 > now : i.endTime > now
+	})
 }
 
 export function formatGovernanceData(data: {
@@ -1002,9 +1010,25 @@ export function formatGovernanceData(data: {
 }
 
 export async function getChainsBridged(chain?: string) {
-	const assets = await fetchWithErrorLogging(CHAINS_ASSETS).then((r) => r.json())
-	const chains = await fetch(`${CHAINS_API_V2}/All`).then((r) => r.json())
-	const flows1d = await fetch(CHAIN_ASSETS_FLOWS + '/24h').then((r) => r.json())
+	const [assets, chains, flows1d, inflows] = await Promise.all([
+		fetchWithErrorLogging(CHAINS_ASSETS).then((r) => r.json()),
+		fetchWithErrorLogging(`${CHAINS_API_V2}/All`).then((r) => r.json()),
+		fetchWithErrorLogging(CHAIN_ASSETS_FLOWS + '/24h').then((r) => r.json()),
+		chain
+			? fetchWithErrorLogging(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
+					.then((res) => res.json())
+					.then((data) => data.map((item) => ({ ...item.data, date: item.timestamp })))
+			: []
+	])
 	const chainData = assets[chain] ?? null
-	return { chains, assets, flows1d, chainData }
+	const tokenInflowNames = new Set<string>()
+	for (const inflow of inflows) {
+		for (const token of Object.keys(inflow)) {
+			if (token !== 'date') {
+				tokenInflowNames.add(token)
+			}
+		}
+	}
+
+	return { chains, assets, flows1d, chainData, inflows, tokenInflowNames: Array.from(tokenInflowNames) }
 }
