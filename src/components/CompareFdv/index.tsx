@@ -1,14 +1,14 @@
 import { TYPE } from '~/Theme'
 import React, { useState, useMemo } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
-import { Body } from '../Correlations/styles'
 import { useRouter } from 'next/router'
 import { CoinsPicker } from '../Correlations'
-import { SearchIcon, TableFilters } from '~/containers/Hacks'
+import { SearchIcon } from '~/containers/Hacks'
 import useSWR from 'swr'
 import { CACHE_SERVER } from '~/constants'
-import { Loader } from 'react-feather'
 import LocalLoader from '../LocalLoader'
+import styled from 'styled-components'
+import { Repeat } from 'react-feather'
 
 export default function CompareFdv({ coinsData }) {
 	const router = useRouter()
@@ -44,28 +44,73 @@ export default function CompareFdv({ coinsData }) {
 
 	return (
 		<>
-			<TYPE.largeHeader>FDV Comparison</TYPE.largeHeader>
-			<Body style={{ display: 'block' }}>
-				<div style={{ display: 'flex' }}>
+			<TYPE.largeHeader style={{ marginTop: '8px' }}>FDV Comparison</TYPE.largeHeader>
+			<Wrapper>
+				<SelectWrapper>
 					<TableFilters>
 						<SearchIcon size={16} />
 
 						<input value={selectedCoins[0]?.name} onClick={() => setModalOpen(1)} placeholder="Search coins..." />
 					</TableFilters>
-					<TableFilters style={{ marginLeft: '10em' }}>
+					<Switch
+						onClick={() => {
+							if (queryCoins.length > 1) {
+								router.push(
+									{
+										pathname: router.pathname,
+										query: {
+											...router.query,
+											coin: [queryCoins[1], queryCoins[0]]
+										}
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}
+						}}
+					>
+						<Repeat size="16px" />
+					</Switch>
+					<TableFilters>
 						<SearchIcon size={16} />
 
 						<input value={selectedCoins[1]?.name} onClick={() => setModalOpen(2)} placeholder="Search coins..." />
 					</TableFilters>
-				</div>
+				</SelectWrapper>
 				{coins.length === 2 ? (
 					fdvData === null ? (
 						<LocalLoader />
 					) : (
-						<p style={{ textAlign: 'center', marginTop: '5em' }}>
-							<TYPE.main>
-								{selectedCoins[0].symbol.toUpperCase()} WITH THE FDV OF {selectedCoins[1].symbol.toUpperCase()}
-							</TYPE.main>
+						<Wrapper2>
+							<Header>
+								<ImageWrapper>
+									<Image
+										alt={''}
+										src={selectedCoins[0].image}
+										height={'20px'}
+										width={'20px'}
+										loading="lazy"
+										onError={(e) => {
+											e.currentTarget.src = '/placeholder.png'
+										}}
+									/>
+									<span>{selectedCoins[0].symbol.toUpperCase()}</span>
+								</ImageWrapper>
+								<span>WITH THE FDV OF</span>
+								<ImageWrapper>
+									<Image
+										alt={''}
+										src={selectedCoins[1].image}
+										height={'20px'}
+										width={'20px'}
+										loading="lazy"
+										onError={(e) => {
+											e.currentTarget.src = '/placeholder.png'
+										}}
+									/>
+									<span>{selectedCoins[1].symbol.toUpperCase()}</span>
+								</ImageWrapper>
+							</Header>
 							<TYPE.largeHeader>
 								$
 								{newPrice.toLocaleString(
@@ -75,7 +120,7 @@ export default function CompareFdv({ coinsData }) {
 								)}{' '}
 								({increase.toFixed(2)}x)
 							</TYPE.largeHeader>
-						</p>
+						</Wrapper2>
 					)
 				) : null}
 				<CoinsPicker
@@ -101,7 +146,90 @@ export default function CompareFdv({ coinsData }) {
 						setModalOpen(0)
 					}}
 				/>
-			</Body>
+			</Wrapper>
 		</>
 	)
 }
+
+const SelectWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+
+	@media (min-width: ${({ theme }) => theme.bpMed}) {
+		flex-direction: row;
+		gap: 36px;
+	}
+`
+
+const TableFilters = styled.div`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	position: relative;
+
+	input {
+		width: 100%;
+		margin-right: auto;
+		border-radius: 8px;
+		padding: 8px;
+		padding-left: 32px;
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
+
+		font-size: 0.875rem;
+		border: none;
+	}
+
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		input {
+			max-width: 400px;
+		}
+	}
+`
+
+const Switch = styled.button`
+	padding: 4px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+`
+
+const Image = styled.img`
+	display: inline-block;
+	object-fit: cover;
+	aspect-ratio: 1;
+	background: ${({ theme }) => theme.bg3};
+	border-radius: 50%;
+	flex-shrink: 0;
+`
+
+const ImageWrapper = styled.span`
+	display: flex;
+	align-items: center;
+	gap: 4px;
+`
+
+const Header = styled.h2`
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	font-weight: 400;
+	font-size: 14px;
+`
+
+const Wrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 80px;
+`
+
+const Wrapper2 = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16px;
+`
