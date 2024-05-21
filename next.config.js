@@ -137,6 +137,11 @@ const nextConfig = {
 				source: '/yields/borrow',
 				destination: '/yields',
 				permanent: true
+			},
+			{
+				source: '/compare-fdv',
+				destination: '/compare-tokens',
+				permanent: true
 			}
 		]
 	},

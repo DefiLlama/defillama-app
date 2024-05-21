@@ -73,7 +73,7 @@ export const getProtocolDataLite = async (protocol: string) => {
 			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 				.then((res) => res.json())
 				.catch((err) => {
-					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+					console.log(`Couldn't fetch fees protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 				}),
 			fetch(
@@ -81,7 +81,7 @@ export const getProtocolDataLite = async (protocol: string) => {
 			)
 				.then((res) => res.json())
 				.catch((err) => {
-					console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+					console.log(`Couldn't fetch revenue protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 				}),
 			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
