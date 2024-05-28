@@ -409,6 +409,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'Hibt',
+		slug: 'hibt',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Hotbit',
 		slug: 'hotbit',
 		coin: 'HTB',
