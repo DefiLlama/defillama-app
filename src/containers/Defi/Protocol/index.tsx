@@ -1473,7 +1473,7 @@ function ProtocolContainer({
 													useTextColor={true}
 													color={backgroundColor}
 												>
-													<span>TVL code</span>
+													<span>{isCEX ? 'Wallet Addresses' : 'TVL code'}</span>
 													<ArrowUpRight size={14} />
 												</Button>
 											</Link>
