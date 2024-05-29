@@ -488,6 +488,9 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 					{row.index + 1}
 				</span>
 			)
+		},
+		meta: {
+			align: 'center' as any
 		}
 	},
 	{
