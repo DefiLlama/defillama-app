@@ -91,6 +91,12 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 								'Calculated as: 24h fees * 365 / TVL. Enable "7d Base APY" for a more detailed APY calculation which uses 7 day trading fees and a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
 							}
 						/>
+					) : info.row.original.project === 'Vesper' && info.row.original.pool === 'ETH (Aggressive)' ? (
+						<QuestionHelper
+							text={
+								'To earn yield you are required to wait for the autocompounding action to be triggered by Vesper which might happen only 1-2x per month. If you withdraw prior to that you will receive 0 APY!'
+							}
+						/>
 					) : null}
 					{formattedPercent(info.getValue(), true, 700)}
 				</span>
