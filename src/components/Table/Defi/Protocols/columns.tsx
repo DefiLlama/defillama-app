@@ -470,6 +470,27 @@ export const listedAtColumn = {
 
 export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	{
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 80,
+		enableSorting: false,
+		cell: ({ row }) => {
+			return (
+				<span
+					style={{
+						fontSize: '0.9rem',
+						fontWeight: 'bold',
+						textAlign: 'center',
+						display: 'flex',
+						justifyContent: 'center'
+					}}
+				>
+					{row.index + 1}
+				</span>
+			)
+		}
+	},
+	{
 		header: 'Compare',
 		accessorKey: 'compare',
 		enableSorting: false,
@@ -726,6 +747,7 @@ export const protocolAddlColumns = {
 // values: table columns order
 export const columnOrders = formatColumnOrder({
 	0: [
+		'rank',
 		'compare',
 		'name',
 		'tvl',
@@ -739,6 +761,7 @@ export const columnOrders = formatColumnOrder({
 		'mcaptvl'
 	],
 	480: [
+		'rank',
 		'compare',
 		'name',
 		'change_7d',
@@ -752,6 +775,7 @@ export const columnOrders = formatColumnOrder({
 		'mcaptvl'
 	],
 	1024: [
+		'rank',
 		'compare',
 		'name',
 		'category',
@@ -768,6 +792,7 @@ export const columnOrders = formatColumnOrder({
 
 export const columnSizes = {
 	0: {
+		rank: 60,
 		compare: 80,
 		name: 180,
 		category: 140,
@@ -779,6 +804,7 @@ export const columnSizes = {
 		totalRaised: 180
 	},
 	1024: {
+		rank: 60,
 		compare: 80,
 		name: 240,
 		category: 140,
@@ -790,6 +816,7 @@ export const columnSizes = {
 		totalRaised: 180
 	},
 	1280: {
+		rank: 60,
 		compare: 80,
 		name: 200,
 		category: 140,

@@ -57,11 +57,18 @@ const useProtocols = (protocols: string[], chain?: string) => {
 const CompareProtocols = ({ protocols, chain }: { protocols: string[]; chain: string }) => {
 	const { isLoading, chartData } = useProtocols(protocols, chain)
 	const [isDark] = useDarkModeManager()
-
 	return (
 		<ModalBody>
 			{chartData.length > 0 && !isLoading ? (
-				<ChainChart datasets={chartData} width={'100%'} title="" compareMode isThemeDark={isDark} showLegend />
+				<ChainChart
+					datasets={chartData}
+					width={'100%'}
+					title=""
+					compareMode
+					isThemeDark={isDark}
+					showLegend
+					style={{ minWidth: '70vw', maxWidth: '1200px' }}
+				/>
 			) : (
 				<LocalLoader />
 			)}

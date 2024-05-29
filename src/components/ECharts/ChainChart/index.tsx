@@ -85,7 +85,7 @@ export default function AreaChart({
 	isThemeDark,
 	chartType,
 	isFirstChart = false,
-	compareMode,
+	compareMode = false,
 	showLegend = false,
 	...props
 }) {
@@ -97,7 +97,7 @@ export default function AreaChart({
 		() => (chartType ? { tvl: 'false', [chartType]: 'true' } : routerRoute),
 		[chartType, routerRoute]
 	)
-	const isCompare = pathname?.includes('compare')
+	const isCompare = pathname?.includes('compare') || compareMode
 
 	const defaultChartSettings = useDefaults({
 		color: primaryColor,
