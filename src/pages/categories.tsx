@@ -95,7 +95,9 @@ export const descriptions = {
 	Wallets: 'Protocols where you have a form of digital storage to secure access to your crypto.',
 	NftFi: 'NFT leverage protocols',
 	'Telegram Bot': 'Trading bots for Telegram users',
-	Ponzi: 'Farms promising high rates of return, where the money from new investors is used to pay earlier investors'
+	Ponzi: 'Farms promising high rates of return, where the money from new investors is used to pay earlier investors',
+	'Basis Trading': `Projects simultaneously buying and selling crypto futures to profit from price differences between the spot and futures markets`,
+	MEV: 'MEV Layer'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
