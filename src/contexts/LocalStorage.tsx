@@ -287,22 +287,22 @@ export function Updater() {
 	const [state] = useLocalStorageContext()
 
 	useEffect(() => {
-		const toPersist = Object.entries(state).reduce((acc, [key, value]) => {
-			const persist = (value as { value: unknown; persist?: boolean })?.persist
-			// Optionally persisted values are object type with a value and persist key
-			// Local storage is only updated if persist is true
-			if (typeof value === 'object' && 'value' in value && persist === true) {
-				acc[key] = (value as any).value
+		// const toPersist = Object.entries(state).reduce((acc, [key, value]) => {
+		// 	const persist = (value as { value: unknown; persist?: boolean })?.persist
+		// 	// Optionally persisted values are object type with a value and persist key
+		// 	// Local storage is only updated if persist is true
+		// 	if (typeof value === 'object' && 'value' in value && persist === true) {
+		// 		acc[key] = (value as any).value
 
-				// If the value is a boolean, it is persisted
-			} else if (typeof value === 'boolean') {
-				acc[key] = value
-			}
+		// 		// If the value is a boolean, it is persisted
+		// 	} else if (typeof value === 'boolean') {
+		// 		acc[key] = value
+		// 	}
 
-			return acc
-		}, {})
+		// 	return acc
+		// }, {})
 
-		window.localStorage.setItem(DEFILLAMA, JSON.stringify(toPersist))
+		window.localStorage.setItem(DEFILLAMA, JSON.stringify(state))
 	})
 
 	return null
