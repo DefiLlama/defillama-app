@@ -357,14 +357,14 @@ export const cexData: Array<ICex> = [
 		name: 'Flipster',
 		slug: 'flipster',
 		coin: null,
-		walletsLink: "https://flipster.io/support/proof-of-reserves"
+		walletsLink: 'https://flipster.io/support/proof-of-reserves'
 	},
 	{
 		name: 'NonKYC',
 		slug: 'nonkyc',
-		coin: "NKYC",
+		coin: 'NKYC',
 		coinSymbol: 'NKYC',
-		walletsLink: "https://nonkyc.io/allreserves",
+		walletsLink: 'https://nonkyc.io/allreserves',
 		cgId: 'nonkyc_io'
 	},
 	{
@@ -400,13 +400,13 @@ export const cexData: Array<ICex> = [
 		slug: 'backpack',
 		coin: null,
 		coinSymbol: null,
-		walletsLink: "https://dune.com/21co/backpack-exchange",
+		walletsLink: 'https://dune.com/21co/backpack-exchange'
 	},
 	{
 		name: 'HashKey Exchange',
 		slug: 'hashkey-exchange',
 		coin: null,
-		coinSymbol: null,
+		coinSymbol: null
 	},
 	{
 		name: 'Bitmake',
@@ -655,4 +655,4 @@ export default function Protocols({ cexs }) {
 	)
 }
 
-//trigger app caches
+//trigger server gogo
