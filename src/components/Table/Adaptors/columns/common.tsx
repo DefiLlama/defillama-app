@@ -14,6 +14,12 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 	enableSorting: false,
 	cell: ({ getValue, row, table }) => {
 		const value = getValue() as string
+		const Link =
+			row.original?.category === 'NFT' ? (
+				value
+			) : (
+				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(row.original.name)}`}>{`${value}`}</CustomLink>
+			)
 		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 		return (
 			<Name depth={row.depth}>
@@ -28,7 +34,7 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 				)}
 				<span>{index + 1}</span>
 				<TokenLogo logo={row.original.logo} data-lgonly />
-				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(row.original.name)}`}>{`${value}`}</CustomLink>
+				{Link}
 				{row.original.disabled && <QuestionHelper text={`This protocol has been disabled`} />}
 			</Name>
 		)

@@ -9,6 +9,7 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
+import { getNFTCollectionEarnings } from '../nfts'
 
 const fetch = fetchWithErrorLogging
 
@@ -145,20 +146,22 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
 			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
 
-	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData]: [
+	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData, nftsEarnings]: [
 		IGetOverviewResponseBody,
 		{ protocols: LiteProtocol[]; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
 		number,
 		Record<string, Record<string, number>>,
-		IGetOverviewResponseBody
+		IGetOverviewResponseBody,
+		any
 	] = await Promise.all([
 		fetch(getAPIUrl(type, chain, type === 'fees', true)).then(handleFetchResponse),
 		fetch(PROTOCOLS_API).then(handleFetchResponse),
 		fetch(feesOrRevenueApi).then(handleFetchResponse),
 		type === 'dexs' ? getCexVolume() : Promise.resolve(0),
 		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse),
-		fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse)
+		fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse),
+		getNFTCollectionEarnings()
 	])
 
 	const {
@@ -371,6 +374,20 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		acc[protocol.parentProtocol ?? protocol.module] = mainRow
 		return acc
 	}, {} as IJSON<IOverviewProps['protocols'][number]>)
+
+	if (type === 'fees') {
+		nftsEarnings?.earnings?.forEach((nft) => {
+			const { total24h, total7d, total30d, ...rest } = nft
+			const res = {
+				...rest,
+				category: 'NFT',
+				revenue24h: total24h,
+				revenue7d: total7d,
+				revenue30d: total30d
+			}
+			protocolsWithSubrows[nft.defillamaId] = res
+		})
+	}
 
 	/* 	if (revenue?.totalDataChart)
 			allCharts.push(["Revenue", revenue.totalDataChart]) */
