@@ -180,6 +180,7 @@ export const cexData: Array<ICex> = [
 		cgId: 'bybit_spot',
 		cgDeriv: 'bybit'
 	},
+	/*
 	{
 		name: 'Kraken',
 		slug: 'kraken',
@@ -188,6 +189,7 @@ export const cexData: Array<ICex> = [
 		cgId: 'kraken',
 		cgDeriv: 'kraken_futures'
 	},
+	*/
 	{
 		name: 'Crypto.com',
 		slug: 'Crypto-com',
