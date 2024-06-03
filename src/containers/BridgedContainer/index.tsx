@@ -5,7 +5,7 @@ import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { bridgedColumns } from '~/components/Table/Defi/columns'
-import VirtualTable from '~/components/Table/Table'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
 
 import { download } from '~/utils'
 import { sluggify } from '~/utils/cache-client'
@@ -69,7 +69,12 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 			<Header style={{ display: 'flex', justifyContent: 'space-between' }}>
 				Bridged TVL for All chains <CSVDownloadButton onClick={onCSVDownload} />
 			</Header>
-			<VirtualTable instance={instance} cellStyles={{ overflow: 'visible' }} />
+			<TableWithSearch
+				data={data}
+				columns={bridgedColumns}
+				placeholder={'Search chains...'}
+				columnToSearch={['name']}
+			/>
 		</>
 	)
 }
