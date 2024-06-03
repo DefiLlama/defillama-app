@@ -405,8 +405,8 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://dune.com/21co/backpack-exchange'
 	},
 	{
-		name: 'HashKey Exchange',
-		slug: 'hashkey-exchange',
+		name: 'HashKey Global',
+		slug: 'hashkey-global',
 		coin: null,
 		coinSymbol: null
 	},
