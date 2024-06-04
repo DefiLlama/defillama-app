@@ -81,15 +81,15 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 						</Stat>
 						<Stat>
 							<span>Canonical</span>
-							<span>{formattedNum(chainData?.canonical.total, true)}</span>
+							<span>{formattedNum(chainData?.canonical?.total, true)}</span>
 						</Stat>
 						<Stat>
 							<span>Native</span>
-							<span>{formattedNum(chainData?.native.total, true)}</span>
+							<span>{formattedNum(chainData?.native?.total, true)}</span>
 						</Stat>
 						<Stat>
 							<span>Third Party</span>
-							<span>{formattedNum(chainData?.thirdParty.total, true)}</span>
+							<span>{formattedNum(chainData?.thirdParty?.total, true)}</span>
 						</Stat>
 						{chainData?.ownTokens?.total ? (
 							<Stat>
