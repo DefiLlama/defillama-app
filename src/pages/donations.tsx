@@ -51,30 +51,6 @@ function PressPage({ protocols }) {
 
 					<Divider />
 
-					<Section title="Gitcoin">
-						Donations on gitcoin get matched with donations from a quadratic funding pool, so a small 1$ donation can
-						get heavily amplified.
-						<br />
-						<br />
-						DefiLlama has the following grants:
-						<ul>
-							{[
-								['LlamaPay', 'https://gitcoin.co/grants/7077/llamapay'],
-								['DefiLlama', 'https://gitcoin.co/grants/3591/defillama'],
-								['DefiLlama APIs', 'https://gitcoin.co/grants/7087/defillama-apis'],
-								['Chainlist', 'https://gitcoin.co/grants/7791/chainlist']
-							].map((el) => (
-								<li key={el[0]}>
-									<Link href={el[1]} external>
-										{el[0]}
-									</Link>
-								</li>
-							))}
-						</ul>
-					</Section>
-
-					<Divider />
-
 					<Section title="Affiliate links">
 						DefiLlama has referral links for all these protocols, using them with our referral sends us some rewards:
 						<ul>
