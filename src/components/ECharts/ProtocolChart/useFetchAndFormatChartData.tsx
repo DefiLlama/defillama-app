@@ -392,7 +392,7 @@ export function useFetchAndFormatChartData({
 			if (fdv === 'true' && fdvData) {
 				chartsUnique.push('FDV')
 
-				const totalSupply = fdvData['data']['total_supply']
+				const totalSupply = fdvData?.['data']?.['total_supply']
 
 				protocolCGData['prices'].forEach(([dateMs, price]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
@@ -1037,6 +1037,18 @@ export function useFetchAndFormatChartData({
 		fetchingDevMetrics ||
 		fetchingAggregatorsVolume
 
+	console.log(
+		[['UNIX Timestamp', 'Date', ...chartsUnique]]
+			.concat(
+				finalData.map((row) => [
+					row.date,
+					new Date(Number(row.date) * 1e3).toDateString(),
+					...chartsUnique.map((key) => row[key] ?? '')
+				])
+			)
+			.map((row) => row.join(','))
+			.join('\n')
+	)
 	return {
 		fetchingTypes,
 		isLoading,
