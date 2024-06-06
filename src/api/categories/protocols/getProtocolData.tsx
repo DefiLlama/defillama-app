@@ -28,6 +28,7 @@ import {
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
+import { sluggify } from '~/utils/cache-client'
 
 export const getProtocolDataLite = async (protocol: string) => {
 	const [protocolRes]: [IProtocolResponse] = await Promise.all([getProtocol(protocol)])
@@ -609,7 +610,11 @@ export const getProtocolData = async (protocol: string) => {
 	const allTimeDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const metrics = protocolData.metrics || {}
 	const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
-	const projectYields = yields?.data?.filter(({ project }) => project === protocol)
+	const projectYields = yields?.data?.filter(
+		({ project }) =>
+			project === protocol ||
+			(protocolData?.parentProtocol ? false : protocolData?.otherProtocols?.map((p) => sluggify(p)).includes(project))
+	)
 
 	// token liquidity
 	const tokenPools =

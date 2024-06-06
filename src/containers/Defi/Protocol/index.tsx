@@ -1690,7 +1690,7 @@ function ProtocolContainer({
 					)}
 					{yields && (
 						<TabPanel state={tab} tabId="yields">
-							<ProtocolPools data={yields} protocol={protocol} />
+							<ProtocolPools data={yields} protocol={protocol} protocolData={protocolData} />
 						</TabPanel>
 					)}
 					{metrics.fees && (
