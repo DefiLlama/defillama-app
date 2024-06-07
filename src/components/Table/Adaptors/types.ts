@@ -18,6 +18,7 @@ interface IDexs {
 
 export interface IDexsRow extends IDexs {
 	subRows?: Array<IDexs>
+	defillamaId?: string
 }
 
 export interface IVolumesByChain {

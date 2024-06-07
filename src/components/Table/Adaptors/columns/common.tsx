@@ -14,9 +14,14 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 	enableSorting: false,
 	cell: ({ getValue, row, table }) => {
 		const value = getValue() as string
+		const isParent = row.original?.subRows?.length > 0
 		const Link =
 			row.original?.category === 'NFT' ? (
-				value
+				isParent ? (
+					value
+				) : (
+					<CustomLink href={`/nfts/royalties/${row.original.defillamaId}`} target="_blank">{`${value}`}</CustomLink>
+				)
 			) : (
 				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(row.original.name)}`}>{`${value}`}</CustomLink>
 			)

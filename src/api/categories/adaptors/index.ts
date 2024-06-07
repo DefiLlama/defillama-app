@@ -377,15 +377,22 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	if (type === 'fees') {
 		nftsEarnings?.earnings?.forEach((nft) => {
-			const { total24h, total7d, total30d, ...rest } = nft
-			const res = {
-				...rest,
-				category: 'NFT',
-				revenue24h: total24h,
-				revenue7d: total7d,
-				revenue30d: total30d
+			const { total24h, total7d, total30d } = nft
+
+			if (nft.subRows?.length > 0) {
+				nft.logo = nft.subRows[0].logo || nft.logo || null
+				nft.subRows.forEach((subRow) => {
+					subRow.category = 'NFT'
+					subRow.revenue24h = subRow.total24h
+					subRow.revenue7d = subRow.total7d
+					subRow.revenue30d = subRow.total30d
+				})
 			}
-			protocolsWithSubrows[nft.defillamaId] = res
+			nft.category = 'NFT'
+			nft.revenue24h = total24h
+			nft.revenue7d = total7d
+			nft.revenue30d = total30d
+			protocolsWithSubrows[nft.defillamaId] = nft
 		})
 	}
 
