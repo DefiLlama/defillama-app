@@ -485,28 +485,53 @@ export async function getBridgePageDatanew(bridge: string) {
 					return { symbol: entry[0], ...entry[1] }
 				})
 
-			const fullTokenDeposits = Object.values(totalTokensDeposited).map(
+			let fullTokenDeposits = Object.values(totalTokensDeposited).map(
 				(tokenData: { symbol: string; usdValue: number }) => {
 					return { name: tokenData.symbol, value: tokenData.usdValue }
 				}
 			)
+			let fullTokenWithdrawals = Object.values(totalTokensWithdrawn).map(
+				(tokenData: { symbol: string; usdValue: number }) => {
+					return { name: tokenData.symbol, value: tokenData.usdValue }
+				}
+			)
+
+			if (currentChain === 'All Chains') {
+				const allTokensSymbols = new Set(
+					Object.values(totalTokensDeposited).map((token: { symbol: string; usdValue: number }) => token.symbol)
+				)
+				fullTokenDeposits = Array.from(allTokensSymbols).reduce((acc, symbol) => {
+					const sameTokenDeposits = fullTokenDeposits.filter((token) => token.name === symbol)
+					const totalValue = sameTokenDeposits.reduce((total, entry) => {
+						return (total += entry.value)
+					}, 0)
+					return acc.concat({ name: symbol, value: totalValue })
+				}, [])
+
+				const allTokensSymbolsWithdrawn = new Set(
+					Object.values(totalTokensWithdrawn).map((token: { symbol: string; usdValue: number }) => token.symbol)
+				)
+				fullTokenWithdrawals = Array.from(allTokensSymbolsWithdrawn).reduce((acc, symbol) => {
+					const sameTokenWithdrawals = fullTokenWithdrawals.filter((token) => token.name === symbol)
+					const totalValue = sameTokenWithdrawals.reduce((total, entry) => {
+						return (total += entry.value)
+					}, 0)
+					return acc.concat({ name: symbol, value: totalValue })
+				}, [])
+			}
+
 			const otherDeposits = fullTokenDeposits.slice(10).reduce((total, entry) => {
 				return (total += entry.value)
 			}, 0)
 			tokenDeposits = fullTokenDeposits
-				.slice(0, 10)
+				.slice(0, 15)
 				.sort((a, b) => b.value - a.value)
 				.concat({ name: 'Others', value: otherDeposits })
-			const fullTokenWithdrawals = Object.values(totalTokensWithdrawn).map(
-				(tokenData: { symbol: string; usdValue: number }) => {
-					return { name: tokenData.symbol, value: tokenData.usdValue }
-				}
-			)
 			const otherWithdrawals = fullTokenWithdrawals.slice(10).reduce((total, entry) => {
 				return (total += entry.value)
 			}, 0)
 			tokenWithdrawals = fullTokenWithdrawals
-				.slice(0, 10)
+				.slice(0, 15)
 				.sort((a, b) => b.value - a.value)
 				.concat({ name: 'Others', value: otherWithdrawals })
 			tokenColor = Object.fromEntries(
