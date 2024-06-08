@@ -127,7 +127,7 @@ export const Total24hColumn = (
 	helperText?: string,
 	extraWidth?: number,
 	header?: string,
-	hideNull = false
+	hideNull = true
 ): ColumnDef<IDexsRow> => {
 	const accessor = alternativeAccessor ?? 'total24h'
 	return {
