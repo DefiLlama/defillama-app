@@ -83,13 +83,14 @@ export default function VirtualTable({
 			minTableWidth += header.getSize() ?? 0
 		}
 	}
+
 	return (
 		<Wrapper ref={tableContainerRef} {...props}>
 			<div
 				style={{
 					display: 'flex',
 					flexDirection: 'column',
-					...(skipVirtualization ? { minWidth: `${minTableWidth}px` } : {})
+					...(skipVirtualization || instance.getHeaderGroups().length === 1 ? { minWidth: `${minTableWidth}px` } : {})
 				}}
 			>
 				{instance.getHeaderGroups().map((headerGroup) => (
@@ -132,7 +133,8 @@ export default function VirtualTable({
 						: {
 								height: `${rowVirtualizer.getTotalSize()}px`,
 								width: '100%',
-								position: 'relative'
+								position: 'relative',
+								...(instance.getHeaderGroups().length === 1 ? { minWidth: `${minTableWidth}px` } : {})
 						  }
 				}
 			>
