@@ -278,12 +278,12 @@ export const navLinks: ILinks = {
 	},
 	Volumes: {
 		main: [
-			{ name: 'Overview', path: '/dexs' },
+			{ name: 'DEXs', path: '/dexs' },
 			{ name: 'Chains', path: '/dexs/chains' },
 			{ name: 'Aggregators', path: '/aggregators', newTag: true },
-			{ name: 'Derivatives', path: '/derivatives' },
-			{ name: 'Derivatives (Chains)', path: '/derivatives/chains' },
-			{ name: 'Derivatives (Agg)', path: '/derivatives-aggregator', newTag: true },
+			{ name: 'Perps', path: '/derivatives' },
+			{ name: 'Perps (Chains)', path: '/derivatives/chains' },
+			{ name: 'Perp Aggregators', path: '/derivatives-aggregator', newTag: true },
 			{ name: 'Options', path: '/options' },
 			{ name: 'Options (Chains)', path: '/options/chains' }
 		],
