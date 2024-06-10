@@ -825,6 +825,7 @@ export async function getLSDPageData() {
 
 	let lsdApy = pools
 		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
+		.concat(pools.find((i) => i.project === 'crypto.com-staked-eth'))
 		.map((p) => ({
 			...p,
 			name: p.project
@@ -847,6 +848,8 @@ export async function getLSDPageData() {
 				? 'Dinero (Pirex ETH)'
 				: p.project === 'mev-protocol'
 				? 'MEV Protocol'
+				: p.project === 'crypto.com-staked-eth'
+				? 'Crypto.com Staked ETH'
 				: p.name
 	}))
 
