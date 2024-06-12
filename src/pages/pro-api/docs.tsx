@@ -6,10 +6,7 @@ export default function Docs() {
 	if (typeof window === 'undefined') {
 		return <>Loading...</>
 	}
-	const apiKey = window.localStorage.getItem(`pro_apikey`)
-	if (apiKey === null) {
-		return <>You are not subscribed or logged in</>
-	}
+	const apiKey = window.localStorage.getItem(`pro_apikey`) ?? 'APIKEY'
 	return (
 		<ApiDocs
 			spec={{
