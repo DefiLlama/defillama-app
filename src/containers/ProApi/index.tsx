@@ -20,6 +20,7 @@ import { useGetCurrentKey } from './queries/useGetCurrentKey'
 import { Description } from '~/components/Correlations/styles'
 import { useSaveEmail } from './queries/useEmail'
 import DiscordButton from './DiscordButton'
+import QuestionHelper from '~/components/QuestionHelper'
 
 const Body = styled.div`
 	margin-top: 120px;
@@ -199,17 +200,53 @@ const ProApi = () => {
 				)}
 
 				{!authToken || !isSubscribed ? (
-					<ListBody>
-						<h2>Plan Includes:</h2>
-						<ListItem>
-							<CheckIcon />
-							Increased API limits
-						</ListItem>
-						<ListItem>
-							<CheckIcon />
-							Access to premium API endpoints
-						</ListItem>
-					</ListBody>
+					<>
+						<h2>Pricing:</h2>
+						<table>
+							<tr>
+								<th></th>
+								<th>Free</th>
+								<th>300$/mo</th>
+								<th>
+									<span>
+										Github Contributor
+										<QuestionHelper text="Only available to users who have contributed to DefiLlama repos, lasts for 3 months" />
+									</span>
+								</th>
+							</tr>
+							<tr>
+								<td>Access to TVL, revenue/fees and prices</td>
+								<td>Yes</td>
+								<td>Yes</td>
+								<td>Yes</td>
+							</tr>
+							<tr>
+								<td>Access to all data (unlocks, active users, token liq...)</td>
+								<td>No</td>
+								<td>Yes</td>
+								<td>Yes</td>
+							</tr>
+							<tr>
+								<td>Rate limits</td>
+								<td>10-200 reqs/minute</td>
+								<td>1k reqs/minute</td>
+								<td>1k reqs/minute</td>
+							</tr>
+							<tr>
+								<td>Credits</td>
+								<td></td>
+								<td>1M calls/month</td>
+								<td>200k calls/month</td>
+							</tr>
+							<tr>
+								<td>Support</td>
+								<td>Public discord</td>
+								<td>Priority support</td>
+								<td>Priority support</td>
+							</tr>
+						</table>
+						<a href="/pro-api/docs">Click here a full lists of all endpoints available in Pro</a>
+					</>
 				) : (
 					<>
 						<div style={{ display: 'flex', marginTop: '16px' }}>
