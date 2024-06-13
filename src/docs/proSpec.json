@@ -38,6 +38,10 @@
 		{
 			"name": "token liquidity",
 			"description": "Provides the available liquidity for swapping from one token to another on a specific chain"
+		},
+		{
+			"name": "Yields",
+			"description": "Data from our yields/APY dashboard"
 		}
 	],
 	"paths": {
@@ -404,6 +408,146 @@
 						}
 					}
 				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/pools": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Retrieve the latest data for all pools, including enriched information such as predictions",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/poolsOld": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Same as /pools but it also includes a new parameter `pool_old` which usually contains pool address (but not guaranteed)",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/chart/{pool}": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Get historical APY and TVL of a pool",
+				"parameters": [
+					{
+						"name": "pool",
+						"in": "path",
+						"required": true,
+						"description": "pool id, can be retrieved from /pools (property is called pool)",
+						"schema": {
+							"type": "string",
+							"example": "747c1d2a-c668-4682-b9f9-296708a3dd90"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/chartHourly/{pool}": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Same as /chart/{pool} but with hourly granularity",
+				"parameters": [
+					{
+						"name": "pool",
+						"in": "path",
+						"required": true,
+						"description": "pool id, can be retrieved from /pools (property is called pool)",
+						"schema": {
+							"type": "string",
+							"example": "747c1d2a-c668-4682-b9f9-296708a3dd90"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/poolsBorrow": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Borrow costs APY of assets from lending markets",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/chartLendBorrow/{pool}": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Historical borrow cost APY from a pool on a lending market, pool ids should be obtained from /poolsBorrow",
+				"parameters": [
+					{
+						"name": "pool",
+						"in": "path",
+						"required": true,
+						"description": "pool id, can be retrieved from /poolsBorrow (property is called pool)",
+						"schema": {
+							"type": "string",
+							"example": "71418c17-d2aa-4eff-b68a-806fff9ec951"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/perps": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Funding rates and Open Interest of perps across exchanges, including both Decentralized and Centralized",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/lsdRates": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "APY rates of multiple LSDs",
 				"responses": {
 					"200": {
 						"description": "successful operation"
