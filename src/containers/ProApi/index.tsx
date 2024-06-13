@@ -21,6 +21,8 @@ import { Description } from '~/components/Correlations/styles'
 import { useSaveEmail } from './queries/useEmail'
 import DiscordButton from './DiscordButton'
 import QuestionHelper from '~/components/QuestionHelper'
+import Link from 'next/link'
+import { FlexRow } from '~/layout/ProtocolAndPool'
 
 const Body = styled.div`
 	margin-top: 120px;
@@ -81,7 +83,7 @@ export const Box = styled.div`
 	width: 100%;
 	border-radius: 10px;
 	transition: all 0.3s ease;
-	padding: 15px;
+	padding: 16px;
 	background-color: ${({ theme }) => theme.bg1};
 	color: ${({ theme }) => theme.text1};
 	gap: 16px;
@@ -202,50 +204,54 @@ const ProApi = () => {
 				{!authToken || !isSubscribed ? (
 					<>
 						<h2>Pricing:</h2>
-						<table>
-							<tr>
-								<th></th>
-								<th>Free</th>
-								<th>300$/mo</th>
-								<th>
-									<span>
-										Github Contributor
-										<QuestionHelper text="Only available to users who have contributed to DefiLlama repos, lasts for 3 months" />
-									</span>
-								</th>
-							</tr>
-							<tr>
-								<td>Access to TVL, revenue/fees and prices</td>
-								<td>Yes</td>
-								<td>Yes</td>
-								<td>Yes</td>
-							</tr>
-							<tr>
-								<td>Access to all data (unlocks, active users, token liq...)</td>
-								<td>No</td>
-								<td>Yes</td>
-								<td>Yes</td>
-							</tr>
-							<tr>
-								<td>Rate limits</td>
-								<td>10-200 reqs/minute</td>
-								<td>1k reqs/minute</td>
-								<td>1k reqs/minute</td>
-							</tr>
-							<tr>
-								<td>Credits</td>
-								<td></td>
-								<td>1M calls/month</td>
-								<td>200k calls/month</td>
-							</tr>
-							<tr>
-								<td>Support</td>
-								<td>Public discord</td>
-								<td>Priority support</td>
-								<td>Priority support</td>
-							</tr>
-						</table>
-						<a href="/pro-api/docs">Click here a full lists of all endpoints available in Pro</a>
+						<TableWrapper>
+							<PricingTable>
+								<tbody>
+									<tr>
+										<th></th>
+										<th>Free</th>
+										<th>300$/mo</th>
+										<th>
+											<FlexRow as="span">
+												Github Contributor
+												<QuestionHelper text="Only available to users who have contributed to DefiLlama repos, lasts for 3 months" />
+											</FlexRow>
+										</th>
+									</tr>
+									<tr>
+										<td>Access to TVL, revenue/fees and prices</td>
+										<td>Yes</td>
+										<td>Yes</td>
+										<td>Yes</td>
+									</tr>
+									<tr>
+										<td>Access to all data (unlocks, active users, token liq...)</td>
+										<td>No</td>
+										<td>Yes</td>
+										<td>Yes</td>
+									</tr>
+									<tr>
+										<td>Rate limits</td>
+										<td>10-200 reqs/minute</td>
+										<td>1k reqs/minute</td>
+										<td>1k reqs/minute</td>
+									</tr>
+									<tr>
+										<td>Credits</td>
+										<td></td>
+										<td>1M calls/month</td>
+										<td>200k calls/month</td>
+									</tr>
+									<tr>
+										<td>Support</td>
+										<td>Public discord</td>
+										<td>Priority support</td>
+										<td>Priority support</td>
+									</tr>
+								</tbody>
+							</PricingTable>
+							<Link href="/pro-api/docs">Click here a full lists of all endpoints available in Pro</Link>
+						</TableWrapper>
 					</>
 				) : (
 					<>
@@ -334,5 +340,21 @@ const ProApi = () => {
 		</Body>
 	)
 }
+
+const TableWrapper = styled.div`
+	overflow: auto;
+`
+const PricingTable = styled.table`
+	border-collapse: collapse;
+
+	th,
+	td {
+		padding: 12px;
+		background-color: ${({ theme }) => theme.bg1};
+		color: ${({ theme }) => theme.text1};
+		border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? theme.bg2 : theme.bg3)};
+		white-space: nowrap;
+	}
+`
 
 export default ProApi
