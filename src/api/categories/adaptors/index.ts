@@ -377,6 +377,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	if (type === 'fees') {
 		nftsEarnings?.earnings?.forEach((nft) => {
+			if (chain && !nft.chains?.some((c) => c?.toLowerCase() === chain)) return
 			const { total24h, total7d, total30d } = nft
 
 			if (nft.subRows?.length > 0) {
