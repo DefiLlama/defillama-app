@@ -82,6 +82,7 @@ export const derivativesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 		Change7dColumn,
 		Change1mColumn,
 		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', 'total7d', `Cumulative last 7d volume`, undefined, 'Volume (7d)'),
 		Total24hColumn('Open Interest', 'dailyOpenInterest', 'updated daily at 00:00UTC', undefined, 'Open Interest', true),
 		TotalAllTimeColumn('volume'),
 		allChains ? undefined : VolumeTVLColumn,
@@ -109,6 +110,7 @@ export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 		Change7dColumn,
 		Change1mColumn,
 		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', 'total7d', `Cumulative last 7d volume`, undefined, 'Volume (7d)'),
 		TotalAllTimeColumn('volume'),
 		DominanceColumn
 	].filter((c) => c !== undefined)
