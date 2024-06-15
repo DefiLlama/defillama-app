@@ -161,5 +161,6 @@ export const scams = ['SyncDEX Finance', 'Avatr', 'SatoshiCoreSwap', 'Opankeswap
 	'Glori Finance',
 	'ZebraDAO',
 	'Leaper Finance',
-	'ShibaNova'
+	'ShibaNova',
+	'DaikoDEX'
 ]
