@@ -3,6 +3,7 @@ import { ISettings } from '~/contexts/types'
 import { getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 import { IOverviewProps, getAnnualizedRatio } from '~/api/categories/adaptors'
+import { removedCategories } from '~/constants'
 
 interface IData {
 	tvl: number
@@ -267,7 +268,7 @@ export const formatProtocolsList = ({
 					strikeTvl = true
 				}
 
-				if (['RWA', 'Infrastructure', 'Staking Pool'].includes(props.category)) {
+				if (removedCategories.includes(props.category)) {
 					strikeTvl = true
 				}
 

@@ -14,6 +14,7 @@ import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDayAndHo
 import { AccordionButton, Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
+import { removedCategories } from '~/constants'
 
 const columnHelper = createColumnHelper<IProtocolRow>()
 
@@ -853,9 +854,11 @@ const Tvl = ({ value, rowValues }) => {
 				'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
 		}
 
-		if (rowValues.category === 'RWA') {
-			text = 'RWA protocols are not counted into Chain TVL'
-		}
+		removedCategories.forEach((removedCategory) => {
+			if (rowValues.category === removedCategory) {
+				text = `${removedCategory} protocols are not counted into Chain TVL`
+			}
+		})
 
 		if (text && rowValues.isParentProtocol) {
 			text = 'Some subprotocols are excluded from chain tvl'

@@ -164,3 +164,5 @@ export const scams = ['SyncDEX Finance', 'Avatr', 'SatoshiCoreSwap', 'Opankeswap
 	'ShibaNova',
 	'DaikoDEX'
 ]
+
+export const removedCategories = ['Basis Trading', 'RWA', 'Infrastructure', 'Staking Pool']
