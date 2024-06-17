@@ -110,12 +110,15 @@ const blockExplorers = {
 	aptos: ['https://aptoscan.com/account/', 'Aptoscan'],
 	zeta: ['https://zetachain.blockscout.com/token/', 'Zeta Blockscout'],
 	manta_atlantic: ['https://manta.subscan.io/account/', 'Manta Atlantic Subscan'],
-    merlin: ['https://scan.merlinchain.io/token/', 'Merlin Explorer'],
+	merlin: ['https://scan.merlinchain.io/token/', 'Merlin Explorer'],
 	bitrock: ['https://explorer.bit-rock.io/token/', 'Bitrock Explorer'],
 	blast: ['https://blastscan.io/token/', 'Blastscan'],
 	mode: ['https://modescan.io/token/', 'Modescan'],
 	btr: ['https://www.btrscan.com/token/', 'BTRscan'],
 	degen: ['https://explorer.degen.tips/token/', 'DegenExplorer'],
+	rari: ['https://mainnet.explorer.rarichain.org/address/', 'Rari Blockscout'],
+	xai: ['https://explorer.xai-chain.net/address/', 'XAI Blockscout'],
+	sanko: ['https://explorer.sanko.xyz/address/', 'Sanko Blockscout']
 }
 
 export const getBlockExplorer = (address: string = '') => {
