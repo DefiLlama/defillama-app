@@ -83,12 +83,14 @@ export const useGetItemOverviewByChain = (chain?: string, item?: string) => {
 }
 
 export const useGetChainAssetsChart = (chain?: string) => {
-	const { data, error } = useSWR(
+	let { data, error } = useSWR(
 		`chainAssetsChart/${chain}`,
 		chain && chain !== 'All'
 			? () => fetch(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`).then((r) => r.json())
 			: () => null
 	)
-
+	if (!Array.isArray(data)) {
+		data = undefined
+	}
 	return { data, loading: !data && data !== null && !error }
 }
