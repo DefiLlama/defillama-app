@@ -91,6 +91,7 @@ export const useGetChainAssetsChart = (chain?: string) => {
 	)
 	if (!Array.isArray(data)) {
 		data = undefined
+		error = true
 	}
 	return { data, loading: !data && data !== null && !error }
 }
