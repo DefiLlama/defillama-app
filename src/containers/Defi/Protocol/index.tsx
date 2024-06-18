@@ -1361,7 +1361,7 @@ function ProtocolContainer({
 								{twitter && twitterData?.lastTweet ? (
 									<FlexRow>
 										<span>Last tweet:</span> {dayjs(twitterData?.lastTweet?.time).fromNow()} (
-										{dayjs(devMetrics.last_commit_update_time).format('YYYY-MM-DD')})
+										{dayjs(twitterData?.lastTweet?.time).format('YYYY-MM-DD')})
 									</FlexRow>
 								) : null}
 							</Section>

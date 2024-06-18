@@ -298,7 +298,7 @@ export const useFetchProtocolTwitter = (twitter?: string | null) => {
 		twitter ? () => fetch(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((r) => r.json()) : () => null,
 		{ errorRetryCount: 0 }
 	)
-	const data = { ...res, tweets: Object.entries(res?.tweetStats) }
+	const data = res && res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
 
 	return { data, error, loading: twitter && !data && !error }
 }
