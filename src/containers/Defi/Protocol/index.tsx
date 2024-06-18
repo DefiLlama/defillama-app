@@ -367,8 +367,7 @@ function ProtocolContainer({
 
 	const [extraTvlsEnabled, updater] = useTvlAndFeesManager()
 
-	const { data: twitterData } = useFetchProtocolTwitter(twitter ? twitter : null)
-
+	const { data: twitterData } = useFetchProtocolTwitter(protocolData?.twitter ? protocolData?.twitter : null)
 	const weeksFromLastTweet = React.useMemo(() => {
 		if (twitterData) {
 			const lastTweetDate = twitterData.tweets?.slice(-1)?.[0]?.date
@@ -377,7 +376,6 @@ function ProtocolContainer({
 			return weeksFromLastTweet
 		}
 	}, [twitterData])
-
 	const totalVolume = React.useMemo(() => {
 		let tvl = 0
 
@@ -1360,6 +1358,12 @@ function ProtocolContainer({
 										</Link>
 									)}
 								</LinksWrapper>
+								{twitter && twitterData?.lastTweet ? (
+									<FlexRow>
+										<span>Last tweet:</span> {dayjs(twitterData?.lastTweet?.time).fromNow()} (
+										{dayjs(devMetrics.last_commit_update_time).format('YYYY-MM-DD')})
+									</FlexRow>
+								) : null}
 							</Section>
 
 							{articles && articles.length > 0 && (

@@ -10,7 +10,7 @@ import {
 	PROTOCOL_TRANSACTIONS_API,
 	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API,
-	TWITTER_POSTS_API,
+	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
@@ -293,11 +293,12 @@ export const useGetProtocolEmissions = (protocol?: string | null) => {
 }
 
 export const useFetchProtocolTwitter = (twitter?: string | null) => {
-	const { data, error } = useSWR(
+	const { data: res, error } = useSWR(
 		`twitterData1/${twitter}`,
-		twitter ? () => fetch(TWITTER_POSTS_API + `/${twitter?.toLowerCase()}.json`).then((r) => r.json()) : () => null,
+		twitter ? () => fetch(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((r) => r.json()) : () => null,
 		{ errorRetryCount: 0 }
 	)
+	const data = { ...res, tweets: Object.entries(res?.tweetStats) }
 
 	return { data, error, loading: twitter && !data && !error }
 }

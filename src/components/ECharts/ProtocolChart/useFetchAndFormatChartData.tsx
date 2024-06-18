@@ -579,12 +579,15 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Tweets')
 
 			twitterData?.tweets?.forEach((tweet) => {
-				const date = Math.floor(nearestUtc(tweet.date) / 1000)
+				const date = dayjs(tweet[0] * 1000)
+					.utc()
+					.startOf('day')
+					.unix()
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date]['Tweets'] = chartData[date]['Tweets'] ? chartData[date]['Tweets'] + 1 : 1
+				chartData[date]['Tweets'] = (chartData[date]['Tweets'] || 0) + tweet[1]
 			})
 		}
 
