@@ -293,6 +293,7 @@ export const useGetProtocolEmissions = (protocol?: string | null) => {
 }
 
 export const useFetchProtocolTwitter = (twitter?: string | null) => {
+	return { data: null, error: null, loading: false }
 	const { data: res, error } = useSWR(
 		`twitterData1/${twitter}`,
 		twitter ? () => fetch(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((r) => r.json()) : () => null,
