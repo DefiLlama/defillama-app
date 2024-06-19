@@ -580,7 +580,6 @@ export function useFetchAndFormatChartData({
 
 			twitterData?.tweets?.forEach((tweet) => {
 				const date = dayjs(tweet[0] * 1000)
-					.utc()
 					.startOf('day')
 					.unix()
 				if (!chartData[date]) {
