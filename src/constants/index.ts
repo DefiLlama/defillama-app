@@ -130,7 +130,7 @@ export const COINS_API = 'https://coins.llama.fi/prices'
 export const PRICE_CHART_API = 'https://coins.llama.fi/chart'
 
 export const TWITTER_POSTS_API = 'https://defillama-datasets.llama.fi/dev-metrics/twitter-files'
-export const TWITTER_POSTS_API_V2 = ''
+export const TWITTER_POSTS_API_V2 = 'https://api.llama.fi/twitter/user'
 
 export const HACKS_API = 'https://api.llama.fi/hacks'
 
