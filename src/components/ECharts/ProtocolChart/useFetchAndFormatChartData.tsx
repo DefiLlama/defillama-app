@@ -575,7 +575,7 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
-		if (twitterData && twitterData.tweets) {
+		if (twitterData && twitterData?.tweets && twitterData?.lastTweet) {
 			chartsUnique.push('Tweets')
 
 			twitterData?.tweets?.forEach((tweet) => {
