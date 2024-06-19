@@ -144,7 +144,7 @@ export const fetchAndFormatGovernanceData = async (
 }
 
 export function GovernanceData({ apis = [], color }: { apis: Array<string>; color: string }) {
-	const [apiCatergoyIndex, setApiCategoryIndex] = React.useState<number>(0)
+	const [apiCategoryIndex, setApiCategoryIndex] = React.useState<number>(0)
 
 	const { data, error } = useSWR(JSON.stringify(apis), () => fetchAndFormatGovernanceData(apis))
 
@@ -171,7 +171,7 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 							as="button"
 							key={apiCat + 'governance-table-filter'}
 							onClick={() => setApiCategoryIndex(index)}
-							active={apiCatergoyIndex === index}
+							active={apiCategoryIndex === index}
 						>
 							{apiCat}
 						</Denomination>
@@ -180,11 +180,11 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 			) : null}
 
 			<GovernanceTable
-				data={data[apiCatergoyIndex]}
+				data={data[apiCategoryIndex]}
 				governanceType={
-					apis[apiCatergoyIndex].includes('governance-cache/snapshot')
+					apis[apiCategoryIndex].includes('governance-cache/snapshot')
 						? 'snapshot'
-						: apis[apiCatergoyIndex].includes('governance-cache/compound')
+						: apis[apiCategoryIndex].includes('governance-cache/compound')
 						? 'compound'
 						: 'tally'
 				}
