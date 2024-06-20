@@ -398,6 +398,12 @@ export const cexData: Array<ICex> = [
 		cgId: 'btse'
 	},
 	{
+		name: 'HashKey Exchange',
+		slug: 'hashkey-exchange',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Backpack',
 		slug: 'backpack',
 		coin: null,
