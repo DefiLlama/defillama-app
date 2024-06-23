@@ -36,7 +36,8 @@ import type {
 	IGovernance,
 	IETFRow,
 	AirdropRow,
-	IBridgedRow
+	IBridgedRow,
+	FDVRow
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
@@ -1753,6 +1754,63 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 			align: 'end'
 		},
 		size: 190
+	}
+]
+
+export const FDVColumn: ColumnDef<FDVRow>[] = [
+	{
+		header: 'Category',
+		accessorKey: 'categoryName',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <Name>{getValue()}</Name>
+		},
+		size: 280
+	},
+	{
+		header: 'FDV',
+		accessorKey: 'fdv',
+		cell: ({ getValue }) => <>{formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1d change',
+		accessorKey: 'fdvPctChange1d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1w change',
+		accessorKey: 'fdvPctChange1W',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1m change',
+		accessorKey: 'fdvPctChange1M',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1y change',
+		accessorKey: 'fdvPctChange1Y',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
 	}
 ]
 

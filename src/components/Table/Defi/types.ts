@@ -114,3 +114,12 @@ export interface IBridgedRow {
 	ownTokens: ChainAssets['ownTokens']
 	change_24h: number
 }
+
+export interface FDVRow {
+	categoryName: string
+	fdv: number
+	fdvPctChange1D: number
+	fdvPctChange1W: number
+	fdvPctChange1M: number
+	fdvPctChange1Y: number
+}
