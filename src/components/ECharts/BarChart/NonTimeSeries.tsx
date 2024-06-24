@@ -85,7 +85,7 @@ export default function NonTimeSeriesBarChart({
 					opacity: 0.1
 				}
 			},
-			axisLabel: { interval: 25, rotate: 30 }
+			axisLabel: { interval: 0, rotate: 30 }
 		}
 
 		const yAxis = {

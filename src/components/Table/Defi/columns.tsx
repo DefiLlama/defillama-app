@@ -1770,7 +1770,7 @@ export const FDVColumn: ColumnDef<FDVRow>[] = [
 	{
 		header: 'FDV',
 		accessorKey: 'fdv',
-		cell: ({ getValue }) => <>{formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1778,7 +1778,7 @@ export const FDVColumn: ColumnDef<FDVRow>[] = [
 	},
 	{
 		header: '1d change',
-		accessorKey: 'fdvPctChange1d',
+		accessorKey: 'fdvPctChange1D',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
