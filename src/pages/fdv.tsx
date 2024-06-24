@@ -33,8 +33,16 @@ const ChartsContainer = styled.div`
 	border-radius: 8px;
 `
 
+const TabContainer = styled.div`
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	min-height: 360px;
+`
+
 const PageView = ({ fdv }) => {
-	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
+	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily')
 
 	const fdvData = fdv.map((i) => [i.categoryName, i.fdvPctChange1D])
 
@@ -47,27 +55,29 @@ const PageView = ({ fdv }) => {
 			</TotalLocked>
 
 			<ChartsContainer>
-				<>
-					<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
-						<Denomination as="button" active={groupBy === 'daily'} onClick={() => setGroupBy('daily')}>
-							Daily
-						</Denomination>
+				<TabContainer>
+					<>
+						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
+							<Denomination as="button" active={groupBy === 'daily'} onClick={() => setGroupBy('daily')}>
+								Daily
+							</Denomination>
 
-						<Denomination as="button" active={groupBy === 'weekly'} onClick={() => setGroupBy('weekly')}>
-							Weekly
-						</Denomination>
+							<Denomination as="button" active={groupBy === 'weekly'} onClick={() => setGroupBy('weekly')}>
+								Weekly
+							</Denomination>
 
-						<Denomination as="button" active={groupBy === 'monthly'} onClick={() => setGroupBy('monthly')}>
-							Monthly
-						</Denomination>
+							<Denomination as="button" active={groupBy === 'monthly'} onClick={() => setGroupBy('monthly')}>
+								Monthly
+							</Denomination>
 
-						<Denomination as="button" active={groupBy === 'cumulative'} onClick={() => setGroupBy('cumulative')}>
-							Cumulative
-						</Denomination>
-					</Filters>
+							<Denomination as="button" active={groupBy === 'yearly'} onClick={() => setGroupBy('yearly')}>
+								Yearly
+							</Denomination>
+						</Filters>
 
-					<BarChart title="FDV Changes" chartData={fdvData} valueSymbol="%" height="520px" />
-				</>
+						<BarChart title="" chartData={fdvData} valueSymbol="%" height="480px" />
+					</>
+				</TabContainer>
 			</ChartsContainer>
 
 			<TableWithSearch
