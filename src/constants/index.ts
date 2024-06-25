@@ -169,7 +169,8 @@ export const scams = [
 	'ZebraDAO',
 	'Leaper Finance',
 	'ShibaNova',
-	'DaikoDEX'
+	'DaikoDEX',
+	'BaySwap'
 ]
 
 export const removedCategories = ['Basis Trading', 'RWA', 'Infrastructure', 'Staking Pool']
