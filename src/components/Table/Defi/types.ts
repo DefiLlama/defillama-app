@@ -115,7 +115,7 @@ export interface IBridgedRow {
 	change_24h: number
 }
 
-export interface FDVRow {
+export interface PerformanceRow {
 	categoryName: string
 	fdv: number
 	fdvPctChange1D: number

@@ -37,7 +37,7 @@ import type {
 	IETFRow,
 	AirdropRow,
 	IBridgedRow,
-	FDVRow
+	PerformanceRow
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
@@ -1757,7 +1757,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 	}
 ]
 
-export const FDVColumn: ColumnDef<FDVRow>[] = [
+export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'categoryName',

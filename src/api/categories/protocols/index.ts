@@ -22,7 +22,7 @@ import {
 	CHAINS_API_V2,
 	CHAIN_ASSETS_FLOWS,
 	BRIDGEINFLOWS_API,
-	FDV_API
+	CATEGORY_PERFORMANCE_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -1043,8 +1043,8 @@ export async function getChainsBridged(chain?: string) {
 	return { chains, assets, flows1d, chainData, inflows, tokenInflowNames: Array.from(tokenInflowNames) }
 }
 
-export async function getFdv() {
-	const fdv = await fetchWithErrorLogging(FDV_API).then((r) => r.json())
+export async function getCategoryPerformance() {
+	const performance = await fetchWithErrorLogging(CATEGORY_PERFORMANCE_API).then((r) => r.json())
 
-	return fdv
+	return performance
 }
