@@ -1044,9 +1044,7 @@ export async function getChainsBridged(chain?: string) {
 }
 
 export async function getFdv() {
-	const fdv = (await fetchWithErrorLogging(FDV_API).then((r) => r.json()))
-		.sort((a, b) => b.fdvPctChange1D - a.fdvPctChange1D)
-		.filter((i) => i.categoryName !== 'Tokenized Gold')
+	const fdv = await fetchWithErrorLogging(FDV_API).then((r) => r.json())
 
 	return fdv
 }

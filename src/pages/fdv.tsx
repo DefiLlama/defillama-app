@@ -22,7 +22,7 @@ export const getStaticProps = withPerformanceLogging('fdv', async () => {
 	const fdv = await getFdv()
 
 	return {
-		props: { fdv },
+		props: { ...fdv },
 		revalidate: maxAgeForNext([22])
 	}
 })
@@ -41,10 +41,10 @@ const TabContainer = styled.div`
 	min-height: 360px;
 `
 
-const PageView = ({ fdv }) => {
+const PageView = ({ categoryAverages, pctChangeCoins }) => {
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily')
 
-	const fdvData = fdv.map((i) => [i.categoryName, i.fdvPctChange1D])
+	const averages = categoryAverages.sort((a, b) => b.wavg1D - a.wavg1D).map((i) => [i.categoryName, i.wavg1D])
 
 	return (
 		<>
@@ -75,13 +75,13 @@ const PageView = ({ fdv }) => {
 							</Denomination>
 						</Filters>
 
-						<BarChart title="" chartData={fdvData} valueSymbol="%" height="480px" />
+						<BarChart title="" chartData={averages} valueSymbol="%" height="480px" />
 					</>
 				</TabContainer>
 			</ChartsContainer>
 
 			<TableWithSearch
-				data={fdv}
+				data={categoryAverages}
 				columns={FDVColumn}
 				columnToSearch={'categoryName'}
 				placeholder={'Search category...'}

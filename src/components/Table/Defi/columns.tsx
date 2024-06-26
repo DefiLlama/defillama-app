@@ -1778,7 +1778,7 @@ export const FDVColumn: ColumnDef<FDVRow>[] = [
 	},
 	{
 		header: '1d change',
-		accessorKey: 'fdvPctChange1D',
+		accessorKey: 'wavg1D',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1787,7 +1787,7 @@ export const FDVColumn: ColumnDef<FDVRow>[] = [
 	},
 	{
 		header: '1w change',
-		accessorKey: 'fdvPctChange1W',
+		accessorKey: 'wavg1W',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1796,7 +1796,7 @@ export const FDVColumn: ColumnDef<FDVRow>[] = [
 	},
 	{
 		header: '1m change',
-		accessorKey: 'fdvPctChange1M',
+		accessorKey: 'wavg1M',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1805,7 +1805,7 @@ export const FDVColumn: ColumnDef<FDVRow>[] = [
 	},
 	{
 		header: '1y change',
-		accessorKey: 'fdvPctChange1Y',
+		accessorKey: 'wavg1Y',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
