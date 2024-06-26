@@ -1811,6 +1811,15 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 			align: 'end'
 		},
 		size: 110
+	},
+	{
+		header: '# of Coins',
+		accessorKey: 'nbCoins',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
 	}
 ]
 

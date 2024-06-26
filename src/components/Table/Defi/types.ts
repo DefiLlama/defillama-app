@@ -122,4 +122,5 @@ export interface PerformanceRow {
 	fdvPctChange1W: number
 	fdvPctChange1M: number
 	fdvPctChange1Y: number
+	nbCoins: number
 }
