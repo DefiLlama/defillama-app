@@ -2,15 +2,10 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
-import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search'
-import { maxAgeForNext } from '~/api'
-import { getCategoryPerformance } from '~/api/categories/protocols'
-import { withPerformanceLogging } from '~/utils/perf'
 
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { PerformanceColumn } from '~/components/Table/Defi/columns'
+import { PerformanceCoinsColumn } from '~/components/Table/Defi/columns'
 import { primaryColor } from '~/constants/colors'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 
@@ -44,28 +39,17 @@ const TotalLocked = styled(Header)`
 	}
 `
 
-export const getStaticProps = withPerformanceLogging('fdv', async () => {
-	const performance = await getCategoryPerformance()
-
-	return {
-		props: { ...performance },
-		revalidate: maxAgeForNext([22])
-	}
-})
-
-const PageView = ({ categoryPerformance }) => {
+export const FdvContainer = ({ categoryPerformance }) => {
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('weekly')
 
 	const averages = categoryPerformance
-		.sort((a, b) => b.wavg1W - a.wavg1W)
-		.map((i) => [i.categoryName, i.wavg1W.toFixed(2)])
+		.sort((a, b) => b.pctChange1W - a.pctChange1W)
+		.map((i) => [i.coinId, i.pctChange1W?.toFixed(2)])
 
 	return (
 		<>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Category Performance' }} />
-
 			<TotalLocked>
-				<span>Average Category Performance weighted by fdv</span>
+				<span>Category Performance</span>
 			</TotalLocked>
 
 			<ChartsContainer>
@@ -96,18 +80,10 @@ const PageView = ({ categoryPerformance }) => {
 
 			<TableWithSearch
 				data={categoryPerformance}
-				columns={PerformanceColumn}
-				columnToSearch={'categoryName'}
+				columns={PerformanceCoinsColumn}
+				columnToSearch={'coinId'}
 				placeholder={'Search category...'}
 			/>
 		</>
-	)
-}
-
-export default function FDV(props) {
-	return (
-		<Layout title={`Category Performance - DefiLlama`} defaultSEO>
-			<PageView {...props} />
-		</Layout>
 	)
 }

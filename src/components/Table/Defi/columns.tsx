@@ -37,7 +37,8 @@ import type {
 	IETFRow,
 	AirdropRow,
 	IBridgedRow,
-	PerformanceRow
+	PerformanceRow,
+	PerformanceCoinsRow
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
@@ -1762,8 +1763,15 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 		header: 'Category',
 		accessorKey: 'categoryName',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <Name>{getValue()}</Name>
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<CustomLink href={`/fdv/${row.original.categoryId}`}>{getValue()}</CustomLink>
+				</Name>
+			)
 		},
 		size: 280
 	},
@@ -1816,6 +1824,63 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 		header: '# of Coins',
 		accessorKey: 'nbCoins',
 		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	}
+]
+
+export const PerformanceCoinsColumn: ColumnDef<PerformanceCoinsRow>[] = [
+	{
+		header: 'Coin',
+		accessorKey: 'coinId',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <Name>{getValue()}</Name>
+		},
+		size: 280
+	},
+	{
+		header: 'FDV',
+		accessorKey: 'fdv',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1d change',
+		accessorKey: 'pctChange1D',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1w change',
+		accessorKey: 'pctChange1W',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1m change',
+		accessorKey: 'pctChange1M',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1y change',
+		accessorKey: 'pctChange1Y',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
 		},

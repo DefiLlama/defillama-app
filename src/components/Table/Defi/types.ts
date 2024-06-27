@@ -116,6 +116,7 @@ export interface IBridgedRow {
 }
 
 export interface PerformanceRow {
+	categoryId: string
 	categoryName: string
 	fdv: number
 	fdvPctChange1D: number
@@ -123,4 +124,13 @@ export interface PerformanceRow {
 	fdvPctChange1M: number
 	fdvPctChange1Y: number
 	nbCoins: number
+}
+
+export interface PerformanceCoinsRow {
+	coinId: string
+	fdv: number
+	pctChange1D: number
+	pctChange1W: number
+	pctChange1M: number
+	pctChange1Y: number
 }
