@@ -39,7 +39,7 @@ const TotalLocked = styled(Header)`
 	}
 `
 
-export const FdvContainer = ({ categoryPerformance }) => {
+export const CategoryPerformanceContainer = ({ categoryPerformance }) => {
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('weekly')
 
 	const averages = categoryPerformance

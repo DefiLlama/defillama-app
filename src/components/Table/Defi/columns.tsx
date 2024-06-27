@@ -1769,7 +1769,7 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					<CustomLink href={`/fdv/${row.original.categoryId}`}>{getValue()}</CustomLink>
+					<CustomLink href={`/category-performance/${row.original.categoryId}`}>{getValue()}</CustomLink>
 				</Name>
 			)
 		},

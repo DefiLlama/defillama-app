@@ -44,7 +44,7 @@ const TotalLocked = styled(Header)`
 	}
 `
 
-export const getStaticProps = withPerformanceLogging('fdv', async () => {
+export const getStaticProps = withPerformanceLogging('category-performance', async () => {
 	const performance = await getCategoryPerformance()
 
 	return {
@@ -65,7 +65,7 @@ const PageView = ({ categoryPerformance }) => {
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Category Performance' }} />
 
 			<TotalLocked>
-				<span>Average Category Performance weighted by fdv</span>
+				<span>Average Category Performance</span>
 			</TotalLocked>
 
 			<ChartsContainer>
@@ -104,7 +104,7 @@ const PageView = ({ categoryPerformance }) => {
 	)
 }
 
-export default function FDV(props) {
+export default function CategoryPerformance(props) {
 	return (
 		<Layout title={`Category Performance - DefiLlama`} defaultSEO>
 			<PageView {...props} />

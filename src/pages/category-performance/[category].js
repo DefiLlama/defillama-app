@@ -3,11 +3,11 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
 import { getCategoryPerformance } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import { FdvContainer } from '~/containers/FdvContainer'
+import { CategoryPerformanceContainer } from '~/containers/CategoryPerformanceContainer'
 
-export const getStaticProps = withPerformanceLogging('fdv', async ({ params }) => {
+export const getStaticProps = withPerformanceLogging('category-performance', async ({ params }) => {
 	const performance = await getCategoryPerformance()
-	const coinPerformanceFilteredToCategory = performance.coinPerformance.filter((i) => i.categoryId === params.fdv)
+	const coinPerformanceFilteredToCategory = performance.coinPerformance.filter((i) => i.categoryId === params.category)
 
 	return {
 		props: {
@@ -21,7 +21,7 @@ export async function getStaticPaths() {
 	const performance = await getCategoryPerformance()
 
 	const paths = performance.categoryPerformance.map((i) => ({
-		params: { fdv: i.categoryId.toString() }
+		params: { category: i.categoryId.toString() }
 	}))
 
 	return { paths, fallback: 'blocking' }
@@ -30,9 +30,9 @@ export async function getStaticPaths() {
 export default function Performance(props) {
 	return (
 		<Layout title={`Performance - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch step={{ category: 'Performance', name: props.token, route: 'fdv' }} />
+			<ProtocolsChainsSearch step={{ category: 'Performance', name: props.token, route: 'category-performance' }} />
 
-			<FdvContainer {...props} />
+			<CategoryPerformanceContainer {...props} />
 		</Layout>
 	)
 }
