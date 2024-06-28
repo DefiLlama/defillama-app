@@ -115,22 +115,22 @@ export interface IBridgedRow {
 	change_24h: number
 }
 
-export interface PerformanceRow {
-	categoryId: string
-	categoryName: string
+export interface CategoryReturnsRow {
+	id: string
+	name: string
 	mcap: number
-	wavg1D: number
-	wavg1W: number
-	wavg1M: number
-	wavg1Y: number
+	returns1D: number
+	returns1W: number
+	returns1M: number
+	returns1Y: number
 	nbCoins: number
 }
 
-export interface PerformanceCoinsRow {
-	coinId: string
+export interface CoinReturnsRow {
+	id: string
 	mcap: number
-	pctChange1D: number
-	pctChange1W: number
-	pctChange1M: number
-	pctChange1Y: number
+	returns1D: number
+	returns1W: number
+	returns1M: number
+	returns1Y: number
 }

@@ -5,7 +5,7 @@ import { Header } from '~/Theme'
 
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { PerformanceCoinsColumn } from '~/components/Table/Defi/columns'
+import { CategoryReturnsColumn, CoinReturnsColumn } from '~/components/Table/Defi/columns'
 import { primaryColor } from '~/constants/colors'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 
@@ -39,27 +39,27 @@ const TotalLocked = styled(Header)`
 	}
 `
 
-export const CategoryPerformanceContainer = ({ categoryPerformance }) => {
+export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('weekly')
 
-	const { sortedCategoryPerformance, chartData } = React.useMemo(() => {
-		const avgKey = {
-			daily: 'pctChange1D',
-			weekly: 'pctChange1W',
-			monthly: 'pctChange1M',
-			yearly: 'pctChange1Y'
+	const { sortedReturns, chartData } = React.useMemo(() => {
+		const field = {
+			daily: 'returns1D',
+			weekly: 'returns1W',
+			monthly: 'returns1M',
+			yearly: 'returns1Y'
 		}[groupBy]
 
-		const sorted = [...categoryPerformance].sort((a, b) => b[avgKey] - a[avgKey])
-		const chartData = sorted.map((i) => [i.coinId, i[avgKey]?.toFixed(2)])
+		const sorted = [...returns].sort((a, b) => b[field] - a[field])
+		const chartData = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
 
-		return { sortedCategoryPerformance: sorted, chartData }
-	}, [categoryPerformance, groupBy])
+		return { sortedReturns: sorted, chartData }
+	}, [returns, groupBy])
 
 	return (
 		<>
 			<TotalLocked>
-				<span>Category Performance</span>
+				<span>Category Returns</span>
 			</TotalLocked>
 
 			<ChartsContainer>
@@ -79,10 +79,10 @@ export const CategoryPerformanceContainer = ({ categoryPerformance }) => {
 			</ChartsContainer>
 
 			<TableWithSearch
-				data={sortedCategoryPerformance}
-				columns={PerformanceCoinsColumn}
-				columnToSearch={'coinId'}
-				placeholder={'Search category...'}
+				data={sortedReturns}
+				columns={isCoinPage ? CoinReturnsColumn : CategoryReturnsColumn}
+				columnToSearch={'name'}
+				placeholder={'Search...'}
 			/>
 		</>
 	)

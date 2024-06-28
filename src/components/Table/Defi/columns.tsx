@@ -37,8 +37,8 @@ import type {
 	IETFRow,
 	AirdropRow,
 	IBridgedRow,
-	PerformanceRow,
-	PerformanceCoinsRow
+	CategoryReturnsRow,
+	CoinReturnsRow
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
@@ -1758,10 +1758,10 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 	}
 ]
 
-export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
+export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 	{
 		header: 'Category',
-		accessorKey: 'categoryName',
+		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
@@ -1769,7 +1769,7 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					<CustomLink href={`/category-performance/${row.original.categoryId}`}>{getValue()}</CustomLink>
+					<CustomLink href={`/returns/${row.original.id}`}>{getValue()}</CustomLink>
 				</Name>
 			)
 		},
@@ -1786,7 +1786,7 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 	},
 	{
 		header: '1d change',
-		accessorKey: 'wavg1D',
+		accessorKey: 'returns1D',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1795,7 +1795,7 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 	},
 	{
 		header: '1w change',
-		accessorKey: 'wavg1W',
+		accessorKey: 'returns1W',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1804,7 +1804,7 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 	},
 	{
 		header: '1m change',
-		accessorKey: 'wavg1M',
+		accessorKey: 'returns1M',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1813,7 +1813,7 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 	},
 	{
 		header: '1y change',
-		accessorKey: 'wavg1Y',
+		accessorKey: 'returns1Y',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1831,17 +1831,17 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 	}
 ]
 
-export const PerformanceCoinsColumn: ColumnDef<PerformanceCoinsRow>[] = [
+export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 	{
 		header: 'Coin',
-		accessorKey: 'coinId',
+		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					<CustomLink href={`https://www.coingecko.com/en/coins/${row.original.coinId}`} target="_blank">
+					<CustomLink href={`https://www.coingecko.com/en/coins/${row.original.id}`} target="_blank">
 						{getValue()}
 					</CustomLink>
 				</Name>
@@ -1860,7 +1860,7 @@ export const PerformanceCoinsColumn: ColumnDef<PerformanceCoinsRow>[] = [
 	},
 	{
 		header: '1d change',
-		accessorKey: 'pctChange1D',
+		accessorKey: 'returns1D',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1869,7 +1869,7 @@ export const PerformanceCoinsColumn: ColumnDef<PerformanceCoinsRow>[] = [
 	},
 	{
 		header: '1w change',
-		accessorKey: 'pctChange1W',
+		accessorKey: 'returns1W',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1878,7 +1878,7 @@ export const PerformanceCoinsColumn: ColumnDef<PerformanceCoinsRow>[] = [
 	},
 	{
 		header: '1m change',
-		accessorKey: 'pctChange1M',
+		accessorKey: 'returns1M',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1887,7 +1887,7 @@ export const PerformanceCoinsColumn: ColumnDef<PerformanceCoinsRow>[] = [
 	},
 	{
 		header: '1y change',
-		accessorKey: 'pctChange1Y',
+		accessorKey: 'returns1Y',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
