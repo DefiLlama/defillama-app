@@ -1776,8 +1776,8 @@ export const PerformanceColumn: ColumnDef<PerformanceRow>[] = [
 		size: 280
 	},
 	{
-		header: 'FDV',
-		accessorKey: 'fdv',
+		header: 'MCAP',
+		accessorKey: 'mcap',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
 		meta: {
 			align: 'end'
@@ -1842,8 +1842,8 @@ export const PerformanceCoinsColumn: ColumnDef<PerformanceCoinsRow>[] = [
 		size: 280
 	},
 	{
-		header: 'FDV',
-		accessorKey: 'fdv',
+		header: 'MCAP',
+		accessorKey: 'mcap',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
 		meta: {
 			align: 'end'

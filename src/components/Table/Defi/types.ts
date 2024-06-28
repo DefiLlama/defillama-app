@@ -118,17 +118,17 @@ export interface IBridgedRow {
 export interface PerformanceRow {
 	categoryId: string
 	categoryName: string
-	fdv: number
-	fdvPctChange1D: number
-	fdvPctChange1W: number
-	fdvPctChange1M: number
-	fdvPctChange1Y: number
+	mcap: number
+	wavg1D: number
+	wavg1W: number
+	wavg1M: number
+	wavg1Y: number
 	nbCoins: number
 }
 
 export interface PerformanceCoinsRow {
 	coinId: string
-	fdv: number
+	mcap: number
 	pctChange1D: number
 	pctChange1W: number
 	pctChange1M: number
