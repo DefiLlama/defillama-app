@@ -42,9 +42,19 @@ const TotalLocked = styled(Header)`
 export const CategoryPerformanceContainer = ({ categoryPerformance }) => {
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('weekly')
 
-	const averages = categoryPerformance
-		.sort((a, b) => b.pctChange1W - a.pctChange1W)
-		.map((i) => [i.coinId, i.pctChange1W?.toFixed(2)])
+	const { sortedCategoryPerformance, chartData } = React.useMemo(() => {
+		const avgKey = {
+			daily: 'pctChange1D',
+			weekly: 'pctChange1W',
+			monthly: 'pctChange1M',
+			yearly: 'pctChange1Y'
+		}[groupBy]
+
+		const sorted = [...categoryPerformance].sort((a, b) => b[avgKey] - a[avgKey])
+		const chartData = sorted.map((i) => [i.coinId, i[avgKey]?.toFixed(2)])
+
+		return { sortedCategoryPerformance: sorted, chartData }
+	}, [categoryPerformance, groupBy])
 
 	return (
 		<>
@@ -56,30 +66,20 @@ export const CategoryPerformanceContainer = ({ categoryPerformance }) => {
 				<TabContainer>
 					<>
 						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
-							<Denomination as="button" active={groupBy === 'daily'} onClick={() => setGroupBy('daily')}>
-								Daily
-							</Denomination>
-
-							<Denomination as="button" active={groupBy === 'weekly'} onClick={() => setGroupBy('weekly')}>
-								Weekly
-							</Denomination>
-
-							<Denomination as="button" active={groupBy === 'monthly'} onClick={() => setGroupBy('monthly')}>
-								Monthly
-							</Denomination>
-
-							<Denomination as="button" active={groupBy === 'yearly'} onClick={() => setGroupBy('yearly')}>
-								Yearly
-							</Denomination>
+							{(['daily', 'weekly', 'monthly', 'yearly'] as const).map((period) => (
+								<Denomination key={period} as="button" active={groupBy === period} onClick={() => setGroupBy(period)}>
+									{period.charAt(0).toUpperCase() + period.slice(1)}
+								</Denomination>
+							))}
 						</Filters>
 
-						<BarChart title="" chartData={averages} valueSymbol="%" height="480px" />
+						<BarChart title="" chartData={chartData} valueSymbol="%" height="480px" />
 					</>
 				</TabContainer>
 			</ChartsContainer>
 
 			<TableWithSearch
-				data={categoryPerformance}
+				data={sortedCategoryPerformance}
 				columns={PerformanceCoinsColumn}
 				columnToSearch={'coinId'}
 				placeholder={'Search category...'}

@@ -67,7 +67,7 @@ export default function NonTimeSeriesBarChart({
 
 		const xAxis = {
 			type: 'category',
-			boundaryGap: false,
+			boundaryGap: true,
 			nameTextStyle: {
 				fontFamily: 'sans-serif',
 				fontSize: 14,
@@ -85,7 +85,7 @@ export default function NonTimeSeriesBarChart({
 					opacity: 0.1
 				}
 			},
-			axisLabel: { interval: 0, rotate: 30 }
+			axisLabel: { interval: 0, rotate: 45 }
 		}
 
 		const yAxis = {

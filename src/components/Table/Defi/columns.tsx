@@ -1836,8 +1836,16 @@ export const PerformanceCoinsColumn: ColumnDef<PerformanceCoinsRow>[] = [
 		header: 'Coin',
 		accessorKey: 'coinId',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <Name>{getValue()}</Name>
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<CustomLink href={`https://www.coingecko.com/en/coins/${row.original.coinId}`} target="_blank">
+						{getValue()}
+					</CustomLink>
+				</Name>
+			)
 		},
 		size: 280
 	},
