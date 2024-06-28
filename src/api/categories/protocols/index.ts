@@ -21,7 +21,8 @@ import {
 	ETF_HISTORY_API,
 	CHAINS_API_V2,
 	CHAIN_ASSETS_FLOWS,
-	BRIDGEINFLOWS_API
+	BRIDGEINFLOWS_API,
+	CATEGORY_RETURNS_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -1034,4 +1035,10 @@ export async function getChainsBridged(chain?: string) {
 	}
 
 	return { chains, assets, flows1d, chainData, inflows, tokenInflowNames: Array.from(tokenInflowNames) }
+}
+
+export async function getCategoryReturns() {
+	const performance = await fetchWithErrorLogging(CATEGORY_RETURNS_API).then((r) => r.json())
+
+	return performance
 }

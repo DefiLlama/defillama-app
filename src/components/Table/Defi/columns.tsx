@@ -36,7 +36,9 @@ import type {
 	IGovernance,
 	IETFRow,
 	AirdropRow,
-	IBridgedRow
+	IBridgedRow,
+	CategoryReturnsRow,
+	CoinReturnsRow
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
@@ -1753,6 +1755,144 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 			align: 'end'
 		},
 		size: 190
+	}
+]
+
+export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
+	{
+		header: 'Category',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<CustomLink href={`/returns/${row.original.id}`}>{getValue()}</CustomLink>
+				</Name>
+			)
+		},
+		size: 280
+	},
+	{
+		header: 'Market Cap',
+		accessorKey: 'mcap',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1d returns',
+		accessorKey: 'returns1D',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '7d returns',
+		accessorKey: 'returns1W',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '30d returns',
+		accessorKey: 'returns1M',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '365d returns',
+		accessorKey: 'returns1Y',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '# of Coins',
+		accessorKey: 'nbCoins',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	}
+]
+
+export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
+	{
+		header: 'Coin',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<CustomLink href={`https://www.coingecko.com/en/coins/${row.original.id}`} target="_blank">
+						{getValue()}
+					</CustomLink>
+				</Name>
+			)
+		},
+		size: 280
+	},
+	{
+		header: 'Market Cap',
+		accessorKey: 'mcap',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1d Returns',
+		accessorKey: 'returns1D',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '7d returns',
+		accessorKey: 'returns1W',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '30d returns',
+		accessorKey: 'returns1M',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '365d returns',
+		accessorKey: 'returns1Y',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
 	}
 ]
 
