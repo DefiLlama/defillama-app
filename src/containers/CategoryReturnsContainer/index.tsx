@@ -40,14 +40,14 @@ const TotalLocked = styled(Header)`
 `
 
 export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
-	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('weekly')
+	const [groupBy, setGroupBy] = React.useState<'1d' | '7d' | '30d' | '365d'>('7d')
 
 	const { sortedReturns, chartData } = React.useMemo(() => {
 		const field = {
-			daily: 'returns1D',
-			weekly: 'returns1W',
-			monthly: 'returns1M',
-			yearly: 'returns1Y'
+			'1d': 'returns1D',
+			'7d': 'returns1W',
+			'30d': 'returns1M',
+			'365d': 'returns1Y'
 		}[groupBy]
 
 		const sorted = [...returns].sort((a, b) => b[field] - a[field])
@@ -58,15 +58,21 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 
 	return (
 		<>
-			<TotalLocked>
-				<span>Category Returns</span>
-			</TotalLocked>
+			{isCoinPage ? (
+				<TotalLocked>
+					<span>Coin Returns for {returns[0].categoryName}</span>
+				</TotalLocked>
+			) : (
+				<TotalLocked>
+					<span>Average Returns per Category</span>
+				</TotalLocked>
+			)}
 
 			<ChartsContainer>
 				<TabContainer>
 					<>
 						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
-							{(['daily', 'weekly', 'monthly', 'yearly'] as const).map((period) => (
+							{(['1d', '7d', '30d', '365d'] as const).map((period) => (
 								<Denomination key={period} as="button" active={groupBy === period} onClick={() => setGroupBy(period)}>
 									{period.charAt(0).toUpperCase() + period.slice(1)}
 								</Denomination>
