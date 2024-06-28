@@ -56,9 +56,9 @@ export const getStaticProps = withPerformanceLogging('category-performance', asy
 const PageView = ({ categoryPerformance }) => {
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('weekly')
 
-	const averages = categoryPerformance
-		.sort((a, b) => b.wavg1W - a.wavg1W)
-		.map((i) => [i.categoryName, i.wavg1W.toFixed(2)])
+	categoryPerformance = categoryPerformance.sort((a, b) => b.wavg1W - a.wavg1W)
+
+	const averages = categoryPerformance.map((i) => [i.categoryName, i.wavg1W.toFixed(2)])
 
 	return (
 		<>
