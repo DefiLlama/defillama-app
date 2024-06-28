@@ -237,6 +237,8 @@ interface IProtocolContainerProps {
 	allTimeDerivativesVolume: number | null
 	dailyAggregatorsVolume: number | null
 	allTimeAggregatorsVolume: number | null
+	dailyDerivativesAggregatorVolume: number | null
+	allTimeDerivativesAggregatorVolume: number | null
 	dailyOptionsVolume: number | null
 	controversialProposals: Array<{ title: string; link?: string }> | null
 	governanceApis: Array<string> | null
@@ -316,6 +318,8 @@ function ProtocolContainer({
 	allTimeDerivativesVolume,
 	dailyAggregatorsVolume,
 	allTimeAggregatorsVolume,
+	dailyDerivativesAggregatorVolume,
+	allTimeDerivativesAggregatorVolume,
 	dailyOptionsVolume,
 	controversialProposals,
 	governanceApis,
@@ -356,6 +360,8 @@ function ProtocolContainer({
 		isHourlyChart,
 		stablecoins
 	} = protocolData
+
+	console.log(protocolData)
 
 	const router = useRouter()
 
@@ -651,6 +657,11 @@ function ProtocolContainer({
 						{metrics.aggregators && (
 							<Tab id="aggregators-volume" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
 								Aggregators Volume
+							</Tab>
+						)}
+						{metrics.derivativesAggregators && (
+							<Tab id="aggregator-derivatives" color={backgroundColor} state={tab} onClick={(id) => tab.select(id)}>
+								Derivatives Aggregators Volume
 							</Tab>
 						)}
 						{metrics.options && (
@@ -1005,6 +1016,34 @@ function ProtocolContainer({
 												<td>{formatPrice(dailyAggregatorsVolume)}</td>
 											</tr>
 										) : null}
+										{dailyDerivativesAggregatorVolume && allTimeDerivativesAggregatorVolume ? (
+											<RowWithSubRows
+												protocolName={protocolData.name}
+												dataType="Derivatives Aggregators Volume"
+												rowHeader="Derivatives Aggs Volume 24h"
+												rowValue={formatPrice(dailyDerivativesAggregatorVolume)}
+												helperText={null}
+												subRows={
+													<>
+														{allTimeDerivativesAggregatorVolume ? (
+															<tr>
+																<SubrowTh data-subvalue>{`Cumulative Volume`}</SubrowTh>
+																<td data-subvalue>{formatPrice(allTimeDerivativesAggregatorVolume)}</td>
+															</tr>
+														) : null}
+													</>
+												}
+											/>
+										) : dailyDerivativesAggregatorVolume ? (
+											<tr>
+												<th>
+													<span>Derivatives Aggs Volume 24h</span>
+													<Flag protocol={protocolData.name} dataType={'Derivatives Aggregators Volume'} />
+												</th>
+												<td>{formatPrice(dailyDerivativesAggregatorVolume)}</td>
+											</tr>
+										) : null}
+
 										{dailyOptionsVolume ? (
 											<tr>
 												<th>
@@ -1710,6 +1749,11 @@ function ProtocolContainer({
 					{metrics.derivatives && (
 						<TabPanel state={tab} tabId="derivatives-volume">
 							<VolumeCharts data={protocolData} type="derivatives" />
+						</TabPanel>
+					)}
+					{metrics.derivativesAggregators && (
+						<TabPanel state={tab} tabId="aggregator-derivatives">
+							<VolumeCharts data={protocolData} type="aggregator-derivatives" />
 						</TabPanel>
 					)}
 					{metrics.aggregators && (

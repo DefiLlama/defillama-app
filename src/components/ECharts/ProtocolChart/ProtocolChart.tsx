@@ -69,7 +69,8 @@ const CHART_TYPES = [
 	'contributersMetrics',
 	'contributersCommits',
 	'devCommits',
-	'nftVolume'
+	'nftVolume',
+	'derivativesAggregators'
 ]
 
 export default function ProtocolChart({
@@ -132,7 +133,8 @@ export default function ProtocolChart({
 		devCommits,
 		nftVolume,
 		aggregators,
-		premiumVolume
+		premiumVolume,
+		derivativesAggregators
 	} = enabled || router.query
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
@@ -183,7 +185,8 @@ export default function ProtocolChart({
 			devCommits,
 			nftVolume,
 			nftVolumeData,
-			aggregators
+			aggregators,
+			derivativesAggregators
 		})
 
 	const realPathname =
@@ -234,6 +237,7 @@ export default function ProtocolChart({
 			metrics.options ||
 			metrics.unlocks ||
 			metrics.aggregators ||
+			metrics.derivativesAggregators ||
 			activeUsersId ||
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
@@ -441,6 +445,31 @@ export default function ProtocolChart({
 							/>
 							<span data-wrapper="true">
 								<span>Derivatives Volume</span>
+							</span>
+						</Toggle>
+					)}
+					{metrics.derivativesAggregators && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="derivativesAggregators"
+								checked={derivativesAggregators === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: {
+												...router.query,
+												derivativesAggregators: derivativesAggregators === 'true' ? false : true
+											}
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Derivatives Aggregators</span>
 							</span>
 						</Toggle>
 					)}
