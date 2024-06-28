@@ -30,7 +30,6 @@ export async function getStaticPaths() {
 }
 
 export default function Returns(props) {
-	console.log(props)
 	return (
 		<Layout title={`Returns - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Returns', name: props.categoryName, route: 'returns' }} />
