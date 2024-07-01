@@ -113,9 +113,12 @@ export default function NonTimeSeriesBarChart({
 
 		const tooltip = {
 			trigger: 'axis',
-			confine: true
+			confine: true,
+			formatter: (params) => {
+				const value = params[0].value
+				return `<strong>${value[0]}</strong>: ${value[1]}%`
+			}
 		}
-
 		chartInstance.setOption({
 			graphic: {
 				...graphic
