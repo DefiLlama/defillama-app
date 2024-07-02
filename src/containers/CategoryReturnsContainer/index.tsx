@@ -8,10 +8,19 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CategoryReturnsColumn, CoinReturnsColumn } from '~/components/Table/Defi/columns'
 import { primaryColor } from '~/constants/colors'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
+import { Tab, TabList } from '~/components'
+
+interface IChartProps {
+	chartData: any[]
+}
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart/NonTimeSeries'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
+
+const TreemapChart = dynamic(() => import('~/components/ECharts/TreemapChart2'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
 const ChartsContainer = styled.div`
 	background-color: ${({ theme }) => theme.advancedBG};
@@ -40,9 +49,10 @@ const TotalLocked = styled(Header)`
 `
 
 export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
+	const [tab, setTab] = React.useState('barchart')
 	const [groupBy, setGroupBy] = React.useState<'1D' | '7D' | '30D' | '365D' | 'YTD'>('7D')
 
-	const { sortedReturns, chartData } = React.useMemo(() => {
+	const { sortedReturns, barChart, heatmapData } = React.useMemo(() => {
 		const field = {
 			'1D': 'returns1D',
 			'7D': 'returns1W',
@@ -52,9 +62,10 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 		}[groupBy]
 
 		const sorted = [...returns].sort((a, b) => b[field] - a[field])
-		const chartData = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
+		const barChart = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
+		const heatmapData = sorted.map((i) => ({ ...i, returnField: i[field] }))
 
-		return { sortedReturns: sorted, chartData }
+		return { sortedReturns: sorted, barChart, heatmapData }
 	}, [returns, groupBy])
 
 	return (
@@ -70,6 +81,15 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 			)}
 
 			<ChartsContainer>
+				<TabList>
+					<Tab onClick={() => setTab('barchart')} aria-selected={tab === 'barchart'}>
+						Barchart
+					</Tab>
+					<Tab onClick={() => setTab('heatmap')} aria-selected={tab === 'heatmap'}>
+						Heatmap
+					</Tab>
+				</TabList>
+
 				<TabContainer>
 					<>
 						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
@@ -79,9 +99,14 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 								</Denomination>
 							))}
 						</Filters>
-
-						<BarChart title="" chartData={chartData} valueSymbol="%" height="480px" />
 					</>
+					{tab === 'barchart' ? (
+						<>
+							<BarChart title="" chartData={barChart} valueSymbol="%" height="480px" />
+						</>
+					) : (
+						<TreemapChart chartData={heatmapData} />
+					)}
 				</TabContainer>
 			</ChartsContainer>
 
