@@ -32,10 +32,6 @@
 			"description": "Data from dashboards on our side menu"
 		},
 		{
-			"name": "trending contracts",
-			"description": "Provides a list of trending contracts on specific chains"
-		},
-		{
 			"name": "token liquidity",
 			"description": "Provides the available liquidity for swapping from one token to another on a specific chain"
 		},
@@ -348,41 +344,6 @@
 					"main page"
 				],
 				"summary": "List all entities",
-				"responses": {
-					"200": {
-						"description": "successful operation"
-					}
-				}
-			}
-		},
-		"/api/contractName2/{chain}/{contract}": {
-			"get": {
-				"tags": [
-					"trending contracts"
-				],
-				"summary": "Provides the name of contracts on a determined chain",
-				"parameters": [
-					{
-						"name": "chain",
-						"in": "path",
-						"description": "chain slug",
-						"required": true,
-						"schema": {
-							"type": "string",
-							"example": "arbitrum"
-						}
-					},
-					{
-						"name": "contract",
-						"in": "path",
-						"description": "contract address",
-						"required": true,
-						"schema": {
-							"type": "string",
-							"example": "0x29469395eaf6f95920e59f858042f0e28d98a20b"
-						}
-					}
-				],
 				"responses": {
 					"200": {
 						"description": "successful operation"
