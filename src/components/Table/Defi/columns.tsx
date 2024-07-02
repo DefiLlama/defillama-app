@@ -1785,7 +1785,7 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '1d returns',
+		header: '1D returns',
 		accessorKey: 'returns1D',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
@@ -1794,7 +1794,7 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '7d returns',
+		header: '7D returns',
 		accessorKey: 'returns1W',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
@@ -1803,7 +1803,7 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '30d returns',
+		header: '30D returns',
 		accessorKey: 'returns1M',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
@@ -1812,7 +1812,16 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '365d returns',
+		header: 'YTD returns',
+		accessorKey: 'returnsYtd',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '365D returns',
 		accessorKey: 'returns1Y',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
@@ -1859,7 +1868,7 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '1d Returns',
+		header: '1D Returns',
 		accessorKey: 'returns1D',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
@@ -1868,7 +1877,7 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '7d returns',
+		header: '7D returns',
 		accessorKey: 'returns1W',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
@@ -1877,7 +1886,7 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '30d returns',
+		header: '30D returns',
 		accessorKey: 'returns1M',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
@@ -1886,7 +1895,16 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '365d returns',
+		header: 'YTD returns',
+		accessorKey: 'returnsYtd',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '365D returns',
 		accessorKey: 'returns1Y',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {

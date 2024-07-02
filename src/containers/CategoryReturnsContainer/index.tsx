@@ -40,14 +40,15 @@ const TotalLocked = styled(Header)`
 `
 
 export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
-	const [groupBy, setGroupBy] = React.useState<'1d' | '7d' | '30d' | '365d'>('7d')
+	const [groupBy, setGroupBy] = React.useState<'1D' | '7D' | '30D' | '365D' | 'YTD'>('7D')
 
 	const { sortedReturns, chartData } = React.useMemo(() => {
 		const field = {
-			'1d': 'returns1D',
-			'7d': 'returns1W',
-			'30d': 'returns1M',
-			'365d': 'returns1Y'
+			'1D': 'returns1D',
+			'7D': 'returns1W',
+			'30D': 'returns1M',
+			'365D': 'returns1Y',
+			YTD: 'returnsYtd'
 		}[groupBy]
 
 		const sorted = [...returns].sort((a, b) => b[field] - a[field])
@@ -72,7 +73,7 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 				<TabContainer>
 					<>
 						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
-							{(['1d', '7d', '30d', '365d'] as const).map((period) => (
+							{(['1D', '7D', '30D', 'YTD', '365D'] as const).map((period) => (
 								<Denomination key={period} as="button" active={groupBy === period} onClick={() => setGroupBy(period)}>
 									{period.charAt(0).toUpperCase() + period.slice(1)}
 								</Denomination>
