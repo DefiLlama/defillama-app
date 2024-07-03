@@ -232,12 +232,15 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {})
 
 	const protocolsWithSubrows = protocols.reduce((acc, protocol) => {
+		if (!protocol?.name) return acc
+
 		// Assign mainrow and sub-row if has any
-		const slugName = sluggify(protocol?.name)
+		const slugName = sluggify(protocol.name)
 
 		let mainRow: undefined | IOverviewProps['protocols'][number] = undefined
 		let subRow: undefined | IOverviewProps['protocols'][number]['subRows'][number] = null
-		if (parentProtocolsMap[protocol.parentProtocol]) {
+
+		if (protocol.parentProtocol && parentProtocolsMap[protocol.parentProtocol]) {
 			mainRow = parentProtocolsMap[protocol.parentProtocol]
 			subRow = {
 				...protocol,
@@ -274,9 +277,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 		mainRow = {
 			...mainRow,
-			...acc[protocol.parentProtocol],
+			...(protocol.parentProtocol ? acc[protocol.parentProtocol] : {}),
 			logo: getLlamaoLogo(protocol.logo),
-			category: protocol.category,
+			category: protocol.category ?? null,
 			displayName: mainRow.displayName ?? mainRow.name,
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
@@ -304,7 +307,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		}
 
 		// Stats for parent protocol
-		if (acc[protocol.parentProtocol]) {
+		if (protocol.parentProtocol && acc[protocol.parentProtocol]) {
 			// stats
 			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total24h'), null)
 			const total48hto24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total48hto24h'), null)
@@ -366,7 +369,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			mainRow.ps = getAnnualizedRatio(mainRow.mcap, mainRow.revenue30d)
 		}
 		// Computed stats
-		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
+		mainRow.volumetvl = mainRow.total24h !== null && mainRow.tvl !== null ? mainRow.total24h / mainRow.tvl : null
 
 		mainRow.dominance = (100 * mainRow.total24h) / total24h
 
@@ -413,7 +416,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		chain: filtredChain ?? null,
 		tvlData,
-		totalDataChartBreakdown,
+		totalDataChartBreakdown: totalDataChartBreakdown ?? [],
 		allChains,
 		dexsDominance: cexVolume ? +((total24h / (cexVolume + total24h)) * 100).toFixed(2) : null,
 		type
