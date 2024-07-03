@@ -36,7 +36,7 @@ export default function NonTimeSeriesBarChart({
 				data: chartData.map((item, index) => ({
 					value: item,
 					itemStyle: {
-						color: gradientBars ? getColorFromNumber(index, chartData.length) : stringToColour()
+						color: gradientBars ? getColorFromNumber(chartData.length - index, chartData.length) : stringToColour()
 					}
 				})),
 				type: 'bar'
