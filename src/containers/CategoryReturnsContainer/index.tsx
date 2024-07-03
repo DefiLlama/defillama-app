@@ -9,6 +9,7 @@ import { CategoryReturnsColumn, CoinReturnsColumn } from '~/components/Table/Def
 import { primaryColor } from '~/constants/colors'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { Tab, TabList } from '~/components'
+import { useScrollToTop } from '~/hooks'
 
 interface IChartProps {
 	chartData: any[]
@@ -49,6 +50,8 @@ const TotalLocked = styled(Header)`
 `
 
 export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
+	useScrollToTop()
+
 	const [tab, setTab] = React.useState('barchart')
 	const [groupBy, setGroupBy] = React.useState<'1D' | '7D' | '30D' | '365D' | 'YTD'>('7D')
 
