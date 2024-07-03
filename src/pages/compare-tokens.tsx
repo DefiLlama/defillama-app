@@ -4,6 +4,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import CompareTokens from '~/components/CompareTokens'
 import { getProtocols } from '~/api/categories/protocols'
+import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 
 const queryClient = new QueryClient()
 
@@ -11,21 +12,21 @@ export const getStaticProps = withPerformanceLogging('correlation', async () => 
 	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols, volumeProtocols] = await Promise.all([
 		getAllCGTokensList(),
 		getProtocols(),
-		fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+		fetch(`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(`Couldn't fetch fees protocols list at path: compare-tokens`, 'Error:', err)
 				return {}
 			}),
 		fetch(
-			`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
+			`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
 		)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(`Couldn't fetch revenue protocols list at path: compare-tokens`, 'Error:', err)
 				return {}
 			}),
-		fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+		fetch(`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(`Couldn't fetch dex protocols list at path: compare-tokens`, 'Error:', err)

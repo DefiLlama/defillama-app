@@ -26,7 +26,8 @@ import {
 	DEV_METRICS_API,
 	NFT_MARKETPLACES_STATS_API,
 	NFT_MARKETPLACES_VOLUME_API,
-	RAISES_API
+	RAISES_API,
+	DIMENISIONS_OVERVIEW_API
 } from '~/constants'
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
 import { cg_volume_cexs } from '../../../pages/cexs'
@@ -73,27 +74,27 @@ export const getProtocolDataLite = async (protocol: string) => {
 				.then((res) => res.json())
 				.then((data) => data?.[protocolData.id] ?? null)
 				.catch(() => null),
-			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			fetch(`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 				.then((res) => res.json())
 				.catch((err) => {
 					console.log(`Couldn't fetch fees protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 				}),
 			fetch(
-				`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
+				`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
 			)
 				.then((res) => res.json())
 				.catch((err) => {
 					console.log(`Couldn't fetch revenue protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 				}),
-			fetch(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			fetch(`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 				.then((res) => res.json())
 				.catch((err) => {
 					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 				}),
-			fetch(`https://api.llama.fi/overview/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			fetch(`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 				.then((res) => res.json())
 				.catch((err) => {
 					console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
@@ -420,28 +421,28 @@ export const getProtocolData = async (protocol: string) => {
 			.then((res) => res.json())
 			.then((data) => data?.[protocolData.id] ?? null)
 			.catch(() => null),
-		fetchOverCache(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+		fetchOverCache(`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
 				return {}
 			}),
 		fetchOverCache(
-			`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
+			`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
 		)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
 				return {}
 			}),
-		fetchOverCache(`https://api.llama.fi/overview/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+		fetchOverCache(`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
 				return {}
 			}),
 		fetchOverCache(
-			`https://api.llama.fi/overview/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+			`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 		)
 			.then((res) => res.json())
 			.catch((err) => {
@@ -466,7 +467,7 @@ export const getProtocolData = async (protocol: string) => {
 				return null
 			}),
 		fetchOverCache(
-			`https://api.llama.fi/overview/aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+			`${DIMENISIONS_OVERVIEW_API}/aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 		)
 			.then((res) => res.json())
 			.catch((err) => {
@@ -474,7 +475,7 @@ export const getProtocolData = async (protocol: string) => {
 				return {}
 			}),
 		fetchOverCache(
-			`https://api.llama.fi/overview/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+			`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 		)
 			.then((res) => res.json())
 			.catch((err) => {
@@ -482,7 +483,7 @@ export const getProtocolData = async (protocol: string) => {
 				return {}
 			}),
 		fetchOverCache(
-			`https://api.llama.fi/overview/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+			`${DIMENISIONS_OVERVIEW_API}/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 		)
 			.then((res) => res.json())
 			.catch((err) => {

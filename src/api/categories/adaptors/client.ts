@@ -1,12 +1,12 @@
 import useSWR from 'swr'
-import { ADAPTORS_BASE_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
+import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
 import { fetcher, fetcherWErrorHandling } from '~/utils/useSWR'
 import { generateGetOverviewItemPageDate, ProtocolAdaptorSummaryProps } from '.'
 import type { IGetOverviewResponseBody } from './types'
 
 export const useFetchAdaptorsList = (type: string) => {
 	const { data, error } = useSWR<IGetOverviewResponseBody>(
-		`${ADAPTORS_BASE_API}/${
+		`${DIMENISIONS_OVERVIEW_API}/${
 			type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
 		}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`,
 		fetcher
@@ -30,7 +30,7 @@ export const getAPIUrl = (
 	dataType?: string,
 	fullChart?: boolean
 ) => {
-	let API = `${ADAPTORS_BASE_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type}${
+	let API = `${DIMENISIONS_OVERVIEW_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type}${
 		chain ? `/${chain}?` : '?'
 	}`
 	API = `${API}excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
@@ -60,7 +60,7 @@ export const useFetchChartsSummary = (type: string, protocolName: string, dataTy
 }
 
 export const getAPIUrlSummary = (type: string, protocolName: string, dataType?: string, fullChart?: boolean) => {
-	let API = `${ADAPTORS_SUMMARY_BASE_API}/${
+	let API = `${DIMENISIONS_SUMMARY_BASE_API}/${
 		type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
 	}/${protocolName}?`
 	if (dataType) API = `${API}dataType=${dataType}&`

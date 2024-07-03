@@ -109,9 +109,11 @@ export const CHAINS_ASSETS_CHART = 'https://api.llama.fi/chain-assets/chart'
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
 
-export const ADAPTORS_BASE_API = 'https://api.llama.fi/overview'
+if (!process.env.API2_ROUTE)
+	process.env.API2_ROUTE = 'https://api.llama.fi'
+export const DIMENISIONS_OVERVIEW_API = process.env.API2_ROUTE + '/overview'
 export const BASE_API = 'https://api.llama.fi/'
-export const ADAPTORS_SUMMARY_BASE_API = 'https://api.llama.fi/summary'
+export const DIMENISIONS_SUMMARY_BASE_API = process.env.API2_ROUTE + '/summary'
 
 export const FEES_BASE_API = 'https://fees.llama.fi/fees'
 

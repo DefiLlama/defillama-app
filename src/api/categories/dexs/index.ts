@@ -1,3 +1,4 @@
+import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { fetchOverCache } from '~/utils/perf'
 
 // - used in /dexs and /dexs/chain/[chain]
@@ -11,7 +12,7 @@ export const getDexVolumeByChain = async ({
 	excludeTotalDataChartBreakdown: boolean
 }) => {
 	const data = await fetchOverCache(
-		`https://api.llama.fi/overview/dexs${
+		`${DIMENISIONS_OVERVIEW_API}/dexs${
 			chain && chain !== 'All' ? '/' + chain : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 	)
