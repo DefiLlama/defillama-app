@@ -4,11 +4,11 @@ import styled from 'styled-components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
-import { TooltipComponent, ToolboxComponent, DataZoomComponent, TitleComponent } from 'echarts/components'
+import { TooltipComponent, TitleComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
 
-echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, DataZoomComponent, EChartTreemap, CanvasRenderer])
+echarts.use([TitleComponent, TooltipComponent, EChartTreemap, CanvasRenderer])
 
 export interface IChartProps {
 	chartData: any
@@ -136,6 +136,9 @@ export default function TreemapChart({ chartData }: IChartProps) {
 					visualMin: visualMin,
 					visualMax: visualMax,
 					visualDimension: 3,
+					roam: false,
+					nodeClick: false,
+					breadcrumb: { show: false },
 					label: {
 						position: 'insideTopRight',
 						formatter: function (params) {
@@ -206,17 +209,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 							}
 						}
 					],
-					data: chartDataTree,
-					breadcrumb: {
-						itemStyle: {
-							color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.4)'
-						},
-						textStyle: {
-							fontFamily: 'sans-serif',
-							fontWeight: 400,
-							color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-						}
-					}
+					data: chartDataTree
 				}
 			]
 		}

@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
-import { stringToColour } from '../utils'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { getColorFromNumber } from '~/utils'
 
 export default function NonTimeSeriesBarChart({
 	chartData,
@@ -14,8 +12,7 @@ export default function NonTimeSeriesBarChart({
 	color,
 	chartOptions,
 	height = '360px',
-	tooltipOrderBottomUp,
-	gradientBars
+	tooltipOrderBottomUp
 }: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
@@ -30,13 +27,23 @@ export default function NonTimeSeriesBarChart({
 		isThemeDark
 	})
 
+	const getColorForValue = (value: number) => {
+		if (value > 0) {
+			return '#269f3c'
+		} else if (value === 0) {
+			return '#aaa'
+		} else {
+			return '#942e38'
+		}
+	}
+
 	const series = useMemo(() => {
 		return [
 			{
-				data: chartData.map((item, index) => ({
+				data: chartData.map((item) => ({
 					value: item,
 					itemStyle: {
-						color: gradientBars ? getColorFromNumber(chartData.length - index, chartData.length) : stringToColour()
+						color: getColorForValue(item[1])
 					}
 				})),
 				type: 'bar'
@@ -119,7 +126,7 @@ export default function NonTimeSeriesBarChart({
 			confine: true,
 			formatter: (params) => {
 				const value = params[0].value
-				return `<strong>${value[0]}</strong>: ${value[1]}%`
+				return `<strong>${value[0]}</strong>: ${value[1]}${valueSymbol}`
 			}
 		}
 		chartInstance.setOption({
@@ -156,7 +163,7 @@ export default function NonTimeSeriesBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, isThemeDark, chartOptions])
+	}, [createInstance, defaultChartSettings, series, isThemeDark, chartOptions, valueSymbol])
 
 	return (
 		<div style={{ position: 'relative' }}>

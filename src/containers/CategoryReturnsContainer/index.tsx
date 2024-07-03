@@ -75,7 +75,7 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 		<>
 			{isCoinPage ? (
 				<TotalLocked>
-					<span>Coin Returns for {returns[0].categoryName}</span>
+					<span>Category Returns: {returns[0].categoryName}</span>
 				</TotalLocked>
 			) : (
 				<TotalLocked>
@@ -105,13 +105,7 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 					</>
 					{tab === 'barchart' ? (
 						<>
-							<BarChart
-								title=""
-								chartData={barChart}
-								valueSymbol="%"
-								height="480px"
-								gradientBars={isCoinPage ? true : false}
-							/>
+							<BarChart title="" chartData={barChart} valueSymbol="%" height="480px" />
 						</>
 					) : (
 						<TreemapChart chartData={heatmapData} />

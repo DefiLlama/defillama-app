@@ -1768,12 +1768,12 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 
 			return (
 				<Name>
-					<span>{index + 1}</span>
+					<span>{index + 1}.</span>
 					<CustomLink href={`/returns/${row.original.id}`}>{getValue()}</CustomLink>
 				</Name>
 			)
 		},
-		size: 280
+		size: 250
 	},
 	{
 		header: 'Market Cap',
@@ -1827,6 +1827,15 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		meta: {
 			align: 'end'
 		},
+		size: 120
+	},
+	{
+		header: '24h Volume',
+		accessorKey: 'volume1D',
+		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
 		size: 110
 	},
 	{
@@ -1849,14 +1858,14 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
 				<Name>
-					<span>{index + 1}</span>
+					<span>{index + 1}.</span>
 					<CustomLink href={`https://www.coingecko.com/en/coins/${row.original.id}`} target="_blank">
 						{getValue()}
 					</CustomLink>
 				</Name>
 			)
 		},
-		size: 280
+		size: 250
 	},
 	{
 		header: 'Market Cap',
@@ -1904,13 +1913,22 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 		size: 110
 	},
 	{
+		header: '24h Volume',
+		accessorKey: 'volume1D',
+		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
 		header: '365D returns',
 		accessorKey: 'returns1Y',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
 		},
-		size: 110
+		size: 120
 	}
 ]
 
