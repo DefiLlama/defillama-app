@@ -5,6 +5,7 @@ import { stringToColour } from '../utils'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { getColorFromNumber } from '~/utils'
 
 export default function NonTimeSeriesBarChart({
 	chartData,
@@ -13,7 +14,8 @@ export default function NonTimeSeriesBarChart({
 	color,
 	chartOptions,
 	height = '360px',
-	tooltipOrderBottomUp
+	tooltipOrderBottomUp,
+	gradientBars
 }: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
@@ -29,17 +31,18 @@ export default function NonTimeSeriesBarChart({
 	})
 
 	const series = useMemo(() => {
-		const chartColor = color || stringToColour()
 		return [
 			{
-				data: chartData,
-				type: 'bar',
-				itemStyle: {
-					color: chartColor
-				}
+				data: chartData.map((item, index) => ({
+					value: item,
+					itemStyle: {
+						color: gradientBars ? getColorFromNumber(index, chartData.length) : stringToColour()
+					}
+				})),
+				type: 'bar'
 			}
 		]
-	}, [chartData, color])
+	}, [chartData])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

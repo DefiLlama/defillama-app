@@ -45,6 +45,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	barWidths?: {
 		[stack: string]: number
 	}
+	gradientBars?: boolean
 }
 
 export interface IPieChartProps {

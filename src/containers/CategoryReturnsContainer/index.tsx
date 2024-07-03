@@ -105,7 +105,13 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 					</>
 					{tab === 'barchart' ? (
 						<>
-							<BarChart title="" chartData={barChart} valueSymbol="%" height="480px" />
+							<BarChart
+								title=""
+								chartData={barChart}
+								valueSymbol="%"
+								height="480px"
+								gradientBars={isCoinPage ? true : false}
+							/>
 						</>
 					) : (
 						<TreemapChart chartData={heatmapData} />
