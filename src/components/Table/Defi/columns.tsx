@@ -1773,7 +1773,7 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 				</Name>
 			)
 		},
-		size: 250
+		size: 240
 	},
 	{
 		header: 'Market Cap',
@@ -1865,7 +1865,7 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 				</Name>
 			)
 		},
-		size: 250
+		size: 240
 	},
 	{
 		header: 'Market Cap',
@@ -1913,15 +1913,6 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '24h Volume',
-		accessorKey: 'volume1D',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
 		header: '365D returns',
 		accessorKey: 'returns1Y',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
@@ -1929,6 +1920,15 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 			align: 'end'
 		},
 		size: 120
+	},
+	{
+		header: '24h Volume',
+		accessorKey: 'volume1D',
+		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
 	}
 ]
 
