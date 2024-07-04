@@ -361,8 +361,6 @@ function ProtocolContainer({
 		stablecoins
 	} = protocolData
 
-	console.log(protocolData)
-
 	const router = useRouter()
 
 	const { usdInflows: usdInflowsParam, denomination } = router.query

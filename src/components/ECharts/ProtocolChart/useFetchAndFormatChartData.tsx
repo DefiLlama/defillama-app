@@ -185,8 +185,6 @@ export function useFetchAndFormatChartData({
 			disabled: isRouterReady && metrics.derivativesAggregators && derivativesAggregators === 'true' ? false : true
 		})
 
-	console.log(derivativesAggregatorsVolumeData)
-
 	const showNonUsdDenomination =
 		denomination &&
 		denomination !== 'USD' &&
