@@ -7,7 +7,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 
 import { CategoryReturnsContainer } from '~/containers/CategoryReturnsContainer'
 
-export const getStaticProps = withPerformanceLogging('returns', async () => {
+export const getStaticProps = withPerformanceLogging('narrative-tracker', async () => {
 	const returns = await getCategoryReturns()
 
 	return {
@@ -18,8 +18,8 @@ export const getStaticProps = withPerformanceLogging('returns', async () => {
 
 export default function CategoryReturns(props) {
 	return (
-		<Layout title={`Category Returns - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Returns' }} />
+		<Layout title={`Narrative Tracker - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Narrative Tracker' }} />
 			<CategoryReturnsContainer {...props} />
 		</Layout>
 	)

@@ -17,7 +17,8 @@ import {
 	Shuffle,
 	FileText,
 	TrendingUp,
-	FilePlus
+	FilePlus,
+	Eye
 } from 'react-feather'
 import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
 
@@ -329,6 +330,12 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <TrendingUp size={16} />,
 		newTag: true
+	},
+	'Narrative Tracker': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Eye size={16} />,
+		newTag: true
 	}
 	// NFTs: {
 	// 	main: [],
@@ -355,5 +362,6 @@ export const linksWithNoSubMenu = [
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lsd' },
 	{ name: 'Crypto ETFs', url: '/crypto-etf' },
-	{ name: 'Pro API', url: '/pro-api' }
+	{ name: 'Pro API', url: '/pro-api' },
+	{ name: 'Narrative Tracker', url: '/narrative-tracker' }
 ]

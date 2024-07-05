@@ -75,11 +75,11 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 		<>
 			{isCoinPage ? (
 				<TotalLocked>
-					<span>Category Returns: {returns[0].categoryName}</span>
+					<span>Category: {returns[0].categoryName}</span>
 				</TotalLocked>
 			) : (
 				<TotalLocked>
-					<span>Average Returns per Category</span>
+					<span>Average Performance per Category weighted by market cap</span>
 				</TotalLocked>
 			)}
 
