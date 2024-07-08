@@ -31,6 +31,7 @@ export interface IChartProps {
 	isThemeDark?: boolean
 	isMonthly?: boolean
 	customYAxis?: Array<string>
+	hideOthersInTooltip?: boolean
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {

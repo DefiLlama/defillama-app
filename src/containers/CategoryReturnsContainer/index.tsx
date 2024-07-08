@@ -128,6 +128,8 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 							hideGradient={true}
 							customLegendName="Coin"
 							customLegendOptions={coinsInCategory}
+							hideOthersInTooltip
+							chartOptions={areaChartoptions}
 						/>
 					) : (
 						<TreemapChart chartData={heatmapData} />
@@ -143,4 +145,10 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 			/>
 		</>
 	)
+}
+
+const areaChartoptions = {
+	yAxis: {
+		position: 'right'
+	}
 }

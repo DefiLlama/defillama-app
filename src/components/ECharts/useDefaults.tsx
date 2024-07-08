@@ -63,6 +63,7 @@ interface IUseDefaultsProps {
 	isStackedChart?: boolean
 	unlockTokenSymbol?: string
 	isThemeDark: boolean
+	hideOthersInTooltip?: boolean
 }
 
 export function useDefaults({
@@ -74,7 +75,8 @@ export function useDefaults({
 	hideLegend,
 	isStackedChart,
 	unlockTokenSymbol = '',
-	isThemeDark
+	isThemeDark,
+	hideOthersInTooltip
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -174,7 +176,7 @@ export function useDefaults({
 						'</li>')
 				}, '')
 
-				if (otherParams.length !== 0) {
+				if (otherParams.length !== 0 && !hideOthersInTooltip) {
 					const otherString =
 						'<li style="list-style:none">' +
 						(others?.marker ?? otherParams[0].marker) +
@@ -363,7 +365,8 @@ export function useDefaults({
 		hideLegend,
 		isStackedChart,
 		tooltipOrderBottomUp,
-		unlockTokenSymbol
+		unlockTokenSymbol,
+		hideOthersInTooltip
 	])
 
 	return defaults
