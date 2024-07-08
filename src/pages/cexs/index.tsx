@@ -311,6 +311,13 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
 	{
+		name: 'BingX',
+		slug: 'bingx',
+		coin: null,
+		walletsLink: 'https://bingx.com/en/balance-reserve/',
+		cgId: 'bingx',
+	},
+	{
 		name: 'Coinsquare',
 		slug: 'coinsquare',
 		coin: null,
