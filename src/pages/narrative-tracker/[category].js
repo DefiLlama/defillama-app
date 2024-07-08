@@ -9,11 +9,28 @@ export const getStaticProps = withPerformanceLogging('category-returns', async (
 	const returns = await getCategoryReturns()
 	const coinReturnsFilteredToCategory = returns.coinReturns.filter((i) => i.categoryId === params.category)
 
+	const returnsChart = await fetch(`https://fdv-server.llama.fi/returnsChart`).then((res) => res.json())
+	const returnsChartData = {}
+	const coinsInCategory = returnsChart.categoryInfo.filter((coin) => coin.category_id === params.category)
+	const coinsUnique = Object.fromEntries(coinsInCategory.map((c) => [c.coin_id, c.coin_name]))
+
+	returnsChart.coinReturns.forEach((coin) => {
+		if (coinsUnique[coin.coin_id]) {
+			returnsChartData[coin.truncated_day] = {
+				date: Math.floor(new Date(coin.truncated_day).getTime() / 1000),
+				...(returnsChartData[coin.truncated_day] ?? {}),
+				[coinsUnique[coin.coin_id]]: coin.cumulative_return * 100
+			}
+		}
+	})
+
 	return {
 		props: {
 			returns: coinReturnsFilteredToCategory,
 			isCoinPage: true,
-			categoryName: coinReturnsFilteredToCategory[0].categoryName
+			categoryName: coinReturnsFilteredToCategory[0].categoryName,
+			returnsChartData: Object.values(returnsChartData),
+			coinsInCategory: Object.values(coinsUnique)
 		},
 		revalidate: maxAgeForNext([22])
 	}

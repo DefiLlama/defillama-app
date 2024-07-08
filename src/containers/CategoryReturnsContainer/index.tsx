@@ -10,9 +10,11 @@ import { primaryColor } from '~/constants/colors'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { Tab, TabList } from '~/components'
 import { useScrollToTop } from '~/hooks'
+import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
 
 interface IChartProps {
 	chartData: any[]
+	title?: string
 }
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart/NonTimeSeries'), {
@@ -22,6 +24,10 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart/NonTimeSeri
 const TreemapChart = dynamic(() => import('~/components/ECharts/TreemapChart2'), {
 	ssr: false
 }) as React.FC<IChartProps>
+
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+	ssr: false
+}) as React.FC<IAreaChartProps>
 
 const ChartsContainer = styled.div`
 	background-color: ${({ theme }) => theme.advancedBG};
@@ -49,7 +55,7 @@ const TotalLocked = styled(Header)`
 	}
 `
 
-export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
+export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData, coinsInCategory }) => {
 	useScrollToTop()
 
 	const [tab, setTab] = React.useState('barchart')
@@ -91,6 +97,9 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 					<Tab onClick={() => setTab('heatmap')} aria-selected={tab === 'heatmap'}>
 						Heatmap
 					</Tab>
+					<Tab onClick={() => setTab('returns')} aria-selected={tab === 'returns'}>
+						Returns
+					</Tab>
 				</TabList>
 
 				<TabContainer>
@@ -107,6 +116,17 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage }) => {
 						<>
 							<BarChart title="" chartData={barChart} valueSymbol="%" height="480px" />
 						</>
+					) : tab === 'returns' ? (
+						<AreaChart
+							title=""
+							chartData={returnsChartData}
+							stacks={coinsInCategory}
+							valueSymbol="%"
+							hideDefaultLegend={true}
+							hideGradient={true}
+							customLegendName="Coin"
+							customLegendOptions={coinsInCategory}
+						/>
 					) : (
 						<TreemapChart chartData={heatmapData} />
 					)}
