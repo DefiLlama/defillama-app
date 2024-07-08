@@ -17,7 +17,6 @@ async function getCurrentKey(authToken?: string | null) {
 			for (let i = 0; i < localStorage.length; i++) {
 				const key = localStorage.key(i)
 				if (key?.startsWith('auth_token')) {
-					console.log(key)
 					localStorage.removeItem(key)
 				}
 			}

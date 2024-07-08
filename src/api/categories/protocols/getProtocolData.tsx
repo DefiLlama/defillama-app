@@ -394,7 +394,8 @@ export const getProtocolData = async (protocol: string) => {
 		emissions,
 		devMetrics,
 		aggregatorProtocols,
-		optionsProtocols
+		optionsProtocols,
+		derivatesAggregatorProtocols
 	] = await Promise.all([
 		getColor(tokenIconPaletteUrl(protocolData.name)),
 		getProtocolsRaw(),
@@ -463,6 +464,14 @@ export const getProtocolData = async (protocol: string) => {
 			.catch((err) => {
 				console.log(`Couldn't fetch options protocols list at path: ${protocol}`, 'Error:', err)
 				return {}
+			}),
+		fetchOverCache(
+			`https://api.llama.fi/overview/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+		)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(`Couldn't fetch derivatives-aggregators protocols list at path: ${protocol}`, 'Error:', err)
+				return {}
 			})
 	])
 
@@ -516,6 +525,10 @@ export const getProtocolData = async (protocol: string) => {
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
+	const derivativesAggregatorData = derivatesAggregatorProtocols?.protocols?.filter(
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
+	)
+
 	const chartTypes = [
 		'TVL',
 		'Mcap',
@@ -548,7 +561,8 @@ export const getProtocolData = async (protocol: string) => {
 		'Devs Commits',
 		'Contributers Commits',
 		'NFT Volume',
-		'Premium Volume'
+		'Premium Volume',
+		'Derivatives Aggregators Volume'
 	]
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
@@ -604,6 +618,10 @@ export const getProtocolData = async (protocol: string) => {
 	const dailyDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const dailyAggregatorsVolume = aggregatorsData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
 	const allTimeAggregatorsVolume = aggregatorsData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const dailyDerivativesAggregatorVolume =
+		derivativesAggregatorData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
+	const allTimeDerivativesAggregatorVolume =
+		derivativesAggregatorData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const dailyOptionsVolume = optionsData?.reduce((acc, curr) => (acc += curr.dailyPremiumVolume || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
@@ -693,6 +711,10 @@ export const getProtocolData = async (protocol: string) => {
 					dexs: metrics.dexs || dailyVolume || allTimeVolume ? true : false,
 					derivatives: metrics.derivatives || dailyDerivativesVolume || allTimeDerivativesVolume ? true : false,
 					aggregators: metrics.aggregators || dailyAggregatorsVolume || allTimeAggregatorsVolume ? true : false,
+					derivativesAggregators:
+						metrics.derivativesAggregators || dailyDerivativesAggregatorVolume || allTimeDerivativesAggregatorVolume
+							? true
+							: false,
 					options: metrics.options || dailyOptionsVolume ? true : false,
 					medianApy: medianApy.data.length > 0,
 					inflows: inflowsExist,
@@ -727,6 +749,8 @@ export const getProtocolData = async (protocol: string) => {
 			allTimeDerivativesVolume,
 			dailyAggregatorsVolume,
 			allTimeAggregatorsVolume,
+			dailyDerivativesAggregatorVolume,
+			allTimeDerivativesAggregatorVolume,
 			dailyOptionsVolume,
 			controversialProposals,
 			governanceApis: governanceApis.filter((x) => !!x),

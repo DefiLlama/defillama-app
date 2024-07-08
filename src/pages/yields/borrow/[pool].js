@@ -49,7 +49,6 @@ const PageView = () => {
 
 // const PageView = () => {
 // 	const { query } = useRouter()
-// 	console.log(query)
 
 // 	const { data: pool, loading: fetchingPoolData } = useYieldPoolData(query.pool)
 

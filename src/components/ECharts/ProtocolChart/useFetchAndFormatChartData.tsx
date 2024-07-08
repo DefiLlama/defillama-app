@@ -71,7 +71,8 @@ export function useFetchAndFormatChartData({
 	nftVolume,
 	nftVolumeData,
 	aggregators,
-	premiumVolume
+	premiumVolume,
+	derivativesAggregators
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -174,6 +175,15 @@ export function useFetchAndFormatChartData({
 		enableBreakdownChart: false,
 		disabled: isRouterReady && metrics.aggregators && aggregators === 'true' ? false : true
 	})
+
+	const { data: derivativesAggregatorsVolumeData, loading: fetchingDerivativesAggregatorsVolume } =
+		useGetOverviewChartData({
+			name: protocol,
+			dataToFetch: 'aggregator-derivatives',
+			type: 'chains',
+			enableBreakdownChart: false,
+			disabled: isRouterReady && metrics.derivativesAggregators && derivativesAggregators === 'true' ? false : true
+		})
 
 	const showNonUsdDenomination =
 		denomination &&
@@ -546,6 +556,21 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
+		if (derivativesAggregatorsVolumeData) {
+			chartsUnique.push('Derivatives Aggregators Volume')
+
+			derivativesAggregatorsVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Derivatives Aggregators Volume'] = showNonUsdDenomination
+					? +item['Aggregator-derivatives'] / getPriceAtDate(date, denominationHistory.prices)
+					: item['Aggregator-derivatives']
+			})
+		}
+
 		if (feesAndRevenue) {
 			if (fees === 'true') {
 				chartsUnique.push('Fees')
@@ -880,6 +905,7 @@ export function useFetchAndFormatChartData({
 		tvl,
 		historicalChainTvls,
 		extraTvlEnabled,
+		isHourlyChart,
 		staking,
 		borrowed,
 		geckoId,
@@ -890,6 +916,7 @@ export function useFetchAndFormatChartData({
 		derivativesVolumeData,
 		optionsVolumeData,
 		aggregatorsVolumeData,
+		derivativesAggregatorsVolumeData,
 		feesAndRevenue,
 		twitterData,
 		unlocksData,
@@ -898,7 +925,6 @@ export function useFetchAndFormatChartData({
 		transactionsData,
 		gasData,
 		medianAPYData,
-		isHourlyChart,
 		usdInflows,
 		usdInflowsData,
 		governanceData,

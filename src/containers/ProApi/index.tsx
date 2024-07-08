@@ -201,7 +201,7 @@ const ProApi = () => {
 					</Box>
 				)}
 
-				{!authToken || !isSubscribed ? (
+				{!authToken || !(isSubscribed || ghAuth?.isContributor) ? (
 					<>
 						<h2>Pricing:</h2>
 						<TableWrapper>

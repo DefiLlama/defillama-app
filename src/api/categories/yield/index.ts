@@ -223,7 +223,8 @@ export async function getLendBorrowData() {
 				totalAvailableUsd = aaveData?.totalSupplyUsd - aaveData?.totalBorrowUsd
 			} else if (x.totalSupplyUsd === null && x.totalBorrowUsd === null) {
 				totalAvailableUsd = null
-			} else if (cdpPools.includes(x.pool)) {
+				// GHO pool on aave-v3
+			} else if (cdpPools.includes(x.pool) || x.pool === '1e00ac2b-0c3c-4b1f-95be-9378f98d2b40') {
 				totalAvailableUsd = x.debtCeilingUsd ? x.debtCeilingUsd - x.totalBorrowUsd : null
 			} else if (p.project === 'compound' && x.debtCeilingUsd > 0) {
 				totalAvailableUsd =

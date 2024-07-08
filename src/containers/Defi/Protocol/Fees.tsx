@@ -42,7 +42,7 @@ export function VolumeCharts({
 	type = 'dexs'
 }: {
 	data: IFusedProtocolData
-	type?: 'derivatives' | 'dexs' | 'aggregators' | 'options'
+	type?: 'derivatives' | 'dexs' | 'aggregators' | 'options' | 'aggregator-derivatives'
 }) {
 	const hasVersions = (data.otherProtocols ?? []).length > 0
 

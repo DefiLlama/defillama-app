@@ -16,7 +16,14 @@ export const optimism = {
 	symbol: 'ETH'
 }
 
-export const subgraphApi = 'https://api.thegraph.com/subgraphs/name/0xngmi/llamasubs-optimism'
+function unscramble(str: string) {
+	return str.split("").reduce(function (a, b) {
+		return a + String.fromCharCode(b.charCodeAt(0) + 8)
+	}, "");
+}
+const apiKey = unscramble('.[^+0](,0[+1,*\\YZY\\[(*+Z,][/**,]')
+
+export const subgraphApi = `https://gateway-arbitrum.network.thegraph.com/api/${apiKey}/subgraphs/id/7SAiBm4sRAfPkHniw45Pw83GnyfE953p3LFr87N6XXwC`
 
 export const periodDuration = 24 * 60 * 60
 
