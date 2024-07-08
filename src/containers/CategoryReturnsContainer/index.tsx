@@ -104,13 +104,15 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 
 				<TabContainer>
 					<>
-						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
-							{(['1D', '7D', '30D', 'YTD', '365D'] as const).map((period) => (
-								<Denomination key={period} as="button" active={groupBy === period} onClick={() => setGroupBy(period)}>
-									{period.charAt(0).toUpperCase() + period.slice(1)}
-								</Denomination>
-							))}
-						</Filters>
+						{tab === 'returns' ? null : (
+							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
+								{(['1D', '7D', '30D', 'YTD', '365D'] as const).map((period) => (
+									<Denomination key={period} as="button" active={groupBy === period} onClick={() => setGroupBy(period)}>
+										{period.charAt(0).toUpperCase() + period.slice(1)}
+									</Denomination>
+								))}
+							</Filters>
+						)}
 					</>
 					{tab === 'barchart' ? (
 						<>
