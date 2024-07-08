@@ -555,11 +555,6 @@ function ProtocolContainer({
 					Project has some red flags and multiple users have reported concerns. Be careful.
 				</Announcement>
 			)}
-			 {['LayerBank'].includes(name) && (
-				<Announcement warning={true} notCancellable={true}>
-					Most of the TVL on this protocol is just inflating TVL with non-productive positions
-				</Announcement>
-			)}
 			{name === '01' && (
 				<Announcement warning={true} notCancellable={true}>
 					01 Exchange was winded down. Please withdraw your remaining assets.
