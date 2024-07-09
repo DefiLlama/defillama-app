@@ -205,6 +205,7 @@ export const ProtocolChart = ({
 						stacks={chartData[1]}
 						stackColors={stackedBarChartColors}
 						valueSymbol="$"
+						hideLegend={false}
 					/>
 				) : (
 					<BarChart
@@ -258,6 +259,7 @@ export const ChartOnly = ({ title, chartData }) => {
 					stacks={chartData[1]}
 					stackColors={stackedBarChartColors}
 					valueSymbol="$"
+					hideLegend={false}
 				/>
 			) : (
 				<BarChart
