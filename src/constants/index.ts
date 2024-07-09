@@ -141,6 +141,7 @@ export const MCAPS_API = 'https://coins.llama.fi/mcaps'
 export const CACHE_SERVER = 'https://fe-cache.llama.fi'
 
 export const CATEGORY_RETURNS_API = 'https://fdv-server.llama.fi/returns'
+export const CATEGORY_RETURNS_CHART_API = 'https://fdv-server.llama.fi/returnsChart'
 
 export const scams = [
 	'SyncDEX Finance',
