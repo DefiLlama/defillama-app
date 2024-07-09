@@ -58,6 +58,7 @@ interface IUseDefaultsProps {
 	title: string
 	tooltipSort?: boolean
 	tooltipOrderBottomUp?: boolean
+	tooltipValuesRelative?: boolean
 	valueSymbol?: string
 	hideLegend?: boolean
 	isStackedChart?: boolean
@@ -71,6 +72,7 @@ export function useDefaults({
 	title,
 	tooltipSort = true,
 	tooltipOrderBottomUp,
+	tooltipValuesRelative,
 	valueSymbol = '',
 	hideLegend,
 	isStackedChart,
@@ -134,7 +136,13 @@ export function useDefaults({
 				if (isStackedChart) {
 					filteredParams.reverse()
 				} else {
-					filteredParams.sort((a, b) => (tooltipSort ? Math.abs(b.value[1]) - Math.abs(a.value[1]) : 0))
+					filteredParams.sort((a, b) =>
+						tooltipSort
+							? tooltipValuesRelative
+								? b.value[1] - a.value[1]
+								: Math.abs(b.value[1]) - Math.abs(a.value[1])
+							: 0
+					)
 				}
 
 				const otherIndex = filteredParams.findIndex((item) => item.seriesName === 'Others')

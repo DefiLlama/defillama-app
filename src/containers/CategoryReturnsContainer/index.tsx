@@ -128,6 +128,7 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 							hideGradient={true}
 							customLegendName={isCoinPage ? 'Coin' : 'Category'}
 							customLegendOptions={coinsInCategory}
+							tooltipValuesRelative
 							hideOthersInTooltip
 							chartOptions={areaChartoptions}
 							height="533px"

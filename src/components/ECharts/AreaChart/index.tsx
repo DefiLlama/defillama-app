@@ -24,6 +24,7 @@ export default function AreaChart({
 	customLegendName,
 	customLegendOptions,
 	tooltipSort = true,
+	tooltipValuesRelative,
 	chartOptions,
 	height = '360px',
 	expandTo100Percent = false,
@@ -48,7 +49,8 @@ export default function AreaChart({
 		hideLegend: true,
 		isStackedChart,
 		isThemeDark,
-		hideOthersInTooltip
+		hideOthersInTooltip,
+		tooltipValuesRelative
 	})
 
 	const series = useMemo(() => {
