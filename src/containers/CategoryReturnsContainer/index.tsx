@@ -102,7 +102,7 @@ function calculateDenominatedReturns(data, denominatedCoin) {
 export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData, coinsInCategory }) => {
 	useScrollToTop()
 
-	const [tab, setTab] = React.useState('barchart')
+	const [tab, setTab] = React.useState('linechart')
 	const [groupBy, setGroupBy] = React.useState<'1D' | '7D' | '30D' | '365D' | 'YTD'>('7D')
 
 	const [groupByDenom, setGroupByDenom] = React.useState<'$' | 'BTC' | 'ETH' | 'SOL'>('$')
@@ -146,20 +146,20 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 
 			<ChartsContainer>
 				<TabList>
+					<Tab onClick={() => setTab('linechart')} aria-selected={tab === 'linechart'}>
+						Linechart
+					</Tab>
 					<Tab onClick={() => setTab('barchart')} aria-selected={tab === 'barchart'}>
 						Barchart
 					</Tab>
 					<Tab onClick={() => setTab('heatmap')} aria-selected={tab === 'heatmap'}>
 						Heatmap
 					</Tab>
-					<Tab onClick={() => setTab('returns')} aria-selected={tab === 'returns'}>
-						Linechart
-					</Tab>
 				</TabList>
 
 				<TabContainer>
 					<>
-						{tab === 'returns' ? (
+						{tab === 'linechart' ? (
 							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
 								{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
 									<Denomination
@@ -186,7 +186,7 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 						<>
 							<BarChart title="" chartData={barChart} valueSymbol="%" height="533px" />
 						</>
-					) : tab === 'returns' ? (
+					) : tab === 'linechart' ? (
 						<AreaChart
 							title=""
 							chartData={lineChart}
