@@ -98,7 +98,7 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 						Heatmap
 					</Tab>
 					<Tab onClick={() => setTab('returns')} aria-selected={tab === 'returns'}>
-						Returns
+						Linechart
 					</Tab>
 				</TabList>
 

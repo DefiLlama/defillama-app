@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
-import { getCategoryReturns } from '~/api/categories/protocols'
+import { getCategoryReturns, getCategoryChartData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { CategoryReturnsContainer } from '~/containers/CategoryReturnsContainer'
 
@@ -9,7 +9,7 @@ export const getStaticProps = withPerformanceLogging('category-returns', async (
 	const returns = await getCategoryReturns()
 	const coinReturnsFilteredToCategory = returns.coinReturns.filter((i) => i.categoryId === params.category)
 
-	const returnsChart = await fetch(`https://fdv-server.llama.fi/returnsChart`).then((res) => res.json())
+	const returnsChart = await getCategoryChartData()
 	const returnsChartData = {}
 	const coinsInCategory = returnsChart.categoryInfo.filter((coin) => coin.category_id === params.category)
 	const coinsUnique = Object.fromEntries(coinsInCategory.map((c) => [c.coin_id, c.coin_name]))
