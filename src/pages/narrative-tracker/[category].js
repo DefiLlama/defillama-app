@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging('category-returns', async (
 	const coinsUnique = Object.fromEntries(coinsInCategory)
 
 	// for denom on /narrative-tracker/[category] we need to add these
-	coinsInCategory.push(['bitcoin', 'Bitcoin'], ['ethereum', 'Ethereum', 'solana', 'Solana'])
+	coinsInCategory.push(['bitcoin', 'Bitcoin'], ['ethereum', 'Ethereum'], ['solana', 'Solana'])
 	const coinsUniqueIncludingDenomCoins = Object.fromEntries(coinsInCategory)
 
 	returnsChart.coinReturns.forEach((coin) => {
