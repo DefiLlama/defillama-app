@@ -97,7 +97,7 @@ export const isCpusHot = async () => {
 			return false
 		}
 
-		const hotMoments = usage.some((u) => u.cpusUsage.filter((u) => u > 0.75).length >= 4)
+		const hotMoments = usage.some((u) => u.cpusUsage.filter((u) => u > 0.75).length >= 1)
 		return hotMoments
 	} catch (error) {
 		console.error('[error] [cache] [failed to get cpu usage]')
