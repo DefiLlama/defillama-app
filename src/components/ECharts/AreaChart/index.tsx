@@ -29,6 +29,7 @@ export default function AreaChart({
 	expandTo100Percent = false,
 	isStackedChart,
 	hideGradient = false,
+	hideOthersInTooltip,
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -46,7 +47,8 @@ export default function AreaChart({
 		tooltipSort,
 		hideLegend: true,
 		isStackedChart,
-		isThemeDark
+		isThemeDark,
+		hideOthersInTooltip
 	})
 
 	const series = useMemo(() => {
@@ -249,7 +251,8 @@ export default function AreaChart({
 							max: 100,
 							min: 0
 					  }
-					: {})
+					: {}),
+				...(chartOptions['yAxis'] ?? {})
 			},
 			dataZoom: [...dataZoom],
 			series

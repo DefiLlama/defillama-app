@@ -22,7 +22,8 @@ import {
 	CHAINS_API_V2,
 	CHAIN_ASSETS_FLOWS,
 	BRIDGEINFLOWS_API,
-	CATEGORY_RETURNS_API
+	CATEGORY_RETURNS_API,
+	CATEGORY_RETURNS_CHART_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -1041,4 +1042,10 @@ export async function getCategoryReturns() {
 	const performance = await fetchWithErrorLogging(CATEGORY_RETURNS_API).then((r) => r.json())
 
 	return performance
+}
+
+export async function getCategoryChartData() {
+	const chart = await fetchWithErrorLogging(CATEGORY_RETURNS_CHART_API).then((r) => r.json())
+
+	return chart
 }

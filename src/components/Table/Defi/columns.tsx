@@ -1794,7 +1794,7 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '7D returns',
+		header: '7D Change',
 		accessorKey: 'returns1W',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
