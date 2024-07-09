@@ -554,6 +554,7 @@ export default function AreaChart({
 		denomination,
 		isThemeDark
 	])
+
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
 

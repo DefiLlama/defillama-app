@@ -161,6 +161,7 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 					<>
 						{tab === 'linechart' ? (
 							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
+								<DenominationLabel>Denominate in</DenominationLabel>
 								{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
 									<Denomination
 										key={denom}
@@ -222,3 +223,8 @@ const areaChartoptions = {
 		position: 'right'
 	}
 }
+
+const DenominationLabel = styled.p`
+	padding-left: 8px;
+	font-size: 12px;
+`

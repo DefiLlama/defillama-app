@@ -149,7 +149,7 @@ export default function NonTimeSeriesBarChart({
 				...yAxis
 			},
 
-			dataZoom: [...dataZoom],
+			dataZoom: [dataZoom[0], { ...dataZoom[1], labelFormatter: () => '' }],
 			series
 		})
 

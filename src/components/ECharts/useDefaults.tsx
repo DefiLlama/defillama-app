@@ -374,7 +374,8 @@ export function useDefaults({
 		isStackedChart,
 		tooltipOrderBottomUp,
 		unlockTokenSymbol,
-		hideOthersInTooltip
+		hideOthersInTooltip,
+		tooltipValuesRelative
 	])
 
 	return defaults
