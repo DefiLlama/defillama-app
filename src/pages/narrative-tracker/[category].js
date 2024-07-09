@@ -11,15 +11,21 @@ export const getStaticProps = withPerformanceLogging('category-returns', async (
 
 	const returnsChart = await getCategoryChartData()
 	const returnsChartData = {}
-	const coinsInCategory = returnsChart.categoryInfo.filter((coin) => coin.category_id === params.category)
-	const coinsUnique = Object.fromEntries(coinsInCategory.map((c) => [c.coin_id, c.coin_name]))
+	const coinsInCategory = returnsChart.categoryInfo
+		.filter((coin) => coin.category_id === params.category)
+		.map((c) => [c.coin_id, c.coin_name])
+	const coinsUnique = Object.fromEntries(coinsInCategory)
+
+	// for denom on /narrative-tracker/[category] we need to add these
+	coinsInCategory.push(['bitcoin', 'Bitcoin'], ['ethereum', 'Ethereum', 'solana', 'Solana'])
+	const coinsUniqueIncludingDenomCoins = Object.fromEntries(coinsInCategory)
 
 	returnsChart.coinReturns.forEach((coin) => {
-		if (coinsUnique[coin.coin_id]) {
+		if (coinsUniqueIncludingDenomCoins[coin.coin_id]) {
 			returnsChartData[coin.truncated_day] = {
 				date: Math.floor(new Date(coin.truncated_day).getTime() / 1000),
 				...(returnsChartData[coin.truncated_day] ?? {}),
-				[coinsUnique[coin.coin_id]]: coin.cumulative_return * 100
+				[coinsUniqueIncludingDenomCoins[coin.coin_id]]: coin.cumulative_return * 100
 			}
 		}
 	})

@@ -55,13 +55,59 @@ const TotalLocked = styled(Header)`
 	}
 `
 
+// func for denominating the cumulative returns in either $, btc, eth or sol
+function calculateDenominatedReturns(data, denominatedCoin) {
+	const sortedData = data.sort((a, b) => a.date - b.date)
+
+	const denominatedReturns = []
+
+	// calculate eg BTC-denominated returns for each day
+	sortedData.forEach((dayData, index) => {
+		const newDayData = { date: dayData.date }
+
+		if (index === 0) {
+			// for first day, we set all returns to 0 (base case)
+			Object.keys(dayData).forEach((category) => {
+				if (category !== 'date' && category !== denominatedCoin) {
+					newDayData[category] = 0
+				}
+			})
+		} else {
+			const previousDay = sortedData[index - 1]
+
+			// calculate daily return for `denominatedCoin` eg Bitcoin
+			const btcDailyReturn = (1 + dayData[denominatedCoin] / 100) / (1 + previousDay[denominatedCoin] / 100) - 1
+
+			Object.keys(dayData).forEach((category) => {
+				if (category !== 'date' && category !== denominatedCoin) {
+					// calculate daily return for the category
+					const categoryDailyReturn = (1 + dayData[category] / 100) / (1 + previousDay[category] / 100) - 1
+
+					// calculate daily return denominated by eg Bitcoin
+					const btcDenominatedDailyReturn = (1 + categoryDailyReturn) / (1 + btcDailyReturn) - 1
+
+					// calculate cumulative return
+					const previousCumulativeReturn = denominatedReturns[index - 1][category]
+					newDayData[category] = ((1 + previousCumulativeReturn / 100) * (1 + btcDenominatedDailyReturn) - 1) * 100
+				}
+			})
+		}
+
+		denominatedReturns.push(newDayData)
+	})
+
+	return denominatedReturns
+}
+
 export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData, coinsInCategory }) => {
 	useScrollToTop()
 
 	const [tab, setTab] = React.useState('barchart')
 	const [groupBy, setGroupBy] = React.useState<'1D' | '7D' | '30D' | '365D' | 'YTD'>('7D')
 
-	const { sortedReturns, barChart, heatmapData } = React.useMemo(() => {
+	const [groupByDenom, setGroupByDenom] = React.useState<'$' | 'BTC' | 'ETH' | 'SOL'>('$')
+
+	const { sortedReturns, barChart, heatmapData, lineChart } = React.useMemo(() => {
 		const field = {
 			'1D': 'returns1D',
 			'7D': 'returns1W',
@@ -74,8 +120,17 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 		const barChart = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
 		const heatmapData = sorted.map((i) => ({ ...i, returnField: i[field] }))
 
-		return { sortedReturns: sorted, barChart, heatmapData }
-	}, [returns, groupBy])
+		const denomCoin = {
+			$: '$',
+			BTC: 'Bitcoin',
+			ETH: 'Ethereum',
+			SOL: 'Solana'
+		}[groupByDenom]
+
+		const lineChart = denomCoin === '$' ? returnsChartData : calculateDenominatedReturns(returnsChartData, denomCoin)
+
+		return { sortedReturns: sorted, barChart, heatmapData, lineChart }
+	}, [returns, groupBy, returnsChartData, groupByDenom])
 
 	return (
 		<>
@@ -104,7 +159,20 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 
 				<TabContainer>
 					<>
-						{tab === 'returns' ? null : (
+						{tab === 'returns' ? (
+							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
+								{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
+									<Denomination
+										key={denom}
+										as="button"
+										active={groupByDenom === denom}
+										onClick={() => setGroupByDenom(denom)}
+									>
+										{denom}
+									</Denomination>
+								))}
+							</Filters>
+						) : (
 							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
 								{(['1D', '7D', '30D', 'YTD', '365D'] as const).map((period) => (
 									<Denomination key={period} as="button" active={groupBy === period} onClick={() => setGroupBy(period)}>
@@ -116,12 +184,12 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 					</>
 					{tab === 'barchart' ? (
 						<>
-							<BarChart title="" chartData={barChart} valueSymbol="%" height="480px" />
+							<BarChart title="" chartData={barChart} valueSymbol="%" height="533px" />
 						</>
 					) : tab === 'returns' ? (
 						<AreaChart
 							title=""
-							chartData={returnsChartData}
+							chartData={lineChart}
 							stacks={coinsInCategory}
 							valueSymbol="%"
 							hideDefaultLegend={true}

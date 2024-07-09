@@ -227,5 +227,5 @@ export default function TreemapChart({ chartData }: IChartProps) {
 		}
 	}, [id, chartDataTree, createInstance, isDark])
 
-	return <Wrapper id={id} style={{ height: '480px', margin: 'auto 0' }}></Wrapper>
+	return <Wrapper id={id} style={{ height: '533px', margin: 'auto 0' }}></Wrapper>
 }
