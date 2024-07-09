@@ -4,11 +4,11 @@ import styled from 'styled-components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
-import { TooltipComponent, TitleComponent } from 'echarts/components'
+import { TooltipComponent, TitleComponent, ToolboxComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
 
-echarts.use([TitleComponent, TooltipComponent, EChartTreemap, CanvasRenderer])
+echarts.use([TitleComponent, TooltipComponent, EChartTreemap, CanvasRenderer, ToolboxComponent])
 
 export interface IChartProps {
 	chartData: any
