@@ -254,7 +254,7 @@ export default function AreaChart({
 							min: 0
 					  }
 					: {}),
-				...(chartOptions['yAxis'] ?? {})
+				...(chartOptions?.['yAxis'] ?? {})
 			},
 			dataZoom: [...dataZoom],
 			series
