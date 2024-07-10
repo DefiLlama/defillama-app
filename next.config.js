@@ -167,7 +167,7 @@ const nextConfig = {
 	},
 	generateBuildId: async () => {
 		// get the latest git commit hash here
-		const commitHash = require('child_process').execSync('git rev-parse HEAD').toString().trim()
+		const commitHash = Math.random().toString()//require('child_process').execSync('git rev-parse HEAD').toString().trim()
 		return commitHash
 	},
 	experimental: {

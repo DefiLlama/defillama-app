@@ -5,9 +5,9 @@ set -a
 [ -f .env ] && . .env
 
 # find the last commit hash and commit comment and author
-COMMIT_AUTHOR=$(git log -1 --pretty=%an)
-COMMIT_HASH=$(git rev-parse HEAD)
-COMMIT_COMMENT=$(git log -1 --pretty=%B)
+COMMIT_AUTHOR="" #$(git log -1 --pretty=%an)
+COMMIT_HASH="" #$(git rev-parse HEAD)
+COMMIT_COMMENT="" #$(git log -1 --pretty=%B)
 # starting time in UTC string and timestamp (for calculating build duration)
 START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 START_TIME_TS=$(date -u +"%s")
