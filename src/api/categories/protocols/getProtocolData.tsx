@@ -70,7 +70,6 @@ export const getProtocolDataLite = async (protocol: string) => {
 				.then((res) => res.json())
 				.then((data) => data?.[protocolData.id] ?? null)
 				.catch(() => null),
-			null,
 			fetch(`https://api.llama.fi/overview/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 				.then((res) => res.json())
 				.catch((err) => {
