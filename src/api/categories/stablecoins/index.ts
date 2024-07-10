@@ -164,12 +164,13 @@ export async function getPeggedChainsPageData() {
 		}
 	})
 
-	let peggedChartDataByChain = chainList.map((chain) => chainChartMap[chain])
+	let peggedChartDataByChain = chainList.map((chain) => chainChartMap[chain] ?? null)
 
 	let peggedDomDataByChain = chainList.map((chain) => dominanceMap[chain])
 
 	let chainDominances = {}
 	peggedDomDataByChain.map((charts, i) => {
+		if (!charts) return
 		const lastChart = charts[charts.length - 1]
 		if (!lastChart) return
 		const greatestChainMcap = lastChart.greatestMcap
@@ -185,10 +186,11 @@ export async function getPeggedChainsPageData() {
 	})
 
 	peggedChartDataByChain = peggedChartDataByChain.map((charts) => {
+		if (!charts) return null
 		const formattedCharts = charts.map((chart) => {
 			return {
 				date: chart.date,
-				mcap: chart.totalCirculatingUSD
+				mcap: chart.totalCirculatingUSD ?? null
 			}
 		})
 		return formattedCharts
