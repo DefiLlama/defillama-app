@@ -67,3 +67,38 @@ export async function fetchWithErrorLogging(
 		}
 	}
 }
+
+const dataCache: {
+	[key: string]: any
+} = {}
+
+export async function wrappedFetch(endpoint: string, { retries = 0, cache = false }: { retries?: number, cache?: boolean } = {}): Promise<any> {
+	if (cache) {
+		retries++
+		if (!dataCache[endpoint]) {
+			dataCache[endpoint] = _getData(retries)
+		}
+		return dataCache[endpoint]
+	}
+	return _getData(retries)
+
+	async function _getData(retiresLeft = 0, attempts = 0) {
+		try {
+			const res = await fetch(endpoint).then((res) => res.json())
+			return res
+		} catch (error) {
+			if (retiresLeft > 0) {
+				attempts++
+				await sleep(attempts * 30 * 1000) // retry after 30 seconds * attempts
+				return _getData(retiresLeft - 1, attempts)
+			}
+			throw error
+		}
+	}
+}
+
+
+export async function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+

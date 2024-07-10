@@ -399,7 +399,7 @@ export const getPrevPeggedTotalFromChart = (chart, daysBefore, issuanceType, peg
 	if (!chart) return null
 	const prevChart = chart[chart.length - 1 - daysBefore]
 	if (!prevChart) return null
-	if (!pegType) return Object.values(prevChart?.[issuanceType]).reduce((a, b) => a + b)
+	if (!pegType) return Object.values(prevChart?.[issuanceType] ?? {}).reduce((a, b) => a + b, 0)
 	return prevChart?.[issuanceType]?.[pegType] ?? null
 }
 
