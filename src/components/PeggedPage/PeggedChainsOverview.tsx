@@ -45,7 +45,6 @@ function PeggedChainsOverview({
 	peggedChartDataByChain,
 	chainList,
 	chainsGroupbyParent,
-	chainTVLData
 }) {
 	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
@@ -55,7 +54,6 @@ function PeggedChainsOverview({
 		chainList,
 		[...Array(chainList.length).keys()],
 		'mcap',
-		chainTVLData
 	)
 
 	const filteredPeggedAssets = chainCirculatings

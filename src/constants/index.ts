@@ -11,6 +11,7 @@ export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amaz
 export const DATASETS_R2_PATH = 'https://defillama-datasets.llama.fi'
 
 export const CHART_API = 'https://api.llama.fi/lite/charts'
+export const CHAIN_TVL_API = 'https://api.llama.fi/v2/chains'
 export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2?b=2'
 export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
 export const CONFIG_API = 'https://api.llama.fi/config'
@@ -62,7 +63,9 @@ export const NFT_SEARCH_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaw
 
 export const PEGGEDS_API = 'https://stablecoins.llama.fi/stablecoins'
 export const PEGGED_API = 'https://stablecoins.llama.fi/stablecoin'
-export const PEGGEDCHART_API = 'https://stablecoins.llama.fi/stablecoincharts'
+export const PEGGEDCHART_API = 'https://stablecoins.llama.fi/stablecoincharts2'
+export const PEGGEDCHART_DOMINANCE_ALL_API = 'https://stablecoins.llama.fi/stablecoincharts2/all-dominance-chain-breakdown'
+export const PEGGEDCHART_COINS_RECENT_DATA_API = 'https://stablecoins.llama.fi/stablecoincharts2/recent-protocol-data'
 export const PEGGEDCONFIG_API = 'https://stablecoins.llama.fi/config'
 export const PEGGEDDOMINANCE_API = 'https://stablecoins.llama.fi/stablecoindominance'
 export const PEGGEDPRICES_API = 'https://stablecoins.llama.fi/stablecoinprices'

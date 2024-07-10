@@ -1,22 +1,20 @@
 import { getPercentChange, getPrevPeggedTotalFromChart, standardizeProtocolName } from '~/utils'
-import type { IChainData } from '~/api/types'
 import {
-	CHART_API,
 	CONFIG_API,
 	PEGGEDCHART_API,
 	PEGGEDCONFIG_API,
-	PEGGEDDOMINANCE_API,
 	PEGGEDPRICES_API,
 	PEGGEDRATES_API,
 	PEGGEDS_API,
-	PEGGED_API
+	PEGGED_API,
+	PEGGEDCHART_DOMINANCE_ALL_API,
+	PEGGEDCHART_COINS_RECENT_DATA_API,
 } from '~/constants'
 import { formatPeggedAssetsData, formatPeggedChainsData } from './utils'
-import { fetchWithThrows } from '~/utils/async'
+import { wrappedFetch } from '~/utils/async'
 
 export const getPeggedAssets = () =>
-	fetch(PEGGEDS_API + '?includeChains=true' + '&includePrices=true')
-		.then((r) => r.json())
+	wrappedFetch(PEGGEDS_API, { cache: true })
 		.then(({ peggedAssets, chains }) => ({
 			protocolsDict: peggedAssets.reduce((acc, curr) => {
 				acc[standardizeProtocolName(curr.name)] = curr
@@ -26,70 +24,84 @@ export const getPeggedAssets = () =>
 			chains
 		}))
 
-export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((r) => r.json())
-
-export const getPeggedRates = () => fetch(PEGGEDRATES_API).then((r) => r.json())
+export const getPeggedPrices = () => wrappedFetch(PEGGEDPRICES_API, { cache: true })
+export const getPeggedRates = () => wrappedFetch(PEGGEDRATES_API, { cache: true })
+export const getConfigData = () => wrappedFetch(CONFIG_API, { cache: true })
 
 export const getPeggedBridgeInfo = () =>
-	fetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((r) => r.json())
+	wrappedFetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json', { cache: true })
 
-const getChainTVLData = async (chain: string, chainCoingeckoIds) => {
-	if (chain) {
-		if (chainCoingeckoIds[chain]) {
-			for (let i = 0; i < 5; i++) {
-				try {
-					return await fetch(`${CHART_API}/${chain}`).then((resp) => resp.json())
-				} catch (e) { }
+let globalData: any
+
+function fetchGlobalData({ peggedAssets, chains }: any) {
+	if (globalData) return globalData
+	const tvlMap: any = {}
+	chains.forEach((chain) => {
+		tvlMap[chain.name] = chain.tvl
+	})
+	const chainList = chains
+		.sort((a, b) => {
+			const bTotalCirculatings = Object.values(b.totalCirculatingUSD) as any
+			const bMcap = bTotalCirculatings.reduce((c, d) => c + d)
+			const aTotalCirculatings = Object.values(a.totalCirculatingUSD) as any
+			const aMcap = aTotalCirculatings.reduce((c, d) => c + d)
+			return bMcap - aMcap
+		})
+		.map((chain) => chain.name)
+	const chainsSet = new Set()
+	const _chainSet = new Set(chainList)
+	peggedAssets.forEach(({ chains }) => {
+		chains.forEach((chain) => {
+			if (!chain) {
+				chainsSet.add(chain)
+			} else {
+				if (_chainSet.has(chain))
+					chainsSet.add(chain)
 			}
-			throw new Error(`${CHART_API}/${chain} is broken`)
-		} else return null
-	} else return await fetch(CHART_API).then((resp) => resp.json())
+		})
+	})
+	globalData = {
+		chainList,
+		chainsSet,
+		_chains: chainList.filter((chain) => chainsSet.has(chain)),
+		chainsTVLData: chainList.map((chain) => tvlMap[chain])
+	}
+
+	return globalData
 }
 
 export async function getPeggedOverviewPageData(chain) {
 	const { peggedAssets, chains } = await getPeggedAssets()
+	const chainLabel = chain ?? 'all-llama-app' // custom key to fetch limited data to reduce page size
+	const { breakdown } = await wrappedFetch(`${PEGGEDCHART_API}/${chainLabel}`)
 
 	const priceData = await getPeggedPrices()
 	const rateData = await getPeggedRates()
-	const allChartsStartTimestamp = 1617148800 // for /stablecoins page, charts begin on April 1, 2021, to reduce size of page
 
 	let chartDataByPeggedAsset = []
-	let peggedAssetNames: string[] = [] // fix name of this variable
+	let peggedAssetNamesSet: Set<string> = new Set() // fix name of this variable
+
 	let peggedNameToChartDataIndex: object = {}
 	let lastTimestamp = 0
-	chartDataByPeggedAsset = await Promise.all(
-		peggedAssets.map(async (elem, i) => {
-			if (peggedAssetNames.includes(elem.symbol)) {
-				peggedAssetNames.push(`${elem.name}`)
-			} else {
-				peggedAssetNames.push(elem.symbol)
+	chartDataByPeggedAsset = peggedAssets.map((elem, i) => {
+		if (peggedAssetNamesSet.has(elem.symbol))
+			peggedAssetNamesSet.add(`${elem.name}`)
+		else
+			peggedAssetNamesSet.add(elem.symbol)
+
+		peggedNameToChartDataIndex[elem.name] = i
+		let charts = breakdown[elem.id] ?? []
+		const formattedCharts = charts.map((chart) => {
+			return {
+				date: chart.date,
+				mcap: chart.totalCirculatingUSD
 			}
-			peggedNameToChartDataIndex[elem.name] = i
-			for (let i = 0; i < 5; i++) {
-				try {
-					let charts = []
-					if (!chain) {
-						charts = await fetch(
-							`${PEGGEDCHART_API}/all?stablecoin=${elem.id}&startts=${allChartsStartTimestamp}`
-						).then((resp) => resp.json())
-					} else {
-						charts = await fetch(`${PEGGEDCHART_API}/${chain}?stablecoin=${elem.id}`).then((resp) => resp.json())
-					}
-					const formattedCharts = charts.map((chart) => {
-						return {
-							date: chart.date,
-							mcap: chart.totalCirculatingUSD
-						}
-					})
-					if (formattedCharts.length > 0) {
-						lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
-					}
-					return formattedCharts
-				} catch (e) { }
-			}
-			throw new Error(`${PEGGEDCHART_API}/${elem} is broken`)
-		})
-	)
+		}).filter(i => i.mcap !== undefined)
+		if (formattedCharts.length > 0) {
+			lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
+		}
+		return formattedCharts
+	})
 	chartDataByPeggedAsset.forEach((chart) => {
 		const last = chart[chart.length - 1]
 		if (!last) {
@@ -105,29 +117,6 @@ export async function getPeggedOverviewPageData(chain) {
 		}
 	})
 
-	const chainList = await chains
-		.sort((a, b) => {
-			const bTotalCirculatings = Object.values(b.totalCirculatingUSD) as any
-			const bMcap = bTotalCirculatings.reduce((c, d) => c + d)
-			const aTotalCirculatings = Object.values(a.totalCirculatingUSD) as any
-			const aMcap = aTotalCirculatings.reduce((c, d) => c + d)
-			return bMcap - aMcap
-		})
-		.map((chain) => chain.name)
-	const chainsSet = new Set()
-
-	peggedAssets.forEach(({ chains }) => {
-		chains.forEach((chain) => {
-			if (!chain) {
-				chainsSet.add(chain)
-			} else {
-				if (chainList.includes(chain)) {
-					chainsSet.add(chain)
-				}
-			}
-		})
-	})
-
 	const filteredPeggedAssets = formatPeggedAssetsData({
 		peggedAssets,
 		chartDataByPeggedAsset,
@@ -138,9 +127,9 @@ export async function getPeggedOverviewPageData(chain) {
 	})
 
 	return {
-		chains: chainList.filter((chain) => chainsSet.has(chain)),
+		chains: fetchGlobalData({ peggedAssets, chains })._chains,
 		filteredPeggedAssets,
-		peggedAssetNames,
+		peggedAssetNames: [...peggedAssetNamesSet],
 		peggedNameToChartDataIndex,
 		chartDataByPeggedAsset,
 		chain: chain ?? 'All'
@@ -149,36 +138,11 @@ export async function getPeggedOverviewPageData(chain) {
 
 export async function getPeggedChainsPageData() {
 	const { peggedAssets, chains } = await getPeggedAssets()
-	const { chainCoingeckoIds } = await fetch(CONFIG_API).then((r) => r.json())
+	const { chainCoingeckoIds } = await getConfigData()
 
-	const chartData = await fetch(`${PEGGEDCHART_API}/all`).then((r) => r.json())
-
-	const chainList = await chains
-		.sort((a, b) => {
-			const bTotalCirculatings = Object.values(b.totalCirculatingUSD) as any
-			const bMcap = bTotalCirculatings.reduce((c, d) => c + d)
-			const aTotalCirculatings = Object.values(a.totalCirculatingUSD) as any
-			const aMcap = aTotalCirculatings.reduce((c, d) => c + d)
-			return bMcap - aMcap
-		})
-		.map((chain) => chain.name)
-	const chainsSet = new Set()
-
-	const tvlsDataByChain = await Promise.allSettled(
-		chainList.map(async (elem: string) => {
-			if (chainCoingeckoIds[elem]) {
-				for (let i = 0; i < 5; i++) {
-					try {
-						return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-					} catch (e) { }
-				}
-
-				throw new Error(`${CHART_API}/${elem} is broken`)
-			} else return null
-		})
-	)
-
-	const chainsTVLData = tvlsDataByChain.map((t) => (t.status === 'fulfilled' ? t.value : {}))
+	const { aggregated: chartData } = await wrappedFetch(`${PEGGEDCHART_API}/all`)
+	const { dominanceMap, chainChartMap, } = await wrappedFetch(PEGGEDCHART_DOMINANCE_ALL_API)
+	const { chainList, chainsTVLData } = fetchGlobalData({ peggedAssets, chains })
 
 	let chainsGroupbyParent = {}
 	chainList.forEach((chain) => {
@@ -196,42 +160,9 @@ export async function getPeggedChainsPageData() {
 		}
 	})
 
-	peggedAssets.forEach(({ chains }) => {
-		chains.forEach((chain) => {
-			if (!chain) {
-				chainsSet.add(chain)
-			} else {
-				if (chainList.includes(chain)) {
-					chainsSet.add(chain)
-				}
-			}
-		})
-	})
+	let peggedChartDataByChain = chainList.map((chain) => chainChartMap[chain])
 
-	let peggedChartDataByChain = []
-	peggedChartDataByChain = await Promise.all(
-		chainList.map(async (chain) => {
-			for (let i = 0; i < 5; i++) {
-				try {
-					return await fetch(`${PEGGEDCHART_API}/${chain}?startts=1652241600`).then((resp) => resp.json())
-				} catch (e) { }
-			}
-			throw new Error(`${PEGGEDCHART_API}/${chain} is broken`)
-		})
-	)
-
-	let peggedDomDataByChain = []
-	peggedDomDataByChain = await Promise.all(
-		chainList.map(async (chain) => {
-			for (let i = 0; i < 5; i++) {
-				try {
-					const res = await fetch(`${PEGGEDDOMINANCE_API}/${chain}`).then((resp) => resp.json())
-					return res
-				} catch (e) { }
-			}
-			throw new Error(`${PEGGEDDOMINANCE_API}/${chain} is broken`)
-		})
-	)
+	let peggedDomDataByChain = chainList.map((chain) => dominanceMap[chain])
 
 	let chainDominances = {}
 	peggedDomDataByChain.map((charts, i) => {
@@ -259,7 +190,6 @@ export async function getPeggedChainsPageData() {
 		return formattedCharts
 	})
 
-	const chainTVLData: IChainData[] = await getChainTVLData(undefined, undefined)
 
 	return {
 		chainCirculatings,
@@ -267,18 +197,19 @@ export async function getPeggedChainsPageData() {
 		peggedChartDataByChain,
 		chainList,
 		chainsGroupbyParent,
-		chainTVLData
 	}
 }
 
 export const getPeggedAssetPageData = async (peggedasset: string) => {
-	const peggedNameToPeggedIDMapping = await fetchWithThrows(PEGGEDCONFIG_API).then((resp) => resp.json())
+	const peggedNameToPeggedIDMapping = await wrappedFetch(PEGGEDCONFIG_API, { cache: true })
 	const peggedID = peggedNameToPeggedIDMapping[peggedasset]
-	const [res, { chainCoingeckoIds }] = await Promise.all(
-		[`${PEGGED_API}/${peggedID}`, CONFIG_API].map((apiEndpoint) => fetchWithThrows(apiEndpoint).then((r) => r.json()))
-	)
+	const [res, { chainCoingeckoIds }, recentCoinsData] = await Promise.all([
+		wrappedFetch(`${PEGGED_API}/${peggedID}`),
+		getConfigData(),
+		wrappedFetch(PEGGEDCHART_COINS_RECENT_DATA_API, { cache: true }),
+	])
 
-	const peggedChart = await fetchWithThrows(`${PEGGEDCHART_API}/all?stablecoin=${peggedID}`).then((resp) => resp.json())
+	const peggedChart = recentCoinsData[peggedID]
 	const bridgeInfo = await getPeggedBridgeInfo()
 
 	const pegType = res.pegType
