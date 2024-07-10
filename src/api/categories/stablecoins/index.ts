@@ -73,7 +73,11 @@ function fetchGlobalData({ peggedAssets, chains }: any) {
 export async function getPeggedOverviewPageData(chain) {
 	const { peggedAssets, chains } = await getPeggedAssets()
 	const chainLabel = chain ?? 'all-llama-app' // custom key to fetch limited data to reduce page size
-	const { breakdown } = await wrappedFetch(`${PEGGEDCHART_API}/${chainLabel}`)
+	const chainData = await wrappedFetch(`${PEGGEDCHART_API}/${chainLabel}`)
+	const breakdown = chainData?.breakdown
+	if (!breakdown) {
+		return { notFound: true }
+	}
 
 	const priceData = await getPeggedPrices()
 	const rateData = await getPeggedRates()
