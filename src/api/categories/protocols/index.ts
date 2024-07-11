@@ -23,7 +23,8 @@ import {
 	CHAIN_ASSETS_FLOWS,
 	BRIDGEINFLOWS_API,
 	CATEGORY_RETURNS_API,
-	CATEGORY_RETURNS_CHART_API
+	CATEGORY_RETURNS_CHART_API,
+	CATEGORY_RETURNS_CHART_API2
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -1048,4 +1049,16 @@ export async function getCategoryChartData() {
 	const chart = await fetchWithErrorLogging(CATEGORY_RETURNS_CHART_API).then((r) => r.json())
 
 	return chart
+}
+
+export async function getCategoryChartData2() {
+	const periods = ['30d', 'ytd', '365d']
+	const charts = await Promise.all(
+		periods.map((period) => fetchWithErrorLogging(CATEGORY_RETURNS_CHART_API2 + `/${period}`).then((r) => r.json()))
+	)
+	const data = {}
+	for (const [index, period] of Object.entries(periods)) {
+		data[period] = charts[index]
+	}
+	return data
 }

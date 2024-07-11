@@ -55,43 +55,23 @@ const TotalLocked = styled(Header)`
 	}
 `
 
-// func for denominating the cumulative returns in either $, btc, eth or sol
 function calculateDenominatedReturns(data, denominatedCoin) {
 	const sortedData = data.sort((a, b) => a.date - b.date)
-
 	const denominatedReturns = []
 
-	// calculate eg BTC-denominated returns for each day
-	sortedData.forEach((dayData, index) => {
+	sortedData.forEach((dayData) => {
 		const newDayData = { date: dayData.date }
 
-		if (index === 0) {
-			// for first day, we set all returns to 0 (base case)
-			Object.keys(dayData).forEach((category) => {
-				if (category !== 'date' && category !== denominatedCoin) {
-					newDayData[category] = 0
-				}
-			})
-		} else {
-			const previousDay = sortedData[index - 1]
+		Object.keys(dayData).forEach((category) => {
+			if (category !== 'date' && category !== denominatedCoin) {
+				// calculate relative performance
+				const categoryPerformance = 1 + dayData[category] / 100
+				const denominatedCoinPerformance = 1 + dayData[denominatedCoin] / 100
+				const relativePerformance = (categoryPerformance / denominatedCoinPerformance - 1) * 100
 
-			// calculate daily return for `denominatedCoin` eg Bitcoin
-			const btcDailyReturn = (1 + dayData[denominatedCoin] / 100) / (1 + previousDay[denominatedCoin] / 100) - 1
-
-			Object.keys(dayData).forEach((category) => {
-				if (category !== 'date' && category !== denominatedCoin) {
-					// calculate daily return for the category
-					const categoryDailyReturn = (1 + dayData[category] / 100) / (1 + previousDay[category] / 100) - 1
-
-					// calculate daily return denominated by eg Bitcoin
-					const btcDenominatedDailyReturn = (1 + categoryDailyReturn) / (1 + btcDailyReturn) - 1
-
-					// calculate cumulative return
-					const previousCumulativeReturn = denominatedReturns[index - 1][category]
-					newDayData[category] = ((1 + previousCumulativeReturn / 100) * (1 + btcDenominatedDailyReturn) - 1) * 100
-				}
-			})
-		}
+				newDayData[category] = relativePerformance
+			}
+		})
 
 		denominatedReturns.push(newDayData)
 	})
@@ -103,9 +83,12 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 	useScrollToTop()
 
 	const [tab, setTab] = React.useState('linechart')
+	// for barchart and heatmap
 	const [groupBy, setGroupBy] = React.useState<'1D' | '7D' | '30D' | '365D' | 'YTD'>('7D')
-
 	const [groupByDenom, setGroupByDenom] = React.useState<'$' | 'BTC' | 'ETH' | 'SOL'>('$')
+
+	// for linechart
+	const [groupByWindow, setGroupByWindow] = React.useState<'30D' | 'YTD' | '365D'>('30D')
 
 	const { sortedReturns, barChart, heatmapData, lineChart } = React.useMemo(() => {
 		const field = {
@@ -116,10 +99,6 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 			YTD: 'returnsYtd'
 		}[groupBy]
 
-		const sorted = [...returns].sort((a, b) => b[field] - a[field])
-		const barChart = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
-		const heatmapData = sorted.map((i) => ({ ...i, returnField: i[field] }))
-
 		const denomCoin = {
 			$: '$',
 			BTC: 'Bitcoin',
@@ -127,10 +106,28 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 			SOL: 'Solana'
 		}[groupByDenom]
 
-		const lineChart = denomCoin === '$' ? returnsChartData : calculateDenominatedReturns(returnsChartData, denomCoin)
+		const cumulativeWindow = {
+			'30D': '30D',
+			YTD: 'YTD',
+			'365D': '365D'
+		}[groupByWindow]
+
+		const sorted = [...returns].sort((a, b) => b[field] - a[field])
+		const barChart = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
+		const heatmapData = sorted.map((i) => ({ ...i, returnField: i[field] }))
+
+		let lineChart = isCoinPage
+			? returnsChartData
+			: cumulativeWindow === '30D'
+			? returnsChartData['30d']
+			: cumulativeWindow === 'YTD'
+			? returnsChartData['ytd']
+			: returnsChartData['365d']
+
+		lineChart = denomCoin === '$' ? lineChart : calculateDenominatedReturns(lineChart, denomCoin)
 
 		return { sortedReturns: sorted, barChart, heatmapData, lineChart }
-	}, [returns, groupBy, returnsChartData, groupByDenom])
+	}, [returns, groupBy, returnsChartData, groupByDenom, groupByWindow, isCoinPage])
 
 	return (
 		<>
@@ -161,6 +158,16 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 					<>
 						{tab === 'linechart' ? (
 							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
+								{(['30D', 'YTD', '365D'] as const).map((period) => (
+									<Denomination
+										key={period}
+										as="button"
+										active={groupByWindow === period}
+										onClick={() => setGroupByWindow(period)}
+									>
+										{period}
+									</Denomination>
+								))}
 								<DenominationLabel>Denominate in</DenominationLabel>
 								{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
 									<Denomination

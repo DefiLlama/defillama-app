@@ -145,6 +145,7 @@ export const CACHE_SERVER = 'https://fe-cache.llama.fi'
 
 export const CATEGORY_RETURNS_API = 'https://fdv-server.llama.fi/returns'
 export const CATEGORY_RETURNS_CHART_API = 'https://fdv-server.llama.fi/returnsChart'
+export const CATEGORY_RETURNS_CHART_API2 = 'https://fdv-server.llama.fi/returnsChartAggregated'
 
 export const scams = [
 	'SyncDEX Finance',
