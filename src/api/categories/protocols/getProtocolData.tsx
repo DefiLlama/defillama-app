@@ -257,7 +257,8 @@ export const getProtocolDataLite = async (protocol: string) => {
 			dailyBribesRevenue,
 			dailyTokenTaxes,
 			bribesRevenue30d,
-			tokenTaxesRevenue30d
+			tokenTaxesRevenue30d,
+			clientSide: true
 		},
 		revalidate: maxAgeForNext([22])
 	}
