@@ -154,18 +154,6 @@ export const ProtocolChart = ({
 								</Stat>
 							</StatWrapper>
 						) : null}
-						{typeString !== 'Fees' && data.change_1d ? (
-							<StatWrapper>
-								<Stat>
-									<span>
-										{data.disabled === true
-											? `Last day change (${formatTimestampAsDate(+chartData[0][chartData[0].length - 1][0])})`
-											: 'Change (24h)'}
-									</span>
-									<span>{data.change_1d || 0}%</span>
-								</Stat>
-							</StatWrapper>
-						) : null}
 						{totalAllTime ? (
 							<StatWrapper>
 								<Stat>
