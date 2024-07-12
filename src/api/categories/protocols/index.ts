@@ -24,7 +24,8 @@ import {
 	BRIDGEINFLOWS_API,
 	CATEGORY_RETURNS_API,
 	CATEGORY_RETURNS_CHART_API,
-	CATEGORY_RETURNS_CHART_API2
+	CATEGORY_RETURNS_CHART_API2,
+	CATEGORY_RETURNS_INFO
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -84,7 +85,12 @@ export const getProtocol = async (protocolName: string) => {
 export const getAllProtocolEmissions = async () => {
 	try {
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
-		const coins = await fetchWithErrorLogging(`https://coins.llama.fi/prices/current/${res.filter(p => p.gecko_id).map(p => "coingecko:" + p.gecko_id).join(',')}`).then((res) => res.json())
+		const coins = await fetchWithErrorLogging(
+			`https://coins.llama.fi/prices/current/${res
+				.filter((p) => p.gecko_id)
+				.map((p) => 'coingecko:' + p.gecko_id)
+				.join(',')}`
+		).then((res) => res.json())
 		const parsedRes = res
 		return parsedRes
 			.map((protocol) => {
@@ -98,7 +104,7 @@ export const getAllProtocolEmissions = async () => {
 						const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
 						upcomingEvent = [...comingEvents]
 					}
-					const coin = coins.coins["coingecko:" + protocol.gecko_id]
+					const coin = coins.coins['coingecko:' + protocol.gecko_id]
 					const tSymbol = coin?.symbol ?? null
 
 					return {
@@ -108,10 +114,11 @@ export const getAllProtocolEmissions = async () => {
 						tSymbol
 					}
 				} catch (e) {
-					console.log("error", protocol.name, e)
+					console.log('error', protocol.name, e)
 					return null
 				}
-			}).filter(Boolean)
+			})
+			.filter(Boolean)
 			.sort((a, b) => {
 				const x = a.upcomingEvent?.[0]?.timestamp
 				const y = b.upcomingEvent?.[0]?.timestamp
@@ -959,7 +966,7 @@ export async function getAirdropDirectoryData() {
 	const airdrops = await fetchWithErrorLogging('https://airdrops.llama.fi/config').then((r) => r.json())
 
 	const now = Date.now()
-	return Object.values(airdrops).filter((i: { endTime?: number, isActive: boolean, page?: string }) => {
+	return Object.values(airdrops).filter((i: { endTime?: number; isActive: boolean; page?: string }) => {
 		if (i.isActive === false || !i.page) return false
 		if (!i.endTime) return true
 		return i.endTime < 1e12 ? i.endTime * 1000 > now : i.endTime > now
@@ -1052,7 +1059,7 @@ export async function getCategoryChartData() {
 }
 
 export async function getCategoryChartData2() {
-	const periods = ['30d', 'ytd', '365d']
+	const periods = ['7', '30', 'ytd', '365']
 	const charts = await Promise.all(
 		periods.map((period) => fetchWithErrorLogging(CATEGORY_RETURNS_CHART_API2 + `/${period}`).then((r) => r.json()))
 	)
@@ -1061,4 +1068,10 @@ export async function getCategoryChartData2() {
 		data[period] = charts[index]
 	}
 	return data
+}
+
+export async function getCategoryReturnsInfo() {
+	const info = await fetchWithErrorLogging(CATEGORY_RETURNS_INFO).then((r) => r.json())
+
+	return info
 }

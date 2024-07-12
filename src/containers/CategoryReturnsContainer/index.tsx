@@ -55,6 +55,7 @@ const TotalLocked = styled(Header)`
 	}
 `
 
+// for linechart
 function calculateDenominatedReturns(data, denominatedCoin) {
 	const sortedData = data.sort((a, b) => a.date - b.date)
 	const denominatedReturns = []
@@ -79,24 +80,35 @@ function calculateDenominatedReturns(data, denominatedCoin) {
 	return denominatedReturns
 }
 
+// for bar + heatmap
+function calculateDenominatedReturns2(data, denominatedCoin, field) {
+	const denominatedReturns = []
+
+	const denominatedCoinPerformance = 1 + data.find((i) => i.name === denominatedCoin)[field] / 100
+
+	data.forEach((i) => {
+		const categoryPerformance = 1 + i[field] / 100
+		const relativePerformance = (categoryPerformance / denominatedCoinPerformance - 1) * 100
+
+		denominatedReturns.push({ ...i, [field]: relativePerformance })
+	})
+
+	return denominatedReturns
+}
+
 export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData, coinsInCategory }) => {
 	useScrollToTop()
 
 	const [tab, setTab] = React.useState('linechart')
-	// for barchart and heatmap
-	const [groupBy, setGroupBy] = React.useState<'1D' | '7D' | '30D' | '365D' | 'YTD'>('7D')
+	const [groupBy, setGroupBy] = React.useState<'7D' | '30D' | 'YTD' | '365D'>('30D')
 	const [groupByDenom, setGroupByDenom] = React.useState<'$' | 'BTC' | 'ETH' | 'SOL'>('$')
-
-	// for linechart
-	const [groupByWindow, setGroupByWindow] = React.useState<'30D' | 'YTD' | '365D'>('30D')
 
 	const { sortedReturns, barChart, heatmapData, lineChart } = React.useMemo(() => {
 		const field = {
-			'1D': 'returns1D',
 			'7D': 'returns1W',
 			'30D': 'returns1M',
-			'365D': 'returns1Y',
-			YTD: 'returnsYtd'
+			YTD: 'returnsYtd',
+			'365D': 'returns1Y'
 		}[groupBy]
 
 		const denomCoin = {
@@ -107,27 +119,32 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 		}[groupByDenom]
 
 		const cumulativeWindow = {
+			'7D': '7D',
 			'30D': '30D',
 			YTD: 'YTD',
 			'365D': '365D'
-		}[groupByWindow]
+		}[groupBy]
 
-		const sorted = [...returns].sort((a, b) => b[field] - a[field])
+		let chart = denomCoin === '$' ? returns : calculateDenominatedReturns2(returns, denomCoin, field)
+
+		const sorted = [...chart].sort((a, b) => b[field] - a[field])
 		const barChart = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
 		const heatmapData = sorted.map((i) => ({ ...i, returnField: i[field] }))
 
 		let lineChart = isCoinPage
 			? returnsChartData
+			: cumulativeWindow === '7D'
+			? returnsChartData['7']
 			: cumulativeWindow === '30D'
-			? returnsChartData['30d']
+			? returnsChartData['30']
 			: cumulativeWindow === 'YTD'
 			? returnsChartData['ytd']
-			: returnsChartData['365d']
+			: returnsChartData['365']
 
 		lineChart = denomCoin === '$' ? lineChart : calculateDenominatedReturns(lineChart, denomCoin)
 
 		return { sortedReturns: sorted, barChart, heatmapData, lineChart }
-	}, [returns, groupBy, returnsChartData, groupByDenom, groupByWindow, isCoinPage])
+	}, [returns, groupBy, returnsChartData, groupByDenom, isCoinPage])
 
 	return (
 		<>
@@ -156,39 +173,24 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 
 				<TabContainer>
 					<>
-						{tab === 'linechart' ? (
-							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
-								{(['30D', 'YTD', '365D'] as const).map((period) => (
-									<Denomination
-										key={period}
-										as="button"
-										active={groupByWindow === period}
-										onClick={() => setGroupByWindow(period)}
-									>
-										{period}
-									</Denomination>
-								))}
-								<DenominationLabel>Denominate in</DenominationLabel>
-								{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
-									<Denomination
-										key={denom}
-										as="button"
-										active={groupByDenom === denom}
-										onClick={() => setGroupByDenom(denom)}
-									>
-										{denom}
-									</Denomination>
-								))}
-							</Filters>
-						) : (
-							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
-								{(['1D', '7D', '30D', 'YTD', '365D'] as const).map((period) => (
-									<Denomination key={period} as="button" active={groupBy === period} onClick={() => setGroupBy(period)}>
-										{period.charAt(0).toUpperCase() + period.slice(1)}
-									</Denomination>
-								))}
-							</Filters>
-						)}
+						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
+							{(['7D', '30D', 'YTD', '365D'] as const).map((period) => (
+								<Denomination key={period} as="button" active={groupBy === period} onClick={() => setGroupBy(period)}>
+									{period}
+								</Denomination>
+							))}
+							<DenominationLabel>Denominate in</DenominationLabel>
+							{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
+								<Denomination
+									key={denom}
+									as="button"
+									active={groupByDenom === denom}
+									onClick={() => setGroupByDenom(denom)}
+								>
+									{denom}
+								</Denomination>
+							))}
+						</Filters>
 					</>
 					{tab === 'barchart' ? (
 						<>

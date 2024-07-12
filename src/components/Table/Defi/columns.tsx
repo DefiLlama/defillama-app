@@ -1785,15 +1785,6 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '1D Change',
-		accessorKey: 'returns1D',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
 		header: '7D Change',
 		accessorKey: 'returns1W',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
@@ -1871,15 +1862,6 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 		header: 'Market Cap',
 		accessorKey: 'mcap',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '1D Change',
-		accessorKey: 'returns1D',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
 		},
