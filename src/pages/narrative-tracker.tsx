@@ -15,7 +15,6 @@ export const getStaticProps = withPerformanceLogging('narrative-tracker', async 
 	const getLastReturn = (period) => returnsChart[period].slice(-1)[0]
 	info = info.map((i) => ({
 		...i,
-		returns1D: null,
 		returns1W: getLastReturn('7')[i.name],
 		returns1M: getLastReturn('30')[i.name],
 		returns1Y: getLastReturn('365')[i.name],

@@ -119,7 +119,6 @@ export interface CategoryReturnsRow {
 	id: string
 	name: string
 	mcap: number
-	returns1D: number
 	returns1W: number
 	returns1M: number
 	returns1Y: number
