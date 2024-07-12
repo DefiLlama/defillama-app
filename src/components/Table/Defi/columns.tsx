@@ -1776,6 +1776,16 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		size: 240
 	},
 	{
+		header: 'Δ%',
+		accessorKey: 'change',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). We calculate the percentage change for each individual coin in the category. We then weight these changes based on each coin's market capitalization. Finally, we average these weighted changes to get the overall category performance.`
+		},
+		size: 120
+	},
+	{
 		header: 'Market Cap',
 		accessorKey: 'mcap',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
@@ -1785,49 +1795,13 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '7D Change',
-		accessorKey: 'returns1W',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '30D Change',
-		accessorKey: 'returns1M',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: 'YTD Change',
-		accessorKey: 'returnsYtd',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '365D Change',
-		accessorKey: 'returns1Y',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
 		header: '24h Volume',
 		accessorKey: 'volume1D',
 		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
 		meta: {
 			align: 'end'
 		},
-		size: 110
+		size: 120
 	},
 	{
 		header: '# of Coins',

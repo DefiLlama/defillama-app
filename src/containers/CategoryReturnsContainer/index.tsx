@@ -49,6 +49,7 @@ const TotalLocked = styled(Header)`
 	justify-content: space-between;
 	gap: 16px;
 	flex-wrap: wrap;
+	font-size: 20px;
 
 	& > *:last-child {
 		font-family: var(--font-jetbrains);
@@ -127,7 +128,7 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 
 		let chart = denomCoin === '$' ? returns : calculateDenominatedReturns2(returns, denomCoin, field)
 
-		const sorted = [...chart].sort((a, b) => b[field] - a[field])
+		const sorted = [...chart].sort((a, b) => b[field] - a[field]).map((i) => ({ ...i, change: i[field] }))
 		const barChart = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
 		const heatmapData = sorted.map((i) => ({ ...i, returnField: i[field] }))
 
@@ -154,7 +155,7 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 				</TotalLocked>
 			) : (
 				<TotalLocked>
-					<span>Average Performance per Category weighted by market cap</span>
+					<span>MCap-Weighted Category Performance</span>
 				</TotalLocked>
 			)}
 
@@ -179,7 +180,9 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 									{period}
 								</Denomination>
 							))}
-							<DenominationLabel>Denominate in</DenominationLabel>
+						</Filters>
+						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
+							<DenominationLabel>Show as:</DenominationLabel>
 							{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
 								<Denomination
 									key={denom}
