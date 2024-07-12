@@ -55,15 +55,10 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 	const router = useRouter()
 	const { data, loading: fetchingData } = useProtocolData(clientSide === true ? router.query.protocol : null)
 	if (clientSide === true) {
-		if (fetchingData) {
-			return (
-				<Layout title={'Protocol - DefiLlama'}>
-					<LocalLoader />
-				</Layout>
-			)
+		if (!fetchingData && data) {
+			props = data.props
+			protocolData = props.protocolData
 		}
-		props = data.props
-		protocolData = props.protocolData
 	}
 	return (
 		<ProtocolContainer title={`${protocolData.name} - DefiLlama`} protocolData={protocolData} {...(props as any)} />
