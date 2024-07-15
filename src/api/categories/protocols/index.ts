@@ -22,8 +22,10 @@ import {
 	CHAINS_API_V2,
 	CHAIN_ASSETS_FLOWS,
 	BRIDGEINFLOWS_API,
-	CATEGORY_RETURNS_API,
-	CATEGORY_RETURNS_CHART_API
+	CATEGORY_PERFORMANCE_API,
+	CATEGORY_COIN_PRICES_API,
+	CATEGORY_INFO_API,
+	COINS_INFO_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -83,7 +85,12 @@ export const getProtocol = async (protocolName: string) => {
 export const getAllProtocolEmissions = async () => {
 	try {
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
-		const coins = await fetchWithErrorLogging(`https://coins.llama.fi/prices/current/${res.filter(p => p.gecko_id).map(p => "coingecko:" + p.gecko_id).join(',')}`).then((res) => res.json())
+		const coins = await fetchWithErrorLogging(
+			`https://coins.llama.fi/prices/current/${res
+				.filter((p) => p.gecko_id)
+				.map((p) => 'coingecko:' + p.gecko_id)
+				.join(',')}`
+		).then((res) => res.json())
 		const parsedRes = res
 		return parsedRes
 			.map((protocol) => {
@@ -97,7 +104,7 @@ export const getAllProtocolEmissions = async () => {
 						const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
 						upcomingEvent = [...comingEvents]
 					}
-					const coin = coins.coins["coingecko:" + protocol.gecko_id]
+					const coin = coins.coins['coingecko:' + protocol.gecko_id]
 					const tSymbol = coin?.symbol ?? null
 
 					return {
@@ -107,10 +114,11 @@ export const getAllProtocolEmissions = async () => {
 						tSymbol
 					}
 				} catch (e) {
-					console.log("error", protocol.name, e)
+					console.log('error', protocol.name, e)
 					return null
 				}
-			}).filter(Boolean)
+			})
+			.filter(Boolean)
 			.sort((a, b) => {
 				const x = a.upcomingEvent?.[0]?.timestamp
 				const y = b.upcomingEvent?.[0]?.timestamp
@@ -958,7 +966,7 @@ export async function getAirdropDirectoryData() {
 	const airdrops = await fetchWithErrorLogging('https://airdrops.llama.fi/config').then((r) => r.json())
 
 	const now = Date.now()
-	return Object.values(airdrops).filter((i: { endTime?: number, isActive: boolean, page?: string }) => {
+	return Object.values(airdrops).filter((i: { endTime?: number; isActive: boolean; page?: string }) => {
 		if (i.isActive === false || !i.page) return false
 		if (!i.endTime) return true
 		return i.endTime < 1e12 ? i.endTime * 1000 > now : i.endTime > now
@@ -1038,14 +1046,124 @@ export async function getChainsBridged(chain?: string) {
 	return { chains, assets, flows1d, chainData, inflows, tokenInflowNames: Array.from(tokenInflowNames) }
 }
 
-export async function getCategoryReturns() {
-	const performance = await fetchWithErrorLogging(CATEGORY_RETURNS_API).then((r) => r.json())
-
-	return performance
+export async function getCategoryInfo() {
+	const data = await fetchWithErrorLogging(CATEGORY_INFO_API).then((r) => r.json())
+	return data
 }
 
-export async function getCategoryChartData() {
-	const chart = await fetchWithErrorLogging(CATEGORY_RETURNS_CHART_API).then((r) => r.json())
+export async function getCategoryPerformance() {
+	const performanceTimeSeries = Object.fromEntries(
+		await Promise.all(
+			['7', '30', 'ytd', '365'].map(async (period) => [
+				period,
+				await fetchWithErrorLogging(`${CATEGORY_PERFORMANCE_API}/${period}`).then((r) => r.json())
+			])
+		)
+	)
 
-	return chart
+	const info = await fetchWithErrorLogging(CATEGORY_INFO_API).then((r) => r.json())
+	const getCumulativeChangeOfPeriod = (period, name) => performanceTimeSeries[period].slice(-1)[0][name] ?? null
+	const pctChanges = info.map((i) => ({
+		...i,
+		change1W: getCumulativeChangeOfPeriod('7', i.name),
+		change1M: getCumulativeChangeOfPeriod('30', i.name),
+		change1Y: getCumulativeChangeOfPeriod('365', i.name),
+		changeYtd: getCumulativeChangeOfPeriod('ytd', i.name)
+	}))
+
+	return {
+		pctChanges,
+		performanceTimeSeries,
+		areaChartLegend: info.map((i) => i.name),
+		isCoinPage: false
+	}
+}
+
+export async function getCoinPerformance(categoryId) {
+	// for coins per category we fetch the full 365 series per coin in a given category
+	// we calculate the different pct change series in here which can all be derived from that single series
+	// using different refernce prices (eg 7d, 30d, ytd, 365d)
+	const calculateCumulativePercentageChange = (data, mapping, timeframe) => {
+		// helper func to filter data based on timeframe
+		const filterData = (data, timeframe) => {
+			const now = new Date()
+			if (timeframe === 'ytd') {
+				const startOfYear = new Date(now.getFullYear(), 0, 1)
+				return data.filter((item) => new Date(item[1]) >= startOfYear)
+			} else if (typeof timeframe === 'number') {
+				const startDate = new Date(now.setDate(now.getDate() - timeframe))
+				return data.filter((item) => new Date(item[1]) >= startDate)
+			}
+			return data
+		}
+
+		const sortedData = data.sort((a, b) => new Date(a[1]).getTime() - new Date(b[1]).getTime())
+
+		// filter on timeframe
+		const filteredData = filterData(sortedData, timeframe)
+
+		// group by id
+		const groupedData = filteredData.reduce((acc, item) => {
+			const [id, timestamp, price] = item
+			if (!acc[id]) acc[id] = []
+			acc[id].push({
+				timestamp: Math.floor(new Date(timestamp).getTime() / 1000),
+				price: parseFloat(price)
+			})
+			return acc
+		}, {})
+
+		// calculate cumulative percentage change for each id
+		const results = {}
+		Object.keys(groupedData).forEach((id) => {
+			const prices = groupedData[id]
+			const initialPrice = prices[0].price
+			prices.forEach(({ timestamp, price }) => {
+				if (!results[timestamp]) results[timestamp] = {}
+				const percentageChange = ((price - initialPrice) / initialPrice) * 100
+				results[timestamp][mapping[id]] = percentageChange
+			})
+		})
+
+		// format for chart
+		return Object.entries(results).map(([timestamp, changes]) => ({
+			date: parseInt(timestamp),
+			...(changes as object)
+		}))
+	}
+
+	const prices = await fetchWithErrorLogging(`${CATEGORY_COIN_PRICES_API}/${categoryId}`).then((r) => r.json())
+	const coinInfo = await fetchWithErrorLogging(`${COINS_INFO_API}/${categoryId}`).then((r) => r.json())
+
+	const coinsInCategory = coinInfo.map((c) => [c.id, c.name])
+
+	const coinsUniqueIncludingDenomCoins = Object.fromEntries(coinsInCategory)
+
+	const ts7 = calculateCumulativePercentageChange(prices, coinsUniqueIncludingDenomCoins, 7)
+	const ts30 = calculateCumulativePercentageChange(prices, coinsUniqueIncludingDenomCoins, 30)
+	const ts365 = calculateCumulativePercentageChange(prices, coinsUniqueIncludingDenomCoins, null)
+	const tsYtd = calculateCumulativePercentageChange(prices, coinsUniqueIncludingDenomCoins, 'ytd')
+
+	const performanceTimeSeries = {}
+	performanceTimeSeries['7'] = ts7
+	performanceTimeSeries['30'] = ts30
+	performanceTimeSeries['365'] = ts365
+	performanceTimeSeries['ytd'] = tsYtd
+
+	const getCumulativeChangeOfPeriod = (period, name) => performanceTimeSeries[period].slice(-1)[0][name] ?? null
+	const pctChanges = coinInfo.map((i) => ({
+		...i,
+		change1W: getCumulativeChangeOfPeriod('7', i.name),
+		change1M: getCumulativeChangeOfPeriod('30', i.name),
+		change1Y: getCumulativeChangeOfPeriod('365', i.name),
+		changeYtd: getCumulativeChangeOfPeriod('ytd', i.name)
+	}))
+
+	return {
+		pctChanges,
+		performanceTimeSeries,
+		areaChartLegend: coinInfo.filter((i) => !['Bitcoin', 'Ethereum', 'Solana'].includes(i.name)).map((i) => i.name),
+		isCoinPage: true,
+		categoryName: (await getCategoryInfo()).find((i) => i.id === categoryId).name
+	}
 }

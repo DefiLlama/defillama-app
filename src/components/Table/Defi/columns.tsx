@@ -37,8 +37,8 @@ import type {
 	IETFRow,
 	AirdropRow,
 	IBridgedRow,
-	CategoryReturnsRow,
-	CoinReturnsRow
+	CategoryPerformanceRow,
+	CoinPerformanceRow
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
@@ -1758,7 +1758,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 	}
 ]
 
-export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
+export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'name',
@@ -1776,6 +1776,16 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		size: 240
 	},
 	{
+		header: 'Δ%',
+		accessorKey: 'change',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`
+		},
+		size: 120
+	},
+	{
 		header: 'Market Cap',
 		accessorKey: 'mcap',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
@@ -1785,58 +1795,13 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 		size: 110
 	},
 	{
-		header: '1D Change',
-		accessorKey: 'returns1D',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '7D Change',
-		accessorKey: 'returns1W',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '30D Change',
-		accessorKey: 'returns1M',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: 'YTD Change',
-		accessorKey: 'returnsYtd',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '365D Change',
-		accessorKey: 'returns1Y',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
 		header: '24h Volume',
 		accessorKey: 'volume1D',
 		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
 		meta: {
 			align: 'end'
 		},
-		size: 110
+		size: 120
 	},
 	{
 		header: '# of Coins',
@@ -1849,7 +1814,7 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 	}
 ]
 
-export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
+export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	{
 		header: 'Coin',
 		accessorKey: 'name',
@@ -1868,6 +1833,16 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 		size: 240
 	},
 	{
+		header: 'Δ%',
+		accessorKey: 'change',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
+		},
+		size: 120
+	},
+	{
 		header: 'Market Cap',
 		accessorKey: 'mcap',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
@@ -1875,51 +1850,6 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 			align: 'end'
 		},
 		size: 110
-	},
-	{
-		header: '1D Change',
-		accessorKey: 'returns1D',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '7D Change',
-		accessorKey: 'returns1W',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '30D Change',
-		accessorKey: 'returns1M',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: 'YTD Change',
-		accessorKey: 'returnsYtd',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '365D returns',
-		accessorKey: 'returns1Y',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 120
 	},
 	{
 		header: '24h Volume',

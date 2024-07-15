@@ -64,7 +64,8 @@ export const NFT_SEARCH_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaw
 export const PEGGEDS_API = 'https://stablecoins.llama.fi/stablecoins'
 export const PEGGED_API = 'https://stablecoins.llama.fi/stablecoin'
 export const PEGGEDCHART_API = 'https://stablecoins.llama.fi/stablecoincharts2'
-export const PEGGEDCHART_DOMINANCE_ALL_API = 'https://stablecoins.llama.fi/stablecoincharts2/all-dominance-chain-breakdown'
+export const PEGGEDCHART_DOMINANCE_ALL_API =
+	'https://stablecoins.llama.fi/stablecoincharts2/all-dominance-chain-breakdown'
 export const PEGGEDCHART_COINS_RECENT_DATA_API = 'https://stablecoins.llama.fi/stablecoincharts2/recent-protocol-data'
 export const PEGGEDCONFIG_API = 'https://stablecoins.llama.fi/config'
 export const PEGGEDDOMINANCE_API = 'https://stablecoins.llama.fi/stablecoindominance'
@@ -143,8 +144,10 @@ export const MCAPS_API = 'https://coins.llama.fi/mcaps'
 
 export const CACHE_SERVER = 'https://fe-cache.llama.fi'
 
-export const CATEGORY_RETURNS_API = 'https://fdv-server.llama.fi/returns'
-export const CATEGORY_RETURNS_CHART_API = 'https://fdv-server.llama.fi/returnsChart'
+export const CATEGORY_PERFORMANCE_API = 'https://fdv-server.llama.fi/performance'
+export const CATEGORY_COIN_PRICES_API = 'https://fdv-server.llama.fi/prices'
+export const CATEGORY_INFO_API = 'https://fdv-server.llama.fi/info'
+export const COINS_INFO_API = 'https://fdv-server.llama.fi/coinInfo'
 
 export const scams = [
 	'SyncDEX Finance',
