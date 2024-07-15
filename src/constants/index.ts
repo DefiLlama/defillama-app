@@ -144,10 +144,10 @@ export const MCAPS_API = 'https://coins.llama.fi/mcaps'
 
 export const CACHE_SERVER = 'https://fe-cache.llama.fi'
 
-export const CATEGORY_RETURNS_API = 'https://fdv-server.llama.fi/returns'
-export const CATEGORY_RETURNS_CHART_API = 'https://fdv-server.llama.fi/returnsChart'
-export const CATEGORY_RETURNS_CHART_API2 = 'https://fdv-server.llama.fi/returnsChartAggregated'
-export const CATEGORY_RETURNS_INFO = 'https://fdv-server.llama.fi/info'
+export const CATEGORY_PERFORMANCE_API = 'https://fdv-server.llama.fi/performance'
+export const CATEGORY_COIN_PRICES_API = 'https://fdv-server.llama.fi/prices'
+export const CATEGORY_INFO_API = 'https://fdv-server.llama.fi/info'
+export const COINS_INFO_API = 'https://fdv-server.llama.fi/coinInfo'
 
 export const scams = [
 	'SyncDEX Finance',

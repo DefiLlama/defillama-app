@@ -1,51 +1,25 @@
 import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
-import { getCategoryReturns, getCategoryChartData } from '~/api/categories/protocols'
+import { getCoinPerformance, getCategoryInfo } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import { CategoryReturnsContainer } from '~/containers/CategoryReturnsContainer'
+import { CategoryPerformanceContainer } from '~/containers/CategoryPerformanceContainer'
 
-export const getStaticProps = withPerformanceLogging('category-returns', async ({ params }) => {
-	const returns = await getCategoryReturns()
-	const coinReturnsFilteredToCategory = returns.coinReturns.filter((i) => i.categoryId === params.category)
-
-	const returnsChart = await getCategoryChartData()
-	const returnsChartData = {}
-	const coinsInCategory = returnsChart.categoryInfo
-		.filter((coin) => coin.category_id === params.category)
-		.map((c) => [c.coin_id, c.coin_name])
-	const coinsUnique = Object.fromEntries(coinsInCategory)
-
-	// for denom on /narrative-tracker/[category] we need to add these
-	coinsInCategory.push(['bitcoin', 'Bitcoin'], ['ethereum', 'Ethereum'], ['solana', 'Solana'])
-	const coinsUniqueIncludingDenomCoins = Object.fromEntries(coinsInCategory)
-
-	returnsChart.coinReturns.forEach((coin) => {
-		if (coinsUniqueIncludingDenomCoins[coin.coin_id]) {
-			returnsChartData[coin.truncated_day] = {
-				date: Math.floor(new Date(coin.truncated_day).getTime() / 1000),
-				...(returnsChartData[coin.truncated_day] ?? {}),
-				[coinsUniqueIncludingDenomCoins[coin.coin_id]]: coin.cumulative_return * 100
-			}
-		}
-	})
+export const getStaticProps = withPerformanceLogging('category-performance', async ({ params }) => {
+	const data = await getCoinPerformance(params.category)
 
 	return {
 		props: {
-			returns: coinReturnsFilteredToCategory,
-			isCoinPage: true,
-			categoryName: coinReturnsFilteredToCategory[0].categoryName,
-			returnsChartData: Object.values(returnsChartData),
-			coinsInCategory: Object.values(coinsUnique)
+			...data
 		},
 		revalidate: maxAgeForNext([22])
 	}
 })
 
 export async function getStaticPaths() {
-	const returns = await getCategoryReturns()
+	const info = await getCategoryInfo()
 
-	const paths = returns.categoryReturns.map((i) => ({
+	const paths = info.map((i) => ({
 		params: { category: i.id.toString() }
 	}))
 
@@ -58,7 +32,7 @@ export default function Returns(props) {
 			<ProtocolsChainsSearch
 				step={{ category: 'Narrative Tracker', name: props.categoryName, route: 'narrative-tracker' }}
 			/>
-			<CategoryReturnsContainer {...props} />
+			<CategoryPerformanceContainer {...props} />
 		</Layout>
 	)
 }

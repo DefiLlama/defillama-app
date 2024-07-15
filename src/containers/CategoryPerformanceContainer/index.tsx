@@ -5,7 +5,7 @@ import { Header } from '~/Theme'
 
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { CategoryReturnsColumn, CoinReturnsColumn } from '~/components/Table/Defi/columns'
+import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
 import { primaryColor } from '~/constants/colors'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { Tab, TabList } from '~/components'
@@ -57,7 +57,7 @@ const TotalLocked = styled(Header)`
 `
 
 // for linechart
-function calculateDenominatedReturns(data, denominatedCoin) {
+function calculateDenominatedChange(data, denominatedCoin) {
 	const sortedData = data.sort((a, b) => a.date - b.date)
 	const denominatedReturns = []
 
@@ -82,7 +82,7 @@ function calculateDenominatedReturns(data, denominatedCoin) {
 }
 
 // for bar + heatmap
-function calculateDenominatedReturns2(data, denominatedCoin, field) {
+function calculateDenominatedChange2(data, denominatedCoin, field) {
 	const denominatedReturns = []
 
 	const denominatedCoinPerformance = 1 + data.find((i) => i.name === denominatedCoin)[field] / 100
@@ -97,19 +97,19 @@ function calculateDenominatedReturns2(data, denominatedCoin, field) {
 	return denominatedReturns
 }
 
-export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData, coinsInCategory }) => {
+export const CategoryPerformanceContainer = ({ pctChanges, performanceTimeSeries, areaChartLegend, isCoinPage }) => {
 	useScrollToTop()
 
 	const [tab, setTab] = React.useState('linechart')
 	const [groupBy, setGroupBy] = React.useState<'7D' | '30D' | 'YTD' | '365D'>('30D')
 	const [groupByDenom, setGroupByDenom] = React.useState<'$' | 'BTC' | 'ETH' | 'SOL'>('$')
 
-	const { sortedReturns, barChart, heatmapData, lineChart } = React.useMemo(() => {
+	const { sortedPctChanges, barChart, treemapChart, lineChart } = React.useMemo(() => {
 		const field = {
-			'7D': 'returns1W',
-			'30D': 'returns1M',
-			YTD: 'returnsYtd',
-			'365D': 'returns1Y'
+			'7D': 'change1W',
+			'30D': 'change1M',
+			YTD: 'changeYtd',
+			'365D': 'change1Y'
 		}[groupBy]
 
 		const denomCoin = {
@@ -126,32 +126,34 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 			'365D': '365D'
 		}[groupBy]
 
-		let chart = denomCoin === '$' ? returns : calculateDenominatedReturns2(returns, denomCoin, field)
+		let pctChangesDenom = denomCoin === '$' ? pctChanges : calculateDenominatedChange2(pctChanges, denomCoin, field)
+		pctChangesDenom = isCoinPage
+			? pctChangesDenom.filter((i) => !['bitcoin', 'ethereum', 'solana'].includes(i.id))
+			: pctChangesDenom
 
-		const sorted = [...chart].sort((a, b) => b[field] - a[field]).map((i) => ({ ...i, change: i[field] }))
+		const sorted = [...pctChangesDenom].sort((a, b) => b[field] - a[field]).map((i) => ({ ...i, change: i[field] }))
 		const barChart = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
-		const heatmapData = sorted.map((i) => ({ ...i, returnField: i[field] }))
+		const treemapChart = sorted.map((i) => ({ ...i, returnField: i[field] }))
 
-		let lineChart = isCoinPage
-			? returnsChartData
-			: cumulativeWindow === '7D'
-			? returnsChartData['7']
-			: cumulativeWindow === '30D'
-			? returnsChartData['30']
-			: cumulativeWindow === 'YTD'
-			? returnsChartData['ytd']
-			: returnsChartData['365']
+		let lineChart =
+			cumulativeWindow === '7D'
+				? performanceTimeSeries['7']
+				: cumulativeWindow === '30D'
+				? performanceTimeSeries['30']
+				: cumulativeWindow === 'YTD'
+				? performanceTimeSeries['ytd']
+				: performanceTimeSeries['365']
 
-		lineChart = denomCoin === '$' ? lineChart : calculateDenominatedReturns(lineChart, denomCoin)
+		lineChart = denomCoin === '$' ? lineChart : calculateDenominatedChange(lineChart, denomCoin)
 
-		return { sortedReturns: sorted, barChart, heatmapData, lineChart }
-	}, [returns, groupBy, returnsChartData, groupByDenom, isCoinPage])
+		return { sortedPctChanges: sorted, barChart, treemapChart, lineChart }
+	}, [pctChanges, groupBy, performanceTimeSeries, groupByDenom, isCoinPage])
 
 	return (
 		<>
 			{isCoinPage ? (
 				<TotalLocked>
-					<span>Category: {returns[0].categoryName}</span>
+					<span>Category: {pctChanges[0].categoryName}</span>
 				</TotalLocked>
 			) : (
 				<TotalLocked>
@@ -203,26 +205,26 @@ export const CategoryReturnsContainer = ({ returns, isCoinPage, returnsChartData
 						<AreaChart
 							title=""
 							chartData={lineChart}
-							stacks={coinsInCategory}
+							stacks={areaChartLegend}
 							valueSymbol="%"
 							hideDefaultLegend={true}
 							hideGradient={true}
 							customLegendName={isCoinPage ? 'Coin' : 'Category'}
-							customLegendOptions={coinsInCategory}
+							customLegendOptions={areaChartLegend}
 							tooltipValuesRelative
 							hideOthersInTooltip
 							chartOptions={areaChartoptions}
 							height="533px"
 						/>
 					) : (
-						<TreemapChart chartData={heatmapData} />
+						<TreemapChart chartData={treemapChart} />
 					)}
 				</TabContainer>
 			</ChartsContainer>
 
 			<TableWithSearch
-				data={sortedReturns}
-				columns={isCoinPage ? CoinReturnsColumn : CategoryReturnsColumn}
+				data={sortedPctChanges}
+				columns={isCoinPage ? CoinPerformanceColumn : CategoryPerformanceColumn}
 				columnToSearch={'name'}
 				placeholder={'Search...'}
 			/>

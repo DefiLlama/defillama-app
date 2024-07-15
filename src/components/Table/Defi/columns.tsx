@@ -37,8 +37,8 @@ import type {
 	IETFRow,
 	AirdropRow,
 	IBridgedRow,
-	CategoryReturnsRow,
-	CoinReturnsRow
+	CategoryPerformanceRow,
+	CoinPerformanceRow
 } from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
@@ -1758,7 +1758,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 	}
 ]
 
-export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
+export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'name',
@@ -1814,7 +1814,7 @@ export const CategoryReturnsColumn: ColumnDef<CategoryReturnsRow>[] = [
 	}
 ]
 
-export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
+export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	{
 		header: 'Coin',
 		accessorKey: 'name',
@@ -1834,7 +1834,7 @@ export const CoinReturnsColumn: ColumnDef<CoinReturnsRow>[] = [
 	},
 	{
 		header: 'Δ%',
-		accessorKey: 'returns1W',
+		accessorKey: 'change',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end',
