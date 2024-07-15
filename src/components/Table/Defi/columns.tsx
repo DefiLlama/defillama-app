@@ -1769,7 +1769,13 @@ export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 			return (
 				<Name>
 					<span>{index + 1}.</span>
-					<CustomLink href={`/narrative-tracker/${row.original.id}`}>{getValue()}</CustomLink>
+					{['bitcoin', 'ethereum', 'solana'].includes(row.original.id) ? (
+						<CustomLink href={`https://www.coingecko.com/en/coins/${row.original.id}`} target="_blank">
+							{getValue()}
+						</CustomLink>
+					) : (
+						<CustomLink href={`/narrative-tracker/${row.original.id}`}>{getValue()}</CustomLink>
+					)}
 				</Name>
 			)
 		},
