@@ -22,6 +22,8 @@ tags:
     description: Provides the available liquidity for swapping from one token to another on a specific chain
   - name: Yields
     description: Data from our yields/APY dashboard
+  - name: ETFs
+    description: Tradfi ETFs
 
 paths:
   /api/hourly/{protocol}:
@@ -327,6 +329,23 @@ paths:
       tags:
         - Yields
       summary: APY rates of multiple LSDs
+      responses:
+        '200':
+          description: successful operation
+  
+  /etfs/overview:
+    get:
+      tags:
+        - ETFs
+      summary: Get all ETFs and their metrics (aum, price, fees...)
+      responses:
+        '200':
+          description: successful operation
+  /etfs/history:
+    get:
+      tags:
+        - ETFs
+      summary: Historical AUM of all ETFs
       responses:
         '200':
           description: successful operation

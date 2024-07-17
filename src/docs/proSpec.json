@@ -38,6 +38,10 @@
 		{
 			"name": "Yields",
 			"description": "Data from our yields/APY dashboard"
+		},
+		{
+			"name": "ETFs",
+			"description": "Tradfi ETFs"
 		}
 	],
 	"paths": {
@@ -509,6 +513,32 @@
 					"Yields"
 				],
 				"summary": "APY rates of multiple LSDs",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/etfs/overview": {
+			"get": {
+				"tags": [
+					"ETFs"
+				],
+				"summary": "Get all ETFs and their metrics (aum, price, fees...)",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/etfs/history": {
+			"get": {
+				"tags": [
+					"ETFs"
+				],
+				"summary": "Historical AUM of all ETFs",
 				"responses": {
 					"200": {
 						"description": "successful operation"
