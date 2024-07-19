@@ -1,6 +1,7 @@
 import { trim } from 'lodash'
-import React, { useState, useEffect, useRef } from 'react'
-import styled, { css } from 'styled-components'
+import React, { useState, useRef } from 'react'
+import { QueryClient, QueryClientProvider, useQuery } from 'react-query'
+import styled, { css, keyframes } from 'styled-components'
 import { maxAgeForNext } from '~/api'
 import ReactSelect from '~/components/MultiSelect/ReactSelect'
 import Layout from '~/layout'
@@ -125,7 +126,8 @@ const ResultContent = styled.div`
 
 	@media (max-width: 1024px) {
 		width: 100%;
-		position: static;
+		position: relative;
+		top: 0;
 	}
 `
 
@@ -207,6 +209,7 @@ const ResultsContainer = styled.div`
 	background-color: ${({ theme }) => theme.bg2};
 	border-radius: 8px;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	min-height: 130px;
 `
 
 const WarningText = styled.p`
@@ -254,6 +257,34 @@ const USDAmount = styled.span`
 const DateInputDisplay = styled.input`
 	${inputStyles}
 	cursor: pointer;
+`
+
+const moveAnimation = keyframes`
+  0% {
+    left: 0;
+		border-top-left-radius: 8px;
+	  border-top-right-radius:0;
+  }
+
+	50% {
+		border-radius: 8px;
+	}
+  
+	100% {
+    left: calc(100% - 30%);
+		border-top-left-radius: 0;
+	  border-top-right-radius:8px;
+  }
+`
+
+const LoadingLine = styled.div`
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 30%;
+	height: 4px;
+	background-color: #3498db;
+	animation: ${moveAnimation} 1s ease-in-out infinite alternate;
 `
 
 const DatePicker = ({ value, onChange, max }) => {
@@ -325,25 +356,39 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		setProjectInfo((prevInfo) => ({ ...prevInfo, [name]: value }))
 	}
 
-	useEffect(() => {
-		const fetchInvestors = async () => {
-			const body = Object.fromEntries(Object.entries(filters).filter(([_, v]) => v && v.length !== 0))
+	const fetchInvestors = async (filters) => {
+		const body = Object.fromEntries(Object.entries(filters).filter(([_, v]: any) => v && v.length !== 0))
 
-			try {
-				const response = await fetch('https://vc-emails.llama.fi/vc-list', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ filters: body })
-				})
-				const data = await response.json()
+		const response = await fetch('https://vc-emails.llama.fi/vc-list', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ filters: body })
+		})
+
+		const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+		await wait(500)
+
+		if (!response.ok) {
+			throw new Error('Network response was not ok')
+		}
+
+		return response.json()
+	}
+
+	const useInvestorsQuery = (filters, hasSelectedFilters) => {
+		return useQuery(['investors', filters], () => fetchInvestors(filters), {
+			enabled: hasSelectedFilters,
+			onSuccess: (data) => {
 				setMatchedInvestors(data.vcNumber)
 				setTotalCost(data.cost)
-			} catch (error) {
+			},
+			onError: (error) => {
 				console.error('Error fetching investors:', error)
 			}
-		}
-		if (hasSelectedFilters) fetchInvestors()
-	}, [filters, hasSelectedFilters])
+		})
+	}
+
+	const { isLoading } = useInvestorsQuery(filters, hasSelectedFilters)
 
 	const handleSubmit = async (e) => {
 		e.preventDefault()
@@ -355,6 +400,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 				body: JSON.stringify({ ...projectInfo, filters })
 			})
 			const data = await response.json()
+			window.open(data.link, '_blank')
 			setPaymentLink(data.link)
 		} catch (error) {
 			console.error('Error creating payment:', error)
@@ -489,25 +535,31 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 						{
 							<ResultsContainer>
 								<h2 style={{ marginBottom: '8px' }}>Results</h2>
-								<ResultText>
-									Matched Investors: <ResultValue>{hasSelectedFilters ? matchedInvestors || '-' : '-'}</ResultValue>
-								</ResultText>
-								<ResultText>
-									Total Cost:{' '}
-									{matchedInvestors && hasSelectedFilters ? (
-										<USDAmount>${totalCost}</USDAmount>
-									) : (
-										<ResultValue> -</ResultValue>
+								{isLoading ? <LoadingLine /> : null}
+
+								<>
+									<ResultText>
+										Matched Investors: <ResultValue>{hasSelectedFilters ? matchedInvestors || '0' : '0'}</ResultValue>
+									</ResultText>
+									<ResultText>
+										Total Cost:{' '}
+										{matchedInvestors && hasSelectedFilters ? (
+											<USDAmount>${totalCost}</USDAmount>
+										) : (
+											<ResultValue> 0 </ResultValue>
+										)}
+									</ResultText>
+									{matchedInvestors > 100 && hasSelectedFilters ? (
+										<WarningText>To reduce costs, please filter further.</WarningText>
+									) : null}
+									{paymentLink && (
+										<>
+											<Button onClick={() => window.open(paymentLink, '_blank')} disabled={isSubmitting}>
+												{isSubmitting ? 'Processing...' : 'Go to Payment'}
+											</Button>
+										</>
 									)}
-								</ResultText>
-								{matchedInvestors > 100 && <WarningText>To reduce costs, please filter further.</WarningText>}
-								{paymentLink && (
-									<>
-										<Button onClick={() => window.open(paymentLink, '_blank')} disabled={isSubmitting}>
-											{isSubmitting ? 'Processing...' : 'Go to Payment'}
-										</Button>
-									</>
-								)}
+								</>
 							</ResultsContainer>
 						}
 					</ResultContent>
@@ -517,4 +569,14 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	)
 }
 
-export default VCFilterPage
+const queryClient = new QueryClient()
+
+const QueryProviderWrapper = (props) => {
+	return (
+		<QueryClientProvider client={queryClient}>
+			<VCFilterPage {...props} />
+		</QueryClientProvider>
+	)
+}
+
+export default QueryProviderWrapper
