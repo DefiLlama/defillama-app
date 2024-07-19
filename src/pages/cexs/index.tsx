@@ -298,6 +298,13 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'ProBit',
+		slug: 'probit',
+		coin: null,
+		coinSymbol: 'PROB',
+		walletsLink: null
+	},
+	{
 		name: 'WOO X',
 		slug: 'woo-x',
 		coin: 'WOO',
