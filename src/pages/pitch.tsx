@@ -394,10 +394,11 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		e.preventDefault()
 		setIsSubmitting(true)
 		try {
+			const filtersData = Object.fromEntries(Object.entries(filters).filter(([_, v]: any) => v && v.length !== 0))
 			const response = await fetch('https://vc-emails.llama.fi/new-payment', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ ...projectInfo, filters })
+				body: JSON.stringify({ ...projectInfo, filters: filtersData })
 			})
 			const data = await response.json()
 			window.open(data.link, '_blank')
