@@ -300,7 +300,7 @@ export const cexData: Array<ICex> = [
 	{
 		name: 'ProBit',
 		slug: 'probit',
-		coin: null,
+		coin: "PROB",
 		coinSymbol: 'PROB',
 		walletsLink: null
 	},
