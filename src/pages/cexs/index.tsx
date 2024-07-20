@@ -531,10 +531,6 @@ export const cexData: Array<ICex> = [
 		cgId: 'bkex'
 	},
 	{
-		name: 'ProBit',
-		cgId: 'probit'
-	},
-	{
 		name: 'BTCEX',
 		cgId: 'btcex',
 		cgDeriv: 'btcex_futures'
