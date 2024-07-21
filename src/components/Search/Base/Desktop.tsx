@@ -75,7 +75,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		gutter: 6,
 		sameWidth: true,
 		...(value && { defaultValue: value }),
-		list: []
+		list: data.map((x) => x.name)
 	})
 
 	// select first item on open
