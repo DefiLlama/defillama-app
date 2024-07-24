@@ -1,11 +1,8 @@
 import * as React from 'react'
-import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
-import { getETFData } from '~/api/categories/protocols'
-import { withPerformanceLogging } from '~/utils/perf'
 import { toK } from '~/utils'
 import { Tab, TabList } from '~/components'
 import type { IChartProps, IPieChartProps, IBarChartProps } from '~/components/ECharts/types'
@@ -28,16 +25,7 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-export const getStaticProps = withPerformanceLogging('etfs', async () => {
-	const data = await getETFData()
-
-	return {
-		props: { ...data.props },
-		revalidate: 5 * 60
-	}
-})
-
-const PageView = ({
+export const ETFContainer = ({
 	overview,
 	totalAum,
 	aumOverview,
@@ -149,13 +137,6 @@ const PageView = ({
 	)
 }
 
-export default function ETFs(props) {
-	return (
-		<Layout title={`Exchange Traded Funds - DefiLlama`} defaultSEO>
-			<PageView {...props} />
-		</Layout>
-	)
-}
 const TotalAUM = styled(Header)`
 	display: flex;
 	align-items: center;

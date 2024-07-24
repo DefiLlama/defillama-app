@@ -326,7 +326,10 @@ export const navLinks: ILinks = {
 		icon: <Layers size={16} />
 	},
 	'Crypto ETFs': {
-		main: [],
+		main: [
+			{ name: 'BTC', path: '/crypto-etf/bitcoin' },
+			{ name: 'ETH', path: '/crypto-etf/ethereum' }
+		],
 		...defaultToolsAndFooterLinks,
 		icon: <TrendingUp size={16} />,
 		newTag: true
