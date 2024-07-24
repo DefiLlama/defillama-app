@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 import { CheckIcon } from '../ProContainer/Subscribe/Icon'
-import { logout, useGetAuthToken, useSignInWithEthereum } from './queries/useAuth'
+import { logout, useGetAuthToken, useGetCreditsUsage, useSignInWithEthereum } from './queries/useAuth'
 import { llamaAddress, subscriptionAmount } from './lib/constants'
 import { useGetSubs } from './queries/useGetSubs'
 import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
@@ -128,6 +128,8 @@ const ProApi = () => {
 	const apiKey = newApiKey || currentKey?.apiKey || ghAuth?.apiKey
 
 	const { mutate: saveEmail } = useSaveEmail({ authToken })
+
+	const { data: credisUsage } = useGetCreditsUsage(apiKey)
 
 	const [email, setEmail] = React.useState(currentKey?.email)
 
@@ -271,6 +273,13 @@ const ProApi = () => {
 									<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
 								</span>
 							</div>
+							{credisUsage !== undefined ? (
+								<div style={{ textAlign: 'left', display: 'flex' }}>
+									Calls left{'  '}
+									<QuestionHelper text="Amount of calls that you can make before this api key runs out of credits. This limit will be reset at the end of each natural month." />
+									: {credisUsage.creditsLeft}
+								</div>
+							) : null}
 							{authToken && ghAuth?.isContributor ? null : (
 								<div style={{ display: 'flex' }}>
 									<ButtonDark

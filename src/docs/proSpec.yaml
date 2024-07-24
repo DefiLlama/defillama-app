@@ -24,6 +24,8 @@ tags:
     description: Data from our yields/APY dashboard
   - name: ETFs
     description: Tradfi ETFs
+  - name: meta
+    description: Get information about your API Key
 
 paths:
   /api/hourly/{protocol}:
@@ -349,3 +351,14 @@ paths:
       responses:
         '200':
           description: successful operation
+  
+  /usage/APIKEY:
+    get:
+      tags:
+        - meta
+      summary: Get amount of credits left in the api key, these reset on the 1st of each month
+      servers:
+        - url: https://pro-api.llama.fi
+      responses:
+        '200':
+          description: credits left

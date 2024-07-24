@@ -33,6 +33,12 @@ export function useGetAuthToken() {
 	)
 }
 
+export function useGetCreditsUsage(apiKey: string | undefined) {
+	return useQuery(['credits-usage', apiKey], () =>
+		apiKey ? fetch(`https://pro-api.llama.fi/usage/${apiKey}`).then(r => r.json()) : null
+	)
+}
+
 export async function signAndGetAuthToken({ address, refetchToken }: { address?: string | null, refetchToken: Function }) {
 	try {
 		if (!address) {
