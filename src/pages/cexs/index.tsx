@@ -591,7 +591,10 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
 						r.json()
 					)
-				])
+				]).catch((e) => null)
+				if (res === null) {
+					return c
+				}
 
 				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = res
 
