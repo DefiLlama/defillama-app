@@ -16,6 +16,7 @@ function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastO
 // group protocols so we can show child protocols inside an accordion in a table
 const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noSubrows?: boolean) => {
 	let strikeTvl = false
+	let parentExcluded = false
 	const categories = new Set()
 
 	const hasAtleastOnceValue = {}
@@ -44,6 +45,9 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		(acc, curr) => {
 			if (curr.strikeTvl) {
 				strikeTvl = true
+			}
+			if (curr.extraTvl?.excludeParent) {
+				parentExcluded = true
 			}
 
 			if (curr.category) {
@@ -164,6 +168,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		subRows: noSubrows ? null : [...protocols],
 		chainTvls: {}, // TODO cleanup
 		strikeTvl,
+		parentExcluded,
 		isParentProtocol: true
 	}
 }

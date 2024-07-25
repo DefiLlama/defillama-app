@@ -868,6 +868,11 @@ const Tvl = ({ value, rowValues }) => {
 	return (
 		<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 			{text ? <QuestionHelper text={text} /> : null}
+			{rowValues.parentExcluded ? (
+				<QuestionHelper
+					text={"There's some internal doublecounting that is excluded from parent TVL, so sum won't match"}
+				/>
+			) : null}
 			<span
 				style={{
 					color: rowValues.strikeTvl ? 'var(--text-disabled)' : 'inherit'
