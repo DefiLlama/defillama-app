@@ -326,7 +326,10 @@ export const navLinks: ILinks = {
 		icon: <Layers size={16} />
 	},
 	'Crypto ETFs': {
-		main: [],
+		main: [
+			{ name: 'BTC', path: '/crypto-etf/bitcoin' },
+			{ name: 'ETH', path: '/crypto-etf/ethereum' }
+		],
 		...defaultToolsAndFooterLinks,
 		icon: <TrendingUp size={16} />,
 		newTag: true
@@ -361,7 +364,6 @@ export const linksWithNoSubMenu = [
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lsd' },
-	{ name: 'Crypto ETFs', url: '/crypto-etf' },
 	{ name: 'Pro API', url: '/pro-api' },
 	{ name: 'Narrative Tracker', url: '/narrative-tracker' }
 ]

@@ -19,6 +19,8 @@ import {
 	CHART_API,
 	ETF_OVERVIEW_API,
 	ETF_HISTORY_API,
+	ETF_OVERVIEW_ETH_API,
+	ETF_HISTORY_ETH_API,
 	CHAINS_API_V2,
 	CHAIN_ASSETS_FLOWS,
 	BRIDGEINFLOWS_API,
@@ -886,9 +888,12 @@ export async function getLSDPageData() {
 	}
 }
 
-export async function getETFData() {
+export async function getETFData(coin) {
+	const OVERVIEW_API = coin === 'bitcoin' ? ETF_OVERVIEW_API : ETF_OVERVIEW_ETH_API
+	const HISTORY_API = coin === 'bitcoin' ? ETF_HISTORY_API : ETF_HISTORY_ETH_API
+
 	const [overview, history] = await Promise.all(
-		[ETF_OVERVIEW_API, ETF_HISTORY_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
+		[OVERVIEW_API, HISTORY_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
 	)
 
 	const totalAum = overview.reduce((acc, a) => acc + a.aum, 0)
