@@ -142,6 +142,16 @@ const nextConfig = {
 				source: '/compare-fdv',
 				destination: '/compare-tokens',
 				permanent: true
+			},
+			{
+				source: '/crypto-etfs',
+				destination: '/crypto-etf/bitcoin',
+				permanent: true
+			},
+			{
+				source: '/crypto-etf',
+				destination: '/crypto-etf/bitcoin',
+				permanent: true
 			}
 		]
 	},
@@ -167,7 +177,7 @@ const nextConfig = {
 	},
 	generateBuildId: async () => {
 		// get the latest git commit hash here
-		const commitHash = Math.random().toString()//require('child_process').execSync('git rev-parse HEAD').toString().trim()
+		const commitHash = Math.random().toString() //require('child_process').execSync('git rev-parse HEAD').toString().trim()
 		return commitHash
 	},
 	experimental: {
