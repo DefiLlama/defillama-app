@@ -312,7 +312,7 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://woo.org/proof-of-reserves'
 	},
 	{
-		name: 'Cake DeFi',
+		name: 'Bake.io',
 		slug: 'cake-defi',
 		coin: null,
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
