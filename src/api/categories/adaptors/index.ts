@@ -32,8 +32,7 @@ export const getOverviewItem = (
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryResponse> =>
 	fetch(
-		`${ADAPTORS_SUMMARY_BASE_API}/${
-			type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
+		`${ADAPTORS_SUMMARY_BASE_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
 		}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`
 	).then(handleFetchResponse)
 export const getOverview = (
@@ -117,9 +116,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-				...p,
-				tvl: p?.chainTvls?.[chain]?.tvl ?? null
-		  }))
+			...p,
+			tvl: p?.chainTvls?.[chain]?.tvl ?? null
+		}))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -127,16 +126,6 @@ function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string
 			return acc
 		}, {}) ?? {}
 	)
-}
-const getMapingCoinGeckoId = (name: string): string => {
-	const _name = {
-		Cronos: 'crypto-com-chain',
-		Doge: 'dogecoin',
-		Polygon: 'matic-network',
-		Avalanche: 'avalanche-2',
-		BSC: 'binancecoin'
-	}[name]
-	return _name ?? name
 }
 
 // - used in /[type] and /[type]/chains/[chain]
@@ -223,9 +212,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? {}
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -520,7 +509,7 @@ export const getChainsPageData = async (type: string, dataType?: string): Promis
 				console.log(PROTOCOLS_API, err)
 				return {}
 			}),
-		...allChains.map((chain) =>
+		...allChains.map((chain) => // TODO: replace this with single endpoint
 			getOverview(type, chain, dataType, true, true).then((res) => ({
 				...res,
 				chain
@@ -557,7 +546,7 @@ export const getChainsPageData = async (type: string, dataType?: string): Promis
 					displayName: chain,
 					disabled: null,
 					logo: chainIconUrl(chain),
-					total24h,
+					total24h: total24h ?? null,
 					tvl: protocols.reduce((acc, curr) => {
 						// TODO: This should be mapped using defillamaId to get accurate tvl!
 						const tvl = tvlData[curr.name]
@@ -643,4 +632,4 @@ export function notUndefined<T>(x: T | undefined): x is T {
 	return x !== undefined
 }
 
-export function formatOverviewProtocolsList() {}
+export function formatOverviewProtocolsList() { }
