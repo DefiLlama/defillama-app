@@ -298,9 +298,9 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
-		name: 'ProBit',
-		slug: 'probit',
-		coin: "PROB",
+		name: 'ProBIt Global',
+		slug: 'probit-global',
+		coin: 'PROB',
 		coinSymbol: 'PROB',
 		walletsLink: null
 	},
@@ -313,7 +313,7 @@ export const cexData: Array<ICex> = [
 	},
 	{
 		name: 'Bake.io',
-		slug: 'cake-defi',
+		slug: 'bake.io',
 		coin: null,
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
@@ -322,7 +322,7 @@ export const cexData: Array<ICex> = [
 		slug: 'bingx',
 		coin: null,
 		walletsLink: 'https://bingx.com/en/balance-reserve/',
-		cgId: 'bingx',
+		cgId: 'bingx'
 	},
 	{
 		name: 'Coinsquare',
@@ -334,7 +334,8 @@ export const cexData: Array<ICex> = [
 		name: 'Toobit',
 		slug: 'toobit',
 		coin: null,
-		walletsLink: 'https://support.toobit.com/hc/en-us/articles/35739879881881-Toobit-Asset-Transparency-Report-Safeguarding-User-Assets'
+		walletsLink:
+			'https://support.toobit.com/hc/en-us/articles/35739879881881-Toobit-Asset-Transparency-Report-Safeguarding-User-Assets'
 	},
 	{
 		name: 'CoinW',
@@ -441,7 +442,7 @@ export const cexData: Array<ICex> = [
 		slug: 'bigone',
 		coin: null,
 		walletsLink: null,
-        cgId: 'bigone'
+		cgId: 'bigone'
 	},
 	{
 		name: 'Bitmake',
