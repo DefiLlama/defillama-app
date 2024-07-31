@@ -50,6 +50,10 @@ function AboutPage() {
 						<Link href="mailto:contact@llama-corp.com">contact@llama-corp.com</Link>.
 					</TYPE.main>
 					<TYPE.main>
+						For questions around product, methodology, data... You'll get mych faster responses by using our priority
+						support, available <Link href="/pro-api">here after subscribing</Link>
+					</TYPE.main>
+					<TYPE.main>
 						DeFiLlama is a part of <Link href="https://twitter.com/llamacorporg">Llama Corp</Link>.
 					</TYPE.main>
 					<TYPE.main>
