@@ -46,6 +46,10 @@
 		{
 			"name": "meta",
 			"description": "Get information about your API Key"
+		},
+		{
+			"name": "narratives",
+			"description": "Track performance of narratives"
 		}
 	],
 	"paths": {
@@ -543,6 +547,31 @@
 					"ETFs"
 				],
 				"summary": "Historical AUM of all ETFs",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/fdv/performance/{period}": {
+			"get": {
+				"tags": [
+					"narratives"
+				],
+				"summary": "Get chart of narratives based on category performance (with individual coins weighted by mcap)",
+				"parameters": [
+					{
+						"name": "period",
+						"in": "path",
+						"required": true,
+						"description": "One of ['7', '30', 'ytd', '365']",
+						"schema": {
+							"type": "string",
+							"example": "30"
+						}
+					}
+				],
 				"responses": {
 					"200": {
 						"description": "successful operation"
