@@ -331,6 +331,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
 	},
 	{
+		name: 'Toobit',
+		slug: 'toobit',
+		coin: null,
+		walletsLink: 'https://support.toobit.com/hc/en-us/articles/35739879881881-Toobit-Asset-Transparency-Report-Safeguarding-User-Assets'
+	},
+	{
 		name: 'CoinW',
 		slug: 'coinw',
 		coin: null,
