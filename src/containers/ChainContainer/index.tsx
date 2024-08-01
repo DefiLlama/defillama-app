@@ -72,6 +72,7 @@ export function ChainContainer({
 	chainRaises,
 	chainAssets
 }) {
+	volumeData = {}
 	const {
 		fullProtocolsList,
 		parentProtocols,
