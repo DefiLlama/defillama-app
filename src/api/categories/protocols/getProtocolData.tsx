@@ -23,7 +23,8 @@ import {
 	HACKS_API,
 	DEV_METRICS_API,
 	NFT_MARKETPLACES_STATS_API,
-	NFT_MARKETPLACES_VOLUME_API
+	NFT_MARKETPLACES_VOLUME_API,
+	RAISES_API
 } from '~/constants'
 import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
 import { cg_volume_cexs } from '../../../pages/cexs'
@@ -275,12 +276,14 @@ export const getProtocolData = async (protocol: string) => {
 		liquidityInfo,
 		forks,
 		hacks,
-		nftMarketplaces
+		nftMarketplaces,
+		raises
 	]: [
 		IProtocolResponse,
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+		any,
 		any,
 		any,
 		any,
@@ -326,6 +329,12 @@ export const getProtocolData = async (protocol: string) => {
 			.catch((err) => {
 				console.log('[HTTP]:[ERROR]:[PROTOCOL_NFTMARKETPLACES]:', protocol, err instanceof Error ? err.message : '')
 				return []
+			}),
+		fetchOverCacheJson(RAISES_API)
+			.then((r) => r.raises)
+			.catch((err) => {
+				console.log('[HTTP]:[ERROR]:[PROTOCOL_RAISES]:', protocol, err instanceof Error ? err.message : '')
+				return []
 			})
 	])
 
@@ -364,6 +373,12 @@ export const getProtocolData = async (protocol: string) => {
 	}
 
 	const protocolData = fuseProtocolData(protocolRes)
+
+	const protocolRaises = raises?.filter((r) => r.defillamaId === protocolData.id)
+
+	if (protocolRaises?.length > 0) {
+		protocolData.raises = protocolRaises
+	}
 
 	const governanceApis = (
 		protocolData.governanceID?.map((gid) =>
