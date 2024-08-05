@@ -533,7 +533,20 @@
 				"tags": [
 					"ETFs"
 				],
-				"summary": "Get all ETFs and their metrics (aum, price, fees...)",
+				"summary": "Get BTC ETFs and their metrics (aum, price, fees...)",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/etfs/overviewEth": {
+			"get": {
+				"tags": [
+					"ETFs"
+				],
+				"summary": "Get ETH ETFs",
 				"responses": {
 					"200": {
 						"description": "successful operation"
@@ -546,7 +559,20 @@
 				"tags": [
 					"ETFs"
 				],
-				"summary": "Historical AUM of all ETFs",
+				"summary": "Historical AUM of all BTC ETFs",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/etfs/historyEth": {
+			"get": {
+				"tags": [
+					"ETFs"
+				],
+				"summary": "Historical AUM of all BTC ETFs",
 				"responses": {
 					"200": {
 						"description": "successful operation"
