@@ -97,7 +97,8 @@ export const descriptions = {
 	'Telegram Bot': 'Trading bots for Telegram users',
 	Ponzi: 'Farms promising high rates of return, where the money from new investors is used to pay earlier investors',
 	'Basis Trading': `Projects simultaneously buying and selling crypto futures to profit from price differences between the spot and futures markets`,
-	MEV: 'MEV Layer'
+	MEV: 'MEV Layer',
+	CeDeFi: 'Projects that incorporate elements of centralization within their product strategies'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
