@@ -54,7 +54,7 @@ export const formatPeggedAssetsData = ({
 		const pegType = pegged.pegType
 		const peggedGeckoID = pegged.gecko_id
 		const price = pegged.price
-		const priceSource = pegged.priceSource
+		const priceSource = pegged.priceSource ?? null
 		if (chain) {
 			const chainCirculating = pegged.chainCirculating[chain]
 			pegged.circulating = chainCirculating ? chainCirculating.current[pegType] ?? 0 : 0
@@ -152,9 +152,9 @@ export const formatPeggedChainsData = ({
 
 		chainData.dominance = chainDominance
 			? {
-				name: chainDominance.symbol,
-				value: getPeggedDominance(chainDominance, chainData.mcap)
-			}
+					name: chainDominance.symbol,
+					value: getPeggedDominance(chainDominance, chainData.mcap)
+			  }
 			: null
 
 		chainData.mcaptvl = (chainData.mcap && latestChainTVL && chainData.mcap / latestChainTVL) ?? null
