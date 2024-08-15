@@ -100,10 +100,10 @@ export default function VirtualTable({
 				tableHeaderRef.current.style.position = 'fixed'
 				tableHeaderRef.current.style.top = '0px'
 				tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
-				tableHeaderRef.current.style.overflowX = 'overlay'
+				tableHeaderRef.current.style["overflow-x"] = 'overlay'
 			} else {
 				tableHeaderRef.current.style.position = 'relative'
-				tableHeaderRef.current.style.overflowX = 'initial'
+				tableHeaderRef.current.style["overflow-x"] = 'initial'
 			}
 		}
 
