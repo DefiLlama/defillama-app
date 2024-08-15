@@ -26,7 +26,6 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 					url={row.original.url}
 					index={index + 1}
 					borrow={true}
-					maxCharacters={15}
 				/>
 			)
 		},

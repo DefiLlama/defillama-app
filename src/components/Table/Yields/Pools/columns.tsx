@@ -31,7 +31,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 					configID={row.original.configID}
 					url={row.original.url}
 					index={index + 1}
-					maxCharacters={15}
 				/>
 			)
 		},
