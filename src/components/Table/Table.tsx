@@ -137,7 +137,7 @@ export default function VirtualTable({
 					display: 'flex',
 					flexDirection: 'column',
 					zIndex: 10,
-					...(skipVirtualization || instance.getHeaderGroups().length === 1 ? { minWidth: `${minTableWidth}px` } : {})
+					...(skipVirtualization ? { minWidth: `${minTableWidth}px` } : {})
 				}}
 			>
 				{instance.getHeaderGroups().map((headerGroup) => (
