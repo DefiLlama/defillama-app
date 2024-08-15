@@ -24,7 +24,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 					url={row.original.url}
 					index={index + 1}
 					borrow={true}
-					maxCharacters={30}
+					maxCharacters={15}
 				/>
 			)
 		},
