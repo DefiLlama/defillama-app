@@ -99,14 +99,11 @@ export default function VirtualTable({
 			) {
 				tableHeaderRef.current.style.position = 'fixed'
 				tableHeaderRef.current.style.top = '0px'
-				tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
 				tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
 				tableHeaderRef.current.style.overflowX = 'overlay'
 			} else {
 				tableHeaderRef.current.style.position = 'relative'
-				tableHeaderRef.current.style.height = `0px`
 				tableHeaderRef.current.style.overflowX = 'initial'
-
 			}
 		}
 
@@ -115,27 +112,27 @@ export default function VirtualTable({
 		return () => window.removeEventListener('scroll', onScroll)
 	}, [skipVirtualization, instance])
 
-	// React.useEffect(() => {
-	// 	const tableWrapperEl = document.getElementById('table-wrapper')
+	React.useEffect(() => {
+		const tableWrapperEl = document.getElementById('table-wrapper')
 
-	// 	const onScroll = () => {
-	// 		if (!skipVirtualization && tableHeaderRef.current) {
-	// 			console.log(tableWrapperEl.scrollLeft)
-	// 			tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
-	// 		} else {
-	// 			// tableHeaderRef.current.style.left = `0px`
-	// 		}
-	// 	}
+		const onScroll = () => {
+			if (!skipVirtualization && tableHeaderRef.current) {
+				tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
+			} else {
+				tableHeaderRef.current.scrollLeft = 0
+			}
+		}
 
-	// 	tableWrapperEl.addEventListener('scroll', onScroll)
+		tableWrapperEl.addEventListener('scroll', onScroll)
 
-	// 	return () => tableWrapperEl.removeEventListener('scroll', onScroll)
-	// }, [skipVirtualization])
+		return () => tableWrapperEl.removeEventListener('scroll', onScroll)
+	}, [skipVirtualization])
 
 	return (
 		<Wrapper ref={tableContainerRef} id="table-wrapper" {...props}>
 			<div
 				ref={tableHeaderRef}
+				id="table-header"
 				style={{
 					display: 'flex',
 					flexDirection: 'column',
