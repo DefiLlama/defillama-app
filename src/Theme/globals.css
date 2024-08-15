@@ -180,3 +180,10 @@ h6 {
 		max-height: calc(100% - 32px);
 	}
 }
+
+#table-header {
+	scrollbar-width: none; /* Firefox */
+}
+#table-header::-webkit-scrollbar {
+	display: none; /* Safari and Chrome */
+}
