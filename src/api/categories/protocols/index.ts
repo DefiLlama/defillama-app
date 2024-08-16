@@ -1040,6 +1040,7 @@ export async function getChainsBridged(chain?: string) {
 			? fetchWithErrorLogging(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
 					.then((res) => res.json())
 					.then((data) => data.map((item) => ({ ...item.data, date: item.timestamp })))
+					.catch(() => [])
 			: []
 	])
 	const chainData = assets[chain] ?? null
