@@ -32,7 +32,6 @@ const columnsOptions = (type, allChains) => [
 
 export function OverviewTable({ data, type, allChains, categories, selectedCategories, isSimpleFees }) {
 	const optionsKey = 'table-columns-' + type
-
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -49,24 +48,24 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 			columnSizing
 		},
 		sortingFns: {
-			alphanumericFalsyLast: (rowA: any, rowB: any, columnId: string) => {
+			alphanumericFalsyLast: (rowA, rowB, columnId) => {
 				const desc = sorting.length ? sorting[0].desc : true
 
-				let a = rowA.getValue(columnId)
-				let b = rowB.getValue(columnId)
+				let a = (rowA.getValue(columnId) ?? null) as any
+				let b = (rowB.getValue(columnId) ?? null) as any
 
-				a = a === null || a === undefined || a < 0 ? 0 : a
-				b = b === null || b === undefined || b < 0 ? 0 : b
+				if (typeof a === 'number' && a <= 0) a = null
+				if (typeof b === 'number' && b <= 0) b = null
 
-				if (a === 0 && b !== 0) {
+				if (a === null && b !== null) {
 					return desc ? -1 : 1
 				}
 
-				if (a !== 0 && b === 0) {
+				if (a !== null && b === null) {
 					return desc ? 1 : -1
 				}
 
-				if (a === 0 && b === 0) {
+				if (a === null && b === null) {
 					return 0
 				}
 
