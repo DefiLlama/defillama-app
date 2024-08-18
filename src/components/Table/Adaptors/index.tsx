@@ -30,6 +30,19 @@ const columnsOptions = (type, allChains) => [
 		.map((c: any) => ({ name: c.header as string, key: c.accessorKey as string }))
 ]
 
+function normalizeUndefinedToNull(arr) {
+	return arr.map((obj) => {
+		if (typeof obj !== 'object' || obj === null) {
+			return obj
+		}
+
+		const newObj = {}
+		for (const [key, value] of Object.entries(obj)) {
+			newObj[key] = value === undefined ? null : value
+		}
+		return newObj
+	})
+}
 export function OverviewTable({ data, type, allChains, categories, selectedCategories, isSimpleFees }) {
 	const optionsKey = 'table-columns-' + type
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'total24h' }])
@@ -38,8 +51,10 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [period, setPeriod] = React.useState(null)
 	const windowSize = useWindowSize()
+
+	const normalizedData = React.useMemo(() => normalizeUndefinedToNull(data), [data])
 	const instance = useReactTable({
-		data,
+		data: normalizedData,
 		columns: getColumnsByType(type, allChains, isSimpleFees),
 		state: {
 			sorting,

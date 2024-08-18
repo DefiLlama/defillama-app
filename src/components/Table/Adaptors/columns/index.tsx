@@ -142,12 +142,12 @@ export const incentivesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
 		NameColumn('fees', allChains),
-		allChains ? undefined : ChainsColumn('fees'),
-		allChains ? undefined : CategoryColumn,
+		ChainsColumn('fees'),
+		CategoryColumn,
 		Total24hColumn('Fees', undefined, undefined, 140),
-		allChains ? undefined : Total24hColumn('Revenue', 'revenue24h', undefined, 160),
-		allChains ? undefined : Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
-		allChains ? undefined : Total24hColumn('Market Cap', 'mcap', undefined, undefined, 'Market Cap'),
+		Total24hColumn('Revenue', 'revenue24h', undefined, 160),
+		Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
+		Total24hColumn('Market Cap', 'mcap', undefined, undefined, 'Market Cap'),
 		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, undefined, 'Fees (7d)'),
 		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, undefined, 'Fees (30d)'),
 		Total24hColumn('Fees', 'total1y', `Cumulative last 1y fees`, undefined, 'Fees (1y)', true),
@@ -172,17 +172,17 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 			'Net Earnings (30d)',
 			true
 		),
-		allChains ? undefined : Total24hColumn('Revenue', 'revenue7d', `Cumulative last 7d revenue`, 150, 'Revenue (7d)'),
+		Total24hColumn('Revenue', 'revenue7d', `Cumulative last 7d revenue`, 150, 'Revenue (7d)'),
 		allChains
 			? undefined
 			: Total24hColumn('Revenue', 'revenue30d', `Cumulative last 30d revenue`, 160, 'Revenue (30d)'),
 		Total24hColumn('Revenue', 'revenue1y', `Cumulative last 1y revenue`, 160, 'Revenue (1y)', true),
 		Total24hColumn('Avg Revenue', 'averageRevenue1y', `Monthly Average 1y revenue`, 180, 'Avg Revenue (1y)', true),
 		// TotalAllTimeColumn('fees') tmp
-		allChains ? undefined : Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
-		allChains ? undefined : Total24hColumn('Treasury revenue', 'dailyProtocolRevenue', undefined, 190),
+		Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
+		Total24hColumn('Treasury revenue', 'dailyProtocolRevenue', undefined, 190),
 		// Total24hColumn('Creator revenue', 'dailyCreatorRevenue', undefined, 190),
-		allChains ? undefined : Total24hColumn('Supply side revenue', 'dailySupplySideRevenue', undefined, 220),
+		Total24hColumn('Supply side revenue', 'dailySupplySideRevenue', undefined, 220),
 		// Total24hColumn('Total fees', 'dailyTotalFees', undefined, 220),
 		// Total24hColumn('Total revenue', 'dailyTotalRevenue', undefined, 220)
 		// ChangeColumn('Weekly change', 'change_7dover7d', 160, 'Change of last 7d fees over the previous 7d fees'),
