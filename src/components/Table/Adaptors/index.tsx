@@ -39,7 +39,6 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [period, setPeriod] = React.useState(null)
 	const windowSize = useWindowSize()
-
 	const instance = useReactTable({
 		data,
 		columns: getColumnsByType(type, allChains, isSimpleFees),
@@ -48,6 +47,31 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 			expanded,
 			columnOrder,
 			columnSizing
+		},
+		sortingFns: {
+			alphanumericFalsyLast: (rowA: any, rowB: any, columnId: string) => {
+				const desc = sorting.length ? sorting[0].desc : true
+
+				let a = rowA.getValue(columnId)
+				let b = rowB.getValue(columnId)
+
+				a = a === null || a === undefined || a < 0 ? 0 : a
+				b = b === null || b === undefined || b < 0 ? 0 : b
+
+				if (a === 0 && b !== 0) {
+					return desc ? -1 : 1
+				}
+
+				if (a !== 0 && b === 0) {
+					return desc ? 1 : -1
+				}
+
+				if (a === 0 && b === 0) {
+					return 0
+				}
+
+				return a - b
+			}
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IDexsRow) => row.subRows,
