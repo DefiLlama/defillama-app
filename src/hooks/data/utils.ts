@@ -8,7 +8,7 @@ function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastO
 		acc[key] = (acc[key] ?? 0) + curr[key]
 	} else {
 		if (!hasAtleastOnceValue[key]) {
-			acc[key] = null
+			acc[key] = undefined
 		}
 	}
 }
@@ -57,7 +57,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
 
 			if (curr?.extraTvl?.excludeParent) {
-				["tvl", "tvlPrevDay", "tvlPrevWeek", "tvlPrevMonth"].forEach(key => {
+				;['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].forEach((key) => {
 					if (curr.extraTvl.excludeParent[key]) {
 						acc[key] -= curr.extraTvl.excludeParent[key]
 					}

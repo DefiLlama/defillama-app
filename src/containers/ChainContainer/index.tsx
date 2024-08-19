@@ -221,7 +221,7 @@ export function ChainContainer({
 
 	const finalProtocolsList = React.useMemo(() => {
 		const list =
-			!fetchingProtocolsList && fullProtocolsList
+			!fetchingProtocolsList && fullProtocolsList && !fetchingProtocolsVolumeByChain && !fetchingProtocolsFeesAndRevenueByChain
 				? formatProtocolsList({
 						extraTvlsEnabled,
 						protocols: fullProtocolsList,
@@ -246,7 +246,9 @@ export function ChainContainer({
 		chainProtocolsVolumes,
 		chainProtocolsFees,
 		minTvl,
-		maxTvl
+		maxTvl,
+		fetchingProtocolsVolumeByChain,
+		fetchingProtocolsFeesAndRevenueByChain
 	])
 
 	const topToken = { name: 'Uniswap', tvl: 0 }
@@ -708,6 +710,8 @@ export function ChainContainer({
 				) : (
 					<p style={{ textAlign: 'center', margin: '256px 0' }}>{`${selectedChain} chain has no protocols listed`}</p>
 				)}
+
+				{fetchingProtocolsList || fetchingProtocolsFeesAndRevenueByChain || fetchingProtocolsVolumeByChain ? <p style={{ textAlign: 'center', padding: '16px 0' }}>Loading...</p> : null}
 			</LayoutWrapper>
 		</>
 	)
