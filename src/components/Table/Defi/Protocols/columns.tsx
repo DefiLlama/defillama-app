@@ -88,9 +88,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		columns: [
 			columnHelper.accessor('tvl', {
 				header: 'TVL',
-				sortDescFirst: true,
 				cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -99,7 +98,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('change_1d', {
 				header: '1d Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -108,7 +107,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('change_7d', {
 				header: '7d Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -117,7 +116,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('change_1m', {
 				header: '1m Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -128,7 +127,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => {
 					return <>{info.getValue() ?? null}</>
 				},
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				size: 100,
 				meta: {
 					align: 'end'
@@ -143,7 +142,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('fees_24h', {
 				header: 'Fees 24h',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -152,7 +151,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenue_24h', {
 				header: 'Revenue 24h',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -161,7 +160,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('fees_7d', {
 				header: 'Fees 7d',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -170,7 +169,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenue_7d', {
 				header: 'Revenue 7d',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -179,7 +178,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('fees_30d', {
 				header: 'Fees 30d',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -188,7 +187,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenue_30d', {
 				header: 'Revenue 30d',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -197,7 +196,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('fees_1y', {
 				header: 'Monthly Avg 1Y',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -206,7 +205,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenue_1y', {
 				header: 'Revenue 1Y',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -215,7 +214,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('average_1y', {
 				header: 'Revenue 30d Fees',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -224,7 +223,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('average_revenue_1y', {
 				header: 'Monthly Avg 1Y Rev',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -234,7 +233,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('holdersRevenue30d', {
 				header: 'Holders Revenue 30d',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -243,7 +242,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('userFees_24h', {
 				header: 'User Fees 24h',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -252,7 +251,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('cumulativeFees', {
 				header: 'Cumulative Fees',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -261,7 +260,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('holderRevenue_24h', {
 				header: 'Holders Revenue 24h',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -271,7 +270,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('treasuryRevenue_24h', {
 				header: 'Treasury Revenue 24h',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -280,7 +279,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('supplySideRevenue_24h', {
 				header: 'Supply Side Revenue 24h',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -289,7 +288,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('pf', {
 				header: 'P/F',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? info.getValue() + 'x' : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: 'Market cap / annualized fees'
@@ -299,7 +298,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('ps', {
 				header: 'P/S',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? info.getValue() + 'x' : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: 'Market cap / annualized revenue'
@@ -315,7 +314,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volume_24h', {
 				header: 'Volume 24h',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -324,7 +323,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volume_7d', {
 				header: 'Volume 7d',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
@@ -333,7 +332,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volumeChange_7d', {
 				header: 'Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change of last 7d volume over the previous 7d volume'
@@ -343,7 +342,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('cumulativeVolume', {
 				header: 'Cumulative Volume',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortingFn: 'alphanumericFalsyLast' as any,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end'
 				},
