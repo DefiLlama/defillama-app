@@ -1,3 +1,5 @@
+import { last } from 'lodash'
+
 import { formatPercentage, selectColor, slug, timeFromNow, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
@@ -452,12 +454,11 @@ export const getProtocolData = async (protocol: string) => {
 				return { data: [] }
 			}),
 		protocolData.gecko_id
-			? fetchOverCache(
-					`https://pro-api.coingecko.com/api/v3/coins/${protocolData.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
-			  )
+			? fetchOverCache(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
 					.then((res) => res.json())
-					.catch(() => {})
-			: {},
+					.then(({ data }) => data)
+					.catch(() => null as any)
+			: null,
 		getProtocolEmissons(protocol),
 		fetchOverCache(devMetricsProtocolUrl)
 			.then((r) => r.json())
@@ -683,14 +684,12 @@ export const getProtocolData = async (protocol: string) => {
 		.map((x) => x.noOfTokens ?? [])
 		.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
 
-	const tokenValue = tokenCGData?.['market_data']?.['current_price']?.['usd']
-		? tokensUnlockedInNextEvent * tokenCGData['market_data']['current_price']['usd']
-		: null
+	const tokenMcap = tokenCGData?.mcaps ? last(tokenCGData.mcaps)[1] : null
+	const tokenPrice = tokenCGData?.prices ? last(tokenCGData.prices)[1] : null
+	const tokenInfo = tokenCGData?.coinData
+	const tokenValue = tokenPrice ? tokensUnlockedInNextEvent * tokenPrice : null
+	const unlockPercent = tokenValue && tokenMcap ? (tokenValue / tokenMcap) * 100 : null
 
-	const unlockPercent =
-		tokenValue && tokenCGData?.['market_data']?.['market_cap']?.['usd']
-			? (tokenValue / tokenCGData['market_data']['market_cap']['usd']) * 100
-			: null
 	const nextEventDescription =
 		tokensUnlockedInNextEvent && unlockPercent
 			? `${unlockPercent ? formatPercentage(unlockPercent) + '% ' : ''}`
@@ -795,19 +794,19 @@ export const getProtocolData = async (protocol: string) => {
 			tokenLiquidity,
 			tokenCGData: {
 				price: {
-					current: tokenCGData?.['market_data']?.['current_price']?.['usd'] ?? null,
-					ath: tokenCGData?.['market_data']?.['ath']?.['usd'] ?? null,
-					athDate: tokenCGData?.['market_data']?.['ath_date']?.['usd'] ?? null,
-					atl: tokenCGData?.['market_data']?.['atl']?.['usd'] ?? null,
-					atlDate: tokenCGData?.['market_data']?.['atl_date']?.['usd'] ?? null
+					current: tokenPrice ?? null,
+					ath: tokenInfo?.['market_data']?.['ath']?.['usd'] ?? null,
+					athDate: tokenInfo?.['market_data']?.['ath_date']?.['usd'] ?? null,
+					atl: tokenInfo?.['market_data']?.['atl']?.['usd'] ?? null,
+					atlDate: tokenInfo?.['market_data']?.['atl_date']?.['usd'] ?? null
 				},
-				marketCap: { current: tokenCGData?.['market_data']?.['market_cap']?.['usd'] ?? null },
-				totalSupply: tokenCGData?.['market_data']?.['total_supply'] ?? null,
-				fdv: { current: tokenCGData?.['market_data']?.['fully_diluted_valuation']?.['usd'] ?? null },
+				marketCap: { current: tokenInfo?.['market_data']?.['market_cap']?.['usd'] ?? null },
+				totalSupply: tokenInfo?.['market_data']?.['total_supply'] ?? null,
+				fdv: { current: tokenInfo?.['market_data']?.['fully_diluted_valuation']?.['usd'] ?? null },
 				volume24h: {
-					total: tokenCGData?.['market_data']?.['total_volume']?.['usd'] ?? null,
+					total: tokenInfo?.['market_data']?.['total_volume']?.['usd'] ?? null,
 					cex:
-						tokenCGData?.['tickers']?.reduce(
+						tokenInfo?.['tickers']?.reduce(
 							(acc, curr) =>
 								(acc +=
 									curr['trust_score'] !== 'red' && cg_volume_cexs.includes(curr.market.identifier)
@@ -816,7 +815,7 @@ export const getProtocolData = async (protocol: string) => {
 							0
 						) ?? null,
 					dex:
-						tokenCGData?.['tickers']?.reduce(
+						tokenInfo?.['tickers']?.reduce(
 							(acc, curr) =>
 								(acc +=
 									curr['trust_score'] === 'red' || cg_volume_cexs.includes(curr.market.identifier)
