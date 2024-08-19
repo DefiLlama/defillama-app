@@ -553,17 +553,16 @@ export const activeInvestorsColumns: ColumnDef<{
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return (
-				<CustomLink href={`/raises/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
-				// <Tooltip2 content={'Looking for investors? Send your pitch to selected ones through us'}>
-				// 	<div style={{ display: 'flex', gap: '8px' }} onClick={() => window.open('/pitch', '_blank')}>
-				// 		<CustomLink href={`/raises/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
-				// 		<Mail
-				// 			style={{ minHeight: '16px', minWidth: '16px', width: '16px', height: '16px' }}
-				// 			color="#2172E5"
-				// 			cursor={'pointer'}
-				// 		/>
-				// 	</div>
-				// </Tooltip2>
+				<Tooltip2 content={'Looking for investors? Send your pitch to selected ones through us'}>
+					<div style={{ display: 'flex', gap: '8px' }} onClick={() => window.open('/pitch', '_blank')}>
+						<CustomLink href={`/raises/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+						<Mail
+							style={{ minHeight: '16px', minWidth: '16px', width: '16px', height: '16px' }}
+							color="#2172E5"
+							cursor={'pointer'}
+						/>
+					</div>
+				</Tooltip2>
 			)
 			return
 		},

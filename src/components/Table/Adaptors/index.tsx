@@ -30,9 +30,21 @@ const columnsOptions = (type, allChains) => [
 		.map((c: any) => ({ name: c.header as string, key: c.accessorKey as string }))
 ]
 
+function normalizeUndefinedToNull(arr) {
+	return arr.map((obj) => {
+		if (typeof obj !== 'object' || obj === null) {
+			return obj
+		}
+
+		const newObj = {}
+		for (const [key, value] of Object.entries(obj)) {
+			newObj[key] = value === undefined ? null : value
+		}
+		return newObj
+	})
+}
 export function OverviewTable({ data, type, allChains, categories, selectedCategories, isSimpleFees }) {
 	const optionsKey = 'table-columns-' + type
-
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -40,14 +52,40 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 	const [period, setPeriod] = React.useState(null)
 	const windowSize = useWindowSize()
 
+	const normalizedData = React.useMemo(() => normalizeUndefinedToNull(data), [data])
 	const instance = useReactTable({
-		data,
+		data: normalizedData,
 		columns: getColumnsByType(type, allChains, isSimpleFees),
 		state: {
 			sorting,
 			expanded,
 			columnOrder,
 			columnSizing
+		},
+		sortingFns: {
+			alphanumericFalsyLast: (rowA, rowB, columnId) => {
+				const desc = sorting.length ? sorting[0].desc : true
+
+				let a = (rowA.getValue(columnId) ?? null) as any
+				let b = (rowB.getValue(columnId) ?? null) as any
+
+				if (typeof a === 'number' && a <= 0) a = null
+				if (typeof b === 'number' && b <= 0) b = null
+
+				if (a === null && b !== null) {
+					return desc ? -1 : 1
+				}
+
+				if (a !== null && b === null) {
+					return desc ? 1 : -1
+				}
+
+				if (a === null && b === null) {
+					return 0
+				}
+
+				return a - b
+			}
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IDexsRow) => row.subRows,

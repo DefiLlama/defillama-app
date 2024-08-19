@@ -134,6 +134,7 @@ export const Total24hColumn = (
 		header: header ?? `${type} (24h)`,
 		accessorKey: accessor,
 		enableSorting: true,
+		sortingFn: 'alphanumericFalsyLast' as any,
 		cell: (info) => {
 			const value = info.getValue()
 			if (!Number(value) && hideNull) return <></>
@@ -147,6 +148,7 @@ export const Total24hColumn = (
 			const methodology = Object.entries(rawMethodology).find(
 				([name]) => name.toLowerCase() === methodologyKey.toLowerCase()
 			)?.[1]
+
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{methodology ? <QuestionHelper text={methodology} textAlign="center" /> : null}
