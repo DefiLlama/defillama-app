@@ -121,17 +121,16 @@ const ActiveInvestors = ({ data }) => {
 
 	return (
 		<Layout title={`Investors - DefiLlama`} defaultSEO style={{ gap: '16px' }}>
-			{/* <AnnouncementWrapper>
+			<AnnouncementWrapper>
 				<span>Looking for investors?</span>{' '}
 				<a href="/pitch" style={{ color: '#2f80ed' }} target="_blank" rel="noopener noreferrer">
 					Send your pitch to selected ones through us
 				</a>
-			</AnnouncementWrapper> */}
+			</AnnouncementWrapper>
 
 			<TableFilters style={{ justifyContent: 'space-between', marginBottom: '8px' }}>
 				<Header style={{}}>Investors</Header>
 				<RowFilter
-					// style={{ marginBottom: '-8px' }}
 					setValue={(val) => onPeriodClick(val)}
 					values={['All', '30d', '180d', '1 year']}
 					selectedValue={period}
