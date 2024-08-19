@@ -1,6 +1,6 @@
 import { ColumnDef, sortingFns } from '@tanstack/react-table'
 import styled from 'styled-components'
-import { ArrowUpRight, ChevronDown, ChevronRight, Tool } from 'react-feather'
+import { ArrowUpRight, ChevronDown, ChevronRight, Mail, Tool } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
@@ -26,9 +26,26 @@ import {
 } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
-import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow, IEmission, IGovernance } from './types'
+import type {
+	ICategoryRow,
+	IChainsRow,
+	IForksRow,
+	IOraclesRow,
+	ILSDRow,
+	IEmission,
+	IGovernance,
+	IETFRow,
+	AirdropRow,
+	IBridgedRow,
+	CategoryPerformanceRow,
+	CoinPerformanceRow
+} from './types'
 import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
+import UpcomingEvent from '../Components/UpcomingEvent'
+import ProgressBar from '../Components/ProgressBar'
+import TooltipNew from '~/components/Tooltip/TootltipNew'
+import { sluggify } from '~/utils/cache-client'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -43,6 +60,19 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 					<span>{index + 1}</span> <CustomLink href={`/oracles/${getValue()}`}>{getValue()}</CustomLink>
 				</Name>
 			)
+		}
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue, row }) => {
+			return <IconsRow links={getValue() as Array<string>} url="/oracles/chain" iconType="chain" />
+		},
+		size: 200,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Chains secured by the oracle'
 		}
 	},
 	{
@@ -259,7 +289,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 
 			return (
 				<Name>
-					<span>{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<CustomLink href={`/unlocks/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
 				</Name>
@@ -275,7 +304,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		},
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 120
 	},
 	{
 		header: 'Mcap',
@@ -290,89 +320,45 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		},
 		meta: {
 			align: 'end'
-		}
-	},
-	{
-		header: 'Max Supply',
-		id: 'maxSupply',
-		accessorFn: (row) => (row.tPrice && row.maxSupply ? +row.tPrice * row.maxSupply : 0),
-		cell: ({ getValue, row }) => {
-			const symbol = row.original.tSymbol
-			const value = row.original.maxSupply
-
-			return (
-				<AutoColumn gap="4px">
-					<Tooltip content={value.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-						{formattedNum(value) + (symbol ? ` ${symbol}` : '')}
-					</Tooltip>
-					<LightText>{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}</LightText>
-				</AutoColumn>
-			)
 		},
-		meta: {
-			align: 'end'
-		}
+		size: 120
 	},
-	// {
-	// 	header: 'Circulating Supply',
-	// 	accessorKey: 'circSupply',
-	// 	cell: ({ getValue, row }) => {
-	// 		const symbol = row.original.tSymbol
-	// 		const value = getValue() as number
-	// 		const usdValue = row.original.tPrice && value ? formattedNum((+row.original.tPrice * value).toFixed(2)) : ''
 
-	// 		return (
-	// 			<AutoColumn gap="4px">
-	// 				<Tooltip content={value.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-	// 					{formattedNum(value) + (symbol ? ` ${symbol}` : '')}
-	// 				</Tooltip>
-	// 				<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
-	// 			</AutoColumn>
-	// 		)
-	// 	},
-	// 	meta: {
-	// 		align: 'end'
-	// 	}
-	// },
 	{
-		header: 'Total Locked %',
+		header: 'Unlocked % | Max',
 		id: 'totalLocked',
 		accessorFn: (row) => (row.maxSupply && row.totalLocked ? row.totalLocked / row.maxSupply : 0),
-		cell: ({ getValue, row }) => {
-			const symbol = row.original.tSymbol
-			const percetage = (row.original.totalLocked / row.original.maxSupply) * 100
+		cell: ({ row }) => {
+			const percetage = (100 - (row.original.totalLocked / row.original.maxSupply) * 100).toPrecision(2)
 
 			return (
-				<AutoColumn gap="4px">
-					<Tooltip content={row.original.totalLocked.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-						{percetage.toFixed(2) + '%'}
-					</Tooltip>
-					<LightText>
-						{getValue() ? '$' + formattedNum((row.original.totalLocked * row.original.tPrice).toFixed(2)) : ''}
-					</LightText>
-				</AutoColumn>
+				<ProgressBar
+					percent={percetage}
+					maxSupply={row.original.maxSupply}
+					symbol={row.original.tSymbol}
+					tokenPrice={row.original.tokenPrice}
+					name={row.original.name}
+				/>
 			)
 		},
-		size: 140,
+		size: 240,
 		meta: {
 			align: 'end'
 		}
 	},
 	{
-		header: 'Unlocks per day',
+		header: 'Daily unlocks',
 		id: 'nextEvent',
-		accessorFn: (row) => (row.tPrice && row.nextEvent?.toUnlock ? +row.tPrice * row.nextEvent.toUnlock : 0),
+		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : 0),
 		cell: ({ getValue, row }) => {
 			const symbol = row.original.tSymbol
 
-			if (!row.original.nextEvent?.toUnlock) return '-'
+			if (!row.original.unlocksPerDay) return '-'
 
 			return (
 				<AutoColumn gap="4px">
-					<Tooltip content={row.original.nextEvent.toUnlock.toFixed(2)}>
-						{formattedNum(row.original.nextEvent.toUnlock) + (symbol ? ` ${symbol}` : '')}
-					</Tooltip>
-					<LightText>{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}</LightText>
+					{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}
+					<LightText>{formattedNum(row.original.unlocksPerDay) + (symbol ? ` ${symbol.toUpperCase()}` : '')}</LightText>
 				</AutoColumn>
 			)
 		},
@@ -387,22 +373,26 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		cell: ({ row }) => {
 			let { timestamp } = row.original.upcomingEvent[0]
 
-			if (!timestamp) return null
+			if (!timestamp || timestamp < Date.now() / 1e3) return null
 
 			return (
 				<UpcomingEvent
 					{...{
 						noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
 						timestamp,
+						event: row.original.upcomingEvent,
 						description: row.original.upcomingEvent.map((x) => x.description),
 						price: row.original.tPrice,
 						symbol: row.original.tSymbol,
-						mcap: row.original.mcap
+						mcap: row.original.mcap,
+						maxSupply: row.original.maxSupply,
+						row: row.original,
+						name: row.original.name
 					}}
 				/>
 			)
 		},
-		size: 800
+		size: 420
 	}
 ]
 
@@ -485,18 +475,19 @@ export const expensesColumns: ColumnDef<any>[] = [
 		header: 'Source',
 		accessorKey: 'sources',
 		enableSorting: false,
-		cell: ({ getValue }) => (
-			<ButtonYields
-				as="a"
-				href={getValue()[0] as string}
-				target="_blank"
-				rel="noopener noreferrer"
-				data-lgonly
-				useTextColor={true}
-			>
-				<ArrowUpRight size={14} />
-			</ButtonYields>
-		)
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<ButtonYields
+					as="a"
+					href={getValue()[0] as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			) : null
 	}
 ]
 
@@ -551,26 +542,82 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 	}
 ]
 
-export const activeInvestorsColumns: ColumnDef<{ name: string; deals: number; projects: string }>[] = [
+export const activeInvestorsColumns: ColumnDef<{
+	name: string
+	deals: number
+	projects: string
+}>[] = [
 	{
 		header: 'Investor',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <>{getValue()}</>
+			return (
+				<Tooltip2 content={'Looking for investors? Send your pitch to selected ones through us'}>
+					<div style={{ display: 'flex', gap: '8px' }} onClick={() => window.open('/pitch', '_blank')}>
+						<CustomLink href={`/raises/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+						<Mail
+							style={{ minHeight: '16px', minWidth: '16px', width: '16px', height: '16px' }}
+							color="#2172E5"
+							cursor={'pointer'}
+						/>
+					</div>
+				</Tooltip2>
+			)
+			return
 		},
-		size: 120
+		size: 200
 	},
 	{
-		header: 'Deals (Last 30d)',
+		header: 'Deals',
 		accessorKey: 'deals',
 		cell: ({ getValue }) => {
 			return <>{getValue()}</>
 		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+
+	{
+		header: 'Median Amount',
+		accessorKey: 'medianAmount',
+		cell: ({ getValue }) => {
+			return <>${getValue()}m</>
+		},
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/bridges" iconType="chain" />,
 		size: 100,
 		meta: {
 			align: 'end'
 		}
+	},
+
+	{
+		header: 'Top Project Category',
+		accessorKey: 'category',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 160
+	},
+	{
+		header: 'Top Round Type',
+		accessorKey: 'roundType',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 120
 	},
 	{
 		header: 'Projects',
@@ -579,7 +626,7 @@ export const activeInvestorsColumns: ColumnDef<{ name: string; deals: number; pr
 		cell: ({ getValue }) => {
 			return <Tooltip2 content={getValue()}>{getValue()}</Tooltip2>
 		},
-		size: 280
+		size: 240
 	}
 ]
 
@@ -616,7 +663,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		header: capitalizeFirstLetter(s),
 		accessorKey: s,
 		enableSorting: false,
-		size: s === 'classification' ? 100 : 200,
+		size: s === 'classification' ? 140 : 200,
 		...(s === 'classification' && {
 			meta: {
 				headerHelperText:
@@ -627,7 +674,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 	{
 		header: 'Link',
 		accessorKey: 'link',
-		size: 33,
+		size: 40,
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<ButtonYields
@@ -680,7 +727,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
-		header: 'Active Users',
+		header: 'Active Addresses',
 		accessorKey: 'users',
 		cell: (info) => <>{info.getValue() === 0 || formattedNum(info.getValue())}</>,
 		size: 120,
@@ -723,6 +770,58 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			return <>{'$' + formattedNum(info.getValue())}</>
 		},
 		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Bridged TVL',
+		accessorKey: 'chainAssets',
+		cell: ({ getValue }) => {
+			const chainAssets: any = getValue()
+			if (!chainAssets) return null
+			const totalValue = formattedNum(chainAssets.total.total, true)
+			const chainAssetsBreakdown = (
+				<div style={{ width: '200px' }}>
+					{chainAssets.native && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Native:</span>
+							<span>{formattedNum(chainAssets.native.total, true)}</span>
+						</div>
+					)}
+					{chainAssets.canonical && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Canonical:</span>
+							<span>{formattedNum(chainAssets.canonical.total, true)}</span>
+						</div>
+					)}
+
+					{chainAssets.ownTokens && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Own Tokens:</span>
+							<span>{formattedNum(chainAssets.ownTokens.total, true)}</span>
+						</div>
+					)}
+					{chainAssets.thirdParty && (
+						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+							<span>Third Party:</span>
+							<span>{formattedNum(chainAssets.thirdParty.total, true)}</span>
+						</div>
+					)}
+				</div>
+			)
+			return <TooltipNew content={chainAssetsBreakdown}>{totalValue}</TooltipNew>
+		},
+		sortingFn: (rowA, rowB) => {
+			const valueA = rowA.original?.chainAssets?.total.total
+			const valueB = rowB.original?.chainAssets?.total.total
+
+			if (valueA === undefined || valueA === null) return 1
+			if (valueB === undefined || valueB === null) return -1
+
+			return parseFloat(valueB) - parseFloat(valueA)
+		},
+		size: 200,
 		meta: {
 			align: 'end'
 		}
@@ -771,6 +870,163 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		size: 120,
 		meta: {
 			align: 'end'
+		}
+	},
+	{
+		header: 'Total Bridged',
+		accessorKey: 'totalAssets',
+		cell: (info) => {
+			const value = info.getValue()
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'NFT Volume',
+		accessorKey: 'nftVolume',
+		cell: (info) => {
+			const value = info.getValue()
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	}
+]
+
+const keySorting = (key: string) => (rowA, rowB) => {
+	const valueA = rowA.original?.[key]?.total
+	const valueB = rowB.original?.[key]?.total
+
+	if (valueA === undefined || valueA === null) return 1
+	if (valueB === undefined || valueB === null) return -1
+
+	return parseFloat(valueB) - parseFloat(valueA)
+}
+
+export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
+	{
+		header: () => <Name>Name</Name>,
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name depth={row.depth}>
+					{row.subRows?.length > 0 && (
+						<AccordionButton
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+						</AccordionButton>
+					)}
+					<span>{index + 1}</span>
+					<TokenLogo logo={chainIconUrl(getValue())} />
+					<CustomLink href={`/bridged/${getValue()}`}>{getValue()}</CustomLink>
+				</Name>
+			)
+		},
+		size: 200
+	},
+	{
+		header: 'Total Bridged',
+		accessorKey: 'total',
+		enableSorting: true,
+		sortingFn: keySorting('total'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Change 24h',
+		accessorKey: 'change_24h',
+		enableSorting: true,
+		sortingFn: (rowA, rowB) => {
+			const valueA = String(rowA.original.change_24h)
+			const valueB = String(rowB.original.change_24h)
+
+			if (valueA === undefined || valueA === null) return 1
+			if (valueB === undefined || valueB === null) return -1
+
+			return parseFloat(valueB) - parseFloat(valueA)
+		},
+		cell: (info) => {
+			const value = info.getValue()
+			if (!value) return <></>
+			return <div style={{ color: Number(value) > 0 ? '#198600' : '#d92929' }}>{formattedPercent(value)}</div>
+		}
+	},
+	{
+		header: 'Native',
+		accessorKey: 'native',
+		enableSorting: true,
+		sortingFn: keySorting('native'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Canonical',
+		accessorKey: 'canonical',
+		enableSorting: true,
+		sortingFn: keySorting('canonical'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Own Tokens',
+		accessorKey: 'ownTokens',
+		enableSorting: true,
+		sortingFn: keySorting('ownTokens'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	},
+	{
+		header: 'Third Party',
+		accessorKey: 'thirdParty',
+		enableSorting: true,
+		sortingFn: keySorting('thirdParty'),
+		cell: (info) => {
+			const value = info.getValue()?.total
+			if (!value) return <></>
+			return <>${formattedNum(value)}</>
+		}
+	}
+]
+
+export const bridgedChainColumns: ColumnDef<any>[] = [
+	{
+		header: 'Token',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <Name>{getValue()}</Name>
+		}
+	},
+	{
+		header: 'Total Bridged',
+		accessorKey: 'value',
+		cell: ({ getValue }) => {
+			return <>{'$' + formattedNum(getValue())}</>
 		}
 	}
 ]
@@ -856,7 +1112,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			<InflowOutflow
 				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
 			>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</InflowOutflow>
 		),
 		sortingFn: sortingFns.datetime,
@@ -872,7 +1128,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			<InflowOutflow
 				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
 			>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</InflowOutflow>
 		),
 		sortingFn: sortingFns.datetime,
@@ -888,7 +1144,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			<InflowOutflow
 				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
 			>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</InflowOutflow>
 		),
 		sortingFn: sortingFns.datetime,
@@ -904,7 +1160,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			<InflowOutflow
 				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
 			>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</InflowOutflow>
 		),
 		sortingFn: sortingFns.datetime,
@@ -1159,7 +1415,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		cell: (info) => {
 			return <>{'$' + formattedNum(info.getValue())}</>
 		},
-		size: 128,
+		size: 180,
 		meta: {
 			align: 'end'
 		}
@@ -1170,6 +1426,18 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		id: 'total-treasury',
 		cell: (info) => {
 			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 128,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Mcap',
+		accessorKey: 'mcap',
+		id: 'mcap',
+		cell: (info) => {
+			return <>{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}</>
 		},
 		size: 128,
 		meta: {
@@ -1330,6 +1598,288 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 	}
 ]
 
+export const ETFColumn: ColumnDef<IETFRow>[] = [
+	{
+		header: 'Ticker',
+		accessorKey: 'ticker',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<CustomLink href={row.original.url}>{getValue()}</CustomLink>
+				</Name>
+			)
+		},
+		size: 100
+	},
+	{
+		header: 'Issuer',
+		accessorKey: 'issuer',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 160
+	},
+	{
+		header: 'AUM',
+		accessorKey: 'aum',
+		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Volume',
+		accessorKey: 'volume',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Flows',
+		accessorKey: 'flows',
+		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Price',
+		accessorKey: 'price',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Terminal fee',
+		accessorKey: 'pct_fee',
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <>{value && value.toFixed(2) + '%'}</>
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Custodian',
+		accessorKey: 'custodian',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	}
+]
+
+export const AirdropColumn: ColumnDef<AirdropRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			return <Name>{getValue()}</Name>
+		},
+		size: 120
+	},
+	{
+		header: 'Claim Page',
+		accessorKey: 'page',
+		size: 100,
+		enableSorting: false,
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<ButtonYields
+					as="a"
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			) : null
+	},
+	{
+		header: 'Explorer',
+		accessorKey: 'explorer',
+		size: 80,
+		enableSorting: false,
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<ButtonYields
+					as="a"
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			) : null
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue, row }) => {
+			return (
+				<IconsRow
+					links={getValue() as Array<string>}
+					url="/oracles"
+					urlPrefix={`/${row.original.name}`}
+					iconType="chain"
+				/>
+			)
+		},
+		size: 80,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Start',
+		accessorKey: 'startTime',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 190
+	},
+	{
+		header: 'End',
+		accessorKey: 'endTime',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 190
+	}
+]
+
+export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
+	{
+		header: 'Category',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}.</span>
+					{['bitcoin', 'ethereum', 'solana'].includes(row.original.id) ? (
+						<CustomLink href={`https://www.coingecko.com/en/coins/${row.original.id}`} target="_blank">
+							{getValue()}
+						</CustomLink>
+					) : (
+						<CustomLink href={`/narrative-tracker/${row.original.id}`}>{getValue()}</CustomLink>
+					)}
+				</Name>
+			)
+		},
+		size: 240
+	},
+	{
+		header: 'Δ%',
+		accessorKey: 'change',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`
+		},
+		size: 120
+	},
+	{
+		header: 'Market Cap',
+		accessorKey: 'mcap',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '24h Volume',
+		accessorKey: 'volume1D',
+		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: '# of Coins',
+		accessorKey: 'nbCoins',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	}
+]
+
+export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
+	{
+		header: 'Coin',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return (
+				<Name>
+					<span>{index + 1}.</span>
+					<CustomLink href={`https://www.coingecko.com/en/coins/${row.original.id}`} target="_blank">
+						{getValue()}
+					</CustomLink>
+				</Name>
+			)
+		},
+		size: 240
+	},
+	{
+		header: 'Δ%',
+		accessorKey: 'change',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
+		},
+		size: 120
+	},
+	{
+		header: 'Market Cap',
+		accessorKey: 'mcap',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '24h Volume',
+		accessorKey: 'volume1D',
+		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	}
+]
+
 function formatCexInflows(value) {
 	if (Number.isNaN(Number(value))) return null
 
@@ -1362,6 +1912,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 	0: [
 		'name',
 		'tvl',
+		'chainAssets',
 		'change_7d',
 		'protocols',
 		'users',
@@ -1377,6 +1928,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'name',
 		'change_7d',
 		'tvl',
+		'chainAssets',
 		'protocols',
 		'users',
 		'change_1d',
@@ -1393,6 +1945,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'users',
 		'change_7d',
 		'tvl',
+		'chainAssets',
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
@@ -1409,6 +1962,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'change_7d',
 		'change_1m',
 		'tvl',
+		'chainAssets',
 		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
@@ -1509,90 +2063,6 @@ const LightText = styled.span`
 	opacity: 0.6;
 	min-width: 120px;
 `
-
-const UpcomingEvent = ({ noOfTokens = [], timestamp, description, price, symbol, mcap }) => {
-	const tokens = noOfTokens.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
-	const tokenValue = price ? tokens * price : null
-	const unlockPercent = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
-
-	const timeLeft = timestamp - Date.now() / 1e3
-	const days = Math.floor(timeLeft / 86400)
-	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
-	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)
-	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
-
-	const [_, rerender] = useState(1)
-
-	useEffect(() => {
-		const id = setInterval(() => rerender((value) => value + 1), 1000)
-
-		return () => clearInterval(id)
-	}, [])
-
-	const tooltipContent = description
-		.map((item, index) =>
-			formatUnlocksEvent({
-				description: item,
-				noOfTokens: noOfTokens?.[index] ?? [],
-				timestamp,
-				price,
-				symbol
-			})
-		)
-		.join('\n\n')
-
-	return (
-		<Tooltip content={tooltipContent} placement="left">
-			<EventWrapper>
-				{noOfTokens && unlockPercent ? (
-					<span>
-						<span>{unlockPercent ? formatPercentage(unlockPercent) + '%' : ''}</span>
-						<span>{formattedNum(tokenValue, true)}</span>
-					</span>
-				) : (
-					<span>{`${tokens.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${symbol ?? 'tokens'}`}</span>
-				)}
-
-				<span data-divider></span>
-
-				<TimeLeft>
-					<span>
-						<span>{days}</span>
-						<span>D</span>
-					</span>
-
-					<span data-divider></span>
-
-					<span>
-						<span>{hours}</span>
-						<span>H</span>
-					</span>
-
-					<span data-divider></span>
-
-					<span>
-						<span>{minutes}</span>
-						<span>M</span>
-					</span>
-
-					<span data-divider></span>
-
-					<span>
-						<span>{seconds}</span>
-						<span>S</span>
-					</span>
-				</TimeLeft>
-
-				<span data-divider></span>
-
-				<span>
-					<span>{toNiceDayMonthYear(timestamp)}</span>
-					<span>{toNiceHour(timestamp)}</span>
-				</span>
-			</EventWrapper>
-		</Tooltip>
-	)
-}
 
 const SimpleUpcomingEvent = ({ timestamp, name }) => {
 	const timeLeft = timestamp - Date.now() / 1e3
@@ -1721,7 +2191,6 @@ const EventWrapper = styled.span`
 	}
 
 	& > *:first-child {
-		inline-size: 68px;
 		overflow-wrap: break-word;
 		white-space: normal;
 	}

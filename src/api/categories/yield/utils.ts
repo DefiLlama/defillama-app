@@ -61,7 +61,11 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 			...p,
 			apyLsd,
 			apyBaseIncludingLsdApy: p.apyBase + apyLsd,
-			apyIncludingLsdApy: p.apy + apyLsd
+			apyIncludingLsdApy: p.apy + apyLsd,
+			lsdTokenOnly: !p.symbol
+				.split('-')
+				.map((s) => lsdSymbols.some((i) => s.includes(i)))
+				.includes(false)
 		}
 	})
 
@@ -92,6 +96,8 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	for (const chain of _chains) {
 		tokenNameMapping[chain.tokenSymbol] = chain.name === 'xDai' ? 'Gnosis' : chain.name
 	}
+
+	tokenNameMapping['USDC'] = 'USD Coin'
 	// remove any null keys (where no token)
 	tokenNameMapping = Object.fromEntries(Object.entries(tokenNameMapping).filter(([k, _]) => k !== 'null'))
 

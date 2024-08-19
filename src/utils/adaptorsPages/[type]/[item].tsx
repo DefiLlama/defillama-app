@@ -63,7 +63,6 @@ export const getStaticPathsByType = (type: string) => async () => {
 
 export default function ProtocolItem({ protocolSummary, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
 	const type = volumeTypes.includes(protocolSummary.type) ? 'volume' : protocolSummary.type
-
 	return (
 		<OverviewItemContainer
 			title={`${protocolSummary.name} ${type} - DefiLlama`}

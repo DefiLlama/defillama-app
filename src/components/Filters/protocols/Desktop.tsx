@@ -4,8 +4,8 @@ import { SelectItem, ItemsSelected, SelectButton, SelectPopover } from '../commo
 import OptionToggle from '~/components/OptionToggle'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
-import { useDefiManager } from '~/contexts/LocalStorage'
-import { protocolsAndChainsOptions } from './options'
+import { useDefiManager, useFeesManager, useTvlAndFeesManager } from '~/contexts/LocalStorage'
+import { feesOptions, protocolsAndChainsOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 
@@ -62,7 +62,7 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 					<>
 						{tvlOptions.slice(0, 3).map((option) => (
 							<ListItem key={option.key}>
-								<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
+								<OptionToggle {...option} toggle={updater(option.key, true)} enabled={extraTvlEnabled[option.key]} />
 							</ListItem>
 						))}
 						<ListItem>
@@ -71,6 +71,66 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 					</>
 				) : (
 					tvlOptions.map((option) => (
+						<ListItem key={option.key}>
+							<OptionToggle {...option} toggle={updater(option.key, true)} enabled={extraTvlEnabled[option.key]} />
+						</ListItem>
+					))
+				)}
+			</ListWrapper>
+		</Wrapper>
+	)
+}
+
+export const DesktopFeesFilters = ({ options, ...props }) => {
+	const [extraTvlEnabled, updater] = useFeesManager()
+
+	return (
+		<Wrapper>
+			<label>INCLUDE IN FEES:</label>
+			<ListWrapper {...props}>
+				{feesOptions.length > 3 ? (
+					<>
+						{feesOptions.slice(0, 3).map((option) => (
+							<ListItem key={option.key}>
+								<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
+							</ListItem>
+						))}
+						<ListItem>
+							<AddlOptions options={feesOptions.slice(3)} />
+						</ListItem>
+					</>
+				) : (
+					feesOptions.map((option) => (
+						<ListItem key={option.key}>
+							<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
+						</ListItem>
+					))
+				)}
+			</ListWrapper>
+		</Wrapper>
+	)
+}
+
+export const DesktopTvlAndFeesFilters = ({ options, ...props }) => {
+	const [extraTvlEnabled, updater] = useTvlAndFeesManager()
+
+	return (
+		<Wrapper>
+			<label>INCLUDE IN STATS:</label>
+			<ListWrapper {...props}>
+				{feesOptions.length > 3 ? (
+					<>
+						{options.slice(0, 3).map((option) => (
+							<ListItem key={option.key}>
+								<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
+							</ListItem>
+						))}
+						<ListItem>
+							<AddlOptions options={options.slice(3)} />
+						</ListItem>
+					</>
+				) : (
+					options.map((option) => (
 						<ListItem key={option.key}>
 							<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
 						</ListItem>

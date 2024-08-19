@@ -11,9 +11,12 @@ import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
 import type { IDexChartsProps } from './types'
 import { useRouter } from 'next/router'
-import { capitalizeFirstLetter } from '~/utils'
+import { capitalizeFirstLetter, download } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { AnnouncementWrapper } from '~/components/Announcement'
+import { useFeesManager } from '~/contexts/LocalStorage'
+import { ButtonDark } from '~/components/ButtonStyled'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -28,9 +31,12 @@ export type IOverviewContainerProps = IOverviewProps
 
 export default function OverviewContainer(props: IOverviewContainerProps) {
 	const chain = props.chain ?? 'All'
+	const isSimpleFees = props.isSimpleFees
 	const router = useRouter()
-	const { dataType: selectedDataType = 'Notional volume' } = router.query
+
+	const { dataType: selectedDataType = 'Premium Volume' } = router.query
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
+	const [enabledSettings] = useFeesManager()
 
 	const { selectedCategories, protocolsList, rowLinks } = React.useMemo(() => {
 		const selectedCategories = router.query.category
@@ -43,19 +49,66 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 
 		const protocolsList =
 			categoriesToFilter.length > 0
-				? props.protocols.filter((p) => (p.category ? selectedCategories.includes(p.category) : false))
+				? props.protocols
+						.filter((p) => {
+							const parentFilter = p?.subRows?.some((r) => selectedCategories.includes(r.category))
+							const toFilter = parentFilter
+								? parentFilter
+								: p.category
+								? selectedCategories.includes(p.category)
+								: false
+							return toFilter
+						})
+						.map((p) => {
+							if (p?.subRows?.length > 0) {
+								p.subRows = p.subRows.filter((r) => selectedCategories.includes(r.category))
+							}
+
+							return p
+						})
 				: props.protocols
 
 		const rowLinks =
 			props.allChains && props.allChains.length > 0
 				? ['All', ...props.allChains].map((chain) => ({
 						label: chain,
-						to: chain === 'All' ? `/${props.type}` : `/${props.type}/chains/${chain.toLowerCase()}`
+						to:
+							chain === 'All'
+								? `/${props.type}/${isSimpleFees ? 'simple' : ''}`
+								: `/${props.type}${isSimpleFees ? '/simple' : ''}/chains/${chain.toLowerCase()}`
 				  }))
 				: null
 
 		return { selectedCategories, protocolsList, rowLinks }
-	}, [router.query.category, props.protocols, props.allChains, props.type])
+	}, [router.query.category, props.protocols, props.allChains, props.type, isSimpleFees])
+
+	const finalProtocolsList = React.useMemo(() => {
+		if (props.type === 'fees') {
+			return protocolsList.map((protocol) => {
+				let revenue24h = protocol.revenue24h
+				let revenue7d = protocol.revenue7d
+				let revenue30d = protocol.revenue30d
+
+				let dailyHoldersRevenue = protocol.dailyHoldersRevenue
+
+				if (revenue24h && !Number.isNaN(Number(revenue24h))) {
+					revenue24h =
+						+revenue24h +
+						(enabledSettings.bribes ? protocol.dailyBribesRevenue ?? 0 : 0) +
+						(enabledSettings.tokentax ? protocol.dailyTokenTaxes ?? 0 : 0)
+					revenue7d = +revenue7d + (enabledSettings.bribes ? protocol.bribes7d ?? 0 : 0)
+					revenue30d = +revenue30d + (enabledSettings.bribes ? protocol.bribes30d ?? 0 : 0)
+				}
+				if (dailyHoldersRevenue && !Number.isNaN(Number(dailyHoldersRevenue))) {
+					dailyHoldersRevenue = +dailyHoldersRevenue + (enabledSettings.bribes ? protocol.dailyBribesRevenue ?? 0 : 0)
+				}
+
+				return { ...protocol, revenue24h, revenue30d, revenue7d, dailyHoldersRevenue }
+			})
+		}
+
+		return protocolsList
+	}, [protocolsList, enabledSettings, props.type])
 
 	const [charts, setCharts] = React.useState<IJSON<IOverviewContainerProps['totalDataChartBreakdown']>>({
 		totalDataChartBreakdown: props.totalDataChartBreakdown,
@@ -65,9 +118,9 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	// Needs to be improved! Too dirty
 	const { data, error, loading } = useFetchCharts(
 		props.type,
-		chain === 'All' ? undefined : chain,
+		chain === 'all' ? undefined : chain,
 		undefined,
-		props.type === 'fees' || chain === 'all'
+		props.type === 'options' ? false : props.type === 'fees' || chain === 'all'
 	)
 	const {
 		data: secondTypeData,
@@ -75,11 +128,10 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 		loading: secondTypeLoading
 	} = useFetchCharts(
 		props.type,
-		chain === 'All' ? undefined : chain,
+		chain === 'all' ? undefined : chain,
 		'dailyPremiumVolume',
 		props.type !== 'options' || chain === 'all'
 	)
-
 	const isChainsPage = chain === 'all'
 
 	React.useEffect(() => {
@@ -103,13 +155,13 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			setEnableBreakdownChart(false)
 			setCharts((val) => ({
 				...val,
-				['totalDataChartBreakdownPremium volume']: undefined
+				['totalDataChartBreakdownPremium Volume']: undefined
 			}))
 		}
 		if (secondTypeData && !secondTypeError && !secondTypeLoading)
 			setCharts((val) => ({
 				...val,
-				['totalDataChartBreakdownPremium volume']: secondTypeData?.totalDataChartBreakdown
+				['totalDataChartBreakdownPremium Volume']: secondTypeData?.totalDataChartBreakdown
 			}))
 	}, [secondTypeData, secondTypeLoading, secondTypeError, props.chain])
 
@@ -124,7 +176,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			const arr = Object.values(
 				charts[
 					`totalDataChartBreakdown${
-						!selectedDataType || selectedDataType === 'Notional volume' ? '' : selectedDataType
+						props.type === 'options' ? (selectedDataType === 'Notional Volume' ? '' : 'Premium Volume') : ''
 					}`
 				]?.map<IJSON<number | string>>((cd) => {
 					return {
@@ -148,8 +200,67 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			})
 			return [arr, Object.values(displayNameMap)]
 		}
+
+		if (props.type === 'options' && chain !== 'all') {
+			const [chart] = props.totalDataChart
+			const arr = chart.map<IJoin2ReturnType[number]>((cd) => {
+				return {
+					date: cd.date,
+					[selectedDataType as string]: cd[selectedDataType as string]
+				}
+			})
+			return [arr, [selectedDataType as string]]
+		}
+		if (props.type === 'options' && chain === 'all') {
+			const chart = selectedDataType === 'Notional Volume' ? props.totalDataChart : props.premium.totalDataChart
+
+			return chart
+		}
 		return props.totalDataChart
-	}, [enableBreakdownChart, charts, props.totalDataChart, props.protocols, selectedDataType])
+	}, [
+		enableBreakdownChart,
+		props.type,
+		props.totalDataChart,
+		props.protocols,
+		props?.premium?.totalDataChart,
+		chain,
+		charts,
+		selectedDataType
+	])
+
+	const downloadCsv = React.useCallback(() => {
+		const header = [
+			'Protocol',
+			'Category',
+			'Change 1d',
+			'Change 7d',
+			'Change 1m',
+			'Total 1d',
+			'Total 7d',
+			'Total 1m',
+			'Revenue 24h',
+			'Revenue 7d',
+			'Revenue 30d'
+		]
+		const data = finalProtocolsList.map((protocol) => {
+			return [
+				protocol.displayName,
+				protocol.category,
+				protocol.change_1d,
+				protocol.change_7d,
+				protocol.change_1m,
+				protocol.total24h,
+				protocol.total7d,
+				protocol.total30d,
+				protocol.revenue24h,
+				protocol.revenue7d,
+				protocol.revenue30d
+			]
+		})
+		const csv = [header, ...data].map((row) => row.join(',')).join('\n')
+
+		download(`${props.type}-protocols.csv`, csv)
+	}, [finalProtocolsList, props.type])
 
 	return (
 		<>
@@ -182,8 +293,13 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					enableBreakdownChart && charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
 				}
 			/>
+
 			<StyledHeaderWrapper>
-				<TitleByType type={props.type} chain={chain} />
+				<div>
+					<TitleByType type={props.type} chain={chain} />
+
+					<CSVDownloadButton onClick={downloadCsv} style={{ marginLeft: '8px' }} />
+				</div>
 				<p style={{ fontSize: '.60em', textAlign: 'end' }}>Updated daily at 00:00UTC</p>
 			</StyledHeaderWrapper>
 			{getChartByType(props.type, {
@@ -202,7 +318,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				fullChart: isChainsPage,
 				disableDefaultLeged: isChainsPage ? true : enableBreakdownChart,
 				selectedType: (selectedDataType as string) ?? undefined,
-				chartTypes: props.type === 'options' && enableBreakdownChart ? ['Notional volume', 'Premium volume'] : undefined
+				chartTypes: props.type === 'options' ? ['Premium Volume', 'Notional Volume'] : undefined
 			})}
 			{rowLinks ? (
 				<RowLinksWrapper>
@@ -219,7 +335,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 
 			{protocolsList && protocolsList.length > 0 ? (
 				<OverviewTable
-					data={protocolsList}
+					isSimpleFees={props.isSimpleFees}
+					data={finalProtocolsList}
 					type={props.type}
 					allChains={isChainsPage}
 					categories={props.categories}
@@ -251,8 +368,9 @@ interface ITitleProps {
 }
 const TitleByType: React.FC<ITitleProps> = (props) => {
 	let title = capitalizeFirstLetter(props.type)
-	if (volumeTypes.includes(props.type)) title = `${title} volume`
-	else if (props.type === 'fees') {
+	if (volumeTypes.includes(props.type)) {
+		title = `${title === 'Derivatives-aggregator' ? 'Derivatives Aggregator' : title} volume`
+	} else if (props.type === 'fees') {
 		if (props.chain === 'all') title = 'Ranking by fees'
 		else title = 'Ranking by fees and revenue'
 	}

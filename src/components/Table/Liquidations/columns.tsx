@@ -28,7 +28,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 		header: '24h Change',
 		accessorKey: 'changes24h',
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue() as number
 			const isNegative = value < 0
 			const isZero = value === 0
 			const isSmol = Math.abs(value as number) < 0.01
@@ -71,7 +71,8 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 		meta: {
 			align: 'end',
 			headerHelperText: 'The USD value of all the collateral that would be sold if all positions went into liquidation.'
-		}
+		},
+		size: 200
 	},
 	{
 		header: 'Amount within -20%',
@@ -84,7 +85,8 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 		meta: {
 			align: 'end',
 			headerHelperText: 'Amount of liquidable positions that are within -20% of liquidation price.'
-		}
+		},
+		size: 200
 	}
 ]
 export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] = [

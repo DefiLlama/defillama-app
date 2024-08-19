@@ -29,7 +29,8 @@ export default function ProtocolChart({
 	users,
 	governanceApis,
 	chartDenominations = [],
-	twitterHandle
+	twitterHandle,
+	nftVolumeData
 }) {
 	const router = useRouter()
 
@@ -45,8 +46,8 @@ export default function ProtocolChart({
 		fees,
 		revenue,
 		unlocks,
-		activeUsers,
-		newUsers,
+		activeAddresses,
+		newAddresses,
 		events,
 		transactions,
 		gasUsed,
@@ -61,7 +62,13 @@ export default function ProtocolChart({
 		usdInflows: usdInflowsParam,
 		twitter,
 		devMetrics,
-		contributersMetrics
+		contributersMetrics,
+		contributersCommits,
+		devCommits,
+		nftVolume,
+		aggregators,
+		premiumVolume,
+		derivativesAggregators
 	} = router.query
 
 	const extraTvlsEnabled = {}
@@ -87,8 +94,8 @@ export default function ProtocolChart({
 			fees,
 			revenue,
 			unlocks,
-			activeUsers,
-			newUsers,
+			activeAddresses,
+			newAddresses,
 			events,
 			transactions,
 			gasUsed,
@@ -115,7 +122,14 @@ export default function ProtocolChart({
 			twitter,
 			twitterHandle,
 			devMetrics,
-			contributersMetrics
+			contributersMetrics,
+			contributersCommits,
+			devCommits,
+			nftVolume,
+			nftVolumeData,
+			aggregators,
+			premiumVolume,
+			derivativesAggregators
 		})
 	const isThemeDark = router.query.theme === 'dark' ? true : false
 	return (

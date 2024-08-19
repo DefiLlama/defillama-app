@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { useDefiManager, useDarkModeManager } from '~/contexts/LocalStorage'
@@ -10,6 +11,7 @@ import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
 import { BAR_CHARTS } from './utils'
 import { useFetchAndFormatChartData } from './useFetchAndFormatChartData'
 import { EmbedChart } from '~/components/Popover'
+import { IFusedProtocolData, NftVolumeData } from '~/api/types'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -33,6 +35,9 @@ interface IProps {
 	tokenSymbol?: string
 	protocolId: string
 	twitterHandle?: string
+	nftVolumeData: NftVolumeData
+	protocolData?: IFusedProtocolData
+	enabled?: Record<string, boolean>
 }
 
 const CHART_TYPES = [
@@ -44,11 +49,12 @@ const CHART_TYPES = [
 	'fdv',
 	'volume',
 	'derivativesVolume',
+	'premiumVolume',
 	'fees',
 	'revenue',
 	'unlocks',
-	'activeUsers',
-	'newUsers',
+	'activeAddresses',
+	'newAddresses',
 	'transactions',
 	'gasUsed',
 	'events',
@@ -60,7 +66,11 @@ const CHART_TYPES = [
 	'bridgeVolume',
 	'twitter',
 	'devMetrics',
-	'contributersMetrics`'
+	'contributersMetrics',
+	'contributersCommits',
+	'devCommits',
+	'nftVolume',
+	'derivativesAggregators'
 ]
 
 export default function ProtocolChart({
@@ -77,10 +87,13 @@ export default function ProtocolChart({
 	governanceApis,
 	isHourlyChart,
 	isCEX,
-	tokenSymbol,
+	tokenSymbol = 'Token',
 	protocolId,
 	chartDenominations,
-	twitterHandle
+	twitterHandle,
+	nftVolumeData,
+	protocolData,
+	enabled = null
 }: IProps) {
 	const router = useRouter()
 
@@ -99,8 +112,8 @@ export default function ProtocolChart({
 		fees,
 		revenue,
 		unlocks,
-		activeUsers,
-		newUsers,
+		activeAddresses,
+		newAddresses,
 		events,
 		transactions,
 		gasUsed,
@@ -115,8 +128,14 @@ export default function ProtocolChart({
 		tokenLiquidity,
 		twitter,
 		devMetrics,
-		contributersMetrics
-	} = router.query
+		contributersMetrics,
+		contributersCommits,
+		devCommits,
+		nftVolume,
+		aggregators,
+		premiumVolume,
+		derivativesAggregators
+	} = enabled || router.query
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
 		useFetchAndFormatChartData({
@@ -129,11 +148,12 @@ export default function ProtocolChart({
 			fdv,
 			volume,
 			derivativesVolume,
+			premiumVolume,
 			fees,
 			revenue,
 			unlocks,
-			activeUsers,
-			newUsers,
+			activeAddresses,
+			newAddresses,
 			events,
 			transactions,
 			gasUsed,
@@ -160,7 +180,13 @@ export default function ProtocolChart({
 			twitter,
 			twitterHandle,
 			devMetrics,
-			contributersMetrics
+			contributersMetrics,
+			contributersCommits,
+			devCommits,
+			nftVolume,
+			nftVolumeData,
+			aggregators,
+			derivativesAggregators
 		})
 
 	const realPathname =
@@ -180,6 +206,26 @@ export default function ProtocolChart({
 		return acc
 	}, false)
 
+	if (enabled)
+		return (
+			<ProtocolChartOnly
+				isRouterReady={router.isReady}
+				isLoading={isLoading}
+				fetchingTypes={fetchingTypes}
+				chartData={chartData}
+				color={color}
+				valueSymbol={valueSymbol}
+				chartsUnique={chartsUnique}
+				events={events}
+				hallmarks={hallmarks}
+				chartColors={chartColors}
+				bobo={bobo}
+				unlockTokenSymbol={unlockTokenSymbol}
+				isThemeDark={isThemeDark}
+				isMonthly={groupBy === 'monthly'}
+			/>
+		)
+
 	return (
 		<Wrapper>
 			{geckoId ||
@@ -188,7 +234,10 @@ export default function ProtocolChart({
 			metrics.fees ||
 			metrics.dexs ||
 			metrics.derivatives ||
+			metrics.options ||
 			metrics.unlocks ||
+			metrics.aggregators ||
+			metrics.derivativesAggregators ||
 			activeUsersId ||
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
@@ -197,26 +246,28 @@ export default function ProtocolChart({
 			(governanceApis && governanceApis.length > 0) ||
 			metrics.treasury ? (
 				<ToggleWrapper>
-					<Toggle backgroundColor={color}>
-						<input
-							type="checkbox"
-							value="tvl"
-							checked={tvl !== 'false'}
-							onChange={() =>
-								router.push(
-									{
-										pathname: router.pathname,
-										query: { ...router.query, tvl: tvl === 'false' ? true : false }
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}
-						/>
-						<span data-wrapper="true">
-							<span>{isCEX ? 'Total Assets' : 'TVL'}</span>
-						</span>
-					</Toggle>
+					{protocolData?.tvlByChain?.length > 0 ? (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="tvl"
+								checked={tvl !== 'false'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, tvl: tvl === 'false' ? true : false }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>{isCEX ? 'Total Assets' : 'TVL'}</span>
+							</span>
+						</Toggle>
+					) : null}
 
 					{geckoId && (
 						<>
@@ -397,6 +448,54 @@ export default function ProtocolChart({
 							</span>
 						</Toggle>
 					)}
+					{metrics.derivativesAggregators && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="derivativesAggregators"
+								checked={derivativesAggregators === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: {
+												...router.query,
+												derivativesAggregators: derivativesAggregators === 'true' ? false : true
+											}
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Derivatives Aggregators</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.options && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="premiumVolume"
+								checked={premiumVolume === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, premiumVolume: premiumVolume === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Options Volume</span>
+							</span>
+						</Toggle>
+					)}
 
 					{metrics.fees && (
 						<>
@@ -472,13 +571,13 @@ export default function ProtocolChart({
 							<Toggle backgroundColor={color}>
 								<input
 									type="checkbox"
-									value="activeUsers"
-									checked={activeUsers === 'true'}
+									value="activeAddresses"
+									checked={activeAddresses === 'true'}
 									onChange={() =>
 										router.push(
 											{
 												pathname: router.pathname,
-												query: { ...router.query, activeUsers: activeUsers === 'true' ? false : true }
+												query: { ...router.query, activeAddresses: activeAddresses === 'true' ? false : true }
 											},
 											undefined,
 											{ shallow: true }
@@ -486,19 +585,19 @@ export default function ProtocolChart({
 									}
 								/>
 								<span data-wrapper="true">
-									<span>Active Users</span>
+									<span>Active Addresses</span>
 								</span>
 							</Toggle>
 							<Toggle backgroundColor={color}>
 								<input
 									type="checkbox"
-									value="newUsers"
-									checked={newUsers === 'true'}
+									value="newAddresses"
+									checked={newAddresses === 'true'}
 									onChange={() =>
 										router.push(
 											{
 												pathname: router.pathname,
-												query: { ...router.query, newUsers: newUsers === 'true' ? false : true }
+												query: { ...router.query, newAddresses: newAddresses === 'true' ? false : true }
 											},
 											undefined,
 											{ shallow: true }
@@ -506,7 +605,7 @@ export default function ProtocolChart({
 									}
 								/>
 								<span data-wrapper="true">
-									<span>New Users</span>
+									<span>New Addresses</span>
 								</span>
 							</Toggle>
 							<Toggle backgroundColor={color}>
@@ -762,13 +861,13 @@ export default function ProtocolChart({
 						<Toggle backgroundColor={color}>
 							<input
 								type="checkbox"
-								value="contributersMetrics"
-								checked={contributersMetrics === 'true'}
+								value="devCommits"
+								checked={devCommits === 'true'}
 								onChange={() =>
 									router.push(
 										{
 											pathname: router.pathname,
-											query: { ...router.query, contributersMetrics: contributersMetrics === 'true' ? false : true }
+											query: { ...router.query, devCommits: devCommits === 'true' ? false : true }
 										},
 										undefined,
 										{ shallow: true }
@@ -776,7 +875,53 @@ export default function ProtocolChart({
 								}
 							/>
 							<span data-wrapper="true">
-								<span>Contributers</span>
+								<span>Developer Commits</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.nftVolume && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="nftVolume"
+								checked={nftVolume === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, nftVolume: nftVolume === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>NFT Volume</span>
+							</span>
+						</Toggle>
+					)}
+
+					{metrics.aggregators && (
+						<Toggle backgroundColor={color}>
+							<input
+								type="checkbox"
+								value="aggregators"
+								checked={aggregators === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, aggregators: aggregators === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+							/>
+							<span data-wrapper="true">
+								<span>Aggregators Volume</span>
 							</span>
 						</Toggle>
 					)}
@@ -801,7 +946,7 @@ export default function ProtocolChart({
 					</Filters>
 				)}
 
-				{!isHourlyChart && hasAtleasOneBarChart ? (
+				{hasAtleasOneBarChart ? (
 					<>
 						<Filters color={color}>
 							<Link

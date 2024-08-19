@@ -141,8 +141,8 @@ const isFees = (pathname: string) =>
 	pathname === '/fees' || pathname.startsWith('/fees/') || pathname.startsWith('/fee/')
 const isRaises = (pathname: string) => pathname.startsWith('/raises')
 const isHacks = (pathname: string) => pathname === '/hacks'
-const isBridges = (pathname: string) => pathname.startsWith('/bridge')
-const isBorrow = (pathname: string) => pathname === '/borrow'
+const isBridges = (pathname: string) => pathname.startsWith('/bridge') && pathname !== '/bridged'
+const isBorrow = (pathname: string) => pathname.startsWith('/borrow')
 const isNFT = (pathname: string) => pathname.startsWith('/nfts')
 
 const isActive = ({ pathname, category }: { pathname: string; category: string }) => {

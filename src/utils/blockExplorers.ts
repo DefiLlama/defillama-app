@@ -1,15 +1,25 @@
 import { capitalizeFirstLetter } from '.'
 
 const blockExplorers = {
-	ethereum: ['https://etherscan.io/token/', 'Etherscan'],
+	ethereum: [
+		['https://etherscan.io/token/', 'Etherscan'],
+		['https://eth.blockscout.com/token/', 'Blockscout']
+	],
 	bsc: ['https://bscscan.com/address/', 'Bscscan'],
-	xdai: ['https://gnosisscan.io/address/', 'GnosisScan'],
+	xdai: [
+		['https://gnosisscan.io/address/', 'GnosisScan'],
+		['https://gnosis.blockscout.com/token/', 'Blockscout']
+	],
+	optimism: [
+		['https://optimistic.etherscan.io/address/', 'Etherscan'],
+		['https://optimism.blockscout.com/token/', 'Blockscout']
+	],
 	avax: ['https://snowtrace.io/address/', 'Snowtrace'],
 	fantom: ['https://ftmscan.com/address/', 'FTMscan'],
 	heco: ['https://hecoinfo.com/address/', 'HecoInfo'],
 	wan: ['https://wanscan.org/token/', 'Wanscan'],
 	polygon: ['https://polygonscan.com/address/', 'PolygonScan'],
-	rootstock: ['https://explorer.rsk.co/address/', 'Rootstock Explorer'],
+	rsk: ['https://rootstock.blockscout.com/token/', 'Rootstock Explorer'],
 	solana: ['https://solscan.io/token/', 'Solscan'],
 	tezos: ['https://tzkt.io/', 'TzKT'],
 	moonriver: ['https://blockscout.moonriver.moonbeam.network/address/', 'Blockscout'],
@@ -29,12 +39,12 @@ const blockExplorers = {
 	callisto: ['https://explorer.callisto.network/address/', 'Callisto Explorer'],
 	aurora: ['https://explorer.mainnet.aurora.dev/address/', 'Aurora Explorer'],
 	boba: ['https://bobascan.com/address/', 'Boba Explorer'],
-	elrond: ['https://elrondscan.com/token/', 'Elrondscan'],
+	elrond: ['https://explorer.multiversx.com/tokens/', 'MultiversX Explorer'],
 	xdc: ['https://explorer.xinfin.network/token/', 'XDC Explorer'],
 	csc: ['https://www.coinex.net/address/', 'CSC Explorer'],
 	cardano: ['https://cardanoscan.io/token/', 'Cardanoscan'],
 	astar: ['https://blockscout.com/astar/address/', 'Blockscout'],
-	algorand: ['https://algoexplorer.io/asset/', 'Algoexplorer'],
+	algorand: ['https://allo.info/asset/', 'Allo'],
 	evmos: ['https://evm.evmos.org/address/', 'Evmos Explorer'],
 	klaytn: ['https://scope.klaytn.com/token/', 'Klaytn Scope'],
 	proton: ['https://www.protonscan.io/tokens/', 'Protonscan'],
@@ -69,7 +79,10 @@ const blockExplorers = {
 	core: ['https://scan.coredao.org/token/', 'Scan Coredao'],
 	rpg: ['https://scan.rangersprotocol.com/address/', 'Rangerscan'],
 	loop: ['https://explorer.mainnetloop.com/token/', 'LoopExplorer'],
-	era: ['https://explorer.zksync.io/address/', 'zkSync Explorer'],
+	era: [
+		['https://explorer.zksync.io/address/', 'zkSync Explorer'],
+		['https://zksync.blockscout.com/token/', 'Blockscout']
+	],
 	map: ['https://maposcan.io/address/', 'Maposcan'],
 	conflux: ['https://evm.confluxscan.net/address/', 'Conflux Scan'],
 	eos_evm: ['https://explorer.evm.eosnetwork.com/address/', 'EOS EVM Explorer'],
@@ -80,36 +93,64 @@ const blockExplorers = {
 	stark: ['https://starkscan.co/token/', 'StarkScan'],
 	linea: ['https://lineascan.build/token/', 'LineaScan'],
 	mantle: ['https://explorer.mantle.xyz/address/', 'Mantle Explorer'],
-	base: ['https://basescan.org/address/', 'Basescan'],
-	op_bnb: ['https://mainnet.opbnbscan.com/address/', 'opBNBScan']
+	base: [
+		['https://basescan.org/address/', 'Basescan'],
+		['https://base.blockscout.com/token/', 'Blockscout']
+	],
+	op_bnb: ['https://mainnet.opbnbscan.com/address/', 'opBNBScan'],
+	mvc: ['https://scan.microvisionchain.com/token/', 'MVCScan'],
+	shibarium: ['https://www.shibariumscan.io/token/', 'ShibariumScan'],
+	beam: ['https://subnets.avax.network/beam/address/', 'Beam Subnet Explorer'],
+	nos: ['https://explorer.l2.trustless.computer/address/', 'NOS Blockscout'],
+	scroll: ['https://blockscout.scroll.io/address/', 'Scroll Explorer'],
+	radixdlt: ['https://dashboard.radixdlt.com/resource/', 'Radix Dashboard'],
+	lightlink: ['https://phoenix.lightlink.io/token/', 'LightLink Explorer'],
+	zkfair: ['https://scan.zkfair.io/address/', 'Zkfair Explorer'],
+	bitnet: ['https://btnscan.com/address/', 'BTNScan'],
+	aptos: ['https://aptoscan.com/account/', 'Aptoscan'],
+	zeta: ['https://zetachain.blockscout.com/token/', 'Zeta Blockscout'],
+	manta_atlantic: ['https://manta.subscan.io/account/', 'Manta Atlantic Subscan'],
+	merlin: ['https://scan.merlinchain.io/token/', 'Merlin Explorer'],
+	bitrock: ['https://explorer.bit-rock.io/token/', 'Bitrock Explorer'],
+	blast: ['https://blastscan.io/token/', 'Blastscan'],
+	mode: ['https://modescan.io/token/', 'Modescan'],
+	btr: ['https://www.btrscan.com/token/', 'BTRscan'],
+	degen: ['https://explorer.degen.tips/token/', 'DegenExplorer'],
+	rari: ['https://mainnet.explorer.rarichain.org/address/', 'Rari Blockscout'],
+	xai: ['https://explorer.xai-chain.net/address/', 'XAI Blockscout'],
+	sanko: ['https://explorer.sanko.xyz/address/', 'Sanko Blockscout'],
+	fuse: ['https://explorer.fuse.io/token/', 'Fuse Blockscout']
 }
 
 export const getBlockExplorer = (address: string = '') => {
-	let blockExplorerLink, blockExplorerName, chainName
-	if (address?.includes(':')) {
-		const [chain, chainAddress] = address.split(':')
-		const explorer = blockExplorers[chain]
-		if (explorer !== undefined) {
-			blockExplorerLink = explorer[0] + chainAddress
-			blockExplorerName = explorer[1]
-		}
-		chainName = chain
-			? chain
-					.split('_')
-					.map((x) => capitalizeFirstLetter(x))
-					.join(' ')
-			: 'Ethereum'
-	} else {
-		if (typeof address === 'string' && address !== '') {
-			blockExplorerLink = 'https://etherscan.io/token/' + address
-			blockExplorerName = 'Etherscan'
-			chainName = 'Ethereum'
-		}
+	let blockExplorerLink, blockExplorerName, chainName, explorers
+	if (!address || typeof address !== 'string' || address === '') {
+		return { blockExplorerLink, blockExplorerName, chainName, explorers }
 	}
+	if (!address.includes(':')) {
+		address = `ethereum:${address}`
+	}
+	const [chain, chainAddress] = address.split(':')
+	const explorer = blockExplorers[chain]
+	if (explorer) {
+		explorers = (explorer[0].length === 2 ? explorer : [explorer]).map((e) => ({
+			blockExplorerLink: e[0] + chainAddress,
+			blockExplorerName: e[1]
+		}))
+		blockExplorerLink = explorers[0].blockExplorerLink
+		blockExplorerName = explorers[0].blockExplorerName
+	}
+	chainName = chain
+		? chain
+				.split('_')
+				.map((x) => capitalizeFirstLetter(x))
+				.join(' ')
+		: 'Ethereum'
 
 	return {
 		blockExplorerLink: blockExplorerLink ?? '',
 		blockExplorerName: blockExplorerName ?? 'unknown',
-		chainName
-	}
+		chainName,
+		explorers
+	} //rebuild again
 }

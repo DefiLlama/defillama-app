@@ -21,6 +21,9 @@ const CHART_SYMBOLS = {
 	'Active Users': '',
 	'Returning Users': '',
 	'New Users': '',
+	'Active Addresses': '',
+	'Returning Addresses': '',
+	'New Addresses': '',
 	Transactions: '',
 	'Total Proposals': '',
 	'Successful Proposals': '',
@@ -31,7 +34,10 @@ const CHART_SYMBOLS = {
 	Treasury: '$',
 	Tweets: '',
 	Contributers: '',
-	Developers: ''
+	Developers: '',
+	'Contributers Commits': '',
+	Commits: '',
+	'Devs Commits': ''
 }
 
 echarts.use([
@@ -52,11 +58,13 @@ interface IUseDefaultsProps {
 	title: string
 	tooltipSort?: boolean
 	tooltipOrderBottomUp?: boolean
+	tooltipValuesRelative?: boolean
 	valueSymbol?: string
 	hideLegend?: boolean
 	isStackedChart?: boolean
 	unlockTokenSymbol?: string
 	isThemeDark: boolean
+	hideOthersInTooltip?: boolean
 }
 
 export function useDefaults({
@@ -64,11 +72,13 @@ export function useDefaults({
 	title,
 	tooltipSort = true,
 	tooltipOrderBottomUp,
+	tooltipValuesRelative,
 	valueSymbol = '',
 	hideLegend,
 	isStackedChart,
 	unlockTokenSymbol = '',
-	isThemeDark
+	isThemeDark,
+	hideOthersInTooltip
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -126,7 +136,13 @@ export function useDefaults({
 				if (isStackedChart) {
 					filteredParams.reverse()
 				} else {
-					filteredParams.sort((a, b) => (tooltipSort ? Math.abs(b.value[1]) - Math.abs(a.value[1]) : 0))
+					filteredParams.sort((a, b) =>
+						tooltipSort
+							? tooltipValuesRelative
+								? b.value[1] - a.value[1]
+								: Math.abs(b.value[1]) - Math.abs(a.value[1])
+							: 0
+					)
 				}
 
 				const otherIndex = filteredParams.findIndex((item) => item.seriesName === 'Others')
@@ -153,12 +169,10 @@ export function useDefaults({
 							curr.value[1],
 							curr.seriesName === 'Unlocks'
 								? unlockTokenSymbol
-								: curr.seriesName.includes('Active Users')
-								? 'Users'
-								: curr.seriesName.includes('New Users')
-								? 'Users'
-								: curr.seriesName.includes('Returning Users')
-								? 'Users'
+								: curr.seriesName.includes('Users')
+								? 'Addresses'
+								: curr.seriesName.includes('Addresses')
+								? ''
 								: curr.seriesName.includes('Transactions')
 								? 'TXs'
 								: curr.seriesName === 'TVL' && valueSymbol !== '$'
@@ -170,14 +184,14 @@ export function useDefaults({
 						'</li>')
 				}, '')
 
-				if (otherParams.length !== 0) {
+				if (otherParams.length !== 0 && !hideOthersInTooltip) {
 					const otherString =
 						'<li style="list-style:none">' +
 						(others?.marker ?? otherParams[0].marker) +
 						'Others' +
 						'&nbsp;&nbsp;' +
 						formatTooltipValue(
-							toK(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)),
+							otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0),
 							valueSymbol
 						) +
 						'</li>'
@@ -359,7 +373,9 @@ export function useDefaults({
 		hideLegend,
 		isStackedChart,
 		tooltipOrderBottomUp,
-		unlockTokenSymbol
+		unlockTokenSymbol,
+		hideOthersInTooltip,
+		tooltipValuesRelative
 	])
 
 	return defaults
@@ -367,8 +383,10 @@ export function useDefaults({
 
 export const formatTooltipValue = (value, symbol) => {
 	return symbol === '$'
-		? symbol + toK(value)
+		? `${symbol}${toK(value)}`
 		: symbol === '%'
 		? Math.round(value * 100) / 100 + ' %'
-		: (`${value}`.startsWith('0.00') ? toK(value) : toK(value)) + ' ' + symbol
+		: `${value}`.startsWith('0.00')
+		? toK(value)
+		: `${toK(value)} ${symbol}`
 }

@@ -4,12 +4,16 @@ import { Panel } from '~/components'
 import { YieldsPoolsTable } from '~/components/Table'
 import { YieldFiltersV2 } from '~/components/Filters'
 import { AnnouncementWrapper } from '~/components/Announcement'
+import LocalLoader from '../LocalLoader'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { download } from '~/utils'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
 	const { query, pathname, push } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
+	const [loading, setLoading] = React.useState(true)
 
 	const {
 		selectedProjects,
@@ -20,7 +24,26 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		exactTokens,
 		selectedCategories
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	React.useEffect(() => {
+		const timer = setTimeout(() => setLoading(false), 1000)
+		return () => clearTimeout(timer)
+	}, [])
 
+	React.useEffect(() => {
+		setLoading(true)
+
+		const timer = setTimeout(() => setLoading(false), 500)
+		return () => clearTimeout(timer)
+	}, [
+		selectedProjects,
+		selectedChains,
+		selectedAttributes,
+		includeTokens,
+		excludeTokens,
+		exactTokens,
+		selectedCategories,
+		pools
+	])
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
 			const toFilter = toFilterPool({
@@ -74,7 +97,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 					totalSupplyUsd: curr.totalSupplyUsd,
 					totalBorrowUsd: curr.totalBorrowUsd,
 					totalAvailableUsd: curr.totalAvailableUsd,
-					ltv: curr.ltv
+					ltv: curr.ltv,
+					lsdTokenOnly: curr.lsdTokenOnly
 				})
 			} else return acc
 		}, [])
@@ -93,6 +117,70 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		exactTokens,
 		pathname
 	])
+	const downloadCSV = React.useCallback(() => {
+		const headers = [
+			'Pool',
+			'Project',
+			'Chain',
+			'TVL',
+			'APY',
+			'APY Base',
+			'APY Reward',
+			'Change 1d',
+			'Change 7d',
+			'Outlook',
+			'Confidence',
+			'Category',
+			'IL 7d',
+			'APY Base 7d',
+			'APY Net 7d',
+			'APY Mean 30d',
+			'Volume 1d',
+			'Volume 7d',
+			'APY Base Inception',
+			'APY Including LSD APY',
+			'APY Base Including LSD APY',
+			'APY Base Borrow',
+			'APY Reward Borrow',
+			'APY Borrow',
+			'Total Supply USD',
+			'Total Borrow USD',
+			'Total Available USD'
+		]
+		const csvData = poolsData.map((row) => {
+			return {
+				Pool: row.pool,
+				Project: row.project,
+				Chain: row.chains,
+				TVL: row.tvl,
+				APY: row.apy,
+				'APY Base': row.apyBase,
+				'APY Reward': row.apyReward,
+				'Change 1d': row.change1d,
+				'Change 7d': row.change7d,
+				Outlook: row.outlook,
+				Confidence: row.confidence,
+				Category: row.category,
+				'IL 7d': row.il7d,
+				'APY Base 7d': row.apyBase7d,
+				'APY Net 7d': row.apyNet7d,
+				'APY Mean 30d': row.apyMean30d,
+				'Volume 1d': row.volumeUsd1d,
+				'Volume 7d': row.volumeUsd7d,
+				'APY Base Inception': row.apyBaseInception,
+				'APY Including LSD APY': row.apyIncludingLsdApy,
+				'APY Base Including LSD APY': row.apyBaseIncludingLsdApy,
+				'APY Base Borrow': row.apyBaseBorrow,
+				'APY Reward Borrow': row.apyRewardBorrow,
+				'APY Borrow': row.apyBorrow,
+				'Total Supply USD': row.totalSupplyUsd,
+				'Total Borrow USD': row.totalBorrowUsd,
+				'Total Available USD': row.totalAvailableUsd
+			}
+		})
+		const csv = [headers].concat(csvData.map((row) => headers.map((header) => row[header]))).join('\n')
+		download('yields.csv', csv)
+	}, [poolsData])
 
 	return (
 		<>
@@ -120,7 +208,6 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 						</a>
 					</AnnouncementWrapper>
 				)}
-
 			<YieldFiltersV2
 				header="Yield Rankings"
 				poolsNumber={poolsData.length}
@@ -152,9 +239,14 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				showTotalBorrowed={true}
 				showAvailable={true}
 				showLTV={true}
+				onCSVDownload={downloadCSV}
 			/>
 
-			{poolsData.length > 0 ? (
+			{loading ? (
+				<div>
+					<LocalLoader />
+				</div>
+			) : poolsData.length > 0 ? (
 				<YieldsPoolsTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>

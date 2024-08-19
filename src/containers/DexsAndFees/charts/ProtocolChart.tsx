@@ -24,6 +24,7 @@ import { useRouter } from 'next/router'
 import { OtherProtocols, ProtocolLink } from '~/containers/Defi/Protocol/Common'
 import Link from 'next/link'
 import { Wrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
+import { useFeesManager } from '~/contexts/LocalStorage'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -94,6 +95,8 @@ export const ProtocolChart = ({
 
 	const barsData = React.useMemo(() => aggregateDataByInterval(barInterval, chartData)(), [chartData, barInterval])
 
+	const [enabledSettings] = useFeesManager()
+
 	return (
 		<StatsSection>
 			{childProtocols && childProtocols.length > 0 && (
@@ -138,21 +141,16 @@ export const ProtocolChart = ({
 											? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
 													+chartData[0][chartData[0].length - 1][0]
 											  )})`
-											: `Revenue (24h)`}
+											: `${type === 'options' ? 'Premium Volume' : 'Revenue'} (24h)`}
 									</span>
-									<span>{formattedNum(data.dailyRevenue || '0', true)}</span>
-								</Stat>
-							</StatWrapper>
-						) : null}
-						{typeString !== 'Fees' && data.change_1d ? (
-							<StatWrapper>
-								<Stat>
 									<span>
-										{data.disabled === true
-											? `Last day change (${formatTimestampAsDate(+chartData[0][chartData[0].length - 1][0])})`
-											: 'Change (24h)'}
+										{formattedNum(
+											(data.dailyRevenue ?? 0) +
+												(enabledSettings.bribes ? (data as any).dailyBribesRevenue ?? 0 : 0) +
+												(enabledSettings.tokentax ? (data as any).dailyTokenTaxes ?? 0 : 0),
+											true
+										)}
 									</span>
-									<span>{data.change_1d || 0}%</span>
 								</Stat>
 							</StatWrapper>
 						) : null}
@@ -195,6 +193,7 @@ export const ProtocolChart = ({
 						stacks={chartData[1]}
 						stackColors={stackedBarChartColors}
 						valueSymbol="$"
+						hideLegend={false}
 					/>
 				) : (
 					<BarChart
@@ -248,6 +247,7 @@ export const ChartOnly = ({ title, chartData }) => {
 					stacks={chartData[1]}
 					stackColors={stackedBarChartColors}
 					valueSymbol="$"
+					hideLegend={false}
 				/>
 			) : (
 				<BarChart
@@ -264,5 +264,6 @@ export const ChartOnly = ({ title, chartData }) => {
 
 export const stackedBarChartColors = {
 	Fees: '#4f8fea',
-	Revenue: '#E59421'
+	Revenue: '#E59421',
+	Incentives: '#1cd8a6'
 }

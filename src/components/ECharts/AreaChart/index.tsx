@@ -24,11 +24,14 @@ export default function AreaChart({
 	customLegendName,
 	customLegendOptions,
 	tooltipSort = true,
+	tooltipValuesRelative,
 	chartOptions,
 	height = '360px',
 	expandTo100Percent = false,
 	isStackedChart,
 	hideGradient = false,
+	hideOthersInTooltip,
+	hideLegend = true,
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -44,9 +47,11 @@ export default function AreaChart({
 		title,
 		valueSymbol,
 		tooltipSort,
-		hideLegend: true,
+		hideLegend,
 		isStackedChart,
-		isThemeDark
+		isThemeDark,
+		hideOthersInTooltip,
+		tooltipValuesRelative
 	})
 
 	const series = useMemo(() => {
@@ -218,7 +223,7 @@ export default function AreaChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -249,8 +254,15 @@ export default function AreaChart({
 							max: 100,
 							min: 0
 					  }
-					: {})
+					: {}),
+				...(chartOptions?.['yAxis'] ?? {})
 			},
+			...(!hideLegend && {
+				legend: {
+					...legend,
+					data: chartsStack
+				}
+			}),
 			dataZoom: [...dataZoom],
 			series
 		})

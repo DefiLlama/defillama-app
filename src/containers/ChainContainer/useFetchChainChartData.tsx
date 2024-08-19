@@ -6,7 +6,12 @@ import {
 	useFetchProtocolTransactions,
 	useFetchProtocolUsers
 } from '~/api/categories/protocols/client'
-import { useGetFeesAndRevenueChartDataByChain, useGetVolumeChartDataByChain } from '~/api/categories/chains/client'
+import {
+	useGetChainAssetsChart,
+	useGetFeesAndRevenueChartDataByChain,
+	useGetItemOverviewByChain,
+	useGetVolumeChartDataByChain
+} from '~/api/categories/chains/client'
 import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
 import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
 import { useMemo } from 'react'
@@ -26,7 +31,8 @@ export const useFetchChainChartData = ({
 	chart,
 	extraTvlCharts,
 	extraTvlsEnabled,
-	devMetricsData
+	devMetricsData,
+	chainTokenInfo
 }) => {
 	const router = useRouter()
 
@@ -55,12 +61,28 @@ export const useFetchChainChartData = ({
 	)
 
 	const { data: usersData, loading: fetchingUsersChartData } = useFetchProtocolUsers(
-		userData.activeUsers && router.query.users === 'true' ? 'chain$' + selectedChain : null
+		userData.activeUsers && router.query.addresses === 'true' ? 'chain$' + selectedChain : null
 	)
 
 	const { data: txsData, loading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
 		userData.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
 	)
+
+	const { data: priceChartData, loading: fetchingPriceChartData } = useDenominationPriceHistory(
+		chainTokenInfo?.gecko_id
+	)
+
+	const { data: derivativesData, loading: fetchingDerivativesData } = useGetItemOverviewByChain(
+		selectedChain,
+		'derivatives'
+	)
+
+	const { data: aggregatorsData, loading: fetchingAggregatorsData } = useGetItemOverviewByChain(
+		selectedChain,
+		'aggregators'
+	)
+
+	const { data: chainAssetsChart, loading: fetchingChainAssetsChart } = useGetChainAssetsChart(selectedChain)
 
 	const isFetchingChartData =
 		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
@@ -69,7 +91,11 @@ export const useFetchChainChartData = ({
 		fetchingStablecoinsChartDataByChain ||
 		fetchingInflowsChartData ||
 		fetchingUsersChartData ||
-		fetchingTransactionsChartData
+		fetchingTransactionsChartData ||
+		fetchingPriceChartData ||
+		fetchingAggregatorsData ||
+		fetchingDerivativesData ||
+		fetchingChainAssetsChart
 
 	const globalChart = useMemo(() => {
 		const globalChart = chart.map((data) => {
@@ -126,6 +152,20 @@ export const useFetchChainChartData = ({
 			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
 			: volumeChart
 
+		const finalPriceChart = isNonUSDDenomination
+			? null
+			: priceChartData?.prices?.map(([date, price]) => [dayjs(Math.floor(date)).utc().startOf('day').unix(), price])
+		const finalMcapChart = isNonUSDDenomination
+			? null
+			: priceChartData?.mcaps?.map(([date, price]) => [dayjs(Math.floor(date)).utc().startOf('day').unix(), price])
+
+		const finalTokenVolumeChart = isNonUSDDenomination
+			? null
+			: priceChartData?.volumes?.map(([date, price]) => [dayjs(Math.floor(date)).utc().startOf('day').unix(), price])
+
+		const finalAggregatorsChart = isNonUSDDenomination ? null : aggregatorsData?.totalDataChart
+		const finalDerivativesChart = isNonUSDDenomination ? null : derivativesData?.totalDataChart
+
 		const finalFeesAndRevenueChart = isNonUSDDenomination
 			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
 					date,
@@ -139,6 +179,26 @@ export const useFetchChainChartData = ({
 			v
 		])
 
+		const finalCommitsChart = devMetricsData?.report?.monthly_devs?.map(({ k, cc }) => [
+			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
+			cc
+		])
+		const finalChainAssetsChart = chainAssetsChart?.filter(Boolean).map(({ data, timestamp }) => {
+			const ts = Math.floor(
+				dayjs(timestamp * 1000)
+					.utc()
+					.set('hour', 0)
+					.set('minute', 0)
+					.set('second', 0)
+					.toDate()
+					.getTime() / 1000
+			)
+			if (!extraTvlsEnabled?.govtokens && data.ownTokens) {
+				return [ts, data.total - data.ownTokens]
+			}
+			return [ts, data.total]
+		})
+
 		const chartDatasets = [
 			{
 				feesChart: finalFeesAndRevenueChart,
@@ -148,27 +208,42 @@ export const useFetchChainChartData = ({
 				totalStablesData: stablecoinsChartData,
 				bridgeData: inflowsChartData,
 				usersData,
-
 				developersChart: finalDevsChart,
+				commitsChart: finalCommitsChart,
 				txsData,
-				priceData
+				priceData,
+				chainTokenPriceData: finalPriceChart,
+				chainTokenMcapData: finalMcapChart,
+				chainTokenVolumeData: finalTokenVolumeChart,
+				aggregatorsData: finalAggregatorsChart,
+				derivativesData: finalDerivativesChart,
+				chainAssetsData: finalChainAssetsChart
 			}
 		]
 
 		return chartDatasets
 	}, [
-		chainGeckoId,
 		denomination,
 		denominationPriceHistory,
-		feesAndRevenueChart,
+		chainGeckoId,
 		globalChart,
-		inflowsChartData,
+		volumeChart,
+		priceChartData?.prices,
+
+		priceChartData?.mcaps,
+		priceChartData?.volumes,
+		aggregatorsData?.totalDataChart,
+		derivativesData?.totalDataChart,
+		feesAndRevenueChart,
+		devMetricsData?.report?.monthly_devs,
+		chainAssetsChart,
 		raisesChart,
 		stablecoinsChartData,
-		txsData,
+		inflowsChartData,
 		usersData,
-		volumeChart,
-		devMetricsData?.report?.monthly_devs
+		txsData,
+		extraTvlsEnabled?.govtokens,
+		txsData
 	])
 
 	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)

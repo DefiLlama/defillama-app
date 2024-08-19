@@ -4,9 +4,18 @@ export const usePriceCharts = (geckoIds) => {
 	const data = useQueries<any>(
 		geckoIds.map((id) => ({
 			queryKey: ['price_chart', id],
-			queryFn: () => fetch(`https://fe-cache.llama.fi/cgchart/${id}`).then((r) => r.json()),
-			staleTime: Infinity,
-			cacheTime: Infinity
+			queryFn: async () => {
+				const res = await fetch(`https://fe-cache.llama.fi/cgchart/${id}`)
+					.then((r) => r.json())
+					.catch(() => null)
+				if (res?.data.prices) return res
+				else {
+					const res = await fetch(
+						`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=365`
+					).then((r) => r.json())
+					return { data: res }
+				}
+			}
 		}))
 	)
 	return {

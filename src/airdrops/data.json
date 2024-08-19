@@ -1,0 +1,100 @@
+[
+	{
+		"name": "Mode",
+		"page": "https://app.mode.network/early/",
+		"twitter": "modenetwork"
+	},
+	{
+		"name": "Jupiter",
+		"page": "https://lfg.jup.ag/jup",
+		"explorer": "https://solana.fm/address/JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN?cluster=mainnet-alpha",
+		"token": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+		"chains": ["solana"],
+		"twitter": "JupiterExchange",
+		"startTime": "2024-01-31T00:00:00Z",
+		"endTime": 1722438000
+	},
+	{
+		"name": "AltLayer",
+		"page": "https://airdrop.altlayer.io",
+		"twitter": "alt_layer",
+		"endTime": 1
+	},
+	{
+		"name": "Starknet",
+		"page": "https://provisions.starknet.io/",
+		"explorer": "https://starkscan.co/token/0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+		"token": "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+		"twitter": "Starknet",
+		"startTime": "2024-02-20T12:00:00Z",
+		"endTime": 1718884800
+	},
+	{
+		"name": "Ethena",
+		"page": "https://claim.ethena.fi/",
+		"explorer": "https://etherscan.io/token/0x57e114B691Db790C35207b2e685D4A43181e6061",
+		"token": "0x57e114B691Db790C35207b2e685D4A43181e6061",
+		"twitter": "ethena_labs",
+		"endTime": 1711929600
+	},
+	{
+		"name": "Wormhole",
+		"page": "https://airdrop.wormhole.com/",
+		"twitter": "wormholecrypto"
+	},
+	{
+		"name": "Aevo",
+		"page": "https://app.aevo.xyz/aevo",
+		"twitter": "aevoxyz"
+	},
+	{
+		"name": "ether.fi",
+		"page": "https://claim.ether.fi/",
+		"twitter": "ether_fi"
+	},
+	{
+		"name": "Polyhedra Network",
+		"page": "https://polyhedra.foundation",
+		"twitter": "PolyhedraZK",
+		"endTime": 1
+	},
+	{
+		"name": "NIM Network",
+		"page": "https://claim.nim.network/",
+		"twitter": "nim_network"
+	},
+	{
+		"name": "Kamino",
+		"page": "https://app.kamino.finance/genesis",
+		"twitter": "KaminoFinance"
+	},
+	{
+		"name": "Parcl",
+		"page": "https://claims.parcllimited.com/",
+		"explorer": "https://solscan.io/token/4LLbsb5ReP3yEtYzmXewyGjcir5uXtKFURtaEUVC2AHs",
+		"token": "4LLbsb5ReP3yEtYzmXewyGjcir5uXtKFURtaEUVC2AHs",
+		"twitter": "Parcl"
+	},
+	{
+		"name": "Omni Network",
+		"page": "https://claims.omni.network",
+		"twitter": "OmniFDN"
+	},
+	{
+		"name": "Avail Network",
+		"page": "https://claim.availproject.org",
+		"twitter": "AvailProject",
+		"endTime": 1714867189839
+	},
+	{
+		"name": "Renzo",
+		"page": "https://claim.renzoprotocol.com/",
+		"twitter": "RenzoProtocol"
+	},
+	{
+		"name": "EigenLayer",
+		"page": "https://claims.eigenfoundation.org/",
+		"twitter": "eigenlayer",
+		"endTime": 1720310470
+	}
+]

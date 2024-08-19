@@ -27,6 +27,14 @@ export const attributeOptions = [
 		disabledOnPages: ['/borrow', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
+		name: 'Multi Exposure',
+		key: YIELDS_SETTINGS.MULTI_EXPOSURE.toLowerCase(),
+		help: 'Select pools with multi token exposure only',
+		filterFn: (item) => item.exposure === 'multi',
+		defaultFilterFnOnPage: {},
+		disabledOnPages: ['/borrow', '/yields/strategy', '/yields/strategyFR']
+	},
+	{
 		name: 'No IL',
 		key: YIELDS_SETTINGS.NO_IL.toLowerCase(),
 		help: 'Select pools with no impermanent loss',
@@ -42,7 +50,7 @@ export const attributeOptions = [
 		help: 'Select pools with at least one million dollar in TVL',
 		filterFn: (item) => item.tvlUsd >= 1e6,
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
+		disabledOnPages: ['/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'Audited',
@@ -52,7 +60,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.audits !== '0'
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/strategy', '/yields/strategyFR']
+		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'No Outliers',
@@ -60,7 +68,7 @@ export const attributeOptions = [
 		help: 'Remove pools which are considered outliers based on their geometric mean of apy values',
 		filterFn: (item) => item.outlier === false,
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
+		disabledOnPages: ['/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'Stable Outlook',
@@ -68,7 +76,7 @@ export const attributeOptions = [
 		help: 'Select pools with "Stable/Up" Outlook only',
 		filterFn: (item) => item.predictions.predictedClass === 'Stable/Up',
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
+		disabledOnPages: ['/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'High Confidence',
@@ -76,7 +84,7 @@ export const attributeOptions = [
 		help: 'Select pools with "High" predicted outlook confidence',
 		filterFn: (item) => item.predictions.binnedConfidence === 3,
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
+		disabledOnPages: ['/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		// see: https://bad-debt.riskdao.org/
@@ -94,7 +102,7 @@ export const attributeOptions = [
 		help: 'Select pools with at least one million dollar in TVL',
 		filterFn: (item) => item.farmTvlUsd >= 1e6,
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop']
+		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/borrow', '/yields/loop']
 	},
 	{
 		// see: https://bad-debt.riskdao.org/
@@ -105,7 +113,7 @@ export const attributeOptions = [
 			return !badDebt.includes(item.project) && !badDebt.includes(item.farmProject)
 		},
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop']
+		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/borrow', '/yields/loop']
 	},
 	{
 		name: 'Exclude deposit lockups',
@@ -115,7 +123,7 @@ export const attributeOptions = [
 			return !lockupsCollateral.includes(item.projectName) && !lockupsCollateral.includes(item.farmProjectName)
 		},
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/yields/loop']
+		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/loop']
 	},
 	{
 		name: 'Potential Airdrop',
@@ -130,6 +138,14 @@ export const attributeOptions = [
 		key: YIELDS_SETTINGS.APY_ZERO.toLowerCase(),
 		help: 'Include pools with supply apy of 0',
 		filterFn: (item) => item.apy >= 0,
+		defaultFilterFnOnPage: {},
+		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
+	},
+	{
+		name: 'LSD Tokens only',
+		key: YIELDS_SETTINGS.LSD_ONLY.toLowerCase(),
+		help: 'Include pools which contain only Liquid Staking Derivate Tokens',
+		filterFn: (item) => item.lsdTokenOnly === true,
 		defaultFilterFnOnPage: {},
 		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
 	}
@@ -149,9 +165,7 @@ export function YieldAttributes({
 	const { attribute = [], ...queries } = router.query
 
 	const attributeOptionsFiltered = attributeOptions.filter((option) =>
-		pathname === '/yields/borrow'
-			? !option.disabledOnPages.includes('/yields/borrow')
-			: pathname === '/borrow'
+		pathname === '/borrow'
 			? !option.disabledOnPages.includes('/borrow')
 			: pathname === '/yields/strategy'
 			? !option.disabledOnPages.includes('/yields/strategy')

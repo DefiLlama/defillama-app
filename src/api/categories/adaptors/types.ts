@@ -5,6 +5,8 @@ export interface IGetOverviewResponseBody {
 	total24h: number
 	total7d: number
 	total30d: number
+	total1y?: number
+	average1y: number
 	change_1d: number
 	change_7d: number
 	change_1m: number
@@ -70,9 +72,22 @@ export type ProtocolAdaptorSummary = {
 	total24h: number
 	total7d: number
 	total30d: number
+	total1y: number
+	average1y: number
 	revenue24h?: number
 	revenue7d?: number
 	revenue30d?: number
+	revenue1y?: number
+	bribes24h?: number
+	bribes7d?: number
+	bribes30d?: number
+	averageRevenue1y?: number
+	emission24h?: number
+	emission7d?: number
+	emission30d?: number
+	netEarnings24h?: number
+	netEarnings7d?: number
+	netEarnings30d?: number
 	holdersRevenue30d?: number
 	mcap: number | null
 	pf: number | null
@@ -95,6 +110,7 @@ export type ProtocolAdaptorSummary = {
 		change_7d: number | null
 		change_1m: number | null
 		breakdown24h: IJSON<number> | null
+		total1y: number | null
 	}>
 	methodology?: string | IJSON<string>
 	protocolType?: string
@@ -109,4 +125,6 @@ type ExtraTypes = {
 	dailySupplySideRevenue?: number | null
 	dailyProtocolRevenue?: number | null
 	dailyPremiumVolume?: number | null
+	dailyBribesRevenue?: number | null
+	dailyTokenTaxes?: number | null
 }

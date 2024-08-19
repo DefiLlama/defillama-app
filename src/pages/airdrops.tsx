@@ -1,9 +1,12 @@
 import { RecentProtocols } from '~/components/RecentProtocols'
 import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API, RAISES_API } from '~/constants'
 import { fetchOverCache, withPerformanceLogging } from '~/utils/perf'
+import { QueryClient, QueryClientProvider } from 'react-query'
+
+const queryClient = new QueryClient()
 
 const exclude = [
 	'DeerFi',
@@ -103,18 +106,36 @@ const exclude = [
 	'Crescent Dex',
 	'Lago Bridge',
 	'Ostable',
-	'Oswap AMM'
+	'Oswap AMM',
+	'WBTC',
+	'Binance staked ETH',
+	'Coinbase Wrapped Staked ETH',
+	'hBTC',
+	'Mantle Staked ETH',
+	'Jupiter Perpetual Exchange'
 ]
 
 export const getStaticProps = withPerformanceLogging('airdrops', async () => {
-	const [protocolsRaw, { forks }, { raises }] = await Promise.all([
+	const [protocolsRaw, { forks }, { raises }, claimableAirdrops] = await Promise.all([
 		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls', 'defillamaId']),
 		fetchOverCache(FORK_API).then((r) => r.json()),
-		fetchOverCache(RAISES_API).then((r) => r.json())
+		fetchOverCache(RAISES_API).then((r) => r.json()),
+		getAirdropDirectoryData()
 	])
 
+	const parents = protocolsRaw.parentProtocols.reduce((acc, p) => {
+		if (p.gecko_id) {
+			acc[p.id] = true
+		}
+		return acc
+	}, {})
 	const protocols = protocolsRaw.protocols
-		.filter((token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name))
+		.filter(
+			(token) =>
+				(token.symbol === null || token.symbol === '-') &&
+				!exclude.includes(token.name) &&
+				parents[token.parentProtocol] === undefined
+		)
 		.map((p) => ({
 			listedAt: 1624728920,
 			totalRaised: raises
@@ -143,7 +164,8 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 		props: {
 			protocols,
 			chainList: protocolsRaw.chains,
-			forkedList
+			forkedList,
+			claimableAirdrops
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -151,11 +173,13 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 
 export default function Protocols(props) {
 	return (
-		<RecentProtocols
-			title="Airdroppable protocols - Defi Llama"
-			name="Airdrops"
-			header="Tokenless protocols that may airdrop 🧑‍🌾"
-			{...props}
-		/>
+		<QueryClientProvider client={queryClient}>
+			<RecentProtocols
+				title="Airdroppable protocols - Defi Llama"
+				name="Airdrops"
+				header="Tokenless protocols that may airdrop 🧑‍🌾"
+				{...props}
+			/>
+		</QueryClientProvider>
 	)
 }

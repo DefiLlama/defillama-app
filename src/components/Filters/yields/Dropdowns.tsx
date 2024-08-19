@@ -9,7 +9,7 @@ import { ResetAllYieldFilters } from './ResetAll'
 import type { IDropdownMenusProps } from './types'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { ColumnFilters } from '../common/ColumnFilters'
-import { NotifyButton } from './NotifyButton'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
 
@@ -48,7 +48,8 @@ export function YieldFilterDropdowns({
 	showLTV,
 	showTotalSupplied,
 	showTotalBorrowed,
-	showAvailable
+	showAvailable,
+	onCSVDownload
 }: IDropdownMenusProps) {
 	const router = useRouter()
 
@@ -241,8 +242,14 @@ export function YieldFilterDropdowns({
 			)}
 
 			{!isMobile && (
-				<div style={{ marginInlineStart: 'auto' }}>
-					<NotifyButton />
+				<div style={{ marginInlineStart: 'auto', display: 'flex', gap: '8px' }}>
+					{onCSVDownload ? (
+						<CSVDownloadButton
+							isGray
+							style={{ color: 'inherit', fontWeight: 'normal', borderRadius: '8px' }}
+							onClick={onCSVDownload}
+						/>
+					) : null}
 				</div>
 			)}
 		</>

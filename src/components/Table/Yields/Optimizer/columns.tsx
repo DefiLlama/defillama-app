@@ -9,7 +9,7 @@ import QuestionHelper from '~/components/QuestionHelper'
 import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 
-export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
+export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 	{
 		header: 'Pool',
 		accessorKey: 'pool',
@@ -26,7 +26,6 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 					url={row.original.url}
 					index={index + 1}
 					borrow={true}
-					maxCharacters={15}
 				/>
 			)
 		},
@@ -52,12 +51,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		accessorKey: 'chains',
 		enableSorting: false,
 		cell: (info) => (
-			<IconsRow
-				disableLinks
-				links={info.row.original.chains as Array<string>}
-				url="/yields/borrow?chain"
-				iconType="chain"
-			/>
+			<IconsRow disableLinks links={info.row.original.chains as Array<string>} url="/yields?chain" iconType="chain" />
 		),
 		meta: {
 			align: 'end'
@@ -86,6 +80,63 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
+		header: 'You Lend',
+		accessorKey: 'lendUSDAmount',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<div>
+					${formattedNum(info.getValue())}
+					<br />
+					<div style={{ fontSize: '12px', color: 'gray' }}>
+						{formattedNum(info.row.original.lendAmount)} {info.row.original.symbol}
+					</div>
+				</div>
+			)
+		},
+		size: 180,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'You Borrow',
+		accessorKey: 'borrowUSDAmount',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<div>
+					${formattedNum(info.getValue())}
+					<br />
+					<div style={{ fontSize: '12px', color: 'gray' }}>
+						{formattedNum(info.row.original.borrowAmount)} {info.row.original.borrow.symbol}
+					</div>
+				</div>
+			)
+		},
+		size: 180,
+		meta: {
+			align: 'end'
+		}
+	},
+
+	{
+		header: 'Base Borrow APY',
+		accessorKey: 'borrowBase',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
+					{formattedPercent(info.getValue(), true)}
+				</ColoredAPY>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Base APY',
 		accessorKey: 'totalBase',
 		enableSorting: true,
@@ -107,22 +158,6 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return <ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
-		},
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Base Borrow APY',
-		accessorKey: 'borrowBase',
-		enableSorting: true,
-		cell: (info) => {
-			return (
-				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true)}
-				</ColoredAPY>
-			)
 		},
 		size: 140,
 		meta: {
@@ -264,6 +299,8 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'lendUSDAmount',
+		'borrowUSDAmount',
 		'totalBase',
 		'lendingBase',
 		'borrowBase',
@@ -279,6 +316,8 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'lendUSDAmount',
+		'borrowUSDAmount',
 		'totalBase',
 		'lendingBase',
 		'borrowBase',
@@ -294,6 +333,8 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'lendUSDAmount',
+		'borrowUSDAmount',
 		'totalBase',
 		'lendingBase',
 		'borrowBase',
@@ -309,6 +350,8 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'lendUSDAmount',
+		'borrowUSDAmount',
 		'totalBase',
 		'lendingBase',
 		'borrowBase',

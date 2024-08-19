@@ -8,12 +8,23 @@ import { formattedNum, formattedPercent, slug } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 import { IDexsRow } from '../types'
 
-export const NameColumn = (type: string, allChains?: boolean): ColumnDef<IDexsRow> => ({
+export const NameColumn = (type: string, allChains?: boolean, size = 240): ColumnDef<IDexsRow> => ({
 	header: () => <Name>Name</Name>,
 	accessorKey: 'displayName',
 	enableSorting: false,
 	cell: ({ getValue, row, table }) => {
 		const value = getValue() as string
+		const isParent = row.original?.subRows?.length > 0
+		const Link =
+			row.original?.category === 'NFT' ? (
+				isParent ? (
+					value
+				) : (
+					<CustomLink href={`/nfts/royalties/${row.original.defillamaId}`} target="_blank">{`${value}`}</CustomLink>
+				)
+			) : (
+				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(row.original.name)}`}>{`${value}`}</CustomLink>
+			)
 		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 		return (
 			<Name depth={row.depth}>
@@ -28,12 +39,12 @@ export const NameColumn = (type: string, allChains?: boolean): ColumnDef<IDexsRo
 				)}
 				<span>{index + 1}</span>
 				<TokenLogo logo={row.original.logo} data-lgonly />
-				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(row.original.name)}`}>{`${value}`}</CustomLink>
+				{Link}
 				{row.original.disabled && <QuestionHelper text={`This protocol has been disabled`} />}
 			</Name>
 		)
 	},
-	size: 240
+	size
 })
 export const ChainsColumn = (type: string): ColumnDef<IDexsRow> => ({
 	header: 'Chains',
@@ -115,15 +126,18 @@ export const Total24hColumn = (
 	alternativeAccessor?: string,
 	helperText?: string,
 	extraWidth?: number,
-	header?: string
+	header?: string,
+	hideNull = true
 ): ColumnDef<IDexsRow> => {
 	const accessor = alternativeAccessor ?? 'total24h'
 	return {
 		header: header ?? `${type} (24h)`,
 		accessorKey: accessor,
 		enableSorting: true,
+		sortingFn: 'alphanumericFalsyLast' as any,
 		cell: (info) => {
 			const value = info.getValue()
+			if (!Number(value) && hideNull) return <></>
 			if (value === '' || (value === null && alternativeAccessor === 'mcap') || Number.isNaN(formattedNum(value)))
 				return <></>
 			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
@@ -134,6 +148,7 @@ export const Total24hColumn = (
 			const methodology = Object.entries(rawMethodology).find(
 				([name]) => name.toLowerCase() === methodologyKey.toLowerCase()
 			)?.[1]
+
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{methodology ? <QuestionHelper text={methodology} textAlign="center" /> : null}
@@ -196,9 +211,10 @@ export const DominanceColumn: ColumnDef<IDexsRow> = {
 	accessorKey: 'dominance',
 	enableSorting: true,
 	cell: (info) => <>{formattedPercent(info.getValue(), true)}</>,
-	size: 140,
+	size: 120,
 	meta: {
-		align: 'end'
+		align: 'end',
+		headerHelperText: '% of the 24h total volume'
 	}
 }
 
@@ -211,7 +227,7 @@ export const CategoryColumn: ColumnDef<IDexsRow> = {
 	}
 }
 export const TVLColumn: ColumnDef<IDexsRow> = {
-	header: 'TVL',
+	header: 'DEX TVL',
 	accessorKey: 'tvl',
 	enableSorting: true,
 	cell: (info) => {

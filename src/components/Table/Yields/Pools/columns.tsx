@@ -31,7 +31,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 					configID={row.original.configID}
 					url={row.original.url}
 					index={index + 1}
-					maxCharacters={20}
 				/>
 			)
 		},
@@ -91,6 +90,12 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 								'Calculated as: 24h fees * 365 / TVL. Enable "7d Base APY" for a more detailed APY calculation which uses 7 day trading fees and a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
 							}
 						/>
+					) : info.row.original.project === 'Vesper' && info.row.original.pool === 'ETH (Aggressive)' ? (
+						<QuestionHelper
+							text={
+								'To earn yield you are required to wait for the autocompounding action to be triggered by Vesper which might happen only 1-2x per month. If you withdraw prior to that you will receive 0 APY!'
+							}
+						/>
 					) : null}
 					{formattedPercent(info.getValue(), true, 700)}
 				</span>
@@ -108,7 +113,18 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBase',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return (
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+					{info.row.original.project === 'Fraxlend' ? (
+						<QuestionHelper
+							text={'Supply APY is for FRAX being lent to the pool, you do not earn interest on your collateral!'}
+						/>
+					) : info.row.original.project === 'Sommelier' ? (
+						<QuestionHelper text={'Calculated over a 24h period! Enable 7d Base APY column for a larger period'} />
+					) : null}
+					{formattedPercent(info.getValue(), true)}
+				</span>
+			)
 		},
 		size: 140,
 		meta: {
@@ -123,10 +139,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			const rewards = row.original.rewards ?? []
-
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.project) ? <QuestionHelper text={earlyExit} /> : null}
+					{lockupsRewards.includes(row.original.project) ? (
+						<QuestionHelper text={earlyExit} />
+					) : row.original.rewardMeta ? (
+						<QuestionHelper text={row.original.rewardMeta} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
@@ -201,7 +220,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				</CustomLink>
 			)
 		},
-		size: 110,
+		size: 120,
 		meta: {
 			align: 'end'
 		}

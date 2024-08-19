@@ -13,6 +13,8 @@ import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/de
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { useGroupChainsByParent } from '~/hooks/data'
 import { ChainsSelect, LayoutWrapper } from '~/containers/ChainContainer'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { useRouter } from 'next/router'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -63,42 +65,61 @@ export default function ChainsContainer({
 	categories,
 	chainsGroupbyParent,
 	tvlTypes,
-	colorsByChain
+	colorsByChain,
+	chainAssets
 }) {
+	const { query } = useRouter()
+	const { minTvl, maxTvl } = query
 	const [extraTvlsEnabled] = useDefiManager()
 
-	const { dataByChain, pieChartData, chainsWithExtraTvlsAndDominanceByDay } = React.useMemo(() => {
-		// add extra tvls like staking pool2 based on toggles selected
-		const dataByChain = formatDataWithExtraTvls({ data: chainTvls, applyLqAndDc: true, extraTvlsEnabled })
+	const { dataByChain, pieChartData, chainsWithExtraTvlsAndDominanceByDay, chainsUniqueFiltered } =
+		React.useMemo(() => {
+			// add extra tvls like staking pool2 based on toggles selected
+			const dataByChain = formatDataWithExtraTvls({
+				data: chainTvls,
+				applyLqAndDc: true,
+				extraTvlsEnabled,
+				chainAssets
+			}).filter(
+				(chain) =>
+					(typeof minTvl === 'string' && minTvl !== '' ? chain.tvl >= +minTvl : true) &&
+					(typeof maxTvl === 'string' && maxTvl !== '' ? chain.tvl <= +maxTvl : true)
+			)
 
-		// format chains data to use in pie chart
-		const onlyChainTvls = dataByChain.map((chain) => ({
-			name: chain.name,
-			value: chain.tvl
-		}))
+			// format chains data to use in pie chart
+			const onlyChainTvls = dataByChain.map((chain) => ({
+				name: chain.name,
+				value: chain.tvl
+			}))
 
-		const chainsWithLowTvls = onlyChainTvls.slice(10).reduce((total, entry) => {
-			return (total += entry.value)
-		}, 0)
+			const chainsWithLowTvls = onlyChainTvls.slice(10).reduce((total, entry) => {
+				return (total += entry.value)
+			}, 0)
 
-		// limit chains in pie chart to 10 and remaining chains in others
-		const pieChartData = onlyChainTvls
-			.slice(0, 10)
-			.sort((a, b) => b.value - a.value)
-			.concat({ name: 'Others', value: chainsWithLowTvls })
+			// limit chains in pie chart to 10 and remaining chains in others
+			const pieChartData = onlyChainTvls
+				.slice(0, 10)
+				.sort((a, b) => b.value - a.value)
+				.concat({ name: 'Others', value: chainsWithLowTvls })
 
-		const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = groupDataWithTvlsByDay({
-			chains: stackedDataset,
-			tvlTypes,
-			extraTvlsEnabled
-		})
+			const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = groupDataWithTvlsByDay({
+				chains: stackedDataset,
+				tvlTypes,
+				extraTvlsEnabled
+			})
 
-		return { dataByChain, pieChartData, chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay }
-	}, [chainTvls, extraTvlsEnabled, stackedDataset, tvlTypes])
+			return {
+				dataByChain,
+				pieChartData,
+				chainsWithExtraTvlsByDay,
+				chainsWithExtraTvlsAndDominanceByDay,
+				chainsUniqueFiltered: chainsUnique.filter((chain) => (dataByChain.find((c) => c.name === chain) ? true : false))
+			}
+		}, [chainTvls, extraTvlsEnabled, stackedDataset, tvlTypes, minTvl, maxTvl, chainsUnique])
 
 	const downloadCsv = async () => {
 		window.alert('Data download might take up to 1 minute, click OK to proceed')
-		const rows = [['Timestamp', 'Date', ...chainsUnique]]
+		const rows = [['Timestamp', 'Date', ...chainsUniqueFiltered]]
 		const { props } = await getNewChainsPageData('All')
 		const { chainsWithExtraTvlsByDay } = groupDataWithTvlsByDay({
 			chains: props.stackedDataset,
@@ -109,7 +130,7 @@ export default function ChainsContainer({
 		chainsWithExtraTvlsByDay
 			.sort((a, b) => a.date - b.date)
 			.forEach((day) => {
-				rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map((chain) => day[chain] ?? '')])
+				rows.push([day.date, toNiceCsvDate(day.date), ...chainsUniqueFiltered.map((chain) => day[chain] ?? '')])
 			})
 		download('chains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
@@ -134,17 +155,17 @@ export default function ChainsContainer({
 
 				<HeaderWrapper>
 					<Header>Total Value Locked All Chains</Header>
-					<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
+					<CSVDownloadButton onClick={downloadCsv} />
 				</HeaderWrapper>
 
 				<ChartsWrapper>
 					<PieChart chartData={pieChartData} stackColors={colorsByChain} />
 					<AreaChart
 						chartData={chainsWithExtraTvlsAndDominanceByDay}
-						stacks={chainsUnique}
+						stacks={chainsUniqueFiltered}
 						stackColors={colorsByChain}
 						customLegendName="Chain"
-						customLegendOptions={chainsUnique}
+						customLegendOptions={chainsUniqueFiltered}
 						hideDefaultLegend
 						valueSymbol="%"
 						title=""

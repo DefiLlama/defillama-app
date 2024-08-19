@@ -20,10 +20,58 @@ export const stablecoinPegTypeOptions = [
 		help: 'Show stablecoins pegged to EUR'
 	},
 	{
+		name: 'SGD',
+		key: STABLECOINS_SETTINGS.PEGGEDSGD,
+		filterFn: (item) => item.pegType === 'peggedSGD',
+		help: 'Show stablecoins pegged to SGD'
+	},
+	{
+		name: 'JPY',
+		key: STABLECOINS_SETTINGS.PEGGEDJPY,
+		filterFn: (item) => item.pegType === 'peggedJPY',
+		help: 'Show stablecoins pegged to JPY'
+	},
+	{
+		name: 'CNY',
+		key: STABLECOINS_SETTINGS.PEGGEDCNY,
+		filterFn: (item) => item.pegType === 'peggedCNY',
+		help: 'Show stablecoins pegged to CNY'
+	},
+	{
+		name: 'UAH',
+		key: STABLECOINS_SETTINGS.PEGGEDUAH,
+		filterFn: (item) => item.pegType === 'peggedUAH',
+		help: 'Show stablecoins pegged to UAH'
+	},
+	{
+		name: 'ARS',
+		key: STABLECOINS_SETTINGS.PEGGEDARS,
+		filterFn: (item) => item.pegType === 'peggedARS',
+		help: 'Show stablecoins pegged to ARS'
+	},
+	{
+		name: 'GBP',
+		key: STABLECOINS_SETTINGS.PEGGEDGBP,
+		filterFn: (item) => item.pegType === 'peggedGBP',
+		help: 'Show stablecoins pegged to GBP'
+	},
+	{
 		name: 'Variable',
 		key: STABLECOINS_SETTINGS.PEGGEDVAR,
 		filterFn: (item) => item.pegType === 'peggedVAR',
 		help: 'Show stablecoins with a variable or floating peg'
+	},
+	{
+		name: 'CAD',
+		key: STABLECOINS_SETTINGS.PEGGEDCAD,
+		filterFn: (item) => item.pegType === 'peggedCAD',
+		help: 'Show stablecoins pegged to CAD'
+	},
+	{
+		name: 'AUD',
+		key: STABLECOINS_SETTINGS.PEGGEDAUD,
+		filterFn: (item) => item.pegType === 'peggedAUD',
+		help: 'Show stablecoins pegged to AUD'
 	}
 ]
 

@@ -54,7 +54,7 @@ export const formatPeggedAssetsData = ({
 		const pegType = pegged.pegType
 		const peggedGeckoID = pegged.gecko_id
 		const price = pegged.price
-		const priceSource = pegged.priceSource
+		const priceSource = pegged.priceSource ?? null
 		if (chain) {
 			const chainCirculating = pegged.chainCirculating[chain]
 			pegged.circulating = chainCirculating ? chainCirculating.current[pegType] ?? 0 : 0
@@ -62,10 +62,10 @@ export const formatPeggedAssetsData = ({
 			pegged.circulatingPrevWeek = chainCirculating ? chainCirculating.circulatingPrevWeek[pegType] ?? null : null
 			pegged.circulatingPrevMonth = chainCirculating ? chainCirculating.circulatingPrevMonth[pegType] ?? null : null
 		} else {
-			pegged.circulating = pegged.circulating[pegType] ?? 0
-			pegged.circulatingPrevDay = pegged.circulatingPrevDay[pegType] ?? null
-			pegged.circulatingPrevWeek = pegged.circulatingPrevWeek[pegType] ?? null
-			pegged.circulatingPrevMonth = pegged.circulatingPrevMonth[pegType] ?? null
+			pegged.circulating = pegged.circulating?.[pegType] ?? 0
+			pegged.circulatingPrevDay = pegged.circulatingPrevDay?.[pegType] ?? null
+			pegged.circulatingPrevWeek = pegged.circulatingPrevWeek?.[pegType] ?? null
+			pegged.circulatingPrevMonth = pegged.circulatingPrevMonth?.[pegType] ?? null
 		}
 		const chartIndex = peggedNameToChartDataIndex[pegged.name]
 		const chart = chartDataByPeggedAsset[chartIndex] ?? null
@@ -134,12 +134,7 @@ export const formatPeggedChainsData = ({
 		const chainName = chainList[i]
 		const chainDominance = chainDominances[chainName] ?? null
 
-		const currentTimestamp = Date.now() / 1000
-		const secondsInMonth = 2592000
-		const latestChainTVLCharts = chainsTVLData?.[i]?.tvl ?? null
-		const latestChainTVLItem = latestChainTVLCharts?.[latestChainTVLCharts.length - 1]
-		const latestChainTVL =
-			currentTimestamp - secondsInMonth < (latestChainTVLItem?.[0] ?? 0) ? latestChainTVLItem[1] : null
+		const latestChainTVL = chainsTVLData?.[i] ?? null
 
 		chainData.name = chainName
 		chainData.circulating = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculating')

@@ -126,10 +126,10 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		header: '24h Net Flow',
 		accessorKey: 'prevDayNetFlow',
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue() as any
 			if (value) {
 				return (
-					<Text as="span" color={value > 0 ? '#3fb950' : '#f85149'}>
+					<Text as="span" color={(value as number) > 0 ? '#3fb950' : '#f85149'}>
 						${formattedNum(info.getValue())}
 					</Text>
 				)
@@ -143,7 +143,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 	},
 	{
 		header: '24h Deposits',
-		accessorKey: 'prevDayUsdWithdrawals',
+		accessorKey: 'prevDayUsdDeposits',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
 		meta: {
@@ -152,7 +152,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 	},
 	{
 		header: '24h Withdrawals',
-		accessorKey: 'prevDayUsdDeposits',
+		accessorKey: 'prevDayUsdWithdrawals',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
 		meta: {
@@ -163,10 +163,10 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		header: '7d Net Flow',
 		accessorKey: 'prevWeekNetFlow',
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue() as any
 			if (value) {
 				return (
-					<Text as="span" color={value > 0 ? '#3fb950' : '#f85149'}>
+					<Text as="span" color={(value as number) > 0 ? '#3fb950' : '#f85149'}>
 						${formattedNum(info.getValue())}
 					</Text>
 				)
@@ -315,6 +315,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 			const splitValue = value.split('#')
 			const [symbol, token] = splitValue
 			const { blockExplorerLink } = getBlockExplorer(token)
+
 			if (value) {
 				return (
 					<LinkToBlockExplorer href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
@@ -343,7 +344,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: 'Deposited',
-		accessorKey: 'withdrawn',
+		accessorKey: 'deposited',
 		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
 		size: 120,
 		meta: {
@@ -352,7 +353,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: 'Withdrawn',
-		accessorKey: 'deposited',
+		accessorKey: 'withdrawn',
 		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
 		size: 120,
 		meta: {
@@ -404,7 +405,7 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: 'Deposited',
-		accessorKey: 'withdrawn',
+		accessorKey: 'deposited',
 		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
 		size: 120,
 		meta: {
@@ -413,7 +414,7 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: 'Withdrawn',
-		accessorKey: 'deposited',
+		accessorKey: 'withdrawn',
 		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
 		size: 120,
 		meta: {

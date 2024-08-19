@@ -1,14 +1,21 @@
-@import url('https://rsms.me/inter/inter.css');
+@font-face {
+	font-family: 'Inter var';
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url('/fonts/inter.woff2') format('woff2');
+}
+@font-face {
+	font-family: 'JetBrains Mono';
+	font-style: normal;
+	font-weight: 800;
+	font-display: swap;
+	src: url('/fonts/jetbrains.ttf') format('truetype');
+}
 
 :root {
 	--font-jetbrains: 'JetBrains Mono', monospace;
 	--font-inter: 'Inter var', sans-serif;
-}
-
-@supports (font-variation-settings: normal) {
-	:root {
-		--font-inter: 'Inter var', sans-serif;
-	}
 }
 
 html,
@@ -172,4 +179,11 @@ h6 {
 		max-width: min(calc(100% - 32px), 560px);
 		max-height: calc(100% - 32px);
 	}
+}
+
+#table-header {
+	scrollbar-width: none; /* Firefox */
+}
+#table-header::-webkit-scrollbar {
+	display: none; /* Safari and Chrome */
 }

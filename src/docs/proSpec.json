@@ -1,0 +1,627 @@
+{
+	"openapi": "3.0.3",
+	"info": {
+		"title": "DefiLlama Pro - OpenAPI 3.0",
+		"version": "1.0.0",
+		"description": "Docs for DefiLlama's Pro API"
+	},
+	"servers": [
+		{
+			"url": "https://pro-api.llama.fi/APIKEY"
+		}
+	],
+	"tags": [
+		{
+			"name": "TVL",
+			"description": "Retrieve TVL data - pro"
+		},
+		{
+			"name": "stablecoins",
+			"description": "Data from our stablecoins dashboard - pro"
+		},
+		{
+			"name": "active users",
+			"description": "Data about active users on our chains and protocols dashboards"
+		},
+		{
+			"name": "Unlocks",
+			"description": "Data about token unlocks from our Unlocks dashboard"
+		},
+		{
+			"name": "main page",
+			"description": "Data from dashboards on our side menu"
+		},
+		{
+			"name": "token liquidity",
+			"description": "Provides the available liquidity for swapping from one token to another on a specific chain"
+		},
+		{
+			"name": "Yields",
+			"description": "Data from our yields/APY dashboard"
+		},
+		{
+			"name": "ETFs",
+			"description": "Tradfi ETFs"
+		},
+		{
+			"name": "meta",
+			"description": "Get information about your API Key"
+		},
+		{
+			"name": "narratives",
+			"description": "Track performance of narratives"
+		}
+	],
+	"paths": {
+		"/api/hourly/{protocol}": {
+			"get": {
+				"tags": [
+					"TVL"
+				],
+				"summary": "Lists the hourly tvl of a certain protocol",
+				"parameters": [
+					{
+						"name": "protocol",
+						"in": "path",
+						"description": "protocol slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "compound-v3"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/tokenProtocols/{symbol}": {
+			"get": {
+				"tags": [
+					"TVL"
+				],
+				"summary": "Lists the amount of a certain token within all protocols",
+				"parameters": [
+					{
+						"name": "symbol",
+						"in": "path",
+						"description": "token slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "usdt"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/inflows/{protocol}/{timestamp}": {
+			"get": {
+				"tags": [
+					"TVL"
+				],
+				"summary": "Lists the amount of inflows and outflows for a protocol at a given date",
+				"parameters": [
+					{
+						"name": "protocol",
+						"in": "path",
+						"description": "protocol slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "compound-v3"
+						}
+					},
+					{
+						"name": "timestamp",
+						"in": "path",
+						"description": "unix timestamp",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"example": 1700006400
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/chainAssets": {
+			"get": {
+				"tags": [
+					"TVL"
+				],
+				"summary": "Get assets of all chains",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/stablecoins/stablecoindominance/{chain}": {
+			"get": {
+				"tags": [
+					"stablecoins"
+				],
+				"summary": "Get stablecoin dominance per chain along with the info about the larges coin in a chain",
+				"parameters": [
+					{
+						"name": "chain",
+						"in": "path",
+						"required": true,
+						"description": "chain slug, you can get these from /chains or the chains property on /protocols",
+						"schema": {
+							"type": "string",
+							"example": "Ethereum"
+						}
+					},
+					{
+						"name": "stablecoin",
+						"in": "query",
+						"required": false,
+						"description": "stablecoin ID, you can get these from /stablecoins",
+						"schema": {
+							"type": "integer",
+							"example": 1
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/activeUsers": {
+			"get": {
+				"tags": [
+					"active users"
+				],
+				"summary": "Get active users on our chains and protocols pages",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/userData/{type}/{protocolId}": {
+			"get": {
+				"tags": [
+					"active users"
+				],
+				"summary": "Get user data by type and protocol",
+				"parameters": [
+					{
+						"name": "protocolId",
+						"in": "path",
+						"description": "protocol id",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"example": 1
+						}
+					},
+					{
+						"name": "type",
+						"in": "path",
+						"description": "protocol id",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "activeUsers"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/emissions": {
+			"get": {
+				"tags": [
+					"Unlocks"
+				],
+				"summary": "List of all tokens along with basic info for each",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/emission/{protocol}": {
+			"get": {
+				"tags": [
+					"Unlocks"
+				],
+				"summary": "Unlocks data for a given token/protocol. You can find a list of available slugs to query by querying /emissions and then extracting the key `gecko_id`",
+				"parameters": [
+					{
+						"name": "protocol",
+						"in": "path",
+						"description": "protocol slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "aave"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/categories": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "Overview of all categories accross all protocols",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/forks": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "Overview of all categories accross all protocols",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/oracles": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "Overview of all categories accross all protocols",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/hacks": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "Overview of all hacks on our Hacks dashboard",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/raises": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "Overview of all raises on our Raises dashboard",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/treasuries": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "List all protocols on our Treasuries dashboard",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/entities": {
+			"get": {
+				"tags": [
+					"main page"
+				],
+				"summary": "List all entities",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/historicalLiquidity/{token}": {
+			"get": {
+				"tags": [
+					"token liquidity"
+				],
+				"summary": "Provides the name of contracts on a determined chain",
+				"parameters": [
+					{
+						"name": "token",
+						"in": "path",
+						"description": "token slug",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "usdt"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/pools": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Retrieve the latest data for all pools, including enriched information such as predictions",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/poolsOld": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Same as /pools but it also includes a new parameter `pool_old` which usually contains pool address (but not guaranteed)",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/chart/{pool}": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Get historical APY and TVL of a pool",
+				"parameters": [
+					{
+						"name": "pool",
+						"in": "path",
+						"required": true,
+						"description": "pool id, can be retrieved from /pools (property is called pool)",
+						"schema": {
+							"type": "string",
+							"example": "747c1d2a-c668-4682-b9f9-296708a3dd90"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/chartHourly/{pool}": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Same as /chart/{pool} but with hourly granularity",
+				"parameters": [
+					{
+						"name": "pool",
+						"in": "path",
+						"required": true,
+						"description": "pool id, can be retrieved from /pools (property is called pool)",
+						"schema": {
+							"type": "string",
+							"example": "747c1d2a-c668-4682-b9f9-296708a3dd90"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/poolsBorrow": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Borrow costs APY of assets from lending markets",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/chartLendBorrow/{pool}": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Historical borrow cost APY from a pool on a lending market, pool ids should be obtained from /poolsBorrow",
+				"parameters": [
+					{
+						"name": "pool",
+						"in": "path",
+						"required": true,
+						"description": "pool id, can be retrieved from /poolsBorrow (property is called pool)",
+						"schema": {
+							"type": "string",
+							"example": "71418c17-d2aa-4eff-b68a-806fff9ec951"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/perps": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "Funding rates and Open Interest of perps across exchanges, including both Decentralized and Centralized",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/yields/lsdRates": {
+			"get": {
+				"tags": [
+					"Yields"
+				],
+				"summary": "APY rates of multiple LSDs",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/etfs/overview": {
+			"get": {
+				"tags": [
+					"ETFs"
+				],
+				"summary": "Get BTC ETFs and their metrics (aum, price, fees...)",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/etfs/overviewEth": {
+			"get": {
+				"tags": [
+					"ETFs"
+				],
+				"summary": "Get ETH ETFs",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/etfs/history": {
+			"get": {
+				"tags": [
+					"ETFs"
+				],
+				"summary": "Historical AUM of all BTC ETFs",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/etfs/historyEth": {
+			"get": {
+				"tags": [
+					"ETFs"
+				],
+				"summary": "Historical AUM of all BTC ETFs",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/fdv/performance/{period}": {
+			"get": {
+				"tags": [
+					"narratives"
+				],
+				"summary": "Get chart of narratives based on category performance (with individual coins weighted by mcap)",
+				"parameters": [
+					{
+						"name": "period",
+						"in": "path",
+						"required": true,
+						"description": "One of ['7', '30', 'ytd', '365']",
+						"schema": {
+							"type": "string",
+							"example": "30"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/usage/APIKEY": {
+			"get": {
+				"tags": [
+					"meta"
+				],
+				"summary": "Get amount of credits left in the api key, these reset on the 1st of each month",
+				"servers": [
+					{
+						"url": "https://pro-api.llama.fi"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "credits left"
+					}
+				}
+			}
+		}
+	}
+}

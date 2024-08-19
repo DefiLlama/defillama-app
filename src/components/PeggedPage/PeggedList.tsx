@@ -26,6 +26,7 @@ import {
 } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { formattedNum, getPercentChange, getPeggedDominance, toNiceCsvDate, download } from '~/utils'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -66,10 +67,9 @@ function PeggedAssetsOverview({
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
-	chainTVLData,
 	backgroundColor
 }) {
-	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Token Market Caps' : 'USD Inflows')
+	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Total Market Cap' : 'USD Inflows')
 
 	const chartTypeList =
 		selectedChain !== 'All'
@@ -149,14 +149,7 @@ function PeggedAssetsOverview({
 	])
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
-		useBuildPeggedChartData(
-			chartDataByPeggedAsset,
-			peggedAssetNames,
-			filteredIndexes,
-			'mcap',
-			chainTVLData,
-			selectedChain
-		)
+		useBuildPeggedChartData(chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, 'mcap', selectedChain)
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, query) }))
 
@@ -218,13 +211,14 @@ function PeggedAssetsOverview({
 
 	const dominance = getPeggedDominance(topToken, totalMcapCurrent)
 
-	const totalMcapLabel = ['Mcap', 'TVL']
+	const totalMcapLabel = ['Mcap']
 
 	const path = selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`
 
 	return (
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: title }} />
+
 			<ChartFilters>
 				<Dropdowns>
 					<Attribute pathname={path} />
@@ -233,6 +227,7 @@ function PeggedAssetsOverview({
 					<McapRange />
 					<ResetAllStablecoinFilters pathname={path} />
 				</Dropdowns>
+				<CSVDownloadButton onClick={downloadCsv} />
 			</ChartFilters>
 
 			<ChartAndValuesWrapper>
@@ -240,10 +235,6 @@ function PeggedAssetsOverview({
 					<BreakpointPanel>
 						<h1>Total {title}</h1>
 						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{mcapToDisplay}</p>
-						<DownloadButton as="button" onClick={downloadCsv}>
-							<DownloadIcon />
-							<span>&nbsp;&nbsp;.csv</span>
-						</DownloadButton>
 					</BreakpointPanel>
 					<BreakpointPanel>
 						<h2>Change (7d)</h2>

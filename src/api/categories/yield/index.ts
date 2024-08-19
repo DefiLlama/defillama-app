@@ -120,6 +120,8 @@ export async function getYieldPageData() {
 				? p.projectName
 				: t === 'WOO.E'
 				? data.tokenNameMapping['WOO']
+				: t === 'SOLID' && p.project === 'solidly-v3'
+				? p.projectName
 				: data.tokenNameMapping[t]
 		})
 		p['rewardTokensNames'] = xy.filter((t) => t)
@@ -165,7 +167,12 @@ export async function getLendBorrowData() {
 	// treating fraxlend as cdp category otherwise the output
 	// from optimizer will be wrong (it would use the crossproduct
 	// btw collaterals eg eth -> crv, wbtc -> crv etc. instead of collateral -> frax only)
-	props.pools = props.pools.map((p) => ({ ...p, category: p.project === 'fraxlend' ? 'CDP' : p.category }))
+	props.pools = props.pools.map((p) => ({
+		...p,
+		category: p.project === 'fraxlend' ? 'CDP' : p.category,
+		// on fraxlend apyBase = 0 on collateral, apyBase = optional lending of borrowed frax
+		apyBase: p.project === 'fraxlend' ? null : p.apyBase
+	}))
 
 	// restrict pool data to lending and cdp
 	const categoriesToKeep = ['Lending', 'Undercollateralized Lending', 'CDP', 'NFT Lending']
@@ -216,7 +223,8 @@ export async function getLendBorrowData() {
 				totalAvailableUsd = aaveData?.totalSupplyUsd - aaveData?.totalBorrowUsd
 			} else if (x.totalSupplyUsd === null && x.totalBorrowUsd === null) {
 				totalAvailableUsd = null
-			} else if (cdpPools.includes(x.pool)) {
+				// GHO pool on aave-v3
+			} else if (cdpPools.includes(x.pool) || x.pool === '1e00ac2b-0c3c-4b1f-95be-9378f98d2b40') {
 				totalAvailableUsd = x.debtCeilingUsd ? x.debtCeilingUsd - x.totalBorrowUsd : null
 			} else if (p.project === 'compound' && x.debtCeilingUsd > 0) {
 				totalAvailableUsd =

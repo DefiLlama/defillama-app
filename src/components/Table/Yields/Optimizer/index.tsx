@@ -12,6 +12,9 @@ export default function YieldsOptimizerTable({ data }) {
 	const router = useRouter()
 
 	const { excludeRewardApy } = router.query
+	const lendAmount = router.query.lendAmount ? parseInt(router.query.lendAmount as string) : 0
+	const borrowAmount = router.query.borrowAmount ? parseInt(router.query.borrowAmount as string) : 0
+	const withAmount = lendAmount > 0 || borrowAmount > 0
 
 	const columnVisibility =
 		excludeRewardApy === 'true'
@@ -21,7 +24,9 @@ export default function YieldsOptimizerTable({ data }) {
 					borrowBase: true,
 					totalReward: false,
 					lendingReward: false,
-					borrowReward: false
+					borrowReward: false,
+					borrowUSDAmount: withAmount,
+					lendUSDAmount: withAmount
 			  }
 			: {
 					totalBase: false,
@@ -29,7 +34,9 @@ export default function YieldsOptimizerTable({ data }) {
 					borrowBase: false,
 					totalReward: true,
 					lendingReward: true,
-					borrowReward: true
+					borrowReward: true,
+					borrowUSDAmount: withAmount,
+					lendUSDAmount: withAmount
 			  }
 
 	return (

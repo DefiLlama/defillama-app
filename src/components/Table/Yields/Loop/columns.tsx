@@ -24,7 +24,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 					url={row.original.url}
 					index={index + 1}
 					borrow={true}
-					maxCharacters={30}
 				/>
 			)
 		},
@@ -48,7 +47,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		header: 'Chain',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields/borrow?chain" iconType="chain" />,
+		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
 		meta: {
 			align: 'end'
 		},

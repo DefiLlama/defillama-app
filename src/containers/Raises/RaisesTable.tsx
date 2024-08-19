@@ -16,6 +16,8 @@ import { DownloadIcon } from '~/components'
 import useWindowSize from '~/hooks/useWindowSize'
 import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
 import { ArrowUpRight } from 'react-feather'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { ButtonDark } from '~/components/ButtonStyled'
 
 const columnResizeMode = 'onChange'
 
@@ -77,22 +79,21 @@ export function RaisesTable({ raises, downloadCsv }) {
 					placeholder="Search projects..."
 				/>
 
-				<Link href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093" target="_blank">
-					<DownloadButton>
-						<ArrowUpRight size={14} />
-						<span>&nbsp;Methodology & biases</span>
-					</DownloadButton>
-				</Link>
-				<DownloadButton onClick={downloadCsv}>
-					<DownloadIcon />
-					<span>&nbsp;&nbsp;.csv</span>
-				</DownloadButton>
-				<Link href="https://api.llama.fi/raises" target="_blank">
-					<DownloadButton>
-						<DownloadIcon />
-						<span>&nbsp;&nbsp;.json</span>
-					</DownloadButton>
-				</Link>
+				<ButtonDark
+					style={{ padding: '11px' }}
+					onClick={() => {
+						window.open('https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093')
+					}}
+				>
+					<span>&nbsp;Methodology & biases</span>
+				</ButtonDark>
+
+				<CSVDownloadButton
+					customText="Download .json"
+					onClick={() => {
+						window.open('https://api.llama.fi/raises')
+					}}
+				/>
 			</TableFiltersWithInput>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />

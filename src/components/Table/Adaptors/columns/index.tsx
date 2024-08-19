@@ -17,12 +17,12 @@ import {
 	XColumn
 } from './common'
 
-export const getColumnsByType = (type: string, allChains?: boolean) => {
+export const getColumnsByType = (type: string, allChains?: boolean, isSimple?: boolean) => {
 	switch (type) {
 		case 'dexs':
 			return volumesColumns(allChains)
 		case 'fees':
-			return feesColumns(allChains)
+			return isSimple ? simpleFeesColumns(allChains) : feesColumns(allChains)
 		case 'incentives':
 			return incentivesColumns(allChains)
 		case 'options':
@@ -31,6 +31,8 @@ export const getColumnsByType = (type: string, allChains?: boolean) => {
 			return aggregatorsColumns(allChains)
 		case 'derivatives':
 			return derivativesColumns(allChains)
+		case 'derivatives-aggregator':
+			return derivatesAggregatorColumns(allChains)
 		default:
 			return volumesColumns(allChains)
 	}
@@ -80,6 +82,8 @@ export const derivativesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 		Change7dColumn,
 		Change1mColumn,
 		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', 'total7d', `Cumulative last 7d volume`, undefined, 'Volume (7d)'),
+		Total24hColumn('Open Interest', 'dailyOpenInterest', 'updated daily at 00:00UTC', undefined, 'Open Interest', true),
 		TotalAllTimeColumn('volume'),
 		allChains ? undefined : VolumeTVLColumn,
 		DominanceColumn
@@ -106,7 +110,22 @@ export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 		Change7dColumn,
 		Change1mColumn,
 		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', 'total7d', `Cumulative last 7d volume`, undefined, 'Volume (7d)'),
 		TotalAllTimeColumn('volume'),
+		DominanceColumn
+	].filter((c) => c !== undefined)
+
+export const derivatesAggregatorColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('derivatives-aggregator', allChains),
+		allChains ? undefined : ChainsColumn('derivatives-aggregator'),
+		Change1dColumn,
+		Change7dColumn,
+		Change1mColumn,
+		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Open Interest', 'dailyOpenInterest', 'updated daily at 00:00UTC', undefined, 'Open Interest', true),
+		TotalAllTimeColumn('volume'),
+		allChains ? undefined : VolumeTVLColumn,
 		DominanceColumn
 	].filter((c) => c !== undefined)
 
@@ -123,21 +142,47 @@ export const incentivesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
 		NameColumn('fees', allChains),
-		allChains ? undefined : ChainsColumn('fees'),
-		allChains ? undefined : CategoryColumn,
+		ChainsColumn('fees'),
+		CategoryColumn,
 		Total24hColumn('Fees', undefined, undefined, 140),
-		allChains ? undefined : Total24hColumn('Revenue', 'revenue24h', undefined, 160),
-		allChains ? undefined : Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
-		allChains ? undefined : Total24hColumn('Market Cap', 'mcap', undefined, undefined, 'Market Cap'),
+		Total24hColumn('Revenue', 'revenue24h', undefined, 160),
+		Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
+		Total24hColumn('Market Cap', 'mcap', undefined, undefined, 'Market Cap'),
 		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, undefined, 'Fees (7d)'),
 		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, undefined, 'Fees (30d)'),
-		allChains ? undefined : Total24hColumn('Revenue', 'revenue7d', `Cumulative last 7d revenue`, 150, 'Revenue (7d)'),
-		allChains ? undefined : Total24hColumn('Fees', 'revenue30d', `Cumulative last 30d revenue`, 160, 'Revenue (30d)'),
+		Total24hColumn('Fees', 'total1y', `Cumulative last 1y fees`, undefined, 'Fees (1y)', true),
+		Total24hColumn('Fees', 'average1y', `Monthly Average 1y fees`, undefined, 'Avg Fees (1y)', true),
+		Total24hColumn('Incentives', 'emission24h', `Cumulative last 24h incentives`, 180, 'Incentives (24h)', true),
+		Total24hColumn('Incentives', 'emission7d', `Cumulative last 7d incentives`, 180, 'Incentives (7d)', true),
+		Total24hColumn('Incentives', 'emission30d', `Cumulative last 30d incentives`, 180, 'Incentives (30d)', true),
+		Total24hColumn(
+			'Net Earnings',
+			'netEarnings24h',
+			`Cumulative last 24h net earnings`,
+			180,
+			'Net Earnings (24h)',
+			true
+		),
+		Total24hColumn('Net Earnings', 'netEarnings7d', `Cumulative last 7d net earnings`, 180, 'Net Earnings (7d)', true),
+		Total24hColumn(
+			'Net Earnings',
+			'netEarnings30d',
+			`Cumulative last 30d net earnings`,
+			180,
+			'Net Earnings (30d)',
+			true
+		),
+		Total24hColumn('Revenue', 'revenue7d', `Cumulative last 7d revenue`, 150, 'Revenue (7d)'),
+		allChains
+			? undefined
+			: Total24hColumn('Revenue', 'revenue30d', `Cumulative last 30d revenue`, 160, 'Revenue (30d)'),
+		Total24hColumn('Revenue', 'revenue1y', `Cumulative last 1y revenue`, 160, 'Revenue (1y)', true),
+		Total24hColumn('Avg Revenue', 'averageRevenue1y', `Monthly Average 1y revenue`, 180, 'Avg Revenue (1y)', true),
 		// TotalAllTimeColumn('fees') tmp
-		allChains ? undefined : Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
-		allChains ? undefined : Total24hColumn('Treasury revenue', 'dailyProtocolRevenue', undefined, 190),
+		Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
+		Total24hColumn('Treasury revenue', 'dailyProtocolRevenue', undefined, 190),
 		// Total24hColumn('Creator revenue', 'dailyCreatorRevenue', undefined, 190),
-		allChains ? undefined : Total24hColumn('Supply side revenue', 'dailySupplySideRevenue', undefined, 220),
+		Total24hColumn('Supply side revenue', 'dailySupplySideRevenue', undefined, 220),
 		// Total24hColumn('Total fees', 'dailyTotalFees', undefined, 220),
 		// Total24hColumn('Total revenue', 'dailyTotalRevenue', undefined, 220)
 		// ChangeColumn('Weekly change', 'change_7dover7d', 160, 'Change of last 7d fees over the previous 7d fees'),
@@ -145,6 +190,15 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		TotalAllTimeColumn('fees'),
 		XColumn('P/F', 'pf', undefined, `Market cap / annualized fees`),
 		XColumn('P/S', 'ps', undefined, `Market cap / annualized revenue`)
+	].filter((c) => c !== undefined)
+
+export const simpleFeesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('fees', allChains, 140),
+		Total24hColumn('Fees', undefined, undefined, 120),
+		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, 120, 'Fees (7d)'),
+		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, 120, 'Fees (30d)'),
+		Total24hColumn('Fees', 'total1y', `Cumulative last 1y fees`, 120, 'Fees (1y)')
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen
@@ -191,7 +245,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 100
+		dominance: 120
 	},
 	600: {
 		name: 200,
@@ -201,7 +255,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 100
+		dominance: 120
 	},
 	900: {
 		name: 240,
@@ -211,7 +265,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 100
+		dominance: 120
 	}
 }
 
@@ -234,9 +288,13 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'total7d',
 		'change_7dover7d',
 		'total30d',
+		'total1y',
+		'average1y',
 		'change_30dover30d',
 		'revenue7d',
 		'revenue30d',
+		'revenue1y',
+		'averageRevenue1y',
 		'dailyRevenue',
 		'dailyProtocolRevenue',
 		'dailySupplySideRevenue',
@@ -258,11 +316,15 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'dailyHoldersRevenue',
 		'mcap',
 		'total7d',
+		'revenue7d',
 		'change_7dover7d',
 		'total30d',
 		'change_30dover30d',
-		'revenue7d',
 		'revenue30d',
+		'average1y',
+		'total1y',
+		'averageRevenue1y',
+		'revenue1y',
 		'dailyRevenue',
 		'dailyProtocolRevenue',
 		'dailySupplySideRevenue',

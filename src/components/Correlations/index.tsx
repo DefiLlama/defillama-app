@@ -2,15 +2,11 @@ import { X as XIcon } from 'react-feather'
 import { TYPE } from '~/Theme'
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
-import { useQueries, useQuery } from 'react-query'
 import {
 	Body,
 	ButtonCell,
 	Cell,
-	CloseButton,
 	HeaderCell,
-	ModalContent,
-	ModalWrapper,
 	Row,
 	SearchRow,
 	SelectedBody,
@@ -18,16 +14,108 @@ import {
 	Image,
 	SearchBody,
 	Add,
-	ToggleWrapper
+	ToggleWrapper,
+	Description
 } from './styles'
 import { Switch, Wrapper } from '../LiquidationsPage/TableSwitch'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
-import { Divider, Panel } from '..'
-import { DashGrid } from '~/pages/press'
 import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
+import { CloseButton, ModalContent, ModalWrapper } from '../Modal/styles'
+
+export function CoinsPicker({ coinsData, isModalOpen, setModalOpen, selectCoin, selectedCoins, queryCoins }: any) {
+	const parentRef = useRef()
+	const [search, setSearch] = useState('')
+	const filteredCoins = useMemo(() => {
+		return (
+			coinsData &&
+			coinsData.filter(
+				(coin) =>
+					(search === ''
+						? true
+						: coin?.symbol?.toLowerCase().includes(search.toLowerCase()) ||
+						  coin?.name?.toLowerCase().includes(search.toLowerCase())) && !selectedCoins[coin.id]
+			)
+		)
+	}, [search, selectedCoins, queryCoins])
+	const rowVirtualizer = useVirtualizer({
+		count: filteredCoins?.length || 0,
+		getScrollElement: () => parentRef.current,
+		estimateSize: () => 50
+	})
+	return (
+		<ModalWrapper open={isModalOpen} onClick={() => setModalOpen(false)}>
+			<ModalContent onClick={(e) => e.stopPropagation()}>
+				<CloseButton>
+					<input
+						value={search}
+						onChange={(e) => {
+							setSearch(e.target?.value)
+						}}
+						placeholder={'Search token...'}
+						style={{ height: '36px' }}
+						autoFocus
+					/>
+					<XIcon size={24} style={{ marginLeft: '0.5em' }} onClick={() => setModalOpen(false)} />
+				</CloseButton>
+				<SearchBody
+					ref={parentRef}
+					style={{
+						height: 400,
+						width: 300,
+						overflowY: 'auto',
+						contain: 'strict'
+					}}
+				>
+					<div
+						style={{
+							height: `${rowVirtualizer.getTotalSize()}px`,
+							width: '100%',
+							position: 'relative'
+						}}
+					>
+						{rowVirtualizer.getVirtualItems().map((virtualItem) => {
+							const coin = filteredCoins[virtualItem.index]
+
+							if (!coin) return
+
+							return (
+								<SearchRow
+									style={{
+										position: 'absolute',
+										top: 0,
+										left: 0,
+										width: '100%',
+										height: `${virtualItem.size}px`,
+										transform: `translateY(${virtualItem.start}px)`
+									}}
+									key={virtualItem.key}
+									onClick={() => selectCoin(coin)}
+								>
+									<Image
+										alt={''}
+										src={coin.image}
+										height={'24px'}
+										width={'24px'}
+										loading="lazy"
+										onError={(e) => {
+											e.currentTarget.src = '/placeholder.png'
+										}}
+									/>
+									<TYPE.body>
+										{coin.name} ({coin.symbol.toUpperCase()})
+									</TYPE.body>
+								</SearchRow>
+							)
+						})}
+					</div>
+				</SearchBody>
+			</ModalContent>
+		</ModalWrapper>
+	)
+}
 
 export default function Correlations({ coinsData }) {
 	const router = useRouter()
@@ -45,8 +133,6 @@ export default function Correlations({ coinsData }) {
 			{},
 		[queryCoins]
 	)
-	const parentRef = useRef()
-	const [search, setSearch] = useState('')
 	const [period, setPeriod] = useState(365)
 	const { data: priceChart, isLoading } = usePriceCharts(Object.keys(selectedCoins))
 	const coins = Object.values(selectedCoins).filter(Boolean)
@@ -73,26 +159,6 @@ export default function Correlations({ coinsData }) {
 		[isLoading, period, queryCoins]
 	)
 
-	console.log(correlations, priceChart)
-
-	const filteredCoins = useMemo(() => {
-		return (
-			coinsData &&
-			coinsData.filter(
-				(coin) =>
-					(search === ''
-						? true
-						: coin?.symbol?.toLowerCase().includes(search.toLowerCase()) ||
-						  coin?.name?.toLowerCase().includes(search.toLowerCase())) && !selectedCoins[coin.id]
-			)
-		)
-	}, [search, selectedCoins, queryCoins])
-	const rowVirtualizer = useVirtualizer({
-		count: filteredCoins?.length || 0,
-		getScrollElement: () => parentRef.current,
-		estimateSize: () => 50
-	})
-
 	useEffect(() => {
 		if (!queryCoins?.length)
 			router.push(
@@ -106,7 +172,7 @@ export default function Correlations({ coinsData }) {
 				undefined,
 				{ shallow: true }
 			)
-	}, [queryCoins])
+	}, [queryCoins, router])
 
 	const [isModalOpen, setModalOpen] = useState(false)
 
@@ -125,6 +191,7 @@ export default function Correlations({ coinsData }) {
 					1y
 				</Switch>
 			</ToggleWrapper>
+
 			<Body>
 				<SelectedBody>
 					<TYPE.heading>Selected Coins</TYPE.heading>
@@ -180,6 +247,7 @@ export default function Correlations({ coinsData }) {
 								{correlations[coin.id]?.map((corr) =>
 									corr === null ? (
 										<Image
+											key={coin.image}
 											alt={''}
 											src={coin.image}
 											height={'24px'}
@@ -203,87 +271,31 @@ export default function Correlations({ coinsData }) {
 						</Row>
 					</tbody>
 				</Table>
-				<ModalWrapper open={isModalOpen} onClick={() => setModalOpen(false)}>
-					<ModalContent onClick={(e) => e.stopPropagation()}>
-						<CloseButton onClick={() => setModalOpen(false)}>
-							<XIcon size={24} />
-						</CloseButton>
-						<input
-							value={search}
-							onChange={(e) => {
-								setSearch(e.target?.value)
-							}}
-							placeholder={'Search token...'}
-							style={{ height: '36px' }}
-							autoFocus
-						/>
-						<SearchBody
-							ref={parentRef}
-							style={{
-								height: 400,
-								width: 300,
-								overflowY: 'auto',
-								contain: 'strict'
-							}}
-						>
-							<div
-								style={{
-									height: `${rowVirtualizer.getTotalSize()}px`,
-									width: '100%',
-									position: 'relative'
-								}}
-							>
-								{rowVirtualizer.getVirtualItems().map((virtualItem) => {
-									const coin = filteredCoins[virtualItem.index]
-
-									if (!coin) return
-
-									return (
-										<SearchRow
-											style={{
-												position: 'absolute',
-												top: 0,
-												left: 0,
-												width: '100%',
-												height: `${virtualItem.size}px`,
-												transform: `translateY(${virtualItem.start}px)`
-											}}
-											key={virtualItem.key}
-											onClick={() =>
-												router.push(
-													{
-														pathname: router.pathname,
-														query: {
-															...router.query,
-															coin: Array.isArray(queryCoins) ? queryCoins.concat(coin.id) : [queryCoins, coin.id]
-														}
-													},
-													undefined,
-													{ shallow: true }
-												)
-											}
-										>
-											<Image
-												alt={''}
-												src={coin.image}
-												height={'24px'}
-												width={'24px'}
-												loading="lazy"
-												onError={(e) => {
-													e.currentTarget.src = '/placeholder.png'
-												}}
-											/>
-											<TYPE.body>
-												{coin.name}({coin.symbol.toUpperCase()})
-											</TYPE.body>
-										</SearchRow>
-									)
-								})}
-							</div>
-						</SearchBody>
-					</ModalContent>
-				</ModalWrapper>
+				<CoinsPicker
+					coinsData={coinsData}
+					isModalOpen={isModalOpen}
+					setModalOpen={setModalOpen}
+					selectedCoins={selectedCoins}
+					queryCoins={queryCoins}
+					selectCoin={(coin) => {
+						router.push(
+							{
+								pathname: router.pathname,
+								query: {
+									...router.query,
+									coin: Array.isArray(queryCoins) ? queryCoins.concat(coin.id) : [queryCoins, coin.id]
+								}
+							},
+							undefined,
+							{ shallow: true }
+						)
+					}}
+				/>
 			</Body>
+			<Description>
+				Correlation is calculated by using each day as a single data point, and this calculation depends on the selected
+				period. For example, if you select a period of one year, the correlation will be computed from 365 data points.
+			</Description>
 			<FAQ />
 		</>
 	)

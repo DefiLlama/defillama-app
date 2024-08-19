@@ -56,7 +56,7 @@ const Cexs = ({ cexs }) => {
 	const { data: customRangeInflows = {} } = useQuery(['cexs', startTs, endTs], () =>
 		getOutflowsByTimerange(startTs, endTs)
 	)
-	console.log(startTs, endTs, customRangeInflows)
+
 	const cexsWithCustomRange = cexs.map((cex) => ({
 		...cex,
 		customRange: customRangeInflows[cex.slug]?.outflows
@@ -66,7 +66,7 @@ const Cexs = ({ cexs }) => {
 		const isValid = hours
 			.map((hour) => (hour === '' ? 0 : hour))
 			.every((hour) => /^([01]?[0-9]|2[0-3])$/.test(hour) || hour === '')
-		console.log(startTs, endTs, startTs > endTs, hours)
+
 		if (hours[0] > hours[1] && startTs > endTs) return
 		if (hours[1] < hours[0] && startTs > endTs) return
 

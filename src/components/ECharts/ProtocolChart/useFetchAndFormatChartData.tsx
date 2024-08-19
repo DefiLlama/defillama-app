@@ -13,13 +13,14 @@ import {
 	useFetchProtocolTwitter,
 	useFetchProtocolDevMetrics
 } from '~/api/categories/protocols/client'
-import { nearestUtc } from '~/utils'
+import { nearestUtc, slug } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
 import useSWR from 'swr'
-import { BAR_CHARTS } from './utils'
+import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/BridgeContainer'
 import { fetchWithErrorLogging } from '~/utils/async'
 import dayjs from 'dayjs'
+import { CACHE_SERVER } from '~/constants'
 
 const fetch = fetchWithErrorLogging
 
@@ -36,8 +37,8 @@ export function useFetchAndFormatChartData({
 	fees,
 	revenue,
 	unlocks,
-	activeUsers,
-	newUsers,
+	activeAddresses,
+	newAddresses,
 	events,
 	transactions,
 	gasUsed,
@@ -64,7 +65,14 @@ export function useFetchAndFormatChartData({
 	twitter,
 	twitterHandle,
 	devMetrics,
-	contributersMetrics
+	contributersMetrics,
+	contributersCommits,
+	devCommits,
+	nftVolume,
+	nftVolumeData,
+	aggregators,
+	premiumVolume,
+	derivativesAggregators
 }) {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
@@ -81,10 +89,7 @@ export function useFetchAndFormatChartData({
 	const { data: fdvData = null, error: fdvError } = useSWR(
 		`fdv-${geckoId && fdv === 'true' && isRouterReady ? geckoId : null}`,
 		geckoId && fdv === 'true' && isRouterReady
-			? () =>
-					fetch(
-						`https://api.coingecko.com/api/v3/coins/${geckoId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
-					).then((res) => res.json())
+			? () => fetch(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.json())
 			: () => null
 	)
 
@@ -98,11 +103,11 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
 	})
 
-	const { data: activeUsersData, loading: fetchingActiveUsers } = useFetchProtocolActiveUsers(
-		isRouterReady && activeUsers === 'true' && activeUsersId ? activeUsersId : null
+	const { data: activeAddressesData, loading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
+		isRouterReady && activeAddresses === 'true' && activeUsersId ? activeUsersId : null
 	)
-	const { data: newUsersData, loading: fetchingNewUsers } = useFetchProtocolNewUsers(
-		isRouterReady && newUsers === 'true' && activeUsersId ? activeUsersId : null
+	const { data: newAddressesData, loading: fetchingNewAddresses } = useFetchProtocolNewUsers(
+		isRouterReady && newAddresses === 'true' && activeUsersId ? activeUsersId : null
 	)
 	const { data: transactionsData, loading: fetchingTransactions } = useFetchProtocolTransactions(
 		isRouterReady && transactions === 'true' && activeUsersId ? activeUsersId : null
@@ -134,7 +139,9 @@ export function useFetchAndFormatChartData({
 	)
 
 	const { data: devMetricsData, loading: fetchingDevMetrics } = useFetchProtocolDevMetrics(
-		isRouterReady && (devMetrics === 'true' || contributersMetrics === 'true') ? protocol.id || protocolId : null
+		isRouterReady && [devMetrics, contributersMetrics, contributersCommits, devCommits].some((v) => v === 'true')
+			? protocol.id || protocolId
+			: null
 	)
 
 	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
@@ -152,6 +159,31 @@ export function useFetchAndFormatChartData({
 		enableBreakdownChart: false,
 		disabled: isRouterReady && derivativesVolume === 'true' && metrics.derivatives ? false : true
 	})
+
+	const { data: optionsVolumeData, loading: fetchingOptionsVolume } = useGetOverviewChartData({
+		name: protocol,
+		dataToFetch: 'options',
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: isRouterReady && premiumVolume === 'true' && metrics.options ? false : true
+	})
+
+	const { data: aggregatorsVolumeData, loading: fetchingAggregatorsVolume } = useGetOverviewChartData({
+		name: protocol,
+		dataToFetch: 'aggregators',
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: isRouterReady && metrics.aggregators && aggregators === 'true' ? false : true
+	})
+
+	const { data: derivativesAggregatorsVolumeData, loading: fetchingDerivativesAggregatorsVolume } =
+		useGetOverviewChartData({
+			name: protocol,
+			dataToFetch: 'aggregator-derivatives',
+			type: 'chains',
+			enableBreakdownChart: false,
+			disabled: isRouterReady && metrics.derivativesAggregators && derivativesAggregators === 'true' ? false : true
+		})
 
 	const showNonUsdDenomination =
 		denomination &&
@@ -212,6 +244,13 @@ export function useFetchAndFormatChartData({
 				}
 
 				chartData[date]['TVL'] = showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL
+			})
+		}
+
+		if (isHourlyChart && tvl !== 'false') {
+			tvlData.forEach(([dateS, TVL]) => {
+				const date = nearestUtc(+dateS * 1000) / 1000
+				chartData[date] = chartData[dateS]
 			})
 		}
 
@@ -298,10 +337,10 @@ export function useFetchAndFormatChartData({
 		}
 
 		if (geckoId && protocolCGData) {
-			if (mcap === 'true') {
+			if (mcap === 'true' && protocolCGData['mcaps'] && protocolCGData['mcaps'].length > 0) {
 				chartsUnique.push('Mcap')
 
-				protocolCGData['market_caps'].forEach(([dateMs, Mcap]) => {
+				protocolCGData['mcaps'].forEach(([dateMs, Mcap]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = {}
@@ -315,14 +354,13 @@ export function useFetchAndFormatChartData({
 				if (
 					tvlData.length > 0 &&
 					tvl !== 'false' &&
-					protocolCGData['market_caps'].length > 0 &&
-					protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][0] <
-						+tvlData[tvlData.length - 1][0] * 1000
+					protocolCGData['mcaps']?.length > 0 &&
+					protocolCGData['mcaps'][protocolCGData['mcaps'].length - 1][0] < +tvlData[tvlData.length - 1][0] * 1000
 				) {
 					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
-					const Mcap = protocolCGData['market_caps'][protocolCGData['market_caps'].length - 1][1]
+					const Mcap = protocolCGData['mcaps']?.[protocolCGData['mcaps'].length - 1][1]
 
 					chartData[date]['Mcap'] = showNonUsdDenomination
 						? Mcap / getPriceAtDate(date, denominationHistory.prices)
@@ -364,7 +402,7 @@ export function useFetchAndFormatChartData({
 			if (fdv === 'true' && fdvData) {
 				chartsUnique.push('FDV')
 
-				const totalSupply = fdvData['market_data']['total_supply']
+				const totalSupply = fdvData['data']['total_supply']
 
 				protocolCGData['prices'].forEach(([dateMs, price]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
@@ -395,7 +433,7 @@ export function useFetchAndFormatChartData({
 			if (tokenVolume === 'true') {
 				chartsUnique.push('Token Volume')
 
-				protocolCGData['total_volumes'].forEach(([dateMs, price]) => {
+				protocolCGData['volumes'].forEach(([dateMs, price]) => {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = {}
@@ -409,14 +447,13 @@ export function useFetchAndFormatChartData({
 				if (
 					tvlData.length > 0 &&
 					tvl !== 'false' &&
-					protocolCGData['total_volumes'].length > 0 &&
-					protocolCGData['total_volumes'][protocolCGData['total_volumes'].length - 1][0] <
-						+tvlData[tvlData.length - 1][0] * 1000
+					protocolCGData['volumes'].length > 0 &&
+					protocolCGData['volumes'][protocolCGData['volumes'].length - 1][0] < +tvlData[tvlData.length - 1][0] * 1000
 				) {
 					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
 						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
-					const tokenVolume = protocolCGData['total_volumes'][protocolCGData['total_volumes'].length - 1][1]
+					const tokenVolume = protocolCGData['volumes'][protocolCGData['volumes'].length - 1][1]
 
 					chartData[date]['Token Volume'] = showNonUsdDenomination
 						? tokenVolume / getPriceAtDate(date, denominationHistory.prices)
@@ -489,6 +526,51 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
+		if (optionsVolumeData) {
+			chartsUnique.push('Premium Volume')
+
+			optionsVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Premium Volume'] = showNonUsdDenomination
+					? +item['Premium volume'] / getPriceAtDate(date, denominationHistory.prices)
+					: item['Premium volume']
+			})
+		}
+
+		if (aggregatorsVolumeData) {
+			chartsUnique.push('Aggregators Volume')
+
+			aggregatorsVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Aggregators Volume'] = showNonUsdDenomination
+					? +item.Aggregators / getPriceAtDate(date, denominationHistory.prices)
+					: item.Aggregators
+			})
+		}
+
+		if (derivativesAggregatorsVolumeData) {
+			chartsUnique.push('Derivatives Aggregators Volume')
+
+			derivativesAggregatorsVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Derivatives Aggregators Volume'] = showNonUsdDenomination
+					? +item['Aggregator-derivatives'] / getPriceAtDate(date, denominationHistory.prices)
+					: item['Aggregator-derivatives']
+			})
+		}
+
 		if (feesAndRevenue) {
 			if (fees === 'true') {
 				chartsUnique.push('Fees')
@@ -518,16 +600,18 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
-		if (twitterData && twitterData.tweets) {
+		if (twitterData && twitterData?.tweets && twitterData?.lastTweet) {
 			chartsUnique.push('Tweets')
 
 			twitterData?.tweets?.forEach((tweet) => {
-				const date = Math.floor(nearestUtc(tweet.date) / 1000)
+				const date = dayjs(tweet[0] * 1000)
+					.startOf('day')
+					.unix()
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date]['Tweets'] = chartData[date]['Tweets'] ? chartData[date]['Tweets'] + 1 : 1
+				chartData[date]['Tweets'] = (chartData[date]['Tweets'] || 0) + tweet[1]
 			})
 		}
 
@@ -553,30 +637,30 @@ export function useFetchAndFormatChartData({
 				})
 		}
 
-		if (activeUsersData) {
-			chartsUnique.push('Active Users')
+		if (activeAddressesData) {
+			chartsUnique.push('Active Addresses')
 
-			activeUsersData.forEach(([dateS, noOfUsers]) => {
+			activeAddressesData.forEach(([dateS, noOfUsers]) => {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date]['Active Users'] = noOfUsers || 0
+				chartData[date]['Active Addresses'] = noOfUsers || 0
 			})
 		}
-		if (newUsersData) {
-			chartsUnique.push('New Users')
+		if (newAddressesData) {
+			chartsUnique.push('New Addresses')
 
-			newUsersData.forEach(([dateS, noOfUsers]) => {
+			newAddressesData.forEach(([dateS, noOfUsers]) => {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = {}
 				}
 
-				chartData[date]['New Users'] = noOfUsers || 0
+				chartData[date]['New Addresses'] = noOfUsers || 0
 			})
 		}
 		if (transactionsData) {
@@ -724,6 +808,52 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
+		if (nftVolumeData?.length && nftVolume === 'true') {
+			chartsUnique.push('NFT Volume')
+
+			nftVolumeData.forEach(({ date, volume, volumeUsd }) => {
+				const ts = Math.floor(nearestUtc(dayjs(date).toDate().getTime()) / 1000)
+
+				if (!chartData[ts]) {
+					chartData[ts] = {}
+				}
+
+				chartData[ts]['NFT Volume'] = (showNonUsdDenomination ? volume : volumeUsd) || 0
+			})
+		}
+
+		if (devMetricsData && devCommits === 'true') {
+			chartsUnique.push('Devs Commits')
+
+			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
+
+			devMetricsData.report?.[metricKey].forEach(({ k, cc }) => {
+				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Devs Commits'] = cc || 0
+			})
+		}
+
+		if (devMetricsData && contributersCommits === 'true') {
+			chartsUnique.push('Contributers Commits')
+
+			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
+
+			devMetricsData.report?.[metricKey].forEach(({ k, cc }) => {
+				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Contributers Commits'] = cc || 0
+			})
+		}
+
 		if (treasuryData) {
 			chartsUnique.push('Treasury')
 			const tData = formatProtocolsTvlChartData({ historicalChainTvls: treasuryData.chainTvls, extraTvlEnabled: {} })
@@ -771,49 +901,56 @@ export function useFetchAndFormatChartData({
 			chartsUnique
 		}
 	}, [
-		protocolCGData,
-		mcap,
-		geckoId,
-		volumeData,
-		derivativesVolumeData,
-		tvl,
-		showNonUsdDenomination,
-		denominationHistory?.prices,
-		feesAndRevenue,
-		fees,
-		revenue,
 		isRouterReady,
-		activeUsersData,
-		newUsersData,
-		tokenPrice,
-		fdv,
-		fdvData,
-		gasData,
-		transactionsData,
+		tvl,
+		historicalChainTvls,
+		extraTvlEnabled,
+		isHourlyChart,
 		staking,
 		borrowed,
-		historicalChainTvls,
+		geckoId,
+		protocolCGData,
+		tokenLiquidityData,
+		bridgeVolumeData,
+		volumeData,
+		derivativesVolumeData,
+		optionsVolumeData,
+		aggregatorsVolumeData,
+		derivativesAggregatorsVolumeData,
+		feesAndRevenue,
+		twitterData,
+		unlocksData,
+		activeAddressesData,
+		newAddressesData,
+		transactionsData,
+		gasData,
 		medianAPYData,
 		usdInflows,
 		usdInflowsData,
-		isHourlyChart,
 		governanceData,
-		extraTvlEnabled,
-		treasuryData,
-		unlocksData,
-		bridgeVolumeData,
-		tokenVolume,
-		tokenLiquidityData,
-		twitterData,
-		devMetrics,
 		devMetricsData,
-		groupBy,
-		contributersMetrics
+		contributersMetrics,
+		devMetrics,
+		nftVolumeData,
+		nftVolume,
+		devCommits,
+		contributersCommits,
+		treasuryData,
+		showNonUsdDenomination,
+		denominationHistory.prices,
+		mcap,
+		tokenPrice,
+		fdv,
+		fdvData,
+		tokenVolume,
+		fees,
+		revenue,
+		groupBy
 	])
 
 	const finalData = React.useMemo(() => {
-		return groupDataByDays(chartData, isHourlyChart || typeof groupBy !== 'string' ? null : groupBy, chartsUnique)
-	}, [chartData, chartsUnique, isHourlyChart, groupBy])
+		return groupDataByDays(chartData, typeof groupBy !== 'string' ? null : groupBy, chartsUnique)
+	}, [chartData, chartsUnique, groupBy])
 
 	const fetchingTypes = []
 
@@ -865,15 +1002,19 @@ export function useFetchAndFormatChartData({
 		fetchingTypes.push('derivatives volume')
 	}
 
+	if (fetchingAggregatorsVolume) {
+		fetchingTypes.push('aggregators volume')
+	}
+
 	if (fetchingEmissions) {
 		fetchingTypes.push('unlocks')
 	}
 
-	if (fetchingActiveUsers) {
-		fetchingTypes.push('active users')
+	if (fetchingActiveAddresses) {
+		fetchingTypes.push('active addresses')
 	}
-	if (fetchingNewUsers) {
-		fetchingTypes.push('new users')
+	if (fetchingNewAddresses) {
+		fetchingTypes.push('new addresses')
 	}
 	if (fetchingTransactions) {
 		fetchingTypes.push('transactions')
@@ -910,8 +1051,8 @@ export function useFetchAndFormatChartData({
 		fetchingFees ||
 		fetchingVolume ||
 		fetchingDerivativesVolume ||
-		fetchingActiveUsers ||
-		fetchingNewUsers ||
+		fetchingActiveAddresses ||
+		fetchingNewAddresses ||
 		fetchingTransactions ||
 		fetchingGasUsed ||
 		fetchingMedianAPY ||
@@ -921,7 +1062,8 @@ export function useFetchAndFormatChartData({
 		fetchingBridgeVolume ||
 		fetchingTokenLiquidity ||
 		fetchingTwitter ||
-		fetchingDevMetrics
+		fetchingDevMetrics ||
+		fetchingAggregatorsVolume
 
 	return {
 		fetchingTypes,
@@ -951,7 +1093,11 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 				date = firstDayOfMonth(+defaultDate * 1000)
 			}
 
-			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek < +date : true)) {
+			if (groupBy === 'weekly') {
+				date = lastDayOfWeek(+defaultDate * 1000)
+			}
+
+			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek <= +date : true)) {
 				currentDate = +date
 			}
 
@@ -967,7 +1113,7 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 				}
 
 				if (BAR_CHARTS.includes(chartType) || forceGroup) {
-					if (groupBy === 'cumulative') {
+					if (groupBy === 'cumulative' && !DISABLED_CUMULATIVE_CHARTS.includes(chartType)) {
 						cumulative[chartType] = (cumulative[chartType] || 0) + (+data[defaultDate][chartType] || 0)
 						chartData[currentDate][chartType] = cumulative[chartType]
 					} else {
@@ -993,10 +1139,17 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 }
 
 const getPriceAtDate = (date: string | number, history: Array<[number, number]>) => {
+	if (!history) return 0
 	let priceAtDate = history.find((x) => x[0] === Number(date) * 1000)
 
 	if (!priceAtDate) {
-		priceAtDate = history.find((x) => -432000000 < x[0] - Number(date) * 1000 && x[0] - Number(date) * 1000 < 432000000)
+		if (Number(date) * 1000 > history[history.length - 1][1]) {
+			priceAtDate = history[history.length - 1]
+		} else {
+			priceAtDate = history.find(
+				(x) => -432000000 < x[0] - Number(date) * 1000 && x[0] - Number(date) * 1000 < 432000000
+			)
+		}
 	}
 
 	return priceAtDate?.[1] ?? 0
@@ -1019,8 +1172,13 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 						// roundup timestamps on last tvl values in chart
 						if (index > historicalChainTvls[section].tvl!.length - 2 && !tvlDictionary[date]) {
 							const prevDate = historicalChainTvls[section].tvl[index - 1]?.date
+
 							// only change timestamp if prev timestamp is at UTC 00:00
-							if (prevDate && new Date(prevDate * 1000).getUTCHours() === 0) {
+							if (
+								prevDate &&
+								new Date(prevDate * 1000).getUTCHours() === 0 &&
+								new Date(date * 1000).getUTCHours() !== 0
+							) {
 								// find date in tvlDictionary
 								for (
 									let i = prevDate + 1;
@@ -1059,6 +1217,16 @@ const firstDayOfMonth = (dateString) => {
 	return date.getTime() / 1000
 }
 
+const DAY_OF_THE_WEEK = 0 // sunday
+function lastDayOfWeek(dateString) {
+	let date = new Date(dateString)
+	date.setDate(date.getDate() + ((DAY_OF_THE_WEEK + (7 - date.getDay())) % 7))
+	date.setHours(0)
+	date.setSeconds(0)
+	date.setMilliseconds(0)
+
+	return date.getTime() > new Date().getTime() ? new Date().getTime() / 1000 : date.getTime() / 1000
+}
 export const lastDayOfMonth = (dateString) => {
 	let date = new Date(dateString)
 

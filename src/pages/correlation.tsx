@@ -1,4 +1,3 @@
-import ComparePage from '~/components/ComparePage'
 import Correlations from '~/components/Correlations'
 import Layout from '~/layout'
 import { QueryClient, QueryClientProvider } from 'react-query'
@@ -9,13 +8,9 @@ const queryClient = new QueryClient()
 
 export const getStaticProps = withPerformanceLogging('correlation', async () => {
 	const coinsData = await getAllCGTokensList()
-	// console.log(coinsData)
-	const props = {
-		coinsData
-	}
 	return {
 		props: {
-			...props
+			coinsData
 		},
 		revalidate: maxAgeForNext([22])
 	}

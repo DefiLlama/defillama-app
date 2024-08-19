@@ -12,7 +12,8 @@ export interface Protocol {
 	id: string
 	name: string
 	address?: string | null
-	symbol: string
+	symbol?: string | null
+	assetToken?: string | null
 	url: string
 	description?: string | null
 	chain: string
@@ -193,6 +194,11 @@ export interface IFormattedProtocol extends LiteProtocol {
 	revenue_24h?: number | null
 	fees_30d?: number | null
 	revenue_30d?: number | null
+	fees_1y?: number | null
+	revenue?: number | null
+	revenue_1y?: number | null
+	average_1y?: number | null
+	average_revenue_1y?: number | null
 	holdersRevenue30d?: number | null
 	userFees_24h?: number | null
 	cumulativeFees?: number | null
@@ -257,9 +263,11 @@ export interface IProtocolDevActivity {
 	name: string
 	linked_orgs: Array<string>
 	report: {
-		weekly_devs: Array<{ k: string; v: number }>
-		monthly_devs: Array<{ k: string; v: number }>
-		weekly_contributers: Array<{ k: string; v: number }>
-		monthly_contributers: Array<{ k: string; v: number }>
+		weekly_devs: Array<{ k: string; v: number; cc: number }>
+		monthly_devs: Array<{ k: string; v: number; cc: number }>
+		weekly_contributers: Array<{ k: string; v: number; cc: number }>
+		monthly_contributers: Array<{ k: string; v: number; cc: number }>
 	}
 }
+
+export type NftVolumeData = Array<{ date: string; volume: number }>

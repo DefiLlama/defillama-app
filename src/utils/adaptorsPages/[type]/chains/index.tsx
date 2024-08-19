@@ -3,6 +3,10 @@ import { getChainsPageData } from '~/api/categories/adaptors'
 
 async function getStaticProps({ params }) {
 	const data = await getChainsPageData(params.type)
+	if (params.type === 'options') {
+		const premiumData = await getChainsPageData(params.type, 'dailyPremiumVolume')
+		data.premium = premiumData
+	}
 	return {
 		props: data,
 		revalidate: maxAgeForNext([22])

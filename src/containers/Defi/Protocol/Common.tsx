@@ -1,6 +1,8 @@
 import styled from 'styled-components'
 import { TabList as AriakitTabList, Tab as AriaktiTab } from 'ariakit'
 import { transparentize } from 'polished'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 
 export const TabLayout = styled.span`
 	display: flex;
@@ -33,10 +35,6 @@ export const Tab = styled(AriaktiTab)`
 	white-space: nowrap;
 	border-bottom: 1px solid transparent;
 
-	&[aria-selected='true'] {
-		border-bottom: ${({ color }) => '1px solid ' + color};
-	}
-
 	& + & {
 		border-left: ${({ theme }) => '1px solid ' + theme.divider};
 	}
@@ -55,12 +53,19 @@ export const OtherProtocols = styled.nav`
 	grid-column: span 1;
 	display: flex;
 	overflow-x: auto;
+	width: fit-content;
 	background: ${({ theme }) => theme.bg7};
 	font-weight: 500;
-	border-radius: 12px 12px 0 0;
+	border-radius: 12px;
+	margin-bottom: 8px;
+	flex-wrap: wrap;
 
 	@media screen and (min-width: 80rem) {
 		grid-column: span 2;
+	}
+
+	& > * {
+		flex: 1;
 	}
 `
 
@@ -77,7 +82,7 @@ export const ProtocolLink = styled.a<IProtocolLink>`
 		border-left: ${({ theme }) => '1px solid ' + theme.divider};
 	}
 
-	border-bottom: ${({ active, color, theme }) => '1px solid ' + (active ? color : theme.divider)};
+	background-color: ${({ active, color }) => (active ? transparentize(0.9, color) : 'transparent')};
 
 	:first-child {
 		border-top-left-radius: 12px;
@@ -88,3 +93,50 @@ export const ProtocolLink = styled.a<IProtocolLink>`
 		background-color: ${({ color }) => transparentize(0.9, color)};
 	}
 `
+
+const TabWrapper = styled.div`
+	padding: 8px 24px;
+	white-space: nowrap;
+	border-bottom: 1px solid transparent;
+	cursor: pointer;
+
+	& + & {
+		border-left: ${({ theme }) => '1px solid ' + theme.divider};
+	}
+
+	:first-child {
+		border-top-left-radius: 12px;
+	}
+
+	:hover,
+	:focus-visible {
+		background-color: ${({ color }) => transparentize(0.9, color)};
+	}
+`
+
+export const CustomTabList = styled.div`
+	display: flex;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	border-bottom: ${({ theme }) => '1px solid ' + theme.divider};
+`
+
+export const CustomTab = ({ onClick, id, color, children, state }) => {
+	const router = useRouter()
+	const [selectedId, setSelectedId] = useState('')
+
+	useEffect(() => {
+		router.isReady ? setSelectedId(state.selectedId) : null
+	}, [router.query])
+
+	return (
+		<TabWrapper
+			id={id}
+			style={{ borderBottom: selectedId === id ? '1px solid ' + color : null }}
+			color={color}
+			onClick={() => onClick(id)}
+		>
+			{children}
+		</TabWrapper>
+	)
+}

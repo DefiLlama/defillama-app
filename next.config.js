@@ -24,6 +24,71 @@ const nextConfig = {
 				permanent: true
 			},
 			{
+				source: '/chain/Kucoin',
+				destination: '/chain/KCC',
+				permanent: true
+			},
+			{
+				source: '/chain/Cosmos',
+				destination: '/chain/CosmosHub',
+				permanent: true
+			},
+			{
+				source: '/chain/Terra',
+				destination: '/chain/Terra Classic',
+				permanent: true
+			},
+			{
+				source: '/chain/Nova',
+				destination: '/chain/Nova Network',
+				permanent: true
+			},
+			{
+				source: '/chain/Milkomeda',
+				destination: '/chain/Milkomeda C1',
+				permanent: true
+			},
+			{
+				source: '/chain/Elrond',
+				destination: '/chain/MultiversX',
+				permanent: true
+			},
+			{
+				source: '/chain/RSK',
+				destination: '/chain/Rootstock',
+				permanent: true
+			},
+			{
+				source: '/chain/OKExChain',
+				destination: '/chain/OKTChain',
+				permanent: true
+			},
+			{
+				source: '/chain/Map',
+				destination: '/chain/MAP Protocol',
+				permanent: true
+			},
+			{
+				source: '/chain/Pulse',
+				destination: '/chain/PulseChain',
+				permanent: true
+			},
+			{
+				source: '/chain/WEMIX',
+				destination: '/chain/WEMIX3.0',
+				permanent: true
+			},
+			{
+				source: '/chain/Umee',
+				destination: '/chain/UX',
+				permanent: true
+			},
+			{
+				source: '/chain/TomoChain',
+				destination: '/chain/Viction',
+				permanent: true
+			},
+			{
 				source: '/langs',
 				destination: '/languages',
 				permanent: true
@@ -72,6 +137,21 @@ const nextConfig = {
 				source: '/yields/borrow',
 				destination: '/yields',
 				permanent: true
+			},
+			{
+				source: '/compare-fdv',
+				destination: '/compare-tokens',
+				permanent: true
+			},
+			{
+				source: '/crypto-etfs',
+				destination: '/crypto-etf/bitcoin',
+				permanent: true
+			},
+			{
+				source: '/crypto-etf',
+				destination: '/crypto-etf/bitcoin',
+				permanent: true
 			}
 		]
 	},
@@ -84,7 +164,7 @@ const nextConfig = {
 						key: 'X-Frame-Options',
 						value: 'SAMEORIGIN'
 					},
-					{ key: 'Content-Security-Policy', value: 'frame-ancestors https:' }
+					{ key: 'Content-Security-Policy', value: 'frame-ancestors *' }
 				]
 			}
 		]
@@ -97,7 +177,7 @@ const nextConfig = {
 	},
 	generateBuildId: async () => {
 		// get the latest git commit hash here
-		const commitHash = require('child_process').execSync('git rev-parse HEAD').toString().trim()
+		const commitHash = Math.random().toString() //require('child_process').execSync('git rev-parse HEAD').toString().trim()
 		return commitHash
 	},
 	experimental: {

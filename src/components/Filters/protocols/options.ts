@@ -1,4 +1,4 @@
-import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 
 export const protocolsAndChainsOptions = [
 	{
@@ -10,6 +10,11 @@ export const protocolsAndChainsOptions = [
 		name: 'Pool2',
 		key: DEFI_SETTINGS.POOL2,
 		help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
+	},
+	{
+		name: 'Gov Tokens',
+		key: DEFI_SETTINGS.GOV_TOKENS,
+		help: 'Include governance tokens'
 	},
 	{
 		name: 'Borrows',
@@ -30,4 +35,9 @@ export const protocolsAndChainsOptions = [
 		name: 'Vesting',
 		key: DEFI_SETTINGS.VESTING
 	}
+]
+
+export const feesOptions = [
+	{ name: 'Bribes', key: FEES_SETTINGS.BRIBES, help: null },
+	{ name: 'Token Tax', key: FEES_SETTINGS.TOKENTAX, help: null }
 ]

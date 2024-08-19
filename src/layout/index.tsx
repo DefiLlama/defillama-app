@@ -1,11 +1,19 @@
 import * as React from 'react'
 import Head from 'next/head'
 import styled from 'styled-components'
+import { connectorsForWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit'
+import { configureChains, createClient, WagmiConfig } from 'wagmi'
+import { mainnet, optimism } from 'wagmi/chains'
+import { rabbyWallet, injectedWallet, walletConnectWallet, metaMaskWallet } from '@rainbow-me/rainbowkit/wallets'
+import { publicProvider } from 'wagmi/providers/public'
+import '@rainbow-me/rainbowkit/styles.css'
+import { Toaster } from 'react-hot-toast'
+
 import ThemeProvider, { GlobalStyle } from '~/Theme'
 import SEO from '~/components/SEO'
 import Nav from '~/components/Nav'
 
-const PageWrapper = styled.div`
+const PageWrapper = styled.div<{ fullWidth?: boolean }>`
 	flex: 1;
 	display: flex;
 	flex-direction: column;
@@ -14,6 +22,7 @@ const PageWrapper = styled.div`
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		margin: 28px 28px 28px 248px;
+		width: ${({ fullWidth }) => fullWidth && 'calc(100vw - 258px);'};
 	}
 `
 
@@ -35,7 +44,28 @@ interface ILayoutProps {
 	defaultSEO?: boolean
 	backgroundColor?: string
 	style?: React.CSSProperties
+	fullWidth?: boolean
 }
+
+const { chains, provider } = configureChains([mainnet, optimism], [publicProvider()])
+const projectId = 'abcbcfd99b02bb0d7057fc19b2f8a2ad'
+
+const connectors = connectorsForWallets([
+	{
+		groupName: 'Recommended',
+		wallets: [
+			injectedWallet({ chains }),
+			metaMaskWallet({ chains, projectId }),
+			walletConnectWallet({ projectId, chains }),
+			rabbyWallet({ chains })
+		]
+	}
+])
+const wagmiConfig = createClient({
+	autoConnect: true,
+	connectors,
+	provider
+})
 
 export default function Layout({ title, children, defaultSEO = false, ...props }: ILayoutProps) {
 	return (
@@ -50,9 +80,14 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 			<ThemeProvider>
 				<GlobalStyle />
 				<Nav />
-				<PageWrapper>
-					<Center {...props}>{children}</Center>
+				<PageWrapper {...props}>
+					<WagmiConfig client={wagmiConfig}>
+						<RainbowKitProvider chains={chains}>
+							<Center {...props}>{children}</Center>
+						</RainbowKitProvider>
+					</WagmiConfig>
 				</PageWrapper>
+				<Toaster />
 			</ThemeProvider>
 		</>
 	)

@@ -44,7 +44,8 @@ export interface ICommonSearchProps {
 export enum SETS {
 	PROTOCOLS = 'protocols',
 	CHAINS = 'chains',
-	GROUPED_CHAINS = 'grouped_chains'
+	GROUPED_CHAINS = 'grouped_chains',
+	CATEGORIES = 'categories'
 }
 
 export interface IGetSearchList {

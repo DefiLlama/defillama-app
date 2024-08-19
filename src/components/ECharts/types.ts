@@ -15,6 +15,8 @@ export interface IChartProps {
 	customLegendOptions?: Array<string>
 	tooltipSort?: boolean
 	tooltipOrderBottomUp?: boolean
+	tooltipValuesRelative?: boolean
+	hideLegend?: boolean
 	chartOptions?: {
 		[key: string]: {
 			[key: string]: Value | Array<Value>
@@ -30,6 +32,8 @@ export interface IChartProps {
 	unlockTokenSymbol?: string
 	isThemeDark?: boolean
 	isMonthly?: boolean
+	customYAxis?: Array<string>
+	hideOthersInTooltip?: boolean
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
@@ -44,6 +48,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	barWidths?: {
 		[stack: string]: number
 	}
+	gradientBars?: boolean
 }
 
 export interface IPieChartProps {
@@ -54,4 +59,8 @@ export interface IPieChartProps {
 		[stack: string]: string
 	}
 	usdFormat?: boolean
+	radius?: [string, string]
+	showLegend?: boolean
+	formatTooltip?: (params: any) => string
+	customLabel?: Record<string, any>
 }

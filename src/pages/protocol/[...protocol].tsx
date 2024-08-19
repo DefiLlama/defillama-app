@@ -1,9 +1,14 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
 import { standardizeProtocolName } from '~/utils'
-import { getProtocols } from '~/api/categories/protocols'
+import { getProtocol, getProtocols } from '~/api/categories/protocols'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
+import { getProtocolData, getProtocolDataLite } from '~/api/categories/protocols/getProtocolData'
+import { useRouter } from 'next/router'
+import Layout from '~/layout'
+import LocalLoader from '~/components/LocalLoader'
+import useSWR from 'swr'
+import { isCpusHot } from '~/utils/cache-client'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/[...protocol]',
@@ -12,8 +17,22 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const data = await getProtocolData(protocol)
-		return data
+		let isHot = false
+		const IS_RUNTIME = !!process.env.IS_RUNTIME
+
+		if (IS_RUNTIME) {
+			isHot = await isCpusHot()
+		}
+
+		const protocolData = await getProtocol(protocol)
+
+		if (isHot && !protocolData?.id?.includes('parent#')) {
+			const data = await getProtocolDataLite(protocol)
+			return data
+		} else {
+			const data = await getProtocolData(protocol)
+			return data
+		}
 	}
 )
 
@@ -27,16 +46,19 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-export default function Protocols({ protocolData, ...props }) {
-	if (protocolData.module === 'dummy.js') {
-		return (
-			<DummyProtocol
-				data={protocolData}
-				title={`${protocolData.name} - DefiLlama`}
-				backgroundColor={props.backgroundColor}
-				protocol={props.protocol}
-			/>
-		)
+const useProtocolData = (slug) => {
+	const { data, error } = useSWR(slug, getProtocolData)
+	return { data, error, loading: !data && !error }
+}
+
+export default function Protocols({ clientSide, protocolData, ...props }) {
+	const router = useRouter()
+	const { data, loading: fetchingData } = useProtocolData(clientSide === true ? router.query.protocol : null)
+	if (clientSide === true) {
+		if (!fetchingData && data) {
+			props = data.props
+			protocolData = props.protocolData
+		}
 	}
 	return (
 		<ProtocolContainer title={`${protocolData.name} - DefiLlama`} protocolData={protocolData} {...(props as any)} />

@@ -49,12 +49,6 @@ export interface IStackedBarChartProps extends Omit<IChartProps, 'title' | 'char
 	showLegend?: boolean
 }
 
-type series = Array<{
-	data: [Date, number][]
-	type: 'bar'
-	stack: 'value'
-}>
-
 export default function StackedBarChart({
 	chartData,
 	valueSymbol = '$',
@@ -69,7 +63,7 @@ export default function StackedBarChart({
 	const [isDark] = useDarkModeManager()
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
-		const series: series = chartData.map((cd) => {
+		const series = chartData.map((cd) => {
 			return {
 				name: cd.name,
 				type: 'bar',
@@ -90,6 +84,12 @@ export default function StackedBarChart({
 							color: chartColor
 					  }
 					: undefined
+			}
+		})
+
+		series.forEach((seriesItem) => {
+			if (seriesItem.data.length === 0) {
+				seriesItem.large = false
 			}
 		})
 

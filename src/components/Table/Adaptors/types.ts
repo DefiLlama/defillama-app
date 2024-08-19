@@ -13,10 +13,12 @@ interface IDexs {
 	disabled: boolean
 	logo?: string
 	methodology: string | IJSON<string>
+	category?: string
 }
 
 export interface IDexsRow extends IDexs {
 	subRows?: Array<IDexs>
+	defillamaId?: string
 }
 
 export interface IVolumesByChain {

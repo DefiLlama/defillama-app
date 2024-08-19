@@ -18,6 +18,7 @@ import {
 	download
 } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -44,7 +45,6 @@ function PeggedChainsOverview({
 	peggedChartDataByChain,
 	chainList,
 	chainsGroupbyParent,
-	chainTVLData
 }) {
 	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
@@ -54,7 +54,6 @@ function PeggedChainsOverview({
 		chainList,
 		[...Array(chainList.length).keys()],
 		'mcap',
-		chainTVLData
 	)
 
 	const filteredPeggedAssets = chainCirculatings
@@ -119,16 +118,12 @@ function PeggedChainsOverview({
 	return (
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
-
+			<CSVDownloadButton onClick={downloadCsv} style={{ width: '150px', alignSelf: 'flex-end' }} />
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
 					<BreakpointPanel>
 						<h1>Total {title}</h1>
 						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{mcapToDisplay}</p>
-						<DownloadButton as="button" onClick={downloadCsv}>
-							<DownloadIcon />
-							<span>&nbsp;&nbsp;.csv</span>
-						</DownloadButton>
 					</BreakpointPanel>
 					<BreakpointPanel>
 						<h2>Change (7d)</h2>

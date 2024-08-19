@@ -65,6 +65,12 @@ export const getOption = (
 		}))
 	}
 
+	series.forEach((seriesItem) => {
+		if (seriesItem.data.length === 0) {
+			seriesItem.large = false
+		}
+	})
+
 	const option: ECBasicOption = {
 		graphic: {
 			type: 'image',

@@ -136,7 +136,7 @@ export const formattedNum = (number, symbol = false) => {
 	const isNegative = num < 0
 	num = Math.abs(num)
 
-	const currencyMark = isNegative ? `${currencySymbol}-` : currencySymbol
+	const currencyMark = isNegative ? `-${currencySymbol}` : currencySymbol
 	const normalMark = isNegative ? '-' : ''
 
 	if (num > 1_000_000) {
@@ -320,7 +320,7 @@ export const getPercentChange = (valueNow, value24HoursAgo) => {
 export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)
 
 export const standardizeProtocolName = (tokenName = '') =>
-	tokenName.toLowerCase().split(' ').join('-').split("'").join('')
+	tokenName?.toLowerCase().split(' ').join('-').split("'").join('')
 
 export const slug = standardizeProtocolName
 
@@ -399,7 +399,7 @@ export const getPrevPeggedTotalFromChart = (chart, daysBefore, issuanceType, peg
 	if (!chart) return null
 	const prevChart = chart[chart.length - 1 - daysBefore]
 	if (!prevChart) return null
-	if (!pegType) return Object.values(prevChart?.[issuanceType]).reduce((a, b) => a + b)
+	if (!pegType) return Object.values(prevChart?.[issuanceType] ?? {}).reduce((a, b) => a + b, 0)
 	return prevChart?.[issuanceType]?.[pegType] ?? null
 }
 

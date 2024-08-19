@@ -110,6 +110,7 @@ interface IIconsRowProps {
 	iconType: 'token' | 'chain'
 	yieldRewardsSymbols?: string[]
 	disableLinks?: boolean
+	urlPrefix?: string
 }
 
 const isChain = (chain) => {
@@ -117,7 +118,14 @@ const isChain = (chain) => {
 }
 
 // todo update links prop to {name: string, iconType: string}
-const IconsRow = ({ links = [], url, iconType, yieldRewardsSymbols = [], disableLinks = false }: IIconsRowProps) => {
+const IconsRow = ({
+	links = [],
+	url,
+	iconType,
+	yieldRewardsSymbols = [],
+	disableLinks = false,
+	urlPrefix = ''
+}: IIconsRowProps) => {
 	const [visibleChainIndex, setVisibileChainIndex] = useState(0)
 	const mainWrapEl = useRef(null)
 	const { width: mainWrapWidth } = useResize(mainWrapEl)
@@ -149,7 +157,7 @@ const IconsRow = ({ links = [], url, iconType, yieldRewardsSymbols = [], disable
 				<ChainLogo
 					key={chain}
 					chain={chain}
-					url={url === '/yields?project' ? (isChain(chain) ? '/yields?chain' : url) : url}
+					url={url === '/yields?project' ? (isChain(chain) ? '/yields?chain' : url) : url + urlPrefix}
 					iconType={isChain(chain) ? 'chain' : iconType}
 					yieldRewardsSymbol={yieldRewardsSymbols[i]}
 					disableLink={disableLinks}
@@ -157,8 +165,8 @@ const IconsRow = ({ links = [], url, iconType, yieldRewardsSymbols = [], disable
 			))}
 			{!!hoverChains.length && links.length > 2 && (
 				<>
-					<HovercardAnchor state={hovercard}>
-						<TokenCounter>{`+${hoverChains.length}`}</TokenCounter>
+					<HovercardAnchor as={TokenCounter} state={hovercard}>
+						{`+${hoverChains.length}`}
 					</HovercardAnchor>
 					<Popover state={hovercard}>
 						{

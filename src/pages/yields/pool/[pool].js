@@ -54,7 +54,7 @@ const PageView = () => {
 
 	const { data: chartBorrow, loading: fetchingChartDataBorrow } = useYieldChartLendBorrow(query.pool)
 
-	const poolData = pool?.data ? pool.data[0] : {}
+	const poolData = pool?.data?.[0] ?? {}
 
 	const { data: config, loading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
@@ -70,7 +70,7 @@ const PageView = () => {
 	}
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
-
+	const apyMean30d = poolData.apyMean30d?.toFixed(2) ?? 0
 	const apyDelta20pct = (apy * 0.8).toFixed(2)
 
 	const tvlUsd = toK(poolData.tvlUsd ?? 0)
@@ -224,6 +224,11 @@ const PageView = () => {
 					<Stat>
 						<span>Total Value Locked</span>
 						<span style={{ color: '#4f8fea' }}>${tvlUsd}</span>
+					</Stat>
+
+					<Stat>
+						<span>30d Avg APY</span>
+						<span style={{ color: '#fd3c99' }}>{apyMean30d}%</span>
 					</Stat>
 
 					<Stat>

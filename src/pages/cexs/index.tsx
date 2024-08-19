@@ -165,6 +165,13 @@ export const cexData: Array<ICex> = [
 		cgDeriv: 'bitfinex_futures'
 	},
 	{
+		name: 'Robinhood',
+		slug: 'robinhood',
+		coin: null,
+		walletsLink: null,
+		cgId: null
+	},
+	{
 		name: 'Bybit',
 		slug: 'Bybit',
 		coin: 'BIT',
@@ -173,6 +180,16 @@ export const cexData: Array<ICex> = [
 		cgId: 'bybit_spot',
 		cgDeriv: 'bybit'
 	},
+	/*
+	{
+		name: 'Kraken',
+		slug: 'kraken',
+		coin: null,
+		walletsLink: null,
+		cgId: 'kraken',
+		cgDeriv: 'kraken_futures'
+	},
+	*/
 	{
 		name: 'Crypto.com',
 		slug: 'Crypto-com',
@@ -183,8 +200,8 @@ export const cexData: Array<ICex> = [
 		cgDeriv: 'crypto_com_futures'
 	},
 	{
-		name: 'Huobi',
-		slug: 'Huobi',
+		name: 'HTX',
+		slug: 'htx',
 		coin: 'HT',
 		coinSymbol: 'HT',
 		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',
@@ -199,6 +216,13 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://www.kucoin.com/blog/transparency-and-trust-a-detailed-list-of-kucoin-s-wallets',
 		cgId: 'kucoin',
 		cgDeriv: 'kumex'
+	},
+	{
+		name: 'Bitstamp',
+		slug: 'bitstamp',
+		coin: null,
+		walletsLink: null,
+		cgId: 'bitstamp'
 	},
 	{
 		name: 'Deribit',
@@ -243,8 +267,8 @@ export const cexData: Array<ICex> = [
 	{
 		name: 'Swissborg',
 		slug: 'swissborg',
-		coin: 'CHSB',
-		coinSymbol: 'CHSB',
+		coin: 'BORG',
+		coinSymbol: 'BORG',
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
@@ -258,12 +282,6 @@ export const cexData: Array<ICex> = [
 		slug: 'korbit',
 		coin: null,
 		walletsLink: 'https://korbit.co.kr/reserve'
-	},
-	{
-		name: 'Okcoin',
-		slug: 'okcoin',
-		coin: null,
-		walletsLink: 'https://www.okcoin.com/proof-of-reserves/download'
 	},
 	{
 		name: 'Phemex',
@@ -280,6 +298,13 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'ProBIt Global',
+		slug: 'probit-global',
+		coin: 'PROB',
+		coinSymbol: 'PROB',
+		walletsLink: null
+	},
+	{
 		name: 'WOO X',
 		slug: 'woo-x',
 		coin: 'WOO',
@@ -287,16 +312,17 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://woo.org/proof-of-reserves'
 	},
 	{
-		name: 'Cake DeFi',
-		slug: 'cake-defi',
+		name: 'Bake.io',
+		slug: 'bake.io',
 		coin: null,
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
 	{
-		name: 'CoinDCX',
-		slug: 'coindcx',
+		name: 'BingX',
+		slug: 'bingx',
 		coin: null,
-		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
+		walletsLink: 'https://bingx.com/en/balance-reserve/',
+		cgId: 'bingx'
 	},
 	{
 		name: 'Coinsquare',
@@ -305,10 +331,32 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
 	},
 	{
-		name: 'Hotbit',
-		slug: 'hotbit',
-		coin: 'HTB',
-		coinSymbol: 'HTB'
+		name: 'Toobit',
+		slug: 'toobit',
+		coin: null,
+		walletsLink:
+			'https://support.toobit.com/hc/en-us/articles/35739879881881-Toobit-Asset-Transparency-Report-Safeguarding-User-Assets'
+	},
+	{
+		name: 'CoinW',
+		slug: 'coinw',
+		coin: null,
+		walletsLink: null
+	},
+
+	{
+		name: 'CoinDCX',
+		slug: 'coindcx',
+		coin: null,
+		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
+	},
+	{
+		name: 'Fastex',
+		slug: 'fastex',
+		coin: 'FTN',
+		coinSymbol: 'FTN',
+		walletsLink: 'https://www.fastex.com/proof-of-reserves',
+		cgId: 'fastex'
 	},
 	{
 		name: 'NBX',
@@ -317,10 +365,30 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://nbx.com/en/proof-of-reserves'
 	},
 	{
+		name: 'Okcoin',
+		slug: 'okcoin',
+		coin: null,
+		walletsLink: 'https://www.okcoin.com/proof-of-reserves/download'
+	},
+	{
 		name: 'BitVenus',
 		slug: 'bitvenus',
 		coin: null,
 		walletsLink: null
+	},
+	{
+		name: 'Flipster',
+		slug: 'flipster',
+		coin: null,
+		walletsLink: 'https://flipster.io/support/proof-of-reserves'
+	},
+	{
+		name: 'NonKYC',
+		slug: 'nonkyc',
+		coin: 'NKYC',
+		coinSymbol: 'NKYC',
+		walletsLink: 'https://nonkyc.io/allreserves',
+		cgId: 'nonkyc_io'
 	},
 	{
 		name: 'Latoken',
@@ -329,10 +397,79 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'BitMart',
+		slug: 'bitMart',
+		coin: 'BMX',
+		coinSymbol: 'BMX',
+		cgId: 'bitmart',
+		cgDeriv: 'bitmart_futures'
+	},
+	{
+		name: 'Klever Exchange',
+		slug: 'klever-exchange',
+		coin: 'KLV',
+		coinSymbol: 'KLV',
+		cgId: 'klever_exchange'
+	},
+	{
+		name: 'BTSE',
+		slug: 'btse',
+		coin: 'BTSE',
+		coinSymbol: 'BTSE',
+		cgId: 'btse'
+	},
+	{
+		name: 'HashKey Exchange',
+		slug: 'hashkey-exchange',
+		coin: null,
+		walletsLink: null
+	},
+	{
+		name: 'Backpack',
+		slug: 'backpack',
+		coin: null,
+		coinSymbol: null,
+		walletsLink: 'https://dune.com/21co/backpack-exchange'
+	},
+	{
+		name: 'HashKey Global',
+		slug: 'hashkey-global',
+		coin: null,
+		coinSymbol: null
+	},
+	{
+		name: 'BigONE',
+		slug: 'bigone',
+		coin: null,
+		walletsLink: null,
+		cgId: 'bigone'
+	},
+	{
 		name: 'Bitmake',
 		slug: 'bitmake',
 		coin: null,
 		walletsLink: null
+	},
+	{
+		name: 'Hibt',
+		slug: 'hibt',
+		coin: null,
+		walletsLink: null
+	},
+	{
+		name: 'Hotbit',
+		slug: 'hotbit',
+		coin: 'HTB',
+		coinSymbol: 'HTB'
+	},
+	{
+		name: 'CoinEx',
+		slug: 'coinex',
+		coin: 'CET',
+		coinSymbol: 'CET',
+		walletsLink: null,
+		cgId: 'coinex',
+		cgDeriv: 'coinex_futures'
 	},
 	/*
 	{
@@ -351,14 +488,6 @@ export const cexData: Array<ICex> = [
 		cgId: 'gdax'
 	},
 	{
-		name: 'Kraken',
-		lastAuditDate: 1656547200,
-		auditor: 'ArmaninoLLP',
-		auditLink: 'https://proof-of-reserves.trustexplorer.io/clients/kraken/',
-		cgId: 'kraken',
-		cgDeriv: 'kraken_futures'
-	},
-	{
 		name: 'Coinone',
 		lastAuditDate: 1666369050,
 		auditor: null,
@@ -369,21 +498,12 @@ export const cexData: Array<ICex> = [
 		name: 'NEXO'
 	},
 	{
-		name: 'CoinEx',
-		cgId: 'coinex',
-		cgDeriv: 'coinex_futures'
-	},
-	{
 		name: 'Gemini',
 		cgId: 'gemini'
 	},
 	{
 		name: 'Coincheck',
 		cgId: 'coincheck'
-	},
-	{
-		name: 'Bitstamp',
-		cgId: 'bitstamp'
 	},
 	{
 		name: 'Bithumb',
@@ -396,11 +516,6 @@ export const cexData: Array<ICex> = [
 	{
 		name: 'Upbit',
 		cgId: 'upbit'
-	},
-	{
-		name: 'Bitmart',
-		cgId: 'bitmart',
-		cgDeriv: 'bitmart_futures'
 	},
 	{
 		name: 'Bittrex',
@@ -428,10 +543,6 @@ export const cexData: Array<ICex> = [
 	{
 		name: 'BKEX',
 		cgId: 'bkex'
-	},
-	{
-		name: 'ProBit',
-		cgId: 'probit'
 	},
 	{
 		name: 'BTCEX',
@@ -483,7 +594,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 			if (c.slug === undefined) {
 				return c
 			} else {
-				const res = await Promise.allSettled([
+				const res = await Promise.all([
 					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
 					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
 						r.json()
@@ -494,11 +605,12 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
 						r.json()
 					)
-				])
+				]).catch((e) => null)
+				if (res === null) {
+					return c
+				}
 
-				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = res.map((r) =>
-					r.status === 'fulfilled' ? r.value : {}
-				)
+				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = res
 
 				let cexTvl = 0
 
@@ -523,7 +635,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 					if (!spotEx) {
 						console.error(c.name + ' is not in spot list')
 					} else {
-						extra.spotVolume = spotEx.trade_volume_24h_btc_normalized * btcPrice
+						extra.spotVolume = spotEx.trade_volume_24h_btc * btcPrice
 					}
 				}
 				if (c.cgDeriv) {
@@ -577,3 +689,5 @@ export default function Protocols({ cexs }) {
 		</QueryClientProvider>
 	)
 }
+
+//trigger server gogogogogogo

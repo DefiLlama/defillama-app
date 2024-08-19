@@ -4,5 +4,8 @@
 	"editor.tabSize": 2,
 	"[shellscript]": {
 		"editor.defaultFormatter": "foxundermoon.shell-format"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	}
 }

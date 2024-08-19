@@ -1,13 +1,15 @@
 import type { LiteProtocol, IParentProtocol } from '~/api/types'
-import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
+import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API, MCAPS_API, EMISSION_BREAKDOWN_API } from '~/constants'
 import { getUniqueArray } from '~/containers/DexsAndFees/utils'
-import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, getPercentChange } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { getCexVolume, handleFetchResponse } from './utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { sluggify } from '~/utils/cache-client'
+import { getNFTCollectionEarnings } from '../nfts'
 
 const fetch = fetchWithErrorLogging
 
@@ -29,9 +31,11 @@ export const getOverviewItem = (
 	protocolName: string,
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryResponse> =>
-	fetch(`${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`).then(
-		handleFetchResponse
-	)
+	fetch(
+		`${ADAPTORS_SUMMARY_BASE_API}/${
+			type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
+		}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`
+	).then(handleFetchResponse)
 export const getOverview = (
 	type: string,
 	chain?: string,
@@ -63,20 +67,29 @@ export const generateGetOverviewItemPageDate = async (
 	const allCharts: IChartsList = []
 	if (item.totalDataChart) allCharts.push([label, item.totalDataChart])
 	let secondType: ProtocolAdaptorSummaryResponse
+	let thirdType: ProtocolAdaptorSummaryResponse
+	let fourthType: ProtocolAdaptorSummaryResponse
 	let secondLabel: string
 	if (type === 'fees') {
-		secondType = await getOverviewItem(type, protocolName, 'dailyRevenue')
+		;[secondType, thirdType, fourthType] = await Promise.all([
+			getOverviewItem(type, protocolName, 'dailyRevenue'),
+			getOverviewItem(type, protocolName, 'dailyBribesRevenue'),
+			getOverviewItem(type, protocolName, 'dailyTokenTaxes')
+		])
 		secondLabel = 'Revenue'
 	} else if (type === 'options') {
 		secondType = await getOverviewItem(type, protocolName, 'dailyPremiumVolume')
 		secondLabel = 'Premium volume'
 	}
 	if (secondLabel && secondType?.totalDataChart) allCharts.push([secondLabel, secondType.totalDataChart])
+	if (thirdType?.totalDataChart) allCharts.push(['Bribes', thirdType.totalDataChart])
 
 	return {
 		...item,
 		logo: getLlamaoLogo(item.logo),
 		dailyRevenue: secondType?.total24h ?? null,
+		dailyBribesRevenue: thirdType?.total24h ?? null,
+		dailyTokenTaxes: fourthType?.total24h ?? null,
 		type,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)]
 	}
@@ -104,13 +117,13 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-			...p,
-			tvl: p?.chainTvls?.[chain]?.tvl ?? null
-		}))
+				...p,
+				tvl: p?.chainTvls?.[chain]?.tvl ?? null
+		  }))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
-			acc[pd.defillamaId] = pd.tvl
+			acc[pd.name] = pd.tvl
 			return acc
 		}, {}) ?? {}
 	)
@@ -133,22 +146,30 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
 			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
 
-	const [request, protocolsData, feesOrRevenue, cexVolume]: [
+	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData, nftsEarnings]: [
 		IGetOverviewResponseBody,
 		{ protocols: LiteProtocol[]; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
-		number
+		number,
+		Record<string, Record<string, number>>,
+		IGetOverviewResponseBody,
+		any
 	] = await Promise.all([
 		fetch(getAPIUrl(type, chain, type === 'fees', true)).then(handleFetchResponse),
 		fetch(PROTOCOLS_API).then(handleFetchResponse),
 		fetch(feesOrRevenueApi).then(handleFetchResponse),
-		type === 'dexs' ? getCexVolume() : Promise.resolve(0)
+		type === 'dexs' ? getCexVolume() : Promise.resolve(0),
+		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse),
+		fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse),
+		getNFTCollectionEarnings()
 	])
 
 	const {
 		protocols = [],
 		total24h,
 		total7d,
+		total1y,
+		average1y,
 		change_1d,
 		change_7d,
 		change_1m,
@@ -157,10 +178,11 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		totalDataChart,
 		totalDataChartBreakdown,
 		allChains
-	} = request
+	} = type === 'options' ? feesOrRevenue : request
+
 	const chains = protocols.filter((e) => e.protocolType === 'chain').map((e) => e.name)
 
-	const chainMcaps = await fetch('https://coins.llama.fi/mcaps', {
+	const chainMcaps = await fetch(MCAPS_API, {
 		method: 'POST',
 		body: JSON.stringify({
 			coins: Object.values(chains)
@@ -186,7 +208,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	const tvlData: IJSON<number> = getTVLData(protocolsData, filtredChain)
 	const mcapData = { ...getMCap(protocolsData), ...chainMcap }
-	const label: string = type === 'options' ? 'Notional volume' : capitalizeFirstLetter(type)
+	const label: string = type === 'options' ? 'Premium Volume' : capitalizeFirstLetter(type)
 
 	const allCharts: IChartsList = []
 
@@ -195,15 +217,15 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	}
 
 	if (type === 'options' && feesOrRevenue?.totalDataChart) {
-		allCharts.push(['Premium volume', feesOrRevenue.totalDataChart])
+		allCharts.push(['Notional Volume', request.totalDataChart])
 	}
 
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-				{} as IJSON<ProtocolAdaptorSummary>
-			) ?? {}
+					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+					{} as IJSON<ProtocolAdaptorSummary>
+			  ) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -211,6 +233,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	const protocolsWithSubrows = protocols.reduce((acc, protocol) => {
 		// Assign mainrow and sub-row if has any
+		const slugName = sluggify(protocol?.name)
+
 		let mainRow: undefined | IOverviewProps['protocols'][number] = undefined
 		let subRow: undefined | IOverviewProps['protocols'][number]['subRows'][number] = null
 		if (parentProtocolsMap[protocol.parentProtocol]) {
@@ -219,12 +243,14 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				...protocol,
 				logo: getLlamaoLogo(protocol.logo),
 				displayName: protocol.displayName ?? protocol.name,
-				tvl: tvlData[protocol.defillamaId] ?? null,
-				volumetvl: tvlData[protocol.defillamaId] ? protocol.total24h / tvlData[protocol.defillamaId] : null,
+				tvl: tvlData[protocol.name] ?? null,
+				volumetvl: tvlData[protocol.name] ? protocol.total24h / tvlData[protocol.name] : null,
 				dominance: (100 * protocol.total24h) / total24h,
 				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
 				revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
+				revenue1y: revenueProtocols?.[protocol.name]?.total1y ?? null,
+				averageRevenue1y: revenueProtocols?.[protocol.name]?.average1y ?? null,
 				mcap: mcapData[protocol.name] || null,
 				pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total30d),
 				ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d)
@@ -236,7 +262,16 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		} else mainRow = protocol
 
 		// Main row, either parent or single protocol
-		const protocolTVL = tvlData[protocol.defillamaId]
+		const protocolTVL = tvlData[protocol.name]
+		const emission24h = emissionBreakdown?.[slugName]?.emission24h ?? null
+		const emission7d = emissionBreakdown?.[slugName]?.emission7d ?? null
+		const emission30d = emissionBreakdown?.[slugName]?.emission30d ?? null
+
+		const protocolBribes = bribesData?.protocols?.find(({ name }) => name === protocol.name)
+		const bribes24h = protocolBribes?.total24h
+		const bribes7d = protocolBribes?.total7d
+		const bribes30d = protocolBribes?.total30d
+
 		mainRow = {
 			...mainRow,
 			...acc[protocol.parentProtocol],
@@ -246,6 +281,19 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
 			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
+			revenue1y: revenueProtocols?.[protocol.name]?.total1y ?? null,
+			averageRevenue1y: revenueProtocols?.[protocol.name]?.average1y ?? null,
+			emission24h: emission24h ?? null,
+			emission7d: emission7d ?? null,
+			emission30d: emission30d ?? null,
+			bribes24h: bribes24h ?? null,
+			bribes7d: bribes7d ?? null,
+			bribes30d: bribes30d ?? null,
+			netEarnings24h:
+				emission24h !== 0 && emission24h ? revenueProtocols?.[protocol.name]?.total24h - emission24h : null,
+			netEarnings7d: emission7d !== 0 && emission7d ? revenueProtocols?.[protocol.name]?.total7d - emission7d : null,
+			netEarnings30d:
+				emission30d !== 0 && emission30d ? revenueProtocols?.[protocol.name]?.total30d - emission30d : null,
 			tvl: protocolTVL ?? null,
 			dominance: (100 * protocol.total24h) / total24h,
 			module: protocol.module,
@@ -254,17 +302,31 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total30d),
 			ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d)
 		}
+
 		// Stats for parent protocol
 		if (acc[protocol.parentProtocol]) {
 			// stats
 			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total24h'), null)
+			const total48hto24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total48hto24h'), null)
 			mainRow.total7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total7d'), null)
 			mainRow.total30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total30d'), null)
+			mainRow.total1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total1y'), null)
+			mainRow.average1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('average1y'), null)
 			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalAllTime'), null)
+			const totalVolume7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalVolume7d'), null)
+			const totalVolume30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalVolume30d'), null)
+			mainRow.change_1d = getPercentChange(mainRow.total24h, total48hto24h)
+			mainRow.change_7d = getPercentChange(mainRow.total24h, totalVolume7d)
+			mainRow.change_1m = getPercentChange(mainRow.total24h, totalVolume30d)
 			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('tvl'), null)
 			mainRow.revenue24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue24h'), null)
 			mainRow.revenue7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue7d'), null)
 			mainRow.revenue30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue30d'), null)
+			mainRow.revenue1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue1y'), null)
+			mainRow.averageRevenue1y = acc[protocol.parentProtocol].subRows.reduce(
+				reduceSumByAttribute('averageRevenue1y'),
+				null
+			)
 			mainRow.dailyRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyRevenue'), null)
 			mainRow.dailyUserFees = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyUserFees'), null)
 			mainRow.dailyCreatorRevenue = acc[protocol.parentProtocol].subRows.reduce(
@@ -287,6 +349,10 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				reduceSumByAttribute('dailySupplySideRevenue'),
 				null
 			)
+			mainRow.dailyBribesRevenue = acc[protocol.parentProtocol].subRows.reduce(
+				reduceSumByAttribute('dailyBribesRevenue'),
+				null
+			)
 			mainRow.mcap = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('mcap'), null)
 			// mainRow.mcap = acc[protocol.parentProtocol].subRows.reduce(reduceHigherByAttribute('mcap'), null)
 			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map((d) => d.chains).flat())
@@ -302,10 +368,34 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		// Computed stats
 		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
 
+		mainRow.dominance = (100 * mainRow.total24h) / total24h
+
 		// Return acc
 		acc[protocol.parentProtocol ?? protocol.module] = mainRow
 		return acc
 	}, {} as IJSON<IOverviewProps['protocols'][number]>)
+
+	if (type === 'fees') {
+		nftsEarnings?.earnings?.forEach((nft) => {
+			if (chain && !nft.chains?.some((c) => c?.toLowerCase() === chain)) return
+			const { total24h, total7d, total30d } = nft
+
+			if (nft.subRows?.length > 0) {
+				nft.logo = nft.subRows[0].logo || nft.logo || null
+				nft.subRows.forEach((subRow) => {
+					subRow.category = 'NFT'
+					subRow.revenue24h = subRow.total24h
+					subRow.revenue7d = subRow.total7d
+					subRow.revenue30d = subRow.total30d
+				})
+			}
+			nft.category = 'NFT'
+			nft.revenue24h = total24h
+			nft.revenue7d = total7d
+			nft.revenue30d = total30d
+			protocolsWithSubrows[nft.defillamaId] = nft
+		})
+	}
 
 	/* 	if (revenue?.totalDataChart)
 			allCharts.push(["Revenue", revenue.totalDataChart]) */
@@ -318,6 +408,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		change_7d,
 		change_1m,
 		change_7dover7d,
+		total1y,
+		average1y: average1y ?? null,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		chain: filtredChain ?? null,
 		tvlData,
@@ -399,6 +491,8 @@ export interface IOverviewProps {
 	change_7d?: IGetOverviewResponseBody['change_7d']
 	change_1m?: IGetOverviewResponseBody['change_1m']
 	change_7dover7d?: IGetOverviewResponseBody['change_7dover7d']
+	total1y?: IGetOverviewResponseBody['total1y']
+	average1y?: IGetOverviewResponseBody['average1y']
 	totalDataChart: [IJoin2ReturnType, string[]]
 	chain: string
 	tvlData?: IJSON<number>
@@ -408,10 +502,12 @@ export interface IOverviewProps {
 	type: string
 	dexsDominance?: number
 	categories?: Array<string>
+	isSimpleFees?: boolean
+	premium?: IOverviewProps
 }
 
 // - used in /[type]/chains
-export const getChainsPageData = async (type: string): Promise<IOverviewProps> => {
+export const getChainsPageData = async (type: string, dataType?: string): Promise<IOverviewProps> => {
 	const { allChains, total24h: allChainsTotal24h } = await getOverview(type)
 
 	const [protocolsData, ...dataByChain] = await Promise.all([
@@ -421,7 +517,12 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 				console.log(PROTOCOLS_API, err)
 				return {}
 			}),
-		...allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
+		...allChains.map((chain) =>
+			getOverview(type, chain, dataType, true, true).then((res) => ({
+				...res,
+				chain
+			}))
+		)
 	])
 
 	let protocols = dataByChain
@@ -442,7 +543,9 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 				dailyCreatorRevenue,
 				dailySupplySideRevenue,
 				dailyProtocolRevenue,
-				dailyPremiumVolume
+				dailyPremiumVolume,
+				total1y,
+				average1y
 			}) => {
 				if (!protocols) return undefined
 				const tvlData = getTVLData(protocolsData, chain)
@@ -454,8 +557,8 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					total24h,
 					tvl: protocols.reduce((acc, curr) => {
 						// TODO: This should be mapped using defillamaId to get accurate tvl!
-						const tvl = tvlData[curr.defillamaId]
-						acc += !Number.isNaN(tvl) ? tvl : 0
+						const tvl = tvlData[curr.name]
+						acc += !Number.isNaN(tvl) && tvl ? tvl : 0
 						return acc
 					}, 0),
 					change_7dover7d,
@@ -464,6 +567,8 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					change_1d,
 					change_7d,
 					change_1m,
+					total1y,
+					average1y: average1y ?? null,
 					dominance: (100 * total24h) / allChainsTotal24h,
 					chains: [chain],
 					totalAllTime: protocols.reduce((acc, curr) => (acc += curr.totalAllTime), 0),
@@ -535,4 +640,4 @@ export function notUndefined<T>(x: T | undefined): x is T {
 	return x !== undefined
 }
 
-export function formatOverviewProtocolsList() { }
+export function formatOverviewProtocolsList() {}

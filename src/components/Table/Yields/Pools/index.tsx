@@ -6,7 +6,7 @@ import { getColumnSizesKeys } from '../../utils'
 
 const columnSizesKeys = getColumnSizesKeys(columnSizes)
 
-export default function YieldsPoolsTable({ data }: IYieldsTableProps) {
+export default function YieldsPoolsTable(props: IYieldsTableProps) {
 	const router = useRouter()
 	const {
 		show7dBaseApy,
@@ -65,7 +65,7 @@ export default function YieldsPoolsTable({ data }: IYieldsTableProps) {
 
 	return (
 		<YieldsTableWrapper
-			data={data}
+			{...props}
 			columns={columns}
 			columnSizes={columnSizes}
 			columnSizesKeys={columnSizesKeys}

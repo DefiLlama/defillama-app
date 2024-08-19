@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import useSWR from 'swr'
 import {
+	CACHE_SERVER,
 	DEV_METRICS_API,
 	PROTOCOLS_API,
 	PROTOCOL_ACTIVE_USERS_API,
@@ -9,7 +10,7 @@ import {
 	PROTOCOL_TRANSACTIONS_API,
 	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API,
-	TWITTER_POSTS_API,
+	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
@@ -45,7 +46,8 @@ export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
 					getProtocol(protocolName)
 						.then((protocolData) => buildProtocolAddlChartsData({ protocolData, extraTvlsEnabled }))
 						.catch(() => null)
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	const loading = !data && data !== null && !error
@@ -65,7 +67,8 @@ export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
 								return { ...data, chainTvls: { ...data.chainTvls, OwnTokens: {} } }
 							} else return data
 						})
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	const loading = !data && data !== null && !error
@@ -84,7 +87,8 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 							return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
 						})
 						.catch((err) => [])
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
@@ -100,7 +104,8 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 							return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
 						})
 						.catch((err) => [])
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
@@ -148,7 +153,9 @@ const getProtocolUsers = async (protocolId: number | string) => {
 }
 
 export const useFetchProtocolUsers = (protocolId: number | string | null) => {
-	const { data, error } = useSWR(`users/${protocolId}`, protocolId ? () => getProtocolUsers(protocolId) : () => null)
+	const { data, error } = useSWR(`users/${protocolId}`, protocolId ? () => getProtocolUsers(protocolId) : () => null, {
+		errorRetryCount: 0
+	})
 
 	return { data, error, loading: !data && data !== null && !error }
 }
@@ -164,7 +171,8 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 							return values && values.length > 0 ? values : null
 						})
 						.catch((err) => [])
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
@@ -181,7 +189,8 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 							return values && values.length > 0 ? values : null
 						})
 						.catch((err) => [])
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
@@ -215,31 +224,37 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 						.catch((err) => {
 							return []
 						})
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
 }
 
 export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | null) => {
-	const { data, error } = useSWR(JSON.stringify(governanceApis), () => fetchAndFormatGovernanceData(governanceApis))
+	const { data, error } = useSWR(JSON.stringify(governanceApis), () => fetchAndFormatGovernanceData(governanceApis), {
+		errorRetryCount: 0
+	})
 
 	return { data, error, loading: !data && data !== null && !error }
 }
 
 export const useDenominationPriceHistory = (geckoId?: string) => {
-	let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=0&to=`
+	let url = `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`
 
 	// append end time to fetcher params to keep query key consistent b/w renders and avoid over fetching
-	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Date.now()))
+	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url).then((r) => r.data), {
+		errorRetryCount: 0
+	})
+	const res = data && data?.prices?.length > 0 ? data : { prices: [], mcaps: [], volumes: [] }
 
-	return { data, error, loading: geckoId && !data && !error }
+	return { data: res, error, loading: geckoId && !data && !error }
 }
 
 export const useGetTokenPrice = (geckoId?: string) => {
 	let url = `https://coins.llama.fi/prices/current/coingecko:${geckoId}`
 
-	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url))
+	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url), { errorRetryCount: 0 })
 
 	return { data: data?.coins?.[`coingecko:${geckoId}`], error, loading: geckoId && !data && !error }
 }
@@ -268,16 +283,22 @@ export const useGetProtocolsList = ({ chain }) => {
 }
 
 export const useGetProtocolEmissions = (protocol?: string | null) => {
-	const { data, error } = useSWR(`unlocksData/${protocol}`, protocol ? () => getProtocolEmissons(protocol) : () => null)
+	const { data, error } = useSWR(
+		`unlocksData/${protocol}`,
+		protocol ? () => getProtocolEmissons(protocol) : () => null,
+		{ errorRetryCount: 0 }
+	)
 
 	return { data, error, loading: !data && data !== null && !error }
 }
 
 export const useFetchProtocolTwitter = (twitter?: string | null) => {
-	const { data, error } = useSWR(
+	const { data: res, error } = useSWR(
 		`twitterData1/${twitter}`,
-		twitter ? () => fetch(TWITTER_POSTS_API + `/${twitter?.toLowerCase()}.json`).then((r) => r.json()) : () => null
+		twitter ? () => fetch(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((r) => r.json()) : () => null,
+		{ errorRetryCount: 0 }
 	)
+	const data = res && res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
 
 	return { data, error, loading: twitter && !data && !error }
 }
@@ -296,8 +317,38 @@ export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
 
 						.catch((err) => null)
 						.then()
-			: () => null
+			: () => null,
+		{ errorRetryCount: 0 }
 	)
 
 	return { data, error, loading: !data && data !== null && !error }
+}
+
+export const useGeckoId = (addressData: string | null) => {
+	const [chain, address] = addressData?.split(':') ?? [null, null]
+	const { data, error } = useSWR(
+		`geckoId/${addressData}`,
+		address
+			? async () => {
+					if (chain === 'coingecko') return { id: address }
+					const res = await fetch(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`).then((res) =>
+						res.json()
+					)
+					return res
+			  }
+			: () => null,
+		{ errorRetryCount: 0 }
+	)
+
+	return { data, id: data?.id, error, loading: !data && data !== null && !error }
+}
+
+export const usePriceChart = (geckoId?: string) => {
+	const { data, error } = useSWR(
+		geckoId ? `priceChart/${geckoId}` : null,
+		() => fetch(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res) => res.json()),
+		{ errorRetryCount: 0 }
+	)
+
+	return { data: data?.data, error, loading: geckoId && !data && !error }
 }

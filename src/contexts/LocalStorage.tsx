@@ -3,7 +3,7 @@ import { createContext, useContext, useReducer, useMemo, useCallback, useEffect 
 import { trackGoal } from 'fathom-client'
 import { standardizeProtocolName } from '~/utils'
 import { useIsClient } from '~/hooks'
-import { useRouter } from 'next/router'
+import { NextRouter, useRouter } from 'next/router'
 import { ISettings, IWatchlist, TUpdater } from './types'
 
 const DEFILLAMA = 'DEFILLAMA'
@@ -16,6 +16,7 @@ const BORROWED = 'borrowed'
 const DOUBLE_COUNT = 'doublecounted'
 const LIQUID_STAKING = 'liquidstaking'
 const VESTING = 'vesting'
+const GOV_TOKENS = 'govtokens'
 
 // NFT
 const DISPLAY_USD = 'DISPLAY_USD'
@@ -24,6 +25,7 @@ const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 // YIELDS
 const STABLECOINS = 'STABLECOINS'
 const SINGLE_EXPOSURE = 'SINGLE_EXPOSURE'
+const MULTI_EXPOSURE = 'MULTI_EXPOSURE'
 const NO_IL = 'NO_IL'
 const MILLION_DOLLAR = 'MILLION_DOLLAR'
 const AUDITED = 'AUDITED'
@@ -34,12 +36,21 @@ const NO_BAD_DEBT = 'NO_BAD_DEBT'
 const NO_LOCKUP_COLLATERAL = 'NO_LOCKUP_COLLATERAL'
 const AIRDROP = 'AIRDROP'
 const APY_ZERO = 'APY_ZERO'
+const LSD_ONLY = 'LSD_ONLY'
 
 // STABLECOINS
 export const UNRELEASED = 'unreleased'
 const PEGGEDUSD = 'PEGGEDUSD'
 const PEGGEDEUR = 'PEGGEDEUR'
+const PEGGEDSGD = 'PEGGEDSGD'
+const PEGGEDJPY = 'PEGGEDJPY'
+const PEGGEDCNY = 'PEGGEDCNY'
+const PEGGEDUAH = 'PEGGEDUAH'
+const PEGGEDARS = 'PEGGEDARS'
+const PEGGEDGBP = 'PEGGEDGBP'
 const PEGGEDVAR = 'PEGGEDVAR'
+const PEGGEDCAD = 'PEGGEDCAD'
+const PEGGEDAUD = 'PEGGEDAUD'
 const FIATSTABLES = 'FIATSTABLES'
 const CRYPTOSTABLES = 'CRYPTOSTABLES'
 const ALGOSTABLES = 'ALGOSTABLES'
@@ -65,13 +76,19 @@ const DIMENSIONS_CHART_INTERVAL_KEY = 'DIMENSIONS:CHART_INTERVAL'
 
 export const BAR_MIN_WIDTH_IN_CHART = 'BAR_MIN_WIDTH_IN_CHART'
 
-export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING }
+export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS }
+
+const BRIBES = 'bribes'
+const TOKENTAX = 'tokentax'
+
+export const FEES_SETTINGS = { BRIBES, TOKENTAX }
 
 export const YIELDS_SETTINGS = {
 	AUDITED,
 	MILLION_DOLLAR,
 	NO_IL,
 	SINGLE_EXPOSURE,
+	MULTI_EXPOSURE,
 	STABLECOINS,
 	NO_OUTLIER,
 	STABLE_OUTLOOK,
@@ -79,13 +96,22 @@ export const YIELDS_SETTINGS = {
 	NO_BAD_DEBT,
 	NO_LOCKUP_COLLATERAL,
 	AIRDROP,
-	APY_ZERO
+	APY_ZERO,
+	LSD_ONLY
 }
 
 export const STABLECOINS_SETTINGS = {
 	PEGGEDUSD,
 	PEGGEDEUR,
+	PEGGEDSGD,
+	PEGGEDJPY,
+	PEGGEDCNY,
+	PEGGEDUAH,
+	PEGGEDARS,
+	PEGGEDGBP,
 	PEGGEDVAR,
+	PEGGEDCAD,
+	PEGGEDAUD,
 	FIATSTABLES,
 	CRYPTOSTABLES,
 	ALGOSTABLES,
@@ -124,6 +150,7 @@ export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES
 
 const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
 export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS)
+export const FEES_SETTINGS_KEYS = Object.values(FEES_SETTINGS)
 export const STABLECOINS_SETTINGS_KEYS = Object.values(STABLECOINS_SETTINGS)
 export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
@@ -135,6 +162,7 @@ const UPDATABLE_KEYS = [
 	YIELDS_WATCHLIST,
 	SELECTED_PORTFOLIO,
 	...DEFI_SETTINGS_KEYS,
+	...FEES_SETTINGS_KEYS,
 	...DEFI_CHAINS_KEYS,
 	...STABLECOINS_SETTINGS_KEYS,
 	...NFT_SETTINGS_KEYS,
@@ -145,6 +173,7 @@ const UPDATABLE_KEYS = [
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
+const UPDATE_KEY_OPTIONALLY_PERSIST = 'UPDATE_KEY_OPTIONALLY_PERSIST'
 
 const LocalStorageContext = createContext(null)
 
@@ -165,6 +194,17 @@ function reducer(state, { type, payload }) {
 				}
 			}
 		}
+		case UPDATE_KEY_OPTIONALLY_PERSIST: {
+			const { key, value, persist } = payload
+			if (!UPDATABLE_KEYS.some((k) => k === key)) {
+				throw Error(`Unexpected key in LocalStorageContext reducer: '${key}'.`)
+			} else {
+				return {
+					...state,
+					[key]: { value: value, persist }
+				}
+			}
+		}
 		default: {
 			throw Error(`Unexpected action type in LocalStorageContext reducer: '${type}'.`)
 		}
@@ -175,6 +215,7 @@ function init() {
 	const defaultLocalStorage = {
 		[DARK_MODE]: true,
 		...DEFI_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		...FEES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: prop === UNRELEASED ? false : true }), {}),
 		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...LIQS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
@@ -204,6 +245,10 @@ export default function Provider({ children }) {
 		dispatch({ type: UPDATE_KEY, payload: { key, value } })
 	}, [])
 
+	const updateKeyOptionallyPersist = useCallback((key, value, persist: boolean = false) => {
+		dispatch({ type: UPDATE_KEY_OPTIONALLY_PERSIST, payload: { key, value, persist } })
+	}, [])
+
 	// Change format from save addresses to save protocol names, so backwards compatible
 	const savedDefiProtocols: IWatchlist = state[DEFI_WATCHLIST]
 	const savedYieldsProtocols: IWatchlist = state[YIELDS_WATCHLIST]
@@ -230,9 +275,9 @@ export default function Provider({ children }) {
 	const values = useMemo(
 		() => [
 			{ ...state, [DEFI_WATCHLIST]: newSavedDefiProtocols, [YIELDS_WATCHLIST]: newSavedYieldsProtocols },
-			{ updateKey }
+			{ updateKey, updateKeyOptionallyPersist }
 		],
-		[state, updateKey, newSavedDefiProtocols, newSavedYieldsProtocols]
+		[state, updateKey, updateKeyOptionallyPersist, newSavedDefiProtocols, newSavedYieldsProtocols]
 	)
 
 	return <LocalStorageContext.Provider value={values}>{children}</LocalStorageContext.Provider>
@@ -242,6 +287,21 @@ export function Updater() {
 	const [state] = useLocalStorageContext()
 
 	useEffect(() => {
+		// const toPersist = Object.entries(state).reduce((acc, [key, value]) => {
+		// 	const persist = (value as { value: unknown; persist?: boolean })?.persist
+		// 	// Optionally persisted values are object type with a value and persist key
+		// 	// Local storage is only updated if persist is true
+		// 	if (typeof value === 'object' && 'value' in value && persist === true) {
+		// 		acc[key] = (value as any).value
+
+		// 		// If the value is a boolean, it is persisted
+		// 	} else if (typeof value === 'boolean') {
+		// 		acc[key] = value
+		// 	}
+
+		// 	return acc
+		// }, {})
+
 		window.localStorage.setItem(DEFILLAMA, JSON.stringify(state))
 	})
 
@@ -265,16 +325,45 @@ export function useDarkModeManager() {
 
 // TODO fix unnecessary rerenders on all state managers
 export function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
-	const [state, { updateKey }] = useLocalStorageContext()
+	const [state, { updateKey, updateKeyOptionallyPersist }] = useLocalStorageContext()
 	const isClient = useIsClient()
+	const router = useRouter()
+
+	const updateStateFromRouter = (setting: string, router?: NextRouter) => {
+		// Per product needs, only defi settings are updated from the router
+		if (!DEFI_SETTINGS_KEYS.includes(setting)) return
+
+		let routerValue = router.query[setting]
+		if (typeof routerValue === 'string' && ['true', 'false'].includes(routerValue)) {
+			routerValue = JSON.parse(routerValue)
+
+			if (routerValue !== state[setting]?.value) {
+				const persist = !!state[setting]?.persist
+				updateKeyOptionallyPersist(setting, routerValue, persist)
+			}
+		}
+	}
+
+	const updateRouter = (key: string, newState: boolean) => {
+		router.push(
+			{
+				pathname: router.pathname,
+				query: { ...router.query, [key]: newState }
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
 
 	const toggledSettings: ISettings = useMemo(
 		() =>
 			settings.reduce((acc, setting) => {
 				let toggled = false
 				if (isClient) {
-					toggled = state[setting]
-					// prevent flash of these toggles when page loads intially
+					updateStateFromRouter(setting, router)
+
+					toggled = state[setting]?.value ?? state[setting]
+					// prevent flash of these toggles when page loads initially
 				} else if (setting === 'emulator') {
 					toggled = true
 				} else toggled = false
@@ -285,8 +374,17 @@ export function useSettingsManager(settings: Array<string>): [ISettings, TUpdate
 		[state, isClient, settings]
 	)
 
-	const updater = (key: string) => () => {
-		updateKey(key, !state[key])
+	const updater = (key: string, shouldUpdateRouter?: boolean) => () => {
+		// Router values override local storage values
+		const oldState = state[key]?.value ?? state[key]
+		const newState = !oldState
+
+		if (shouldUpdateRouter) {
+			updateRouter(key, newState)
+			updateKeyOptionallyPersist(key, newState, true)
+		} else {
+			updateKey(key, newState)
+		}
 	}
 
 	return [toggledSettings, updater]
@@ -305,6 +403,12 @@ export function useChartManager() {
 // DEFI
 export function useDefiManager() {
 	return useSettingsManager(DEFI_SETTINGS_KEYS)
+}
+export function useFeesManager() {
+	return useSettingsManager(FEES_SETTINGS_KEYS)
+}
+export function useTvlAndFeesManager() {
+	return useSettingsManager([...DEFI_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS])
 }
 
 // DEFI_CHAINS

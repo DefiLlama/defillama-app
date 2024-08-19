@@ -15,6 +15,8 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { DEFI_CHAINS_SETTINGS, useDefiChainsManager } from '~/contexts/LocalStorage'
 import styled from 'styled-components'
+import { TVLRange } from '~/components/Filters'
+import { useRouter } from 'next/router'
 
 export default function DefiProtocolsTable({ data, columns }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
@@ -151,8 +153,10 @@ export function DefiChainsTable({ data }) {
 					addOption={addColumn}
 					subMenu={false}
 				/>
+
+				<TVLRange />
 			</TableOptions>
-			<VirtualTable instance={instance} />
+			<VirtualTable instance={instance} cellStyles={{ overflow: 'visible' }} />
 		</>
 	)
 }

@@ -5,6 +5,21 @@
 		"logo": "defillama.jpg"
 	},
 	{
+		"name": "Swap DefiLlama",
+		"url": "https://swap.defillama.com/",
+		"logo": "defillama.jpg"
+	},
+	{
+		"name": "LlamaSwap",
+		"url": "https://swap.defillama.com/",
+		"logo": "defillama.jpg"
+	},
+	{
+		"name": "DefiLlama Swap",
+		"url": "https://swap.defillama.com/",
+		"logo": "defillama.jpg"
+	},
+	{
 		"name": "DLNews",
 		"url": "https://www.dlnews.com/",
 		"logo": "dlnews.jpg"
@@ -272,16 +287,21 @@
 	{
 		"name": "SafePal",
 		"url": "https://www.safepal.com/en/",
-		"logo": "rainbow.jpg"
+		"logo": "safepal.jpg"
 	},
 	{
 		"name": "Trezor",
 		"url": "https://trezor.io/",
-		"logo": "rainbow.jpg"
+		"logo": "trezor.jpg"
 	},
 	{
 		"name": "Ledger",
 		"url": "https://shop.ledger.com/",
-		"logo": "rainbow.jpg"
+		"logo": "ledger.jpg"
+	},
+	{
+		"name": "Jumper Exchange",
+		"url": "https://jumper.exchange/",
+		"logo": "jumper-exchange.jpg"
 	}
 ]

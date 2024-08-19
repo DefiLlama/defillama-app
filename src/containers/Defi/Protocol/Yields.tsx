@@ -4,13 +4,20 @@ import { GridContent } from './Common'
 import useSWR from 'swr'
 import { YieldsPoolsTable } from '~/components/Table'
 import { getYieldPageData } from '~/api/categories/yield'
+import { sluggify } from '~/utils/cache-client'
 
-export function ProtocolPools({ protocol, data }) {
+export function ProtocolPools({ protocol, data, protocolData }) {
 	const { data: poolsList, error } = useSWR(`yields-pools-list-${protocol}`, () =>
 		getYieldPageData().then(
 			(res) =>
 				res?.props?.pools
-					?.filter((p) => p.project === protocol)
+					?.filter(
+						(p) =>
+							p.project === protocol ||
+							(protocolData?.parentProtocol
+								? false
+								: protocolData?.otherProtocols?.map((p) => sluggify(p)).includes(p.project))
+					)
 					.map((i) => ({
 						...i,
 						tvl: i.tvlUsd,

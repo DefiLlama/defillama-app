@@ -15,8 +15,12 @@ import {
 	Unlock,
 	Image as ImageIcon,
 	Shuffle,
-	FileText
+	FileText,
+	TrendingUp,
+	FilePlus,
+	Eye
 } from 'react-feather'
+import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
 
 export interface IMainLink {
 	name: string
@@ -52,20 +56,29 @@ const defaultToolsAndFooterLinks = {
 		{
 			name: 'DefiLlama Extension',
 			path: 'https://chrome.google.com/webstore/detail/defillama/phgiabfbjodhgckcffppiboooeiecgeg',
-			newTag: true,
 			external: true
 		},
 		{
 			name: 'LlamaNodes',
 			path: 'https://llamanodes.com/',
-			newTag: true,
 			external: true,
 			referrer: true
 		},
 		{
-			name: 'DLNews',
+			name: 'LlamaFolio',
+			path: 'https://llamafolio.com/',
+			external: true,
+			referrer: true
+		},
+		{
+			name: 'DL News',
 			path: 'https://dlnews.com/',
-			newTag: true,
+			external: true,
+			referrer: true
+		},
+		{
+			name: 'Llama U',
+			path: 'https://www.dlnews.com/articles/llama-u',
 			external: true,
 			referrer: true
 		},
@@ -75,11 +88,10 @@ const defaultToolsAndFooterLinks = {
 			name: 'Roundup',
 			path: '/roundup'
 		},
-		{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
+		{ name: 'Trending Contracts', path: '/trending-contracts' },
 		{
 			name: 'Token Liquidity',
 			path: '/liquidity',
-			newTag: true,
 			external: true
 		},
 		{ name: 'Correlation', path: '/correlation', newTag: true },
@@ -131,14 +143,15 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Overview', path: '/' },
 			{ name: 'Chains', path: '/chains' },
+			{ name: 'Bridged TVL', path: '/bridged', newTag: true },
 			{ name: 'Compare Chains', path: '/compare?chains=Optimism&chains=Arbitrum' },
 			{ name: 'Airdrops', path: '/airdrops' },
 			{ name: 'Treasuries', path: '/treasuries', newTag: true },
 			{ name: 'Oracles', path: '/oracles' },
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },
-			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve' },
-			{ name: 'Protocol Expenses', path: '/expenses', newTag: true },
+			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve+DEX' },
+			{ name: 'Protocol Expenses', path: '/expenses' },
 			{ name: 'Token Usage', path: '/tokenUsage?token=ETH' },
 			{ name: 'Categories', path: '/categories' },
 			{ name: 'Recent', path: '/recent' },
@@ -223,8 +236,7 @@ export const navLinks: ILinks = {
 			{ name: 'Earnings', path: '/nfts/earnings' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <ImageIcon size={16} />,
-		newTag: true
+		icon: <ImageIcon size={16} />
 	},
 	Unlocks: {
 		main: [],
@@ -267,23 +279,30 @@ export const navLinks: ILinks = {
 	},
 	Volumes: {
 		main: [
-			{ name: 'Overview', path: '/dexs' },
+			{ name: 'DEXs', path: '/dexs' },
 			{ name: 'Chains', path: '/dexs/chains' },
-			{ name: 'Derivatives', path: '/derivatives' },
-			{ name: 'Options', path: '/options' }
+			{ name: 'Aggregators', path: '/aggregators', newTag: true },
+			{ name: 'Perps', path: '/derivatives' },
+			{ name: 'Perps (Chains)', path: '/derivatives/chains' },
+			{ name: 'Perp Aggregators', path: '/derivatives-aggregator', newTag: true },
+			{ name: 'Options', path: '/options' },
+			{ name: 'Options (Chains)', path: '/options/chains' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart size={16} />
 	},
 	'Fees/Revenue': {
-		main: [],
+		main: [
+			{ name: 'Simple', path: '/fees/simple' },
+			{ name: 'Advanced', path: '/fees' }
+		],
 		...defaultToolsAndFooterLinks,
 		icon: <PieChart size={16} />
 	},
 	Raises: {
 		main: [
 			{ name: 'Overview', path: '/raises' },
-			{ name: 'Active Investors', path: '/raises/active-investors' }
+			{ name: 'Investors', path: '/raises/investors' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <Book size={16} />
@@ -305,6 +324,21 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Layers size={16} />
+	},
+	'Crypto ETFs': {
+		main: [
+			{ name: 'BTC', path: '/crypto-etf/bitcoin' },
+			{ name: 'ETH', path: '/crypto-etf/ethereum' }
+		],
+		...defaultToolsAndFooterLinks,
+		icon: <TrendingUp size={16} />,
+		newTag: true
+	},
+	'Narrative Tracker': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Eye size={16} />,
+		newTag: true
 	}
 	// NFTs: {
 	// 	main: [],
@@ -313,13 +347,23 @@ export const navLinks: ILinks = {
 	// }
 }
 
+if (IS_PRO_API_ENABLED) {
+	navLinks['Pro API'] = {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <FilePlus size={16} />,
+		newTag: true
+	}
+}
+
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
-	{ name: 'Fees/Revenue', url: '/fees' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Unlocks', url: '/unlocks' },
 	{ name: 'Governance', url: '/governance' },
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
-	{ name: 'ETH Liquid Staking', url: '/lsd' }
+	{ name: 'ETH Liquid Staking', url: '/lsd' },
+	{ name: 'Pro API', url: '/pro-api' },
+	{ name: 'Narrative Tracker', url: '/narrative-tracker' }
 ]

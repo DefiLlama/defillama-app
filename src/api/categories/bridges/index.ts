@@ -3,6 +3,7 @@ import { formatBridgesData, formatChainsData } from './utils'
 import type { IChainData } from '~/api/types'
 import { CONFIG_API, BRIDGEDAYSTATS_API, BRIDGES_API, BRIDGEVOLUME_API, BRIDGELARGETX_API } from '~/constants'
 import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchOverCacheJson } from '~/utils/perf'
 
 const fetch = fetchWithErrorLogging
 
@@ -25,8 +26,8 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 						// i.e., a withdrawal from the chain. Will eventually change that.
 						return {
 							date: chart.date,
-							Deposits: chart.withdrawUSD,
-							Withdrawals: -chart.depositUSD
+							Deposits: chart.depositUSD,
+							Withdrawals: -chart.withdrawUSD
 						}
 					})
 					return formattedChart
@@ -97,7 +98,7 @@ export async function getBridgeOverviewPageData(chain) {
 						formattedCharts = charts.map((chart) => {
 							return {
 								date: chart.date,
-								volume: chart.withdrawUSD + chart.depositUSD,
+								volume: (chart.withdrawUSD + chart.depositUSD) / 2,
 								txs: chart.depositTxs + chart.withdrawTxs
 							}
 						})
@@ -194,7 +195,7 @@ export async function getBridgeChainsPageData() {
 		const charts = chartDataByChain[i]
 		charts.map((chart) => {
 			const date = chart.date
-			const netFlow = chart.withdrawUSD - chart.depositUSD
+			const netFlow = chart.depositUSD - chart.withdrawUSD
 			unformattedChartData[date] = unformattedChartData[date] || {}
 			unformattedChartData[date][chain.name] = netFlow
 		})
@@ -242,20 +243,19 @@ export async function getBridgeChainsPageData() {
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
 	const prevDayTimestamp = currentTimestamp - 86400 - 3600
 	let prevDayDataByChain = []
-	prevDayDataByChain = await Promise.all(
-		chains.map(async (chain) => {
-			for (let i = 0; i < 5; i++) {
-				try {
-					const charts = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`).then((resp) =>
-						resp.json()
-					)
-					// can format differently here if needed
-					return charts
-				} catch (e) {}
-			}
-			throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)
-		})
-	)
+	prevDayDataByChain = (
+		await Promise.all(
+			chains.map(async (chain) => {
+				for (let i = 0; i < 5; i++) {
+					try {
+						const charts = await fetchOverCacheJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`)
+						return { ...charts, name: chain.name }
+					} catch (e) {}
+				}
+				//throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)
+			})
+		)
+	).filter((t) => t !== undefined)
 
 	const filteredChains = formatChainsData({
 		chains,
@@ -337,7 +337,7 @@ export async function getBridgePageDatanew(bridge: string) {
 		(obj) => standardizeProtocolName(obj.displayName) === standardizeProtocolName(bridge)
 	)[0]
 
-	const { id, chains, icon, displayName } = bridgeData
+	const { id, chains, icon, displayName, destinationChain } = bridgeData
 
 	const [iconType, iconName] = icon.split(':')
 	// get logo based on icon type (chain or protocol)
@@ -387,7 +387,8 @@ export async function getBridgePageDatanew(bridge: string) {
 		volumeDataByChain[chains[index]] = chartData
 	})
 
-	volumeDataByChain['All Chains'] = Object.values(volumeOnAllChains)
+	volumeDataByChain['All Chains'] =
+		destinationChain !== 'false' ? volumeDataByChain?.[destinationChain] ?? [] : Object.values(volumeOnAllChains)
 
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
@@ -434,7 +435,13 @@ export async function getBridgePageDatanew(bridge: string) {
 		prevDayDataByChain[chains[index]] = data
 	})
 
-	const chainsList = ['All Chains', ...chains]
+	if (destinationChain !== 'false') {
+		prevDayDataByChain[destinationChain] = prevDayDataByChain['All Chains']
+	}
+
+	const chainsList = ['All Chains', ...chains, destinationChain !== false ? destinationChain : null].filter(
+		(chain) => chain
+	)
 
 	const tableDataByChain = {}
 	chainsList.forEach((currentChain) => {
@@ -478,28 +485,53 @@ export async function getBridgePageDatanew(bridge: string) {
 					return { symbol: entry[0], ...entry[1] }
 				})
 
-			const fullTokenDeposits = Object.values(totalTokensDeposited).map(
+			let fullTokenDeposits = Object.values(totalTokensDeposited).map(
 				(tokenData: { symbol: string; usdValue: number }) => {
 					return { name: tokenData.symbol, value: tokenData.usdValue }
 				}
 			)
+			let fullTokenWithdrawals = Object.values(totalTokensWithdrawn).map(
+				(tokenData: { symbol: string; usdValue: number }) => {
+					return { name: tokenData.symbol, value: tokenData.usdValue }
+				}
+			)
+
+			if (currentChain === 'All Chains') {
+				const allTokensSymbols = new Set(
+					Object.values(totalTokensDeposited).map((token: { symbol: string; usdValue: number }) => token.symbol)
+				)
+				fullTokenDeposits = Array.from(allTokensSymbols).reduce((acc, symbol) => {
+					const sameTokenDeposits = fullTokenDeposits.filter((token) => token.name === symbol)
+					const totalValue = sameTokenDeposits.reduce((total, entry) => {
+						return (total += entry.value)
+					}, 0)
+					return acc.concat({ name: symbol, value: totalValue })
+				}, [])
+
+				const allTokensSymbolsWithdrawn = new Set(
+					Object.values(totalTokensWithdrawn).map((token: { symbol: string; usdValue: number }) => token.symbol)
+				)
+				fullTokenWithdrawals = Array.from(allTokensSymbolsWithdrawn).reduce((acc, symbol) => {
+					const sameTokenWithdrawals = fullTokenWithdrawals.filter((token) => token.name === symbol)
+					const totalValue = sameTokenWithdrawals.reduce((total, entry) => {
+						return (total += entry.value)
+					}, 0)
+					return acc.concat({ name: symbol, value: totalValue })
+				}, [])
+			}
+
 			const otherDeposits = fullTokenDeposits.slice(10).reduce((total, entry) => {
 				return (total += entry.value)
 			}, 0)
 			tokenDeposits = fullTokenDeposits
-				.slice(0, 10)
+				.slice(0, 15)
 				.sort((a, b) => b.value - a.value)
 				.concat({ name: 'Others', value: otherDeposits })
-			const fullTokenWithdrawals = Object.values(totalTokensWithdrawn).map(
-				(tokenData: { symbol: string; usdValue: number }) => {
-					return { name: tokenData.symbol, value: tokenData.usdValue }
-				}
-			)
 			const otherWithdrawals = fullTokenWithdrawals.slice(10).reduce((total, entry) => {
 				return (total += entry.value)
 			}, 0)
 			tokenWithdrawals = fullTokenWithdrawals
-				.slice(0, 10)
+				.slice(0, 15)
 				.sort((a, b) => b.value - a.value)
 				.concat({ name: 'Others', value: otherWithdrawals })
 			tokenColor = Object.fromEntries(
@@ -552,6 +584,7 @@ export async function getBridgePageDatanew(bridge: string) {
 		chains: ['All Chains', ...chains],
 		defaultChain: 'All Chains',
 		volumeDataByChain,
-		tableDataByChain
+		tableDataByChain,
+		config: bridgeData
 	}
 }

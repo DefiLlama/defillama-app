@@ -62,6 +62,7 @@ const SEO = ({
 			pageType === ADAPTOR_TYPES.DEXS ||
 			pageType === ADAPTOR_TYPES.AGGREGATORS ||
 			pageType === ADAPTOR_TYPES.DERIVATIVES ||
+			pageType === ADAPTOR_TYPES.DERIVATIVES_AGGREGATOR ||
 			pageType === ADAPTOR_TYPES.OPTIONS
 		) {
 			valueHeader = '24h volume'

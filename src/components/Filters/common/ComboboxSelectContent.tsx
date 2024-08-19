@@ -1,8 +1,26 @@
 import { MutableRefObject, useMemo, useState } from 'react'
+import styled from 'styled-components'
 import { useDebounce } from '~/hooks'
 import { FilterFnsGroup, SelectItem } from './Base'
 import { Checkbox } from '~/components'
 import { slug } from '~/utils'
+
+const LeftContainer = styled.div`
+	display: flex;
+	align-items: center;
+`
+
+const OnlyButton = styled.button`
+	margin-left: 0.4rem;
+	padding: 0;
+	font-weight: 500;
+	opacity: 0;
+	transition: opacity 0.3s;
+
+	:hover {
+		text-decoration: underline;
+	}
+`
 
 interface ISelectContent {
 	options: Array<string>
@@ -13,6 +31,7 @@ interface ISelectContent {
 	isOptionToggled: (option: any) => boolean
 	clearAllOptions: () => void
 	toggleAllOptions: () => void
+	selectOnlyOne: (options: string) => void
 	isSlugValue?: boolean
 }
 
@@ -29,6 +48,7 @@ const SelectContent = ({
 	clearAllOptions,
 	toggleAllOptions,
 	isOptionToggled,
+	selectOnlyOne,
 	isSlugValue
 }: ISelectContent) => {
 	return (
@@ -50,7 +70,17 @@ const SelectContent = ({
 							ref={i === 0 && selectedOptions.length === options.length ? focusItemRef : null}
 							focusOnHover
 						>
-							<span data-name>{value}</span>
+							<LeftContainer>
+								<span data-name>{value}</span>
+								<OnlyButton
+									onClick={(e) => {
+										e.stopPropagation()
+										selectOnlyOne(formattedValue)
+									}}
+								>
+									Only
+								</OnlyButton>
+							</LeftContainer>
 							<Checkbox checked={isOptionToggled(formattedValue)} />
 						</SelectItem>
 					)

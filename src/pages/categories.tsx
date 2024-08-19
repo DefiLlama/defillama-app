@@ -86,7 +86,19 @@ export const descriptions = {
 		'Protocol that allows you to lend against known parties that can borrow without collaterall',
 	'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top',
 	'Liquidity manager': 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs',
-	'Staking Pool': `Refers to platforms where users stake their assets on native blockchains to help secure the network and earn rewards. Unlike Liquid Staking, users don't receive a token representing their staked assets, and their funds are locked up during the staking period, limiting participation in other DeFi activities`
+	'Staking Pool': `Refers to platforms where users stake their assets using smart contracts on native blockchains to help secure the network and earn rewards but don't receive a receipt token to use in other Defi apps like with Liquid Staking projects`,
+	'Decentralized Stablecoin': `Coins pegged to USD through decentralized mechanisms`,
+	SoFi: 'Social Finance Networks',
+	'DEX Aggregator': `A platform that sources liquidity from various decentralized exchanges to provide optimal trade execution in terms of price and slippage`,
+	Restaking: 'Protocols that allow you to stake the same ETH natively and in others protocols',
+	'Liquid Restaking': 'Protocols that create a liquid token for restaking',
+	Wallets: 'Protocols where you have a form of digital storage to secure access to your crypto.',
+	NftFi: 'NFT leverage protocols',
+	'Telegram Bot': 'Trading bots for Telegram users',
+	Ponzi: 'Farms promising high rates of return, where the money from new investors is used to pay earlier investors',
+	'Basis Trading': `Projects simultaneously buying and selling crypto futures to profit from price differences between the spot and futures markets`,
+	MEV: 'MEV Layer',
+	CeDeFi: 'Projects that incorporate elements of centralization within their product strategies'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {

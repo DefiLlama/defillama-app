@@ -16,9 +16,11 @@ export const fetchChain = async ({ chain }) => {
 			getOverviewItemPageData('fees', chain).catch(() => null),
 			fetch(`https://api.llama.fi/userData/users/chain$${chain}`)
 				.then((r) => r.json())
+				.then((r) => JSON.parse(r?.body || null))
 				.catch(() => null),
 			fetch(`https://api.llama.fi/userData/txs/chain$${chain}`)
 				.then((r) => r.json())
+				.then((r) => JSON.parse(r?.body || null))
 				.catch(() => null),
 			getFeesData('fees', chain)
 				.catch(() => null)
@@ -28,7 +30,7 @@ export const fetchChain = async ({ chain }) => {
 		])
 
 	return {
-		...data.props,
+		...(data?.props || {}),
 		volumeData: volumeData || null,
 		chainVolumeData: chainVolumeData || null,
 		feesData: feesData || null,

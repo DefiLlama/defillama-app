@@ -132,6 +132,12 @@ export const SelectItem = styled(AriaSelectItem)`
 		border-radius: 0;
 	}
 
+	:hover {
+		button {
+			opacity: 1;
+		}
+	}
+
 	opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
 
 	@media screen and (min-width: 640px) {

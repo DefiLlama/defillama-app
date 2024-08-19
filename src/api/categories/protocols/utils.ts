@@ -28,7 +28,8 @@ export const basicPropertiesToKeep: BasicPropsToKeep = [
 	'mcap',
 	'mcaptvl',
 	'category',
-	'parentProtocol'
+	'parentProtocol',
+	'defillamaId'
 ]
 
 export const formatProtocolsData = ({

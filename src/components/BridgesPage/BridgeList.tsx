@@ -22,6 +22,7 @@ import { LargeTxsTable } from './LargeTxsTable'
 import { TxsTableSwitch } from '../BridgesPage/TableSwitch'
 import { useBuildBridgeChartData } from '~/utils/bridges'
 import { formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~/utils'
+import CSVDownloadButton from '../ButtonStyled/CsvButton'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -169,9 +170,9 @@ function BridgesOverview({
 				monthTotalVolume += Number(bridge?.monthlyVolume) || 0
 			})
 		} else {
-			for (let i = 0; i < 31; i++) {
+			for (let i = 1; i < 31; i++) {
 				const dailyVolume = getPrevVolumeFromChart(chainVolumeData, i, false, selectedChain !== 'All')
-				if (i < 1) {
+				if (i < 2) {
 					dayTotalVolume += dailyVolume
 				}
 				if (i < 8) {
@@ -192,11 +193,10 @@ function BridgesOverview({
 				}}
 				onToggleClick={(enabled) => setEnableBreakdownChart(enabled)}
 			/>
-
 			<HeaderWrapper>
 				<span>Bridge Volume in {selectedChain === 'All' ? 'all bridges' : selectedChain}</span>
+				<CSVDownloadButton onClick={downloadCsv} />
 			</HeaderWrapper>
-
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
 					<BreakpointPanel>
@@ -204,10 +204,6 @@ function BridgesOverview({
 						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
 							{formattedNum(dayTotalVolume, true)}
 						</p>
-						<DownloadButton as="button" onClick={downloadCsv}>
-							<DownloadIcon />
-							<span>&nbsp;&nbsp;.csv</span>
-						</DownloadButton>
 					</BreakpointPanel>
 					<PanelHiddenMobile>
 						<h1>Total volume (7d)</h1>
@@ -273,13 +269,10 @@ function BridgesOverview({
 					{chartType === '24h Tokens Withdrawn' && <PieChart chartData={tokenDeposits} />}
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
-
 			<TxsTableSwitch />
-
 			<RowLinksWrapper>
 				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 			</RowLinksWrapper>
-
 			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} chain={selectedChain} />}
 			{!isBridgesShowingTxs && <BridgesTable data={filteredBridges} />}
 		</>

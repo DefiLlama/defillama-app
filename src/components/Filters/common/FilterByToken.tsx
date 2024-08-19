@@ -84,6 +84,20 @@ export function FiltersByToken({
 		)
 	}
 
+	const selectOnlyOne = (option: string) => {
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					token: option
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	const focusItemRef = useRef(null)
 
 	const isSelected = selectedTokens.length > 0 && selectedTokens.length !== tokensList.length
@@ -98,6 +112,7 @@ export function FiltersByToken({
 					selectedOptions={selectedTokens}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
+					selectOnlyOne={selectOnlyOne}
 					focusItemRef={focusItemRef}
 					variant={variant}
 					pathname={pathname}
@@ -147,6 +162,7 @@ export function FiltersByToken({
 					selectedOptions={selectedTokens}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
+					selectOnlyOne={selectOnlyOne}
 					focusItemRef={focusItemRef}
 					variant={variant}
 					pathname={pathname}

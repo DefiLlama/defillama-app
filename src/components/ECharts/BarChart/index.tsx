@@ -115,6 +115,12 @@ export default function BarChart({
 				})
 			})
 
+			series.forEach((seriesItem) => {
+				if (seriesItem.data.length === 0) {
+					seriesItem.large = false
+				}
+			})
+
 			return series
 		}
 	}, [barWidths, chartData, color, defaultStacks, seriesConfig, stackColors, stackKeys, selectedStacks, isMonthly])

@@ -238,7 +238,7 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 			const parentBridges = parent.bridges
 			const percentBridged =
 				parent.circulating && parent.bridgedAmount && (parent.bridgedAmount / parent.circulating) * 100.0
-			const percentBridgedtoDisplay = percentBridged < 100 ? percentBridged.toFixed(2) + '%' : '100%'
+			const percentBridgedtoDisplay = percentBridged ? (percentBridged < 100 ? percentBridged.toFixed(2) + '%' : '100%') : null
 			if (!parentBridges || Object.keys(parentBridges).length === 0) {
 				finalData[parent.name] = {
 					...parent,
@@ -337,7 +337,6 @@ export const useBuildPeggedChartData = (
 	assetsOrChainsList,
 	filteredIndexes?,
 	issuanceType = 'mcap',
-	chainTVLData?,
 	selectedChain?,
 	totalChartTooltipLabel = 'Mcap'
 ) => {
@@ -419,26 +418,12 @@ export const useBuildPeggedChartData = (
 				}
 			})
 
-			const peggedAreaTotalData = chainTVLData
-				? chainTVLData.tvl
-						.map(([date, tvl]) => {
-							if (date < 1609372800) return
-							if (!backfilledChains.includes(selectedChain) && date < 1652241600) return
-							const mcap = unformattedTotalData[date] ?? 0
-							if (mcap === 0) return
-							return {
-								date: date,
-								[totalChartTooltipLabel]: mcap,
-								TVL: tvl
-							}
-						})
-						.filter((entry) => entry)
-				: Object.entries(unformattedTotalData).map(([date, mcap]) => {
-						return {
-							date: date,
-							[totalChartTooltipLabel]: mcap
-						}
-				  })
+			const peggedAreaTotalData = Object.entries(unformattedTotalData).map(([date, mcap]) => {
+				return {
+					date: date,
+					[totalChartTooltipLabel]: mcap
+				}
+			})
 
 			const stackedDataset = Object.entries(stackedDatasetObject)
 
@@ -493,7 +478,6 @@ export const useBuildPeggedChartData = (
 			assetsOrChainsList,
 			filteredIndexes,
 			issuanceType,
-			chainTVLData,
 			selectedChain,
 			totalChartTooltipLabel
 		])

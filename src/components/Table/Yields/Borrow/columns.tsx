@@ -47,7 +47,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		header: 'Chain',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields/borrow?chain" iconType="chain" />,
+		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
 		meta: {
 			align: 'end'
 		},
@@ -98,7 +98,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
+				<ColoredAPY data-variant={(info.getValue() as number) > 0 ? 'positive' : 'borrow'}>
 					{formattedPercent(info.getValue(), true, 700)}
 				</ColoredAPY>
 			)

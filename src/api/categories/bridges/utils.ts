@@ -31,6 +31,7 @@ export type DailyBridgeStats = {
 			txs: number
 		}
 	}
+	name?: string
 }
 
 export const bridgePropertiesToKeep = [
@@ -70,9 +71,9 @@ export const formatBridgesData = ({
 			let dayTotalVolume, weekTotalVolume, monthTotalVolume
 			dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
 			// start from i = 1 to exclude current day
-			for (let i = 0; i < 31; i++) {
+			for (let i = 1; i < 31; i++) {
 				const dailyVolume = getPrevVolumeFromChart(chart, i)
-				if (i < 1) {
+				if (i < 2) {
 					dayTotalVolume += dailyVolume
 				}
 				if (i < 8) {
@@ -88,7 +89,7 @@ export const formatBridgesData = ({
 
 		bridge.change_1d = getPercentChange(bridge.lastDailyVolume, bridge.dayBeforeLastVolume)
 		bridge.txsPrevDay = getPrevVolumeFromChart(chart, 0, true) ?? null
-		bridge.lastDailyVolume = chain ? bridge.lastDailyVolume : bridge.currentDayVolume
+		bridge.lastDailyVolume = bridge.lastDailyVolume
 
 		return keepNeededProperties(bridge, bridgeProps)
 	})
@@ -110,13 +111,17 @@ export const formatChainsData = ({
 		const name = chain.name
 		const chartIndex = chainToChartDataIndex[name]
 		const charts = chartDataByChain[chartIndex] ?? null
-		const prevDayData = prevDayDataByChain[chartIndex] ?? null
+
+		const prevDayData =
+			prevDayDataByChain?.find(({ name }) => {
+				return name === chain.name
+			}) ?? null
 		const prevDayChart = charts?.[charts.length - 1]
 		const prevDayUsdDeposits = prevDayChart?.depositUSD
 		const prevDayUsdWithdrawals = prevDayChart?.withdrawUSD
 		const totalTokensDeposited = prevDayData?.totalTokensDeposited
 		const totalTokensWithdrawn = prevDayData?.totalTokensWithdrawn
-		const prevDayNetFlow = prevDayUsdWithdrawals - prevDayUsdDeposits
+		const prevDayNetFlow = prevDayUsdDeposits - prevDayUsdWithdrawals
 
 		const prevWeekCharts = chartDataByChain[chartIndex].slice(-8, -1)
 		let prevWeekUsdDeposits = 0

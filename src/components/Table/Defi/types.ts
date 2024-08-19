@@ -1,3 +1,5 @@
+import { ChainAssets } from '~/hooks/data/defi'
+
 export interface IOraclesRow {
 	name: string
 	protocolsSecured: number
@@ -30,6 +32,7 @@ export interface IChain {
 
 export interface IChainsRow extends IChain {
 	subRows?: Array<IChain>
+	chainAssets?: ChainAssets
 }
 
 export interface ILSDRow {
@@ -56,6 +59,7 @@ export interface IEmission {
 	tPrice?: number | null
 	tSymbol?: string | null
 	mcap: number | null
+	unlocksPerDay: number | null
 	upcomingEvent: Array<{
 		description: string
 		noOfTokens: number[]
@@ -77,4 +81,54 @@ export interface IGovernance {
 	}
 	propsalsInLast30Days: number
 	successfulPropsalsInLast30Days: number
+}
+
+export interface IETFRow {
+	ticker: string
+	issuer: string
+	etf_name: string
+	custodian: string
+	pct_fee: number
+	url: string
+	price: number
+	volume: number
+	aum: number
+	shares: number
+	btc: number
+	flows: number
+}
+
+export interface AirdropRow {
+	name: string
+	page: string
+	twitter: string
+	explorer: string
+	tokens: string
+}
+
+export interface IBridgedRow {
+	name: string
+	total: ChainAssets['total']
+	thirdParty: ChainAssets['thirdParty']
+	canonical: ChainAssets['canonical']
+	ownTokens: ChainAssets['ownTokens']
+	change_24h: number
+}
+
+export interface CategoryPerformanceRow {
+	id: string
+	name: string
+	mcap: number
+	change1W: number
+	change1M: number
+	change1Y: number
+	nbCoins: number
+}
+
+export interface CoinPerformanceRow {
+	id: string
+	mcap: number
+	change1W: number
+	change1M: number
+	change1Y: number
 }

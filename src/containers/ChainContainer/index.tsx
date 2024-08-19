@@ -13,20 +13,26 @@ import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { chainIconUrl, formattedNum, getTokenDominance } from '~/utils'
 import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
-import Image from 'next/future/image'
+import Image from 'next/image'
+
 import llamaLogo from '~/assets/peeking-llama.png'
 import { DetailsWrapper, DownloadButton, Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
-import Link from 'next/link'
+
 import { ChevronRight, DownloadCloud } from 'react-feather'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
-import { RowWithSubRows, StatsTable2 } from '../Defi/Protocol'
+import { RowWithSubRows, StatsTable2, SubrowTh } from '../Defi/Protocol'
 import SEO from '~/components/SEO'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import TokenLogo from '~/components/TokenLogo'
 import { EmbedChart } from '~/components/Popover'
 import { primaryColor } from '~/constants/colors'
 import { useFetchChainChartData } from './useFetchChainChartData'
+import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+
+import { formatRaise, formatRaisedAmount } from '../Defi/Protocol/utils'
+import { sluggify } from '~/utils/cache-client'
+import QuestionHelper from '~/components/QuestionHelper'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -60,16 +66,18 @@ export function ChainContainer({
 	stablecoinsData,
 	inflowsData,
 	userData,
-	devMetricsData
+	devMetricsData,
+	chainTokenInfo,
+	chainTreasury,
+	chainRaises,
+	chainAssets
 }) {
 	const {
 		fullProtocolsList,
 		parentProtocols,
 		isLoading: fetchingProtocolsList
 	} = useGetProtocolsList({ chain: selectedChain })
-
 	const [extraTvlsEnabled] = useDefiManager()
-
 	const router = useRouter()
 
 	const denomination = router.query?.currency ?? 'USD'
@@ -113,6 +121,23 @@ export function ChainContainer({
 
 	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
+	const { totalValueUSD, valueChangeUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
+		denomination,
+		selectedChain,
+		chainGeckoId,
+		volumeData,
+		feesAndRevenueData,
+		stablecoinsData,
+		inflowsData,
+		userData,
+		raisesChart,
+		chart,
+		extraTvlCharts,
+		extraTvlsEnabled,
+		devMetricsData,
+		chainTokenInfo
+	})
+
 	const chartOptions = [
 		{
 			id: 'tvl',
@@ -140,8 +165,8 @@ export function ChainContainer({
 			isVisible: DENOMINATIONS.length > 1
 		},
 		{
-			id: 'users',
-			name: 'Users',
+			id: 'addresses',
+			name: 'Addresses',
 			isVisible: userData.activeUsers ? true : false
 		},
 		{
@@ -168,28 +193,35 @@ export function ChainContainer({
 			id: 'developers',
 			name: 'Core Developers',
 			isVisible: devMetricsData ? true : false
-		}
+		},
+		{
+			id: 'devsCommits',
+			name: 'Commits',
+			isVisible: devMetricsData ? true : false
+		},
+		{
+			id: 'chainTokenPrice',
+			name: `${chainTokenInfo?.tokenSymbol} Price`,
+			isVisible: chartDatasets?.[0]?.chainTokenMcapData?.length ? true : false
+		},
+		{
+			id: 'chainTokenMcap',
+			name: `${chainTokenInfo?.tokenSymbol} MCap`,
+			isVisible: chartDatasets?.[0]?.chainTokenMcapData?.length ? true : false
+		},
+		{
+			id: 'chainTokenVolume',
+			name: `${chainTokenInfo?.tokenSymbol} Volume`,
+			isVisible: chartDatasets?.[0]?.chainTokenVolumeData?.length ? true : false
+		},
+		{ id: 'derivatives', name: 'Derivatives Volume', isVisible: chartDatasets?.[0]?.derivativesData ? true : false },
+		{ id: 'aggregators', name: 'Aggregators Volume', isVisible: chartDatasets?.[0]?.aggregatorsData ? true : false },
+		{ id: 'chainAssets', name: 'Bridged TVL', isVisible: chartDatasets?.[0]?.chainAssetsData ? true : false }
 	]
-
-	const { totalValueUSD, valueChangeUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
-		denomination,
-		selectedChain,
-		chainGeckoId,
-		volumeData,
-		feesAndRevenueData,
-		stablecoinsData,
-		inflowsData,
-		userData,
-		raisesChart,
-		chart,
-		extraTvlCharts,
-		extraTvlsEnabled,
-		devMetricsData
-	})
 
 	const finalProtocolsList = React.useMemo(() => {
 		const list =
-			!fetchingProtocolsList && fullProtocolsList
+			!fetchingProtocolsList && fullProtocolsList && !fetchingProtocolsVolumeByChain && !fetchingProtocolsFeesAndRevenueByChain
 				? formatProtocolsList({
 						extraTvlsEnabled,
 						protocols: fullProtocolsList,
@@ -203,7 +235,7 @@ export function ChainContainer({
 			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
 		return isValidTvlRange
-			? list.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
+			? list.filter((p) => (minTvl ? p.tvl >= minTvl : true) && (maxTvl ? p.tvl <= maxTvl : true))
 			: list
 	}, [
 		extraTvlsEnabled,
@@ -214,7 +246,9 @@ export function ChainContainer({
 		chainProtocolsVolumes,
 		chainProtocolsFees,
 		minTvl,
-		maxTvl
+		maxTvl,
+		fetchingProtocolsVolumeByChain,
+		fetchingProtocolsFeesAndRevenueByChain
 	])
 
 	const topToken = { name: 'Uniswap', tvl: 0 }
@@ -253,12 +287,6 @@ export function ChainContainer({
 				{' !'}
 			</Announcement>*/}
 
-			{selectedChain === 'zkSync Era' && (
-				<Announcement warning={true}>
-					DefiLlama doesn't whitelist/audit/endorse any protocols listed, we list everything. Exercise caution.
-				</Announcement>
-			)}
-
 			<ProtocolsChainsSearch
 				step={{
 					category: 'Home',
@@ -294,35 +322,12 @@ export function ChainContainer({
 									<span>Total Value Locked</span>
 									<span>{tvl}</span>
 								</span>
-
-								<Link
-									href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
-										.filter((t) => t[1] === true)
-										.map((t) => `${t[0]}=true`)
-										.join('&')}`}
-									passHref
-								>
-									<DownloadButton
-										as="a"
-										style={{ height: 'fit-content', margin: 'auto 0 0 auto' }}
-										target="_blank"
-										rel="noreferrer"
-									>
-										<DownloadCloud size={14} />
-										<span>&nbsp;&nbsp;.csv</span>
-									</DownloadButton>
-								</Link>
 							</summary>
 
 							<span style={{ gap: '8px' }}>
 								<StatInARow>
 									<span>Change (24h)</span>
 									<span>{percentChange || 0}%</span>
-								</StatInARow>
-
-								<StatInARow>
-									<span>{topToken.name} Dominance</span>
-									<span>{dominance}%</span>
 								</StatInARow>
 							</span>
 						</AccordionStat>
@@ -340,13 +345,13 @@ export function ChainContainer({
 											<>
 												{stablecoinsData.change7d ? (
 													<tr>
-														<th>Change (7d)</th>
+														<SubrowTh>Change (7d)</SubrowTh>
 														<td>{stablecoinsData.change7d}%</td>
 													</tr>
 												) : null}
 												{stablecoinsData.dominance ? (
 													<tr>
-														<th>{stablecoinsData.topToken.symbol} Dominance</th>
+														<SubrowTh>{stablecoinsData.topToken.symbol} Dominance</SubrowTh>
 														<td>{stablecoinsData.dominance}%</td>
 													</tr>
 												) : null}
@@ -380,16 +385,16 @@ export function ChainContainer({
 											<>
 												{volumeData.totalVolume7d ? (
 													<tr>
-														<th>Volume (7d)</th>
+														<SubrowTh>Volume (7d)</SubrowTh>
 														<td>{formattedNum(volumeData.totalVolume7d, true)}</td>
 													</tr>
 												) : null}
 												<tr>
-													<th>Weekly Change</th>
+													<SubrowTh>Weekly Change</SubrowTh>
 													<td>{volumeData.weeklyChange}%</td>
 												</tr>
 												<tr>
-													<th>DEX vs CEX dominance</th>
+													<SubrowTh>DEX vs CEX dominance</SubrowTh>
 													<td>{volumeData.dexsDominance}%</td>
 												</tr>
 											</>
@@ -413,7 +418,7 @@ export function ChainContainer({
 
 								{userData.activeUsers ? (
 									<RowWithSubRows
-										rowHeader={'Active Users (24h)'}
+										rowHeader={'Active Addresses (24h)'}
 										rowValue={formattedNum(userData.activeUsers, false)}
 										helperText={null}
 										protocolName={null}
@@ -422,13 +427,13 @@ export function ChainContainer({
 											<>
 												{userData.newUsers ? (
 													<tr>
-														<th>New Users (24h)</th>
+														<SubrowTh>New Addresses (24h)</SubrowTh>
 														<td>{formattedNum(userData.newUsers, false)}</td>
 													</tr>
 												) : null}
 												{userData.transactions ? (
 													<tr>
-														<th>Transactions (24h)</th>
+														<SubrowTh>Transactions (24h)</SubrowTh>
 														<td>{formattedNum(userData.transactions, false)}</td>
 													</tr>
 												) : null}
@@ -436,8 +441,179 @@ export function ChainContainer({
 										}
 									/>
 								) : null}
+								{chainTreasury ? (
+									<RowWithSubRows
+										rowHeader={'Treasury'}
+										rowValue={formattedNum(chainTreasury?.tvl, true)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{chainTreasury.tokenBreakdowns?.stablecoins ? (
+													<tr>
+														<SubrowTh>Stablecoins</SubrowTh>
+														<td>{formattedNum(chainTreasury.tokenBreakdowns?.stablecoins, true)}</td>
+													</tr>
+												) : null}
+												{chainTreasury.tokenBreakdowns?.majors ? (
+													<tr>
+														<SubrowTh>Major Tokens (ETH, BTC)</SubrowTh>
+														<td>{formattedNum(chainTreasury.tokenBreakdowns?.majors, true)}</td>
+													</tr>
+												) : null}
+												{chainTreasury.tokenBreakdowns?.others ? (
+													<tr>
+														<SubrowTh>Other Tokens</SubrowTh>
+														<td>{formattedNum(chainTreasury.tokenBreakdowns?.others, true)}</td>
+													</tr>
+												) : null}
+												{chainTreasury.tokenBreakdowns?.ownTokens ? (
+													<tr>
+														<SubrowTh>Own Tokens</SubrowTh>
+														<td>{formattedNum(chainTreasury.tokenBreakdowns?.ownTokens, true)}</td>
+													</tr>
+												) : null}
+											</>
+										}
+									/>
+								) : null}
+								{chainRaises && chainRaises.length > 0 && (
+									<RowWithSubRows
+										protocolName={null}
+										dataType={'Raises'}
+										helperText={null}
+										rowHeader={'Total Raised'}
+										rowValue={formatRaisedAmount(chainRaises.reduce((sum, r) => sum + Number(r.amount), 0))}
+										subRows={
+											<>
+												{chainRaises
+													.sort((a, b) => a.date - b.date)
+													.map((raise) => (
+														<React.Fragment key={raise.date + raise.amount}>
+															<tr>
+																<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
+																<td data-subvalue>
+																	{raise.source ? (
+																		<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+																			{formatRaise(raise)}
+																		</a>
+																	) : (
+																		formatRaise(raise)
+																	)}
+																</td>
+															</tr>
+															<tr key={raise.source}>
+																<td colSpan={2} className="investors">
+																	<b>Investors</b>:{' '}
+																	{(raise as any).leadInvestors
+																		.concat((raise as any).otherInvestors)
+																		.map((i, index, arr) => (
+																			<React.Fragment key={'raised from ' + i}>
+																				<a href={`/raises/${sluggify(i)}`}>{i}</a>
+																				{index < arr.length - 1 ? ', ' : ''}
+																			</React.Fragment>
+																		))}
+																</td>
+															</tr>
+														</React.Fragment>
+													))}
+											</>
+										}
+									/>
+								)}
+								{chainAssets ? (
+									<RowWithSubRows
+										rowHeader="Bridged TVL"
+										rowValue={formattedNum(
+											chainAssets.total.total + (extraTvlsEnabled.govtokens ? chainAssets?.ownTokens?.total || 0 : 0),
+											true
+										)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{chainAssets ? (
+													<>
+														{chainAssets.native?.total ? (
+															<tr>
+																<SubrowTh>
+																	Native
+																	<QuestionHelper text="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)" />
+																</SubrowTh>
+																<td>{formattedNum(chainAssets.native.total, true)}</td>
+															</tr>
+														) : null}
+														{chainAssets.ownTokens?.total ? (
+															<tr>
+																<SubrowTh>
+																	Own Tokens
+																	<QuestionHelper text="Marketcap of the governance token of the chain" />
+																</SubrowTh>
+																<td>{formattedNum(chainAssets.ownTokens.total, true)}</td>
+															</tr>
+														) : null}
+
+														{chainAssets.canonical?.total ? (
+															<tr>
+																<SubrowTh>
+																	Canonical
+																	<QuestionHelper text="Tokens that were bridged to the chain through the canonical bridge" />
+																</SubrowTh>
+																<td>{formattedNum(chainAssets.canonical.total, true)}</td>
+															</tr>
+														) : null}
+
+														{chainAssets.thirdParty?.total ? (
+															<tr>
+																<SubrowTh>
+																	Third Party
+																	<QuestionHelper text="Tokens that were bridged to the chain through third party bridges" />
+																</SubrowTh>
+																<td>{formattedNum(chainAssets.thirdParty.total, true)}</td>
+															</tr>
+														) : null}
+													</>
+												) : null}
+											</>
+										}
+									/>
+								) : null}
+
+								{chainTokenInfo?.market_data ? (
+									<tr>
+										<th>{chainTokenInfo?.tokenSymbol} Price</th>
+										<td>{formattedNum(chainTokenInfo?.market_data?.current_price?.usd, true)}</td>
+									</tr>
+								) : null}
+
+								{chainTokenInfo?.market_data ? (
+									<tr>
+										<th>{chainTokenInfo?.tokenSymbol} Market Cap</th>
+										<td>{formattedNum(chainTokenInfo?.market_data?.market_cap?.usd, true)}</td>
+									</tr>
+								) : null}
+								{chainTokenInfo?.market_data ? (
+									<tr>
+										<th>{chainTokenInfo?.tokenSymbol} FDV</th>
+										<td>{formattedNum(chainTokenInfo?.market_data?.fully_diluted_valuation?.usd, true)}</td>
+									</tr>
+								) : null}
 							</tbody>
 						</StatsTable2>
+						<CSVDownloadButton
+							isLight
+							style={{ width: '100px', marginTop: 'auto', marginLeft: '-12px' }}
+							onClick={() => {
+								window.open(
+									`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
+										.filter((t) => t[1] === true)
+										.map((t) => `${t[0]}=true`)
+										.join('&')}`.replaceAll(' ', '_')
+								)
+							}}
+						/>
 					</OverallMetricsWrapper>
 
 					<ChartWrapper>
@@ -517,7 +693,7 @@ export function ChainContainer({
 											title=""
 											denomination={denomination}
 											isThemeDark={darkMode}
-											hideTooltip
+											hideTooltip={false}
 										/>
 									)
 								)}
@@ -534,6 +710,8 @@ export function ChainContainer({
 				) : (
 					<p style={{ textAlign: 'center', margin: '256px 0' }}>{`${selectedChain} chain has no protocols listed`}</p>
 				)}
+
+				{fetchingProtocolsList || fetchingProtocolsFeesAndRevenueByChain || fetchingProtocolsVolumeByChain ? <p style={{ textAlign: 'center', padding: '16px 0' }}>Loading...</p> : null}
 			</LayoutWrapper>
 		</>
 	)

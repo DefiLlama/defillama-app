@@ -9,14 +9,16 @@ import {
 	ColumnOrderState,
 	ColumnSizingState
 } from '@tanstack/react-table'
-import VirtualTable from '../StickyTable'
+import VirtualTable from '../Table'
 import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from './columns'
 import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { TableFilters } from '../shared'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
+import RowFilter from '~/components/Filters/common/RowFilter'
 
+export const PERIODS = ['24h', '7d', '30d', '1y']
 const columnSizesKeys = Object.keys(volumesColumnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
@@ -28,23 +30,62 @@ const columnsOptions = (type, allChains) => [
 		.map((c: any) => ({ name: c.header as string, key: c.accessorKey as string }))
 ]
 
-export function OverviewTable({ data, type, allChains, categories, selectedCategories }) {
-	const optionsKey = 'table-columns-' + type
+function normalizeUndefinedToNull(arr) {
+	return arr.map((obj) => {
+		if (typeof obj !== 'object' || obj === null) {
+			return obj
+		}
 
+		const newObj = {}
+		for (const [key, value] of Object.entries(obj)) {
+			newObj[key] = value === undefined ? null : value
+		}
+		return newObj
+	})
+}
+export function OverviewTable({ data, type, allChains, categories, selectedCategories, isSimpleFees }) {
+	const optionsKey = 'table-columns-' + type
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
+	const [period, setPeriod] = React.useState(null)
 	const windowSize = useWindowSize()
 
+	const normalizedData = React.useMemo(() => normalizeUndefinedToNull(data), [data])
 	const instance = useReactTable({
-		data,
-		columns: getColumnsByType(type, allChains),
+		data: normalizedData,
+		columns: getColumnsByType(type, allChains, isSimpleFees),
 		state: {
 			sorting,
 			expanded,
 			columnOrder,
 			columnSizing
+		},
+		sortingFns: {
+			alphanumericFalsyLast: (rowA, rowB, columnId) => {
+				const desc = sorting.length ? sorting[0].desc : true
+
+				let a = (rowA.getValue(columnId) ?? null) as any
+				let b = (rowB.getValue(columnId) ?? null) as any
+
+				if (typeof a === 'number' && a <= 0) a = null
+				if (typeof b === 'number' && b <= 0) b = null
+
+				if (a === null && b !== null) {
+					return desc ? -1 : 1
+				}
+
+				if (a !== null && b === null) {
+					return desc ? 1 : -1
+				}
+
+				if (a === null && b === null) {
+					return 0
+				}
+
+				return a - b
+			}
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IDexsRow) => row.subRows,
@@ -80,6 +121,21 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 		.filter((col) => col.getIsVisible())
 		.map((col) => col.id)
 
+	const setNewPeriod = (newPeriod) => {
+		const periodsToRemove = PERIODS.filter((period) => period !== newPeriod)
+		const columnsToRemove = instance
+			.getAllLeafColumns()
+			.filter((col) => periodsToRemove.some((p) => col?.columnDef?.header?.toString().includes(p)))
+			.map((col) => col?.id)
+		const newColumns = instance
+			.getAllColumns()
+			.filter((col) => !columnsToRemove.includes(col.id))
+			.map((col) => col.id)
+
+		setPeriod(newPeriod)
+		addOption(newColumns)
+	}
+
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
@@ -99,15 +155,17 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 	return (
 		<>
 			<TableFilters style={{ justifyContent: 'flex-end' }}>
-				<ColumnFilters2
-					label={'Columns'}
-					options={columnsOptions(type, allChains)}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectedOptions={selectedOptions}
-					addOption={addOption}
-					subMenu={false}
-				/>
+				{isSimpleFees ? null : (
+					<ColumnFilters2
+						label={'Columns'}
+						options={columnsOptions(type, allChains)}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						selectedOptions={selectedOptions}
+						addOption={addOption}
+						subMenu={false}
+					/>
+				)}
 
 				{categories?.length > 0 && type !== 'dexs' && (
 					<FiltersByCategory
@@ -117,6 +175,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 						hideSelectedCount
 					/>
 				)}
+				{type === 'fees' ? <RowFilter selectedValue={period} setValue={setNewPeriod} values={PERIODS} /> : null}
 			</TableFilters>
 
 			<VirtualTable instance={instance} />

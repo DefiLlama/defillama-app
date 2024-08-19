@@ -36,7 +36,7 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	const finalData = getChartData({ ...data.props })
 
 	return {
-		props: { ...finalData },
+		props: { ...finalData, tokensList: finalData.tokensList.filter((lsd) => lsd.name !== 'diva') },
 		revalidate: maxAgeForNext([22])
 	}
 })
@@ -119,6 +119,7 @@ const PageView = ({
 								hideDefaultLegend
 								valueSymbol="%"
 								title=""
+								expandTo100Percent={true}
 							/>
 						</ChartsWrapper>
 					) : (
@@ -216,7 +217,11 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 
 	const historicData = chartData
 		.map((protocol) => {
-			const tokensArray = protocol.chainTvls['Ethereum'].tokens
+			const tokensArray =
+				protocol.name === 'Crypto.com Staked ETH'
+					? protocol.chainTvls['Cronos'].tokens
+					: protocol.chainTvls['Ethereum'].tokens
+
 			return tokensArray.map((t, i, arr) => {
 				const date = (d) => Math.floor(d.date / 24 / 60 / 60) * 60 * 60 * 24
 				if (i > 0 && date(arr[i - 1]) == date(t)) {
@@ -273,7 +278,8 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	const secDay = 86400
 	const tokenTvls = chartData
 		.map((protocol) => {
-			const p = protocol.chainTvls['Ethereum']
+			const p =
+				protocol.name === 'Crypto.com Staked ETH' ? protocol.chainTvls['Cronos'] : protocol.chainTvls['Ethereum']
 
 			if (p.tokens.length < 1) {
 				return {
@@ -294,25 +300,27 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 			const lastTokens7d = p.tokens.find((x) => x.date === offset7d)?.tokens
 			const lastTokens30d = p.tokens.find((x) => x.date === offset30d)?.tokens
 
-			const eth = lastTokens[Object.keys(lastTokens).filter((k) => k.includes('ETH'))[0]]
-			const eth7d =
-				lastTokens7d !== undefined ? lastTokens7d[Object.keys(lastTokens7d)?.filter((k) => k.includes('ETH'))[0]] : null
-			const eth30d =
-				lastTokens30d !== undefined
-					? lastTokens30d[Object.keys(lastTokens30d)?.filter((k) => k.includes('ETH'))[0]]
-					: null
+			const getETH = (obj: any) => {
+				const potentialETH = Object.keys(obj).filter((k) => k.includes('ETH'))
+				const eth = potentialETH.reduce((max, item) => (obj[item] > max ? obj[item] : max), 0)
+				return eth
+			}
+
+			const eth = getETH(lastTokens)
+			const eth7d = lastTokens7d !== undefined ? getETH(lastTokens7d) : null
+			const eth30d = lastTokens30d !== undefined ? getETH(lastTokens30d) : null
 
 			return {
 				name: protocol.name,
 				logo: protocol.logo,
 				mcap: protocol.mcap,
 				stakedEth: eth,
-				stakedEthInUsd: lastTokensInUsd[Object.keys(lastTokensInUsd).filter((k) => k.includes('ETH'))[0]],
+				stakedEthInUsd: getETH(lastTokensInUsd),
 				stakedEthPctChange7d: eth7d !== null ? ((eth - eth7d) / eth7d) * 100 : null,
 				stakedEthPctChange30d: eth30d !== null ? ((eth - eth30d) / eth30d) * 100 : null
 			}
 		})
-		.filter((p) => p.stakedEth !== undefined)
+		.filter((p) => p.stakedEth !== 0)
 		.sort((a, b) => b.stakedEth - a.stakedEth)
 
 	const rebase = 'Rebase Token: Staking rewards accrue as new tokens. Expected Peg = 1 : 1'

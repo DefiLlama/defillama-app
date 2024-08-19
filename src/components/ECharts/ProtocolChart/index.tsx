@@ -6,7 +6,7 @@ import { getUtcDateObject, stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { toK } from '~/utils'
-import { BAR_CHARTS } from './utils'
+import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useRouter } from 'next/router'
 
 const Wrapper = styled.div`
@@ -14,7 +14,10 @@ const Wrapper = styled.div`
 `
 
 const customOffsets = {
-	Contributers: 60
+	Contributers: 60,
+	'Contributers Commits': 80,
+	'Devs Commits': 70,
+	'NFT Volume': 65
 }
 
 export default function AreaBarChart({
@@ -104,8 +107,9 @@ export default function AreaBarChart({
 			yAxisByIndex['Unlocks'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
-		if (stacks.includes('Active Users') || stacks.includes('New Users')) {
-			yAxisByIndex['Active Users+New Users'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		if (stacks.includes('Active Addresses') || stacks.includes('New Addresses')) {
+			yAxisByIndex['Active Addresses+New Addresses'] =
+				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
 		if (stacks.includes('Transactions')) {
@@ -149,10 +153,27 @@ export default function AreaBarChart({
 			yAxisByIndex['Contributers'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
+		if (stacks.includes('Devs Commits')) {
+			yAxisByIndex['Devs Commits'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('Contributers Commits')) {
+			yAxisByIndex['Contributers Commits'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('NFT Volume')) {
+			yAxisByIndex['NFT Volume'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
+		if (stacks.includes('Premium Volume')) {
+			yAxisByIndex['Premium Volume'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		}
+
 		const series = stacks.map((stack, index) => {
 			const stackColor = stackColors[stack]
 
-			const type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
+			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
+			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
 
 			const options = {}
 			if (['TVL', 'Mcap', 'FDV', 'Borrowed', 'Staking'].includes(stack)) {
@@ -161,8 +182,8 @@ export default function AreaBarChart({
 				options['yAxisIndex'] = yAxisByIndex['Bridge Deposits+Bridge Withdrawals']
 			} else if (['Volume', 'Derivatives Volume', 'Fees', 'Revenue'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Volume+Derivatives Volume+Fees+Revenue']
-			} else if (['Active Users', 'New Users'].includes(stack)) {
-				options['yAxisIndex'] = yAxisByIndex['Active Users+New Users']
+			} else if (['Active Addresses', 'New Addresses'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['Active Addresses+New Addresses']
 			} else if (['Total Proposals', 'Successful Proposals'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Total Proposals+Successful Proposals']
 			} else {
@@ -245,6 +266,12 @@ export default function AreaBarChart({
 				}
 			}
 		}
+
+		series.forEach((seriesItem) => {
+			if (seriesItem.data.length === 0) {
+				seriesItem.large = false
+			}
+		})
 
 		return { series, yAxisByIndex }
 	}, [
@@ -368,7 +395,7 @@ export default function AreaBarChart({
 				})
 			}
 
-			if (type === 'Active Users+New Users') {
+			if (type === 'Active Addresses+New Addresses') {
 				yAxiss.push({
 					...options,
 					axisLabel: {
@@ -511,6 +538,59 @@ export default function AreaBarChart({
 						show: true,
 						lineStyle: {
 							color: stackColors['Contributers']
+						}
+					}
+				})
+			}
+
+			if (type === 'Devs Commits') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => value + ' commits'
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Devs Commits']
+						}
+					}
+				})
+			}
+			if (type === 'Contributers Commits') {
+				yAxiss.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => value + ' commits'
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Contributers Commits']
+						}
+					}
+				})
+			}
+
+			if (type === 'NFT Volume') {
+				yAxiss.push({
+					...options,
+
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['NFT Volume']
+						}
+					}
+				})
+			}
+			if (type === 'Premium Volume') {
+				yAxiss.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: stackColors['Premium Volume']
 						}
 					}
 				})
