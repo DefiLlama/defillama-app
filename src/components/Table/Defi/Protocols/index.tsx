@@ -220,12 +220,9 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 			alphanumericFalsyLast: (rowA, rowB, columnId) => {
 				const desc = sorting.length ? sorting[0].desc : true
 
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
+				let a = rowA.getValue(columnId) as any
+				let b = rowB.getValue(columnId) as any
 
-				/**
-				 * These first 3 conditions keep our null values at the bottom.
-				 */
 				if (a === null && b !== null) {
 					return desc ? -1 : 1
 				}
@@ -234,18 +231,44 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					return desc ? 1 : -1
 				}
 
+				if (a === undefined && b === undefined) {
+					return 0
+				}
+				if (a !== undefined && b === undefined) {
+					return desc ? 1 : -1
+				}
+				if (a === undefined && b !== undefined) {
+					return desc ? -1 : 1
+				}
+
 				if (a === null && b === null) {
 					return 0
 				}
 
-				// at this point, you have non-null values and you should do whatever is required to sort those values correctly
 				return a - b
 			}
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
-		onSortingChange: setSorting,
+		onSortingChange: (updater) => {
+			setSorting((old) => {
+				const newSorting = updater instanceof Function ? updater(old) : updater
+
+				if (newSorting.length === 0 && old.length === 1) {
+					const currentDesc = old[0].desc
+					if (currentDesc === undefined) {
+						return [{ ...old[0], desc: false }]
+					} else if (currentDesc === false) {
+						return [{ ...old[0], desc: true }]
+					} else {
+						return [{ ...old[0], desc: undefined }]
+					}
+				}
+
+				return newSorting
+			})
+		},
 		onColumnSizingChange: setColumnSizing,
 		onColumnVisibilityChange: setColumnVisibility,
 		getCoreRowModel: getCoreRowModel(),
