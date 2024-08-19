@@ -367,14 +367,17 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 	}
 
 	let filteredProtocols = formatProtocolsData({ category, protocols, chain })
+	const protcolNames = filteredProtocols.map((p) => p.name)
+	const filteredFees = feesRes.filter((p) => protcolNames.includes(p.name))
+	const filteredVolumes = volumesRes.protocols.filter((p) => protcolNames.includes(p.name))
 
 	return {
 		categoryChart,
 		filteredProtocols,
 		chain: chain ?? 'All',
 		protocols,
-		fees: feesRes,
-		volumes: volumesRes.protocols,
+		fees: filteredFees,
+		volumes: filteredVolumes,
 		category,
 		chains: chains.filter((chain) => chainsSet.has(chain)),
 		parentProtocols
