@@ -201,7 +201,7 @@ export async function getChainPageData(chain?: string) {
 		extraTvlsEnabled: {}
 	})
 		.slice(0, 30)
-		.map((protocol) => {
+		.map((protocol: any) => {
 			for (const prop in protocol) {
 				if (protocol[prop] === undefined) {
 					protocol[prop] = null
