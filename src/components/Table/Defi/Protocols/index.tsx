@@ -245,7 +245,24 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
-		onSortingChange: setSorting,
+		onSortingChange: (updater) => {
+			setSorting((old) => {
+				const newSorting = updater instanceof Function ? updater(old) : updater
+
+				if (newSorting.length === 0 && old.length === 1) {
+					const currentDesc = old[0].desc
+					if (currentDesc === undefined) {
+						return [{ ...old[0], desc: false }]
+					} else if (currentDesc === false) {
+						return [{ ...old[0], desc: true }]
+					} else {
+						return [{ ...old[0], desc: undefined }]
+					}
+				}
+
+				return newSorting
+			})
+		},
 		onColumnSizingChange: setColumnSizing,
 		onColumnVisibilityChange: setColumnVisibility,
 		getCoreRowModel: getCoreRowModel(),
