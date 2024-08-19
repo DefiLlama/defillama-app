@@ -211,15 +211,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 120
 			}),
-			columnHelper.accessor('average_1y', {
-				header: 'Revenue 30d Fees',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				meta: {
-					align: 'end'
-				},
-				size: 160
-			}),
 			columnHelper.accessor('average_revenue_1y', {
 				header: 'Monthly Avg 1Y Rev',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
@@ -312,7 +303,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Volume',
 		columns: [
 			columnHelper.accessor('volume_24h', {
-				header: 'Volume 24h',
+				header: 'Spot Volume 24h',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
@@ -321,7 +312,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				size: 120
 			}),
 			columnHelper.accessor('volume_7d', {
-				header: 'Volume 7d',
+				header: 'Spot Volume 7d',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
