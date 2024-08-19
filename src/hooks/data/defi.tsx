@@ -413,5 +413,7 @@ export const formatProtocolsList = ({
 		}
 	}
 
-	return parentProtocols ? groupProtocols(Object.values(final), parentProtocols, noSubrows) : Object.values(final)
+	return (
+		parentProtocols ? groupProtocols(Object.values(final), parentProtocols, noSubrows) : Object.values(final)
+	) as Array<IFormattedProtocol>
 }
