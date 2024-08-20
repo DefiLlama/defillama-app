@@ -104,7 +104,6 @@ function ProtocolList({
 			volumeData: volumes
 		})
 
-		// fix
 		return data.map((p) => ({
 			...p,
 			compare: addOrRemoveCompare,

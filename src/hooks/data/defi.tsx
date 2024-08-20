@@ -308,10 +308,6 @@ export const formatProtocolsList = ({
 
 		const mcaptvl = mcap && finalTvl ? +(mcap / finalTvl).toFixed(2) : null
 
-		const currentVolume = volumeData?.find((data) => (props?.parentProtocol || !data?.id ? data.name === name : false))
-
-		const currentFees = feesData?.find((data) => (props?.parentProtocol || !data?.id ? data.name === name : false))
-
 		// use undefined if the value is null, so we sort table columns correctly
 		final[props.defillamaId] = {
 			...props,
@@ -324,28 +320,6 @@ export const formatProtocolsList = ({
 			change_1d: change1d,
 			change_7d: change7d,
 			change_1m: change1m,
-			fees_24h: currentFees?.total24h ?? undefined,
-			revenue_24h: currentFees?.revenue24h ?? undefined,
-			holderRevenue_24h: currentFees?.dailyHoldersRevenue ?? undefined,
-			fees_7d: currentFees?.total7d ?? undefined,
-			revenue_7d: currentFees?.revenue7d ?? undefined,
-			fees_30d: currentFees?.total30d ?? undefined,
-			fees_1y: currentFees?.total1y ?? undefined,
-			revenue_30d: currentFees?.revenue30d ?? undefined,
-			revenue_1y: currentFees?.revenue1y ?? undefined,
-			average_fees_1y: currentFees?.average1y ?? undefined,
-			average_revenue_1y: currentFees?.averageRevenue1y ?? undefined,
-			holdersRevenue30d: currentFees?.holdersRevenue30d ?? undefined,
-			treasuryRevenue_24h: currentFees?.dailyProtocolRevenue ?? undefined,
-			supplySideRevenue_24h: currentFees?.dailySupplySideRevenue ?? undefined,
-			userFees_24h: currentFees?.dailyUserFees ?? undefined,
-			cumulativeFees: currentFees?.totalAllTime ?? undefined,
-			pf: getAnnualizedRatio(mcap, currentFees?.total30d),
-			ps: getAnnualizedRatio(mcap, currentFees?.revenue30d),
-			volume_24h: currentVolume?.total24h ?? undefined,
-			volume_7d: currentVolume?.total7d ?? undefined,
-			volumeChange_7d: currentVolume?.['change_7dover7d'] ?? undefined,
-			cumulativeVolume: currentVolume?.totalAllTime ?? undefined,
 			mcap,
 			mcaptvl,
 			strikeTvl
@@ -354,33 +328,31 @@ export const formatProtocolsList = ({
 
 	for (const protocol of feesData ?? []) {
 		if (!final[protocol.defillamaId]) {
-			const currentVolume = volumeData?.find((data) => data.defillamaId === protocol.defillamaId)
-
-			// use undefined if the value is null, so we sort table columns correctly
 			final[protocol.defillamaId] = {
 				name: protocol.displayName,
-				fees_24h: protocol.total24h ?? undefined,
-				revenue_24h: protocol.revenue24h ?? undefined,
-				holderRevenue_24h: protocol.dailyHoldersRevenue ?? undefined,
-				fees_7d: protocol.total7d ?? undefined,
-				revenue_7d: protocol.revenue7d ?? undefined,
-				fees_30d: protocol.total30d ?? undefined,
-				fees_1y: protocol.total1y ?? undefined,
-				revenue_30d: protocol.revenue30d ?? undefined,
-				revenue_1y: protocol.revenue1y ?? undefined,
-				average_fees_1y: protocol.average1y ?? undefined,
-				average_revenue_1y: protocol.averageRevenue1y ?? undefined,
-				holdersRevenue30d: protocol.holdersRevenue30d ?? undefined,
-				treasuryRevenue_24h: protocol.dailyProtocolRevenue ?? undefined,
-				supplySideRevenue_24h: protocol.dailySupplySideRevenue ?? undefined,
-				userFees_24h: protocol.dailyUserFees ?? undefined,
-				cumulativeFees: protocol.totalAllTime ?? undefined,
-				chains: protocol.chains ?? [],
-				volume_24h: currentVolume?.total24h,
-				volume_7d: currentVolume?.total7d,
-				volumeChange_7d: currentVolume?.['change_7dover7d'],
-				cumulativeVolume: currentVolume?.totalAllTime
+				chains: protocol.chains ?? []
 			}
+		}
+
+		// use undefined if the value is null, so we sort table columns correctly
+		final[protocol.defillamaId] = {
+			...final[protocol.defillamaId],
+			fees_24h: protocol.total24h ?? undefined,
+			revenue_24h: protocol.revenue24h ?? undefined,
+			holderRevenue_24h: protocol.dailyHoldersRevenue ?? undefined,
+			fees_7d: protocol.total7d ?? undefined,
+			revenue_7d: protocol.revenue7d ?? undefined,
+			fees_30d: protocol.total30d ?? undefined,
+			fees_1y: protocol.total1y ?? undefined,
+			revenue_30d: protocol.revenue30d ?? undefined,
+			revenue_1y: protocol.revenue1y ?? undefined,
+			average_fees_1y: protocol.average1y ?? undefined,
+			average_revenue_1y: protocol.averageRevenue1y ?? undefined,
+			holdersRevenue30d: protocol.holdersRevenue30d ?? undefined,
+			treasuryRevenue_24h: protocol.dailyProtocolRevenue ?? undefined,
+			supplySideRevenue_24h: protocol.dailySupplySideRevenue ?? undefined,
+			userFees_24h: protocol.dailyUserFees ?? undefined,
+			cumulativeFees: protocol.totalAllTime ?? undefined
 		}
 	}
 
@@ -388,28 +360,16 @@ export const formatProtocolsList = ({
 		if (!final[protocol.defillamaId]) {
 			final[protocol.defillamaId] = {
 				name: protocol.displayName,
-				chains: protocol.chains ?? [],
-				fees_24h: undefined,
-				revenue_24h: undefined,
-				holderRevenue_24h: undefined,
-				fees_7d: undefined,
-				revenue_7d: undefined,
-				fees_30d: undefined,
-				fees_1y: undefined,
-				revenue_30d: undefined,
-				revenue_1y: undefined,
-				average_fees_1y: undefined,
-				average_revenue_1y: undefined,
-				holdersRevenue30d: undefined,
-				treasuryRevenue_24h: undefined,
-				supplySideRevenue_24h: undefined,
-				userFees_24h: undefined,
-				cumulativeFees: undefined,
-				volume_24h: protocol.total24h,
-				volume_7d: protocol.total7d,
-				volumeChange_7d: protocol['change_7dover7d'],
-				cumulativeVolume: protocol.totalAllTime
+				chains: protocol.chains ?? []
 			}
+		}
+
+		final[protocol.defillamaId] = {
+			...final[protocol.defillamaId],
+			volume_24h: protocol.total24h,
+			volume_7d: protocol.total7d,
+			volumeChange_7d: protocol['change_7dover7d'],
+			cumulativeVolume: protocol.totalAllTime
 		}
 	}
 
