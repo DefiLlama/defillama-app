@@ -256,7 +256,7 @@ export const formatProtocolsList = ({
 
 	const final = {}
 
-	const shouldModifyTvl = Object.values(checkExtras).every((t) => !t)
+	const shouldModifyTvl = Object.values(checkExtras).some((t) => t)
 
 	for (const protocol of protocols) {
 		const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, name, ...props } = protocol
