@@ -107,7 +107,13 @@ export const useGetDexsAndFeesChartData = (props) => {
 			chartData = cd
 			legend = lgnd
 		}
+
 		title = Object.keys(legend).length <= 1 ? `${capitalizeFirstLetter(typeSimple)} by chain` : ''
+
+		if (legend.length === 1 && legend[0] === 'Dexs') {
+			title = 'Volume'
+		}
+
 		return {
 			dataChart: [chartData, legend] as [IJoin2ReturnType, string[]],
 			title: title
