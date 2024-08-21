@@ -81,8 +81,13 @@ export const generateGetOverviewItemPageDate = async (
 		secondType = await getOverviewItem(type, protocolName, 'dailyPremiumVolume')
 		secondLabel = 'Premium volume'
 	}
-	if (secondLabel && secondType?.totalDataChart) allCharts.push([secondLabel, secondType.totalDataChart])
-	if (thirdType?.totalDataChart) allCharts.push(['Bribes', thirdType.totalDataChart])
+	if (secondLabel && secondType?.totalDataChart) {
+		allCharts.push([secondLabel, secondType.totalDataChart])
+	}
+
+	if (thirdType?.totalDataChart && !(thirdType.totalDataChart.length === 1 && thirdType.totalDataChart[0][1] === 0)) {
+		allCharts.push(['Bribes', thirdType.totalDataChart])
+	}
 
 	return {
 		...item,

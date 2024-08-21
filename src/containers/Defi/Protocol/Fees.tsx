@@ -30,9 +30,9 @@ export function FeesAndRevenueCharts({ data }: { data: IFusedProtocolData }) {
 
 	return (
 		<ChartsWrapper style={{ background: 'none', border: 'none' }}>
+			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} breakdownChart={false} />
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} />
 			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={'fees'} /> : null}
-			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} breakdownChart={false} />
 		</ChartsWrapper>
 	)
 }
