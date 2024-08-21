@@ -41,7 +41,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 			const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
 
 			searchData[s] = {
-				name: cgToken?.name ?? s,
+				name: s,
 				symbol: s,
 				image: cgToken?.image ?? '',
 				image2: cgToken?.image ?? ''
@@ -309,9 +309,7 @@ const TokensSelect = ({
 						{combobox.matches.map((value, i) => (
 							<PopoverItem value={value} key={value + i} focusOnHover>
 								<TokenLogo logo={searchData[value].image2} fallbackLogo={searchData[value].image} />
-								<span data-name>
-									{value === 'USD_STABLES' ? searchData[value].name : `${value} (${searchData[value].name})`}
-								</span>
+								<span data-name>{value === 'USD_STABLES' ? searchData[value].name : `${value}`}</span>
 							</PopoverItem>
 						))}
 					</List>

@@ -36,7 +36,7 @@ export function useFormatTokensSearchList({ lend, searchData }) {
 
 		const yieldsList =
 			searchData?.map((el) => ({
-				name: `${el.name} (${el.symbol?.toUpperCase()})`,
+				name: `${el.name}`,
 				symbol: el.symbol?.toUpperCase(),
 				route: {
 					pathname: router.pathname,
