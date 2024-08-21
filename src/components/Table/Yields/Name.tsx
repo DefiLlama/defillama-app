@@ -7,6 +7,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import Tooltip from '~/components/Tooltip'
 import FormattedName from '~/components/FormattedName'
+import useWindowSize from '~/hooks/useWindowSize'
 
 interface INameYieldPoolProps {
 	value: string
@@ -36,10 +37,22 @@ export function NameYieldPool({
 	borrow,
 	strategy,
 	withoutLink,
-	maxCharacters = 10,
+	maxCharacters,
 	bookmark = true
 }: INameYieldPoolProps) {
 	const tokenUrl = strategy ? `/yields/strategy/${configID}` : `/yields/pool/${configID}`
+	const windowSize = useWindowSize()
+	const mc =
+		maxCharacters ??
+		(windowSize?.width >= 1640
+			? 40
+			: windowSize?.width >= 1600
+			? 28
+			: windowSize?.width >= 1536
+			? 20
+			: windowSize?.width >= 1280
+			? 12
+			: 10)
 
 	return (
 		<Wrapper>
@@ -56,10 +69,10 @@ export function NameYieldPool({
 			)}
 
 			{withoutLink ? (
-				<FormattedName text={value} maxCharacters={maxCharacters} link fontWeight={500} />
+				<FormattedName text={value} maxCharacters={mc} link fontWeight={500} />
 			) : (
 				<CustomLink href={tokenUrl} target="_blank">
-					<FormattedName text={value} maxCharacters={maxCharacters} link fontWeight={500} />
+					<FormattedName text={value} maxCharacters={mc} link fontWeight={500} />
 				</CustomLink>
 			)}
 		</Wrapper>

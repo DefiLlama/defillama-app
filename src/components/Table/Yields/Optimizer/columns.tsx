@@ -18,6 +18,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol}`
 
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			return (
 				<NameYieldPool
 					withoutLink
@@ -382,6 +383,51 @@ export const columnSizes = {
 	},
 	812: {
 		pool: 210,
+		project: 180,
+		chain: 60,
+		borrowAvailableUsd: 100,
+		totalBase: 100,
+		lendingBase: 150,
+		borrowBase: 150,
+		totalReward: 100,
+		lendingReward: 150,
+		borrowReward: 150,
+		ltv: 80,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 120
+	},
+	1536: {
+		pool: 240,
+		project: 180,
+		chain: 60,
+		borrowAvailableUsd: 100,
+		totalBase: 100,
+		lendingBase: 150,
+		borrowBase: 150,
+		totalReward: 100,
+		lendingReward: 150,
+		borrowReward: 150,
+		ltv: 80,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 120
+	},
+	1600: {
+		pool: 280,
+		project: 180,
+		chain: 60,
+		borrowAvailableUsd: 100,
+		totalBase: 100,
+		lendingBase: 150,
+		borrowBase: 150,
+		totalReward: 100,
+		lendingReward: 150,
+		borrowReward: 150,
+		ltv: 80,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 120
+	},
+	1640: {
+		pool: 320,
 		project: 180,
 		chain: 60,
 		borrowAvailableUsd: 100,
