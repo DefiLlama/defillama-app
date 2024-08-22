@@ -27,9 +27,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	const searchData = {
 		['USD_STABLES']: {
 			name: `All USD Stablecoins`,
-			symbol: 'USD_STABLES',
-			image: 'https://icons.llamao.fi/icons/pegged/usd_native?h=48&w=48',
-			image2: 'https://icons.llamao.fi/icons/pegged/usd_native?h=48&w=48'
+			symbol: 'USD_STABLES'
 		}
 	}
 
@@ -42,9 +40,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 
 			searchData[s] = {
 				name: s,
-				symbol: s,
-				image: cgToken?.image ?? '',
-				image2: cgToken?.image ?? ''
+				symbol: s
 			}
 		})
 
@@ -308,7 +304,6 @@ const TokensSelect = ({
 					<List state={combobox} className="filter-by-list">
 						{combobox.matches.map((value, i) => (
 							<PopoverItem value={value} key={value + i} focusOnHover>
-								<TokenLogo logo={searchData[value].image2} fallbackLogo={searchData[value].image} />
 								<span data-name>{value === 'USD_STABLES' ? searchData[value].name : `${value}`}</span>
 							</PopoverItem>
 						))}
