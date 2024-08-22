@@ -22,6 +22,9 @@ const TextWrapper = styled.span<WrapperProps>`
 	color: ${({ theme, link }) => (link ? theme.blue : theme.text1)};
 	font-size: ${({ fontSize }) => fontSize ?? 'inherit'};
 	font-weight: ${({ fontWeight }) => fontWeight};
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 
 	:hover {
 		cursor: pointer;
@@ -50,7 +53,7 @@ const FormattedName = ({
 		return (
 			<Tooltip content={text}>
 				<TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize} {...rest}>
-					{' ' + text.slice(0, maxCharacters - 1) + '...'}
+					{text}
 				</TextWrapper>
 			</Tooltip>
 		)

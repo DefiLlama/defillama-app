@@ -44,12 +44,14 @@ export function NameYieldPool({
 	const windowSize = useWindowSize()
 	const mc =
 		maxCharacters ??
-		(windowSize?.width >= 1640
-			? 40
+		(windowSize?.width >= 1720
+			? 36
+			: windowSize?.width >= 1640
+			? 32
 			: windowSize?.width >= 1600
 			? 28
 			: windowSize?.width >= 1536
-			? 20
+			? 16
 			: windowSize?.width >= 1280
 			? 12
 			: 10)

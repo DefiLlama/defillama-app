@@ -705,6 +705,32 @@ export const columnSizes = {
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
 		totalAvailableUsd: 120
+	},
+	1720: {
+		pool: 420,
+		project: 200,
+		chain: 60,
+		tvl: 120,
+		apy: 100,
+		apyIncludingLsdApy: 100,
+		apyBase: 140,
+		apyBaseIncludingLsdApy: 140,
+		apyReward: 140,
+		apyNet7d: 120,
+		apyBase7d: 140,
+		il7d: 90,
+		apyMean30d: 120,
+		volumeUsd1d: 140,
+		volumeUsd7d: 140,
+		apyBaseInception: 150,
+		apyChart30d: 110,
+		apyBorrow: 160,
+		apyBaseBorrow: 170,
+		apyRewardBorrow: 180,
+		ltv: 110,
+		totalSupplyUsd: 120,
+		totalBorrowUsd: 120,
+		totalAvailableUsd: 120
 	}
 }
 

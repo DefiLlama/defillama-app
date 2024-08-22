@@ -440,6 +440,21 @@ export const columnSizes = {
 		ltv: 80,
 		totalSupplyUsd: 100,
 		totalBorrowUsd: 120
+	},
+	1720: {
+		pool: 420,
+		project: 180,
+		chain: 60,
+		borrowAvailableUsd: 100,
+		totalBase: 100,
+		lendingBase: 150,
+		borrowBase: 150,
+		totalReward: 100,
+		lendingReward: 150,
+		borrowReward: 150,
+		ltv: 80,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 120
 	}
 }
 
