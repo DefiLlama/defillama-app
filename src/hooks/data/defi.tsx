@@ -248,13 +248,13 @@ export const formatProtocolsList = ({
 	volumeData?: IOverviewProps['protocols']
 	feesData?: IOverviewProps['protocols']
 	noSubrows?: boolean
-}) => {
+}): IFormattedProtocol[] => {
 	const checkExtras = {
 		...extraTvlsEnabled,
 		doublecounted: !extraTvlsEnabled.doublecounted
 	}
 
-	const final = {}
+	const allProtocols: Record<string, IFormattedProtocol> = {}
 
 	const shouldModifyTvl = Object.values(checkExtras).some((t) => t)
 
@@ -278,7 +278,6 @@ export const formatProtocolsList = ({
 
 			Object.entries(extraTvl).forEach(([prop, propValues]) => {
 				const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
-
 				if (
 					prop === 'doublecounted' &&
 					!extraTvlsEnabled['doublecounted'] &&
@@ -308,8 +307,7 @@ export const formatProtocolsList = ({
 
 		const mcaptvl = mcap && finalTvl ? +(mcap / finalTvl).toFixed(2) : null
 
-		// use undefined if the value is null, so we sort table columns correctly
-		final[props.defillamaId] = {
+		allProtocols[name?.toLowerCase()] = {
 			...props,
 			extraTvl,
 			name,
@@ -327,16 +325,13 @@ export const formatProtocolsList = ({
 	}
 
 	for (const protocol of feesData ?? []) {
-		if (!final[protocol.defillamaId]) {
-			final[protocol.defillamaId] = {
-				name: protocol.displayName,
-				chains: protocol.chains ?? []
-			}
+		const protocolName = protocol.displayName?.toLowerCase()
+		if (!allProtocols[protocolName]) {
+			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
 		}
-
-		// use undefined if the value is null, so we sort table columns correctly
-		final[protocol.defillamaId] = {
-			...final[protocol.defillamaId],
+		allProtocols[protocolName] = {
+			...allProtocols?.[protocolName],
+			chains: protocol.chains ?? [],
 			fees_24h: protocol.total24h ?? undefined,
 			revenue_24h: protocol.revenue24h ?? undefined,
 			holderRevenue_24h: protocol.dailyHoldersRevenue ?? undefined,
@@ -346,7 +341,7 @@ export const formatProtocolsList = ({
 			fees_1y: protocol.total1y ?? undefined,
 			revenue_30d: protocol.revenue30d ?? undefined,
 			revenue_1y: protocol.revenue1y ?? undefined,
-			average_fees_1y: protocol.average1y ?? undefined,
+			average_1y: protocol.average1y ?? undefined,
 			average_revenue_1y: protocol.averageRevenue1y ?? undefined,
 			holdersRevenue30d: protocol.holdersRevenue30d ?? undefined,
 			treasuryRevenue_24h: protocol.dailyProtocolRevenue ?? undefined,
@@ -357,15 +352,13 @@ export const formatProtocolsList = ({
 	}
 
 	for (const protocol of volumeData ?? []) {
-		if (!final[protocol.defillamaId]) {
-			final[protocol.defillamaId] = {
-				name: protocol.displayName,
-				chains: protocol.chains ?? []
-			}
+		const protocolName = protocol.displayName?.toLowerCase()
+		if (!allProtocols[protocolName]) {
+			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
 		}
-
-		final[protocol.defillamaId] = {
-			...final[protocol.defillamaId],
+		allProtocols[protocolName] = {
+			...allProtocols[protocolName],
+			chains: protocol.chains ?? [],
 			volume_24h: protocol.total24h,
 			volume_7d: protocol.total7d,
 			volumeChange_7d: protocol['change_7dover7d'],
@@ -373,7 +366,9 @@ export const formatProtocolsList = ({
 		}
 	}
 
+	const finalProtocols = Object.values(allProtocols)
+
 	return (
-		parentProtocols ? groupProtocols(Object.values(final), parentProtocols, noSubrows) : Object.values(final)
+		parentProtocols ? groupProtocols(finalProtocols, parentProtocols, noSubrows) : finalProtocols
 	) as Array<IFormattedProtocol>
 }
