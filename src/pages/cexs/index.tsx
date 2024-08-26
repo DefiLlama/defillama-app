@@ -425,6 +425,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'BloFin',
+		slug: 'blofin',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Backpack',
 		slug: 'backpack',
 		coin: null,
