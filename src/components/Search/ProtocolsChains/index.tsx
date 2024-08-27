@@ -5,6 +5,10 @@ import { DesktopProtocolFilters, TabletProtocolsFilters } from '~/components/Fil
 import { useGetDefiSearchList } from './hooks'
 import { DesktopTvlAndFeesFilters } from '~/components/Filters/protocols/Desktop'
 import { TabletTvlAndFeesFilters } from '~/components/Filters/protocols/Tablet'
+import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
+import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
+import { useMemo } from 'react'
+// import { useState } from 'react'
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -13,18 +17,45 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 	hideFilters?: boolean
 }
 
+const { searchClient } = instantMeiliSearch(
+	'https://search.defillama.com',
+	'0050e4b518781e324a259db278687ec0031b9601c1c6a87aa7174c13ecdbd057'
+)
+
 export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
+	return (
+		<InstantSearch indexName="protocols" searchClient={searchClient} future={{ preserveSharedStateOnUnmount: true }}>
+			<Search {...props} />
+		</InstantSearch>
+	)
+}
+
+const Search = (props: IProtocolsChainsSearch) => {
+	const { refine, query } = useSearchBox()
+
+	const { results, status, error } = useInstantSearch({ catchError: true })
+
 	const { includedSets = Object.values(SETS), customPath, options, hideFilters = false } = props
 
-	const { data, loading } = useGetDefiSearchList({ includedSets, customPath })
+	console.log({ query, hits: results.hits, status })
+
+	const data = useMemo(() => {
+		return results.hits.map((hit) => ({ name: JSON.stringify(hit), route: '/' }))
+	}, [results])
 
 	return (
-		<DesktopSearch
-			{...props}
-			data={data}
-			loading={loading}
-			filters={hideFilters ? null : <TvlOptions options={options} />}
-		/>
+		<>
+			<DesktopSearch
+				{...props}
+				data={data}
+				loading={status === 'loading'}
+				filters={hideFilters ? null : <TvlOptions options={options} />}
+				onSearchTermChange={(value) => {
+					refine(value)
+				}}
+			/>
+			<TvlOptions options={options} />
+		</>
 	)
 }
 

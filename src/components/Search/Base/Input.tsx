@@ -75,6 +75,7 @@ interface IInputProps {
 	withValue?: boolean
 	variant?: 'primary' | 'secondary'
 	hideIcon?: boolean
+	onSearchTermChange?: (value: string) => void
 }
 
 const IconWrapper = styled.button`
@@ -138,6 +139,7 @@ export function Input({
 	breadCrumbs,
 	variant = 'primary',
 	hideIcon,
+	onSearchTermChange,
 	...props
 }: IInputProps) {
 	const inputField = React.useRef<HTMLInputElement>()
@@ -189,6 +191,9 @@ export function Input({
 				autoSelect
 				ref={inputField}
 				data-variant={variant}
+				onChange={(e) => {
+					onSearchTermChange?.(e.target.value)
+				}}
 				{...props}
 			/>
 
