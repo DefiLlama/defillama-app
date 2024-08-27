@@ -425,6 +425,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'Bitunix',
+		slug: 'bitunix',
+		coin: null,
+		walletsLink: "https://support.bitunix.com/hc/en-us/articles/36928276763289-Bitunix-Launching-Proof-or-Reserve-to-Improve-Transparency"
+	},
+	{
 		name: 'BloFin',
 		slug: 'blofin',
 		coin: null,
