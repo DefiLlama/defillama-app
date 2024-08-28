@@ -428,7 +428,8 @@ export const cexData: Array<ICex> = [
 		name: 'Bitunix',
 		slug: 'bitunix',
 		coin: null,
-		walletsLink: "https://support.bitunix.com/hc/en-us/articles/36928276763289-Bitunix-Launching-Proof-or-Reserve-to-Improve-Transparency"
+		walletsLink:
+			'https://support.bitunix.com/hc/en-us/articles/36928276763289-Bitunix-Launching-Proof-or-Reserve-to-Improve-Transparency'
 	},
 	{
 		name: 'BloFin',
@@ -702,4 +703,4 @@ export default function Protocols({ cexs }) {
 	)
 }
 
-//trigger server gogogogogogogogogo
+//trigger server gogogogogogogogogogo
