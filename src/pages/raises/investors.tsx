@@ -1,4 +1,11 @@
-import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import {
+	ColumnFiltersState,
+	getCoreRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import * as React from 'react'
 import { countBy, flatten, mapValues, sumBy, uniq } from 'lodash'
 import { maxAgeForNext } from '~/api'
@@ -6,13 +13,13 @@ import { activeInvestorsColumns } from '~/components/Table/Defi/columns'
 import VirtualTable from '~/components/Table/Table'
 import { RAISES_API } from '~/constants'
 import Layout from '~/layout'
-import { Header } from '~/Theme'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import RowFilter from '~/components/Filters/common/RowFilter'
-import { TableFilters } from '~/components/Table/shared'
+import { SearchWrapper, SearchIcon } from '~/components/Table/shared'
 import { AnnouncementWrapper } from '~/components/Announcement'
+import styled from 'styled-components'
 
 const columns = ['name', 'medianAmount', 'chains', 'projects', 'deals', 'category', 'roundType']
 
@@ -108,16 +115,31 @@ const ActiveInvestors = ({ data }) => {
 		)
 	).filter(Boolean)
 
+	const [investorName, setInvestorName] = React.useState('')
+
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+
 	const instance = useReactTable({
 		data: normalizedData,
 		columns: activeInvestorsColumns as any,
 		state: {
+			columnFilters,
 			sorting
 		},
 		onSortingChange: setSorting,
+		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
+		getSortedRowModel: getSortedRowModel(),
+		getFilteredRowModel: getFilteredRowModel()
 	})
+
+	React.useEffect(() => {
+		const projectsColumns = instance.getColumn('name')
+		const id = setTimeout(() => {
+			projectsColumns.setFilterValue(investorName)
+		}, 200)
+		return () => clearTimeout(id)
+	}, [investorName, instance])
 
 	return (
 		<Layout title={`Investors - DefiLlama`} defaultSEO style={{ gap: '16px' }}>
@@ -128,8 +150,21 @@ const ActiveInvestors = ({ data }) => {
 				</a>
 			</AnnouncementWrapper>
 
-			<TableFilters style={{ justifyContent: 'space-between', marginBottom: '8px' }}>
-				<Header style={{}}>Investors</Header>
+			<TableFilters>
+				<h1>Investors</h1>
+
+				<SWrapper>
+					<SearchIcon size={16} />
+
+					<input
+						value={investorName}
+						onChange={(e) => {
+							setInvestorName(e.target.value)
+						}}
+						placeholder="Search investors..."
+					/>
+				</SWrapper>
+
 				<RowFilter
 					setValue={(val) => onPeriodClick(val)}
 					values={['All', '30d', '180d', '1 year']}
@@ -140,5 +175,26 @@ const ActiveInvestors = ({ data }) => {
 		</Layout>
 	)
 }
+
+const SWrapper = styled(SearchWrapper)`
+	margin: 0;
+	bottom: 0;
+`
+
+const TableFilters = styled.div`
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex-wrap: wrap;
+
+	h1 {
+		font-weight: 500;
+		font-size: 24px;
+	}
+
+	& > *:last-child {
+		margin-left: auto;
+	}
+`
 
 export default ActiveInvestors

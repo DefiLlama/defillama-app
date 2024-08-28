@@ -2,9 +2,12 @@ import { useRouter } from 'next/router'
 import { DesktopSearch } from '../Base'
 import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
 import { DesktopProtocolFilters, TabletProtocolsFilters } from '~/components/Filters/protocols'
-import { useGetDefiSearchList } from './hooks'
 import { DesktopTvlAndFeesFilters } from '~/components/Filters/protocols/Desktop'
 import { TabletTvlAndFeesFilters } from '~/components/Filters/protocols/Tablet'
+import { useInstantSearch, useSearchBox } from 'react-instantsearch'
+import { useMemo } from 'react'
+import { SearchV2 } from '../InstantSearch'
+import { useFormatDefiSearchResults } from './hooks'
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -14,17 +17,34 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 }
 
 export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
-	const { includedSets = Object.values(SETS), customPath, options, hideFilters = false } = props
+	return (
+		<SearchV2 indexName="protocols">
+			<Search {...props} />
+		</SearchV2>
+	)
+}
 
-	const { data, loading } = useGetDefiSearchList({ includedSets, customPath })
+const Search = (props: IProtocolsChainsSearch) => {
+	const { refine } = useSearchBox()
+
+	const { results, status } = useInstantSearch({ catchError: true })
+
+	const { options, hideFilters = false } = props
+
+	const data = useFormatDefiSearchResults(results)
 
 	return (
-		<DesktopSearch
-			{...props}
-			data={data}
-			loading={loading}
-			filters={hideFilters ? null : <TvlOptions options={options} />}
-		/>
+		<>
+			<DesktopSearch
+				{...props}
+				data={data}
+				loading={status === 'loading'}
+				filters={hideFilters ? null : <TvlOptions options={options} />}
+				onSearchTermChange={(value) => {
+					refine(value)
+				}}
+			/>
+		</>
 	)
 }
 

@@ -221,7 +221,10 @@ export function ChainContainer({
 
 	const finalProtocolsList = React.useMemo(() => {
 		const list =
-			!fetchingProtocolsList && fullProtocolsList && !fetchingProtocolsVolumeByChain && !fetchingProtocolsFeesAndRevenueByChain
+			!fetchingProtocolsList &&
+			fullProtocolsList &&
+			!fetchingProtocolsVolumeByChain &&
+			!fetchingProtocolsFeesAndRevenueByChain
 				? formatProtocolsList({
 						extraTvlsEnabled,
 						protocols: fullProtocolsList,
@@ -610,7 +613,7 @@ export function ChainContainer({
 									`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
 										.filter((t) => t[1] === true)
 										.map((t) => `${t[0]}=true`)
-										.join('&')}`.replaceAll(' ', '_')
+										.join('&')}`.replaceAll(' ', '%20')
 								)
 							}}
 						/>
@@ -711,7 +714,9 @@ export function ChainContainer({
 					<p style={{ textAlign: 'center', margin: '256px 0' }}>{`${selectedChain} chain has no protocols listed`}</p>
 				)}
 
-				{fetchingProtocolsList || fetchingProtocolsFeesAndRevenueByChain || fetchingProtocolsVolumeByChain ? <p style={{ textAlign: 'center', padding: '16px 0' }}>Loading...</p> : null}
+				{fetchingProtocolsList || fetchingProtocolsFeesAndRevenueByChain || fetchingProtocolsVolumeByChain ? (
+					<p style={{ textAlign: 'center', padding: '16px 0' }}>Loading...</p>
+				) : null}
 			</LayoutWrapper>
 		</>
 	)
