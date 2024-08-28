@@ -2,13 +2,11 @@ import { useRouter } from 'next/router'
 import { DesktopSearch } from '../Base'
 import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
 import { DesktopProtocolFilters, TabletProtocolsFilters } from '~/components/Filters/protocols'
-import { useGetDefiSearchList } from './hooks'
 import { DesktopTvlAndFeesFilters } from '~/components/Filters/protocols/Desktop'
 import { TabletTvlAndFeesFilters } from '~/components/Filters/protocols/Tablet'
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { useMemo } from 'react'
-// import { useState } from 'react'
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -37,10 +35,20 @@ const Search = (props: IProtocolsChainsSearch) => {
 
 	const { includedSets = Object.values(SETS), customPath, options, hideFilters = false } = props
 
-	console.log({ query, hits: results.hits, status })
-
 	const data = useMemo(() => {
-		return results.hits.map((hit) => ({ name: JSON.stringify(hit), route: '/' }))
+		return results.hits.map((hit) => ({
+			name: hit.name,
+			route: `/${hit.id.startsWith('chain') ? 'chain' : hit.id.startsWith('category') ? 'protocols' : 'protocol'}/${
+				hit.id.startsWith('parent') || hit.id.startsWith('protocol')
+					? hit.id.split('_')[1]
+					: hit.name.replace(' ', '%20')
+			}`,
+			logo: hit.id.startsWith('category')
+				? null
+				: hit.id.startsWith('chain')
+				? `https://icons.llamao.fi/icons/chains/rsz_${hit.id.split('_')[1]}?w=48&h=48`
+				: `https://icons.llamao.fi/icons/protocols/${hit.id.split('_')[1]}?w=48&h=48`
+		}))
 	}, [results])
 
 	return (
@@ -54,7 +62,6 @@ const Search = (props: IProtocolsChainsSearch) => {
 					refine(value)
 				}}
 			/>
-			<TvlOptions options={options} />
 		</>
 	)
 }
