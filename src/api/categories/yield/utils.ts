@@ -98,6 +98,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	}
 
 	tokenNameMapping['USDC'] = 'USD Coin'
+	tokenNameMapping['VELO'] = 'Velodrome'
 	// remove any null keys (where no token)
 	tokenNameMapping = Object.fromEntries(Object.entries(tokenNameMapping).filter(([k, _]) => k !== 'null'))
 
