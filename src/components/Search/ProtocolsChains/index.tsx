@@ -4,9 +4,10 @@ import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
 import { DesktopProtocolFilters, TabletProtocolsFilters } from '~/components/Filters/protocols'
 import { DesktopTvlAndFeesFilters } from '~/components/Filters/protocols/Desktop'
 import { TabletTvlAndFeesFilters } from '~/components/Filters/protocols/Tablet'
-import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
-import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
+import { useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { useMemo } from 'react'
+import { SearchV2 } from '../InstantSearch'
+import { useFormatDefiSearchResults } from './hooks'
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -15,41 +16,22 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 	hideFilters?: boolean
 }
 
-const { searchClient } = instantMeiliSearch(
-	'https://search.defillama.com',
-	'0050e4b518781e324a259db278687ec0031b9601c1c6a87aa7174c13ecdbd057'
-)
-
 export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
 	return (
-		<InstantSearch indexName="protocols" searchClient={searchClient} future={{ preserveSharedStateOnUnmount: true }}>
+		<SearchV2 indexName="protocols">
 			<Search {...props} />
-		</InstantSearch>
+		</SearchV2>
 	)
 }
 
 const Search = (props: IProtocolsChainsSearch) => {
-	const { refine, query } = useSearchBox()
+	const { refine } = useSearchBox()
 
-	const { results, status, error } = useInstantSearch({ catchError: true })
+	const { results, status } = useInstantSearch({ catchError: true })
 
-	const { includedSets = Object.values(SETS), customPath, options, hideFilters = false } = props
+	const { options, hideFilters = false } = props
 
-	const data = useMemo(() => {
-		return results.hits.map((hit) => ({
-			name: hit.name,
-			route: `/${hit.id.startsWith('chain') ? 'chain' : hit.id.startsWith('category') ? 'protocols' : 'protocol'}/${
-				hit.id.startsWith('parent') || hit.id.startsWith('protocol')
-					? hit.id.split('_')[1]
-					: hit.name.replace(' ', '%20')
-			}`,
-			logo: hit.id.startsWith('category')
-				? null
-				: hit.id.startsWith('chain')
-				? `https://icons.llamao.fi/icons/chains/rsz_${hit.id.split('_')[1]}?w=48&h=48`
-				: `https://icons.llamao.fi/icons/protocols/${hit.id.split('_')[1]}?w=48&h=48`
-		}))
-	}, [results])
+	const data = useFormatDefiSearchResults(results)
 
 	return (
 		<>

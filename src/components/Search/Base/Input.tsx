@@ -205,19 +205,24 @@ export function Input({
 export function MobileInput({
 	value,
 	setValue,
+	onSearchTermChange,
 	hideInput,
 	...props
 }: {
 	value: string
 	setValue: React.Dispatch<React.SetStateAction<string>>
 	hideInput?: React.Dispatch<React.SetStateAction<boolean>>
+	onSearchTermChange?: (value: string) => void
 }) {
 	return (
 		<>
 			<MobileInputField
 				placeholder="Search..."
 				value={value}
-				onChange={(e) => setValue(e.target.value)}
+				onChange={(e) => {
+					setValue(e.target.value)
+					onSearchTermChange?.(e.target.value)
+				}}
 				autoFocus
 				{...props}
 			/>
