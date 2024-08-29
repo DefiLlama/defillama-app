@@ -86,23 +86,18 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		combobox.setActiveId(firstId)
 	}
 
+	React.useEffect(() => {
+		if (onSearchTermChange) onSearchTermChange(combobox.value)
+	}, [combobox.value, onSearchTermChange])
+
 	// Resets combobox value when popover is collapsed
 	if (!withValue && !combobox.mounted && combobox.value) {
 		combobox.setValue('')
-		if (onSearchTermChange) {
-			onSearchTermChange('')
-		}
 	}
 
 	return (
 		<Wrapper {...extra}>
-			<Input
-				state={combobox}
-				placeholder={placeholder}
-				breadCrumbs={step ? true : false}
-				withValue={withValue}
-				onSearchTermChange={onSearchTermChange}
-			/>
+			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} withValue={withValue} />
 
 			{step && <Options step={step} filters={filters} />}
 
