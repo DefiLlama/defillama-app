@@ -610,7 +610,7 @@ export default function AreaChart({
 							position: isFirstChart ? [400, 0] : [100, 0],
 							backgroundColor: 'none',
 							borderWidth: '0',
-							padding: 0,
+							padding: 15,
 							textStyle: {
 								color: isThemeDark ? 'white' : 'black'
 							},
