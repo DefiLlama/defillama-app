@@ -1,5 +1,3 @@
-import { QueryClient, QueryClientProvider } from 'react-query'
-
 import Layout from '~/layout'
 import ProtocolList from '~/components/ProtocolList'
 import { maxAgeForNext } from '~/api'
@@ -11,8 +9,6 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
-
-const client = new QueryClient()
 
 export const getStaticProps = withPerformanceLogging(
 	'protocols/[...category]',
@@ -47,10 +43,8 @@ export async function getStaticPaths() {
 
 export default function Protocols({ category, ...props }) {
 	return (
-		<QueryClientProvider client={client}>
-			<Layout title={`${capitalizeFirstLetter(category)} TVL Rankings - DefiLlama`} defaultSEO>
-				<ProtocolList category={capitalizeFirstLetter(category)} {...props} csvDownload={true} />
-			</Layout>
-		</QueryClientProvider>
+		<Layout title={`${capitalizeFirstLetter(category)} TVL Rankings - DefiLlama`} defaultSEO>
+			<ProtocolList category={capitalizeFirstLetter(category)} {...props} csvDownload={true} />
+		</Layout>
 	)
 }

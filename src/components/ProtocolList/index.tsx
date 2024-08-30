@@ -22,6 +22,7 @@ import { IOverviewProps } from '~/api/categories/adaptors'
 import Modal from '../Modal'
 import CompareProtocols from '../CompareProtocols'
 import { ButtonDark } from '../ButtonStyled'
+import { QueryClient, QueryClientProvider } from 'react-query'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -44,7 +45,7 @@ interface IAllTokensPageProps {
 	volumes?: IOverviewProps['protocols']
 }
 
-function ProtocolList({
+function Container({
 	title,
 	category,
 	chain = 'All',
@@ -325,6 +326,16 @@ function ProtocolList({
 				<CompareProtocols protocols={compareProtocols.map(slug)} chain={chain} />
 			</Modal>
 		</>
+	)
+}
+
+const client = new QueryClient()
+
+function ProtocolList(props: IAllTokensPageProps) {
+	return (
+		<QueryClientProvider client={client}>
+			<Container {...props} />
+		</QueryClientProvider>
 	)
 }
 
