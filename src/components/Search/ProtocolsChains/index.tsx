@@ -5,7 +5,6 @@ import { DesktopProtocolFilters, TabletProtocolsFilters } from '~/components/Fil
 import { DesktopTvlAndFeesFilters } from '~/components/Filters/protocols/Desktop'
 import { TabletTvlAndFeesFilters } from '~/components/Filters/protocols/Tablet'
 import { useInstantSearch, useSearchBox } from 'react-instantsearch'
-import { useMemo } from 'react'
 import { SearchV2 } from '../InstantSearch'
 import { useFormatDefiSearchResults } from './hooks'
 

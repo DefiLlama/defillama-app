@@ -260,7 +260,7 @@ export const useGetTokenPrice = (geckoId?: string) => {
 }
 
 export const useGetProtocolsList = ({ chain }) => {
-	const { data, error } = useSWR(PROTOCOLS_API)
+	const { data, error } = useSWR(PROTOCOLS_API, (url) => fetcher(url))
 
 	const { fullProtocolsList, parentProtocols } = useMemo(() => {
 		if (data) {
