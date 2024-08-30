@@ -1,35 +1,93 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { Search } from 'react-feather'
 import styled from 'styled-components'
 import { MobileInput } from './Input'
 import { useDebounce } from '~/hooks'
 import { useGetLiquidationSearchList } from '../Liquidations/hooks'
-import { IDefiSearchListProps, useGetDefiSearchList } from '../ProtocolsChains/hooks'
 import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
 import { MobileResults } from './Results/Mobile'
 import { useGetAdaptorsSearchList } from '../Adaptors/hooks'
 import { useFetchNftCollectionsList } from '~/api/categories/nfts/client'
+import { useInstantSearch, useSearchBox } from 'react-instantsearch'
+import { useFormatDefiSearchResults } from '../ProtocolsChains/hooks'
+import { SearchV2 } from '../InstantSearch'
 
 export default function MobileSearch() {
-	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()(
-		{} as boolean & IDefiSearchListProps
+	const router = useRouter()
+	return (
+		<>
+			{router.pathname === '/' ||
+			router.pathname.startsWith('/protocol') ||
+			router.pathname.startsWith('/protocols') ||
+			router.pathname.startsWith('/chain') ? (
+				<MobileSearchV2 />
+			) : (
+				<MobileSearchV1 />
+			)}
+		</>
 	)
+}
+
+const MobileSearchV2 = () => {
+	return (
+		<SearchV2 indexName="protocols">
+			<DefiSearch />
+		</SearchV2>
+	)
+}
+
+const DefiSearch = () => {
+	const { refine } = useSearchBox()
+
+	const { results, status } = useInstantSearch({ catchError: true })
+
+	const data = useFormatDefiSearchResults(results)
 
 	const [inputValue, setInputValue] = useState('')
 	const [display, setDisplay] = useState(false)
 
 	const debouncedInputValue = useDebounce(inputValue, 500)
 
-	useEffect(() => {
-		if (onSearchTermChange) onSearchTermChange(debouncedInputValue)
-	}, [debouncedInputValue, onSearchTermChange])
+	return (
+		<>
+			{display ? (
+				<>
+					<MobileInput
+						value={inputValue}
+						setValue={setInputValue}
+						onSearchTermChange={(v) => refine(v)}
+						hideInput={setDisplay}
+					/>
+					<MobileResults inputValue={debouncedInputValue} data={data} loading={status === 'loading'} />
+				</>
+			) : (
+				<Button onClick={() => setDisplay(true)}>
+					<Search height={16} width={16} />
+				</Button>
+			)}
+		</>
+	)
+}
+
+function MobileSearchV1() {
+	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()({} as boolean)
+
+	const [inputValue, setInputValue] = useState('')
+	const [display, setDisplay] = useState(false)
+
+	const debouncedInputValue = useDebounce(inputValue, 500)
 
 	return (
 		<>
 			{display ? (
 				<>
-					<MobileInput value={inputValue} setValue={setInputValue} hideInput={setDisplay} />
+					<MobileInput
+						value={inputValue}
+						setValue={setInputValue}
+						onSearchTermChange={onSearchTermChange}
+						hideInput={setDisplay}
+					/>
 					<MobileResults inputValue={debouncedInputValue} data={data} loading={loading} onItemClick={onItemClick} />
 				</>
 			) : (
@@ -64,7 +122,7 @@ const useMobileSearchResult = () => {
 		return useGetFeesSearchList
 	}
 
-	return useGetDefiSearchList
+	return (props: any) => ({ data: [], loading: false, onSearchTermChange: null, onItemClick: null })
 }
 
 function useGetFeesSearchList() {
