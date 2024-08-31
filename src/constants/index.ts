@@ -185,7 +185,8 @@ export const scams = [
 	'Sorta Finance',
 	'Magnate Finance',
 	'Kokomo Finance',
-	'HashDAO Finance'
+	'HashDAO Finance',
+	'AbstraDEX'
 ]
 
 export const removedCategories = ['Basis Trading', 'RWA', 'Infrastructure', 'Staking Pool']
