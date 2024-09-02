@@ -280,7 +280,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		mainRow = {
 			...mainRow,
 			...acc[protocol.parentProtocol],
-			logo: mainRow.logo ?? getLlamaoLogo(protocol.logo),
+			logo: getLlamaoLogo(mainRow.logo) ?? getLlamaoLogo(protocol.logo),
 			category: protocol.category,
 			displayName: mainRow.displayName ?? mainRow.name,
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,

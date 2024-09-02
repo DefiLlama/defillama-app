@@ -89,7 +89,7 @@ export const formatBridgesData = ({
 
 		bridge.change_1d = getPercentChange(bridge.lastDailyVolume, bridge.dayBeforeLastVolume)
 		bridge.txsPrevDay = getPrevVolumeFromChart(chart, 0, true) ?? null
-		bridge.lastDailyVolume = bridge.lastDailyVolume
+		bridge.lastDailyVolume = bridge.last24hVolume
 
 		return keepNeededProperties(bridge, bridgeProps)
 	})
