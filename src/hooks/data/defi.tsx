@@ -325,7 +325,7 @@ export const formatProtocolsList = ({
 	}
 
 	for (const protocol of feesData ?? []) {
-		const protocolName = protocol.displayName?.toLowerCase()
+		const protocolName = protocol.name?.toLowerCase()
 		if (!allProtocols[protocolName]) {
 			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
 		}
@@ -352,7 +352,7 @@ export const formatProtocolsList = ({
 	}
 
 	for (const protocol of volumeData ?? []) {
-		const protocolName = protocol.displayName?.toLowerCase()
+		const protocolName = protocol.name?.toLowerCase()
 		if (!allProtocols[protocolName]) {
 			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
 		}
