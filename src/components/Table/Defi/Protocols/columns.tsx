@@ -869,7 +869,7 @@ const Tvl = ({ value, rowValues }) => {
 					color: rowValues.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 				}}
 			>
-				{'$' + formattedNum(value || 0)}
+				{value || value === 0 ? '$' + formattedNum(value || 0) : null}
 			</span>
 		</span>
 	)

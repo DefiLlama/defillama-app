@@ -248,7 +248,7 @@ export function peggedAssetIconPalleteUrl(name) {
 }
 
 export function formattedPercent(percent, noSign = false, fontWeight = 400) {
-	if (percent === null) {
+	if (!percent && percent !== 0) {
 		return null
 	}
 

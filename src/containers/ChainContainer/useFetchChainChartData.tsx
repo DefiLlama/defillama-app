@@ -229,7 +229,6 @@ export const useFetchChainChartData = ({
 		globalChart,
 		volumeChart,
 		priceChartData?.prices,
-
 		priceChartData?.mcaps,
 		priceChartData?.volumes,
 		aggregatorsData?.totalDataChart,
@@ -242,8 +241,7 @@ export const useFetchChainChartData = ({
 		inflowsChartData,
 		usersData,
 		txsData,
-		extraTvlsEnabled?.govtokens,
-		txsData
+		extraTvlsEnabled?.govtokens
 	])
 
 	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)
