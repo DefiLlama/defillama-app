@@ -95,12 +95,22 @@ const BridgeInfo = ({
 
 					<Stat>
 						<span>Deposited to {currentChain} (24h)</span>
-						<span>{formattedNum(currentDepositsUSD || '0', true)}</span>
+						<span>
+							{formattedNum(
+								currentChain === 'All Chains' ? config?.last24hVolume || '0' : currentDepositsUSD || '0',
+								true
+							)}
+						</span>
 					</Stat>
 
 					<Stat>
 						<span>Withdrawn from {currentChain} (24h)</span>
-						<span>{formattedNum(currentWithdrawalsUSD || '0', true)}</span>
+						<span>
+							{formattedNum(
+								currentChain === 'All Chains' ? config?.last24hVolume || '0' : currentWithdrawalsUSD || '0',
+								true
+							)}
+						</span>
 					</Stat>
 
 					<Stat>
