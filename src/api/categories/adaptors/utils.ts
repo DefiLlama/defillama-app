@@ -137,9 +137,21 @@ export async function getCexVolume() {
 
 export async function handleFetchResponse(res: Response) {
 	try {
-		return await res.json()
+		const response = await res.json()
+		return iterateAndRemoveUndefined(response)
 	} catch (e) {
 		console.error(`Failed to parse response from ${res.url}, with status ${res.status} and error message ${e.message}`)
 		return {}
 	}
+}
+
+
+export function iterateAndRemoveUndefined(obj: any) {
+	if (typeof obj !== 'object') return obj
+	if (Array.isArray(obj)) return obj
+	Object.entries(obj).forEach((key: any, value: any) => {
+		if (value === undefined) delete obj[key]
+		else iterateAndRemoveUndefined(value)
+	})
+	return obj
 }

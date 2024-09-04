@@ -1,3 +1,4 @@
+import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
 import { fetchOverCache } from '~/utils/perf'
 
 // - used in /fees and /fees/chain/[chain]
@@ -10,7 +11,7 @@ export const getFeesAndRevenueByChain = async ({
 	excludeTotalDataChart: boolean
 	excludeTotalDataChartBreakdown: boolean
 }) => {
-	const apiUrl = `https://api.llama.fi/summary/fees${
+	const apiUrl = `${DIMENISIONS_SUMMARY_BASE_API}/fees${
 		chain && chain !== 'All' ? '/' + chain : ''
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
@@ -46,7 +47,7 @@ export const getFeesAndRevenueByChain = async ({
 
 // - used in /fees and /fees/chain/[chain]
 export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: string }) => {
-	const apiUrl = `https://api.llama.fi/overview/fees${
+	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${
 		chain && chain !== 'All' ? '/' + chain : ''
 	}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
 

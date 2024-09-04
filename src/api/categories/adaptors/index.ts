@@ -1,5 +1,5 @@
 import type { LiteProtocol, IParentProtocol } from '~/api/types'
-import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API, MCAPS_API, EMISSION_BREAKDOWN_API } from '~/constants'
+import { PROTOCOLS_API, DIMENISIONS_SUMMARY_BASE_API, MCAPS_API, EMISSION_BREAKDOWN_API } from '~/constants'
 import { getUniqueArray } from '~/containers/DexsAndFees/utils'
 import { capitalizeFirstLetter, chainIconUrl, getPercentChange } from '~/utils'
 import { getAPIUrl } from './client'
@@ -32,8 +32,7 @@ export const getOverviewItem = (
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryResponse> =>
 	fetch(
-		`${ADAPTORS_SUMMARY_BASE_API}/${
-			type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
+		`${DIMENISIONS_SUMMARY_BASE_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
 		}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`
 	).then(handleFetchResponse)
 export const getOverview = (
@@ -122,9 +121,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-				...p,
-				tvl: p?.chainTvls?.[chain]?.tvl ?? null
-		  }))
+			...p,
+			tvl: p?.chainTvls?.[chain]?.tvl ?? null
+		}))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -132,16 +131,6 @@ function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string
 			return acc
 		}, {}) ?? {}
 	)
-}
-const getMapingCoinGeckoId = (name: string): string => {
-	const _name = {
-		Cronos: 'crypto-com-chain',
-		Doge: 'dogecoin',
-		Polygon: 'matic-network',
-		Avalanche: 'avalanche-2',
-		BSC: 'binancecoin'
-	}[name]
-	return _name ?? name
 }
 
 // - used in /[type] and /[type]/chains/[chain]
@@ -228,29 +217,32 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? {}
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
 	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {})
 
 	const protocolsWithSubrows = protocols.reduce((acc, protocol) => {
+
 		// Assign mainrow and sub-row if has any
-		const slugName = sluggify(protocol?.name)
+		const slugName = sluggify(protocol.name)
 
 		let mainRow: undefined | IOverviewProps['protocols'][number] = undefined
 		let subRow: undefined | IOverviewProps['protocols'][number]['subRows'][number] = null
-		if (parentProtocolsMap[protocol.parentProtocol]) {
+
+		if (protocol.parentProtocol && parentProtocolsMap[protocol.parentProtocol]) {
 			mainRow = parentProtocolsMap[protocol.parentProtocol]
+			if (!protocol.total24h) protocol.total24h = 0
 			subRow = {
 				...protocol,
 				logo: getLlamaoLogo(protocol.logo),
 				displayName: protocol.displayName ?? protocol.name,
 				tvl: tvlData[protocol.name] ?? null,
 				volumetvl: tvlData[protocol.name] ? protocol.total24h / tvlData[protocol.name] : null,
-				dominance: (100 * protocol.total24h) / total24h,
+				dominance: total24h ? (100 * protocol.total24h) / total24h : null,
 				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
 				revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
@@ -279,9 +271,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 		mainRow = {
 			...mainRow,
-			...acc[protocol.parentProtocol],
+			...(protocol.parentProtocol ? acc[protocol.parentProtocol] : {}),
 			logo: getLlamaoLogo(mainRow.logo) ?? getLlamaoLogo(protocol.logo),
-			category: protocol.category,
+			category: protocol.category ?? null,
 			displayName: mainRow.displayName ?? mainRow.name,
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
@@ -309,7 +301,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		}
 
 		// Stats for parent protocol
-		if (acc[protocol.parentProtocol]) {
+		if (protocol.parentProtocol && acc[protocol.parentProtocol]) {
 			// stats
 			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total24h'), null)
 			const total48hto24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total48hto24h'), null)
@@ -371,7 +363,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			mainRow.ps = getAnnualizedRatio(mainRow.mcap, mainRow.revenue30d)
 		}
 		// Computed stats
-		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
+		mainRow.volumetvl = mainRow.total24h !== null && mainRow.tvl !== null ? mainRow.total24h / mainRow.tvl : null
 
 		mainRow.dominance = (100 * mainRow.total24h) / total24h
 
@@ -418,7 +410,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		chain: filtredChain ?? null,
 		tvlData,
-		totalDataChartBreakdown,
+		totalDataChartBreakdown: totalDataChartBreakdown ?? [],
 		allChains,
 		dexsDominance: cexVolume ? +((total24h / (cexVolume + total24h)) * 100).toFixed(2) : null,
 		type
@@ -522,7 +514,7 @@ export const getChainsPageData = async (type: string, dataType?: string): Promis
 				console.log(PROTOCOLS_API, err)
 				return {}
 			}),
-		...allChains.map((chain) =>
+		...allChains.map((chain) => // TODO: replace this with single endpoint
 			getOverview(type, chain, dataType, true, true).then((res) => ({
 				...res,
 				chain
@@ -559,20 +551,20 @@ export const getChainsPageData = async (type: string, dataType?: string): Promis
 					displayName: chain,
 					disabled: null,
 					logo: chainIconUrl(chain),
-					total24h,
+					total24h: total24h ?? null,
 					tvl: protocols.reduce((acc, curr) => {
 						// TODO: This should be mapped using defillamaId to get accurate tvl!
 						const tvl = tvlData[curr.name]
 						acc += !Number.isNaN(tvl) && tvl ? tvl : 0
 						return acc
 					}, 0),
-					change_7dover7d,
-					total7d,
-					total30d,
-					change_1d,
-					change_7d,
-					change_1m,
-					total1y,
+					change_7dover7d: change_7dover7d ?? null,
+					total7d: total7d ?? null,
+					total30d: total30d ?? null,
+					change_1d: change_1d ?? null,
+					change_7d: change_7d ?? null,
+					change_1m: change_1m ?? null,
+					total1y: total1y ?? null,
 					average1y: average1y ?? null,
 					dominance: (100 * total24h) / allChainsTotal24h,
 					chains: [chain],
@@ -645,4 +637,4 @@ export function notUndefined<T>(x: T | undefined): x is T {
 	return x !== undefined
 }
 
-export function formatOverviewProtocolsList() {}
+export function formatOverviewProtocolsList() { }
