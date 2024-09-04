@@ -226,7 +226,6 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {})
 
 	const protocolsWithSubrows = protocols.reduce((acc, protocol) => {
-		if (!protocol?.name) return acc
 
 		// Assign mainrow and sub-row if has any
 		const slugName = sluggify(protocol.name)
