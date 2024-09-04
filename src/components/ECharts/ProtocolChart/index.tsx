@@ -260,7 +260,7 @@ export default function AreaBarChart({
 							name: 'end',
 							xAxis: getUtcDateObject(date),
 							yAxis: 'max',
-							y: Math.max(hallmarks.length * 40 - index * 40, 40)
+							y: Math.max(hallmarks.length * 20 - index * 20, 20)
 						}
 					])
 				}
