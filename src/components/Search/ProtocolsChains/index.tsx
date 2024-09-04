@@ -7,6 +7,7 @@ import { TabletTvlAndFeesFilters } from '~/components/Filters/protocols/Tablet'
 import { useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { SearchV2 } from '../InstantSearch'
 import { useFormatDefiSearchResults } from './hooks'
+import { useIsClient } from '~/hooks'
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -16,6 +17,12 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 }
 
 export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
+	const isClient = useIsClient()
+
+	if (!isClient) {
+		return <DesktopSearch {...props} data={[]} loading={true} />
+	}
+
 	return (
 		<SearchV2 indexName="protocols">
 			<Search {...props} />
