@@ -160,15 +160,15 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	const {
 		protocols = [],
-		total24h,
-		total7d,
-		total1y,
-		average1y,
-		change_1d,
-		change_7d,
-		change_1m,
+		total24h = null,
+		total7d = null,
+		total1y = null,
+		average1y = null,
+		change_1d = null,
+		change_7d = null,
+		change_1m = null,
 		chain: filtredChain,
-		change_7dover7d,
+		change_7dover7d = null,
 		totalDataChart,
 		totalDataChartBreakdown,
 		allChains
