@@ -4,7 +4,7 @@ import { getUniqueArray } from '~/containers/DexsAndFees/utils'
 import { capitalizeFirstLetter, chainIconUrl, getPercentChange } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
-import { getCexVolume, handleFetchResponse } from './utils'
+import { getCexVolume, handleFetchResponse, iterateAndRemoveUndefined } from './utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 import { fetchWithErrorLogging } from '~/utils/async'
@@ -397,7 +397,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	/* 	if (revenue?.totalDataChart)
 			allCharts.push(["Revenue", revenue.totalDataChart]) */
 
-	return {
+	return iterateAndRemoveUndefined({
 		protocols: Object.values(protocolsWithSubrows),
 		total24h,
 		total7d,
@@ -414,7 +414,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		allChains,
 		dexsDominance: cexVolume ? +((total24h / (cexVolume + total24h)) * 100).toFixed(2) : null,
 		type
-	}
+	})
 }
 
 export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
