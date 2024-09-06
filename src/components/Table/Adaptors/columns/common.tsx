@@ -134,6 +134,7 @@ export const Total24hColumn = (
 		header: header ?? `${type} (24h)`,
 		accessorKey: accessor,
 		enableSorting: true,
+		sortUndefined: 'last' as any,
 		sortingFn: 'alphanumericFalsyLast' as any,
 		cell: (info) => {
 			const value = info.getValue()
