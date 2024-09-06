@@ -405,7 +405,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		change_7d,
 		change_1m,
 		change_7dover7d,
-		total1y,
+		total1y: total1y ?? null,
 		average1y: average1y ?? null,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		chain: filtredChain ?? null,
