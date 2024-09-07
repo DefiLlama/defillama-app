@@ -358,7 +358,7 @@ export const useBuildPeggedChartData = (
 				'Aztec',
 				'Loopring',
 				'Starknet',
-				'zkSync',
+				'ZKsync',
 				'Boba',
 				'Metis',
 				'Moonbeam',

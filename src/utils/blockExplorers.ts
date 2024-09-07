@@ -80,7 +80,7 @@ const blockExplorers = {
 	rpg: ['https://scan.rangersprotocol.com/address/', 'Rangerscan'],
 	loop: ['https://explorer.mainnetloop.com/token/', 'LoopExplorer'],
 	era: [
-		['https://explorer.zksync.io/address/', 'zkSync Explorer'],
+		['https://explorer.zksync.io/address/', 'ZKsync Era Explorer'],
 		['https://zksync.blockscout.com/token/', 'Blockscout']
 	],
 	map: ['https://maposcan.io/address/', 'Maposcan'],
