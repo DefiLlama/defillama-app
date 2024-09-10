@@ -433,7 +433,7 @@ export const getLlamaoLogo = (logo: string | null) => {
 }
 
 export const reduceSumByAttribute = (attribute: string) => (acc, curr) => {
-	if (curr[attribute] !== null) {
+	if (curr[attribute]) {
 		if (acc === undefined) return curr[attribute]
 		return (acc += curr[attribute])
 	}
