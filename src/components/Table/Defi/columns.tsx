@@ -90,6 +90,15 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 			align: 'end',
 			headerHelperText: 'Excludes CeFi'
 		}
+	},
+	{
+		header: 'Volume (7d)',
+		accessorKey: 'sevenDayVolume',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Cumulative last 7d volume secured'
+		}
 	}
 ]
 

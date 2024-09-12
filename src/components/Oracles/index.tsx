@@ -34,7 +34,16 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const Oracles = ({ chartData, tokensProtocols, tokens, tokenLinks, oraclesColors, chainsByOracle, chain }) => {
+const Oracles = ({
+	chartData,
+	tokensProtocols,
+	tokens,
+	tokenLinks,
+	oraclesColors,
+	chainsByOracle,
+	chain,
+	oracleSevenDayVolumes
+}) => {
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
 	const { tokenTvls, tokensList } = React.useMemo(() => {
 		const tvls = Object.entries(chainsWithExtraTvlsByDay[chainsWithExtraTvlsByDay.length - 1])
@@ -49,11 +58,17 @@ const Oracles = ({ chartData, tokensProtocols, tokens, tokenLinks, oraclesColors
 		const tokenTvls = tvls.slice(0, 5).concat({ name: 'Others', value: otherTvl })
 
 		const tokensList = tvls.map(({ name, value }) => {
-			return { name, protocolsSecured: tokensProtocols[name], tvs: value, chains: chainsByOracle[name] }
+			return {
+				name,
+				protocolsSecured: tokensProtocols[name],
+				tvs: value,
+				chains: chainsByOracle[name],
+				sevenDayVolume: oracleSevenDayVolumes[name]
+			}
 		})
 
 		return { tokenTvls, tokensList }
-	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
+	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle, oracleSevenDayVolumes])
 
 	const downloadCsv = () => {
 		const header = Object.keys(tokensList[0]).join(',')
