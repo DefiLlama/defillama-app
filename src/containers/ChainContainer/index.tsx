@@ -19,7 +19,7 @@ import llamaLogo from '~/assets/peeking-llama.png'
 import { DetailsWrapper, DownloadButton, Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 
-import { ChevronRight, DownloadCloud } from 'react-feather'
+import { ArrowUpRight, ChevronRight, DownloadCloud } from 'react-feather'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { RowWithSubRows, StatsTable2, SubrowTh } from '../Defi/Protocol'
 import SEO from '~/components/SEO'
@@ -33,6 +33,7 @@ import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 import { formatRaise, formatRaisedAmount } from '../Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
 import QuestionHelper from '~/components/QuestionHelper'
+import Link from '~/components/Link'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -272,23 +273,25 @@ export function ChainContainer({
 		<>
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={percentChange} />
 
-			{/*<Announcement>
-				<Image
-					src="https://icons.llamao.fi/icons/memes/gib.png?w=36&h=36"
-					alt="Cute"
-					width={18}
-					height={18}
-					unoptimized
-					style={{ marginRight: '0.25rem', display: 'inline' }}
-				/>
-				{'  '}We've released our{' '}
-				<Link href={`/nfts`}>
-					<a>
-						NFT dashboard <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
-					</a>
-				</Link>
-				{' !'}
-			</Announcement>*/}
+			{
+				<Announcement>
+					<Image
+						src="https://icons.llamao.fi/icons/memes/gib.png?w=36&h=36"
+						alt="Cute"
+						width={18}
+						height={18}
+						unoptimized
+						style={{ marginRight: '0.25rem', display: 'inline' }}
+					/>
+					{'  '}We've released{' '}
+					<Link href={`https://feed.defillama.com`}>
+						<a>
+							LlamaFeed, a real-time feed <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+						</a>
+					</Link>
+					{' !'}
+				</Announcement>
+			}
 
 			<ProtocolsChainsSearch
 				step={{

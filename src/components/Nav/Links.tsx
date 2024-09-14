@@ -18,7 +18,8 @@ import {
 	FileText,
 	TrendingUp,
 	FilePlus,
-	Eye
+	Eye,
+	AlignLeft
 } from 'react-feather'
 import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
 
@@ -229,6 +230,11 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Repeat size={16} />
 	},
+	LlamaFeed: {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <AlignLeft size={16} />
+	},
 	NFT: {
 		main: [
 			{ name: 'Collections', path: '/nfts' },
@@ -363,6 +369,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'Governance', url: '/governance' },
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
+	{ name: 'LlamaFeed', url: 'https://feed.defillama.com/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lsd' },
 	{ name: 'Pro API', url: '/pro-api' },
 	{ name: 'Narrative Tracker', url: '/narrative-tracker' }
