@@ -1,4 +1,4 @@
-import { mapValues } from 'lodash'
+import { mapValues, reduce } from 'lodash'
 
 import { capitalizeFirstLetter, getColorFromNumber, standardizeProtocolName } from '~/utils'
 import type { IFusedProtocolData, IOracleProtocols, IProtocolResponse } from '~/api/types'
@@ -40,6 +40,8 @@ import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
 import { getFeesAndRevenueProtocolsByChain } from '../fees'
 import { getDexVolumeByChain } from '../dexs'
 import { sluggify } from '~/utils/cache-client'
+import { getAPIUrl } from '../adaptors/client'
+import { ADAPTOR_TYPES } from '../../../utils/adaptorsPages/types'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -398,8 +400,15 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 // - used in /oracles and /oracles/[name]
 export async function getOraclePageData(oracle = null, chain = null) {
 	try {
-		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle: chainsByOracleData }, { protocols }] =
-			await Promise.all([ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json())))
+		const [
+			{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle: chainsByOracleData },
+			{ protocols },
+			{ protocols: derivativeProtocols }
+		] = await Promise.all(
+			[ORACLE_API, PROTOCOLS_API, getAPIUrl(ADAPTOR_TYPES.DERIVATIVES, chain, false, false)].map((url) =>
+				fetchWithErrorLogging(url).then((r) => r.json())
+			)
+		)
 
 		const oracleExists = !oracle || oracles[oracle]
 
@@ -443,6 +452,21 @@ export async function getOraclePageData(oracle = null, chain = null) {
 				return acc
 			}, {}),
 			(chains, oracle) => chainsByOracleData?.[oracle] ?? [...new Set(chains.flat())]
+		)
+
+		const sevenDayVolByProtocol = derivativeProtocols.reduce((acc, curr) => {
+			acc[curr.name] = curr.total7d
+			return acc
+		}, {})
+		const oracleSevenDayVolumes = reduce(
+			oracles,
+			(acc, oracleProtocols, oracleName) => {
+				acc[oracleName] = oracleProtocols.reduce((acc, protocol) => {
+					return sevenDayVolByProtocol[protocol] ? acc + sevenDayVolByProtocol[protocol] : acc
+				}, 0)
+				return acc
+			},
+			{}
 		)
 
 		if (oracle) {
@@ -491,7 +515,8 @@ export async function getOraclePageData(oracle = null, chain = null) {
 				tokensProtocols: oraclesProtocols,
 				filteredProtocols,
 				chartData,
-				oraclesColors: colors
+				oraclesColors: colors,
+				oracleSevenDayVolumes
 			}
 		}
 	} catch (e) {
