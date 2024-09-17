@@ -99,7 +99,8 @@ export const descriptions = {
 	'Basis Trading': `Projects simultaneously buying and selling crypto futures to profit from price differences between the spot and futures markets`,
 	MEV: 'MEV Layer',
 	CeDeFi: 'Projects that incorporate elements of centralization within their product strategies',
-	'CDP Manager': 'Protocols that manage CDPs'
+	'CDP Manager': 'Protocols that manage CDPs',
+	'Governance Incentives': `Protocols that facilitate governance participation by offering incentives or rewards for token holders' voting power`
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
