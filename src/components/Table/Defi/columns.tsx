@@ -94,7 +94,7 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
 		header: 'Volume (7d)',
 		accessorKey: 'sevenDayVolume',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Cumulative last 7d volume secured'
