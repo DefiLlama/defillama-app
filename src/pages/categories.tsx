@@ -98,7 +98,8 @@ export const descriptions = {
 	Ponzi: 'Farms promising high rates of return, where the money from new investors is used to pay earlier investors',
 	'Basis Trading': `Projects simultaneously buying and selling crypto futures to profit from price differences between the spot and futures markets`,
 	MEV: 'MEV Layer',
-	CeDeFi: 'Projects that incorporate elements of centralization within their product strategies'
+	CeDeFi: 'Projects that incorporate elements of centralization within their product strategies',
+	'CDP Manager': 'Protocols that manage CDPs'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
