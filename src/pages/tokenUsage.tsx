@@ -55,11 +55,11 @@ export default function Tokens({ searchData }) {
 		const data = filteredProtocols.map((p) => {
 			return {
 				Protocol: p.name,
-				Amount: p.amountUsd,
-				'Amount (USD)': p.amountUsd
+				'Amount (USD)': p.amountUsd,
+				Category: p.category
 			}
 		})
-		const headers = ['Protocol', 'Amount', 'Amount (USD)']
+		const headers = ['Protocol', 'Category', 'Amount (USD)']
 		const csv = [headers.join(',')].concat(data.map((row) => headers.map((header) => row[header]).join(','))).join('\n')
 		download(`protocols-by-token-${tokenSybmol}.csv`, csv)
 	}
