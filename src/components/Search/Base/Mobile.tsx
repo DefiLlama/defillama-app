@@ -69,9 +69,32 @@ const DefiSearch = () => {
 		</>
 	)
 }
+const useMobileSearchResult = () => {
+	const router = useRouter()
+
+	const stablecoinsSearchList = useGetStablecoinsSearchList()
+	const liquidationSearchList = useGetLiquidationSearchList()
+	const dexesSearchList = useGetDexesSearchList()
+	const nftCollectionsList = useFetchNftCollectionsList()
+	const feesSearchList = useGetFeesSearchList()
+
+	if (router.pathname.startsWith('/stablecoin')) {
+		return stablecoinsSearchList
+	} else if (router.pathname.startsWith('/liquidations')) {
+		return liquidationSearchList
+	} else if (router.pathname.startsWith('/dex')) {
+		return dexesSearchList
+	} else if (router.pathname.startsWith('/nft')) {
+		return nftCollectionsList
+	} else if (router.pathname.startsWith('/fee')) {
+		return feesSearchList
+	} else {
+		return { data: [], loading: false, onSearchTermChange: () => {}, onItemClick: () => {} }
+	}
+}
 
 function MobileSearchV1() {
-	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()({} as boolean)
+	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()
 
 	const [inputValue, setInputValue] = useState('')
 	const [display, setDisplay] = useState(false)
@@ -97,32 +120,6 @@ function MobileSearchV1() {
 			)}
 		</>
 	)
-}
-
-const useMobileSearchResult = () => {
-	const router = useRouter()
-
-	if (router.pathname.startsWith('/stablecoin')) {
-		return useGetStablecoinsSearchList
-	}
-
-	if (router.pathname.startsWith('/liquidations')) {
-		return useGetLiquidationSearchList
-	}
-
-	if (router.pathname.startsWith('/dex')) {
-		return useGetDexesSearchList
-	}
-
-	if (router.pathname.startsWith('/nft')) {
-		return useFetchNftCollectionsList
-	}
-
-	if (router.pathname.startsWith('/fee')) {
-		return useGetFeesSearchList
-	}
-
-	return (props: any) => ({ data: [], loading: false, onSearchTermChange: null, onItemClick: null })
 }
 
 function useGetFeesSearchList() {
