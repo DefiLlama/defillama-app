@@ -42,7 +42,7 @@ const Oracles = ({
 	oraclesColors,
 	chainsByOracle,
 	chain,
-	oracleSevenDayVolumes
+	oracleSevenDayVolumes = {}
 }) => {
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
 	const { tokenTvls, tokensList } = React.useMemo(() => {
