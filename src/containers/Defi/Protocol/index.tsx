@@ -580,6 +580,14 @@ function ProtocolContainer({
 					stuck/lost.
 				</Announcement>
 			)}
+{(name === 'ReHold' || name === 'ReHold V1' || name === 'ReHold V2') && (
+	<Announcement warning={true} notCancellable={true}>
+		 $700,000 Unsanctioned Withdrawal  
+		Be cautious when interacting with ReHold, ReHold V1, and ReHold V2. It is crucial to review both sides of the story: 
+		Check both the history here: medium.com/@bifotofficial/700-000-unauthorized-withdrawal-from-rehold-protocol-full-disclosure-and-next-steps-097119d545cd
+		and the other side here: prnt.sc/HspPo_049Lzk. On rehold.io. Made on 26/09/2024.
+	</Announcement>
+)}
 
 			<div>
 				{otherProtocols?.length > 1 && (
