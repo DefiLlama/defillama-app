@@ -140,12 +140,13 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
 			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
 
-	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData, nftsEarnings]: [
+	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData, holdersRevenueData, nftsEarnings]: [
 		IGetOverviewResponseBody,
 		{ protocols: LiteProtocol[]; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
 		number,
 		Record<string, Record<string, number>>,
+		IGetOverviewResponseBody,
 		IGetOverviewResponseBody,
 		any
 	] = await Promise.all([
@@ -155,6 +156,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		type === 'dexs' ? getCexVolume() : Promise.resolve(0),
 		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse),
 		fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse),
+		fetch(getAPIUrl(type, chain, true, true, 'dailyHoldersRevenue')).then(handleFetchResponse),
 		getNFTCollectionEarnings()
 	])
 
@@ -222,6 +224,14 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			) ?? {}
 			: {}
 
+	const holderRevenueProtocols =
+		type === 'fees'
+			? holdersRevenueData?.protocols?.reduce(
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
+			: {}
+
 	const { parentProtocols } = protocolsData
 	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {})
 
@@ -249,6 +259,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				revenue1y: revenueProtocols?.[protocol.name]?.total1y ?? null,
 				averageRevenue1y: revenueProtocols?.[protocol.name]?.average1y ?? null,
 				mcap: mcapData[protocol.name] || null,
+				dailyHoldersRevenue: holderRevenueProtocols?.[protocol.name]?.total24h ?? null,
 				pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total30d),
 				ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d)
 			}
@@ -269,6 +280,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		const bribes7d = protocolBribes?.total7d
 		const bribes30d = protocolBribes?.total30d
 
+		const holdersRev = holderRevenueProtocols?.[protocol.name]
+
 		mainRow = {
 			...mainRow,
 			...(protocol.parentProtocol ? acc[protocol.parentProtocol] : {}),
@@ -286,6 +299,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			bribes24h: bribes24h ?? null,
 			bribes7d: bribes7d ?? null,
 			bribes30d: bribes30d ?? null,
+			dailyHoldersRevenue: holdersRev.total24h ?? null,
 			netEarnings24h:
 				emission24h !== 0 && emission24h ? revenueProtocols?.[protocol.name]?.total24h - emission24h : null,
 			netEarnings7d: emission7d !== 0 && emission7d ? revenueProtocols?.[protocol.name]?.total7d - emission7d : null,
