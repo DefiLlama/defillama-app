@@ -156,7 +156,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		type === 'dexs' ? getCexVolume() : Promise.resolve(0),
 		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse),
 		fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse),
-		fetch(getAPIUrl(type, chain, true, true, 'dailyHoldersRevenue')).then(handleFetchResponse),
+		type === 'fees' ? fetch(getAPIUrl(type, chain, true, true, 'dailyHoldersRevenue')).then(handleFetchResponse) : Promise.resolve({ protocols: [] }),
 		getNFTCollectionEarnings()
 	])
 
@@ -299,7 +299,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			bribes24h: bribes24h ?? null,
 			bribes7d: bribes7d ?? null,
 			bribes30d: bribes30d ?? null,
-			dailyHoldersRevenue: holdersRev.total24h ?? null,
+			dailyHoldersRevenue: holdersRev?.total24h ?? null,
 			netEarnings24h:
 				emission24h !== 0 && emission24h ? revenueProtocols?.[protocol.name]?.total24h - emission24h : null,
 			netEarnings7d: emission7d !== 0 && emission7d ? revenueProtocols?.[protocol.name]?.total7d - emission7d : null,
