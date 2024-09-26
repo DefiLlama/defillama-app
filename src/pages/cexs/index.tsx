@@ -425,8 +425,8 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
-		name: 'Biconomy Cex',
-		slug: 'biconomy-cex',
+		name: 'Biconomy.com',
+		slug: 'biconomy.com',
 		coin: null,
 		walletsLink: null
 	},
