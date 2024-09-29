@@ -32,7 +32,8 @@ export const getOverviewItem = (
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryResponse> =>
 	fetch(
-		`${DIMENISIONS_SUMMARY_BASE_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
+		`${DIMENISIONS_SUMMARY_BASE_API}/${
+			type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
 		}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`
 	).then(handleFetchResponse)
 export const getOverview = (
@@ -108,22 +109,28 @@ export const getOverviewItemPageData = async (
 	return generateGetOverviewItemPageDate(item, type, protocolName)
 }
 
-function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
-	const protocolsRaw = protocolsData?.protocols
-	return (
-		protocolsRaw?.reduce((acc, pd) => {
+function getMCap(protocolsData: {
+	protocols: LiteProtocol[]
+	parentProtocols: Array<{ name: string; mcap?: number }>
+}) {
+	return {
+		...(protocolsData?.protocols?.reduce((acc, pd) => {
 			acc[pd.name] = pd.mcap
 			return acc
-		}, {}) ?? {}
-	)
+		}, {}) ?? {}),
+		...(protocolsData?.parentProtocols?.reduce((acc, pd) => {
+			acc[pd.name] = pd.mcap
+			return acc
+		}, {}) ?? {})
+	}
 }
 
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-			...p,
-			tvl: p?.chainTvls?.[chain]?.tvl ?? null
-		}))
+				...p,
+				tvl: p?.chainTvls?.[chain]?.tvl ?? null
+		  }))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -140,7 +147,16 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
 			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
 
-	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData, holdersRevenueData, nftsEarnings]: [
+	const [
+		request,
+		protocolsData,
+		feesOrRevenue,
+		cexVolume,
+		emissionBreakdown,
+		bribesData,
+		holdersRevenueData,
+		nftsEarnings
+	]: [
 		IGetOverviewResponseBody,
 		{ protocols: LiteProtocol[]; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
@@ -156,7 +172,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		type === 'dexs' ? getCexVolume() : Promise.resolve(0),
 		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse),
 		fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse),
-		type === 'fees' ? fetch(getAPIUrl(type, chain, true, true, 'dailyHoldersRevenue')).then(handleFetchResponse) : Promise.resolve({ protocols: [] }),
+		type === 'fees'
+			? fetch(getAPIUrl(type, chain, true, true, 'dailyHoldersRevenue')).then(handleFetchResponse)
+			: Promise.resolve({ protocols: [] }),
 		getNFTCollectionEarnings()
 	])
 
@@ -188,6 +206,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	})
 		.then((r) => r.json())
 		.catch((err) => {
+			console.log('Failed to fetch mcaps by chain')
 			console.log(err)
 			return {}
 		})
@@ -219,24 +238,23 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-				{} as IJSON<ProtocolAdaptorSummary>
-			) ?? {}
+					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+					{} as IJSON<ProtocolAdaptorSummary>
+			  ) ?? {}
 			: {}
 
 	const holderRevenueProtocols =
 		type === 'fees'
 			? holdersRevenueData?.protocols?.reduce(
-				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-				{} as IJSON<ProtocolAdaptorSummary>
-			) ?? {}
+					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+					{} as IJSON<ProtocolAdaptorSummary>
+			  ) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
 	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {})
 
 	const protocolsWithSubrows = protocols.reduce((acc, protocol) => {
-
 		// Assign mainrow and sub-row if has any
 		const slugName = sluggify(protocol.name)
 
@@ -364,7 +382,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				reduceSumByAttribute('dailyBribesRevenue'),
 				null
 			)
-			mainRow.mcap = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('mcap'), null)
+			mainRow.mcap =
+				mcapData[acc[protocol.parentProtocol].name] ??
+				acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('mcap'), null)
 			// mainRow.mcap = acc[protocol.parentProtocol].subRows.reduce(reduceHigherByAttribute('mcap'), null)
 			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map((d) => d.chains).flat())
 			mainRow.methodology = getParentProtocolMethodology(
@@ -528,11 +548,14 @@ export const getChainsPageData = async (type: string, dataType?: string): Promis
 				console.log(PROTOCOLS_API, err)
 				return {}
 			}),
-		...allChains.map((chain) => // TODO: replace this with single endpoint
-			getOverview(type, chain, dataType, true, true).then((res) => ({
-				...res,
-				chain
-			}))
+		...allChains.map(
+			(
+				chain // TODO: replace this with single endpoint
+			) =>
+				getOverview(type, chain, dataType, true, true).then((res) => ({
+					...res,
+					chain
+				}))
 		)
 	])
 
@@ -651,4 +674,4 @@ export function notUndefined<T>(x: T | undefined): x is T {
 	return x !== undefined
 }
 
-export function formatOverviewProtocolsList() { }
+export function formatOverviewProtocolsList() {}
