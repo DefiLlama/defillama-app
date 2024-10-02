@@ -56,10 +56,19 @@ export const formatProtocolsData = ({
 			if (oracle) {
 				if ((protocol as any).oraclesByChain) {
 					protocol.tvl = 0
-					Object.entries((protocol as any).oraclesByChain).forEach(([chain, oracles]: [any, any]) => {
+					protocol.tvlPrevDay = 0
+					protocol.tvlPrevWeek = 0
+					protocol.tvlPrevMonth = 0
+					Object.entries((protocol as any).oraclesByChain).forEach(([ochain, oracles]: [any, any]) => {
 						if (oracles.includes(oracle)) {
-							const _tvl = protocol?.chainTvls[chain]?.tvl ?? 0
+							const _tvl = protocol?.chainTvls[ochain]?.tvl ?? 0
+							const _tvlPrevDay = protocol?.chainTvls[ochain]?.tvlPrevDay
+							const _tvlPrevWeek = protocol?.chainTvls[ochain]?.tvlPrevWeek
+							const _tvlPrevMonth = protocol?.chainTvls[ochain]?.tvlPrevMonth
 							protocol.tvl += _tvl
+							protocol.tvlPrevDay += _tvlPrevDay
+							protocol.tvlPrevWeek += _tvlPrevWeek
+							protocol.tvlPrevMonth += _tvlPrevMonth
 						}
 					})
 					toFilter = toFilter && protocol.tvl !== 0
