@@ -189,7 +189,8 @@ export const scams = [
 	'Kokomo Finance',
 	'HashDAO Finance',
 	'AbstraDEX',
-	'Honeyswap'
+	'Honeyswap',
+	'YFII'
 ]
 
 export const removedCategories = ['Basis Trading', 'RWA', 'Infrastructure', 'Staking Pool']
