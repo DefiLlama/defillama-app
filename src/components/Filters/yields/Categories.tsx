@@ -25,7 +25,7 @@ export function FiltersByCategory({
 }: IFiltersByCategoryProps) {
 	const router = useRouter()
 
-	const { category, ...queries } = router.query
+	const { category, chain, ...queries } = router.query
 
 	const addCategory = (newCategory) => {
 		router.push(
@@ -33,6 +33,7 @@ export function FiltersByCategory({
 				pathname,
 				query: {
 					...queries,
+					...(!pathname.includes('/chains/') && chain ? { chain } : {}),
 					category: newCategory
 				}
 			},

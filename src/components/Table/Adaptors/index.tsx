@@ -17,6 +17,7 @@ import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { TableFilters } from '../shared'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
 import RowFilter from '~/components/Filters/common/RowFilter'
+import { useRouter } from 'next/router'
 
 export const PERIODS = ['24h', '7d', '30d', '1y']
 const columnSizesKeys = Object.keys(volumesColumnSizes)
@@ -152,6 +153,8 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 		instance.setColumnOrder(order)
 	}, [windowSize, instance, type])
 
+	const router = useRouter()
+
 	return (
 		<>
 			<TableFilters style={{ justifyContent: 'flex-end' }}>
@@ -171,7 +174,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 					<FiltersByCategory
 						categoryList={categories}
 						selectedCategories={selectedCategories}
-						pathname={`/${type}`}
+						pathname={router.asPath}
 						hideSelectedCount
 					/>
 				)}

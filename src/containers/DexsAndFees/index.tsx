@@ -15,7 +15,6 @@ import { capitalizeFirstLetter, download } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { AnnouncementWrapper } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
-import { ButtonDark } from '~/components/ButtonStyled'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 const HeaderWrapper = styled(Header)`
