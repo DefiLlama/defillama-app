@@ -1,14 +1,14 @@
 import { QueryClient, QueryClientProvider } from 'react-query'
 
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
-import { Header } from '~/Theme'
 import type { IChainTvl } from '~/api/types'
+import Layout from '~/layout'
+import { Header } from '~/Theme'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-import Cexs from '~/components/Cexs'
 import 'react-datepicker/dist/react-datepicker.css'
+import Cexs from '~/components/Cexs'
+import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
 
@@ -715,4 +715,4 @@ export default function Protocols({ cexs }) {
 	)
 }
 
-//trigger server gogogogogogogo 
+//trigger server gogo
