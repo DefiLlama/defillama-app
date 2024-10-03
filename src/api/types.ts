@@ -25,6 +25,7 @@ export interface Protocol {
 	category?: string | null
 	chains: Array<string>
 	oracles?: Array<string>
+	oraclesByChain?: Record<string, Array<string>>
 	forkedFrom?: Array<string>
 	module: string
 	twitter?: string | null
@@ -126,6 +127,7 @@ export type LiteProtocol = Pick<
 	| 'category'
 	| 'chains'
 	| 'oracles'
+	| 'oraclesByChain'
 	| 'forkedFrom'
 	| 'listedAt'
 	| 'mcap'

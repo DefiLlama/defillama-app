@@ -1,6 +1,7 @@
 import type { IFormattedProtocol, LiteProtocol } from '~/api/types'
 import { keepNeededProperties } from '~/api/shared'
 import { getPercentChange } from '~/utils'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
 
@@ -41,84 +42,99 @@ export const formatProtocolsData = ({
 	protocolProps = [...basicPropertiesToKeep, 'extraTvl'],
 	removeBridges = false
 }: IFormatProtocolsData) => {
-	const data: IFormattedProtocol[] = protocols
-		.filter((protocol) => {
-			let toFilter = true
+	const data = protocols.reduce((final, protocol) => {
+		let toFilter = true
 
-			if (removeBridges) {
-				toFilter = toFilter && protocol?.category !== 'Bridge'
+		if (removeBridges) {
+			toFilter = toFilter && protocol?.category !== 'Bridge'
+		}
+
+		if (chain) {
+			toFilter = toFilter && protocol.chains?.includes(chain)
+		}
+
+		if (oracle) {
+			if (protocol.oraclesByChain) {
+				toFilter = toFilter && (chain ? protocol.oraclesByChain[chain]?.includes(oracle) : true)
+			} else {
+				toFilter = toFilter && protocol.oracles?.includes(oracle)
 			}
+		}
+
+		if (fork) {
+			toFilter = toFilter && protocol.forkedFrom?.includes(fork)
+		}
+
+		if (category) {
+			toFilter = toFilter && category.toLowerCase() === (protocol.category?.toLowerCase() ?? '')
+		}
+
+		if (toFilter) {
+			const p = keepNeededProperties(protocol, protocolProps)
 
 			if (chain) {
-				toFilter = toFilter && protocol.chains?.includes(chain)
-			}
+				p.tvl = protocol.chainTvls[chain]?.tvl ?? 0
+				p.tvlPrevDay = protocol.chainTvls[chain]?.tvlPrevDay ?? null
+				p.tvlPrevWeek = protocol.chainTvls[chain]?.tvlPrevWeek ?? null
+				p.tvlPrevMonth = protocol.chainTvls[chain]?.tvlPrevMonth ?? null
+			} else {
+				if (oracle && protocol.oraclesByChain) {
+					p.tvl = 0
+					p.tvlPrevDay = 0
+					p.tvlPrevWeek = 0
+					p.tvlPrevMonth = 0
 
-			if (oracle) {
-				if ((protocol as any).oraclesByChain) {
-					protocol.tvl = 0
-					protocol.tvlPrevDay = 0
-					protocol.tvlPrevWeek = 0
-					protocol.tvlPrevMonth = 0
-					Object.entries((protocol as any).oraclesByChain).forEach(([ochain, oracles]: [any, any]) => {
-						if (oracles.includes(oracle)) {
-							const _tvl = protocol?.chainTvls[ochain]?.tvl ?? 0
-							const _tvlPrevDay = protocol?.chainTvls[ochain]?.tvlPrevDay
-							const _tvlPrevWeek = protocol?.chainTvls[ochain]?.tvlPrevWeek
-							const _tvlPrevMonth = protocol?.chainTvls[ochain]?.tvlPrevMonth
-							protocol.tvl += _tvl
-							protocol.tvlPrevDay += _tvlPrevDay
-							protocol.tvlPrevWeek += _tvlPrevWeek
-							protocol.tvlPrevMonth += _tvlPrevMonth
+					for (const ochain in protocol.oraclesByChain) {
+						if (protocol.oraclesByChain[ochain].includes(oracle)) {
+							p.tvl += protocol.chainTvls[ochain]?.tvl ?? 0
+							p.tvlPrevDay += protocol.chainTvls[ochain]?.tvlPrevDay ?? 0
+							p.tvlPrevWeek += protocol.chainTvls[ochain]?.tvlPrevWeek ?? 0
+							p.tvlPrevMonth += protocol.chainTvls[ochain]?.tvlPrevMonth ?? 0
 						}
-					})
-					toFilter = toFilter && protocol.tvl !== 0
-				} else {
-					toFilter = toFilter && protocol.oracles?.includes(oracle)
+					}
 				}
 			}
 
-			if (fork) {
-				toFilter = toFilter && protocol.forkedFrom?.includes(fork)
-			}
+			p.extraTvl = {}
 
-			if (category) {
-				toFilter = toFilter && category.toLowerCase() === (protocol.category?.toLowerCase() ?? '')
-			}
-
-			return toFilter
-		})
-		.map((p) => {
-			const protocol = keepNeededProperties(p, protocolProps)
-
-			if (chain) {
-				protocol.tvl = p.chainTvls[chain]?.tvl ?? 0
-				protocol.tvlPrevDay = p.chainTvls[chain]?.tvlPrevDay ?? null
-				protocol.tvlPrevWeek = p.chainTvls[chain]?.tvlPrevWeek ?? null
-				protocol.tvlPrevMonth = p.chainTvls[chain]?.tvlPrevMonth ?? null
-			}
-
-			protocol.extraTvl = {}
-			protocol.change_1d = getPercentChange(protocol.tvl, protocol.tvlPrevDay)
-			protocol.change_7d = getPercentChange(protocol.tvl, protocol.tvlPrevWeek)
-			protocol.change_1m = getPercentChange(protocol.tvl, protocol.tvlPrevMonth)
-			protocol.mcaptvl = p.mcap && protocol.tvl ? +(p.mcap / protocol.tvl).toFixed(2) : null
-
-			Object.entries(p.chainTvls).forEach(([sectionName, sectionTvl]) => {
+			for (const sectionName in protocol.chainTvls) {
 				if (chain) {
 					if (sectionName.startsWith(`${chain}-`)) {
-						const sectionToAdd = sectionName.split('-')[1]
-						protocol.extraTvl[sectionToAdd] = sectionTvl
+						p.extraTvl[sectionName.split('-')[1]] = protocol.chainTvls[sectionName]
+					}
+				} else if (oracle && protocol.oraclesByChain) {
+					if (sectionName.includes('-') && protocol.oraclesByChain[sectionName.split('-')[0]]?.includes(oracle)) {
+						const prop = sectionName.split('-')[1]
+						if (!p.extraTvl[prop]) {
+							p.extraTvl[prop] = {
+								tvl: 0,
+								tvlPrevDay: 0,
+								tvlPrevWeek: 0,
+								tvlPrevMonth: 0
+							}
+						}
+						p.extraTvl[prop].tvl += protocol.chainTvls[sectionName].tvl
+						p.extraTvl[prop].tvlPrevDay += protocol.chainTvls[sectionName].tvlPrevDay
+						p.extraTvl[prop].tvlPrevWeek += protocol.chainTvls[sectionName].tvlPrevWeek
+						p.extraTvl[prop].tvlPrevMonth += protocol.chainTvls[sectionName].tvlPrevMonth
 					}
 				} else {
-					const firstChar = sectionName[0]
-					if (firstChar === firstChar.toLowerCase()) {
-						protocol.extraTvl[sectionName] = sectionTvl
+					if (DEFI_SETTINGS_KEYS.includes(sectionName)) {
+						p.extraTvl[sectionName] = protocol.chainTvls[sectionName]
 					}
 				}
-			})
+			}
 
-			return keepNeededProperties(protocol, protocolProps)
-		})
+			p.change_1d = getPercentChange(p.tvl, p.tvlPrevDay)
+			p.change_7d = getPercentChange(p.tvl, p.tvlPrevWeek)
+			p.change_1m = getPercentChange(p.tvl, p.tvlPrevMonth)
+			p.mcaptvl = protocol.mcap && p.tvl ? +(protocol.mcap / p.tvl).toFixed(2) : null
+
+			final = [...final, p]
+		}
+
+		return final
+	}, [])
 
 	return data.sort((a, b) => b.tvl - a.tvl)
 }
