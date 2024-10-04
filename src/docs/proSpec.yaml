@@ -98,7 +98,7 @@ paths:
     get:
       tags:
         - stablecoins
-      summary: Get stablecoin dominance per chain along with the info about the larges coin in a chain
+      summary: Get stablecoin dominance per chain along with the info about the largest coin in a chain
       parameters:
         - name: chain
           in: path
