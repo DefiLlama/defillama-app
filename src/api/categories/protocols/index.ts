@@ -1101,7 +1101,9 @@ export async function getChainsBridged(chain?: string) {
 }
 
 export async function getCategoryInfo() {
-	const data = await fetchWithErrorLogging(CATEGORY_INFO_API).then((r) => r.json())
+	const data = await fetchWithErrorLogging(CATEGORY_INFO_API)
+		.then((r) => r.json())
+		.catch(() => [])
 	return data
 }
 
@@ -1110,12 +1112,16 @@ export async function getCategoryPerformance() {
 		await Promise.all(
 			['7', '30', 'ytd', '365'].map(async (period) => [
 				period,
-				await fetchWithErrorLogging(`${CATEGORY_PERFORMANCE_API}/${period}`).then((r) => r.json())
+				await fetchWithErrorLogging(`${CATEGORY_PERFORMANCE_API}/${period}`)
+					.then((r) => r.json())
+					.catch(() => [])
 			])
 		)
 	)
 
-	const info = await fetchWithErrorLogging(CATEGORY_INFO_API).then((r) => r.json())
+	const info = await fetchWithErrorLogging(CATEGORY_INFO_API)
+		.then((r) => r.json())
+		.catch(() => [])
 	const getCumulativeChangeOfPeriod = (period, name) => performanceTimeSeries[period].slice(-1)[0][name] ?? null
 	const pctChanges = info.map((i) => ({
 		...i,
