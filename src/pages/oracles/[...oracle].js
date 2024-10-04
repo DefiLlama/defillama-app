@@ -6,7 +6,7 @@ import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/comp
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { formatChartTvlsByDay } from '~/hooks/data'
-import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance, toK } from '~/utils'
+import { formattedNum, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
@@ -54,9 +54,9 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chainChartData }) => {
+const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chainChartData, oracleMonthlyVolumes }) => {
 	const [extraTvlsEnabled] = useDefiManager()
-	const { protocolsData, finalChartData, totalVolume, volumeChangeUSD } = useMemo(() => {
+	const { protocolsData, finalChartData, totalValue } = useMemo(() => {
 		const protocolsData = formatDataWithExtraTvls({
 			data: filteredProtocols,
 			extraTvlsEnabled
@@ -64,10 +64,9 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 		const finalChartData = formatChartTvlsByDay({ data: chainChartData || chartData, extraTvlsEnabled, key: 'TVS' })
 
-		const totalVolume = getPrevTvlFromChart2(finalChartData, 0, 'TVS')
-		const tvlPrevDay = getPrevTvlFromChart2(finalChartData, 1, 'TVS')
-		const volumeChangeUSD = getPercentChange(totalVolume, tvlPrevDay)
-		return { protocolsData, finalChartData, totalVolume, volumeChangeUSD }
+		const totalValue = getPrevTvlFromChart2(finalChartData, 0, 'TVS')
+
+		return { protocolsData, finalChartData, totalValue }
 	}, [chainChartData, chartData, extraTvlsEnabled, filteredProtocols])
 
 	const topToken = {}
@@ -77,11 +76,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 		topToken.tvl = protocolsData[0]?.tvl
 	}
 
-	const tvs = formattedNum(totalVolume, true)
-
-	const dominance = getTokenDominance(topToken, totalVolume)
-
-	const percentChange = volumeChangeUSD?.toFixed(2)
+	const dominance = getTokenDominance(topToken, totalValue)
 
 	return (
 		<>
@@ -93,11 +88,11 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 				<BreakpointPanels>
 					<BreakpointPanel>
 						<h1>Total Value Secured (USD)</h1>
-						<p style={{ '--tile-text-color': '#4f8fea' }}>{tvs}</p>
+						<p style={{ '--tile-text-color': '#4f8fea' }}>{formattedNum(totalValue, true)}</p>
 					</BreakpointPanel>
 					<BreakpointPanel>
-						<h2>Change (24h)</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' }}> {percentChange || 0}%</p>
+						<h2>Volume (30d)</h2>
+						<p style={{ '--tile-text-color': '#fd3c99' }}> {formattedNum(oracleMonthlyVolumes[token] ?? 0, true)}</p>
 					</BreakpointPanel>
 					<BreakpointPanel>
 						<h2>{topToken.name} Dominance</h2>

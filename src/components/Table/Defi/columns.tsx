@@ -92,8 +92,8 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 		}
 	},
 	{
-		header: 'Volume (7d)',
-		accessorKey: 'sevenDayVolume',
+		header: 'Volume (30d)',
+		accessorKey: 'monthlyVolume',
 		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
 		meta: {
 			align: 'end',

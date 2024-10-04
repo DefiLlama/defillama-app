@@ -42,7 +42,7 @@ const Oracles = ({
 	oraclesColors,
 	chainsByOracle,
 	chain,
-	oracleSevenDayVolumes = {}
+	oracleMonthlyVolumes = {}
 }) => {
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
 	const { tokenTvls, tokensList } = React.useMemo(() => {
@@ -63,12 +63,12 @@ const Oracles = ({
 				protocolsSecured: tokensProtocols[name],
 				tvs: value,
 				chains: chainsByOracle[name],
-				sevenDayVolume: oracleSevenDayVolumes[name]
+				monthlyVolume: oracleMonthlyVolumes[name]
 			}
 		})
 
 		return { tokenTvls, tokensList }
-	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle, oracleSevenDayVolumes])
+	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle, oracleMonthlyVolumes])
 
 	const downloadCsv = () => {
 		const header = Object.keys(tokensList[0]).join(',')

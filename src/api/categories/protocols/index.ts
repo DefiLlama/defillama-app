@@ -1,5 +1,3 @@
-import { mapValues, reduce } from 'lodash'
-
 import { capitalizeFirstLetter, getColorFromNumber, standardizeProtocolName } from '~/utils'
 import type { IFusedProtocolData, IOracleProtocols, IProtocolResponse } from '~/api/types'
 import {
@@ -42,6 +40,7 @@ import { getDexVolumeByChain } from '../dexs'
 import { sluggify } from '~/utils/cache-client'
 import { getAPIUrl } from '../adaptors/client'
 import { ADAPTOR_TYPES } from '../../../utils/adaptorsPages/types'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -401,11 +400,11 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 export async function getOraclePageData(oracle = null, chain = null) {
 	try {
 		const [
-			{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle: chainsByOracleData },
+			{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle },
 			{ protocols },
 			{ protocols: derivativeProtocols }
 		] = await Promise.all(
-			[ORACLE_API, PROTOCOLS_API, getAPIUrl(ADAPTOR_TYPES.DERIVATIVES, chain, false, false)].map((url) =>
+			[ORACLE_API, PROTOCOLS_API, getAPIUrl(ADAPTOR_TYPES.DERIVATIVES, chain, true, true)].map((url) =>
 				fetchWithErrorLogging(url).then((r) => r.json())
 			)
 		)
@@ -439,35 +438,18 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			.sort((a, b) => b[1].tvl - a[1].tvl)
 			.map((orc) => orc[0])
 
-		const chainsByOracle = mapValues(
-			protocols.reduce((acc, curr) => {
-				if (curr.oracles) {
-					curr.oracles.forEach((oracle) => {
-						if (!acc[oracle]) {
-							acc[oracle] = []
-						}
-						acc[oracle].push(curr.chains)
-					})
-				}
-				return acc
-			}, {}),
-			(chains, oracle) => chainsByOracleData?.[oracle] ?? [...new Set(chains.flat())]
-		)
-
-		const sevenDayVolByProtocol = derivativeProtocols.reduce((acc, curr) => {
-			acc[curr.name] = curr.total7d
-			return acc
+		const monthlyVolByProtocol = derivativeProtocols.reduce((volume, protocol) => {
+			volume[protocol.name] = protocol.total30d
+			return volume
 		}, {})
-		const oracleSevenDayVolumes = reduce(
-			oracles,
-			(acc, oracleProtocols, oracleName) => {
-				acc[oracleName] = oracleProtocols.reduce((acc, protocol) => {
-					return sevenDayVolByProtocol[protocol] ? acc + sevenDayVolByProtocol[protocol] : acc
-				}, 0)
-				return acc
-			},
-			{}
-		)
+
+		const oracleMonthlyVolumes = {}
+		for (const oracle in oracles) {
+			oracleMonthlyVolumes[oracle] = oracles[oracle].reduce(
+				(total, protocol) => (total += monthlyVolByProtocol[protocol] ?? 0),
+				0
+			)
+		}
 
 		if (oracle) {
 			let data = []
@@ -486,14 +468,28 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			oraclesProtocols[orc] = oracles[orc]?.length
 		}
 
-		const uniqueChains = [...new Set(Object.values(chainsByOracle).flat())]
+		const uniqueChains: Record<string, number> = {}
+
+		const latestTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
+			string,
+			Record<string, number>
+		>
+		for (const oracle in latestTvlByChain) {
+			for (const ochain in latestTvlByChain[oracle]) {
+				if (!ochain.includes('-') && !DEFI_SETTINGS_KEYS.includes(ochain)) {
+					uniqueChains[ochain] = (uniqueChains[ochain] ?? 0) + latestTvlByChain[oracle][ochain]
+				}
+			}
+		}
 
 		let oracleLinks = oracle
 			? [{ label: 'All chains', to: `/oracles/${oracle}` }].concat(
 					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
 			  )
 			: [{ label: 'All', to: `/oracles/` }].concat(
-					uniqueChains.map((c: string) => ({ label: c, to: `/oracles/chain/${c}` }))
+					Object.entries(uniqueChains)
+						.sort((a, b) => b[1] - a[1])
+						.map((c) => ({ label: c[0], to: `/oracles/chain/${c[0]}` }))
 			  )
 
 		const colors = {}
@@ -516,7 +512,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 				filteredProtocols,
 				chartData,
 				oraclesColors: colors,
-				oracleSevenDayVolumes
+				oracleMonthlyVolumes
 			}
 		}
 	} catch (e) {
@@ -529,8 +525,15 @@ export async function getOraclePageData(oracle = null, chain = null) {
 
 export async function getOraclePageDataByChain(chain: string) {
 	try {
-		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle: chainsByOracleData }, { protocols }] =
-			await Promise.all([ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json())))
+		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle }, { protocols }] = await Promise.all(
+			[ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
+		)
+
+		const { protocols: derivativeProtocols } = await fetchWithErrorLogging(
+			getAPIUrl(ADAPTOR_TYPES.DERIVATIVES, chain, true, true)
+		)
+			.then((r) => r.json())
+			.catch(() => ({ protocols: [] }))
 
 		const filteredProtocols = formatProtocolsData({ protocols, chain })
 
@@ -554,25 +557,23 @@ export async function getOraclePageDataByChain(chain: string) {
 					.filter(Boolean)
 			: null
 
-		const chainsByOracle = mapValues(
-			protocols.reduce((acc, curr) => {
-				if (curr.oracles) {
-					curr.oracles.forEach((oracle) => {
-						if (!acc[oracle]) {
-							acc[oracle] = []
-						}
-						acc[oracle].push(curr.chains)
-					})
-				}
-				return acc
-			}, {}),
-			(chains, oracle) => chainsByOracleData?.[oracle] ?? [...new Set(chains.flat())]
-		)
-
 		const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
 			.sort((a, b) => b[1].tvl - a[1].tvl)
 			.map((orc) => orc[0])
 			.filter((orc) => chainsByOracle[orc]?.includes(chain))
+
+		const monthlyVolByProtocol = derivativeProtocols.reduce((volume, protocol) => {
+			volume[protocol.name] = protocol.total30d
+			return volume
+		}, {})
+
+		const oracleMonthlyVolumes = {}
+		for (const oracle in oracles) {
+			oracleMonthlyVolumes[oracle] = oracles[oracle].reduce(
+				(total, protocol) => (total += monthlyVolByProtocol[protocol] ?? 0),
+				0
+			)
+		}
 
 		const oraclesProtocols: IOracleProtocols = {}
 
@@ -580,10 +581,24 @@ export async function getOraclePageDataByChain(chain: string) {
 			oraclesProtocols[orc] = protocols.filter((p) => p.oracles?.includes(orc) && p.chains.includes(chain)).length
 		}
 
-		const uniqueChains = [...new Set(Object.values(chainsByOracle).flat())]
+		const uniqueChains: Record<string, number> = {}
+
+		const latestTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
+			string,
+			Record<string, number>
+		>
+		for (const oracle in latestTvlByChain) {
+			for (const ochain in latestTvlByChain[oracle]) {
+				if (!ochain.includes('-') && !DEFI_SETTINGS_KEYS.includes(ochain)) {
+					uniqueChains[ochain] = (uniqueChains[ochain] ?? 0) + latestTvlByChain[oracle][ochain]
+				}
+			}
+		}
 
 		const oracleLinks = [{ label: 'All chains', to: `/oracles/` }].concat(
-			uniqueChains.map((c: string) => ({ label: c, to: `/oracles/chain/${c}` }))
+			Object.entries(uniqueChains)
+				.sort((a, b) => b[1] - a[1])
+				.map((c) => ({ label: c[0], to: `/oracles/chain/${c[0]}` }))
 		)
 
 		const colors = {}
@@ -604,7 +619,8 @@ export async function getOraclePageDataByChain(chain: string) {
 				tokensProtocols: oraclesProtocols,
 				filteredProtocols,
 				chartData: chainChartData,
-				oraclesColors: colors
+				oraclesColors: colors,
+				oracleMonthlyVolumes
 			}
 		}
 	} catch (e) {
