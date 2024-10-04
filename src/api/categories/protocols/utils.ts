@@ -118,6 +118,10 @@ export const formatProtocolsData = ({
 						p.extraTvl[prop].tvlPrevWeek += protocol.chainTvls[sectionName].tvlPrevWeek
 						p.extraTvl[prop].tvlPrevMonth += protocol.chainTvls[sectionName].tvlPrevMonth
 					}
+
+					p.chains = Object.keys(protocol.oraclesByChain).filter((chain) =>
+						protocol.oraclesByChain[chain].includes(oracle)
+					)
 				} else {
 					if (DEFI_SETTINGS_KEYS.includes(sectionName)) {
 						p.extraTvl[sectionName] = protocol.chainTvls[sectionName]
