@@ -91,7 +91,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 						<p style={{ '--tile-text-color': '#4f8fea' }}>{formattedNum(totalValue, true)}</p>
 					</BreakpointPanel>
 					<BreakpointPanel>
-						<h2>Volume (30d)</h2>
+						<h2>Total Volume Secured (30d)</h2>
 						<p style={{ '--tile-text-color': '#fd3c99' }}> {formattedNum(oracleMonthlyVolumes[token] ?? 0, true)}</p>
 					</BreakpointPanel>
 					<BreakpointPanel>
