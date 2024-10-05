@@ -32,7 +32,6 @@ import {
 import { getColorFromNumber } from '~/utils'
 import { YIELD_POOLS_LAMBDA_API, YIELD_RISK_API_EXPONENTIAL } from '~/constants'
 import { ExternalLink } from '~/components/Link'
-import axios from 'axios'
 
 import exponentialLogo from '~/assets/exponential.avif'
 
