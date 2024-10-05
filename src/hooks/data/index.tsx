@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { IChain, IFormattedProtocol } from '~/api/types'
 import { useDefiChainsManager, useDefiManager } from '~/contexts/LocalStorage'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from './defi'
+import { getPercentChange } from '~/utils'
 
 type DataValue = number | null
 
@@ -45,6 +46,13 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 			let mcap: DataValue = null
 			let stablesMcap: DataValue = null
 			let protocols: DataValue = null
+			let users: DataValue = null
+			let totalVolume24h: DataValue = null
+			let totalFees24h: DataValue = null
+			let totalRevenue24h: DataValue = null
+			let totalAssets: DataValue = null
+			let chainAssets: DataValue = null
+			let nftVolume: DataValue = null
 
 			finalData[parentName] = {}
 
@@ -57,6 +65,13 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 				mcap = parentData.mcap || null
 				stablesMcap = parentData.stablesMcap || null
 				protocols = parentData.protocols || null
+				users = parentData.users || null
+				totalVolume24h = parentData.totalVolume24h || null
+				totalFees24h = parentData.totalFees24h || null
+				totalRevenue24h = parentData.totalRevenue24h || null
+				totalAssets = parentData.totalAssets || null
+				chainAssets = parentData.chainAssets || null
+				nftVolume = parentData.nftVolume || null
 				finalData[parentName] = {
 					...parentData,
 					subRows: [parentData],
@@ -86,8 +101,18 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 							mcap += childData.mcap
 							stablesMcap += childData.stablesMcap
 							protocols += childData.protocols
+							users += childData.users || null
+							totalVolume24h += childData.totalVolume24h || null
+							totalFees24h += childData.totalFees24h || null
+							totalRevenue24h += childData.totalRevenue24h || null
+							totalAssets += childData.totalAssets || null
+							chainAssets += childData.chainAssets || null
+							nftVolume += childData.nftVolume || null
 							const subChains = finalData[parentName].subRows || []
 							let mcaptvl = mcap && tvl ? +(mcap / tvl).toFixed(2) : null
+							let change_1d = getPercentChange(tvl, tvlPrevDay)
+							let change_7d = getPercentChange(tvl, tvlPrevWeek)
+							let change_1m = getPercentChange(tvl, tvlPrevMonth)
 
 							finalData[parentName] = {
 								...finalData[parentName],
@@ -99,7 +124,17 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 								stablesMcap,
 								mcaptvl,
 								protocols,
+								users,
+								totalVolume24h,
+								totalFees24h,
+								totalRevenue24h,
+								totalAssets,
+								chainAssets,
+								nftVolume,
 								name: parentName,
+								change_1d,
+								change_7d,
+								change_1m,
 								subRows: [...subChains, childData]
 							}
 							addedChains.push(child)
