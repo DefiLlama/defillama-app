@@ -119,7 +119,7 @@ export const Button = styled(ButtonLight)`
 	font-weight: 400;
 	white-space: nowrap;
 	font-family: var(--font-inter);
-`
+` as any
 
 export const FlexRow = styled.p`
 	display: flex;

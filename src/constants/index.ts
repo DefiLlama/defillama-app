@@ -91,6 +91,7 @@ export const YIELD_CHART_LEND_BORROW_API = 'https://yields.llama.fi/chartLendBor
 export const YIELD_CONFIG_POOL_API = 'https://yields.llama.fi/configPool'
 export const YIELD_PERPS_API = 'https://yields.llama.fi/perps'
 export const YIELD_PROJECT_MEDIAN_API = 'https://yields.llama.fi/medianProject'
+export const YIELD_RISK_API_EXPONENTIAL = 'https://api.exponential.fi/api/pool-risk/search'
 
 export const LSD_RATES_API = 'https://yields.llama.fi/lsdRates'
 export const ETF_OVERVIEW_API = 'https://etfs.llama.fi/overview'
@@ -109,8 +110,7 @@ export const CHAINS_ASSETS_CHART = 'https://api.llama.fi/chain-assets/chart'
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
 
-if (!process.env.API2_ROUTE)
-	process.env.API2_ROUTE = 'https://api.llama.fi'
+if (!process.env.API2_ROUTE) process.env.API2_ROUTE = 'https://api.llama.fi'
 export const DIMENISIONS_OVERVIEW_API = process.env.API2_ROUTE + '/overview'
 export const BASE_API = 'https://api.llama.fi/'
 export const DIMENISIONS_SUMMARY_BASE_API = process.env.API2_ROUTE + '/summary'

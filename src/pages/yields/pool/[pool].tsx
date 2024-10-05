@@ -2,7 +2,8 @@ import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { ArrowUpRight, DownloadCloud } from 'react-feather'
+import { ArrowUpRight, DownloadCloud, CheckCircle, Circle } from 'react-feather'
+import styled from 'styled-components'
 import Layout from '~/layout'
 import AuditInfo from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
@@ -29,6 +30,11 @@ import {
 	useYieldChartLendBorrow
 } from '~/api/categories/yield/client'
 import { getColorFromNumber } from '~/utils'
+import { YIELD_POOLS_LAMBDA_API, YIELD_RISK_API_EXPONENTIAL } from '~/constants'
+import { ExternalLink } from '~/components/Link'
+import axios from 'axios'
+
+import exponentialLogo from '~/assets/exponential.avif'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -45,7 +51,217 @@ const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	loading: () => <></>
 })
 
-const PageView = () => {
+const RiskRating = styled(Stat)`
+	flex-direction: column;
+	align-items: flex-start;
+`
+
+const RatingLink = styled(ExternalLink)`
+	display: flex;
+	align-items: center;
+	gap: 0px;
+`
+
+const RatingWrapper = styled.div`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+`
+
+const RatingCircle = styled.div`
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	background-color: ${(props) => props.color};
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: white;
+	font-weight: bold;
+	font-size: 1rem;
+`
+
+const RatingText = styled.span`
+	font-size: 1.2rem;
+	font-weight: bold;
+`
+
+const RatingDescription = styled.span`
+	font-size: 1.2rem;
+`
+
+const AssessedBy = styled.span`
+	font-size: 0.7rem;
+	font-weight: bold;
+	margin-top: 4px;
+`
+
+const getRatingColor = (rating) => {
+	switch (rating?.toLowerCase()) {
+		case 'green':
+			return '#009400'
+		case 'yellow':
+			return '#b69f1c'
+		case 'red':
+			return 'firebrick'
+		default:
+			return '#9E9E9E'
+	}
+}
+
+const getRatingDescription = (rating) => {
+	switch (rating?.toLowerCase()) {
+		case 'a':
+			return 'Lowest risk'
+		case 'b':
+			return 'Low risk'
+		case 'c':
+			return 'Medium risk'
+		case 'd':
+			return 'High risk'
+		case 'f':
+			return 'Highest risk'
+		default:
+			return 'Not rated'
+	}
+}
+
+const RiskRatingSection = styled.div`
+	display: flex;
+	flex-direction: column;
+	background: ${({ theme }) => theme.bg6};
+	border-radius: 12px;
+	padding: 24px;
+
+	@media screen and (max-width: 80rem) {
+		grid-column: span 2;
+	}
+`
+
+const RiskRatingTitle = styled.h2`
+	font-size: 1.2rem;
+	margin-bottom: 24px;
+	color: ${({ theme }) => theme.text1};
+	display: flex;
+	align-items: center;
+	gap: 12px;
+`
+
+const RiskRatingContent = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	position: relative;
+`
+
+const TotalRiskWrapper = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border-radius: 12px;
+	padding: 12px;
+	margin-bottom: 16px;
+	min-width: 160px;
+`
+
+const ResultWrapper = styled.div`
+	display: flex;
+	align-items: center;
+`
+
+const TotalRiskCircle = styled.div<{ color: string }>`
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	background-color: ${(props) => getRatingColor(props.color)};
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-right: 16px;
+`
+
+const TotalRiskGrade = styled.span`
+	font-size: 16px;
+	font-weight: bold;
+	color: white;
+`
+
+const TotalRiskInfo = styled.div`
+	display: flex;
+	flex-direction: column;
+`
+
+const OpenReportButton = styled(Button)`
+	padding: 8px 12px;
+	font-size: 0.9rem;
+`
+
+const FactorsContainer = styled.div`
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	flex-grow: 1;
+	width: 100%;
+	position: relative;
+`
+
+const TotalRiskContainer = styled(FactorsContainer)``
+
+const Factor = styled.div`
+	display: flex;
+	align-items: center;
+	border: 1px solid ${({ theme }) => theme.text4};
+	border-radius: 16px;
+	padding: 6px;
+	position: relative;
+	margin-bottom: 12px;
+	font-weight: semibold;
+`
+
+const FactorBadge = styled.div<{ color: string }>`
+	background-color: ${(props) => getRatingColor(props.color)};
+	color: white;
+	font-size: 0.8rem;
+	font-weight: bold;
+	padding: 4px 0;
+	border-radius: 12px;
+	margin-right: 12px;
+	width: 80px;
+	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+`
+
+const FactorLabel = styled.span`
+	font-size: 0.9rem;
+	color: ${({ theme }) => theme.text1};
+	margin-right: 8px;
+	flex: 1; // Allow label to take up remaining space
+`
+
+const FactorAssets = styled.div`
+	display: flex;
+	gap: 4px;
+	margin-left: auto;
+`
+
+const Asset = styled.div<{ color: string }>`
+	border-radius: 16px;
+	font-size: 0.6rem;
+	padding: 4px 8px;
+	border: 2px solid ${(props) => getRatingColor(props.color)};
+`
+
+const ConnectingLines = styled.svg`
+	position: absolute;
+	left: -40px;
+	top: 0;
+	height: 100%;
+	width: 40px;
+`
+
+const PageView = (props) => {
 	const { query } = useRouter()
 
 	const { data: pool, loading: fetchingPoolData } = useYieldPoolData(query.pool)
@@ -212,8 +428,12 @@ const PageView = () => {
 
 					<StatWrapper>
 						<Stat>
-							<span>Total APY</span>
+							<span>APY</span>
 							<span style={{ color: '#fd3c99' }}>{apy}%</span>
+						</Stat>
+						<Stat>
+							<span>30d Avg APY</span>
+							<span style={{ color: '#fd3c99' }}>{apyMean30d}%</span>
 						</Stat>
 						<DownloadButton as="button" onClick={downloadCsv}>
 							<DownloadCloud size={14} />
@@ -226,10 +446,27 @@ const PageView = () => {
 						<span style={{ color: '#4f8fea' }}>${tvlUsd}</span>
 					</Stat>
 
-					<Stat>
-						<span>30d Avg APY</span>
-						<span style={{ color: '#fd3c99' }}>{apyMean30d}%</span>
-					</Stat>
+					<RiskRating>
+						<span>Total Risk Rating</span>
+
+						<RatingWrapper>
+							<RatingCircle color={getRatingColor(props.poolRiskData?.pool_rating_color)}>
+								{props.poolRiskData?.pool_rating || 'N/A'}
+							</RatingCircle>
+							<RatingLink
+								href={
+									props.poolRiskData?.pool_id
+										? `https://exponential.fi/pools/${props.poolRiskData?.pool_id}`
+										: `https://exponential.fi/`
+								}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								<RatingDescription>{getRatingDescription(props.poolRiskData?.pool_rating)}</RatingDescription>
+							</RatingLink>
+						</RatingWrapper>
+						<AssessedBy>Assessed by exponential.fi</AssessedBy>
+					</RiskRating>
 
 					<Stat>
 						<span>Outlook</span>
@@ -247,12 +484,100 @@ const PageView = () => {
 
 				<LazyChart style={{ padding: '20px 0' }}>
 					{!isLoading && (
-						<Chart chartData={finalChartData} stackColors={mainChartStackColors} stacks={mainChartStacks} title="" />
+						<Chart
+							height="460px"
+							chartData={finalChartData}
+							stackColors={mainChartStackColors}
+							stacks={mainChartStacks}
+							title=""
+						/>
 					)}
 				</LazyChart>
 			</StatsSection>
 
 			<ChartsWrapper>
+				<RiskRatingSection>
+					<RiskRatingTitle>
+						Risk Rating by exponential.fi{' '}
+						<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} />
+					</RiskRatingTitle>
+					<RiskRatingContent>
+						<FactorsContainer>
+							<Factor>
+								<FactorBadge color={props.poolRiskData?.pool_design?.rating_color}>
+									{props.poolRiskData?.pool_design?.rating || 'N/A'}
+								</FactorBadge>
+								<FactorLabel>Pool Design</FactorLabel>
+							</Factor>
+							<Factor>
+								<FactorBadge color={props.poolRiskData?.assets?.rating_color}>
+									{props.poolRiskData?.assets?.rating || 'N/A'}
+								</FactorBadge>
+								<FactorLabel>Assets</FactorLabel>
+								<FactorAssets>
+									{props.poolRiskData?.assets?.underlying?.map((asset, index) => (
+										<Asset key={index} color={asset.rating_color} title={asset.name}>
+											{asset.name}
+										</Asset>
+									))}
+								</FactorAssets>
+							</Factor>
+							<Factor>
+								<FactorBadge color={props.poolRiskData?.protocols?.underlying[0]?.rating_color}>
+									{props.poolRiskData?.protocols?.underlying[0]?.rating || 'N/A'}
+								</FactorBadge>
+								<FactorLabel>Protocols</FactorLabel>
+								<FactorAssets>
+									{props.poolRiskData?.protocols?.underlying
+										?.filter((p) => p?.name)
+										.map((protocol, index) => (
+											<Asset key={index} color={protocol.rating_color} title={protocol.name}>
+												{protocol.name}
+											</Asset>
+										))}
+								</FactorAssets>
+							</Factor>
+							<Factor>
+								<FactorBadge color={props.poolRiskData?.chain?.rating_color}>
+									{props.poolRiskData?.chain?.rating || 'N/A'}
+								</FactorBadge>
+								<FactorLabel>Chain</FactorLabel>
+								<FactorAssets>
+									{props.poolRiskData?.chain?.underlying
+										?.filter((c) => c?.name)
+										.map((chain, index) => (
+											<Asset key={index} color={chain.rating_color} title={chain.name}>
+												{chain.name}
+											</Asset>
+										))}
+								</FactorAssets>
+							</Factor>
+						</FactorsContainer>
+						<TotalRiskContainer>
+							<TotalRiskWrapper>
+								<ResultWrapper>
+									<TotalRiskCircle color={props.poolRiskData?.pool_rating_color}>
+										<TotalRiskGrade>{props.poolRiskData?.pool_rating || 'N/A'}</TotalRiskGrade>
+									</TotalRiskCircle>
+									<TotalRiskInfo>
+										<h3>{getRatingDescription(props.poolRiskData?.pool_rating)}</h3>
+									</TotalRiskInfo>
+								</ResultWrapper>
+								<OpenReportButton
+									as={ExternalLink}
+									href={props.poolRiskData?.pool_url}
+									target="_blank"
+									rel="noopener noreferrer"
+									useTextColor={true}
+									color={backgroundColor}
+								>
+									<span>Open Report</span>
+								</OpenReportButton>
+							</TotalRiskWrapper>
+						</TotalRiskContainer>
+					</RiskRatingContent>
+				</RiskRatingSection>
+
 				{isLoading ? (
 					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
 				) : (
@@ -380,10 +705,11 @@ const stackedBarChartColors = {
 	Reward: '#E59421'
 }
 
-const liquidityChartColors = {}
-;[('Supplied', 'Borrowed', 'Available')].forEach((l, index) => {
-	liquidityChartColors[l] = getColorFromNumber(index, 6)
-})
+const liquidityChartColors = {
+	Supplied: getColorFromNumber(0, 6),
+	Borrowed: getColorFromNumber(1, 6),
+	Available: getColorFromNumber(2, 6)
+}
 
 const barChartStacks = {
 	Base: 'a',
@@ -398,38 +724,42 @@ export default function YieldPoolPage(props) {
 	)
 }
 
-// export async function getStaticPaths() {
-// 	const res = await getYieldPageData()
+export async function getStaticPaths() {
+	return { paths: [], fallback: 'blocking' }
+}
 
-// 	const paths = res.props.pools.slice(0, 30).map(({ pool }) => {
-// 		return {
-// 			params: { pool: [pool] }
-// 		}
-// 	})
+export async function getStaticProps({ params: { pool } }) {
+	const poolUrl = `${YIELD_POOLS_LAMBDA_API}?pool=${pool}`
 
-// 	return { paths, fallback: 'blocking' }
-// }
+	const res = await fetch(poolUrl).then((res) => res.json())
+	const poolData = res.data?.[0] ?? {}
 
-// export async function getStaticProps({
-// 	params: {
-// 		pool: [pool]
-// 	}
-// }) {
-// 	const poolUrl = `${YIELD_POOLS_LAMBDA_API}?pool=${pool}`
-// 	const chartUrl = `${YIELD_CHART_API}/${pool}`
+	let poolRiskData = null
+	try {
+		const response = await fetch(YIELD_RISK_API_EXPONENTIAL, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-API-KEY': process.env.EXPONENTIAL_API_KEY
+			},
+			body: JSON.stringify({
+				token_address: poolData.pool_old,
+				blockchain: poolData.chain?.toLowerCase(),
+				protocol: poolData.project,
+				tvl: poolData.tvlUsd,
+				assets: poolData.underlyingTokens
+			})
+		})
 
-// 	const res = await arrayFetcher([poolUrl, chartUrl])
+		poolRiskData = await response.json()
+	} catch (error) {
+		console.error('Error fetching pool risk data:', error)
+	}
 
-// 	const poolData = res[0]?.data?.[0] ?? {}
-
-// 	const configData = await fetch(`${CONFIG_API}/smol/${poolData.project}`).then((res) => res.json())
-
-// 	return {
-// 		props: {
-// 			poolData: res[0]?.data?.[0] ?? {},
-// 			chart: res[1]?.data ?? [],
-// 			configData
-// 		},
-// 		revalidate: revalidate(23)
-// 	}
-// }
+	return {
+		props: {
+			poolData,
+			poolRiskData: poolRiskData?.data
+		}
+	}
+}
