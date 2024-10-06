@@ -715,6 +715,20 @@ const barChartStacks = {
 	Reward: 'a'
 }
 
+function cleanPool(pool) {
+	// some pool fields contain chain (or other) info as prefix/suffix
+	// need to remove these parts from api call, otherwise we won't receive the total risk score
+
+	// for 0x addresses
+	// match 0x followed by at least 40 hexadecimal characters balancer pool ids have length 64)
+	const pattern = /0x[a-fA-F0-9]{40,}/
+
+	const match = pool.match(pattern)
+
+	// for non 0x addresses return pool as is
+	return match ? match[0] : pool
+}
+
 export default function YieldPoolPage(props) {
 	return (
 		<Layout title={`Yield Chart - DefiLlama`} defaultSEO>
@@ -742,7 +756,7 @@ export async function getStaticProps({ params: { pool } }) {
 				'X-API-KEY': process.env.EXPONENTIAL_API_KEY
 			},
 			body: JSON.stringify({
-				token_address: poolData.pool_old,
+				token_address: cleanPool(poolData.pool_old),
 				blockchain: poolData.chain?.toLowerCase(),
 				protocol: poolData.project,
 				tvl: poolData.tvlUsd,
