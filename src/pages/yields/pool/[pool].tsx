@@ -250,6 +250,10 @@ const Asset = styled.div<{ color: string }>`
 	font-size: 0.6rem;
 	padding: 4px 8px;
 	border: 2px solid ${(props) => getRatingColor(props.color)};
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 4px;
 `
 
 const ConnectingLines = styled.svg`
@@ -453,11 +457,7 @@ const PageView = (props) => {
 								{props.poolRiskData?.pool_rating || 'N/A'}
 							</RatingCircle>
 							<RatingLink
-								href={
-									props.poolRiskData?.pool_id
-										? `https://exponential.fi/pools/${props.poolRiskData?.pool_id}`
-										: `https://exponential.fi/`
-								}
+								href={props.poolRiskData?.pool_url ? props.poolRiskData?.pool_url : `https://exponential.fi/about-us`}
 								target="_blank"
 								rel="noopener noreferrer"
 							>
@@ -515,8 +515,17 @@ const PageView = (props) => {
 								<FactorLabel>Assets</FactorLabel>
 								<FactorAssets>
 									{props.poolRiskData?.assets?.underlying?.map((asset, index) => (
-										<Asset key={index} color={asset.rating_color} title={asset.name}>
-											{asset.name}
+										<Asset
+											key={index}
+											color={asset.rating_color}
+											title={asset.name}
+											onClick={() => {
+												if (asset.url) {
+													window.open(asset.url, '_blank')
+												}
+											}}
+										>
+											{asset.name} {asset.url ? <ArrowUpRight size={14} /> : null}
 										</Asset>
 									))}
 								</FactorAssets>
@@ -530,8 +539,17 @@ const PageView = (props) => {
 									{props.poolRiskData?.protocols?.underlying
 										?.filter((p) => p?.name)
 										.map((protocol, index) => (
-											<Asset key={index} color={protocol.rating_color} title={protocol.name}>
-												{protocol.name}
+											<Asset
+												key={index}
+												color={protocol.rating_color}
+												title={protocol.name}
+												onClick={() => {
+													if (protocol.url) {
+														window.open(protocol.url, '_blank')
+													}
+												}}
+											>
+												{protocol.name} {protocol.url ? <ArrowUpRight size={14} /> : null}
 											</Asset>
 										))}
 								</FactorAssets>
@@ -545,8 +563,17 @@ const PageView = (props) => {
 									{props.poolRiskData?.chain?.underlying
 										?.filter((c) => c?.name)
 										.map((chain, index) => (
-											<Asset key={index} color={chain.rating_color} title={chain.name}>
-												{chain.name}
+											<Asset
+												key={index}
+												color={chain.rating_color}
+												title={chain.name}
+												onClick={() => {
+													if (chain.url) {
+														window.open(chain.url, '_blank')
+													}
+												}}
+											>
+												{chain.name} {chain.url ? <ArrowUpRight size={14} /> : null}
 											</Asset>
 										))}
 								</FactorAssets>
@@ -564,13 +591,13 @@ const PageView = (props) => {
 								</ResultWrapper>
 								<OpenReportButton
 									as={ExternalLink}
-									href={props.poolRiskData?.pool_url}
+									href={props.poolRiskData?.pool_url || 'https://exponential.fi/about-us'}
 									target="_blank"
 									rel="noopener noreferrer"
 									useTextColor={true}
 									color={backgroundColor}
 								>
-									<span>Open Report</span>
+									<span>{props.poolRiskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
 								</OpenReportButton>
 							</TotalRiskWrapper>
 						</TotalRiskContainer>
@@ -715,6 +742,20 @@ const barChartStacks = {
 	Reward: 'a'
 }
 
+function cleanPool(pool) {
+	// some pool fields contain chain (or other) info as prefix/suffix
+	// need to remove these parts from api call, otherwise we won't receive the total risk score
+
+	// for 0x addresses
+	// match 0x followed by at least 40 hexadecimal characters balancer pool ids have length 64)
+	const pattern = /0x[a-fA-F0-9]{40,}/
+
+	const match = pool.match(pattern)
+
+	// for non 0x addresses return pool as is
+	return match ? match[0] : pool
+}
+
 export default function YieldPoolPage(props) {
 	return (
 		<Layout title={`Yield Chart - DefiLlama`} defaultSEO>
@@ -742,7 +783,7 @@ export async function getStaticProps({ params: { pool } }) {
 				'X-API-KEY': process.env.EXPONENTIAL_API_KEY
 			},
 			body: JSON.stringify({
-				token_address: poolData.pool_old,
+				token_address: cleanPool(poolData.pool_old),
 				blockchain: poolData.chain?.toLowerCase(),
 				protocol: poolData.project,
 				tvl: poolData.tvlUsd,
