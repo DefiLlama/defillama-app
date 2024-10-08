@@ -151,7 +151,9 @@ export async function handleFetchResponse(res: Response) {
 		const response = await res.json()
 		return iterateAndRemoveUndefined(response)
 	} catch (e) {
-		console.error(`Failed to parse response from ${res.url}, with status ${res.status} and error message ${e.message}`)
+		console.error(
+			`Failed to parse response from ${res?.url}, with status ${res?.status} and error message ${e.message}`
+		)
 		return {}
 	}
 }
