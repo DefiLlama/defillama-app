@@ -10,7 +10,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging('stablecoins', async () => {
 	const props = await getPeggedOverviewPageData(null)
 
-	const name = props.filteredPeggedAssets[0]?.name
+	props.filteredPeggedAssets = props.filteredPeggedAssets || []
+	const name = props.filteredPeggedAssets?.[0]?.name
 
 	const backgroundColor = name ? await getColor(peggedAssetIconPalleteUrl(name)) : primaryColor
 

@@ -8,21 +8,20 @@ import {
 	PEGGEDS_API,
 	PEGGED_API,
 	PEGGEDCHART_DOMINANCE_ALL_API,
-	PEGGEDCHART_COINS_RECENT_DATA_API,
+	PEGGEDCHART_COINS_RECENT_DATA_API
 } from '~/constants'
 import { formatPeggedAssetsData, formatPeggedChainsData } from './utils'
 import { wrappedFetch } from '~/utils/async'
 
 export const getPeggedAssets = () =>
-	wrappedFetch(PEGGEDS_API, { cache: true })
-		.then(({ peggedAssets, chains }) => ({
-			protocolsDict: peggedAssets.reduce((acc, curr) => {
-				acc[standardizeProtocolName(curr.name)] = curr
-				return acc
-			}, {}),
-			peggedAssets,
-			chains
-		}))
+	wrappedFetch(PEGGEDS_API, { cache: true }).then(({ peggedAssets, chains }) => ({
+		protocolsDict: peggedAssets.reduce((acc, curr) => {
+			acc[standardizeProtocolName(curr.name)] = curr
+			return acc
+		}, {}),
+		peggedAssets,
+		chains
+	}))
 
 export const getPeggedPrices = () => wrappedFetch(PEGGEDPRICES_API, { cache: true })
 export const getPeggedRates = () => wrappedFetch(PEGGEDRATES_API, { cache: true })
@@ -55,8 +54,7 @@ function fetchGlobalData({ peggedAssets, chains }: any) {
 			if (!chain) {
 				chainsSet.add(chain)
 			} else {
-				if (_chainSet.has(chain))
-					chainsSet.add(chain)
+				if (_chainSet.has(chain)) chainsSet.add(chain)
 			}
 		})
 	})
@@ -88,19 +86,19 @@ export async function getPeggedOverviewPageData(chain) {
 	let peggedNameToChartDataIndex: object = {}
 	let lastTimestamp = 0
 	chartDataByPeggedAsset = peggedAssets.map((elem, i) => {
-		if (peggedAssetNamesSet.has(elem.symbol))
-			peggedAssetNamesSet.add(`${elem.name}`)
-		else
-			peggedAssetNamesSet.add(elem.symbol)
+		if (peggedAssetNamesSet.has(elem.symbol)) peggedAssetNamesSet.add(`${elem.name}`)
+		else peggedAssetNamesSet.add(elem.symbol)
 
 		peggedNameToChartDataIndex[elem.name] = i
 		let charts = breakdown[elem.id] ?? []
-		const formattedCharts = charts.map((chart) => {
-			return {
-				date: chart.date,
-				mcap: chart.totalCirculatingUSD
-			}
-		}).filter(i => i.mcap !== undefined)
+		const formattedCharts = charts
+			.map((chart) => {
+				return {
+					date: chart.date,
+					mcap: chart.totalCirculatingUSD
+				}
+			})
+			.filter((i) => i.mcap !== undefined)
 		if (formattedCharts.length > 0) {
 			lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
 		}
@@ -132,7 +130,7 @@ export async function getPeggedOverviewPageData(chain) {
 
 	return {
 		chains: fetchGlobalData({ peggedAssets, chains })._chains,
-		filteredPeggedAssets,
+		filteredPeggedAssets: filteredPeggedAssets || [],
 		peggedAssetNames: [...peggedAssetNamesSet],
 		peggedNameToChartDataIndex,
 		chartDataByPeggedAsset,
@@ -145,7 +143,7 @@ export async function getPeggedChainsPageData() {
 	const { chainCoingeckoIds } = await getConfigData()
 
 	const { aggregated: chartData } = await wrappedFetch(`${PEGGEDCHART_API}/all`)
-	const { dominanceMap, chainChartMap, } = await wrappedFetch(PEGGEDCHART_DOMINANCE_ALL_API)
+	const { dominanceMap, chainChartMap } = await wrappedFetch(PEGGEDCHART_DOMINANCE_ALL_API)
 	const { chainList, chainsTVLData } = fetchGlobalData({ peggedAssets, chains })
 
 	let chainsGroupbyParent = {}
@@ -196,13 +194,12 @@ export async function getPeggedChainsPageData() {
 		return formattedCharts
 	})
 
-
 	return {
 		chainCirculatings,
 		chartData,
 		peggedChartDataByChain,
 		chainList,
-		chainsGroupbyParent,
+		chainsGroupbyParent
 	}
 }
 
@@ -210,9 +207,12 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 	const peggedNameToPeggedIDMapping = await wrappedFetch(PEGGEDCONFIG_API, { cache: true })
 	const peggedID = peggedNameToPeggedIDMapping[peggedasset]
 	const [res, { chainCoingeckoIds }, recentCoinsData] = await Promise.all([
-		wrappedFetch(`${PEGGED_API}/${peggedID}`),
+		wrappedFetch(`${PEGGED_API}/${peggedID}`).catch((e) => {
+			console.error(`Failed to fetch ${PEGGED_API}/${peggedID}: ${e}`)
+			return null
+		}),
 		getConfigData(),
-		wrappedFetch(PEGGEDCHART_COINS_RECENT_DATA_API, { cache: true }),
+		wrappedFetch(PEGGEDCHART_COINS_RECENT_DATA_API, { cache: true })
 	])
 
 	const peggedChart = recentCoinsData[peggedID]
