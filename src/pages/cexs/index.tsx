@@ -463,6 +463,12 @@ export const cexData: Array<ICex> = [
 		coinSymbol: null
 	},
 	{
+		name: 'Bitcointry',
+		slug: 'bitcointry',
+		coin: 'BTTY',
+		coinSymbol: 'BTTY'
+	},
+	{
 		name: 'BigONE',
 		slug: 'bigone',
 		coin: null,
