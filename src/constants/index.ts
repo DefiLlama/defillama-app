@@ -9,21 +9,20 @@ export const timeframeOptions = {
 // API endpoints
 export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com'
 export const DATASETS_R2_PATH = 'https://defillama-datasets.llama.fi'
-
-export const CHART_API = 'https://cefrubghiln.llama.team/lite/charts'
-export const CHAIN_TVL_API = 'https://cefrubghiln.llama.team/v2/chains'
-export const PROTOCOLS_API = 'https://cefrubghiln.llama.team/lite/protocols2?b=2'
-export const PROTOCOL_API = 'https://cefrubghiln.llama.team/updatedProtocol'
-export const CONFIG_API = 'https://cefrubghiln.llama.team/config'
+export const CHART_API = 'https://api.llama.fi/lite/charts'
+export const CHAIN_TVL_API = 'https://api.llama.fi/v2/chains'
+export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2?b=2'
+export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
+export const CONFIG_API = 'https://api.llama.fi/config'
 export const HOURLY_PROTOCOL_API = 'https://api.llama.fi/hourly'
-export const LANGS_API = 'https://cefrubghiln.llama.team/langs'
-export const ORACLE_API = 'https://cefrubghiln.llama.team/oracles'
+export const LANGS_API = 'https://api.llama.fi/langs'
+export const ORACLE_API = 'https://api.llama.fi/oracles'
 export const FORK_API = 'https://api.llama.fi/forks'
-export const CATEGORY_API = 'https://cefrubghiln.llama.team/categories'
-export const PROTOCOLS_BY_TOKEN_API = 'https://cefrubghiln.llama.team/tokenProtocols'
-export const PROTOCOL_TREASURY_API = 'https://cefrubghiln.llama.team/treasury'
-export const PROTOCOLS_TREASURY = 'https://cefrubghiln.llama.team/treasuries'
-export const PROTOCOL_EMISSIONS_API = 'https://cefrubghiln.llama.team/emissions'
+export const CATEGORY_API = 'https://api.llama.fi/categories'
+export const PROTOCOLS_BY_TOKEN_API = 'https://api.llama.fi/tokenProtocols'
+export const PROTOCOL_TREASURY_API = 'https://api.llama.fi/treasury'
+export const PROTOCOLS_TREASURY = 'https://api.llama.fi/treasuries'
+export const PROTOCOL_EMISSIONS_API = 'https://api.llama.fi/emissions'
 export const PROTOCOL_EMISSIONS_LIST_API = 'https://defillama-datasets.llama.fi/emissionsProtocolsList'
 export const PROTOCOL_EMISSION_API = 'https://api.llama.fi/emission'
 export const EMISSION_BREAKDOWN_API = 'https://api.llama.fi/emissionsBreakdown'
@@ -110,10 +109,10 @@ export const CHAINS_ASSETS_CHART = 'https://api.llama.fi/chain-assets/chart'
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
 
-if (!process.env.API2_ROUTE) process.env.API2_ROUTE = 'https://cefrubghiln.llama.team'
-export const DIMENISIONS_OVERVIEW_API = 'https://cefrubghiln.llama.team/overview'
-export const BASE_API = 'https://fees.llama.fi/'
-export const DIMENISIONS_SUMMARY_BASE_API = 'https://cefrubghiln.llama.team/summary'
+if (!process.env.API2_ROUTE) process.env.API2_ROUTE = 'https://api.llama.fi'
+export const DIMENISIONS_OVERVIEW_API = process.env.API2_ROUTE + '/overview'
+export const BASE_API = 'https://api.llama.fi/'
+export const DIMENISIONS_SUMMARY_BASE_API = process.env.API2_ROUTE + '/summary'
 
 export const FEES_BASE_API = 'https://fees.llama.fi/fees'
 
@@ -124,7 +123,7 @@ export const USER_METRICS_ALL_API = 'https://users.llama.fi/all'
 
 export const TOKEN_LIQUIDITY_API = 'https://api.llama.fi/historicalLiquidity'
 
-export const RAISES_API = `https://cefrubghiln.llama.team/raises`
+export const RAISES_API = `https://api.llama.fi/raises`
 
 export const CG_TOKEN_API =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
