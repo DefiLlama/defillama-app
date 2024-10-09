@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { getProtocol } from '~/api/categories/protocols'
 import { useFetchProtocolInfows } from '~/api/categories/protocols/client'
 import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
 import { ProtocolChartOnly } from '~/components/ECharts/ProtocolChart/ProtocolChart'
@@ -13,7 +14,9 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const data = await getProtocolData(protocol)
+		const protocolData = await getProtocol(protocol)
+
+		const data = await getProtocolData(protocol, protocolData)
 		data.props.noContext = true
 		return data
 	}
