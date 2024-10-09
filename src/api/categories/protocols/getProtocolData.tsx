@@ -3,13 +3,7 @@ import { last } from 'lodash'
 import { formatPercentage, selectColor, slug, timeFromNow, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
-import {
-	getProtocol,
-	fuseProtocolData,
-	getProtocolsRaw,
-	getProtocolEmissons,
-	getForkPageData
-} from '~/api/categories/protocols'
+import { fuseProtocolData, getProtocolsRaw, getProtocolEmissons, getForkPageData } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import {
@@ -34,9 +28,7 @@ import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { sluggify } from '~/utils/cache-client'
 
-export const getProtocolDataLite = async (protocol: string) => {
-	const [protocolRes]: [IProtocolResponse] = await Promise.all([getProtocol(protocol)])
-
+export const getProtocolDataLite = async (protocol: string, protocolRes: IProtocolResponse) => {
 	if (!protocolRes) {
 		return { notFound: true, props: null }
 	}
@@ -268,9 +260,51 @@ export const getProtocolDataLite = async (protocol: string) => {
 	}
 }
 
-export const getProtocolData = async (protocol: string) => {
+const fetchGovernanceData = async (apis: Array<string>) => {
+	const governanceData = await Promise.all(
+		apis.map((gapi) =>
+			gapi
+				? fetchOverCache(gapi)
+						.then((res) => res.json())
+						.then((data) => {
+							return Object.values(data.proposals)
+								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+								.slice(0, 3)
+						})
+						.catch((err) => {
+							console.log(err)
+							return []
+						})
+				: null
+		)
+	)
+
+	return governanceData
+}
+export const getProtocolData = async (protocol: string, protocolRes: IProtocolResponse) => {
+	if (!protocolRes) {
+		return { notFound: true, props: null }
+	}
+
+	const protocolData = fuseProtocolData(protocolRes)
+
+	const devMetricsProtocolUrl = protocolData.id?.includes('parent')
+		? `${DEV_METRICS_API}/parent/${protocolData?.id?.replace('parent#', '')}.json`
+		: `${DEV_METRICS_API}/${protocolData.id}.json`
+
+	const governanceApis = (
+		protocolData.governanceID?.map((gid) =>
+			gid.startsWith('snapshot:')
+				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|’|')/g, '/')}.json`
+				: gid.startsWith('compound:')
+				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|’|')/g, '/')}.json`
+				: gid.startsWith('tally:')
+				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|’|')/g, '/')}.json`
+				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|’|')/g, '/')}.json`
+		) ?? []
+	).map((g) => g.toLowerCase())
+
 	const [
-		protocolRes,
 		articles,
 		expenses,
 		treasuries,
@@ -280,9 +314,23 @@ export const getProtocolData = async (protocol: string) => {
 		forks,
 		hacks,
 		nftMarketplaces,
-		raises
+		raises,
+		backgroundColor,
+		allProtocols,
+		users,
+		feesProtocols,
+		revenueProtocols,
+		volumeProtocols,
+		derivatesProtocols,
+		medianApy,
+		tokenCGData,
+		emissions,
+		devMetrics,
+		aggregatorProtocols,
+		optionsProtocols,
+		derivatesAggregatorProtocols,
+		governanceData
 	]: [
-		IProtocolResponse,
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
@@ -292,9 +340,23 @@ export const getProtocolData = async (protocol: string) => {
 		any,
 		any,
 		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
 		any
 	] = await Promise.all([
-		getProtocol(protocol),
 		fetchArticles({ tags: protocol }).catch((err) => {
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:', protocol, err instanceof Error ? err.message : '')
 			return []
@@ -338,83 +400,7 @@ export const getProtocolData = async (protocol: string) => {
 			.catch((err) => {
 				console.log('[HTTP]:[ERROR]:[PROTOCOL_RAISES]:', protocol, err instanceof Error ? err.message : '')
 				return []
-			})
-	])
-
-	if (!protocolRes) {
-		return { notFound: true, props: null }
-	}
-
-	let inflowsExist = false
-
-	let nftDataExist = !!nftMarketplaces?.find((market) => slug(market.exchangeName) === slug(protocol))
-	let nftVolumeData = []
-
-	if (nftDataExist) {
-		nftVolumeData = await fetchOverCache(NFT_MARKETPLACES_VOLUME_API)
-			.then((r) => r.json())
-			.then((r) => {
-				const chartByDate = r
-					.filter((r) => slug(r.exchangeName) === slug(protocol))
-					.map(({ day, sum, sumUsd }) => {
-						return { date: day, volume: sum, volumeUsd: sumUsd }
-					})
-				return chartByDate
-			})
-
-		nftDataExist = (nftVolumeData?.length ?? 0) > 0
-	}
-
-	if (protocolRes.chainTvls) {
-		Object.keys(protocolRes.chainTvls).forEach((chain) => {
-			if (protocolRes.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
-				inflowsExist = true
-			}
-			delete protocolRes.chainTvls[chain].tokensInUsd
-			delete protocolRes.chainTvls[chain].tokens
-		})
-	}
-
-	const protocolData = fuseProtocolData(protocolRes)
-
-	const protocolRaises = raises?.filter((r) => r.defillamaId === protocolData.id)
-
-	if (protocolRaises?.length > 0) {
-		protocolData.raises = protocolRaises
-	}
-
-	const governanceApis = (
-		protocolData.governanceID?.map((gid) =>
-			gid.startsWith('snapshot:')
-				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|’|')/g, '/')}.json`
-				: gid.startsWith('compound:')
-				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|’|')/g, '/')}.json`
-				: gid.startsWith('tally:')
-				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|’|')/g, '/')}.json`
-				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|’|')/g, '/')}.json`
-		) ?? []
-	).map((g) => g.toLowerCase())
-
-	const devMetricsProtocolUrl = protocolData.id?.includes('parent')
-		? `${DEV_METRICS_API}/parent/${protocolData?.id?.replace('parent#', '')}.json`
-		: `${DEV_METRICS_API}/${protocolData.id}.json`
-
-	const [
-		backgroundColor,
-		allProtocols,
-		users,
-		feesProtocols,
-		revenueProtocols,
-		volumeProtocols,
-		derivatesProtocols,
-		medianApy,
-		tokenCGData,
-		emissions,
-		devMetrics,
-		aggregatorProtocols,
-		optionsProtocols,
-		derivatesAggregatorProtocols
-	] = await Promise.all([
+			}),
 		getColor(tokenIconPaletteUrl(protocolData.name)),
 		getProtocolsRaw(),
 		fetchOverCache(ACTIVE_USERS_API)
@@ -474,9 +460,7 @@ export const getProtocolData = async (protocol: string) => {
 				console.log(`Couldn't fetch options protocols list at path: ${protocol}`, 'Error:', err)
 				return {}
 			}),
-		fetchOverCache(
-			`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-		)
+		fetchOverCache(`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(`Couldn't fetch options protocols list at path: ${protocol}`, 'Error:', err)
@@ -489,26 +473,45 @@ export const getProtocolData = async (protocol: string) => {
 			.catch((err) => {
 				console.log(`Couldn't fetch derivatives-aggregators protocols list at path: ${protocol}`, 'Error:', err)
 				return {}
-			})
+			}),
+		fetchGovernanceData(governanceApis)
 	])
 
-	const governanceData = await Promise.all(
-		governanceApis.map((gapi) =>
-			gapi
-				? fetchOverCache(gapi)
-						.then((res) => res.json())
-						.then((data) => {
-							return Object.values(data.proposals)
-								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
-								.slice(0, 3)
-						})
-						.catch((err) => {
-							console.log(err)
-							return []
-						})
-				: null
-		)
-	)
+	let inflowsExist = false
+
+	let nftDataExist = !!nftMarketplaces?.find((market) => slug(market.exchangeName) === slug(protocol))
+	let nftVolumeData = []
+
+	if (nftDataExist) {
+		nftVolumeData = await fetchOverCache(NFT_MARKETPLACES_VOLUME_API)
+			.then((r) => r.json())
+			.then((r) => {
+				const chartByDate = r
+					.filter((r) => slug(r.exchangeName) === slug(protocol))
+					.map(({ day, sum, sumUsd }) => {
+						return { date: day, volume: sum, volumeUsd: sumUsd }
+					})
+				return chartByDate
+			})
+
+		nftDataExist = (nftVolumeData?.length ?? 0) > 0
+	}
+
+	if (protocolRes.chainTvls) {
+		Object.keys(protocolRes.chainTvls).forEach((chain) => {
+			if (protocolRes.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
+				inflowsExist = true
+			}
+			delete protocolRes.chainTvls[chain].tokensInUsd
+			delete protocolRes.chainTvls[chain].tokens
+		})
+	}
+
+	const protocolRaises = raises?.filter((r) => r.defillamaId === protocolData.id)
+
+	if (protocolRaises?.length > 0) {
+		protocolData.raises = protocolRaises
+	}
 
 	let controversialProposals = []
 
@@ -779,14 +782,14 @@ export const getProtocolData = async (protocol: string) => {
 					: null,
 			helperTexts: {
 				fees:
-					feesData.length > 1
+					feesData?.length > 1
 						? 'Sum of all fees from ' +
-						  (feesData.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
+						  (feesData.reduce((acc, curr) => (acc = [...acc, curr.name]), []) ?? []).join(',')
 						: feesData?.[0]?.methodology?.['Fees'] ?? null,
 				revenue:
-					revenueData.length > 1
+					revenueData?.length > 1
 						? 'Sum of all revenue from ' +
-						  (revenueData.reduce((acc, curr) => (acc = [...acc, curr.name] || 0), []) ?? []).join(',')
+						  (revenueData.reduce((acc, curr) => (acc = [...acc, curr.name]), []) ?? []).join(',')
 						: revenueData?.[0]?.methodology?.['Revenue'] ?? null,
 				users:
 					'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.'

@@ -1,12 +1,9 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
 import { standardizeProtocolName } from '~/utils'
 import { getProtocol, getProtocols } from '~/api/categories/protocols'
-import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocolData, getProtocolDataLite } from '~/api/categories/protocols/getProtocolData'
 import { useRouter } from 'next/router'
-import Layout from '~/layout'
-import LocalLoader from '~/components/LocalLoader'
 import useSWR from 'swr'
 import { isCpusHot } from '~/utils/cache-client'
 
@@ -27,10 +24,10 @@ export const getStaticProps = withPerformanceLogging(
 		const protocolData = await getProtocol(protocol)
 
 		if (isHot && !protocolData?.id?.includes('parent#')) {
-			const data = await getProtocolDataLite(protocol)
+			const data = await getProtocolDataLite(protocol, protocolData)
 			return data
 		} else {
-			const data = await getProtocolData(protocol)
+			const data = await getProtocolData(protocol, protocolData)
 			return data
 		}
 	}
