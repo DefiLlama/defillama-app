@@ -43,20 +43,28 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
+const fetchProtocolData = async (protocol: string) => {
+	const protocolData = await getProtocol(protocol)
+	const finalData = await getProtocolData(protocol, protocolData)
+	return finalData
+}
+
 const useProtocolData = (slug) => {
-	const { data, error } = useSWR(slug, getProtocolData)
+	const { data, error } = useSWR(slug, fetchProtocolData)
 	return { data, error, loading: !data && !error }
 }
 
 export default function Protocols({ clientSide, protocolData, ...props }) {
 	const router = useRouter()
 	const { data, loading: fetchingData } = useProtocolData(clientSide === true ? router.query.protocol : null)
+
 	if (clientSide === true) {
 		if (!fetchingData && data) {
 			props = data.props
 			protocolData = props.protocolData
 		}
 	}
+
 	return (
 		<ProtocolContainer title={`${protocolData.name} - DefiLlama`} protocolData={protocolData} {...(props as any)} />
 	)
