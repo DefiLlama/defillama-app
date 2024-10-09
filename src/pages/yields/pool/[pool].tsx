@@ -415,6 +415,11 @@ const PageView = (props) => {
 		}
 	}, [chart, chartBorrow, category])
 
+	const hasRiskData =
+		props.poolRiskData?.assets?.underlying?.some((a) => a?.rating) ||
+		props.poolRiskData?.protocols?.underlying?.some((p) => p?.rating) ||
+		props.poolRiskData?.chain?.underlying?.some((c) => c?.rating)
+
 	return (
 		<>
 			<StatsSection>
@@ -449,23 +454,25 @@ const PageView = (props) => {
 						<span style={{ color: '#4f8fea' }}>${tvlUsd}</span>
 					</Stat>
 
-					<RiskRating>
-						<span>Total Risk Rating</span>
+					{hasRiskData && (
+						<RiskRating>
+							<span>Total Risk Rating</span>
 
-						<RatingWrapper>
-							<RatingCircle color={getRatingColor(props.poolRiskData?.pool_rating_color)}>
-								{props.poolRiskData?.pool_rating || 'N/A'}
-							</RatingCircle>
-							<RatingLink
-								href={props.poolRiskData?.pool_url ? props.poolRiskData?.pool_url : `https://exponential.fi/about-us`}
-								target="_blank"
-								rel="noopener noreferrer"
-							>
-								<RatingDescription>{getRatingDescription(props.poolRiskData?.pool_rating)}</RatingDescription>
-							</RatingLink>
-						</RatingWrapper>
-						<AssessedBy>Assessed by exponential.fi</AssessedBy>
-					</RiskRating>
+							<RatingWrapper>
+								<RatingCircle color={getRatingColor(props.poolRiskData?.pool_rating_color)}>
+									{props.poolRiskData?.pool_rating || 'N/A'}
+								</RatingCircle>
+								<RatingLink
+									href={props.poolRiskData?.pool_url ? props.poolRiskData?.pool_url : `https://exponential.fi/about-us`}
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<RatingDescription>{getRatingDescription(props.poolRiskData?.pool_rating)}</RatingDescription>
+								</RatingLink>
+							</RatingWrapper>
+							<AssessedBy>Assessed by exponential.fi</AssessedBy>
+						</RiskRating>
+					)}
 
 					<Stat>
 						<span>Outlook</span>
@@ -495,114 +502,116 @@ const PageView = (props) => {
 			</StatsSection>
 
 			<ChartsWrapper>
-				<RiskRatingSection>
-					<RiskRatingTitle>
-						Risk Rating by exponential.fi{' '}
-						<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} />
-					</RiskRatingTitle>
-					<RiskRatingContent>
-						<FactorsContainer>
-							<Factor>
-								<FactorBadge color={props.poolRiskData?.pool_design?.rating_color}>
-									{props.poolRiskData?.pool_design?.rating || 'N/A'}
-								</FactorBadge>
-								<FactorLabel>Pool Design</FactorLabel>
-							</Factor>
-							<Factor>
-								<FactorBadge color={props.poolRiskData?.assets?.rating_color}>
-									{props.poolRiskData?.assets?.rating || 'N/A'}
-								</FactorBadge>
-								<FactorLabel>Assets</FactorLabel>
-								<FactorAssets>
-									{props.poolRiskData?.assets?.underlying?.map((asset, index) => (
-										<Asset
-											key={index}
-											color={asset.rating_color}
-											title={asset.name}
-											onClick={() => {
-												if (asset.url) {
-													window.open(asset.url, '_blank')
-												}
-											}}
-										>
-											{asset.name} {asset.url ? <ArrowUpRight size={14} /> : null}
-										</Asset>
-									))}
-								</FactorAssets>
-							</Factor>
-							<Factor>
-								<FactorBadge color={props.poolRiskData?.protocols?.underlying[0]?.rating_color}>
-									{props.poolRiskData?.protocols?.underlying[0]?.rating || 'N/A'}
-								</FactorBadge>
-								<FactorLabel>Protocols</FactorLabel>
-								<FactorAssets>
-									{props.poolRiskData?.protocols?.underlying
-										?.filter((p) => p?.name)
-										.map((protocol, index) => (
+				{hasRiskData && (
+					<RiskRatingSection>
+						<RiskRatingTitle>
+							Risk Rating by exponential.fi{' '}
+							<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} />
+						</RiskRatingTitle>
+						<RiskRatingContent>
+							<FactorsContainer>
+								<Factor>
+									<FactorBadge color={props.poolRiskData?.pool_design?.rating_color}>
+										{props.poolRiskData?.pool_design?.rating || 'N/A'}
+									</FactorBadge>
+									<FactorLabel>Pool Design</FactorLabel>
+								</Factor>
+								<Factor>
+									<FactorBadge color={props.poolRiskData?.assets?.rating_color}>
+										{props.poolRiskData?.assets?.rating || 'N/A'}
+									</FactorBadge>
+									<FactorLabel>Assets</FactorLabel>
+									<FactorAssets>
+										{props.poolRiskData?.assets?.underlying?.map((asset, index) => (
 											<Asset
 												key={index}
-												color={protocol.rating_color}
-												title={protocol.name}
+												color={asset.rating_color}
+												title={asset.name}
 												onClick={() => {
-													if (protocol.url) {
-														window.open(protocol.url, '_blank')
+													if (asset.url) {
+														window.open(asset.url, '_blank')
 													}
 												}}
 											>
-												{protocol.name} {protocol.url ? <ArrowUpRight size={14} /> : null}
+												{asset.name} {asset.url ? <ArrowUpRight size={14} /> : null}
 											</Asset>
 										))}
-								</FactorAssets>
-							</Factor>
-							<Factor>
-								<FactorBadge color={props.poolRiskData?.chain?.rating_color}>
-									{props.poolRiskData?.chain?.rating || 'N/A'}
-								</FactorBadge>
-								<FactorLabel>Chain</FactorLabel>
-								<FactorAssets>
-									{props.poolRiskData?.chain?.underlying
-										?.filter((c) => c?.name)
-										.map((chain, index) => (
-											<Asset
-												key={index}
-												color={chain.rating_color}
-												title={chain.name}
-												onClick={() => {
-													if (chain.url) {
-														window.open(chain.url, '_blank')
-													}
-												}}
-											>
-												{chain.name} {chain.url ? <ArrowUpRight size={14} /> : null}
-											</Asset>
-										))}
-								</FactorAssets>
-							</Factor>
-						</FactorsContainer>
-						<TotalRiskContainer>
-							<TotalRiskWrapper>
-								<ResultWrapper>
-									<TotalRiskCircle color={props.poolRiskData?.pool_rating_color}>
-										<TotalRiskGrade>{props.poolRiskData?.pool_rating || 'N/A'}</TotalRiskGrade>
-									</TotalRiskCircle>
-									<TotalRiskInfo>
-										<h3>{getRatingDescription(props.poolRiskData?.pool_rating)}</h3>
-									</TotalRiskInfo>
-								</ResultWrapper>
-								<OpenReportButton
-									as={ExternalLink}
-									href={props.poolRiskData?.pool_url || 'https://exponential.fi/about-us'}
-									target="_blank"
-									rel="noopener noreferrer"
-									useTextColor={true}
-									color={backgroundColor}
-								>
-									<span>{props.poolRiskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
-								</OpenReportButton>
-							</TotalRiskWrapper>
-						</TotalRiskContainer>
-					</RiskRatingContent>
-				</RiskRatingSection>
+									</FactorAssets>
+								</Factor>
+								<Factor>
+									<FactorBadge color={props.poolRiskData?.protocols?.underlying[0]?.rating_color}>
+										{props.poolRiskData?.protocols?.underlying[0]?.rating || 'N/A'}
+									</FactorBadge>
+									<FactorLabel>Protocols</FactorLabel>
+									<FactorAssets>
+										{props.poolRiskData?.protocols?.underlying
+											?.filter((p) => p?.name)
+											.map((protocol, index) => (
+												<Asset
+													key={index}
+													color={protocol.rating_color}
+													title={protocol.name}
+													onClick={() => {
+														if (protocol.url) {
+															window.open(protocol.url, '_blank')
+														}
+													}}
+												>
+													{protocol.name} {protocol.url ? <ArrowUpRight size={14} /> : null}
+												</Asset>
+											))}
+									</FactorAssets>
+								</Factor>
+								<Factor>
+									<FactorBadge color={props.poolRiskData?.chain?.rating_color}>
+										{props.poolRiskData?.chain?.rating || 'N/A'}
+									</FactorBadge>
+									<FactorLabel>Chain</FactorLabel>
+									<FactorAssets>
+										{props.poolRiskData?.chain?.underlying
+											?.filter((c) => c?.name)
+											.map((chain, index) => (
+												<Asset
+													key={index}
+													color={chain.rating_color}
+													title={chain.name}
+													onClick={() => {
+														if (chain.url) {
+															window.open(chain.url, '_blank')
+														}
+													}}
+												>
+													{chain.name} {chain.url ? <ArrowUpRight size={14} /> : null}
+												</Asset>
+											))}
+									</FactorAssets>
+								</Factor>
+							</FactorsContainer>
+							<TotalRiskContainer>
+								<TotalRiskWrapper>
+									<ResultWrapper>
+										<TotalRiskCircle color={props.poolRiskData?.pool_rating_color}>
+											<TotalRiskGrade>{props.poolRiskData?.pool_rating || 'N/A'}</TotalRiskGrade>
+										</TotalRiskCircle>
+										<TotalRiskInfo>
+											<h3>{getRatingDescription(props.poolRiskData?.pool_rating)}</h3>
+										</TotalRiskInfo>
+									</ResultWrapper>
+									<OpenReportButton
+										as={ExternalLink}
+										href={props.poolRiskData?.pool_url || 'https://exponential.fi/about-us'}
+										target="_blank"
+										rel="noopener noreferrer"
+										useTextColor={true}
+										color={backgroundColor}
+									>
+										<span>{props.poolRiskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
+									</OpenReportButton>
+								</TotalRiskWrapper>
+							</TotalRiskContainer>
+						</RiskRatingContent>
+					</RiskRatingSection>
+				)}
 
 				{isLoading ? (
 					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
