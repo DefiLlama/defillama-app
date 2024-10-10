@@ -100,7 +100,8 @@ export const descriptions = {
 	MEV: 'MEV Layer',
 	CeDeFi: 'Projects that incorporate elements of centralization within their product strategies',
 	'CDP Manager': 'Protocols that manage CDPs',
-	'Governance Incentives': `Protocols that facilitate governance participation by offering incentives or rewards for token holders' voting power`
+	'Governance Incentives': `Protocols that facilitate governance participation by offering incentives or rewards for token holders' voting power`,
+	'Security Extension': 'A browser extension that protects Web3 users from malicious activities and exploits'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
