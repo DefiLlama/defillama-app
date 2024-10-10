@@ -73,7 +73,7 @@ export const getProtocol = async (protocolName: string) => {
 			}
 		})
 
-		if (data?.listedAt && new Date(data.listedAt).getTime() < Date.now() - 1000 * 60 * 60 * 24 * 7) {
+		if (data?.listedAt && new Date(data.listedAt * 1000).getTime() < Date.now() - 1000 * 60 * 60 * 24 * 7) {
 			isNewlyListedProtocol = false
 		}
 
