@@ -70,7 +70,9 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 			'Stablecoins',
 			'Major Tokens',
 			'Other Tokens',
-			'TVL',
+			'Total excl. own tokens',
+			'Total Treasury',
+			'Mcap',
 			'Change 1d',
 			'Change 7d',
 			'Change 1m'
@@ -83,7 +85,9 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 				Stablecoins: row.stablecoins,
 				'Major Tokens': row.majors,
 				'Other Tokens': row.others,
-				TVL: row.tvl,
+				'Total excl. own tokens': row.coreTvl,
+				'Total Treasury': row.tvl,
+				Mcap: row.mcap,
 				'Change 1d': row.change_1d,
 				'Change 7d': row.change_7d,
 				'Change 1m': row.change_1m
