@@ -105,7 +105,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 			</ChartAndValuesWrapper>
 
 			<RowLinksWrapper>
-				<RowLinksWithDropdown links={tokenLinks} activeLink={chain || token} />
+				<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
 			</RowLinksWrapper>
 
 			<ProtocolsTableWithSearch data={protocolsData} />

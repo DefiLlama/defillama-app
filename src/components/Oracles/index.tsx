@@ -48,7 +48,7 @@ const Oracles = ({
 	const { tokenTvls, tokensList } = React.useMemo(() => {
 		const tvls = Object.entries(chainsWithExtraTvlsByDay[chainsWithExtraTvlsByDay.length - 1])
 			.filter((item) => item[0] !== 'date')
-			.map((token) => ({ name: token[0], value: token[1] } as { name: string; value: number }))
+			.map((token) => ({ name: token[0], value: token[1] ?? 0 } as { name: string; value: number }))
 			.sort((a, b) => b.value - a.value)
 
 		const otherTvl = tvls.slice(5).reduce((total, entry) => {

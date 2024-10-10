@@ -399,17 +399,17 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 // - used in /oracles and /oracles/[name]
 export async function getOraclePageData(oracle = null, chain = null) {
 	try {
-		const [
-			{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle },
-			{ protocols },
-			{ protocols: derivativeProtocols }
-		] = await Promise.all(
-			[ORACLE_API, PROTOCOLS_API, getAPIUrl(ADAPTOR_TYPES.DERIVATIVES, chain, true, true)].map((url) =>
-				fetchWithErrorLogging(url).then((r) => r.json())
-			)
+		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle }, { protocols }] = await Promise.all(
+			[ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
 		)
 
-		const oracleExists = !oracle || oracles[oracle]
+		const { protocols: derivativeProtocols } = await fetchWithErrorLogging(
+			getAPIUrl(ADAPTOR_TYPES.DERIVATIVES, chain, true, true)
+		)
+			.then((r) => r.json())
+			.catch(() => ({ protocols: [] }))
+
+		const oracleExists = oracle ? oracles[oracle] && (chain ? chainsByOracle[oracle].includes(chain) : true) : true
 
 		if (!oracleExists) {
 			return {
@@ -468,29 +468,29 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			oraclesProtocols[orc] = oracles[orc]?.length
 		}
 
-		const uniqueChains: Record<string, number> = {}
-
-		const latestTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
+		const latestOracleTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
 			string,
 			Record<string, number>
 		>
-		for (const oracle in latestTvlByChain) {
-			for (const ochain in latestTvlByChain[oracle]) {
+
+		const latestTvlByChain: Record<string, number> = {}
+		for (const oracle in latestOracleTvlByChain) {
+			for (const ochain in latestOracleTvlByChain[oracle]) {
 				if (!ochain.includes('-') && !DEFI_SETTINGS_KEYS.includes(ochain)) {
-					uniqueChains[ochain] = (uniqueChains[ochain] ?? 0) + latestTvlByChain[oracle][ochain]
+					latestTvlByChain[ochain] = (latestTvlByChain[ochain] ?? 0) + latestOracleTvlByChain[oracle][ochain]
 				}
 			}
 		}
 
+		const uniqueChains = (Array.from(new Set(Object.values(chainsByOracle).flat())) as Array<string>).sort(
+			(a, b) => (latestTvlByChain[b] ?? 0) - (latestTvlByChain[a] ?? 0)
+		)
+
 		let oracleLinks = oracle
-			? [{ label: 'All chains', to: `/oracles/${oracle}` }].concat(
+			? [{ label: 'All', to: `/oracles/${oracle}` }].concat(
 					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
 			  )
-			: [{ label: 'All', to: `/oracles/` }].concat(
-					Object.entries(uniqueChains)
-						.sort((a, b) => b[1] - a[1])
-						.map((c) => ({ label: c[0], to: `/oracles/chain/${c[0]}` }))
-			  )
+			: [{ label: 'All', to: `/oracles` }].concat(uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${c}` })))
 
 		const colors = {}
 
@@ -581,24 +581,25 @@ export async function getOraclePageDataByChain(chain: string) {
 			oraclesProtocols[orc] = protocols.filter((p) => p.oracles?.includes(orc) && p.chains.includes(chain)).length
 		}
 
-		const uniqueChains: Record<string, number> = {}
-
-		const latestTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
+		const latestOracleTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
 			string,
 			Record<string, number>
 		>
-		for (const oracle in latestTvlByChain) {
-			for (const ochain in latestTvlByChain[oracle]) {
+
+		const latestTvlByChain: Record<string, number> = {}
+		for (const oracle in latestOracleTvlByChain) {
+			for (const ochain in latestOracleTvlByChain[oracle]) {
 				if (!ochain.includes('-') && !DEFI_SETTINGS_KEYS.includes(ochain)) {
-					uniqueChains[ochain] = (uniqueChains[ochain] ?? 0) + latestTvlByChain[oracle][ochain]
+					latestTvlByChain[ochain] = (latestTvlByChain[ochain] ?? 0) + latestOracleTvlByChain[oracle][ochain]
 				}
 			}
 		}
 
-		const oracleLinks = [{ label: 'All chains', to: `/oracles/` }].concat(
-			Object.entries(uniqueChains)
-				.sort((a, b) => b[1] - a[1])
-				.map((c) => ({ label: c[0], to: `/oracles/chain/${c[0]}` }))
+		const uniqueChains = (Array.from(new Set(Object.values(chainsByOracle).flat())) as Array<string>).sort(
+			(a, b) => (latestTvlByChain[b] ?? 0) - (latestTvlByChain[a] ?? 0)
+		)
+		const oracleLinks = [{ label: 'All', to: `/oracles` }].concat(
+			uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${c}` }))
 		)
 
 		const colors = {}
