@@ -14,7 +14,7 @@ const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
 
-const groupableCharts = ['feesChart', 'volumeChart', 'txsData', 'usersData']
+const groupableCharts = ['feesChart', 'volumeChart', 'aggregatorsData', 'derivativesData', 'chainTokenVolumeData']
 
 const colors = {
 	tvl: '#335cd7',
@@ -449,7 +449,7 @@ export default function AreaChart({
 					name: namePrefix + 'Aggregators Volume',
 					chartId: 'Aggregators',
 					symbol: 'none',
-					type: 'bar',
+					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
 					yAxisIndex: 14,
 					itemStyle: {
@@ -508,7 +508,7 @@ export default function AreaChart({
 					name: namePrefix + 'Token Volume',
 					chartId: 'Token Volume',
 					symbol: 'none',
-					type: 'bar',
+					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
 					yAxisIndex: 17,
 					itemStyle: {

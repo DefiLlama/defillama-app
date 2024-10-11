@@ -34,6 +34,7 @@ import { formatRaise, formatRaisedAmount } from '../Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
 import QuestionHelper from '~/components/QuestionHelper'
 import Link from '~/components/Link'
+import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -82,6 +83,7 @@ export function ChainContainer({
 	const router = useRouter()
 
 	const denomination = router.query?.currency ?? 'USD'
+	const groupBy = router.query?.groupBy ?? 'cumulative'
 
 	const { minTvl, maxTvl } = router.query
 
@@ -220,6 +222,14 @@ export function ChainContainer({
 		{ id: 'chainAssets', name: 'Bridged TVL', isVisible: chartDatasets?.[0]?.chainAssetsData ? true : false }
 	]
 
+	const hasAtleasOneBarChart = chartOptions.reduce((acc, curr) => {
+		if (BAR_CHARTS.includes(curr.name)) {
+			acc = true
+		}
+
+		return acc
+	}, false)
+
 	const finalProtocolsList = React.useMemo(() => {
 		const list =
 			!fetchingProtocolsList &&
@@ -267,7 +277,17 @@ export function ChainContainer({
 
 	const tvl = formattedNum(totalValueUSD, true)
 	const percentChange = valueChangeUSD?.toFixed(2)
-	const dominance = getTokenDominance(topToken, totalValueUSD)
+
+	const updateGroupBy = (newGroupBy) => {
+		router.push(
+			{
+				pathname: router.pathname,
+				query: { ...router.query, groupBy: newGroupBy }
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
 
 	return (
 		<>
@@ -628,7 +648,7 @@ export function ChainContainer({
 						) : (
 							<>
 								<FiltersWrapper>
-									<ToggleWrapper>
+									<ToggleWrapper style={{ marginRight: '16px' }}>
 										{chartOptions.map(
 											({ id, name, isVisible }) =>
 												isVisible && (
@@ -686,8 +706,27 @@ export function ChainContainer({
 											))}
 										</Filters>
 									)}
-
-									<EmbedChart color={primaryColor} />
+									{hasAtleasOneBarChart ? (
+										<>
+											<Filters color={primaryColor}>
+												<Denomination active={groupBy === 'daily' || !groupBy} onClick={() => updateGroupBy('daily')}>
+													Daily
+												</Denomination>
+												<Denomination active={groupBy === 'weekly'} onClick={() => updateGroupBy('weekly')}>
+													Weekly
+												</Denomination>
+												<Denomination active={groupBy === 'monthly'} onClick={() => updateGroupBy('monthly')}>
+													Monthly
+												</Denomination>
+												<Denomination active={groupBy === 'cumulative'} onClick={() => updateGroupBy('cumulative')}>
+													Cumulative
+												</Denomination>
+											</Filters>
+										</>
+									) : null}
+									<div style={{ position: 'absolute', top: '16px', right: '16px' }}>
+										<EmbedChart color={primaryColor} />
+									</div>
 								</FiltersWrapper>
 
 								{isFetchingChartData ? (
