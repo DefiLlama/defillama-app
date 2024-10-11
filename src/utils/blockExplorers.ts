@@ -119,7 +119,8 @@ const blockExplorers = {
 	rari: ['https://mainnet.explorer.rarichain.org/address/', 'Rari Blockscout'],
 	xai: ['https://explorer.xai-chain.net/address/', 'XAI Blockscout'],
 	sanko: ['https://explorer.sanko.xyz/address/', 'Sanko Blockscout'],
-	fuse: ['https://explorer.fuse.io/token/', 'Fuse Blockscout']
+	fuse: ['https://explorer.fuse.io/token/', 'Fuse Blockscout'],
+	shape: ['https://shapescan.xyz/address/', 'Shape Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
