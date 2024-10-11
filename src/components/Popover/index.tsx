@@ -150,7 +150,7 @@ export default function Popover({ trigger, content, variant = 'primary', color, 
 }
 
 const CopyContent = styled.div`
-	padding: 8px;
+	padding: 4px;
 
 	p {
 		padding: 8px;
@@ -189,7 +189,7 @@ export function EmbedChart({ color, ...props }) {
 		<>
 			<Tooltip2 content="Embed Chart">
 				<PopoverTrigger state={popover} color={color}>
-					<Code size={16} />
+					<Code size={14} />
 				</PopoverTrigger>
 			</Tooltip2>
 

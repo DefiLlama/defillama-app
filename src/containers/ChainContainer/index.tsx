@@ -721,12 +721,10 @@ export function ChainContainer({
 												<Denomination active={groupBy === 'cumulative'} onClick={() => updateGroupBy('cumulative')}>
 													Cumulative
 												</Denomination>
+												<EmbedChart color={primaryColor} />
 											</Filters>
 										</>
 									) : null}
-									<div style={{ position: 'absolute', top: '16px', right: '16px' }}>
-										<EmbedChart color={primaryColor} />
-									</div>
 								</FiltersWrapper>
 
 								{isFetchingChartData ? (
