@@ -2137,7 +2137,7 @@
 				this.xPos -= Math.ceil(speed)
 				this.draw()
 
-				// Mark as removeable if no longer in the canvas.
+				// Mark as removable if no longer in the canvas.
 				if (!this.isVisible()) {
 					this.remove = true
 				}
@@ -2406,7 +2406,7 @@
 		},
 
 		/**
-		 * Update the x position of an indivdual piece of the line.
+		 * Update the x position of an individual piece of the line.
 		 * @param {number} pos Line position.
 		 * @param {number} increment
 		 */
