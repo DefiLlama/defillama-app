@@ -39,6 +39,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					<DateInput value={startDate && `${formatDate(startDate)}`} onClick={() => onStartChange(null)} />
 				</div>
 				<div style={{ position: 'absolute', zIndex: 100, top: 0, display: startDate ? 'none' : 'block' }}>
+					{/* @ts-ignore */}
 					<DatePicker
 						showIcon
 						onChange={onStartChange}
@@ -62,6 +63,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					<DateInput value={endDate && `${formatDate(endDate)}`} onClick={() => onEndChange(null)} />
 				</div>
 				<div style={{ position: 'absolute', top: 0, zIndex: 100, display: endDate ? 'none' : 'block' }}>
+					{/* @ts-ignore */}
 					<DatePicker
 						showIcon
 						onChange={onEndChange}

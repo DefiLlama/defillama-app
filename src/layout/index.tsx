@@ -78,6 +78,7 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 			{defaultSEO && <SEO />}
 
 			<ThemeProvider>
+				{/* @ts-ignore */}
 				<GlobalStyle />
 				<Nav />
 				<PageWrapper {...props}>
