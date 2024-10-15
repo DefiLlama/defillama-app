@@ -17,9 +17,9 @@ export const optimism = {
 }
 
 function unscramble(str: string) {
-	return str.split("").reduce(function (a, b) {
+	return str.split('').reduce(function (a, b) {
 		return a + String.fromCharCode(b.charCodeAt(0) + 8)
-	}, "");
+	}, '')
 }
 const apiKey = unscramble('.[^+0](,0[+1,*\\YZY\\[(*+Z,][/**,]')
 

@@ -1,11 +1,9 @@
-import { QueryClient, QueryClientProvider } from 'react-query'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import styled from 'styled-components'
 
 import Layout from '~/layout'
 import ProApi from '~/containers/ProApi'
-
-const queryClient = new QueryClient()
+import { WalletConfig } from '~/layout/WalletConfig'
 
 const ButtonWrapper = styled.div`
 	display: flex;
@@ -14,13 +12,13 @@ const ButtonWrapper = styled.div`
 
 export default function ProApiPage() {
 	return (
-		<Layout style={{ gap: '8px' }} title="DefiLlama - Pro API" fullWidth>
-			<QueryClientProvider client={queryClient}>
+		<WalletConfig>
+			<Layout style={{ gap: '8px' }} title="DefiLlama - Pro API" fullWidth>
 				<ButtonWrapper>
 					<ConnectButton />
 				</ButtonWrapper>
 				<ProApi />
-			</QueryClientProvider>
-		</Layout>
+			</Layout>
+		</WalletConfig>
 	)
 }

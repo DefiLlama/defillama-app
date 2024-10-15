@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { CSSProperties } from 'react'
 import styled from 'styled-components'
-import { useVerified } from '~/containers/ProContainer/hooks/useVerified'
+// import { useVerified } from '~/containers/ProContainer/hooks/useVerified'
 import { ButtonDark, ButtonLight } from '.'
 import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
 
@@ -46,7 +46,8 @@ const CSVDownloadButton = ({
 	customText?: string
 	isGray?: boolean
 }) => {
-	const { isVerified } = useVerified()
+	// const { isVerified } = useVerified()
+	const isVerified = false
 	const router = useRouter()
 	const Button = isGray ? GrayButton : isLight ? ButtonLight : ButtonDark
 	const text = customText || 'Download .csv'
