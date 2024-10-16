@@ -52,7 +52,7 @@ export default function TokenPnl({ coinsData }) {
 	const [end, setend] = useState(now)
 
 	const { selectedCoins, coins } = useMemo(() => {
-		const queryCoins = router.query?.coin || ([] as Array<string>)
+		const queryCoins = router.query?.coin || (['bitcoin'] as Array<string>)
 		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
 
 		return {
@@ -321,7 +321,7 @@ const Title = styled(TYPE.largeHeader)`
 `
 
 const ContentWrapper = styled.div`
-	width: 100%;
+	min-width: 350px;
 	background: ${({ theme }) => theme.bg1};
 	border-radius: 12px;
 	padding: 2rem;
