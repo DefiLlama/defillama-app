@@ -1,5 +1,7 @@
 import { TYPE } from '~/Theme'
-import React, { useMemo, useState, useRef } from 'react'
+import { useQuery } from 'react-query'
+
+import React, { useMemo, useState, useRef, useCallback } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
 import LocalLoader from '../LocalLoader'
@@ -18,17 +20,25 @@ const dateStringToUnix = (dateString) => {
 	return Math.floor(new Date(dateString).getTime() / 1000)
 }
 
-const DatePicker = ({ value, onChange, max, min }) => {
+const DatePicker = ({ value, onChange, max, min, onClose }) => {
 	const hiddenInputRef = useRef(null)
 
 	const handleClick = () => {
 		hiddenInputRef.current.showPicker()
 	}
 
+	const handleChange = (e) => {
+		const newDate = e.target.value
+		if (newDate !== value) {
+			onChange({ target: { value: newDate } })
+			onClose()
+		}
+	}
+
 	return (
 		<DateInputWrapper onClick={handleClick}>
 			<DateInputDisplay type="text" value={value} readOnly placeholder="Select a date" />
-			<HiddenDateInput ref={hiddenInputRef} type="date" value={value} onChange={onChange} max={max} min={min} />
+			<HiddenDateInput ref={hiddenInputRef} type="date" value={value} onChange={handleChange} max={max} min={min} />
 		</DateInputWrapper>
 	)
 }
@@ -40,8 +50,6 @@ export default function TokenPnl({ coinsData }) {
 	const [isModalOpen, setModalOpen] = useState(0)
 	const [start, setstart] = useState(now - 24 * 60 * 60)
 	const [end, setend] = useState(now)
-	const [id, setId] = useState('bitcoin')
-	const [pnlData, setPnlData] = useState('')
 
 	const { selectedCoins, coins } = useMemo(() => {
 		const queryCoins = router.query?.coin || ([] as Array<string>)
@@ -52,45 +60,75 @@ export default function TokenPnl({ coinsData }) {
 				(queryCoins && coins.map((coin) => coinsData.find((c) => c.id === coin))) || ([] as IResponseCGMarketsAPI[]),
 			coins
 		}
-	}, [router.query])
+	}, [router.query, coinsData])
 
-	const fetchPnlData = async () => {
+	const id = useMemo(() => {
+		return coins.length > 0 ? coins[0] : ''
+	}, [coins])
+
+	const fetchPnlData = useCallback(async () => {
+		if (!id) return null
 		const key = `coingecko:${id}`
-		const res = await fetch(
+		const pnlRes = await fetch(
 			`https://coins.llama.fi/percentage/${key}?timestamp=${start}&lookForward=true&period=${end - start}`
 		).then((r) => r.json())
-		setPnlData(res.coins[key] ? `${res.coins[key].toFixed(2)}%` : `No data for this token and timeframe`)
+		const selectedCoin = coinsData.find((coin) => coin.id === id)
+		return {
+			pnl: pnlRes.coins[key] ? `${pnlRes.coins[key].toFixed(2)}%` : `No data for this token and timeframe`,
+			coinInfo: selectedCoin,
+			startPrice: selectedCoin?.current_price - (selectedCoin?.current_price * pnlRes.coins[key]) / 100
+		}
+	}, [id, start, end, coinsData])
+
+	const {
+		data: pnlData,
+		isLoading,
+		isError,
+		error,
+		refetch
+	} = useQuery(['pnlData', id, start, end], fetchPnlData, {
+		enabled: !!id,
+		refetchOnWindowFocus: false
+	})
+
+	const updateDateAndFetchPnl = (newDate, isStart) => {
+		const unixTimestamp = dateStringToUnix(newDate)
+		if (unixTimestamp !== '') {
+			if (isStart) {
+				setstart(unixTimestamp)
+			} else {
+				setend(unixTimestamp)
+			}
+			router.push(
+				{
+					pathname: router.pathname,
+					query: {
+						...router.query,
+						[isStart ? 'start' : 'end']: unixTimestamp
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+			refetch()
+		}
 	}
 
-	fetchPnlData()
+	const handleDatePickerClose = () => {
+		refetch()
+	}
 
 	return (
-		<>
-			<TYPE.largeHeader style={{ marginTop: '8px' }}>Token Holder Profit and Loss</TYPE.largeHeader>
-			<Wrapper>
+		<PageWrapper>
+			<Title>Token Holder Profit and Loss</Title>
+			<ContentWrapper>
 				<SelectWrapper>
 					<TableFilters>
 						<Label>Start Date:</Label>
 						<DatePicker
 							value={unixToDateString(start)}
-							onChange={(e) => {
-								setPnlData(null)
-								const dateString = e.target.value
-								const unixTimestamp = dateStringToUnix(dateString)
-								if (unixTimestamp != '') setstart(unixTimestamp)
-								fetchPnlData()
-								router.push(
-									{
-										pathname: router.pathname,
-										query: {
-											...router.query,
-											start: unixTimestamp
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
+							onChange={(e) => updateDateAndFetchPnl(e.target.value, true)}
+							onClose={handleDatePickerClose}
 							min={unixToDateString(0)}
 							max={unixToDateString(now)}
 						/>
@@ -100,24 +138,8 @@ export default function TokenPnl({ coinsData }) {
 						<Label>End Date:</Label>
 						<DatePicker
 							value={unixToDateString(end)}
-							onChange={(e) => {
-								setPnlData(null)
-								const dateString = e.target.value
-								const unixTimestamp = dateStringToUnix(dateString)
-								if (unixTimestamp != '') setend(unixTimestamp)
-								fetchPnlData()
-								router.push(
-									{
-										pathname: router.pathname,
-										query: {
-											...router.query,
-											end: unixTimestamp
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
+							onChange={(e) => updateDateAndFetchPnl(e.target.value, false)}
+							onClose={handleDatePickerClose}
 							min={unixToDateString(start)}
 							max={new Date().toISOString().split('T')[0]}
 						/>
@@ -125,17 +147,77 @@ export default function TokenPnl({ coinsData }) {
 
 					<TableFilters>
 						<Label>Token:</Label>
-						<SearchIcon size={16} />
-						<input value={selectedCoins[0]?.name} onClick={() => setModalOpen(1)} placeholder="Search coins..." />
+						<SearchWrapper>
+							{selectedCoins[0] ? (
+								<SelectedToken onClick={() => setModalOpen(1)}>
+									<img
+										src={selectedCoins[0].image}
+										alt={selectedCoins[0].name}
+										width={24}
+										height={24}
+										style={{ borderRadius: '50%' }}
+									/>
+									<span>{selectedCoins[0].name}</span>
+								</SelectedToken>
+							) : (
+								<>
+									<StyledSearchIcon size={16} />
+									<SearchInput onClick={() => setModalOpen(1)} placeholder="Search coins..." readOnly />
+								</>
+							)}
+						</SearchWrapper>
 					</TableFilters>
 				</SelectWrapper>
-				{coins.length === 1 ? (
-					pnlData == null ? (
-						<LocalLoader />
-					) : (
-						<Wrapper2>{<TYPE.largeHeader>{pnlData}</TYPE.largeHeader>}</Wrapper2>
-					)
-				) : null}
+
+				<FixedWidthWrapper>
+					{coins.length === 1 && (
+						<ResultWrapper>
+							{isLoading ? (
+								<LocalLoader />
+							) : isError ? (
+								<ErrorContent>
+									<ErrorTitle>Error</ErrorTitle>
+									<ErrorMessage>{error instanceof Error ? error.message : 'An error occurred'}</ErrorMessage>
+									<RetryButton onClick={() => refetch()}>Retry</RetryButton>
+								</ErrorContent>
+							) : (
+								pnlData && (
+									<ResultContent>
+										<ResultTitle color={parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red'}>
+											{parseFloat(pnlData.pnl) >= 0 ? 'Profit' : 'Loss'}
+										</ResultTitle>
+										<PnlValue color={parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red'}>{pnlData.pnl}</PnlValue>
+										{pnlData.coinInfo && (
+											<CoinInfo>
+												<InfoItem>
+													<InfoLabel>Start Price:</InfoLabel>
+													<InfoValue>
+														{pnlData.startPrice ? `$${pnlData.startPrice.toLocaleString()}` : 'N/A'}
+													</InfoValue>
+												</InfoItem>
+												<InfoItem>
+													<InfoLabel>Current Price:</InfoLabel>
+													<InfoValue>${pnlData.coinInfo.current_price.toLocaleString()}</InfoValue>
+												</InfoItem>
+
+												<InfoItem>
+													<InfoLabel>24h Change:</InfoLabel>
+													<InfoValue color={pnlData.coinInfo.price_change_percentage_24h >= 0 ? 'green' : 'red'}>
+														{pnlData.coinInfo.price_change_percentage_24h.toFixed(2)}%
+													</InfoValue>
+												</InfoItem>
+												<InfoItem>
+													<InfoLabel>All-Time High:</InfoLabel>
+													<InfoValue>${pnlData.coinInfo.ath.toLocaleString()}</InfoValue>
+												</InfoItem>
+											</CoinInfo>
+										)}
+									</ResultContent>
+								)
+							)}
+						</ResultWrapper>
+					)}
+				</FixedWidthWrapper>
 
 				<CoinsPicker
 					coinsData={coinsData}
@@ -144,10 +226,8 @@ export default function TokenPnl({ coinsData }) {
 					selectedCoins={{}}
 					queryCoins={coins}
 					selectCoin={(coin) => {
-						setPnlData(null)
 						const newCoins = coins.slice()
 						newCoins[isModalOpen - 1] = coin.id
-						setId(coin.id)
 						router.push(
 							{
 								pathname: router.pathname,
@@ -159,12 +239,12 @@ export default function TokenPnl({ coinsData }) {
 							undefined,
 							{ shallow: true }
 						)
-						fetchPnlData()
+						refetch()
 						setModalOpen(0)
 					}}
 				/>
-			</Wrapper>
-		</>
+			</ContentWrapper>
+		</PageWrapper>
 	)
 }
 
@@ -173,7 +253,7 @@ const inputStyles = css`
 	padding: 12px;
 	border: 1px solid ${({ theme }) => theme.bg3};
 	border-radius: 8px;
-	background-color: ${({ theme }) => theme.bg2};
+	background-color: ${({ theme }) => theme.bg7};
 	color: ${({ theme }) => theme.text1};
 	font-size: 16px;
 	transition: all 0.3s ease;
@@ -213,58 +293,168 @@ const Label = styled.label`
 `
 
 const SelectWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-
-	& > span {
-		min-width: min(90vw, 300px);
-		width: 100%;
-		white-space: nowrap;
-	}
-
-	@media (min-width: ${({ theme }) => theme.bpMed}) {
-		flex-direction: row;
-		gap: 36px;
-	}
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 1.5rem;
+	width: 100%;
 `
 
 const TableFilters = styled.div`
 	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+`
+
+const PageWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
 	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
+	padding: 2rem;
+	max-width: 1200px;
+	margin: 0 auto;
+	gap: 2rem;
+`
+
+const Title = styled(TYPE.largeHeader)`
+	margin-bottom: 5rem;
+	text-align: center;
+`
+
+const ContentWrapper = styled.div`
+	width: 100%;
+	background: ${({ theme }) => theme.bg1};
+	border-radius: 12px;
+	padding: 2rem;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+`
+
+const ResultWrapper = styled.div`
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+	margin-top: 0.5rem;
+	background: ${({ theme }) => theme.bg1};
+	border-radius: 8px;
+	padding: 1.5rem;
+`
+
+const ResultContent = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+`
+
+const ResultTitle = styled.h2<{ color: string }>`
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: ${({ color }) => color};
+`
+
+const PnlValue = styled.span<{ color: string }>`
+	font-size: 2rem;
+	font-weight: bold;
+	margin-bottom: 1rem;
+	color: ${({ color }) => color};
+`
+
+const CoinInfo = styled.div`
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+	width: 100%;
+`
+
+const InfoItem = styled.div`
+	display: flex;
+	flex-direction: column;
+`
+
+const InfoLabel = styled.span`
+	font-size: 0.9rem;
+	color: ${({ theme }) => theme.text2};
+`
+
+const InfoValue = styled.span<{ color?: string }>`
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: ${({ color, theme }) => color || theme.text1};
+`
+
+const SearchWrapper = styled.div`
 	position: relative;
+	width: 100%;
+`
 
-	input {
-		width: 100%;
-		margin-right: auto;
-		border-radius: 8px;
-		padding: 8px;
-		padding-left: 32px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
+const SearchInput = styled.input`
+	${inputStyles}
+	padding-left: 2.5rem;
+	cursor: pointer;
+`
 
-		font-size: 0.875rem;
-		border: none;
+const StyledSearchIcon = styled(SearchIcon)`
+	position: absolute;
+	left: 1rem;
+	top: 50%;
+	transform: translateY(-50%);
+	color: ${({ theme }) => theme.text2};
+`
+
+const SelectedToken = styled.div`
+	${inputStyles}
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	padding: 8px 12px;
+
+	img {
+		margin-right: 8px;
 	}
 
-	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		input {
-			max-width: 400px;
-		}
+	span {
+		font-weight: 500;
 	}
 `
 
-const Wrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 80px;
+const FixedWidthWrapper = styled.div`
+	width: 100%;
+	min-height: 200px;
 `
 
-const Wrapper2 = styled.div`
+const ErrorContent = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 16px;
+	width: 100%;
+`
+
+const ErrorTitle = styled.h2`
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: ${({ theme }) => theme.red1};
+	margin-bottom: 1rem;
+`
+
+const ErrorMessage = styled.p`
+	font-size: 1rem;
+	color: ${({ theme }) => theme.text1};
+	text-align: center;
+	margin-bottom: 1rem;
+`
+
+const RetryButton = styled.button`
+	background-color: ${({ theme }) => theme.primary1};
+	color: white;
+	border: none;
+	border-radius: 8px;
+	padding: 0.5rem 1rem;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: background-color 0.2s;
+
+	&:hover {
+		background-color: ${({ theme }) => theme.primary2};
+	}
 `
