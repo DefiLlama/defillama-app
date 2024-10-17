@@ -143,7 +143,7 @@ export function formatDataWithExtraTvls({
 			change_7d: change7d,
 			change_1m: change1m,
 			mcap,
-			mcaptvl
+			mcaptvl: mcaptvl ?? undefined
 		}
 	})
 
@@ -319,7 +319,7 @@ export const formatProtocolsList = ({
 			change_7d: change7d,
 			change_1m: change1m,
 			mcap,
-			mcaptvl,
+			mcaptvl: mcaptvl ?? undefined,
 			strikeTvl
 		}
 	}

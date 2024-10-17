@@ -161,7 +161,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		pf,
 		ps,
 		mcap,
-		mcaptvl,
+		mcaptvl: mcaptvl ?? undefined,
 		extraTvl: {},
 		symbol: null,
 		category: categories.size > 1 ? null : Array.from(categories).join(', '),

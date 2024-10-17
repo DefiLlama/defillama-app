@@ -404,6 +404,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'TVL',
 		accessorKey: 'tvl',
 		cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -413,6 +414,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		header: '1d Change',
 		accessorKey: 'change_1d',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -422,6 +424,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		header: '7d Change',
 		accessorKey: 'change_7d',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -431,6 +434,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		header: '1m Change',
 		accessorKey: 'change_1m',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -443,6 +447,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		cell: (info) => {
 			return <>{info.getValue() ?? null}</>
 		},
+		sortUndefined: 'last',
 		size: 100,
 		meta: {
 			align: 'end'
@@ -454,6 +459,7 @@ export const listedAtColumn = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
 	cell: ({ getValue }) => toNiceDaysAgo(getValue()),
+	sortUndefined: 'last',
 	size: 140,
 	meta: {
 		align: 'end' as const
@@ -556,6 +562,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		header: 'Fees 24h',
 		accessorKey: 'fees_24h',
 		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -565,6 +572,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		header: 'Fees 7d',
 		accessorKey: 'fees_7d',
 		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -574,6 +582,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		header: 'Fees 30d',
 		accessorKey: 'fees_30d',
 		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -583,6 +592,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		header: 'Revenue 24h',
 		accessorKey: 'revenue_24h',
 		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -592,6 +602,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		header: 'Revenue 7d',
 		accessorKey: 'revenue_7d',
 		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -601,6 +612,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		header: 'Volume 24h',
 		accessorKey: 'volume_24h',
 		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -609,6 +621,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	{
 		header: 'Volume 7d',
 		accessorKey: 'volume_7d',
+		sortUndefined: 'last',
 		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 		meta: {
 			align: 'end'
@@ -629,6 +642,7 @@ export const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Total Money Raised',
 		accessorKey: 'totalRaised',
 		cell: ({ getValue }) => <>{getValue() ? `$${toK(getValue())}` : ''}</>,
+		sortUndefined: 'last',
 		size: 180,
 		meta: {
 			align: 'end' as const
@@ -675,6 +689,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		cell: ({ getValue }) => {
 			return <>{'$' + formattedNum(getValue())}</>
 		},
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -684,6 +699,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		header: '1d Change',
 		accessorKey: 'change_1d',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -695,6 +711,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		cell: (info) => {
 			return <>{info.getValue() ?? null}</>
 		},
+		sortUndefined: 'last',
 		size: 120,
 		meta: {
 			align: 'end'
@@ -710,6 +727,7 @@ export const protocolAddlColumns = {
 			return <>{info.getValue() && formattedNum(info.getValue())}</>
 		},
 		size: 120,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		}
@@ -720,6 +738,7 @@ export const protocolAddlColumns = {
 		cell: (info) => {
 			return <>{info.getValue() && formattedNum(info.getValue())}</>
 		},
+		sortUndefined: 'last',
 		size: 120,
 		meta: {
 			align: 'end'
@@ -731,6 +750,7 @@ export const protocolAddlColumns = {
 		cell: (info) => {
 			return <>{info.getValue() && formattedNum(info.getValue())}</>
 		},
+		sortUndefined: 'last',
 		size: 120,
 		meta: {
 			align: 'end'
