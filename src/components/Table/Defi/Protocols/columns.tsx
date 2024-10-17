@@ -459,7 +459,7 @@ export const listedAtColumn = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
 	cell: ({ getValue }) => toNiceDaysAgo(getValue()),
-	sortUndefined: 'last',
+	sortUndefined: 'last' as 'last',
 	size: 140,
 	meta: {
 		align: 'end' as const
