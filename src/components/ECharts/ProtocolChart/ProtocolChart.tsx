@@ -520,7 +520,7 @@ export default function ProtocolChart({
 								</span>
 							</Toggle>
 
-							{chartData && chartData?.some((data) => data?.Revenue) && (
+							{metrics?.revenue && (
 								<Toggle backgroundColor={color}>
 									<input
 										type="checkbox"
