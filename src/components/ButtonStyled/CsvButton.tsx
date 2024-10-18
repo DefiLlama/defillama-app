@@ -1,9 +1,12 @@
-import { useRouter } from 'next/router'
-import { CSSProperties } from 'react'
+import { CSSProperties, useState } from 'react'
 import styled from 'styled-components'
-// import { useVerified } from '~/containers/ProContainer/hooks/useVerified'
 import { ButtonDark, ButtonLight } from '.'
 import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
+import dynamic from 'next/dynamic'
+
+const ProCSVDownload = dynamic(() => import('~/containers/ProApi/ProDownload').then((comp) => comp.ProCSVDownload), {
+	ssr: false
+}) as React.FC<{ onClick: () => void; clicked: number }>
 
 interface BadgeProps {
 	text: string
@@ -46,28 +49,18 @@ const CSVDownloadButton = ({
 	customText?: string
 	isGray?: boolean
 }) => {
-	// const { isVerified } = useVerified()
-	const isVerified = false
-	const router = useRouter()
 	const Button = isGray ? GrayButton : isLight ? ButtonLight : ButtonDark
 	const text = customText || 'Download .csv'
-	if (!isVerified && IS_PRO_API_ENABLED) {
-		return (
-			<Button
-				style={style}
-				onClick={() => {
-					router.push({ pathname: '/pro-api', query: { from: router.pathname } }, undefined, { shallow: true })
-				}}
-			>
-				{text} <Badge text="DefiLlama Pro" isLight={isLight} />
-			</Button>
-		)
-	}
+
+	const [verifyAndDownload, setVerifyAndDownload] = useState(0)
 
 	return (
-		<Button onClick={onClick} style={style}>
-			{text} {IS_PRO_API_ENABLED ? <Badge text="DefiLlama Pro" isLight={isLight} /> : null}
-		</Button>
+		<>
+			<Button onClick={() => setVerifyAndDownload((prev) => prev + 1)} style={style}>
+				{text} {IS_PRO_API_ENABLED ? <Badge text="DefiLlama Pro" isLight={isLight} /> : null}
+			</Button>
+			{verifyAndDownload ? <ProCSVDownload onClick={onClick} clicked={verifyAndDownload} /> : null}
+		</>
 	)
 }
 
