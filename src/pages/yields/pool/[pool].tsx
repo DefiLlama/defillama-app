@@ -36,21 +36,22 @@ import { YIELD_POOLS_LAMBDA_API, YIELD_RISK_API_EXPONENTIAL } from '~/constants'
 import { ExternalLink } from '~/components/Link'
 
 import exponentialLogo from '~/assets/exponential.avif'
+import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
 	loading: () => <></>
-})
+}) as React.FC<IBarChartProps>
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false,
 	loading: () => <></>
-})
+}) as React.FC<IChartProps>
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
 	loading: () => <></>
-})
+}) as React.FC<IChartProps>
 
 const RiskRating = styled(Stat)`
 	flex-direction: column;
@@ -392,6 +393,7 @@ const PageView = (props) => {
 				: el.totalSupplyUsd - el.totalBorrowUsd,
 			el.apyBase?.toFixed(2) ?? null,
 			el.apyReward?.toFixed(2) ?? null,
+			// @ts-ignore
 			-el.apyBaseBorrow?.toFixed(2) ?? null,
 			el.apyRewardBorrow?.toFixed(2) ?? null,
 			el.apyBaseBorrow === null && el.apyRewardBorrow === null

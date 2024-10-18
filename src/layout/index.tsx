@@ -1,12 +1,6 @@
 import * as React from 'react'
 import Head from 'next/head'
 import styled from 'styled-components'
-import { connectorsForWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit'
-import { configureChains, createClient, WagmiConfig } from 'wagmi'
-import { mainnet, optimism } from 'wagmi/chains'
-import { rabbyWallet, injectedWallet, walletConnectWallet, metaMaskWallet } from '@rainbow-me/rainbowkit/wallets'
-import { publicProvider } from 'wagmi/providers/public'
-import '@rainbow-me/rainbowkit/styles.css'
 import { Toaster } from 'react-hot-toast'
 
 import ThemeProvider, { GlobalStyle } from '~/Theme'
@@ -47,26 +41,6 @@ interface ILayoutProps {
 	fullWidth?: boolean
 }
 
-const { chains, provider } = configureChains([mainnet, optimism], [publicProvider()])
-const projectId = 'abcbcfd99b02bb0d7057fc19b2f8a2ad'
-
-const connectors = connectorsForWallets([
-	{
-		groupName: 'Recommended',
-		wallets: [
-			injectedWallet({ chains }),
-			metaMaskWallet({ chains, projectId }),
-			walletConnectWallet({ projectId, chains }),
-			rabbyWallet({ chains })
-		]
-	}
-])
-const wagmiConfig = createClient({
-	autoConnect: true,
-	connectors,
-	provider
-})
-
 export default function Layout({ title, children, defaultSEO = false, ...props }: ILayoutProps) {
 	return (
 		<>
@@ -78,14 +52,11 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 			{defaultSEO && <SEO />}
 
 			<ThemeProvider>
+				{/* @ts-ignore */}
 				<GlobalStyle />
 				<Nav />
 				<PageWrapper {...props}>
-					<WagmiConfig client={wagmiConfig}>
-						<RainbowKitProvider chains={chains}>
-							<Center {...props}>{children}</Center>
-						</RainbowKitProvider>
-					</WagmiConfig>
+					<Center {...props}>{children}</Center>
 				</PageWrapper>
 				<Toaster />
 			</ThemeProvider>
