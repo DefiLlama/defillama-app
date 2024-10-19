@@ -49,7 +49,7 @@ export function VolumeCharts({
 	return (
 		<ChartsWrapper style={{ background: 'none', border: 'none' }}>
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'dexs'} breakdownChart={false} />
-			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={type} />
+			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={type} breakdownChart={false} />
 			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={type} /> : null}
 		</ChartsWrapper>
 	)
