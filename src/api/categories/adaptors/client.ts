@@ -1,25 +1,26 @@
-import useSWR from 'swr'
 import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
-import { fetcher, fetcherWErrorHandling } from '~/utils/useSWR'
+import { fetchApi } from '~/utils/async'
 import { generateGetOverviewItemPageDate, ProtocolAdaptorSummaryProps } from '.'
 import type { IGetOverviewResponseBody } from './types'
+import { useQuery } from '@tanstack/react-query'
 
 export const useFetchAdaptorsList = (type: string) => {
-	const { data, error } = useSWR<IGetOverviewResponseBody>(
-		`${DIMENISIONS_OVERVIEW_API}/${
-			type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
-		}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`,
-		fetcher
-	)
-	return { data, error, loading: !data && !error }
+	const url = `${DIMENISIONS_OVERVIEW_API}/${
+		type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
+	}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+	return useQuery<IGetOverviewResponseBody>({
+		queryKey: [url],
+		queryFn: url ? () => fetchApi(url) : () => null,
+		retry: 0
+	})
 }
 
 export const useFetchCharts = (type: string, chain?: string, dataType?: string, disable?: boolean) => {
-	const { data, error } = useSWR<IGetOverviewResponseBody>(
-		!disable ? getAPIUrl(type, chain, true, false, dataType) : null,
-		fetcher
-	)
-	return { data, error, loading: !data && !error }
+	const url = !disable ? getAPIUrl(type, chain, true, false, dataType) : null
+	return useQuery<ProtocolAdaptorSummaryProps>({
+		queryKey: [url],
+		queryFn: url ? () => fetchApi(url) : () => null
+	})
 }
 
 export const getAPIUrl = (
@@ -40,23 +41,19 @@ export const getAPIUrl = (
 }
 
 export const useFetchChartsSummary = (type: string, protocolName: string, dataType?: string, disable?: boolean) => {
-	const fetch = async (input: RequestInfo, init?: RequestInit) =>
-		fetcherWErrorHandling(input, init).then((item) => {
-			return generateGetOverviewItemPageDate(item, type, protocolName)
-		})
+	const url = !disable ? getAPIUrlSummary(type, protocolName, dataType) : null
 
-	const { data, error } = useSWR<ProtocolAdaptorSummaryProps>(
-		!disable ? getAPIUrlSummary(type, protocolName, dataType) : null,
-		fetch,
-		{
-			onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
-				if ([502, 404].includes(error.status)) return
-				setTimeout(() => revalidate({ retryCount }), retryCount * 5000)
-			}
-		}
-	)
-
-	return { data, error, loading: disable ? false : !data && !error }
+	return useQuery<ProtocolAdaptorSummaryProps>({
+		queryKey: [url],
+		queryFn: url
+			? () => fetchApi(url).then((res) => generateGetOverviewItemPageDate(res, type, protocolName))
+			: () => null,
+		retry: 0
+		// retry: (error, _key, _config, revalidate, { retryCount }) => {
+		// 	if ([502, 404].includes(error.status)) return
+		// 	setTimeout(() => revalidate({ retryCount }), retryCount * 5000)
+		// }
+	})
 }
 
 export const getAPIUrlSummary = (type: string, protocolName: string, dataType?: string, fullChart?: boolean) => {

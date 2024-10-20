@@ -1,6 +1,6 @@
-import useSWR from 'swr'
+import { useQuery } from '@tanstack/react-query'
 import { USER_METRICS_PROTOCOL_API } from '~/constants'
-import { fetcher } from '~/utils/useSWR'
+import { fetchApi } from '~/utils/async'
 
 interface IData {
 	adaptor: string
@@ -14,10 +14,9 @@ interface IData {
 }
 
 export const useFetchProtocolUserMetrics = (protocolName?: string | string[]) => {
-	const { data, error } = useSWR<Array<IData>>(
-		protocolName ? `${USER_METRICS_PROTOCOL_API}/${protocolName}` : null,
-		fetcher
-	)
-
-	return { data, error, loading: protocolName && !data && !error }
+	const url = protocolName ? `${USER_METRICS_PROTOCOL_API}/${protocolName}` : null
+	return useQuery<Array<IData>>({
+		queryKey: [url],
+		queryFn: () => fetchApi(url)
+	})
 }

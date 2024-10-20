@@ -1,14 +1,16 @@
-import useSWR from 'swr'
+import { useQuery } from '@tanstack/react-query'
 import { PROTOCOL_EMISSION_API } from '~/constants'
 
+// TODO check emissions
 const useEmissions = (protocol) => {
-	const { data } = useSWR(`emissions/${protocol}`, () =>
-		fetch(`${PROTOCOL_EMISSION_API}/${protocol}`)
-			.then((r) => r.json())
-			.then((r) => JSON.parse(r.body))
-			.catch(() => null)
-	)
-
+	const { data } = useQuery({
+		queryKey: ['emissions', protocol],
+		queryFn: () =>
+			fetch(`${PROTOCOL_EMISSION_API}/${protocol}`)
+				.then((r) => r.json())
+				.then((r) => JSON.parse(r.body))
+				.catch(() => null)
+	})
 	const result = data
 		? data?.unlockUsdChart
 				?.filter(([_, value]) => value > 0)

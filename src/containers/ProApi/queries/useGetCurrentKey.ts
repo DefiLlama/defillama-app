@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { SERVER_API } from '../lib/constants'
 import { generateNewApiKey } from './useGenerateKey'
 
@@ -34,7 +34,9 @@ async function getCurrentKey(authToken?: string | null) {
 }
 
 export const useGetCurrentKey = ({ authToken }: { authToken?: string | null }) => {
-	return useQuery<{ email: string; apiKey: string }>(['currentKey', authToken], () => getCurrentKey(authToken), {
+	return useQuery<{ email: string; apiKey: string }>({
+		queryKey: ['currentKey', authToken],
+		queryFn: () => getCurrentKey(authToken),
 		enabled: authToken ? true : false,
 		retry: 1
 	})

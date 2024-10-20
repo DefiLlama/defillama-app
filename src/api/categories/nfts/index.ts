@@ -1,6 +1,5 @@
-import useSWR from 'swr'
 import { useDebounce } from '~/hooks'
-import { fetcher } from '~/utils/useSWR'
+import { fetchApi } from '~/utils/async'
 import {
 	NFT_CHAINS_API,
 	NFT_CHART_API,
@@ -21,6 +20,7 @@ import {
 import { getColorFromNumber, getDominancePercent } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { NFT_MINT_EARNINGS } from './mintEarnings'
+import { useQuery } from '@tanstack/react-query'
 
 const fetch = fetchWithErrorLogging
 
@@ -484,15 +484,13 @@ export const getNFTSearchResults = async (query: string) => {
 
 export const useFetchNFTsList = (searchValue: string) => {
 	const debouncedSearchTerm = useDebounce(searchValue, 500)
+	const url = debouncedSearchTerm ? `${NFT_SEARCH_API}?query=${debouncedSearchTerm}` : NFT_COLLECTIONS_API
 
-	const { data, error } = useSWR<ApiResponse>(
-		debouncedSearchTerm ? `${NFT_SEARCH_API}?query=${debouncedSearchTerm}` : NFT_COLLECTIONS_API,
-		fetcher
-	)
+	const { data, isLoading, error } = useQuery({ queryKey: [url], queryFn: () => fetchApi(url) })
 
 	return {
 		data: data?.hits?.map((el) => el._source) ?? data?.data ?? null,
-		error: error?.error,
-		loading: (!data && !error && !!searchValue) || searchValue != debouncedSearchTerm
+		error: error,
+		isLoading: (isLoading && !!searchValue) || searchValue != debouncedSearchTerm
 	}
 }

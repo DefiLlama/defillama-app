@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import styled from 'styled-components'
-import useSWR from 'swr'
 
 import Layout from '~/layout'
 import AuditInfo from '~/components/AuditInfo'
@@ -37,6 +36,8 @@ import { ExternalLink } from '~/components/Link'
 
 import exponentialLogo from '~/assets/exponential.avif'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { useQuery } from '@tanstack/react-query'
+import { fetchApi } from '~/utils/async'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -259,37 +260,36 @@ const Asset = styled.div<{ color: string }>`
 	gap: 4px;
 `
 
-const fetcher = (url) =>
-	fetch(url)
-		.then((res) => res.json())
-		.then((data) => data.data.data)
-
 const PageView = (props) => {
 	const { query } = useRouter()
 
-	const { data: pool, loading: fetchingPoolData } = useYieldPoolData(query.pool)
+	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 	const poolData = pool?.data?.[0] ?? {}
 
-	const { data: riskData, error: riskError } = useSWR(
-		poolData?.project
-			? `${YIELD_RISK_API_EXPONENTIAL}?${new URLSearchParams({
-					pool_old: cleanPool(poolData.pool_old),
-					chain: poolData.chain?.toLowerCase(),
-					project: poolData.project,
-					tvlUsd: poolData.tvlUsd.toString()
-			  })}&${poolData.underlyingTokens
-					?.map((token) => `underlyingTokens[]=${encodeURIComponent(token?.toLowerCase())}`)
-					.join('&')}`
-			: null,
-		fetcher
-	)
-	const isRiskLoading = !riskData && !riskError
+	const riskUrl = poolData?.project
+		? `${YIELD_RISK_API_EXPONENTIAL}?${new URLSearchParams({
+				pool_old: cleanPool(poolData.pool_old),
+				chain: poolData.chain?.toLowerCase(),
+				project: poolData.project,
+				tvlUsd: poolData.tvlUsd.toString()
+		  })}&${poolData.underlyingTokens
+				?.map((token) => `underlyingTokens[]=${encodeURIComponent(token?.toLowerCase())}`)
+				.join('&')}`
+		: null
+	const {
+		data: riskData,
+		isLoading: isRiskLoading,
+		error: riskError
+	} = useQuery({
+		queryKey: ['risk-data', riskUrl],
+		queryFn: riskUrl ? () => fetchApi(riskUrl).then((data) => data.data.data) : () => null
+	})
 
-	const { data: chart, loading: fetchingChartData } = useYieldChartData(query.pool)
+	const { data: chart, isLoading: fetchingChartData } = useYieldChartData(query.pool)
 
-	const { data: chartBorrow, loading: fetchingChartDataBorrow } = useYieldChartLendBorrow(query.pool)
+	const { data: chartBorrow, isLoading: fetchingChartDataBorrow } = useYieldChartLendBorrow(query.pool)
 
-	const { data: config, loading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
+	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
 	// prepare csv data
 	const downloadCsv = () => {

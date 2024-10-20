@@ -1,12 +1,12 @@
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 
 import React from 'react'
 import { fuseProtocolData } from '~/api/categories/protocols'
 import { PROTOCOL_API } from '~/constants'
 import { slug } from '~/utils'
-import { arrayFetcher } from '~/utils/useSWR'
+import { fetchApi } from '~/utils/async'
 import { formatProtocolsTvlChartData } from '../ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 
@@ -24,9 +24,10 @@ const ModalBody = styled.div`
 `
 
 const useProtocols = (protocols: string[], chain?: string) => {
-	const { data, isLoading } = useQuery('compare-protocols' + protocols?.join(''), () =>
-		arrayFetcher(protocols?.map((p) => `${PROTOCOL_API}/${slug(p)}`))
-	)
+	const { data, isLoading } = useQuery({
+		queryKey: ['compare-protocols' + protocols?.join('')],
+		queryFn: () => fetchApi(protocols?.map((p) => `${PROTOCOL_API}/${slug(p)}`))
+	})
 
 	const [extraTvlEnabled] = useDefiManager()
 	const chartData = React.useMemo(() => {

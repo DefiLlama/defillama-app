@@ -5,7 +5,7 @@ import type { IBaseSearchProps, IGetSearchList } from '../types'
 
 // TODO add pegged chains list
 export function useGetStablecoinsSearchList(): IGetSearchList {
-	const { data, loading } = useFetchPeggedList()
+	const { data, isLoading, isError } = useFetchPeggedList()
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(
 		() =>
@@ -17,5 +17,5 @@ export function useGetStablecoinsSearchList(): IGetSearchList {
 		[data]
 	)
 
-	return { data: searchData, loading, error: !data && !loading }
+	return { data: searchData, loading: isLoading, error: isError }
 }

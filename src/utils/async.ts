@@ -72,7 +72,10 @@ const dataCache: {
 	[key: string]: any
 } = {}
 
-export async function wrappedFetch(endpoint: string, { retries = 0, cache = false }: { retries?: number, cache?: boolean } = {}): Promise<any> {
+export async function wrappedFetch(
+	endpoint: string,
+	{ retries = 0, cache = false }: { retries?: number; cache?: boolean } = {}
+): Promise<any> {
 	if (cache) {
 		retries++
 		if (!dataCache[endpoint]) {
@@ -97,8 +100,37 @@ export async function wrappedFetch(endpoint: string, { retries = 0, cache = fals
 	}
 }
 
-
 export async function sleep(ms: number): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, ms));
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+export const fetchApi = async (url: string | Array<string>) => {
+	if (!url) return null
+	try {
+		const data =
+			typeof url === 'string'
+				? await fetch(url).then(async (res) => {
+						if (!res.ok) {
+							throw new Error(res.statusText ?? `Failed to fetch ${url}`)
+						}
+						const data = await res.json()
+						return data
+				  })
+				: await Promise.all(
+						url.map((u) =>
+							fetch(u).then(async (res) => {
+								if (!res.ok) {
+									throw new Error(res.statusText ?? `Failed to fetch ${u}`)
+								}
+								const data = await res.json()
+								return data
+							})
+						)
+				  )
+		return data
+	} catch (error) {
+		throw new Error(
+			error instanceof Error ? error.message : `Failed to fetch ${typeof url === 'string' ? url : url.join(', ')}`
+		)
+	}
+}

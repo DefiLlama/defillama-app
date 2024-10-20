@@ -1,13 +1,11 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
-import useSWR from 'swr'
 import styled from 'styled-components'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { IChartProps } from '~/components/ECharts/types'
-import { arrayFetcher } from '~/utils/useSWR'
 import { PROTOCOL_API } from '~/constants'
 import { slug, tokenIconPaletteUrl } from '~/utils'
 import { SelectLegendMultiple } from '~/components/ECharts/shared'
@@ -17,6 +15,7 @@ import { useDefiManager } from '~/contexts/LocalStorage'
 import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { fuseProtocolData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
+import { useQuery } from '@tanstack/react-query'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -49,6 +48,20 @@ export const getStaticProps = withPerformanceLogging('comparison', async () => {
 	}
 })
 
+const fetchProtocols = async (selectedProtocols: Array<string> | null) => {
+	if (!selectedProtocols) return null
+
+	try {
+		const data = await Promise.all(
+			selectedProtocols.map((p) => fetch(`${PROTOCOL_API}/${slug(p)}`).then((res) => res.json()))
+		)
+
+		return data
+	} catch (error) {
+		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
+	}
+}
+
 export default function CompareProtocolsTvls({
 	protocols,
 	stackColors
@@ -62,11 +75,10 @@ export default function CompareProtocolsTvls({
 	const { protocol } = router.query
 	const selectedProtocols = protocol ? (typeof protocol === 'string' ? [protocol] : [...protocol]) : null
 
-	const { data, error } = useSWR('compare-protocols' + selectedProtocols?.join(''), () =>
-		arrayFetcher(selectedProtocols?.map((p) => `${PROTOCOL_API}/${slug(p)}`))
-	)
-
-	const isLoading = !data && !error
+	const { data, isLoading } = useQuery({
+		queryKey: ['compare-protocols', selectedProtocols?.join('') ?? ''],
+		queryFn: () => fetchProtocols(selectedProtocols)
+	})
 
 	const chartData = React.useMemo(() => {
 		const formattedData =

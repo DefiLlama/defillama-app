@@ -44,7 +44,7 @@ const PageView = () => {
 	const borrowToken = tokens?.length ? tokens[1] : ''
 	const farmToken = tokens?.length ? tokens[2] : ''
 
-	const { data: lendHistory, loading: fetchingLendData } = useYieldChartData(lendToken)
+	const { data: lendHistory, isLoading: fetchingLendData } = useYieldChartData(lendToken)
 	const { data: borrowHistory } = useYieldChartLendBorrow(borrowToken)
 	const { data: farmHistory } = useYieldChartData(farmToken)
 

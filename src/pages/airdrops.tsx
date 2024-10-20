@@ -4,9 +4,6 @@ import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categ
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API, RAISES_API } from '~/constants'
 import { fetchOverCache, withPerformanceLogging } from '~/utils/perf'
-import { QueryClient, QueryClientProvider } from 'react-query'
-
-const queryClient = new QueryClient()
 
 const exclude = [
 	'DeerFi',
@@ -173,13 +170,11 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 
 export default function Protocols(props) {
 	return (
-		<QueryClientProvider client={queryClient}>
-			<RecentProtocols
-				title="Airdroppable protocols - Defi Llama"
-				name="Airdrops"
-				header="Tokenless protocols that may airdrop 🧑‍🌾"
-				{...props}
-			/>
-		</QueryClientProvider>
+		<RecentProtocols
+			title="Airdroppable protocols - Defi Llama"
+			name="Airdrops"
+			header="Tokenless protocols that may airdrop 🧑‍🌾"
+			{...props}
+		/>
 	)
 }

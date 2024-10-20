@@ -32,9 +32,9 @@ export function DefiWatchlistContainer() {
 	const [extraTvlsEnabled] = useDefiManager()
 
 	const { fullProtocolsList, parentProtocols, isLoading: fetchingProtocolsList } = useGetProtocolsList({ chain: 'All' })
-	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain('All')
+	const { data: chainProtocolsVolumes, isLoading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain('All')
 
-	const { data: chainProtocolsFees, loading: fetchingProtocolsFeesAndRevenueByChain } =
+	const { data: chainProtocolsFees, isLoading: fetchingProtocolsFeesAndRevenueByChain } =
 		useGetProtocolsFeesAndRevenueByChain('All')
 
 	const isClient = useIsClient()

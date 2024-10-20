@@ -4,8 +4,8 @@ import { getProtocol, getProtocols } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocolData, getProtocolDataLite } from '~/api/categories/protocols/getProtocolData'
 import { useRouter } from 'next/router'
-import useSWR from 'swr'
 import { isCpusHot } from '~/utils/cache-client'
+import { useQuery } from '@tanstack/react-query'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/[...protocol]',
@@ -43,23 +43,29 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-const fetchProtocolData = async (protocol: string) => {
-	const protocolData = await getProtocol(protocol)
-	const finalData = await getProtocolData(protocol, protocolData)
-	return finalData
+const fetchProtocolData = async (protocol: string | null) => {
+	if (!protocol) return null
+	try {
+		const protocolData = await getProtocol(protocol)
+		const finalData = await getProtocolData(protocol, protocolData)
+		return finalData
+	} catch (error) {
+		console.log(protocol, error)
+		throw new Error(error instanceof Error ? error.message : `Failed to fetch ${protocol}`)
+	}
 }
 
 const useProtocolData = (slug) => {
-	const { data, error } = useSWR(slug, fetchProtocolData)
-	return { data, error, loading: !data && !error }
+	return useQuery({ queryKey: ['protocol-data', slug], queryFn: () => fetchProtocolData(slug) })
 }
 
 export default function Protocols({ clientSide, protocolData, ...props }) {
 	const router = useRouter()
-	const { data, loading: fetchingData } = useProtocolData(clientSide === true ? router.query.protocol : null)
+
+	const { data, isLoading } = useProtocolData(clientSide === true ? router.query.protocol : null)
 
 	if (clientSide === true) {
-		if (!fetchingData && data) {
+		if (!isLoading && data) {
 			props = data.props
 			protocolData = props.protocolData
 		}

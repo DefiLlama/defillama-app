@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { useQueries, useQuery } from 'react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 
@@ -143,22 +143,24 @@ export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) =
 }
 
 export const useCompare = ({ chains = [], extraTvlsEnabled }: { chains?: string[]; extraTvlsEnabled: ISettings }) => {
-	const data = useQueries(
-		chains.map((chain) => ({
+	const data = useQueries({
+		queries: chains.map((chain) => ({
 			queryKey: ['compare', JSON.stringify(chain), JSON.stringify(extraTvlsEnabled)],
 			queryFn: () => getChainData(chain, extraTvlsEnabled)
 		}))
-	)
+	})
 
-	const chainsData = useQuery(['chains'], () =>
-		fetch(PROTOCOLS_API)
-			.then((r) => r.json())
-			.then((pData) => pData?.chains?.map((val) => ({ value: val, label: val })))
-	)
+	const chainsData = useQuery({
+		queryKey: ['chains'],
+		queryFn: () =>
+			fetch(PROTOCOLS_API)
+				.then((r) => r.json())
+				.then((pData) => pData?.chains?.map((val) => ({ value: val, label: val })))
+	})
 	return {
 		data: data.map((r) => r?.data),
 		chains: chainsData.data,
-		isLoading: data.every((r) => r.status === 'loading') || data.some((r) => r.isRefetching) || chainsData.isLoading
+		isLoading: data.every((r) => r.status === 'pending') || data.some((r) => r.isRefetching) || chainsData.isLoading
 	}
 }
 

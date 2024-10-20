@@ -1,13 +1,16 @@
+import { useQuery } from '@tanstack/react-query'
 import styled from 'styled-components'
-import useSWR from 'swr'
 import { getPeggedAssetPageData } from '~/api/categories/stablecoins'
 import { primaryColor } from '~/constants/colors'
 import { PeggedAssetInfo } from '~/containers/PeggedContainer'
 
 export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
-	const { data, error } = useSWR(`stablecoinInfo/${assetName}`, () => getPeggedAssetPageData(assetName))
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['stablecoin-info', assetName],
+		queryFn: () => getPeggedAssetPageData(assetName)
+	})
 
-	if (!data && !error) {
+	if (isLoading) {
 		return (
 			<Wrapper>
 				<p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>

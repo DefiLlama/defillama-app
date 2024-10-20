@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 
 import {
@@ -12,8 +11,6 @@ import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
 import { useMemo } from 'react'
 import { getUtcDateObject } from '~/components/ECharts/utils'
 import { getPercentChange, getPrevTvlFromChart, nearestUtc } from '~/utils'
-
-const getChainChartData = async () => {}
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -33,29 +30,29 @@ export const useFetchChainChartData = ({
 }) => {
 	const router = { query: selectedCharts }
 
-	const { data: denominationPriceHistory, loading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
+	const { data: denominationPriceHistory, isLoading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
 		denomination !== 'USD' ? chainGeckoId : null
 	)
 
-	const { data: volumeChart, loading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
+	const { data: volumeChart, isLoading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
 		volumeData?.totalVolume24h ? selectedChain : null
 	)
 
-	const { data: feesAndRevenueChart, loading: fetchingFeesAndRevenueChartDataByChain } =
+	const { data: feesAndRevenueChart, isLoading: fetchingFeesAndRevenueChartDataByChain } =
 		useGetFeesAndRevenueChartDataByChain(feesAndRevenueData?.totalFees24h ? selectedChain : null)
 
-	const { data: stablecoinsChartData, loading: fetchingStablecoinsChartDataByChain } =
+	const { data: stablecoinsChartData, isLoading: fetchingStablecoinsChartDataByChain } =
 		useGetStabelcoinsChartDataByChain(stablecoinsData?.totalMcapCurrent ? selectedChain : null)
 
-	const { data: inflowsChartData, loading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
+	const { data: inflowsChartData, isLoading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
 		inflowsData?.netInflows ? selectedChain : null
 	)
 
-	const { data: usersData, loading: fetchingUsersChartData } = useFetchProtocolUsers(
+	const { data: usersData, isLoading: fetchingUsersChartData } = useFetchProtocolUsers(
 		userData.activeUsers ? 'chain$' + selectedChain : null
 	)
 
-	const { data: txsData, loading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
+	const { data: txsData, isLoading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
 		userData.transactions ? 'chain$' + selectedChain : null
 	)
 

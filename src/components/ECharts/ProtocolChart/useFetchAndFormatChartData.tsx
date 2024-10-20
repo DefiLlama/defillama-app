@@ -13,14 +13,14 @@ import {
 	useFetchProtocolTwitter,
 	useFetchProtocolDevMetrics
 } from '~/api/categories/protocols/client'
-import { nearestUtc, slug } from '~/utils'
+import { nearestUtc } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
-import useSWR from 'swr'
 import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/BridgeContainer'
 import { fetchWithErrorLogging } from '~/utils/async'
 import dayjs from 'dayjs'
 import { CACHE_SERVER } from '~/constants'
+import { useQuery } from '@tanstack/react-query'
 
 const fetch = fetchWithErrorLogging
 
@@ -106,27 +106,26 @@ export function useFetchAndFormatChartData({
 	derivativesAggregators
 }): ReturnType {
 	// fetch denomination on protocol chains
-	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
+	const { data: denominationHistory, isLoading: denominationLoading } = useDenominationPriceHistory(
 		isRouterReady && denomination ? chartDenominations.find((d) => d.symbol === denomination)?.geckoId : null
 	)
 
 	// fetch protocol mcap data
-	const { data: protocolCGData, loading } = useDenominationPriceHistory(
+	const { data: protocolCGData, isLoading } = useDenominationPriceHistory(
 		isRouterReady && (mcap === 'true' || tokenPrice === 'true' || fdv === 'true' || tokenVolume === 'true')
 			? geckoId
 			: null
 	)
 
-	const { data: fdvData = null, error: fdvError } = useSWR(
-		`fdv-${geckoId && fdv === 'true' && isRouterReady ? geckoId : null}`,
-		geckoId && fdv === 'true' && isRouterReady
-			? () => fetch(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.json())
-			: () => null
-	)
+	const { data: fdvData = null, isLoading: fetchingFdv } = useQuery({
+		queryKey: [`fdv-${geckoId && fdv === 'true' && isRouterReady ? geckoId : null}`],
+		queryFn:
+			geckoId && fdv === 'true' && isRouterReady
+				? () => fetch(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.json())
+				: () => null
+	})
 
-	const fetchingFdv = !fdvData && fdvData !== null && !fdvError
-
-	const { data: feesAndRevenue, loading: fetchingFees } = useGetOverviewChartData({
+	const { data: feesAndRevenue, isLoading: fetchingFees } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'fees',
 		type: 'chains',
@@ -134,48 +133,48 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
 	})
 
-	const { data: activeAddressesData, loading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
+	const { data: activeAddressesData, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
 		isRouterReady && activeAddresses === 'true' && activeUsersId ? activeUsersId : null
 	)
-	const { data: newAddressesData, loading: fetchingNewAddresses } = useFetchProtocolNewUsers(
+	const { data: newAddressesData, isLoading: fetchingNewAddresses } = useFetchProtocolNewUsers(
 		isRouterReady && newAddresses === 'true' && activeUsersId ? activeUsersId : null
 	)
-	const { data: transactionsData, loading: fetchingTransactions } = useFetchProtocolTransactions(
+	const { data: transactionsData, isLoading: fetchingTransactions } = useFetchProtocolTransactions(
 		isRouterReady && transactions === 'true' && activeUsersId ? activeUsersId : null
 	)
-	const { data: gasData, loading: fetchingGasUsed } = useFetchProtocolGasUsed(
+	const { data: gasData, isLoading: fetchingGasUsed } = useFetchProtocolGasUsed(
 		isRouterReady && gasUsed === 'true' && activeUsersId ? activeUsersId : null
 	)
-	const { data: medianAPYData, loading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
+	const { data: medianAPYData, isLoading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
 		isRouterReady && medianApy === 'true' && metrics.medianApy ? protocol : null
 	)
-	const { data: governanceData, loading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
+	const { data: governanceData, isLoading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
 		isRouterReady && governance === 'true' && governanceApis && governanceApis.length > 0 ? governanceApis : null
 	)
-	const { data: treasuryData, loading: fetchingTreasury } = useFetchProtocolTreasury(
+	const { data: treasuryData, isLoading: fetchingTreasury } = useFetchProtocolTreasury(
 		isRouterReady && metrics.treasury && treasury === 'true' ? protocol : null,
 		true
 	)
-	const { data: unlocksData, loading: fetchingEmissions } = useGetProtocolEmissions(
+	const { data: unlocksData, isLoading: fetchingEmissions } = useGetProtocolEmissions(
 		isRouterReady && metrics.unlocks && unlocks === 'true' ? protocol : null
 	)
-	const { data: bridgeVolumeData, loading: fetchingBridgeVolume } = useFetchBridgeVolumeOnAllChains(
+	const { data: bridgeVolumeData, isLoading: fetchingBridgeVolume } = useFetchBridgeVolumeOnAllChains(
 		isRouterReady && metrics.bridge && bridgeVolume === 'true' ? protocol : null
 	)
-	const { data: tokenLiquidityData, loading: fetchingTokenLiquidity } = useFetchProtocolTokenLiquidity(
+	const { data: tokenLiquidityData, isLoading: fetchingTokenLiquidity } = useFetchProtocolTokenLiquidity(
 		isRouterReady && metrics.tokenLiquidity && tokenLiquidity === 'true' ? protocolId : null
 	)
-	const { data: twitterData, loading: fetchingTwitter } = useFetchProtocolTwitter(
+	const { data: twitterData, isLoading: fetchingTwitter } = useFetchProtocolTwitter(
 		isRouterReady && twitter === 'true' ? twitterHandle : null
 	)
 
-	const { data: devMetricsData, loading: fetchingDevMetrics } = useFetchProtocolDevMetrics(
+	const { data: devMetricsData, isLoading: fetchingDevMetrics } = useFetchProtocolDevMetrics(
 		isRouterReady && [devMetrics, contributersMetrics, contributersCommits, devCommits].some((v) => v === 'true')
 			? protocol.id || protocolId
 			: null
 	)
 
-	const { data: volumeData, loading: fetchingVolume } = useGetOverviewChartData({
+	const { data: volumeData, isLoading: fetchingVolume } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'dexs',
 		type: 'chains',
@@ -183,7 +182,7 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && volume === 'true' && metrics.dexs ? false : true
 	})
 
-	const { data: derivativesVolumeData, loading: fetchingDerivativesVolume } = useGetOverviewChartData({
+	const { data: derivativesVolumeData, isLoading: fetchingDerivativesVolume } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'derivatives',
 		type: 'chains',
@@ -191,7 +190,7 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && derivativesVolume === 'true' && metrics.derivatives ? false : true
 	})
 
-	const { data: optionsVolumeData, loading: fetchingOptionsVolume } = useGetOverviewChartData({
+	const { data: optionsVolumeData, isLoading: fetchingOptionsVolume } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'options',
 		type: 'chains',
@@ -199,7 +198,7 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && premiumVolume === 'true' && metrics.options ? false : true
 	})
 
-	const { data: aggregatorsVolumeData, loading: fetchingAggregatorsVolume } = useGetOverviewChartData({
+	const { data: aggregatorsVolumeData, isLoading: fetchingAggregatorsVolume } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'aggregators',
 		type: 'chains',
@@ -207,7 +206,7 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && metrics.aggregators && aggregators === 'true' ? false : true
 	})
 
-	const { data: derivativesAggregatorsVolumeData, loading: fetchingDerivativesAggregatorsVolume } =
+	const { data: derivativesAggregatorsVolumeData, isLoading: fetchingDerivativesAggregatorsVolume } =
 		useGetOverviewChartData({
 			name: protocol,
 			dataToFetch: 'aggregator-derivatives',
@@ -989,7 +988,7 @@ export function useFetchAndFormatChartData({
 		fetchingTypes.push(denomination + ' price')
 	}
 
-	if (loading) {
+	if (isLoading) {
 		if (mcap === 'true') {
 			fetchingTypes.push('mcap')
 		}
@@ -1003,7 +1002,7 @@ export function useFetchAndFormatChartData({
 		}
 	}
 
-	if ((loading || fetchingFdv) && fdv === 'true') {
+	if ((isLoading || fetchingFdv) && fdv === 'true') {
 		fetchingTypes.push('fdv')
 	}
 
@@ -1075,8 +1074,8 @@ export function useFetchAndFormatChartData({
 		fetchingTypes.push('contributersMetrics')
 	}
 
-	const isLoading =
-		loading ||
+	const isLoadingData =
+		isLoading ||
 		fetchingFdv ||
 		denominationLoading ||
 		fetchingFees ||
@@ -1098,7 +1097,7 @@ export function useFetchAndFormatChartData({
 
 	return {
 		fetchingTypes,
-		isLoading,
+		isLoading: isLoadingData,
 		chartData: finalData as ChartData[],
 		chartsUnique,
 		unlockTokenSymbol: unlocksData?.tokenPrice?.symbol,

@@ -1,6 +1,6 @@
-import useSWR from 'swr'
+import { useQuery } from '@tanstack/react-query'
 import { RAISES_API } from '~/constants'
-import { fetcher } from '~/utils/useSWR'
+import { fetchApi } from '~/utils/async'
 
 interface IRaisesFilters {
 	investors: Array<string>
@@ -54,11 +54,5 @@ export function getRaisesFiltersList(data): IRaisesFilters {
 }
 
 export function useInvestorsList() {
-	const { data, error } = useSWR(RAISES_API, fetcher)
-
-	return {
-		data,
-		error,
-		loading: !data && !error
-	}
+	return useQuery({ queryKey: [RAISES_API], queryFn: () => fetchApi(RAISES_API) })
 }

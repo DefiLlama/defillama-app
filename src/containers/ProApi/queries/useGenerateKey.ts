@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast'
-import { useMutation, useQueryClient } from 'react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SERVER_API } from '../lib/constants'
 
 export const generateNewApiKey = async ({ authToken }: { authToken?: string | null }) => {
@@ -20,6 +20,8 @@ export const generateNewApiKey = async ({ authToken }: { authToken?: string | nu
 			throw new Error('Failed to generate new api key')
 		}
 
+		toast.success('API Key generated')
+
 		return newApiKey?.apiKey ?? null
 	} catch (error: any) {
 		toast.error(error.message)
@@ -32,10 +34,5 @@ export const generateNewApiKey = async ({ authToken }: { authToken?: string | nu
 export function useGenerateNewApiKey() {
 	const queryClient = useQueryClient()
 
-	return useMutation(generateNewApiKey, {
-		onSuccess: () => {
-			toast.success('API Key generated')
-			queryClient.invalidateQueries()
-		}
-	})
+	return useMutation({ mutationFn: generateNewApiKey })
 }

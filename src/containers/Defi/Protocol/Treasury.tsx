@@ -27,9 +27,9 @@ export function Treasury({ protocolName }) {
 
 export const TreasuryChart = ({ protocolName }) => {
 	const [includeTreasury, setIncludeTreasury] = useState(true)
-	const { data, loading } = useFetchProtocolTreasury(protocolName, includeTreasury)
+	const { data, isLoading } = useFetchProtocolTreasury(protocolName, includeTreasury)
 
-	if (loading) {
+	if (isLoading) {
 		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
 	}
 
@@ -71,7 +71,7 @@ export const TreasuryChart = ({ protocolName }) => {
 				<span>Include own tokens</span>
 			</Checkbox>
 
-			{!loading && (!data || top10Tokens.length === 0) ? (
+			{!isLoading && (!data || top10Tokens.length === 0) ? (
 				<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0, minHeight: '360px' }}></ChartsWrapper>
 			) : (
 				<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0 }}>

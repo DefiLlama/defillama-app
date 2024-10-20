@@ -6,11 +6,8 @@ import { FORK_API } from '~/constants'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
-import { QueryClient, QueryClientProvider } from 'react-query'
 
 const fetch = fetchWithErrorLogging
-
-const queryClient = new QueryClient()
 
 export const getStaticProps = withPerformanceLogging('recent', async () => {
 	const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls'])
@@ -37,8 +34,6 @@ export const getStaticProps = withPerformanceLogging('recent', async () => {
 
 export default function Protocols(props) {
 	return (
-		<QueryClientProvider client={queryClient}>
-			<RecentProtocols title="TVL Rankings - DefiLlama" name="Recent" header="Recently Listed Protocols" {...props} />
-		</QueryClientProvider>
+		<RecentProtocols title="TVL Rankings - DefiLlama" name="Recent" header="Recently Listed Protocols" {...props} />
 	)
 }

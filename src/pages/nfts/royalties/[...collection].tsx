@@ -7,18 +7,20 @@ import FormattedName from '~/components/FormattedName'
 import { Stat } from '~/layout/Stats/Large'
 import { formattedNum } from '~/utils'
 import { ProtocolChart } from '~/containers/DexsAndFees/charts/ProtocolChart'
-import useSWR from 'swr'
 import LocalLoader from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
-
-export const useCollectionData = (slug) => {
-	const { data, error } = useSWR(slug, getNFTRoyaltyHistory)
-	return { data, error, loading: !data && !error }
-}
+import { useQuery } from '@tanstack/react-query'
 
 export default function Collection() {
 	const router = useRouter()
-	const { data: collectionData, loading: fetchingData } = useCollectionData(router.query.collection)
+	const { data: collectionData, isLoading: fetchingData } = useQuery({
+		queryKey: ['collection-data', router.query.collection],
+		queryFn: () =>
+			getNFTRoyaltyHistory(
+				typeof router.query.collection === 'string' ? router.query.collection : router.query.collection[0]
+			)
+	})
+
 	if (fetchingData) {
 		return (
 			<Layout title={'NFT Royalties - DefiLlama'}>
@@ -26,7 +28,9 @@ export default function Collection() {
 			</Layout>
 		)
 	}
+
 	const props = collectionData.royaltyHistory[0]
+
 	return (
 		<Layout title={props.name + ' Royalties - DefiLlama'}>
 			<StatsSection>

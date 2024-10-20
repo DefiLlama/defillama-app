@@ -1,5 +1,3 @@
-import { QueryClient, QueryClientProvider } from 'react-query'
-
 import { maxAgeForNext } from '~/api'
 import type { IChainTvl } from '~/api/types'
 import Layout from '~/layout'
@@ -708,16 +706,12 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 	}
 })
 
-const queryClient = new QueryClient()
-
 export default function Protocols({ cexs }) {
 	return (
-		<QueryClientProvider client={queryClient}>
-			<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
-				<Header>CEX Transparency</Header>
-				<Cexs cexs={cexs} />
-			</Layout>
-		</QueryClientProvider>
+		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
+			<Header>CEX Transparency</Header>
+			<Cexs cexs={cexs} />
+		</Layout>
 	)
 }
 
