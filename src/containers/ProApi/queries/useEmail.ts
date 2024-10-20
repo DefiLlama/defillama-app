@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast'
-import { useMutation, useQueryClient } from 'react-query'
+import { useMutation } from '@tanstack/react-query'
 import { SERVER_API } from '../lib/constants'
 
 const validateEmail = (email: string) => {
@@ -28,6 +28,8 @@ const saveEmail = async ({ authToken, email }: { authToken?: string | null; emai
 		if (!newEmail) {
 			throw new Error('Failed to save email')
 		}
+
+		toast.success('Email saved')
 		return newEmail?.email ?? null
 	} catch (error: any) {
 		toast.error(error.message)
@@ -37,14 +39,8 @@ const saveEmail = async ({ authToken, email }: { authToken?: string | null; emai
 	}
 }
 
-const useSaveEmail = ({ authToken }: { authToken?: string | null }) => {
-	const queryClient = useQueryClient()
-	return useMutation(saveEmail, {
-		onSuccess: () => {
-			toast.success('Email saved')
-			queryClient.invalidateQueries()
-		}
-	})
+const useSaveEmail = () => {
+	return useMutation({ mutationFn: saveEmail })
 }
 
 export { useSaveEmail }

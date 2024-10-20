@@ -1,6 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { ExternalLink } from 'react-feather'
-import useSWR from 'swr'
 import { CustomLink } from '~/components/Link'
 import { useStackBy } from '~/components/LiquidationsPage/utils'
 import { AutoRow } from '~/components/Row'
@@ -8,9 +7,9 @@ import TokenLogo from '~/components/TokenLogo'
 import { CHAINS_API, CONFIG_API } from '~/constants'
 import { chainIconUrl } from '~/utils'
 import { getReadableValue } from '~/utils/liquidations'
-import { fetcher } from '~/utils/useSWR'
 import { Name } from '../shared'
 import { ILiquidablePositionsRow, ILiquidableProtocolRow } from './types'
+import { useQuery } from '@tanstack/react-query'
 
 export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] = [
 	{
@@ -167,6 +166,14 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 	}
 ]
 
+const fetchApi = async (url: string) => {
+	try {
+		const data = await fetch(url).then((res) => res.json())
+		return data
+	} catch (error) {
+		throw new Error(error instanceof Error ? error.message : `Failed to fetch ${url}`)
+	}
+}
 const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 	let _value: string
 
@@ -184,7 +191,10 @@ const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 			_value = value as string
 	}
 
-	const { data } = useSWR(`${CONFIG_API}/smol/${_value}`, fetcher)
+	const { data } = useQuery({
+		queryKey: [`${CONFIG_API}/smol/${_value}`],
+		queryFn: () => fetchApi(`${CONFIG_API}/smol/${_value}`)
+	})
 
 	if (!data) return <span>{_value}</span>
 
@@ -198,7 +208,10 @@ const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 }
 
 const ChainName = ({ value, index }: { value: string; index?: number }) => {
-	const { data } = useSWR(`${CHAINS_API}`, fetcher)
+	const { data } = useQuery({
+		queryKey: [`${CHAINS_API}`],
+		queryFn: () => fetchApi(`${CHAINS_API}`)
+	})
 
 	if (!data) return <span>{value}</span>
 

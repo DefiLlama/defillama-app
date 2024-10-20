@@ -1,6 +1,6 @@
 import { trim } from 'lodash'
 import React, { useState, useRef } from 'react'
-import { QueryClient, QueryClientProvider, useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import styled, { css, keyframes } from 'styled-components'
 import { maxAgeForNext } from '~/api'
 import ReactSelect from '~/components/MultiSelect/ReactSelect'
@@ -376,15 +376,10 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	}
 
 	const useInvestorsQuery = (filters, hasSelectedFilters) => {
-		return useQuery(['investors', filters], () => fetchInvestors(filters), {
-			enabled: hasSelectedFilters,
-			onSuccess: (data) => {
-				setMatchedInvestors(data.vcNumber)
-				setTotalCost(data.cost)
-			},
-			onError: (error) => {
-				console.error('Error fetching investors:', error)
-			}
+		return useQuery({
+			queryKey: ['investors', filters],
+			queryFn: () => fetchInvestors(filters),
+			enabled: hasSelectedFilters
 		})
 	}
 
@@ -570,14 +565,8 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	)
 }
 
-const queryClient = new QueryClient()
-
 const QueryProviderWrapper = (props) => {
-	return (
-		<QueryClientProvider client={queryClient}>
-			<VCFilterPage {...props} />
-		</QueryClientProvider>
-	)
+	return <VCFilterPage {...props} />
 }
 
 export default QueryProviderWrapper

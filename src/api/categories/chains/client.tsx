@@ -1,40 +1,44 @@
-import useSWR from 'swr'
 import { getDexVolumeByChain } from '../dexs'
 import { getFeesAndRevenueByChain, getFeesAndRevenueProtocolsByChain } from '../fees'
 import { getOverview } from '../adaptors'
 import { CHAINS_ASSETS_CHART } from '~/constants'
+import { useQuery } from '@tanstack/react-query'
 
 export function useGetProtocolsVolumeByChain(chain?: string) {
-	const { data, error } = useSWR(
-		`protocolsVolumeByChain/${chain}`,
-		chain
+	return useQuery({
+		queryKey: [`protocolsVolumeByChain/${chain}`],
+		queryFn: chain
 			? () =>
 					getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
 						(data) => data?.protocols ?? null
 					)
 			: () => null
-	)
-
-	return { data: data ?? null, loading: !data && data !== null && !error }
+	})
 }
 
 export function useGetVolumeChartDataByChain(chain?: string) {
-	const { data, error } = useSWR(`volumeChartDataByChain/${chain}`, () =>
-		getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
-			(data) => data?.totalDataChart ?? null
-		)
-	)
-
-	return { data: data ?? null, loading: !data && data !== null && !error }
+	return useQuery({
+		queryKey: [`volumeChartDataByChain/${chain}`],
+		queryFn: chain
+			? () =>
+					getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
+						(data) => data?.totalDataChart ?? null
+					)
+			: () => null
+	})
 }
 
 export function useGetFeesAndRevenueChartDataByChain(chain?: string) {
-	const { data, error } = useSWR(
-		`feesAndRevenueChartDataByChain/${chain}`,
-		chain && chain !== 'All'
-			? () =>
-					getFeesAndRevenueByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
-						({ fees, revenue }) => {
+	return useQuery({
+		queryKey: [`feesAndRevenueChartDataByChain/${chain}`],
+		queryFn:
+			chain && chain !== 'All'
+				? () =>
+						getFeesAndRevenueByChain({
+							chain,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						}).then(({ fees, revenue }) => {
 							const chart: { [date: number]: { fees: number | null; revenue: number | null } } = {}
 
 							fees.totalDataChart?.forEach(([date, fees]) => {
@@ -56,42 +60,33 @@ export function useGetFeesAndRevenueChartDataByChain(chain?: string) {
 							return Object.entries(chart).map(([date, { fees, revenue }]) => [+date, fees, revenue]) as Array<
 								[number, number, number]
 							>
-						}
-					)
-			: () => null
-	)
-
-	return { data: data ?? null, loading: !data && data !== null && !error }
+						})
+				: () => null
+	})
 }
 
 export function useGetProtocolsFeesAndRevenueByChain(chain?: string) {
-	const { data, error } = useSWR(
-		`protocolsFeesAndRevenueByChain/${chain}`,
-		chain ? () => getFeesAndRevenueProtocolsByChain({ chain }) : () => null
-	)
-
-	return { data, loading: !data && data !== null && !error }
+	return useQuery({
+		queryKey: [`protocolsFeesAndRevenueByChain/${chain}`],
+		queryFn: chain ? () => getFeesAndRevenueProtocolsByChain({ chain }) : () => null
+	})
 }
 
 export const useGetItemOverviewByChain = (chain?: string, item?: string) => {
-	const { data, error } = useSWR(
-		`itemOverviewByChain/${chain}/${item}`,
-		chain ? () => getOverview(item, chain?.toLowerCase(), undefined, true, true) : () => null
-	)
-
-	return { data, loading: !data && data !== null && !error }
+	return useQuery({
+		queryKey: [`itemOverviewByChain/${chain}/${item}`],
+		queryFn: chain ? () => getOverview(item, chain?.toLowerCase(), undefined, true, true) : () => null
+	})
 }
 
 export const useGetChainAssetsChart = (chain?: string) => {
-	let { data, error } = useSWR(
-		`chainAssetsChart/${chain}`,
-		chain && chain !== 'All'
-			? () => fetch(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`).then((r) => r.json())
-			: () => null
-	)
-	if (!Array.isArray(data)) {
-		data = undefined
-		error = true
-	}
-	return { data, loading: !data && data !== null && !error }
+	const { data, isLoading } = useQuery({
+		queryKey: [`chainAssetsChart/${chain}`],
+		queryFn:
+			chain && chain !== 'All'
+				? () => fetch(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`).then((r) => r.json())
+				: () => null
+	})
+
+	return { data: !Array.isArray(data) ? undefined : data, isLoading }
 }

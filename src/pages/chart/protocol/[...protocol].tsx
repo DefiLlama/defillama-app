@@ -80,7 +80,10 @@ export default function ProtocolChart({
 		extraTvlsEnabled[DEFI_SETTINGS[setting]] = router.query[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
 	}
 
-	const { data, loading } = useFetchProtocolInfows(usdInflowsParam === 'true' ? protocol : null, extraTvlsEnabled)
+	const { data, isLoading: loading } = useFetchProtocolInfows(
+		usdInflowsParam === 'true' ? protocol : null,
+		extraTvlsEnabled
+	)
 	const { usdInflows } = data || {}
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =

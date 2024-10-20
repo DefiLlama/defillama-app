@@ -1,4 +1,3 @@
-import { capitalize } from 'lodash'
 import { createFilter } from 'react-select'
 import { useState } from 'react'
 import styled from 'styled-components'
@@ -6,10 +5,10 @@ import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import ReactSelect from '~/components/MultiSelect/ReactSelect'
 import { sluggify } from '~/utils/cache-client'
 import Modal from './Modal'
-import useSWR from 'swr'
 import { getChainData } from '~/components/ComparePage'
 import { ChartTypes } from '../Defi/Protocol/ProtocolPro'
 import { transparentize } from 'polished'
+import { useQuery } from '@tanstack/react-query'
 
 export const Filters = styled.div`
 	display: flex;
@@ -78,11 +77,13 @@ export const chainChartOptions = [
 ]
 
 const useAvailableCharts = ({ itemType, name }: { itemType: 'protocol' | 'chain'; name: string }) => {
-	const { data, error } = useSWR(`pro/chain/${name}`, () =>
-		itemType === 'chain'
-			? getChainData(name, {})
-			: fetch(`https://fe-cache.llama.fi/protocol/${name}`).then((r) => r.json())
-	)
+	const { data } = useQuery({
+		queryKey: ['pro-chain', name],
+		queryFn: () =>
+			itemType === 'chain'
+				? getChainData(name, {})
+				: fetch(`https://fe-cache.llama.fi/protocol/${name}`).then((r) => r.json())
+	})
 	if (itemType === 'chain') {
 		const availableCharts = chainChartOptions
 			.filter((opt) => !!data?.[opt.key]?.length)

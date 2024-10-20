@@ -5,7 +5,7 @@ import type { IBaseSearchProps, IGetSearchList } from '../types'
 
 // TODO add bridges chains list
 export function useGetBridgesSearchList(): IGetSearchList {
-	const { data, loading } = useFetchBridgeList()
+	const { data, isLoading, isError } = useFetchBridgeList()
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(
 		() =>
@@ -16,5 +16,5 @@ export function useGetBridgesSearchList(): IGetSearchList {
 		[data]
 	)
 
-	return { data: searchData, loading, error: !data && !loading }
+	return { data: searchData, loading: isLoading, error: isError }
 }

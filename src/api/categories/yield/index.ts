@@ -8,11 +8,11 @@ import {
 	YIELD_PERPS_API,
 	PROTOCOLS_API
 } from '~/constants'
-import { arrayFetcher } from '~/utils/useSWR'
+import { fetchApi } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
-	let poolsAndConfig = await arrayFetcher([
+	let poolsAndConfig = await fetchApi([
 		YIELD_POOLS_API,
 		YIELD_CONFIG_API,
 		YIELD_URL_API,
@@ -63,7 +63,7 @@ export async function getYieldPageData() {
 			.slice(p * maxSize, maxSize * (p + 1))
 			.join(',')
 			.replaceAll('/', '')
-		pricesA = [...pricesA, (await arrayFetcher([`https://coins.llama.fi/prices/current/${x}`]))[0].coins]
+		pricesA = [...pricesA, (await fetchApi([`https://coins.llama.fi/prices/current/${x}`]))[0].coins]
 	}
 	// flatten
 	let prices = {}
@@ -133,7 +133,7 @@ export async function getYieldPageData() {
 }
 
 export async function getYieldMedianData() {
-	let data = (await arrayFetcher([YIELD_MEDIAN_API]))[0]
+	let data = (await fetchApi([YIELD_MEDIAN_API]))[0]
 	// for the 4th of june we have low nb of datapoints which is skewing the median/
 	// hence why we remove it from the plot
 	data = data.filter((p) => p.timestamp !== '2022-06-04T00:00:00.000Z')
@@ -179,7 +179,7 @@ export async function getLendBorrowData() {
 	let pools = props.pools.filter((p) => categoriesToKeep.includes(p.category))
 
 	// get new borrow fields
-	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
+	let dataBorrow = (await fetchApi([YIELD_LEND_BORROW_API]))[0]
 	dataBorrow = dataBorrow.filter((p) => p.ltv <= 1)
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
@@ -317,6 +317,6 @@ export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
 }
 
 export async function getPerpData() {
-	const perps = (await arrayFetcher([YIELD_PERPS_API]))[0]
+	const perps = (await fetchApi([YIELD_PERPS_API]))[0]
 	return perps.data.map((m) => ({ ...m, symbol: m.baseAsset }))
 }

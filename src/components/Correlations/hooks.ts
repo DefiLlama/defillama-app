@@ -1,4 +1,4 @@
-import { useQueries } from 'react-query'
+import { useQueries } from '@tanstack/react-query'
 
 export const usePriceCharts = (geckoIds) => {
 	const data = useQueries<any>(

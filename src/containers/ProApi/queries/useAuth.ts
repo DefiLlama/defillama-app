@@ -1,7 +1,7 @@
 import { verifyMessage } from 'ethers/lib/utils.js'
 import toast from 'react-hot-toast'
-import { useMutation, useQuery, useQueryClient } from 'react-query'
-import { useAccount, useNetwork } from 'wagmi'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAccount } from 'wagmi'
 import { signMessage } from 'wagmi/actions'
 
 import { optimism, SERVER_API } from '../lib/constants'
@@ -26,20 +26,29 @@ export function logout({ address }: { address?: string | null }) {
 export function useGetAuthToken() {
 	const { address } = useAccount()
 
-	return useQuery(['auth-token', address], () =>
-		getAuthToken({
-			address
-		})
-	)
+	return useQuery({
+		queryKey: ['auth-token', address],
+		queryFn: () =>
+			getAuthToken({
+				address
+			})
+	})
 }
 
 export function useGetCreditsUsage(apiKey: string | undefined) {
-	return useQuery(['credits-usage', apiKey], () =>
-		apiKey ? fetch(`https://pro-api.llama.fi/usage/${apiKey}`).then(r => r.json()) : null
-	)
+	return useQuery({
+		queryKey: ['credits-usage', apiKey],
+		queryFn: () => (apiKey ? fetch(`https://pro-api.llama.fi/usage/${apiKey}`).then((r) => r.json()) : null)
+	})
 }
 
-export async function signAndGetAuthToken({ address, refetchToken }: { address?: string | null, refetchToken: Function }) {
+export async function signAndGetAuthToken({
+	address,
+	refetchToken
+}: {
+	address?: string | null
+	refetchToken: () => void
+}) {
 	try {
 		if (!address) {
 			throw new Error('Invalid arguments')
@@ -98,9 +107,13 @@ export function useSignInWithEthereum() {
 	const queryClient = useQueryClient()
 	const wallet = useAccount()
 
-	return useMutation(['signIn', wallet.address], signAndGetAuthToken, {
-		onSuccess: () => {
-			queryClient.invalidateQueries()
-		}
+	return useMutation({
+		mutationFn: () =>
+			signAndGetAuthToken({
+				address: wallet.address,
+				refetchToken: () => {
+					queryClient.invalidateQueries()
+				}
+			})
 	})
 }

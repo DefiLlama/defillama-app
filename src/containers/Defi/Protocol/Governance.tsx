@@ -14,11 +14,11 @@ import VirtualTable from '~/components/Table/Table'
 import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper } from '~/components/Table/shared'
 import { Checkbox2 } from '~/components'
-import useSWR from 'swr'
 import { formatGovernanceData } from '~/api/categories/protocols'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
+import { useQuery } from '@tanstack/react-query'
 
 const fetch = fetchWithErrorLogging
 
@@ -146,9 +146,10 @@ export const fetchAndFormatGovernanceData = async (
 export function GovernanceData({ apis = [], color }: { apis: Array<string>; color: string }) {
 	const [apiCategoryIndex, setApiCategoryIndex] = React.useState<number>(0)
 
-	const { data, error } = useSWR(JSON.stringify(apis), () => fetchAndFormatGovernanceData(apis))
-
-	const isLoading = !data && !error
+	const { data, isLoading } = useQuery({
+		queryKey: [JSON.stringify(apis)],
+		queryFn: () => fetchAndFormatGovernanceData(apis)
+	})
 
 	if (isLoading) {
 		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>

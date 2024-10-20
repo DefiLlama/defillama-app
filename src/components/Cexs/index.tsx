@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 
 import { cexColumn } from '~/components/Table/Defi/columns'
 import { cexData } from '~/pages/cexs'
@@ -53,9 +53,10 @@ const Cexs = ({ cexs }) => {
 		setEndDate(date)
 	}
 
-	const { data: customRangeInflows = {} } = useQuery(['cexs', startTs, endTs], () =>
-		getOutflowsByTimerange(startTs, endTs)
-	)
+	const { data: customRangeInflows = {} } = useQuery({
+		queryKey: ['cexs', startTs, endTs],
+		queryFn: () => getOutflowsByTimerange(startTs, endTs)
+	})
 
 	const cexsWithCustomRange = cexs.map((cex) => ({
 		...cex,

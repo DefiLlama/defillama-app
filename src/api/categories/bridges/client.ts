@@ -1,35 +1,33 @@
-import useSWR from 'swr'
 import { BRIDGES_API } from '~/constants'
-import { fetcher } from '~/utils/useSWR'
+import { fetchApi } from '~/utils/async'
 import { getBridgeOverviewPageData } from '.'
+import { useQuery } from '@tanstack/react-query'
 
 export const useFetchBridgeList = () => {
-	const { data, error } = useSWR(BRIDGES_API, fetcher)
-	return { data, error, loading: !data && !error }
+	return useQuery({ queryKey: [BRIDGES_API], queryFn: () => fetchApi(BRIDGES_API) })
 }
 
 export const useGetBridgeChartDataByChain = (chain?: string) => {
-	const { data, error } = useSWR(
-		`bridgeChartDataByChain/${chain}`,
-		chain && chain !== 'All'
-			? () =>
-					getBridgeOverviewPageData(chain)
-						.catch(() => null)
-						.then((data) =>
-							data
-								? data?.chainVolumeData?.map((volume) => [
-										volume?.date ?? null,
-										volume?.Deposits ?? null,
-										volume.Withdrawals ?? null
-								  ])
-								: null
-						)
-						.catch((err) => {
-							console.log(err)
-							return null
-						})
-			: () => null
-	)
-
-	return { data: data ?? null, error, loading: !data && data !== null && !error }
+	return useQuery({
+		queryKey: [`bridgeChartDataByChain/${chain}`],
+		queryFn:
+			chain && chain !== 'All'
+				? () =>
+						getBridgeOverviewPageData(chain)
+							.catch(() => null)
+							.then((data) =>
+								data
+									? data?.chainVolumeData?.map((volume) => [
+											volume?.date ?? null,
+											volume?.Deposits ?? null,
+											volume.Withdrawals ?? null
+									  ])
+									: null
+							)
+							.catch((err) => {
+								console.log(err)
+								return null
+							})
+				: () => null
+	})
 }

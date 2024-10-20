@@ -15,10 +15,10 @@ import { BridgeTokensTable, BridgeAddressesTable } from '~/components/Table'
 import { AddressesTableSwitch } from '~/components/BridgesPage/TableSwitch'
 import { BridgeChainSelector } from '~/components/BridgesPage/BridgeChainSelector'
 import { Filters, Denomination } from '~/components/ECharts/ProtocolChart/Misc'
-import useSWR from 'swr'
 import { getBridgePageDatanew } from '~/api/categories/bridges'
 import Link from 'next/link'
 import { ArrowUpRight } from 'react-feather'
+import { useQuery } from '@tanstack/react-query'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -215,9 +215,12 @@ export default function BridgeContainer(props) {
 }
 
 export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
-	const { data, error } = useSWR(`bridgeData/${protocol}`, () => getBridgePageDatanew(protocol))
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['bridged-data', protocol],
+		queryFn: () => getBridgePageDatanew(protocol)
+	})
 
-	if (!data && !error) {
+	if (isLoading) {
 		return <p style={{ margin: '100px 0', textAlign: 'center' }}></p>
 	}
 
@@ -233,12 +236,12 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 }
 
 export const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
-	const { data, error } = useSWR(
-		`bridgeVolumeOnAllChain/${protocol}`,
-		protocol ? () => getBridgePageDatanew(protocol).then((data) => data.volumeDataByChain['All Chains']) : () => null
-	)
-
-	return { data, loading: !data && data !== null && !error }
+	return useQuery({
+		queryKey: ['bridged-volume-on-all-chains', protocol],
+		queryFn: protocol
+			? () => getBridgePageDatanew(protocol).then((data) => data.volumeDataByChain['All Chains'])
+			: () => null
+	})
 }
 const volumeChartOptions = {
 	overrides: {

@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
-import useSWR from 'swr'
 import Layout from '~/layout'
 import { ProtocolsByToken } from '~/components/Table'
 import { DesktopSearch } from '~/components/Search/Base'
@@ -8,34 +7,42 @@ import LocalLoader from '~/components/LocalLoader'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
-import { fetcher } from '~/utils/useSWR'
 import Announcement from '~/components/Announcement'
 import { withPerformanceLogging } from '~/utils/perf'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 import { download } from '~/utils'
+import { useQuery } from '@tanstack/react-query'
+
+const fetchProtocols = async (tokenSymbol) => {
+	if (!tokenSymbol) return null
+	try {
+		const data = await fetch(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`).then((res) => res.json())
+		return data
+	} catch (error) {
+		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
+	}
+}
 
 export default function Tokens({ searchData }) {
 	const router = useRouter()
 
 	const { token, includecex } = router.query
 
-	const tokenSybmol = token ? (typeof token === 'string' ? token : token[0]) : null
+	const tokenSymbol = token ? (typeof token === 'string' ? token : token[0]) : null
 	const includeCentraliseExchanges = includecex
 		? typeof includecex === 'string' && includecex === 'true'
 			? true
 			: false
 		: false
 
-	const { data: protocols, error: errorFetchingProtocols } = useSWR(
-		`protocolsByToken-${token}`,
-		() => tokenSybmol && fetcher(`${PROTOCOLS_BY_TOKEN_API}/${tokenSybmol.toUpperCase()}`)
-	)
+	const { data: protocols, isLoading } = useQuery({
+		queryKey: ['protocols-by-token', tokenSymbol],
+		queryFn: () => fetchProtocols(tokenSymbol)
+	})
 
 	const onItemClick = (item) => {
 		router.push(item.route, undefined, { shallow: true })
 	}
-
-	const isLoading = !errorFetchingProtocols && !protocols
 
 	const layoutStyles = isLoading ? { overflow: 'hidden' } : {}
 
@@ -61,7 +68,7 @@ export default function Tokens({ searchData }) {
 		})
 		const headers = ['Protocol', 'Category', 'Amount (USD)']
 		const csv = [headers.join(',')].concat(data.map((row) => headers.map((header) => row[header]).join(','))).join('\n')
-		download(`protocols-by-token-${tokenSybmol}.csv`, csv)
+		download(`protocols-by-token-${tokenSymbol}.csv`, csv)
 	}
 
 	return (
@@ -71,12 +78,12 @@ export default function Tokens({ searchData }) {
 			<>
 				{isLoading ? (
 					<LocalLoader />
-				) : !tokenSybmol || !protocols || protocols.length === 0 ? (
+				) : !tokenSymbol || !protocols || protocols.length === 0 ? (
 					<></>
 				) : (
 					<>
 						<TableFilters>
-							<TableHeader>{`${tokenSybmol.toUpperCase()} usage in protocols`}</TableHeader>
+							<TableHeader>{`${tokenSymbol.toUpperCase()} usage in protocols`}</TableHeader>
 							<CSVDownloadButton onClick={downloadCSV} />
 
 							{/* <ToggleWrapper>

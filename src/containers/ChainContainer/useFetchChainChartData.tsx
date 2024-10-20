@@ -36,53 +36,53 @@ export const useFetchChainChartData = ({
 }) => {
 	const router = useRouter()
 
-	const { data: denominationPriceHistory, loading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
+	const { data: denominationPriceHistory, isLoading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
 		denomination !== 'USD' || router.query.price === 'true' ? chainGeckoId : null
 	)
 
-	const { data: volumeChart, loading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
+	const { data: volumeChart, isLoading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
 		volumeData?.totalVolume24h && router.query.volume === 'true' ? selectedChain : null
 	)
 
-	const { data: feesAndRevenueChart, loading: fetchingFeesAndRevenueChartDataByChain } =
+	const { data: feesAndRevenueChart, isLoading: fetchingFeesAndRevenueChartDataByChain } =
 		useGetFeesAndRevenueChartDataByChain(
 			feesAndRevenueData?.totalFees24h && (router.query.fees === 'true' || router.query.revenue === 'true')
 				? selectedChain
 				: null
 		)
 
-	const { data: stablecoinsChartData, loading: fetchingStablecoinsChartDataByChain } =
+	const { data: stablecoinsChartData, isLoading: fetchingStablecoinsChartDataByChain } =
 		useGetStabelcoinsChartDataByChain(
 			stablecoinsData?.totalMcapCurrent && router.query.stables === 'true' ? selectedChain : null
 		)
 
-	const { data: inflowsChartData, loading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
+	const { data: inflowsChartData, isLoading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
 		inflowsData?.netInflows && router.query.inflows === 'true' ? selectedChain : null
 	)
 
-	const { data: usersData, loading: fetchingUsersChartData } = useFetchProtocolUsers(
+	const { data: usersData, isLoading: fetchingUsersChartData } = useFetchProtocolUsers(
 		userData.activeUsers && router.query.addresses === 'true' ? 'chain$' + selectedChain : null
 	)
 
-	const { data: txsData, loading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
+	const { data: txsData, isLoading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
 		userData.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
 	)
 
-	const { data: priceChartData, loading: fetchingPriceChartData } = useDenominationPriceHistory(
+	const { data: priceChartData, isLoading: fetchingPriceChartData } = useDenominationPriceHistory(
 		chainTokenInfo?.gecko_id
 	)
 
-	const { data: derivativesData, loading: fetchingDerivativesData } = useGetItemOverviewByChain(
+	const { data: derivativesData, isLoading: fetchingDerivativesData } = useGetItemOverviewByChain(
 		selectedChain,
 		'derivatives'
 	)
 
-	const { data: aggregatorsData, loading: fetchingAggregatorsData } = useGetItemOverviewByChain(
+	const { data: aggregatorsData, isLoading: fetchingAggregatorsData } = useGetItemOverviewByChain(
 		selectedChain,
 		'aggregators'
 	)
 
-	const { data: chainAssetsChart, loading: fetchingChainAssetsChart } = useGetChainAssetsChart(selectedChain)
+	const { data: chainAssetsChart, isLoading: fetchingChainAssetsChart } = useGetChainAssetsChart(selectedChain)
 
 	const isFetchingChartData =
 		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||

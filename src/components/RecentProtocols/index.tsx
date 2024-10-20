@@ -16,7 +16,7 @@ import { ArrowUpRight, Plus, X } from 'react-feather'
 import styled from 'styled-components'
 import { useDialogState, Dialog } from 'ariakit/dialog'
 import { DialogForm } from '../Filters/common/Base'
-import { useMutation } from 'react-query'
+import { useMutation } from '@tanstack/react-query'
 import { airdropsEligibilityCheck } from './airdrops'
 import CSVDownloadButton from '../ButtonStyled/CsvButton'
 
@@ -178,10 +178,10 @@ export function RecentProtocols({
 	const {
 		data: eligibleAirdrops,
 		mutate: checkEligibleAirdrops,
-		isLoading: fetchingEligibleAirdrops,
+		isPending: fetchingEligibleAirdrops,
 		error: errorFetchingEligibleAirdrops,
 		reset: resetEligibilityCheck
-	} = useMutation(airdropsEligibilityCheck)
+	} = useMutation({ mutationFn: airdropsEligibilityCheck })
 
 	return (
 		<Layout title={title} defaultSEO>

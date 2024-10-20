@@ -1,5 +1,3 @@
-import { QueryClient, QueryClientProvider } from 'react-query'
-
 import Layout from '~/layout'
 import YieldPageOptimizer from '~/components/YieldsPage/indexOptimizer'
 import Announcement from '~/components/Announcement'
@@ -7,8 +5,6 @@ import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
 import { withPerformanceLogging } from '~/utils/perf'
-
-const queryClient = new QueryClient()
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	const {
@@ -44,11 +40,9 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 
 export default function YieldBorrow(data) {
 	return (
-		<QueryClientProvider client={queryClient}>
-			<Layout title={`Lend/Borrow optimizer - DefiLlama Yield`} defaultSEO>
-				<Announcement>{disclaimer}</Announcement>
-				<YieldPageOptimizer {...data} />
-			</Layout>
-		</QueryClientProvider>
+		<Layout title={`Lend/Borrow optimizer - DefiLlama Yield`} defaultSEO>
+			<Announcement>{disclaimer}</Announcement>
+			<YieldPageOptimizer {...data} />
+		</Layout>
 	)
 }

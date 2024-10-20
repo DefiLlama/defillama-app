@@ -116,10 +116,10 @@ export function ChainContainer({
 		}
 	}
 
-	const { data: chainProtocolsVolumes, loading: fetchingProtocolsVolumeByChain } =
+	const { data: chainProtocolsVolumes, isLoading: fetchingProtocolsVolumeByChain } =
 		useGetProtocolsVolumeByChain(selectedChain)
 
-	const { data: chainProtocolsFees, loading: fetchingProtocolsFeesAndRevenueByChain } =
+	const { data: chainProtocolsFees, isLoading: fetchingProtocolsFeesAndRevenueByChain } =
 		useGetProtocolsFeesAndRevenueByChain(selectedChain)
 
 	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']

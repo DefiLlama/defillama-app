@@ -46,7 +46,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const [dataType, setDataType] = useState<'documented' | 'realtime'>('documented')
 	const [isTreasuryIncluded, setIsTreasuryIncluded] = useState(false)
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
-	const { id: geckoId } = useGeckoId(data.token ?? '')
+	const { data: geckoId } = useGeckoId(data.token ?? null)
 
 	const priceChart = usePriceChart(data.geckoId ?? geckoId)
 
@@ -377,9 +377,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 }
 
 export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
-	const { data, loading } = useGetProtocolEmissions(protocolName)
+	const { data, isLoading } = useGetProtocolEmissions(protocolName)
 
-	if (loading) {
+	if (isLoading) {
 		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
 	}
 

@@ -14,13 +14,8 @@ import { ToggleWrapper2 } from '~/components'
 import { useRouter } from 'next/router'
 import { NFTsSearch } from '~/components/Search'
 import { getNFTCollection } from '~/api/categories/nfts'
-import useSWR from 'swr'
 import LocalLoader from '~/components/LocalLoader'
-
-export const useCollectionData = (slug) => {
-	const { data, error } = useSWR(slug, getNFTCollection)
-	return { data, error, loading: !data && !error }
-}
+import { useQuery } from '@tanstack/react-query'
 
 const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
 	ssr: false
@@ -36,7 +31,13 @@ const OrderbookChart = dynamic(() => import('./OrderbookChart'), {
 
 export function NFTCollectionContainer() {
 	const router = useRouter()
-	const { data: collectionData, loading: fetchingData } = useCollectionData(router.query.collection)
+	const { data: collectionData, isLoading: fetchingData } = useQuery({
+		queryKey: ['collection-data', router.query.collection],
+		queryFn: () =>
+			getNFTCollection(
+				typeof router.query.collection === 'string' ? router.query.collection : router.query.collection[0]
+			)
+	})
 	if (fetchingData) {
 		return (
 			<Layout title={'NFT Collection - DefiLlama'}>

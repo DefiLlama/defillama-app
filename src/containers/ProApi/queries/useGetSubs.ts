@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { llamaAddress, periodDuration, subgraphApi, subscriptionAmount, token } from '../lib/constants'
 import { isSubscribed } from '~/containers/ProContainer/queries/useIsSubscribed'
 
@@ -170,9 +170,11 @@ async function getSubscriptions(address?: `0x${string}` | null) {
 }
 
 export const useGetSubs = ({ address }: { address?: `0x${string}` | null }) => {
-	const res = useQuery(['subs', address], () => getSubscriptions(address), {
+	const res = useQuery({
+		queryKey: ['subs', address],
+		queryFn: () => getSubscriptions(address),
 		enabled: address ? true : false,
-		cacheTime: 10_000,
+		staleTime: 10_000,
 		refetchInterval: 10_000
 	})
 	return { ...res, data: res.data ?? { subs: [], isSubscribed: false } }

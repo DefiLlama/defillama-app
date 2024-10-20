@@ -2,7 +2,6 @@ import { TYPE } from '~/Theme'
 import React, { useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
-import useSWR from 'swr'
 import { CACHE_SERVER } from '~/constants'
 import LocalLoader from '../LocalLoader'
 import styled from 'styled-components'
@@ -11,6 +10,7 @@ import { SearchIcon } from '~/containers/Hacks'
 import { CoinsPicker } from '../Correlations'
 import { Button, Popover, Item } from '~/components/DropdownMenu'
 import { MenuButtonArrow, useMenuState } from 'ariakit'
+import { useQuery } from '@tanstack/react-query'
 
 export default function CompareFdv({ coinsData, protocols }) {
 	const router = useRouter()
@@ -33,19 +33,20 @@ export default function CompareFdv({ coinsData, protocols }) {
 		}
 	}, [router.query])
 
-	const { data: fdvData = null, error: fdvError } = useSWR(
-		`fdv-${coins.join('-')}`,
-		coins.length == 2
-			? () =>
-					Promise.all([
-						fetch(`https://coins.llama.fi/prices/current/${coins.map((c) => 'coingecko:' + c).join(',')}`).then((res) =>
-							res.json()
-						),
-						fetch(`${CACHE_SERVER}/supply/${coins[0]}`).then((res) => res.json()),
-						fetch(`${CACHE_SERVER}/supply/${coins[1]}`).then((res) => res.json())
-					])
-			: () => null
-	)
+	const { data: fdvData = null, error: fdvError } = useQuery({
+		queryKey: [`fdv-${coins.join('-')}`],
+		queryFn:
+			coins.length == 2
+				? () =>
+						Promise.all([
+							fetch(`https://coins.llama.fi/prices/current/${coins.map((c) => 'coingecko:' + c).join(',')}`).then(
+								(res) => res.json()
+							),
+							fetch(`${CACHE_SERVER}/supply/${coins[0]}`).then((res) => res.json()),
+							fetch(`${CACHE_SERVER}/supply/${coins[1]}`).then((res) => res.json())
+						])
+				: () => null
+	})
 
 	let newPrice, increase
 

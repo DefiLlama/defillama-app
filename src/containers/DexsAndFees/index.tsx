@@ -115,7 +115,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	})
 
 	// Needs to be improved! Too dirty
-	const { data, error, loading } = useFetchCharts(
+	const { data, error, isLoading } = useFetchCharts(
 		props.type,
 		chain === 'all' ? undefined : chain,
 		undefined,
@@ -124,7 +124,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	const {
 		data: secondTypeData,
 		error: secondTypeError,
-		loading: secondTypeLoading
+		isLoading: secondTypeLoading
 	} = useFetchCharts(
 		props.type,
 		chain === 'all' ? undefined : chain,
@@ -134,19 +134,21 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	const isChainsPage = chain === 'all'
 
 	React.useEffect(() => {
-		if (loading) {
+		if (isLoading) {
 			setEnableBreakdownChart(false)
 			setCharts((val) => ({
 				...val,
 				totalDataChartBreakdown: undefined
 			}))
 		}
-		if (data && !error && !loading)
+		if (data && !error && !isLoading) {
+			// @ts-ignore
 			setCharts((val) => ({
 				...val,
-				totalDataChartBreakdown: data?.totalDataChartBreakdown
+				totalDataChartBreakdown: data?.totalDataChartBreakdown ?? ''
 			}))
-	}, [data, loading, error, props.chain])
+		}
+	}, [data, isLoading, error, props.chain])
 
 	// Needs to be improved! Too dirty
 	React.useEffect(() => {
@@ -157,11 +159,13 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				['totalDataChartBreakdownPremium Volume']: undefined
 			}))
 		}
-		if (secondTypeData && !secondTypeError && !secondTypeLoading)
+		if (secondTypeData && !secondTypeError && !secondTypeLoading) {
+			// @ts-ignore
 			setCharts((val) => ({
 				...val,
 				['totalDataChartBreakdownPremium Volume']: secondTypeData?.totalDataChartBreakdown
 			}))
+		}
 	}, [secondTypeData, secondTypeLoading, secondTypeError, props.chain])
 
 	const chartData = React.useMemo<[IJoin2ReturnType, string[]]>(() => {
