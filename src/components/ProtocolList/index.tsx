@@ -74,9 +74,9 @@ function Container({
 	const protocols = React.useMemo(() => {
 		if (category === 'Lending' || category === 'Undercollateralized Lending') {
 			return filteredProtocols.map((p) => {
-				const borrowed = p.extraTvl?.borrowed?.tvl ?? null
-				const supplied = borrowed ? borrowed + p.tvl : null
-				const suppliedTvl = supplied ? supplied / p.tvl : null
+				const borrowed = p.extraTvl?.borrowed?.tvl ?? undefined
+				const supplied = borrowed ? borrowed + p.tvl : undefined
+				const suppliedTvl = supplied ? supplied / p.tvl : undefined
 				return { ...p, borrowed, supplied, suppliedTvl }
 			})
 		} else return filteredProtocols

@@ -90,7 +90,7 @@ export const YIELD_CHART_LEND_BORROW_API = 'https://yields.llama.fi/chartLendBor
 export const YIELD_CONFIG_POOL_API = 'https://yields.llama.fi/configPool'
 export const YIELD_PERPS_API = 'https://yields.llama.fi/perps'
 export const YIELD_PROJECT_MEDIAN_API = 'https://yields.llama.fi/medianProject'
-export const YIELD_RISK_API_EXPONENTIAL = 'https://api.exponential.fi/api/pool-risk/search'
+export const YIELD_RISK_API_EXPONENTIAL = 'https://yields.llama.fi/risk'
 
 export const LSD_RATES_API = 'https://yields.llama.fi/lsdRates'
 export const ETF_OVERVIEW_API = 'https://etfs.llama.fi/overview'

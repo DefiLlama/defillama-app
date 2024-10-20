@@ -520,26 +520,28 @@ export default function ProtocolChart({
 								</span>
 							</Toggle>
 
-							<Toggle backgroundColor={color}>
-								<input
-									type="checkbox"
-									value="revenue"
-									checked={revenue === 'true'}
-									onChange={() =>
-										router.push(
-											{
-												pathname: router.pathname,
-												query: { ...router.query, revenue: revenue === 'true' ? false : true }
-											},
-											undefined,
-											{ shallow: true }
-										)
-									}
-								/>
-								<span data-wrapper="true">
-									<span>Revenue</span>
-								</span>
-							</Toggle>
+							{metrics?.revenue && (
+								<Toggle backgroundColor={color}>
+									<input
+										type="checkbox"
+										value="revenue"
+										checked={revenue === 'true'}
+										onChange={() =>
+											router.push(
+												{
+													pathname: router.pathname,
+													query: { ...router.query, revenue: revenue === 'true' ? false : true }
+												},
+												undefined,
+												{ shallow: true }
+											)
+										}
+									/>
+									<span data-wrapper="true">
+										<span>Revenue</span>
+									</span>
+								</Toggle>
+							)}
 						</>
 					)}
 

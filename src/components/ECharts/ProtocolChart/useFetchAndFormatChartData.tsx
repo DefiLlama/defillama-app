@@ -24,6 +24,37 @@ import { CACHE_SERVER } from '~/constants'
 
 const fetch = fetchWithErrorLogging
 
+interface ChartData {
+	date: string
+	TVL: number
+	Staking: number
+	Borrowed: number
+	Volume: number
+	Derivatives: number
+	Options: number
+	Aggregators: number
+	DerivativesAggregators: number
+	Unlocks: number
+	ActiveAddresses: number
+	NewAddresses: number
+	Events: number
+	Transactions: number
+	GasUsed: number
+	MedianAPY: number
+	USDInflows: number
+	Governance: number
+	Fees: number
+	Revenue: number
+}
+interface ReturnType {
+	fetchingTypes: string[]
+	isLoading: boolean
+	chartData: ChartData[]
+	chartsUnique: string[]
+	unlockTokenSymbol: string
+	valueSymbol: string
+}
+
 export function useFetchAndFormatChartData({
 	isRouterReady,
 	denomination,
@@ -73,7 +104,7 @@ export function useFetchAndFormatChartData({
 	aggregators,
 	premiumVolume,
 	derivativesAggregators
-}) {
+}): ReturnType {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
 		isRouterReady && denomination ? chartDenominations.find((d) => d.symbol === denomination)?.geckoId : null
@@ -1068,7 +1099,7 @@ export function useFetchAndFormatChartData({
 	return {
 		fetchingTypes,
 		isLoading,
-		chartData: finalData,
+		chartData: finalData as ChartData[],
 		chartsUnique,
 		unlockTokenSymbol: unlocksData?.tokenPrice?.symbol,
 		valueSymbol

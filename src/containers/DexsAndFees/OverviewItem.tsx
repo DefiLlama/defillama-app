@@ -148,16 +148,16 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 
 					{props.protocolSummary.category && (
 						<FlexRow>
-							<span>Category</span>
-							<span>:</span>
-							<Link href={`/overview/${props.protocolSummary.type}`}>{props.protocolSummary.category}</Link>
+							<span>Category:</span>
+							<Link href={`/${props.protocolSummary.type}?category=${props.protocolSummary.category}`}>
+								{props.protocolSummary.category}
+							</Link>
 						</FlexRow>
 					)}
 
 					{props.protocolSummary.forkedFrom && props.protocolSummary.forkedFrom.length > 0 && (
 						<FlexRow>
-							<span>Forked from</span>
-							<span>:</span>
+							<span>Forked from:</span>
 							<>
 								{props.protocolSummary.forkedFrom.map((p, index) => (
 									<Link href={`/protocol/${p}`} key={p}>

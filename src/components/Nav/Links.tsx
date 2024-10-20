@@ -144,7 +144,7 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Overview', path: '/' },
 			{ name: 'Chains', path: '/chains' },
-			{ name: 'Bridged TVL', path: '/bridged', newTag: true },
+			{ name: 'Bridged TVL', path: '/bridged' },
 			{ name: 'Compare Chains', path: '/compare?chains=Optimism&chains=Arbitrum' },
 			{ name: 'Airdrops', path: '/airdrops' },
 			{ name: 'Treasuries', path: '/treasuries', newTag: true },
@@ -156,7 +156,8 @@ export const navLinks: ILinks = {
 			{ name: 'Token Usage', path: '/tokenUsage?token=ETH' },
 			{ name: 'Categories', path: '/categories' },
 			{ name: 'Recent', path: '/recent' },
-			{ name: 'Languages', path: '/languages' }
+			{ name: 'Languages', path: '/languages' },
+			{ name: 'Token PNL', path: '/token-pnl', newTag: true }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart2 size={16} />

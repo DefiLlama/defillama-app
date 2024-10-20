@@ -122,7 +122,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 								tvlPrevMonth,
 								mcap,
 								stablesMcap,
-								mcaptvl,
+								mcaptvl: mcaptvl ?? undefined,
 								protocols,
 								users,
 								totalVolume24h,

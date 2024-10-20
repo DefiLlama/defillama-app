@@ -2,8 +2,10 @@ import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { ArrowUpRight, DownloadCloud, CheckCircle, Circle } from 'react-feather'
+import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import styled from 'styled-components'
+import useSWR from 'swr'
+
 import Layout from '~/layout'
 import AuditInfo from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
@@ -257,24 +259,35 @@ const Asset = styled.div<{ color: string }>`
 	gap: 4px;
 `
 
-const ConnectingLines = styled.svg`
-	position: absolute;
-	left: -40px;
-	top: 0;
-	height: 100%;
-	width: 40px;
-`
+const fetcher = (url) =>
+	fetch(url)
+		.then((res) => res.json())
+		.then((data) => data.data.data)
 
 const PageView = (props) => {
 	const { query } = useRouter()
 
 	const { data: pool, loading: fetchingPoolData } = useYieldPoolData(query.pool)
+	const poolData = pool?.data?.[0] ?? {}
+
+	const { data: riskData, error: riskError } = useSWR(
+		poolData?.project
+			? `${YIELD_RISK_API_EXPONENTIAL}?${new URLSearchParams({
+					pool_old: cleanPool(poolData.pool_old),
+					chain: poolData.chain?.toLowerCase(),
+					project: poolData.project,
+					tvlUsd: poolData.tvlUsd.toString()
+			  })}&${poolData.underlyingTokens
+					?.map((token) => `underlyingTokens[]=${encodeURIComponent(token?.toLowerCase())}`)
+					.join('&')}`
+			: null,
+		fetcher
+	)
+	const isRiskLoading = !riskData && !riskError
 
 	const { data: chart, loading: fetchingChartData } = useYieldChartData(query.pool)
 
 	const { data: chartBorrow, loading: fetchingChartDataBorrow } = useYieldChartLendBorrow(query.pool)
-
-	const poolData = pool?.data?.[0] ?? {}
 
 	const { data: config, loading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
@@ -418,9 +431,11 @@ const PageView = (props) => {
 	}, [chart, chartBorrow, category])
 
 	const hasRiskData =
-		props.poolRiskData?.assets?.underlying?.some((a) => a?.rating) ||
-		props.poolRiskData?.protocols?.underlying?.some((p) => p?.rating) ||
-		props.poolRiskData?.chain?.underlying?.some((c) => c?.rating)
+		!isRiskLoading &&
+		!riskError &&
+		(riskData?.assets?.underlying?.some((a) => a?.rating) ||
+			riskData?.protocols?.underlying?.some((p) => p?.rating) ||
+			riskData?.chain?.underlying?.some((c) => c?.rating))
 
 	return (
 		<>
@@ -461,15 +476,15 @@ const PageView = (props) => {
 							<span>Total Risk Rating</span>
 
 							<RatingWrapper>
-								<RatingCircle color={getRatingColor(props.poolRiskData?.pool_rating_color)}>
-									{props.poolRiskData?.pool_rating || 'N/A'}
+								<RatingCircle color={getRatingColor(riskData?.pool_rating_color)}>
+									{riskData?.pool_rating || 'N/A'}
 								</RatingCircle>
 								<RatingLink
-									href={props.poolRiskData?.pool_url ? props.poolRiskData?.pool_url : `https://exponential.fi/about-us`}
+									href={riskData?.pool_url ? riskData?.pool_url : `https://exponential.fi/about-us`}
 									target="_blank"
 									rel="noopener noreferrer"
 								>
-									<RatingDescription>{getRatingDescription(props.poolRiskData?.pool_rating)}</RatingDescription>
+									<RatingDescription>{getRatingDescription(riskData?.pool_rating)}</RatingDescription>
 								</RatingLink>
 							</RatingWrapper>
 							<AssessedBy>Assessed by exponential.fi</AssessedBy>
@@ -513,18 +528,16 @@ const PageView = (props) => {
 						<RiskRatingContent>
 							<FactorsContainer>
 								<Factor>
-									<FactorBadge color={props.poolRiskData?.pool_design?.rating_color}>
-										{props.poolRiskData?.pool_design?.rating || 'N/A'}
+									<FactorBadge color={riskData?.pool_design?.rating_color}>
+										{riskData?.pool_design?.rating || 'N/A'}
 									</FactorBadge>
 									<FactorLabel>Pool Design</FactorLabel>
 								</Factor>
 								<Factor>
-									<FactorBadge color={props.poolRiskData?.assets?.rating_color}>
-										{props.poolRiskData?.assets?.rating || 'N/A'}
-									</FactorBadge>
+									<FactorBadge color={riskData?.assets?.rating_color}>{riskData?.assets?.rating || 'N/A'}</FactorBadge>
 									<FactorLabel>Assets</FactorLabel>
 									<FactorAssets>
-										{props.poolRiskData?.assets?.underlying?.map((asset, index) => (
+										{riskData?.assets?.underlying?.map((asset, index) => (
 											<Asset
 												key={index}
 												color={asset.rating_color}
@@ -541,12 +554,12 @@ const PageView = (props) => {
 									</FactorAssets>
 								</Factor>
 								<Factor>
-									<FactorBadge color={props.poolRiskData?.protocols?.underlying[0]?.rating_color}>
-										{props.poolRiskData?.protocols?.underlying[0]?.rating || 'N/A'}
+									<FactorBadge color={riskData?.protocols?.underlying[0]?.rating_color}>
+										{riskData?.protocols?.underlying[0]?.rating || 'N/A'}
 									</FactorBadge>
 									<FactorLabel>Protocols</FactorLabel>
 									<FactorAssets>
-										{props.poolRiskData?.protocols?.underlying
+										{riskData?.protocols?.underlying
 											?.filter((p) => p?.name)
 											.map((protocol, index) => (
 												<Asset
@@ -565,12 +578,10 @@ const PageView = (props) => {
 									</FactorAssets>
 								</Factor>
 								<Factor>
-									<FactorBadge color={props.poolRiskData?.chain?.rating_color}>
-										{props.poolRiskData?.chain?.rating || 'N/A'}
-									</FactorBadge>
+									<FactorBadge color={riskData?.chain?.rating_color}>{riskData?.chain?.rating || 'N/A'}</FactorBadge>
 									<FactorLabel>Chain</FactorLabel>
 									<FactorAssets>
-										{props.poolRiskData?.chain?.underlying
+										{riskData?.chain?.underlying
 											?.filter((c) => c?.name)
 											.map((chain, index) => (
 												<Asset
@@ -592,22 +603,22 @@ const PageView = (props) => {
 							<TotalRiskContainer>
 								<TotalRiskWrapper>
 									<ResultWrapper>
-										<TotalRiskCircle color={props.poolRiskData?.pool_rating_color}>
-											<TotalRiskGrade>{props.poolRiskData?.pool_rating || 'N/A'}</TotalRiskGrade>
+										<TotalRiskCircle color={riskData?.pool_rating_color}>
+											<TotalRiskGrade>{riskData?.pool_rating || 'N/A'}</TotalRiskGrade>
 										</TotalRiskCircle>
 										<TotalRiskInfo>
-											<h3>{getRatingDescription(props.poolRiskData?.pool_rating)}</h3>
+											<h3>{getRatingDescription(riskData?.pool_rating)}</h3>
 										</TotalRiskInfo>
 									</ResultWrapper>
 									<OpenReportButton
 										as={ExternalLink}
-										href={props.poolRiskData?.pool_url || 'https://exponential.fi/about-us'}
+										href={riskData?.pool_url || 'https://exponential.fi/about-us'}
 										target="_blank"
 										rel="noopener noreferrer"
 										useTextColor={true}
 										color={backgroundColor}
 									>
-										<span>{props.poolRiskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
+										<span>{riskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
 									</OpenReportButton>
 								</TotalRiskWrapper>
 							</TotalRiskContainer>
@@ -773,44 +784,4 @@ export default function YieldPoolPage(props) {
 			<PageView {...props} />
 		</Layout>
 	)
-}
-
-export async function getStaticPaths() {
-	return { paths: [], fallback: 'blocking' }
-}
-
-export async function getStaticProps({ params: { pool } }) {
-	const poolUrl = `${YIELD_POOLS_LAMBDA_API}?pool=${pool}`
-
-	const res = await fetch(poolUrl).then((res) => res.json())
-	const poolData = res.data?.[0] ?? {}
-
-	let poolRiskData = null
-	try {
-		const response = await fetch(YIELD_RISK_API_EXPONENTIAL, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-API-KEY': process.env.EXPONENTIAL_API_KEY
-			},
-			body: JSON.stringify({
-				token_address: cleanPool(poolData.pool_old),
-				blockchain: poolData.chain?.toLowerCase(),
-				protocol: poolData.project,
-				tvl: poolData.tvlUsd,
-				assets: poolData.underlyingTokens
-			})
-		})
-
-		poolRiskData = await response.json()
-	} catch (error) {
-		console.error('Error fetching pool risk data:', error)
-	}
-
-	return {
-		props: {
-			poolData,
-			poolRiskData: poolRiskData?.data
-		}
-	}
 }
