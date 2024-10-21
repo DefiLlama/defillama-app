@@ -309,7 +309,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		mainRow.dominance = (100 * mainRow.total24h) / total24h
 
 		// Return acc
-		acc[protocol.module] = mainRow
+		acc[protocol.name] = mainRow
 		return acc
 	}, {} as IJSON<IOverviewProps['protocols'][number]>)
 
@@ -377,7 +377,7 @@ export const groupProtocolsByParent = ({
 		let mainRow
 
 		if (protocol.parentProtocol && parentProtocolsMap[protocol.parentProtocol]) {
-			mainRow = parentProtocolsMap[protocol.parentProtocol]
+			mainRow = acc[protocol.parentProtocol] || parentProtocolsMap[protocol.parentProtocol]
 
 			if (!protocol.total24h) protocol.total24h = 0
 
@@ -411,7 +411,6 @@ export const groupProtocolsByParent = ({
 			mainRow.dailyBribesRevenue = subRows.reduce(reduceSumByAttribute('dailyBribesRevenue'), null)
 
 			mainRow.mcap = subRows.reduce(reduceSumByAttribute('mcap'), null)
-			// mainRow.mcap = subRows.reduce(reduceHigherByAttribute('mcap'), null)
 			mainRow.chains = getUniqueArray(subRows.map((d) => d.chains).flat())
 			mainRow.methodology = getParentProtocolMethodology(
 				mainRow.displayName,
