@@ -315,7 +315,7 @@ export const cexData: Array<ICex> = [
 		name: 'Bake.io',
 		slug: 'bake.io',
 		coin: null,
-		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
+		walletsLink: 'https://blog.bake.io/proof-of-reserves/'
 	},
 	{
 		name: 'BingX',
