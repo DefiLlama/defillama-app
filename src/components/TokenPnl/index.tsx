@@ -8,6 +8,7 @@ import LocalLoader from '../LocalLoader'
 import styled, { css } from 'styled-components'
 import { SearchIcon } from '~/containers/Hacks'
 import { CoinsPicker } from '../Correlations'
+import { formattedNum } from '~/utils'
 
 const unixToDateString = (unixTimestamp) => {
 	if (!unixTimestamp) return ''
@@ -48,7 +49,7 @@ export default function TokenPnl({ coinsData }) {
 	const now = Math.floor(Date.now() / 1000) - 1000
 
 	const [isModalOpen, setModalOpen] = useState(0)
-	const [start, setstart] = useState(now - 24 * 60 * 60)
+	const [start, setstart] = useState(now - 7 * 24 * 60 * 60)
 	const [end, setend] = useState(now)
 
 	const { selectedCoins, coins } = useMemo(() => {
@@ -69,14 +70,32 @@ export default function TokenPnl({ coinsData }) {
 	const fetchPnlData = useCallback(async () => {
 		if (!id) return null
 		const key = `coingecko:${id}`
-		const pnlRes = await fetch(
-			`https://coins.llama.fi/percentage/${key}?timestamp=${start}&lookForward=true&period=${end - start}`
+		const spanInDays = Math.ceil((end - start) / (24 * 60 * 60))
+		const chartRes = await fetch(
+			`https://coins.llama.fi/chart/${key}?start=${start}&span=${spanInDays}&searchWidth=600`
 		).then((r) => r.json())
+
 		const selectedCoin = coinsData.find((coin) => coin.id === id)
+
+		if (!chartRes.coins[key] || chartRes.coins[key].prices.length < 2) {
+			return {
+				pnl: 'No data',
+				coinInfo: selectedCoin,
+				startPrice: null,
+				endPrice: null
+			}
+		}
+
+		const prices = chartRes.coins[key].prices
+		const startPrice = prices[0].price
+		const endPrice = prices[prices.length - 1].price
+		const pnlValue = ((endPrice - startPrice) / startPrice) * 100
+
 		return {
-			pnl: pnlRes.coins[key] ? `${pnlRes.coins[key].toFixed(2)}%` : `No data for this token and timeframe`,
+			pnl: `${pnlValue.toFixed(2)}%`,
 			coinInfo: selectedCoin,
-			startPrice: selectedCoin?.current_price - (selectedCoin?.current_price * pnlRes.coins[key]) / 100
+			startPrice,
+			endPrice
 		}
 	}, [id, start, end, coinsData])
 
@@ -191,13 +210,15 @@ export default function TokenPnl({ coinsData }) {
 											<CoinInfo>
 												<InfoItem>
 													<InfoLabel>Start Price:</InfoLabel>
-													<InfoValue>
-														{pnlData.startPrice ? `$${pnlData.startPrice.toLocaleString()}` : 'N/A'}
-													</InfoValue>
+													<InfoValue>{pnlData.startPrice ? `$${formattedNum(pnlData.startPrice)}` : 'N/A'}</InfoValue>
+												</InfoItem>
+												<InfoItem>
+													<InfoLabel>End Price:</InfoLabel>
+													<InfoValue>{pnlData.endPrice ? `$${formattedNum(pnlData.endPrice)}` : 'N/A'}</InfoValue>
 												</InfoItem>
 												<InfoItem>
 													<InfoLabel>Current Price:</InfoLabel>
-													<InfoValue>${pnlData.coinInfo.current_price.toLocaleString()}</InfoValue>
+													<InfoValue>${formattedNum(pnlData.coinInfo.current_price)}</InfoValue>
 												</InfoItem>
 
 												<InfoItem>
@@ -208,7 +229,7 @@ export default function TokenPnl({ coinsData }) {
 												</InfoItem>
 												<InfoItem>
 													<InfoLabel>All-Time High:</InfoLabel>
-													<InfoValue>${pnlData.coinInfo.ath.toLocaleString()}</InfoValue>
+													<InfoValue>${formattedNum(pnlData.coinInfo.ath)}</InfoValue>
 												</InfoItem>
 											</CoinInfo>
 										)}
