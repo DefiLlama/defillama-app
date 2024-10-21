@@ -10,6 +10,7 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
 import { getNFTCollectionEarnings } from '../nfts'
+import { ISettings } from '~/contexts/types'
 
 const fetch = fetchWithErrorLogging
 
@@ -252,40 +253,10 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			: {}
 
 	const { parentProtocols } = protocolsData
-	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {})
 
-	const protocolsWithSubrows = protocols.reduce((acc, protocol) => {
+	const finalProtocolsList: IJSON<IOverviewProps['protocols'][number]> = protocols.reduce((acc, protocol) => {
 		// Assign mainrow and sub-row if has any
 		const slugName = sluggify(protocol.name)
-
-		let mainRow: undefined | IOverviewProps['protocols'][number] = undefined
-		let subRow: undefined | IOverviewProps['protocols'][number]['subRows'][number] = null
-
-		if (protocol.parentProtocol && parentProtocolsMap[protocol.parentProtocol]) {
-			mainRow = parentProtocolsMap[protocol.parentProtocol]
-			if (!protocol.total24h) protocol.total24h = 0
-			subRow = {
-				...protocol,
-				logo: getLlamaoLogo(protocol.logo),
-				displayName: protocol.displayName ?? protocol.name,
-				tvl: tvlData[protocol.name] ?? null,
-				volumetvl: tvlData[protocol.name] ? protocol.total24h / tvlData[protocol.name] : null,
-				dominance: total24h ? (100 * protocol.total24h) / total24h : null,
-				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
-				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
-				revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
-				revenue1y: revenueProtocols?.[protocol.name]?.total1y ?? null,
-				averageRevenue1y: revenueProtocols?.[protocol.name]?.average1y ?? null,
-				mcap: mcapData[protocol.name] || null,
-				dailyHoldersRevenue: holderRevenueProtocols?.[protocol.name]?.total24h ?? null,
-				pf: getAnnualizedRatio(mcapData[protocol.name], protocol.total30d),
-				ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d)
-			}
-			// If already included parent protocol we add the new child
-			if (acc[protocol.parentProtocol]) acc[protocol.parentProtocol].subRows.push(subRow)
-			// If first time processed parent protocol we create the subrows list
-			else acc[protocol.parentProtocol] = { ...acc[protocol.parentProtocol], subRows: [subRow] }
-		} else mainRow = protocol
 
 		// Main row, either parent or single protocol
 		const protocolTVL = tvlData[protocol.name]
@@ -300,12 +271,12 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 		const holdersRev = holderRevenueProtocols?.[protocol.name]
 
-		mainRow = {
-			...mainRow,
+		const mainRow: IOverviewProps['protocols'][number] = {
+			...protocol,
 			...(protocol.parentProtocol ? acc[protocol.parentProtocol] : {}),
-			logo: getLlamaoLogo(mainRow.logo) ?? getLlamaoLogo(protocol.logo),
+			logo: getLlamaoLogo(protocol.logo),
 			category: protocol.category ?? null,
-			displayName: mainRow.displayName ?? mainRow.name,
+			displayName: protocol.displayName ?? protocol.name,
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
 			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
@@ -332,77 +303,13 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			ps: getAnnualizedRatio(mcapData[protocol.name], revenueProtocols?.[protocol.name]?.total30d)
 		}
 
-		// Stats for parent protocol
-		if (protocol.parentProtocol && acc[protocol.parentProtocol]) {
-			// stats
-			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total24h'), null)
-			const total48hto24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total48hto24h'), null)
-			mainRow.total7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total7d'), null)
-			mainRow.total30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total30d'), null)
-			mainRow.total1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total1y'), null)
-			mainRow.average1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('average1y'), null)
-			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalAllTime'), null)
-			const totalVolume7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalVolume7d'), null)
-			const totalVolume30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalVolume30d'), null)
-			mainRow.change_1d = getPercentChange(mainRow.total24h, total48hto24h)
-			mainRow.change_7d = getPercentChange(mainRow.total24h, totalVolume7d)
-			mainRow.change_1m = getPercentChange(mainRow.total24h, totalVolume30d)
-			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('tvl'), null)
-			mainRow.revenue24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue24h'), null)
-			mainRow.revenue7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue7d'), null)
-			mainRow.revenue30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue30d'), null)
-			mainRow.revenue1y = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue1y'), null)
-			mainRow.averageRevenue1y = acc[protocol.parentProtocol].subRows.reduce(
-				reduceSumByAttribute('averageRevenue1y'),
-				null
-			)
-			mainRow.dailyRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyRevenue'), null)
-			mainRow.dailyUserFees = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyUserFees'), null)
-			mainRow.dailyCreatorRevenue = acc[protocol.parentProtocol].subRows.reduce(
-				reduceSumByAttribute('dailyCreatorRevenue'),
-				null
-			)
-			mainRow.dailyHoldersRevenue = acc[protocol.parentProtocol].subRows.reduce(
-				reduceSumByAttribute('dailyHoldersRevenue'),
-				null
-			)
-			mainRow.dailyPremiumVolume = acc[protocol.parentProtocol].subRows.reduce(
-				reduceSumByAttribute('dailyPremiumVolume'),
-				null
-			)
-			mainRow.dailyProtocolRevenue = acc[protocol.parentProtocol].subRows.reduce(
-				reduceSumByAttribute('dailyProtocolRevenue'),
-				null
-			)
-			mainRow.dailySupplySideRevenue = acc[protocol.parentProtocol].subRows.reduce(
-				reduceSumByAttribute('dailySupplySideRevenue'),
-				null
-			)
-			mainRow.dailyBribesRevenue = acc[protocol.parentProtocol].subRows.reduce(
-				reduceSumByAttribute('dailyBribesRevenue'),
-				null
-			)
-			mainRow.mcap =
-				mcapData[acc[protocol.parentProtocol].name] ??
-				acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('mcap'), null)
-			// mainRow.mcap = acc[protocol.parentProtocol].subRows.reduce(reduceHigherByAttribute('mcap'), null)
-			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map((d) => d.chains).flat())
-			mainRow.methodology = getParentProtocolMethodology(
-				mainRow.displayName,
-				acc[protocol.parentProtocol].subRows.map((r) => r.displayName)
-			)
-			const total14dto7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total14dto7d'), null)
-			mainRow.change_7dover7d = ((mainRow.total7d - total14dto7d) / total14dto7d) * 100
-			mainRow.pf = getAnnualizedRatio(mainRow.mcap, mainRow.total30d)
-			mainRow.ps = getAnnualizedRatio(mainRow.mcap, mainRow.revenue30d)
-		}
 		// Computed stats
 		mainRow.volumetvl = mainRow.total24h !== null && mainRow.tvl !== null ? mainRow.total24h / mainRow.tvl : null
 
 		mainRow.dominance = (100 * mainRow.total24h) / total24h
 
 		// Return acc
-		acc[protocol.parentProtocol ?? protocol.module] = mainRow
+		acc[protocol.module] = mainRow
 		return acc
 	}, {} as IJSON<IOverviewProps['protocols'][number]>)
 
@@ -424,15 +331,16 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			nft.revenue24h = total24h
 			nft.revenue7d = total7d
 			nft.revenue30d = total30d
-			protocolsWithSubrows[nft.defillamaId] = nft
+			finalProtocolsList[nft.defillamaId] = nft
 		})
 	}
 
-	/* 	if (revenue?.totalDataChart)
+	/* 	if (revenue?.totalDataChart) 
 			allCharts.push(["Revenue", revenue.totalDataChart]) */
 
 	return iterateAndRemoveUndefined({
-		protocols: Object.values(protocolsWithSubrows),
+		protocols: Object.values(finalProtocolsList) as IOverviewProps['protocols'],
+		parentProtocols,
 		total24h,
 		total7d,
 		change_1d,
@@ -449,6 +357,112 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		dexsDominance: cexVolume ? +((total24h / (cexVolume + total24h)) * 100).toFixed(2) : null,
 		type
 	})
+}
+
+export const groupProtocolsByParent = ({
+	parentProtocols,
+	protocols,
+	type,
+	enabledSettings,
+	total24h
+}: {
+	parentProtocols: Array<IParentProtocol>
+	protocols: IOverviewProps['protocols']
+	type: IOverviewProps['type']
+	enabledSettings: ISettings
+	total24h?: number
+}) => {
+	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {})
+	const finalProtocolsList = protocols.reduce((acc, protocol) => {
+		let mainRow
+
+		if (protocol.parentProtocol && parentProtocolsMap[protocol.parentProtocol]) {
+			mainRow = parentProtocolsMap[protocol.parentProtocol]
+
+			if (!protocol.total24h) protocol.total24h = 0
+
+			const subRows = [...(acc[protocol.parentProtocol]?.subRows ?? []), protocol]
+
+			mainRow.total24h = subRows.reduce(reduceSumByAttribute('total24h'), null)
+			const total48hto24h = subRows.reduce(reduceSumByAttribute('total48hto24h'), null)
+			mainRow.total7d = subRows.reduce(reduceSumByAttribute('total7d'), null)
+			mainRow.total30d = subRows.reduce(reduceSumByAttribute('total30d'), null)
+			mainRow.total1y = subRows.reduce(reduceSumByAttribute('total1y'), null)
+			mainRow.average1y = subRows.reduce(reduceSumByAttribute('average1y'), null)
+			mainRow.totalAllTime = subRows.reduce(reduceSumByAttribute('totalAllTime'), null)
+			const totalVolume7d = subRows.reduce(reduceSumByAttribute('totalVolume7d'), null)
+			const totalVolume30d = subRows.reduce(reduceSumByAttribute('totalVolume30d'), null)
+			mainRow.change_1d = getPercentChange(mainRow.total24h, total48hto24h)
+			mainRow.change_7d = getPercentChange(mainRow.total24h, totalVolume7d)
+			mainRow.change_1m = getPercentChange(mainRow.total24h, totalVolume30d)
+			mainRow.tvl = subRows.reduce(reduceSumByAttribute('tvl'), null)
+			mainRow.revenue24h = subRows.reduce(reduceSumByAttribute('revenue24h'), null)
+			mainRow.revenue7d = subRows.reduce(reduceSumByAttribute('revenue7d'), null)
+			mainRow.revenue30d = subRows.reduce(reduceSumByAttribute('revenue30d'), null)
+			mainRow.revenue1y = subRows.reduce(reduceSumByAttribute('revenue1y'), null)
+			mainRow.averageRevenue1y = subRows.reduce(reduceSumByAttribute('averageRevenue1y'), null)
+			mainRow.dailyRevenue = subRows.reduce(reduceSumByAttribute('dailyRevenue'), null)
+			mainRow.dailyUserFees = subRows.reduce(reduceSumByAttribute('dailyUserFees'), null)
+			mainRow.dailyCreatorRevenue = subRows.reduce(reduceSumByAttribute('dailyCreatorRevenue'), null)
+			mainRow.dailyHoldersRevenue = subRows.reduce(reduceSumByAttribute('dailyHoldersRevenue'), null)
+			mainRow.dailyPremiumVolume = subRows.reduce(reduceSumByAttribute('dailyPremiumVolume'), null)
+			mainRow.dailyProtocolRevenue = subRows.reduce(reduceSumByAttribute('dailyProtocolRevenue'), null)
+			mainRow.dailySupplySideRevenue = subRows.reduce(reduceSumByAttribute('dailySupplySideRevenue'), null)
+			mainRow.dailyBribesRevenue = subRows.reduce(reduceSumByAttribute('dailyBribesRevenue'), null)
+
+			mainRow.mcap = subRows.reduce(reduceSumByAttribute('mcap'), null)
+			// mainRow.mcap = subRows.reduce(reduceHigherByAttribute('mcap'), null)
+			mainRow.chains = getUniqueArray(subRows.map((d) => d.chains).flat())
+			mainRow.methodology = getParentProtocolMethodology(
+				mainRow.displayName,
+				subRows.map((r) => r.displayName)
+			)
+			const total14dto7d = subRows.reduce(reduceSumByAttribute('total14dto7d'), null)
+			mainRow.change_7dover7d = ((mainRow.total7d - total14dto7d) / total14dto7d) * 100
+			mainRow.pf = getAnnualizedRatio(mainRow.mcap, mainRow.total30d)
+			mainRow.ps = getAnnualizedRatio(mainRow.mcap, mainRow.revenue30d)
+			mainRow.subRows = subRows
+			mainRow.displayName =
+				parentProtocolsMap[protocol.parentProtocol].displayName ?? parentProtocolsMap[protocol.parentProtocol].name
+		} else mainRow = protocol
+
+		// Computed stats
+		mainRow.volumetvl = mainRow.total24h !== null && mainRow.tvl !== null ? mainRow.total24h / mainRow.tvl : null
+
+		if (total24h) {
+			mainRow.dominance = (100 * mainRow.total24h) / total24h
+		}
+
+		if (type === 'fees') {
+			let revenue24h = mainRow.revenue24h
+			let revenue7d = mainRow.revenue7d
+			let revenue30d = mainRow.revenue30d
+
+			let dailyHoldersRevenue = mainRow.dailyHoldersRevenue
+
+			if (revenue24h && !Number.isNaN(Number(revenue24h))) {
+				revenue24h =
+					+revenue24h +
+					(enabledSettings.bribes ? mainRow.dailyBribesRevenue ?? 0 : 0) +
+					(enabledSettings.tokentax ? mainRow.dailyTokenTaxes ?? 0 : 0)
+				revenue7d = +revenue7d + (enabledSettings.bribes ? mainRow.bribes7d ?? 0 : 0)
+				revenue30d = +revenue30d + (enabledSettings.bribes ? mainRow.bribes30d ?? 0 : 0)
+			}
+			if (dailyHoldersRevenue && !Number.isNaN(Number(dailyHoldersRevenue))) {
+				dailyHoldersRevenue = +dailyHoldersRevenue + (enabledSettings.bribes ? mainRow.dailyBribesRevenue ?? 0 : 0)
+			}
+
+			mainRow.revenue24h = revenue24h
+			mainRow.revenue30d = revenue30d
+			mainRow.revenue7d = revenue7d
+			mainRow.dailyHoldersRevenue = dailyHoldersRevenue
+		}
+
+		acc[protocol.parentProtocol ?? protocol.module] = mainRow
+		return acc
+	}, {} as IJSON<IOverviewProps['protocols'][number]>)
+
+	return Object.values(finalProtocolsList) as IOverviewProps['protocols']
 }
 
 export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
@@ -535,6 +549,7 @@ export interface IOverviewProps {
 	categories?: Array<string>
 	isSimpleFees?: boolean
 	premium?: IOverviewProps
+	parentProtocols?: Array<IParentProtocol>
 }
 
 // - used in /[type]/chains

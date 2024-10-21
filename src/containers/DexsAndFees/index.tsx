@@ -5,7 +5,7 @@ import { Panel } from '~/components'
 import { OverviewTable } from '~/components/Table'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { AdaptorsSearch } from '~/components/Search'
-import { IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
+import { groupProtocolsByParent, IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
@@ -46,26 +46,16 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
-		const protocolsList =
-			categoriesToFilter.length > 0
-				? props.protocols
-						.filter((p) => {
-							const parentFilter = p?.subRows?.some((r) => selectedCategories.includes(r.category))
-							const toFilter = parentFilter
-								? parentFilter
-								: p.category
-								? selectedCategories.includes(p.category)
-								: false
-							return toFilter
-						})
-						.map((p) => {
-							if (p?.subRows?.length > 0) {
-								p.subRows = p.subRows.filter((r) => selectedCategories.includes(r.category))
-							}
-
-							return p
-						})
-				: props.protocols
+		const protocolsList = groupProtocolsByParent({
+			protocols:
+				categoriesToFilter.length > 0
+					? props.protocols.filter((p) => (p.category ? selectedCategories.includes(p.category) : false))
+					: props.protocols,
+			parentProtocols: props.parentProtocols ?? [],
+			type: props.type,
+			enabledSettings,
+			total24h: props.total24h
+		})
 
 		const rowLinks =
 			props.allChains && props.allChains.length > 0
@@ -79,35 +69,15 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				: null
 
 		return { selectedCategories, protocolsList, rowLinks }
-	}, [router.query.category, props.protocols, props.allChains, props.type, isSimpleFees])
-
-	const finalProtocolsList = React.useMemo(() => {
-		if (props.type === 'fees') {
-			return protocolsList.map((protocol) => {
-				let revenue24h = protocol.revenue24h
-				let revenue7d = protocol.revenue7d
-				let revenue30d = protocol.revenue30d
-
-				let dailyHoldersRevenue = protocol.dailyHoldersRevenue
-
-				if (revenue24h && !Number.isNaN(Number(revenue24h))) {
-					revenue24h =
-						+revenue24h +
-						(enabledSettings.bribes ? protocol.dailyBribesRevenue ?? 0 : 0) +
-						(enabledSettings.tokentax ? protocol.dailyTokenTaxes ?? 0 : 0)
-					revenue7d = +revenue7d + (enabledSettings.bribes ? protocol.bribes7d ?? 0 : 0)
-					revenue30d = +revenue30d + (enabledSettings.bribes ? protocol.bribes30d ?? 0 : 0)
-				}
-				if (dailyHoldersRevenue && !Number.isNaN(Number(dailyHoldersRevenue))) {
-					dailyHoldersRevenue = +dailyHoldersRevenue + (enabledSettings.bribes ? protocol.dailyBribesRevenue ?? 0 : 0)
-				}
-
-				return { ...protocol, revenue24h, revenue30d, revenue7d, dailyHoldersRevenue }
-			})
-		}
-
-		return protocolsList
-	}, [protocolsList, enabledSettings, props.type])
+	}, [
+		router.query.category,
+		props.protocols,
+		props.allChains,
+		props.type,
+		props.parentProtocols,
+		isSimpleFees,
+		enabledSettings
+	])
 
 	const [charts, setCharts] = React.useState<IJSON<IOverviewContainerProps['totalDataChartBreakdown']>>({
 		totalDataChartBreakdown: props.totalDataChartBreakdown,
@@ -241,7 +211,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			'Revenue 7d',
 			'Revenue 30d'
 		]
-		const data = finalProtocolsList.map((protocol) => {
+		const data = protocolsList.map((protocol) => {
 			return [
 				protocol.displayName,
 				protocol.category,
@@ -259,7 +229,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 		const csv = [header, ...data].map((row) => row.join(',')).join('\n')
 
 		download(`${props.type}-protocols.csv`, csv)
-	}, [finalProtocolsList, props.type])
+	}, [protocolsList, props.type])
 
 	return (
 		<>
@@ -335,7 +305,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			{protocolsList && protocolsList.length > 0 ? (
 				<OverviewTable
 					isSimpleFees={props.isSimpleFees}
-					data={finalProtocolsList}
+					data={protocolsList}
 					type={props.type}
 					allChains={isChainsPage}
 					categories={props.categories}
