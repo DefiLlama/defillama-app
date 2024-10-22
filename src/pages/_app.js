@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AppContext } from '~/contexts'
 import { useAnalytics } from '~/hooks'
 import '~/Theme/globals.css'
@@ -12,6 +13,7 @@ function App({ Component, pageProps }) {
 			<AppContext noContext={pageProps.noContext ?? false}>
 				<Component {...pageProps} />
 			</AppContext>
+			<ReactQueryDevtools initialIsOpen={false} />
 		</QueryClientProvider>
 	)
 }

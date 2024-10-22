@@ -21,7 +21,9 @@ export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
 	if (!data) {
 		return (
 			<Wrapper>
-				<p style={{ margin: '180px 0', textAlign: 'center' }}>{error?.message ?? 'Failed to fetch'}</p>
+				<p style={{ margin: '180px 0', textAlign: 'center' }}>
+					{error instanceof Error ? error.message : 'Failed to fetch'}
+				</p>
 			</Wrapper>
 		)
 	}
