@@ -1,12 +1,9 @@
 import Layout from '~/layout'
-import { QueryClient, QueryClientProvider } from 'react-query'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import CompareTokens from '~/components/CompareTokens'
 import { getProtocols } from '~/api/categories/protocols'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
-
-const queryClient = new QueryClient()
 
 export const getStaticProps = withPerformanceLogging('correlation', async () => {
 	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols, volumeProtocols] = await Promise.all([
@@ -75,10 +72,8 @@ export const getStaticProps = withPerformanceLogging('correlation', async () => 
 
 export default function Compare(props) {
 	return (
-		<QueryClientProvider client={queryClient}>
-			<Layout title={`Price with FDV of - DefiLlama`}>
-				<CompareTokens {...props} />
-			</Layout>
-		</QueryClientProvider>
+		<Layout title={`Price with FDV of - DefiLlama`}>
+			<CompareTokens {...props} />
+		</Layout>
 	)
 }

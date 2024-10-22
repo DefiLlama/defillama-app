@@ -50,13 +50,13 @@ const PageView = () => {
 // const PageView = () => {
 // 	const { query } = useRouter()
 
-// 	const { data: pool, loading: fetchingPoolData } = useYieldPoolData(query.pool)
+// 	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 
-// 	const { data: chart, loading: fetchingChartData } = useYieldChartLendBorrow(query.pool)
+// 	const { data: chart, isLoading: fetchingChartData } = useYieldChartLendBorrow(query.pool)
 
 // 	const poolData = pool?.data ? pool.data[0] : {}
 
-// 	const { data: config, loading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
+// 	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
 // 	// prepare csv data
 // 	const downloadCsv = () => {

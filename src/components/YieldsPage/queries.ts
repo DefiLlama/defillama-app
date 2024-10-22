@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { COINS_API } from '~/constants'
 
 type PriceObject = {
@@ -10,9 +10,9 @@ type PriceObject = {
 }
 
 const useGetPrice = (tokens: Array<string>) => {
-	const prices = useQuery(
-		['prices', tokens],
-		async () => {
+	const prices = useQuery({
+		queryKey: ['prices', tokens],
+		queryFn: async () => {
 			const response = await fetch(`${COINS_API}/current/${tokens.join(',')}`)
 			const result = await response.json()
 			const data = Object.fromEntries(
@@ -23,8 +23,8 @@ const useGetPrice = (tokens: Array<string>) => {
 
 			return data
 		},
-		{ enabled: tokens.length > 0 }
-	)
+		enabled: tokens.length > 0
+	})
 
 	return prices
 }

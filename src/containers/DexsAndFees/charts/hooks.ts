@@ -18,10 +18,10 @@ export const useGetOverviewChartData = ({
 	enableBreakdownChart: boolean
 	disabled: boolean
 }) => {
-	const { data, loading, error } = useFetchChartsSummary(dataToFetch, slug(name), undefined, disabled)
+	const { data, isLoading, error } = useFetchChartsSummary(dataToFetch, slug(name), undefined, disabled)
 
 	const mainChart = React.useMemo(() => {
-		if (loading || error || !data) return null
+		if (isLoading || error || !data) return null
 
 		let chartData: IJoin2ReturnType
 		let title: string
@@ -43,7 +43,7 @@ export const useGetOverviewChartData = ({
 		)
 
 		return finalData && finalData.length > 0 ? finalData : null
-	}, [data, error, loading, enableBreakdownChart, type])
+	}, [data, error, isLoading, enableBreakdownChart, type])
 
-	return { data: mainChart, loading }
+	return { data: mainChart, isLoading }
 }

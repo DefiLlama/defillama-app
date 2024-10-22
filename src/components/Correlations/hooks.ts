@@ -1,8 +1,8 @@
-import { useQueries } from 'react-query'
+import { useQueries } from '@tanstack/react-query'
 
-export const usePriceCharts = (geckoIds) => {
-	const data = useQueries<any>(
-		geckoIds.map((id) => ({
+export const usePriceCharts = (geckoIds = []) => {
+	const data = useQueries<any>({
+		queries: geckoIds.map((id) => ({
 			queryKey: ['price_chart', id],
 			queryFn: async () => {
 				const res = await fetch(`https://fe-cache.llama.fi/cgchart/${id}`)
@@ -17,7 +17,7 @@ export const usePriceCharts = (geckoIds) => {
 				}
 			}
 		}))
-	)
+	})
 	return {
 		data: Object.fromEntries(
 			data.map((res, i) => [geckoIds[i], res.data?.data?.prices?.map((price) => price[1]) || []])

@@ -1,5 +1,5 @@
 import { TYPE } from '~/Theme'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 
 import React, { useMemo, useState, useRef, useCallback } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
@@ -105,7 +105,9 @@ export default function TokenPnl({ coinsData }) {
 		isError,
 		error,
 		refetch
-	} = useQuery(['pnlData', id, start, end], fetchPnlData, {
+	} = useQuery({
+		queryKey: ['pnlData', id, start, end],
+		queryFn: fetchPnlData,
 		enabled: !!id,
 		refetchOnWindowFocus: false
 	})

@@ -127,7 +127,7 @@ const ProApi = () => {
 	const authToken = currentAuthToken || ghAuth?.apiKey
 	const apiKey = newApiKey || currentKey?.apiKey || ghAuth?.apiKey
 
-	const { mutate: saveEmail } = useSaveEmail({ authToken })
+	const { mutate: saveEmail } = useSaveEmail()
 
 	const { data: credisUsage } = useGetCreditsUsage(apiKey)
 

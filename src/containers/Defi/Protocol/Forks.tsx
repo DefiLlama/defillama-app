@@ -1,19 +1,19 @@
-import useSWR from 'swr'
+import { useQuery } from '@tanstack/react-query'
 import { getForkPageData } from '~/api/categories/protocols'
 import { ForkContainer } from '~/containers/ForkContainer'
 
 export function ForksData({ protocolName }: { protocolName: string }) {
-	const { data, error } = useSWR(`/forks/${protocolName}`, () =>
-		getForkPageData(protocolName).then((data) => ({
-			chartData: data.props.chartData,
-			tokenLinks: [],
-			token: data.props.token,
-			filteredProtocols: data.props.filteredProtocols,
-			parentTokens: []
-		}))
-	)
-
-	const isLoading = !data && !error
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['forks', protocolName],
+		queryFn: () =>
+			getForkPageData(protocolName).then((data) => ({
+				chartData: data.props.chartData,
+				tokenLinks: [],
+				token: data.props.token,
+				filteredProtocols: data.props.filteredProtocols,
+				parentTokens: []
+			}))
+	})
 
 	if (isLoading) {
 		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>

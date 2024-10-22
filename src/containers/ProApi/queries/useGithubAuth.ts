@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { SERVER_API } from '../lib/constants'
 
 async function exchangeCodeForAccessToken(code, accessToken) {
@@ -44,13 +44,11 @@ const useGithubAuth = () => {
 		}
 	}, [code, token, router])
 
-	const auth = useQuery<{ apiKey: string | null; isContributor: boolean; login: string; token: string | null }>(
-		['github-auth', code, token],
-		() => exchangeCodeForAccessToken(code, token),
-		{
-			enabled: !!code || !!token
-		}
-	)
+	const auth = useQuery<{ apiKey: string | null; isContributor: boolean; login: string; token: string | null }>({
+		queryKey: ['github-auth', code, token],
+		queryFn: () => exchangeCodeForAccessToken(code, token),
+		enabled: !!code || !!token
+	})
 	return auth
 }
 

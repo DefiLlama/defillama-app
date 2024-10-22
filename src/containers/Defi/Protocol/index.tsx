@@ -469,7 +469,7 @@ function ProtocolContainer({
 
 	const tvls = Object.entries(tvlsByChain)
 
-	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
+	const { data: addlProtocolData, isLoading } = useFetchProtocol(protocol)
 
 	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, tokenBreakdownPieChart } =
 		React.useMemo(
@@ -484,7 +484,7 @@ function ProtocolContainer({
 	const chainsUnique = tvls.map((t) => t[0])
 
 	const showCharts =
-		loading ||
+		isLoading ||
 		(chainsSplit && chainsUnique?.length > 1) ||
 		(tokenBreakdown?.length > 1 && tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1) ||
 		tokensUnique?.length > 0 ||
@@ -514,7 +514,7 @@ function ProtocolContainer({
 	React.useEffect(() => {
 		router.push(router.asPath.split('#')[0] + '#' + tab.selectedId, undefined, { shallow: true })
 	}, [tab?.selectedId])
-	const { data: chainPrice, loading: fetchingChainPrice } = useGetTokenPrice(chartDenominations?.[1]?.geckoId)
+	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(chartDenominations?.[1]?.geckoId)
 
 	const formatPrice = (value?: number | string | null): string | number | null => {
 		if (Number.isNaN(Number(value))) return null
@@ -580,14 +580,14 @@ function ProtocolContainer({
 					stuck/lost.
 				</Announcement>
 			)}
-{(name === 'ReHold' || name === 'ReHold V1' || name === 'ReHold V2') && (
-	<Announcement warning={true} notCancellable={true}>
-		 $700,000 Unsanctioned Withdrawal  
-		Be cautious when interacting with ReHold, ReHold V1, and ReHold V2. It is important to review both sides of the story: 
-		Check both the history here: medium.com/@bifotofficial/700-000-unauthorized-withdrawal-from-rehold-protocol-full-disclosure-and-next-steps-097119d545cd
-		and the other side here: prnt.sc/HspPo_049Lzk. On rehold.io. Made on 26/09/2024.
-	</Announcement>
-)}
+			{(name === 'ReHold' || name === 'ReHold V1' || name === 'ReHold V2') && (
+				<Announcement warning={true} notCancellable={true}>
+					$700,000 Unsanctioned Withdrawal Be cautious when interacting with ReHold, ReHold V1, and ReHold V2. It is
+					important to review both sides of the story: Check both the history here:
+					medium.com/@bifotofficial/700-000-unauthorized-withdrawal-from-rehold-protocol-full-disclosure-and-next-steps-097119d545cd
+					and the other side here: prnt.sc/HspPo_049Lzk. On rehold.io. Made on 26/09/2024.
+				</Announcement>
+			)}
 
 			<div>
 				{otherProtocols?.length > 1 && (
@@ -1313,7 +1313,7 @@ function ProtocolContainer({
 								chartColors={chartColors}
 								metrics={metrics}
 								activeUsersId={users ? protocolData.id : null}
-								usdInflowsData={usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null}
+								usdInflowsData={usdInflowsParam === 'true' && !isLoading && usdInflows?.length > 0 ? usdInflows : null}
 								governanceApis={governanceApis}
 								isHourlyChart={isHourlyChart}
 								isCEX={isCEX}
@@ -1651,7 +1651,7 @@ function ProtocolContainer({
 					{showCharts && (
 						<TabPanel state={tab} tabId="tvl-charts">
 							<ChartsWrapper style={{ background: 'none', border: 'none' }}>
-								{loading ? (
+								{isLoading ? (
 									<ChartsPlaceholder>Loading...</ChartsPlaceholder>
 								) : (
 									<>

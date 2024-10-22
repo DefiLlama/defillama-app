@@ -1,7 +1,7 @@
-import useSWR from 'swr'
 import { CG_TOKEN_API } from '~/constants/index'
-import { arrayFetcher, fetcher, retrySWR } from '~/utils/useSWR'
+import { fetchApi } from '~/utils/async'
 import type { IResponseCGMarketsAPI } from './types'
+import { useQuery } from '@tanstack/react-query'
 
 function getCGMarketsDataURLs() {
 	const urls: string[] = []
@@ -13,18 +13,15 @@ function getCGMarketsDataURLs() {
 }
 
 export const useFetchCoingeckoTokensList = () => {
-	const { data, error } = useSWR<Array<IResponseCGMarketsAPI>>(
-		'coingeckotokenslist',
-		() => arrayFetcher(getCGMarketsDataURLs()),
-		{
-			onErrorRetry: retrySWR
-		}
-	)
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['coingeckotokenslist'],
+		queryFn: () => fetchApi(getCGMarketsDataURLs())
+	})
 
 	return {
 		data: data?.flat(),
 		error,
-		loading: !data && !error
+		isLoading
 	}
 }
 
@@ -44,7 +41,7 @@ export async function retryCoingeckoRequest(func, retries) {
 }
 
 export async function getAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>> {
-	const data = await fetcher('https://defillama-datasets.llama.fi/tokenlist/sorted.json')
+	const data = await fetch('https://defillama-datasets.llama.fi/tokenlist/sorted.json').then((res) => res.json())
 
 	return data
 }

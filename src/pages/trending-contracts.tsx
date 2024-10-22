@@ -1,19 +1,16 @@
 import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
-import useSWR from 'swr'
 import Layout from '~/layout'
 import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import VirtualTable from '~/components/Table/Table'
-import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
 import { useDebounce } from '~/hooks'
 import { formattedPercent } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import RowFilter from '~/components/Filters/common/RowFilter'
+import { useQuery } from '@tanstack/react-query'
 
 const fetch = fetchWithErrorLogging
 
@@ -45,26 +42,26 @@ async function getContracts(chain: string, time: number) {
 					r.map(async (contract) => {
 						let name = contract.name ? { name: contract.name } : undefined
 						if (!name) {
-						try {
-							name = await fetch(
-								`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`
-							).then((r) => r.json())
-							if (name.name === undefined) {
-								throw new Error('RolodETH: No name')
-							}
-						} catch (e) {
 							try {
 								name = await fetch(
-									`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`
+									`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`
 								).then((r) => r.json())
-								if (name.name === '') {
-									throw new Error('Etherescan: Contract not verified')
+								if (name.name === undefined) {
+									throw new Error('RolodETH: No name')
 								}
 							} catch (e) {
-								name = undefined
+								try {
+									name = await fetch(
+										`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`
+									).then((r) => r.json())
+									if (name.name === '') {
+										throw new Error('Etherescan: Contract not verified')
+									}
+								} catch (e) {
+									name = undefined
+								}
 							}
 						}
-					}
 						return {
 							...contract,
 							name: name?.name
@@ -85,7 +82,10 @@ export default function TrendingContracts() {
 
 	const activeChain = typeof chain === 'string' ? chain.toLowerCase() : 'ethereum'
 
-	const { data, error } = useSWR(`trendingcontracts${time}${activeChain}`, () => getContracts(activeChain, time))
+	const { data, isLoading, error } = useQuery({
+		queryKey: [`trending-contracts-${time}${activeChain}`],
+		queryFn: () => getContracts(activeChain, time)
+	})
 
 	const results = data?.results ?? []
 
@@ -115,7 +115,7 @@ export default function TrendingContracts() {
 				/>
 			</TableFilters>
 
-			{!data && !error ? (
+			{isLoading ? (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
 					Loading...
 				</Panel>
@@ -141,7 +141,15 @@ const columns = (chain: string) =>
 				return (
 					<a
 						href={`https://${
-							chain === 'ethereum' ? 'etherscan.io' : chain === 'arbitrum' ? 'arbiscan.io' : chain === 'optimism' ? 'optimistic.etherscan.io' : chain === 'base' ? 'basescan.org' : 'polygonscan.com'
+							chain === 'ethereum'
+								? 'etherscan.io'
+								: chain === 'arbitrum'
+								? 'arbiscan.io'
+								: chain === 'optimism'
+								? 'optimistic.etherscan.io'
+								: chain === 'base'
+								? 'basescan.org'
+								: 'polygonscan.com'
 						}/address/${value}`}
 						target="_blank"
 						rel="noopener noreferrer"

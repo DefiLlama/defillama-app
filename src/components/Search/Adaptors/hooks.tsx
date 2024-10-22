@@ -4,7 +4,7 @@ import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from '~/utils'
 import type { IBaseSearchProps, IGetSearchList } from '../types'
 
 export function useGetAdaptorsSearchList(type: string, onlyChains?: boolean): IGetSearchList {
-	const { data, loading } = useFetchAdaptorsList(type)
+	const { data, isLoading, isError } = useFetchAdaptorsList(type)
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
 		const list = (onlyChains === true ? data?.allChains.map((chain) => ({ name: chain })) : data?.protocols) ?? []
@@ -18,5 +18,5 @@ export function useGetAdaptorsSearchList(type: string, onlyChains?: boolean): IG
 		}))
 	}, [data, onlyChains, type])
 
-	return { data: searchData, loading, error: !data && !loading }
+	return { data: searchData, loading: isLoading, error: isError }
 }

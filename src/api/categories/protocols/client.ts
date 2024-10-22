@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import useSWR from 'swr'
 import {
 	CACHE_SERVER,
 	DEV_METRICS_API,
@@ -13,52 +12,39 @@ import {
 	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
-import { fetcher } from '~/utils/useSWR'
+import { fetchApi } from '~/utils/async'
 import { getProtocol, getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
-import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchAndFormatGovernanceData } from '~/containers/Defi/Protocol/Governance'
 import { buildProtocolAddlChartsData } from '~/containers/Defi/Protocol/utils'
-import { IProtocolDevActivity } from '~/api/types'
-
-const fetch = fetchWithErrorLogging
+import { useQuery } from '@tanstack/react-query'
 
 export const useFetchProtocolsList = () => {
-	const { data, error } = useSWR(PROTOCOLS_API, fetcher)
-
-	return { data, error, loading: !data && !error }
+	return useQuery({ queryKey: [PROTOCOLS_API], queryFn: () => fetchApi(PROTOCOLS_API) })
 }
 
 export const useFetchProtocol = (protocolName) => {
-	const { data, error } = useSWR(`updatedProtocolsData/${protocolName}`, () => getProtocol(protocolName))
-
-	const loading = protocolName && !data && !error
-
-	return { data, error, loading }
+	return useQuery({ queryKey: ['updated-protocols-data', protocolName], queryFn: () => getProtocol(protocolName) })
 }
 
 export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
-	const { data, error } = useSWR(
-		`updatedProtocolsDataWithInflows/${protocolName}/${JSON.stringify(extraTvlsEnabled)}`,
-		protocolName
+	return useQuery({
+		queryKey: [`updatedProtocolsDataWithInflows/${protocolName}/${JSON.stringify(extraTvlsEnabled)}`],
+		queryFn: protocolName
 			? () =>
 					getProtocol(protocolName)
 						.then((protocolData) => buildProtocolAddlChartsData({ protocolData, extraTvlsEnabled }))
 						.catch(() => null)
 			: () => null,
-		{ errorRetryCount: 0 }
-	)
-
-	const loading = !data && data !== null && !error
-
-	return { data, error, loading }
+		retry: 0
+	})
 }
 
 export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
-	const { data, error } = useSWR(
-		`treasury/${protocolName}/${includeTreasury}`,
-		protocolName
+	return useQuery({
+		queryKey: [`treasury/${protocolName}/${includeTreasury}`],
+		queryFn: protocolName
 			? () =>
 					fetch(`${PROTOCOL_TREASURY_API}/${protocolName}`)
 						.then((res) => res.json())
@@ -68,18 +54,14 @@ export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
 							} else return data
 						})
 			: () => null,
-		{ errorRetryCount: 0 }
-	)
-
-	const loading = !data && data !== null && !error
-
-	return { data, error, loading }
+		retry: 0
+	})
 }
 
 export const useFetchProtocolActiveUsers = (protocolId: number | string | null) => {
-	const { data, error } = useSWR(
-		`activeUsers/${protocolId}`,
-		protocolId
+	return useQuery({
+		queryKey: [`activeUsers/${protocolId}`],
+		queryFn: protocolId
 			? () =>
 					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
@@ -88,15 +70,13 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 						})
 						.catch((err) => [])
 			: () => null,
-		{ errorRetryCount: 0 }
-	)
-
-	return { data, error, loading: !data && data !== null && !error }
+		retry: 0
+	})
 }
 export const useFetchProtocolNewUsers = (protocolId: number | string | null) => {
-	const { data, error } = useSWR(
-		`newUsers/${protocolId}`,
-		protocolId
+	return useQuery({
+		queryKey: [`newUsers/${protocolId}`],
+		queryFn: protocolId
 			? () =>
 					fetch(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
@@ -105,10 +85,8 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 						})
 						.catch((err) => [])
 			: () => null,
-		{ errorRetryCount: 0 }
-	)
-
-	return { data, error, loading: !data && data !== null && !error }
+		retry: 0
+	})
 }
 
 const getProtocolUsers = async (protocolId: number | string) => {
@@ -153,17 +131,17 @@ const getProtocolUsers = async (protocolId: number | string) => {
 }
 
 export const useFetchProtocolUsers = (protocolId: number | string | null) => {
-	const { data, error } = useSWR(`users/${protocolId}`, protocolId ? () => getProtocolUsers(protocolId) : () => null, {
-		errorRetryCount: 0
+	return useQuery({
+		queryKey: [`users/${protocolId}`],
+		queryFn: protocolId ? () => getProtocolUsers(protocolId) : () => null,
+		retry: 0
 	})
-
-	return { data, error, loading: !data && data !== null && !error }
 }
 
 export const useFetchProtocolTransactions = (protocolId: number | string | null) => {
-	const { data, error } = useSWR(
-		`protocolTransactionsApi/${protocolId}`,
-		protocolId
+	return useQuery({
+		queryKey: [`protocolTransactionsApi/${protocolId}`],
+		queryFn: protocolId
 			? () =>
 					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
@@ -172,16 +150,14 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 						})
 						.catch((err) => [])
 			: () => null,
-		{ errorRetryCount: 0 }
-	)
-
-	return { data, error, loading: !data && data !== null && !error }
+		retry: 0
+	})
 }
 
 export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
-	const { data, error } = useSWR(
-		`protocolGasUsed/${protocolId}`,
-		protocolId
+	return useQuery({
+		queryKey: [`protocolGasUsed/${protocolId}`],
+		queryFn: protocolId
 			? () =>
 					fetch(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
@@ -190,29 +166,26 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 						})
 						.catch((err) => [])
 			: () => null,
-		{ errorRetryCount: 0 }
-	)
-
-	return { data, error, loading: !data && data !== null && !error }
+		retry: 0
+	})
 }
 export const useFetchProtocolTokenLiquidity = (token: string | null) => {
-	const { data, error } = useSWR(
-		`tokenLiquidity/${token}`,
-		token
+	return useQuery({
+		queryKey: [`tokenLiquidity/${token}`],
+		queryFn: token
 			? () =>
 					fetch(`${TOKEN_LIQUIDITY_API}/${token.replaceAll('#', '$')}`)
 						.then((res) => res.json())
 
 						.catch((err) => null)
-			: () => null
-	)
-
-	return { data, error, loading: !data && data !== null && !error }
+			: () => null,
+		retry: 0
+	})
 }
 export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
-	const { data, error } = useSWR(
-		`medianApy/${protocolName}`,
-		protocolName
+	return useQuery({
+		queryKey: [`medianApy/${protocolName}`],
+		queryFn: protocolName
 			? () =>
 					fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
 						.then((res) => res.json())
@@ -225,42 +198,50 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 							return []
 						})
 			: () => null,
-		{ errorRetryCount: 0 }
-	)
-
-	return { data, error, loading: !data && data !== null && !error }
+		retry: 0
+	})
 }
 
 export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | null) => {
-	const { data, error } = useSWR(JSON.stringify(governanceApis), () => fetchAndFormatGovernanceData(governanceApis), {
-		errorRetryCount: 0
+	return useQuery({
+		queryKey: [JSON.stringify(governanceApis)],
+		queryFn: () => fetchAndFormatGovernanceData(governanceApis),
+		retry: 0
 	})
-
-	return { data, error, loading: !data && data !== null && !error }
 }
 
 export const useDenominationPriceHistory = (geckoId?: string) => {
-	let url = `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`
+	let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
 
-	// append end time to fetcher params to keep query key consistent b/w renders and avoid over fetching
-	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url).then((r) => r.data), {
-		errorRetryCount: 0
+	const { data, isLoading, error } = useQuery({
+		queryKey: [url],
+		queryFn: () => fetchApi(url).then((r) => r.data),
+		retry: 0
 	})
+
 	const res = data && data?.prices?.length > 0 ? data : { prices: [], mcaps: [], volumes: [] }
 
-	return { data: res, error, loading: geckoId && !data && !error }
+	return { data: res, error, isLoading }
 }
 
 export const useGetTokenPrice = (geckoId?: string) => {
-	let url = `https://coins.llama.fi/prices/current/coingecko:${geckoId}`
+	let url = geckoId ? `https://coins.llama.fi/prices/current/coingecko:${geckoId}` : null
 
-	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url), { errorRetryCount: 0 })
+	const { data, isLoading, error } = useQuery({
+		queryKey: [url],
+		queryFn: () => fetchApi(url),
+		retry: 0
+	})
 
-	return { data: data?.coins?.[`coingecko:${geckoId}`], error, loading: geckoId && !data && !error }
+	return { data: data?.coins?.[`coingecko:${geckoId}`], error, isLoading }
 }
 
 export const useGetProtocolsList = ({ chain }) => {
-	const { data, error } = useSWR(PROTOCOLS_API, (url) => fetcher(url))
+	const { data, isLoading } = useQuery({
+		queryKey: [PROTOCOLS_API],
+		queryFn: () => fetchApi(PROTOCOLS_API),
+		retry: 0
+	})
 
 	const { fullProtocolsList, parentProtocols } = useMemo(() => {
 		if (data) {
@@ -279,76 +260,65 @@ export const useGetProtocolsList = ({ chain }) => {
 		return { fullProtocolsList: [], parentProtocols: [] }
 	}, [chain, data])
 
-	return { fullProtocolsList, parentProtocols, isLoading: !data && !error }
+	return { fullProtocolsList, parentProtocols, isLoading }
 }
 
 export const useGetProtocolEmissions = (protocol?: string | null) => {
-	const { data, error } = useSWR(
-		`unlocksData/${protocol}`,
-		protocol ? () => getProtocolEmissons(protocol) : () => null,
-		{ errorRetryCount: 0 }
-	)
-
-	return { data, error, loading: !data && data !== null && !error }
+	return useQuery({
+		queryKey: [`unlocksData/${protocol}`],
+		queryFn: protocol ? () => getProtocolEmissons(protocol) : () => null,
+		retry: 0
+	})
 }
 
 export const useFetchProtocolTwitter = (twitter?: string | null) => {
-	const { data: res, error } = useSWR(
-		`twitterData1/${twitter}`,
-		twitter ? () => fetch(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((r) => r.json()) : () => null,
-		{ errorRetryCount: 0 }
-	)
-	const data = res && res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
-
-	return { data, error, loading: twitter && !data && !error }
+	return useQuery({
+		queryKey: [`twitterData1/${twitter}`],
+		queryFn: twitter
+			? () =>
+					fetchApi(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((res) =>
+						res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
+					)
+			: () => null,
+		retry: 0
+	})
 }
 
 export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
-	const url = protocol?.includes('parent')
-		? `${DEV_METRICS_API}/parent/${protocol?.replace('parent#', '')}.json`
-		: `${DEV_METRICS_API}/${protocol}.json`
+	const url = protocol
+		? protocol?.includes('parent')
+			? `${DEV_METRICS_API}/parent/${protocol?.replace('parent#', '')}.json`
+			: `${DEV_METRICS_API}/${protocol}.json`
+		: null
 
-	const { data, error } = useSWR<IProtocolDevActivity>(
-		`devMetrics/${protocol}`,
-		protocol
-			? () =>
-					fetch(url)
-						.then((res) => res.json())
-
-						.catch((err) => null)
-						.then()
-			: () => null,
-		{ errorRetryCount: 0 }
-	)
-
-	return { data, error, loading: !data && data !== null && !error }
+	return useQuery({
+		queryKey: [url],
+		queryFn: () => fetchApi(url).catch((err) => null),
+		retry: 0
+	})
 }
 
 export const useGeckoId = (addressData: string | null) => {
 	const [chain, address] = addressData?.split(':') ?? [null, null]
-	const { data, error } = useSWR(
-		`geckoId/${addressData}`,
-		address
-			? async () => {
-					if (chain === 'coingecko') return { id: address }
-					const res = await fetch(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`).then((res) =>
-						res.json()
-					)
-					return res
-			  }
-			: () => null,
-		{ errorRetryCount: 0 }
-	)
 
-	return { data, id: data?.id, error, loading: !data && data !== null && !error }
+	const { data, error, isLoading } = useQuery({
+		queryKey: [`geckoId/${addressData}`],
+		queryFn: address
+			? chain === 'coingecko'
+				? () => ({ id: address })
+				: () => fetchApi(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`)
+			: () => null,
+		retry: 0
+	})
+
+	return { data: data?.id, isLoading, error }
 }
 
 export const usePriceChart = (geckoId?: string) => {
-	const { data, error } = useSWR(
-		geckoId ? `priceChart/${geckoId}` : null,
-		() => fetch(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res) => res.json()),
-		{ errorRetryCount: 0 }
-	)
-
-	return { data: data?.data, error, loading: geckoId && !data && !error }
+	const url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
+	return useQuery({
+		queryKey: [url],
+		queryFn: () => fetchApi(url).catch((err) => null),
+		retry: 0
+	})
 }
