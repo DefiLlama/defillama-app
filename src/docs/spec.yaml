@@ -19,6 +19,8 @@ tags:
     description: Data from our volumes dashboards
   - name: fees and revenue
     description: Data from our fees and revenue dashboard
+  - name: derivatives
+    description: Data from our derivatives
 servers:
   - url: https://api.llama.fi
 paths:
@@ -948,6 +950,53 @@ paths:
             type: string
             enum: [totalFees, dailyFees, totalRevenue, dailyRevenue]
             example: dailyFees
+      responses:
+        '200':
+          description: successful operation
+          
+  /overview/derivatives:
+    get:
+      tags:
+        - derivatives
+      summary: Lists all derivatives along summaries of their volumes filtering by chain
+      servers:
+      - url: https://api.llama.fi
+      parameters:
+        - name: excludeTotalDataChart
+          in: path
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+        - name: excludeTotalDataChartBreakdown
+          in: path
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: successful operation
+  /overview/derivatives/{protocol}:
+    get:
+      tags:
+        - derivatives
+      summary: Volume Details about a specific derivative
+      servers:
+      - url: https://api.llama.fi/summary/
+      parameters:
+        - name: excludeTotalDataChart
+          in: path
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+        - name: excludeTotalDataChartBreakdown
+          in: path
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
       responses:
         '200':
           description: successful operation
