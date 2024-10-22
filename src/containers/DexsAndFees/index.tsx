@@ -76,7 +76,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 		props.type,
 		props.parentProtocols,
 		isSimpleFees,
-		enabledSettings
+		enabledSettings,
+		props.total24h
 	])
 
 	const [charts, setCharts] = React.useState<IJSON<IOverviewContainerProps['totalDataChartBreakdown']>>({

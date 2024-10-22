@@ -372,7 +372,7 @@ export const groupProtocolsByParent = ({
 	enabledSettings: ISettings
 	total24h?: number
 }) => {
-	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {})
+	const parentProtocolsMap = parentProtocols?.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {}) ?? {}
 	const finalProtocolsList = protocols.reduce((acc, protocol) => {
 		let mainRow
 
