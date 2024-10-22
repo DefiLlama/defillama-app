@@ -34,5 +34,10 @@ export const generateNewApiKey = async ({ authToken }: { authToken?: string | nu
 export function useGenerateNewApiKey() {
 	const queryClient = useQueryClient()
 
-	return useMutation({ mutationFn: generateNewApiKey })
+	return useMutation({
+		mutationFn: generateNewApiKey,
+		onSuccess: () => {
+			queryClient.invalidateQueries()
+		}
+	})
 }

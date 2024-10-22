@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SERVER_API } from '../lib/constants'
 
 const validateEmail = (email: string) => {
@@ -40,7 +40,13 @@ const saveEmail = async ({ authToken, email }: { authToken?: string | null; emai
 }
 
 const useSaveEmail = () => {
-	return useMutation({ mutationFn: saveEmail })
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: saveEmail,
+		onSuccess: () => {
+			queryClient.invalidateQueries()
+		}
+	})
 }
 
 export { useSaveEmail }
