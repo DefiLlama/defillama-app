@@ -1,27 +1,6 @@
 import { ReactNode } from 'react'
-import {
-	PieChart,
-	Droplet,
-	BarChart,
-	DollarSign,
-	Percent,
-	BarChart2,
-	Book,
-	ShieldOff,
-	Search,
-	BookOpen,
-	Repeat,
-	Layers,
-	Unlock,
-	Image as ImageIcon,
-	Shuffle,
-	FileText,
-	TrendingUp,
-	FilePlus,
-	Eye,
-	AlignLeft
-} from 'react-feather'
 import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
+import { Icon } from '../Icon'
 
 export interface IMainLink {
 	name: string
@@ -160,7 +139,7 @@ export const navLinks: ILinks = {
 			{ name: 'Token PNL', path: '/token-pnl', newTag: true }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <BarChart2 size={16} />
+		icon: <Icon name="bar-chart-2" height={16} width={16} />
 	},
 	Yields: {
 		main: [
@@ -224,17 +203,17 @@ export const navLinks: ILinks = {
 				path: '/donations'
 			}
 		],
-		icon: <Percent size={16} />
+		icon: <Icon name="percent" height={16} width={16} />
 	},
 	'DefiLlama Swap': {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Repeat size={16} />
+		icon: <Icon name="repeat" height={16} width={16} />
 	},
 	LlamaFeed: {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <AlignLeft size={16} />
+		icon: <Icon name="align-left" height={16} width={16} />
 	},
 	NFT: {
 		main: [
@@ -243,12 +222,12 @@ export const navLinks: ILinks = {
 			{ name: 'Earnings', path: '/nfts/earnings' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <ImageIcon size={16} />
+		icon: <Icon name="image" height={16} width={16} />
 	},
 	Unlocks: {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Unlock size={16} />,
+		icon: <Icon name="unlock" height={16} width={16} />,
 		newTag: true
 	},
 	'Borrow Aggregator': {
@@ -257,12 +236,12 @@ export const navLinks: ILinks = {
 			{ name: 'Advanced', path: '/borrow/advanced' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <Search size={16} />
+		icon: <Icon name="search" height={16} width={16} />
 	},
 	'CEX Transparency': {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <BookOpen size={16} />
+		icon: <Icon name="book-open" height={16} width={16} />
 	},
 	Bridges: {
 		main: [
@@ -271,18 +250,18 @@ export const navLinks: ILinks = {
 			{ name: 'Transactions', path: '/bridge-transactions', newTag: true }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <Shuffle size={16} />
+		icon: <Icon name="shuffle" height={16} width={16} />
 	},
 	Governance: {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <FileText size={16} />,
+		icon: <Icon name="file-text" height={16} width={16} />,
 		newTag: true
 	},
 	Liquidations: {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Droplet size={16} />
+		icon: <Icon name="droplet" height={16} width={16} />
 	},
 	Volumes: {
 		main: [
@@ -296,7 +275,7 @@ export const navLinks: ILinks = {
 			{ name: 'Options (Chains)', path: '/options/chains' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <BarChart size={16} />
+		icon: <Icon name="bar-chart" height={16} width={16} />
 	},
 	'Fees/Revenue': {
 		main: [
@@ -304,7 +283,7 @@ export const navLinks: ILinks = {
 			{ name: 'Advanced', path: '/fees' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <PieChart size={16} />
+		icon: <Icon name="pie-chart" height={16} width={16} />
 	},
 	Raises: {
 		main: [
@@ -312,7 +291,7 @@ export const navLinks: ILinks = {
 			{ name: 'Investors', path: '/raises/investors' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <Book size={16} />
+		icon: <Icon name="book" height={16} width={16} />
 	},
 	Stables: {
 		main: [
@@ -320,17 +299,17 @@ export const navLinks: ILinks = {
 			{ name: 'Chains', path: '/stablecoins/chains' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <DollarSign size={16} />
+		icon: <Icon name="dollar-sign" height={16} width={16} />
 	},
 	Hacks: {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <ShieldOff size={16} />
+		icon: <Icon name="shield-off" height={16} width={16} />
 	},
 	'ETH Liquid Staking': {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Layers size={16} />
+		icon: <Icon name="layers" height={16} width={16} />
 	},
 	'Crypto ETFs': {
 		main: [
@@ -338,19 +317,19 @@ export const navLinks: ILinks = {
 			{ name: 'ETH', path: '/crypto-etf/ethereum' }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <TrendingUp size={16} />,
+		icon: <Icon name="trending-up" height={16} width={16} />,
 		newTag: true
 	},
 	'Narrative Tracker': {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Eye size={16} />,
+		icon: <Icon name="eye" height={16} width={16} />,
 		newTag: true
 	}
 	// NFTs: {
 	// 	main: [],
 	// 	...defaultToolsAndFooterLinks,
-	// 	icon: <FeatherImage size={16} />
+	// 	icon: <FeatherImage height={16} width={16} />
 	// }
 }
 
@@ -358,7 +337,7 @@ if (IS_PRO_API_ENABLED) {
 	navLinks['Pro API'] = {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <FilePlus size={16} />,
+		icon: <Icon name="file-plus" height={16} width={16} />,
 		newTag: true
 	}
 }

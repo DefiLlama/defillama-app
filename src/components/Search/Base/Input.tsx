@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Combobox, ComboboxState } from 'ariakit'
 import styled from 'styled-components'
-import { Search as SearchIcon, X as XIcon } from 'react-feather'
+import { Icon } from '~/components/Icon'
 
 const InputField = styled(Combobox)`
 	padding: 14px 16px 14px 40px;
@@ -173,12 +173,20 @@ export function Input({
 					{state.mounted ? (
 						<>
 							<span className="visually-hidden">Close Search</span>
-							<XIcon size={variant === 'secondary' ? '16px' : '18px'} />
+							<Icon
+								name="x"
+								height={variant === 'secondary' ? '16px' : '18px'}
+								width={variant === 'secondary' ? '16px' : '18px'}
+							/>
 						</>
 					) : (
 						<>
 							<span className="visually-hidden">Open Search</span>
-							<SearchIcon size={variant === 'secondary' ? '16px' : '18px'} />
+							<Icon
+								name="search"
+								height={variant === 'secondary' ? '16px' : '18px'}
+								width={variant === 'secondary' ? '16px' : '18px'}
+							/>
 						</>
 					)}
 				</IconWrapper>
@@ -229,7 +237,7 @@ export function MobileInput({
 
 			<IconWrapper onClick={() => hideInput && hideInput(false)}>
 				<span className="visually-hidden">Close Search</span>
-				<XIcon />
+				<Icon name="x" height={24} width={24} />
 			</IconWrapper>
 		</>
 	)

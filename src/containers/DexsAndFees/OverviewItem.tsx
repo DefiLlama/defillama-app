@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Link from 'next/link'
 
-import { ArrowUpRight } from 'react-feather'
 import Layout from '~/layout'
 import {
 	Button,
@@ -29,6 +28,7 @@ import { ProtocolChart } from './charts/ProtocolChart'
 import useEmissions from './hooks/useEmissions'
 import { sluggify } from '~/utils/cache-client'
 import { useFeesManager } from '~/contexts/LocalStorage'
+import { Icon } from '~/components/Icon'
 
 function ProtocolContainer(props: IProtocolContainerProps) {
 	useScrollToTop()
@@ -176,7 +176,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						{props.protocolSummary.url && (
 							<Link href={props.protocolSummary.url} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-									<span>Website</span> <ArrowUpRight size={14} />
+									<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 								</Button>
 							</Link>
 						)}
@@ -184,7 +184,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						{props.protocolSummary.twitter && (
 							<Link href={`https://twitter.com/${props.protocolSummary.twitter}`} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-									<span>Twitter</span> <ArrowUpRight size={14} />
+									<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
 								</Button>
 							</Link>
 						)}
@@ -206,7 +206,8 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 										<CopyHelper toCopy={blockExplorer.address} disabled={!blockExplorer.address} />
 										<Link href={blockExplorer.blockExplorerLink} passHref>
 											<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-												<span>View on {blockExplorer.blockExplorerName}</span> <ArrowUpRight size={14} />
+												<span>View on {blockExplorer.blockExplorerName}</span>{' '}
+												<Icon name="arrow-up-right" height={14} width={14} />
 											</Button>
 										</Link>
 									</FlexRow>
@@ -218,7 +219,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 							<LinksWrapper>
 								<Link href={`https://www.coingecko.com/en/coins/${props.protocolSummary.gecko_id}`} passHref>
 									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-										<span>View on CoinGecko</span> <ArrowUpRight size={14} />
+										<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
 									</Button>
 								</Link>
 							</LinksWrapper>
@@ -240,7 +241,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 							<Link href={props.protocolSummary.methodologyURL} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Check the code</span>
-									<ArrowUpRight size={14} />
+									<Icon name="arrow-up-right" height={14} width={14} />
 								</Button>
 							</Link>
 						</LinksWrapper>

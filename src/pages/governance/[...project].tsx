@@ -15,7 +15,6 @@ import {
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
 import Link from 'next/link'
-import { ArrowUpRight } from 'react-feather'
 import dynamic from 'next/dynamic'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { AutoRow } from '~/components/Row'
@@ -24,6 +23,7 @@ import { GovernanceTable } from '~/containers/Defi/Protocol/Governance'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { Icon } from '~/components/Icon'
 
 const fetch = fetchWithErrorLogging
 
@@ -194,7 +194,7 @@ export default function Protocol({ data, governanceType }) {
 					{data.metadata.domain && (
 						<Link href={`https://${data.metadata.domain}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>Website</span> <ArrowUpRight size={14} />
+								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</Button>
 						</Link>
 					)}
@@ -202,7 +202,7 @@ export default function Protocol({ data, governanceType }) {
 					{data.metadata.twitter && (
 						<Link href={`https://twitter.com/${data.metadata.twitter}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>Twitter</span> <ArrowUpRight size={14} />
+								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</Button>
 						</Link>
 					)}
@@ -211,7 +211,7 @@ export default function Protocol({ data, governanceType }) {
 						<Link href={`https://github.com/${data.metadata.github}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>Github</span>
-								<ArrowUpRight size={14} />
+								<Icon name="arrow-up-right" height={14} width={14} />
 							</Button>
 						</Link>
 					)}
@@ -219,7 +219,7 @@ export default function Protocol({ data, governanceType }) {
 					{data.metadata.coingecko && (
 						<Link href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>View on CoinGecko</span> <ArrowUpRight size={14} />
+								<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</Button>
 						</Link>
 					)}

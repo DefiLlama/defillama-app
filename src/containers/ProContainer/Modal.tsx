@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Crosshair } from 'react-feather'
 import styled from 'styled-components'
+import { Icon } from '~/components/Icon'
 
 const ModalOverlay = styled.div`
 	position: fixed;
@@ -64,7 +64,7 @@ const Modal = ({ children, onClose, onSave, openText, ...props }) => {
 				<ModalOverlay onClick={handleOverlayClick} {...props}>
 					<ModalContent>
 						<CloseButton onClick={closeModal}>
-							<Crosshair />
+							<Icon name="crosshair" height={24} width={24} />
 						</CloseButton>
 						{children}
 						<div style={{ display: 'flex', justifyContent: 'end', marginTop: '8px' }}>

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Link as RebassLink } from 'rebass'
 import RouterLink from 'next/link'
 import styled from 'styled-components'
-import { ExternalLink as ExternalIcon } from 'react-feather'
+import { Icon } from '../Icon'
 
 interface BasicLinkProps {
 	href: string
@@ -32,6 +32,7 @@ const WrappedLink = ({ external, children, ...rest }: any) => (
 const StyledLink = styled.a`
 	display: inline-flex;
 	align-items: center;
+	gap: 0.5rem;
 	text-decoration: none;
 	color: ${({ theme }) => theme.primary1};
 	font-weight: 500;
@@ -42,16 +43,10 @@ const StyledLink = styled.a`
 	}
 `
 
-const ExternalLinkIcon = styled(ExternalIcon)`
-	margin-left: 0.5rem;
-	color: inherit;
-`
-
 export const ExternalLink = ({ href, children, ...props }) => {
 	return (
 		<StyledLink href={href} target="_blank" rel="noopener noreferrer" {...props}>
-			{children}
-			<ExternalLinkIcon size={16} />
+			{children} <Icon name="external-link" height={16} width={16} />
 		</StyledLink>
 	)
 }

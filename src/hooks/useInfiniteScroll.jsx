@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { ChevronsUp } from 'react-feather'
 import { Button } from 'rebass'
+import { Icon } from '~/components/Icon'
 
 export default function useInfiniteScroll({ list = [], numInView = 25 }) {
 	const [dataLength, setDatalength] = useState(numInView)
@@ -68,7 +68,7 @@ export default function useInfiniteScroll({ list = [], numInView = 25 }) {
 				display: displayScrollToTopButton ? 'inline' : 'none'
 			}}
 		>
-			<ChevronsUp color="black" />
+			<Icon name="chevrons-up" height={24} width={24} color="black" />
 		</Button>
 	)
 

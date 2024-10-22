@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import styled from 'styled-components'
 
 import Layout from '~/layout'
@@ -38,6 +37,7 @@ import exponentialLogo from '~/assets/exponential.avif'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '~/utils/async'
+import { Icon } from '~/components/Icon'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -461,7 +461,7 @@ const PageView = (props) => {
 							<span style={{ color: '#fd3c99' }}>{apyMean30d}%</span>
 						</Stat>
 						<DownloadButton as="button" onClick={downloadCsv}>
-							<DownloadCloud size={14} />
+							<Icon name="download-cloud" height={14} width={14} />
 							<span>&nbsp;&nbsp;.csv</span>
 						</DownloadButton>
 					</StatWrapper>
@@ -523,7 +523,7 @@ const PageView = (props) => {
 					<RiskRatingSection>
 						<RiskRatingTitle>
 							Risk Rating by exponential.fi{' '}
-							<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} />
+							<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} alt="" />
 						</RiskRatingTitle>
 						<RiskRatingContent>
 							<FactorsContainer>
@@ -548,7 +548,7 @@ const PageView = (props) => {
 													}
 												}}
 											>
-												{asset.name} {asset.url ? <ArrowUpRight size={14} /> : null}
+												{asset.name} {asset.url ? <Icon name="arrow-up-right" height={14} width={14} /> : null}
 											</Asset>
 										))}
 									</FactorAssets>
@@ -572,7 +572,7 @@ const PageView = (props) => {
 														}
 													}}
 												>
-													{protocol.name} {protocol.url ? <ArrowUpRight size={14} /> : null}
+													{protocol.name} {protocol.url ? <Icon name="arrow-up-right" height={14} width={14} /> : null}
 												</Asset>
 											))}
 									</FactorAssets>
@@ -594,7 +594,7 @@ const PageView = (props) => {
 														}
 													}}
 												>
-													{chain.name} {chain.url ? <ArrowUpRight size={14} /> : null}
+													{chain.name} {chain.url ? <Icon name="arrow-up-right" height={14} width={14} /> : null}
 												</Asset>
 											))}
 									</FactorAssets>
@@ -720,7 +720,7 @@ const PageView = (props) => {
 									color={backgroundColor}
 									disabled={isLoading}
 								>
-									<span>Website</span> <ArrowUpRight size={14} />
+									<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 								</Button>
 							</Link>
 						)}
@@ -728,7 +728,7 @@ const PageView = (props) => {
 						{twitter && (
 							<Link href={`https://twitter.com/${twitter}`} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-									<span>Twitter</span> <ArrowUpRight size={14} />
+									<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
 								</Button>
 							</Link>
 						)}

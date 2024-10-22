@@ -11,15 +11,14 @@ import { StatsSection } from '~/layout/Stats/Medium'
 import LocalLoader from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { chainIconUrl, formattedNum, getTokenDominance } from '~/utils'
+import { chainIconUrl, formattedNum } from '~/utils'
 import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import Image from 'next/image'
 
 import llamaLogo from '~/assets/peeking-llama.png'
-import { DetailsWrapper, DownloadButton, Name } from '~/layout/ProtocolAndPool'
+import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 
-import { ArrowUpRight, ChevronRight, DownloadCloud } from 'react-feather'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { RowWithSubRows, StatsTable2, SubrowTh } from '../Defi/Protocol'
 import SEO from '~/components/SEO'
@@ -35,6 +34,7 @@ import { sluggify } from '~/utils/cache-client'
 import QuestionHelper from '~/components/QuestionHelper'
 import Link from '~/components/Link'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
+import { Icon } from '~/components/Icon'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -306,7 +306,8 @@ export function ChainContainer({
 					{'  '}We've released{' '}
 					<Link href={`https://feed.defillama.com`}>
 						<a>
-							LlamaFeed, a real-time feed <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+							LlamaFeed, a real-time feed{' '}
+							<Icon name="arrow-up-right" height={14} width={14} style={{ display: 'inline' }} />{' '}
 						</a>
 					</Link>
 					{' !'}
@@ -341,7 +342,7 @@ export function ChainContainer({
 						<AccordionStat data-tvl>
 							<summary>
 								<span data-arrowicon>
-									<ChevronRight size={20} />
+									<Icon name="chevron-right" height={20} width={20} />
 								</span>
 
 								<span data-summaryheader>

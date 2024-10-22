@@ -3,14 +3,7 @@ import * as React from 'react'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BRIDGES_SHOWING_TXS, useBridgesManager } from '~/contexts/LocalStorage'
-import {
-	BreakpointPanel,
-	BreakpointPanels,
-	ChartAndValuesWrapper,
-	PanelHiddenMobile,
-	DownloadButton,
-	DownloadIcon
-} from '~/components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { Header } from '~/Theme'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'

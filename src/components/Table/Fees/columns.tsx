@@ -1,11 +1,11 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { ChevronDown, ChevronRight } from 'react-feather'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { IFeesRow } from './types'
+import { Icon } from '~/components/Icon'
 
 export const feesColumn: ColumnDef<IFeesRow>[] = [
 	{
@@ -28,7 +28,11 @@ export const feesColumn: ColumnDef<IFeesRow>[] = [
 								onClick: row.getToggleExpandedHandler()
 							}}
 						>
-							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+							{row.getIsExpanded() ? (
+								<Icon name="chevron-down" height={16} width={16} />
+							) : (
+								<Icon name="chevron-right" height={16} width={16} />
+							)}
 						</AccordionButton>
 					)}
 					<span>{index + 1}</span>

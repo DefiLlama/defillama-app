@@ -5,11 +5,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { ArrowUpRight, ChevronRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
 import {
 	Button,
-	DownloadButton,
 	ExtraOption,
 	FlexRow,
 	LinksWrapper,
@@ -34,7 +32,7 @@ import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import QuestionHelper from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
-import { DEFI_SETTINGS_KEYS, FEES_SETTINGS, useDefiManager, useTvlAndFeesManager } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS, FEES_SETTINGS, useTvlAndFeesManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
 	formatPercentage,
@@ -77,6 +75,7 @@ import { ForksData } from './Forks'
 import { GovernanceData } from './Governance'
 import { feesOptions } from '~/components/Filters/protocols/options'
 import { scams } from '~/constants'
+import { Icon } from '~/components/Icon'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -700,7 +699,7 @@ function ProtocolContainer({
 								<AccordionStat style={{ margin: '24px 0 16px' }}>
 									<summary>
 										<span data-arrowicon>
-											<ChevronRight size={20} />
+											<Icon name="chevron-right" height={20} width={20} />
 										</span>
 										<span data-summaryheader>
 											<span>
@@ -1277,7 +1276,8 @@ function ProtocolContainer({
 														<tr>
 															<SubrowTh data-subvalue>
 																<a href={expenses.sources?.[0] ?? null}>
-																	Source <ArrowUpRight size={10} style={{ display: 'inline' }} />
+																	Source{' '}
+																	<Icon name="arrow-up-right" height={10} width={10} style={{ display: 'inline' }} />
 																</a>
 															</SubrowTh>
 															<td data-subvalue></td>
@@ -1350,7 +1350,7 @@ function ProtocolContainer({
 												color={backgroundColor}
 												style={{ height: '33.5px' }}
 											>
-												<span>{category}</span> <ArrowUpRight size={14} />
+												<span>{category}</span> <Icon name="arrow-up-right" height={14} width={14} />
 											</Button>
 										</Link>
 									</FlexRow>
@@ -1363,7 +1363,7 @@ function ProtocolContainer({
 											{forkedFrom.map((p, index) => (
 												<React.Fragment key={'forked from' + p}>
 													<Link href={`/protocol/${slug(p)}`}>{forkedFrom[index + 1] ? p + ', ' : p}</Link>
-													<ArrowUpRight size={14} />
+													<Icon name="arrow-up-right" height={14} width={14} />
 												</React.Fragment>
 											))}
 										</>
@@ -1384,7 +1384,7 @@ function ProtocolContainer({
 												useTextColor={true}
 												color={backgroundColor}
 											>
-												<span>Website</span> <ArrowUpRight size={14} />
+												<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 											</Button>
 										</Link>
 									)}
@@ -1398,7 +1398,7 @@ function ProtocolContainer({
 												useTextColor={true}
 												color={backgroundColor}
 											>
-												<span>Twitter</span> <ArrowUpRight size={14} />
+												<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
 											</Button>
 										</Link>
 									)}
@@ -1473,7 +1473,7 @@ function ProtocolContainer({
 													useTextColor={true}
 													color={backgroundColor}
 												>
-													<span>View on CoinGecko</span> <ArrowUpRight size={14} />
+													<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
 												</Button>
 											</Link>
 										)}
@@ -1488,7 +1488,8 @@ function ProtocolContainer({
 														useTextColor={true}
 														color={backgroundColor}
 													>
-														<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
+														<span>View on {blockExplorerName}</span>{' '}
+														<Icon name="arrow-up-right" height={14} width={14} />
 													</Button>
 												</Link>
 											))}
@@ -1523,7 +1524,7 @@ function ProtocolContainer({
 													color={backgroundColor}
 												>
 													<span>{isCEX ? 'Wallet Addresses' : 'TVL code'}</span>
-													<ArrowUpRight size={14} />
+													<Icon name="arrow-up-right" height={14} width={14} />
 												</Button>
 											</Link>
 										)}
@@ -1538,7 +1539,7 @@ function ProtocolContainer({
 													color={backgroundColor}
 												>
 													<span>Fees and Revenue code</span>
-													<ArrowUpRight size={14} />
+													<Icon name="arrow-up-right" height={14} width={14} />
 												</Button>
 											</Link>
 										)}
@@ -1553,7 +1554,7 @@ function ProtocolContainer({
 													color={backgroundColor}
 												>
 													<span>Volume code</span>
-													<ArrowUpRight size={14} />
+													<Icon name="arrow-up-right" height={14} width={14} />
 												</Button>
 											</Link>
 										)}
@@ -1568,7 +1569,7 @@ function ProtocolContainer({
 													color={backgroundColor}
 												>
 													<span>Derivatives Volume code</span>
-													<ArrowUpRight size={14} />
+													<Icon name="arrow-up-right" height={14} width={14} />
 												</Button>
 											</Link>
 										)}
@@ -1620,7 +1621,7 @@ function ProtocolContainer({
 												useTextColor={true}
 												color={backgroundColor}
 											>
-												<span>Source</span> <ArrowUpRight size={14} />
+												<span>Source</span> <Icon name="arrow-up-right" height={14} width={14} />
 											</Button>
 										</Link>
 									</HackDataWrapper>
@@ -1857,7 +1858,7 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 			<tr data-parentrow>
 				<th>
 					<Toggle onClick={() => setOpen(!open)} data-open={open}>
-						<ChevronRight size={16} data-arrow />
+						<Icon name="chevron-right" height={16} width={16} data-arrow />
 						<span>{rowHeader}</span>
 						{helperText && <QuestionHelper text={helperText} />}
 					</Toggle>

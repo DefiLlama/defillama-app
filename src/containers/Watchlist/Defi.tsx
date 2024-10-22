@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 import { Header, TYPE } from '~/Theme'
 import { Panel } from '~/components'
@@ -12,6 +11,7 @@ import { formatProtocolsList } from '~/hooks/data/defi'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
+import { Icon } from '~/components/Icon'
 
 interface IFolder {
 	isSaved?: boolean
@@ -83,11 +83,11 @@ export function DefiWatchlistContainer() {
 					onItemClick={(value) => setSelectedPortfolio(value)}
 				/>
 				<Action onClick={addPortfolio}>
-					<FolderPlus />
+					<Icon name="folder-plus" height={24} width={24} />
 				</Action>
 				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
 					<Action onClick={removePortfolio}>
-						<Trash2 />
+						<Icon name="trash-2" height={24} width={24} />
 					</Action>
 				)}
 			</Row>

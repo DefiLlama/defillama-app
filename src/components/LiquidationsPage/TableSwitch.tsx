@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars*/
 import * as React from 'react'
 import styled from 'styled-components'
-import { Search, Percent } from 'react-feather'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
+import { Icon } from '../Icon'
 
 export const TableSwitch = () => {
 	const [liqsSettings, toggleLiqsSettings] = useLiqsManager()
@@ -12,11 +12,11 @@ export const TableSwitch = () => {
 	return (
 		<Wrapper>
 			<Switch active={!isLiqsShowingInspector} onClick={toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)}>
-				<Percent size={14} />
+				<Icon name="percent" height={14} width={14} />
 				<span>Distribution</span>
 			</Switch>
 			<Switch active={isLiqsShowingInspector} onClick={toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)}>
-				<Search size={14} />
+				<Icon name="search" height={14} width={14} />
 				<span>Positions</span>
 			</Switch>
 		</Wrapper>

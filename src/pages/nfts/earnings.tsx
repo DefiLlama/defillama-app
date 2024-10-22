@@ -7,11 +7,11 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { Header } from '~/Theme'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ColumnDef } from '@tanstack/react-table'
-import { ChevronDown, ChevronRight, Minus } from 'react-feather'
 import { AccordionButton, Name } from '~/components/Table/shared'
 import { formattedNum } from '~/utils'
 import TokenLogo, { FallbackLogo } from '~/components/TokenLogo'
 import Link from '~/components/Link'
+import { Icon } from '~/components/Icon'
 
 export const getStaticProps = withPerformanceLogging('nfts/marketplaces', async () => {
 	const data = await getNFTCollectionEarnings()
@@ -81,7 +81,11 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 								onClick: row.getToggleExpandedHandler()
 							}}
 						>
-							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+							{row.getIsExpanded() ? (
+								<Icon name="chevron-down" height={16} width={16} />
+							) : (
+								<Icon name="chevron-right" height={16} width={16} />
+							)}
 						</AccordionButton>
 					) : null}
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight } from 'react-feather'
 import styled from 'styled-components'
+import { Icon } from '~/components/Icon'
 
 const PaginationContainer = styled.div`
 	display: flex;
@@ -97,7 +97,7 @@ const Pagination = ({ items, startIndex = 0 }) => {
 	return (
 		<PaginationContainer ref={paginationRef}>
 			<PaginationArrow onClick={handlePrevPage}>
-				<ArrowLeft />
+				<Icon name="arrow-left" height={24} width={24} />
 			</PaginationArrow>
 			<PaginationSlide>
 				{currentItems.map((item, index) => (
@@ -111,7 +111,7 @@ const Pagination = ({ items, startIndex = 0 }) => {
 				))}
 			</PaginationSlide>
 			<PaginationArrow onClick={handleNextPage}>
-				<ArrowRight />
+				<Icon name="arrow-right" height={24} width={24} />
 			</PaginationArrow>
 		</PaginationContainer>
 	)

@@ -1,9 +1,9 @@
 import { useRef } from 'react'
-import { Bookmark as BookmarkIcon } from 'react-feather'
 import styled from 'styled-components'
 import { useWatchlist } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { standardizeProtocolName } from '~/utils'
+import { Icon } from '../Icon'
 
 interface IWrapperProps {
 	saved: boolean
@@ -37,7 +37,7 @@ function Bookmark({ readableProtocolName, ...props }) {
 
 	return (
 		<Wrapper ref={bookmarkRef} onClick={onClick} saved={isSaved} {...props}>
-			<BookmarkIcon width={16} height={16} />
+			<Icon name="bookmark" width={16} height={16} />
 		</Wrapper>
 	)
 }

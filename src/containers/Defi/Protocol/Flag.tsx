@@ -1,8 +1,8 @@
 import { useDialogState, Dialog } from 'ariakit/dialog'
 import { useState } from 'react'
-import { CheckCircle, Flag as FlagIcon } from 'react-feather'
 import { FormSubmitBtn } from '~/components'
 import { DialogForm } from '~/components/Filters/common/Base'
+import { Icon } from '~/components/Icon'
 import { Tooltip2 } from '~/components/Tooltip'
 
 import { fetchWithErrorLogging } from '~/utils/async'
@@ -56,7 +56,7 @@ export function Flag({ protocol, dataType, isLending }: { protocol: string; data
 			{dataType ? (
 				<Tooltip2 content="Report incorrect data">
 					<button onClick={dialog.toggle}>
-						<FlagIcon size={14} />
+						<Icon name="flag" height={14} width={14} />
 					</button>
 				</Tooltip2>
 			) : (
@@ -139,7 +139,7 @@ export function Flag({ protocol, dataType, isLending }: { protocol: string; data
 					padding: '36px 0'
 				}}
 			>
-				<CheckCircle size={100} strokeWidth={0.5} />
+				<Icon name="check-circle" height={100} width={100} strokeWidth={0.5} />
 				<p>Reported Successfully</p>
 			</Dialog>
 		</>

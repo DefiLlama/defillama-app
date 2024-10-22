@@ -1,10 +1,10 @@
 import { useRouter } from 'next/router'
-import { GitHub } from 'react-feather'
 import styled from 'styled-components'
 
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 import { GH_CLIENT_ID } from './lib/constants'
 import useGithubAuth from './queries/useGithubAuth'
+import { Icon } from '~/components/Icon'
 
 const GithubButton = styled(ButtonComponent)`
 	font-size: 16px;
@@ -38,7 +38,7 @@ const SignInWithGithub = () => {
 						router.reload()
 					}}
 				>
-					Log Out ({auth.login}) <GitHub />
+					Log Out ({auth.login}) <Icon name="github" height={24} width={24} />
 				</GithubButton>
 				<Description>
 					You are not a contributor. You need to contribute to the DefiLlama project to get free access to the premium
@@ -56,7 +56,7 @@ const SignInWithGithub = () => {
 						router.reload()
 					}}
 				>
-					Log Out ({auth.login}) <GitHub />
+					Log Out ({auth.login}) <Icon name="github" height={24} width={24} />
 				</GithubButton>
 				<Description>You have free access to the premium API.</Description>
 			</div>
@@ -66,7 +66,7 @@ const SignInWithGithub = () => {
 		<div>
 			<a href={`https://github.com/login/oauth/authorize?client_id=${GH_CLIENT_ID}`}>
 				<GithubButton>
-					Sign in with GitHub <GitHub />
+					Sign in with GitHub <Icon name="github" height={24} width={24} />
 				</GithubButton>
 			</a>
 			<Description>DefiLlama contributors will have free 3 month access to premium API.</Description>

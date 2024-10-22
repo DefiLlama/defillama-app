@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { Plus } from 'react-feather'
 import { darken, transparentize } from 'polished'
+import { Icon } from '../Icon'
 
 interface IButtonLightProps {
 	useTextColor?: boolean
@@ -99,7 +99,7 @@ export function ButtonPlusDull({ disabled = false, children, ...rest }) {
 	return (
 		<Dull disabled={disabled} {...rest}>
 			<ContentWrapper>
-				<Plus size={16} />
+				<Icon name="plus" height={16} width={16} />
 				<div style={{ display: 'flex', alignItems: 'center' }}>{children}</div>
 			</ContentWrapper>
 		</Dull>

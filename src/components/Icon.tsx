@@ -1,0 +1,70 @@
+import type { SVGProps } from 'react'
+
+type Name =
+	| 'arrow-up-right'
+	| 'download-cloud'
+	| 'chevron-up'
+	| 'chevron-down'
+	| 'chevron-left'
+	| 'chevron-right'
+	| 'chevrons-up'
+	| 'external-link'
+	| 'clock'
+	| 'folder-plus'
+	| 'trash-2'
+	| 'crosshair'
+	| 'github'
+	| 'copy'
+	| 'search'
+	| 'arrow-left'
+	| 'arrow-right'
+	| 'flag'
+	| 'check-circle'
+	| 'help-circle'
+	| 'alert-triangle'
+	| 'x'
+	| 'bookmark'
+	| 'settings'
+	| 'bar-chart-2'
+	| 'activity'
+	| 'trending-up'
+	| 'users'
+	| 'plus'
+	| 'repeat'
+	| 'link'
+	| 'map'
+	| 'percent'
+	| 'sun'
+	| 'moon'
+	| 'mail'
+	| 'calendar'
+	| 'menu'
+	| 'code'
+	| 'align-left'
+	| 'bar-chart'
+	| 'book-open'
+	| 'book'
+	| 'sign'
+	| 'droplet'
+	| 'eye'
+	| 'file-plus'
+	| 'file-text'
+	| 'image'
+	| 'layers'
+	| 'pie-chart'
+	| 'shield-off'
+	| 'shuffle'
+	| 'trending-up'
+	| 'unlock'
+	| 'dollar-sign'
+
+export interface IIcon extends SVGProps<SVGSVGElement> {
+	name: Name
+}
+export function Icon({ name, ...props }: IIcon) {
+	return (
+		<svg {...props}>
+			<use href={`/icons.svg#${name}`} />
+		</svg>
+	)
+}

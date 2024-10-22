@@ -6,9 +6,9 @@ import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
 import LocalLoader from '../LocalLoader'
 import styled, { css } from 'styled-components'
-import { SearchIcon } from '~/containers/Hacks'
 import { CoinsPicker } from '../Correlations'
 import { formattedNum } from '~/utils'
+import { Icon } from '../Icon'
 
 const unixToDateString = (unixTimestamp) => {
 	if (!unixTimestamp) return ''
@@ -182,7 +182,7 @@ export default function TokenPnl({ coinsData }) {
 								</SelectedToken>
 							) : (
 								<>
-									<StyledSearchIcon size={16} />
+									<StyledSearchIcon name="search" height={16} width={16} />
 									<SearchInput onClick={() => setModalOpen(1)} placeholder="Search coins..." readOnly />
 								</>
 							)}
@@ -417,7 +417,7 @@ const SearchInput = styled.input`
 	cursor: pointer;
 `
 
-const StyledSearchIcon = styled(SearchIcon)`
+const StyledSearchIcon = styled(Icon)`
 	position: absolute;
 	left: 1rem;
 	top: 50%;

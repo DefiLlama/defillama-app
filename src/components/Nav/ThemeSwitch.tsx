@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { Sun, Moon } from 'react-feather'
+import { Icon } from '../Icon'
 
 const IconWrapper = styled.div<{ isActive?: boolean }>`
 	opacity: ${({ isActive }) => (isActive ? 0.8 : 0.4)};
@@ -31,13 +31,13 @@ export default function ThemeSwitch({ isActive, toggle }: ThemeSwitchProps) {
 		<Wrapper onClick={toggle}>
 			<span>
 				<IconWrapper isActive={!isActive}>
-					<Sun size={20} />
+					<Icon name="sun" height={20} width={20} />
 				</IconWrapper>
 			</span>
 			<span style={{ padding: '0 .5rem' }}>{' / '}</span>
 			<span>
 				<IconWrapper isActive={isActive}>
-					<Moon size={20} />
+					<Icon name="moon" height={20} width={20} />
 				</IconWrapper>
 			</span>
 		</Wrapper>

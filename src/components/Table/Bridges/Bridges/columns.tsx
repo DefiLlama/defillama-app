@@ -3,7 +3,6 @@ import styled from 'styled-components'
 import { Text } from 'rebass'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
-import { ExternalLink } from 'react-feather'
 import { AutoRow } from '~/components/Row'
 import {
 	formattedNum,
@@ -18,6 +17,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { formatColumnOrder } from '../../utils'
 import type { IBridge, IBridgeChain } from './types'
 import { getBlockExplorerForTx, getBlockExplorerForAddress } from '~/utils/bridges/blockExplorers'
+import { Icon } from '~/components/Icon'
 
 export const bridgesColumn: ColumnDef<IBridge>[] = [
 	{
@@ -262,7 +262,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
 						<AutoRow as="span" gap="0px" justify="end">
 							{symbol}
-							<ExternalLink size={10} />
+							<Icon name="external-link" height={10} width={10} />
 						</AutoRow>
 					</a>
 				)
@@ -293,7 +293,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
 						<AutoRow as="span" gap="8px" justify="end">
 							View Transaction
-							<ExternalLink size={10} />
+							<Icon name="external-link" height={10} width={10} />
 						</AutoRow>
 					</a>
 				)
@@ -320,7 +320,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 				return (
 					<LinkToBlockExplorer href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
 						<span>{symbol}</span>
-						<ExternalLink size={10} />
+						<Icon name="external-link" height={10} width={10} />
 					</LinkToBlockExplorer>
 				)
 			} else return <>Not found</>
@@ -383,7 +383,7 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 				return (
 					<LinkToBlockExplorer href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
 						<span>{formattedValue.slice(0, 5) + '...' + formattedValue.slice(-4)}</span>
-						<ExternalLink size={10} />
+						<Icon name="external-link" height={10} width={10} />
 					</LinkToBlockExplorer>
 				)
 			} else return <>Not found</>

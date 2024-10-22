@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, Fragment, forwardRef } from 'react'
 import Link from 'next/link'
-import { ChevronRight, Menu as MenuIcon, X } from 'react-feather'
 import styled, { keyframes } from 'styled-components'
 import { linksWithNoSubMenu, navLinks } from '../Links'
 import { useYieldApp } from '~/hooks'
 import { Button, Close } from './shared'
 import { useRouter } from 'next/router'
+import { Icon } from '~/components/Icon'
 
 const slideIn = keyframes`
   0% {
@@ -99,14 +99,14 @@ export function Menu() {
 		<>
 			<Button onClick={() => setShow(!show)} ref={buttonEl}>
 				<span className="visually-hidden">Open Navigation Menu</span>
-				<MenuIcon height={16} width={16} />
+				<Icon name="menu" height={16} width={16} />
 			</Button>
 
 			<Backdrop data-acitve={show}>
 				<Nav ref={navEl}>
 					<Close onClick={() => setShow(!show)}>
 						<span className="visually-hidden">Close Navigation Menu</span>
-						<X height={20} width={20} strokeWidth="4px" />
+						<Icon name="x" height={20} width={20} strokeWidth="4px" />
 					</Close>
 
 					<p data-linksheader>
@@ -191,7 +191,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	return (
 		<Details ref={ref}>
 			<summary data-togglemenuoff={false}>
-				<ChevronRight size={18} id="chevron" data-togglemenuoff={false} />
+				<Icon name="chevron-right" height={18} width={18} id="chevron" data-togglemenuoff={false} />
 				<span data-togglemenuoff={false}>{name}</span>
 			</summary>
 			<SubMenuWrapper>

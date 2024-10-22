@@ -1,6 +1,5 @@
 import styled from 'styled-components'
-import { ExternalLink } from 'react-feather'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import React from 'react'
 import { useAccount } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
@@ -11,6 +10,7 @@ import { CheckIcon } from './Icon'
 import { useVerified } from '../hooks/useVerified'
 import { llamaAddress } from '~/containers/ProApi/lib/constants'
 import { SUBSCRIPTION_PRICE } from '../constants'
+import { Icon } from '~/components/Icon'
 
 const Body = styled.div`
 	margin-top: 120px;
@@ -130,7 +130,7 @@ const Subscribe = ({ refresh, verify }) => {
 					</ListItem>
 				</ListBody>
 				<External href="https://twitter.com/DefiLlama" target="popup">
-					Learn More <ExternalLink size={16} />
+					Learn More <Icon name="external-link" height={16} width={16} />
 				</External>
 			</Content>
 		</Body>

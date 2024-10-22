@@ -11,11 +11,8 @@ import {
 import styled from 'styled-components'
 import VirtualTable from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
-import Link from 'next/link'
-import { DownloadIcon } from '~/components'
 import useWindowSize from '~/hooks/useWindowSize'
 import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
-import { ArrowUpRight } from 'react-feather'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 import { ButtonDark } from '~/components/ButtonStyled'
 

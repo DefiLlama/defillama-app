@@ -1,11 +1,9 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { HelpCircle } from 'react-feather'
 import Tooltip from '~/components/Tooltip'
+import { Icon } from '../Icon'
 
-const Question = styled(HelpCircle)`
-	height: 16px;
-	width: 16px;
+const IconWrapper = styled(Icon)`
 	flex-shrink: 0;
 	max-width: initial;
 	cursor: pointer;
@@ -32,7 +30,7 @@ export default function QuestionHelper({
 }) {
 	return (
 		<Tooltip content={disabled ? null : text} style={{ textAlign }}>
-			<Question {...props} />
+			<IconWrapper name="help-circle" height={16} width={16} {...props} />
 		</Tooltip>
 	)
 }

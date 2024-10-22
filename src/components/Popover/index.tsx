@@ -5,8 +5,8 @@ import styled from 'styled-components'
 import { useSetPopoverStyles } from './utils'
 import { useRouter } from 'next/router'
 import { Tooltip2 } from '../Tooltip'
-import { Code } from 'react-feather'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
+import { Icon } from '../Icon'
 
 const Trigger = styled(PopoverDisclosure)`
 	display: flex;
@@ -189,7 +189,7 @@ export function EmbedChart({ color, ...props }) {
 		<>
 			<Tooltip2 content="Embed Chart">
 				<PopoverTrigger state={popover} color={color}>
-					<Code size={14} />
+					<Icon name="code" height={14} width={14} />
 				</PopoverTrigger>
 			</Tooltip2>
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import styled from 'styled-components'
-import { CheckCircle, Copy } from 'react-feather'
+import { Icon } from '../Icon'
 
 const CopyIcon = styled.button`
 	flex-shrink: 0;
@@ -28,7 +28,7 @@ export default function CopyHelper({ toCopy, ...props }) {
 	}
 	return (
 		<CopyIcon onClick={copy} aria-label="Copy" {...props}>
-			{copied ? <CheckCircle size={14} /> : <Copy size={14} />}
+			{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
 		</CopyIcon>
 	)
 }

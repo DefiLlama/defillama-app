@@ -17,8 +17,8 @@ import { BridgeChainSelector } from '~/components/BridgesPage/BridgeChainSelecto
 import { Filters, Denomination } from '~/components/ECharts/ProtocolChart/Misc'
 import { getBridgePageDatanew } from '~/api/categories/bridges'
 import Link from 'next/link'
-import { ArrowUpRight } from 'react-feather'
 import { useQuery } from '@tanstack/react-query'
+import { Icon } from '~/components/Icon'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -132,7 +132,7 @@ const BridgeInfo = ({
 									marginTop: '-16px'
 								}}
 							>
-								<span>Website</span> <ArrowUpRight size={14} />
+								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</Button>
 						</Link>
 					) : null}

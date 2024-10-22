@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import React from 'react'
-import { Search } from 'react-feather'
 import { Wrapper } from './LTV'
+import { Icon } from '~/components/Icon'
 
 export function InputFilter({ placeholder, filterKey }: { placeholder: string; filterKey: string }) {
 	const router = useRouter()
@@ -41,7 +41,7 @@ export function InputFilter({ placeholder, filterKey }: { placeholder: string; f
 
 	return (
 		<Wrapper data-alwaysdisplay>
-			<Search size={16} />
+			<Icon name="search" height={16} width={16} />
 			<input placeholder={placeholder} onChange={onChange} type="number" ref={ref} />
 		</Wrapper>
 	)

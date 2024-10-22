@@ -1,5 +1,4 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { ChevronDown, ChevronRight } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
@@ -7,6 +6,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 import { IDexsRow } from '../types'
+import { Icon } from '~/components/Icon'
 
 export const NameColumn = (type: string, allChains?: boolean, size = 240): ColumnDef<IDexsRow> => ({
 	header: () => <Name>Name</Name>,
@@ -34,7 +34,11 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 							onClick: row.getToggleExpandedHandler()
 						}}
 					>
-						{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+						{row.getIsExpanded() ? (
+							<Icon name="chevron-down" height={16} width={16} />
+						) : (
+							<Icon name="chevron-right" height={16} width={16} />
+						)}
 					</AccordionButton>
 				)}
 				<span>{index + 1}</span>

@@ -9,12 +9,12 @@ import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import SEO from '~/components/SEO'
 import { standardizeProtocolName, tokenIconUrl } from '~/utils'
-import { ArrowUpRight } from 'react-feather'
 import styled from 'styled-components'
 import { Treasury } from './Treasury'
 import { ProtocolFeesRevenueVolumeCharts } from './Fees'
 import { OtherProtocols, ProtocolLink } from './Common'
 import { useRouter } from 'next/router'
+import { Icon } from '~/components/Icon'
 
 export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 	const router = useRouter()
@@ -52,7 +52,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 					{data.url && (
 						<Link href={data.url} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-								<span>Website</span> <ArrowUpRight size={14} />
+								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</Button>
 						</Link>
 					)}
@@ -60,7 +60,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 					{data.twitter && (
 						<Link href={`https://twitter.com/${data.twitter}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-								<span>Twitter</span> <ArrowUpRight size={14} />
+								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</Button>
 						</Link>
 					)}
@@ -72,7 +72,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 						>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 								<span>Methodology</span>
-								<ArrowUpRight size={14} />
+								<Icon name="arrow-up-right" height={14} width={14} />
 							</Button>
 						</Link>
 					)}

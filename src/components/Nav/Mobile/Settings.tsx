@@ -1,6 +1,5 @@
 import { Select, SelectItem, SelectItemCheck, SelectPopover, useSelectState } from 'ariakit/select'
 import styled from 'styled-components'
-import { Settings as SettingsIcon } from 'react-feather'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import {
 	DARK_MODE,
@@ -13,6 +12,7 @@ import { protocolsAndChainsOptions } from '~/components/Filters'
 import { nftOptions } from '~/components/Filters/nfts/options'
 import { useRouter } from 'next/router'
 import { feesOptions } from '~/components/Filters/protocols/options'
+import { Icon } from '~/components/Icon'
 
 export function Settings() {
 	const [darkMode] = useDarkModeManager()
@@ -49,7 +49,7 @@ export function Settings() {
 		<>
 			<Trigger state={select}>
 				<span className="visually-hidden">Open Settings Menu</span>
-				<SettingsIcon height={16} width={16} />
+				<Icon name="settings" height={16} width={16} />
 			</Trigger>
 
 			<Popover state={select} modal={!isLarge}>

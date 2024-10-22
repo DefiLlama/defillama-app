@@ -8,7 +8,6 @@ import FormattedName from '~/components/FormattedName'
 import dynamic from 'next/dynamic'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 import { IChartProps } from '~/components/ECharts/types'
-import { ArrowUpRight } from 'react-feather'
 import Link from 'next/link'
 import { ToggleWrapper2 } from '~/components'
 import { useRouter } from 'next/router'
@@ -16,6 +15,7 @@ import { NFTsSearch } from '~/components/Search'
 import { getNFTCollection } from '~/api/categories/nfts'
 import LocalLoader from '~/components/LocalLoader'
 import { useQuery } from '@tanstack/react-query'
+import { Icon } from '~/components/Icon'
 
 const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
 	ssr: false
@@ -92,7 +92,7 @@ export function NFTCollectionContainer() {
 							useTextColor={true}
 							style={{ width: 'fit-content' }}
 						>
-							<span>View on Etherscan</span> <ArrowUpRight size={14} />
+							<span>View on Etherscan</span> <Icon name="arrow-up-right" height={14} width={14} />
 						</Button>
 					</Link>
 				</DetailsWrapper>

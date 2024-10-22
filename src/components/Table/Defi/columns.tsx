@@ -1,6 +1,5 @@
 import { ColumnDef, sortingFns } from '@tanstack/react-table'
 import styled from 'styled-components'
-import { ArrowUpRight, ChevronDown, ChevronRight, Mail, Tool } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
@@ -46,6 +45,7 @@ import UpcomingEvent from '../Components/UpcomingEvent'
 import ProgressBar from '../Components/ProgressBar'
 import TooltipNew from '~/components/Tooltip/TootltipNew'
 import { sluggify } from '~/utils/cache-client'
+import { Icon } from '~/components/Icon'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -257,7 +257,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 				data-lgonly
 				useTextColor={true}
 			>
-				<ArrowUpRight size={14} />
+				<Icon name="arrow-up-right" height={14} width={14} />
 			</ButtonYields>
 		)
 	},
@@ -494,7 +494,7 @@ export const expensesColumns: ColumnDef<any>[] = [
 					data-lgonly
 					useTextColor={true}
 				>
-					<ArrowUpRight size={14} />
+					<Icon name="arrow-up-right" height={14} width={14} />
 				</ButtonYields>
 			) : null
 	}
@@ -515,7 +515,11 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 							onClick: row.getToggleExpandedHandler()
 						}}
 					>
-						{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+						{row.getIsExpanded() ? (
+							<Icon name="chevron-down" height={16} width={16} />
+						) : (
+							<Icon name="chevron-right" height={16} width={16} />
+						)}
 					</AccordionButton>
 					<span>{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
@@ -565,7 +569,8 @@ export const activeInvestorsColumns: ColumnDef<{
 				<Tooltip2 content={'Looking for investors? Send your pitch to selected ones through us'}>
 					<div style={{ display: 'flex', gap: '8px' }} onClick={() => window.open('/pitch', '_blank')}>
 						<CustomLink href={`/raises/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
-						<Mail
+						<Icon
+							name="mail"
 							style={{ minHeight: '16px', minWidth: '16px', width: '16px', height: '16px' }}
 							color="#2172E5"
 							cursor={'pointer'}
@@ -694,7 +699,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 				data-lgonly
 				useTextColor={true}
 			>
-				<ArrowUpRight size={14} />
+				<Icon name="arrow-up-right" height={14} width={14} />
 			</ButtonYields>
 		)
 	}
@@ -716,7 +721,11 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 								onClick: row.getToggleExpandedHandler()
 							}}
 						>
-							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+							{row.getIsExpanded() ? (
+								<Icon name="chevron-down" height={16} width={16} />
+							) : (
+								<Icon name="chevron-right" height={16} width={16} />
+							)}
 						</AccordionButton>
 					)}
 					<span>{index + 1}</span>
@@ -935,7 +944,11 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 								onClick: row.getToggleExpandedHandler()
 							}}
 						>
-							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+							{row.getIsExpanded() ? (
+								<Icon name="chevron-down" height={16} width={16} />
+							) : (
+								<Icon name="chevron-right" height={16} width={16} />
+							)}
 						</AccordionButton>
 					)}
 					<span>{index + 1}</span>
@@ -1251,7 +1264,7 @@ export const cexColumn: ColumnDef<any>[] = [
 						useTextColor={true}
 						style={{ width: '21px' }}
 					>
-						<ArrowUpRight size={14} />
+						<Icon name="arrow-up-right" height={14} width={14} />
 					</ButtonYields>
 				)}
 			</AutoRow>
@@ -1279,7 +1292,7 @@ export const cexColumn: ColumnDef<any>[] = [
 						useTextColor={true}
 						style={{ width: '21px' }}
 					>
-						<ArrowUpRight size={14} />
+						<Icon name="arrow-up-right" height={14} width={14} />
 					</ButtonYields>
 				)}
 			</AutoRow>
@@ -1717,7 +1730,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 					data-lgonly
 					useTextColor={true}
 				>
-					<ArrowUpRight size={14} />
+					<Icon name="arrow-up-right" height={14} width={14} />
 				</ButtonYields>
 			) : null
 	},
@@ -1736,7 +1749,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 					data-lgonly
 					useTextColor={true}
 				>
-					<ArrowUpRight size={14} />
+					<Icon name="arrow-up-right" height={14} width={14} />
 				</ButtonYields>
 			) : null
 	},

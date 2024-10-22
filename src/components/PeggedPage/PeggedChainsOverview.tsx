@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import { GroupStablecoins } from '~/components/MultiSelect'
 import { PeggedSearch } from '~/components/Search'
 import { ChartSelector } from '~/components/PeggedPage/.'
@@ -44,7 +44,7 @@ function PeggedChainsOverview({
 	chartData,
 	peggedChartDataByChain,
 	chainList,
-	chainsGroupbyParent,
+	chainsGroupbyParent
 }) {
 	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
@@ -53,7 +53,7 @@ function PeggedChainsOverview({
 		peggedChartDataByChain,
 		chainList,
 		[...Array(chainList.length).keys()],
-		'mcap',
+		'mcap'
 	)
 
 	const filteredPeggedAssets = chainCirculatings

@@ -1,24 +1,10 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { DownloadIcon } from '~/components'
 import { download } from '~/utils'
 import { getLiquidationsCsvData } from '~/utils/liquidations'
 import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { Icon } from '../Icon'
 
-const DownloadButtonContainer = styled.button`
-	display: none;
-	padding: 4px 6px;
-	border-radius: 6px;
-	background: ${({ theme }) => theme.bg3};
-	bottom: 8px;
-	right: 8px;
-	align-items: center;
-	height: 28px;
-
-	@media (min-width: 80rem) {
-		display: flex;
-	}
-`
 export const DownloadButton = ({ symbol }: { symbol: string }) => {
 	return (
 		<CSVDownloadButton
@@ -54,7 +40,7 @@ export const DownloadButtonSmol = ({ symbol }: { symbol: string }) => {
 				download(`${symbol}-all-positions.csv`, csvString)
 			}}
 		>
-			<DownloadIcon />
+			<Icon name="download-cloud" height={16} width={16} />
 			<span>&nbsp;&nbsp;.csv</span>
 		</DownloadButtonSmolContainer>
 	)

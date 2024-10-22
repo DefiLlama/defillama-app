@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 import { Header, TYPE } from '~/Theme'
 import { Panel } from '~/components'
@@ -10,6 +9,7 @@ import { useIsClient } from '~/hooks'
 import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
 import OptionToggle from '~/components/OptionToggle'
 import { useRouter } from 'next/router'
+import { Icon } from '~/components/Icon'
 
 interface IFolder {
 	isSaved?: boolean
@@ -100,11 +100,11 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				<TYPE.main>Current portfolio:</TYPE.main>
 				<Menu name={selectedPortfolio} options={portfolios} onItemClick={(value) => setSelectedPortfolio(value)} />
 				<Action onClick={addPortfolio}>
-					<FolderPlus />
+					<Icon name="folder-plus" height={24} width={24} />
 				</Action>
 				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
 					<Action onClick={removePortfolio}>
-						<Trash2 />
+						<Icon name="trash-2" height={24} width={24} />
 					</Action>
 				)}
 

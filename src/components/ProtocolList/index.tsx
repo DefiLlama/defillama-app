@@ -15,13 +15,13 @@ import { chainIconUrl, formattedNum, getPercentChange, slug } from '~/utils'
 import TokenLogo from '../TokenLogo'
 import { Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
-import { ChevronRight } from 'react-feather'
 import { RowWithSubRows, StatsTable2 } from '~/containers/Defi/Protocol'
 import { categoryProtocolsColumns } from '../Table/Defi/Protocols/columns'
 import { IOverviewProps } from '~/api/categories/adaptors'
 import Modal from '../Modal'
 import CompareProtocols from '../CompareProtocols'
 import { ButtonDark } from '../ButtonStyled'
+import { Icon } from '../Icon'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -202,7 +202,7 @@ function Container({
 							<AccordionStat data-tvl>
 								<summary>
 									<span data-arrowicon>
-										<ChevronRight size={20} />
+										<Icon name="chevron-right" height={20} width={20} />
 									</span>
 
 									<span data-summaryheader>

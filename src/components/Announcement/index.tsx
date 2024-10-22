@@ -1,8 +1,8 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { X } from 'react-feather'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
+import { Icon } from '../Icon'
 
 // change 'value' for new announcements
 export const ANNOUNCEMENT = {
@@ -69,7 +69,7 @@ export default function Announcement({
 			{children}
 			{!notCancellable && (
 				<Close onClick={closeAnnouncement}>
-					<X size={16} />
+					<Icon name="x" height={16} width={16} />
 				</Close>
 			)}
 		</AnnouncementWrapper>

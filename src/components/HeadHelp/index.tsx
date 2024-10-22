@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { HelpCircle } from 'react-feather'
 import Tooltip from '~/components/Tooltip'
+import { Icon } from '../Icon'
 
 interface IHeadHelpProps {
 	title: string
@@ -25,7 +25,12 @@ const HeadHelp = ({ title, text, adjustSize = false, fontSize, link, ...props }:
 		<Tooltip content={text} {...props}>
 			<TextWrapper adjustSize={adjustSize} link={link} fontSize={fontSize}>
 				<span style={{ textAlign: 'center' }}>{title}</span>
-				<HelpCircle size={15} style={{ marginLeft: '.3rem', marginRight: props.headerIsSorted ? '1rem' : undefined }} />
+				<Icon
+					name="help-circle"
+					height={15}
+					width={15}
+					style={{ marginLeft: '.3rem', marginRight: props.headerIsSorted ? '1rem' : undefined }}
+				/>
 			</TextWrapper>
 		</Tooltip>
 	)

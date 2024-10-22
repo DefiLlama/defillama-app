@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { Search } from 'react-feather'
 import styled from 'styled-components'
 import { MobileInput } from './Input'
 import { useDebounce } from '~/hooks'
@@ -12,6 +11,7 @@ import { useFetchNftCollectionsList } from '~/api/categories/nfts/client'
 import { useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { useFormatDefiSearchResults } from '../ProtocolsChains/hooks'
 import { SearchV2 } from '../InstantSearch'
+import { Icon } from '~/components/Icon'
 
 export default function MobileSearch() {
 	const router = useRouter()
@@ -63,7 +63,7 @@ const DefiSearch = () => {
 				</>
 			) : (
 				<Button onClick={() => setDisplay(true)}>
-					<Search height={16} width={16} />
+					<Icon name="search" height={16} width={16} />
 				</Button>
 			)}
 		</>
@@ -115,7 +115,7 @@ function MobileSearchV1() {
 				</>
 			) : (
 				<Button onClick={() => setDisplay(true)}>
-					<Search height={16} width={16} />
+					<Icon name="search" height={16} width={16} />
 				</Button>
 			)}
 		</>

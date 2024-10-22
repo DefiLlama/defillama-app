@@ -1,12 +1,12 @@
 import * as React from 'react'
 import Link from 'next/link'
 import styled from 'styled-components'
-import { ArrowRight } from 'react-feather'
 import { useComboboxState } from 'ariakit/combobox'
 import { DesktopResults } from './Results/Desktop'
 import { Input } from './Input'
 import { findActiveItem } from './utils'
 import type { IBaseSearchProps } from '../types'
+import { Icon } from '~/components/Icon'
 
 const Wrapper = styled.div`
 	position: relative;
@@ -123,7 +123,7 @@ const Options = ({ step, filters }: IOptionsProps) => {
 				<Link href={`/${step.route || step.category.toLowerCase()}`} prefetch={false}>
 					{step.category}
 				</Link>
-				<ArrowRight size={16} />
+				<Icon name="arrow-right" height={16} width={16} />
 				<span style={{ color: 'var(--step-color)' }}>{step.name}</span>
 			</p>
 

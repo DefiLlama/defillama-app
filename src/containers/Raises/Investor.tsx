@@ -20,14 +20,12 @@ import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/colum
 import { AnnouncementWrapper } from '~/components/Announcement'
 import { RaisesFilters } from '~/components/Filters'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
-import { DownloadIcon } from '~/components'
 import useWindowSize from '~/hooks/useWindowSize'
 import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
 import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
-import { ChevronRight } from 'react-feather'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { Icon } from '~/components/Icon'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -169,7 +167,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 					<AccordionStat2>
 						<summary>
 							<span data-arrowicon>
-								<ChevronRight size={20} />
+								<Icon name="chevron-right" height={20} width={20} />
 							</span>
 
 							<span data-summaryheader>

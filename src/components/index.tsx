@@ -2,10 +2,10 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { Text, Box } from 'rebass'
 import { CheckboxCheck } from 'ariakit'
-import { DownloadCloud } from 'react-feather'
 import { BasicLink } from '~/components/Link'
 import { primaryColor } from '~/constants/colors'
 import { transparentize } from 'polished'
+import { Icon } from './Icon'
 
 export const Panel = styled.div`
 	position: relative;
@@ -253,12 +253,6 @@ export const DownloadButton = styled(BasicLink)`
 	right: 8px;
 	display: flex;
 	align-items: center;
-`
-
-export const DownloadIcon = styled(DownloadCloud)`
-	color: inherit;
-	width: 16px;
-	height: 16px;
 `
 
 export const Checkbox2 = styled.input`

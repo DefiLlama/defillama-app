@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
 import AuditInfo from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
@@ -244,13 +243,13 @@ const PageView = () => {
 // 					<AreaChart title="Net Borrow APY" chartData={netBorrowChartData} color={backgroundColor} valueSymbol={'%'} />
 
 // 					<DownloadToCSV as="button" onClick={downloadCsv}>
-// 						<DownloadCloud size={14} />
+// 						<Icon name="download-cloud" height={14} width={14} />
 // 						<span>&nbsp;&nbsp;.csv</span>
 // 					</DownloadToCSV>
 // 				</ChartWrapper>
 
 // 				<DownloadToCSV as="button" onClick={downloadCsv}>
-// 					<DownloadCloud size={14} />
+// 					<Icon name="download-cloud" height={14} width={14} />
 // 					<span>&nbsp;&nbsp;.csv</span>
 // 				</DownloadToCSV>
 // 			</StatsSection>
@@ -322,7 +321,7 @@ const PageView = () => {
 // 									color={backgroundColor}
 // 									disabled={isLoading}
 // 								>
-// 									<span>Website</span> <ArrowUpRight size={14} />
+// 									<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 // 								</Button>
 // 							</Link>
 // 						)}
@@ -330,7 +329,7 @@ const PageView = () => {
 // 						{twitter && (
 // 							<Link href={`https://twitter.com/${twitter}`} passHref>
 // 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-// 									<span>Twitter</span> <ArrowUpRight size={14} />
+// 									<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
 // 								</Button>
 // 							</Link>
 // 						)}

@@ -1,5 +1,4 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { ExternalLink } from 'react-feather'
 import { CustomLink } from '~/components/Link'
 import { useStackBy } from '~/components/LiquidationsPage/utils'
 import { AutoRow } from '~/components/Row'
@@ -10,6 +9,7 @@ import { getReadableValue } from '~/utils/liquidations'
 import { Name } from '../shared'
 import { ILiquidablePositionsRow, ILiquidableProtocolRow } from './types'
 import { useQuery } from '@tanstack/react-query'
+import { Icon } from '~/components/Icon'
 
 export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] = [
 	{
@@ -127,7 +127,7 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 						{value.displayName.length > 13
 							? `${value.displayName.substring(0, 6)}...${value.displayName.substring(value.displayName.length - 4)}`
 							: value.displayName}
-						<ExternalLink size={10} />
+						<Icon name="external-link" height={10} width={10} />
 					</AutoRow>
 				</a>
 			)

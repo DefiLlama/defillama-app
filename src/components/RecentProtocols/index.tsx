@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { FormSubmitBtn, Panel } from '~/components'
@@ -9,16 +9,15 @@ import { FiltersByChain, HideForkedProtocols, TVLRange } from '~/components/Filt
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 
 import { download, getPercentChange } from '~/utils'
-import { IFormattedProtocol } from '~/api/types'
 import { FlexRow } from '~/layout/ProtocolAndPool'
 import { ButtonLight } from '../ButtonStyled'
-import { ArrowUpRight, Plus, X } from 'react-feather'
 import styled from 'styled-components'
 import { useDialogState, Dialog } from 'ariakit/dialog'
 import { DialogForm } from '../Filters/common/Base'
 import { useMutation } from '@tanstack/react-query'
 import { airdropsEligibilityCheck } from './airdrops'
 import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { Icon } from '../Icon'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -199,7 +198,7 @@ export function RecentProtocols({
 							color="green"
 						>
 							<span>{protocol.name}</span>
-							<ArrowUpRight size={14} />
+							<Icon name="arrow-up-right" height={14} width={14} />
 						</Button>
 					))}
 					<ButtonLight
@@ -217,7 +216,7 @@ export function RecentProtocols({
 								airdropCheckerDialog.toggle()
 							}}
 						>
-							<X size={20} />
+							<Icon name="x" height={20} width={20} />
 						</CloseButton>
 						{eligibleAirdrops ? (
 							eligibleAirdrops.length === 0 ? (
@@ -261,7 +260,7 @@ export function RecentProtocols({
 																				style={{ padding: '2px 6px', fontSize: '12px' }}
 																			>
 																				<span>Claim</span>
-																				<ArrowUpRight size={14} />
+																				<Icon name="arrow-up-right" height={14} width={14} />
 																			</Button>
 																		) : null}
 																	</span>

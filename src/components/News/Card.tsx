@@ -2,10 +2,10 @@ import dayjs from 'dayjs'
 import Link from 'next/link'
 
 import { transparentize } from 'polished'
-import { ArrowUpRight } from 'react-feather'
 import styled from 'styled-components'
 import { Button } from '~/layout/ProtocolAndPool'
 import { IArticle } from '~/api/categories/news'
+import { Icon } from '../Icon'
 
 const Container = styled.a`
 	background-color: ${({ color }) => transparentize(0.9, color)};
@@ -86,7 +86,7 @@ export const NewsCard = ({ imgSrc, href, headline, date, color }: INewsCardProps
 						<Metadata>{dayjs(date).format('MMMM D, YYYY')}</Metadata>
 
 						<Button useTextColor={true} color={color} style={{ justifyContent: 'space-between' }}>
-							<span>Read on DL News</span> <ArrowUpRight size={14} />
+							<span>Read on DL News</span> <Icon name="arrow-up-right" height={14} width={14} />
 						</Button>
 					</Footer>
 				</Content>

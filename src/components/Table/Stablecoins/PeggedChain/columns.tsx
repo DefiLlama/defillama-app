@@ -1,11 +1,11 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { ChevronDown, ChevronRight } from 'react-feather'
 import { CustomLink } from '~/components/Link'
 import { AutoRow } from '~/components/Row'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, formattedPercent } from '~/utils'
 import { Name, AccordionButton } from '../../shared'
 import type { IPeggedChain } from './types'
+import { Icon } from '~/components/Icon'
 
 export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 	{
@@ -25,7 +25,11 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 								onClick: row.getToggleExpandedHandler()
 							}}
 						>
-							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+							{row.getIsExpanded() ? (
+								<Icon name="chevron-down" height={16} width={16} />
+							) : (
+								<Icon name="chevron-right" height={16} width={16} />
+							)}
 						</AccordionButton>
 					)}
 

@@ -1,5 +1,5 @@
-import { Search, Calendar } from 'react-feather'
 import styled from 'styled-components'
+import { Icon } from '../Icon'
 
 interface INameProps {
 	depth?: number
@@ -109,19 +109,27 @@ export const SearchWrapper = styled.div`
 	}
 `
 
-export const SearchIcon = styled(Search)`
+const SearchIconWrapper = styled(Icon)`
 	position: absolute;
 	top: 8px;
 	left: 8px;
 	color: ${({ theme }) => theme.text3};
 `
 
-export const CalendarIcon = styled(Calendar)`
+export const SearchIcon = ({ size }: { size?: number }) => {
+	return <SearchIconWrapper name="search" height={size ?? 16} width={size ?? 16} />
+}
+
+const CalendarIconWrapper = styled(Icon)`
 	position: absolute;
 	top: 8px;
 	left: 8px;
 	color: ${({ theme }) => theme.text3};
 `
+
+export const CalendarIcon = ({ size }: { size?: number }) => (
+	<CalendarIconWrapper name="calendar" height={size ?? 16} width={size ?? 16} />
+)
 
 export const TableFiltersWithInput = styled.div`
 	display: flex;

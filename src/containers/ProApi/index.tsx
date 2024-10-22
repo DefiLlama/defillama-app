@@ -1,12 +1,10 @@
 import styled from 'styled-components'
 import React, { useEffect, useRef } from 'react'
-import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { Copy } from 'react-feather'
 import toast from 'react-hot-toast'
 
 import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
-import { CheckIcon } from '../ProContainer/Subscribe/Icon'
 import { logout, useGetAuthToken, useGetCreditsUsage, useSignInWithEthereum } from './queries/useAuth'
 import { llamaAddress, subscriptionAmount } from './lib/constants'
 import { useGetSubs } from './queries/useGetSubs'
@@ -23,6 +21,7 @@ import DiscordButton from './DiscordButton'
 import QuestionHelper from '~/components/QuestionHelper'
 import Link from 'next/link'
 import { FlexRow } from '~/layout/ProtocolAndPool'
+import { Icon } from '~/components/Icon'
 
 const Body = styled.div`
 	margin-top: 120px;
@@ -270,7 +269,7 @@ const ProApi = () => {
 										toast.success('API Key copied to clipboard')
 									}}
 								>
-									<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
+									<Icon name="copy" height={16} width={16} style={{ cursor: 'pointer', marginTop: '4px' }} />
 								</span>
 							</div>
 							{credisUsage !== undefined ? (
@@ -320,7 +319,7 @@ const ProApi = () => {
 												toast.success('Address copied to clipboard')
 											}}
 										>
-											<Copy style={{ height: '16px', cursor: 'pointer', marginTop: '4px' }} />
+											<Icon name="copy" height={16} width={16} style={{ cursor: 'pointer', marginTop: '4px' }} />
 										</span>
 									</div>
 									<div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>

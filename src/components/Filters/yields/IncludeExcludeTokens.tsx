@@ -2,11 +2,11 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useComboboxState } from 'ariakit'
 import styled from 'styled-components'
-import { Search, X as XIcon } from 'react-feather'
 import TokenLogo from '~/components/TokenLogo'
 import { Input } from '~/components/Search/Base/Input'
 import { Empty, Popover } from '~/components/Search/Base/Results/Desktop'
 import { findActiveItem } from '~/components/Search/Base/utils'
+import { Icon } from '~/components/Icon'
 
 export function IncludeExcludeTokens({
 	tokens,
@@ -82,28 +82,28 @@ export function IncludeExcludeTokens({
 					{tokensToInclude.map((token) => (
 						<IncludeOrExclude key={'includedtokeninsearch' + token} onClick={() => handleTokenInclude(token, 'delete')}>
 							<span>{`Include: ${token}`}</span>
-							<XIcon size={14} />
+							<Icon name="x" height={14} width={14} />
 						</IncludeOrExclude>
 					))}
 
 					{tokensToExclude.map((token) => (
 						<IncludeOrExclude key={'excludedtokeninsearch' + token} onClick={() => handleTokenExclude(token, 'delete')}>
 							<span>{`Exclude: ${token}`}</span>
-							<XIcon size={14} />
+							<Icon name="x" height={14} width={14} />
 						</IncludeOrExclude>
 					))}
 
 					{tokensThatMatchExactly.map((token) => (
 						<IncludeOrExclude key={'exacttokensinsearch' + token} onClick={() => handleTokenExact(token, 'delete')}>
 							<span>{`Exact: ${token}`}</span>
-							<XIcon size={14} />
+							<Icon name="x" height={14} width={14} />
 						</IncludeOrExclude>
 					))}
 				</OptionsWrapper>
 			)}
 
 			<InputWrapper>
-				<SearchIcon size={16} />
+				<SearchIcon name="search" height={16} width={16} />
 				<Input state={combobox} placeholder="Search for a token to filter by" hideIcon />
 			</InputWrapper>
 
@@ -208,7 +208,7 @@ const StyledPopover = styled(Popover)`
 	border-radius: 8px;
 `
 
-const SearchIcon = styled(Search)`
+const SearchIcon = styled(Icon)`
 	position: absolute;
 	left: 8px;
 

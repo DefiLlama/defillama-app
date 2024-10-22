@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Link as LinkIcon, Map } from 'react-feather'
+import { Icon } from '../Icon'
 
 export const StackBySwitch = () => {
 	const router = useRouter()
@@ -21,7 +21,7 @@ export const StackBySwitch = () => {
 					})
 				}}
 			>
-				<Map size={14} />
+				<Icon name="map" height={14} width={14} />
 				<span>Protocols</span>
 			</Switch>
 			<Switch
@@ -35,7 +35,7 @@ export const StackBySwitch = () => {
 					})
 				}}
 			>
-				<LinkIcon size={14} />
+				<Icon name="link" height={14} width={14} />
 				<span>Chains</span>
 			</Switch>
 		</Wrapper>

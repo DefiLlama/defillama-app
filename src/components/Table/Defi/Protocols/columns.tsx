@@ -1,5 +1,4 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
-import { ChevronDown, ChevronRight, AlertTriangle } from 'react-feather'
 import { Checkbox } from 'ariakit'
 
 import Bookmark from '~/components/Bookmark'
@@ -15,6 +14,7 @@ import { AccordionButton, Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
 import { removedCategories } from '~/constants'
+import { Icon } from '~/components/Icon'
 
 const columnHelper = createColumnHelper<IProtocolRow>()
 
@@ -43,7 +43,11 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 								onClick: row.getToggleExpandedHandler()
 							}}
 						>
-							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+							{row.getIsExpanded() ? (
+								<Icon name="chevron-down" height={16} width={16} />
+							) : (
+								<Icon name="chevron-right" height={16} width={16} />
+							)}
 						</AccordionButton>
 					) : (
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
@@ -62,7 +66,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					</AutoColumn>
 					{value === 'SyncDEX Finance' && (
 						<Tooltip2 content={'Many users have reported issues with this protocol'}>
-							<AlertTriangle />
+							<Icon name="alert-triangle" height={14} width={14} />
 						</Tooltip2>
 					)}
 				</Name>
@@ -367,7 +371,11 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 								onClick: row.getToggleExpandedHandler()
 							}}
 						>
-							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+							{row.getIsExpanded() ? (
+								<Icon name="chevron-down" height={16} width={16} />
+							) : (
+								<Icon name="chevron-right" height={16} width={16} />
+							)}
 						</AccordionButton>
 					) : (
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
@@ -386,7 +394,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 					</AutoColumn>
 					{value === 'SyncDEX Finance' && (
 						<Tooltip2 content={'Many users have reported issues with this protocol'}>
-							<AlertTriangle />
+							<Icon name="alert-triangle" height={14} width={14} />
 						</Tooltip2>
 					)}
 				</Name>
@@ -534,7 +542,11 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 								onClick: row.getToggleExpandedHandler()
 							}}
 						>
-							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+							{row.getIsExpanded() ? (
+								<Icon name="chevron-down" height={16} width={16} />
+							) : (
+								<Icon name="chevron-right" height={16} width={16} />
+							)}
 						</AccordionButton>
 					) : null}
 
@@ -549,7 +561,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 					</AutoColumn>
 					{value === 'SyncDEX Finance' && (
 						<Tooltip2 content={'Many users have reported issues with this protocol'}>
-							<AlertTriangle />
+							<Icon name="alert-triangle" height={14} width={14} />
 						</Tooltip2>
 					)}
 				</Name>

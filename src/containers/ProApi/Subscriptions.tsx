@@ -1,12 +1,12 @@
 import dayjs from 'dayjs'
 import React from 'react'
-import { ExternalLink as External } from 'react-feather'
 import styled from 'styled-components'
 import { useAccount, useQuery } from 'wagmi'
 import useUnsubscribe from './hooks/useUnsubscribe'
 import { calculateSubBalance } from './lib'
 import { token } from './lib/constants'
 import { IFormattedSub, useGetSubs } from './queries/useGetSubs'
+import { Icon } from '~/components/Icon'
 
 const Button = styled.button`
 	padding: 8px;
@@ -138,7 +138,7 @@ const Subscription = ({
 					target="_blank"
 					rel="noreferrer"
 				>
-					<External size={16} />
+					<Icon name="external-link" height={16} width={16} />
 				</a>
 			</td>
 		</tr>
@@ -163,7 +163,7 @@ const Subscriptions = ({ startPayment }) => {
 			<Head>
 				<Header>My Subscriptions</Header>
 				<ExternalLink style={{ marginLeft: 'auto' }} href="https://subscriptions.llamapay.io/" target="_blank">
-					Open in LlamaPay <External size={16} style={{}} />
+					Open in LlamaPay <Icon name="external-link" height={16} width={16} />
 				</ExternalLink>
 			</Head>
 			<Table>

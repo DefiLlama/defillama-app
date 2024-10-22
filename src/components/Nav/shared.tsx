@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Icon } from 'react-feather'
 import { BasicLink } from '~/components/Link'
 
 export const Header = styled.header`
@@ -86,7 +85,7 @@ export const NavLink = styled(BasicLink)`
 interface IEntryProps {
 	url: string
 	name: string
-	Icon: Icon
+	Icon: React.FC<any>
 	newTag?: boolean
 	activeText?: string
 	style?: {}
@@ -97,7 +96,7 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
 
 	return (
 		<NavLink href={url} {...props} data-active={router.pathname === url}>
-			<Icon size={20} />
+			<Icon height={20} width={20} />
 			<span>{name}</span>
 			{newTag === true && (
 				<span

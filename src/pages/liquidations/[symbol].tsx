@@ -3,7 +3,6 @@
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import * as React from 'react'
 import styled from 'styled-components'
-import { Clock } from 'react-feather'
 import Layout from '~/layout'
 import { Header } from '~/Theme'
 import { LiquidationsSearch } from '~/components/Search'
@@ -26,6 +25,7 @@ import {
 } from '~/utils/liquidations'
 import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 import { withPerformanceLogging } from '~/utils/perf'
+import { Icon } from '~/components/Icon'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = withPerformanceLogging(
 	'liquidations/[symbol]',
@@ -128,7 +128,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				<LiquidationsContent data={data} prevData={prevData} />
 			</LiquidationsProvider>
 			<SmolHints>
-				<Clock size={12} />
+				<Icon name="clock" height={12} width={13} />
 				<i>Last updated {minutesAgo}min ago</i>
 			</SmolHints>
 			<TableSwitch />

@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars*/
 import * as React from 'react'
 import styled from 'styled-components'
-import { BarChart2, Activity, TrendingUp, Users } from 'react-feather'
 import { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
 import { Denomination, Filters } from '../ECharts/ProtocolChart/Misc'
+import { Icon } from '../Icon'
 
 export const TxsTableSwitch = () => {
 	const [bridgesSettings, toggleBridgesSettings] = useBridgesManager()
@@ -12,11 +12,11 @@ export const TxsTableSwitch = () => {
 	return (
 		<Wrapper>
 			<Switch active={!isBridgesShowingTxs} onClick={toggleBridgesSettings(BRIDGES_SHOWING_TXS)}>
-				<BarChart2 size={14} />
+				<Icon name="bar-chart-2" height={14} width={14} />
 				<span>Bridges</span>
 			</Switch>
 			<Switch active={isBridgesShowingTxs} onClick={toggleBridgesSettings(BRIDGES_SHOWING_TXS)}>
-				<Activity size={14} />
+				<Icon name="activity" height={14} width={14} />
 				<span>Large Txs</span>
 			</Switch>
 		</Wrapper>
@@ -35,7 +35,7 @@ export const AddressesTableSwitch = () => {
 				onClick={toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
 				style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
 			>
-				<TrendingUp size={14} />
+				<Icon name="trending-up" height={14} width={14} />
 				<span>Tokens</span>
 			</Denomination>
 			<Denomination
@@ -44,7 +44,7 @@ export const AddressesTableSwitch = () => {
 				onClick={toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
 				style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
 			>
-				<Users size={14} />
+				<Icon name="users" height={14} width={14} />
 				<span>Addresses</span>
 			</Denomination>
 		</Filters>

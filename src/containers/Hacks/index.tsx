@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { Search } from 'react-feather'
 import styled from 'styled-components'
 import {
 	useReactTable,
@@ -18,6 +17,7 @@ import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import useWindowSize from '~/hooks/useWindowSize'
 import { ChartSelector } from '~/components/PeggedPage'
+import { SearchIcon } from '~/components/Table/shared'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -75,7 +75,7 @@ function HacksTable({ data }) {
 	return (
 		<>
 			<TableFilters>
-				<SearchIcon size={16} />
+				<SearchIcon />
 
 				<input
 					value={projectName}
@@ -128,13 +128,6 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 		</Layout>
 	)
 }
-
-export const SearchIcon = styled(Search)`
-	position: absolute;
-	top: 8px;
-	left: 8px;
-	color: ${({ theme }) => theme.text3};
-`
 
 export const TableFilters = styled.div`
 	display: flex;

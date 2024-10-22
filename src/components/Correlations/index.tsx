@@ -1,4 +1,3 @@
-import { X as XIcon } from 'react-feather'
 import { TYPE } from '~/Theme'
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
@@ -24,6 +23,7 @@ import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
 import { CloseButton, ModalContent, ModalWrapper } from '../Modal/styles'
+import { Icon } from '../Icon'
 
 export function CoinsPicker({ coinsData, isModalOpen, setModalOpen, selectCoin, selectedCoins, queryCoins }: any) {
 	const parentRef = useRef()
@@ -58,7 +58,7 @@ export function CoinsPicker({ coinsData, isModalOpen, setModalOpen, selectCoin, 
 						style={{ height: '36px' }}
 						autoFocus
 					/>
-					<XIcon size={24} style={{ marginLeft: '0.5em' }} onClick={() => setModalOpen(false)} />
+					<Icon name="x" height={24} width={24} style={{ marginLeft: '0.5em' }} onClick={() => setModalOpen(false)} />
 				</CloseButton>
 				<SearchBody
 					ref={parentRef}
@@ -224,7 +224,7 @@ export default function Correlations({ coinsData }) {
 									}}
 								/>
 								<TYPE.body>{coin.symbol.toUpperCase()}</TYPE.body>
-								<XIcon size={14} />
+								<Icon name="x" height={14} width={14} />
 							</SearchRow>
 						) : null
 					)}

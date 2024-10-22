@@ -21,11 +21,11 @@ import { Name } from '~/layout/ProtocolAndPool'
 import TokenLogo from '../TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
-import { ChevronRight } from 'react-feather'
 import { last } from 'lodash'
 import { RowWithSubRows, StatsTable2 } from '~/containers/Defi/Protocol'
 import { Card, ControlsWrapper, DataWrapper, Grid, ToggleWrapper } from './styles'
 import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
+import { Icon } from '../Icon'
 
 const fetch = fetchWithErrorLogging
 
@@ -306,7 +306,7 @@ function ComparePage() {
 									<AccordionStat data-tvl>
 										<summary>
 											<span data-arrowicon>
-												<ChevronRight size={20} />
+												<Icon name="chevron-right" height={20} width={20} />
 											</span>
 
 											<span data-summaryheader>

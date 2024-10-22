@@ -1,9 +1,9 @@
 import { MenuButtonArrow } from 'ariakit'
 import { ApplyFilters } from '~/components'
 import Popover from '~/components/Popover'
-import { Settings } from 'react-feather'
 import { useChartManager } from '~/contexts/LocalStorage'
 import { PopoverContent, PopoverForm } from './Base'
+import { Icon } from '~/components/Icon'
 
 export function BarWidthInChart({ color }: { color: string }) {
 	const [barMinWidth, updateWidth] = useChartManager()
@@ -19,7 +19,7 @@ export function BarWidthInChart({ color }: { color: string }) {
 		<Popover
 			trigger={
 				<>
-					<Settings size={14} style={{ height: '19.5px' }} />
+					<Icon name="settings" height={'19.5px'} />
 					<MenuButtonArrow />
 				</>
 			}

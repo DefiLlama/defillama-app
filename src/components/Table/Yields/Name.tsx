@@ -1,5 +1,4 @@
 import styled from 'styled-components'
-import { ArrowUpRight } from 'react-feather'
 import { ButtonYields } from '~/layout/Pool'
 import Bookmark from '~/components/Bookmark'
 import { CustomLink } from '~/components/Link'
@@ -8,6 +7,7 @@ import { chainIconUrl, tokenIconUrl } from '~/utils'
 import Tooltip from '~/components/Tooltip'
 import FormattedName from '~/components/FormattedName'
 import useWindowSize from '~/hooks/useWindowSize'
+import { Icon } from '~/components/Icon'
 
 interface INameYieldPoolProps {
 	value: string
@@ -64,7 +64,7 @@ export function NameYieldPool({
 
 			{url ? (
 				<ButtonYields as="a" href={url} target="_blank" rel="noopener noreferrer" data-lgonly useTextColor={true}>
-					<ArrowUpRight size={14} />
+					<Icon name="arrow-up-right" height={14} width={14} />
 				</ButtonYields>
 			) : (
 				''

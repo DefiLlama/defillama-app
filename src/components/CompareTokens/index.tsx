@@ -5,12 +5,12 @@ import { useRouter } from 'next/router'
 import { CACHE_SERVER } from '~/constants'
 import LocalLoader from '../LocalLoader'
 import styled from 'styled-components'
-import { Repeat } from 'react-feather'
-import { SearchIcon } from '~/containers/Hacks'
 import { CoinsPicker } from '../Correlations'
 import { Button, Popover, Item } from '~/components/DropdownMenu'
 import { MenuButtonArrow, useMenuState } from 'ariakit'
 import { useQuery } from '@tanstack/react-query'
+import { SearchIcon } from '../Table/shared'
+import { Icon } from '../Icon'
 
 export default function CompareFdv({ coinsData, protocols }) {
 	const router = useRouter()
@@ -126,7 +126,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 			<Wrapper>
 				<SelectWrapper>
 					<TableFilters>
-						<SearchIcon size={16} />
+						<SearchIcon />
 
 						<input value={selectedCoins[0]?.name} onClick={() => setModalOpen(1)} placeholder="Search coins..." />
 					</TableFilters>
@@ -183,7 +183,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 							}
 						}}
 					>
-						<Repeat size="16px" />
+						<Icon name="repeat" height={16} width={16} />
 					</Switch>
 					{/* <ReactSelect
 						options={coinsData}
@@ -223,7 +223,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 						filterOption={createFilter({ ignoreAccents: false })}
 					/> */}
 					<TableFilters>
-						<SearchIcon size={16} />
+						<SearchIcon />
 
 						<input value={selectedCoins[1]?.name} onClick={() => setModalOpen(2)} placeholder="Search coins..." />
 					</TableFilters>

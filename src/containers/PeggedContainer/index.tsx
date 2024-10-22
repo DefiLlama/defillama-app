@@ -4,19 +4,9 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
 import { transparentize } from 'polished'
-import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import {
-	Button,
-	DetailsTable,
-	DownloadButton,
-	ExtraOption,
-	FlexRow,
-	DetailsWrapper,
-	Name,
-	Symbol
-} from '~/layout/ProtocolAndPool'
+import { Button, DetailsTable, ExtraOption, FlexRow, DetailsWrapper, Name, Symbol } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Checkbox2 } from '~/components'
 import { PeggedSearch } from '~/components/Search'
@@ -44,6 +34,7 @@ import { PeggedAssetByChainTable } from '~/components/Table'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { Stat, StatInARow } from '~/layout/Stats/Large'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { Icon } from '~/components/Icon'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -419,7 +410,7 @@ export const PeggedAssetInfo = ({
 											useTextColor={true}
 											color={backgroundColor}
 										>
-											<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
+											<span>View on {blockExplorerName}</span> <Icon name="arrow-up-right" height={14} width={14} />
 										</Button>
 									</Link>
 								</span>
@@ -436,7 +427,7 @@ export const PeggedAssetInfo = ({
 											color={backgroundColor}
 										>
 											<span>Website</span>
-											<ArrowUpRight size={14} />
+											<Icon name="arrow-up-right" height={14} width={14} />
 										</Button>
 									</Link>
 								</span>
@@ -453,7 +444,7 @@ export const PeggedAssetInfo = ({
 											color={backgroundColor}
 										>
 											<span>Twitter</span>
-											<ArrowUpRight size={14} />
+											<Icon name="arrow-up-right" height={14} width={14} />
 										</Button>
 									</Link>
 								</span>
@@ -470,7 +461,7 @@ export const PeggedAssetInfo = ({
 											color={backgroundColor}
 										>
 											<span>DeFiLlama Wiki</span>
-											<ArrowUpRight size={14} />
+											<Icon name="arrow-up-right" height={14} width={14} />
 										</Button>
 									</Link>
 								</span>
@@ -487,7 +478,7 @@ export const PeggedAssetInfo = ({
 											color={backgroundColor}
 										>
 											<span>CoinGecko</span>
-											<ArrowUpRight size={14} />
+											<Icon name="arrow-up-right" height={14} width={14} />
 										</Button>
 									</Link>
 								</span>
@@ -505,7 +496,7 @@ export const PeggedAssetInfo = ({
 									color={backgroundColor}
 								>
 									<span>Check the code</span>
-									<ArrowUpRight size={14} />
+									<Icon name="arrow-up-right" height={14} width={14} />
 								</AlignSelfButton>
 							</Link>
 						</LinksWrapper>
