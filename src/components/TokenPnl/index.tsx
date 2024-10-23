@@ -8,7 +8,7 @@ import LocalLoader from '../LocalLoader'
 import styled, { css } from 'styled-components'
 import { CoinsPicker } from '../Correlations'
 import { formattedNum } from '~/utils'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 const unixToDateString = (unixTimestamp) => {
 	if (!unixTimestamp) return ''

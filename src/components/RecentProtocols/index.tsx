@@ -17,7 +17,7 @@ import { DialogForm } from '../Filters/common/Base'
 import { useMutation } from '@tanstack/react-query'
 import { airdropsEligibilityCheck } from './airdrops'
 import CSVDownloadButton from '../ButtonStyled/CsvButton'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {

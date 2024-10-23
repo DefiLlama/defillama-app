@@ -6,7 +6,7 @@ import { useSetPopoverStyles } from './utils'
 import { useRouter } from 'next/router'
 import { Tooltip2 } from '../Tooltip'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 const Trigger = styled(PopoverDisclosure)`
 	display: flex;

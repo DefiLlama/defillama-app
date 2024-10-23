@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { useWatchlist } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { standardizeProtocolName } from '~/utils'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 interface IWrapperProps {
 	saved: boolean

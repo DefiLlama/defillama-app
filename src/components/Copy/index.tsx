@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import styled from 'styled-components'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 const CopyIcon = styled.button`
 	flex-shrink: 0;

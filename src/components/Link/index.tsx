@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Link as RebassLink } from 'rebass'
 import RouterLink from 'next/link'
 import styled from 'styled-components'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 interface BasicLinkProps {
 	href: string

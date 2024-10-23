@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import styled from 'styled-components'
 import { MobileRow } from './Row/Mobile'
-import type { ISearchItem } from '../../types'
+import type { ISearchItem } from '~/components/Search/types'
 
 const MobilePopover = styled.div`
 	position: absolute;

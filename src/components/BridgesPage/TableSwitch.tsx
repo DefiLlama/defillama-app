@@ -3,7 +3,7 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
 import { Denomination, Filters } from '../ECharts/ProtocolChart/Misc'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 export const TxsTableSwitch = () => {
 	const [bridgesSettings, toggleBridgesSettings] = useBridgesManager()

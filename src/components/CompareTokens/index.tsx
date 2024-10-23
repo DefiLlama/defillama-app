@@ -10,7 +10,7 @@ import { Button, Popover, Item } from '~/components/DropdownMenu'
 import { MenuButtonArrow, useMenuState } from 'ariakit'
 import { useQuery } from '@tanstack/react-query'
 import { SearchIcon } from '../Table/shared'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 export default function CompareFdv({ coinsData, protocols }) {
 	const router = useRouter()

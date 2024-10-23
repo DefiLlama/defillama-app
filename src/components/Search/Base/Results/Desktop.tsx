@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ComboboxPopover, ComboboxState } from 'ariakit/combobox'
 import styled from 'styled-components'
 import { DesktopRow } from './Row/Desktop'
-import type { ISearchItem } from '../../types'
+import type { ISearchItem } from '~/components/Search/types'
 
 export const Popover = styled(ComboboxPopover)`
 	height: 100%;

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 export const TableSwitch = () => {
 	const [liqsSettings, toggleLiqsSettings] = useLiqsManager()

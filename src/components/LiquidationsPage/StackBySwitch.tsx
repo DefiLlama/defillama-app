@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 export const StackBySwitch = () => {
 	const router = useRouter()

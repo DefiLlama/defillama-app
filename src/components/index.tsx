@@ -5,7 +5,6 @@ import { CheckboxCheck } from 'ariakit'
 import { BasicLink } from '~/components/Link'
 import { primaryColor } from '~/constants/colors'
 import { transparentize } from 'polished'
-import { Icon } from './Icon'
 
 export const Panel = styled.div`
 	position: relative;

@@ -1,6 +1,6 @@
 import { withPerformanceLogging } from '~/utils/perf'
 import { type } from '.'
-import { getStaticPropsByType } from '../../utils/adaptorsPages/[type]/[item]'
+import { getStaticPropsByType } from '~/utils/adaptorsPages/[type]/[item]'
 
 export const getStaticProps = withPerformanceLogging('options/[item]', getStaticPropsByType(type))
 
@@ -11,4 +11,4 @@ export async function getStaticPaths() {
 	}
 }
 
-export { default } from '../../utils/adaptorsPages/[type]/[item]'
+export { default } from '~/utils/adaptorsPages/[type]/[item]'

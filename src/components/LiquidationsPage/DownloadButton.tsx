@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { download } from '~/utils'
 import { getLiquidationsCsvData } from '~/utils/liquidations'
 import CSVDownloadButton from '../ButtonStyled/CsvButton'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 export const DownloadButton = ({ symbol }: { symbol: string }) => {
 	return (

@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 export interface IMainLink {
 	name: string

@@ -21,7 +21,7 @@ import { IOverviewProps } from '~/api/categories/adaptors'
 import Modal from '../Modal'
 import CompareProtocols from '../CompareProtocols'
 import { ButtonDark } from '../ButtonStyled'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false

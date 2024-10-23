@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { darken, transparentize } from 'polished'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 interface IButtonLightProps {
 	useTextColor?: boolean

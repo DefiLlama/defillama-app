@@ -2,7 +2,7 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 // change 'value' for new announcements
 export const ANNOUNCEMENT = {

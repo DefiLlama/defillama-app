@@ -6,7 +6,7 @@ import SortIcon from './SortIcon'
 import QuestionHelper from '../QuestionHelper'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 interface ITableProps {
 	instance: Table<any>

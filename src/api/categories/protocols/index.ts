@@ -39,7 +39,7 @@ import { getFeesAndRevenueProtocolsByChain } from '../fees'
 import { getDexVolumeByChain } from '../dexs'
 import { sluggify } from '~/utils/cache-client'
 import { getAPIUrl } from '../adaptors/client'
-import { ADAPTOR_TYPES } from '../../../utils/adaptorsPages/types'
+import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())

@@ -23,7 +23,7 @@ import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
 import { CloseButton, ModalContent, ModalWrapper } from '../Modal/styles'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 export function CoinsPicker({ coinsData, isModalOpen, setModalOpen, selectCoin, selectedCoins, queryCoins }: any) {
 	const parentRef = useRef()

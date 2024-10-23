@@ -15,7 +15,7 @@ import CopyHelper from '~/components/Copy'
 import { AdaptorsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { ChartByType } from './charts'
 

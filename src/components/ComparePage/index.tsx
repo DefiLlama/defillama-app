@@ -25,7 +25,7 @@ import { last } from 'lodash'
 import { RowWithSubRows, StatsTable2 } from '~/containers/Defi/Protocol'
 import { Card, ControlsWrapper, DataWrapper, Grid, ToggleWrapper } from './styles'
 import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 const fetch = fetchWithErrorLogging
 

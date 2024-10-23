@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import Tooltip from '~/components/Tooltip'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 interface IHeadHelpProps {
 	title: string

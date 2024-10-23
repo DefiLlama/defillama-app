@@ -1,5 +1,5 @@
 import { type } from '.'
-import { getStaticPropsByType } from '../../utils/adaptorsPages/[type]/[item]'
+import { getStaticPropsByType } from '~/utils/adaptorsPages/[type]/[item]'
 import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging('derivatives/[item]', getStaticPropsByType(type))
 
@@ -10,4 +10,4 @@ export async function getStaticPaths() {
 	}
 }
 
-export { default } from '../../utils/adaptorsPages/[type]/[item]'
+export { default } from '~/utils/adaptorsPages/[type]/[item]'

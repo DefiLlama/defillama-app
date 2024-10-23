@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
-import type { ISearchItem } from '../../../types'
+import type { ISearchItem } from '~/components/Search/types'
 
 const Item = styled.div`
 	padding: 12px 14px;

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 const IconWrapper = styled.div<{ isActive?: boolean }>`
 	opacity: ${({ isActive }) => (isActive ? 0.8 : 0.4)};

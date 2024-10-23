@@ -5,7 +5,7 @@ import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { Button } from '~/layout/ProtocolAndPool'
 import { IArticle } from '~/api/categories/news'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 
 const Container = styled.a`
 	background-color: ${({ color }) => transparentize(0.9, color)};
