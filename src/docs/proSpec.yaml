@@ -336,7 +336,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  
+
   /etfs/overview:
     get:
       tags:
@@ -386,7 +386,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  
+
   /usage/APIKEY:
     get:
       tags:

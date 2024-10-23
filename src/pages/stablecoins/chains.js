@@ -22,7 +22,7 @@ export default function PeggedAssets({
 	chartData,
 	peggedChartDataByChain,
 	chainList,
-	chainsGroupbyParent,
+	chainsGroupbyParent
 }) {
 	return (
 		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO>

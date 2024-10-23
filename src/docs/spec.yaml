@@ -953,14 +953,14 @@ paths:
       responses:
         '200':
           description: successful operation
-          
+
   /overview/derivatives:
     get:
       tags:
         - derivatives
       summary: Lists all derivatives along summaries of their volumes filtering by chain
       servers:
-      - url: https://api.llama.fi
+        - url: https://api.llama.fi
       parameters:
         - name: excludeTotalDataChart
           in: path
@@ -983,7 +983,7 @@ paths:
         - derivatives
       summary: Volume Details about a specific derivative
       servers:
-      - url: https://api.llama.fi/summary/
+        - url: https://api.llama.fi/summary/
       parameters:
         - name: excludeTotalDataChart
           in: path

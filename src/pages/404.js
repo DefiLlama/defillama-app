@@ -16,8 +16,10 @@ const Style = styled.div`
 export default function HomePage(props) {
 	return (
 		<Layout title="DefiLlama - Page not found">
-			<Style><Image src={lostLlama} width="350" height="350" alt="Want a ride?" style={{ margin: 'auto' }} />
-				404 - Page not found</Style>
+			<Style>
+				<Image src={lostLlama} width="350" height="350" alt="Want a ride?" style={{ margin: 'auto' }} />
+				404 - Page not found
+			</Style>
 		</Layout>
 	)
 }

@@ -238,7 +238,11 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 			const parentBridges = parent.bridges
 			const percentBridged =
 				parent.circulating && parent.bridgedAmount && (parent.bridgedAmount / parent.circulating) * 100.0
-			const percentBridgedtoDisplay = percentBridged ? (percentBridged < 100 ? percentBridged.toFixed(2) + '%' : '100%') : null
+			const percentBridgedtoDisplay = percentBridged
+				? percentBridged < 100
+					? percentBridged.toFixed(2) + '%'
+					: '100%'
+				: null
 			if (!parentBridges || Object.keys(parentBridges).length === 0) {
 				finalData[parent.name] = {
 					...parent,

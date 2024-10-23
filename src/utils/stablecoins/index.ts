@@ -19,14 +19,7 @@ export const useBuildPeggedChartData = (
 				selectedChain,
 				totalChartTooltipLabel
 			),
-		[
-			chartDataByAssetOrChain,
-			assetsOrChainsList,
-			filteredIndexes,
-			issuanceType,
-			selectedChain,
-			totalChartTooltipLabel
-		]
+		[chartDataByAssetOrChain, assetsOrChainsList, filteredIndexes, issuanceType, selectedChain, totalChartTooltipLabel]
 	)
 	return data
 }
