@@ -911,6 +911,8 @@ export async function getLSDPageData() {
 				? 'MEV Protocol'
 				: p.project === 'crypto.com-staked-eth'
 				? 'Crypto.com Staked ETH'
+				: p.project === 'dinero-(pxeth)'
+				? 'Dinero (pxETH)'
 				: p.name
 	}))
 
