@@ -17,9 +17,9 @@ export const getStaticProps = withPerformanceLogging(
 		let isHot = false
 		const IS_RUNTIME = !!process.env.IS_RUNTIME
 
-		// if (IS_RUNTIME) {
-		// 	isHot = await isCpusHot()
-		// }
+		if (IS_RUNTIME) {
+			isHot = await isCpusHot()
+		}
 
 		const protocolData = await getProtocol(protocol)
 
