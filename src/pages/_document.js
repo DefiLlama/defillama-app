@@ -25,7 +25,7 @@ class MyDocument extends Document {
 
 	render() {
 		return (
-			<Html lang="en">
+			<Html lang="en" className="dark">
 				<Head>
 					<link href="/fonts/inter.woff2" rel="preload" as="font" crossOrigin="anonymous" />
 					<link href="/fonts/jetbrains.ttf" rel="preload" as="font" crossOrigin="anonymous" />

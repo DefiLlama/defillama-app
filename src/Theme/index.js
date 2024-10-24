@@ -114,28 +114,6 @@ const slideUp = keyframes`
 `
 
 export const GlobalStyle = createGlobalStyle`
-	:root {
-		--text-disabled: ${({ theme }) => (theme.mode === 'dark' ? '#999' : '#757575')}
-	}
-
-	body, #__next {
-		background-color: ${({ theme }) => theme.background};
-	}
-
-  #__next {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    min-height: 100%;
-    position: relative;
-    color: ${({ theme }) => theme.text1};
-    isolation: isolate;
-
-    ${({ theme: { minLg } }) => minLg} {
-      flex-direction: row;
-    }
-  }
-
 	.tooltip-trigger {
 		color: ${({ theme }) => theme.text1};
 		display: flex;
