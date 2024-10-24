@@ -1324,7 +1324,7 @@ function ProtocolContainer({
 							/>
 
 							<Bobo onClick={() => setBobo(!bobo)}>
-								<span className="visually-hidden">Enable Goblin Mode</span>
+								<span className="sr-only">Enable Goblin Mode</span>
 								<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
 							</Bobo>
 						</StatsSection>

@@ -23,7 +23,7 @@ export default function DesktopNav() {
 		<Wrapper as="aside">
 			<Link href="/" passHref>
 				<LogoWrapper>
-					<span className="visually-hidden">Navigate to Home Page</span>
+					<span className="sr-only">Navigate to Home Page</span>
 					<Image src={darkMode ? logoLight : logoDark} alt="Navigate to Home Page" priority />
 				</LogoWrapper>
 			</Link>

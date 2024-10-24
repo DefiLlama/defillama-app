@@ -172,7 +172,7 @@ export function Input({
 				<IconWrapper data-variant={variant} onClick={onClick}>
 					{state.mounted ? (
 						<>
-							<span className="visually-hidden">Close Search</span>
+							<span className="sr-only">Close Search</span>
 							<Icon
 								name="x"
 								height={variant === 'secondary' ? '16px' : '18px'}
@@ -181,7 +181,7 @@ export function Input({
 						</>
 					) : (
 						<>
-							<span className="visually-hidden">Open Search</span>
+							<span className="sr-only">Open Search</span>
 							<Icon
 								name="search"
 								height={variant === 'secondary' ? '16px' : '18px'}
@@ -236,7 +236,7 @@ export function MobileInput({
 			/>
 
 			<IconWrapper onClick={() => hideInput && hideInput(false)}>
-				<span className="visually-hidden">Close Search</span>
+				<span className="sr-only">Close Search</span>
 				<Icon name="x" height={24} width={24} />
 			</IconWrapper>
 		</>

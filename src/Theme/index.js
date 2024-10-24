@@ -136,24 +136,6 @@ export const GlobalStyle = createGlobalStyle`
     }
   }
 
-  a, input, button, textarea, select {
-    &:focus-visible {
-      outline: 1px solid ${({ theme }) => theme.text1};
-    }
-  }
-
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-
 	.tooltip-trigger {
 		color: ${({ theme }) => theme.text1};
 		display: flex;

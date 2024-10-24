@@ -21,7 +21,7 @@ export default function MobileNav() {
 		<Wrapper>
 			<Link href="/" passHref>
 				<LogoWrapper>
-					<span className="visually-hidden">Navigate to Home Page</span>
+					<span className="sr-only">Navigate to Home Page</span>
 					<Image src={Logo} alt="Navigate to Home Page" priority />
 				</LogoWrapper>
 			</Link>
