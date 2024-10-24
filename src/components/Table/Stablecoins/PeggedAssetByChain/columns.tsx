@@ -76,7 +76,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 		header: '1d Change',
 		accessorKey: 'change_1d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 140,
+		size: 110,
 		meta: {
 			align: 'end'
 		}
@@ -85,7 +85,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 		header: '7d Change',
 		accessorKey: 'change_7d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 140,
+		size: 110,
 		meta: {
 			align: 'end'
 		}
@@ -94,7 +94,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 		header: '1m Change',
 		accessorKey: 'change_1m',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 140,
+		size: 110,
 		meta: {
 			align: 'end'
 		}
@@ -103,7 +103,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 		header: 'Total Circulating',
 		accessorKey: 'circulating',
 		cell: (info) => <>{formattedNum(info.getValue())}</>,
-		size: 140,
+		size: 145,
 		meta: {
 			align: 'end'
 		}
@@ -123,18 +123,18 @@ export const columnSizes = {
 		name: 160,
 		bridgeInfo: 240,
 		bridgedAmount: 140,
-		change_1d: 100,
-		change_7d: 100,
-		change_1m: 100,
-		circulating: 100
+		change_1d: 110,
+		change_7d: 110,
+		change_1m: 110,
+		circulating: 145
 	},
 	900: {
 		name: 280,
 		bridgeInfo: 240,
 		bridgedAmount: 140,
-		change_1d: 140,
-		change_7d: 140,
-		change_1m: 140,
-		circulating: 140
+		change_1d: 110,
+		change_7d: 110,
+		change_1m: 110,
+		circulating: 145
 	}
 }
