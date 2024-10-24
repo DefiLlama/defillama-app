@@ -2,6 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-	min-width: 0;
+@font-face {
+	font-family: 'Inter var';
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url('/fonts/inter.woff2') format('woff2');
+}
+@font-face {
+	font-family: 'JetBrains Mono';
+	font-style: normal;
+	font-weight: 800;
+	font-display: swap;
+	src: url('/fonts/jetbrains.ttf') format('truetype');
+}
+
+@layer base {
+	:root {
+		--font-jetbrains: 'JetBrains Mono', monospace;
+		--font-inter: 'Inter var', sans-serif;
+	}
+
+	* {
+		min-width: 0;
+		text-wrap: pretty;
+	}
+
+	html {
+		font-family: var(--font-inter);
+		line-height: inherit;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	}
+
+	body {
+		font-size: 0.875rem;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		text-wrap: balance;
+	}
+
+	button {
+		@apply pointer-events-auto cursor-pointer touch-none select-none outline-2 outline-offset-2 focus-visible:outline disabled:cursor-not-allowed data-[focus-visible]:outline;
+	}
+
+	a,
+	input,
+	textarea,
+	select {
+		@apply outline-2 outline-offset-2 focus-visible:outline disabled:cursor-not-allowed;
+	}
+
+	input,
+	textarea,
+	select {
+		@apply rounded-none text-inherit;
+	}
+
+	img,
+	picture,
+	video,
+	canvas,
+	svg {
+		@apply block max-w-full;
+	}
+
+	details summary::-webkit-details-marker {
+		@apply hidden;
+	}
 }

@@ -39,7 +39,7 @@ export const Name = styled.span<INameProps>`
 `
 export const AccordionButton = styled.button`
 	position: absolute;
-	left: -8px;
+	left: -2px;
 `
 
 export const TableFilters = styled.div`

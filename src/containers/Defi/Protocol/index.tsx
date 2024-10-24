@@ -1790,7 +1790,7 @@ function ProtocolContainer({
 }
 
 const Toggle = styled.button`
-	margin-left: -22px;
+	margin-left: -18px;
 	display: flex;
 	align-items: center;
 	gap: 2px;
