@@ -174,7 +174,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 					<FiltersByCategory
 						categoryList={categories}
 						selectedCategories={selectedCategories}
-						pathname={router.asPath}
+						pathname={router.basePath}
 						hideSelectedCount
 					/>
 				)}
