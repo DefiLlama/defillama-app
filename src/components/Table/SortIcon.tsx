@@ -45,6 +45,8 @@ interface ICaret {
 }
 
 const Caret = styled.span<ICaret>`
+	display: block;
+	min-width: 10px;
 	color: ${({ active, theme }) => (active ? theme.blue : 'gray')};
 	flex-shrink: 0;
 	position: relative;

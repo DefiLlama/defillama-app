@@ -48,7 +48,7 @@ export function Settings() {
 	return (
 		<>
 			<Trigger state={select}>
-				<span className="visually-hidden">Open Settings Menu</span>
+				<span className="sr-only">Open Settings Menu</span>
 				<Icon name="settings" height={16} width={16} />
 			</Trigger>
 

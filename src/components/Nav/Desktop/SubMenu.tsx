@@ -89,6 +89,8 @@ const Details = styled.details`
 
 		& > *[data-arrowicon] {
 			margin-left: auto;
+			position: relative;
+			right: -2px;
 		}
 
 		& > *[data-newtag] {

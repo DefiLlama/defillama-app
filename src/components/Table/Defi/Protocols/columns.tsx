@@ -106,7 +106,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 110
 			}),
 			columnHelper.accessor('change_7d', {
 				header: '7d Change',
@@ -115,7 +115,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 110
 			}),
 			columnHelper.accessor('change_1m', {
 				header: '1m Change',
@@ -124,7 +124,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 110
 			}),
 			columnHelper.accessor('mcaptvl', {
 				header: 'Mcap/TVL',
@@ -132,7 +132,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					return <>{info.getValue() ?? null}</>
 				},
 				sortUndefined: 'last',
-				size: 100,
+				size: 110,
 				meta: {
 					align: 'end'
 				}
@@ -159,7 +159,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 120
+				size: 125
 			}),
 			columnHelper.accessor('fees_7d', {
 				header: 'Fees 7d',
@@ -195,7 +195,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 125
 			}),
 			columnHelper.accessor('fees_1y', {
 				header: 'Monthly Avg 1Y',
@@ -232,7 +232,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 100
+				size: 180
 			}),
 			columnHelper.accessor('userFees_24h', {
 				header: 'User Fees 24h',
@@ -250,7 +250,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 140
+				size: 150
 			}),
 			columnHelper.accessor('holderRevenue_24h', {
 				header: 'Holders Revenue 24h',
@@ -269,7 +269,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 180
+				size: 190
 			}),
 			columnHelper.accessor('supplySideRevenue_24h', {
 				header: 'Supply Side Revenue 24h',
@@ -278,7 +278,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 200
+				size: 210
 			}),
 			columnHelper.accessor('pf', {
 				header: 'P/F',
@@ -313,7 +313,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 120
+				size: 150
 			}),
 			columnHelper.accessor('volume_7d', {
 				header: 'Spot Volume 7d',
@@ -322,7 +322,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 120
+				size: 150
 			}),
 			columnHelper.accessor('volumeChange_7d', {
 				header: 'Change 7d',
@@ -332,7 +332,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					align: 'end',
 					headerHelperText: 'Change of last 7d volume over the previous 7d volume'
 				},
-				size: 120
+				size: 130
 			}),
 			columnHelper.accessor('cumulativeVolume', {
 				header: 'Cumulative Volume',
@@ -341,7 +341,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				meta: {
 					align: 'end'
 				},
-				size: 160
+				size: 170
 			})
 		]
 	})
@@ -823,11 +823,11 @@ export const columnSizes = {
 		compare: 80,
 		name: 180,
 		category: 140,
-		change_1d: 100,
-		change_7d: 100,
-		change_1m: 100,
+		change_1d: 110,
+		change_7d: 110,
+		change_1m: 110,
 		tvl: 120,
-		mcaptvl: 100,
+		mcaptvl: 110,
 		totalRaised: 180
 	},
 	1024: {
@@ -835,11 +835,11 @@ export const columnSizes = {
 		compare: 80,
 		name: 240,
 		category: 140,
-		change_1d: 100,
-		change_7d: 100,
-		change_1m: 100,
+		change_1d: 120,
+		change_7d: 110,
+		change_1m: 110,
 		tvl: 120,
-		mcaptvl: 100,
+		mcaptvl: 110,
 		totalRaised: 180
 	},
 	1280: {
@@ -847,11 +847,11 @@ export const columnSizes = {
 		compare: 80,
 		name: 200,
 		category: 140,
-		change_1d: 100,
-		change_7d: 100,
-		change_1m: 100,
+		change_1d: 110,
+		change_7d: 110,
+		change_1m: 110,
 		tvl: 120,
-		mcaptvl: 100,
+		mcaptvl: 110,
 		totalRaised: 180
 	}
 }

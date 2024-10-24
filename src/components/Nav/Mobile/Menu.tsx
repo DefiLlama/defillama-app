@@ -98,14 +98,14 @@ export function Menu() {
 	return (
 		<>
 			<Button onClick={() => setShow(!show)} ref={buttonEl}>
-				<span className="visually-hidden">Open Navigation Menu</span>
+				<span className="sr-only">Open Navigation Menu</span>
 				<Icon name="menu" height={16} width={16} />
 			</Button>
 
 			<Backdrop data-acitve={show}>
 				<Nav ref={navEl}>
 					<Close onClick={() => setShow(!show)}>
-						<span className="visually-hidden">Close Navigation Menu</span>
+						<span className="sr-only">Close Navigation Menu</span>
 						<Icon name="x" height={20} width={20} strokeWidth="4px" />
 					</Close>
 

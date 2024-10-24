@@ -208,7 +208,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 100
+		size: 145
 	}
 ]
 
@@ -516,7 +516,7 @@ export const bridgeChainsColumnSizes = {
 		prevWeekNetFlow: 120,
 		prevWeekUsdWithdrawals: 130,
 		prevWeekUsdDeposits: 130,
-		topTokenWithdrawnSymbol: 140
+		topTokenWithdrawnSymbol: 145
 	},
 	480: {
 		name: 180,
@@ -526,7 +526,7 @@ export const bridgeChainsColumnSizes = {
 		prevWeekNetFlow: 140,
 		prevWeekUsdWithdrawals: 150,
 		prevWeekUsdDeposits: 150,
-		topTokenWithdrawnSymbol: 140
+		topTokenWithdrawnSymbol: 145
 	},
 	1024: {
 		name: 180,
@@ -536,7 +536,7 @@ export const bridgeChainsColumnSizes = {
 		prevWeekNetFlow: 140,
 		prevWeekUsdWithdrawals: 150,
 		prevWeekUsdDeposits: 150,
-		topTokenWithdrawnSymbol: 140
+		topTokenWithdrawnSymbol: 145
 	}
 }
 

@@ -81,7 +81,7 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 	{
 		header: 'Price',
 		accessorKey: 'price',
-		size: 100,
+		size: 110,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
 			const rowValues = row.original
@@ -100,7 +100,7 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 		header: '1d Change',
 		accessorKey: 'change_1d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 100,
+		size: 110,
 		meta: {
 			align: 'end'
 		}
@@ -109,7 +109,7 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 		header: '7d Change',
 		accessorKey: 'change_7d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 100,
+		size: 110,
 		meta: {
 			align: 'end'
 		}
@@ -118,7 +118,7 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 		header: '1m Change',
 		accessorKey: 'change_1m',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 100,
+		size: 110,
 		meta: {
 			align: 'end'
 		}
@@ -147,10 +147,10 @@ export const columnSizes = {
 		chains: 180,
 		pegDeviation: 120,
 		pegDeviation_1m: 150,
-		price: 100,
-		change_1d: 100,
-		change_7d: 100,
-		change_1m: 100,
+		price: 110,
+		change_1d: 110,
+		change_7d: 110,
+		change_1m: 110,
 		mcap: 120
 	},
 	480: {
@@ -158,10 +158,10 @@ export const columnSizes = {
 		chains: 180,
 		pegDeviation: 120,
 		pegDeviation_1m: 150,
-		price: 100,
-		change_1d: 100,
-		change_7d: 100,
-		change_1m: 100,
+		price: 110,
+		change_1d: 110,
+		change_7d: 110,
+		change_1m: 110,
 		mcap: 120
 	},
 	1024: {
@@ -169,10 +169,10 @@ export const columnSizes = {
 		chains: 200,
 		pegDeviation: 120,
 		pegDeviation_1m: 150,
-		price: 100,
-		change_1d: 100,
-		change_7d: 100,
-		change_1m: 100,
+		price: 110,
+		change_1d: 110,
+		change_7d: 110,
+		change_1m: 110,
 		mcap: 120
 	}
 }

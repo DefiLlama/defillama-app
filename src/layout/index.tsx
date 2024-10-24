@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast'
 import ThemeProvider, { GlobalStyle } from '~/Theme'
 import SEO from '~/components/SEO'
 import Nav from '~/components/Nav'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 const PageWrapper = styled.div<{ fullWidth?: boolean }>`
 	flex: 1;
@@ -42,6 +43,8 @@ interface ILayoutProps {
 }
 
 export default function Layout({ title, children, defaultSEO = false, ...props }: ILayoutProps) {
+	const [darkMode] = useDarkModeManager()
+
 	return (
 		<>
 			<Head>
@@ -55,7 +58,7 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 				{/* @ts-ignore */}
 				<GlobalStyle />
 				<Nav />
-				<PageWrapper {...props}>
+				<PageWrapper className={darkMode ? 'dark' : 'light'} {...props}>
 					<Center {...props}>{children}</Center>
 				</PageWrapper>
 				<Toaster />

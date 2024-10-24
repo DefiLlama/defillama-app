@@ -748,7 +748,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		header: 'Active Addresses',
 		accessorKey: 'users',
 		cell: (info) => <>{info.getValue() === 0 || formattedNum(info.getValue())}</>,
-		size: 120,
+		size: 180,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Active addresses in the last 24h'
@@ -898,7 +898,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		},
-		size: 120,
+		size: 125,
 		meta: {
 			align: 'end'
 		}
@@ -1221,7 +1221,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: 'spotVolume',
 		cell: (info) => (info.getValue() ? '$' + formattedNum(info.getValue()) : null),
 		sortingFn: sortingFns.datetime,
-		size: 120,
+		size: 125,
 		meta: {
 			align: 'end'
 		}
