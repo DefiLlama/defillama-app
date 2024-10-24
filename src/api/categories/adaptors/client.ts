@@ -9,7 +9,7 @@ export const useFetchAdaptorsList = (type: string) => {
 		type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
 	}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 	return useQuery<IGetOverviewResponseBody>({
-		queryKey: [url],
+		queryKey: ['adaptors-list', url],
 		queryFn: url ? () => fetchApi(url) : () => null,
 		retry: 0
 	})
@@ -18,7 +18,7 @@ export const useFetchAdaptorsList = (type: string) => {
 export const useFetchCharts = (type: string, chain?: string, dataType?: string, disable?: boolean) => {
 	const url = !disable ? getAPIUrl(type, chain, true, false, dataType) : null
 	return useQuery<ProtocolAdaptorSummaryProps>({
-		queryKey: [url],
+		queryKey: ['adaptors-charts', url],
 		queryFn: url ? () => fetchApi(url) : () => null
 	})
 }
@@ -44,7 +44,7 @@ export const useFetchChartsSummary = (type: string, protocolName: string, dataTy
 	const url = !disable ? getAPIUrlSummary(type, protocolName, dataType) : null
 
 	return useQuery<ProtocolAdaptorSummaryProps>({
-		queryKey: [url],
+		queryKey: ['adaptors-charts-summary', url],
 		queryFn: url
 			? () => fetchApi(url).then((res) => generateGetOverviewItemPageDate(res, type, protocolName))
 			: () => null,

@@ -16,7 +16,7 @@ interface IData {
 export const useFetchProtocolUserMetrics = (protocolName?: string | string[]) => {
 	const url = protocolName ? `${USER_METRICS_PROTOCOL_API}/${protocolName}` : null
 	return useQuery<Array<IData>>({
-		queryKey: [url],
+		queryKey: ['protocol-user-metrics', url],
 		queryFn: () => fetchApi(url)
 	})
 }

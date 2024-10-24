@@ -486,7 +486,7 @@ export const useFetchNFTsList = (searchValue: string) => {
 	const debouncedSearchTerm = useDebounce(searchValue, 500)
 	const url = debouncedSearchTerm ? `${NFT_SEARCH_API}?query=${debouncedSearchTerm}` : NFT_COLLECTIONS_API
 
-	const { data, isLoading, error } = useQuery({ queryKey: [url], queryFn: () => fetchApi(url) })
+	const { data, isLoading, error } = useQuery({ queryKey: ['nfts-list', url], queryFn: () => fetchApi(url) })
 
 	return {
 		data: data?.hits?.map((el) => el._source) ?? data?.data ?? null,
