@@ -2,9 +2,7 @@
 // eslint sucks at types
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import * as React from 'react'
-import styled from 'styled-components'
 import Layout from '~/layout'
-import { Header } from '~/Theme'
 import { LiquidationsSearch } from '~/components/Search'
 import SEO from '~/components/SEO'
 import { LiquidationsHeader } from '~/components/LiquidationsPage/LiquidationsHeader'
@@ -62,13 +60,6 @@ const LiquidationsProvider = ({ children }) => {
 	)
 }
 
-const ResponsiveHeader = styled(Header)`
-	text-align: center;
-	@media (min-width: 80rem) {
-		text-align: revert;
-	}
-`
-
 const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; options: ISearchItem[] }> = (props) => {
 	const { data, prevData, options } = props
 	const [liqsSettings] = useLiqsManager()
@@ -122,7 +113,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				</>
 			)} */}
 
-			<ResponsiveHeader>Liquidation levels in DeFi 💦</ResponsiveHeader>
+			<h1 className='text-2xl font-medium -mb-5 text-center xl:text-start'>Liquidation levels in DeFi 💦</h1>
 			<LiquidationsHeader data={data} options={options} />
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />

@@ -12,14 +12,12 @@ import {
 import styled from 'styled-components'
 import VirtualTable from '~/components/Table/Table'
 import { calendarColumns } from '~/components/Table/Defi/columns'
-import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 import { withPerformanceLogging } from '~/utils/perf'
 import { AnnouncementWrapper } from '~/components/Announcement'
 import calendarEvents from '~/constants/calendar'
 import { formatPercentage } from '~/utils'
 import { PROTOCOL_EMISSIONS_API } from '~/constants'
-import OptionToggle from '~/components/OptionToggle'
 import { BasicDropdown } from '~/components/Filters/common/BasicDropdown'
 import { useRouter } from 'next/router'
 
@@ -135,7 +133,7 @@ export default function Protocols({ emissions }) {
 			</AnnouncementWrapper>
 
 			<TableHeaderAndSearch>
-				<Header>Crypto Calendar</Header>
+				<h1 className='text-2xl font-medium -mb-5'>Crypto Calendar</h1>
 
 				<div style={{ marginBottom: '-23px' }}>
 					<BasicDropdown

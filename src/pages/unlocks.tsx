@@ -14,7 +14,6 @@ import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
 import VirtualTable from '~/components/Table/Table'
 import { emissionsColumns } from '~/components/Table/Defi/columns'
-import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 import { withPerformanceLogging } from '~/utils/perf'
 import { AnnouncementWrapper } from '~/components/Announcement'
@@ -73,7 +72,7 @@ export default function Protocols({ data }) {
 			</AnnouncementWrapper>
 
 			<TableHeaderAndSearch>
-				<Header>Token Unlocks</Header>
+				<h1 className='text-2xl font-medium -mb-5'>Token Unlocks</h1>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />

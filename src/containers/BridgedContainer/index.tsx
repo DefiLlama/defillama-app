@@ -1,6 +1,4 @@
-import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import * as React from 'react'
-import { Header } from '~/Theme'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 import { ProtocolsChainsSearch } from '~/components/Search'
@@ -8,10 +6,8 @@ import { bridgedColumns } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 
 import { download } from '~/utils'
-import { sluggify } from '~/utils/cache-client'
 
 export default function ChainsContainer({ assets, chains, flows1d }) {
-	const [sorting, setSorting] = React.useState<SortingState>([])
 
 	const data = Object.keys(assets)
 		.map((name) => {
@@ -25,17 +21,6 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 			}
 		})
 		.filter((row) => row?.total)
-
-	const instance = useReactTable({
-		data,
-		columns: bridgedColumns,
-		state: {
-			sorting
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
-	})
 
 	const onCSVDownload = () => {
 		const csvData = data.map((row) => {
@@ -66,9 +51,9 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 					name: 'All Chains'
 				}}
 			/>
-			<Header style={{ display: 'flex', justifyContent: 'space-between' }}>
-				Bridged TVL for All chains <CSVDownloadButton onClick={onCSVDownload} />
-			</Header>
+			<h1 className='text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3'>
+				<span>Bridged TVL for All chains</span><CSVDownloadButton onClick={onCSVDownload} />
+			</h1>
 			<TableWithSearch
 				data={data}
 				columns={bridgedColumns}

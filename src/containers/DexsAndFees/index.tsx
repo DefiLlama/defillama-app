@@ -1,6 +1,5 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { Header } from '~/Theme'
 import { Panel } from '~/components'
 import { OverviewTable } from '~/components/Table'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
@@ -17,14 +16,6 @@ import { AnnouncementWrapper } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
-const HeaderWrapper = styled(Header)`
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 12px;
-	border: 1px solid transparent;
-`
 
 export type IOverviewContainerProps = IOverviewProps
 
@@ -268,14 +259,11 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				}
 			/>
 
-			<StyledHeaderWrapper>
-				<div>
-					<TitleByType type={props.type} chain={chain} />
-
-					<CSVDownloadButton onClick={downloadCsv} style={{ marginLeft: '8px' }} />
-				</div>
-				<p style={{ fontSize: '.60em', textAlign: 'end' }}>Updated daily at 00:00UTC</p>
-			</StyledHeaderWrapper>
+			<div className='flex items-center flex-wrap -mb-5 gap-3'>
+				<h1 className='text-2xl font-medium'><TitleByType type={props.type} chain={chain} /></h1>
+				<CSVDownloadButton onClick={downloadCsv} />
+				<p className='text-sm ml-auto'>Updated daily at 00:00UTC</p>
+			</div>
 			{getChartByType(props.type, {
 				type: props.type,
 				data: {
@@ -353,11 +341,5 @@ const TitleByType: React.FC<ITitleProps> = (props) => {
 	} else if (props.chain && props.chain !== 'All') {
 		title = `${title} in ${props.chain}`
 	}
-	return <span>{title}</span>
+	return <>{title}</>
 }
-
-const StyledHeaderWrapper = styled(HeaderWrapper)`
-	* {
-		flex-grow: 1;
-	}
-`

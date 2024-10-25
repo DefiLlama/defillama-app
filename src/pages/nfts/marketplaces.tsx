@@ -4,7 +4,6 @@ import { NftsmarketplaceTable } from '~/components/Table'
 import { maxAgeForNext } from '~/api'
 import { getNFTMarketplacesData } from '~/api/categories/nfts'
 import dynamic from 'next/dynamic'
-import { Header } from '~/Theme'
 import { Panel } from '~/components'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import styled from 'styled-components'
@@ -61,7 +60,7 @@ function Marketplaces({
 				}}
 			/>
 
-			<Header>NFT Marketplaces</Header>
+			<h1 className='text-2xl font-medium -mb-5'>NFT Marketplaces</h1>
 
 			<Filters color={'#4f8fea'} style={{ marginLeft: 'auto' }}>
 				<FlatDenomination active={!dominanceChart} onClick={() => setDominanceChart(false)}>

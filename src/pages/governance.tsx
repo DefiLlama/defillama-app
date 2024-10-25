@@ -14,7 +14,6 @@ import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
 import VirtualTable from '~/components/Table/Table'
 import { governanceColumns } from '~/components/Table/Defi/columns'
-import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 import { GOVERNANCE_SNAPSHOT_API, GOVERNANCE_COMPOUND_API, GOVERNANCE_TALLY_API } from '~/constants'
 import { capitalizeFirstLetter } from '~/utils'
@@ -75,7 +74,7 @@ export default function Governance({ data }) {
 	return (
 		<Layout title={`Governance - DefiLlama`} defaultSEO>
 			<TableHeaderAndSearch>
-				<Header>Governance</Header>
+				<h1 className='text-2xl font-medium -mb-5'>Governance</h1>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />

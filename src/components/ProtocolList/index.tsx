@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Header } from '~/Theme'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { IParentProtocol } from '~/api/types'
@@ -168,7 +167,7 @@ function Container({
 				}}
 			/>
 			<div style={{ display: 'flex', gap: '8px' }}>
-				<Header>{title}</Header>
+				<h1 className='text-2xl font-medium -mb-5'>{title}</h1>
 				{csvDownload ? (
 					<CSVDownloadButton
 						style={{ marginLeft: 'auto' }}

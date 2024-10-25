@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { Header } from '~/Theme'
 import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
@@ -14,7 +13,6 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
 import { primaryColor } from '~/constants/colors'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
-import { transparentize } from 'polished'
 import { groupDataByDays } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { Tab, TabList } from '~/components'
 
@@ -89,11 +87,10 @@ const PageView = ({
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'ETH Liquid Staking Derivatives' }} />
 
-			<TotalLocked>
+			<h1 className='text-2xl font-medium -mb-5 flex items-center justify-between gap-4 flex-wrap'>
 				<span>Total Value Locked ETH LSDs</span>
-
-				<span> {`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
-			</TotalLocked>
+				<span className='font-jetbrains'>{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
+			</h1>
 
 			<ChartsContainer>
 				<TabList>
@@ -166,18 +163,6 @@ const PageView = ({
 		</>
 	)
 }
-
-const TotalLocked = styled(Header)`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
-	flex-wrap: wrap;
-
-	& > *:last-child {
-		font-family: var(--font-jetbrains);
-	}
-`
 
 export default function LSDs(props) {
 	return (
