@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { Header } from '~/Theme'
 import Layout from '~/layout'
 import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
@@ -99,9 +98,9 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Forks' }} />
 
-			<Header style={{ display: 'flex', justifyContent: 'space-between' }}>
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap">
 				Total Value Locked All Forks <CSVDownloadButton onClick={downloadCSV} />
-			</Header>
+			</h1>
 
 			<ChartsWrapper>
 				<PieChart chartData={tokenTvls} stackColors={forkColors} />

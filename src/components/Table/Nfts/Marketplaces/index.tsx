@@ -11,7 +11,6 @@ import VirtualTable from '~/components/Table/Table'
 import { columns } from './columns'
 import type { INftMarketplace } from '../types'
 import { TableHeaderAndSearch, SearchWrapper, SearchIcon } from '../../shared'
-import { Header } from '~/Theme'
 
 export default function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])

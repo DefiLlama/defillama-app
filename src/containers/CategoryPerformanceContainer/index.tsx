@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { Header } from '~/Theme'
 
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -41,19 +40,6 @@ const TabContainer = styled.div`
 	flex-direction: column;
 	gap: 16px;
 	min-height: 360px;
-`
-
-const TotalLocked = styled(Header)`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
-	flex-wrap: wrap;
-	font-size: 20px;
-
-	& > *:last-child {
-		font-family: var(--font-jetbrains);
-	}
 `
 
 // for linechart
@@ -97,7 +83,13 @@ function calculateDenominatedChange2(data, denominatedCoin, field) {
 	return denominatedReturns
 }
 
-export const CategoryPerformanceContainer = ({ pctChanges, performanceTimeSeries, areaChartLegend, isCoinPage }) => {
+export const CategoryPerformanceContainer = ({
+	pctChanges,
+	performanceTimeSeries,
+	areaChartLegend,
+	isCoinPage,
+	categoryName
+}) => {
 	useScrollToTop()
 
 	const [tab, setTab] = React.useState('linechart')
@@ -151,15 +143,9 @@ export const CategoryPerformanceContainer = ({ pctChanges, performanceTimeSeries
 
 	return (
 		<>
-			{isCoinPage ? (
-				<TotalLocked>
-					<span>Category: {pctChanges[0].categoryName}</span>
-				</TotalLocked>
-			) : (
-				<TotalLocked>
-					<span>MCap-Weighted Category Performance</span>
-				</TotalLocked>
-			)}
+			<h1 className="text-2xl font-medium -mb-5">
+				{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
+			</h1>
 
 			<ChartsContainer>
 				<TabList>

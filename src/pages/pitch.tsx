@@ -5,7 +5,6 @@ import styled, { css, keyframes } from 'styled-components'
 import { maxAgeForNext } from '~/api'
 import ReactSelect from '~/components/MultiSelect/ReactSelect'
 import Layout from '~/layout'
-import { Header } from '~/Theme'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const get = (url) => fetch(url).then((r) => r.json())
@@ -408,9 +407,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	return (
 		<Layout title="VC Filter - DefiLlama" defaultSEO>
 			<PageWrapper>
-				<Header style={{ justifyContent: 'center', margin: '10px 0px 10px 0px', display: 'flex' }}>
-					Connect with Investors
-				</Header>
+				<h1 className="text-2xl font-medium text-center my-3">Connect with Investors</h1>
 				<Description>
 					Filter a list of VCs by their investments in DeFi projects to connect with the right investors for your
 					project.

@@ -11,7 +11,6 @@ import VirtualTable from '~/components/Table/Table'
 import { columns } from './columns'
 import type { INftCollection } from '../types'
 import { TableHeaderAndSearch, SearchWrapper, SearchIcon } from '../../shared'
-import { Header } from '~/Theme'
 
 export default function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -44,7 +43,7 @@ export default function NftsCollectionTable({ data }: { data: Array<INftCollecti
 	return (
 		<>
 			<TableHeaderAndSearch>
-				<Header>NFT Collections</Header>
+				<h1 className="text-2xl font-medium -mb-5">NFT Collections</h1>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />

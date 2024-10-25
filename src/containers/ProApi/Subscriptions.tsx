@@ -68,19 +68,6 @@ const Table = styled.table`
 	}
 `
 
-const ExternalLink = styled.a`
-	color: #007bff;
-	text-decoration: none;
-	font-size: 14px;
-	display: flex;
-	gap: 8px;
-
-	&:hover {
-		color: #0056b3;
-		text-decoration: underline;
-	}
-`
-
 const Head = styled.div`
 	display: flex;
 	align-items: baseline;
@@ -133,7 +120,7 @@ const Subscription = ({
 			</td>
 			<td>
 				<a
-					style={{ display: 'flex', marginLeft: '2px' }}
+					className="ml-2"
 					href={`https://optimistic.etherscan.io/tx/${sub.creationTx}`}
 					target="_blank"
 					rel="noreferrer"
@@ -162,9 +149,14 @@ const Subscriptions = ({ startPayment }) => {
 		<div style={{ marginTop: '8px' }}>
 			<Head>
 				<Header>My Subscriptions</Header>
-				<ExternalLink style={{ marginLeft: 'auto' }} href="https://subscriptions.llamapay.io/" target="_blank">
-					Open in LlamaPay <Icon name="external-link" height={16} width={16} />
-				</ExternalLink>
+				<a
+					href="https://subscriptions.llamapay.io/"
+					target="_blank"
+					rel="noreferrer noopener"
+					className="ml-auto font-medium flex items-center gap-2 text-[#007bff] text-sm hover:underline hover:text-[#0056b3]"
+				>
+					<span>Open in LlamaPay</span> <Icon name="external-link" height={16} width={16} />
+				</a>
 			</Head>
 			<Table>
 				<thead>

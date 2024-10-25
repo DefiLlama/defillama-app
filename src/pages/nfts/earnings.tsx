@@ -4,7 +4,6 @@ import { maxAgeForNext } from '~/api'
 import { getNFTCollectionEarnings } from '~/api/categories/nfts'
 import { NFTsSearch } from '~/components/Search'
 import { withPerformanceLogging } from '~/utils/perf'
-import { Header } from '~/Theme'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ColumnDef } from '@tanstack/react-table'
 import { AccordionButton, Name } from '~/components/Table/shared'
@@ -37,7 +36,7 @@ function Earnings({ earnings }) {
 				}}
 			/>
 
-			<Header>NFTs Earnings</Header>
+			<h1 className="text-2xl font-medium -mb-5">NFTs Earnings</h1>
 
 			<TableWithSearch
 				data={earnings}

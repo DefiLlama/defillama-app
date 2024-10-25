@@ -1,10 +1,7 @@
 import * as React from 'react'
-
-import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BRIDGES_SHOWING_TXS, useBridgesManager } from '~/contexts/LocalStorage'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
-import { Header } from '~/Theme'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
@@ -28,15 +25,6 @@ const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stac
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
-
-const HeaderWrapper = styled(Header)`
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 12px;
-	border: 1px solid transparent;
-`
 
 function BridgesOverview({
 	selectedChain = 'All',
@@ -186,10 +174,10 @@ function BridgesOverview({
 				}}
 				onToggleClick={(enabled) => setEnableBreakdownChart(enabled)}
 			/>
-			<HeaderWrapper>
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
 				<span>Bridge Volume in {selectedChain === 'All' ? 'all bridges' : selectedChain}</span>
 				<CSVDownloadButton onClick={downloadCsv} />
-			</HeaderWrapper>
+			</h1>
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
 					<BreakpointPanel>

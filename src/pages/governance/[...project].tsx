@@ -17,7 +17,6 @@ import {
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { IBarChartProps } from '~/components/ECharts/types'
-import { AutoRow } from '~/components/Row'
 import { formatGovernanceData } from '~/api/categories/protocols'
 import { GovernanceTable } from '~/containers/Defi/Protocol/Governance'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -124,52 +123,54 @@ export default function Protocol({ data, governanceType }) {
 					<span>{data.metadata.name}</span>
 				</Name>
 
-				<LinksWrapper>
+				<div className="flex flex-wrap justify-between gap-4">
 					{data.stats.chainName ? (
-						<p>
-							<span>Chain</span>
-							<AutoRow gap="4px">
+						<p className="flex flex-col gap-1">
+							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Chain</span>
+							<span className="flex items-center gap-1 font-jetbrains font-semibold text-2xl">
 								<TokenLogo logo={chainIconUrl(data.stats.chainName)} size={32} />
 								<span>{data.stats.chainName}</span>
-							</AutoRow>
+							</span>
 						</p>
 					) : null}
 
 					{data.stats.proposalsCount ? (
-						<p>
-							<span>Total Proposals</span>
-							<span>{data.stats.proposalsCount}</span>
+						<p className="flex flex-col gap-1">
+							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Total Proposals</span>
+							<span className="font-jetbrains font-semibold text-2xl">{data.stats.proposalsCount}</span>
 						</p>
 					) : null}
 
 					{data.stats.successfulProposal ? (
-						<p>
-							<span>Successful Proposals</span>
-							<span>{data.stats.successfulProposals}</span>
+						<p className="flex flex-col gap-1">
+							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Successful Proposals</span>
+							<span className="font-jetbrains font-semibold text-2xl">{data.stats.successfulProposals}</span>
 						</p>
 					) : null}
 
 					{data.stats.propsalsInLast30Days ? (
-						<p>
-							<span>Successful Proposals in last 30 days</span>
-							<span>{data.stats.propsalsInLast30Days}</span>
+						<p className="flex flex-col gap-1">
+							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">
+								Successful Proposals in last 30 days
+							</span>
+							<span className="font-jetbrains font-semibold text-2xl">{data.stats.propsalsInLast30Days}</span>
 						</p>
 					) : null}
 
 					{data.stats.highestTotalScore ? (
-						<p>
-							<span>Max Total Votes</span>
-							<span>{toK(data.stats.highestTotalScore)}</span>
+						<p className="flex flex-col gap-1">
+							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Max Total Votes</span>
+							<span className="font-jetbrains font-semibold text-2xl">{toK(data.stats.highestTotalScore)}</span>
 						</p>
 					) : null}
 
 					{data.metadata.followersCount ? (
-						<p>
-							<span>Followers</span>
-							<span>{toK(data.metadata.followersCount)}</span>
+						<p className="flex flex-col gap-1">
+							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Followers</span>
+							<span className="font-jetbrains font-semibold text-2xl">{toK(data.metadata.followersCount)}</span>
 						</p>
 					) : null}
-				</LinksWrapper>
+				</div>
 
 				<ChartsWrapper>
 					<LazyChart>
@@ -190,7 +191,7 @@ export default function Protocol({ data, governanceType }) {
 					</LazyChart>
 				</ChartsWrapper>
 
-				<LinksWrapper>
+				<div className="flex flex-wrap items-center gap-9">
 					{data.metadata.domain && (
 						<Link href={`https://${data.metadata.domain}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
@@ -223,7 +224,7 @@ export default function Protocol({ data, governanceType }) {
 							</Button>
 						</Link>
 					)}
-				</LinksWrapper>
+				</div>
 			</Wrapper>
 
 			<GovernanceTable data={data} governanceType={governanceType} />
@@ -238,35 +239,6 @@ const Wrapper = styled(StatsSection)`
 	padding: 24px;
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => theme.bg7};
-`
-
-const LinksWrapper = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-end;
-	gap: 36px;
-
-	p {
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-
-		& > *:nth-child(1) {
-			font-family: var(--font-inter);
-			font-weight: 600;
-			font-size: 0.875rem;
-			text-align: left;
-			color: ${({ theme }) => (theme.mode === 'dark' ? '#a9a9a9' : '#737373')};
-			margin: -2px 0;
-		}
-
-		& > *:nth-child(2) {
-			font-family: var(--font-jetbrains);
-			font-weight: 800;
-			font-size: 2.25rem;
-			margin: -10px 0;
-		}
-	}
 `
 
 const stackedBarChartColors = {

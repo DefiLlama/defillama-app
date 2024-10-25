@@ -1,5 +1,4 @@
 import { maxAgeForNext } from '~/api'
-import { Header } from '~/Theme'
 import { SearchWrapper, SearchIcon, TableHeaderAndSearch } from '~/components/Table/shared'
 import * as React from 'react'
 import {
@@ -108,9 +107,10 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 	return (
 		<>
 			<TableHeaderAndSearch>
-				<Header>
-					Protocol Treasuries <CSVDownloadButton onClick={downloadCSV} isLight />
-				</Header>
+				<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
+					<span>Protocol Treasuries</span>
+					<CSVDownloadButton onClick={downloadCSV} isLight />
+				</h1>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />

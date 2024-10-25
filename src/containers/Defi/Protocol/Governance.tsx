@@ -11,7 +11,6 @@ import {
 	ColumnDef
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
-import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper } from '~/components/Table/shared'
 import { Checkbox2 } from '~/components'
 import { formatGovernanceData } from '~/api/categories/protocols'
@@ -59,7 +58,7 @@ export function GovernanceTable({ data, governanceType }) {
 	return (
 		<>
 			<TableFilters>
-				<Header style={{ margin: 0 }}>Proposals</Header>
+				<h1 className="text-2xl font-medium">Proposals</h1>
 
 				<FilterProposals>
 					<Checkbox2

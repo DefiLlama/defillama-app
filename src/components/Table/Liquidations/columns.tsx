@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
 import { useStackBy } from '~/components/LiquidationsPage/utils'
-import { AutoRow } from '~/components/Row'
 import TokenLogo from '~/components/TokenLogo'
 import { CHAINS_API, CONFIG_API } from '~/constants'
 import { chainIconUrl } from '~/utils'
@@ -122,13 +121,11 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 			}
 			// cut middle, leave only first 6 and last 4 letters
 			return (
-				<a href={value.url} target="_blank" rel="noopener noreferrer">
-					<AutoRow as="span" gap="8px">
-						{value.displayName.length > 13
-							? `${value.displayName.substring(0, 6)}...${value.displayName.substring(value.displayName.length - 4)}`
-							: value.displayName}
-						<Icon name="external-link" height={10} width={10} />
-					</AutoRow>
+				<a href={value.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+					{value.displayName.length > 13
+						? `${value.displayName.substring(0, 6)}...${value.displayName.substring(value.displayName.length - 4)}`
+						: value.displayName}
+					<Icon name="external-link" height={10} width={10} />
 				</a>
 			)
 		}

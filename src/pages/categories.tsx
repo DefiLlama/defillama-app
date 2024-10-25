@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { Header } from '~/Theme'
 import Layout from '~/layout'
 import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
@@ -111,7 +110,7 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Categories' }} />
 
-			<Header>Protocol Categories</Header>
+			<h1 className="text-2xl font-medium -mb-5">Protocol Categories</h1>
 
 			<ChartsWrapper>
 				<AreaChart

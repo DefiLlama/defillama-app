@@ -28,6 +28,12 @@ export const TabList = styled(AriakitTabList)`
 	flex-wrap: nowrap;
 	overflow-x: auto;
 	border-bottom: ${({ theme }) => '1px solid ' + theme.divider};
+	width: 100%;
+	max-width: fit-content;
+
+	& > * {
+		flex-shrink: 0;
+	}
 `
 
 export const Tab = styled(AriaktiTab)`
@@ -53,19 +59,16 @@ export const OtherProtocols = styled.nav`
 	grid-column: span 1;
 	display: flex;
 	overflow-x: auto;
-	width: fit-content;
 	background: ${({ theme }) => theme.bg7};
 	font-weight: 500;
 	border-radius: 12px;
 	margin-bottom: 8px;
 	flex-wrap: wrap;
+	width: 100%;
+	max-width: fit-content;
 
 	@media screen and (min-width: 80rem) {
 		grid-column: span 2;
-	}
-
-	& > * {
-		flex: 1;
 	}
 `
 
@@ -119,6 +122,13 @@ export const CustomTabList = styled.div`
 	flex-wrap: nowrap;
 	overflow-x: auto;
 	border-bottom: ${({ theme }) => '1px solid ' + theme.divider};
+
+	width: 100%;
+	max-width: fit-content;
+
+	& > * {
+		flex-shrink: 0;
+	}
 `
 
 export const CustomTab = ({ onClick, id, color, children, state }) => {

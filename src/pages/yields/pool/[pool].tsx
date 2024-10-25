@@ -30,8 +30,7 @@ import {
 	useYieldChartLendBorrow
 } from '~/api/categories/yield/client'
 import { getColorFromNumber } from '~/utils'
-import { YIELD_POOLS_LAMBDA_API, YIELD_RISK_API_EXPONENTIAL } from '~/constants'
-import { ExternalLink } from '~/components/Link'
+import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
 
 import exponentialLogo from '~/assets/exponential.avif'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
@@ -57,12 +56,6 @@ const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 const RiskRating = styled(Stat)`
 	flex-direction: column;
 	align-items: flex-start;
-`
-
-const RatingLink = styled(ExternalLink)`
-	display: flex;
-	align-items: center;
-	gap: 0px;
 `
 
 const RatingWrapper = styled.div`
@@ -192,11 +185,6 @@ const TotalRiskGrade = styled.span`
 const TotalRiskInfo = styled.div`
 	display: flex;
 	flex-direction: column;
-`
-
-const OpenReportButton = styled(Button)`
-	padding: 8px 12px;
-	font-size: 0.9rem;
 `
 
 const FactorsContainer = styled.div`
@@ -479,13 +467,15 @@ const PageView = (props) => {
 								<RatingCircle color={getRatingColor(riskData?.pool_rating_color)}>
 									{riskData?.pool_rating || 'N/A'}
 								</RatingCircle>
-								<RatingLink
+								<a
 									href={riskData?.pool_url ? riskData?.pool_url : `https://exponential.fi/about-us`}
 									target="_blank"
 									rel="noopener noreferrer"
+									className="flex items-center text-[#445ed0] dark:text-[#2172E5] hover:underline gap-1"
 								>
 									<RatingDescription>{getRatingDescription(riskData?.pool_rating)}</RatingDescription>
-								</RatingLink>
+									<Icon name="external-link" height={16} width={16} />
+								</a>
 							</RatingWrapper>
 							<AssessedBy>Assessed by exponential.fi</AssessedBy>
 						</RiskRating>
@@ -610,16 +600,16 @@ const PageView = (props) => {
 											<h3>{getRatingDescription(riskData?.pool_rating)}</h3>
 										</TotalRiskInfo>
 									</ResultWrapper>
-									<OpenReportButton
-										as={ExternalLink}
+									<a
 										href={riskData?.pool_url || 'https://exponential.fi/about-us'}
 										target="_blank"
 										rel="noopener noreferrer"
-										useTextColor={true}
-										color={backgroundColor}
+										style={{ '--color': backgroundColor } as React.CSSProperties}
+										className="text-[var(--color)] font-medium flex items-center gap-2 py-2 px-3 text-[#445ed0] dark:text-[#2172E5] hover:underline"
 									>
 										<span>{riskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
-									</OpenReportButton>
+										<Icon name="external-link" height={16} width={16} />
+									</a>
 								</TotalRiskWrapper>
 							</TotalRiskContainer>
 						</RiskRatingContent>

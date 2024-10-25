@@ -4,6 +4,7 @@ import styled, { keyframes } from 'styled-components'
 import { linksWithNoSubMenu, navLinks } from '../Links'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { NewTag } from '../NewTag'
 
 const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
 	const { pathname } = useRouter()
@@ -18,7 +19,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 				<MainLink data-linkactive={active} target={noSubMenu?.external && '_blank'}>
 					<span data-mainlinkicon>{navLinks[name].icon}</span>
 					<span>{name}</span>
-					{navLinks[name].newTag === true && <span data-newtag>NEW</span>}
+					{navLinks[name].newTag === true && <NewTag />}
 				</MainLink>
 			</Link>
 		)
@@ -29,7 +30,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 			<summary>
 				<span data-mainlinkicon>{navLinks[name].icon}</span>
 				<span>{name}</span>
-				{navLinks[name].newTag === true && <span data-newtag>NEW</span>}
+				{navLinks[name].newTag === true && <NewTag />}
 				<span data-arrowicon>
 					<Icon name="chevron-right" height={16} width={16} />
 				</span>
@@ -41,7 +42,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 						<a data-linkactive={subLink.path === pathname}>
 							<span style={{ width: '16px', display: 'inline-block' }}></span>
 							<span>{subLink.name}</span>
-							{subLink.newTag === true && <span data-newtag>NEW</span>}
+							{subLink.newTag === true && <NewTag />}
 						</a>
 					</Link>
 				))}
@@ -91,16 +92,6 @@ const Details = styled.details`
 			margin-left: auto;
 			position: relative;
 			right: -2px;
-		}
-
-		& > *[data-newtag] {
-			background: #ebebeb;
-			font-size: 0.625rem;
-			border-radius: 4px;
-			padding: 3px;
-			color: black;
-			position: relative;
-			left: -4px;
 		}
 
 		:hover {

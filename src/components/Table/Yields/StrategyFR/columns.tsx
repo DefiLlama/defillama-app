@@ -7,7 +7,6 @@ import { PoolStrategyWithProjects } from '../../shared'
 import { Tooltip2 } from '~/components/Tooltip'
 import styled from 'styled-components'
 import QuestionHelper from '~/components/QuestionHelper'
-import { AutoRow } from '~/components/Row'
 import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 
@@ -52,9 +51,9 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
-				</AutoRow>
+				<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+					{formattedPercent(getValue(), true, 700, true)}
+				</ColoredAPY>
 			)
 		},
 		size: 140,
@@ -69,10 +68,16 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
-					{formattedPercent(Number(getValue()), true, 400)}
-				</AutoRow>
+				<>
+					{lockupsRewards.includes(row.original.projectName) ? (
+						<div className="flex items-center justify-end gap-1 w-full">
+							<QuestionHelper text={earlyExit} />
+							<>{formattedPercent(Number(getValue()), true, 400)}</>
+						</div>
+					) : (
+						<>{formattedPercent(Number(getValue()), true, 400)}</>
+					)}
+				</>
 			)
 		},
 		size: 120,
@@ -97,10 +102,16 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			}
 
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
-					<Tooltip content={<TooltipContent />}>{formattedPercent(getValue(), true, 700)}</Tooltip>
-				</AutoRow>
+				<>
+					{lockupsRewards.includes(row.original.projectName) ? (
+						<div className="flex items-center justify-end gap-1 w-full">
+							<QuestionHelper text={earlyExit} />
+							<Tooltip content={<TooltipContent />}>{formattedPercent(getValue(), true, 700)}</Tooltip>
+						</div>
+					) : (
+						<Tooltip content={<TooltipContent />}>{formattedPercent(getValue(), true, 700)}</Tooltip>
+					)}
+				</>
 			)
 		},
 		size: 140,
@@ -114,9 +125,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		header: 'Funding Rate',
 		accessorKey: 'fr8hCurrent',
 		enableSorting: true,
-		cell: ({ getValue }) => {
-			return <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>{getValue() + '%'}</AutoRow>
-		},
+		cell: ({ getValue }) => getValue() + '%',
 		size: 140,
 		meta: {
 			align: 'end',
@@ -127,9 +136,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		header: 'Avg Funding Rate',
 		accessorKey: 'fundingRate7dAverage',
 		enableSorting: true,
-		cell: ({ getValue }) => {
-			return <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>{getValue() + '%'}</AutoRow>
-		},
+		cell: ({ getValue }) => getValue() + '%',
 		size: 140,
 		meta: {
 			align: 'end',

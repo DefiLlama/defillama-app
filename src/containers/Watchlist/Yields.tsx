@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
-import { Header, TYPE } from '~/Theme'
 import { Panel } from '~/components'
 import Row from '~/components/Row'
 import { Menu } from '~/components/DropdownMenu'
@@ -94,10 +93,10 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 
 	return (
 		<>
-			<Header>Saved Pools</Header>
+			<h1 className="text-2xl font-medium -mb-5">Saved Pools</h1>
 
 			<Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
-				<TYPE.main>Current portfolio:</TYPE.main>
+				<h2>Current portfolio:</h2>
 				<Menu name={selectedPortfolio} options={portfolios} onItemClick={(value) => setSelectedPortfolio(value)} />
 				<Action onClick={addPortfolio}>
 					<Icon name="folder-plus" height={24} width={24} />

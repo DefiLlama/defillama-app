@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
-import { AutoRow } from '~/components/Row'
 import { formattedNum, formattedPercent } from '~/utils'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
@@ -140,7 +139,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: ({ getValue, row }) => {
 			const rewards = row.original.rewards ?? []
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+				<div className="w-full flex items-center justify-end gap-1">
 					{lockupsRewards.includes(row.original.project) ? (
 						<QuestionHelper text={earlyExit} />
 					) : row.original.rewardMeta ? (
@@ -153,7 +152,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
 					{formattedPercent(getValue(), true)}
-				</AutoRow>
+				</div>
 			)
 		},
 		size: 140,

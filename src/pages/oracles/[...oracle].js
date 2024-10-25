@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { Header } from '~/Theme'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
@@ -81,9 +80,9 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 	return (
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Oracles', name: token, route: 'oracles' }} />
-			<Header>
+			<h1 className="text-2xl font-medium -mb-5">
 				Total Value Secured by {token} {chain ? `on ${chain}` : null}
-			</Header>
+			</h1>
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
 					<BreakpointPanel>

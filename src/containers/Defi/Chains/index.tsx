@@ -1,9 +1,7 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { Header } from '~/Theme'
 import { DefiChainsTable } from '~/components/Table/Defi'
-import { ButtonDark } from '~/components/ButtonStyled'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown } from '~/components/Filters'
 import { toNiceCsvDate, download } from '~/utils'
@@ -40,20 +38,6 @@ const ChartsWrapper = styled.div`
 
 	@media screen and (min-width: 80rem) {
 		grid-template-columns: 1fr 1fr;
-	}
-`
-
-const HeaderWrapper = styled.div`
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 12px;
-	border: 1px solid transparent;
-
-	button {
-		position: relative;
-		bottom: -2px;
 	}
 `
 
@@ -153,10 +137,10 @@ export default function ChainsContainer({
 					<RowLinksWithDropdown links={categories} activeLink={category} variant="secondary" />
 				</ChainsSelect>
 
-				<HeaderWrapper>
-					<Header>Total Value Locked All Chains</Header>
+				<div className="flex items-center justify-between gap-3 flex-wrap">
+					<h1 className="text-2xl font-medium">Total Value Locked All Chains</h1>
 					<CSVDownloadButton onClick={downloadCsv} />
-				</HeaderWrapper>
+				</div>
 
 				<ChartsWrapper>
 					<PieChart chartData={pieChartData} stackColors={colorsByChain} />

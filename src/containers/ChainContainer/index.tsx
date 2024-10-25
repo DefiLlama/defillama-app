@@ -293,26 +293,21 @@ export function ChainContainer({
 		<>
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={percentChange} />
 
-			{
-				<Announcement>
-					<Image
-						src="https://icons.llamao.fi/icons/memes/gib.png?w=36&h=36"
-						alt="Cute"
-						width={18}
-						height={18}
-						unoptimized
-						style={{ marginRight: '0.25rem', display: 'inline' }}
-					/>
-					{'  '}We've released{' '}
-					<Link href={`https://feed.defillama.com`}>
-						<a>
-							LlamaFeed, a real-time feed{' '}
-							<Icon name="arrow-up-right" height={14} width={14} style={{ display: 'inline' }} />{' '}
-						</a>
-					</Link>
-					{' !'}
-				</Announcement>
-			}
+			<Announcement>
+				<Image
+					src="https://icons.llamao.fi/icons/memes/gib.png?w=36&h=36"
+					alt="Cute"
+					width={18}
+					height={18}
+					unoptimized
+					className="inline"
+				/>
+				{'  '}We've released{' '}
+				<Link href={`https://feed.defillama.com`}>
+					LlamaFeed, a real-time feed <Icon name="arrow-up-right" height={14} width={14} className="inline" />{' '}
+				</Link>
+				{' !'}
+			</Announcement>
 
 			<ProtocolsChainsSearch
 				step={{

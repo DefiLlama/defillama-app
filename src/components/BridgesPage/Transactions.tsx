@@ -1,6 +1,5 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { Header } from '~/Theme'
 import { Panel } from '~/components'
 import { BridgesSearchSelect } from '~/components/Search/Bridges'
 import { Form, FormError, FormInput, FormLabel, FormSubmit, useFormState } from 'ariakit'
@@ -192,7 +191,7 @@ const BridgeTransactionsPage = ({ bridges }) => {
 
 	return (
 		<>
-			<Header>Generate Bridge Transactions CSV</Header>
+			<h1 className="text-2xl font-medium -mb-5">Generate Bridge Transactions CSV</h1>
 
 			<Form state={form}>
 				<SearchWrapper>

@@ -5,7 +5,6 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
-import { AutoRow } from '~/components/Row'
 import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 
@@ -59,10 +58,20 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.project) ? <QuestionHelper text={earlyExit} /> : null}
-					<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
-				</AutoRow>
+				<>
+					{lockupsRewards.includes(row.original.project) ? (
+						<div className="flex items-center justify-end gap-1 w-full">
+							<QuestionHelper text={earlyExit} />
+							<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+								{formattedPercent(getValue(), true, 700, true)}
+							</ColoredAPY>
+						</div>
+					) : (
+						<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+							{formattedPercent(getValue(), true, 700, true)}
+						</ColoredAPY>
+					)}
+				</>
 			)
 		},
 		size: 140,
@@ -76,7 +85,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'netSupplyApy',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {

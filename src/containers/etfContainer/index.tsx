@@ -2,7 +2,6 @@ import * as React from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { Header } from '~/Theme'
 import { toK } from '~/utils'
 import { Tab, TabList } from '~/components'
 import type { IChartProps, IPieChartProps, IBarChartProps } from '~/components/ECharts/types'
@@ -46,10 +45,10 @@ export const ETFContainer = ({
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Exchange Traded Funds' }} />
 
-			<TotalAUM>
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
 				<span>Total AUM</span>
-				<span> {`$${toK(totalAum)}`}</span>
-			</TotalAUM>
+				<span className="font-jetbrains">{`$${toK(totalAum)}`}</span>
+			</h1>
 
 			<ChartsContainer>
 				<TabList>
@@ -136,18 +135,6 @@ export const ETFContainer = ({
 		</>
 	)
 }
-
-const TotalAUM = styled(Header)`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
-	flex-wrap: wrap;
-
-	& > *:last-child {
-		font-family: var(--font-jetbrains);
-	}
-`
 
 const ChartsWrapper = styled.div`
 	min-height: 360px;

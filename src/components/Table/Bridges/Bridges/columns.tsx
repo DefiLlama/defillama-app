@@ -3,7 +3,6 @@ import styled from 'styled-components'
 import { Text } from 'rebass'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
-import { AutoRow } from '~/components/Row'
 import {
 	formattedNum,
 	formattedPercent,
@@ -259,11 +258,14 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 			const { blockExplorerLink } = getBlockExplorer(token)
 			if (value) {
 				return (
-					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
-						<AutoRow as="span" gap="0px" justify="end">
-							{symbol}
-							<Icon name="external-link" height={10} width={10} />
-						</AutoRow>
+					<a
+						href={blockExplorerLink}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="flex items-center justify-end"
+					>
+						<span>{symbol}</span>
+						<Icon name="external-link" height={10} width={10} />
 					</a>
 				)
 			} else return <>Not found</>
@@ -290,11 +292,14 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 			const { blockExplorerLink } = getBlockExplorerForTx(value)
 			if (value) {
 				return (
-					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
-						<AutoRow as="span" gap="8px" justify="end">
-							View Transaction
-							<Icon name="external-link" height={10} width={10} />
-						</AutoRow>
+					<a
+						href={blockExplorerLink}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="flex items-center justify-end gap-2"
+					>
+						<span>View Transaction</span>
+						<Icon name="external-link" height={10} width={10} />
 					</a>
 				)
 			} else return <>Not found</>

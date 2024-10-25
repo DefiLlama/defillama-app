@@ -2,9 +2,7 @@
 // eslint sucks at types
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import * as React from 'react'
-import styled from 'styled-components'
 import Layout from '~/layout'
-import { Header } from '~/Theme'
 import { LiquidationsSearch } from '~/components/Search'
 import SEO from '~/components/SEO'
 import { LiquidationsHeader } from '~/components/LiquidationsPage/LiquidationsHeader'
@@ -62,13 +60,6 @@ const LiquidationsProvider = ({ children }) => {
 	)
 }
 
-const ResponsiveHeader = styled(Header)`
-	text-align: center;
-	@media (min-width: 80rem) {
-		text-align: revert;
-	}
-`
-
 const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; options: ISearchItem[] }> = (props) => {
 	const { data, prevData, options } = props
 	const [liqsSettings] = useLiqsManager()
@@ -101,28 +92,24 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				<>
 					<PanelThicc as="p">
 						We are now tracking
-						<Link href={`/liquidations/bnb`} passHref>
-							<StyledAnchor>
+						<Link href={`/liquidations/bnb`} className="flex items-center gap-1">
 								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
-								<b>BSC</b>
-							</StyledAnchor>
+								<span>BSC</span>
 						</Link>
 						ecosystem assets! Choose one from the asset picker dropdown menu!
 					</PanelThicc>
 					<PanelSmol as="p">
 						We are now tracking
-						<Link href={`/liquidations/bnb`} passHref>
-							<StyledAnchor>
+						<Link href={`/liquidations/bnb`} className="flex items-center gap-1">
 								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
-								<b>BSC</b>
-							</StyledAnchor>
+								<span>BSC</span>
 						</Link>
 						!
 					</PanelSmol>
 				</>
 			)} */}
 
-			<ResponsiveHeader>Liquidation levels in DeFi 💦</ResponsiveHeader>
+			<h1 className="text-2xl font-medium -mb-5 text-center xl:text-start">Liquidation levels in DeFi 💦</h1>
 			<LiquidationsHeader data={data} options={options} />
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />

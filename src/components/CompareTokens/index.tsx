@@ -1,4 +1,3 @@
-import { TYPE } from '~/Theme'
 import React, { useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
@@ -122,7 +121,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 
 	return (
 		<>
-			<TYPE.largeHeader style={{ marginTop: '8px' }}>Compare Tokens</TYPE.largeHeader>
+			<h1 className="text-2xl font-medium mt-2">Compare Tokens</h1>
 			<Wrapper>
 				<SelectWrapper>
 					<TableFilters>
@@ -293,7 +292,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 							</Header>
 
 							{newPrice !== undefined && increase !== undefined ? (
-								<TYPE.largeHeader>
+								<p className="text-base font-medium">
 									$
 									{newPrice.toLocaleString(
 										undefined, // leave undefined to use the visitor's browser
@@ -301,7 +300,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										{ maximumFractionDigits: 2 }
 									)}{' '}
 									({increase.toFixed(2)}x)
-								</TYPE.largeHeader>
+								</p>
 							) : null}
 						</Wrapper2>
 					)

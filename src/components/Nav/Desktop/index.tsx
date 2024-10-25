@@ -11,6 +11,7 @@ import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark.png'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import SubMenu from './SubMenu'
+import { NewTag } from '../NewTag'
 
 export default function DesktopNav() {
 	const { asPath } = useRouter()
@@ -56,7 +57,7 @@ export default function DesktopNav() {
 										data-linkactive={link.path === asPath}
 									>
 										{link.name}
-										{link.newTag === true && <span data-newtag>NEW</span>}
+										{link.newTag === true && <NewTag />}
 									</a>
 								</Link>
 							</React.Fragment>
@@ -83,7 +84,7 @@ export default function DesktopNav() {
 										data-linkactive={link.path === asPath}
 									>
 										{link.name}
-										{link.newTag === true && <span data-newtag>NEW</span>}
+										{link.newTag === true && <NewTag />}
 									</a>
 								</Link>
 							</React.Fragment>
@@ -124,17 +125,6 @@ const Nav = styled.nav`
 		margin: -6px 0 -6px -6px;
 		padding: 6px;
 		border-radius: 6px;
-
-		& > *[data-newtag] {
-			background: #ebebeb;
-			font-size: 0.625rem;
-			border-radius: 4px;
-			padding: 3px;
-			color: black;
-			position: relative;
-			left: -4px;
-			top: 2px;
-		}
 
 		:hover,
 		:focus-visible {

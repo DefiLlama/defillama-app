@@ -2,7 +2,6 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { download } from '~/utils'
-import { Header } from '~/Theme'
 import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
@@ -79,12 +78,12 @@ const Oracles = ({
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Oracles' }} />
 
-			<Header>
-				Total Value Secured All Oracles {chain ? `on ${chain}` : ''}
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
+				<span>Total Value Secured All Oracles {chain ? `on ${chain}` : ''}</span>
 				<ButtonDark onClick={downloadCsv} style={{ width: '120px', float: 'right' }}>
 					Download all data in .csv
 				</ButtonDark>
-			</Header>
+			</h1>
 
 			<ChartsWrapper>
 				<PieChart chartData={tokenTvls} stackColors={oraclesColors} />

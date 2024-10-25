@@ -4,7 +4,6 @@ import { Text } from 'rebass'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
-import { AutoRow } from '~/components/Row'
 import TokenLogo from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, peggedAssetIconUrl, slug } from '~/utils'
 import { formatColumnOrder } from '../../utils'
@@ -49,10 +48,10 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 			const value = getValue()
 			const rowValues = row.original
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+				<div className="w-full flex items-center justify-end gap-1">
 					{rowValues.depeggedTwoPercent ? <QuestionHelper text="Currently de-pegged by 2% or more." /> : null}
 					{value ? formattedPeggedPercent(value) : value === 0 ? formattedPeggedPercent(0) : '-'}
-				</AutoRow>
+				</div>
 			)
 		},
 		meta: {
@@ -67,10 +66,10 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 			const value = getValue()
 			const rowValues = row.original
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+				<div className="w-full flex items-center justify-end gap-1">
 					{rowValues.pegDeviationInfo ? <QuestionHelper text={pegDeviationText(rowValues.pegDeviationInfo)} /> : null}
 					<span>{value ? formattedPeggedPercent(value) : '-'}</span>
-				</AutoRow>
+				</div>
 			)
 		},
 		meta: {
@@ -86,10 +85,10 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 			const value = getValue()
 			const rowValues = row.original
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+				<div className="w-full flex items-center justify-end gap-1">
 					{rowValues.floatingPeg ? <QuestionHelper text="Has a variable, floating, or crawling peg." /> : null}
 					<span>{value ? formattedNum(value, true) : '-'}</span>
-				</AutoRow>
+				</div>
 			)
 		},
 		meta: {

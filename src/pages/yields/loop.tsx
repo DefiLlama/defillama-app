@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import Layout from '~/layout'
-import { PanelThicc, StyledAnchor } from '~/components'
-import Link from '~/components/Link'
+import { PanelThicc } from '~/components'
 import YieldPageLoop from '~/components/YieldsPage/indexLoop'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData, calculateLoopAPY } from '~/api/categories/yield'
 import { withPerformanceLogging } from '~/utils/perf'
+import { Icon } from '~/components/Icon'
 
 export const getStaticProps = withPerformanceLogging('yields/loop', async () => {
 	let {
@@ -72,11 +72,12 @@ export default function YieldBorrow(data) {
 				2. using your collateral, borrow from the same pool X using the max LTV
 				<br />
 				3. deposit the borrowed amount M into pool X
-				<Link>
-					<StyledAnchor onClick={() => setMethodologyActivated(true)} style={{ display: 'block' }}>
-						<b>Example</b>
-					</StyledAnchor>
-				</Link>
+				<button
+					onClick={() => setMethodologyActivated((prev) => !prev)}
+					className="block text-[#2f80ed] mx-auto font-medium hover:underline"
+				>
+					Example
+				</button>
 				{methodologyActivated && methodologyMessage}
 			</PanelThicc>
 			<YieldPageLoop {...data} />

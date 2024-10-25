@@ -92,9 +92,8 @@ const blackListedTokens = ['AUSDT', 'OUSD', 'AUSDC']
 
 import { useState } from 'react'
 import Layout from '~/layout'
-import { PanelThicc, StyledAnchor } from '~/components'
+import { PanelThicc } from '~/components'
 import YieldPage from '~/components/YieldsPage'
-import Link from '~/components/Link'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { maxAgeForNext } from '~/api'
@@ -140,11 +139,12 @@ export default function YieldPlots(data) {
 				<br />
 				We're not islamic scholars, this is just meant as a useful tool.
 				<br />
-				<Link>
-					<StyledAnchor onClick={() => setMethodologyActivated(true)} style={{ display: 'block' }}>
-						<b>Full explanation of methodology</b>
-					</StyledAnchor>
-				</Link>
+				<button
+					onClick={() => setMethodologyActivated((prev) => !prev)}
+					className="block text-[#2f80ed] mx-auto font-medium hover:underline"
+				>
+					Full explanation of methodology
+				</button>
 				{methodologyActivated && methodologyMessage}
 			</PanelThicc>
 			<YieldPage {...data} />

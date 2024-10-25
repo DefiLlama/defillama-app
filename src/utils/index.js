@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { Text } from 'rebass'
 import { ICONS_CDN, ICONS_PALETTE_CDN, timeframeOptions } from '~/constants'
 export * from './blockExplorers'
 import { colord, extend } from 'colord'
@@ -247,7 +246,7 @@ export function peggedAssetIconPalleteUrl(name) {
 	return `${ICONS_PALETTE_CDN}/pegged/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}`
 }
 
-export function formattedPercent(percent, noSign = false, fontWeight = 400) {
+export function formattedPercent(percent, noSign = false, fontWeight = 400, returnTextOnly) {
 	if (!percent && percent !== 0) {
 		return null
 	}
@@ -259,48 +258,49 @@ export function formattedPercent(percent, noSign = false, fontWeight = 400) {
 		up = down = ''
 	}
 
+	let color = ''
+	let finalValue = ''
+
 	percent = parseFloat(percent)
 
 	if (!percent || percent === 0) {
-		return (
-			<Text as="span" fontWeight={fontWeight}>
-				0%
-			</Text>
-		)
-	}
-
-	if (percent < 0.0001 && percent > 0) {
-		return (
-			<Text as="span" fontWeight={fontWeight} color={up}>
-				{'< 0.0001%'}
-			</Text>
-		)
-	}
-
-	if (percent < 0 && percent > -0.0001) {
-		return (
-			<Text as="span" fontWeight={fontWeight} color={down}>
-				{'< 0.0001%'}
-			</Text>
-		)
-	}
-
-	let fixedPercent = percent.toFixed(2)
-	if (fixedPercent === '0.00') {
-		return '0%'
-	}
-	const prefix = noSign ? '' : '+'
-	if (fixedPercent > 0) {
-		if (fixedPercent > 100) {
-			return (
-				<Text as="span" fontWeight={fontWeight} color={up}>{`${prefix}${percent?.toFixed(0).toLocaleString()}%`}</Text>
-			)
-		} else {
-			return <Text as="span" fontWeight={fontWeight} color={up}>{`${prefix}${fixedPercent}%`}</Text>
-		}
+		finalValue = '0%'
+	} else if (percent < 0.0001 && percent > 0) {
+		color = up
+		finalValue = '< 0.0001%'
+	} else if (percent < 0 && percent > -0.0001) {
+		color = down
+		finalValue = '< 0.0001%'
 	} else {
-		return <Text as="span" fontWeight={fontWeight} color={down}>{`${fixedPercent}%`}</Text>
+		let fixedPercent = percent.toFixed(2)
+
+		if (fixedPercent === '0.00') {
+			finalValue = '0%'
+		} else if (fixedPercent > 0) {
+			const prefix = noSign ? '' : '+'
+
+			if (fixedPercent > 100) {
+				color = up
+				finalValue = `${prefix}${percent.toFixed(0).toLocaleString()}%`
+			} else {
+				color = up
+				finalValue = `${prefix}${fixedPercent}%`
+			}
+		} else {
+			color = down
+			finalValue = `${fixedPercent}%`
+		}
 	}
+
+	if (returnTextOnly) {
+		return finalValue
+	}
+
+	return (
+		<span className="font-[var(--weight)] text-[var(--color)]" style={{ '--weight': fontWeight, '--color': color }}>
+			{finalValue}
+		</span>
+	)
 }
 
 /**
