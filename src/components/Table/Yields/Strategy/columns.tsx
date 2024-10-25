@@ -7,7 +7,6 @@ import { PoolStrategyWithProjects } from '../../shared'
 import { Tooltip2 } from '~/components/Tooltip'
 import styled from 'styled-components'
 import QuestionHelper from '~/components/QuestionHelper'
-import { AutoRow } from '~/components/Row'
 import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 
@@ -62,14 +61,24 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			}
 
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
-					<Tooltip content={<TooltipContent />}>
-						<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
-							{formattedPercent(getValue(), true, 700, true)}
-						</ColoredAPY>
-					</Tooltip>
-				</AutoRow>
+				<>
+					{lockupsRewards.includes(row.original.projectName) ? (
+						<div className="w-full flex items-center justify-end gap-1">
+							<QuestionHelper text={earlyExit} />
+							<Tooltip content={<TooltipContent />}>
+								<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+									{formattedPercent(getValue(), true, 700, true)}
+								</ColoredAPY>
+							</Tooltip>
+						</div>
+					) : (
+						<Tooltip content={<TooltipContent />}>
+							<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+								{formattedPercent(getValue(), true, 700, true)}
+							</ColoredAPY>
+						</Tooltip>
+					)}
+				</>
 			)
 		},
 		size: 140,

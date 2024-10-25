@@ -1,6 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
-import { AutoRow } from '~/components/Row'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, formattedPercent } from '~/utils'
 import { Name, AccordionButton } from '../../shared'
@@ -80,14 +79,10 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 			}
 
 			return (
-				<>
-					{
-						<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-							<span>{`${value.name}: `}</span>
-							<span>{formattedPercent(value.value, true)}</span>
-						</AutoRow>
-					}
-				</>
+				<div className="w-full flex items-center justify-end gap-1">
+					<span>{`${value.name}: `}</span>
+					<span>{formattedPercent(value.value, true)}</span>
+				</div>
 			)
 		},
 		size: 140,

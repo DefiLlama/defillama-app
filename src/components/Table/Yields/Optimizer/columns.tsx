@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
 import { formattedNum, formattedPercent } from '~/utils'
-import { AutoRow } from '~/components/Row'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsOptimizerTableRow } from '../types'
@@ -171,12 +170,20 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
-					<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-						{formattedPercent(getValue(), true, 700, true)}
-					</ColoredAPY>
-				</AutoRow>
+				<>
+					{lockupsRewards.includes(row.original.projectName) ? (
+						<div className="w-full flex items-center justify-end gap-1">
+							<QuestionHelper text={earlyExit} />
+							<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+								{formattedPercent(getValue(), true, 700, true)}
+							</ColoredAPY>
+						</div>
+					) : (
+						<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+							{formattedPercent(getValue(), true, 700, true)}
+						</ColoredAPY>
+					)}
+				</>
 			)
 		},
 		size: 140,
@@ -193,7 +200,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			const rewards = row.original.rewardTokensNames ?? []
 
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+				<div className="flex items-center justify-end gap-1 w-full">
 					<IconsRow
 						disableLinks
 						links={rewards}
@@ -202,7 +209,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
 					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
-				</AutoRow>
+				</div>
 			)
 		},
 		size: 140,

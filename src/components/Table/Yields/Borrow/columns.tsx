@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
 import { formattedNum, formattedPercent } from '~/utils'
-import { AutoRow } from '~/components/Row'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
@@ -74,7 +73,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			const rewards = row.original.rewards ?? []
 
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+				<div className="flex items-center justify-end gap-1 w-full">
 					{lockupsRewards.includes(row.original.project) ? <QuestionHelper text={earlyExit} /> : null}
 					<IconsRow
 						links={rewards}
@@ -83,7 +82,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
 					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
-				</AutoRow>
+				</div>
 			)
 		},
 		size: 140,
@@ -130,7 +129,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			const rewards = row.original.rewards ?? []
 
 			return row.original.apyRewardBorrow > 0 ? (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+				<div className="flex items-center justify-end gap-1 w-full">
 					{lockupsRewards.includes(row.original.project) ? (
 						<QuestionHelper text={earlyExit} />
 					) : row.original.project === '0vix' ? (
@@ -143,7 +142,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
 					<ColoredAPY data-variant="borrow">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
-				</AutoRow>
+				</div>
 			) : null
 		},
 		size: 140,
