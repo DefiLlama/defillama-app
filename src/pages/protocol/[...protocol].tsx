@@ -3,7 +3,6 @@ import { standardizeProtocolName } from '~/utils'
 import { getProtocol, getProtocols } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocolData, getProtocolDataLite } from '~/api/categories/protocols/getProtocolData'
-import { useRouter } from 'next/router'
 import { isCpusHot } from '~/utils/cache-client'
 import { useQuery } from '@tanstack/react-query'
 
@@ -56,13 +55,17 @@ const fetchProtocolData = async (protocol: string | null) => {
 }
 
 const useProtocolData = (slug) => {
-	return useQuery({ queryKey: ['protocol-data', slug], queryFn: () => fetchProtocolData(slug) })
+	return useQuery({
+		queryKey: ['protocol-data', slug],
+		queryFn: () => fetchProtocolData(slug),
+		retry: 0,
+		staleTime: 60 * 60 * 1000,
+		refetchInterval: 60 * 60 * 1000
+	})
 }
 
 export default function Protocols({ clientSide, protocolData, ...props }) {
-	const router = useRouter()
-
-	const { data, isLoading } = useProtocolData(clientSide === true ? router.query.protocol : null)
+	const { data, isLoading } = useProtocolData(clientSide === true ? props.protocol : null)
 
 	if (clientSide === true) {
 		if (!isLoading && data) {
