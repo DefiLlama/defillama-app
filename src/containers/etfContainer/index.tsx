@@ -45,9 +45,9 @@ export const ETFContainer = ({
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Exchange Traded Funds' }} />
 
-			<h1 className='text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4'>
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
 				<span>Total AUM</span>
-				<span className='font-jetbrains'>{`$${toK(totalAum)}`}</span>
+				<span className="font-jetbrains">{`$${toK(totalAum)}`}</span>
 			</h1>
 
 			<ChartsContainer>

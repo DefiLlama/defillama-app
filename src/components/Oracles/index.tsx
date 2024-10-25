@@ -78,7 +78,7 @@ const Oracles = ({
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Oracles' }} />
 
-			<h1 className='text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3'>
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
 				<span>Total Value Secured All Oracles {chain ? `on ${chain}` : ''}</span>
 				<ButtonDark onClick={downloadCsv} style={{ width: '120px', float: 'right' }}>
 					Download all data in .csv

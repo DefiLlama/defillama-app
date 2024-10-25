@@ -44,7 +44,7 @@ function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, f
 				}}
 			/>
 
-			<h1 className='text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4'>
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
 				<span>Bridge Inflows by Chain</span>
 				<CSVDownloadButton onClick={downloadCsv} />
 			</h1>

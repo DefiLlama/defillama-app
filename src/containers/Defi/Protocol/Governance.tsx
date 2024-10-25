@@ -58,7 +58,7 @@ export function GovernanceTable({ data, governanceType }) {
 	return (
 		<>
 			<TableFilters>
-				<h1 className='text-2xl font-medium'>Proposals</h1>
+				<h1 className="text-2xl font-medium">Proposals</h1>
 
 				<FilterProposals>
 					<Checkbox2

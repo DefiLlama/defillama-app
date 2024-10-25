@@ -98,7 +98,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Forks' }} />
 
-			<h1 className='text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap'>
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap">
 				Total Value Locked All Forks <CSVDownloadButton onClick={downloadCSV} />
 			</h1>
 

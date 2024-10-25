@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { Text } from 'rebass'
 import { ICONS_CDN, ICONS_PALETTE_CDN, timeframeOptions } from '~/constants'
 export * from './blockExplorers'
 import { colord, extend } from 'colord'
@@ -263,25 +262,25 @@ export function formattedPercent(percent, noSign = false, fontWeight = 400) {
 
 	if (!percent || percent === 0) {
 		return (
-			<Text as="span" fontWeight={fontWeight}>
+			<span className="font-[var(--weight)]" style={{ '--weight': fontWeight }}>
 				0%
-			</Text>
+			</span>
 		)
 	}
 
 	if (percent < 0.0001 && percent > 0) {
 		return (
-			<Text as="span" fontWeight={fontWeight} color={up}>
+			<span className="font-[var(--weight)] text-[var(--color)]" style={{ '--weight': fontWeight, '--color': up }}>
 				{'< 0.0001%'}
-			</Text>
+			</span>
 		)
 	}
 
 	if (percent < 0 && percent > -0.0001) {
 		return (
-			<Text as="span" fontWeight={fontWeight} color={down}>
+			<span className="font-[var(--weight)] text-[var(--color)]" style={{ '--weight': fontWeight, '--color': down }}>
 				{'< 0.0001%'}
-			</Text>
+			</span>
 		)
 	}
 
@@ -293,13 +292,26 @@ export function formattedPercent(percent, noSign = false, fontWeight = 400) {
 	if (fixedPercent > 0) {
 		if (fixedPercent > 100) {
 			return (
-				<Text as="span" fontWeight={fontWeight} color={up}>{`${prefix}${percent?.toFixed(0).toLocaleString()}%`}</Text>
+				<span
+					className="font-[var(--weight)] text-[var(--color)]"
+					style={{ '--weight': fontWeight, '--color': up }}
+				>{`${prefix}${percent?.toFixed(0).toLocaleString()}%`}</span>
 			)
 		} else {
-			return <Text as="span" fontWeight={fontWeight} color={up}>{`${prefix}${fixedPercent}%`}</Text>
+			return (
+				<span
+					className="font-[var(--weight)] text-[var(--color)]"
+					style={{ '--weight': fontWeight, '--color': up }}
+				>{`${prefix}${fixedPercent}%`}</span>
+			)
 		}
 	} else {
-		return <Text as="span" fontWeight={fontWeight} color={down}>{`${fixedPercent}%`}</Text>
+		return (
+			<span
+				className="font-[var(--weight)] text-[var(--color)]"
+				style={{ '--weight': fontWeight, '--color': down }}
+			>{`${fixedPercent}%`}</span>
+		)
 	}
 }
 

@@ -191,7 +191,7 @@ const BridgeTransactionsPage = ({ bridges }) => {
 
 	return (
 		<>
-			<h1 className='text-2xl font-medium -mb-5'>Generate Bridge Transactions CSV</h1>
+			<h1 className="text-2xl font-medium -mb-5">Generate Bridge Transactions CSV</h1>
 
 			<Form state={form}>
 				<SearchWrapper>

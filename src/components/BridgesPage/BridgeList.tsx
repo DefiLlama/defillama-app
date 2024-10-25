@@ -174,7 +174,7 @@ function BridgesOverview({
 				}}
 				onToggleClick={(enabled) => setEnableBreakdownChart(enabled)}
 			/>
-			<h1 className='text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4'>
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
 				<span>Bridge Volume in {selectedChain === 'All' ? 'all bridges' : selectedChain}</span>
 				<CSVDownloadButton onClick={downloadCsv} />
 			</h1>

@@ -36,7 +36,7 @@ function Earnings({ earnings }) {
 				}}
 			/>
 
-			<h1 className='text-2xl font-medium -mb-5'>NFTs Earnings</h1>
+			<h1 className="text-2xl font-medium -mb-5">NFTs Earnings</h1>
 
 			<TableWithSearch
 				data={earnings}

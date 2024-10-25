@@ -139,7 +139,7 @@ export default function TokenPnl({ coinsData }) {
 
 	return (
 		<PageWrapper>
-			<h1 className='text-2xl font-medium text-center -mb-5'>Token Holder Profit and Loss</h1>
+			<h1 className="text-2xl font-medium text-center -mb-5">Token Holder Profit and Loss</h1>
 			<ContentWrapper>
 				<SelectWrapper>
 					<TableFilters>

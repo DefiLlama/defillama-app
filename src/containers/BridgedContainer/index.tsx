@@ -8,7 +8,6 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { download } from '~/utils'
 
 export default function ChainsContainer({ assets, chains, flows1d }) {
-
 	const data = Object.keys(assets)
 		.map((name) => {
 			const chainAssets = assets?.[name]
@@ -51,8 +50,9 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 					name: 'All Chains'
 				}}
 			/>
-			<h1 className='text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3'>
-				<span>Bridged TVL for All chains</span><CSVDownloadButton onClick={onCSVDownload} />
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
+				<span>Bridged TVL for All chains</span>
+				<CSVDownloadButton onClick={onCSVDownload} />
 			</h1>
 			<TableWithSearch
 				data={data}

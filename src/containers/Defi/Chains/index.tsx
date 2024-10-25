@@ -137,8 +137,8 @@ export default function ChainsContainer({
 					<RowLinksWithDropdown links={categories} activeLink={category} variant="secondary" />
 				</ChainsSelect>
 
-				<div className='flex items-center justify-between gap-3 flex-wrap'>
-					<h1 className='text-2xl font-medium'>Total Value Locked All Chains</h1>
+				<div className="flex items-center justify-between gap-3 flex-wrap">
+					<h1 className="text-2xl font-medium">Total Value Locked All Chains</h1>
 					<CSVDownloadButton onClick={downloadCsv} />
 				</div>
 

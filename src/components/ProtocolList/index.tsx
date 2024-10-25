@@ -167,7 +167,7 @@ function Container({
 				}}
 			/>
 			<div style={{ display: 'flex', gap: '8px' }}>
-				<h1 className='text-2xl font-medium -mb-5'>{title}</h1>
+				<h1 className="text-2xl font-medium -mb-5">{title}</h1>
 				{csvDownload ? (
 					<CSVDownloadButton
 						style={{ marginLeft: 'auto' }}

@@ -16,7 +16,6 @@ import { AnnouncementWrapper } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
-
 export type IOverviewContainerProps = IOverviewProps
 
 export default function OverviewContainer(props: IOverviewContainerProps) {
@@ -259,10 +258,12 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				}
 			/>
 
-			<div className='flex items-center flex-wrap -mb-5 gap-3'>
-				<h1 className='text-2xl font-medium'><TitleByType type={props.type} chain={chain} /></h1>
+			<div className="flex items-center flex-wrap -mb-5 gap-3">
+				<h1 className="text-2xl font-medium">
+					<TitleByType type={props.type} chain={chain} />
+				</h1>
 				<CSVDownloadButton onClick={downloadCsv} />
-				<p className='text-sm ml-auto'>Updated daily at 00:00UTC</p>
+				<p className="text-sm ml-auto">Updated daily at 00:00UTC</p>
 			</div>
 			{getChartByType(props.type, {
 				type: props.type,

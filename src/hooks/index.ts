@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-export { default as useInfiniteScroll } from './useInfiniteScroll'
 export { default as useResize } from './useResize'
 export { default as useAnalytics } from './useAnalytics'
 export { default as useMedia } from './useMedia'

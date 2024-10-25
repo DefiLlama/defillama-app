@@ -1,6 +1,4 @@
 import * as React from 'react'
-import styled from 'styled-components'
-import { Box } from 'rebass'
 import Layout from '~/layout'
 import { Panel } from '~/components'
 import Link from '~/components/Link'
@@ -50,34 +48,14 @@ const pressList = [
 	['ct.png', 'https://decrypt.co/94370/terra-defis-network-choice-ethereum']
 ]
 
-export const DashGrid = styled.div`
-	display: grid;
-	grid-gap: 1em;
-	grid-template-columns: 1fr;
-	grid-template-areas: 'account';
-	padding: 0 4px;
-
-	> * {
-		justify-content: flex-end;
-	}
-`
-
-const PanelWrapper = styled(Box)`
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(100px, 200px));
-	place-content: center;
-	gap: 6px;
-	width: 100%;
-`
-
 function PressPage() {
 	return (
 		<Layout title="Press - DefiLlama" defaultSEO>
-			<h1 className='text-2xl font-medium -mb-5'>Press & Media</h1>
+			<h1 className="text-2xl font-medium -mb-5">Press & Media</h1>
 			<Panel>
-				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
-					<h2 className='font-semibold text-lg'>About DeFiLlama</h2>
-					<hr className='border-black/20 dark:border-white/20' />
+				<div className="flex flex-col gap-4">
+					<h2 className="font-semibold text-lg">About DeFiLlama</h2>
+					<hr className="border-black/20 dark:border-white/20" />
 					<p>
 						DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
 						<Link href="https://github.com/DefiLlama/DefiLlama-Adapters">open-source</Link> and maintained by a team of
@@ -86,12 +64,12 @@ function PressPage() {
 						hundreds of protocols.
 					</p>
 					<p>Our focus is on accurate data and transparent methodology.</p>
-				</DashGrid>
+				</div>
 			</Panel>
 			<Panel>
-				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
-				<h2 className='font-semibold text-lg'>Contact</h2>
-					<hr className='border-black/20 dark:border-white/20' />
+				<div className="flex flex-col gap-4">
+					<h2 className="font-semibold text-lg">Contact</h2>
+					<hr className="border-black/20 dark:border-white/20" />
 					<p>
 						Contact us on <Link href="https://twitter.com/defillama">Twitter</Link> or{' '}
 						<Link href="https://discord.defillama.com">Discord</Link> or by email{' '}
@@ -104,35 +82,33 @@ function PressPage() {
 						Llama Corp is a collective building out the decentralized future with data analytics, infrastructure,
 						payments, cross-chain and media solutions used by more than 10M monthly users.
 					</p>
-				</DashGrid>
+				</div>
 			</Panel>
 			<Panel>
-				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
-					<h2 className='font-semibold text-lg'>Press</h2>
-					<hr className='border-black/20 dark:border-white/20' />
+				<div className="flex flex-col gap-4">
+					<h2 className="font-semibold text-lg">Press</h2>
+					<hr className="border-black/20 dark:border-white/20" />
 
 					<p>DL Data is free to use by anyone. Attribution is always appreciated.</p>
-					<hr className='border-black/20 dark:border-white/20' />
-					<p>
-						DeFiLlama is used across a large number of media organisations and financial institutions.
-					</p>
-					<PanelWrapper mt={[0, 0, '1rem']}>
+					<hr className="border-black/20 dark:border-white/20" />
+					<p>DeFiLlama is used across a large number of media organisations and financial institutions.</p>
+					<div className="grid grid-cols-[repeat(auto-fit,minmax(100px,200px))] place-content-center w-full gap-2 mt-4">
 						{pressList.map((imageFilename) => (
 							<Link href={imageFilename[1]} key={imageFilename[0]}>
 								<PressPanel imageFilename={imageFilename[0]} />
 							</Link>
 						))}
-					</PanelWrapper>
-				</DashGrid>
+					</div>
+				</div>
 			</Panel>
 			<Panel>
-				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
-					<h2 className='font-semibold text-lg'>Branding Assets</h2>
-					<hr className='border-black/20 dark:border-white/20' />
+				<div className="flex flex-col gap-4">
+					<h2 className="font-semibold text-lg">Branding Assets</h2>
+					<hr className="border-black/20 dark:border-white/20" />
 					<p>
 						You can download all our branding assets from <Link href="/defillama-press-kit.zip">here</Link>.
 					</p>
-				</DashGrid>
+				</div>
 			</Panel>
 		</Layout>
 	)

@@ -83,7 +83,13 @@ function calculateDenominatedChange2(data, denominatedCoin, field) {
 	return denominatedReturns
 }
 
-export const CategoryPerformanceContainer = ({ pctChanges, performanceTimeSeries, areaChartLegend, isCoinPage,categoryName }) => {
+export const CategoryPerformanceContainer = ({
+	pctChanges,
+	performanceTimeSeries,
+	areaChartLegend,
+	isCoinPage,
+	categoryName
+}) => {
 	useScrollToTop()
 
 	const [tab, setTab] = React.useState('linechart')
@@ -137,8 +143,8 @@ export const CategoryPerformanceContainer = ({ pctChanges, performanceTimeSeries
 
 	return (
 		<>
-			<h1 className='text-2xl font-medium -mb-5'>
-					{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
+			<h1 className="text-2xl font-medium -mb-5">
+				{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
 			</h1>
 
 			<ChartsContainer>

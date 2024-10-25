@@ -10,7 +10,7 @@
 		font-display: swap;
 		src: url('/fonts/inter.woff2') format('woff2');
 	}
-	
+
 	@font-face {
 		font-family: 'JetBrains Mono';
 		font-style: normal;
@@ -18,7 +18,7 @@
 		font-display: swap;
 		src: url('/fonts/jetbrains.ttf') format('truetype');
 	}
-	
+
 	:root {
 		--font-jetbrains: 'JetBrains Mono', monospace;
 		--font-inter: 'Inter var', sans-serif;

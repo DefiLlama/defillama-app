@@ -74,7 +74,7 @@ export default function Governance({ data }) {
 	return (
 		<Layout title={`Governance - DefiLlama`} defaultSEO>
 			<TableHeaderAndSearch>
-				<h1 className='text-2xl font-medium -mb-5'>Governance</h1>
+				<h1 className="text-2xl font-medium -mb-5">Governance</h1>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />

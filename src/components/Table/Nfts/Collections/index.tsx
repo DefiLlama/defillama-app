@@ -43,7 +43,7 @@ export default function NftsCollectionTable({ data }: { data: Array<INftCollecti
 	return (
 		<>
 			<TableHeaderAndSearch>
-				<h1 className='text-2xl font-medium -mb-5'>NFT Collections</h1>
+				<h1 className="text-2xl font-medium -mb-5">NFT Collections</h1>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />

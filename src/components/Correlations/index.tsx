@@ -177,7 +177,7 @@ export default function Correlations({ coinsData }) {
 
 	return (
 		<>
-			<h1 className='text-2xl font-medium'>Correlations Matrix</h1>
+			<h1 className="text-2xl font-medium">Correlations Matrix</h1>
 
 			<ToggleWrapper>
 				<Switch onClick={() => setPeriod(7)} active={period === 7}>
@@ -193,7 +193,7 @@ export default function Correlations({ coinsData }) {
 
 			<Body>
 				<SelectedBody>
-					<h2 className='text-lg font-medium'>Selected Coins</h2>
+					<h2 className="text-lg font-medium">Selected Coins</h2>
 					{Object.values(selectedCoins).map((coin) =>
 						coin ? (
 							<SearchRow

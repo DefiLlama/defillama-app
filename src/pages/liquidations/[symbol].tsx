@@ -113,7 +113,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				</>
 			)} */}
 
-			<h1 className='text-2xl font-medium -mb-5 text-center xl:text-start'>Liquidation levels in DeFi 💦</h1>
+			<h1 className="text-2xl font-medium -mb-5 text-center xl:text-start">Liquidation levels in DeFi 💦</h1>
 			<LiquidationsHeader data={data} options={options} />
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />

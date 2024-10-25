@@ -72,7 +72,7 @@ export default function Protocols({ data }) {
 			</AnnouncementWrapper>
 
 			<TableHeaderAndSearch>
-				<h1 className='text-2xl font-medium -mb-5'>Token Unlocks</h1>
+				<h1 className="text-2xl font-medium -mb-5">Token Unlocks</h1>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />

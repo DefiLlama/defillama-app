@@ -133,7 +133,7 @@ export default function Protocols({ emissions }) {
 			</AnnouncementWrapper>
 
 			<TableHeaderAndSearch>
-				<h1 className='text-2xl font-medium -mb-5'>Crypto Calendar</h1>
+				<h1 className="text-2xl font-medium -mb-5">Crypto Calendar</h1>
 
 				<div style={{ marginBottom: '-23px' }}>
 					<BasicDropdown

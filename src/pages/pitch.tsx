@@ -407,9 +407,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	return (
 		<Layout title="VC Filter - DefiLlama" defaultSEO>
 			<PageWrapper>
-				<h1 className='text-2xl font-medium text-center my-3'>
-					Connect with Investors
-				</h1>
+				<h1 className="text-2xl font-medium text-center my-3">Connect with Investors</h1>
 				<Description>
 					Filter a list of VCs by their investments in DeFi projects to connect with the right investors for your
 					project.

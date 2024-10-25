@@ -93,7 +93,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 
 	return (
 		<>
-			<h1 className='text-2xl font-medium -mb-5'>Saved Pools</h1>
+			<h1 className="text-2xl font-medium -mb-5">Saved Pools</h1>
 
 			<Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
 				<h2>Current portfolio:</h2>

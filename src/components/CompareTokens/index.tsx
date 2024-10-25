@@ -121,7 +121,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 
 	return (
 		<>
-			<h1 className='text-2xl font-medium mt-2'>Compare Tokens</h1>
+			<h1 className="text-2xl font-medium mt-2">Compare Tokens</h1>
 			<Wrapper>
 				<SelectWrapper>
 					<TableFilters>
@@ -292,7 +292,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 							</Header>
 
 							{newPrice !== undefined && increase !== undefined ? (
-								<p className='text-base font-medium'>
+								<p className="text-base font-medium">
 									$
 									{newPrice.toLocaleString(
 										undefined, // leave undefined to use the visitor's browser

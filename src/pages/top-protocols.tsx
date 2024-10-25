@@ -117,7 +117,7 @@ export default function Chains({ data, columns }) {
 
 	return (
 		<Layout title="TVL Rankings - DefiLlama" defaultSEO>
-			<h1 className='text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4'>
+			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
 				<span>Top Protocols</span>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</h1>

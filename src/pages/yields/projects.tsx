@@ -59,7 +59,7 @@ export default function Protocols({ projects }) {
 		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
 
-			<h1 className='text-2xl font-medium -mb-5'>Projects</h1>
+			<h1 className="text-2xl font-medium -mb-5">Projects</h1>
 
 			<YieldsProjectsTable data={projects} />
 		</Layout>

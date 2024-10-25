@@ -33,10 +33,10 @@ export default function TopGainersLosers({ protocols }) {
 
 	return (
 		<Layout title={`Top Gainers and Losers - DefiLlama`} defaultSEO>
-			<h1 className='text-2xl font-medium -mb-5'>Top Gainers</h1>
+			<h1 className="text-2xl font-medium -mb-5">Top Gainers</h1>
 			<TopGainersAndLosers data={topGainers} />
 
-			<h1 className='text-2xl font-medium -mb-5'>Top Losers</h1>
+			<h1 className="text-2xl font-medium -mb-5">Top Losers</h1>
 			<TopGainersAndLosers data={topLosers} />
 		</Layout>
 	)

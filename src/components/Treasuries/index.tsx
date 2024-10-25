@@ -107,8 +107,9 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 	return (
 		<>
 			<TableHeaderAndSearch>
-				<h1 className='text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3'>
-					<span>Protocol Treasuries</span><CSVDownloadButton onClick={downloadCSV} isLight />
+				<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
+					<span>Protocol Treasuries</span>
+					<CSVDownloadButton onClick={downloadCSV} isLight />
 				</h1>
 
 				<SearchWrapper>

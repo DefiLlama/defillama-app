@@ -60,7 +60,7 @@ function Marketplaces({
 				}}
 			/>
 
-			<h1 className='text-2xl font-medium -mb-5'>NFT Marketplaces</h1>
+			<h1 className="text-2xl font-medium -mb-5">NFT Marketplaces</h1>
 
 			<Filters color={'#4f8fea'} style={{ marginLeft: 'auto' }}>
 				<FlatDenomination active={!dominanceChart} onClick={() => setDominanceChart(false)}>

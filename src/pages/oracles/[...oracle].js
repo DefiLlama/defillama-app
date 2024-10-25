@@ -80,7 +80,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 	return (
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Oracles', name: token, route: 'oracles' }} />
-			<h1 className='text-2xl font-medium -mb-5'>
+			<h1 className="text-2xl font-medium -mb-5">
 				Total Value Secured by {token} {chain ? `on ${chain}` : null}
 			</h1>
 			<ChartAndValuesWrapper>
