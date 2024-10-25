@@ -10,7 +10,6 @@ import TokenLogo from '~/components/TokenLogo'
 import { ChartsWrapper, LazyChart, Name, Section } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter, formattedNum, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
-import { ExternalLink } from '~/components/Link'
 import {
 	Body,
 	Box as BoxComponent,
@@ -24,6 +23,7 @@ import {
 	Value
 } from './styles'
 import { IEmission } from './types'
+import { Icon } from '~/components/Icon'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/UnlocksChart'), {
 	ssr: false
@@ -337,9 +337,17 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						<Body>
 							{data.sources.map((source, i) => (
 								<Row key={source}>
-									<ExternalLink style={{ color: 'white', fontSize: '16px' }} href={source}>
-										{i + 1}) {new URL(source).hostname}
-									</ExternalLink>
+									<a
+										href={source}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-white text-base flex items-center font-medium gap-2"
+									>
+										<span>
+											{i + 1} {new URL(source).hostname}
+										</span>
+										<Icon name="external-link" height={16} width={16} />
+									</a>
 									<a target="_blank" rel="noreferrer noopener" href={source}></a>
 								</Row>
 							))}

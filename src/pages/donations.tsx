@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import { Panel } from '~/components'
-import { RowBetween } from '~/components/Row'
 import Link from '~/components/Link'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
@@ -36,9 +35,7 @@ export const getStaticProps = withPerformanceLogging('donations', async () => {
 function PressPage({ protocols }) {
 	return (
 		<Layout title="Donations - DefiLlama" defaultSEO>
-			<RowBetween>
-				<h1 className="text-2xl font-medium">Donations</h1>
-			</RowBetween>
+			<h1 className="text-2xl font-medium mt-2 -mb-5">Donations</h1>
 			<Panel style={{ marginTop: '6px' }}>
 				<div className="flex flex-col gap-4">
 					<Section title="Why donate?">

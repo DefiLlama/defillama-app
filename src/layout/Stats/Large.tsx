@@ -108,7 +108,7 @@ export const AccordionStat = styled.details`
 		cursor: pointer;
 
 		& > *[data-arrowicon] {
-			margin: auto -16px 8px -20px;
+			margin: auto -16px 12px -20px;
 		}
 
 		& > *[data-summaryheader] {

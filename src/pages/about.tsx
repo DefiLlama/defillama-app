@@ -1,15 +1,12 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import { Panel } from '~/components'
-import { RowBetween } from '~/components/Row'
 import Link from '~/components/Link'
 
 function AboutPage() {
 	return (
 		<Layout title="DefiLlama - DeFi Dashboard" defaultSEO>
-			<RowBetween>
-				<h1 className="text-2xl font-medium -mb-5">About</h1>
-			</RowBetween>
+			<h1 className="text-2xl font-medium mt-2 -mb-5">About</h1>
 			<Panel>
 				<div className="flex flex-col gap-4">
 					<h2 className="font-semibold text-lg">About DeFiLlama</h2>

@@ -42,21 +42,6 @@ export const PanelSmol = styled(Panel)`
 	}
 `
 
-export const StyledAnchor = styled.a`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 0.2rem;
-	margin-left: 0.2rem;
-	:hover {
-		text-decoration: underline;
-	}
-
-	@media (min-width: 80rem) {
-		margin-right: 0.2rem;
-	}
-`
-
 export const ChartAndValuesWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
