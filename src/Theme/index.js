@@ -1,6 +1,5 @@
 import * as React from 'react'
-import styled, { ThemeProvider as StyledComponentsThemeProvider, createGlobalStyle, keyframes } from 'styled-components'
-import { Text } from 'rebass'
+import { ThemeProvider as StyledComponentsThemeProvider, createGlobalStyle, keyframes } from 'styled-components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { sm, med, lg, xl, twoXl } from '~/constants/breakpoints'
 
@@ -71,28 +70,6 @@ const theme = (darkMode) => ({
 
 	breakpoints: [`${sm}rem`, `${med}rem`, `${lg}rem`, `${xl}rem`]
 })
-
-const TextWrapper = styled(Text)`
-	color: ${({ color, theme }) => theme[color]};
-`
-
-export const TYPE = {
-	heading(props) {
-		return <TextWrapper fontWeight={500} fontSize={16} color={'text1'} {...props} />
-	},
-
-	main(props) {
-		return <TextWrapper fontWeight={500} fontSize={14} color={'text1'} {...props} />
-	},
-
-	body(props) {
-		return <TextWrapper fontWeight={400} fontSize={14} color={'text1'} {...props} />
-	},
-
-	largeHeader(props) {
-		return <TextWrapper fontWeight={500} color={'text1'} fontSize={24} {...props} />
-	}
-}
 
 const slideUp = keyframes`
 	0% {

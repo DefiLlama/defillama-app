@@ -1,8 +1,6 @@
 import * as React from 'react'
-import styled from 'styled-components'
-import { TYPE } from '~/Theme'
 import Layout from '~/layout'
-import { Divider, Panel } from '~/components'
+import { Panel } from '~/components'
 import { RowBetween } from '~/components/Row'
 import Link from '~/components/Link'
 import { DashGrid } from './press'
@@ -14,8 +12,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 function Section({ title, children }) {
 	return (
 		<>
-			<TYPE.largeHeader>{title}</TYPE.largeHeader>
-			<TYPE.main>{children}</TYPE.main>
+			<h1 className='text-2xl font-medium'>{title}</h1>
+			<p>{children}</p>
 		</>
 	)
 }
@@ -40,7 +38,7 @@ function PressPage({ protocols }) {
 	return (
 		<Layout title="Donations - DefiLlama" defaultSEO>
 			<RowBetween>
-				<TYPE.largeHeader>Donations</TYPE.largeHeader>
+				<h1 className='text-2xl font-medium'>Donations</h1>
 			</RowBetween>
 			<Panel style={{ marginTop: '6px' }}>
 				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
@@ -49,7 +47,7 @@ function PressPage({ protocols }) {
 						are supported by donations.
 					</Section>
 
-					<Divider />
+						<hr className='border-black/20 dark:border-white/20' />
 
 					<Section title="Affiliate links">
 						DefiLlama has referral links for all these protocols, using them with our referral sends us some rewards:
@@ -64,14 +62,14 @@ function PressPage({ protocols }) {
 						</ul>
 					</Section>
 
-					<Divider />
+						<hr className='border-black/20 dark:border-white/20' />
 
 					<Section title="Direct donation">
 						You can send us any token, on any network, to the following address:
 						0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437
 					</Section>
 
-					<Divider />
+						<hr className='border-black/20 dark:border-white/20' />
 
 					<Section title="Use of funds">
 						Funds are only used for 2 purposes:

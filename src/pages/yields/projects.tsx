@@ -6,8 +6,6 @@ import { maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import PageHeader from '~/components/PageHeader'
-
 function median(numbers) {
 	const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)
 	const middle = Math.floor(sorted.length / 2)
@@ -61,7 +59,7 @@ export default function Protocols({ projects }) {
 		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
 
-			<PageHeader title="Projects" />
+			<h1 className='text-2xl font-medium -mb-5'>Projects</h1>
 
 			<YieldsProjectsTable data={projects} />
 		</Layout>

@@ -1,33 +1,33 @@
-import { DashGrid } from '~/pages/press'
-import { Divider, Panel } from '..'
-import { TYPE } from '~/Theme'
+import { Panel } from '..'
 
 export const FAQ = () => (
-	<Panel style={{ marginTop: '6px', maxWidth: '600px', margin: '0 auto' }}>
-		<DashGrid style={{ height: 'fit-content', padding: '0 0 0.25rem 0', marginTop: '8px', gridGap: '8px' }}>
-			<div style={{ paddingBottom: '8px' }}>
-				<TYPE.heading>Correlation</TYPE.heading>
+	<Panel className='mx-auto max-w-xl flex flex-col gap-4'>
+		<div className="flex flex-col gap-1">
+				<h2 className='font-semibold text-lg'>Correlation</h2>
 				Positively correlated variables tend to move together, negatively correlated variables move inversely to each
 				other, and uncorrelated variables move independently of each other.
 			</div>
-			<div style={{ paddingBottom: '8px' }}>
-				<TYPE.heading>Pearson Correlation Coefficient</TYPE.heading>
-				The Pearson Correlation Coefficient quantifies the estimated strength of the linear association between two
+			<div className="flex flex-col gap-1">
+				<h2 className='font-semibold text-lg'>Pearson Correlation Coefficient</h2>
+				<p>The Pearson Correlation Coefficient quantifies the estimated strength of the linear association between two
 				variables. It ranges from +1 to -1: +1 indicates a perfect positive linear correlation, -1 a perfect negative
-				linear correlation, 0 indicates no linear correlation.
+				linear correlation, 0 indicates no linear correlation.</p>
 			</div>
-			<Divider />
-			<div style={{ paddingBottom: '8px' }}>
-				<TYPE.heading>Positive Value</TYPE.heading>A positive value indicates a positive correlation between two
-				variables.
+			<hr className='border-black/20 dark:border-white/20' />
+			<div className="flex flex-col gap-1">
+				<h2 className='font-semibold text-lg'>Positive Value</h2>
+				<p>A positive value indicates a positive correlation between two
+				variables.</p>
 			</div>
-			<div style={{ paddingBottom: '8px' }}>
-				<TYPE.heading>Negative Value</TYPE.heading>A negative value indicates a negative correlation between two
-				variables.
+			<div className="flex flex-col gap-1">
+				<h2 className='font-semibold text-lg'>Negative Value</h2>
+				<p>A negative value indicates a negative correlation between two
+				variables.</p>
 			</div>
-			<div style={{ paddingBottom: '8px' }}>
-				<TYPE.heading>Zero</TYPE.heading> A value of 0 indicates no correlation between two variables.
+			<div className="flex flex-col gap-1">
+				<h2 className='font-semibold text-lg'>Zero</h2>
+				<p>A value of 0 indicates no correlation between two variables.</p>
 			</div>
-		</DashGrid>
 	</Panel>
 )
+

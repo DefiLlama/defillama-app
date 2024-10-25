@@ -1,4 +1,3 @@
-import { TYPE } from '~/Theme'
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import {
@@ -16,7 +15,7 @@ import {
 	ToggleWrapper,
 	Description
 } from './styles'
-import { Switch, Wrapper } from '../LiquidationsPage/TableSwitch'
+import { Switch } from '../LiquidationsPage/TableSwitch'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import { FAQ } from './Faq'
@@ -104,9 +103,9 @@ export function CoinsPicker({ coinsData, isModalOpen, setModalOpen, selectCoin, 
 											e.currentTarget.src = '/placeholder.png'
 										}}
 									/>
-									<TYPE.body>
+									<span>
 										{coin.name} ({coin.symbol.toUpperCase()})
-									</TYPE.body>
+									</span>
 								</SearchRow>
 							)
 						})}
@@ -178,7 +177,7 @@ export default function Correlations({ coinsData }) {
 
 	return (
 		<>
-			<TYPE.largeHeader>Correlations Matrix</TYPE.largeHeader>
+			<h1 className='text-2xl font-medium'>Correlations Matrix</h1>
 
 			<ToggleWrapper>
 				<Switch onClick={() => setPeriod(7)} active={period === 7}>
@@ -194,7 +193,7 @@ export default function Correlations({ coinsData }) {
 
 			<Body>
 				<SelectedBody>
-					<TYPE.heading>Selected Coins</TYPE.heading>
+					<h2 className='text-lg font-medium'>Selected Coins</h2>
 					{Object.values(selectedCoins).map((coin) =>
 						coin ? (
 							<SearchRow
@@ -223,7 +222,7 @@ export default function Correlations({ coinsData }) {
 										e.currentTarget.src = '/placeholder.png'
 									}}
 								/>
-								<TYPE.body>{coin.symbol.toUpperCase()}</TYPE.body>
+								<span>{coin.symbol.toUpperCase()}</span>
 								<Icon name="x" height={14} width={14} />
 							</SearchRow>
 						) : null

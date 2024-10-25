@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
-import { TYPE } from '~/Theme'
 import { Panel } from '~/components'
 import Row from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
@@ -74,7 +73,7 @@ export function DefiWatchlistContainer() {
 			<h1 className='text-2xl font-medium -mb-5'>Saved Protocols</h1>
 
 			<Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
-				<TYPE.main>Current portfolio:</TYPE.main>
+				<h2>Current portfolio:</h2>
 				<Menu
 					name={selectedPortfolio.length > 100 ? selectedPortfolio.substring(0, 100) + '...' : selectedPortfolio}
 					options={portfolios.map(function (portfolio) {

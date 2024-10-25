@@ -1,6 +1,4 @@
-import { TYPE } from '~/Theme'
 import { useQuery } from '@tanstack/react-query'
-
 import React, { useMemo, useState, useRef, useCallback } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
@@ -141,7 +139,7 @@ export default function TokenPnl({ coinsData }) {
 
 	return (
 		<PageWrapper>
-			<Title>Token Holder Profit and Loss</Title>
+			<h1 className='text-2xl font-medium text-center -mb-5'>Token Holder Profit and Loss</h1>
 			<ContentWrapper>
 				<SelectWrapper>
 					<TableFilters>
@@ -338,11 +336,6 @@ const PageWrapper = styled.div`
 	gap: 2rem;
 `
 
-const Title = styled(TYPE.largeHeader)`
-	margin-bottom: 5rem;
-	text-align: center;
-`
-
 const ContentWrapper = styled.div`
 	min-width: 350px;
 	background: ${({ theme }) => theme.bg1};
@@ -367,6 +360,7 @@ const ResultContent = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	gap: 12px;
 	width: 100%;
 `
 
