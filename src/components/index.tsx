@@ -1,6 +1,5 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { Text, Box } from 'rebass'
 import { CheckboxCheck } from 'ariakit'
 import { BasicLink } from '~/components/Link'
 import { primaryColor } from '~/constants/colors'
@@ -96,10 +95,7 @@ export const PanelHiddenMobile = styled(BreakpointPanel)`
 	}
 `
 
-const Divider = styled(Box)`
-	height: 1px;
-	background-color: ${({ theme }) => theme.divider};
-`
+export const Divider = () => <hr className="border-[rgba(43,43,43,0.035)] dark:border-[rgba(43,43,43,0.435)]" />
 
 export const IconWrapper = styled.div`
 	position: absolute;
@@ -117,76 +113,6 @@ export const IconWrapper = styled.div`
 	:hover {
 		cursor: pointer;
 		opacity: 0.7;
-	}
-`
-
-const Hint = ({ children, ...rest }) => (
-	<Text fontSize={16} weight={500} {...rest}>
-		{children}
-	</Text>
-)
-
-interface IHover {
-	fade?: boolean
-}
-
-export const Hover = styled.div<IHover>`
-	:hover {
-		cursor: pointer;
-		opacity: ${({ fade }) => fade && '0.7'};
-	}
-`
-
-export const StyledIcon = styled.div`
-	color: ${({ theme }) => theme.text1};
-`
-
-interface IEmptyCard {
-	height?: number
-}
-
-const EmptyCard = styled.div<IEmptyCard>`
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 200px;
-	border-radius: 20px;
-	color: ${({ theme }) => theme.text1};
-	height: ${({ height }) => height && height};
-`
-
-export const SideBar = styled.span`
-	display: grid;
-	grid-gap: 24px;
-	position: sticky;
-	top: 4rem;
-`
-
-export const SubNav = styled.ul`
-	list-style: none;
-	display: flex;
-	flex-direction: row;
-	justify-content: flex-start;
-	align-items: flex-start;
-	padding: 0;
-	margin-bottom: 2rem;
-`
-
-interface ISubNavEl {
-	isActive: boolean
-}
-
-export const SubNavEl = styled.li<ISubNavEl>`
-	list-style: none;
-	display: flex;
-	padding-bottom: 0.5rem;
-	margin-right: 1rem;
-	font-weight: ${({ isActive }) => (isActive ? 600 : 500)};
-	border-bottom: 1px solid rgba(0, 0, 0, 0);
-
-	:hover {
-		cursor: pointer;
-		border-bottom: 1px solid ${({ theme }) => theme.bg3};
 	}
 `
 
@@ -275,15 +201,6 @@ export const Checkbox2 = styled.input`
 	}
 `
 
-export const FallbackMessage = styled.p`
-	padding: 1.25rem;
-	text-align: center;
-	background-color: ${({ theme }) => theme.advancedBG};
-	border-radius: 8px;
-	border: 1px solid ${({ theme }) => theme.bg3};
-	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
-`
-
 export const ToggleWrapper = styled.label`
 	display: flex;
 	align-items: center;
@@ -329,5 +246,3 @@ export const Tab = styled.button`
 		background-color: ${transparentize(0.9, primaryColor)};
 	}
 `
-
-export { Hint, Divider, EmptyCard }

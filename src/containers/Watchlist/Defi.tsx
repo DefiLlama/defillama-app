@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
 import { Panel } from '~/components'
-import Row from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { Menu } from '~/components/DropdownMenu'
 import { useIsClient } from '~/hooks'
@@ -72,7 +71,7 @@ export function DefiWatchlistContainer() {
 
 			<h1 className="text-2xl font-medium -mb-5">Saved Protocols</h1>
 
-			<Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
+			<span className="flex items-center flex-wrap gap-4 mt-3 -mb-5">
 				<h2>Current portfolio:</h2>
 				<Menu
 					name={selectedPortfolio.length > 100 ? selectedPortfolio.substring(0, 100) + '...' : selectedPortfolio}
@@ -89,7 +88,7 @@ export function DefiWatchlistContainer() {
 						<Icon name="trash-2" height={24} width={24} />
 					</Action>
 				)}
-			</Row>
+			</span>
 
 			{fetchingProtocolsList || fetchingProtocolsVolumeByChain || fetchingProtocolsFeesAndRevenueByChain ? (
 				<Panel>

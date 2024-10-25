@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
 import { Panel } from '~/components'
-import Row from '~/components/Row'
 import { Menu } from '~/components/DropdownMenu'
 import { YieldsPoolsTable } from '~/components/Table'
 import { useIsClient } from '~/hooks'
@@ -95,7 +94,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 		<>
 			<h1 className="text-2xl font-medium -mb-5">Saved Pools</h1>
 
-			<Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
+			<span className="flex items-center flex-wrap gap-4 mt-3 -mb-5">
 				<h2>Current portfolio:</h2>
 				<Menu name={selectedPortfolio} options={portfolios} onItemClick={(value) => setSelectedPortfolio(value)} />
 				<Action onClick={addPortfolio}>
@@ -125,7 +124,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 					}}
 					enabled={query.show7dIL === 'true'}
 				/>
-			</Row>
+			</span>
 
 			<OptionToggle
 				name="Show 1d Volume"

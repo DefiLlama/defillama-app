@@ -1,6 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
 import styled from 'styled-components'
-import { Text } from 'rebass'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import {
@@ -128,12 +127,15 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue() as any
 			if (value) {
 				return (
-					<Text as="span" color={(value as number) > 0 ? '#3fb950' : '#f85149'}>
+					<span
+						className="text-[var(--color)]"
+						style={{ '--color': (value as number) > 0 ? '#3fb950' : '#f85149' } as any}
+					>
 						${formattedNum(info.getValue())}
-					</Text>
+					</span>
 				)
 			}
-			return <Text as="span">$0</Text>
+			return <>$0</>
 		},
 		size: 120,
 		meta: {
@@ -165,12 +167,15 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue() as any
 			if (value) {
 				return (
-					<Text as="span" color={(value as number) > 0 ? '#3fb950' : '#f85149'}>
+					<span
+						className="text-[var(--color)]"
+						style={{ '--color': (value as number) > 0 ? '#3fb950' : '#f85149' } as any}
+					>
 						${formattedNum(info.getValue())}
-					</Text>
+					</span>
 				)
 			}
-			return <Text as="span">$0</Text>
+			return <>$0</>
 		},
 		size: 120,
 		meta: {
@@ -238,9 +243,9 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as boolean
 			return (
-				<Text as="span" color={value ? '#f85149' : '#3fb950'}>
+				<span className="text-[var(--color)]" style={{ '--color': value ? '#f85149' : '#3fb950' } as any}>
 					{value ? 'Withdrawal' : 'Deposit'}
-				</Text>
+				</span>
 			)
 		},
 		size: 120,

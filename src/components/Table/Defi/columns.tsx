@@ -3,7 +3,6 @@ import styled from 'styled-components'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
-import { AutoRow } from '~/components/Row'
 import TokenLogo from '~/components/TokenLogo'
 import { Tooltip2 } from '~/components/Tooltip'
 import { ButtonYields } from '~/layout/Pool'
@@ -1076,13 +1075,16 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: 'tvl',
 		cell: (info) => {
 			return (
-				<AutoRow align="center" justify="flex-end">
+				<>
 					{info.getValue() === undefined ? (
-						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
+						<QuestionHelper
+							text="This CEX has not published a list of all hot and cold wallets"
+							style={{ marginLeft: 'auto' }}
+						/>
 					) : (
 						'$' + formattedNum(info.getValue())
 					)}
-				</AutoRow>
+				</>
 			)
 		},
 		sortingFn: sortingFns.datetime,
@@ -1099,7 +1101,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		cell: (info) => {
 			const coinSymbol = info.row.original.coinSymbol
 			return (
-				<AutoRow align="center" justify="flex-end">
+				<span className="flex items-center gap-1 justify-end">
 					{info.getValue() === undefined ? (
 						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
 					) : (
@@ -1114,7 +1116,7 @@ export const cexColumn: ColumnDef<any>[] = [
 							<span>{'$' + formattedNum(info.getValue())}</span>
 						</>
 					)}
-				</AutoRow>
+				</span>
 			)
 		},
 		sortingFn: sortingFns.datetime,
@@ -1243,7 +1245,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 80,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<AutoRow align="center" justify="flex-end">
+			<>
 				{getValue() === undefined ? null : (
 					<ButtonYields
 						as="a"
@@ -1257,7 +1259,7 @@ export const cexColumn: ColumnDef<any>[] = [
 						<Icon name="arrow-up-right" height={14} width={14} />
 					</ButtonYields>
 				)}
-			</AutoRow>
+			</>
 		),
 		meta: {
 			align: 'end'
@@ -1269,7 +1271,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<AutoRow align="center" justify="flex-end">
+			<>
 				{getValue() === undefined ? (
 					<QuestionHelper text="This CEX has no published their wallet addresses" />
 				) : (
@@ -1285,7 +1287,7 @@ export const cexColumn: ColumnDef<any>[] = [
 						<Icon name="arrow-up-right" height={14} width={14} />
 					</ButtonYields>
 				)}
-			</AutoRow>
+			</>
 		),
 		meta: {
 			align: 'end'
@@ -1312,7 +1314,8 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 					<CustomLink href={`/protocol/${slug}#treasury`}>{name}</CustomLink>
 				</Name>
 			)
-		}
+		},
+		size: 220
 	},
 	{
 		header: 'Breakdown',
@@ -1343,16 +1346,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 
 			return (
 				<Tooltip content={<TooltipContent dominance={dominance} protocolName={info.row.original.name} />}>
-					<AutoRow
-						sx={{
-							width: '100px !important',
-							flexWrap: 'nowrap',
-							gap: '0px',
-							background: 'white',
-							height: '20px',
-							marginLeft: 'auto'
-						}}
-					>
+					<span className="h-5 !w-full ml-auto bg-white flex items-center flex-nowrap">
 						{dominance.map((dom) => {
 							const color = breakdownColor(dom[0])
 							const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
@@ -1360,11 +1354,12 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 							return (
 								<div
 									key={dom[0] + dom[1] + info.row.original.name}
-									style={{ width: `${dom[1]}px`, height: '20px', background: color }}
-								></div>
+									style={{ width: `${dom[1]}px`, background: color }}
+									className="h-5"
+								/>
 							)
 						})}
-					</AutoRow>
+					</span>
 				</Tooltip>
 			)
 		},
@@ -1380,7 +1375,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		cell: (info) => {
 			return <>{'$' + formattedNum(info.getValue())}</>
 		},
-		size: 108,
+		size: 115,
 		meta: {
 			align: 'end'
 		}
@@ -1392,7 +1387,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		cell: (info) => {
 			return <>{'$' + formattedNum(info.getValue())}</>
 		},
-		size: 152,
+		size: 160,
 		meta: {
 			align: 'end'
 		}
@@ -1403,7 +1398,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		cell: (info) => {
 			return <>{'$' + formattedNum(info.getValue())}</>
 		},
-		size: 112,
+		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -1427,7 +1422,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		cell: (info) => {
 			return <>{'$' + formattedNum(info.getValue())}</>
 		},
-		size: 180,
+		size: 185,
 		meta: {
 			align: 'end'
 		}
@@ -1439,7 +1434,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		cell: (info) => {
 			return <>{'$' + formattedNum(info.getValue())}</>
 		},
-		size: 128,
+		size: 135,
 		meta: {
 			align: 'end'
 		}
@@ -1483,7 +1478,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 110
+		size: 120
 	},
 	{
 		header: 'TVL',
@@ -1510,7 +1505,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 110
+		size: 120
 	},
 	{
 		header: 'Market Share',
@@ -1522,17 +1517,17 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 120
+		size: 125
 	},
 	{
 		header: 'LSD',
 		accessorKey: 'lsdSymbol',
 		cell: ({ getValue, row }) => {
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+				<span className="flex items-center justify-end gap-1">
 					{row.original.pegInfo ? <QuestionHelper text={row.original.pegInfo} /> : null}
 					{getValue()}
-				</AutoRow>
+				</span>
 			)
 		},
 		meta: {
@@ -1552,11 +1547,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 					</>
 				)
 			}
-			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					<Tooltip content={<TooltipContent />}>{getValue() ? formattedPercent(getValue()) : null}</Tooltip>
-				</AutoRow>
-			)
+			return <Tooltip content={<TooltipContent />}>{getValue() ? formattedPercent(getValue()) : null}</Tooltip>
 		},
 		meta: {
 			align: 'end',
@@ -1572,16 +1563,12 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			const TooltipContent = () => {
 				return <>{row.original.mcap ? <span>{`Market Cap: $${toK(row.original.mcap)}`}</span> : null}</>
 			}
-			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					<Tooltip content={<TooltipContent />}>{getValue() ? getValue() : null}</Tooltip>
-				</AutoRow>
-			)
+			return <Tooltip content={<TooltipContent />}>{getValue() ? getValue() : null}</Tooltip>
 		},
 		meta: {
 			align: 'end'
 		},
-		size: 100
+		size: 110
 	},
 	{
 		header: 'LSD APR',
@@ -1593,7 +1580,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 90
+		size: 100
 	},
 	{
 		header: 'Fee',
@@ -2054,20 +2041,20 @@ const Breakdown = ({ data }) => {
 	const name = `${formatBreakdownType(data[0])} (${data[1]}%)`
 
 	return (
-		<AutoRow sx={{ flexWrap: 'nowrap', alignItems: 'center', gap: '4px' }}>
-			<span style={{ height: '14px', width: '14px', background: color, borderRadius: '2px' }}></span>
+		<span className="flex items-center flex-nowrap gap-1">
+			<span style={{ '--color': color } as any} className="h-4 w-4 bg-[var(--color)] rounded-sm"></span>
 			<span>{name}</span>
-		</AutoRow>
+		</span>
 	)
 }
 
 const TooltipContent = ({ dominance, protocolName }) => {
 	return (
-		<AutoRow sx={{ flexDirection: 'column', gap: '4px' }}>
+		<span className="flex flex-col gap-1">
 			{dominance.map((dom) => (
 				<Breakdown data={dom} key={dom[0] + dom[1] + protocolName + 'tooltip-content'} />
 			))}
-		</AutoRow>
+		</span>
 	)
 }
 

@@ -1,6 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
 import styled from 'styled-components'
-import { Text } from 'rebass'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
@@ -48,10 +47,10 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 			const value = getValue()
 			const rowValues = row.original
 			return (
-				<div className="w-full flex items-center justify-end gap-1">
+				<span className="w-full flex items-center justify-end gap-1">
 					{rowValues.depeggedTwoPercent ? <QuestionHelper text="Currently de-pegged by 2% or more." /> : null}
-					{value ? formattedPeggedPercent(value) : value === 0 ? formattedPeggedPercent(0) : '-'}
-				</div>
+					{value ? formattedPeggedPercent(value) : value === 0 ? formattedPeggedPercent(0) : <span>-</span>}
+				</span>
 			)
 		},
 		meta: {
@@ -66,10 +65,10 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 			const value = getValue()
 			const rowValues = row.original
 			return (
-				<div className="w-full flex items-center justify-end gap-1">
+				<span className="w-full flex items-center justify-end gap-1">
 					{rowValues.pegDeviationInfo ? <QuestionHelper text={pegDeviationText(rowValues.pegDeviationInfo)} /> : null}
-					<span>{value ? formattedPeggedPercent(value) : '-'}</span>
-				</div>
+					{value ? formattedPeggedPercent(value) : <span>-</span>}
+				</span>
 			)
 		},
 		meta: {
@@ -85,10 +84,10 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 			const value = getValue()
 			const rowValues = row.original
 			return (
-				<div className="w-full flex items-center justify-end gap-1">
+				<span className="w-full flex items-center justify-end gap-1">
 					{rowValues.floatingPeg ? <QuestionHelper text="Has a variable, floating, or crawling peg." /> : null}
-					<span>{value ? formattedNum(value, true) : '-'}</span>
-				</div>
+					{value ? formattedNum(value, true) : <span>-</span>}
+				</span>
 			)
 		},
 		meta: {
@@ -177,7 +176,7 @@ export const columnSizes = {
 }
 
 function formattedPeggedPercent(percent, noSign = false) {
-	if (percent === null) {
+	if (!percent && percent !== 0) {
 		return null
 	}
 
@@ -188,49 +187,68 @@ function formattedPeggedPercent(percent, noSign = false) {
 		up = down = ''
 	}
 
+	let color = ''
+	let finalValue = ''
+	let weight = 400
+
 	percent = parseFloat(percent)
+
 	if (!percent || percent === 0) {
-		return <Text fontWeight={500}>0%</Text>
-	}
-
-	if (percent < 0.0001 && percent > 0) {
-		return (
-			<Text fontWeight={500} color={up}>
-				{'< 0.0001%'}
-			</Text>
-		)
-	}
-
-	if (percent < 0 && percent > -0.0001) {
-		return (
-			<Text fontWeight={500} color={down}>
-				{'< 0.0001%'}
-			</Text>
-		)
-	}
-
-	let fixedPercent = percent.toFixed(2)
-	if (fixedPercent === '0.00') {
-		return '0%'
-	}
-	const prefix = noSign ? '' : '+'
-	if (fixedPercent > 0) {
-		if (fixedPercent > 100) {
-			return <Text fontWeight={500} color={up}>{`${prefix}${percent?.toFixed(0).toLocaleString()}%`}</Text>
-		} else {
-			if (fixedPercent > 2) {
-				return <Text fontWeight={700} color={up}>{`${prefix}${fixedPercent}%`}</Text>
-			} else {
-				return <Text fontWeight={500} color={up}>{`${prefix}${fixedPercent}%`}</Text>
-			}
-		}
+		finalValue = '0%'
+	} else if (percent < 0.0001 && percent > 0) {
+		color = up
+		finalValue = '< 0.0001%'
+		weight = 500
+	} else if (percent < 0 && percent > -0.0001) {
+		color = down
+		finalValue = '< 0.0001%'
+		weight = 500
 	} else {
-		if (fixedPercent < -2) {
-			return <Text fontWeight={700} color={down}>{`${fixedPercent}%`}</Text>
+		let fixedPercent = percent.toFixed(2)
+
+		if (fixedPercent === '0.00') {
+			finalValue = '0%'
+		} else if (fixedPercent > 0) {
+			const prefix = noSign ? '' : '+'
+
+			if (fixedPercent > 0) {
+				if (fixedPercent > 100) {
+					finalValue = `${prefix}${percent?.toFixed(0).toLocaleString()}%`
+					color = up
+					weight = 500
+				} else {
+					if (fixedPercent > 2) {
+						finalValue = `${prefix}${fixedPercent}%`
+						color = up
+						weight = 700
+					} else {
+						finalValue = `${prefix}${fixedPercent}%`
+						color = up
+						weight = 500
+					}
+				}
+			} else {
+				if (fixedPercent < -2) {
+					finalValue = `${fixedPercent}%`
+					color = down
+					weight = 700
+				} else {
+					finalValue = `${fixedPercent}%`
+					color = down
+					weight = 500
+				}
+			}
 		} else {
-			return <Text fontWeight={500} color={down}>{`${fixedPercent}%`}</Text>
+			color = down
+			finalValue = `${fixedPercent}%`
 		}
 	}
+
+	return (
+		<span className="font-[var(--weight)] text-[var(--color)]" style={{ '--weight': weight, '--color': color } as any}>
+			{finalValue}
+		</span>
+	)
 }
 
 const formatPriceSource = {
