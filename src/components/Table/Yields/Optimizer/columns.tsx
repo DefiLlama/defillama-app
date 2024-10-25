@@ -128,7 +128,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		cell: (info) => {
 			return (
 				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true)}
+					{formattedPercent(info.getValue(), true, 400, true)}
 				</ColoredAPY>
 			)
 		},
@@ -143,8 +143,8 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return (
-				<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(getValue(), true, 700)}
+				<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+					{formattedPercent(getValue(), true, 700, true)}
 				</ColoredAPY>
 			)
 		},
@@ -158,7 +158,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		accessorKey: 'lendingBase',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -173,8 +173,8 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
-					<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'}>
-						{formattedPercent(getValue(), true, 700)}
+					<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+						{formattedPercent(getValue(), true, 700, true)}
 					</ColoredAPY>
 				</AutoRow>
 			)
@@ -201,7 +201,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
+					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
 				</AutoRow>
 			)
 		},
@@ -218,7 +218,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		cell: (info) => {
 			return (
 				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true)}
+					{formattedPercent(info.getValue(), true, 400, true)}
 				</ColoredAPY>
 			)
 		},

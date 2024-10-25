@@ -10,10 +10,8 @@ import { ButtonYields } from '~/layout/Pool'
 import {
 	capitalizeFirstLetter,
 	chainIconUrl,
-	formatPercentage,
 	formattedNum,
 	formattedPercent,
-	formatUnlocksEvent,
 	getDominancePercent,
 	slug,
 	standardizeProtocolName,
@@ -1193,11 +1191,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: 'Auditor',
 		accessorKey: 'auditor',
-		cell: ({ getValue }) => (
-			<AutoRow align="center" justify="flex-end">
-				{getValue() === undefined ? null : getValue()}
-			</AutoRow>
-		),
+		cell: ({ getValue }) => <>{getValue() === undefined ? null : getValue()}</>,
 		size: 100,
 		meta: {
 			align: 'end'
@@ -1206,11 +1200,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: 'Last audit date',
 		accessorKey: 'lastAuditDate',
-		cell: ({ getValue }) => (
-			<AutoRow align="center" justify="flex-end">
-				{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue())}
-			</AutoRow>
-		),
+		cell: ({ getValue }) => <>{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue())}</>,
 		size: 128,
 		meta: {
 			align: 'end'

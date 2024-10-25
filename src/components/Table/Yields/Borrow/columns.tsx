@@ -58,7 +58,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBase',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -82,7 +82,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
+					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
 				</AutoRow>
 			)
 		},
@@ -98,8 +98,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<ColoredAPY data-variant={(info.getValue() as number) > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true, 700)}
+				<ColoredAPY data-variant={(info.getValue() as number) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+					{formattedPercent(info.getValue(), true, 700, true)}
 				</ColoredAPY>
 			)
 		},
@@ -114,7 +114,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBaseBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true)}</ColoredAPY>
+			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -142,7 +142,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<ColoredAPY data-variant="borrow">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
+					<ColoredAPY data-variant="borrow">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
 				</AutoRow>
 			) : null
 		},

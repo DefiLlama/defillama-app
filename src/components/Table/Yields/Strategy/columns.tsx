@@ -65,7 +65,9 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
 					<Tooltip content={<TooltipContent />}>
-						<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
+						<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+							{formattedPercent(getValue(), true, 700, true)}
+						</ColoredAPY>
 					</Tooltip>
 				</AutoRow>
 			)
@@ -81,7 +83,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		accessorKey: 'delta',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true)}</ColoredAPY>
+			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {

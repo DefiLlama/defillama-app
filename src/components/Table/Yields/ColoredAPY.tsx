@@ -1,17 +1,10 @@
-import styled from 'styled-components'
-
-export const ColoredAPY = styled.span`
-	color: ${({ theme }) => theme.text1};
-
-	&[data-variant='supply'] {
-		color: #4f8fea;
-	}
-
-	&[data-variant='borrow'] {
-		color: #e59421;
-	}
-
-	&[data-variant='positive'] {
-		color: #30c338;
-	}
-`
+export const ColoredAPY = ({ children, ...props }) => {
+	return (
+		<span
+			{...props}
+			className="data-[variant=positive]:text-[#30c338] data-[variant=borrow]:text-[#e59421] data-[variant=supply]:text-[#4f8fea] font-[var(--weight)]"
+		>
+			{children}
+		</span>
+	)
+}

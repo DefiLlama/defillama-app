@@ -61,7 +61,9 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{lockupsRewards.includes(row.original.project) ? <QuestionHelper text={earlyExit} /> : null}
-					<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
+					<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+						{formattedPercent(getValue(), true, 700, true)}
+					</ColoredAPY>
 				</AutoRow>
 			)
 		},
@@ -76,7 +78,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'netSupplyApy',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {

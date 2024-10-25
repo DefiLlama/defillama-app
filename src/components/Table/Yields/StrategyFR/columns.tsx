@@ -52,9 +52,9 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
-				</AutoRow>
+				<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+					{formattedPercent(getValue(), true, 700, true)}
+				</ColoredAPY>
 			)
 		},
 		size: 140,
