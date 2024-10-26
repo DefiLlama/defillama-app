@@ -86,6 +86,11 @@ export default function ChainChartPage({
 		} else {
 			document.documentElement.classList.add('dark')
 		}
+
+		const root = document.getElementById('__next')
+		if (root) {
+			root.setAttribute('style', 'flex-direction: column')
+		}
 	}, [isThemeDark])
 
 	return (
