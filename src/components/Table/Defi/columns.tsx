@@ -36,12 +36,10 @@ import type {
 	CategoryPerformanceRow,
 	CoinPerformanceRow
 } from './types'
-import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
 import UpcomingEvent from '../Components/UpcomingEvent'
 import ProgressBar from '../Components/ProgressBar'
 import TooltipNew from '~/components/Tooltip/TootltipNew'
-import { sluggify } from '~/utils/cache-client'
 import { Icon } from '~/components/Icon'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
@@ -316,13 +314,9 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Mcap',
 		accessorKey: 'mcap',
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue }) => {
 			if (!getValue()) return null
-			return (
-				<AutoColumn gap="4px">
-					<span>{'$' + formattedNum(getValue())}</span>
-				</AutoColumn>
-			)
+			return <>{'$' + formattedNum(getValue())}</>
 		},
 		meta: {
 			align: 'end'
@@ -362,10 +356,10 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			if (!row.original.unlocksPerDay) return '-'
 
 			return (
-				<AutoColumn gap="4px">
+				<span className="flex flex-col gap-1">
 					{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}
 					<LightText>{formattedNum(row.original.unlocksPerDay) + (symbol ? ` ${symbol.toUpperCase()}` : '')}</LightText>
-				</AutoColumn>
+				</span>
 			)
 		},
 		meta: {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 
 import Layout from '~/layout'
-import AuditInfo from '~/components/AuditInfo'
+import { AuditInfo } from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
 import {
 	Button,

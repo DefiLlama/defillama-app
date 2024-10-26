@@ -13,7 +13,7 @@ import { PeggedSearch } from '~/components/Search'
 import { ButtonLight } from '~/components/ButtonStyled'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
-import AuditInfo from '~/components/AuditInfo'
+import { AuditInfo } from '~/components/AuditInfo'
 import SEO from '~/components/SEO'
 import QuestionHelper from '~/components/QuestionHelper'
 

@@ -1,19 +1,6 @@
 import * as React from 'react'
-import styled from 'styled-components'
 import { Menu } from '~/components/DropdownMenu'
 import HeadHelp from '~/components/HeadHelp'
-
-const Audits = styled.section`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-`
-
-const Info = styled.span`
-	min-height: 32px;
-	display: flex;
-	align-items: center;
-`
 
 interface IProps {
 	audits: number | string
@@ -22,20 +9,18 @@ interface IProps {
 	isLoading?: boolean
 }
 
-const AuditInfo = ({ audits, auditLinks = [], color, isLoading, ...props }: IProps) => {
+export const AuditInfo = ({ audits, auditLinks = [], color, isLoading, ...props }: IProps) => {
 	return (
-		<Audits {...props}>
+		<section className="flex items-center gap-2" {...props}>
 			<HeadHelp title="Audits" text="Audits are not a guarantee of security." />
 			<span>:</span>
-			<Info>
+			<span className="flex items-center min-h-8">
 				{isLoading ? null : +audits > 0 ? (
 					<Menu name="Yes" options={auditLinks} color={color} isExternal />
 				) : (
 					<span>No</span>
 				)}
-			</Info>
-		</Audits>
+			</span>
+		</section>
 	)
 }
-
-export default AuditInfo

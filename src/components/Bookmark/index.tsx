@@ -1,5 +1,4 @@
 import { useRef } from 'react'
-import styled from 'styled-components'
 import { useWatchlist } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { standardizeProtocolName } from '~/utils'
@@ -8,11 +7,6 @@ import { Icon } from '~/components/Icon'
 interface IWrapperProps {
 	saved: boolean
 }
-
-const Wrapper = styled.button<IWrapperProps>`
-	padding-inline: 0;
-	--fill-icon: ${({ theme: { text1 }, saved }) => (saved ? text1 : 'none')};
-`
 
 // readableProtocolName has proper caps and spaces
 function Bookmark({ readableProtocolName, ...props }) {
@@ -30,9 +24,14 @@ function Bookmark({ readableProtocolName, ...props }) {
 	const onClick = isSaved ? () => removeProtocol(readableProtocolName) : () => addProtocol(readableProtocolName)
 
 	return (
-		<Wrapper ref={bookmarkRef} onClick={onClick} saved={isSaved} {...props}>
+		<button
+			ref={bookmarkRef}
+			onClick={onClick}
+			style={{ '--fill-icon': isSaved ? 'var(--text1)' : 'none' } as any}
+			{...props}
+		>
 			<Icon name="bookmark" width={16} height={16} />
-		</Wrapper>
+		</button>
 	)
 }
 
