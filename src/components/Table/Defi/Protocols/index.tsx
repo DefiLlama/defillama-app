@@ -319,7 +319,6 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					selectedValue={filterState}
 					values={Object.values(TABLE_PERIODS) as Array<string>}
 				/>
-
 				<ColumnFilters2
 					label={'Columns'}
 					options={protocolsByChainTableColumns}

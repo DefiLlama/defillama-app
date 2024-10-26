@@ -10,7 +10,6 @@ import {
 	Button,
 	ExtraOption,
 	FlexRow,
-	LinksWrapper,
 	DetailsWrapper,
 	Name,
 	Section,
@@ -1373,7 +1372,7 @@ function ProtocolContainer({
 									<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />
 								)}
 
-								<LinksWrapper>
+								<div className="flex items-center gap-4 flex-wrap">
 									{url && (
 										<Link href={url} passHref>
 											<Button
@@ -1401,7 +1400,7 @@ function ProtocolContainer({
 											</Button>
 										</Link>
 									)}
-								</LinksWrapper>
+								</div>
 								{twitter && twitterData?.lastTweet ? (
 									<FlexRow>
 										<span>Last tweet:</span> {dayjs(twitterData?.lastTweet?.time).fromNow()} (
@@ -1462,7 +1461,7 @@ function ProtocolContainer({
 										</FlexRow>
 									)}
 
-									<LinksWrapper>
+									<div className="flex items-center gap-4 flex-wrap">
 										{protocolData.gecko_id && (
 											<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
 												<Button
@@ -1492,7 +1491,7 @@ function ProtocolContainer({
 													</Button>
 												</Link>
 											))}
-									</LinksWrapper>
+									</div>
 								</Section>
 							)}
 
@@ -1512,7 +1511,7 @@ function ProtocolContainer({
 									{helperTexts?.revenue && <p>Revenue: {helperTexts.revenue}</p>}
 									{helperTexts?.users && users?.activeUsers ? <p>Addresses: {helperTexts.users}</p> : null}
 
-									<LinksWrapper>
+									<div className="flex items-center gap-4 flex-wrap">
 										{methodologyUrls?.tvl && (
 											<Link href={methodologyUrls.tvl} passHref>
 												<Button
@@ -1572,7 +1571,7 @@ function ProtocolContainer({
 												</Button>
 											</Link>
 										)}
-									</LinksWrapper>
+									</div>
 								</Section>
 							)}
 
@@ -1631,7 +1630,7 @@ function ProtocolContainer({
 								<Section>
 									<h3>Competitors</h3>
 
-									<LinksWrapper>
+									<div className="flex items-center gap-4 flex-wrap">
 										{similarProtocols.map((similarProtocol) => (
 											<Link
 												href={`/protocol/${slug(similarProtocol.name)}`}
@@ -1643,7 +1642,7 @@ function ProtocolContainer({
 												} (${formatPrice(similarProtocol.tvl)})`}</a>
 											</Link>
 										))}
-									</LinksWrapper>
+									</div>
 								</Section>
 							) : null}
 						</GridContent>

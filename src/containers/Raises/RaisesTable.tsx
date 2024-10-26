@@ -77,12 +77,12 @@ export function RaisesTable({ raises, downloadCsv }) {
 				/>
 
 				<ButtonDark
-					style={{ padding: '11px' }}
-					onClick={() => {
-						window.open('https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093')
-					}}
+					as="a"
+					target="_blank"
+					rel="noreferrer noopener"
+					href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093"
 				>
-					<span>&nbsp;Methodology & biases</span>
+					Methodology & biases
 				</ButtonDark>
 
 				<CSVDownloadButton

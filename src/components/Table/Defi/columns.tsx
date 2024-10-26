@@ -5,7 +5,7 @@ import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
 import { Tooltip2 } from '~/components/Tooltip'
-import { ButtonYields } from '~/layout/Pool'
+import { ButtonSquare } from '~/layout/Pool'
 import {
 	capitalizeFirstLetter,
 	chainIconUrl,
@@ -246,7 +246,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		size: 48,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<ButtonYields
+			<ButtonSquare
 				as="a"
 				href={getValue() as string}
 				target="_blank"
@@ -255,7 +255,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 				useTextColor={true}
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
-			</ButtonYields>
+			</ButtonSquare>
 		)
 	},
 	{
@@ -483,7 +483,7 @@ export const expensesColumns: ColumnDef<any>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonYields
+				<ButtonSquare
 					as="a"
 					href={getValue()[0] as string}
 					target="_blank"
@@ -492,7 +492,7 @@ export const expensesColumns: ColumnDef<any>[] = [
 					useTextColor={true}
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonYields>
+				</ButtonSquare>
 			) : null
 	}
 ]
@@ -688,7 +688,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		size: 40,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<ButtonYields
+			<ButtonSquare
 				as="a"
 				href={getValue() as string}
 				target="_blank"
@@ -697,7 +697,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 				useTextColor={true}
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
-			</ButtonYields>
+			</ButtonSquare>
 		)
 	}
 ]
@@ -1247,7 +1247,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		cell: ({ getValue }) => (
 			<>
 				{getValue() === undefined ? null : (
-					<ButtonYields
+					<ButtonSquare
 						as="a"
 						href={getValue() as string}
 						target="_blank"
@@ -1257,7 +1257,7 @@ export const cexColumn: ColumnDef<any>[] = [
 						style={{ width: '21px' }}
 					>
 						<Icon name="arrow-up-right" height={14} width={14} />
-					</ButtonYields>
+					</ButtonSquare>
 				)}
 			</>
 		),
@@ -1275,7 +1275,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				{getValue() === undefined ? (
 					<QuestionHelper text="This CEX has no published their wallet addresses" />
 				) : (
-					<ButtonYields
+					<ButtonSquare
 						as="a"
 						href={getValue() as string}
 						target="_blank"
@@ -1285,7 +1285,7 @@ export const cexColumn: ColumnDef<any>[] = [
 						style={{ width: '21px' }}
 					>
 						<Icon name="arrow-up-right" height={14} width={14} />
-					</ButtonYields>
+					</ButtonSquare>
 				)}
 			</>
 		),
@@ -1699,7 +1699,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonYields
+				<ButtonSquare
 					as="a"
 					href={getValue() as string}
 					target="_blank"
@@ -1708,7 +1708,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 					useTextColor={true}
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonYields>
+				</ButtonSquare>
 			) : null
 	},
 	{
@@ -1718,7 +1718,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonYields
+				<ButtonSquare
 					as="a"
 					href={getValue() as string}
 					target="_blank"
@@ -1727,7 +1727,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 					useTextColor={true}
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonYields>
+				</ButtonSquare>
 			) : null
 	},
 	{

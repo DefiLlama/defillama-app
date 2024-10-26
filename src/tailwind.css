@@ -47,7 +47,7 @@
 	}
 
 	#__next {
-		@apply flex flex-col w-full relative min-h-full isolate lg:flex-row text-[#1F1F1F] bg-[#ffffff] dark:text-[#FAFAFA] dark:bg-[#17181c];
+		@apply flex flex-col w-full relative min-h-full isolate lg:flex-row text-text1 bg-[#ffffff] dark:bg-[#17181c];
 	}
 
 	h1,
@@ -60,7 +60,7 @@
 	}
 
 	button {
-		@apply pointer-events-auto cursor-pointer touch-none select-none outline-2 outline-offset-2 focus-visible:outline disabled:cursor-not-allowed data-[focus-visible]:outline;
+		@apply pointer-events-auto cursor-pointer touch-none select-none outline-1 outline-offset-2 focus-visible:outline disabled:cursor-not-allowed data-[focus-visible]:outline;
 	}
 
 	a,

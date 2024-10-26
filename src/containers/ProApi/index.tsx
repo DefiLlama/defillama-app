@@ -8,7 +8,7 @@ import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 import { logout, useGetAuthToken, useGetCreditsUsage, useSignInWithEthereum } from './queries/useAuth'
 import { llamaAddress, subscriptionAmount } from './lib/constants'
 import { useGetSubs } from './queries/useGetSubs'
-import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
+import { ButtonDark } from '~/components/ButtonStyled'
 import { useGenerateNewApiKey } from './queries/useGenerateKey'
 import logo from '~/public/llama.png'
 import Subscriptions from './Subscriptions'
@@ -285,11 +285,11 @@ const ProApi = () => {
 										onClick={() => {
 											generateApiKey({ authToken })
 										}}
-										style={{ width: '120px', marginRight: '0.5em' }}
+										className="mr-2"
 									>
 										Re-roll API Key{' '}
 									</ButtonDark>
-									<ButtonDark onClick={() => window.open('/pro-api/docs', '_blank')} style={{ marginRight: '0.5em' }}>
+									<ButtonDark onClick={() => window.open('/pro-api/docs', '_blank')} className="mr-2">
 										Open API Docs{' '}
 									</ButtonDark>
 									<ButtonDark

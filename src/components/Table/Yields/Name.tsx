@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { ButtonYields } from '~/layout/Pool'
+import { ButtonSquare } from '~/layout/Pool'
 import Bookmark from '~/components/Bookmark'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
@@ -63,9 +63,9 @@ export function NameYieldPool({
 			<span>{index}</span>
 
 			{url ? (
-				<ButtonYields as="a" href={url} target="_blank" rel="noopener noreferrer" data-lgonly useTextColor={true}>
+				<ButtonSquare as="a" href={url} target="_blank" rel="noopener noreferrer" data-lgonly useTextColor={true}>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonYields>
+				</ButtonSquare>
 			) : (
 				''
 			)}

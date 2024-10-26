@@ -16,7 +16,6 @@ export const Filters = styled.div`
 	flex-wrap: nowrap;
 	overflow-x: auto;
 	max-width: calc(100vw - 64px);
-	width: fit-content;
 `
 
 export const Denomination = styled.a<IDenomination>`
@@ -35,6 +34,8 @@ export const Denomination = styled.a<IDenomination>`
 			: theme.mode === 'dark'
 			? 'rgba(255, 255, 255, 0.6)'
 			: 'rgba(0, 0, 0, 0.6)'};
+	flex-shrink: 0;
+	cursor: pointer;
 `
 
 interface IToggleProps {
@@ -45,6 +46,7 @@ export const Toggle = styled.label<IToggleProps>`
 	font-size: 0.875rem;
 	font-weight: 500;
 	cursor: pointer;
+	border-radius: 12px;
 
 	input {
 		position: absolute;
@@ -79,6 +81,11 @@ export const Toggle = styled.label<IToggleProps>`
 	input:focus-visible + span[data-wrapper='true'] {
 		outline: ${({ theme }) => '1px solid ' + theme.text1};
 		outline-offset: 1px;
+	}
+
+	:hover {
+		background: ${({ backgroundColor, theme }) =>
+			backgroundColor ? transparentize(0.8, backgroundColor) : transparentize(0.8, theme.primary1)};
 	}
 `
 

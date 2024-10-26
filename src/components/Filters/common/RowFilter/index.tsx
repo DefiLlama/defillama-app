@@ -1,29 +1,5 @@
-import styled from 'styled-components'
-import { NavLink } from '../RowLinksWithDropdown/LinksWithDropdown'
 import { darken, transparentize } from 'polished'
 import { capitalize } from 'lodash'
-
-const Body = styled.div`
-	display: flex;
-	border-radius: 8px;
-	border: 1px solid ${({ theme }) => theme.bg1};
-	height: 100%;
-	background-color: transparent;
-
-	& > :first-child {
-		border-radius: 8px 0px 0px 8px;
-	}
-
-	& > :last-child {
-		border-radius: 0px 8px 8px 0px;
-	}
-`
-
-const Button = styled(NavLink)`
-	border-radius: 0px;
-	background-color: ${({ theme }) => transparentize(0.9, theme.primary1)};
-	color: ${({ theme }) => theme.text1};
-`
 
 interface IProps {
 	selectedValue: string
@@ -34,15 +10,32 @@ interface IProps {
 
 const RowFilter = ({ selectedValue, setValue, values, style }: IProps) => {
 	return (
-		<Body style={style}>
+		<div
+			style={
+				{
+					'--bg-light': transparentize(0.9, '#2172E5'),
+					'--bg-dark': transparentize(0.9, '#629ff4'),
+					'--hover-bg-light': transparentize(0.8, '#2172E5'),
+					'--hover-bg-dark': transparentize(0.8, '#629ff4'),
+					'--hover-active-bg': darken(0.1, '#2172E5'),
+					...style
+				} as any
+			}
+			className="flex items-center rounded-lg h-full overflow-x-auto flex-nowrap"
+		>
 			{values.map((value) => {
 				return (
-					<Button data-active={value === selectedValue} key={value} onClick={() => setValue(value)}>
+					<button
+						className="flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm text-[#1F1F1F] dark:text-[#FAFAFA] bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] hover:bg-[var(--hover-bg-light)] hover:dark:bg-[var(--hover-bg-dark)] data-[active=true]:bg-[#2172e5] data-[active=true]:text-white hover:data-[active=true]:bg-[var(--hover-active-bg)] first:rounded-l-lg last:rounded-r-lg"
+						data-active={value === selectedValue}
+						key={value}
+						onClick={() => setValue(value)}
+					>
 						{capitalize(value)}
-					</Button>
+					</button>
 				)
 			})}
-		</Body>
+		</div>
 	)
 }
 

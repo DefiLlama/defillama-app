@@ -1,5 +1,4 @@
 import * as React from 'react'
-import styled from 'styled-components'
 import { Panel } from '~/components'
 import { OverviewTable } from '~/components/Table'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'

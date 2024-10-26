@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Link from 'next/link'
-import { Button, LinksWrapper, Name } from '~/layout/ProtocolAndPool'
+import { Button, Name } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
@@ -48,7 +48,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 
 				{data.description && <p>{data.description}</p>}
 
-				<LinksWrapper>
+				<div className=" flex items-center flex-wrap gap-4">
 					{data.url && (
 						<Link href={data.url} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
@@ -76,7 +76,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 							</Button>
 						</Link>
 					)}
-				</LinksWrapper>
+				</div>
 
 				{data.treasury && <Treasury protocolName={protocol} />}
 

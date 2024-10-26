@@ -53,22 +53,6 @@ const risksHelperTexts = {
 		'Crypto-backed assets are backed by cryptoassets locked in a smart contract as collateral. Risks of crypto-backed assets include smart contract risk, collateral volatility and liquidation, and de-pegging.'
 }
 
-const PeggedDetails = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 36px;
-	padding: 24px;
-	padding-bottom: calc(24px + 0.4375rem);
-	color: ${({ theme }) => theme.text1};
-	overflow: auto;
-`
-
-const LinksWrapper = styled(PeggedDetails)`
-	flex-direction: row;
-	flex-wrap: wrap;
-	gap: 16px;
-`
-
 const TabContainer = styled(TabList)`
 	display: flex;
 
@@ -139,18 +123,6 @@ const PeggedDescription = styled.p`
 		text-align: left;
 		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
 	}
-`
-
-const AlignSelfButton = styled(ButtonLight)`
-	display: flex;
-	gap: 4px;
-	align-items: center;
-	align-self: flex-start;
-	padding: 8px 12px;
-	font-size: 0.875rem;
-	font-weight: 400;
-	white-space: nowrap;
-	font-family: var(--font-inter);
 `
 
 const Capitalize = (str) => {
@@ -362,7 +334,7 @@ export const PeggedAssetInfo = ({
 					</TabPanel>
 
 					<TabPanel state={tab}>
-						<PeggedDetails>
+						<div className="flex flex-col gap-9 p-6 pb-[calc(24px_+_0.4375rem)] overflow-auto text-[#1F1F1F] dark:text-[#FAFAFA]">
 							{description && (
 								<PeggedDescription>
 									<>
@@ -395,11 +367,11 @@ export const PeggedAssetInfo = ({
 							{pegMechanism === 'fiat-backed' && auditLinks && (
 								<AuditInfo audits={auditLinks.length > 0 ? 2 : 0} auditLinks={auditLinks} color={backgroundColor} />
 							)}
-						</PeggedDetails>
+						</div>
 					</TabPanel>
 
 					<TabPanel state={tab}>
-						<LinksWrapper>
+						<div className="flex items-center gap-4 flex-wrap">
 							{blockExplorerLink !== undefined && (
 								<span>
 									<Link href={blockExplorerLink} passHref>
@@ -484,22 +456,19 @@ export const PeggedAssetInfo = ({
 								</span>
 							)}
 
-							<Link
+							<ButtonLight
+								as="a"
 								href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
-								passHref
+								target="_blank"
+								rel="noopener noreferrer"
+								useTextColor={true}
+								color={backgroundColor}
+								className="flex items-center gap-4 self-start font-normal whitespace-nowrap"
 							>
-								<AlignSelfButton
-									as="a"
-									target="_blank"
-									rel="noopener noreferrer"
-									useTextColor={true}
-									color={backgroundColor}
-								>
-									<span>Check the code</span>
-									<Icon name="arrow-up-right" height={14} width={14} />
-								</AlignSelfButton>
-							</Link>
-						</LinksWrapper>
+								<span>Check the code</span>
+								<Icon name="arrow-up-right" height={14} width={14} />
+							</ButtonLight>
+						</div>
 					</TabPanel>
 				</TabWrapper>
 
