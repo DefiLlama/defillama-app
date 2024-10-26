@@ -11,7 +11,7 @@ function getInitialState(query: string, defaultState?: boolean) {
 	return false
 }
 
-export default function useMedia(query: string, defaultState?: boolean) {
+export function useMedia(query: string, defaultState?: boolean) {
 	const [matches, setMatches] = useState(getInitialState(query, defaultState))
 
 	useEffect(() => {

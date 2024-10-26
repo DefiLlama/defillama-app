@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import YieldsSearch from '~/components/Search/Yields/Optimizer'
-import { useMedia } from '~/hooks'
+import { useMedia } from '~/hooks/useMedia'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { LTV } from './LTV'
 import { SlidingMenu } from '~/components/SlidingMenu'

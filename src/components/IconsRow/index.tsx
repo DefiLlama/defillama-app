@@ -3,7 +3,7 @@ import { Hovercard, HovercardAnchor, useHovercardState } from 'ariakit/hovercard
 import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
 import { Tooltip2 } from '~/components/Tooltip'
-import { useResize } from '~/hooks'
+import { useResize } from '~/hooks/useResize'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import Link from 'next/link'
 

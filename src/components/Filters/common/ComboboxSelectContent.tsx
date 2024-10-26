@@ -1,6 +1,6 @@
 import { MutableRefObject, useMemo, useState } from 'react'
 import styled from 'styled-components'
-import { useDebounce } from '~/hooks'
+import { useDebounce } from '~/hooks/useDebounce'
 import { FilterFnsGroup, SelectItem } from './Base'
 import { Checkbox } from '~/components'
 import { slug } from '~/utils'

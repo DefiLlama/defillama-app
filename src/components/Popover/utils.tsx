@@ -1,6 +1,6 @@
 import { PopoverStateRenderCallbackProps } from 'ariakit'
 import { useCallback } from 'react'
-import { useMedia } from '~/hooks'
+import { useMedia } from '~/hooks/useMedia'
 
 export function assignStyle(element: HTMLElement | null | undefined, style: Partial<CSSStyleDeclaration>) {
 	if (!element) return () => {}

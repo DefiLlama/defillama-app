@@ -1,4 +1,4 @@
-import { useDebounce } from '~/hooks'
+import { useDebounce } from '~/hooks/useDebounce'
 import { fetchApi } from '~/utils/async'
 import {
 	NFT_CHAINS_API,

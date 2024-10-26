@@ -1,5 +1,5 @@
 import { DropdownsWrapper, Header, Wrapper } from '../v2Base'
-import { useMedia } from '~/hooks'
+import { useMedia } from '~/hooks/useMedia'
 import { SlidingMenu } from '~/components/SlidingMenu'
 import { RaisesFilterDropdowns } from './Dropdowns'
 import { IDropdownMenusProps } from './types'

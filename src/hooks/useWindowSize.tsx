@@ -1,6 +1,6 @@
 // adadpted from https://github.com/uidotdev/usehooks/blob/master/src/pages/useWindowSize.md
 import { useEffect, useState } from 'react'
-import useDebounce from './useDebounce'
+import { useDebounce } from './useDebounce'
 
 interface Size {
 	width: number | undefined

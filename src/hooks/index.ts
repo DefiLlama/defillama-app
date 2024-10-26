@@ -1,55 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-export { default as useResize } from './useResize'
-export { default as useAnalytics } from './useAnalytics'
-export { default as useMedia } from './useMedia'
-export { default as useDebounce } from './useDebounce'
-export { default as useOnClickOutside } from './useOnClickOutside'
-export { default as useKeyPress } from './useKeyPress'
-export * from './useBreakpoints'
-
-export const useOutsideClick = (ref, ref2, callback) => {
-	useEffect(() => {
-		function handleClick(e) {
-			if (ref.current && ref.current && !ref2.current) {
-				callback(true)
-			} else if (ref.current && !ref.current.contains(e.target) && ref2.current && !ref2.current.contains(e.target)) {
-				callback(true)
-			} else {
-				callback(false)
-			}
-		}
-
-		document.addEventListener('click', handleClick)
-		return () => {
-			document.removeEventListener('click', handleClick)
-		}
-	})
-}
-
-export default function useInterval(callback: () => void, delay: null | number) {
-	const savedCallback = useRef<() => void>()
-
-	// Remember the latest callback.
-	useEffect(() => {
-		savedCallback.current = callback
-	}, [callback])
-
-	// Set up the interval.
-	useEffect(() => {
-		function tick() {
-			const current = savedCallback.current
-			current && current()
-		}
-
-		if (delay !== null) {
-			tick()
-			const id = setInterval(tick, delay)
-			return () => clearInterval(id)
-		}
-		return
-	}, [delay])
-}
 
 export function useNFTApp() {
 	const router = useRouter()

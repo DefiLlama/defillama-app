@@ -1,4 +1,4 @@
-import { useMedia } from '~/hooks'
+import { useMedia } from '~/hooks/useMedia'
 import { LinksWithDropdown, RowLinksWrapper } from './LinksWithDropdown'
 import { OtherLinks } from './OtherLinks'
 

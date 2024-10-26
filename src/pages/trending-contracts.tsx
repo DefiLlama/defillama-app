@@ -5,7 +5,7 @@ import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import VirtualTable from '~/components/Table/Table'
-import { useDebounce } from '~/hooks'
+import { useDebounce } from '~/hooks/useDebounce'
 import { formattedPercent } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
