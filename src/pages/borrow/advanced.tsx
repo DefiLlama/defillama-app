@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import YieldPageOptimizer from '~/components/YieldsPage/indexOptimizer'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
