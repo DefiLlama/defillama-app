@@ -6,7 +6,7 @@ import styled from 'styled-components'
 import { useComboboxState } from 'ariakit/combobox'
 import { Input } from '~/components/Search/Base/Input'
 import { DesktopResults } from '~/components/Search/Base/Results/Desktop'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('directory', async () => {

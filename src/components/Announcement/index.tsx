@@ -1,5 +1,4 @@
 import * as React from 'react'
-import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
@@ -36,7 +35,7 @@ const getAnnouncementKey = (router: NextRouter) => {
 	else return 'defi'
 }
 
-export default function Announcement({
+export function Announcement({
 	children,
 	notCancellable,
 	warning = false
@@ -65,54 +64,19 @@ export default function Announcement({
 	}
 
 	return (
-		<AnnouncementWrapper style={warning ? { backgroundColor: '#41440d' } : {}}>
+		<p
+			className="relative p-3 text-sm text-black dark:text-white text-center rounded-lg bg-[var(--bg)]"
+			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as any}
+		>
 			{children}
-			{!notCancellable && (
-				<Close onClick={closeAnnouncement}>
+			{!notCancellable ? (
+				<button
+					className="absolute top-0 bottom-0 my-auto right-0 h-10 w-10 flex items-center justify-center rounded-xl hover:bg-[var(--bg)]"
+					onClick={closeAnnouncement}
+				>
 					<Icon name="x" height={16} width={16} />
-				</Close>
-			)}
-		</AnnouncementWrapper>
+				</button>
+			) : null}
+		</p>
 	)
 }
-
-export const AnnouncementWrapper = styled.p`
-	position: relative;
-	padding: 12px;
-	font-size: 0.875rem;
-	color: ${({ theme }) => (theme.mode === 'dark' ? 'white' : 'black')};
-	background-color: hsl(215deg 79% 51% / 12%);
-	text-align: center;
-	box-shadow: ${({ theme }) => theme.shadowSm};
-	border-radius: 8px;
-
-	a {
-		font-weight: 500;
-	}
-
-	img {
-		position: relative;
-		top: 2px;
-		left: 4px;
-		display: inline-block;
-	}
-`
-
-const Close = styled.button`
-	position: absolute;
-	top: 6px;
-	bottom: 6px;
-	right: 12px;
-	margin: auto 0;
-	padding: 6px 8px;
-	border-radius: 12px;
-	:hover,
-	:focus-visible {
-		background-color: hsl(215deg 79% 51% / 24%);
-	}
-
-	svg {
-		position: relative;
-		top: 1px;
-	}
-`

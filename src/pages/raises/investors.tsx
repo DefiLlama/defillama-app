@@ -18,7 +18,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { fetchWithErrorLogging } from '~/utils/async'
 import RowFilter from '~/components/Filters/common/RowFilter'
 import { SearchWrapper, SearchIcon } from '~/components/Table/shared'
-import { AnnouncementWrapper } from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import styled from 'styled-components'
 
 const columns = ['name', 'medianAmount', 'chains', 'projects', 'deals', 'category', 'roundType']
@@ -143,12 +143,12 @@ const ActiveInvestors = ({ data }) => {
 
 	return (
 		<Layout title={`Investors - DefiLlama`} defaultSEO style={{ gap: '16px' }}>
-			<AnnouncementWrapper>
+			<Announcement notCancellable>
 				<span>Looking for investors?</span>{' '}
-				<a href="/pitch" style={{ color: '#2f80ed' }} target="_blank" rel="noopener noreferrer">
+				<a href="/pitch" className="text-[#2f80ed] underline font-medium" target="_blank" rel="noopener noreferrer">
 					Send your pitch to selected ones through us
 				</a>
-			</AnnouncementWrapper>
+			</Announcement>
 
 			<TableFilters>
 				<h1>Investors</h1>

@@ -11,7 +11,7 @@ import type { IDexChartsProps } from './types'
 import { useRouter } from 'next/router'
 import { capitalizeFirstLetter, download } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
-import { AnnouncementWrapper } from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
@@ -228,17 +228,17 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	return (
 		<>
 			{props.type === 'fees' && (
-				<AnnouncementWrapper>
+				<Announcement notCancellable>
 					<span>Are we missing any protocol?</span>{' '}
 					<a
 						href="https://airtable.com/shrtBA9lvj6E036Qx"
-						style={{ color: '#2f80ed' }}
+						className="text-[#2f80ed] underline font-medium"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
 						Request it here!
 					</a>
-				</AnnouncementWrapper>
+				</Announcement>
 			)}
 			<AdaptorsSearch
 				type={props.type}

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown } from '~/components/Filters'
 import { useRouter } from 'next/router'

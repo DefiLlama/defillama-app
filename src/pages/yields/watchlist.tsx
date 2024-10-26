@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import { YieldsWatchlistContainer } from '~/containers/Watchlist'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'

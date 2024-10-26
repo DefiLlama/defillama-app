@@ -14,7 +14,7 @@ import VirtualTable from '~/components/Table/Table'
 import { calendarColumns } from '~/components/Table/Defi/columns'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 import { withPerformanceLogging } from '~/utils/perf'
-import { AnnouncementWrapper } from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import calendarEvents from '~/constants/calendar'
 import { formatPercentage } from '~/utils'
 import { PROTOCOL_EMISSIONS_API } from '~/constants'
@@ -128,9 +128,7 @@ export default function Protocols({ emissions }) {
 
 	return (
 		<Layout title={`Calendar - DefiLlama`} defaultSEO>
-			<AnnouncementWrapper>
-				<span>Want us to track other events? Tweet at @0xngmi on twitter!</span>
-			</AnnouncementWrapper>
+			<Announcement notCancellable>Want us to track other events? Tweet at @0xngmi on twitter!</Announcement>
 
 			<TableHeaderAndSearch>
 				<h1 className="text-2xl font-medium -mb-5">Crypto Calendar</h1>

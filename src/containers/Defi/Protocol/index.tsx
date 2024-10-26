@@ -48,7 +48,7 @@ import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, for
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
 import { DLNewsLogo } from '~/components/News/Logo'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { useTabState } from 'ariakit'
 import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
 import {

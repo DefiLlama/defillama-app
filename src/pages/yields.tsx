@@ -2,7 +2,7 @@ import Layout from '~/layout'
 import YieldPage from '~/components/YieldsPage'
 import { getYieldPageData, getLendBorrowData } from '~/api/categories/yield'
 import { maxAgeForNext } from '~/api'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 

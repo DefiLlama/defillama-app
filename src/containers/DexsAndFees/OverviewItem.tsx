@@ -12,7 +12,7 @@ import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { ChartByType } from './charts'
 
 import { chartBreakdownByChain } from '~/api/categories/adaptors/utils'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import SEO from '~/components/SEO'
 import type { IProtocolContainerProps } from './types'
