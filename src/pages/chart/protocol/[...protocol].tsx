@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 import { getProtocol } from '~/api/categories/protocols'
 import { useFetchProtocolInfows } from '~/api/categories/protocols/client'
 import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
@@ -138,6 +139,15 @@ export default function ProtocolChart({
 			derivativesAggregators
 		})
 	const isThemeDark = router.query.theme === 'dark' ? true : false
+
+	useEffect(() => {
+		if (!isThemeDark) {
+			document.documentElement.classList.remove('dark')
+		} else {
+			document.documentElement.classList.add('dark')
+		}
+	}, [isThemeDark])
+
 	return (
 		<ProtocolChartOnly
 			isRouterReady={router.isReady}

@@ -1,5 +1,6 @@
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 import { getChainPageData } from '~/api/categories/chains'
 import LocalLoader from '~/components/LocalLoader'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -78,6 +79,14 @@ export default function ChainChartPage({
 	})
 
 	const isThemeDark = theme === 'dark' ? true : false
+
+	useEffect(() => {
+		if (!isThemeDark) {
+			document.documentElement.classList.remove('dark')
+		} else {
+			document.documentElement.classList.add('dark')
+		}
+	}, [isThemeDark])
 
 	return (
 		<>
