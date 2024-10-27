@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
-import QuestionHelper from '~/components/QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { formattedNum, formattedPercent } from '~/utils'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'

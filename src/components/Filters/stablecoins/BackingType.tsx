@@ -1,10 +1,11 @@
 import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { useRouter } from 'next/router'
 import { Checkbox } from '~/components'
-import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover, ItemsSelected } from '../common'
+import { Tooltip } from '~/components/Tooltip'
+import { Icon } from '~/components/Icon'
 
 export const stablecoinBackingOptions = [
 	{
@@ -129,7 +130,14 @@ export function BackingType({ pathname }: { pathname: string }) {
 				</FilterFnsGroup>
 				{stablecoinBackingOptions.map((option) => (
 					<SelectItem key={option.key} value={option.key}>
-						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
+						{option.help ? (
+							<Tooltip content={option.help}>
+								<span>{option.name}</span>
+								<Icon name="help-circle" height={15} width={15} />
+							</Tooltip>
+						) : (
+							option.name
+						)}
 						<Checkbox checked={values.includes(option.key)} />
 					</SelectItem>
 				))}

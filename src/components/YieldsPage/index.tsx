@@ -4,10 +4,9 @@ import { Panel } from '~/components'
 import { YieldsPoolsTable } from '~/components/Table'
 import { YieldFiltersV2 } from '~/components/Filters'
 import { Announcement } from '~/components/Announcement'
-import LocalLoader from '../LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
-import CSVDownloadButton from '../ButtonStyled/CsvButton'
 import { download } from '~/utils'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
@@ -243,7 +242,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 			/>
 
 			{loading ? (
-				<div>
+				<div className="flex items-center justify-center m-auto min-h-[360px]">
 					<LocalLoader />
 				</div>
 			) : poolsData.length > 0 ? (

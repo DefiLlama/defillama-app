@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import React, { useMemo, useState, useRef, useCallback } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
-import LocalLoader from '../LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import styled, { css } from 'styled-components'
-import { CoinsPicker } from '../Correlations'
+import { CoinsPicker } from '~/components/Correlations'
 import { formattedNum } from '~/utils'
 import { Icon } from '~/components/Icon'
 
@@ -106,6 +106,7 @@ export default function TokenPnl({ coinsData }) {
 	} = useQuery({
 		queryKey: ['pnlData', id, start, end],
 		queryFn: fetchPnlData,
+		staleTime: 10 * 60 * 1000,
 		enabled: !!id,
 		refetchOnWindowFocus: false
 	})
@@ -192,7 +193,9 @@ export default function TokenPnl({ coinsData }) {
 					{coins.length === 1 && (
 						<ResultWrapper>
 							{isLoading ? (
-								<LocalLoader />
+								<div className="flex items-center justify-center m-auto">
+									<LocalLoader />
+								</div>
 							) : isError ? (
 								<ErrorContent>
 									<ErrorTitle>Error</ErrorTitle>

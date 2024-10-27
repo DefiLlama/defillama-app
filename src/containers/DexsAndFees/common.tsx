@@ -12,19 +12,27 @@ import { formattedNum } from '~/utils'
 import type { IDexChartsProps } from './types'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
-import QuestionHelper from '~/components/QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { useChartInterval } from '~/contexts/LocalStorage'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import { ChartWrapper } from '~/layout/ProtocolAndPool'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
-	loading: () => <LocalLoader style={{ margin: 'auto' }} />
+	loading: () => (
+		<div className="flex items-center justify-center m-auto">
+			<LocalLoader />
+		</div>
+	)
 }) as React.FC<IBarChartProps>
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false,
-	loading: () => <LocalLoader style={{ margin: 'auto' }} />
+	loading: () => (
+		<div className="flex items-center justify-center m-auto">
+			<LocalLoader />
+		</div>
+	)
 }) as React.FC<IChartProps>
 
 export const FlatDenomination = styled(Denomination)`

@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
-import FormattedName from '~/components/FormattedName'
+import { FormattedName } from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
 import { capitalizeFirstLetter, formattedNum, standardizeProtocolName } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
@@ -19,7 +19,7 @@ import {
 } from '../common'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import type { IProtocolContainerProps } from '../types'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
 import { OtherProtocols, ProtocolLink } from '~/containers/Defi/Protocol/Common'
 import Link from 'next/link'
@@ -27,12 +27,20 @@ import { useFeesManager } from '~/contexts/LocalStorage'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
-	loading: () => <LocalLoader style={{ margin: 'auto' }} />
+	loading: () => (
+		<div className="flex items-center justify-center m-auto min-h-[360px]">
+			<LocalLoader />
+		</div>
+	)
 }) as React.FC<IBarChartProps>
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false,
-	loading: () => <LocalLoader style={{ margin: 'auto' }} />
+	loading: () => (
+		<div className="flex items-center justify-center m-auto min-h-[360px]">
+			<LocalLoader />
+		</div>
+	)
 }) as React.FC<IChartProps>
 
 const INTERVALS_LIST = [...GROUP_INTERVALS_LIST, 'Cumulative']

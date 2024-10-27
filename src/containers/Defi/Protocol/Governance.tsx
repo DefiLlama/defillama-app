@@ -147,7 +147,8 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 
 	const { data, isLoading } = useQuery({
 		queryKey: [JSON.stringify(apis)],
-		queryFn: () => fetchAndFormatGovernanceData(apis)
+		queryFn: () => fetchAndFormatGovernanceData(apis),
+		staleTime: 60 * 60 * 1000
 	})
 
 	if (isLoading) {

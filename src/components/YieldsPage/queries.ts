@@ -23,7 +23,8 @@ const useGetPrice = (tokens: Array<string>) => {
 
 			return data
 		},
-		enabled: tokens.length > 0
+		enabled: tokens.length > 0,
+		staleTime: 60 * 60 * 1000
 	})
 
 	return prices

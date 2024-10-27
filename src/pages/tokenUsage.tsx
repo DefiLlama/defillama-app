@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { ProtocolsByToken } from '~/components/Table'
 import { DesktopSearch } from '~/components/Search/Base'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
@@ -37,7 +37,8 @@ export default function Tokens({ searchData }) {
 
 	const { data: protocols, isLoading } = useQuery({
 		queryKey: ['protocols-by-token', tokenSymbol],
-		queryFn: () => fetchProtocols(tokenSymbol)
+		queryFn: () => fetchProtocols(tokenSymbol),
+		staleTime: 60 * 60 * 1000
 	})
 
 	const onItemClick = (item) => {
@@ -77,7 +78,9 @@ export default function Tokens({ searchData }) {
 			<DesktopSearch data={searchData} placeholder="Search tokens..." data-alwaysdisplay onItemClick={onItemClick} />
 			<>
 				{isLoading ? (
-					<LocalLoader />
+					<div className="flex items-center justify-center mx-auto my-32">
+						<LocalLoader />
+					</div>
 				) : !tokenSymbol || !protocols || protocols.length === 0 ? (
 					<></>
 				) : (

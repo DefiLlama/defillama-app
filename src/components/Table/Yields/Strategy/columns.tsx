@@ -4,9 +4,8 @@ import { NameYieldPool, PoolStrategyRoute } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsStrategyTableRow } from '../types'
 import { PoolStrategyWithProjects } from '../../shared'
-import { Tooltip2 } from '~/components/Tooltip'
-import styled from 'styled-components'
-import QuestionHelper from '~/components/QuestionHelper'
+import { Tooltip } from '~/components/Tooltip'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 
@@ -52,11 +51,11 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		cell: ({ getValue, row }) => {
 			const TooltipContent = () => {
 				return (
-					<>
+					<span className="flex flex-col gap-1">
 						<span>{`Supply APY: ${row.original?.apy?.toFixed(2)}%`}</span>
 						<span>{`Borrow APY: ${row.original?.borrow?.apyBorrow?.toFixed(2)}%`}</span>
 						<span>{`Farm APY: ${row.original?.farmApy?.toFixed(2)}%`}</span>
-					</>
+					</span>
 				)
 			}
 
@@ -194,11 +193,5 @@ export const columnSizes = {
 		farmTvlUsd: 100
 	}
 }
-
-const Tooltip = styled(Tooltip2)`
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-`
 
 export const yieldsColumnOrders = formatColumnOrder(columnOrders)

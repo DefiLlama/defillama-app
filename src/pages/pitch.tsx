@@ -378,7 +378,8 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		return useQuery({
 			queryKey: ['investors', filters],
 			queryFn: () => fetchInvestors(filters),
-			enabled: hasSelectedFilters
+			enabled: hasSelectedFilters,
+			staleTime: 60 * 60 * 1000
 		})
 	}
 

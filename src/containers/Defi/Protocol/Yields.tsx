@@ -29,7 +29,8 @@ export function ProtocolPools({ protocol, data, protocolData }) {
 							project: i.projectName,
 							projectslug: i.project
 						})) ?? null
-			)
+			),
+		staleTime: 60 * 60 * 1000
 	})
 
 	return (

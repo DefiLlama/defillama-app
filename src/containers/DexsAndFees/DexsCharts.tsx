@@ -3,18 +3,22 @@ import dynamic from 'next/dynamic'
 import { DetailsWrapper, Name, ChartWrapper } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
-import FormattedName from '~/components/FormattedName'
+import { FormattedName } from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 import { IDexResponse } from '~/api/categories/dexs/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 
 // TODO remove duplicate bar chart component and use '~/components/ECharts/BarChart'
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false,
-	loading: () => <LocalLoader style={{ margin: 'auto' }} />
+	loading: () => (
+		<div className="flex items-center justify-center m-auto min-h-[360px]">
+			<LocalLoader />
+		</div>
+	)
 }) as React.FC<IStackedBarChartProps>
 
 interface IDexChartsProps {

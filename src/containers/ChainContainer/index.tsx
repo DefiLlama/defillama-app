@@ -8,7 +8,7 @@ import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { StatsSection } from '~/layout/Stats/Medium'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { chainIconUrl, formattedNum } from '~/utils'
@@ -30,7 +30,7 @@ import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 import { formatRaise, formatRaisedAmount } from '../Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
-import QuestionHelper from '~/components/QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import Link from '~/components/Link'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'
@@ -706,18 +706,18 @@ export function ChainContainer({
 									) : null}
 								</div>
 
-								{isFetchingChartData ? (
-									<LocalLoader style={{ margin: 'auto', height: '360px' }} />
+								{isFetchingChartData || !router.isReady ? (
+									<div className="flex items-center justify-center m-auto h-[360px]">
+										<LocalLoader />
+									</div>
 								) : (
-									router.isReady && (
-										<ChainChart
-											datasets={chartDatasets}
-											title=""
-											denomination={denomination}
-											isThemeDark={darkMode}
-											hideTooltip={false}
-										/>
-									)
+									<ChainChart
+										datasets={chartDatasets}
+										title=""
+										denomination={denomination}
+										isThemeDark={darkMode}
+										hideTooltip={false}
+									/>
 								)}
 							</>
 						)}

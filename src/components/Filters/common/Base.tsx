@@ -2,7 +2,8 @@ import { Select as AriaSelect, SelectItem as AriaSelectItem, SelectPopover as Ar
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { Checkbox } from '~/components'
-import HeadHelp from '~/components/HeadHelp'
+import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 
 export const Select = styled(AriaSelect)`
 	display: flex;
@@ -297,7 +298,14 @@ export const SelectContent = ({ clearAllOptions, toggleAllOptions, variant, path
 					value={option.key}
 					disabled={pathname ? option.disabledOnPages?.includes(pathname) ?? false : false}
 				>
-					{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
+					{option.help ? (
+						<Tooltip content={option.help}>
+							<span>{option.name}</span>
+							<Icon name="help-circle" height={15} width={15} />
+						</Tooltip>
+					) : (
+						option.name
+					)}
 					<Checkbox
 						checked={
 							selectedOptions.includes(option.key) ||

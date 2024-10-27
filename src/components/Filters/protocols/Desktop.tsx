@@ -2,12 +2,13 @@ import styled from 'styled-components'
 import { SelectArrow } from 'ariakit/select'
 import { SelectItem, ItemsSelected, SelectButton, SelectPopover } from '../common'
 import OptionToggle from '~/components/OptionToggle'
-import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
 import { useDefiManager, useFeesManager, useTvlAndFeesManager } from '~/contexts/LocalStorage'
 import { feesOptions, protocolsAndChainsOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
+import { Tooltip } from '~/components/Tooltip'
+import { Icon } from '~/components/Icon'
 
 const Wrapper = styled.section`
 	color: ${({ theme }) => theme.text1};
@@ -169,7 +170,14 @@ function AddlOptions({ options, ...props }: IAllOptionsProps) {
 				<SelectPopover state={select} modal={!isLarge}>
 					{options.map(({ key, name, help }) => (
 						<SelectItem key={key} value={key}>
-							{help ? <HeadHelp title={name} text={help} /> : name}
+							{help ? (
+								<Tooltip content={help}>
+									<span>{name}</span>
+									<Icon name="help-circle" height={15} width={15} />
+								</Tooltip>
+							) : (
+								name
+							)}
 							<Checkbox checked={select.value.includes(key)} />
 						</SelectItem>
 					))}

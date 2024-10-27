@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import Tooltip from '~/components/Tooltip'
+import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
 
 const IconWrapper = styled(Icon)`
@@ -17,7 +17,7 @@ const IconWrapper = styled(Icon)`
 	}
 `
 
-export default function QuestionHelper({
+export function QuestionHelper({
 	text,
 	disabled,
 	textAlign,

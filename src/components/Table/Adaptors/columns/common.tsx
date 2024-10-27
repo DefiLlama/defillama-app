@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
-import QuestionHelper from '~/components/QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug } from '~/utils'
 import { AccordionButton, Name } from '../../shared'

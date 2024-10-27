@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Menu } from '~/components/DropdownMenu'
-import HeadHelp from '~/components/HeadHelp'
+import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 
 interface IProps {
 	audits: number | string
@@ -12,7 +13,10 @@ interface IProps {
 export const AuditInfo = ({ audits, auditLinks = [], color, isLoading, ...props }: IProps) => {
 	return (
 		<section className="flex items-center gap-2" {...props}>
-			<HeadHelp title="Audits" text="Audits are not a guarantee of security." />
+			<Tooltip content={'Audits are not a guarantee of security.'}>
+				<span>Audits</span>
+				<Icon name="help-circle" height={15} width={15} />
+			</Tooltip>
 			<span>:</span>
 			<span className="flex items-center min-h-8">
 				{isLoading ? null : +audits > 0 ? (

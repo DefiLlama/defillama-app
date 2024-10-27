@@ -9,7 +9,8 @@ const useEmissions = (protocol) => {
 			fetch(`${PROTOCOL_EMISSION_API}/${protocol}`)
 				.then((r) => r.json())
 				.then((r) => JSON.parse(r.body))
-				.catch(() => null)
+				.catch(() => null),
+		staleTime: 60 * 60 * 1000
 	})
 	const result = data
 		? data?.unlockUsdChart

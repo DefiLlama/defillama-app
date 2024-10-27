@@ -4,7 +4,7 @@ import { DetailsWrapper, Name, ChartWrapper, ChartsWrapper, LazyChart, Button } 
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import TokenLogo from '~/components/TokenLogo'
-import FormattedName from '~/components/FormattedName'
+import { FormattedName } from '~/components/FormattedName'
 import dynamic from 'next/dynamic'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 import { IChartProps } from '~/components/ECharts/types'
@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { NFTsSearch } from '~/components/Search'
 import { getNFTCollection } from '~/api/categories/nfts'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 
@@ -41,7 +41,9 @@ export function NFTCollectionContainer() {
 	if (fetchingData) {
 		return (
 			<Layout title={'NFT Collection - DefiLlama'}>
-				<LocalLoader />
+				<div className="flex items-center justify-center m-auto min-h-[360px]">
+					<LocalLoader />
+				</div>
 			</Layout>
 		)
 	}

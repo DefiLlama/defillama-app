@@ -54,5 +54,5 @@ export function getRaisesFiltersList(data): IRaisesFilters {
 }
 
 export function useInvestorsList() {
-	return useQuery({ queryKey: [RAISES_API], queryFn: () => fetchApi(RAISES_API) })
+	return useQuery({ queryKey: [RAISES_API], queryFn: () => fetchApi(RAISES_API), staleTime: 60 * 60 * 1000 })
 }

@@ -55,7 +55,8 @@ const Cexs = ({ cexs }) => {
 
 	const { data: customRangeInflows = {} } = useQuery({
 		queryKey: ['cexs', startTs, endTs],
-		queryFn: () => getOutflowsByTimerange(startTs, endTs)
+		queryFn: () => getOutflowsByTimerange(startTs, endTs),
+		staleTime: 60 * 60 * 1000
 	})
 
 	const cexsWithCustomRange = cexs.map((cex) => ({

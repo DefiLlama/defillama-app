@@ -3,7 +3,7 @@ import { Table, flexRender, RowData } from '@tanstack/react-table'
 import { defaultRangeExtractor, useWindowVirtualizer } from '@tanstack/react-virtual'
 import styled from 'styled-components'
 import SortIcon from '../SortIcon'
-import QuestionHelper from '../../QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { useSyncScroller } from './useScrollSync'
 
 interface ITableProps {
