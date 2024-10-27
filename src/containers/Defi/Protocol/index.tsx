@@ -1336,10 +1336,7 @@ function ProtocolContainer({
 										<span>Category</span>
 										<span>:</span>
 
-										<Link
-											href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category.toLowerCase()}`}
-											passHref
-										>
+										<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category}`} passHref>
 											<Button
 												as="a"
 												target="_blank"
