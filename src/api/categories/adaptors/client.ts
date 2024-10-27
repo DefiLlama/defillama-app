@@ -20,7 +20,8 @@ export const useFetchCharts = (type: string, chain?: string, dataType?: string, 
 	const url = !disable ? getAPIUrl(type, chain, true, false, dataType) : null
 	return useQuery<ProtocolAdaptorSummaryProps>({
 		queryKey: ['adaptors-charts', url],
-		queryFn: url ? () => fetchApi(url) : () => null
+		queryFn: url ? () => fetchApi(url) : () => null,
+		staleTime: 60 * 60 * 1000
 	})
 }
 
@@ -49,6 +50,7 @@ export const useFetchChartsSummary = (type: string, protocolName: string, dataTy
 		queryFn: url
 			? () => fetchApi(url).then((res) => generateGetOverviewItemPageDate(res, type, protocolName))
 			: () => null,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 		// retry: (error, _key, _config, revalidate, { retryCount }) => {
 		// 	if ([502, 404].includes(error.status)) return

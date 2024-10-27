@@ -12,7 +12,8 @@ export function useGetProtocolsVolumeByChain(chain?: string) {
 					getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
 						(data) => data?.protocols ?? null
 					)
-			: () => null
+			: () => null,
+		staleTime: 60 * 60 * 1000
 	})
 }
 
@@ -24,7 +25,8 @@ export function useGetVolumeChartDataByChain(chain?: string) {
 					getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
 						(data) => data?.totalDataChart ?? null
 					)
-			: () => null
+			: () => null,
+		staleTime: 60 * 60 * 1000
 	})
 }
 
@@ -61,21 +63,24 @@ export function useGetFeesAndRevenueChartDataByChain(chain?: string) {
 								[number, number, number]
 							>
 						})
-				: () => null
+				: () => null,
+		staleTime: 60 * 60 * 1000
 	})
 }
 
 export function useGetProtocolsFeesAndRevenueByChain(chain?: string) {
 	return useQuery({
 		queryKey: [`protocolsFeesAndRevenueByChain/${chain}`],
-		queryFn: chain ? () => getFeesAndRevenueProtocolsByChain({ chain }) : () => null
+		queryFn: chain ? () => getFeesAndRevenueProtocolsByChain({ chain }) : () => null,
+		staleTime: 60 * 60 * 1000
 	})
 }
 
 export const useGetItemOverviewByChain = (chain?: string, item?: string) => {
 	return useQuery({
 		queryKey: [`itemOverviewByChain/${chain}/${item}`],
-		queryFn: chain ? () => getOverview(item, chain?.toLowerCase(), undefined, true, true) : () => null
+		queryFn: chain ? () => getOverview(item, chain?.toLowerCase(), undefined, true, true) : () => null,
+		staleTime: 60 * 60 * 1000
 	})
 }
 
@@ -85,7 +90,8 @@ export const useGetChainAssetsChart = (chain?: string) => {
 		queryFn:
 			chain && chain !== 'All'
 				? () => fetch(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`).then((r) => r.json())
-				: () => null
+				: () => null,
+		staleTime: 60 * 60 * 1000
 	})
 
 	return { data: !Array.isArray(data) ? undefined : data, isLoading }
