@@ -12,10 +12,8 @@ import {
 	Image,
 	SearchBody,
 	Add,
-	ToggleWrapper,
 	Description
 } from './styles'
-import { Switch } from '../LiquidationsPage/TableSwitch'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import { FAQ } from './Faq'
@@ -179,17 +177,29 @@ export default function Correlations({ coinsData }) {
 		<>
 			<h1 className="text-2xl font-medium">Correlations Matrix</h1>
 
-			<ToggleWrapper>
-				<Switch onClick={() => setPeriod(7)} active={period === 7}>
+			<div className="flex items-center flex-nowrap overflow-hidden relative mx-auto p-1 text-[var(--text1)] bg-[var(--bg6)] rounded-lg font-medium">
+				<button
+					className="flex-1 px-6 py-2 data-[active=true]:bg-[#445ed0] rounded-lg"
+					onClick={() => setPeriod(7)}
+					data-active={period === 7}
+				>
 					7d
-				</Switch>
-				<Switch onClick={() => setPeriod(30)} active={period === 30}>
+				</button>
+				<button
+					className="flex-1 px-6 py-2 data-[active=true]:bg-[#445ed0] rounded-lg"
+					onClick={() => setPeriod(30)}
+					data-active={period === 30}
+				>
 					1m
-				</Switch>
-				<Switch onClick={() => setPeriod(365)} active={period === 365}>
+				</button>
+				<button
+					className="flex-1 px-6 py-2 data-[active=true]:bg-[#445ed0] rounded-lg"
+					onClick={() => setPeriod(365)}
+					data-active={period === 365}
+				>
 					1y
-				</Switch>
-			</ToggleWrapper>
+				</button>
+			</div>
 
 			<Body>
 				<SelectedBody>

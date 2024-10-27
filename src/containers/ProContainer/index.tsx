@@ -349,13 +349,6 @@ export const ChartWrapper = styled.div`
 	min-height: 442px;
 `
 
-export const ToggleWrapper = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-`
-
 export const OverallMetricsWrapper = styled(DetailsWrapper)`
 	background: none;
 	gap: 8px;

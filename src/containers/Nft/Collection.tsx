@@ -9,7 +9,6 @@ import dynamic from 'next/dynamic'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 import { IChartProps } from '~/components/ECharts/types'
 import Link from 'next/link'
-import { ToggleWrapper2 } from '~/components'
 import { useRouter } from 'next/router'
 import { NFTsSearch } from '~/components/Search'
 import { getNFTCollection } from '~/api/categories/nfts'
@@ -36,7 +35,8 @@ export function NFTCollectionContainer() {
 		queryFn: () =>
 			getNFTCollection(
 				typeof router.query.collection === 'string' ? router.query.collection : router.query.collection[0]
-			)
+			),
+		staleTime: 60 * 60 * 1000
 	})
 	if (fetchingData) {
 		return (
@@ -98,7 +98,7 @@ export function NFTCollectionContainer() {
 				</DetailsWrapper>
 
 				<ChartWrapper style={{ padding: '20px 0 0 0' }}>
-					<ToggleWrapper2 style={{ padding: '0 20px' }}>
+					<div className="flex items-center gap-1 flex-nowrap ml-auto px-5">
 						<input
 							type="checkbox"
 							value="showMcapChart"
@@ -114,7 +114,7 @@ export function NFTCollectionContainer() {
 							}
 						/>
 						<span>Include Outliers</span>
-					</ToggleWrapper2>
+					</div>
 					<CollectionScatterChart
 						sales={includeOutliers ? sales : salesExOutliers}
 						salesMedian1d={salesMedian1d as any}

@@ -12,8 +12,7 @@ import LocalLoader from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { chainIconUrl, formattedNum } from '~/utils'
-import { Denomination, Filters, Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
-import Image from 'next/image'
+import { Denomination, Filters, Toggle } from '~/components/ECharts/ProtocolChart/Misc'
 
 import llamaLogo from '~/assets/peeking-llama.png'
 import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
@@ -294,13 +293,12 @@ export function ChainContainer({
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl as string} volumeChange={percentChange} />
 
 			<Announcement>
-				<Image
+				<img
 					src="https://icons.llamao.fi/icons/memes/gib.png?w=36&h=36"
 					alt="Cute"
 					width={18}
 					height={18}
-					unoptimized
-					className="inline"
+					className="inline relative -top-[2px]"
 				/>
 				{'  '}We've released{' '}
 				<Link href={`https://feed.defillama.com`}>
@@ -643,8 +641,8 @@ export function ChainContainer({
 							<Game />
 						) : (
 							<>
-								<FiltersWrapper>
-									<ToggleWrapper style={{ marginRight: '16px' }}>
+								<div className="flex flex-wrap gap-4 mx-4">
+									<div className="flex gap-2 flex-wrap">
 										{chartOptions.map(
 											({ id, name, isVisible }) =>
 												isVisible && (
@@ -672,22 +670,7 @@ export function ChainContainer({
 													</Toggle>
 												)
 										)}
-									</ToggleWrapper>
-
-									{/* {selectedChain !== 'All' ? (
-										<Toggle style={{ marginRight: 'auto' }}>
-											<input
-												type="checkbox"
-												onClick={() => {
-													window.open(`/compare?chains=${selectedChain}`)
-												}}
-												checked={true}
-											/>
-											<span data-wrapper="true">
-												<span>Compare chain</span>
-											</span>
-										</Toggle>
-									) : null} */}
+									</div>
 
 									{DENOMINATIONS.length > 1 && (
 										<Filters>
@@ -721,7 +704,7 @@ export function ChainContainer({
 											</Filters>
 										</>
 									) : null}
-								</FiltersWrapper>
+								</div>
 
 								{isFetchingChartData ? (
 									<LocalLoader style={{ margin: 'auto', height: '360px' }} />
@@ -739,9 +722,10 @@ export function ChainContainer({
 							</>
 						)}
 					</ChartWrapper>
-					<EasterLlama onClick={activateEasterEgg}>
-						<Image src={llamaLogo} width="41px" height="34px" alt="Activate Easter Egg" />
-					</EasterLlama>
+					<button onClick={activateEasterEgg} className="absolute -bottom-9 left-0">
+						<img src={llamaLogo.src} width="41px" height="34px" alt="" />
+						<span className="sr-only">Activate Easter Egg</span>
+					</button>
 				</StatsSection>
 
 				{finalProtocolsList.length > 0 ? (
@@ -804,27 +788,6 @@ export const ChartWrapper = styled.div`
 	padding: 16px 0;
 	grid-column: span 1;
 	min-height: 442px;
-`
-
-export const ToggleWrapper = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-`
-
-const EasterLlama = styled.button`
-	padding: 0;
-	width: 41px;
-	height: 34px;
-	position: absolute;
-	bottom: -36px;
-	left: 0;
-
-	img {
-		width: 41px !important;
-		height: 34px !important;
-	}
 `
 
 export const OverallMetricsWrapper = styled(DetailsWrapper)`

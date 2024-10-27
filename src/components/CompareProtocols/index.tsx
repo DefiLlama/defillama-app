@@ -26,7 +26,8 @@ const ModalBody = styled.div`
 const useProtocols = (protocols: string[], chain?: string) => {
 	const { data, isLoading } = useQuery({
 		queryKey: ['compare-protocols' + protocols?.join('')],
-		queryFn: () => fetchApi(protocols?.map((p) => `${PROTOCOL_API}/${slug(p)}`))
+		queryFn: () => fetchApi(protocols?.map((p) => `${PROTOCOL_API}/${slug(p)}`)),
+		staleTime: 60 * 60 * 1000
 	})
 
 	const [extraTvlEnabled] = useDefiManager()

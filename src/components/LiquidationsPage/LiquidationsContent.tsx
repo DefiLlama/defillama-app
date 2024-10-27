@@ -4,7 +4,6 @@ import styled from 'styled-components'
 import ReactSwitch from 'react-switch'
 import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
-import { LiquidationsChart } from './LiquidationsChart'
 import { TotalLiquidable } from './TotalLiquidable'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { LiquidationsContext } from '~/components/LiquidationsPage/context'
@@ -12,6 +11,7 @@ import { useStackBy } from './utils'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import Image from 'next/future/image'
 import boboLogo from '~/assets/boboSmug.png'
+import dynamic from 'next/dynamic'
 
 const Bobo = styled.button`
 	position: absolute;
@@ -32,6 +32,10 @@ const Bobo = styled.button`
 	}
 `
 
+const LiquidationsChart = dynamic(() => import('./LiquidationsChart').then((module) => module.LiquidationsChart), {
+	ssr: false
+}) as React.FC<any>
+
 export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData }) => {
 	const { data, prevData } = props
 	const [bobo, setBobo] = React.useState(false)
@@ -48,11 +52,11 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					<DangerousPositionsAmount data={data} />
 				</PanelHiddenMobile>
 			</BreakpointPanels>
-			<BreakpointPanel>
-				<Row>
+			<BreakpointPanel className="min-h-[438px]">
+				<div className="flex items-center justify-between gap-4 mb-auto mx-2">
 					<CumulativeToggle />
 					<CurrencyToggle symbol={data.symbol} />
-				</Row>
+				</div>
 				<Bobo onClick={() => setBobo(!bobo)}>
 					<span className="sr-only">Enable Goblin Mode</span>
 					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
@@ -63,30 +67,13 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 	)
 }
 
-const Row = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0 0.5rem;
-	margin-right: 1rem;
-`
-
-const ToggleWrapper = styled.div`
-	display: flex;
-	flex-direction: row;
-	justify-content: flex-end;
-	gap: 0.5rem;
-	align-items: center;
-	margin-bottom: 1rem;
-`
-
 const CurrencyToggle = (props: { symbol: string }) => {
 	const [liqsSettings, toggleLiqsSettings] = useLiqsManager()
 	const { LIQS_USING_USD } = LIQS_SETTINGS
 	const isLiqsUsingUsd = liqsSettings[LIQS_USING_USD]
 
 	return (
-		<ToggleWrapper>
+		<div className="flex items-center gap-1 mr-2">
 			{props.symbol.toUpperCase()}
 			{/* @ts-ignore:next-line */}
 			<ReactSwitch
@@ -99,8 +86,8 @@ const CurrencyToggle = (props: { symbol: string }) => {
 				uncheckedIcon={false}
 				checkedIcon={false}
 			/>
-			USD
-		</ToggleWrapper>
+			<span>USD</span>
+		</div>
 	)
 }
 
@@ -110,7 +97,7 @@ const CumulativeToggle = () => {
 	const isLiqsCumulative = liqsSettings[LIQS_CUMULATIVE]
 
 	return (
-		<ToggleWrapper>
+		<div className="flex items-center gap-1">
 			{/* @ts-ignore:next-line */}
 			<ReactSwitch
 				onChange={toggleLiqsSettings(LIQS_CUMULATIVE)}
@@ -121,8 +108,8 @@ const CumulativeToggle = () => {
 				uncheckedIcon={false}
 				checkedIcon={false}
 			/>
-			Cumulative
-		</ToggleWrapper>
+			<span>Cumulative</span>
+		</div>
 	)
 }
 

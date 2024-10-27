@@ -86,7 +86,7 @@ export default function Tokens({ searchData }) {
 							<TableHeader>{`${tokenSymbol.toUpperCase()} usage in protocols`}</TableHeader>
 							<CSVDownloadButton onClick={downloadCSV} />
 
-							{/* <ToggleWrapper>
+							{/* <div className="flex items-center gap-4">
 								<input
 									type="checkbox"
 									value="includeCentraliseExchanges"
@@ -99,7 +99,7 @@ export default function Tokens({ searchData }) {
 									}
 								/>
 								<span>Include CEXs</span>
-							</ToggleWrapper> */}
+							</div> */}
 						</TableFilters>
 
 						<ProtocolsByToken data={filteredProtocols} />

@@ -23,7 +23,6 @@ import LocalLoader from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
 import { OtherProtocols, ProtocolLink } from '~/containers/Defi/Protocol/Common'
 import Link from 'next/link'
-import { Wrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { useFeesManager } from '~/contexts/LocalStorage'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
@@ -168,7 +167,7 @@ export const ProtocolChart = ({
 				// TODO: Temporal work around to unlock feature
 				<>‎</>
 			)}
-			<Wrapper style={{ minHeight: '462px' }}>
+			<div className="flex flex-col gap-4 py-3 col-span-1">
 				{barsData && barsData.length > 0 && (
 					<FiltersWrapperRow>
 						<>{title ?? ''}</>
@@ -204,7 +203,7 @@ export const ProtocolChart = ({
 						isMonthly={barInterval === 'Monthly'}
 					/>
 				)}
-			</Wrapper>
+			</div>
 		</StatsSection>
 	)
 }

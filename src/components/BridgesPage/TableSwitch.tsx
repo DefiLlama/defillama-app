@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars*/
 import * as React from 'react'
-import styled from 'styled-components'
 import { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
 import { Denomination, Filters } from '../ECharts/ProtocolChart/Misc'
 import { Icon } from '~/components/Icon'
@@ -10,16 +9,24 @@ export const TxsTableSwitch = () => {
 	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
 
 	return (
-		<Wrapper>
-			<Switch active={!isBridgesShowingTxs} onClick={toggleBridgesSettings(BRIDGES_SHOWING_TXS)}>
+		<div className="flex items-center gap-2 rounded-md h-11 w-64 bg-[var(--bg6)] mx-auto p-[6px]">
+			<button
+				className="flex flex-1 justify-center items-center gap-1 rounded-md p-[6px] data-[active=true]:bg-[#445ed0]"
+				data-active={!isBridgesShowingTxs}
+				onClick={toggleBridgesSettings(BRIDGES_SHOWING_TXS)}
+			>
 				<Icon name="bar-chart-2" height={14} width={14} />
 				<span>Bridges</span>
-			</Switch>
-			<Switch active={isBridgesShowingTxs} onClick={toggleBridgesSettings(BRIDGES_SHOWING_TXS)}>
+			</button>
+			<button
+				className="flex flex-1 justify-center items-center gap-1 rounded-md p-[6px] data-[active=true]:bg-[#445ed0]"
+				data-active={isBridgesShowingTxs}
+				onClick={toggleBridgesSettings(BRIDGES_SHOWING_TXS)}
+			>
 				<Icon name="activity" height={14} width={14} />
 				<span>Large Txs</span>
-			</Switch>
-		</Wrapper>
+			</button>
+		</div>
 	)
 }
 
@@ -50,37 +57,3 @@ export const AddressesTableSwitch = () => {
 		</Filters>
 	)
 }
-
-const Wrapper = styled.span`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	gap: 8px;
-	border-radius: 6px;
-	background-color: ${({ theme }) => theme.bg6};
-	padding: 6px;
-	height: 40px;
-	width: 250px;
-	margin: 0 auto;
-	box-shadow: ${({ theme }) => theme.shadowSm};
-`
-
-interface ISwitch {
-	active: boolean
-}
-
-const Switch = styled.button<ISwitch>`
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: 4px;
-	color: ${({ active, theme }) => (active ? '#fff' : theme.text1)};
-	font-size: 14px;
-	white-space: nowrap;
-	flex-wrap: nowrap;
-	padding: 6px;
-	border-radius: 6px;
-	background: ${({ active, theme }) => (active ? '#445ed0' : theme.bg6)};
-	flex: 1;
-`

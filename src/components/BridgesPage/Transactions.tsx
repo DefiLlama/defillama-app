@@ -49,30 +49,9 @@ const SearchWrapper = styled.div`
 	}
 `
 
-export const ToggleWrapper = styled.label`
-	display: flex;
-	align-items: center;
-	flex-wrap: nowrap;
-	gap: 8px;
-	cursor: pointer;
-`
-
 const StyledFormInput = styled(FormInput)`
 	color: ${({ theme }) => theme.text6};
 	background: ${({ theme }) => theme.bg4};
-`
-
-const StyledFormSubmit = styled(FormSubmit)`
-	color: ${({ theme }) => theme.text6};
-	background: ${({ theme }) => theme.bg6};
-	border: none;
-	border-radius: 12px;
-	outline: ${({ theme }) => '1px solid ' + theme.text1};
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		border: 1px solid ${({ theme }) => theme.divider};
-		border-bottom: 0;
-	}
 `
 
 const DateInputField = styled.div`

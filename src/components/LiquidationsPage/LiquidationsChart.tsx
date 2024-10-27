@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars*/
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect } from 'react'
 import * as echarts from 'echarts'
 import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 import { useMedia } from '~/hooks/useMedia'

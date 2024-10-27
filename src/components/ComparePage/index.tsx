@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 
 import { BreakpointPanel } from '~/components'
-import { Toggle, FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
+import { Toggle } from '~/components/ECharts/ProtocolChart/Misc'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import LocalLoader from '~/components/LocalLoader'
@@ -23,7 +23,7 @@ import { chainIconUrl, formattedNum } from '~/utils'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import { last } from 'lodash'
 import { RowWithSubRows, StatsTable2 } from '~/containers/Defi/Protocol'
-import { Card, ControlsWrapper, DataWrapper, Grid, ToggleWrapper } from './styles'
+import { Card, ControlsWrapper, DataWrapper, Grid } from './styles'
 import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
 import { Icon } from '~/components/Icon'
 
@@ -146,7 +146,8 @@ export const useCompare = ({ chains = [], extraTvlsEnabled }: { chains?: string[
 	const data = useQueries({
 		queries: chains.map((chain) => ({
 			queryKey: ['compare', JSON.stringify(chain), JSON.stringify(extraTvlsEnabled)],
-			queryFn: () => getChainData(chain, extraTvlsEnabled)
+			queryFn: () => getChainData(chain, extraTvlsEnabled),
+			staleTime: 60 * 60 * 1000
 		}))
 	})
 
@@ -229,62 +230,60 @@ function ComparePage() {
 
 			<DataWrapper>
 				<BreakpointPanel id="chartWrapper" style={{ minHeight: '430px' }}>
-					<FiltersWrapper style={{ margin: 0, marginBottom: 'auto' }}>
-						<ToggleWrapper>
-							{[
-								{
-									id: 'tvl',
-									name: 'TVL',
-									isVisible: true,
-									key: 'globalChart'
-								},
-								{
-									id: 'volume',
-									name: 'Volume',
-									key: 'volumeChart'
-								},
-								{
-									id: 'fees',
-									name: 'Fees',
-									key: 'feesChart'
-								},
-								{
-									id: 'revenue',
-									name: 'Revenue',
-									key: 'feesChart'
-								},
+					<div className="mb-auto flex items-center gap-2 ml-auto">
+						{[
+							{
+								id: 'tvl',
+								name: 'TVL',
+								isVisible: true,
+								key: 'globalChart'
+							},
+							{
+								id: 'volume',
+								name: 'Volume',
+								key: 'volumeChart'
+							},
+							{
+								id: 'fees',
+								name: 'Fees',
+								key: 'feesChart'
+							},
+							{
+								id: 'revenue',
+								name: 'Revenue',
+								key: 'feesChart'
+							},
 
-								{
-									id: 'addresses',
-									name: 'Active Addresses',
-									key: 'usersData'
-								},
-								{
-									id: 'txs',
-									name: 'Transactions',
-									key: 'txsData'
-								}
-							].map(({ id, name, key }) =>
-								data?.data?.some((val) => val?.[key] && val?.[key]?.length > 0) ? (
-									<Toggle key={id}>
-										<input
-											key={id}
-											type="checkbox"
-											onClick={() => {
-												updateRoute(id, router.query[id] === 'true' ? 'false' : 'true', router)
-											}}
-											checked={router.query[id] === 'true'}
-										/>
-										<span data-wrapper="true">
-											<span>{name}</span>
-										</span>
-									</Toggle>
-								) : (
-									false
-								)
-							)}
-						</ToggleWrapper>
-					</FiltersWrapper>
+							{
+								id: 'addresses',
+								name: 'Active Addresses',
+								key: 'usersData'
+							},
+							{
+								id: 'txs',
+								name: 'Transactions',
+								key: 'txsData'
+							}
+						].map(({ id, name, key }) =>
+							data?.data?.some((val) => val?.[key] && val?.[key]?.length > 0) ? (
+								<Toggle key={id}>
+									<input
+										key={id}
+										type="checkbox"
+										onClick={() => {
+											updateRoute(id, router.query[id] === 'true' ? 'false' : 'true', router)
+										}}
+										checked={router.query[id] === 'true'}
+									/>
+									<span data-wrapper="true">
+										<span>{name}</span>
+									</span>
+								</Toggle>
+							) : (
+								false
+							)
+						)}
+					</div>
 
 					{data.isLoading || !router.isReady ? (
 						<LocalLoader style={{ marginBottom: 'auto' }} />

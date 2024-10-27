@@ -1,5 +1,4 @@
 import styled from 'styled-components'
-import { Wrapper } from '../LiquidationsPage/TableSwitch'
 
 export const Table = styled.table`
 	max-width: 480px;
@@ -125,13 +124,6 @@ export const Add = styled.div`
 	justify-content: center;
 	cursor: pointer;
 	font-size: 24px;
-`
-
-export const ToggleWrapper = styled(Wrapper)`
-	@media screen and (max-width: ${({ theme: { bpSm } }) => bpSm}) {
-		display: flex;
-		position: relative;
-	}
 `
 
 export const Description = styled.div`
