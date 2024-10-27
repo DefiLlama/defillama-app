@@ -7,7 +7,8 @@ import { useQuery } from '@tanstack/react-query'
 export const useFetchPeggedList = () => {
 	return useQuery({
 		queryKey: [PEGGEDS_API],
-		queryFn: () => fetchApi(PEGGEDS_API)
+		queryFn: () => fetchApi(PEGGEDS_API),
+		staleTime: 60 * 60 * 1000
 	})
 }
 

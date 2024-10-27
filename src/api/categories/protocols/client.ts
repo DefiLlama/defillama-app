@@ -24,7 +24,7 @@ export const useFetchProtocolsList = () => {
 	return useQuery({
 		queryKey: [PROTOCOLS_API],
 		queryFn: () => fetchApi(PROTOCOLS_API),
-		staleTime: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000
 	})
 }
@@ -33,7 +33,7 @@ export const useFetchProtocol = (protocolName) => {
 	return useQuery({
 		queryKey: ['updated-protocols-data', protocolName],
 		queryFn: () => getProtocol(protocolName),
-		staleTime: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000
 	})
 }
@@ -47,8 +47,7 @@ export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
 						.then((protocolData) => buildProtocolAddlChartsData({ protocolData, extraTvlsEnabled }))
 						.catch(() => null)
 			: () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -66,8 +65,7 @@ export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
 							} else return data
 						})
 			: () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -84,8 +82,7 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 						})
 						.catch((err) => [])
 			: () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -101,8 +98,7 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 						})
 						.catch((err) => [])
 			: () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -152,8 +148,7 @@ export const useFetchProtocolUsers = (protocolId: number | string | null) => {
 	return useQuery({
 		queryKey: [`users/${protocolId}`],
 		queryFn: protocolId ? () => getProtocolUsers(protocolId) : () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -170,8 +165,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 						})
 						.catch((err) => [])
 			: () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -188,8 +182,7 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 						})
 						.catch((err) => [])
 			: () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -203,8 +196,7 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 
 						.catch((err) => null)
 			: () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -224,8 +216,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 							return []
 						})
 			: () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -234,8 +225,7 @@ export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | n
 	return useQuery({
 		queryKey: ['protocol-governance', JSON.stringify(governanceApis)],
 		queryFn: () => fetchAndFormatGovernanceData(governanceApis),
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -246,8 +236,7 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['denom-price-history', url],
 		queryFn: url ? () => fetchApi(url).then((r) => r.data) : () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 
@@ -262,8 +251,7 @@ export const useGetTokenPrice = (geckoId?: string) => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['gecko-token-price', url],
 		queryFn: () => fetchApi(url),
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 
@@ -274,8 +262,7 @@ export const useGetProtocolsList = ({ chain }) => {
 	const { data, isLoading } = useQuery({
 		queryKey: [PROTOCOLS_API],
 		queryFn: () => fetchApi(PROTOCOLS_API),
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 
@@ -303,8 +290,7 @@ export const useGetProtocolEmissions = (protocol?: string | null) => {
 	return useQuery({
 		queryKey: [`unlocksData/${protocol}`],
 		queryFn: protocol ? () => getProtocolEmissons(protocol) : () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -318,8 +304,7 @@ export const useFetchProtocolTwitter = (twitter?: string | null) => {
 						res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
 					)
 			: () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -334,8 +319,7 @@ export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
 	return useQuery({
 		queryKey: ['dev-metrics', url],
 		queryFn: () => fetchApi(url).catch((err) => null),
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }
@@ -350,8 +334,7 @@ export const useGeckoId = (addressData: string | null) => {
 				? () => ({ id: address })
 				: () => fetchApi(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`)
 			: () => null,
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 
@@ -363,8 +346,7 @@ export const usePriceChart = (geckoId?: string) => {
 	return useQuery({
 		queryKey: ['price-chart', url],
 		queryFn: () => fetchApi(url).catch((err) => null),
-		staleTime: 10 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }

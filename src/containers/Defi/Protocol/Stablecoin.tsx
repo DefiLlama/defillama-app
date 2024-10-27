@@ -7,7 +7,8 @@ import { PeggedAssetInfo } from '~/containers/PeggedContainer'
 export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['stablecoin-info', assetName],
-		queryFn: () => getPeggedAssetPageData(assetName)
+		queryFn: () => getPeggedAssetPageData(assetName),
+		staleTime: 60 * 60 * 1000
 	})
 
 	if (isLoading) {

@@ -9,12 +9,16 @@ import { formattedNum } from '~/utils'
 import { IDexResponse } from '~/api/categories/dexs/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 
 // TODO remove duplicate bar chart component and use '~/components/ECharts/BarChart'
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false,
-	loading: () => <LocalLoader style={{ margin: 'auto' }} />
+	loading: () => (
+		<div className="flex items-center justify-center m-auto min-h-[360px]">
+			<LocalLoader />
+		</div>
+	)
 }) as React.FC<IStackedBarChartProps>
 
 interface IDexChartsProps {

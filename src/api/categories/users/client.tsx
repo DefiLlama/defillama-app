@@ -17,6 +17,7 @@ export const useFetchProtocolUserMetrics = (protocolName?: string | string[]) =>
 	const url = protocolName ? `${USER_METRICS_PROTOCOL_API}/${protocolName}` : null
 	return useQuery<Array<IData>>({
 		queryKey: ['protocol-user-metrics', url],
-		queryFn: () => fetchApi(url)
+		queryFn: () => fetchApi(url),
+		staleTime: 60 * 60 * 1000
 	})
 }

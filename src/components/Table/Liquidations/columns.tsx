@@ -190,7 +190,8 @@ const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 
 	const { data } = useQuery({
 		queryKey: [`${CONFIG_API}/smol/${_value}`],
-		queryFn: () => fetchApi(`${CONFIG_API}/smol/${_value}`)
+		queryFn: () => fetchApi(`${CONFIG_API}/smol/${_value}`),
+		staleTime: 60 * 60 * 1000
 	})
 
 	if (!data) return <span>{_value}</span>
@@ -207,7 +208,8 @@ const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 const ChainName = ({ value, index }: { value: string; index?: number }) => {
 	const { data } = useQuery({
 		queryKey: [`${CHAINS_API}`],
-		queryFn: () => fetchApi(`${CHAINS_API}`)
+		queryFn: () => fetchApi(`${CHAINS_API}`),
+		staleTime: 60 * 60 * 1000
 	})
 
 	if (!data) return <span>{value}</span>

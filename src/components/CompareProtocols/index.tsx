@@ -1,7 +1,6 @@
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { useQuery } from '@tanstack/react-query'
-
 import React from 'react'
 import { fuseProtocolData } from '~/api/categories/protocols'
 import { PROTOCOL_API } from '~/constants'
@@ -9,8 +8,7 @@ import { slug } from '~/utils'
 import { fetchApi } from '~/utils/async'
 import { formatProtocolsTvlChartData } from '../ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
-
-import LocalLoader from '../LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -72,7 +70,9 @@ const CompareProtocols = ({ protocols, chain }: { protocols: string[]; chain: st
 					style={{ minWidth: '70vw', maxWidth: '1200px' }}
 				/>
 			) : (
-				<LocalLoader />
+				<div className="flex items-center justify-center m-auto min-h-[360px]">
+					<LocalLoader />
+				</div>
 			)}
 		</ModalBody>
 	)

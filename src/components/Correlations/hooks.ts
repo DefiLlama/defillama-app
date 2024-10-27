@@ -15,7 +15,8 @@ export const usePriceCharts = (geckoIds = []) => {
 					).then((r) => r.json())
 					return { data: res }
 				}
-			}
+			},
+			staleTime: 10 * 60 * 1000
 		}))
 	})
 	return {

@@ -7,7 +7,7 @@ import FormattedName from '~/components/FormattedName'
 import { Stat } from '~/layout/Stats/Large'
 import { formattedNum } from '~/utils'
 import { ProtocolChart } from '~/containers/DexsAndFees/charts/ProtocolChart'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
 
@@ -18,13 +18,16 @@ export default function Collection() {
 		queryFn: () =>
 			getNFTRoyaltyHistory(
 				typeof router.query.collection === 'string' ? router.query.collection : router.query.collection[0]
-			)
+			),
+		staleTime: 60 * 60 * 1000
 	})
 
 	if (fetchingData) {
 		return (
 			<Layout title={'NFT Royalties - DefiLlama'}>
-				<LocalLoader />
+				<div className="flex items-center justify-center m-auto min-h-[360px]">
+					<LocalLoader />
+				</div>
 			</Layout>
 		)
 	}

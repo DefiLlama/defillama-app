@@ -269,7 +269,8 @@ const PageView = (props) => {
 		error: riskError
 	} = useQuery({
 		queryKey: ['risk-data', riskUrl],
-		queryFn: riskUrl ? () => fetchApi(riskUrl).then((data) => data.data.data) : () => null
+		queryFn: riskUrl ? () => fetchApi(riskUrl).then((data) => data.data.data) : () => null,
+		staleTime: 60 * 60 * 1000
 	})
 
 	const { data: chart, isLoading: fetchingChartData } = useYieldChartData(query.pool)

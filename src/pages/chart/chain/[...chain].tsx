@@ -2,7 +2,7 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { getChainPageData } from '~/api/categories/chains'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { useFetchChainChartData } from '~/containers/ChainContainer/useFetchChainChartData'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
@@ -95,18 +95,18 @@ export default function ChainChartPage({
 
 	return (
 		<>
-			{isFetchingChartData ? (
-				<LocalLoader style={{ margin: 'auto', height: '360px' }} />
+			{isFetchingChartData || !router.isReady ? (
+				<div className="flex items-center justify-center m-auto min-h-[360px]">
+					<LocalLoader />
+				</div>
 			) : (
-				router.isReady && (
-					<ChainChart
-						datasets={chartDatasets}
-						title=""
-						denomination={denomination}
-						isThemeDark={isThemeDark}
-						hideTooltip
-					/>
-				)
+				<ChainChart
+					datasets={chartDatasets}
+					title=""
+					denomination={denomination}
+					isThemeDark={isThemeDark}
+					hideTooltip
+				/>
 			)}
 		</>
 	)

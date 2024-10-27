@@ -122,7 +122,8 @@ export function useFetchAndFormatChartData({
 		queryFn:
 			geckoId && fdv === 'true' && isRouterReady
 				? () => fetch(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.json())
-				: () => null
+				: () => null,
+		staleTime: 60 * 60 * 1000
 	})
 
 	const { data: feesAndRevenue, isLoading: fetchingFees } = useGetOverviewChartData({

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
 import { CACHE_SERVER } from '~/constants'
-import LocalLoader from '../LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import styled from 'styled-components'
 import { CoinsPicker } from '../Correlations'
 import { Button, Popover, Item } from '~/components/DropdownMenu'
@@ -44,7 +44,8 @@ export default function CompareFdv({ coinsData, protocols }) {
 							fetch(`${CACHE_SERVER}/supply/${coins[0]}`).then((res) => res.json()),
 							fetch(`${CACHE_SERVER}/supply/${coins[1]}`).then((res) => res.json())
 						])
-				: () => null
+				: () => null,
+		staleTime: 60 * 60 * 1000
 	})
 
 	let newPrice, increase
@@ -258,7 +259,9 @@ export default function CompareFdv({ coinsData, protocols }) {
 				</SelectWrapper>
 				{coins.length === 2 ? (
 					fdvData === null ? (
-						<LocalLoader />
+						<div className="flex items-center justify-center m-auto min-h-[360px]">
+							<LocalLoader />
+						</div>
 					) : (
 						<Wrapper2>
 							<Header>

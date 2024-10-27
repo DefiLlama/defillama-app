@@ -12,7 +12,8 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 				token: data.props.token,
 				filteredProtocols: data.props.filteredProtocols,
 				parentTokens: []
-			}))
+			})),
+		staleTime: 60 * 60 * 1000
 	})
 
 	if (isLoading) {

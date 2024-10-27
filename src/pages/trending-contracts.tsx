@@ -84,7 +84,8 @@ export default function TrendingContracts() {
 
 	const { data, isLoading, error } = useQuery({
 		queryKey: [`trending-contracts-${time}${activeChain}`],
-		queryFn: () => getContracts(activeChain, time)
+		queryFn: () => getContracts(activeChain, time),
+		staleTime: 60 * 60 * 1000
 	})
 
 	const results = data?.results ?? []

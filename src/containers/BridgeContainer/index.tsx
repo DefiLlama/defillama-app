@@ -217,7 +217,8 @@ export default function BridgeContainer(props) {
 export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['bridged-data', protocol],
-		queryFn: () => getBridgePageDatanew(protocol)
+		queryFn: () => getBridgePageDatanew(protocol),
+		staleTime: 60 * 60 * 1000
 	})
 
 	if (isLoading) {
@@ -240,7 +241,8 @@ export const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
 		queryKey: ['bridged-volume-on-all-chains', protocol],
 		queryFn: protocol
 			? () => getBridgePageDatanew(protocol).then((data) => data.volumeDataByChain['All Chains'])
-			: () => null
+			: () => null,
+		staleTime: 60 * 60 * 1000
 	})
 }
 const volumeChartOptions = {

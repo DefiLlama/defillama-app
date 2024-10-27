@@ -9,7 +9,7 @@ import { BreakpointPanel } from '~/components'
 import { Toggle } from '~/components/ECharts/ProtocolChart/Misc'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 
 import { ISettings } from '~/contexts/types'
 import ReactSelect from '../MultiSelect/ReactSelect'
@@ -156,7 +156,8 @@ export const useCompare = ({ chains = [], extraTvlsEnabled }: { chains?: string[
 		queryFn: () =>
 			fetch(PROTOCOLS_API)
 				.then((r) => r.json())
-				.then((pData) => pData?.chains?.map((val) => ({ value: val, label: val })))
+				.then((pData) => pData?.chains?.map((val) => ({ value: val, label: val }))),
+		staleTime: 60 * 60 * 1000
 	})
 	return {
 		data: data.map((r) => r?.data),
@@ -286,7 +287,9 @@ function ComparePage() {
 					</div>
 
 					{data.isLoading || !router.isReady ? (
-						<LocalLoader style={{ marginBottom: 'auto' }} />
+						<div className="flex items-center justify-center m-auto min-h-[360px]">
+							<LocalLoader />
+						</div>
 					) : (
 						<ChainChart title="" datasets={data?.data} isThemeDark={isDark} hideTooltip={false} />
 					)}
