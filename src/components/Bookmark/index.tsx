@@ -4,10 +4,6 @@ import { useIsClient } from '~/hooks'
 import { standardizeProtocolName } from '~/utils'
 import { Icon } from '~/components/Icon'
 
-interface IWrapperProps {
-	saved: boolean
-}
-
 // readableProtocolName has proper caps and spaces
 function Bookmark({ readableProtocolName, ...props }) {
 	const bookmarkRef = useRef(null)

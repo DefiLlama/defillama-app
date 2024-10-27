@@ -1,11 +1,12 @@
 import styled from 'styled-components'
 import { SelectLabel, SelectArrow } from 'ariakit/select'
-import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
 import { feesOptions, protocolsAndChainsOptions } from './options'
 import { SelectItem, SelectPopover, Select } from '../common'
 import { useFeesFilterState, useProtocolsFilterState, useTvlAndFeesFilterState } from './useProtocolFilterState'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
+import { Tooltip } from '~/components/Tooltip'
+import { Icon } from '~/components/Icon'
 
 const WrapperWithLabel = styled.div`
 	display: none;
@@ -59,7 +60,14 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 				<SelectPopover state={select} modal={!isLarge}>
 					{tvlOptions.map(({ key, name, help }) => (
 						<SelectItem key={key} value={key}>
-							{help ? <HeadHelp title={name} text={help} /> : name}
+							{help ? (
+								<Tooltip content={help}>
+									<span>{name}</span>
+									<Icon name="help-circle" height={15} width={15} />
+								</Tooltip>
+							) : (
+								name
+							)}
 							<Checkbox checked={select.value.includes(key)} />
 						</SelectItem>
 					))}
@@ -85,7 +93,14 @@ export function TabletFeesFilters({ options, ...props }: IProps) {
 				<SelectPopover state={select} modal={!isLarge}>
 					{feesOptions.map(({ key, name, help }) => (
 						<SelectItem key={key} value={key}>
-							{help ? <HeadHelp title={name} text={help} /> : name}
+							{help ? (
+								<Tooltip content={help}>
+									<span>{name}</span>
+									<Icon name="help-circle" height={15} width={15} />
+								</Tooltip>
+							) : (
+								name
+							)}
 							<Checkbox checked={select.value.includes(key)} />
 						</SelectItem>
 					))}
@@ -111,7 +126,14 @@ export function TabletTvlAndFeesFilters({ options, ...props }: IProps) {
 				<SelectPopover state={select} modal={!isLarge}>
 					{options.map(({ key, name, help }) => (
 						<SelectItem key={key} value={key}>
-							{help ? <HeadHelp title={name} text={help} /> : name}
+							{help ? (
+								<Tooltip content={help}>
+									<span>{name}</span>
+									<Icon name="help-circle" height={15} width={15} />
+								</Tooltip>
+							) : (
+								name
+							)}
 							<Checkbox checked={select.value.includes(key)} />
 						</SelectItem>
 					))}

@@ -362,6 +362,7 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 		}
 	} else {
 		const res = await fetchWithErrorLogging(`${CATEGORY_API}`).then((r) => r.json())
+
 		categoryChart = Object.entries(res.chart)
 			.map(([date, value]) => [date, value[category]?.tvl])
 			.filter(([_, val]) => !!val)

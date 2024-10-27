@@ -190,7 +190,7 @@ function Container({
 					</RowLinksWrapper>
 				)}
 				{category ? (
-					<StatsSection style={{ padding: '16px 8px' }}>
+					<StatsSection style={{ padding: '16px 8px', minHeight: '394px' }}>
 						<OverallMetricsWrapper>
 							{chain !== 'All' && chain && (
 								<Name data-chainname>
@@ -323,9 +323,6 @@ function Container({
 		</>
 	)
 }
-
-function ProtocolList(props: IAllTokensPageProps) {
+export function ProtocolList(props: IAllTokensPageProps) {
 	return <Container {...props} />
 }
-
-export default ProtocolList

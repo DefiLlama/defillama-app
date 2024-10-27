@@ -1,10 +1,10 @@
 import { CSSProperties } from 'react'
 import ReactSwitch from 'react-switch'
 import styled from 'styled-components'
-import HeadHelp from '~/components/HeadHelp'
 import Image from 'next/future/image'
 import Loading from '~/assets/loading_circle.svg'
-import LocalLoader from '../LocalLoader'
+import { Tooltip } from '~/components/Tooltip'
+import { Icon } from '~/components/Icon'
 
 interface IProps {
 	toggle: () => void
@@ -50,7 +50,14 @@ const OptionToggle = ({ toggle, enabled = false, help, name, isLoading = false, 
 					/>
 				)}
 				&nbsp;
-				{help ? <HeadHelp title={name} text={help} /> : name}
+				{help ? (
+					<Tooltip content={help}>
+						<span>{name}</span>
+						<Icon name="help-circle" height={15} width={15} />
+					</Tooltip>
+				) : (
+					name
+				)}
 			</Wrapper>
 		</>
 	)
