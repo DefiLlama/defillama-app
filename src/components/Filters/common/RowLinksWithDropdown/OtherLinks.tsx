@@ -1,10 +1,9 @@
 import { useComboboxState } from 'ariakit/combobox'
-import { MenuButtonArrow, useMenuState } from 'ariakit/menu'
+import { MenuButton, MenuButtonArrow, useMenuState } from 'ariakit/menu'
 import Link from 'next/link'
-import { Button, Popover } from '~/components/DropdownMenu'
+import { Popover } from '~/components/DropdownMenu'
 import { Input, Item, List } from '~/components/Combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import styled from 'styled-components'
 import { darken, transparentize } from 'polished'
 
 interface IProps {
@@ -30,10 +29,25 @@ export function OtherLinks({ options, name, variant, isActive, ...props }: IProp
 
 	return (
 		<>
-			<Trigger state={menu} data-variant={variant} data-active={isActive} {...props}>
+			<MenuButton
+				state={menu}
+				{...props}
+				data-variant={variant}
+				data-active={isActive}
+				style={
+					{
+						'--bg-light': transparentize(0.9, variant === 'secondary' ? '#eaeaea' : '#2172E5'),
+						'--bg-dark': transparentize(0.9, variant === 'secondary' ? '#22242a' : '#629ff4'),
+						'--hover-bg-light': transparentize(0.8, variant === 'secondary' ? '#eaeaea' : '#2172E5'),
+						'--hover-bg-dark': transparentize(0.8, variant === 'secondary' ? '#22242a' : '#629ff4'),
+						'--hover-active-bg': darken(0.1, '#2172E5')
+					} as any
+				}
+				className={`h-[34px] flex items-center gap-4 my-auto rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-[#1F1F1F] dark:text-[#FAFAFA] bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] hover:bg-[var(--hover-bg-light)] hover:dark:bg-[var(--hover-bg-dark)] data-[active=true]:bg-[#2172e5] data-[active=true]:text-white hover:data-[active=true]:bg-[var(--hover-active-bg)] data-[variant=secondary]:w-full`}
+			>
 				<span>{name}</span>
-				<MenuButtonArrow />
-			</Trigger>
+				<MenuButtonArrow className="relative top-[1px]" />
+			</MenuButton>
 			<Popover state={menu} modal={!isLarge} composite={false}>
 				<Input state={combobox} placeholder="Search..." autoFocus />
 				{combobox.matches.length > 0 ? (
@@ -53,32 +67,3 @@ export function OtherLinks({ options, name, variant, isActive, ...props }: IProp
 		</>
 	)
 }
-
-const Trigger = styled(Button)`
-	font-size: 0.875rem;
-	font-weight: 500;
-
-	&[data-variant='secondary'] {
-		width: 100%;
-	}
-
-	&[data-active='false'] {
-		height: 34px;
-		margin: auto 0;
-		background-color: ${({ theme }) =>
-			theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};
-	}
-
-	&[data-active='true'] {
-		background-color: ${({ color, theme }) => (color ? color : theme.primary1)};
-		color: white;
-		height: 34px;
-		margin: auto 0;
-		background-color: #2172e5;
-
-		:hover,
-		:focus-visible {
-			background-color: ${darken(0.1, '#2172E5')};
-		}
-	}
-`

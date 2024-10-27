@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import PlotsPage from '~/components/YieldsPage/indexPlots'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { maxAgeForNext } from '~/api'
 import { getYieldPageData, getYieldMedianData } from '~/api/categories/yield'

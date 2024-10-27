@@ -2,12 +2,11 @@ import { useState } from 'react'
 import Layout from '~/layout'
 import { PanelThicc } from '~/components'
 import YieldPageLoop from '~/components/YieldsPage/indexLoop'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData, calculateLoopAPY } from '~/api/categories/yield'
 import { withPerformanceLogging } from '~/utils/perf'
-import { Icon } from '~/components/Icon'
 
 export const getStaticProps = withPerformanceLogging('yields/loop', async () => {
 	let {

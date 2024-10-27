@@ -6,7 +6,7 @@ import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
-import { ChainsSelect, LayoutWrapper, OverallMetricsWrapper } from '~/containers/ChainContainer'
+import { LayoutWrapper, OverallMetricsWrapper } from '~/containers/ChainContainer'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import type { IChartProps } from '~/components/ECharts/types'
@@ -69,14 +69,14 @@ export const ForkContainer = ({
 	return (
 		<LayoutWrapper>
 			{tokenLinks?.length > 0 && (
-				<ChainsSelect>
+				<nav className="flex">
 					<RowLinksWithDropdown
 						links={tokenLinks}
 						activeLink={token}
 						alternativeOthersText="Others"
 						variant="secondary"
 					/>
-				</ChainsSelect>
+				</nav>
 			)}
 
 			<StatsSection>

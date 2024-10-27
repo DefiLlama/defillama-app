@@ -5,7 +5,7 @@ import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
 import { Tooltip2 } from '~/components/Tooltip'
-import { ButtonYields } from '~/layout/Pool'
+import { ButtonSquare } from '~/layout/Pool'
 import {
 	capitalizeFirstLetter,
 	chainIconUrl,
@@ -36,12 +36,10 @@ import type {
 	CategoryPerformanceRow,
 	CoinPerformanceRow
 } from './types'
-import { AutoColumn } from '~/components/Column'
 import { useEffect, useState } from 'react'
 import UpcomingEvent from '../Components/UpcomingEvent'
 import ProgressBar from '../Components/ProgressBar'
 import TooltipNew from '~/components/Tooltip/TootltipNew'
-import { sluggify } from '~/utils/cache-client'
 import { Icon } from '~/components/Icon'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
@@ -246,7 +244,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		size: 48,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<ButtonYields
+			<ButtonSquare
 				as="a"
 				href={getValue() as string}
 				target="_blank"
@@ -255,7 +253,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 				useTextColor={true}
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
-			</ButtonYields>
+			</ButtonSquare>
 		)
 	},
 	{
@@ -316,13 +314,9 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Mcap',
 		accessorKey: 'mcap',
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue }) => {
 			if (!getValue()) return null
-			return (
-				<AutoColumn gap="4px">
-					<span>{'$' + formattedNum(getValue())}</span>
-				</AutoColumn>
-			)
+			return <>{'$' + formattedNum(getValue())}</>
 		},
 		meta: {
 			align: 'end'
@@ -362,10 +356,10 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			if (!row.original.unlocksPerDay) return '-'
 
 			return (
-				<AutoColumn gap="4px">
+				<span className="flex flex-col gap-1">
 					{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}
 					<LightText>{formattedNum(row.original.unlocksPerDay) + (symbol ? ` ${symbol.toUpperCase()}` : '')}</LightText>
-				</AutoColumn>
+				</span>
 			)
 		},
 		meta: {
@@ -483,7 +477,7 @@ export const expensesColumns: ColumnDef<any>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonYields
+				<ButtonSquare
 					as="a"
 					href={getValue()[0] as string}
 					target="_blank"
@@ -492,7 +486,7 @@ export const expensesColumns: ColumnDef<any>[] = [
 					useTextColor={true}
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonYields>
+				</ButtonSquare>
 			) : null
 	}
 ]
@@ -688,7 +682,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		size: 40,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<ButtonYields
+			<ButtonSquare
 				as="a"
 				href={getValue() as string}
 				target="_blank"
@@ -697,7 +691,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 				useTextColor={true}
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
-			</ButtonYields>
+			</ButtonSquare>
 		)
 	}
 ]
@@ -1247,7 +1241,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		cell: ({ getValue }) => (
 			<>
 				{getValue() === undefined ? null : (
-					<ButtonYields
+					<ButtonSquare
 						as="a"
 						href={getValue() as string}
 						target="_blank"
@@ -1257,7 +1251,7 @@ export const cexColumn: ColumnDef<any>[] = [
 						style={{ width: '21px' }}
 					>
 						<Icon name="arrow-up-right" height={14} width={14} />
-					</ButtonYields>
+					</ButtonSquare>
 				)}
 			</>
 		),
@@ -1275,7 +1269,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				{getValue() === undefined ? (
 					<QuestionHelper text="This CEX has no published their wallet addresses" />
 				) : (
-					<ButtonYields
+					<ButtonSquare
 						as="a"
 						href={getValue() as string}
 						target="_blank"
@@ -1285,7 +1279,7 @@ export const cexColumn: ColumnDef<any>[] = [
 						style={{ width: '21px' }}
 					>
 						<Icon name="arrow-up-right" height={14} width={14} />
-					</ButtonYields>
+					</ButtonSquare>
 				)}
 			</>
 		),
@@ -1699,7 +1693,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonYields
+				<ButtonSquare
 					as="a"
 					href={getValue() as string}
 					target="_blank"
@@ -1708,7 +1702,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 					useTextColor={true}
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonYields>
+				</ButtonSquare>
 			) : null
 	},
 	{
@@ -1718,7 +1712,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonYields
+				<ButtonSquare
 					as="a"
 					href={getValue() as string}
 					target="_blank"
@@ -1727,7 +1721,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 					useTextColor={true}
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonYields>
+				</ButtonSquare>
 			) : null
 	},
 	{

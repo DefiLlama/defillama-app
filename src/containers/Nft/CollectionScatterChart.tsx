@@ -16,7 +16,7 @@ import styled from 'styled-components'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import type { ICollectionScatterChartProps } from './types'
-import { useMedia } from '~/hooks'
+import { useMedia } from '~/hooks/useMedia'
 
 echarts.use([
 	CanvasRenderer,

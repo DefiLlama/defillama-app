@@ -3,14 +3,13 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import AuditInfo from '~/components/AuditInfo'
+import { AuditInfo } from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
 import {
 	Button,
 	DownloadButton,
 	FlexRow,
 	InfoWrapper,
-	LinksWrapper,
 	Name,
 	Section,
 	Symbol,
@@ -310,7 +309,7 @@ const PageView = () => {
 
 // 					<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
 
-// 					<LinksWrapper>
+// 			<div className='flex items-center gap-4 flex-wrap'>
 // 						{(url || isLoading) && (
 // 							<Link href={url} passHref>
 // 								<Button
@@ -333,7 +332,7 @@ const PageView = () => {
 // 								</Button>
 // 							</Link>
 // 						)}
-// 					</LinksWrapper>
+// 					</div>
 // 				</Section>
 // 			</InfoWrapper>
 // 		</>

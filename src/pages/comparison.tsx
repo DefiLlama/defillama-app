@@ -77,7 +77,8 @@ export default function CompareProtocolsTvls({
 
 	const { data, isLoading } = useQuery({
 		queryKey: ['compare-protocols', selectedProtocols?.join('') ?? ''],
-		queryFn: () => fetchProtocols(selectedProtocols)
+		queryFn: () => fetchProtocols(selectedProtocols),
+		staleTime: 60 * 60 * 1000
 	})
 
 	const chartData = React.useMemo(() => {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const useResize = (myRef, externalTrigger) => {
+export const useResize = (myRef, externalTrigger) => {
 	const [width, setWidth] = useState(0)
 	const [height, setHeight] = useState(0)
 
@@ -23,5 +23,3 @@ const useResize = (myRef, externalTrigger) => {
 
 	return { width, height }
 }
-
-export default useResize

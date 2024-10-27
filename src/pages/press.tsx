@@ -3,13 +3,10 @@ import Layout from '~/layout'
 import { Panel } from '~/components'
 import Link from '~/components/Link'
 import PressLogo from '~/components/TokenLogo'
-import { AutoColumn } from '~/components/Column'
 
 const PressPanel = ({ imageFilename }) => (
 	<Panel style={{ padding: '18px 25px' }}>
-		<AutoColumn gap="4px">
-			<PressLogo logo={`/press/${imageFilename}`} size={150} />
-		</AutoColumn>
+		<PressLogo logo={`/press/${imageFilename}`} size={150} />
 	</Panel>
 )
 

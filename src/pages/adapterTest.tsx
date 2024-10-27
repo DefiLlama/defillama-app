@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { ChartsWrapper, LazyChart } from '~/layout/ProtocolAndPool'
 import type { IBarChartProps } from '~/components/ECharts/types'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { useRouter } from 'next/router'
 
 function decode(str: string) {

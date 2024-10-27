@@ -1,23 +1,5 @@
 import { useState } from 'react'
-import styled from 'styled-components'
 import { Icon } from '~/components/Icon'
-
-const CopyIcon = styled.button`
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	padding: 2px 0;
-
-	:hover,
-	:active,
-	:focus-visible {
-		opacity: 0.8;
-	}
-
-	& > svg {
-		color: ${({ theme }) => theme.text1};
-	}
-`
 
 export default function CopyHelper({ toCopy, ...props }) {
 	const [copied, setCopied] = useState(false)
@@ -27,8 +9,13 @@ export default function CopyHelper({ toCopy, ...props }) {
 		setTimeout(() => setCopied(false), 2000)
 	}
 	return (
-		<CopyIcon onClick={copy} aria-label="Copy" {...props}>
+		<button
+			className="flex-shrink-0 flex items-center p-[2px] hover:opacity-80 focus-visible:opacity-80"
+			onClick={copy}
+			aria-label="Copy"
+			{...props}
+		>
 			{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
-		</CopyIcon>
+		</button>
 	)
 }

@@ -17,7 +17,7 @@ import { StatsSection } from '~/layout/Stats/Medium'
 import { AccordionStat2, StatInARow } from '~/layout/Stats/Large'
 import VirtualTable from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
-import { AnnouncementWrapper } from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { RaisesFilters } from '~/components/Filters'
 import { useRouter } from 'next/router'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -135,17 +135,17 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
-			<AnnouncementWrapper>
+			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a
 					href="https://airtable.com/shrON6sFMgyFGulaq"
-					style={{ color: '#2f80ed' }}
+					className="text-[#2f80ed] underline font-medium"
 					target="_blank"
 					rel="noopener noreferrer"
 				>
 					Add it here!
 				</a>
-			</AnnouncementWrapper>
+			</Announcement>
 
 			<RaisesFilters
 				header={investorName ? `${investorName} raises` : 'Raises'}

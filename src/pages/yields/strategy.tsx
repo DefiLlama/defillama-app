@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import YieldsStrategyPage from '~/components/YieldsPage/indexStrategy'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'

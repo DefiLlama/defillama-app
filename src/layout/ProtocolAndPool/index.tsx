@@ -1,3 +1,4 @@
+import { ComponentProps } from 'react'
 import { useInView, defaultFallbackInView } from 'react-intersection-observer'
 import styled from 'styled-components'
 import { ButtonLight } from '~/components/ButtonStyled'
@@ -104,22 +105,11 @@ export const Section = styled.div`
 	}
 `
 
-export const LinksWrapper = styled.div`
-	display: flex;
-	gap: 16px;
-	flex-wrap: wrap;
-`
-
-export const Button = styled(ButtonLight)`
-	display: flex;
-	gap: 4px;
-	align-items: center;
-	padding: 8px 12px;
-	font-size: 0.875rem;
-	font-weight: 400;
-	white-space: nowrap;
-	font-family: var(--font-inter);
-` as any
+export const Button = ({ children, ...props }: ComponentProps<typeof ButtonLight>) => (
+	<ButtonLight className="flex items-center gap-4 font-normal whitespace-nowrap font-inter" {...props}>
+		{children}
+	</ButtonLight>
+)
 
 export const FlexRow = styled.p`
 	display: flex;
@@ -127,13 +117,14 @@ export const FlexRow = styled.p`
 	gap: 8px;
 `
 
-export const DownloadButton = styled(Button)`
-	display: flex;
-	align-items: center;
-	color: inherit;
-	padding: 8px 12px;
-	border-radius: 12px;
-`
+export const DownloadButton = ({ children, ...props }: ComponentProps<typeof ButtonLight>) => (
+	<ButtonLight
+		className="flex items-center gap-4 font-normal whitespace-nowrap font-inter !text-inherit rounded-xl"
+		{...props}
+	>
+		{children}
+	</ButtonLight>
+)
 
 export const DetailsTable = styled.table`
 	border-collapse: collapse;

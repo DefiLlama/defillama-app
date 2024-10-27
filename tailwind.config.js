@@ -7,7 +7,8 @@ module.exports = {
 			fontFamily: {
 				inter: ['Inter var', 'sans-serif'],
 				jetbrains: ['JetBrains Mono', 'monospace']
-			}
+			},
+			colors: {}
 		}
 	},
 	plugins: []

@@ -32,7 +32,8 @@ export const useGetStabelcoinsChartDataByChain = (chain?: string) => {
 							console.log(err)
 							return null
 						})
-			: () => null
+			: () => null,
+		staleTime: 60 * 60 * 1000
 	})
 
 	return { data: data ?? null, error, isLoading }

@@ -1,18 +1,13 @@
 import styled from 'styled-components'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { DetailsWrapper } from '../ProtocolAndPool'
+import { ComponentProps } from 'react'
 
-export const ButtonYields = styled(ButtonLight)`
-	display: flex;
-	gap: 4px;
-	align-items: center;
-	padding: 4px 6px;
-	font-size: 0.875rem;
-	font-weight: 400;
-	white-space: nowrap;
-	font-family: var(--font-inter);
-	width: 24px;
-`
+export const ButtonSquare = ({ children, ...props }: ComponentProps<typeof ButtonLight>) => (
+	<ButtonLight className="flex items-center gap-4 font-normal whitespace-nowrap w-6" {...props}>
+		{children}
+	</ButtonLight>
+)
 
 export const PoolDetails = styled(DetailsWrapper)`
 	border-top-left-radius: 12px;

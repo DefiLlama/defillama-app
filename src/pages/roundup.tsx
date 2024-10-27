@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 

@@ -2,7 +2,6 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import { Checkbox } from 'ariakit'
 
 import Bookmark from '~/components/Bookmark'
-import { AutoColumn } from '~/components/Column'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
@@ -28,11 +27,11 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const Chains = () => (
-				<AutoColumn>
+				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
 						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
 					))}
-				</AutoColumn>
+				</span>
 			)
 
 			return (
@@ -57,13 +56,13 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<AutoColumn as="span">
+					<span className="flex flex-col">
 						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
 
 						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip2>
-					</AutoColumn>
+					</span>
 					{value === 'SyncDEX Finance' && (
 						<Tooltip2 content={'Many users have reported issues with this protocol'}>
 							<Icon name="alert-triangle" height={14} width={14} />
@@ -356,11 +355,11 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const Chains = () => (
-				<AutoColumn>
+				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
 						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
 					))}
-				</AutoColumn>
+				</span>
 			)
 
 			return (
@@ -385,13 +384,13 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<AutoColumn as="span">
+					<span className="flex flex-col">
 						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
 
 						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip2>
-					</AutoColumn>
+					</span>
 					{value === 'SyncDEX Finance' && (
 						<Tooltip2 content={'Many users have reported issues with this protocol'}>
 							<Icon name="alert-triangle" height={14} width={14} />
@@ -527,11 +526,11 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
 			const Chains = () => (
-				<AutoColumn>
+				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
 						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
 					))}
-				</AutoColumn>
+				</span>
 			)
 
 			return (
@@ -552,13 +551,13 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<AutoColumn as="span">
+					<span className="flex flex-col">
 						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
 
 						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip2>
-					</AutoColumn>
+					</span>
 					{value === 'SyncDEX Finance' && (
 						<Tooltip2 content={'Many users have reported issues with this protocol'}>
 							<Icon name="alert-triangle" height={14} width={14} />

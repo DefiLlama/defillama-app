@@ -78,12 +78,10 @@ const Oracles = ({
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Oracles' }} />
 
-			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
-				<span>Total Value Secured All Oracles {chain ? `on ${chain}` : ''}</span>
-				<ButtonDark onClick={downloadCsv} style={{ width: '120px', float: 'right' }}>
-					Download all data in .csv
-				</ButtonDark>
-			</h1>
+			<div className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
+				<h1>Total Value Secured All Oracles {chain ? `on ${chain}` : ''}</h1>
+				<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
+			</div>
 
 			<ChartsWrapper>
 				<PieChart chartData={tokenTvls} stackColors={oraclesColors} />

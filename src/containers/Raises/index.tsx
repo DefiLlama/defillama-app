@@ -5,7 +5,7 @@ import type { IBarChartProps } from '~/components/ECharts/types'
 import { ChartWrapper, DetailsWrapper } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
-import { AnnouncementWrapper } from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { RaisesFilters } from '~/components/Filters'
 import { useRouter } from 'next/router'
 import { formattedNum } from '~/utils'
@@ -34,11 +34,11 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
-			<AnnouncementWrapper>
+			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a
 					href="https://airtable.com/shrON6sFMgyFGulaq"
-					style={{ color: '#2f80ed' }}
+					className="text-[#2f80ed] underline font-medium"
 					target="_blank"
 					rel="noopener noreferrer"
 				>
@@ -46,7 +46,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</a>
 				<br />
 				<span>Are you a VC and want to submit your investments in bulk? Email them to us at raises@llama.fi</span>
-			</AnnouncementWrapper>
+			</Announcement>
 
 			<RaisesFilters
 				header={investorName ? `${investorName} raises` : 'Raises'}

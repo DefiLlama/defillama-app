@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import { useDefiManager, useDarkModeManager } from '~/contexts/LocalStorage'
 import type { IChartProps } from '../types'
 import { LazyChart } from '~/layout/ProtocolAndPool'
@@ -227,7 +226,7 @@ export default function ProtocolChart({
 		)
 
 	return (
-		<Wrapper>
+		<div className="flex flex-col gap-4 py-3 col-span-1">
 			{geckoId ||
 			hallmarks?.length > 0 ||
 			metrics.bridge ||
@@ -245,7 +244,7 @@ export default function ProtocolChart({
 			(metrics.inflows && !isHourlyChart ? true : false) ||
 			(governanceApis && governanceApis.length > 0) ||
 			metrics.treasury ? (
-				<ToggleWrapper>
+				<div className="flex items-center gap-2 flex-wrap mx-4">
 					{protocolData?.tvlByChain?.length > 0 ? (
 						<Toggle backgroundColor={color}>
 							<input
@@ -927,7 +926,7 @@ export default function ProtocolChart({
 							</span>
 						</Toggle>
 					)}
-				</ToggleWrapper>
+				</div>
 			) : null}
 
 			<FiltersWrapper>
@@ -1002,7 +1001,7 @@ export default function ProtocolChart({
 				isThemeDark={isThemeDark}
 				isMonthly={groupBy === 'monthly'}
 			/>
-		</Wrapper>
+		</div>
 	)
 }
 
@@ -1054,21 +1053,5 @@ export const ProtocolChartOnly = ({
 		</LazyChart>
 	)
 }
-
-export const Wrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	padding: 16px 0;
-	grid-column: span 1;
-`
-
-const ToggleWrapper = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-	margin: 0 16px;
-`
 
 export { Denomination, Filters, Toggle }

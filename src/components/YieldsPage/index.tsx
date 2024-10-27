@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { Panel } from '~/components'
 import { YieldsPoolsTable } from '~/components/Table'
 import { YieldFiltersV2 } from '~/components/Filters'
-import { AnnouncementWrapper } from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import LocalLoader from '../LocalLoader'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
@@ -186,10 +186,10 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		<>
 			{includeTokens.length > 0 &&
 				(!selectedAttributes.includes('no_il') || !selectedAttributes.includes('single_exposure')) && (
-					<AnnouncementWrapper>
+					<Announcement notCancellable>
 						Do you want to see only pools that have a single token? Click{' '}
 						<a
-							style={{ textDecoration: 'underline' }}
+							className="text-[#2f80ed] underline font-medium"
 							onClick={() => {
 								push(
 									{
@@ -206,7 +206,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 						>
 							here
 						</a>
-					</AnnouncementWrapper>
+					</Announcement>
 				)}
 			<YieldFiltersV2
 				header="Yield Rankings"

@@ -17,20 +17,6 @@ interface IRowLinksProps {
 
 const GAP = 6
 
-const Wrapper = styled.div`
-	flex: 1;
-	overflow: hidden;
-	padding: 4px;
-	display: flex;
-	flex-wrap: wrap;
-	gap: ${GAP}px;
-	max-height: calc(1.8rem + 14px);
-
-	& > * {
-		display: inline-block;
-	}
-`
-
 export const RowLinksWrapper = styled.nav`
 	display: flex;
 	align-items: center;
@@ -112,11 +98,25 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 	return (
 		<>
 			{linksInRow && (
-				<Wrapper id="priority-nav" {...props}>
+				<div
+					className="flex-1 overflow-hidden p-1 flex flex-wrap max-h-[calc(1.8rem_+_14px)] gap-[var(--gap)]"
+					style={
+						{
+							'--gap': `${GAP}px`,
+							'--bg-light': transparentize(0.9, '#2172E5'),
+							'--bg-dark': transparentize(0.9, '#629ff4'),
+							'--hover-bg-light': transparentize(0.8, '#2172E5'),
+							'--hover-bg-dark': transparentize(0.8, '#629ff4'),
+							'--hover-active-bg': darken(0.1, '#2172E5')
+						} as any
+					}
+					id="priority-nav"
+					{...props}
+				>
 					{linksInRow.map((option, index) => (
 						<LinkItem key={option.label} option={option} activeLink={activeLink} id={`priority-nav-el-${index}`} />
 					))}
-				</Wrapper>
+				</div>
 			)}
 
 			{dropdownLinks && (
@@ -134,21 +134,18 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 export const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
 		<Link href={option.to} prefetch={false} passHref>
-			<NavLink data-active={option.label === activeLink} {...props}>
+			<a
+				className="min-w-fit rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-[#2172E5] dark:text-[#629ff4] bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] hover:bg-[var(--hover-bg-light)] hover:dark:bg-[var(--hover-bg-dark)] data-[active=true]:bg-[#2172e5] data-[active=true]:text-white hover:data-[active=true]:bg-[var(--hover-active-bg)]"
+				data-active={option.label === activeLink}
+				{...props}
+			>
 				{option.label}
-			</NavLink>
+			</a>
 		</Link>
 	)
 }
 
 export const NavLink = styled.a`
-	min-width: fit-content;
-	border-radius: 12px;
-	padding: 8px 12px;
-	white-space: nowrap;
-	font-size: 0.875rem;
-	font-weight: 500;
-
 	color: ${({ theme }) => (theme.mode === 'dark' ? '#629ff4' : '#2172E5')};
 	background-color: ${({ theme }) =>
 		theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};

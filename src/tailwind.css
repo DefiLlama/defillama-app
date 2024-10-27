@@ -23,6 +23,8 @@
 		--font-jetbrains: 'JetBrains Mono', monospace;
 		--font-inter: 'Inter var', sans-serif;
 		--text-disabled: #757575;
+		--text1: #1f1f1f;
+		--bg6: #ffffff;
 	}
 
 	* {
@@ -40,6 +42,8 @@
 
 	html.dark {
 		--text-disabled: #999999;
+		--text1: #fafafa;
+		--bg6: #000000;
 	}
 
 	body {
@@ -60,7 +64,7 @@
 	}
 
 	button {
-		@apply pointer-events-auto cursor-pointer touch-none select-none outline-2 outline-offset-2 focus-visible:outline disabled:cursor-not-allowed data-[focus-visible]:outline;
+		@apply pointer-events-auto cursor-pointer touch-none select-none outline-1 outline-offset-2 focus-visible:outline disabled:cursor-not-allowed data-[focus-visible]:outline;
 	}
 
 	a,

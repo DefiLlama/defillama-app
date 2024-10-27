@@ -313,10 +313,7 @@ function Container({
 				/>
 			</LayoutWrapper>
 			{compareProtocols.length > 0 && (
-				<ButtonDark
-					style={{ position: 'fixed', bottom: '16px', right: '16px' }}
-					onClick={() => setIsCompareModalOpen(true)}
-				>
+				<ButtonDark className="fixed bottom-4 right-4" onClick={() => setIsCompareModalOpen(true)}>
 					Compare Protocols ({compareProtocols.length})
 				</ButtonDark>
 			)}

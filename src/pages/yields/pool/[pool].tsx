@@ -5,14 +5,13 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 
 import Layout from '~/layout'
-import AuditInfo from '~/components/AuditInfo'
+import { AuditInfo } from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
 import {
 	Button,
 	DownloadButton,
 	FlexRow,
 	InfoWrapper,
-	LinksWrapper,
 	Name,
 	Section,
 	Symbol,
@@ -699,7 +698,7 @@ const PageView = (props) => {
 
 					<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
 
-					<LinksWrapper>
+					<div className="flex items-center gap-4 flex-wrap">
 						{(url || isLoading) && (
 							<Link href={url} passHref>
 								<Button
@@ -722,7 +721,7 @@ const PageView = (props) => {
 								</Button>
 							</Link>
 						)}
-					</LinksWrapper>
+					</div>
 				</Section>
 			</InfoWrapper>
 		</>

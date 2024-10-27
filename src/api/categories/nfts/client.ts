@@ -20,7 +20,8 @@ export const useFetchNftCollectionsList = () => {
 				.catch((err) => {
 					console.log(err)
 					return []
-				})
+				}),
+		staleTime: 60 * 60 * 1000
 	})
 
 	return { data, error: isError, loading: isLoading, onSearchTermChange: null, onItemClick: null }

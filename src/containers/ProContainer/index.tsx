@@ -336,10 +336,6 @@ export const LayoutWrapper = styled.div`
 	}
 `
 
-export const ChainsSelect = styled.nav`
-	display: flex;
-`
-
 export const ChartWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
@@ -347,13 +343,6 @@ export const ChartWrapper = styled.div`
 	padding: 16px 0;
 	grid-column: span 1;
 	min-height: 442px;
-`
-
-export const ToggleWrapper = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
 `
 
 export const OverallMetricsWrapper = styled(DetailsWrapper)`

@@ -2,25 +2,17 @@ import * as React from 'react'
 import Link from 'next/link'
 
 import Layout from '~/layout'
-import {
-	Button,
-	FlexRow,
-	InfoWrapper,
-	LinksWrapper,
-	Section,
-	SectionHeader,
-	ChartsWrapper
-} from '~/layout/ProtocolAndPool'
+import { Button, FlexRow, InfoWrapper, Section, SectionHeader, ChartsWrapper } from '~/layout/ProtocolAndPool'
 import CopyHelper from '~/components/Copy'
 import { AdaptorsSearch } from '~/components/Search'
-import AuditInfo from '~/components/AuditInfo'
+import { AuditInfo } from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { ChartByType } from './charts'
 
 import { chartBreakdownByChain } from '~/api/categories/adaptors/utils'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import SEO from '~/components/SEO'
 import type { IProtocolContainerProps } from './types'
@@ -172,7 +164,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						<AuditInfo audits={props.protocolSummary.audits} auditLinks={props.protocolSummary.audit_links} />
 					)}
 
-					<LinksWrapper>
+					<div className="flex items-center gap-4 flex-wrap">
 						{props.protocolSummary.url && (
 							<Link href={props.protocolSummary.url} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
@@ -188,7 +180,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 								</Button>
 							</Link>
 						)}
-					</LinksWrapper>
+					</div>
 				</Section>
 
 				{(blockExplorers.length > 0 || props.protocolSummary.gecko_id) && (
@@ -216,13 +208,13 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						)}
 
 						{props.protocolSummary.gecko_id && (
-							<LinksWrapper>
+							<div className="flex items-center gap-4 flex-wrap">
 								<Link href={`https://www.coingecko.com/en/coins/${props.protocolSummary.gecko_id}`} passHref>
 									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 										<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
 									</Button>
 								</Link>
-							</LinksWrapper>
+							</div>
 						)}
 					</Section>
 				)}
@@ -237,14 +229,14 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 							<p>{`Revenue: ${props.protocolSummary.methodology['Revenue']}`}</p>
 						) : null}
 
-						<LinksWrapper>
+						<div className="flex items-center gap-4 flex-wrap">
 							<Link href={props.protocolSummary.methodologyURL} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Check the code</span>
 									<Icon name="arrow-up-right" height={14} width={14} />
 								</Button>
 							</Link>
-						</LinksWrapper>
+						</div>
 					</Section>
 				)}
 			</InfoWrapper>

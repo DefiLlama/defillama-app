@@ -41,11 +41,3 @@ export const ControlsWrapper = styled.div`
 	vertical-align: middle;
 	align-items: center;
 `
-
-export const ToggleWrapper = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-	margin-left: auto;
-`

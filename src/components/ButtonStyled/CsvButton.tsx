@@ -1,40 +1,11 @@
 import { CSSProperties, useState } from 'react'
-import styled from 'styled-components'
-import { ButtonDark, ButtonLight } from '.'
+import { ButtonDark, ButtonLight, GrayButton } from '.'
 import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
 import dynamic from 'next/dynamic'
 
 const ProCSVDownload = dynamic(() => import('~/containers/ProApi/ProDownload').then((comp) => comp.ProCSVDownload), {
 	ssr: false
 }) as React.FC<{ onClick: () => void; clicked: number }>
-
-interface BadgeProps {
-	text: string
-	color?: string
-	isLight?: boolean
-}
-
-const BadgeWrapper = styled.span<{ color: string; isLight }>`
-	display: inline-block;
-	padding: 4px 8px;
-	border-radius: 9999px;
-	background-color: ${(props) => (props.isLight ? '#0056b9' : '#02172f')};
-	color: #fff;
-	font-size: 12px;
-	font-weight: bold;
-`
-
-const Badge: React.FC<BadgeProps> = ({ text, color, isLight }) => {
-	return (
-		<BadgeWrapper color={color} isLight={isLight}>
-			{text}
-		</BadgeWrapper>
-	)
-}
-
-const GrayButton = styled(ButtonDark)`
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-`
 
 const CSVDownloadButton = ({
 	onClick,
@@ -57,7 +28,15 @@ const CSVDownloadButton = ({
 	return (
 		<>
 			<Button onClick={() => setVerifyAndDownload((prev) => prev + 1)} style={style}>
-				{text} {IS_PRO_API_ENABLED ? <Badge text="DefiLlama Pro" isLight={isLight} /> : null}
+				{text}{' '}
+				{IS_PRO_API_ENABLED ? (
+					<span
+						className="inline-block py-1 px-2 rounded-full text-white text-xs font-bold bg-[#02172f] data-[islight=true]:bg-[#0056b9]"
+						data-islight={isLight}
+					>
+						DefiLlama Pro
+					</span>
+				) : null}
 			</Button>
 			{verifyAndDownload ? <ProCSVDownload onClick={onClick} clicked={verifyAndDownload} /> : null}
 		</>

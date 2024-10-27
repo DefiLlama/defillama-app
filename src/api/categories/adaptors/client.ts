@@ -11,6 +11,7 @@ export const useFetchAdaptorsList = (type: string) => {
 	return useQuery<IGetOverviewResponseBody>({
 		queryKey: ['adaptors-list', url],
 		queryFn: url ? () => fetchApi(url) : () => null,
+		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 }

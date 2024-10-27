@@ -7,7 +7,7 @@ import LocalLoader from '~/components/LocalLoader'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
-import Announcement from '~/components/Announcement'
+import { Announcement } from '~/components/Announcement'
 import { withPerformanceLogging } from '~/utils/perf'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 import { download } from '~/utils'
@@ -86,7 +86,7 @@ export default function Tokens({ searchData }) {
 							<TableHeader>{`${tokenSymbol.toUpperCase()} usage in protocols`}</TableHeader>
 							<CSVDownloadButton onClick={downloadCSV} />
 
-							{/* <ToggleWrapper>
+							{/* <div className="flex items-center gap-4">
 								<input
 									type="checkbox"
 									value="includeCentraliseExchanges"
@@ -99,7 +99,7 @@ export default function Tokens({ searchData }) {
 									}
 								/>
 								<span>Include CEXs</span>
-							</ToggleWrapper> */}
+							</div> */}
 						</TableFilters>
 
 						<ProtocolsByToken data={filteredProtocols} />
