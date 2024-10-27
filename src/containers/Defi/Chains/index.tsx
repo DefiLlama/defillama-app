@@ -10,7 +10,7 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { useGroupChainsByParent } from '~/hooks/data'
-import { ChainsSelect, LayoutWrapper } from '~/containers/ChainContainer'
+import { LayoutWrapper } from '~/containers/ChainContainer'
 import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 import { useRouter } from 'next/router'
 
@@ -133,9 +133,9 @@ export default function ChainsContainer({
 			/>
 
 			<LayoutWrapper>
-				<ChainsSelect>
+				<nav className="flex">
 					<RowLinksWithDropdown links={categories} activeLink={category} variant="secondary" />
-				</ChainsSelect>
+				</nav>
 
 				<div className="flex items-center justify-between gap-3 flex-wrap">
 					<h1 className="text-2xl font-medium">Total Value Locked All Chains</h1>

@@ -336,10 +336,6 @@ export const LayoutWrapper = styled.div`
 	}
 `
 
-export const ChainsSelect = styled.nav`
-	display: flex;
-`
-
 export const ChartWrapper = styled.div`
 	display: flex;
 	flex-direction: column;

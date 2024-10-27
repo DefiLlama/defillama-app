@@ -315,14 +315,14 @@ export function ChainContainer({
 			/>
 
 			<LayoutWrapper>
-				<ChainsSelect>
+				<nav className="flex">
 					<RowLinksWithDropdown
 						links={chainOptions}
 						activeLink={selectedChain}
 						alternativeOthersText="Chains"
 						variant="secondary"
 					/>
-				</ChainsSelect>
+				</nav>
 
 				<StatsSection>
 					<OverallMetricsWrapper>
@@ -775,10 +775,6 @@ export const LayoutWrapper = styled.div`
 	@media (max-width: ${({ theme }) => theme.bpMed}) {
 		margin: -12px;
 	}
-`
-
-export const ChainsSelect = styled.nav`
-	display: flex;
 `
 
 export const ChartWrapper = styled.div`
