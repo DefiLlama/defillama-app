@@ -2,9 +2,9 @@ import { ColumnDef, sortingFns } from '@tanstack/react-table'
 import styled from 'styled-components'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
-import QuestionHelper from '~/components/QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
-import { Tooltip2 } from '~/components/Tooltip'
+import { Tooltip } from '~/components/Tooltip'
 import { ButtonSquare } from '~/layout/Pool'
 import {
 	capitalizeFirstLetter,
@@ -39,7 +39,6 @@ import type {
 import { useEffect, useState } from 'react'
 import UpcomingEvent from '../Components/UpcomingEvent'
 import ProgressBar from '../Components/ProgressBar'
-import TooltipNew from '~/components/Tooltip/TootltipNew'
 import { Icon } from '~/components/Icon'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
@@ -215,11 +214,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		size: 140,
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return (
-				<Tooltip2 content={getValue() as string} style={{ padding: '12px' }}>
-					{getValue()}
-				</Tooltip2>
-			)
+			return <Tooltip content={getValue() as string}>{getValue()}</Tooltip>
 		}
 	},
 	{
@@ -231,17 +226,13 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 			const value = getValue() as Array<string>
 			const formattedValue = value.join(', ')
 
-			return (
-				<Tooltip2 content={formattedValue} style={{ padding: '12px' }}>
-					{formattedValue}
-				</Tooltip2>
-			)
+			return <Tooltip content={formattedValue}>{formattedValue}</Tooltip>
 		}
 	},
 	{
 		header: 'Link',
 		accessorKey: 'source',
-		size: 48,
+		size: 60,
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<ButtonSquare
@@ -278,7 +269,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 			const value = getValue() as Array<string>
 			const formattedValue = value.join(', ')
 
-			return <Tooltip2 content={formattedValue}>{formattedValue}</Tooltip2>
+			return <Tooltip content={formattedValue}>{formattedValue}</Tooltip>
 		}
 	}
 ]
@@ -557,8 +548,8 @@ export const activeInvestorsColumns: ColumnDef<{
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return (
-				<Tooltip2 content={'Looking for investors? Send your pitch to selected ones through us'}>
-					<div style={{ display: 'flex', gap: '8px' }} onClick={() => window.open('/pitch', '_blank')}>
+				<Tooltip content={'Looking for investors? Send your pitch to selected ones through us'}>
+					<div className="flex gap-2" onClick={() => window.open('/pitch', '_blank')}>
 						<CustomLink href={`/raises/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
 						<Icon
 							name="mail"
@@ -567,7 +558,7 @@ export const activeInvestorsColumns: ColumnDef<{
 							cursor={'pointer'}
 						/>
 					</div>
-				</Tooltip2>
+				</Tooltip>
 			)
 			return
 		},
@@ -629,7 +620,7 @@ export const activeInvestorsColumns: ColumnDef<{
 		accessorKey: 'projects',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Tooltip2 content={getValue()}>{getValue()}</Tooltip2>
+			return <Tooltip content={getValue()}>{getValue()}</Tooltip>
 		},
 		size: 240
 	}
@@ -681,18 +672,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		accessorKey: 'link',
 		size: 40,
 		enableSorting: false,
-		cell: ({ getValue }) => (
-			<ButtonSquare
-				as="a"
-				href={getValue() as string}
-				target="_blank"
-				rel="noopener noreferrer"
-				data-lgonly
-				useTextColor={true}
-			>
-				<Icon name="arrow-up-right" height={14} width={14} />
-			</ButtonSquare>
-		)
+		cell: ({ getValue }) => <Icon name="arrow-up-right" height={14} width={14} />
 	}
 ]
 
@@ -791,35 +771,35 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			if (!chainAssets) return null
 			const totalValue = formattedNum(chainAssets.total.total, true)
 			const chainAssetsBreakdown = (
-				<div style={{ width: '200px' }}>
+				<div className="w-52 flex flex-col gap-1">
 					{chainAssets.native && (
-						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+						<div className="flex items-center gap-1 justify-between">
 							<span>Native:</span>
 							<span>{formattedNum(chainAssets.native.total, true)}</span>
 						</div>
 					)}
 					{chainAssets.canonical && (
-						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+						<div className="flex items-center gap-1 justify-between">
 							<span>Canonical:</span>
 							<span>{formattedNum(chainAssets.canonical.total, true)}</span>
 						</div>
 					)}
 
 					{chainAssets.ownTokens && (
-						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+						<div className="flex items-center gap-1 justify-between">
 							<span>Own Tokens:</span>
 							<span>{formattedNum(chainAssets.ownTokens.total, true)}</span>
 						</div>
 					)}
 					{chainAssets.thirdParty && (
-						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+						<div className="flex items-center gap-1 justify-between">
 							<span>Third Party:</span>
 							<span>{formattedNum(chainAssets.thirdParty.total, true)}</span>
 						</div>
 					)}
 				</div>
 			)
-			return <TooltipNew content={chainAssetsBreakdown}>{totalValue}</TooltipNew>
+			return <Tooltip content={chainAssetsBreakdown}>{totalValue}</Tooltip>
 		},
 		sortingFn: (rowA, rowB) => {
 			const valueA = rowA.original?.chainAssets?.total.total
@@ -1983,12 +1963,6 @@ export const raisesColumnOrders = formatColumnOrder({
 		'otherInvestors'
 	]
 })
-
-const Tooltip = styled(Tooltip2)`
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-`
 
 const breakdownColor = (type) => {
 	if (type === 'stablecoins') {

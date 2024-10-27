@@ -4,7 +4,7 @@ import Bookmark from '~/components/Bookmark'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
-import Tooltip from '~/components/Tooltip'
+import { Tooltip } from '~/components/Tooltip'
 import FormattedName from '~/components/FormattedName'
 import useWindowSize from '~/hooks/useWindowSize'
 import { Icon } from '~/components/Icon'
@@ -87,11 +87,14 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 
 	return (
 		<AirdropWrapper {...props}>
-			{airdrop && project !== 'Fraxlend' && (
-				<Tooltip content="This project has no token and might airdrop one to depositors in the future">
-					<Airdrop>🪂</Airdrop>
+			{airdrop && project !== 'Fraxlend' ? (
+				<Tooltip
+					content="This project has no token and might airdrop one to depositors in the future"
+					anchorStyles={{ margin: '0 16px 0 -32px' }}
+				>
+					🪂
 				</Tooltip>
-			)}
+			) : null}
 			<TokenLogo logo={iconUrl} />
 			{withoutLink ? (
 				<FormattedName text={project} maxCharacters={20} link fontWeight={500} margin />
@@ -125,21 +128,17 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<ProjectWrapper>
-				{airdropProject1 && (
-					<Tooltip content="This project has no token and might airdrop one to depositors in the future">
-						<span>🪂</span>
-					</Tooltip>
-				)}
+				{airdropProject1 ? (
+					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
+				) : null}
 				<TokenLogo logo={iconUrl1} />
 				<span>{project1}</span>
 			</ProjectWrapper>
 			<span>{'->'}</span>
 			<ProjectWrapper>
-				{airdropProject2 && (
-					<Tooltip content="This project has no token and might airdrop one to depositors in the future">
-						<span>🪂</span>
-					</Tooltip>
-				)}
+				{airdropProject2 ? (
+					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
+				) : null}
 
 				<TokenLogo logo={iconUrl2} />
 				<span>{project2}</span>
@@ -159,11 +158,9 @@ export function FRStrategyRoute({ project1, airdropProject1, project2, airdropPr
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<ProjectWrapper>
-				{airdropProject1 && (
-					<Tooltip content="This project has no token and might airdrop one to depositors in the future">
-						<span>🪂</span>
-					</Tooltip>
-				)}
+				{airdropProject1 ? (
+					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
+				) : null}
 				<TokenLogo logo={iconUrl1} />
 				<span>{project1}</span>
 			</ProjectWrapper>

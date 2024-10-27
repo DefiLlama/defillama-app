@@ -15,7 +15,7 @@ import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
 import { AuditInfo } from '~/components/AuditInfo'
 import SEO from '~/components/SEO'
-import QuestionHelper from '~/components/QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'

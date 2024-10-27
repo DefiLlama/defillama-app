@@ -30,7 +30,7 @@ import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
 
 import { formatRaise, formatRaisedAmount } from '../Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
-import QuestionHelper from '~/components/QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import Link from '~/components/Link'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'

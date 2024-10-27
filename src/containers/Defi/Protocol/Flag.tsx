@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { FormSubmitBtn } from '~/components'
 import { DialogForm } from '~/components/Filters/common/Base'
 import { Icon } from '~/components/Icon'
-import { Tooltip2 } from '~/components/Tooltip'
+import { Tooltip } from '~/components/Tooltip'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 
@@ -54,11 +54,11 @@ export function Flag({ protocol, dataType, isLending }: { protocol: string; data
 	return (
 		<>
 			{dataType ? (
-				<Tooltip2 content="Report incorrect data">
+				<Tooltip content="Report incorrect data">
 					<button onClick={dialog.toggle}>
 						<Icon name="flag" height={14} width={14} />
 					</button>
-				</Tooltip2>
+				</Tooltip>
 			) : (
 				<button
 					onClick={dialog.toggle}

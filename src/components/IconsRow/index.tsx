@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Hovercard, HovercardAnchor, useHovercardState } from 'ariakit/hovercard'
 import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
-import { Tooltip2 } from '~/components/Tooltip'
+import { Tooltip } from '~/components/Tooltip'
 import { useResize } from '~/hooks/useResize'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import Link from 'next/link'
@@ -71,13 +71,13 @@ export const ChainLogo = ({
 
 	if (yieldRewardsSymbol || disableLinks) {
 		return (
-			<Tooltip2 content={disableLinks ? chain : yieldRewardsSymbol}>
+			<Tooltip content={disableLinks ? chain : yieldRewardsSymbol}>
 				<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
-			</Tooltip2>
+			</Tooltip>
 		)
 	} else {
 		return (
-			<Tooltip2 content={chain}>
+			<Tooltip content={chain}>
 				<Link
 					key={chain}
 					href={
@@ -99,7 +99,7 @@ export const ChainLogo = ({
 						/>
 					</a>
 				</Link>
-			</Tooltip2>
+			</Tooltip>
 		)
 	}
 }

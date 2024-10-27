@@ -4,9 +4,9 @@ import { Checkbox } from 'ariakit'
 import Bookmark from '~/components/Bookmark'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
-import QuestionHelper from '~/components/QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
-import { Tooltip2 } from '~/components/Tooltip'
+import { Tooltip } from '~/components/Tooltip'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDayAndHour, toNiceDaysAgo } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
@@ -59,14 +59,14 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					<span className="flex flex-col">
 						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
 
-						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
+						<Tooltip content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip2>
+						</Tooltip>
 					</span>
 					{value === 'SyncDEX Finance' && (
-						<Tooltip2 content={'Many users have reported issues with this protocol'}>
+						<Tooltip content={'Many users have reported issues with this protocol'}>
 							<Icon name="alert-triangle" height={14} width={14} />
-						</Tooltip2>
+						</Tooltip>
 					)}
 				</Name>
 			)
@@ -387,14 +387,14 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 					<span className="flex flex-col">
 						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
 
-						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
+						<Tooltip content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip2>
+						</Tooltip>
 					</span>
 					{value === 'SyncDEX Finance' && (
-						<Tooltip2 content={'Many users have reported issues with this protocol'}>
+						<Tooltip content={'Many users have reported issues with this protocol'}>
 							<Icon name="alert-triangle" height={14} width={14} />
-						</Tooltip2>
+						</Tooltip>
 					)}
 				</Name>
 			)
@@ -554,14 +554,14 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 					<span className="flex flex-col">
 						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
 
-						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
+						<Tooltip content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip2>
+						</Tooltip>
 					</span>
 					{value === 'SyncDEX Finance' && (
-						<Tooltip2 content={'Many users have reported issues with this protocol'}>
+						<Tooltip content={'Many users have reported issues with this protocol'}>
 							<Icon name="alert-triangle" height={14} width={14} />
-						</Tooltip2>
+						</Tooltip>
 					)}
 				</Name>
 			)

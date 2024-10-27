@@ -4,7 +4,7 @@ import { formattedNum, formattedPercent, toK } from '~/utils'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
-import QuestionHelper from '~/components/QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 

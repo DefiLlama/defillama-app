@@ -4,9 +4,9 @@ import { NameYieldPool, FRStrategyRoute } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsStrategyTableRow } from '../types'
 import { PoolStrategyWithProjects } from '../../shared'
-import { Tooltip2 } from '~/components/Tooltip'
+import { Tooltip } from '~/components/Tooltip'
 import styled from 'styled-components'
-import QuestionHelper from '~/components/QuestionHelper'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 
@@ -56,7 +56,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 				</ColoredAPY>
 			)
 		},
-		size: 140,
+		size: 145,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Farm APY + Funding APY'
@@ -80,7 +80,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 				</>
 			)
 		},
-		size: 120,
+		size: 125,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Annualised Farm Yield'
@@ -93,11 +93,11 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		cell: ({ getValue, row }) => {
 			const TooltipContent = () => {
 				return (
-					<>
+					<span className="flex flex-col gap-1">
 						<span>{`8h: ${row.original?.afr?.toFixed(2)}%`}</span>
 						<span>{`7d: ${row.original?.afr7d?.toFixed(2)}%`}</span>
 						<span>{`30d: ${row.original?.afr30d?.toFixed(2)}%`}</span>
-					</>
+					</span>
 				)
 			}
 
@@ -114,7 +114,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 				</>
 			)
 		},
-		size: 140,
+		size: 145,
 		meta: {
 			align: 'end',
 			headerHelperText:
@@ -126,7 +126,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		accessorKey: 'fr8hCurrent',
 		enableSorting: true,
 		cell: ({ getValue }) => getValue() + '%',
-		size: 140,
+		size: 145,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Current (predicted) Funding Rate'
@@ -137,7 +137,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		accessorKey: 'fundingRate7dAverage',
 		enableSorting: true,
 		cell: ({ getValue }) => getValue() + '%',
-		size: 140,
+		size: 175,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Average of previously settled funding rates from the last 7 days'
@@ -181,7 +181,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 				</span>
 			)
 		},
-		size: 120,
+		size: 140,
 		meta: {
 			align: 'end'
 		}
@@ -200,30 +200,24 @@ const columnOrders = {
 export const columnSizes = {
 	0: {
 		strategy: 250,
-		strategyAPY: 190,
-		apy: 180,
-		afr: 190,
-		fr8hCurrent: 190,
-		fundingRate7dAverage: 190,
+		strategyAPY: 145,
+		apy: 125,
+		afr: 145,
+		fr8hCurrent: 145,
+		fundingRate7dAverage: 175,
 		tvlUsd: 100,
-		openInterest: 120
+		openInterest: 140
 	},
 	812: {
 		strategy: 300,
-		strategyAPY: 130,
-		apy: 130,
-		afr: 130,
-		fr8hCurrent: 130,
-		fundingRate7dAverage: 150,
+		strategyAPY: 145,
+		apy: 125,
+		afr: 145,
+		fr8hCurrent: 145,
+		fundingRate7dAverage: 175,
 		tvlUsd: 100,
-		openInterest: 100
+		openInterest: 140
 	}
 }
-
-const Tooltip = styled(Tooltip2)`
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-`
 
 export const yieldsColumnOrders = formatColumnOrder(columnOrders)

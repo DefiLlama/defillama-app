@@ -84,22 +84,6 @@ const slideUp = keyframes`
 `
 
 export const GlobalStyle = createGlobalStyle`
-	.tooltip-trigger {
-		color: ${({ theme }) => theme.text1};
-		display: flex;
-		align-items: center;
-		padding: 0;
-
-		:focus-visible {
-			outline-offset: 2px;
-		}
-	}
-
-	.tooltip-trigger a {
-		display: flex;
-	}
-
-
 	.sliding-menu-item {
 		flex-shrink: 0;
 		padding: 8px;

@@ -4,7 +4,7 @@ import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { useSetPopoverStyles } from './utils'
 import { useRouter } from 'next/router'
-import { Tooltip2 } from '../Tooltip'
+import { Tooltip } from '../Tooltip'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 
@@ -187,11 +187,11 @@ export function EmbedChart({ color, ...props }) {
 
 	return (
 		<>
-			<Tooltip2 content="Embed Chart">
+			<Tooltip content="Embed Chart">
 				<PopoverTrigger state={popover} color={color}>
 					<Icon name="code" height={14} width={14} />
 				</PopoverTrigger>
-			</Tooltip2>
+			</Tooltip>
 
 			<PopoverWrapper state={popover} modal={!isLarge} {...props}>
 				<CopyContent>

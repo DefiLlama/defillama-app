@@ -24,7 +24,25 @@
 		--font-inter: 'Inter var', sans-serif;
 		--text-disabled: #757575;
 		--text1: #1f1f1f;
+		--text2: #565a69;
+		--text3: #888d9b;
+		--text4: #c3c5cb;
+		--text5: #edeef2;
+		--bg1: #fafafa;
+		--bg2: #f7f8fa;
+		--bg3: #edeef2;
+		--bg4: #ced0d9;
+		--bg5: #888d9b;
 		--bg6: #ffffff;
+		--bg7: rgba(252, 252, 251, 1);
+		--bg8: #ffffff;
+		--bg9: rgba(255, 255, 255, 0.4);
+		--primary1: #445ed0;
+		--divider: rgba(43, 43, 43, 0.035);
+		--red1: #ff6871;
+		--green1: #27ae60;
+		--link: #2172e5;
+		--blue: #2f80ed;
 	}
 
 	* {
@@ -43,7 +61,21 @@
 	html.dark {
 		--text-disabled: #999999;
 		--text1: #fafafa;
+		--text2: #c3c5cb;
+		--text3: #6c7284;
+		--text4: #565a69;
+		--text5: #2c2f36;
+		--bg1: #212429;
+		--bg2: #2c2f36;
+		--bg3: #40444f;
+		--bg4: #565a69;
+		--bg5: #565a69;
 		--bg6: #000000;
+		--bg7: rgba(7, 14, 15, 0.7);
+		--bg8: #17181c;
+		--bg9: rgba(0, 0, 0, 0.1);
+		--primary1: #2172e5;
+		--divider: rgba(43, 43, 43, 0.435);
 	}
 
 	body {
@@ -71,7 +103,7 @@
 	input,
 	textarea,
 	select {
-		@apply outline-2 outline-offset-2 focus-visible:outline disabled:cursor-not-allowed;
+		@apply outline-1 outline-offset-2 focus-visible:outline disabled:cursor-not-allowed;
 	}
 
 	input,
