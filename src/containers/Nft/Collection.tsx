@@ -4,7 +4,7 @@ import { DetailsWrapper, Name, ChartWrapper, ChartsWrapper, LazyChart, Button } 
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import TokenLogo from '~/components/TokenLogo'
-import FormattedName from '~/components/FormattedName'
+import { FormattedName } from '~/components/FormattedName'
 import dynamic from 'next/dynamic'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 import { IChartProps } from '~/components/ECharts/types'

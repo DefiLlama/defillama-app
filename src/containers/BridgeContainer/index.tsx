@@ -6,7 +6,7 @@ import { Button, DetailsWrapper, LazyChart, Name } from '~/layout/ProtocolAndPoo
 import { StatsSection } from '~/layout/Stats/Medium'
 import { BridgesSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
-import FormattedName from '~/components/FormattedName'
+import { FormattedName } from '~/components/FormattedName'
 import SEO from '~/components/SEO'
 import { BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange } from '~/utils'

@@ -5,7 +5,7 @@ import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
-import FormattedName from '~/components/FormattedName'
+import { FormattedName } from '~/components/FormattedName'
 import useWindowSize from '~/hooks/useWindowSize'
 import { Icon } from '~/components/Icon'
 
@@ -97,7 +97,7 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 			) : null}
 			<TokenLogo logo={iconUrl} />
 			{withoutLink ? (
-				<FormattedName text={project} maxCharacters={20} link fontWeight={500} margin />
+				<FormattedName text={project} maxCharacters={20} link fontWeight={500} />
 			) : (
 				<CustomLink href={tokenUrl}>{project}</CustomLink>
 			)}
@@ -203,7 +203,7 @@ const Wrapper = styled.span`
 const AirdropWrapper = styled(Wrapper)`
 	gap: 0px;
 	position: relative;
-	padding-left: 32px;
+	padding-left: 24px;
 
 	a:last-of-type {
 		margin-left: 8px;

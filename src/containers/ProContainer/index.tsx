@@ -16,7 +16,7 @@ import { groupBy as lodahGroupBy, mapValues } from 'lodash'
 import ItemsSelect, { chainChartOptions, FilterHeader } from './ItemsSelect'
 import { useCompare } from '~/components/ComparePage'
 import SelectedItem from './SelectedItem'
-import LocalLoader from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/LocalLoader'
 import { sluggify } from '~/utils/cache-client'
 import RowFilter from '~/components/Filters/common/RowFilter'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
@@ -266,7 +266,9 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 			</Filters>
 			<LayoutWrapper>
 				{isLoading ? (
-					<LocalLoader />
+					<div className="flex items-center justify-center m-auto min-h-[360px]">
+						<LocalLoader />
+					</div>
 				) : (
 					<ChartsBody itemsCount={items?.length}>
 						<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
