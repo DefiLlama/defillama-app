@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import { sum } from 'lodash'
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import TokenLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
 
 const Wrapper = styled.div<{ isProtocolPage: boolean }>`

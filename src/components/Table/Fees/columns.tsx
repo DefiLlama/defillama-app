@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
-import TokenLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'

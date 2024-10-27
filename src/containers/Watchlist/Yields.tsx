@@ -5,7 +5,7 @@ import { Menu } from '~/components/DropdownMenu'
 import { YieldsPoolsTable } from '~/components/Table'
 import { useIsClient } from '~/hooks'
 import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
-import OptionToggle from '~/components/OptionToggle'
+import { OptionToggle } from '~/components/OptionToggle'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 

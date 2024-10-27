@@ -2,11 +2,11 @@ import * as React from 'react'
 import Layout from '~/layout'
 import { Panel } from '~/components'
 import Link from '~/components/Link'
-import PressLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 
 const PressPanel = ({ imageFilename }) => (
 	<Panel style={{ padding: '18px 25px' }}>
-		<PressLogo logo={`/press/${imageFilename}`} size={150} />
+		<TokenLogo logo={`/press/${imageFilename}`} size={150} />
 	</Panel>
 )
 

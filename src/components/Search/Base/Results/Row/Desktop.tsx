@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { ComboboxItem } from 'ariakit/combobox'
-import TokenLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 import { useState } from 'react'
 
 const Item = styled(ComboboxItem)`

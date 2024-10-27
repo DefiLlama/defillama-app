@@ -8,7 +8,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ColumnDef } from '@tanstack/react-table'
 import { AccordionButton, Name } from '~/components/Table/shared'
 import { formattedNum } from '~/utils'
-import TokenLogo, { FallbackLogo } from '~/components/TokenLogo'
+import { TokenLogo, FallbackLogo } from '~/components/TokenLogo'
 import Link from '~/components/Link'
 import { Icon } from '~/components/Icon'
 

@@ -22,7 +22,7 @@ import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } fr
 import { RowWithSubRows, StatsTable2, SubrowTh } from '../Defi/Protocol'
 import SEO from '~/components/SEO'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
-import TokenLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 import { EmbedChart } from '~/components/Popover'
 import { primaryColor } from '~/constants/colors'
 import { useFetchChainChartData } from './useFetchChainChartData'

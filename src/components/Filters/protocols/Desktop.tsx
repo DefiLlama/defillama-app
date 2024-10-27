@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { SelectArrow } from 'ariakit/select'
 import { SelectItem, ItemsSelected, SelectButton, SelectPopover } from '../common'
-import OptionToggle from '~/components/OptionToggle'
+import { OptionToggle } from '~/components/OptionToggle'
 import { Checkbox } from '~/components'
 import { useDefiManager, useFeesManager, useTvlAndFeesManager } from '~/contexts/LocalStorage'
 import { feesOptions, protocolsAndChainsOptions } from './options'

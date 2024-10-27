@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import TokenLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { ButtonSquare } from '~/layout/Pool'
 import {

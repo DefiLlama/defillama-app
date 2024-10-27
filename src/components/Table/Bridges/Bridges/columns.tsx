@@ -11,7 +11,7 @@ import {
 	standardizeProtocolName,
 	tokenIconUrl
 } from '~/utils'
-import TokenLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 import { formatColumnOrder } from '../../utils'
 import type { IBridge, IBridgeChain } from './types'
 import { getBlockExplorerForTx, getBlockExplorerForAddress } from '~/utils/bridges/blockExplorers'

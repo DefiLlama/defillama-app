@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
-import TokenLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 import { slug, formattedPercent } from '~/utils'
 import { Name } from '../../shared'
 import type { INftCollection } from '../types'
@@ -16,7 +16,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 
 			return (
 				<Name>
-					<TokenLogo logo={item.image} fallbackLogo={item?.image} external />
+					<TokenLogo logo={item.image} fallbackLogo={item?.image} />
 					<CustomLink href={`/nfts/collection/${slug(item.collectionId)}`}>{`${item.name}`}</CustomLink>
 				</Name>
 			)

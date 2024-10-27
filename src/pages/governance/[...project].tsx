@@ -4,7 +4,7 @@ import * as React from 'react'
 import Layout from '~/layout'
 import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
-import TokenLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 import { standardizeProtocolName, tokenIconUrl, chainIconUrl, toK } from '~/utils'
 import {
 	GOVERNANCE_SNAPSHOT_API,

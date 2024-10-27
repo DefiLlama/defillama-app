@@ -43,6 +43,7 @@
 		--green1: #27ae60;
 		--link: #2172e5;
 		--blue: #2f80ed;
+		--dlnews: #002237;
 	}
 
 	* {
@@ -76,6 +77,7 @@
 		--bg9: rgba(0, 0, 0, 0.1);
 		--primary1: #2172e5;
 		--divider: rgba(43, 43, 43, 0.435);
+		--dlnews: #ffffff;
 	}
 
 	body {

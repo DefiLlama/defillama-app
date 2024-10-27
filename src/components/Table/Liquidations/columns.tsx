@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
 import { useStackBy } from '~/components/LiquidationsPage/utils'
-import TokenLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 import { CHAINS_API, CONFIG_API } from '~/constants'
 import { chainIconUrl } from '~/utils'
 import { getReadableValue } from '~/utils/liquidations'

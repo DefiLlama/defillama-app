@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import type { INftMarketplace } from '../types'
 import { formattedPercent } from '~/utils'
-import TokenLogo from '~/components/TokenLogo'
+import { TokenLogo } from '~/components/TokenLogo'
 import { Name } from '../../shared'
 import styled from 'styled-components'
 

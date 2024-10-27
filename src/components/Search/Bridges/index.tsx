@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import styled from 'styled-components'
 import { ListWrapper } from '~/components/Filters/protocols/Desktop'
-import OptionToggle from '~/components/OptionToggle'
+import { OptionToggle } from '~/components/OptionToggle'
 import { DesktopSearch } from '../Base'
 import type { ICommonSearchProps } from '../types'
 import { useGetBridgesSearchList } from './hooks'
