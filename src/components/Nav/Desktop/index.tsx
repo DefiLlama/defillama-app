@@ -1,12 +1,9 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import Image from 'next/future/image'
 import { useYieldApp } from '~/hooks'
 import { navLinks } from '../Links'
 import { ThemeSwitch } from '../ThemeSwitch'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama.png'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark.png'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SubMenu } from './SubMenu'
 import { NewTag } from '../NewTag'
@@ -23,11 +20,14 @@ export function DesktopNav() {
 			<Link href="/" passHref>
 				<a className="flex-shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
-					<Image
-						src={darkMode ? logoLight : logoDark}
+					<img
+						src={
+							darkMode
+								? '/defillama-press-kit/defi/PNG/defillama.png'
+								: '/defillama-press-kit/defi/PNG/defillama-dark.png'
+						}
 						className="h-[53px] object-contain object-left w-min hover:-rotate-6 transition-transform duration-300 mr-auto"
-						alt="Navigate to Home Page"
-						priority
+						alt=""
 					/>
 				</a>
 			</Link>

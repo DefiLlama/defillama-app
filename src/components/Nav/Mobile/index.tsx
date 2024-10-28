@@ -1,9 +1,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import Image from 'next/future/image'
 import dynamic from 'next/dynamic'
-import Logo from '~/assets/logo_white_long.png'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
 
@@ -20,10 +18,9 @@ export function MobileNav() {
 			<Link href="/" passHref>
 				<a className="flex-shrink-0 mr-auto">
 					<span className="sr-only">Navigate to Home Page</span>
-					<Image
-						src={Logo}
-						alt="Navigate to Home Page"
-						priority
+					<img
+						src="/defillama-press-kit/defi/PNG/defillama.png"
+						alt=""
 						className="h-9 object-contain object-left w-min hover:-rotate-6 transition-transform duration-300 mr-auto"
 					/>
 				</a>

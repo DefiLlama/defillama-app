@@ -44,7 +44,7 @@ export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function
 				/>
 			</summary>
 
-			<span className="mt-4 flex flex-col gap-4">
+			<span className="my-4 flex flex-col gap-4">
 				{navLinks[name].main.map((subLink) => (
 					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
 						<a

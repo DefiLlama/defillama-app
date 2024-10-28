@@ -165,7 +165,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 				/>
 				<span data-togglemenuoff={false}>{name}</span>
 			</summary>
-			<span className="mt-1 flex flex-col">
+			<span className="my-1 flex flex-col">
 				{navLinks[name].main.map((subLink, i) => (
 					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
 						<a
