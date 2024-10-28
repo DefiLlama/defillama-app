@@ -69,11 +69,11 @@ function PeggedAssetsOverview({
 	chartDataByPeggedAsset,
 	backgroundColor
 }) {
-	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Total Market Cap' : 'USD Inflows')
+	const [chartType, setChartType] = React.useState('Total Market Cap')
 
 	const chartTypeList =
 		selectedChain !== 'All'
-			? ['USD Inflows', 'Total Market Cap', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
+			? ['Total Market Cap', 'USD Inflows', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
 			: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
 
 	const [filteredIndexes, setFilteredIndexes] = React.useState([])
