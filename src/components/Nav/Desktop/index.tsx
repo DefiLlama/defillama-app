@@ -16,7 +16,7 @@ export function DesktopNav() {
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	return (
-		<nav className="fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-[var(--bg8)] hidden lg:flex flex-col gap-5 p-6 no-scrollbar">
+		<nav className="fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-[var(--bg8)] hidden lg:flex flex-col gap-1 p-6 no-scrollbar">
 			<Link href="/" passHref>
 				<a className="flex-shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
@@ -26,85 +26,85 @@ export function DesktopNav() {
 								? '/defillama-press-kit/defi/PNG/defillama.png'
 								: '/defillama-press-kit/defi/PNG/defillama-dark.png'
 						}
-						className="h-[53px] object-contain object-left w-min hover:-rotate-6 transition-transform duration-300 mr-auto"
+						height={53}
+						width={155}
+						className="object-contain object-left hover:-rotate-6 transition-transform duration-300 mr-auto mb-4"
 						alt=""
 					/>
 				</a>
 			</Link>
 
-			<span className="flex flex-col gap-1 flex-1">
-				<p className="text-xs opacity-65 mb-1">Dashboards</p>
+			<p className="text-xs opacity-65 mb-1">Dashboards</p>
 
-				{Object.keys(navLinks).map((mainLink) => (
-					<SubMenu key={mainLink} name={mainLink} />
-				))}
+			{Object.keys(navLinks).map((mainLink) => (
+				<SubMenu key={mainLink} name={mainLink} />
+			))}
 
-				<hr className="border-black/20 dark:border-white/20 my-4" />
+			<hr className="border-black/20 dark:border-white/20 my-4" />
 
-				<p className="text-xs opacity-65 mb-1">Tools</p>
+			<p className="text-xs opacity-65 mb-1">Tools</p>
 
-				{commonLinks.tools.map((link) => {
-					if ('onClick' in link) {
-						return (
-							<button
-								key={link.name}
-								onClick={link.onClick}
-								className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
-							>
-								{link.name}
-							</button>
-						)
-					} else {
-						return (
-							<React.Fragment key={link.name}>
-								<Link href={link.path} key={link.path} prefetch={false} passHref>
-									<a
-										target={link.external && '_blank'}
-										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
-										data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
-										className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
-									>
-										{link.name}
-										{link.newTag === true ? <NewTag /> : null}
-									</a>
-								</Link>
-							</React.Fragment>
-						)
-					}
-				})}
+			{commonLinks.tools.map((link) => {
+				if ('onClick' in link) {
+					return (
+						<button
+							key={link.name}
+							onClick={link.onClick}
+							className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+						>
+							{link.name}
+						</button>
+					)
+				} else {
+					return (
+						<React.Fragment key={link.name}>
+							<Link href={link.path} key={link.path} prefetch={false} passHref>
+								<a
+									target={link.external && '_blank'}
+									rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
+									data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
+									className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+								>
+									{link.name}
+									{link.newTag === true ? <NewTag /> : null}
+								</a>
+							</Link>
+						</React.Fragment>
+					)
+				}
+			})}
 
-				<hr className="border-black/20 dark:border-white/20 my-4" />
+			<hr className="border-black/20 dark:border-white/20 my-4" />
 
-				{commonLinks.footer.map((link) => {
-					if ('onClick' in link) {
-						return (
-							<button
-								key={link.name}
-								onClick={link.onClick}
-								className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
-							>
-								{link.name}
-							</button>
-						)
-					} else {
-						return (
-							<React.Fragment key={link.name}>
-								<Link href={link.path} key={link.path} prefetch={false} passHref>
-									<a
-										target={link.external && '_blank'}
-										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
-										data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
-										className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
-									>
-										{link.name}
-										{link.newTag === true ? <NewTag /> : null}
-									</a>
-								</Link>
-							</React.Fragment>
-						)
-					}
-				})}
-			</span>
+			{commonLinks.footer.map((link) => {
+				if ('onClick' in link) {
+					return (
+						<button
+							key={link.name}
+							onClick={link.onClick}
+							className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+						>
+							{link.name}
+						</button>
+					)
+				} else {
+					return (
+						<React.Fragment key={link.name}>
+							<Link href={link.path} key={link.path} prefetch={false} passHref>
+								<a
+									target={link.external && '_blank'}
+									rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
+									data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
+									className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+								>
+									{link.name}
+									{link.newTag === true ? <NewTag /> : null}
+								</a>
+							</Link>
+						</React.Fragment>
+					)
+				}
+			})}
 
 			<ThemeSwitch darkMode={darkMode} toggle={toggleDarkMode} />
 		</nav>

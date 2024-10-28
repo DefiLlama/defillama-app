@@ -1,6 +1,4 @@
 import Link from 'next/link'
-import styled from 'styled-components'
-import ReactMarkdown from 'react-markdown'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -9,66 +7,6 @@ import { Announcement } from '~/components/Announcement'
 import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
-
-const Header = styled.h1`
-	color: ${({ theme }) => theme.text1};
-	font-weight: 600;
-	margin: 24px 0 -24px 0;
-	font-size: revert !important;
-	text-align: center;
-
-	a {
-		position: relative;
-		top: 4px;
-	}
-`
-
-const Text = styled.div`
-	color: ${({ theme }) => theme.text1};
-	font-size: 1rem;
-	margin: 2rem auto;
-	max-width: 500px;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-
-	a {
-		color: ${({ theme }) => theme.link};
-		text-decoration: underline;
-	}
-
-	p {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		margin: 0.3rem 0;
-	}
-
-	h2 {
-		margin: 2rem 0 1rem 0;
-	}
-
-	h3 {
-		margin: 1rem 0 0.6rem 0;
-	}
-`
-
-const Content = ({ text }: { text: string }) => {
-	return (
-		<>
-			<ReactMarkdown
-				components={{
-					a: ({ node, ...props }) => (
-						<span>
-							&gt; <a target="_blank" rel="noopener noreferrer" {...props} />
-						</span>
-					)
-				}}
-			>
-				{text}
-			</ReactMarkdown>
-		</>
-	)
-}
 
 export default function Chains({ messages }: { messages?: string }) {
 	// Emoji regex ref: https://stackoverflow.com/questions/70401560/what-is-the-difference-between-emoji-presentation-and-extended-pictographic
@@ -87,17 +25,36 @@ export default function Chains({ messages }: { messages?: string }) {
 			<Announcement notCancellable>
 				Get the roundup delivered every day for free by subscribing on{' '}
 				<Link href="https://t.me/defillama_tg" passHref>
-					<a target="_blank" rel="noopener noreferrer">
+					<a target="_blank" rel="noopener noreferrer" className="underline text-[var(--blue)]">
 						Telegram
 					</a>
 				</Link>
 			</Announcement>
 
-			<Header>Daily news roundup with the 🦙</Header>
+			<h1 className="font-semibold text-3xl text-center -mb-10">Daily news roundup with the 🦙</h1>
 
-			<Text>
-				<Content text={text} />
-			</Text>
+			<div className="flex flex-col gap-[2px] my-10 max-w-lg mx-auto text-base">
+				{text
+					.split('\n')
+					.filter((x) => x !== '')
+					.map((x) => {
+						if (x.startsWith('[')) {
+							const link = getLink(x)
+							return (
+								<a href={link[1]} target="_blank" rel="noreferrer noopener" key={x}>
+									<span>&gt; </span>
+									<span className="underline text-[var(--link)]">{link[0]}</span>
+								</a>
+							)
+						}
+
+						return (
+							<h2 className="my-2 font-semibold" key={x}>
+								{x.replaceAll('*', '').replaceAll('#', '')}
+							</h2>
+						)
+					})}
+			</div>
 		</Layout>
 	)
 }
@@ -145,3 +102,13 @@ export const getStaticProps = withPerformanceLogging('roundup', async () => {
 		revalidate: maxAgeForNext([22])
 	}
 })
+
+function getLink(text: string) {
+	const matches = []
+	const regex = /(\[([^\]]+)\]|\(([^\)]+)\))/g
+	let match
+	while ((match = regex.exec(text)) !== null) {
+		matches.push(match[2] || match[3])
+	}
+	return matches
+}

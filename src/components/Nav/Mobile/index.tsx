@@ -21,7 +21,9 @@ export function MobileNav() {
 					<img
 						src="/defillama-press-kit/defi/PNG/defillama.png"
 						alt=""
-						className="h-9 object-contain object-left w-min hover:-rotate-6 transition-transform duration-300 mr-auto"
+						height={36}
+						width={105}
+						className="object-contain object-left hover:-rotate-6 transition-transform duration-300 mr-auto"
 					/>
 				</a>
 			</Link>

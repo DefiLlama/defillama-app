@@ -1,36 +1,14 @@
 import * as React from 'react'
 import Head from 'next/head'
-import styled from 'styled-components'
-import { Toaster } from 'react-hot-toast'
-
+import dynamic from 'next/dynamic'
 import ThemeProvider, { GlobalStyle } from '~/Theme'
 import SEO from '~/components/SEO'
 import Nav from '~/components/Nav'
+import { useIsClient } from '~/hooks'
 
-const PageWrapper = styled.div<{ fullWidth?: boolean }>`
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	margin: 16px;
-	isolation: isolate;
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		margin: 28px 28px 28px 248px;
-		width: ${({ fullWidth }) => fullWidth && 'calc(100vw - 258px);'};
-	}
-`
-
-const Center = styled.main`
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	gap: 28px;
-	width: 100%;
-	max-width: 140rem;
-	min-height: 100%;
-	margin: 0 auto;
-	color: ${({ theme }) => theme.text1};
-`
+const Toaster = dynamic(() => import('~/components/Toast').then((m) => m.Toast), {
+	ssr: false
+})
 
 interface ILayoutProps {
 	title: string
@@ -42,6 +20,7 @@ interface ILayoutProps {
 }
 
 export default function Layout({ title, children, defaultSEO = false, ...props }: ILayoutProps) {
+	const isClient = useIsClient()
 	return (
 		<>
 			<Head>
@@ -49,16 +28,26 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 
-			{defaultSEO && <SEO />}
+			{defaultSEO ? <SEO /> : null}
 
 			<ThemeProvider>
 				{/* @ts-ignore */}
 				<GlobalStyle />
 				<Nav />
-				<PageWrapper {...props}>
-					<Center {...props}>{children}</Center>
-				</PageWrapper>
-				<Toaster />
+				<div
+					{...props}
+					data-fullwidth={props.fullWidth ?? false}
+					className="flex flex-col m-4 isolate lg:m-7 lg:ml-[248px] w-full data-[fullwidth=true]:w-[calc(100vw-258px)]"
+				>
+					<main
+						{...props}
+						className="flex flex-col gap-7 w-full max-w-[140rem] min-h-full mx-auto text-[var(--text1)] flex-1"
+					>
+						{children}
+					</main>
+				</div>
+
+				{isClient ? <Toaster /> : null}
 			</ThemeProvider>
 		</>
 	)

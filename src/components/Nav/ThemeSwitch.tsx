@@ -8,7 +8,7 @@ interface ThemeSwitchProps {
 
 export function ThemeSwitch({ darkMode, toggle }: ThemeSwitchProps) {
 	return (
-		<button onClick={toggle} className="hidden lg:flex items-center gap-2">
+		<button onClick={toggle} className="hidden lg:flex items-center gap-2 mt-4">
 			<Icon
 				name="sun"
 				height={20}
