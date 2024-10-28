@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
-import { Wrapper, ChartWrapper, LinksWrapper, TableHeader, Fallback } from '~/layout/Chain'
+import { Wrapper, ChartWrapper, TableHeader, Fallback } from '~/layout/Chain'
 import { StatsWrapper, Stat } from '~/layout/Stats/Large'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { formattedNum } from '~/utils'
@@ -69,9 +69,9 @@ export default function UsersByChain({ chart, backgroundColor, name, chains, cha
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Users', hideOptions: true }} />
 
 			<Wrapper>
-				<LinksWrapper>
+				<nav className="flex items-center gap-5 overflow-hidden col-span-full">
 					<RowLinksWithDropdown links={chains} activeLink={chain} />
-				</LinksWrapper>
+				</nav>
 
 				<StatsWrapper>
 					<Stat>

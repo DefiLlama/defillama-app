@@ -63,7 +63,7 @@ export default function Protocols({ data }) {
 				<span>Are we missing any protocol?</span>{' '}
 				<a
 					href="https://airtable.com/shrD1bSGYNcdFQ6kd"
-					className="text-[#2f80ed] underline font-medium"
+					className="text-[var(--blue)] underline font-medium"
 					target="_blank"
 					rel="noopener noreferrer"
 				>

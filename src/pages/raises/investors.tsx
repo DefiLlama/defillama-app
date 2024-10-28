@@ -145,7 +145,7 @@ const ActiveInvestors = ({ data }) => {
 		<Layout title={`Investors - DefiLlama`} defaultSEO style={{ gap: '16px' }}>
 			<Announcement notCancellable>
 				<span>Looking for investors?</span>{' '}
-				<a href="/pitch" className="text-[#2f80ed] underline font-medium" target="_blank" rel="noopener noreferrer">
+				<a href="/pitch" className="text-[var(--blue)] underline font-medium" target="_blank" rel="noopener noreferrer">
 					Send your pitch to selected ones through us
 				</a>
 			</Announcement>

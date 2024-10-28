@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
-import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown } from '~/components/Filters'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedSearch } from '~/components/Search'
 import { ChartSelector } from '~/components/PeggedPage/.'
@@ -26,7 +26,7 @@ import {
 } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { formattedNum, getPercentChange, getPeggedDominance, toNiceCsvDate, download } from '~/utils'
-import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -299,9 +299,9 @@ function PeggedAssetsOverview({
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
-			<RowLinksWrapper>
+			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
 				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
-			</RowLinksWrapper>
+			</nav>
 
 			<PeggedAssetsTable data={peggedTotals} />
 		</>

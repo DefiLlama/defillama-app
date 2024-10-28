@@ -9,7 +9,7 @@ import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { withPerformanceLogging } from '~/utils/perf'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download } from '~/utils'
 import { useQuery } from '@tanstack/react-query'
 

@@ -2,17 +2,17 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { BRIDGES_SHOWING_TXS, useBridgesManager } from '~/contexts/LocalStorage'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
-import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown } from '~/components/Filters'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import { BridgesSearchWithBreakdown } from '../Search/Bridges'
+import { BridgesSearchWithBreakdown } from '~/components/Search/Bridges'
 import { ChartSelector } from '~/components/BridgesPage/.'
 import { BridgesTable } from '~/components/Table'
 import { LargeTxsTable } from './LargeTxsTable'
-import { TxsTableSwitch } from '../BridgesPage/TableSwitch'
+import { TxsTableSwitch } from '~/components/BridgesPage/TableSwitch'
 import { useBuildBridgeChartData } from '~/utils/bridges'
 import { formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~/utils'
-import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -251,9 +251,9 @@ function BridgesOverview({
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 			<TxsTableSwitch />
-			<RowLinksWrapper>
+			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
 				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
-			</RowLinksWrapper>
+			</nav>
 			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} chain={selectedChain} />}
 			{!isBridgesShowingTxs && <BridgesTable data={filteredBridges} />}
 		</>

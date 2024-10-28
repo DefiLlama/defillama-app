@@ -15,20 +15,10 @@ interface CustomLinkProps extends BasicLinkProps {
 	target?: React.HTMLAttributeAnchorTarget
 }
 
-const Link = ({ href, children, ...props }) => {
-	return (
-		<a className="text-[#2f80ed] hover:underline" href={href} target="_blank" rel="noopener noreferrer" {...props}>
-			{children}
-		</a>
-	)
-}
-
-export default Link
-
 export const CustomLink = ({ href, children, target, ...props }: CustomLinkProps) => {
 	return (
 		<RouterLink href={href} passHref prefetch={false}>
-			<a target={target} className="text-sm font-medium text-[#2172E5] dark:text-[#629ff4]" {...props}>
+			<a target={target} className="text-sm font-medium text-[var(--link-text)]" {...props}>
 				{children}
 			</a>
 		</RouterLink>

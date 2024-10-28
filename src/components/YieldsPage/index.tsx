@@ -188,7 +188,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 					<Announcement notCancellable>
 						Do you want to see only pools that have a single token? Click{' '}
 						<a
-							className="text-[#2f80ed] underline font-medium"
+							className="text-[var(--blue)] underline font-medium"
 							onClick={() => {
 								push(
 									{

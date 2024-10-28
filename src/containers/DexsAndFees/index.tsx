@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Panel } from '~/components'
 import { OverviewTable } from '~/components/Table'
-import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown } from '~/components/Filters'
 import { AdaptorsSearch } from '~/components/Search'
 import { groupProtocolsByParent, IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
 import { IJSON } from '~/api/categories/adaptors/types'
@@ -13,7 +13,7 @@ import { capitalizeFirstLetter, download } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { Announcement } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 export type IOverviewContainerProps = IOverviewProps
 
@@ -232,7 +232,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					<span>Are we missing any protocol?</span>{' '}
 					<a
 						href="https://airtable.com/shrtBA9lvj6E036Qx"
-						className="text-[#2f80ed] underline font-medium"
+						className="text-[var(--blue)] underline font-medium"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -283,14 +283,14 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				chartTypes: props.type === 'options' ? ['Premium Volume', 'Notional Volume'] : undefined
 			})}
 			{rowLinks ? (
-				<RowLinksWrapper>
+				<nav className="flex items-center gap-5 overflow-hidden -mb-5">
 					<RowLinksWithDropdown
 						links={rowLinks}
 						activeLink={chain}
 						alternativeOthersText="More chains"
 						key={'row links wrapper of ' + props.type}
 					/>
-				</RowLinksWrapper>
+				</nav>
 			) : (
 				<></>
 			)}

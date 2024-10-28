@@ -33,7 +33,7 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedAssetByChainTable } from '~/components/Table'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { Stat, StatInARow } from '~/layout/Stats/Large'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
@@ -334,7 +334,7 @@ export const PeggedAssetInfo = ({
 					</TabPanel>
 
 					<TabPanel state={tab}>
-						<div className="flex flex-col gap-9 p-6 pb-[calc(24px_+_0.4375rem)] overflow-auto text-[#1F1F1F] dark:text-[#FAFAFA]">
+						<div className="flex flex-col gap-9 p-6 pb-[calc(24px_+_0.4375rem)] overflow-auto text-[var(--text1)]">
 							{description && (
 								<PeggedDescription>
 									<>

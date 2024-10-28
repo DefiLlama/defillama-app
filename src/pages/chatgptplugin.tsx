@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import { Panel } from '~/components'
-import Link from '~/components/Link'
 
 function PluginPage() {
 	return (
@@ -36,7 +35,14 @@ function PluginPage() {
 					</p>
 					<p>
 						If you have any feedback or bug reports, please log them here:{' '}
-						<Link href="https://form.typeform.com/to/tJkEGYxQ">Feedback Form</Link>
+						<a
+							className="text-[var(--blue)] hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+							href="https://form.typeform.com/to/tJkEGYxQ"
+						>
+							Feedback Form
+						</a>
 					</p>
 				</div>
 			</Panel>
@@ -48,9 +54,15 @@ function PluginPage() {
 						The DefiLlama ChatGPT plugin does not sell user data. The plugin does not collect any identifying user data.
 					</p>
 					<p>
-						The DefiLlama Plugin uses <Link href="https://posthog.com/">PostHog</Link> to track anonymized product
-						analytics. Visit <Link href="https://posthog.com/privacy">PostHog’s Privacy Policy</Link> to learn more
-						about how they handle data.
+						The DefiLlama Plugin uses{' '}
+						<a target="_blank" rel="noopener noreferrer" href="https://posthog.com/">
+							PostHog
+						</a>{' '}
+						to track anonymized product analytics. Visit{' '}
+						<a target="_blank" rel="noopener noreferrer" href="https://posthog.com/privacy">
+							PostHog’s Privacy Policy
+						</a>{' '}
+						to learn more about how they handle data.
 					</p>
 				</div>
 			</Panel>

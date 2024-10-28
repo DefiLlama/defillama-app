@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { download } from '~/utils'
 import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown } from '~/components/Filters'
 import { ButtonDark } from '~/components/ButtonStyled'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -98,9 +98,9 @@ const Oracles = ({
 				/>
 			</ChartsWrapper>
 
-			<RowLinksWrapper>
+			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
 				<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
-			</RowLinksWrapper>
+			</nav>
 
 			<TableWithSearch
 				data={tokensList}

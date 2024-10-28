@@ -9,7 +9,7 @@ import { ResetAllYieldFilters } from './ResetAll'
 import type { IDropdownMenusProps } from './types'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { ColumnFilters } from '../common/ColumnFilters'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
 

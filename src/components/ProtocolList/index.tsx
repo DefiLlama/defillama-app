@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown } from '~/components/Filters'
 import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
-import { ProtocolsTableWithSearch } from '../Table/Defi/Protocols'
+import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { LayoutWrapper, OverallMetricsWrapper } from '~/containers/ChainContainer'
@@ -15,11 +15,11 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import { RowWithSubRows, StatsTable2 } from '~/containers/Defi/Protocol'
-import { categoryProtocolsColumns } from '../Table/Defi/Protocols/columns'
+import { categoryProtocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IOverviewProps } from '~/api/categories/adaptors'
-import Modal from '../Modal'
-import CompareProtocols from '../CompareProtocols'
-import { ButtonDark } from '../ButtonStyled'
+import Modal from '~/components/Modal'
+import CompareProtocols from '~/components/CompareProtocols'
+import { ButtonDark } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
@@ -166,7 +166,7 @@ function Container({
 					route: 'categories'
 				}}
 			/>
-			<div style={{ display: 'flex', gap: '8px' }}>
+			<div className="flex gap-2">
 				<h1 className="text-2xl font-medium -mb-5">{title}</h1>
 				{csvDownload ? (
 					<CSVDownloadButton
@@ -185,9 +185,9 @@ function Container({
 
 			<LayoutWrapper>
 				{showChainList && (
-					<RowLinksWrapper style={{ marginBottom: '0px' }}>
+					<nav className="flex items-center gap-5 overflow-hidden">
 						<RowLinksWithDropdown links={chainOptions} activeLink={chain} />
-					</RowLinksWrapper>
+					</nav>
 				)}
 				{category ? (
 					<StatsSection style={{ padding: '16px 8px', minHeight: '394px' }}>

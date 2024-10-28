@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { download, toNiceCsvDate } from '~/utils'
-import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const DownloadButtonContainer = styled.button`
 	display: none;

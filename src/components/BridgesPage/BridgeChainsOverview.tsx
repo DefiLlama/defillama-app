@@ -5,7 +5,7 @@ import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacke
 import { BridgesSearch } from '~/components/Search'
 import { BridgeChainsTable } from '~/components/Table'
 import { toNiceCsvDate, download } from '~/utils'
-import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false

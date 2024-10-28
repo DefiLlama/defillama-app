@@ -11,7 +11,7 @@ import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/de
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { useGroupChainsByParent } from '~/hooks/data'
 import { LayoutWrapper } from '~/containers/ChainContainer'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useRouter } from 'next/router'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {

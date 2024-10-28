@@ -73,7 +73,7 @@ export default function YieldBorrow(data) {
 				3. deposit the borrowed amount M into pool X
 				<button
 					onClick={() => setMethodologyActivated((prev) => !prev)}
-					className="block text-[#2f80ed] mx-auto font-medium hover:underline"
+					className="block text-[var(--blue)] mx-auto font-medium hover:underline"
 				>
 					Example
 				</button>

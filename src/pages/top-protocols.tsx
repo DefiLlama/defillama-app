@@ -12,7 +12,7 @@ import { IFormattedProtocol } from '~/api/types'
 import { Name } from '~/components/Table/shared'
 import { descriptions } from './categories'
 import { withPerformanceLogging } from '~/utils/perf'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import { Panel } from '~/components'
-import Link from '~/components/Link'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { tokenIconUrl } from '~/utils'
@@ -50,9 +49,14 @@ function PressPage({ protocols }) {
 						<ul>
 							{protocols.map((p) => (
 								<li key={p.name}>
-									<Link href={p.url} external>
+									<a
+										className="text-[var(--blue)] hover:underline"
+										target="_blank"
+										rel="noopener noreferrer"
+										href={p.url}
+									>
 										{p.name}
-									</Link>
+									</a>
 								</li>
 							))}
 						</ul>

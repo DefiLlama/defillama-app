@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown } from '~/components/Filters'
 import { formatChartTvlsByDay } from '~/hooks/data'
 import { formattedNum, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
 import { maxAgeForNext } from '~/api'
@@ -103,9 +103,9 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
-			<RowLinksWrapper>
+			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
 				<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
-			</RowLinksWrapper>
+			</nav>
 
 			<ProtocolsTableWithSearch data={protocolsData} />
 		</>

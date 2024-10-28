@@ -1,5 +1,4 @@
 import styled from 'styled-components'
-import { RowLinksWrapper } from '~/components/Filters'
 
 export const Wrapper = styled.div`
 	display: grid;
@@ -17,17 +16,6 @@ export const Wrapper = styled.div`
 	@media screen and (min-width: 80rem) {
 		grid-template-columns: auto 1fr;
 		gap: 48px;
-	}
-`
-
-export const LinksWrapper = styled(RowLinksWrapper)`
-	grid-column: 1 / -1;
-	margin-bottom: 0;
-
-	@media screen and (max-width: ${({ theme }) => theme.bpSm}) {
-		button:only-child {
-			width: 100%;
-		}
 	}
 `
 

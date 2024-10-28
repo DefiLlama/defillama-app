@@ -141,7 +141,7 @@ export default function YieldPlots(data) {
 				<br />
 				<button
 					onClick={() => setMethodologyActivated((prev) => !prev)}
-					className="block text-[#2f80ed] mx-auto font-medium hover:underline"
+					className="block text-[var(--blue)] mx-auto font-medium hover:underline"
 				>
 					Full explanation of methodology
 				</button>

@@ -12,7 +12,7 @@ import { formattedNum } from '~/utils'
 import { RaisesTable } from './RaisesTable'
 import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -38,7 +38,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				<span>Are we missing any funding round?</span>{' '}
 				<a
 					href="https://airtable.com/shrON6sFMgyFGulaq"
-					className="text-[#2f80ed] underline font-medium"
+					className="text-[var(--blue)] underline font-medium"
 					target="_blank"
 					rel="noopener noreferrer"
 				>

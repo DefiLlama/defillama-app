@@ -24,7 +24,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
 import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
@@ -139,7 +139,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				<span>Are we missing any funding round?</span>{' '}
 				<a
 					href="https://airtable.com/shrON6sFMgyFGulaq"
-					className="text-[#2f80ed] underline font-medium"
+					className="text-[var(--blue)] underline font-medium"
 					target="_blank"
 					rel="noopener noreferrer"
 				>

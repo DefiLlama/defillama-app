@@ -1,6 +1,5 @@
 import * as React from 'react'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
-
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { bridgedColumns } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'

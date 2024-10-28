@@ -1,7 +1,7 @@
 export { FiltersByChain } from './FiltersByChain'
 export { FilterBetweenRange } from './FilterBetweenRange'
 export { FilterByValue } from './FilterByValue'
-export { RowLinksWithDropdown, RowLinksWrapper } from './RowLinksWithDropdown'
+export { RowLinksWithDropdown } from './RowLinksWithDropdown'
 export {
 	Select,
 	SelectPopover,

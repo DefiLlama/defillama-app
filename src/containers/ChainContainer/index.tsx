@@ -12,26 +12,25 @@ import { LocalLoader } from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { chainIconUrl, formattedNum } from '~/utils'
-import { Denomination, Filters, Toggle } from '~/components/ECharts/ProtocolChart/Misc'
+import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 
 import llamaLogo from '~/assets/peeking-llama.png'
 import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
 import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
-import { RowWithSubRows, StatsTable2, SubrowTh } from '../Defi/Protocol'
+import { RowWithSubRows, StatsTable2, SubrowTh } from '~/containers/Defi/Protocol'
 import SEO from '~/components/SEO'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { TokenLogo } from '~/components/TokenLogo'
 import { EmbedChart } from '~/components/Popover'
 import { primaryColor } from '~/constants/colors'
 import { useFetchChainChartData } from './useFetchChainChartData'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
-import { formatRaise, formatRaisedAmount } from '../Defi/Protocol/utils'
+import { formatRaise, formatRaisedAmount } from '~/containers/Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import Link from '~/components/Link'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'
 
@@ -301,9 +300,14 @@ export function ChainContainer({
 					className="inline relative -top-[2px]"
 				/>
 				{'  '}We've released{' '}
-				<Link href={`https://feed.defillama.com`}>
+				<a
+					className="text-[var(--blue)] hover:underline"
+					target="_blank"
+					rel="noopener noreferrer"
+					href={`https://feed.defillama.com`}
+				>
 					LlamaFeed, a real-time feed <Icon name="arrow-up-right" height={14} width={14} className="inline" />{' '}
-				</Link>
+				</a>
 				{' !'}
 			</Announcement>
 
@@ -646,7 +650,10 @@ export function ChainContainer({
 										{chartOptions.map(
 											({ id, name, isVisible }) =>
 												isVisible && (
-													<Toggle key={id + 'chart-option'}>
+													<label
+														key={id + 'chart-option'}
+														className="text-sm font-medium cursor-pointer rounded-xl relative"
+													>
 														<input
 															type="checkbox"
 															onClick={() => {
@@ -663,11 +670,12 @@ export function ChainContainer({
 																)
 															}}
 															checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
+															className="peer absolute w-[1em] h-[1em] opacity-[0.00001] outline-none"
 														/>
-														<span data-wrapper="true">
-															<span>{name}</span>
+														<span className="relative z-[1] rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] peer-checked:bg-[var(--link-active-bg)] peer-checked:text-white">
+															{name}
 														</span>
-													</Toggle>
+													</label>
 												)
 										)}
 									</div>

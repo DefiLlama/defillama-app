@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import { Panel } from '~/components'
-import Link from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 
 const PressPanel = ({ imageFilename }) => (
@@ -55,10 +54,24 @@ function PressPage() {
 					<hr className="border-black/20 dark:border-white/20" />
 					<p>
 						DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
-						<Link href="https://github.com/DefiLlama/DefiLlama-Adapters">open-source</Link> and maintained by a team of
-						passionate individuals and{' '}
-						<Link href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors">contributors</Link> from
-						hundreds of protocols.
+						<a
+							className="text-[var(--blue)] hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+							href="https://github.com/DefiLlama/DefiLlama-Adapters"
+						>
+							open-source
+						</a>{' '}
+						and maintained by a team of passionate individuals and{' '}
+						<a
+							className="text-[var(--blue)] hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+							href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors"
+						>
+							contributors
+						</a>{' '}
+						from hundreds of protocols.
 					</p>
 					<p>Our focus is on accurate data and transparent methodology.</p>
 				</div>
@@ -68,12 +81,45 @@ function PressPage() {
 					<h2 className="font-semibold text-lg">Contact</h2>
 					<hr className="border-black/20 dark:border-white/20" />
 					<p>
-						Contact us on <Link href="https://twitter.com/defillama">Twitter</Link> or{' '}
-						<Link href="https://discord.defillama.com">Discord</Link> or by email{' '}
-						<Link href="mailto:contact@llama-corp.com">contact@llama-corp.com</Link>
+						Contact us on{' '}
+						<a
+							className="text-[var(--blue)] hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+							href="https://twitter.com/defillama"
+						>
+							Twitter
+						</a>{' '}
+						or{' '}
+						<a
+							className="text-[var(--blue)] hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+							href="https://discord.defillama.com"
+						>
+							Discord
+						</a>{' '}
+						or by email{' '}
+						<a
+							className="text-[var(--blue)] hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+							href="mailto:contact@llama-corp.com"
+						>
+							contact@llama-corp.com
+						</a>
 					</p>
 					<p>
-						DeFiLlama is a part of <Link href="https://twitter.com/llamacorporg">Llama Corp</Link>.
+						DeFiLlama is a part of{' '}
+						<a
+							className="text-[var(--blue)] hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+							href="https://twitter.com/llamacorporg"
+						>
+							Llama Corp
+						</a>
+						.
 					</p>
 					<p>
 						Llama Corp is a collective building out the decentralized future with data analytics, infrastructure,
@@ -91,9 +137,15 @@ function PressPage() {
 					<p>DeFiLlama is used across a large number of media organisations and financial institutions.</p>
 					<div className="grid grid-cols-[repeat(auto-fit,minmax(100px,200px))] place-content-center w-full gap-2 mt-4">
 						{pressList.map((imageFilename) => (
-							<Link href={imageFilename[1]} key={imageFilename[0]}>
+							<a
+								className="text-[var(--blue)] hover:underline"
+								target="_blank"
+								rel="noopener noreferrer"
+								href={imageFilename[1]}
+								key={imageFilename[0]}
+							>
 								<PressPanel imageFilename={imageFilename[0]} />
-							</Link>
+							</a>
 						))}
 					</div>
 				</div>
@@ -103,7 +155,16 @@ function PressPage() {
 					<h2 className="font-semibold text-lg">Branding Assets</h2>
 					<hr className="border-black/20 dark:border-white/20" />
 					<p>
-						You can download all our branding assets from <Link href="/defillama-press-kit.zip">here</Link>.
+						You can download all our branding assets from{' '}
+						<a
+							className="text-[var(--blue)] hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+							href="/defillama-press-kit.zip"
+						>
+							here
+						</a>
+						.
 					</p>
 				</div>
 			</Panel>

@@ -2,7 +2,7 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { download } from '~/utils'
 import { getLiquidationsCsvData } from '~/utils/liquidations'
-import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 
 export const DownloadButton = ({ symbol }: { symbol: string }) => {

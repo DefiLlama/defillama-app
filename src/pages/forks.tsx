@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import Layout from '~/layout'
 import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { maxAgeForNext } from '~/api'
 import { getForkPageData } from '~/api/categories/protocols'
@@ -13,7 +13,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { forksColumn } from '~/components/Table/Defi/columns'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download } from '~/utils'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
@@ -117,9 +117,9 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 				/>
 			</ChartsWrapper>
 
-			<RowLinksWrapper>
+			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
 				<RowLinksWithDropdown links={tokenLinks} activeLink="All" />
-			</RowLinksWrapper>
+			</nav>
 
 			<TableWithSearch
 				data={tokensList}

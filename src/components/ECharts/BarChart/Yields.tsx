@@ -15,7 +15,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { YieldsChartWrapper } from '../shared'
 import { download } from '~/utils'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 echarts.use([
 	ToolboxComponent,

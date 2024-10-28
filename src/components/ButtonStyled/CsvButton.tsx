@@ -7,7 +7,7 @@ const ProCSVDownload = dynamic(() => import('~/containers/ProApi/ProDownload').t
 	ssr: false
 }) as React.FC<{ onClick: () => void; clicked: number }>
 
-const CSVDownloadButton = ({
+export const CSVDownloadButton = ({
 	onClick,
 	style = {},
 	isLight = false,
@@ -42,5 +42,3 @@ const CSVDownloadButton = ({
 		</>
 	)
 }
-
-export default CSVDownloadButton

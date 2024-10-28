@@ -18,7 +18,7 @@ import {
 	download
 } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false

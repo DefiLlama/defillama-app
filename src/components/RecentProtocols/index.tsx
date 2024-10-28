@@ -10,13 +10,13 @@ import { useCalcStakePool2Tvl } from '~/hooks/data'
 
 import { download, getPercentChange } from '~/utils'
 import { FlexRow } from '~/layout/ProtocolAndPool'
-import { ButtonLight } from '../ButtonStyled'
+import { ButtonLight } from '~/components/ButtonStyled'
 import styled from 'styled-components'
 import { useDialogState, Dialog } from 'ariakit/dialog'
-import { DialogForm } from '../Filters/common/Base'
+import { DialogForm } from '~/components/Filters/common/Base'
 import { useMutation } from '@tanstack/react-query'
 import { airdropsEligibilityCheck } from './airdrops'
-import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {

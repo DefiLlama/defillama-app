@@ -2,12 +2,12 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { Panel } from '~/components'
 import { BridgesSearchSelect } from '~/components/Search/Bridges'
-import { Form, FormError, FormInput, FormLabel, FormSubmit, useFormState } from 'ariakit'
+import { Form, FormError, FormInput, FormLabel, useFormState } from 'ariakit'
 import { BRIDGETX_API } from '~/constants'
 import { download, toNiceCsvDate } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
-import CSVDownloadButton from '../ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const fetch = fetchWithErrorLogging
 

@@ -1,5 +1,5 @@
 import { useMedia } from '~/hooks/useMedia'
-import { LinksWithDropdown, RowLinksWrapper } from './LinksWithDropdown'
+import { LinksWithDropdown } from './LinksWithDropdown'
 import { OtherLinks } from './OtherLinks'
 
 interface ILink {
@@ -14,7 +14,7 @@ interface IRowLinksProps {
 	variant?: 'primary' | 'secondary'
 }
 
-const RowLinksWithDropdown = (props: IRowLinksProps) => {
+export const RowLinksWithDropdown = (props: IRowLinksProps) => {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
 	if (isSmall) {
@@ -34,5 +34,3 @@ const RowLinksWithDropdown = (props: IRowLinksProps) => {
 
 	return <LinksWithDropdown {...props} />
 }
-
-export { RowLinksWrapper, RowLinksWithDropdown }

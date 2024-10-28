@@ -13,7 +13,7 @@ import VirtualTable from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
-import CSVDownloadButton from '~/components/ButtonStyled/CsvButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ButtonDark } from '~/components/ButtonStyled'
 
 const columnResizeMode = 'onChange'

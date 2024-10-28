@@ -9,7 +9,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import { AccordionButton, Name } from '~/components/Table/shared'
 import { formattedNum } from '~/utils'
 import { TokenLogo, FallbackLogo } from '~/components/TokenLogo'
-import Link from '~/components/Link'
 import { Icon } from '~/components/Icon'
 
 export const getStaticProps = withPerformanceLogging('nfts/marketplaces', async () => {
@@ -93,9 +92,14 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 					{logo ? <TokenLogo logo={logo} data-lgonly /> : <FallbackLogo />}
 
 					{row.subRows?.length === 0 ? (
-						<Link href={`royalties/${row.original.defillamaId}`}>
+						<a
+							className="text-[var(--blue)] hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+							href={`royalties/${row.original.defillamaId}`}
+						>
 							<span>{value}</span>
-						</Link>
+						</a>
 					) : (
 						<span>{value}</span>
 					)}

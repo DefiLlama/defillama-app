@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import styled from 'styled-components'
 import { OtherLinks } from './OtherLinks'
-import { darken, transparentize } from 'polished'
 
 interface ILink {
 	label: string
@@ -16,14 +14,6 @@ interface IRowLinksProps {
 }
 
 const GAP = 6
-
-export const RowLinksWrapper = styled.nav`
-	display: flex;
-	align-items: center;
-	gap: 20px;
-	overflow: hidden;
-	margin-bottom: -20px;
-`
 
 // Renders a row of links and overflow links / links that not fit in viewport are shown in a dropdown
 export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersText, ...props }: IRowLinksProps) => {
@@ -102,12 +92,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 					className="flex-1 overflow-hidden p-1 flex flex-wrap max-h-[calc(1.8rem_+_14px)] gap-[var(--gap)]"
 					style={
 						{
-							'--gap': `${GAP}px`,
-							'--bg-light': transparentize(0.9, '#2172E5'),
-							'--bg-dark': transparentize(0.9, '#629ff4'),
-							'--hover-bg-light': transparentize(0.8, '#2172E5'),
-							'--hover-bg-dark': transparentize(0.8, '#629ff4'),
-							'--hover-active-bg': darken(0.1, '#2172E5')
+							'--gap': `${GAP}px`
 						} as any
 					}
 					id="priority-nav"
@@ -135,7 +120,7 @@ export const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
 		<Link href={option.to} prefetch={false} passHref>
 			<a
-				className="min-w-fit rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-[#2172E5] dark:text-[#629ff4] bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] hover:bg-[var(--hover-bg-light)] hover:dark:bg-[var(--hover-bg-dark)] data-[active=true]:bg-[#2172e5] data-[active=true]:text-white hover:data-[active=true]:bg-[var(--hover-active-bg)]"
+				className="rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-active-bg)] data-[active=true]:text-white"
 				data-active={option.label === activeLink}
 				{...props}
 			>
@@ -144,25 +129,3 @@ export const LinkItem = ({ option, activeLink, ...props }) => {
 		</Link>
 	)
 }
-
-export const NavLink = styled.a`
-	color: ${({ theme }) => (theme.mode === 'dark' ? '#629ff4' : '#2172E5')};
-	background-color: ${({ theme }) =>
-		theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};
-
-	:hover,
-	:focus-visible {
-		background-color: ${({ theme }) =>
-			theme.mode === 'dark' ? transparentize(0.8, '#629ff4') : transparentize(0.8, '#2172E5')};
-	}
-
-	&[data-active='true'] {
-		background-color: #2172e5;
-		color: white;
-
-		:hover,
-		:focus-visible {
-			background-color: ${darken(0.1, '#2172E5')};
-		}
-	}
-`
