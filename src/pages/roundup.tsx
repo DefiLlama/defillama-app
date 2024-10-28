@@ -8,18 +8,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
 
-export default function Chains({ messages }: { messages?: string }) {
-	// Emoji regex ref: https://stackoverflow.com/questions/70401560/what-is-the-difference-between-emoji-presentation-and-extended-pictographic
-	const text =
-		messages
-			?.replace(/(.*)\n(http.*)/g, '[$1]($2)') // merge title + link into markdown links
-			?.replace(/(\d\/\d\s?)?(\w+)\s*(\p{Emoji}\uFE0F|\p{Extended_Pictographic})\n/gu, '## $2 $3\n') // {Watch📺, 1/2 Watch📺} -> ## Watch 📺
-			?.replace(
-				/(\d\/\d\s?)?\*\*(\d\/\d\s?)?([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji}\uFE0F|\p{Extended_Pictographic})/gu,
-				'### $3 $4'
-			) // {**Threads**🧵, 1/2 **Threads**🧵, **1/2 Threads**🧵} -> ### Threads 🧵
-			.trim() ?? ''
-
+export default function Roundup({ messages }: { messages: Array<string | Array<string>> }) {
 	return (
 		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>
@@ -34,26 +23,22 @@ export default function Chains({ messages }: { messages?: string }) {
 			<h1 className="font-semibold text-3xl text-center -mb-10">Daily news roundup with the 🦙</h1>
 
 			<div className="flex flex-col gap-[2px] my-10 max-w-lg mx-auto text-base">
-				{text
-					.split('\n')
-					.filter((x) => x !== '')
-					.map((x) => {
-						if (x.startsWith('[')) {
-							const link = getLink(x)
-							return (
-								<a href={link[1]} target="_blank" rel="noreferrer noopener" key={x}>
-									<span>&gt; </span>
-									<span className="underline text-[var(--link)]">{link[0]}</span>
-								</a>
-							)
-						}
-
+				{messages.map((x) => {
+					if (typeof x === 'string') {
 						return (
 							<h2 className="my-2 font-semibold" key={x}>
-								{x.replaceAll('*', '').replaceAll('#', '')}
+								{x}
 							</h2>
 						)
-					})}
+					}
+
+					return (
+						<a href={x[1]} target="_blank" rel="noreferrer noopener" key={x[1]}>
+							<span>&gt; </span>
+							<span className="underline text-[var(--link)]">{x[0]}</span>
+						</a>
+					)
+				})}
 			</div>
 		</Layout>
 	)
@@ -94,10 +79,24 @@ export const getStaticProps = withPerformanceLogging('roundup', async () => {
 	}
 
 	const splitLlama = message.split('Daily news round-up with the 🦙')
+	const final = splitLlama[1] || null
+	// Emoji regex ref: https://stackoverflow.com/questions/70401560/what-is-the-difference-between-emoji-presentation-and-extended-pictographic
+	const formatted =
+		final
+			?.replace(/(.*)\n(http.*)/g, '[$1]($2)') // merge title + link into markdown links
+			?.replace(/(\d\/\d\s?)?(\w+)\s*(\p{Emoji}\uFE0F|\p{Extended_Pictographic})\n/gu, '## $2 $3\n') // {Watch📺, 1/2 Watch📺} -> ## Watch 📺
+			?.replace(
+				/(\d\/\d\s?)?\*\*(\d\/\d\s?)?([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji}\uFE0F|\p{Extended_Pictographic})/gu,
+				'### $3 $4'
+			) // {**Threads**🧵, 1/2 **Threads**🧵, **1/2 Threads**🧵} -> ### Threads 🧵
+			.trim() ?? ''
 
 	return {
 		props: {
-			messages: splitLlama[1] || null
+			messages: formatted
+				.split('\n')
+				.filter((x) => x !== '')
+				.map((x) => (x.startsWith('[') ? getLink(x) : x.replaceAll('*', '').replaceAll('#', '')))
 		},
 		revalidate: maxAgeForNext([22])
 	}
