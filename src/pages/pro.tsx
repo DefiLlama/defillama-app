@@ -1,5 +1,4 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import styled from 'styled-components'
 
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
@@ -22,18 +21,13 @@ export const getStaticProps = withPerformanceLogging('index/pro', async () => {
 	}
 })
 
-const ButtonWrapper = styled.div`
-	display: flex;
-	flex-direction: row-reverse;
-`
-
 export default function HomePage(props) {
 	return (
 		<WalletConfig>
-			<Layout style={{ gap: '8px' }} title="DefiLlama - DeFi Dashboard" fullWidth>
-				<ButtonWrapper>
+			<Layout title="DefiLlama - DeFi Dashboard">
+				<span className="ml-auto">
 					<ConnectButton />
-				</ButtonWrapper>
+				</span>
 				<ChainContainer {...props} />
 			</Layout>
 		</WalletConfig>

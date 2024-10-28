@@ -139,7 +139,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 
 	if (noSubMenu || (name === 'Yields' && !router.pathname.startsWith('/yields'))) {
 		return (
-			<Link href={noSubMenu?.url ?? '/yields'} passHref>
+			<Link href={noSubMenu?.url ?? '/yields'} prefetch={false} passHref>
 				<a
 					target={noSubMenu?.external && '_blank'}
 					className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"

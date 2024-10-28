@@ -13,7 +13,7 @@ const ButtonWrapper = styled.div`
 export default function ProApiPage() {
 	return (
 		<WalletConfig>
-			<Layout style={{ gap: '8px' }} title="DefiLlama - Pro API" fullWidth>
+			<Layout title="DefiLlama - Pro API">
 				<ButtonWrapper>
 					<ConnectButton />
 				</ButtonWrapper>

@@ -80,7 +80,12 @@ function AboutPage() {
 					<p>
 						For questions around product, methodology, data... You'll get mych faster responses by using our priority
 						support, available{' '}
-						<a className="text-[var(--blue)] hover:underline" target="_blank" rel="noopener noreferrer" href="/pro-api">
+						<a
+							className="text-[var(--blue)] hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+							href="https://defillama.com/pro-api"
+						>
 							here after subscribing
 						</a>
 					</p>

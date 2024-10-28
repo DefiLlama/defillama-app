@@ -24,7 +24,7 @@ const SignInWithGithub = () => {
 						localStorage.removeItem('gh_authToken')
 						router.reload()
 					}}
-					className="shadow p-3 rounded-lg h-9 text-base w-full flex items-center justify-center gap-2 text-white bg-[#141618]"
+					className="shadow p-2 rounded-lg text-base w-full flex items-center justify-center gap-2 text-white bg-[#141618]"
 				>
 					Log Out ({auth.login}) <Icon name="github" height={24} width={24} />
 				</button>
@@ -43,7 +43,7 @@ const SignInWithGithub = () => {
 						localStorage.removeItem('gh_authToken')
 						router.reload()
 					}}
-					className="shadow p-3 rounded-lg h-9 text-base w-full flex items-center justify-center gap-2 text-white bg-[#141618]"
+					className="shadow p-2 rounded-lg text-base w-full flex items-center justify-center gap-2 text-white bg-[#141618]"
 				>
 					Log Out ({auth.login}) <Icon name="github" height={24} width={24} />
 				</button>
@@ -54,7 +54,7 @@ const SignInWithGithub = () => {
 	return (
 		<div>
 			<a href={`https://github.com/login/oauth/authorize?client_id=${GH_CLIENT_ID}`}>
-				<button className="shadow p-3 rounded-lg h-9 text-base w-full flex items-center justify-center gap-2 text-white bg-[#141618]">
+				<button className="shadow p-2 rounded-lg text-base w-full flex items-center justify-center gap-2 text-white bg-[#141618]">
 					Sign in with GitHub <Icon name="github" height={24} width={24} />
 				</button>
 			</a>

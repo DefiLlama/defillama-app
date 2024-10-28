@@ -105,13 +105,13 @@ const Subscribe = ({ refresh, verify }) => {
 					</div>
 				</>
 				{!wallet.isConnected ? (
-					<button onClick={openConnectModal} className="shadow p-3 rounded-lg bg-[#445ed0] h-9 text-base">
+					<button onClick={openConnectModal} className="shadow p-2 rounded-lg bg-[#445ed0] text-base">
 						Connect
 					</button>
 				) : isVerified ? (
 					<button onClick={startPayment}>{'Subscribe now'}</button>
 				) : (
-					<button onClick={onSignClick} className="shadow p-3 rounded-lg bg-[#445ed0] h-9 text-base">
+					<button onClick={onSignClick} className="shadow p-2 rounded-lg bg-[#445ed0] text-base">
 						Sign In
 					</button>
 				)}

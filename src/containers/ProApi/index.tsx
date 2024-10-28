@@ -179,18 +179,18 @@ const ProApi = () => {
 								onClick={() => {
 									signIn({ address: wallet.address })
 								}}
-								className="shadow p-3 rounded-lg bg-[#445ed0] h-9 text-base"
+								className="shadow p-2 rounded-lg bg-[#445ed0] text-base"
 							>
 								Sign In
 							</button>
 						) : (
 							<>
 								{!wallet.isConnected ? (
-									<button onClick={openConnectModal} className="shadow p-3 rounded-lg bg-[#445ed0] h-9 text-base">
+									<button onClick={openConnectModal} className="shadow p-2 rounded-lg bg-[#445ed0] text-base">
 										Connect Wallet
 									</button>
 								) : (
-									<button onClick={() => startPayment()} className="shadow p-3 rounded-lg bg-[#445ed0] h-9 text-base">
+									<button onClick={() => startPayment()} className="shadow p-2 rounded-lg bg-[#445ed0] text-base">
 										Subscribe
 									</button>
 								)}
@@ -250,7 +250,11 @@ const ProApi = () => {
 									</tr>
 								</tbody>
 							</PricingTable>
-							<Link href="/pro-api/docs">Click here a full lists of all endpoints available in Pro</Link>
+							<Link href="/pro-api/docs" passHref>
+								<a className="text-[var(--blue)] underline">
+									Click here a full lists of all endpoints available in Pro
+								</a>
+							</Link>
 						</TableWrapper>
 					</>
 				) : (
