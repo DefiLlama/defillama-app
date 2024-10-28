@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { MobileInput } from './Input'
 import { useDebounce } from '~/hooks/useDebounce'
 import { useGetLiquidationSearchList } from '../Liquidations/hooks'
@@ -62,9 +61,10 @@ const DefiSearch = () => {
 					<MobileResults inputValue={debouncedInputValue} data={data} loading={status === 'loading'} />
 				</>
 			) : (
-				<Button onClick={() => setDisplay(true)}>
+				<button onClick={() => setDisplay(true)} className="shadow p-3 rounded-lg bg-[#445ed0] -my-[2px]">
+					<span className="sr-only">Search</span>
 					<Icon name="search" height={16} width={16} />
-				</Button>
+				</button>
 			)}
 		</>
 	)
@@ -114,9 +114,10 @@ function MobileSearchV1() {
 					<MobileResults inputValue={debouncedInputValue} data={data} loading={loading} onItemClick={onItemClick} />
 				</>
 			) : (
-				<Button onClick={() => setDisplay(true)}>
+				<button onClick={() => setDisplay(true)} className="shadow p-3 rounded-lg bg-[#445ed0] -my-[2px]">
+					<span className="sr-only">Search</span>
 					<Icon name="search" height={16} width={16} />
-				</Button>
+				</button>
 			)}
 		</>
 	)
@@ -129,11 +130,3 @@ function useGetFeesSearchList() {
 function useGetDexesSearchList() {
 	return useGetAdaptorsSearchList('dexs')
 }
-
-const Button = styled.button`
-	background: #445ed0;
-	color: #ffffff;
-	padding: 6px 10px;
-	border-radius: 8px;
-	box-shadow: ${({ theme }) => theme.shadow};
-`

@@ -148,6 +148,13 @@
 }
 
 @layer components {
+	.no-scrollbar {
+		scrollbar-width: none;
+	}
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+
 	.dialog {
 		@apply fixed top-0 left-0 bottom-0 right-0 z-50 m-auto mb-0 flex flex-col gap-8 overflow-auto p-4 rounded-t-xl w-full max-w-full min-h-[40vh] max-h-[70vh] sm:mb-auto sm:h-fit sm:min-h-[initial] sm:max-h-[calc(100%_-_32px)] sm:max-w-[min(calc(100%_-_32px),560px)] sm:rounded-xl;
 	}

@@ -47,10 +47,10 @@ export function Settings() {
 
 	return (
 		<>
-			<Trigger state={select}>
+			<Select className="shadow p-3 rounded-lg bg-[#445ed0] -my-[2px]" state={select}>
 				<span className="sr-only">Open Settings Menu</span>
 				<Icon name="settings" height={16} width={16} />
-			</Trigger>
+			</Select>
 
 			<Popover state={select} modal={!isLarge}>
 				<PopoverHeader>Settings</PopoverHeader>
@@ -114,15 +114,6 @@ const useAppSettings = () => {
 
 	return { options: protocolsAndChainsOptions, useSettings: useTvlAndFeesManager }
 }
-
-// TODO remove repeated styles
-const Trigger = styled(Select)`
-	background: #445ed0;
-	color: #ffffff;
-	padding: 6px 10px;
-	border-radius: 8px;
-	box-shadow: ${({ theme }) => theme.shadow};
-`
 
 const Popover = styled(SelectPopover)`
 	display: flex;

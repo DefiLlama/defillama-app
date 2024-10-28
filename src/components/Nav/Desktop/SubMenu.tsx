@@ -1,12 +1,11 @@
 import { forwardRef } from 'react'
 import Link from 'next/link'
-import styled, { keyframes } from 'styled-components'
-import { linksWithNoSubMenu, navLinks } from '../Links'
+import { defaultToolsAndFooterLinks, linksWithNoSubMenu, navLinks } from '../Links'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { NewTag } from '../NewTag'
 
-const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
+export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
 	const { pathname } = useRouter()
 
 	const noSubMenu = linksWithNoSubMenu.find((x) => x.name === name)
@@ -16,112 +15,51 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	if (noSubMenu || (name === 'Yields' && !active)) {
 		return (
 			<Link href={noSubMenu?.url ?? '/yields'} prefetch={false} passHref>
-				<MainLink data-linkactive={active} target={noSubMenu?.external && '_blank'}>
-					<span data-mainlinkicon>{navLinks[name].icon}</span>
+				<a
+					data-linkactive={(noSubMenu?.url ?? '/yields') === pathname}
+					target={noSubMenu?.external && '_blank'}
+					className="group -ml-[6px] font-semibold rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+				>
+					<span className="group-hover:animate-wiggle">{navLinks[name].icon}</span>
 					<span>{name}</span>
-					{navLinks[name].newTag === true && <NewTag />}
-				</MainLink>
+					{navLinks[name].newTag === true ? <NewTag /> : null}
+				</a>
 			</Link>
 		)
 	}
 
 	return (
-		<Details ref={ref} open={active ? true : false}>
-			<summary>
-				<span data-mainlinkicon>{navLinks[name].icon}</span>
-				<span>{name}</span>
-				{navLinks[name].newTag === true && <NewTag />}
-				<span data-arrowicon>
-					<Icon name="chevron-right" height={16} width={16} />
+		<details ref={ref} open={active ? true : false} className="group select-none">
+			<summary className="group/summary -ml-[6px] font-semibold rounded-md flex items-center gap-3 list-none hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 p-[6px] cursor-pointer">
+				<span className="group-hover/summary:animate-wiggle group-focus-visible/summary:animate-wiggle">
+					{navLinks[name].icon}
 				</span>
+				<span>{name}</span>
+				{navLinks[name].newTag === true ? <NewTag /> : null}
+				<Icon
+					name="chevron-right"
+					height={16}
+					width={16}
+					className="ml-auto group-open:rotate-90 transition-transform duration-100 relative -right-1"
+				/>
 			</summary>
 
-			<SubMenuWrapper>
+			<span className="mt-4 flex flex-col gap-4">
 				{navLinks[name].main.map((subLink) => (
 					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
-						<a data-linkactive={subLink.path === pathname}>
-							<span style={{ width: '16px', display: 'inline-block' }}></span>
+						<a
+							data-linkactive={subLink.path === pathname}
+							className="-my-[6px] pl-7 rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+						>
 							<span>{subLink.name}</span>
-							{subLink.newTag === true && <NewTag />}
+							{subLink.newTag === true ? <NewTag /> : null}
 						</a>
 					</Link>
 				))}
-			</SubMenuWrapper>
-		</Details>
+			</span>
+		</details>
 	)
 })
-
-const wiggle = keyframes`
-	0% {
-		transform: rotate(10deg);
-	}
-
-	50% {
-		transform: rotate(-10deg);
-	}
-
-	100% {
-		transform: rotate(0);
-	}
-`
-
-const Details = styled.details`
-	&[open] {
-		summary {
-			& > *[data-arrowicon] {
-				transform: rotate(90deg);
-				transition: 0.1s ease;
-			}
-		}
-	}
-
-	summary {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		list-style: none;
-		list-style-type: none;
-		opacity: 1;
-		font-weight: 600;
-		cursor: pointer;
-		margin: -6px 0 -6px -6px;
-		padding: 6px;
-		border-radius: 6px;
-
-		& > *[data-arrowicon] {
-			margin-left: auto;
-			position: relative;
-			right: -2px;
-		}
-
-		:hover {
-			background-color: ${({ theme }) =>
-				theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};
-		}
-	}
-
-	summary::-webkit-details-marker {
-		display: none;
-	}
-`
-
-const SubMenuWrapper = styled.span`
-	margin-top: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-`
-
-const MainLink = styled.a`
-	font-weight: 600;
-	opacity: 1 !important;
-
-	:hover {
-		& > *[data-mainlinkicon] {
-			animation: ${wiggle} 0.4s ease;
-		}
-	}
-`
 
 const isYields = (pathname: string) =>
 	pathname === '/yields' || pathname.startsWith('/yields/') || pathname.startsWith('/yields?')
@@ -137,6 +75,12 @@ const isHacks = (pathname: string) => pathname === '/hacks'
 const isBridges = (pathname: string) => pathname.startsWith('/bridge') && pathname !== '/bridged'
 const isBorrow = (pathname: string) => pathname.startsWith('/borrow')
 const isNFT = (pathname: string) => pathname.startsWith('/nfts')
+const isUnlocks = (pathname: string) => pathname === '/unlocks'
+const isCEX = (pathname: string) => pathname === '/cexs'
+const isGovernance = (pathname: string) => pathname === '/governance'
+const isLSD = (pathname: string) => pathname === '/lsd'
+const isETF = (pathname: string) => pathname.startsWith('/crypto-etf')
+const isNarrativeTracker = (pathname: string) => pathname === '/narrative-tracker'
 
 const isActive = ({ pathname, category }: { pathname: string; category: string }) => {
 	switch (category) {
@@ -160,6 +104,18 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 			return isBorrow(pathname)
 		case 'NFT':
 			return isNFT(pathname)
+		case 'Unlocks':
+			return isUnlocks(pathname)
+		case 'CEX Transparency':
+			return isCEX(pathname)
+		case 'Governance':
+			return isGovernance(pathname)
+		case 'ETH Liquid Staking':
+			return isLSD(pathname)
+		case 'Crypto ETFs':
+			return isETF(pathname)
+		case 'Narrative Tracker':
+			return isNarrativeTracker(pathname)
 		case 'DeFi':
 			return (
 				!isYields(pathname) &&
@@ -171,11 +127,19 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 				!isHacks(pathname) &&
 				!isBorrow(pathname) &&
 				!isNFT(pathname) &&
-				!isBridges(pathname)
+				!isBridges(pathname) &&
+				!isUnlocks(pathname) &&
+				!isCEX(pathname) &&
+				!isGovernance(pathname) &&
+				!isLSD(pathname) &&
+				!isETF(pathname) &&
+				!isNarrativeTracker(pathname) &&
+				!isDefaultLink(pathname)
 			)
 		default:
 			return false
 	}
 }
 
-export default SubMenu
+const isDefaultLink = (pathname) =>
+	[...defaultToolsAndFooterLinks.tools, ...defaultToolsAndFooterLinks.footer].map((x) => x.path).includes(pathname)

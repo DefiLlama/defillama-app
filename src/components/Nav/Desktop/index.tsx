@@ -2,18 +2,16 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import Image from 'next/future/image'
-import styled from 'styled-components'
 import { useYieldApp } from '~/hooks'
-import { LogoWrapper, Header } from '../shared'
 import { navLinks } from '../Links'
-import ThemeSwitch from '../ThemeSwitch'
+import { ThemeSwitch } from '../ThemeSwitch'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark.png'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import SubMenu from './SubMenu'
+import { SubMenu } from './SubMenu'
 import { NewTag } from '../NewTag'
 
-export default function DesktopNav() {
+export function DesktopNav() {
 	const { asPath } = useRouter()
 	const isYieldApp = useYieldApp()
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
@@ -21,29 +19,38 @@ export default function DesktopNav() {
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	return (
-		<Wrapper as="aside">
+		<nav className="fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-[var(--bg8)] hidden lg:flex flex-col gap-5 p-6 no-scrollbar">
 			<Link href="/" passHref>
-				<LogoWrapper>
+				<a className="flex-shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
-					<Image src={darkMode ? logoLight : logoDark} alt="Navigate to Home Page" priority />
-				</LogoWrapper>
+					<Image
+						src={darkMode ? logoLight : logoDark}
+						className="h-[53px] object-contain object-left w-min hover:-rotate-6 transition-transform duration-300 mr-auto"
+						alt="Navigate to Home Page"
+						priority
+					/>
+				</a>
 			</Link>
 
-			<Nav>
-				<p data-linksheader>Dashboards</p>
+			<span className="flex flex-col gap-1 flex-1">
+				<p className="text-xs opacity-65 mb-1">Dashboards</p>
 
 				{Object.keys(navLinks).map((mainLink) => (
 					<SubMenu key={mainLink} name={mainLink} />
 				))}
 
-				<hr />
+				<hr className="border-black/20 dark:border-white/20 my-4" />
 
-				<p data-linksheader>Tools</p>
+				<p className="text-xs opacity-65 mb-1">Tools</p>
 
 				{commonLinks.tools.map((link) => {
 					if ('onClick' in link) {
 						return (
-							<button key={link.name} onClick={link.onClick}>
+							<button
+								key={link.name}
+								onClick={link.onClick}
+								className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+							>
 								{link.name}
 							</button>
 						)
@@ -54,10 +61,11 @@ export default function DesktopNav() {
 									<a
 										target={link.external && '_blank'}
 										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
-										data-linkactive={link.path === asPath}
+										data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
+										className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
 									>
 										{link.name}
-										{link.newTag === true && <NewTag />}
+										{link.newTag === true ? <NewTag /> : null}
 									</a>
 								</Link>
 							</React.Fragment>
@@ -65,12 +73,16 @@ export default function DesktopNav() {
 					}
 				})}
 
-				<hr />
+				<hr className="border-black/20 dark:border-white/20 my-4" />
 
 				{commonLinks.footer.map((link) => {
 					if ('onClick' in link) {
 						return (
-							<button key={link.name} onClick={link.onClick}>
+							<button
+								key={link.name}
+								onClick={link.onClick}
+								className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+							>
 								{link.name}
 							</button>
 						)
@@ -81,67 +93,20 @@ export default function DesktopNav() {
 									<a
 										target={link.external && '_blank'}
 										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
-										data-linkactive={link.path === asPath}
+										data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
+										className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
 									>
 										{link.name}
-										{link.newTag === true && <NewTag />}
+										{link.newTag === true ? <NewTag /> : null}
 									</a>
 								</Link>
 							</React.Fragment>
 						)
 					}
 				})}
-			</Nav>
+			</span>
 
-			<ThemeSwitch isActive={darkMode} toggle={toggleDarkMode} />
-		</Wrapper>
+			<ThemeSwitch darkMode={darkMode} toggle={toggleDarkMode} />
+		</nav>
 	)
 }
-
-export const Wrapper = styled(Header)`
-	display: none;
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		display: flex;
-	}
-`
-
-const Nav = styled.nav`
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-start;
-	gap: 16px;
-	user-select: none;
-
-	a,
-	button {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		cursor: pointer;
-		opacity: 0.8;
-		text-align: start;
-		margin: -6px 0 -6px -6px;
-		padding: 6px;
-		border-radius: 6px;
-
-		:hover,
-		:focus-visible {
-			opacity: 1;
-			background-color: ${({ theme }) =>
-				theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};
-		}
-
-		&[data-linkactive='true'] {
-			background-color: #2172e5;
-			color: white;
-			opacity: 1;
-		}
-	}
-
-	p[data-linksheader] {
-		font-size: 0.75rem;
-		opacity: 0.5;
-	}
-`

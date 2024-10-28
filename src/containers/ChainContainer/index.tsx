@@ -672,7 +672,7 @@ export function ChainContainer({
 															checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
 															className="peer absolute w-[1em] h-[1em] opacity-[0.00001] outline-none"
 														/>
-														<span className="relative z-[1] rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] peer-checked:bg-[var(--link-active-bg)] peer-checked:text-white">
+														<span className="relative z-[1] block rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] peer-checked:bg-[var(--link-active-bg)] peer-checked:text-white">
 															{name}
 														</span>
 													</label>

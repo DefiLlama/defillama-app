@@ -87,7 +87,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 
 	return (
 		<>
-			{linksInRow && (
+			{linksInRow ? (
 				<div
 					className="flex-1 overflow-hidden p-1 flex flex-wrap max-h-[calc(1.8rem_+_14px)] gap-[var(--gap)]"
 					style={
@@ -102,16 +102,17 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 						<LinkItem key={option.label} option={option} activeLink={activeLink} id={`priority-nav-el-${index}`} />
 					))}
 				</div>
-			)}
+			) : null}
 
-			{dropdownLinks && (
+			{dropdownLinks ? (
 				<OtherLinks
 					name={isLinkInDropdown ? activeLink : alternativeOthersText ?? 'Others'}
 					variant="primary"
 					isActive={isLinkInDropdown}
 					options={links}
+					className={!linksInRow ? 'w-full justify-between' : ''}
 				/>
-			)}
+			) : null}
 		</>
 	)
 }

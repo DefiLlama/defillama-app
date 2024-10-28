@@ -31,7 +31,7 @@ interface ILinks {
 	}
 }
 
-const defaultToolsAndFooterLinks = {
+export const defaultToolsAndFooterLinks = {
 	tools: [
 		{
 			name: 'DefiLlama Extension',
