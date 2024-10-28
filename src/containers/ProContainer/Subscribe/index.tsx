@@ -3,7 +3,6 @@ import { useState } from 'react'
 import React from 'react'
 import { useAccount } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 
 import logo from '~/public/llama.png'
 import { CheckIcon } from './Icon'
@@ -27,11 +26,6 @@ const Content = styled.div`
 	margin-top: 16px;
 	display: grid;
 	gap: 16px;
-`
-
-const Button = styled(ButtonComponent)`
-	font-size: 16px;
-	height: 36px;
 `
 
 const External = styled.a`
@@ -111,11 +105,15 @@ const Subscribe = ({ refresh, verify }) => {
 					</div>
 				</>
 				{!wallet.isConnected ? (
-					<Button onClick={openConnectModal}>Connect</Button>
+					<button onClick={openConnectModal} className="shadow p-3 rounded-lg bg-[#445ed0] h-9 text-base">
+						Connect
+					</button>
 				) : isVerified ? (
-					<Button onClick={startPayment}>{'Subscribe now'}</Button>
+					<button onClick={startPayment}>{'Subscribe now'}</button>
 				) : (
-					<Button onClick={onSignClick}>Sign In</Button>
+					<button onClick={onSignClick} className="shadow p-3 rounded-lg bg-[#445ed0] h-9 text-base">
+						Sign In
+					</button>
 				)}
 
 				<ListBody>

@@ -4,7 +4,6 @@ import { useAccount } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import toast from 'react-hot-toast'
 
-import { Button as ButtonComponent } from '~/components/Nav/Mobile/shared'
 import { logout, useGetAuthToken, useGetCreditsUsage, useSignInWithEthereum } from './queries/useAuth'
 import { llamaAddress, subscriptionAmount } from './lib/constants'
 import { useGetSubs } from './queries/useGetSubs'
@@ -37,11 +36,6 @@ const Content = styled.div`
 	margin-top: 16px;
 	display: grid;
 	gap: 16px;
-`
-
-const Button = styled(ButtonComponent)`
-	font-size: 16px;
-	height: 36px;
 `
 
 const ListBody = styled.div`
@@ -181,19 +175,24 @@ const ProApi = () => {
 				) : authToken && isSubscribed ? null : (
 					<Box>
 						{isSubscribed ? (
-							<Button
+							<button
 								onClick={() => {
 									signIn({ address: wallet.address })
 								}}
+								className="shadow p-3 rounded-lg bg-[#445ed0] h-9 text-base"
 							>
 								Sign In
-							</Button>
+							</button>
 						) : (
 							<>
 								{!wallet.isConnected ? (
-									<Button onClick={openConnectModal}>Connect Wallet</Button>
+									<button onClick={openConnectModal} className="shadow p-3 rounded-lg bg-[#445ed0] h-9 text-base">
+										Connect Wallet
+									</button>
 								) : (
-									<Button onClick={() => startPayment()}>Subscribe</Button>
+									<button onClick={() => startPayment()} className="shadow p-3 rounded-lg bg-[#445ed0] h-9 text-base">
+										Subscribe
+									</button>
 								)}
 								OR
 								<SignInWithGithub />
