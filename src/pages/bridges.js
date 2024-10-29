@@ -1,6 +1,6 @@
 import Layout from '~/layout'
-import { maxAgeForNext, revalidate } from '~/api'
-import BridgeList from '~/components/BridgesPage/BridgeList'
+import { maxAgeForNext } from '~/api'
+import BridgeList from '~/containers/BridgesPage/BridgeList'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 import { withPerformanceLogging } from '~/utils/perf'
 

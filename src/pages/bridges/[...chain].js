@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
-import BridgeList from '~/components/BridgesPage/BridgeList'
-import { getBridgeOverviewPageData, getBridges } from '~/api/categories/bridges'
+import BridgeList from '~/containers/BridgesPage/BridgeList'
+import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
