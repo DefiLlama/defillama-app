@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import IconsRow from '~/components/IconsRow'
+import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'

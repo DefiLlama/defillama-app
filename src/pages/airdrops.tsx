@@ -1,4 +1,4 @@
-import { RecentProtocols } from '~/components/RecentProtocols'
+import { RecentProtocols } from '~/containers/RecentProtocols'
 import { maxAgeForNext } from '~/api'
 import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'

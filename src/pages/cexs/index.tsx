@@ -4,7 +4,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import 'react-datepicker/dist/react-datepicker.css'
-import Cexs from '~/components/Cexs'
+import Cexs from '~/containers/Cexs'
 import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging

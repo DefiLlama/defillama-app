@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { cexColumn } from '~/components/Table/Defi/columns'
 import { cexData } from '~/pages/cexs'
 import { DateFilter } from './DateFilter'
-import { TableWithSearch } from '../Table/TableWithSearch'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
 
 const getOutflowsByTimerange = async (startTime, endTime) => {
 	if (startTime && endTime) {

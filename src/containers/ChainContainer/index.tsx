@@ -642,37 +642,36 @@ export function ChainContainer({
 							<>
 								<div className="flex flex-wrap gap-4 mx-4">
 									<div className="flex gap-2 flex-wrap">
-										{chartOptions.map(
-											({ id, name, isVisible }) =>
-												isVisible && (
-													<label
-														key={id + 'chart-option'}
-														className="text-sm font-medium cursor-pointer rounded-xl relative"
-													>
-														<input
-															type="checkbox"
-															onClick={() => {
-																updateRoute(
-																	id,
-																	id === 'tvl'
-																		? router.query[id] !== 'false'
-																			? 'false'
-																			: 'true'
-																		: router.query[id] === 'true'
+										{chartOptions
+											.filter((o) => o.isVisible)
+											.map(({ id, name }) => (
+												<label
+													key={id + 'chart-option'}
+													className="text-sm font-medium cursor-pointer rounded-xl relative"
+												>
+													<input
+														type="checkbox"
+														onClick={() => {
+															updateRoute(
+																id,
+																id === 'tvl'
+																	? router.query[id] !== 'false'
 																		? 'false'
-																		: 'true',
-																	router
-																)
-															}}
-															checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
-															className="peer absolute w-[1em] h-[1em] opacity-[0.00001] outline-none"
-														/>
-														<span className="relative z-[1] block rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] peer-checked:bg-[var(--link-active-bg)] peer-checked:text-white">
-															{name}
-														</span>
-													</label>
-												)
-										)}
+																		: 'true'
+																	: router.query[id] === 'true'
+																	? 'false'
+																	: 'true',
+																router
+															)
+														}}
+														checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
+														className="peer absolute w-[1em] h-[1em] opacity-[0.00001] outline-none"
+													/>
+													<span className="relative z-[1] block rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] peer-checked:bg-[var(--link-active-bg)] peer-checked:text-white">
+														{name}
+													</span>
+												</label>
+											))}
 									</div>
 
 									{DENOMINATIONS.length > 1 && (

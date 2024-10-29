@@ -12,8 +12,7 @@ import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
 
 import { ISettings } from '~/contexts/types'
-import ReactSelect from '../MultiSelect/ReactSelect'
-
+import ReactSelect from '~/components/MultiSelect/ReactSelect'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { PROTOCOLS_API } from '~/constants'
 import { OverallMetricsWrapper } from '~/containers/ChainContainer'

@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { SelectButton, SelectPopover, ItemsSelected, SecondaryLabel } from '../common'
-import { lockupsCollateral, badDebt } from '~/components/YieldsPage/utils'
+import { lockupsCollateral, badDebt } from '~/containers/YieldsPage/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
 import { SelectContent } from '../common/Base'
 

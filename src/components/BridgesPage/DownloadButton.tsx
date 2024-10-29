@@ -1,22 +1,7 @@
 import * as React from 'react'
-import styled from 'styled-components'
 import { download, toNiceCsvDate } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
-const DownloadButtonContainer = styled.button`
-	display: none;
-	padding: 4px 6px;
-	border-radius: 6px;
-	background: ${({ theme }) => theme.bg3};
-	bottom: 8px;
-	right: 8px;
-	align-items: center;
-	height: 28px;
-
-	@media (min-width: 80rem) {
-		display: flex;
-	}
-`
 export const LargeTxDownloadButton = ({ data }: { data: any }) => {
 	return (
 		<CSVDownloadButton

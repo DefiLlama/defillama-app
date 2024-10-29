@@ -6,7 +6,7 @@ import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { TotalLiquidable } from './TotalLiquidable'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
-import { LiquidationsContext } from '~/components/LiquidationsPage/context'
+import { LiquidationsContext } from '~/containers/LiquidationsPage/context'
 import { useStackBy } from './utils'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import Image from 'next/future/image'

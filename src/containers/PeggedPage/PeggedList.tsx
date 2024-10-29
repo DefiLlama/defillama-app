@@ -7,7 +7,7 @@ import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/comp
 import { RowLinksWithDropdown } from '~/components/Filters'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedSearch } from '~/components/Search'
-import { ChartSelector } from '~/components/PeggedPage/.'
+import { ChartSelector } from '~/containers/PeggedPage/.'
 import {
 	Attribute,
 	stablecoinAttributeOptions,

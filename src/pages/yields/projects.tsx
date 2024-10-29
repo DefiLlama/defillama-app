@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import { YieldsProjectsTable } from '~/components/Table'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/components/YieldsPage/utils'
+import { disclaimer } from '~/containers/YieldsPage/utils'
 import { maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import { withPerformanceLogging } from '~/utils/perf'

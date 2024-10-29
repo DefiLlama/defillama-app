@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { Hovercard, HovercardAnchor, useHovercardState } from 'ariakit/hovercard'
-import styled from 'styled-components'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useResize } from '~/hooks/useResize'
@@ -8,49 +7,6 @@ import { chainIconUrl, tokenIconUrl } from '~/utils'
 import Link from 'next/link'
 
 const CHAIN_ICON_WIDTH = 24
-
-const TokenCounter = styled.button`
-	width: ${CHAIN_ICON_WIDTH}px;
-	height: ${CHAIN_ICON_WIDTH}px;
-	border-radius: 50%;
-	background: ${({ theme }) => theme.bg3};
-	color: ${({ theme }) => theme.text1};
-	display: flex;
-	align-items: center;
-	justify-content: center;
-
-	:focus-visible {
-		outline-offset: 2px;
-	}
-`
-
-const Row = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-	background: none;
-	overflow: hidden;
-`
-
-const Popover = styled(Hovercard)`
-	max-width: 600px;
-	z-index: 10;
-	padding: 6px;
-	background: ${({ theme }) => theme.bg2};
-	border: 1px solid ${({ theme }) => theme.bg3};
-	color: ${({ theme }) => theme.text1};
-	border-radius: 8px;
-	box-shadow: ${({ theme }) => theme.shadowMd};
-
-	& > * {
-		justify-content: flex-start;
-		flex-wrap: wrap;
-
-		& > * {
-			flex-shrink: 0;
-		}
-	}
-`
 
 interface IChainLogo {
 	chain: string
@@ -117,7 +73,7 @@ const isChain = (chain) => {
 }
 
 // todo update links prop to {name: string, iconType: string}
-const IconsRow = ({
+export const IconsRow = ({
 	links = [],
 	url,
 	iconType,
@@ -151,7 +107,7 @@ const IconsRow = ({
 	const hovercard = useHovercardState()
 
 	return (
-		<Row ref={mainWrapEl}>
+		<div className="flex items-center justify-end bg-none overflow-hidden" ref={mainWrapEl}>
 			{visibleChains.map((chain, i) => (
 				<ChainLogo
 					key={chain}
@@ -164,27 +120,31 @@ const IconsRow = ({
 			))}
 			{!!hoverChains.length && links.length > 2 && (
 				<>
-					<HovercardAnchor as={TokenCounter} state={hovercard}>
+					<HovercardAnchor
+						as="button"
+						className="h-6 w-6 rounded-full flex items-center justify-center text-[var(--text1)] bg-[var(--bg3)]"
+						state={hovercard}
+					>
 						{`+${hoverChains.length}`}
 					</HovercardAnchor>
-					<Popover state={hovercard}>
-						{
-							<Row>
-								{hoverChains.map((chain, i) => (
-									<ChainLogo
-										key={chain}
-										chain={chain}
-										url={url}
-										iconType={iconType}
-										yieldRewardsSymbol={yieldRewardsSymbols[i]}
-									/>
-								))}
-							</Row>
-						}
-					</Popover>
+					<Hovercard
+						state={hovercard}
+						className="max-w-xl z-10 p-1 shadow rounded-lg bg-[var(--bg2)] border border-[var(--bg3)] text-[var(--text1)]"
+					>
+						<div className="flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden">
+							{hoverChains.map((chain, i) => (
+								<ChainLogo
+									key={chain}
+									chain={chain}
+									url={url}
+									iconType={iconType}
+									yieldRewardsSymbol={yieldRewardsSymbols[i]}
+								/>
+							))}
+						</div>
+					</Hovercard>
 				</>
 			)}
-		</Row>
+		</div>
 	)
 }
-export default IconsRow

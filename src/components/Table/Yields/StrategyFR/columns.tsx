@@ -7,7 +7,7 @@ import { PoolStrategyWithProjects } from '../../shared'
 import { Tooltip } from '~/components/Tooltip'
 import styled from 'styled-components'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
+import { lockupsRewards, earlyExit } from '~/containers/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 
 export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [

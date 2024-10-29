@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import IconsRow from '~/components/IconsRow'
+import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'

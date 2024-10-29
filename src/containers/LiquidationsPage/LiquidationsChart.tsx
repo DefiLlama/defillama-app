@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars*/
 import { useCallback, useContext, useEffect } from 'react'
 import * as echarts from 'echarts'
-import { LiquidationsContext } from '~/components/LiquidationsPage/context'
+import { LiquidationsContext } from '~/containers/LiquidationsPage/context'
 import { useMedia } from '~/hooks/useMedia'
 import { useDarkModeManager, useLiqsManager } from '~/contexts/LocalStorage'
 import { ChartData } from '~/utils/liquidations'

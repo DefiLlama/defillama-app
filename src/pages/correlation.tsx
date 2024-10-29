@@ -1,4 +1,4 @@
-import Correlations from '~/components/Correlations'
+import Correlations from '~/containers/Correlations'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'

@@ -28,7 +28,7 @@ export function DesktopNav() {
 						}
 						height={53}
 						width={155}
-						className="object-contain object-left hover:-rotate-6 transition-transform duration-300 mr-auto mb-4"
+						className="object-contain object-left mr-auto mb-4"
 						alt=""
 					/>
 				</a>

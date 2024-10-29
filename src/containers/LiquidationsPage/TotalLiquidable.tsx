@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { useStackBy } from './utils'
-import { LiquidationsContext } from '~/components/LiquidationsPage/context'
+import { LiquidationsContext } from '~/containers/LiquidationsPage/context'
 import { DownloadButtonSmol } from './DownloadButton'
 
 export const TotalLiquidable = (props: ChartData) => {

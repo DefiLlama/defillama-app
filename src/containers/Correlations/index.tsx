@@ -19,7 +19,7 @@ import { useRouter } from 'next/router'
 import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
-import { CloseButton, ModalContent, ModalWrapper } from '../Modal/styles'
+import { CloseButton, ModalContent, ModalWrapper } from '~/components/Modal/styles'
 import { Icon } from '~/components/Icon'
 
 export function CoinsPicker({ coinsData, isModalOpen, setModalOpen, selectCoin, selectedCoins, queryCoins }: any) {

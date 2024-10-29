@@ -4,7 +4,7 @@ import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
 import { LocalLoader } from '~/components/LocalLoader'
 import styled, { css } from 'styled-components'
-import { CoinsPicker } from '~/components/Correlations'
+import { CoinsPicker } from '~/containers/Correlations'
 import { formattedNum } from '~/utils'
 import { Icon } from '~/components/Icon'
 

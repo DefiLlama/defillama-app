@@ -4,11 +4,11 @@ import { useRouter } from 'next/router'
 import { CACHE_SERVER } from '~/constants'
 import { LocalLoader } from '~/components/LocalLoader'
 import styled from 'styled-components'
-import { CoinsPicker } from '../Correlations'
+import { CoinsPicker } from '~/containers/Correlations'
 import { Button, Popover, Item } from '~/components/DropdownMenu'
 import { MenuButtonArrow, useMenuState } from 'ariakit'
 import { useQuery } from '@tanstack/react-query'
-import { SearchIcon } from '../Table/shared'
+import { SearchIcon } from '~/components/Table/shared'
 import { Icon } from '~/components/Icon'
 
 export default function CompareFdv({ coinsData, protocols }) {

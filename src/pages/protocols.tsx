@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { ProtocolList } from '~/components/ProtocolList'
+import { ProtocolList } from '~/containers/ProtocolList'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'

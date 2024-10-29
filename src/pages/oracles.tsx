@@ -3,7 +3,7 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import Oracles from '~/components/Oracles'
+import Oracles from '~/containers/Oracles'
 
 // @ts-ignore TODO: same reason as in another file, getOraclePageData cares too much
 export const getStaticProps = withPerformanceLogging('oracles', async () => {

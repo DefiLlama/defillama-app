@@ -18,7 +18,7 @@ import { RowWithSubRows, StatsTable2 } from '~/containers/Defi/Protocol'
 import { categoryProtocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IOverviewProps } from '~/api/categories/adaptors'
 import Modal from '~/components/Modal'
-import CompareProtocols from '~/components/CompareProtocols'
+import CompareProtocols from '~/containers/CompareProtocols'
 import { ButtonDark } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 

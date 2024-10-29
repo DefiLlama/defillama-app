@@ -1,4 +1,4 @@
-import { Panel } from '..'
+import { Panel } from '~/components'
 
 export const FAQ = () => (
 	<Panel className="mx-auto max-w-xl flex flex-col gap-4">

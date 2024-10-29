@@ -6,7 +6,7 @@ import { fuseProtocolData } from '~/api/categories/protocols'
 import { PROTOCOL_API } from '~/constants'
 import { slug } from '~/utils'
 import { fetchApi } from '~/utils/async'
-import { formatProtocolsTvlChartData } from '../ECharts/ProtocolChart/useFetchAndFormatChartData'
+import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
 
