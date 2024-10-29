@@ -16,15 +16,15 @@ export function DesktopNav() {
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	return (
-		<nav className="fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-[var(--bg8)] hidden lg:flex flex-col gap-1 p-6 no-scrollbar">
+		<nav className="z-10 fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-[var(--bg8)] hidden lg:flex flex-col gap-1 p-6 no-scrollbar">
 			<Link href="/" passHref>
 				<a className="flex-shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
 					<img
 						src={
 							darkMode
-								? '/defillama-press-kit/defi/PNG/defillama.png'
-								: '/defillama-press-kit/defi/PNG/defillama-dark.png'
+								? '/defillama-press-kit/defi/SVG/defillama.svg'
+								: '/defillama-press-kit/defi/SVG/defillama-dark.svg'
 						}
 						height={53}
 						width={155}

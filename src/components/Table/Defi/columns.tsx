@@ -498,9 +498,15 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 						}}
 					>
 						{row.getIsExpanded() ? (
-							<Icon name="chevron-down" height={16} width={16} />
+							<>
+								<Icon name="chevron-down" height={16} width={16} />
+								<span className="sr-only">View child protocols</span>
+							</>
 						) : (
-							<Icon name="chevron-right" height={16} width={16} />
+							<>
+								<Icon name="chevron-right" height={16} width={16} />
+								<span className="sr-only">Hide child protocols</span>
+							</>
 						)}
 					</AccordionButton>
 					<span>{index + 1}</span>
@@ -693,9 +699,15 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 							}}
 						>
 							{row.getIsExpanded() ? (
-								<Icon name="chevron-down" height={16} width={16} />
+								<>
+									<Icon name="chevron-down" height={16} width={16} />
+									<span className="sr-only">View child protocols</span>
+								</>
 							) : (
-								<Icon name="chevron-right" height={16} width={16} />
+								<>
+									<Icon name="chevron-right" height={16} width={16} />
+									<span className="sr-only">Hide child protocols</span>
+								</>
 							)}
 						</AccordionButton>
 					)}
@@ -916,9 +928,15 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 							}}
 						>
 							{row.getIsExpanded() ? (
-								<Icon name="chevron-down" height={16} width={16} />
+								<>
+									<Icon name="chevron-down" height={16} width={16} />
+									<span className="sr-only">View child protocols</span>
+								</>
 							) : (
-								<Icon name="chevron-right" height={16} width={16} />
+								<>
+									<Icon name="chevron-right" height={16} width={16} />
+									<span className="sr-only">Hide child protocols</span>
+								</>
 							)}
 						</AccordionButton>
 					)}

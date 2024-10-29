@@ -19,7 +19,7 @@ export function MobileNav() {
 				<a className="flex-shrink-0 mr-auto">
 					<span className="sr-only">Navigate to Home Page</span>
 					<img
-						src="/defillama-press-kit/defi/PNG/defillama.png"
+						src="/defillama-press-kit/defi/SVG/defillama.svg"
 						alt=""
 						height={36}
 						width={105}

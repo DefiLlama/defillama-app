@@ -318,7 +318,7 @@ export function ChainContainer({
 				}}
 			/>
 
-			<LayoutWrapper>
+			<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
 				<nav className="flex">
 					<RowLinksWithDropdown
 						links={chainOptions}
@@ -686,6 +686,7 @@ export function ChainContainer({
 												<Denomination
 													active={denomination === D}
 													key={'denomination' + D}
+													as="button"
 													onClick={() => updateRoute('currency', D, router)}
 												>
 													{D}
@@ -696,16 +697,28 @@ export function ChainContainer({
 									{hasAtleasOneBarChart ? (
 										<>
 											<Filters color={primaryColor}>
-												<Denomination active={groupBy === 'daily' || !groupBy} onClick={() => updateGroupBy('daily')}>
+												<Denomination
+													as="button"
+													active={groupBy === 'daily' || !groupBy}
+													onClick={() => updateGroupBy('daily')}
+												>
 													Daily
 												</Denomination>
-												<Denomination active={groupBy === 'weekly'} onClick={() => updateGroupBy('weekly')}>
+												<Denomination as="button" active={groupBy === 'weekly'} onClick={() => updateGroupBy('weekly')}>
 													Weekly
 												</Denomination>
-												<Denomination active={groupBy === 'monthly'} onClick={() => updateGroupBy('monthly')}>
+												<Denomination
+													as="button"
+													active={groupBy === 'monthly'}
+													onClick={() => updateGroupBy('monthly')}
+												>
 													Monthly
 												</Denomination>
-												<Denomination active={groupBy === 'cumulative'} onClick={() => updateGroupBy('cumulative')}>
+												<Denomination
+													as="button"
+													active={groupBy === 'cumulative'}
+													onClick={() => updateGroupBy('cumulative')}
+												>
 													Cumulative
 												</Denomination>
 												<EmbedChart color={primaryColor} />
@@ -745,7 +758,7 @@ export function ChainContainer({
 				{fetchingProtocolsList || fetchingProtocolsFeesAndRevenueByChain || fetchingProtocolsVolumeByChain ? (
 					<p style={{ textAlign: 'center', padding: '16px 0' }}>Loading...</p>
 				) : null}
-			</LayoutWrapper>
+			</div>
 		</>
 	)
 }

@@ -27,6 +27,7 @@ function Bookmark({ readableProtocolName, ...props }) {
 			{...props}
 		>
 			<Icon name="bookmark" width={16} height={16} />
+			<span className="sr-only">Bookmark</span>
 		</button>
 	)
 }

@@ -16,7 +16,6 @@ interface ILayoutProps {
 	defaultSEO?: boolean
 	backgroundColor?: string
 	style?: React.CSSProperties
-	fullWidth?: boolean
 }
 
 export default function Layout({ title, children, defaultSEO = false, ...props }: ILayoutProps) {
@@ -34,18 +33,13 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 				{/* @ts-ignore */}
 				<GlobalStyle />
 				<Nav />
-				<div
+
+				<main
 					{...props}
-					data-fullwidth={props.fullWidth ?? false}
-					className="flex flex-col m-4 isolate lg:m-7 lg:ml-[248px] w-full data-[fullwidth=true]:w-[calc(100vw-258px)]"
+					className="flex flex-col gap-7 w-full max-w-[140rem] min-h-full text-[var(--text1)] isolate p-4 lg:p-7 lg:pl-[248px]"
 				>
-					<main
-						{...props}
-						className="flex flex-col gap-7 w-full max-w-[140rem] min-h-full mx-auto text-[var(--text1)] flex-1"
-					>
-						{children}
-					</main>
-				</div>
+					{children}
+				</main>
 
 				{isClient ? <Toaster /> : null}
 			</ThemeProvider>
