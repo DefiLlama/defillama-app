@@ -674,6 +674,12 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		})
 	})),
 	{
+		header: 'Language',
+		accessorKey: 'language',
+		cell: ({ getValue }) => <>{getValue() ?? ''}</>,
+		size: 140
+	},
+	{
 		header: 'Link',
 		accessorKey: 'link',
 		size: 40,
