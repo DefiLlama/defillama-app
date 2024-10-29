@@ -91,7 +91,7 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 				</div>
 			)
 		},
-		size: 140,
+		size: 170,
 		meta: {
 			align: 'end'
 		}
@@ -109,7 +109,7 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 		header: 'Total Mcap Bridged To',
 		accessorKey: 'bridgedTo',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
-		size: 180,
+		size: 185,
 		meta: {
 			align: 'end'
 		}
