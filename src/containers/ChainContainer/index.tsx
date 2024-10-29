@@ -320,12 +320,7 @@ export function ChainContainer({
 
 			<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
 				<nav className="flex">
-					<RowLinksWithDropdown
-						links={chainOptions}
-						activeLink={selectedChain}
-						alternativeOthersText="Chains"
-						variant="secondary"
-					/>
+					<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} alternativeOthersText="Chains" />
 				</nav>
 
 				<StatsSection>

@@ -61,7 +61,7 @@ const DefiSearch = () => {
 					<MobileResults inputValue={debouncedInputValue} data={data} loading={status === 'loading'} />
 				</>
 			) : (
-				<button onClick={() => setDisplay(true)} className="shadow p-3 rounded-lg bg-[#445ed0] -my-[2px]">
+				<button onClick={() => setDisplay(true)} className="shadow p-3 rounded-lg bg-[#445ed0] text-white -my-[2px]">
 					<span className="sr-only">Search</span>
 					<Icon name="search" height={16} width={16} />
 				</button>
@@ -114,7 +114,7 @@ function MobileSearchV1() {
 					<MobileResults inputValue={debouncedInputValue} data={data} loading={loading} onItemClick={onItemClick} />
 				</>
 			) : (
-				<button onClick={() => setDisplay(true)} className="shadow p-3 rounded-lg bg-[#445ed0] -my-[2px]">
+				<button onClick={() => setDisplay(true)} className="shadow p-3 rounded-lg bg-[#445ed0] text-white -my-[2px]">
 					<span className="sr-only">Search</span>
 					<Icon name="search" height={16} width={16} />
 				</button>

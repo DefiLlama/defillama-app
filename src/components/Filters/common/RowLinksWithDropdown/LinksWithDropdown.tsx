@@ -107,7 +107,6 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 			{dropdownLinks ? (
 				<OtherLinks
 					name={isLinkInDropdown ? activeLink : alternativeOthersText ?? 'Others'}
-					variant="primary"
 					isActive={isLinkInDropdown}
 					options={links}
 					className={!linksInRow ? 'w-full justify-between' : ''}
