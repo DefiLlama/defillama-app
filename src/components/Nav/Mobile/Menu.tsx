@@ -40,7 +40,11 @@ export function Menu() {
 
 	return (
 		<>
-			<button onClick={() => setShow(!show)} ref={buttonEl} className="shadow p-3 rounded-lg bg-[#445ed0] -my-[2px]">
+			<button
+				onClick={() => setShow(!show)}
+				ref={buttonEl}
+				className="shadow p-3 rounded-lg bg-[#445ed0] text-white -my-[2px]"
+			>
 				<span className="sr-only">Open Navigation Menu</span>
 				<Icon name="menu" height={16} width={16} />
 			</button>

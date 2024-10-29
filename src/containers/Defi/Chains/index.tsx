@@ -134,7 +134,7 @@ export default function ChainsContainer({
 
 			<LayoutWrapper>
 				<nav className="flex">
-					<RowLinksWithDropdown links={categories} activeLink={category} variant="secondary" />
+					<RowLinksWithDropdown links={categories} activeLink={category} />
 				</nav>
 
 				<div className="flex items-center justify-between gap-3 flex-wrap">

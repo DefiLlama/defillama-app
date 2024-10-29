@@ -11,7 +11,6 @@ interface IRowLinksProps {
 	links: ILink[]
 	activeLink?: string
 	alternativeOthersText?: string
-	variant?: 'primary' | 'secondary'
 }
 
 export const RowLinksWithDropdown = (props: IRowLinksProps) => {
@@ -26,7 +25,6 @@ export const RowLinksWithDropdown = (props: IRowLinksProps) => {
 						: props.alternativeOthersText ?? 'Others'
 				}
 				options={props.links}
-				variant={props.variant ?? 'primary'}
 				isActive={true}
 				className="w-full justify-between"
 			/>

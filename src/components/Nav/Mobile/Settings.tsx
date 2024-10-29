@@ -1,6 +1,4 @@
 import { Select, SelectItem, SelectItemCheck, SelectPopover, useSelectState } from 'ariakit/select'
-import styled from 'styled-components'
-import { useSetPopoverStyles } from '~/components/Popover/utils'
 import {
 	DARK_MODE,
 	useDarkModeManager,
@@ -13,6 +11,7 @@ import { nftOptions } from '~/components/Filters/nfts/options'
 import { useRouter } from 'next/router'
 import { feesOptions } from '~/components/Filters/protocols/options'
 import { Icon } from '~/components/Icon'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 export function Settings() {
 	const [darkMode] = useDarkModeManager()
@@ -35,36 +34,39 @@ export function Settings() {
 			updater(on)()
 		}
 	}
-
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
 	const select = useSelectState({
 		value: selectedOptions,
 		setValue: onChange,
-		animated: true,
 		renderCallback
 	})
 
 	return (
 		<>
-			<Select className="shadow p-3 rounded-lg bg-[#445ed0] -my-[2px]" state={select}>
+			<Select className="shadow p-3 rounded-lg bg-[#445ed0] text-white -my-[2px]" state={select}>
 				<span className="sr-only">Open Settings Menu</span>
 				<Icon name="settings" height={16} width={16} />
 			</Select>
 
-			<Popover state={select} modal={!isLarge}>
-				<PopoverHeader>Settings</PopoverHeader>
+			<SelectPopover
+				state={select}
+				modal={!isLarge}
+				className="flex flex-col w-full max-w-[none] max-h-[calc(100vh-200px)] text-base font-medium bg-[var(--bg1)] rounded-t-lg z-10 overflow-auto overscroll-contain sm:hidden"
+			>
+				<h1 className="text-[var(--text2)] my-2 mx-3">Settings</h1>
+				<hr className="border-black/20 dark:border-white/20" />
 				{options.map((option) => (
-					<Item value={option.key} key={option.key}>
+					<SelectItem value={option.key} key={option.key} className="flex items-center justify-between gap-3 py-2 px-3">
 						{option.name}
 						<SelectItemCheck />
-					</Item>
+					</SelectItem>
 				))}
-				<Item value={DARK_MODE}>
+				<SelectItem value={DARK_MODE} className="flex items-center justify-between gap-3 py-4 px-3">
 					Dark Mode
 					<SelectItemCheck />
-				</Item>
-			</Popover>
+				</SelectItem>
+			</SelectPopover>
 		</>
 	)
 }
@@ -114,79 +116,3 @@ const useAppSettings = () => {
 
 	return { options: protocolsAndChainsOptions, useSettings: useTvlAndFeesManager }
 }
-
-const Popover = styled(SelectPopover)`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	padding: 12px 8px;
-	width: 100%;
-	max-width: none;
-	max-height: calc(100vh - 200px);
-	font-size: 0.875rem;
-	font-weight: 500;
-	color: ${({ theme }) => theme.text1};
-	background: ${({ theme }) => theme.bg1};
-	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
-	border-radius: 8px 8px 0 0;
-	filter: ${({ theme }) =>
-		theme.mode === 'dark'
-			? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
-			: 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
-	overflow: auto;
-	overscroll-behavior: contain;
-	z-index: 10;
-
-	opacity: 0;
-	transform: translateY(100%);
-	transition: 0.2s ease;
-
-	&[data-enter] {
-		transform: translateY(0%);
-		opacity: 1;
-	}
-
-	&[data-leave] {
-		transition: 0.1s ease;
-	}
-
-	:focus-visible,
-	[data-focus-visible] {
-		outline: ${({ theme }) => '1px solid ' + theme.text1};
-		outline-offset: 1px;
-	}
-
-	@media screen and (min-width: 640px) {
-		padding: 4px 0;
-		max-height: 400px;
-		max-width: min(calc(100vw - 16px), 320px);
-		font-weight: 400;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
-		border-radius: 8px;
-		transform: translateY(-5%);
-	}
-`
-
-const PopoverHeader = styled.div`
-	color: ${({ theme }) => theme.text2};
-	margin: 8px 12px 4px;
-	padding-bottom: 4px;
-	border-bottom: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
-
-	@media screen and (min-width: 640px) {
-		display: none;
-	}
-`
-
-const Item = styled(SelectItem)`
-	padding: 8px 12px;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
-	min-width: 160px;
-
-	@media screen and (min-width: 640px) {
-		padding: 8px 12px;
-	}
-`

@@ -70,12 +70,7 @@ export const ForkContainer = ({
 		<LayoutWrapper>
 			{tokenLinks?.length > 0 && (
 				<nav className="flex">
-					<RowLinksWithDropdown
-						links={tokenLinks}
-						activeLink={token}
-						alternativeOthersText="Others"
-						variant="secondary"
-					/>
+					<RowLinksWithDropdown links={tokenLinks} activeLink={token} alternativeOthersText="Others" />
 				</nav>
 			)}
 

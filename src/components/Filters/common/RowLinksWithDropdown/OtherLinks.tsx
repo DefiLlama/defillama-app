@@ -8,12 +8,11 @@ import { useSetPopoverStyles } from '~/components/Popover/utils'
 interface IProps {
 	options: { label: string; to: string }[]
 	name: string
-	variant: 'primary' | 'secondary'
 	isActive: boolean
 	className?: string
 }
 
-export function OtherLinks({ options, name, variant, isActive, className, ...props }: IProps) {
+export function OtherLinks({ options, name, isActive, className, ...props }: IProps) {
 	const defaultList = options.map((l) => l.to)
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
@@ -32,9 +31,8 @@ export function OtherLinks({ options, name, variant, isActive, className, ...pro
 			<MenuButton
 				state={menu}
 				{...props}
-				data-variant={variant}
 				data-active={isActive}
-				className={`h-9 flex items-center gap-4 my-auto rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-black dark:text-white bg-[var(--link-bg)] data-[variant=secondary]:bg-[var(--link-sec-bg)] hover:bg-[var(--link-hover-bg)] data-[variant=secondary]:hover:bg-[var(--link-sec-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[variant=secondary]:focus-visible:bg-[var(--link-sec-hover-bg)] data-[active=true]:bg-[var(--link-active-bg)] data-[active=true]:text-white data-[variant=secondary]:w-full ${
+				className={`h-9 flex items-center gap-4 my-auto rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-black dark:text-white bg-[var(--link-bg)]  hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-active-bg)] data-[active=true]:text-white ${
 					className ?? ''
 				}`}
 			>
