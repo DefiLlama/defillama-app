@@ -23,8 +23,8 @@ export function DesktopNav() {
 					<img
 						src={
 							darkMode
-								? '/defillama-press-kit/defi/PNG/defillama.png'
-								: '/defillama-press-kit/defi/PNG/defillama-dark.png'
+								? '/defillama-press-kit/defi/SVG/defillama.svg'
+								: '/defillama-press-kit/defi/SVG/defillama-dark.svg'
 						}
 						height={53}
 						width={155}

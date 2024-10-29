@@ -28,6 +28,7 @@ export const RowLinksWithDropdown = (props: IRowLinksProps) => {
 				options={props.links}
 				variant={props.variant ?? 'primary'}
 				isActive={true}
+				className="w-full justify-between"
 			/>
 		)
 	}

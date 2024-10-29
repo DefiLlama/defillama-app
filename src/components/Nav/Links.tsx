@@ -95,11 +95,6 @@ export const defaultToolsAndFooterLinks = {
 		}
 	],
 	footer: [
-		{
-			name: 'Reports',
-			path: '/reports',
-			newTag: true
-		},
 		{ name: 'About / Contact', path: '/about' },
 		{
 			name: 'Twitter',
@@ -115,6 +110,10 @@ export const defaultToolsAndFooterLinks = {
 			name: 'Donate',
 			path: '/donations'
 		}
+		// {
+		// 	name: 'Reports',
+		// 	path: '/reports'
+		// }
 	]
 }
 

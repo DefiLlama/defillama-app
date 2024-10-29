@@ -35,9 +35,15 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 						}}
 					>
 						{row.getIsExpanded() ? (
-							<Icon name="chevron-down" height={16} width={16} />
+							<>
+								<Icon name="chevron-down" height={16} width={16} />
+								<span className="sr-only">View child protocols</span>
+							</>
 						) : (
-							<Icon name="chevron-right" height={16} width={16} />
+							<>
+								<Icon name="chevron-right" height={16} width={16} />
+								<span className="sr-only">Hide child protocols</span>
+							</>
 						)}
 					</AccordionButton>
 				)}

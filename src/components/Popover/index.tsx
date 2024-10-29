@@ -190,6 +190,7 @@ export function EmbedChart({ color, ...props }) {
 			<Tooltip content="Embed Chart">
 				<PopoverTrigger state={popover} color={color}>
 					<Icon name="code" height={14} width={14} />
+					<span className="sr-only">Embed Chart</span>
 				</PopoverTrigger>
 			</Tooltip>
 

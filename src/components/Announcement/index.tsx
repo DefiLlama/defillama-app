@@ -75,6 +75,7 @@ export function Announcement({
 					onClick={closeAnnouncement}
 				>
 					<Icon name="x" height={16} width={16} />
+					<span className="sr-only">Close</span>
 				</button>
 			) : null}
 		</p>
