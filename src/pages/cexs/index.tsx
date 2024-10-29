@@ -225,7 +225,7 @@ export const cexData: Array<ICex> = [
 		name: 'Deribit',
 		slug: 'deribit',
 		coin: null,
-		walletsLink: 'https://insights.deribit.com/exchange-updates/deribit-wallet-holdings/',
+		walletsLink: 'https://insights.deribit.com/exchange-updates/proof-of-reserves-deribit/',
 		cgDeriv: 'deribit'
 	},
 	{
