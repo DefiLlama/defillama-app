@@ -100,7 +100,14 @@ export const descriptions = {
 	CeDeFi: 'Projects that incorporate elements of centralization within their product strategies',
 	'CDP Manager': 'Protocols that manage CDPs',
 	'Governance Incentives': `Protocols that facilitate governance participation by offering incentives or rewards for token holders' voting power`,
-	'Security Extension': 'A browser extension that protects Web3 users from malicious activities and exploits'
+	'Security Extension': 'A browser extension that protects Web3 users from malicious activities and exploits',
+	'AI Agents':
+		'Smart programs that use AI to handle tasks and make crypto interactions easier for blockchain platforms',
+	'Treasury Manager':
+		'Protocols that help organizations manage and optimize their treasury assets and funds using automated strategies',
+	'OTC Marketplace':
+		'A decentralized platform where users can trade assets directly peer-to-peer, using secure smart contracts',
+	'Yield Lottery': 'DeFi protocol where users deposit funds for a chance to win the pooled yield as prizes'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
