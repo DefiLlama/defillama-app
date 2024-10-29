@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars*/
 import * as React from 'react'
 import { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
-import { Denomination, Filters } from '../ECharts/ProtocolChart/Misc'
+import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { Icon } from '~/components/Icon'
 
 export const TxsTableSwitch = () => {

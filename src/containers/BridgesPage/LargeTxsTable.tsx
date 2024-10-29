@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { BridgesLargeTxsTable } from '~/components/Table'
-import { LargeTxsData } from '../Table/Bridges/Bridges/types'
+import { LargeTxsData } from '~/components/Table/Bridges/Bridges/types'
 import { LargeTxDownloadButton } from './DownloadButton'
 
 const TableNoticeWrapper = styled.div`

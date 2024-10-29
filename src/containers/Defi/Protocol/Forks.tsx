@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getForkPageData } from '~/api/categories/protocols'
-import { ForkContainer } from '~/containers/ForkContainer'
+import { ForkContainer } from '~/containers/Forks'
 
 export function ForksData({ protocolName }: { protocolName: string }) {
 	const { data, isLoading, error } = useQuery({

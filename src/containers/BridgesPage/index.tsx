@@ -5,7 +5,7 @@ import { Name } from '~/layout/ProtocolAndPool'
 import { FormattedName } from '~/components/FormattedName'
 import { Button as DropdownButton, Popover } from '~/components/DropdownMenu'
 import { Item, List } from '~/components/Combobox'
-import { useSetPopoverStyles } from '../Popover/utils'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { Button } from 'ariakit'
 
 const OptionWrapper = styled.div`
