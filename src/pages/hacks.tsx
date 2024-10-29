@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 		technique: h.technique,
 		bridge: h.bridgeHack,
 		link: h.source ?? '',
-		language: h.language
+		language: h.language ?? ''
 	}))
 
 	const monthlyHacks = {}
