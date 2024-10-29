@@ -36,7 +36,7 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 
 				<main
 					{...props}
-					className="flex flex-col gap-7 w-full max-w-[140rem] min-h-full text-[var(--text1)] isolate p-4 lg:p-7 lg:pl-[248px]"
+					className="flex flex-col gap-7 w-full min-h-full text-[var(--text1)] isolate p-4 lg:p-7 lg:pl-[248px]"
 				>
 					{children}
 				</main>
