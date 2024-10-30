@@ -1,6 +1,6 @@
 import { transparentize } from 'polished'
 import styled from 'styled-components'
-import ReactSelect from '~/components/MultiSelect/ReactSelect'
+import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { ChartTypes } from '../Defi/Protocol/ProtocolPro'
 import { chainChartOptions } from './ItemsSelect'
 
@@ -20,28 +20,29 @@ const SelectedItem = ({ name, setItems, items, type }) => {
 	return (
 		<SelectedItemBody key={name} style={{ display: 'flex' }}>
 			<div style={{ marginTop: '12px' }}>{name}</div>
-			<ReactSelect
-				components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}
-				isMulti
-				isClearable={false}
-				style={{ width: 'fit-content' }}
-				styles={{
-					control: (provided) => ({
-						...provided,
-						background: 'transparent',
-						border: 'none',
-						boxShadow: 'none'
-					})
-				}}
-				menuIsOpen={false}
-				placeholder="Search..."
-				onChange={(_, { removedValue }: any) => {
-					setItems((items) => {
-						return items.filter((item) => item !== `${type}-${name}-${removedValue?.value}`)
-					})
-				}}
-				value={items.map((item) => ({ label: getName(item, type), value: item }))}
-			/>
+			<span className="w-fit">
+				<ReactSelect
+					components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}
+					isMulti
+					isClearable={false}
+					styles={{
+						control: (provided) => ({
+							...provided,
+							background: 'transparent',
+							border: 'none',
+							boxShadow: 'none'
+						})
+					}}
+					menuIsOpen={false}
+					placeholder="Search..."
+					onChange={(_, { removedValue }: any) => {
+						setItems((items) => {
+							return items.filter((item) => item !== `${type}-${name}-${removedValue?.value}`)
+						})
+					}}
+					value={items.map((item) => ({ label: getName(item, type), value: item }))}
+				/>
+			</span>
 		</SelectedItemBody>
 	)
 }

@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import styled, { css, keyframes } from 'styled-components'
 import { maxAgeForNext } from '~/api'
-import ReactSelect from '~/components/MultiSelect/ReactSelect'
+import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 

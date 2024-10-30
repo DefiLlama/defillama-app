@@ -2,7 +2,7 @@ import { createFilter } from 'react-select'
 import { useState } from 'react'
 import styled from 'styled-components'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
-import ReactSelect from '~/components/MultiSelect/ReactSelect'
+import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { sluggify } from '~/utils/cache-client'
 import Modal from './Modal'
 import { getChainData } from '~/containers/ComparePage'
@@ -157,29 +157,31 @@ const ItemsSelect = ({ chains, setItems, setProtocolProps }: Props) => {
 				<div style={{ paddingRight: '8px' }}>
 					<FilterRow>
 						<FilterHeader>Select protocol or chain</FilterHeader>
-						<ReactSelect
-							style={{ width: '300px' }}
-							filterOption={createFilter({ ignoreAccents: false, ignoreCase: false })}
-							options={chains
-								.map(({ label }) => ({ label, value: sluggify(label), type: 'chain' }))
-								.concat(protocolOptions)}
-							placeholder="Search..."
-							onChange={(val: { label: string; to: string }) => setSelectedChain(val)}
-							value={selectedItem}
-						/>
+						<span className="w-[300px]">
+							<ReactSelect
+								filterOption={createFilter({ ignoreAccents: false, ignoreCase: false })}
+								options={chains
+									.map(({ label }) => ({ label, value: sluggify(label), type: 'chain' }))
+									.concat(protocolOptions)}
+								placeholder="Search..."
+								onChange={(val: { label: string; to: string }) => setSelectedChain(val)}
+								value={selectedItem}
+							/>
+						</span>
 					</FilterRow>
 					<FilterRow>
 						<FilterHeader>Pick charts</FilterHeader>
-						<ReactSelect
-							isMulti
-							isDisabled={!selectedItem}
-							style={{ width: '300px' }}
-							filterOption={createFilter({ ignoreAccents: false, ignoreCase: false })}
-							options={chartOptions}
-							placeholder="Search..."
-							onChange={(val: Array<string>) => setSelectedCharts(val)}
-							value={selectedCharts}
-						/>
+						<span className="w-[300px]">
+							<ReactSelect
+								isMulti
+								isDisabled={!selectedItem}
+								filterOption={createFilter({ ignoreAccents: false, ignoreCase: false })}
+								options={chartOptions}
+								placeholder="Search..."
+								onChange={(val: Array<string>) => setSelectedCharts(val)}
+								value={selectedCharts}
+							/>
+						</span>
 					</FilterRow>
 				</div>
 			</Modal>
