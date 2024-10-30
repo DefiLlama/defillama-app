@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { useRouter } from 'next/router'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 

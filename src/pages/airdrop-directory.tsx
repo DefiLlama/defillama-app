@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { getAirdropDirectoryData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { maxAgeForNext } from '~/api'

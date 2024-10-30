@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import { RowLinksWithDropdown } from '~/components/Filters'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { PeggedSearch } from '~/components/Search'
+import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ChartSelector } from '~/containers/PeggedPage/.'
 import {
 	Attribute,

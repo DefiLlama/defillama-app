@@ -1,7 +1,7 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { getColorFromNumber, getDominancePercent } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { LANGS_API } from '~/constants'

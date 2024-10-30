@@ -10,7 +10,7 @@ import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types
 import { IChartProps } from '~/components/ECharts/types'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { NFTsSearch } from '~/components/Search'
+import { NFTsSearch } from '~/components/Search/NFTs'
 import { getNFTCollection } from '~/api/categories/nfts'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useQuery } from '@tanstack/react-query'

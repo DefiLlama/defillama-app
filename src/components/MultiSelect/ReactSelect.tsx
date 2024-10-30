@@ -1,29 +1,13 @@
 import Select, { Props } from 'react-select'
-import styled from 'styled-components'
-
-const Wrapper = styled.span`
-	--background: ${({ theme }) => theme.bg6};
-	--menu-background: ${({ theme }) => theme.bg6};
-	--color: ${({ theme }) => theme.text1};
-	--placeholder: ${({ theme }) => theme.text3};
-	--bg-hover: ${({ theme }) => theme.bg2};
-	--option-bg: ${({ theme }) => theme.bg2};
-
-	& > * > * {
-		box-shadow: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04),
-			0px 0px 1px rgba(0, 0, 0, 0.04);
-		border-radius: 12px;
-	}
-`
 
 const customStyles = {
 	control: (provided) => ({
 		...provided,
-		background: 'var(--background)',
+		background: 'var(--bg6)',
 		padding: '4px 2px',
-		borderRadius: '12px',
+		borderRadius: '8px',
 		border: 'none',
-		color: 'var(--color)',
+		color: 'var(--text1)',
 		boxShadow:
 			'0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04)',
 		margin: 0,
@@ -31,56 +15,52 @@ const customStyles = {
 	}),
 	input: (provided) => ({
 		...provided,
-		color: 'var(--color)'
+		color: 'var(--text1)'
 	}),
 	menu: (provided) => ({
 		...provided,
-		background: 'var(--menu-background)',
+		background: 'var(--bg6)',
 		zIndex: 10
 	}),
 	option: (provided, state) => ({
 		...provided,
-		color: state.isActive ? 'black' : 'var(--color)'
+		color: state.isActive ? 'black' : 'var(--text1)'
 	}),
 	multiValue: (provided) => ({
 		...provided,
 		fontFamily: 'inherit',
-		background: 'var(--option-bg)',
+		background: 'var(--bg2)',
 		padding: '2px'
 	}),
 	multiValueLabel: (styles) => ({
 		...styles,
-		color: 'var(--color)'
+		color: 'var(--text1)'
 	}),
 	placeholder: (provided) => ({
 		...provided,
-		color: 'var(--placeholder)'
+		color: 'var(--text3)'
 	}),
 	singleValue: (provided, state) => ({
 		...provided,
-		color: 'var(--color)'
+		color: 'var(--text1)'
 	})
 }
 
-const ReactSelect = ({ options, styles, style, ...props }: Props & { style?: Record<string, string> }) => (
-	<Wrapper style={style}>
-		<Select
-			styles={{ ...customStyles, ...styles }}
-			options={options}
-			theme={(theme) => {
-				return {
-					...theme,
-					colors: {
-						...theme.colors,
-						primary25: 'var(--bg-hover)',
-						primary50: 'var(--bg-hover)',
-						primary75: 'var(--bg-hover)'
-					}
+export const ReactSelect = ({ options, styles, ...props }: Props) => (
+	<Select
+		styles={{ ...customStyles, ...styles }}
+		options={options}
+		theme={(theme) => {
+			return {
+				...theme,
+				colors: {
+					...theme.colors,
+					primary25: 'var(--bg2)',
+					primary50: 'var(--bg2)',
+					primary75: 'var(--bg2)'
 				}
-			}}
-			{...props}
-		/>
-	</Wrapper>
+			}
+		}}
+		{...props}
+	/>
 )
-
-export default ReactSelect

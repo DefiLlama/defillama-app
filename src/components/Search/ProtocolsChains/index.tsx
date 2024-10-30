@@ -16,7 +16,7 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 	hideFilters?: boolean
 }
 
-export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
+export function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
 	const isClient = useIsClient()
 
 	if (!isClient) {

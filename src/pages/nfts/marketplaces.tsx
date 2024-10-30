@@ -8,7 +8,7 @@ import { Panel } from '~/components'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import styled from 'styled-components'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import { NFTsSearch } from '~/components/Search'
+import { NFTsSearch } from '~/components/Search/NFTs'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const FlatDenomination = styled(Denomination)`

@@ -15,7 +15,7 @@ interface IAdaptorSearchProps extends ICommonSearchProps {
 	enableToggle?: boolean
 }
 
-export default function AdaptorsSearch(props: IAdaptorSearchProps) {
+export function AdaptorsSearch(props: IAdaptorSearchProps) {
 	const { data, loading } = useGetAdaptorsSearchList(props.type, props.onlyChains)
 
 	return (

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import { StatsSection } from '~/layout/Stats/Medium'
 import Layout from '~/layout'

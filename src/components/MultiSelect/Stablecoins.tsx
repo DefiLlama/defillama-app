@@ -1,5 +1,5 @@
 import { ActionMeta, components, GroupProps } from 'react-select'
-import ReactSelect from './ReactSelect'
+import { ReactSelect } from './ReactSelect'
 import { useDefiChainsManager, DEFI_CHAINS_SETTINGS } from '~/contexts/LocalStorage'
 
 const tvlOptions = [{ label: 'Unreleased', value: 'unreleased' }]
@@ -11,7 +11,7 @@ const tvlOptionsLabel = [
 	}
 ]
 
-export default function PeggedAssetTvlOptions({ label }: { label?: string }) {
+export function PeggedAssetTvlOptions({ label }: { label?: string }) {
 	const [extraPeggedEnabled, updater] = useDefiChainsManager()
 
 	const filters = extraPeggedEnabled

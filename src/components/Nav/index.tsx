@@ -14,8 +14,8 @@ const Fallback = () => {
 					<img
 						src={
 							darkMode
-								? '/defillama-press-kit/defi/SVG/defillama.svg'
-								: '/defillama-press-kit/defi/SVG/defillama-dark.svg'
+								? '/defillama-press-kit/defi/PNG/defillama.png'
+								: '/defillama-press-kit/defi/PNG/defillama-dark.png'
 						}
 						height={53}
 						width={155}
@@ -23,7 +23,7 @@ const Fallback = () => {
 						alt=""
 					/>
 					<img
-						src="/defillama-press-kit/defi/SVG/defillama.svg"
+						src="/defillama-press-kit/defi/PNG/defillama.png"
 						height={53}
 						width={155}
 						className="object-contain object-left mr-auto mb-4 lg:hidden"

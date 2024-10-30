@@ -56,7 +56,7 @@ export function useFormatTokensSearchList({ lend, searchData }) {
 	return { data, onItemClick }
 }
 
-export default function YieldsSearch({ lend = false, searchData, value }: IYieldSearchProps) {
+export function YieldsSearch({ lend = false, searchData, value }: IYieldSearchProps) {
 	const { data, onItemClick } = useFormatTokensSearchList({ lend, searchData })
 
 	const combobox = useComboboxState({

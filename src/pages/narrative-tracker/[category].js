@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
 import { getCoinPerformance, getCategoryInfo } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'

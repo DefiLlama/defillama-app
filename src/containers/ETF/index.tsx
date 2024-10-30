@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { toK } from '~/utils'

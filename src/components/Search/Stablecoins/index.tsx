@@ -4,7 +4,7 @@ import { useGetStablecoinsSearchList } from './hooks'
 
 interface IPeggedSearchProps extends ICommonSearchProps {}
 
-export default function PeggedSearch(props: IPeggedSearchProps) {
+export function PeggedSearch(props: IPeggedSearchProps) {
 	const { data, loading } = useGetStablecoinsSearchList()
 
 	return <DesktopSearch {...props} data={data} loading={loading} />
