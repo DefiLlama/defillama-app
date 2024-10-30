@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
 import { Panel } from '~/components'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Menu } from '~/components/DropdownMenu'
 import { useIsClient } from '~/hooks'
 import { DEFAULT_PORTFOLIO_NAME, useDefiManager, useWatchlist } from '~/contexts/LocalStorage'

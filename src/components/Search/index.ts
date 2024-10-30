@@ -1,7 +1,0 @@
-export { default as NFTsSearch } from './NFTs'
-export { default as LiquidationsSearch } from './Liquidations'
-export { default as PeggedSearch } from './Stablecoins'
-export { default as ProtocolsChainsSearch } from './ProtocolsChains'
-export { default as AdaptorsSearch } from './Adaptors'
-export { default as RaisesSearch } from './Raises'
-export { BridgesSearch, BridgesSearchWithBreakdown } from './Bridges'

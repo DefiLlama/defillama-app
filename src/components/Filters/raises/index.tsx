@@ -3,7 +3,7 @@ import { useMedia } from '~/hooks/useMedia'
 import { SlidingMenu } from '~/components/SlidingMenu'
 import { RaisesFilterDropdowns } from './Dropdowns'
 import { IDropdownMenusProps } from './types'
-import { RaisesSearch } from '~/components/Search'
+import { RaisesSearch } from '~/components/Search/Raises'
 
 export function RaisesFilters(props: IDropdownMenusProps) {
 	const isSmall = useMedia(`(max-width: 30rem)`)

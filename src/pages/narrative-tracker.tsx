@@ -3,7 +3,7 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getCategoryPerformance } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 import { CategoryPerformanceContainer } from '~/containers/CategoryPerformanceContainer'
 

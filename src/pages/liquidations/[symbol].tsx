@@ -3,7 +3,7 @@
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import * as React from 'react'
 import Layout from '~/layout'
-import { LiquidationsSearch } from '~/components/Search'
+import { LiquidationsSearch } from '~/components/Search/Liquidations'
 import SEO from '~/components/SEO'
 import { LiquidationsHeader } from '~/containers/LiquidationsPage/LiquidationsHeader'
 import { LiquidationsContent } from '~/containers/LiquidationsPage/LiquidationsContent'

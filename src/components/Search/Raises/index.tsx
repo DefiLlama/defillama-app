@@ -6,7 +6,7 @@ import { findActiveItem } from '../Base/utils'
 import { useMemo } from 'react'
 import { slug } from '~/utils'
 
-export default function InvestorsSearch({ list }) {
+export function RaisesSearch({ list }) {
 	const data = useMemo(() => list.map((name) => ({ name, route: `/raises/${slug(name.toLowerCase())}` })), [list])
 
 	const combobox = useComboboxState({

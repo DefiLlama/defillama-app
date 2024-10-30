@@ -7,7 +7,7 @@ import type { NextRouter } from 'next/router'
 
 import { BreakpointPanel } from '~/components'
 import { Toggle } from '~/components/ECharts/ProtocolChart/Misc'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
 
