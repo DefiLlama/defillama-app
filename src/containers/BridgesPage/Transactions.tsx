@@ -95,7 +95,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 
 					mutate({
 						startDate: formData.get('startDate'),
-						endDate: formData.get('endData'),
+						endDate: formData.get('endDate'),
 						selectedBridge: formData.get('selectedBridge'),
 						bridges
 					})
