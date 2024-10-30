@@ -67,7 +67,12 @@ const isStables = (pathname: string) =>
 	pathname === '/stablecoins' || pathname.startsWith('/stablecoin/') || pathname.startsWith('/stablecoins/')
 const isLiquidations = (pathname: string) => pathname === '/liquidations' || pathname.startsWith('/liquidations/')
 const isDexs = (pathname: string) =>
-	pathname === '/dexs' || pathname.startsWith('/dexs/') || pathname.startsWith('/dex/')
+	pathname === '/dexs' ||
+	pathname.startsWith('/dexs/') ||
+	pathname.startsWith('/dex/') ||
+	pathname.startsWith('/aggregator') ||
+	pathname.startsWith('/derivatives') ||
+	pathname.startsWith('/options')
 const isFees = (pathname: string) =>
 	pathname === '/fees' || pathname.startsWith('/fees/') || pathname.startsWith('/fee/')
 const isRaises = (pathname: string) => pathname.startsWith('/raises')
@@ -75,12 +80,12 @@ const isHacks = (pathname: string) => pathname === '/hacks'
 const isBridges = (pathname: string) => pathname.startsWith('/bridge') && pathname !== '/bridged'
 const isBorrow = (pathname: string) => pathname.startsWith('/borrow')
 const isNFT = (pathname: string) => pathname.startsWith('/nfts')
-const isUnlocks = (pathname: string) => pathname === '/unlocks'
-const isCEX = (pathname: string) => pathname === '/cexs'
-const isGovernance = (pathname: string) => pathname === '/governance'
-const isLSD = (pathname: string) => pathname === '/lsd'
+const isUnlocks = (pathname: string) => pathname.startsWith('/unlocks')
+const isCEX = (pathname: string) => pathname.startsWith('/cexs') || pathname.startsWith('/cex/')
+const isGovernance = (pathname: string) => pathname.startsWith('/governance')
+const isLSD = (pathname: string) => pathname.startsWith('/lsd')
 const isETF = (pathname: string) => pathname.startsWith('/crypto-etf')
-const isNarrativeTracker = (pathname: string) => pathname === '/narrative-tracker'
+const isNarrativeTracker = (pathname: string) => pathname.startsWith('/narrative-tracker')
 
 const isActive = ({ pathname, category }: { pathname: string; category: string }) => {
 	switch (category) {
