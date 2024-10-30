@@ -13,6 +13,7 @@ interface CustomLinkProps extends BasicLinkProps {
 	id?: string
 	style?: React.CSSProperties
 	target?: React.HTMLAttributeAnchorTarget
+	className?: string
 }
 
 export const CustomLink = ({ href, children, target, className, ...props }: CustomLinkProps) => {
