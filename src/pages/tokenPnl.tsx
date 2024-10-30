@@ -1,6 +1,6 @@
 import { getStaticProps as compareProps } from './compare-tokens'
 import Layout from '~/layout'
-import TokenPnl from '../components/TokenPnl'
+import TokenPnl from '~/containers/TokenPnl'
 
 export const getStaticProps = compareProps
 

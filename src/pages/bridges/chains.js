@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import BridgeChainsOverview from '~/components/BridgesPage/BridgeChainsOverview'
+import BridgeChainsOverview from '~/containers/BridgesPage/BridgeChainsOverview'
 import { maxAgeForNext } from '~/api'
 import { getBridgeChainsPageData } from '~/api/categories/bridges'
 import { withPerformanceLogging } from '~/utils/perf'

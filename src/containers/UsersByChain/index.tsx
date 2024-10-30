@@ -29,7 +29,7 @@ interface IUsersByChainsProps {
 	protocols: Array<string>
 }
 
-export default function UsersByChain({ chart, backgroundColor, name, chains, chain }: IUsersByChainsProps) {
+export function UsersByChain({ chart, backgroundColor, name, chains, chain }: IUsersByChainsProps) {
 	const allTxsChart = React.useMemo(() => {
 		const allTxsByDate = {}
 

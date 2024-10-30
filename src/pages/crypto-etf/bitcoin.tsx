@@ -3,7 +3,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getETFData } from '~/api/categories/protocols'
 
-import { ETFContainer } from '~/containers/etfContainer'
+import { ETFContainer } from '~/containers/ETF'
 
 export const getStaticProps = withPerformanceLogging('crypto-etf/bitcoin', async () => {
 	const data = await getETFData('bitcoin')

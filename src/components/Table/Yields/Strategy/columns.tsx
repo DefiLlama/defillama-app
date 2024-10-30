@@ -6,7 +6,7 @@ import type { IYieldsStrategyTableRow } from '../types'
 import { PoolStrategyWithProjects } from '../../shared'
 import { Tooltip } from '~/components/Tooltip'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
+import { lockupsRewards, earlyExit } from '~/containers/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 
 export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [

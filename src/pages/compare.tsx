@@ -1,4 +1,4 @@
-import ComparePage from '~/components/ComparePage'
+import ComparePage from '~/containers/ComparePage'
 import Layout from '~/layout'
 
 export default function Compare() {

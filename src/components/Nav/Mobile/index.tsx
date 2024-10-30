@@ -23,7 +23,7 @@ export function MobileNav() {
 						alt=""
 						height={36}
 						width={105}
-						className="object-contain object-left hover:-rotate-6 transition-transform duration-300 mr-auto"
+						className="object-contain object-left mr-auto"
 					/>
 				</a>
 			</Link>

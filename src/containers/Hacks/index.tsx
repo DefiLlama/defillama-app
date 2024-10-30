@@ -16,7 +16,7 @@ import { hacksColumns, hacksColumnOrders } from '~/components/Table/Defi/columns
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import useWindowSize from '~/hooks/useWindowSize'
-import { ChartSelector } from '~/components/PeggedPage'
+import { ChartSelector } from '~/containers/PeggedPage'
 import { SearchIcon } from '~/components/Table/shared'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {

@@ -1,11 +1,11 @@
 import { ColumnDef } from '@tanstack/react-table'
-import IconsRow from '~/components/IconsRow'
+import { IconsRow } from '~/components/IconsRow'
 import { formattedNum, formattedPercent } from '~/utils'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
+import { lockupsRewards, earlyExit } from '~/containers/YieldsPage/utils'
 import { ColoredAPY } from '../ColoredAPY'
 
 export const columns: ColumnDef<IYieldTableRow>[] = [

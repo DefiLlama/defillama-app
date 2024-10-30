@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import styled from 'styled-components'
-import IconsRow from '~/components/IconsRow'
+import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import {
 	formattedNum,

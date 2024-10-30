@@ -1,6 +1,6 @@
 import Layout from '~/layout'
-import PeggedList from '~/components/PeggedPage/PeggedList'
-import { getColor, getPeggedColor } from '~/utils/getColor'
+import PeggedList from '~/containers/PeggedPage/PeggedList'
+import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 import { peggedAssetIconPalleteUrl } from '~/utils'

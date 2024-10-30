@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import PeggedList from '~/components/PeggedPage/PeggedList'
+import PeggedList from '~/containers/PeggedPage/PeggedList'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getPeggedAssets, getPeggedOverviewPageData } from '~/api/categories/stablecoins'
