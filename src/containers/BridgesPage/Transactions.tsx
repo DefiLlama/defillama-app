@@ -1,15 +1,7 @@
+import { useMutation } from '@tanstack/react-query'
 import * as React from 'react'
-import styled from 'styled-components'
-import { Panel } from '~/components'
-import { BridgesSearchSelect } from '~/components/Search/Bridges'
-import { Form, FormError, FormInput, FormLabel, useFormState } from 'ariakit'
 import { BRIDGETX_API } from '~/constants'
 import { download, toNiceCsvDate } from '~/utils'
-
-import { fetchWithErrorLogging } from '~/utils/async'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-
-const fetch = fetchWithErrorLogging
 
 type BridgeTransaction = {
 	tx_hash: string
@@ -25,122 +17,37 @@ type BridgeTransaction = {
 	usd_value: string
 }
 
-const SearchWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	width: 100%;
-	margin-top: 8px;
-
-	& > * {
-		gap: 8px;
-		flex: 1;
-	}
-
-	& > * {
-		& > *[data-searchicon='true'] {
-			top: 14px;
-			right: 16px;
-		}
-	}
-
-	@media (min-width: ${({ theme }) => theme.bpMed}) {
-		flex-direction: row;
-	}
-`
-
-const StyledFormInput = styled(FormInput)`
-	color: ${({ theme }) => theme.text6};
-	background: ${({ theme }) => theme.bg4};
-`
-
-const DateInputField = styled.div`
-	padding: 14px 16px;
-	background: ${({ theme }) => theme.bg6};
-	color: ${({ theme }) => theme.text6};
-	font-size: 1rem;
-	border: none;
-	border-radius: 12px;
-	outline: none;
-
-	::placeholder {
-		color: ${({ theme }) => theme.text3};
-		font-size: 1rem;
-	}
-
-	&[data-focus-visible] {
-		outline: ${({ theme }) => '1px solid ' + theme.text4};
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		border: 1px solid ${({ theme }) => theme.divider};
-		border-bottom: 0;
-	}
-`
-
-const Wrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	position: relative;
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		display: flex;
-		border-radius: 12px;
-		box-shadow: ${({ theme }) => theme.shadowSm};
-	}
-`
-
-const BridgeTransactionsPage = ({ bridges }) => {
-	const form = useFormState({
-		defaultValues: { startDate: '', endDate: '', selectedBridge: '' }
+const downloadCsv = (transactions: BridgeTransaction[]) => {
+	const rows = [
+		['Timestamp', 'Date', 'Bridge', 'Chain', 'Deposit/Withdrawal', 'Token', 'Amount', 'USD Value', 'From', 'To', 'Hash']
+	]
+	transactions.forEach((tx) => {
+		const timestamp = Math.floor(new Date(tx.ts).getTime() / 1000).toString()
+		rows.push([
+			timestamp,
+			toNiceCsvDate(timestamp),
+			tx.bridge_name,
+			tx.chain,
+			tx.is_deposit ? 'withdrawal' : 'deposit',
+			tx.token,
+			tx.amount,
+			tx.usd_value,
+			tx.tx_from,
+			tx.tx_to,
+			tx.tx_hash
+		])
 	})
-	const [placeholder, setPlaceholder] = React.useState('Search...')
+	download(
+		`bridge-transactions.csv`,
+		rows
+			.sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+			.map((r) => r.join(','))
+			.join('\n')
+	)
+}
 
-	const downloadCsv = (transactions: BridgeTransaction[]) => {
-		{
-			const rows = [
-				[
-					'Timestamp',
-					'Date',
-					'Bridge',
-					'Chain',
-					'Deposit/Withdrawal',
-					'Token',
-					'Amount',
-					'USD Value',
-					'From',
-					'To',
-					'Hash'
-				]
-			]
-			transactions.forEach((tx) => {
-				const timestamp = Math.floor(new Date(tx.ts).getTime() / 1000).toString()
-				rows.push([
-					timestamp,
-					toNiceCsvDate(timestamp),
-					tx.bridge_name,
-					tx.chain,
-					tx.is_deposit ? 'withdrawal' : 'deposit',
-					tx.token,
-					tx.amount,
-					tx.usd_value,
-					tx.tx_from,
-					tx.tx_to,
-					tx.tx_hash
-				])
-			})
-			download(
-				`bridge-transactions.csv`,
-				rows
-					.sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
-					.map((r) => r.join(','))
-					.join('\n')
-			)
-		}
-	}
-
-	form.useSubmit(async () => {
-		const { startDate, endDate, selectedBridge } = form.values
+const downloadTxs = async ({ bridges, startDate, endDate, selectedBridge }) => {
+	try {
 		const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000)
 		const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000) + 86400
 		const selectedBridgeData = bridges.find((bridge) => bridge.displayName === selectedBridge)
@@ -151,6 +58,7 @@ const BridgeTransactionsPage = ({ bridges }) => {
 		let earliestTsReturned = 0
 		let endTimestampParam = endTimestamp
 		let iterations = 0
+
 		do {
 			const transactions = await fetch(
 				`${BRIDGETX_API}/${bridgeId}?starttimestamp=${startTimestamp}&endtimestamp=${endTimestampParam}`
@@ -166,43 +74,74 @@ const BridgeTransactionsPage = ({ bridges }) => {
 		} while (numberTxsReturned === 6000 && iterations < 50)
 
 		downloadCsv(accTransactions)
-	})
+	} catch (error) {
+		throw new Error(error instanceof Error ? error.message : 'Failed to download')
+	}
+}
+
+export const BridgeTransactionsPage = ({ bridges }) => {
+	const { mutate, isLoading, error } = useMutation({ mutationFn: downloadTxs })
 
 	return (
 		<>
-			<h1 className="text-2xl font-medium -mb-5">Generate Bridge Transactions CSV</h1>
+			<h1 className="text-2xl font-medium">Generate Bridge Transactions CSV</h1>
 
-			<Form state={form}>
-				<SearchWrapper>
-					<Wrapper>
-						<DateInputField>
-							<FormLabel name={form.names.startDate}>Start Date</FormLabel>
-							<StyledFormInput name={form.names.startDate} type="date" required />
-							<FormError name={form.names.startDate} className="error" />
-						</DateInputField>
-					</Wrapper>
-					<Wrapper>
-						<DateInputField>
-							<FormLabel name={form.names.endDate}>End Date</FormLabel>
-							<StyledFormInput name={form.names.endDate} type="date" required />
-							<FormError name={form.names.endDate} className="error" />
-						</DateInputField>
-					</Wrapper>
-					<BridgesSearchSelect
-						formValueToEdit={form.values}
-						formProperty={'selectedBridge'}
-						placeholder={placeholder}
-						click={(item) => setPlaceholder(item)}
-					/>
-					<CSVDownloadButton onClick={() => form.submit()} />
-				</SearchWrapper>
-			</Form>
+			<form
+				className="mx-auto my-8 flex flex-col gap-4"
+				onSubmit={(e) => {
+					e.preventDefault()
+					const formEl = e.target as HTMLFormElement
+					const formData = new FormData(formEl)
 
-			<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-				Download a CSV with all indexed transactions within a date range for chosen bridge.
-			</Panel>
+					mutate({
+						startDate: formData.get('startDate'),
+						endDate: formData.get('endData'),
+						selectedBridge: formData.get('selectedBridge'),
+						bridges
+					})
+				}}
+			>
+				<span className="flex gap-4 flex-wrap">
+					<label className="flex flex-col">
+						<span className="text-base font-medium">Start Date</span>
+						<input
+							type="date"
+							name="startDate"
+							required
+							className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
+						/>
+					</label>
+					<label className="flex flex-col">
+						<span className="text-base font-medium">End Date</span>
+						<input
+							type="date"
+							name="endDate"
+							required
+							className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
+						/>
+					</label>
+				</span>
+				<select
+					name="selectedBridge"
+					className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
+					required
+				>
+					<option value="">--Please choose a bridge--</option>
+					{bridges.map((bridge) => (
+						<option value={bridge.displayName} key={bridge.displayName}>
+							{bridge.displayName}
+						</option>
+					))}
+				</select>
+				<button
+					className="py-2 px-3 text-base font-semibold rounded-lg bg-[var(--link-bg)] text-[var(--link-text)] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-active-bg)] disabled:cursor-not-allowed disabled:opacity-60"
+					disabled={isLoading}
+				>
+					{isLoading ? 'Downloading...' : 'Download .CSV'}
+				</button>
+
+				{error ? <p className="text-red-500 text-center">{(error as any).message}</p> : null}
+			</form>
 		</>
 	)
 }
-
-export default BridgeTransactionsPage
