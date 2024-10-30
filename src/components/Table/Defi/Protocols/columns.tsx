@@ -397,7 +397,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
 					<span className="flex flex-col">
-						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+						<CustomLink href={`/protocol/${slug(value)}`} className="whitespace-nowrap">{`${value}`}</CustomLink>
 
 						<Tooltip content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
