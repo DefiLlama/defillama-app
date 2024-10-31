@@ -1,10 +1,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { useComboboxState } from 'ariakit'
-import styled from 'styled-components'
+import { Combobox, ComboboxPopover, useComboboxState } from 'ariakit'
 import { TokenLogo } from '~/components/TokenLogo'
-import { Input } from '~/components/Search/Base/Input'
-import { Empty, Popover } from '~/components/Search/Base/Results/Desktop'
 import { findActiveItem } from '~/components/Search/Base/utils'
 import { Icon } from '~/components/Icon'
 
@@ -76,237 +73,126 @@ export function IncludeExcludeTokens({
 		.map((o) => tokens.find((x) => x.symbol === o))
 
 	return (
-		<SearchWrapper ref={searchWrapperRef} {...props}>
+		<div
+			ref={searchWrapperRef}
+			{...props}
+			className="relative hidden sm:flex flex-col gap-2 rounded-md py-2 data-[alwaysdisplay=true]:flex bg-[#eaeaea] dark:bg-[#22242a]"
+		>
 			{(tokensToInclude.length > 0 || tokensToExclude.length > 0) && (
-				<OptionsWrapper>
+				<div className="flex items-center flex-wrap gap-4 px-2">
 					{tokensToInclude.map((token) => (
-						<IncludeOrExclude key={'includedtokeninsearch' + token} onClick={() => handleTokenInclude(token, 'delete')}>
+						<button
+							key={'includedtokeninsearch' + token}
+							onClick={() => handleTokenInclude(token, 'delete')}
+							className="flex items-center gap-1 flex-nowrap py-1 px-2 whitespace-nowrap rounded-md bg-[#dcdcdc] dark:bg-[#40444F]"
+						>
 							<span>{`Include: ${token}`}</span>
 							<Icon name="x" height={14} width={14} />
-						</IncludeOrExclude>
+						</button>
 					))}
 
 					{tokensToExclude.map((token) => (
-						<IncludeOrExclude key={'excludedtokeninsearch' + token} onClick={() => handleTokenExclude(token, 'delete')}>
+						<button
+							key={'excludedtokeninsearch' + token}
+							onClick={() => handleTokenExclude(token, 'delete')}
+							className="flex items-center gap-1 flex-nowrap py-1 px-2 whitespace-nowrap rounded-md bg-[#dcdcdc] dark:bg-[#40444F]"
+						>
 							<span>{`Exclude: ${token}`}</span>
 							<Icon name="x" height={14} width={14} />
-						</IncludeOrExclude>
+						</button>
 					))}
 
 					{tokensThatMatchExactly.map((token) => (
-						<IncludeOrExclude key={'exacttokensinsearch' + token} onClick={() => handleTokenExact(token, 'delete')}>
+						<button
+							key={'exacttokensinsearch' + token}
+							onClick={() => handleTokenExact(token, 'delete')}
+							className="flex items-center gap-1 flex-nowrap py-1 px-2 whitespace-nowrap rounded-md bg-[#dcdcdc] dark:bg-[#40444F]"
+						>
 							<span>{`Exact: ${token}`}</span>
 							<Icon name="x" height={14} width={14} />
-						</IncludeOrExclude>
+						</button>
 					))}
-				</OptionsWrapper>
+				</div>
 			)}
 
-			<InputWrapper>
-				<SearchIcon name="search" height={16} width={16} />
-				<Input state={combobox} placeholder="Search for a token to filter by" hideIcon />
-			</InputWrapper>
+			<div className="relative">
+				<Combobox
+					state={combobox}
+					placeholder="Search for a token to filter by"
+					autoSelect
+					autoFocus
+					className="px-8 outline-none w-full rounded-t-md text-sm bg-[#eaeaea] dark:bg-[#22242a] text-black dark:text-white"
+				/>
+				<Icon name="search" height={16} width={16} className="absolute left-2 bottom-[2px]" />
+			</div>
 
-			<StyledPopover state={combobox}>
+			<ComboboxPopover
+				state={combobox}
+				className="h-full max-h-[320px] overflow-y-auto bg-[var(--bg6)] rounded-b-md shadow z-10 top-3 left-0 right-0"
+			>
 				{!combobox.mounted ? (
-					<Empty>Loading...</Empty>
+					<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
 				) : combobox.matches.length ? (
 					<>
 						{options.slice(0, resultsLength + 1).map((token) => (
-							<ResultRow key={token.name} onClick={() => handleTokenInclude(token.symbol)}>
+							<div
+								key={token.name}
+								onClick={() => handleTokenInclude(token.symbol)}
+								className="flex items-center flex-wrap gap-1 p-2 text-sm text-[var(--text1)] overflow-hidden hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)] sm:py-3 sm:px-4"
+							>
 								{(token?.logo || token?.fallbackLogo) && (
 									<TokenLogo logo={token?.logo} fallbackLogo={token?.fallbackLogo} />
 								)}
 								<span>{`${token.name} (${token.symbol})`}</span>
-								<ActionsWrapper>
-									<Action
+								<div className="w-full sm:w-min flex items-center flex-nowrap gap-1 mt-1 sm:mt-0 sm:ml-auto">
+									<button
 										onClick={(e) => {
 											e.stopPropagation()
 
 											handleTokenInclude(token.symbol)
 										}}
+										className="flex-1 rounded-md sm:py-1 sm:px-2 bg-[#dcdcdc] dark:bg-[#40444F]"
 									>
 										Include
-									</Action>
-									<Action
+									</button>
+									<button
 										onClick={(e) => {
 											e.stopPropagation()
 
 											handleTokenExclude(token.symbol)
 										}}
+										className="flex-1 rounded-md sm:py-1 sm:px-2 bg-[#dcdcdc] dark:bg-[#40444F]"
 									>
 										Exclude
-									</Action>
+									</button>
 
-									<Action
+									<button
 										onClick={(e) => {
 											e.stopPropagation()
 
 											handleTokenExact(token.symbol)
 										}}
+										className="flex-1 rounded-md sm:py-1 sm:px-2 bg-[#dcdcdc] dark:bg-[#40444F]"
 									>
 										Exact
-									</Action>
-								</ActionsWrapper>
-							</ResultRow>
+									</button>
+								</div>
+							</div>
 						))}
 
 						{resultsLength < combobox.matches.length && (
-							<MoreResults onClick={showMoreResults}>See more...</MoreResults>
+							<button
+								onClick={showMoreResults}
+								className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+							>
+								See more...
+							</button>
 						)}
 					</>
 				) : (
-					<Empty>No results found</Empty>
+					<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
 				)}
-			</StyledPopover>
-		</SearchWrapper>
+			</ComboboxPopover>
+		</div>
 	)
 }
-
-const OptionsWrapper = styled.div`
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 4px;
-	padding: 0 8px;
-`
-
-const SearchWrapper = styled.div`
-	position: relative;
-	display: none;
-	flex-direction: column;
-	gap: 8px;
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-	border-radius: 8px;
-	padding: 8px 0;
-
-	:focus-within {
-		outline: 1px solid ${({ theme }) => theme.text1};
-	}
-
-	&[data-alwaysdisplay='true'] {
-		display: flex;
-
-		svg {
-			display: block;
-		}
-	}
-
-	svg {
-		color: #646466;
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		display: flex;
-	}
-`
-
-const StyledPopover = styled(Popover)`
-	left: 0;
-	right: 0;
-	top: 12px;
-	border-radius: 8px;
-`
-
-const SearchIcon = styled(Icon)`
-	position: absolute;
-	left: 8px;
-
-	@media screen and (max-width: ${({ theme }) => theme.bpSm}) {
-		display: none;
-
-		&[data-alwaysdisplay='true'] {
-			display: block;
-		}
-	}
-`
-
-const InputWrapper = styled.div`
-	& *:nth-child(2) {
-		width: 100%;
-		font-size: 0.875rem;
-		border: none;
-		background: none;
-		border-radius: 8px;
-		padding: 0 32px;
-
-		:focus-visible {
-			outline: none;
-		}
-	}
-`
-
-const ResultRow = styled.div`
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 4px;
-	padding: 8px;
-	font-size: 0.85rem;
-	color: ${({ theme }) => theme.text1};
-	overflow: hidden;
-
-	:hover,
-	:focus-visible {
-		background-color: ${({ theme }) => theme.bg2};
-	}
-
-	& + & {
-		border-top: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		padding: 12px 16px;
-	}
-`
-
-const ActionsWrapper = styled.div`
-	width: 100%;
-	display: flex;
-	align-items: center;
-	flex-wrap: nowrap;
-	gap: 4px;
-	margin-top: 4px;
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		width: min-content;
-		margin-top: 0px;
-		margin-left: auto;
-	}
-`
-
-const Action = styled.button`
-	flex: 1;
-	border-radius: 8px;
-	padding: 8px;
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#40444F' : '#dcdcdc')};
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		padding: 4px 8px;
-	}
-`
-
-const IncludeOrExclude = styled.button`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 4px;
-	flex-wrap: nowrap;
-	padding: 4px 8px;
-	white-space: nowrap;
-	border-radius: 8px;
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#40444F' : '#dcdcdc')};
-
-	svg {
-		flex-shrink: 0;
-	}
-`
-
-export const MoreResults = styled.button`
-	text-align: left;
-	width: 100%;
-	padding: 12px 16px;
-	color: ${({ theme }) => theme.link};
-	background: ${({ theme }) => theme.bg6};
-	border-top: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-`

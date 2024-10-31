@@ -24,8 +24,8 @@ const Fallback = () => {
 					/>
 					<img
 						src="/defillama-press-kit/defi/PNG/defillama.png"
-						height={53}
-						width={155}
+						height={36}
+						width={105}
 						className="object-contain object-left mr-auto mb-4 lg:hidden"
 						alt=""
 					/>

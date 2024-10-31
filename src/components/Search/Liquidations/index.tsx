@@ -1,4 +1,4 @@
-import { DesktopSearch } from '../Base'
+import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import type { ICommonSearchProps } from '../types'
 import { useGetLiquidationSearchList } from './hooks'
 

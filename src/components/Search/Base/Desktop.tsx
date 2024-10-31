@@ -1,62 +1,10 @@
 import * as React from 'react'
-import Link from 'next/link'
-import styled from 'styled-components'
-import { useComboboxState } from 'ariakit/combobox'
-import { DesktopResults } from './Results/Desktop'
-import { Input } from './Input'
+import { Combobox, ComboboxItem, ComboboxPopover, ComboboxState, useComboboxState } from 'ariakit/combobox'
 import { findActiveItem } from './utils'
 import type { IBaseSearchProps } from '../types'
+import { useRouter } from 'next/router'
+import { TokenLogo } from '~/components/TokenLogo'
 import { Icon } from '~/components/Icon'
-
-const Wrapper = styled.div`
-	position: relative;
-	display: none;
-
-	&[data-alwaysdisplay='true'] {
-		display: flex;
-	}
-
-	flex-direction: column;
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		display: flex;
-		border-radius: 12px;
-		box-shadow: ${({ theme }) => theme.shadowSm};
-	}
-`
-
-const OptionsWrapper = styled.div`
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 8px;
-	border-bottom-left-radius: 12px;
-	border-bottom-right-radius: 12px;
-	background-color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(246, 246, 246, 0.6)')};
-	--step-color: ${({ theme }) => (theme.mode === 'dark' ? '#7e96ff' : '#475590')};
-
-	& > p {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		padding: 16px;
-
-		& > * {
-			color: ${({ theme }) => theme.text1};
-			font-size: 0.875rem;
-		}
-
-		svg {
-			flex-shrink: 0;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		border: 1px solid ${({ theme }) => theme.divider};
-		border-top: 0;
-	}
-`
 
 export const DesktopSearch = (props: IBaseSearchProps) => {
 	const {
@@ -68,6 +16,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		withValue,
 		placeholder = 'Search...',
 		value,
+		className,
 		...extra
 	} = props
 
@@ -94,40 +43,190 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		}
 	}
 
+	const [resultsLength, setResultsLength] = React.useState(10)
+
+	const showMoreResults = () => {
+		setResultsLength((prev) => prev + 10)
+	}
+
+	const sortedList = combobox.value.length > 2 ? sortResults(combobox.matches) : combobox.matches
+
+	const options = sortedList.map((o) => data.find((x) => x.name === o) ?? o)
+
 	return (
-		<Wrapper {...extra}>
-			<Input
+		<div className="relative hidden lg:flex flex-col rounded-md shadow data-[alwaysdisplay=true]:flex" {...extra}>
+			<Input state={combobox} placeholder={placeholder} withValue={withValue} onSearchTermChange={onSearchTermChange} />
+
+			{filters ? (
+				<span className="flex items-center justify-end rounded-b-md bg-[#fafafa] dark:bg-[#090a0b] p-3">{filters}</span>
+			) : null}
+
+			<ComboboxPopover
+				className="h-full max-h-[320px] overflow-y-auto bg-[var(--bg6)] rounded-b-md shadow z-10"
 				state={combobox}
-				placeholder={placeholder}
-				breadCrumbs={step ? true : false}
-				withValue={withValue}
-				onSearchTermChange={onSearchTermChange}
-			/>
+			>
+				{loading || !combobox.mounted ? (
+					<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
+				) : combobox.matches.length ? (
+					<>
+						{options.slice(0, resultsLength + 1).map((token) => (
+							<Row key={token.name} onItemClick={props.onItemClick} data={token} state={combobox} />
+						))}
 
-			{step && <Options step={step} filters={filters} />}
-
-			<DesktopResults state={combobox} data={data} loading={loading} onItemClick={props.onItemClick} />
-		</Wrapper>
+						{resultsLength < sortedList.length ? (
+							<button
+								className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+								onClick={showMoreResults}
+							>
+								See more...
+							</button>
+						) : null}
+					</>
+				) : (
+					<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
+				)}
+			</ComboboxPopover>
+		</div>
 	)
 }
 
-interface IOptionsProps {
-	step?: IBaseSearchProps['step']
-	filters?: React.ReactNode
+const sortResults = (results: string[]) => {
+	const { pools, tokens } = results.reduce(
+		(acc, curr) => {
+			if (curr.startsWith('Show all')) {
+				acc.pools.push(curr)
+			} else acc.tokens.push(curr)
+			return acc
+		},
+		{ tokens: [], pools: [] }
+	)
+
+	return [...pools, ...tokens]
 }
 
-const Options = ({ step, filters }: IOptionsProps) => {
-	return (
-		<OptionsWrapper>
-			<p>
-				<Link href={`/${step.route || step.category.toLowerCase()}`} prefetch={false}>
-					{step.category}
-				</Link>
-				<Icon name="arrow-right" height={16} width={16} />
-				<span style={{ color: 'var(--step-color)' }}>{step.name}</span>
-			</p>
+interface IInputProps {
+	state: ComboboxState
+	placeholder: string
+	autoFocus?: boolean
+	withValue?: boolean
+	variant?: 'primary' | 'secondary'
+	hideIcon?: boolean
+	onSearchTermChange?: (value: string) => void
+}
 
-			{!step.hideOptions && filters && <>{filters}</>}
-		</OptionsWrapper>
+function Input({
+	state,
+	placeholder,
+	withValue,
+
+	hideIcon,
+	onSearchTermChange
+}: IInputProps) {
+	const inputField = React.useRef<HTMLInputElement>()
+
+	React.useEffect(() => {
+		function focusSearchBar(e: KeyboardEvent) {
+			if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
+				e.preventDefault()
+				inputField.current && inputField.current?.focus()
+				state.toggle()
+			}
+		}
+
+		window.addEventListener('keydown', focusSearchBar)
+
+		return () => window.removeEventListener('keydown', focusSearchBar)
+	}, [state])
+
+	const onClick = React.useCallback(() => {
+		if (state.mounted && withValue) {
+			state.setValue('')
+		}
+
+		state.toggle()
+	}, [withValue, state])
+
+	return (
+		<>
+			{!hideIcon && (
+				<button onClick={onClick} className="absolute top-[14px] left-3">
+					{state.mounted ? (
+						<>
+							<span className="sr-only">Close Search</span>
+							<Icon name="x" height={20} width={20} />
+						</>
+					) : (
+						<>
+							<span className="sr-only">Open Search</span>
+							<Icon name="search" height={18} width={18} />
+						</>
+					)}
+				</button>
+			)}
+
+			<Combobox
+				state={state}
+				placeholder={placeholder}
+				autoSelect
+				ref={inputField}
+				onChange={(e) => {
+					onSearchTermChange?.(e.target.value)
+				}}
+				className="p-3 pl-9 rounded-t-md text-base bg-white text-black dark:bg-black dark:text-white"
+			/>
+
+			{!hideIcon && (
+				<span className="absolute top-2 right-3 bg-[#f5f5f5] dark:bg-[#151515] text-[var(--link)] font-medium p-[6px] rounded-md">
+					⌘K
+				</span>
+			)}
+		</>
+	)
+}
+
+const Row = ({ data, onItemClick, state }) => {
+	const [loading, setLoading] = React.useState(false)
+	const router = useRouter()
+
+	return (
+		<ComboboxItem
+			value={data.name}
+			onClick={(e) => {
+				if (onItemClick) {
+					onItemClick(data)
+				} else if (e.ctrlKey || e.metaKey) {
+					window.open(data.route)
+				} else {
+					setLoading(true)
+					router.push(data.route).then(() => {
+						setLoading(false)
+						state.hide()
+					})
+				}
+			}}
+			focusOnHover
+			hideOnClick={false}
+			setValueOnClick={false}
+			disabled={loading}
+			className="p-3 flex items-center gap-4 text-[var(--text1)] cursor-pointer aria-selected:bg-[var(--bg2)] aria-disabled:opacity-50 aria-disabled:bg-[var(--bg2)]"
+		>
+			{data?.logo || data?.fallbackLogo ? <TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} /> : null}
+			<span>{data.name}</span>
+			{loading ? (
+				<svg
+					className="animate-spin -ml-1 mr-3 h-4 w-4"
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+					<path
+						className="opacity-75"
+						fill="currentColor"
+						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+					></path>
+				</svg>
+			) : null}
+		</ComboboxItem>
 	)
 }

@@ -1,6 +1,4 @@
 import styled from 'styled-components'
-import { DesktopResults } from '../Base/Results/Desktop'
-import { Input } from '../Base/Input'
 import { useComboboxState } from 'ariakit'
 import { findActiveItem } from '../Base/utils'
 import { useMemo } from 'react'
@@ -25,9 +23,9 @@ export function RaisesSearch({ list }) {
 
 	return (
 		<Wrapper>
-			<Input state={combobox} placeholder="Search investors..." withValue variant="secondary" />
+			{/* <Input state={combobox} placeholder="Search investors..." withValue variant="secondary" />
 
-			<DesktopResults state={combobox} data={data} loading={false} />
+			<DesktopResults state={combobox} data={data} loading={false} /> */}
 		</Wrapper>
 	)
 }

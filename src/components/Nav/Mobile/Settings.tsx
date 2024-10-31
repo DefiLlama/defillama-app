@@ -44,7 +44,7 @@ export function Settings() {
 
 	return (
 		<>
-			<Select className="shadow p-3 rounded-lg bg-[#445ed0] text-white -my-[2px]" state={select}>
+			<Select className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px]" state={select}>
 				<span className="sr-only">Open Settings Menu</span>
 				<Icon name="settings" height={16} width={16} />
 			</Select>

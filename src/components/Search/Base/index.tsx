@@ -1,1 +1,0 @@
-export { DesktopSearch } from './Desktop'

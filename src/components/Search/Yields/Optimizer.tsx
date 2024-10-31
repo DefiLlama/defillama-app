@@ -1,8 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { DesktopResults } from '../Base/Results/Desktop'
-import { Input } from '../Base/Input'
 import { useComboboxState } from 'ariakit/combobox'
 import { findActiveItem } from '../Base/utils'
 
@@ -76,7 +74,7 @@ export function YieldsSearch({ lend = false, searchData, value }: IYieldSearchPr
 
 	return (
 		<Wrapper>
-			<Input
+			{/* <Input
 				state={combobox}
 				placeholder={lend ? 'Collateral Token' : 'Token to Borrow'}
 				withValue
@@ -91,7 +89,7 @@ export function YieldsSearch({ lend = false, searchData, value }: IYieldSearchPr
 					combobox.setValue(item.name)
 					onItemClick(item)
 				}}
-			/>
+			/> */}
 		</Wrapper>
 	)
 }

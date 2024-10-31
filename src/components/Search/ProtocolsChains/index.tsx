@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { DesktopSearch } from '../Base'
+import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
 import { DesktopProtocolFilters, TabletProtocolsFilters } from '~/components/Filters/protocols'
 import { DesktopTvlAndFeesFilters } from '~/components/Filters/protocols/Desktop'

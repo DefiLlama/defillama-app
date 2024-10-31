@@ -1,5 +1,5 @@
 import { useFetchNftCollectionsList } from '~/api/categories/nfts/client'
-import { DesktopSearch } from '../Base'
+import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import type { ICommonSearchProps } from '../types'
 
 export function NFTsSearch(props: ICommonSearchProps) {

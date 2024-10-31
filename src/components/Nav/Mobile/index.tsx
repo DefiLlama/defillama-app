@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
 
-const MobileSearch = dynamic(() => import('~/components/Search/Base/Mobile'), {
+const MobileSearch = dynamic(() => import('~/components/Search/Base/Mobile').then((m) => m.MobileSearch), {
 	ssr: false,
 	loading: () => <></>
 }) as React.FC

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { DesktopFeesFilters, ListWrapper } from '~/components/Filters/protocols/Desktop'
 import { OptionToggle } from '~/components/OptionToggle'
-import { DesktopSearch } from '../Base'
+import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import type { ICommonSearchProps } from '../types'
 import { useGetAdaptorsSearchList } from './hooks'
 import { TabletFeesFilters } from '~/components/Filters/protocols/Tablet'
@@ -15,15 +15,15 @@ interface IAdaptorSearchProps extends ICommonSearchProps {
 	enableToggle?: boolean
 }
 
-export function AdaptorsSearch(props: IAdaptorSearchProps) {
-	const { data, loading } = useGetAdaptorsSearchList(props.type, props.onlyChains)
+export function AdaptorsSearch({ type, enableToggle, ...props }: IAdaptorSearchProps) {
+	const { data, loading } = useGetAdaptorsSearchList(type, props.onlyChains)
 
 	return (
 		<DesktopSearch
 			{...props}
 			data={data}
 			loading={loading}
-			filters={props.enableToggle ? <BreakdownToggle {...props} /> : props.type === 'fees' ? <FeesToggles /> : null}
+			filters={enableToggle ? <BreakdownToggle {...props} /> : type === 'fees' ? <FeesToggles /> : null}
 		/>
 	)
 }

@@ -33,7 +33,7 @@ export function Tooltip({ content, children, color, fontSize, anchorStyles, plac
 			<AriaTooltip
 				{...props}
 				state={tooltip}
-				className="text-sm p-2 max-w-56 whitespace-pre-wrap rounded-lg text-[hsl(204,10%,10%)] dark:text-[hsl(0,0%,100%)] bg-[hsl(204,20%,100%)] dark:bg-[hsl(204,3%,12%)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)]"
+				className="text-sm p-2 max-w-56 whitespace-pre-wrap rounded-md text-[hsl(204,10%,10%)] dark:text-[hsl(0,0%,100%)] bg-[hsl(204,20%,100%)] dark:bg-[hsl(204,3%,12%)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)]"
 			>
 				{content}
 			</AriaTooltip>
