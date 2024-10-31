@@ -1,15 +1,12 @@
 import { useRouter } from 'next/router'
 import { MenuItem } from '~/components/SlidingMenu'
-import { ResetAllButton } from '../v2Base'
 
 export function ResetAllYieldFilters({
 	pathname,
-	variant = 'primary',
 	subMenu,
 	resetContext
 }: {
 	pathname: string
-	variant?: 'primary' | 'secondary'
 	subMenu?: boolean
 	resetContext?: () => void
 }) {
@@ -25,8 +22,8 @@ export function ResetAllYieldFilters({
 	}
 
 	return (
-		<ResetAllButton onClick={handleClick} data-variant={variant}>
+		<button onClick={handleClick} className="rounded-md py-2 px-3 text-xs bg-[#eaeaea] dark:bg-[#22242a]">
 			Reset all filters
-		</ResetAllButton>
+		</button>
 	)
 }

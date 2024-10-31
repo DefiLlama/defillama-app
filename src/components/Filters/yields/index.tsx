@@ -6,7 +6,6 @@ import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { LTV } from './LTV'
 import { SlidingMenu } from '~/components/SlidingMenu'
 import { YieldFilterDropdowns } from './Dropdowns'
-import { DropdownsWrapper, Header, SearchWrapper, Wrapper } from '../v2Base'
 import type { IYieldFiltersProps } from './types'
 import { InputFilter } from './Amount'
 
@@ -40,11 +39,11 @@ export function YieldFiltersV2({
 
 	return (
 		<div>
-			<Header>
+			<div className="relative flex items-center gap-2 flex-wrap p-4 rounded-t-md bg-white dark:bg-black">
 				<h1>{header}</h1>
-				{trackingStats && <p>{trackingStats}</p>}
-			</Header>
-			<Wrapper>
+				{trackingStats ? <p>{trackingStats}</p> : null}
+			</div>
+			<div className="flex flex-col gap-4 p-4 rounded-b-md bg-white dark:bg-black">
 				{strategyInputsData ? (
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}
@@ -53,7 +52,7 @@ export function YieldFiltersV2({
 					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile ? true : false} />
 				) : null}
 
-				<DropdownsWrapper>
+				<div className="flex flex-wrap gap-2">
 					{isSmall ? (
 						<SlidingMenu label="Filters" variant="secondary">
 							<YieldFilterDropdowns {...props} isMobile />
@@ -61,8 +60,8 @@ export function YieldFiltersV2({
 					) : (
 						<YieldFilterDropdowns {...props} />
 					)}
-				</DropdownsWrapper>
-			</Wrapper>
+				</div>
+			</div>
 		</div>
 	)
 }
@@ -96,7 +95,7 @@ const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
 	const { data } = useFormatTokensSearchList({ lend, searchData })
 
 	return (
-		<SearchWrapper>
+		<div className="flex flex-col md:flex-row md:items-center gap-2 flex-wrap *:flex-1">
 			<YieldsSearch value={lend} searchData={data} lend />
 			{lend ? (
 				<>
@@ -106,7 +105,7 @@ const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
 					<InputFilter placeholder="Borrow Amount" filterKey="borrowAmount" />
 				</>
 			) : null}
-		</SearchWrapper>
+		</div>
 	)
 }
 

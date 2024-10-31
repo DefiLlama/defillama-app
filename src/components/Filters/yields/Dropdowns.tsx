@@ -237,11 +237,9 @@ export function YieldFilterDropdowns({
 				</label>
 			)}
 
-			{resetFilters && (
-				<ResetAllYieldFilters pathname={pathname || router.pathname} variant="secondary" subMenu={isMobile} />
-			)}
+			{resetFilters ? <ResetAllYieldFilters pathname={pathname || router.pathname} subMenu={isMobile} /> : null}
 
-			{!isMobile && (
+			{!isMobile ? (
 				<div style={{ marginInlineStart: 'auto', display: 'flex', gap: '8px' }}>
 					{onCSVDownload ? (
 						<CSVDownloadButton
@@ -251,7 +249,7 @@ export function YieldFilterDropdowns({
 						/>
 					) : null}
 				</div>
-			)}
+			) : null}
 		</>
 	)
 }

@@ -4,7 +4,6 @@ import { Sectors } from './sectors'
 import { Rounds } from './rounds'
 import { RaisedRange } from './RaisedRange'
 import type { IDropdownMenusProps } from './types'
-import { ResetAllButton } from '../v2Base'
 import { useRouter } from 'next/router'
 
 export function RaisesFilterDropdowns({
@@ -64,14 +63,14 @@ export function RaisesFilterDropdowns({
 
 			<RaisedRange subMenu={isMobile} variant="secondary" />
 
-			<ResetAllButton
+			<button
 				onClick={() => {
 					router.push('/raises')
 				}}
-				data-variant="secondary"
+				className="rounded-md py-2 px-3 text-xs bg-[#eaeaea] dark:bg-[#22242a]"
 			>
 				Reset all filters
-			</ResetAllButton>
+			</button>
 		</>
 	)
 }
