@@ -12,9 +12,9 @@ import { useComboboxState } from 'ariakit/combobox'
 import { useRouter } from 'next/router'
 import { Input, List } from '~/components/Combobox'
 import { TokenLogo } from '~/components/TokenLogo'
-import { ComboboxSelectPopover, SelectItem } from '~/components/Filters'
+import { ComboboxSelectPopover, SelectItem } from '~/components/Filters/common'
 import { Tab, TabList } from '~/components'
-import { chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
+import { chainIconUrl, tokenIconUrl } from '~/utils'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	const {

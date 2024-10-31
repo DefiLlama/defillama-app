@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { DesktopFeesFilters, ListWrapper } from '~/components/Filters/protocols/Desktop'
+import { DesktopFeesFilters } from '~/components/Filters/protocols/Desktop'
 import { OptionToggle } from '~/components/OptionToggle'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import type { ICommonSearchProps } from '../types'
@@ -34,7 +34,7 @@ const BreakdownToggle = (props) => {
 		setIsToggleEnabled(props.toggleStatus)
 	}, [props.toggleStatus])
 	return (
-		<ListWrapper>
+		<ul className="flex items-center flex-end">
 			<li className="ml-5 first-of-type:ml-0">
 				<OptionToggle
 					isLoading={!props.onToggleClick}
@@ -50,7 +50,7 @@ const BreakdownToggle = (props) => {
 					enabled={isToggleEnabled}
 				/>
 			</li>
-		</ListWrapper>
+		</ul>
 	)
 }
 

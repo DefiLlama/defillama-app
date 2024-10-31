@@ -8,7 +8,7 @@ import { StatsWrapper, Stat } from '~/layout/Stats/Large'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { formattedNum } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
-import { RowLinksWithDropdown } from '~/components/Filters'
+import { RowLinksWithDropdown } from '~/components/Filters/common'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false

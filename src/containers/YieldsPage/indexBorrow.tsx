@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
 import { YieldsBorrowTable } from '~/components/Table'
-import { YieldFiltersV2 } from '~/components/Filters'
+import { YieldFiltersV2 } from '~/components/Filters/yields'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 

@@ -29,7 +29,7 @@ import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
 import { SearchIcon, TableFiltersWithInput } from '../../shared'
 import styled from 'styled-components'
-import { TVLRange } from '~/components/Filters'
+import { TVLRange } from '~/components/Filters/protocols'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import RowFilter from '~/components/Filters/common/RowFilter'
 

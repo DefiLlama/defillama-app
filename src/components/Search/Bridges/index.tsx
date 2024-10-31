@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { ListWrapper } from '~/components/Filters/protocols/Desktop'
 import { OptionToggle } from '~/components/OptionToggle'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import type { ICommonSearchProps } from '../types'
@@ -35,7 +34,7 @@ export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
 			loading={loading}
 			filters={
 				props.onToggleClick && (
-					<ListWrapper>
+					<ul className="flex items-center flex-end">
 						<li className="ml-5 first-of-type:ml-0">
 							<OptionToggle
 								name="Bridge breakdown"
@@ -49,7 +48,7 @@ export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
 								enabled={isToggleEnabled}
 							/>
 						</li>
-					</ListWrapper>
+					</ul>
 				)
 			}
 		/>

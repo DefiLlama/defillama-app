@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
-import { RowLinksWithDropdown } from '~/components/Filters'
+import { RowLinksWithDropdown } from '~/components/Filters/common'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ChartSelector } from '~/containers/PeggedPage/.'
@@ -17,7 +17,7 @@ import {
 	stablecoinBackingOptions,
 	McapRange,
 	ResetAllStablecoinFilters
-} from '~/components/Filters'
+} from '~/components/Filters/stablecoins'
 import { PeggedAssetsTable } from '~/components/Table'
 import {
 	useCalcCirculating,

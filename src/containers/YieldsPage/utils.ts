@@ -1,5 +1,5 @@
 import { YieldsData } from '~/api/categories/yield'
-import { attributeOptions } from '~/components/Filters'
+import { attributeOptions } from '~/components/Filters/yields'
 import { calculateLoopAPY } from '~/api/categories/yield/index'
 
 export function toFilterPool({
