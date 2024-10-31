@@ -45,24 +45,13 @@ export function YieldFiltersV2({
 				{trackingStats && <p>{trackingStats}</p>}
 			</Header>
 			<Wrapper>
-				{strategyInputsData && (
-					<SearchWrapper>
-						<YieldsSearch value={lend} searchData={strategyInputsData} lend />
-						{lend && (
-							<>
-								<YieldsSearch value={borrow} searchData={strategyInputsData} />
+				{strategyInputsData ? (
+					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
+				) : null}
 
-								<LTV placeholder={ltvPlaceholder} />
-								<InputFilter placeholder="Lend Amount" filterKey="lendAmount" />
-								<InputFilter placeholder="Borrow Amount" filterKey="borrowAmount" />
-							</>
-						)}
-					</SearchWrapper>
-				)}
-
-				{tokens && (showSearchOnMobile || !isSmall) && (
+				{tokens && (showSearchOnMobile || !isSmall) ? (
 					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile ? true : false} />
-				)}
+				) : null}
 
 				<DropdownsWrapper>
 					{isSmall ? (
@@ -75,6 +64,49 @@ export function YieldFiltersV2({
 				</DropdownsWrapper>
 			</Wrapper>
 		</div>
+	)
+}
+
+function useFormatTokensSearchList({ lend, searchData }) {
+	const data = React.useMemo(() => {
+		const stablecoinsSearch = {
+			name: `All USD Stablecoins`,
+			symbol: 'USD_Stables',
+			logo: 'https://icons.llamao.fi/icons/pegged/usd_native?h=48&w=48'
+		}
+
+		const yieldsList =
+			searchData.map((el) => [
+				`${el.name}`,
+				{
+					name: `${el.name}`,
+					symbol: el.symbol.toUpperCase(),
+					logo: el.image2 || null,
+					fallbackLogo: el.image || null
+				}
+			]) ?? []
+
+		return Object.fromEntries([[stablecoinsSearch.name, stablecoinsSearch]].concat(yieldsList))
+	}, [searchData])
+
+	return { data }
+}
+
+const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
+	const { data } = useFormatTokensSearchList({ lend, searchData })
+
+	return (
+		<SearchWrapper>
+			<YieldsSearch value={lend} searchData={data} lend />
+			{lend ? (
+				<>
+					<YieldsSearch value={borrow} searchData={data} />
+					<LTV placeholder={ltvPlaceholder} />
+					<InputFilter placeholder="Lend Amount" filterKey="lendAmount" />
+					<InputFilter placeholder="Borrow Amount" filterKey="borrowAmount" />
+				</>
+			) : null}
+		</SearchWrapper>
 	)
 }
 

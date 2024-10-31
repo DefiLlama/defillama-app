@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import styled from 'styled-components'
 import { DesktopFeesFilters, ListWrapper } from '~/components/Filters/protocols/Desktop'
 import { OptionToggle } from '~/components/OptionToggle'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
@@ -36,7 +35,7 @@ const BreakdownToggle = (props) => {
 	}, [props.toggleStatus])
 	return (
 		<ListWrapper>
-			<ListItem>
+			<li className="ml-5 first-of-type:ml-0">
 				<OptionToggle
 					isLoading={!props.onToggleClick}
 					name="Protocol breakdown"
@@ -50,7 +49,7 @@ const BreakdownToggle = (props) => {
 					help="Breakdown charts by protocol"
 					enabled={isToggleEnabled}
 				/>
-			</ListItem>
+			</li>
 		</ListWrapper>
 	)
 }
@@ -63,9 +62,3 @@ const FeesToggles = () => {
 		</>
 	)
 }
-
-export const ListItem = styled.li`
-	&:not(:first-child) {
-		margin-left: 20px;
-	}
-`

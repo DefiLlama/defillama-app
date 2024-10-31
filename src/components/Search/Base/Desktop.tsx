@@ -148,7 +148,7 @@ function Input({
 
 	return (
 		<>
-			{!hideIcon && (
+			{!hideIcon ? (
 				<button onClick={onClick} className="absolute top-[14px] left-3">
 					{state.mounted ? (
 						<>
@@ -162,7 +162,7 @@ function Input({
 						</>
 					)}
 				</button>
-			)}
+			) : null}
 
 			<Combobox
 				state={state}
@@ -175,11 +175,11 @@ function Input({
 				className="p-3 pl-9 rounded-t-md text-base bg-white text-black dark:bg-black dark:text-white"
 			/>
 
-			{!hideIcon && (
+			{!hideIcon ? (
 				<span className="absolute top-2 right-3 bg-[#f5f5f5] dark:bg-[#151515] text-[var(--link)] font-medium p-[6px] rounded-md">
 					⌘K
 				</span>
-			)}
+			) : null}
 		</>
 	)
 }

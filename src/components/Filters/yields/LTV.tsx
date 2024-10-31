@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { Icon } from '~/components/Icon'
 
 export function LTV({ placeholder }: { placeholder: string }) {
@@ -32,34 +31,14 @@ export function LTV({ placeholder }: { placeholder: string }) {
 	}
 
 	return (
-		<Wrapper data-alwaysdisplay>
-			<Icon name="search" height={16} width={16} />
-			<input placeholder={placeholder} onChange={onChange} type="number" />
-		</Wrapper>
+		<div className="relative flex flex-col rounded-md">
+			<Icon name="search" height={16} width={16} className="absolute top-[10px] left-[6px] opacity-50" />
+			<input
+				placeholder={placeholder}
+				onChange={onChange}
+				type="number"
+				className="p-2 pl-8 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white"
+			/>
+		</div>
 	)
 }
-
-export const Wrapper = styled.div`
-	position: relative;
-	display: flex;
-	flex: nowrap;
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-	border-radius: 8px;
-
-	svg {
-		position: absolute;
-		top: 8px;
-		left: 8px;
-		color: #646466;
-	}
-
-	input {
-		border-radius: 8px;
-		border: none;
-		padding: 8px;
-		padding-left: 32px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-		font-size: 0.875rem;
-		width: 100%;
-	}
-`
