@@ -149,7 +149,7 @@ function Input({
 	return (
 		<>
 			{!hideIcon ? (
-				<button onClick={onClick} className="absolute top-[14px] left-3">
+				<button onClick={onClick} className="absolute top-[14px] left-3 opacity-50">
 					{state.mounted ? (
 						<>
 							<span className="sr-only">Close Search</span>

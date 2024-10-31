@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import styled from 'styled-components'
 import { ListWrapper } from '~/components/Filters/protocols/Desktop'
 import { OptionToggle } from '~/components/OptionToggle'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
@@ -37,7 +36,7 @@ export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
 			filters={
 				props.onToggleClick && (
 					<ListWrapper>
-						<ListItem>
+						<li className="ml-5 first-of-type:ml-0">
 							<OptionToggle
 								name="Bridge breakdown"
 								toggle={() => {
@@ -49,8 +48,7 @@ export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
 								help="Break down 'All' volume chart by bridge"
 								enabled={isToggleEnabled}
 							/>
-						</ListItem>
-						<ListItem></ListItem>
+						</li>
 					</ListWrapper>
 				)
 			}
@@ -77,9 +75,3 @@ export function BridgesSearchSelect(props: IBridgesSearchSelectProps) {
 		/>
 	)
 }
-
-export const ListItem = styled.li`
-	&:not(:first-child) {
-		margin-left: 20px;
-	}
-`

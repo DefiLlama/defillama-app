@@ -1,4 +1,3 @@
-import styled from 'styled-components'
 import { SelectLabel, SelectArrow } from 'ariakit/select'
 import { Checkbox } from '~/components'
 import { feesOptions, protocolsAndChainsOptions } from './options'
@@ -7,30 +6,6 @@ import { useFeesFilterState, useProtocolsFilterState, useTvlAndFeesFilterState }
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
-
-const WrapperWithLabel = styled.div`
-	display: none;
-	gap: 8px;
-	align-items: center;
-	margin-left: auto;
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
-		display: flex;
-		padding: 0 16px;
-	}
-`
-
-const Label = styled(SelectLabel)`
-	color: ${({ theme }) => theme.text1};
-	font-weight: 400;
-	font-size: 0.75rem;
-	opacity: 0.8;
-	white-space: nowrap;
-`
-
-const Menu = styled(Select)`
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#f5f5f5')};
-`
 
 function renderValue(value: string[]) {
 	if (value.length === 0) return 'No option selected'
@@ -50,12 +25,14 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 	const tvlOptions = options || protocolsAndChainsOptions
 
 	return (
-		<WrapperWithLabel {...props}>
-			<Label state={select}>INCLUDE IN TVL: </Label>
-			<Menu state={select}>
+		<div {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
+			<SelectLabel state={select} className="text-[var(--text1)] font-normal text-xs whitespace-nowrap">
+				INCLUDE IN TVL:{' '}
+			</SelectLabel>
+			<Select state={select} className="bg-[#f5f5f5] dark:bg-black">
 				<span>{renderValue(select.value)}</span>
 				<SelectArrow />
-			</Menu>
+			</Select>
 			{select.mounted && (
 				<SelectPopover state={select} modal={!isLarge}>
 					{tvlOptions.map(({ key, name, help }) => (
@@ -73,7 +50,7 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 					))}
 				</SelectPopover>
 			)}
-		</WrapperWithLabel>
+		</div>
 	)
 }
 
@@ -83,12 +60,14 @@ export function TabletFeesFilters({ options, ...props }: IProps) {
 	const [isLarge] = useSetPopoverStyles()
 
 	return (
-		<WrapperWithLabel {...props}>
-			<Label state={select}>INCLUDE IN FEES: </Label>
-			<Menu state={select}>
+		<div {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
+			<SelectLabel state={select} className="text-[var(--text1)] font-normal text-xs whitespace-nowrap">
+				INCLUDE IN FEES:{' '}
+			</SelectLabel>
+			<Select state={select} className="bg-[#f5f5f5] dark:bg-black">
 				<span>{renderValue(select.value)}</span>
 				<SelectArrow />
-			</Menu>
+			</Select>
 			{select.mounted && (
 				<SelectPopover state={select} modal={!isLarge}>
 					{feesOptions.map(({ key, name, help }) => (
@@ -106,7 +85,7 @@ export function TabletFeesFilters({ options, ...props }: IProps) {
 					))}
 				</SelectPopover>
 			)}
-		</WrapperWithLabel>
+		</div>
 	)
 }
 
@@ -116,12 +95,14 @@ export function TabletTvlAndFeesFilters({ options, ...props }: IProps) {
 	const [isLarge] = useSetPopoverStyles()
 
 	return (
-		<WrapperWithLabel {...props}>
-			<Label state={select}>INCLUDE IN STATS: </Label>
-			<Menu state={select}>
+		<div {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
+			<SelectLabel state={select} className="text-[var(--text1)] font-normal text-xs whitespace-nowrap">
+				INCLUDE IN STATS:{' '}
+			</SelectLabel>
+			<Select state={select} className="bg-[#f5f5f5] dark:bg-black">
 				<span>{renderValue(select.value)}</span>
 				<SelectArrow />
-			</Menu>
+			</Select>
 			{select.mounted && (
 				<SelectPopover state={select} modal={!isLarge}>
 					{options.map(({ key, name, help }) => (
@@ -139,6 +120,6 @@ export function TabletTvlAndFeesFilters({ options, ...props }: IProps) {
 					))}
 				</SelectPopover>
 			)}
-		</WrapperWithLabel>
+		</div>
 	)
 }

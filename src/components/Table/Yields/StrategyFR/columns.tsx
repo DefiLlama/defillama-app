@@ -51,7 +51,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return (
-				<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+				<ColoredAPY data-variant="positive" style={{ '--weight': 700, marginLeft: 'auto' }}>
 					{formattedPercent(getValue(), true, 700, true)}
 				</ColoredAPY>
 			)
