@@ -6,7 +6,7 @@ import {
 	useNftsManager,
 	useTvlAndFeesManager
 } from '~/contexts/LocalStorage'
-import { protocolsAndChainsOptions } from '~/components/Filters'
+import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { nftOptions } from '~/components/Filters/nfts/options'
 import { useRouter } from 'next/router'
 import { feesOptions } from '~/components/Filters/protocols/options'
@@ -44,7 +44,7 @@ export function Settings() {
 
 	return (
 		<>
-			<Select className="shadow p-3 rounded-lg bg-[#445ed0] text-white -my-[2px]" state={select}>
+			<Select className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px]" state={select}>
 				<span className="sr-only">Open Settings Menu</span>
 				<Icon name="settings" height={16} width={16} />
 			</Select>
@@ -52,7 +52,7 @@ export function Settings() {
 			<SelectPopover
 				state={select}
 				modal={!isLarge}
-				className="flex flex-col w-full max-w-[none] max-h-[calc(100vh-200px)] text-base font-medium bg-[var(--bg1)] rounded-t-lg z-10 overflow-auto overscroll-contain sm:hidden"
+				className="flex flex-col w-full max-w-[none] max-h-[calc(100vh-200px)] text-base font-medium bg-[var(--bg1)] rounded-t-md z-10 overflow-auto overscroll-contain sm:hidden"
 			>
 				<h1 className="text-[var(--text2)] my-2 mx-3">Settings</h1>
 				<hr className="border-black/20 dark:border-white/20" />

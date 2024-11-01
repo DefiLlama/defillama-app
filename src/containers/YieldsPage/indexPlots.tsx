@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { YieldFiltersV2 } from '~/components/Filters'
+import { YieldFiltersV2 } from '~/components/Filters/yields'
 import dynamic from 'next/dynamic'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'

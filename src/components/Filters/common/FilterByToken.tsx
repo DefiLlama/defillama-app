@@ -1,11 +1,10 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
-import { SelectArrow, useSelectState } from 'ariakit/select'
-import { SelectButton, ComboboxSelectPopover, ItemsSelected, SecondaryLabel } from './Base'
+import { Select, SelectArrow, SelectPopover, useSelectState } from 'ariakit/select'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
 import { ComboboxSelectContent } from './ComboboxSelectContent'
-import { useComboboxState } from 'ariakit'
+import { useComboboxState } from 'ariakit/combobox'
 
 interface IFiltersByTokensProps {
 	tokensList: Array<string>
@@ -53,7 +52,7 @@ export function FiltersByToken({
 		setValue: addToken,
 		gutter: 8,
 		renderCallback,
-		...(!subMenu && { animated: true })
+		...(!subMenu && { animated: isLarge ? false : true })
 	})
 
 	const toggleAllOptions = () => {
@@ -125,52 +124,47 @@ export function FiltersByToken({
 
 	return (
 		<>
-			<SelectButton state={selectState} data-variant={variant}>
-				{variant === 'secondary' ? (
-					<SecondaryLabel>
-						{isSelected ? (
-							<>
-								<span>Token: </span>
-								<span data-selecteditems>
-									{selectedTokens.length > 2
-										? `${selectedTokens[0]} + ${selectedTokens.length - 1} others`
-										: selectedTokens.join(', ')}
-								</span>
-							</>
-						) : (
-							'Token'
-						)}
-					</SecondaryLabel>
-				) : (
-					<>
-						<span>Filter by Tokens</span>
-						{isSelected && <ItemsSelected>{selectedTokens.length}</ItemsSelected>}
-					</>
-				)}
-				<SelectArrow placement="bottom" />
-			</SelectButton>
-
-			<ComboboxSelectPopover
+			<Select
 				state={selectState}
-				modal={!isLarge}
-				composite={false}
-				initialFocusRef={focusItemRef}
-				data-variant={variant}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
 			>
-				<ComboboxSelectContent
-					options={tokensList}
-					selectedOptions={selectedTokens}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectOnlyOne={selectOnlyOne}
-					focusItemRef={focusItemRef}
-					variant={variant}
-					pathname={pathname}
-					autoFocus
-					isOptionToggled={isOptionToggled}
-					contentElementId={selectState.contentElement?.id}
-				/>
-			</ComboboxSelectPopover>
+				{isSelected ? (
+					<>
+						<span>Token: </span>
+						<span className="text-[var(--link)]">
+							{selectedTokens.length > 2
+								? `${selectedTokens[0]} + ${selectedTokens.length - 1} others`
+								: selectedTokens.join(', ')}
+						</span>
+					</>
+				) : (
+					<span>Token</span>
+				)}
+				<SelectArrow />
+			</Select>
+
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					composite={false}
+					initialFocusRef={focusItemRef}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+				>
+					<ComboboxSelectContent
+						options={tokensList}
+						selectedOptions={selectedTokens}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						selectOnlyOne={selectOnlyOne}
+						focusItemRef={focusItemRef}
+						variant={variant}
+						pathname={pathname}
+						autoFocus
+						isOptionToggled={isOptionToggled}
+						contentElementId={selectState.contentElement?.id}
+					/>
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }

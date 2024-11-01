@@ -72,7 +72,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						</div>
 					) : (
 						<Tooltip content={<TooltipContent />}>
-							<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+							<ColoredAPY data-variant="positive" style={{ '--weight': 700, marginLeft: 'auto' }}>
 								{formattedPercent(getValue(), true, 700, true)}
 							</ColoredAPY>
 						</Tooltip>

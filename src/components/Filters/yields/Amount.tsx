@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router'
 import React from 'react'
-import { Wrapper } from './LTV'
 import { Icon } from '~/components/Icon'
 
 export function InputFilter({ placeholder, filterKey }: { placeholder: string; filterKey: string }) {
@@ -40,9 +39,15 @@ export function InputFilter({ placeholder, filterKey }: { placeholder: string; f
 	}
 
 	return (
-		<Wrapper data-alwaysdisplay>
-			<Icon name="search" height={16} width={16} />
-			<input placeholder={placeholder} onChange={onChange} type="number" ref={ref} />
-		</Wrapper>
+		<div className="relative flex flex-col rounded-md">
+			<Icon name="search" height={16} width={16} className="absolute top-[10px] left-[6px] opacity-50" />
+			<input
+				placeholder={placeholder}
+				onChange={onChange}
+				type="number"
+				ref={ref}
+				className="p-2 pl-8 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white"
+			/>
+		</div>
 	)
 }

@@ -22,7 +22,7 @@ const baseHeight = 20
 export const OptionToggle = ({ toggle, enabled = false, help, name, isLoading = false, ...props }: IProps) => {
 	return (
 		<>
-			<label {...props} className="flex items-center justify-start" htmlFor={name}>
+			<label {...props} className="flex items-center justify-start gap-1" htmlFor={name}>
 				{isLoading ? (
 					<Image
 						style={{ margin: `0 ${(baseWidth - baseHeight) / 2}px` }}
@@ -42,7 +42,6 @@ export const OptionToggle = ({ toggle, enabled = false, help, name, isLoading = 
 						checkedIcon={false}
 					/>
 				)}
-				&nbsp;
 				{help ? (
 					<Tooltip content={help}>
 						<span>{name}</span>

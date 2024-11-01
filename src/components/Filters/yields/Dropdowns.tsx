@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
-import { FiltersByChain, FiltersByToken } from '../common'
+import { FiltersByToken } from '../common/FilterByToken'
+import { FiltersByChain } from '../common/FiltersByChain'
 import { AvailableRange, TVLRange } from '../protocols'
 import { YieldAttributes } from './Attributes'
 import { FiltersByCategory } from './Categories'
@@ -237,21 +238,18 @@ export function YieldFilterDropdowns({
 				</label>
 			)}
 
-			{resetFilters && (
-				<ResetAllYieldFilters pathname={pathname || router.pathname} variant="secondary" subMenu={isMobile} />
-			)}
+			{resetFilters ? <ResetAllYieldFilters pathname={pathname || router.pathname} subMenu={isMobile} /> : null}
 
-			{!isMobile && (
+			{!isMobile ? (
 				<div style={{ marginInlineStart: 'auto', display: 'flex', gap: '8px' }}>
 					{onCSVDownload ? (
 						<CSVDownloadButton
-							isGray
-							style={{ color: 'inherit', fontWeight: 'normal', borderRadius: '8px' }}
+							className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
 							onClick={onCSVDownload}
 						/>
 					) : null}
 				</div>
-			)}
+			) : null}
 		</>
 	)
 }

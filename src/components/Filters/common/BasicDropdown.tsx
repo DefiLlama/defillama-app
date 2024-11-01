@@ -1,9 +1,9 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { SelectButton, ComboboxSelectPopover, ItemsSelected, SecondaryLabel } from '../common'
+import { SelectButton, ComboboxSelectPopover, SecondaryLabel } from './Base'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { ComboboxSelectContent } from '../common/ComboboxSelectContent'
+import { ComboboxSelectContent } from './ComboboxSelectContent'
 import { SlidingMenu } from '~/components/SlidingMenu'
 
 interface IFiltersByRoundsProps {
@@ -168,7 +168,11 @@ export function BasicDropdown({
 				) : (
 					<>
 						<span>Filter by {label}</span>
-						{isSelected && <ItemsSelected>{selectedOptions.length}</ItemsSelected>}
+						{isSelected ? (
+							<span className="absolute -top-1 -right-1 text-[10px] rounded-full p-[2px] min-w-1 bg-[var(--bg4)]">
+								{selectedOptions.length}
+							</span>
+						) : null}
 					</>
 				)}
 

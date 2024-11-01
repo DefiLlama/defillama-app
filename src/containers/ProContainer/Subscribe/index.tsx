@@ -1,4 +1,3 @@
-import styled from 'styled-components'
 import { useState } from 'react'
 import React from 'react'
 import { useAccount } from 'wagmi'
@@ -11,58 +10,15 @@ import { llamaAddress } from '~/containers/ProApi/lib/constants'
 import { SUBSCRIPTION_PRICE } from '../constants'
 import { Icon } from '~/components/Icon'
 
-const Body = styled.div`
-	margin-top: 120px;
-	text-align: center;
-	display: flex;
-	justify-content: center;
-	flex-direction: column;
-	align-items: center;
-	width: 600px;
-	margin: 0 auto;
-`
-
-const Content = styled.div`
-	margin-top: 16px;
-	display: grid;
-	gap: 16px;
-`
-
-const External = styled.a`
-	color: #445ed0;
-	text-decoration: underline;
-	display: flex;
-	gap: 4px;
-	margin: 0 auto;
-`
-
-const ListBody = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	align-items: center;
-`
-
-const ListItem = styled.div`
-	display: flex;
-	gap: 8px;
-	align-items: center;
-`
-
-const PricePerMonth = styled.div`
-	font-size: 32px;
-	font-weight: bold;
-`
-
 interface Props {
 	price: number
 }
 
 const PriceComponent: React.FC<Props> = ({ price }) => {
 	return (
-		<PricePerMonth>
+		<div className="font-bold text-[32px]">
 			<span style={{ color: 'gray' }}>{price}$</span> / <span style={{ fontSize: '18px' }}>month</span>
-		</PricePerMonth>
+		</div>
 	)
 }
 
@@ -92,9 +48,9 @@ const Subscribe = ({ refresh, verify }) => {
 	}
 
 	return (
-		<Body>
+		<div className="mt-[120px] text-center flex flex-col justify-center items-center w-full max-w-[600px] mx-auto">
 			<img src={logo.src} width="120px" height="120px" alt="logo" />
-			<Content>
+			<div className="mt-4 grid gap-4">
 				<h1>DefiLlama Pro</h1>
 				<PriceComponent price={100} />
 
@@ -116,22 +72,26 @@ const Subscribe = ({ refresh, verify }) => {
 					</button>
 				)}
 
-				<ListBody>
+				<div className="flex flex-col items-center gap-2">
 					<h3>Plan Includes:</h3>
-					<ListItem>
+					<div className="flex items-center gap-2">
 						<CheckIcon />
 						Customizable dashboard with multiple protocols view
-					</ListItem>
-					<ListItem>
+					</div>
+					<div className="flex items-center gap-2">
 						<CheckIcon />
 						Priority support
-					</ListItem>
-				</ListBody>
-				<External href="https://twitter.com/DefiLlama" target="popup">
+					</div>
+				</div>
+				<a
+					href="https://twitter.com/DefiLlama"
+					target="popup"
+					className="underline flex mx-auto gap-1 items-center text-[var(--link)]"
+				>
 					Learn More <Icon name="external-link" height={16} width={16} />
-				</External>
-			</Content>
-		</Body>
+				</a>
+			</div>
+		</div>
 	)
 }
 

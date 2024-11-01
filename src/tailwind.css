@@ -51,6 +51,15 @@
 		--link-active-bg: #1e68d2;
 		--link-sec-bg: rgba(234, 234, 234, 0.1);
 		--link-sec-hover-bg: rgba(234, 234, 234, 0.2);
+
+		--btn-bg: #eaeaea;
+		--btn-hover-bg: #efefef;
+
+		--btn2-bg: rgba(68, 94, 208, 0.1);
+		--btn2-hover-bg: rgba(33, 114, 229, 0.2);
+		--btn2-text: #445ed0;
+
+		--primary1-hover: rgba(68, 94, 208, 0.2);
 	}
 
 	* {
@@ -91,6 +100,15 @@
 		--link-text: #629ff4;
 		--link-sec-bg: rgba(34, 36, 42, 0.1);
 		--link-sec-hover-bg: rgba(34, 36, 42, 0.2);
+
+		--btn-bg: #22242a;
+		--btn-hover-bg: #282a31;
+
+		--btn2-bg: rgba(33, 114, 229, 0.1);
+		--btn2-hover-bg: rgba(33, 114, 229, 0.2);
+		--btn2-text: #2172e5;
+
+		--primary1-hover: rgba(33, 114, 229, 0.2);
 	}
 
 	body {
@@ -162,6 +180,21 @@
 
 	[data-backdrop] {
 		@apply bg-black/40;
+	}
+
+	.drawer {
+		opacity: 0;
+		transform: translateY(100%);
+		transition: 0.2s ease;
+	}
+
+	.drawer[data-enter] {
+		opacity: 1;
+		transform: translateY(0%);
+	}
+
+	.drawer[data-leave] {
+		transition: 0.1s ease;
 	}
 }
 

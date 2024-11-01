@@ -1,4 +1,3 @@
-import { DropdownsWrapper, Header, Wrapper } from '../v2Base'
 import { useMedia } from '~/hooks/useMedia'
 import { SlidingMenu } from '~/components/SlidingMenu'
 import { RaisesFilterDropdowns } from './Dropdowns'
@@ -10,13 +9,13 @@ export function RaisesFilters(props: IDropdownMenusProps) {
 
 	return (
 		<div>
-			<Header>
+			<div className="relative flex items-center gap-2 flex-wrap p-4 rounded-t-md bg-white dark:bg-black">
 				<h1>{props.header}</h1>
-			</Header>
-			<Wrapper>
+			</div>
+			<div className="flex flex-col gap-4 p-4 rounded-b-md bg-white dark:bg-black">
 				<RaisesSearch list={props.investors || []} />
 
-				<DropdownsWrapper>
+				<div className="flex flex-wrap gap-2 only:*:flex-1">
 					{isSmall ? (
 						<SlidingMenu label="Filters" variant="secondary">
 							<RaisesFilterDropdowns {...props} isMobile />
@@ -24,8 +23,8 @@ export function RaisesFilters(props: IDropdownMenusProps) {
 					) : (
 						<RaisesFilterDropdowns {...props} />
 					)}
-				</DropdownsWrapper>
-			</Wrapper>
+				</div>
+			</div>
 		</div>
 	)
 }

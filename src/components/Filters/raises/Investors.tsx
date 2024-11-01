@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { SelectButton, ComboboxSelectPopover, ItemsSelected, SecondaryLabel } from '../common'
+import { SelectButton, ComboboxSelectPopover, SecondaryLabel } from '../common'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
 import { ComboboxSelectContent } from '../common/ComboboxSelectContent'
@@ -164,7 +164,11 @@ export function Investors({
 				) : (
 					<>
 						<span>Filter by Investors</span>
-						{isSelected && <ItemsSelected>{selectedInvestors.length}</ItemsSelected>}
+						{isSelected ? (
+							<span className="absolute -top-1 -right-1 text-[10px] rounded-full p-[2px] min-w-1 bg-[var(--bg4)]">
+								{selectedInvestors.length}
+							</span>
+						) : null}
 					</>
 				)}
 

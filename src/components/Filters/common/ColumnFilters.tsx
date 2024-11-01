@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
-import { MenuButtonArrow, useSelectState } from 'ariakit'
-import { ItemsSelected, SelectButton, SecondaryLabel, SelectPopover, SelectContent } from './Base'
+import { SelectArrow, SelectPopover, Select, useSelectState } from 'ariakit/select'
+import { SelectContent } from './Base'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
 
@@ -79,7 +79,7 @@ export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColum
 		setValue: addOption,
 		gutter: 8,
 		renderCallback,
-		...(!subMenu && { animated: true })
+		...(!subMenu && { animated: isLarge ? false : true })
 	})
 
 	const toggleAllOptions = () => {
@@ -130,33 +130,30 @@ export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColum
 
 	return (
 		<>
-			<SelectButton state={selectState} data-variant={variant}>
-				{variant === 'secondary' ? (
-					<SecondaryLabel>
-						{isSelected ? (
-							<>
-								<span>Columns: </span>
-								<span data-selecteditems>
-									{selectedOptionNames.length > 2
-										? `${selectedOptionNames[0]} + ${selectedOptionNames.length - 1} others`
-										: selectedOptionNames.join(', ')}
-								</span>
-							</>
-						) : (
-							'Columns'
-						)}
-					</SecondaryLabel>
-				) : (
+			<Select
+				state={selectState}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
+			>
+				{isSelected ? (
 					<>
-						<span>Columns</span>
-						{isSelected && <ItemsSelected>{selectedOptionNames.length}</ItemsSelected>}
+						<span>Columns: </span>
+						<span className="text-[var(--link)]">
+							{selectedOptionNames.length > 2
+								? `${selectedOptionNames[0]} + ${selectedOptionNames.length - 1} others`
+								: selectedOptionNames.join(', ')}
+						</span>
 					</>
+				) : (
+					<span>Columns</span>
 				)}
 
-				<MenuButtonArrow />
-			</SelectButton>
+				<SelectArrow />
+			</Select>
 
-			<SelectPopover state={selectState} modal={!isLarge} data-variant={variant}>
+			<SelectPopover
+				state={selectState}
+				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+			>
 				<SelectContent
 					options={options}
 					selectedOptions={selectedOptions}
@@ -187,7 +184,7 @@ export function ColumnFilters2({
 		setValue: addOption,
 		gutter: 8,
 		renderCallback,
-		...(!subMenu && { animated: true })
+		...(!subMenu && { animated: isLarge ? false : true })
 	})
 
 	if (subMenu) {
@@ -207,23 +204,32 @@ export function ColumnFilters2({
 
 	return (
 		<>
-			<SelectButton state={selectState} data-variant={variant} style={{ borderRadius: '12px' }}>
+			<Select
+				state={selectState}
+				className="bg-[var(--btn2-bg)] hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative"
+			>
 				<span>{label}</span>
-				<ItemsSelected>{selectedOptions.length}</ItemsSelected>
+				<span className="absolute -top-1 -right-1 text-[10px] rounded-full p-[2px] min-w-4 bg-[var(--bg4)]">
+					{selectedOptions.length}
+				</span>
+				<SelectArrow />
+			</Select>
 
-				<MenuButtonArrow />
-			</SelectButton>
-
-			<SelectPopover state={selectState} modal={!isLarge} data-variant={variant}>
-				<SelectContent
-					options={options}
-					selectedOptions={selectedOptions}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					pathname={null}
-					variant={variant}
-				/>
-			</SelectPopover>
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+				>
+					<SelectContent
+						options={options}
+						selectedOptions={selectedOptions}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						pathname={null}
+						variant={variant}
+					/>
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }

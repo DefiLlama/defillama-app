@@ -1,8 +1,7 @@
 import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext, useMemo } from 'react'
 import { Menu, MenuItem as BaseMenuItem, MenuButton, MenuButtonArrow, useMenuState } from 'ariakit/menu'
 import { Select, SelectPopover, SelectState } from 'ariakit/select'
-import styled from 'styled-components'
-import { useSetPopoverStyles } from '../Popover/utils'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 type MenuContextProps = {
 	getWrapper: () => HTMLElement | null
@@ -115,8 +114,8 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 						className="sliding-menu"
 					>
 						<MenuContext.Provider value={contextValue}>
-							{isSubmenu && (
-								<Header>
+							{isSubmenu ? (
+								<div className="grid items-end grid-cols-[1fr_auto_1fr]">
 									<button
 										className="sliding-menu-item"
 										data-variant={variant}
@@ -128,9 +127,9 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 									>
 										<MenuButtonArrow placement="left" />
 									</button>
-									<h2>{label}</h2>
-								</Header>
-							)}
+									<h2 className="text-base font-medium">{label}</h2>
+								</div>
+							) : null}
 							{children}
 						</MenuContext.Provider>
 					</SelectPopover>
@@ -148,8 +147,8 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 						className="sliding-menu"
 					>
 						<MenuContext.Provider value={contextValue}>
-							{isSubmenu && (
-								<Header>
+							{isSubmenu ? (
+								<div className="grid items-end grid-cols-[1fr_auto_1fr]">
 									<button
 										className="sliding-menu-item"
 										data-variant={variant}
@@ -158,9 +157,9 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 									>
 										<MenuButtonArrow placement="left" />
 									</button>
-									<h2>{label}</h2>
-								</Header>
-							)}
+									<h2 className="text-base font-medium">{label}</h2>
+								</div>
+							) : null}
 							{children}
 						</MenuContext.Provider>
 					</Menu>
@@ -192,14 +191,3 @@ export const MenuItem = forwardRef<HTMLButtonElement, MenuItemProps>(function SM
 		</BaseMenuItem>
 	)
 })
-
-const Header = styled.div`
-	display: grid;
-	align-items: center;
-	grid-template-columns: 1fr auto 1fr;
-
-	h2 {
-		font-size: 1rem;
-		font-weight: 500;
-	}
-`

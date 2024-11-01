@@ -33,8 +33,8 @@ module.exports = {
 			},
 			animation: {
 				loader: 'loader 800ms linear infinite',
-				wiggle: 'wiggle 400ms ease',
-				slidein: 'slidein 200ms ease'
+				wiggle: 'wiggle 300ms ease-out',
+				slidein: 'slidein 300ms ease-out'
 			}
 		}
 	},

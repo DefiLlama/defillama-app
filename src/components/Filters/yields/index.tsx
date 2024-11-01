@@ -6,7 +6,6 @@ import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { LTV } from './LTV'
 import { SlidingMenu } from '~/components/SlidingMenu'
 import { YieldFilterDropdowns } from './Dropdowns'
-import { DropdownsWrapper, Header, SearchWrapper, Wrapper } from '../v2Base'
 import type { IYieldFiltersProps } from './types'
 import { InputFilter } from './Amount'
 
@@ -40,31 +39,20 @@ export function YieldFiltersV2({
 
 	return (
 		<div>
-			<Header>
+			<div className="relative flex items-center gap-2 flex-wrap p-4 rounded-t-md bg-white dark:bg-black">
 				<h1>{header}</h1>
-				{trackingStats && <p>{trackingStats}</p>}
-			</Header>
-			<Wrapper>
-				{strategyInputsData && (
-					<SearchWrapper>
-						<YieldsSearch value={lend} searchData={strategyInputsData} lend />
-						{lend && (
-							<>
-								<YieldsSearch value={borrow} searchData={strategyInputsData} />
+				{trackingStats ? <p>{trackingStats}</p> : null}
+			</div>
+			<div className="flex flex-col gap-4 p-4 rounded-b-md bg-white dark:bg-black">
+				{strategyInputsData ? (
+					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
+				) : null}
 
-								<LTV placeholder={ltvPlaceholder} />
-								<InputFilter placeholder="Lend Amount" filterKey="lendAmount" />
-								<InputFilter placeholder="Borrow Amount" filterKey="borrowAmount" />
-							</>
-						)}
-					</SearchWrapper>
-				)}
-
-				{tokens && (showSearchOnMobile || !isSmall) && (
+				{tokens && (showSearchOnMobile || !isSmall) ? (
 					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile ? true : false} />
-				)}
+				) : null}
 
-				<DropdownsWrapper>
+				<div className="flex flex-wrap gap-2 max-sm:only:*:flex-1">
 					{isSmall ? (
 						<SlidingMenu label="Filters" variant="secondary">
 							<YieldFilterDropdowns {...props} isMobile />
@@ -72,8 +60,51 @@ export function YieldFiltersV2({
 					) : (
 						<YieldFilterDropdowns {...props} />
 					)}
-				</DropdownsWrapper>
-			</Wrapper>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+function useFormatTokensSearchList({ searchData }) {
+	const data = React.useMemo(() => {
+		const stablecoinsSearch = {
+			name: `All USD Stablecoins`,
+			symbol: 'USD_Stables',
+			logo: 'https://icons.llamao.fi/icons/pegged/usd_native?h=48&w=48'
+		}
+
+		const yieldsList =
+			searchData.map((el) => [
+				`${el.name}`,
+				{
+					name: `${el.name}`,
+					symbol: el.symbol.toUpperCase(),
+					logo: el.image2 || null,
+					fallbackLogo: el.image || null
+				}
+			]) ?? []
+
+		return Object.fromEntries([[stablecoinsSearch.name, stablecoinsSearch]].concat(yieldsList))
+	}, [searchData])
+
+	return { data }
+}
+
+const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
+	const { data } = useFormatTokensSearchList({ searchData })
+
+	return (
+		<div className="flex flex-col md:flex-row md:items-center gap-2 flex-wrap *:flex-1">
+			<YieldsSearch value={lend} searchData={data} lend />
+			{lend ? (
+				<>
+					<YieldsSearch value={borrow} searchData={data} />
+					<LTV placeholder={ltvPlaceholder} />
+					<InputFilter placeholder="Lend Amount" filterKey="lendAmount" />
+					<InputFilter placeholder="Borrow Amount" filterKey="borrowAmount" />
+				</>
+			) : null}
 		</div>
 	)
 }

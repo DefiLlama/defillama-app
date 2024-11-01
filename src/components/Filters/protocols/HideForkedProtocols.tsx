@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { Checkbox2 } from '~/components'
 
 export function HideForkedProtocols() {
@@ -23,16 +22,9 @@ export function HideForkedProtocols() {
 		)
 	}
 	return (
-		<Wrapper>
+		<label className="flex items-center gap-1 cursor-pointer">
 			<Checkbox2 type="checkbox" value="hideForks" checked={!toHide} onChange={hide} />
 			<span>Hide Forked Protocols</span>
-		</Wrapper>
+		</label>
 	)
 }
-
-const Wrapper = styled.label`
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	cursor: pointer;
-`

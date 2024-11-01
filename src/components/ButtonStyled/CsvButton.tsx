@@ -12,22 +12,24 @@ export const CSVDownloadButton = ({
 	style = {},
 	isLight = false,
 	customText = '',
-	isGray = false
+	isGray = false,
+	className
 }: {
 	onClick: () => void
 	style?: CSSProperties
 	isLight?: boolean
 	customText?: string
 	isGray?: boolean
+	className?: string
 }) => {
-	const Button = isGray ? GrayButton : isLight ? ButtonLight : ButtonDark
+	const Button = className ? 'button' : isGray ? GrayButton : isLight ? ButtonLight : ButtonDark
 	const text = customText || 'Download .csv'
 
 	const [verifyAndDownload, setVerifyAndDownload] = useState(0)
 
 	return (
 		<>
-			<Button onClick={() => setVerifyAndDownload((prev) => prev + 1)} style={style}>
+			<Button className={className} onClick={() => setVerifyAndDownload((prev) => prev + 1)} style={style}>
 				{text}{' '}
 				{IS_PRO_API_ENABLED ? (
 					<span

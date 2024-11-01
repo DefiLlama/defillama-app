@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import styled from 'styled-components'
-import { DesktopFeesFilters, ListWrapper } from '~/components/Filters/protocols/Desktop'
+import { DesktopFeesFilters } from '~/components/Filters/protocols/Desktop'
 import { OptionToggle } from '~/components/OptionToggle'
-import { DesktopSearch } from '../Base'
+import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import type { ICommonSearchProps } from '../types'
 import { useGetAdaptorsSearchList } from './hooks'
 import { TabletFeesFilters } from '~/components/Filters/protocols/Tablet'
@@ -15,15 +14,15 @@ interface IAdaptorSearchProps extends ICommonSearchProps {
 	enableToggle?: boolean
 }
 
-export function AdaptorsSearch(props: IAdaptorSearchProps) {
-	const { data, loading } = useGetAdaptorsSearchList(props.type, props.onlyChains)
+export function AdaptorsSearch({ type, enableToggle, ...props }: IAdaptorSearchProps) {
+	const { data, loading } = useGetAdaptorsSearchList(type, props.onlyChains)
 
 	return (
 		<DesktopSearch
 			{...props}
 			data={data}
 			loading={loading}
-			filters={props.enableToggle ? <BreakdownToggle {...props} /> : props.type === 'fees' ? <FeesToggles /> : null}
+			filters={enableToggle ? <BreakdownToggle {...props} /> : type === 'fees' ? <FeesToggles /> : null}
 		/>
 	)
 }
@@ -35,8 +34,8 @@ const BreakdownToggle = (props) => {
 		setIsToggleEnabled(props.toggleStatus)
 	}, [props.toggleStatus])
 	return (
-		<ListWrapper>
-			<ListItem>
+		<ul className="flex items-center flex-end">
+			<li className="ml-5 first-of-type:ml-0">
 				<OptionToggle
 					isLoading={!props.onToggleClick}
 					name="Protocol breakdown"
@@ -50,8 +49,8 @@ const BreakdownToggle = (props) => {
 					help="Breakdown charts by protocol"
 					enabled={isToggleEnabled}
 				/>
-			</ListItem>
-		</ListWrapper>
+			</li>
+		</ul>
 	)
 }
 
@@ -63,9 +62,3 @@ const FeesToggles = () => {
 		</>
 	)
 }
-
-export const ListItem = styled.li`
-	&:not(:first-child) {
-		margin-left: 20px;
-	}
-`
