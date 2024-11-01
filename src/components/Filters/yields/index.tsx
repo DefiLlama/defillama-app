@@ -52,7 +52,7 @@ export function YieldFiltersV2({
 					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile ? true : false} />
 				) : null}
 
-				<div className="flex flex-wrap gap-2">
+				<div className="flex flex-wrap gap-2 max-sm:only:*:flex-1">
 					{isSmall ? (
 						<SlidingMenu label="Filters" variant="secondary">
 							<YieldFilterDropdowns {...props} isMobile />
@@ -66,7 +66,7 @@ export function YieldFiltersV2({
 	)
 }
 
-function useFormatTokensSearchList({ lend, searchData }) {
+function useFormatTokensSearchList({ searchData }) {
 	const data = React.useMemo(() => {
 		const stablecoinsSearch = {
 			name: `All USD Stablecoins`,
@@ -92,7 +92,7 @@ function useFormatTokensSearchList({ lend, searchData }) {
 }
 
 const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
-	const { data } = useFormatTokensSearchList({ lend, searchData })
+	const { data } = useFormatTokensSearchList({ searchData })
 
 	return (
 		<div className="flex flex-col md:flex-row md:items-center gap-2 flex-wrap *:flex-1">

@@ -6,7 +6,7 @@ import { RecentlyListedProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
 import { HideForkedProtocols, TVLRange } from '~/components/Filters/protocols'
-import { FiltersByChain } from '~/components/Filters/common'
+import { FiltersByChain } from '~/components/Filters/common/FiltersByChain'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 
 import { download, getPercentChange } from '~/utils'

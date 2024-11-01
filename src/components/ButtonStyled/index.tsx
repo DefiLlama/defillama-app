@@ -56,18 +56,19 @@ export const ButtonLight = <E extends ElementType = ButtonDefaultAsType>({
 		<Tag
 			style={
 				{
-					'--bg-light': transparentize(0.9, color ?? '#445ed0'),
-					'--bg-dark': transparentize(0.9, color ?? '#2172E5'),
-					'--bg-active-light': transparentize(0.8, color ?? '#2172E5'),
-					'--bg-active-dark': transparentize(0.8, color ?? '#2172E5'),
-					'--text-light': useTextColor ? '#1F1F1F' : color ? darken(0.1, color) : '#445ed0',
-					'--text-dark': useTextColor ? '#FAFAFA' : color ? darken(0.1, color) : '#2172E5',
+					...(color
+						? {
+								'--btn2-bg': transparentize(0.9, color),
+								'--btn2-hover-bg': transparentize(0.8, color),
+								'--btn2-text': darken(0.1, color)
+						  }
+						: {}),
 					...(style ?? {})
 				} as any
 			}
-			className={`py-2 px-3 text-sm font-semibold rounded-xl text-[var(--text-white)] dark:text-[var(--text-dark)] hover:text-[var(--text-white)] hover:dark:text-[var(--text-dark)] focus-visible:text-[var(--text-white)] focus-visible:dark:text-[var(--text-dark)] min-w-fit bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] whitespace-nowrap hover:bg-[var(--bg-active-light)] dark:hover:bg-[var(--bg-active-dark)] focus-visible:bg-[var(--bg-active-light)] dark:focus-visible:bg-[var(--bg-active-dark)] ${
-				className ?? ''
-			}`}
+			className={`py-2 px-3 text-sm font-semibold rounded-xl min-w-fit bg-[var(--btn2-bg)] whitespace-nowrap hover:bg-[var(--btn2-hover-bg)] ${
+				useTextColor ? 'text-[var(--text1)]' : 'text-[var(--btn2-text)]'
+			} ${className ?? ''}`}
 			{...props}
 		>
 			{children}

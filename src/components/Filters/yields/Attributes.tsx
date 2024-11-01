@@ -1,8 +1,7 @@
-import { MenuButtonArrow, useSelectState } from 'ariakit'
+import { SelectArrow, Select, SelectPopover, useSelectState } from 'ariakit/select'
 import { useRouter } from 'next/router'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { SelectButton, SelectPopover, ItemsSelected, SecondaryLabel } from '../common'
 import { lockupsCollateral, badDebt } from '~/containers/YieldsPage/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
 import { SelectContent } from '../common/Base'
@@ -213,7 +212,7 @@ export function YieldAttributes({
 		setValue: updateAttributes,
 		gutter: 8,
 		renderCallback,
-		animated: true
+		animated: isLarge ? false : true
 	})
 
 	const toggleAllOptions = () => {
@@ -274,33 +273,30 @@ export function YieldAttributes({
 
 	return (
 		<>
-			<SelectButton state={selectState} data-variant={variant}>
-				{variant === 'secondary' ? (
-					<SecondaryLabel>
-						{isSelected ? (
-							<>
-								<span>Attribute: </span>
-								<span data-selecteditems>
-									{selectedAttributeNames.length > 2
-										? `${selectedAttributeNames[0]} + ${selectedAttributeNames.length - 1} others`
-										: selectedAttributeNames.join(', ')}
-								</span>
-							</>
-						) : (
-							'Attribute'
-						)}
-					</SecondaryLabel>
-				) : (
+			<Select
+				state={selectState}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
+			>
+				{isSelected ? (
 					<>
-						<span>Filter by Attribute</span>
-						{isSelected && <ItemsSelected>{selectedAttributes.length}</ItemsSelected>}
+						<span>Attribute: </span>
+						<span className="text-[var(--link)]">
+							{selectedAttributeNames.length > 2
+								? `${selectedAttributeNames[0]} + ${selectedAttributeNames.length - 1} others`
+								: selectedAttributeNames.join(', ')}
+						</span>
 					</>
+				) : (
+					<span>Attribute</span>
 				)}
 
-				<MenuButtonArrow />
-			</SelectButton>
+				<SelectArrow />
+			</Select>
 
-			<SelectPopover state={selectState} modal={!isLarge} data-variant={variant}>
+			<SelectPopover
+				state={selectState}
+				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+			>
 				<SelectContent
 					options={attributeOptionsFiltered}
 					selectedOptions={values}

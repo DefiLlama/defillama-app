@@ -262,17 +262,6 @@ export const FilterFnsGroup = styled.span`
 	}
 `
 
-export const ItemsSelected = styled.span`
-	position: absolute;
-	top: -8px;
-	right: -8px;
-	font-size: 10px;
-	padding: 2px;
-	min-width: 16px;
-	background: ${({ theme }) => theme.bg4};
-	border-radius: 9999px;
-`
-
 export const SecondaryLabel = styled.span`
 	display: flex;
 	flex-wrap: wrap;

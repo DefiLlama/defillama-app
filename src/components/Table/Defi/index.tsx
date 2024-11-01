@@ -142,7 +142,6 @@ export function DefiChainsTable({ data }) {
 					addOption={addAggrOption}
 					subMenu={false}
 				/>
-
 				<ColumnFilters2
 					label={'Columns'}
 					options={chainsOverviewTableColumns}

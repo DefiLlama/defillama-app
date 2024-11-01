@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { Checkbox } from '~/components'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
-import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover, ItemsSelected } from '../common'
+import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover } from '../common'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
 
@@ -168,7 +168,11 @@ export function PegType({ pathname }: { pathname: string }) {
 			<SelectButton state={select}>
 				<span>Filter by Peg Type</span>
 				<MenuButtonArrow />
-				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
+				{totalSelected > 0 ? (
+					<span className="absolute -top-1 -right-1 text-[10px] rounded-full p-[2px] min-w-1 bg-[var(--bg4)]">
+						{totalSelected}
+					</span>
+				) : null}
 			</SelectButton>
 			<SelectPopover state={select} modal={!isLarge}>
 				<FilterFnsGroup>

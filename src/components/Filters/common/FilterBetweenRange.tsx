@@ -1,5 +1,5 @@
 import { FormEventHandler, ReactNode } from 'react'
-import { MenuButtonArrow } from 'ariakit'
+import { MenuButtonArrow } from 'ariakit/menu'
 import { ApplyFilters } from '~/components'
 import Popover from '~/components/Popover'
 import { SlidingMenu } from '~/components/SlidingMenu'

@@ -121,7 +121,7 @@ export function IncludeExcludeTokens({
 					placeholder="Search for a token to filter by"
 					autoSelect
 					autoFocus
-					className="px-8 outline-none w-full rounded-t-md text-sm bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] text-black dark:text-white"
+					className="px-8 outline-none w-full rounded-t-md text-sm bg-[var(--btn-bg)] text-black dark:text-white"
 				/>
 				<Icon name="search" height={16} width={16} className="absolute left-2 bottom-[2px]" />
 			</div>

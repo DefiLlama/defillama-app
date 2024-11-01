@@ -54,6 +54,10 @@
 
 		--btn-bg: #eaeaea;
 		--btn-hover-bg: #efefef;
+
+		--btn2-bg: rgba(68, 94, 208, 0.1);
+		--btn2-hover-bg: rgba(33, 114, 229, 0.2);
+		--btn2-text: #445ed0;
 	}
 
 	* {
@@ -97,6 +101,10 @@
 
 		--btn-bg: #22242a;
 		--btn-hover-bg: #282a31;
+
+		--btn2-bg: rgba(33, 114, 229, 0.1);
+		--btn2-hover-bg: rgba(33, 114, 229, 0.2);
+		--btn2-text: #2172e5;
 	}
 
 	body {

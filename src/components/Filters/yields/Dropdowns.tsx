@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
-import { FiltersByChain, FiltersByToken } from '../common'
+import { FiltersByToken } from '../common/FilterByToken'
+import { FiltersByChain } from '../common/FiltersByChain'
 import { AvailableRange, TVLRange } from '../protocols'
 import { YieldAttributes } from './Attributes'
 import { FiltersByCategory } from './Categories'

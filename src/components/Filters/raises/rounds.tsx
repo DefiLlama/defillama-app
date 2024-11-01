@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { SelectButton, ComboboxSelectPopover, ItemsSelected, SecondaryLabel } from '../common'
+import { SelectButton, ComboboxSelectPopover, SecondaryLabel } from '../common'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { ComboboxSelectContent } from '../common/ComboboxSelectContent'
 import { SlidingMenu } from '~/components/SlidingMenu'
@@ -158,7 +158,11 @@ export function Rounds({ rounds = [], selectedRounds, pathname, variant = 'prima
 				) : (
 					<>
 						<span>Filter by Round</span>
-						{isSelected && <ItemsSelected>{selectedRounds.length}</ItemsSelected>}
+						{isSelected ? (
+							<span className="absolute -top-1 -right-1 text-[10px] rounded-full p-[2px] min-w-1 bg-[var(--bg4)]">
+								{selectedRounds.length}
+							</span>
+						) : null}
 					</>
 				)}
 

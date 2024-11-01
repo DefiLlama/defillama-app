@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
-import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { ComboboxSelectPopover, ItemsSelected, SelectButton, SecondaryLabel } from '../common'
+import { Select, SelectArrow, SelectPopover, useSelectState } from 'ariakit/select'
+import { useComboboxState } from 'ariakit/combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { ComboboxSelectContent } from '../common/ComboboxSelectContent'
 import { SlidingMenu } from '~/components/SlidingMenu'
@@ -55,7 +55,7 @@ export function FiltersByCategory({
 		setValue: addCategory,
 		gutter: 8,
 		renderCallback,
-		...(!subMenu && { animated: true })
+		...(!subMenu && { animated: isLarge ? false : true })
 	})
 
 	// Resets combobox value when popover is collapsed
@@ -133,38 +133,30 @@ export function FiltersByCategory({
 
 	return (
 		<>
-			<SelectButton state={selectState} data-variant={variant}>
-				{variant === 'secondary' ? (
-					<SecondaryLabel>
-						{isSelected ? (
-							<>
-								<span>Category: </span>
-								<span data-selecteditems>
-									{selectedCategories.length > 2
-										? `${selectedCategories[0]} + ${selectedCategories.length - 1} others`
-										: selectedCategories.join(', ')}
-								</span>
-							</>
-						) : (
-							'Category'
-						)}
-					</SecondaryLabel>
-				) : (
-					<>
-						<span>Filter by Category</span>
-						{isSelected && !hideSelectedCount && <ItemsSelected>{selectedCategories.length}</ItemsSelected>}
-					</>
-				)}
-
-				<MenuButtonArrow />
-			</SelectButton>
-
-			<ComboboxSelectPopover
+			<Select
 				state={selectState}
-				modal={!isLarge}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
+			>
+				{isSelected && !hideSelectedCount ? (
+					<>
+						<span>Category: </span>
+						<span className="text-[var(--link)]">
+							{selectedCategories.length > 2
+								? `${selectedCategories[0]} + ${selectedCategories.length - 1} others`
+								: selectedCategories.join(', ')}
+						</span>
+					</>
+				) : (
+					<span>Category</span>
+				)}
+				<SelectArrow />
+			</Select>
+
+			<SelectPopover
+				state={selectState}
 				composite={false}
 				initialFocusRef={focusItemRef}
-				data-variant={variant}
+				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
 			>
 				<ComboboxSelectContent
 					options={categoryList}
@@ -179,7 +171,7 @@ export function FiltersByCategory({
 					isOptionToggled={isOptionToggled}
 					contentElementId={selectState.contentElement?.id}
 				/>
-			</ComboboxSelectPopover>
+			</SelectPopover>
 		</>
 	)
 }

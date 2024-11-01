@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { ComboboxSelectPopover, ItemsSelected, SelectButton, SecondaryLabel } from '../common'
+import { useComboboxState } from 'ariakit/combobox'
+import { Select, SelectArrow, SelectPopover, useSelectState } from 'ariakit/select'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { ComboboxSelectContent } from '../common/ComboboxSelectContent'
 import { slug } from '~/utils'
@@ -62,7 +62,7 @@ export function YieldProjects({
 		setValue: addProject,
 		gutter: 8,
 		renderCallback,
-		...(!subMenu && { animated: true })
+		...(!subMenu && { animated: isLarge ? false : true })
 	})
 
 	// Resets combobox value when popover is collapsed
@@ -147,38 +147,31 @@ export function YieldProjects({
 
 	return (
 		<>
-			<SelectButton state={selectState} data-variant={variant}>
-				{variant === 'secondary' ? (
-					<SecondaryLabel>
-						{isSelected ? (
-							<>
-								<span>{`${label || 'Project'}: `}</span>
-								<span data-selecteditems>
-									{selectedProjectNames.length > 2
-										? `${selectedProjectNames[0]} + ${selectedProjectNames.length - 1} others`
-										: selectedProjectNames.join(', ')}
-								</span>
-							</>
-						) : (
-							`${label || 'Project'}`
-						)}
-					</SecondaryLabel>
-				) : (
+			<Select
+				state={selectState}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
+			>
+				{isSelected ? (
 					<>
-						<span>{label || `Filter by ${label || 'Project'}`}</span>
-						{isSelected && <ItemsSelected>{selectedProjects.length}</ItemsSelected>}
+						<span>{`${label || 'Project'}: `}</span>
+						<span className="text-[var(--link)]">
+							{selectedProjectNames.length > 2
+								? `${selectedProjectNames[0]} + ${selectedProjectNames.length - 1} others`
+								: selectedProjectNames.join(', ')}
+						</span>
 					</>
+				) : (
+					<span>{`${label || 'Project'}`}</span>
 				)}
 
-				<MenuButtonArrow />
-			</SelectButton>
+				<SelectArrow />
+			</Select>
 
-			<ComboboxSelectPopover
+			<SelectPopover
 				state={selectState}
-				modal={!isLarge}
 				composite={false}
 				initialFocusRef={focusItemRef}
-				data-variant={variant}
+				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-w-xs max-h-[60vh]"
 			>
 				<ComboboxSelectContent
 					options={projectList}
@@ -194,7 +187,7 @@ export function YieldProjects({
 					contentElementId={selectState.contentElement?.id}
 					isSlugValue
 				/>
-			</ComboboxSelectPopover>
+			</SelectPopover>
 		</>
 	)
 }
