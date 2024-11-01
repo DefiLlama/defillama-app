@@ -55,7 +55,13 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 
 	return (
 		<div className="relative hidden lg:flex flex-col rounded-md shadow data-[alwaysdisplay=true]:flex" {...extra}>
-			<Input state={combobox} placeholder={placeholder} withValue={withValue} onSearchTermChange={onSearchTermChange} />
+			<Input
+				state={combobox}
+				placeholder={placeholder}
+				withValue={withValue}
+				onSearchTermChange={onSearchTermChange}
+				filtersExists={filters ? true : false}
+			/>
 
 			{filters ? (
 				<span className="flex items-center justify-end rounded-b-md bg-[#fafafa] dark:bg-[#090a0b] p-3 min-h-[48px]">
@@ -116,16 +122,10 @@ interface IInputProps {
 	variant?: 'primary' | 'secondary'
 	hideIcon?: boolean
 	onSearchTermChange?: (value: string) => void
+	filtersExists?: boolean
 }
 
-function Input({
-	state,
-	placeholder,
-	withValue,
-
-	hideIcon,
-	onSearchTermChange
-}: IInputProps) {
+function Input({ state, placeholder, withValue, hideIcon, onSearchTermChange, filtersExists }: IInputProps) {
 	const inputField = React.useRef<HTMLInputElement>()
 
 	React.useEffect(() => {
@@ -176,7 +176,9 @@ function Input({
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="p-3 pl-9 rounded-t-md text-base bg-white text-black dark:bg-black dark:text-white"
+				className={`p-3 pl-9 ${
+					filtersExists ? 'rounded-t-md' : 'rounded-md'
+				} text-base bg-white text-black dark:bg-black dark:text-white`}
 			/>
 
 			{!hideIcon ? (

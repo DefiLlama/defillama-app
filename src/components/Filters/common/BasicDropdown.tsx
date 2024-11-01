@@ -169,7 +169,7 @@ export function BasicDropdown({
 					<>
 						<span>Filter by {label}</span>
 						{isSelected ? (
-							<span className="absolute -top-1 -right-1 text-[10px] rounded-full p-[2px] min-w-1 bg-[var(--bg4)]">
+							<span className="absolute -top-1 -right-1 text-[10px] rounded-full min-w-4 bg-[var(--bg4)]">
 								{selectedOptions.length}
 							</span>
 						) : null}

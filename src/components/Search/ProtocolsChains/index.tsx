@@ -20,7 +20,7 @@ export function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
 	const isClient = useIsClient()
 
 	if (!isClient) {
-		return <DesktopSearch {...props} data={[]} loading={true} />
+		return <DesktopSearch {...props} data={[]} loading={true} filters={<></>} />
 	}
 
 	return (

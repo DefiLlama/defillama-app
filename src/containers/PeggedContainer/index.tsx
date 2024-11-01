@@ -371,7 +371,7 @@ export const PeggedAssetInfo = ({
 					</TabPanel>
 
 					<TabPanel state={tab}>
-						<div className="flex items-center gap-4 flex-wrap">
+						<div className="flex items-center gap-4 flex-wrap p-6">
 							{blockExplorerLink !== undefined && (
 								<span>
 									<Link href={blockExplorerLink} passHref>
@@ -482,7 +482,7 @@ export const PeggedAssetInfo = ({
 						minHeight: '460px'
 					}}
 				>
-					<Filters style={{ margin: '16px 16px 0' }} color={backgroundColor}>
+					<Filters style={{ margin: '16px 16px 0', maxWidth: 'fit-content' }} color={backgroundColor}>
 						<Denomination as="button" active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
 							Total Circ
 						</Denomination>
