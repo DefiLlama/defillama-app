@@ -91,7 +91,7 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Cumulative last 7d volume secured'
+			headerHelperText: 'Cumulative last 30d volume secured'
 		}
 	}
 ]
