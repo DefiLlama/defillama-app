@@ -151,26 +151,28 @@ export function FiltersByChain({
 				<SelectArrow />
 			</Select>
 
-			<SelectPopover
-				state={selectState}
-				composite={false}
-				initialFocusRef={focusItemRef}
-				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
-			>
-				<ComboboxSelectContent
-					options={chainList}
-					selectedOptions={selectedChains}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectOnlyOne={selectOnlyOne}
-					focusItemRef={focusItemRef}
-					variant={variant}
-					pathname={pathname}
-					autoFocus
-					isOptionToggled={isOptionToggled}
-					contentElementId={selectState.contentElement?.id}
-				/>
-			</SelectPopover>
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					composite={false}
+					initialFocusRef={focusItemRef}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+				>
+					<ComboboxSelectContent
+						options={chainList}
+						selectedOptions={selectedChains}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						selectOnlyOne={selectOnlyOne}
+						focusItemRef={focusItemRef}
+						variant={variant}
+						pathname={pathname}
+						autoFocus
+						isOptionToggled={isOptionToggled}
+						contentElementId={selectState.contentElement?.id}
+					/>
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }

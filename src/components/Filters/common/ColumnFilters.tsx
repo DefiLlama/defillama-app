@@ -215,19 +215,21 @@ export function ColumnFilters2({
 				<SelectArrow />
 			</Select>
 
-			<SelectPopover
-				state={selectState}
-				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
-			>
-				<SelectContent
-					options={options}
-					selectedOptions={selectedOptions}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					pathname={null}
-					variant={variant}
-				/>
-			</SelectPopover>
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+				>
+					<SelectContent
+						options={options}
+						selectedOptions={selectedOptions}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						pathname={null}
+						variant={variant}
+					/>
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }

@@ -293,19 +293,21 @@ export function YieldAttributes({
 				<SelectArrow />
 			</Select>
 
-			<SelectPopover
-				state={selectState}
-				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
-			>
-				<SelectContent
-					options={attributeOptionsFiltered}
-					selectedOptions={values}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					pathname={router.pathname}
-					variant={variant}
-				/>
-			</SelectPopover>
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+				>
+					<SelectContent
+						options={attributeOptionsFiltered}
+						selectedOptions={values}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						pathname={router.pathname}
+						variant={variant}
+					/>
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }

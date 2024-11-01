@@ -61,31 +61,33 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 				<span className="flex items-center justify-end rounded-b-md bg-[#fafafa] dark:bg-[#090a0b] p-3">{filters}</span>
 			) : null}
 
-			<ComboboxPopover
-				className="h-full max-h-[320px] overflow-y-auto bg-[var(--bg6)] rounded-b-md shadow z-10"
-				state={combobox}
-			>
-				{loading || !combobox.mounted ? (
-					<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
-				) : combobox.matches.length ? (
-					<>
-						{options.slice(0, resultsLength + 1).map((token) => (
-							<Row key={token.name} onItemClick={props.onItemClick} data={token} state={combobox} />
-						))}
+			{combobox.mounted ? (
+				<ComboboxPopover
+					className="h-full max-h-[320px] overflow-y-auto bg-[var(--bg6)] rounded-b-md shadow z-10"
+					state={combobox}
+				>
+					{loading || !combobox.mounted ? (
+						<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
+					) : combobox.matches.length ? (
+						<>
+							{options.slice(0, resultsLength + 1).map((token) => (
+								<Row key={token.name} onItemClick={props.onItemClick} data={token} state={combobox} />
+							))}
 
-						{resultsLength < sortedList.length ? (
-							<button
-								className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
-								onClick={showMoreResults}
-							>
-								See more...
-							</button>
-						) : null}
-					</>
-				) : (
-					<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
-				)}
-			</ComboboxPopover>
+							{resultsLength < sortedList.length ? (
+								<button
+									className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+									onClick={showMoreResults}
+								>
+									See more...
+								</button>
+							) : null}
+						</>
+					) : (
+						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
+					)}
+				</ComboboxPopover>
+			) : null}
 		</div>
 	)
 }

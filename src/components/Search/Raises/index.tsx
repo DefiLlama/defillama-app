@@ -29,31 +29,33 @@ export function RaisesSearch({ list }) {
 	return (
 		<div className="relative flex flex-col rounded-md">
 			<Input state={combobox} placeholder="Search investors..." withValue />
-			<ComboboxPopover
-				className="h-full max-h-[320px] overflow-y-auto bg-[var(--bg6)] rounded-b-md shadow z-10"
-				state={combobox}
-			>
-				{!combobox.mounted ? (
-					<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
-				) : combobox.matches.length ? (
-					<>
-						{combobox.matches.slice(0, resultsLength + 1).map((investor) => (
-							<Row key={investor} name={investor} state={combobox} />
-						))}
+			{combobox.mounted ? (
+				<ComboboxPopover
+					className="h-full max-h-[320px] overflow-y-auto bg-[var(--bg6)] rounded-b-md shadow z-10"
+					state={combobox}
+				>
+					{!combobox.mounted ? (
+						<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
+					) : combobox.matches.length ? (
+						<>
+							{combobox.matches.slice(0, resultsLength + 1).map((investor) => (
+								<Row key={investor} name={investor} state={combobox} />
+							))}
 
-						{resultsLength < combobox.matches.length ? (
-							<button
-								className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
-								onClick={showMoreResults}
-							>
-								See more...
-							</button>
-						) : null}
-					</>
-				) : (
-					<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
-				)}
-			</ComboboxPopover>
+							{resultsLength < combobox.matches.length ? (
+								<button
+									className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+									onClick={showMoreResults}
+								>
+									See more...
+								</button>
+							) : null}
+						</>
+					) : (
+						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
+					)}
+				</ComboboxPopover>
+			) : null}
 		</div>
 	)
 }

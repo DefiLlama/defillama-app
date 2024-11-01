@@ -167,27 +167,29 @@ export function YieldProjects({
 				<SelectArrow />
 			</Select>
 
-			<SelectPopover
-				state={selectState}
-				composite={false}
-				initialFocusRef={focusItemRef}
-				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-w-xs max-h-[60vh]"
-			>
-				<ComboboxSelectContent
-					options={projectList}
-					selectedOptions={selectedProjects}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectOnlyOne={selectOnlyOne}
-					focusItemRef={focusItemRef}
-					variant={variant}
-					pathname={pathname}
-					autoFocus
-					isOptionToggled={isOptionToggled}
-					contentElementId={selectState.contentElement?.id}
-					isSlugValue
-				/>
-			</SelectPopover>
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					composite={false}
+					initialFocusRef={focusItemRef}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-w-xs max-h-[60vh]"
+				>
+					<ComboboxSelectContent
+						options={projectList}
+						selectedOptions={selectedProjects}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						selectOnlyOne={selectOnlyOne}
+						focusItemRef={focusItemRef}
+						variant={variant}
+						pathname={pathname}
+						autoFocus
+						isOptionToggled={isOptionToggled}
+						contentElementId={selectState.contentElement?.id}
+						isSlugValue
+					/>
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }
