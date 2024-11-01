@@ -22,7 +22,10 @@ export function ResetAllYieldFilters({
 	}
 
 	return (
-		<button onClick={handleClick} className="rounded-md py-2 px-3 text-xs bg-[#eaeaea] dark:bg-[#22242a]">
+		<button
+			onClick={handleClick}
+			className="rounded-md py-2 px-3 text-xs bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+		>
 			Reset all filters
 		</button>
 	)

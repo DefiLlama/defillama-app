@@ -39,22 +39,24 @@ export function OtherLinks({ options, name, isActive, className, ...props }: IPr
 				<span>{name}</span>
 				<MenuButtonArrow className="relative top-[1px]" />
 			</MenuButton>
-			<Popover state={menu} modal={!isLarge} composite={false}>
-				<Input state={combobox} placeholder="Search..." autoFocus />
-				{combobox.matches.length > 0 ? (
-					<List state={combobox}>
-						{combobox.matches.map((value, i) => (
-							<Link href={value} key={value + i} prefetch={false} passHref>
-								<Item value={value} focusOnHover setValueOnClick={false} role="link">
-									{options.find((l) => l.to === value)?.label ?? value}
-								</Item>
-							</Link>
-						))}
-					</List>
-				) : (
-					<p id="no-results">No results</p>
-				)}
-			</Popover>
+			{menu.mounted ? (
+				<Popover state={menu} modal={!isLarge} composite={false}>
+					<Input state={combobox} placeholder="Search..." autoFocus />
+					{combobox.matches.length > 0 ? (
+						<List state={combobox}>
+							{combobox.matches.map((value, i) => (
+								<Link href={value} key={value + i} prefetch={false} passHref>
+									<Item value={value} focusOnHover setValueOnClick={false} role="link">
+										{options.find((l) => l.to === value)?.label ?? value}
+									</Item>
+								</Link>
+							))}
+						</List>
+					) : (
+						<p id="no-results">No results</p>
+					)}
+				</Popover>
+			) : null}
 		</>
 	)
 }

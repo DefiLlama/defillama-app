@@ -1,4 +1,4 @@
-import { Combobox, ComboboxItem, ComboboxPopover, ComboboxState, useComboboxState } from 'ariakit'
+import { Combobox, ComboboxItem, ComboboxPopover, ComboboxState, useComboboxState } from 'ariakit/combobox'
 import { findActiveItem } from '../Base/utils'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { slug } from '~/utils'

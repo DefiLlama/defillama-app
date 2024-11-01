@@ -52,7 +52,7 @@ export function Settings() {
 			<SelectPopover
 				state={select}
 				modal={!isLarge}
-				className="flex flex-col w-full max-w-[none] max-h-[calc(100vh-200px)] text-base font-medium bg-[var(--bg1)] rounded-t-lg z-10 overflow-auto overscroll-contain sm:hidden"
+				className="flex flex-col w-full max-w-[none] max-h-[calc(100vh-200px)] text-base font-medium bg-[var(--bg1)] rounded-t-md z-10 overflow-auto overscroll-contain sm:hidden"
 			>
 				<h1 className="text-[var(--text2)] my-2 mx-3">Settings</h1>
 				<hr className="border-black/20 dark:border-white/20" />

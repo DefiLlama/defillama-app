@@ -51,6 +51,9 @@
 		--link-active-bg: #1e68d2;
 		--link-sec-bg: rgba(234, 234, 234, 0.1);
 		--link-sec-hover-bg: rgba(234, 234, 234, 0.2);
+
+		--btn-bg: #eaeaea;
+		--btn-hover-bg: #efefef;
 	}
 
 	* {
@@ -91,6 +94,9 @@
 		--link-text: #629ff4;
 		--link-sec-bg: rgba(34, 36, 42, 0.1);
 		--link-sec-hover-bg: rgba(34, 36, 42, 0.2);
+
+		--btn-bg: #22242a;
+		--btn-hover-bg: #282a31;
 	}
 
 	body {

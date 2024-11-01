@@ -76,7 +76,7 @@ export function IncludeExcludeTokens({
 		<div
 			ref={searchWrapperRef}
 			{...props}
-			className="relative hidden sm:flex flex-col gap-2 rounded-md py-2 data-[alwaysdisplay=true]:flex bg-[#eaeaea] dark:bg-[#22242a]"
+			className="relative hidden sm:flex flex-col gap-2 rounded-md py-2 data-[alwaysdisplay=true]:flex bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 		>
 			{(tokensToInclude.length > 0 || tokensToExclude.length > 0) && (
 				<div className="flex items-center flex-wrap gap-4 px-2">
@@ -121,7 +121,7 @@ export function IncludeExcludeTokens({
 					placeholder="Search for a token to filter by"
 					autoSelect
 					autoFocus
-					className="px-8 outline-none w-full rounded-t-md text-sm bg-[#eaeaea] dark:bg-[#22242a] text-black dark:text-white"
+					className="px-8 outline-none w-full rounded-t-md text-sm bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] text-black dark:text-white"
 				/>
 				<Icon name="search" height={16} width={16} className="absolute left-2 bottom-[2px]" />
 			</div>

@@ -1,9 +1,7 @@
-import { SelectLabel, SelectArrow } from 'ariakit/select'
+import { SelectLabel, Select, SelectArrow, SelectItem, SelectPopover } from 'ariakit/select'
 import { Checkbox } from '~/components'
 import { feesOptions, protocolsAndChainsOptions } from './options'
-import { SelectItem, SelectPopover, Select } from '../common'
 import { useFeesFilterState, useProtocolsFilterState, useTvlAndFeesFilterState } from './useProtocolFilterState'
-import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
 
@@ -18,9 +16,7 @@ interface IProps {
 }
 
 export function TabletProtocolsFilters({ options, ...props }: IProps) {
-	const select = useProtocolsFilterState({ sameWidth: true })
-
-	const [isLarge] = useSetPopoverStyles()
+	const select = useProtocolsFilterState()
 
 	const tvlOptions = options || protocolsAndChainsOptions
 
@@ -29,14 +25,24 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 			<SelectLabel state={select} className="text-[var(--text1)] font-normal text-xs whitespace-nowrap">
 				INCLUDE IN TVL:{' '}
 			</SelectLabel>
-			<Select state={select} className="bg-[#f5f5f5] dark:bg-black">
+			<Select
+				state={select}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] flex-nowrap"
+			>
 				<span>{renderValue(select.value)}</span>
 				<SelectArrow />
 			</Select>
-			{select.mounted && (
-				<SelectPopover state={select} modal={!isLarge}>
+			{select.mounted ? (
+				<SelectPopover
+					state={select}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px]"
+				>
 					{tvlOptions.map(({ key, name, help }) => (
-						<SelectItem key={key} value={key}>
+						<SelectItem
+							key={key}
+							value={key}
+							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1)] focus-visible:bg-[var(--primary1)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
+						>
 							{help ? (
 								<Tooltip content={help}>
 									<span>{name}</span>
@@ -49,29 +55,37 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 						</SelectItem>
 					))}
 				</SelectPopover>
-			)}
+			) : null}
 		</div>
 	)
 }
 
 export function TabletFeesFilters({ options, ...props }: IProps) {
-	const select = useFeesFilterState({ sameWidth: true })
-
-	const [isLarge] = useSetPopoverStyles()
+	const select = useFeesFilterState()
 
 	return (
 		<div {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
 			<SelectLabel state={select} className="text-[var(--text1)] font-normal text-xs whitespace-nowrap">
 				INCLUDE IN FEES:{' '}
 			</SelectLabel>
-			<Select state={select} className="bg-[#f5f5f5] dark:bg-black">
+			<Select
+				state={select}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] flex-nowrap"
+			>
 				<span>{renderValue(select.value)}</span>
 				<SelectArrow />
 			</Select>
-			{select.mounted && (
-				<SelectPopover state={select} modal={!isLarge}>
+			{select.mounted ? (
+				<SelectPopover
+					state={select}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px]"
+				>
 					{feesOptions.map(({ key, name, help }) => (
-						<SelectItem key={key} value={key}>
+						<SelectItem
+							key={key}
+							value={key}
+							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1)] focus-visible:bg-[var(--primary1)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
+						>
 							{help ? (
 								<Tooltip content={help}>
 									<span>{name}</span>
@@ -84,7 +98,7 @@ export function TabletFeesFilters({ options, ...props }: IProps) {
 						</SelectItem>
 					))}
 				</SelectPopover>
-			)}
+			) : null}
 		</div>
 	)
 }
@@ -92,21 +106,29 @@ export function TabletFeesFilters({ options, ...props }: IProps) {
 export function TabletTvlAndFeesFilters({ options, ...props }: IProps) {
 	const select = useTvlAndFeesFilterState({ options })
 
-	const [isLarge] = useSetPopoverStyles()
-
 	return (
 		<div {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
 			<SelectLabel state={select} className="text-[var(--text1)] font-normal text-xs whitespace-nowrap">
 				INCLUDE IN STATS:{' '}
 			</SelectLabel>
-			<Select state={select} className="bg-[#f5f5f5] dark:bg-black">
+			<Select
+				state={select}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] flex-nowrap"
+			>
 				<span>{renderValue(select.value)}</span>
 				<SelectArrow />
 			</Select>
-			{select.mounted && (
-				<SelectPopover state={select} modal={!isLarge}>
+			{select.mounted ? (
+				<SelectPopover
+					state={select}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px]"
+				>
 					{options.map(({ key, name, help }) => (
-						<SelectItem key={key} value={key}>
+						<SelectItem
+							key={key}
+							value={key}
+							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1)] focus-visible:bg-[var(--primary1)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
+						>
 							{help ? (
 								<Tooltip content={help}>
 									<span>{name}</span>
@@ -119,7 +141,7 @@ export function TabletTvlAndFeesFilters({ options, ...props }: IProps) {
 						</SelectItem>
 					))}
 				</SelectPopover>
-			)}
+			) : null}
 		</div>
 	)
 }

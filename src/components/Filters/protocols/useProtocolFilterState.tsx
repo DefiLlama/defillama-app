@@ -20,15 +20,11 @@ export function useProtocolsFilterState(props?: { [key: string]: any }) {
 		}
 	}
 
-	const [, renderCallback] = useSetPopoverStyles()
-
 	const select = useSelectState({
 		value: selectedOptions,
 		setValue: onChange,
 		defaultValue: selectedOptions,
 		gutter: 6,
-		animated: true,
-		renderCallback,
 		...props
 	})
 
