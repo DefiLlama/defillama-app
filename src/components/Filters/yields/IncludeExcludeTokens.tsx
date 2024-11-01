@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { Combobox, ComboboxPopover, useComboboxState } from 'ariakit'
+import { Combobox, ComboboxPopover, useComboboxState } from 'ariakit/combobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { findActiveItem } from '~/components/Search/Base/utils'
 import { Icon } from '~/components/Icon'
@@ -76,7 +76,7 @@ export function IncludeExcludeTokens({
 		<div
 			ref={searchWrapperRef}
 			{...props}
-			className="relative hidden sm:flex flex-col gap-2 rounded-md py-2 data-[alwaysdisplay=true]:flex bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+			className="relative hidden sm:flex flex-col gap-2 rounded-md py-2 data-[alwaysdisplay=true]:flex bg-[var(--btn-bg)]"
 		>
 			{(tokensToInclude.length > 0 || tokensToExclude.length > 0) && (
 				<div className="flex items-center flex-wrap gap-4 px-2">
