@@ -6,7 +6,6 @@ import { useProtocolsFilterState } from './useProtocolFilterState'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
 import ReactSwitch from 'react-switch'
-import { darken } from 'polished'
 
 export const DesktopProtocolFilters = ({ options, ...props }) => {
 	const [extraTvlEnabled, updater] = useDefiManager()
@@ -232,7 +231,7 @@ function AddlOptions({ options }: IAllOptionsProps) {
 						<SelectItem
 							key={key}
 							value={key}
-							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1)] focus-visible:bg-[var(--primary1)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
+							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
 						>
 							{help ? (
 								<Tooltip content={help}>

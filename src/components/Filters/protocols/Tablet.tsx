@@ -21,7 +21,7 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 	const tvlOptions = options || protocolsAndChainsOptions
 
 	return (
-		<div {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
+		<span {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
 			<SelectLabel state={select} className="text-[var(--text1)] font-normal text-xs whitespace-nowrap">
 				INCLUDE IN TVL:{' '}
 			</SelectLabel>
@@ -35,13 +35,13 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 			{select.mounted ? (
 				<SelectPopover
 					state={select}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)]"
 				>
 					{tvlOptions.map(({ key, name, help }) => (
 						<SelectItem
 							key={key}
 							value={key}
-							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1)] focus-visible:bg-[var(--primary1)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
+							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
 						>
 							{help ? (
 								<Tooltip content={help}>
@@ -56,7 +56,7 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 					))}
 				</SelectPopover>
 			) : null}
-		</div>
+		</span>
 	)
 }
 
@@ -64,7 +64,7 @@ export function TabletFeesFilters({ options, ...props }: IProps) {
 	const select = useFeesFilterState()
 
 	return (
-		<div {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
+		<span {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
 			<SelectLabel state={select} className="text-[var(--text1)] font-normal text-xs whitespace-nowrap">
 				INCLUDE IN FEES:{' '}
 			</SelectLabel>
@@ -84,7 +84,7 @@ export function TabletFeesFilters({ options, ...props }: IProps) {
 						<SelectItem
 							key={key}
 							value={key}
-							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1)] focus-visible:bg-[var(--primary1)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
+							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
 						>
 							{help ? (
 								<Tooltip content={help}>
@@ -99,7 +99,7 @@ export function TabletFeesFilters({ options, ...props }: IProps) {
 					))}
 				</SelectPopover>
 			) : null}
-		</div>
+		</span>
 	)
 }
 
@@ -107,7 +107,7 @@ export function TabletTvlAndFeesFilters({ options, ...props }: IProps) {
 	const select = useTvlAndFeesFilterState({ options })
 
 	return (
-		<div {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
+		<span {...props} className="hidden items-center ml-auto gap-2 lg:flex 2xl:hidden -my-[10px] -mr-[2px]">
 			<SelectLabel state={select} className="text-[var(--text1)] font-normal text-xs whitespace-nowrap">
 				INCLUDE IN STATS:{' '}
 			</SelectLabel>
@@ -127,7 +127,7 @@ export function TabletTvlAndFeesFilters({ options, ...props }: IProps) {
 						<SelectItem
 							key={key}
 							value={key}
-							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1)] focus-visible:bg-[var(--primary1)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
+							className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
 						>
 							{help ? (
 								<Tooltip content={help}>
@@ -142,6 +142,6 @@ export function TabletTvlAndFeesFilters({ options, ...props }: IProps) {
 					))}
 				</SelectPopover>
 			) : null}
-		</div>
+		</span>
 	)
 }

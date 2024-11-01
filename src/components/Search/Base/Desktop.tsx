@@ -58,7 +58,9 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 			<Input state={combobox} placeholder={placeholder} withValue={withValue} onSearchTermChange={onSearchTermChange} />
 
 			{filters ? (
-				<span className="flex items-center justify-end rounded-b-md bg-[#fafafa] dark:bg-[#090a0b] p-3">{filters}</span>
+				<span className="flex items-center justify-end rounded-b-md bg-[#fafafa] dark:bg-[#090a0b] p-3 min-h-[48px]">
+					{filters}
+				</span>
 			) : null}
 
 			{combobox.mounted ? (
