@@ -177,6 +177,21 @@
 	[data-backdrop] {
 		@apply bg-black/40;
 	}
+
+	.drawer {
+		opacity: 0;
+		transform: translateY(100%);
+		transition: 0.2s ease;
+	}
+
+	.drawer[data-enter] {
+		opacity: 1;
+		transform: translateY(0%);
+	}
+
+	.drawer[data-leave] {
+		transition: 0.1s ease;
+	}
 }
 
 @layer utilities {

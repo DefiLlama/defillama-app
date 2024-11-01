@@ -1,7 +1,7 @@
 import { FormEventHandler } from 'react'
 import { MenuButtonArrow } from 'ariakit'
 import { ApplyFilters } from '~/components'
-import Popover from '~/components/Popover'
+import { Popover } from '~/components/Popover'
 import { PopoverContent, PopoverForm } from './Base'
 
 interface IFilterByValue {
@@ -10,7 +10,7 @@ interface IFilterByValue {
 	onSubmit: FormEventHandler<HTMLFormElement>
 }
 
-export function FilterByValue({ header, onSubmit, variant = 'primary' }: IFilterByValue) {
+export function FilterByValue({ header, onSubmit }: IFilterByValue) {
 	return (
 		<Popover
 			trigger={

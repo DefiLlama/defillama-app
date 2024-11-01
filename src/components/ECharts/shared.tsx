@@ -4,7 +4,7 @@ import { useSelectState, SelectArrow } from 'ariakit/select'
 import { Checkbox } from '~/components'
 import { ComboboxSelectPopover, FilterFnsGroup, Select, SelectItem } from '~/components/Filters/common'
 import { Input, List } from '~/components/Combobox'
-import { useSetPopoverStyles } from '../Popover/utils'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { useComboboxState } from 'ariakit/combobox'
 import { useRouter } from 'next/router'
 
