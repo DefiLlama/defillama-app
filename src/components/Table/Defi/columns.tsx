@@ -411,7 +411,7 @@ export const calendarColumns: ColumnDef<any>[] = [
 	{
 		header: 'Type',
 		accessorKey: 'type',
-		size: 800
+		size: 100
 	},
 	{
 		header: 'Date',

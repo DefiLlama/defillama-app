@@ -185,7 +185,7 @@
 	.drawer {
 		opacity: 0;
 		transform: translateY(100%);
-		transition: 0.2s ease;
+		transition: 0.2s ease-out;
 	}
 
 	.drawer[data-enter] {
@@ -194,7 +194,7 @@
 	}
 
 	.drawer[data-leave] {
-		transition: 0.1s ease;
+		transition: 0.1s ease-out;
 	}
 }
 

@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
-import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { SelectButton, ComboboxSelectPopover, SecondaryLabel } from '../common'
+import { Select, SelectArrow, SelectPopover, useSelectState } from 'ariakit/select'
+import { useComboboxState } from 'ariakit/combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { ComboboxSelectContent } from '../common/ComboboxSelectContent'
 import { SlidingMenu } from '~/components/SlidingMenu'
@@ -45,7 +45,7 @@ export function Rounds({ rounds = [], selectedRounds, pathname, variant = 'prima
 		value: selectedRounds,
 		setValue: addRound,
 		gutter: 8,
-		animated: true,
+		animated: isLarge ? false : true,
 		renderCallback
 	})
 
@@ -139,57 +139,48 @@ export function Rounds({ rounds = [], selectedRounds, pathname, variant = 'prima
 
 	return (
 		<>
-			<SelectButton state={selectState} data-variant={variant}>
-				{variant === 'secondary' ? (
-					<SecondaryLabel>
-						{isSelected ? (
-							<>
-								<span>Round: </span>
-								<span data-selecteditems>
-									{selectedRounds.length > 2
-										? `${selectedRounds[0]} + ${selectedRounds.length - 1} others`
-										: selectedRounds.join(', ')}
-								</span>
-							</>
-						) : (
-							'Round'
-						)}
-					</SecondaryLabel>
-				) : (
+			<Select
+				state={selectState}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
+			>
+				{isSelected ? (
 					<>
-						<span>Filter by Round</span>
-						{isSelected ? (
-							<span className="absolute -top-1 -right-1 text-[10px] rounded-full min-w-4 bg-[var(--bg4)]">
-								{selectedRounds.length}
-							</span>
-						) : null}
+						<span>Round: </span>
+						<span data-selecteditems>
+							{selectedRounds.length > 2
+								? `${selectedRounds[0]} + ${selectedRounds.length - 1} others`
+								: selectedRounds.join(', ')}
+						</span>
 					</>
+				) : (
+					'Round'
 				)}
 
-				<MenuButtonArrow />
-			</SelectButton>
+				<SelectArrow />
+			</Select>
 
-			<ComboboxSelectPopover
-				state={selectState}
-				modal={!isLarge}
-				composite={false}
-				initialFocusRef={focusItemRef}
-				data-variant={variant}
-			>
-				<ComboboxSelectContent
-					options={rounds}
-					selectedOptions={selectedRounds}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectOnlyOne={selectOnlyOne}
-					focusItemRef={focusItemRef}
-					variant={variant}
-					pathname={pathname}
-					autoFocus
-					isOptionToggled={isOptionToggled}
-					contentElementId={selectState.contentElement?.id}
-				/>
-			</ComboboxSelectPopover>
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					composite={false}
+					initialFocusRef={focusItemRef}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				>
+					<ComboboxSelectContent
+						options={rounds}
+						selectedOptions={selectedRounds}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						selectOnlyOne={selectOnlyOne}
+						focusItemRef={focusItemRef}
+						variant={variant}
+						pathname={pathname}
+						autoFocus
+						isOptionToggled={isOptionToggled}
+						contentElementId={selectState.contentElement?.id}
+					/>
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }

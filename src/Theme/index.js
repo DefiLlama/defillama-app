@@ -144,10 +144,6 @@ export const GlobalStyle = createGlobalStyle`
 		z-index: 10;
 		padding: 8px;
 
-		#no-results {
-			padding: 0 12px 8px;
-			text-align: center;
-		}
 
 		&[data-variant='secondary'] {
 			background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
@@ -170,11 +166,6 @@ export const GlobalStyle = createGlobalStyle`
 
 		&[data-leave] {
 			z-index: 0;
-		}
-
-		#no-results {
-			opacity: 0.7;
-			margin: auto;
 		}
 
 		@media screen and (min-width: 640px) {

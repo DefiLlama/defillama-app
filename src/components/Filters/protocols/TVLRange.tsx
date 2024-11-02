@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange, SecondaryLabel } from '../common'
+import { FilterBetweenRange } from '~/components/Filters/common/FilterBetweenRange'
 
 export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary' | 'secondary'; subMenu?: boolean }) {
 	const router = useRouter()
@@ -30,24 +30,25 @@ export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary'
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl).toLocaleString() : null
 	const max = typeof maxTvl === 'string' && maxTvl !== '' ? Number(maxTvl).toLocaleString() : null
 
-	const label =
-		min || max ? (
-			<>
-				<span>TVL: </span>
-				<span data-selecteditems>{`${min || 'min'} - ${max || 'max'}`}</span>
-			</>
-		) : (
-			'TVL'
-		)
-
-	const Header = () => {
-		return <SecondaryLabel>{label}</SecondaryLabel>
-	}
-
 	return (
 		<FilterBetweenRange
 			name="TVL Range"
-			header={variant === 'secondary' ? <Header /> : 'TVL Range'}
+			header={
+				variant === 'secondary' ? (
+					<>
+						{min || max ? (
+							<>
+								<span>TVL: </span>
+								<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
+							</>
+						) : (
+							<span>TVL</span>
+						)}
+					</>
+				) : (
+					'TVL Range'
+				)
+			}
 			onSubmit={handleSubmit}
 			variant={variant}
 			subMenu={subMenu}

@@ -129,11 +129,6 @@ export const Popover = styled(AriakitMenu)`
 		transition: 0.1s ease;
 	}
 
-	#no-results {
-		margin: 24px 0;
-		text-align: center;
-	}
-
 	@media screen and (min-width: 640px) {
 		height: unset;
 		max-height: 400px;

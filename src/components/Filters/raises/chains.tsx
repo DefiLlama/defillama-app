@@ -1,10 +1,10 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
-import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { SelectButton, ComboboxSelectPopover, SecondaryLabel } from '../common'
+import { Select, SelectArrow, SelectPopover, useSelectState } from 'ariakit/select'
+import { useComboboxState } from 'ariakit/combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { SlidingMenu } from '~/components/SlidingMenu'
 import { ComboboxSelectContent } from '../common/ComboboxSelectContent'
+import { SlidingMenu } from '~/components/SlidingMenu'
 
 interface IFiltersByChainsProps {
 	chains: string[]
@@ -45,7 +45,7 @@ export function Chains({ chains = [], selectedChains, pathname, variant = 'prima
 		value: selectedChains,
 		setValue: addChain,
 		gutter: 8,
-		animated: true,
+		animated: isLarge ? false : true,
 		renderCallback
 	})
 
@@ -139,57 +139,48 @@ export function Chains({ chains = [], selectedChains, pathname, variant = 'prima
 
 	return (
 		<>
-			<SelectButton state={selectState} data-variant={variant}>
-				{variant === 'secondary' ? (
-					<SecondaryLabel>
-						{isSelected ? (
-							<>
-								<span>Chain: </span>
-								<span data-selecteditems>
-									{selectedChains.length > 2
-										? `${selectedChains[0]} + ${selectedChains.length - 1} others`
-										: selectedChains.join(', ')}
-								</span>
-							</>
-						) : (
-							'Chain'
-						)}
-					</SecondaryLabel>
-				) : (
+			<Select
+				state={selectState}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
+			>
+				{isSelected ? (
 					<>
-						<span>Filter by Chain</span>
-						{isSelected ? (
-							<span className="absolute -top-1 -right-1 text-[10px] rounded-full min-w-4 bg-[var(--bg4)]">
-								{selectedChains.length}
-							</span>
-						) : null}
+						<span>Chain: </span>
+						<span className="text-[var(--link)]">
+							{selectedChains.length > 2
+								? `${selectedChains[0]} + ${selectedChains.length - 1} others`
+								: selectedChains.join(', ')}
+						</span>
 					</>
+				) : (
+					'Chain'
 				)}
 
-				<MenuButtonArrow />
-			</SelectButton>
+				<SelectArrow />
+			</Select>
 
-			<ComboboxSelectPopover
-				state={selectState}
-				modal={!isLarge}
-				composite={false}
-				initialFocusRef={focusItemRef}
-				data-variant={variant}
-			>
-				<ComboboxSelectContent
-					options={chains}
-					selectedOptions={selectedChains}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectOnlyOne={selectOnlyOne}
-					focusItemRef={focusItemRef}
-					variant={variant}
-					pathname={pathname}
-					autoFocus
-					isOptionToggled={isOptionToggled}
-					contentElementId={selectState.contentElement?.id}
-				/>
-			</ComboboxSelectPopover>
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					composite={false}
+					initialFocusRef={focusItemRef}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				>
+					<ComboboxSelectContent
+						options={chains}
+						selectedOptions={selectedChains}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						selectOnlyOne={selectOnlyOne}
+						focusItemRef={focusItemRef}
+						variant={variant}
+						pathname={pathname}
+						autoFocus
+						isOptionToggled={isOptionToggled}
+						contentElementId={selectState.contentElement?.id}
+					/>
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }

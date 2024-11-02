@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange, SecondaryLabel } from '../common'
+import { FilterBetweenRange } from '~/components/Filters/common/FilterBetweenRange'
 
 export function RaisedRange({
 	variant = 'primary',
@@ -36,24 +36,21 @@ export function RaisedRange({
 	const min = typeof minRaised === 'string' && minRaised !== '' ? Number(minRaised).toLocaleString() : null
 	const max = typeof maxRaised === 'string' && maxRaised !== '' ? Number(maxRaised).toLocaleString() : null
 
-	const label =
-		min || max ? (
-			<>
-				<span>Amount Raised: </span>
-				<span data-selecteditems>{`${min || 'min'} - ${max || 'max'}`}</span>
-			</>
-		) : (
-			'Amount Raised'
-		)
-
-	const Header = () => {
-		return <SecondaryLabel>{label}</SecondaryLabel>
-	}
-
 	return (
 		<FilterBetweenRange
 			name="Amount Raised"
-			header={variant === 'secondary' ? <Header /> : 'Filter by Amount Raised'}
+			header={
+				<>
+					{min || max ? (
+						<>
+							<span>Amount Raised: </span>
+							<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
+						</>
+					) : (
+						<span>Amount Raised</span>
+					)}
+				</>
+			}
 			onSubmit={handleSubmit}
 			variant={variant}
 			subMenu={subMenu}

@@ -1,10 +1,9 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
-import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { SelectButton, ComboboxSelectPopover, SecondaryLabel } from './Base'
+import { Select, SelectArrow, SelectPopover, useSelectState } from 'ariakit/select'
+import { useComboboxState } from 'ariakit/combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { ComboboxSelectContent } from './ComboboxSelectContent'
-import { SlidingMenu } from '~/components/SlidingMenu'
 
 interface IFiltersByRoundsProps {
 	options: string[]
@@ -22,8 +21,7 @@ export function BasicDropdown({
 	pathname,
 	variant = 'primary',
 	label,
-	urlKey,
-	subMenu
+	urlKey
 }: IFiltersByRoundsProps) {
 	const router = useRouter()
 
@@ -55,7 +53,7 @@ export function BasicDropdown({
 		value: selectedOptions,
 		setValue: addRound,
 		gutter: 8,
-		animated: true,
+		animated: isLarge ? false : true,
 		renderCallback
 	})
 
@@ -128,34 +126,18 @@ export function BasicDropdown({
 	const isOptionToggled = (option) =>
 		(selectState.value.includes(option) ? true : false) || (round || []).includes('All')
 
-	if (subMenu) {
-		return (
-			<SlidingMenu label={label} selectState={selectState}>
-				<ComboboxSelectContent
-					options={options}
-					selectedOptions={selectedOptions}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectOnlyOne={selectOnlyOne}
-					focusItemRef={focusItemRef}
-					variant={variant}
-					pathname={pathname}
-					isOptionToggled={isOptionToggled}
-					contentElementId={selectState.contentElement?.id}
-				/>
-			</SlidingMenu>
-		)
-	}
-
 	return (
 		<>
-			<SelectButton state={selectState} data-variant={variant}>
+			<Select
+				state={selectState}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
+			>
 				{variant === 'secondary' ? (
-					<SecondaryLabel>
+					<>
 						{isSelected ? (
 							<>
 								<span>${label}: </span>
-								<span data-selecteditems>
+								<span className="text-[var(--link)]">
 									{selectedOptions.length > 2
 										? `${selectedOptions[0]} + ${selectedOptions.length - 1} others`
 										: selectedOptions.join(', ')}
@@ -164,7 +146,7 @@ export function BasicDropdown({
 						) : (
 							label
 						)}
-					</SecondaryLabel>
+					</>
 				) : (
 					<>
 						<span>Filter by {label}</span>
@@ -176,30 +158,31 @@ export function BasicDropdown({
 					</>
 				)}
 
-				<MenuButtonArrow />
-			</SelectButton>
+				<SelectArrow />
+			</Select>
 
-			<ComboboxSelectPopover
-				state={selectState}
-				modal={!isLarge}
-				composite={false}
-				initialFocusRef={focusItemRef}
-				data-variant={variant}
-			>
-				<ComboboxSelectContent
-					options={options}
-					selectedOptions={selectedOptions}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectOnlyOne={selectOnlyOne}
-					focusItemRef={focusItemRef}
-					variant={variant}
-					pathname={pathname}
-					autoFocus
-					isOptionToggled={isOptionToggled}
-					contentElementId={selectState.contentElement?.id}
-				/>
-			</ComboboxSelectPopover>
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					composite={false}
+					initialFocusRef={focusItemRef}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				>
+					<ComboboxSelectContent
+						options={options}
+						selectedOptions={selectedOptions}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						selectOnlyOne={selectOnlyOne}
+						focusItemRef={focusItemRef}
+						variant={variant}
+						pathname={pathname}
+						autoFocus
+						isOptionToggled={isOptionToggled}
+						contentElementId={selectState.contentElement?.id}
+					/>
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }
