@@ -7,6 +7,8 @@ import { ThemeSwitch } from '../ThemeSwitch'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SubMenu } from './SubMenu'
 import { NewTag } from '../NewTag'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama.png'
+import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark.png'
 
 export function DesktopNav() {
 	const { asPath } = useRouter()
@@ -21,11 +23,7 @@ export function DesktopNav() {
 				<a className="flex-shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
 					<img
-						src={
-							darkMode
-								? '/defillama-press-kit/defi/PNG/defillama.png'
-								: '/defillama-press-kit/defi/PNG/defillama-dark.png'
-						}
+						src={darkMode ? logoLight.src : logoDark.src}
 						height={53}
 						width={155}
 						className="object-contain object-left mr-auto mb-4"
