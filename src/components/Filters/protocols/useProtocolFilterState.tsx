@@ -48,14 +48,14 @@ export function useFeesFilterState(props?: { [key: string]: any }) {
 		}
 	}
 
-	const [, renderCallback] = useSetPopoverStyles()
+	const [isLarge, renderCallback] = useSetPopoverStyles()
 
 	const select = useSelectState({
 		value: selectedOptions,
 		setValue: onChange,
 		defaultValue: selectedOptions,
 		gutter: 6,
-		animated: true,
+		animated: isLarge ? false : true,
 		renderCallback,
 		...props
 	})
@@ -88,14 +88,14 @@ export function useTvlAndFeesFilterState({
 		}
 	}
 
-	const [, renderCallback] = useSetPopoverStyles()
+	const [isLarge, renderCallback] = useSetPopoverStyles()
 
 	const select = useSelectState({
 		value: selectedOptions,
 		setValue: onChange,
 		defaultValue: selectedOptions,
 		gutter: 6,
-		animated: true,
+		animated: isLarge ? false : true,
 		renderCallback,
 		sameWidth: true
 	})

@@ -5,8 +5,7 @@ import { CACHE_SERVER } from '~/constants'
 import { LocalLoader } from '~/components/LocalLoader'
 import styled from 'styled-components'
 import { CoinsPicker } from '~/containers/Correlations'
-import { Button, Popover, Item } from '~/components/DropdownMenu'
-import { MenuButtonArrow, useMenuState } from 'ariakit'
+import { useSelectState, Select, SelectItem, SelectPopover, SelectArrow } from 'ariakit/select'
 import { useQuery } from '@tanstack/react-query'
 import { SearchIcon } from '~/components/Table/shared'
 import { Icon } from '~/components/Icon'
@@ -118,7 +117,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 		}
 	}
 
-	const menu = useMenuState({ gutter: 8, animated: true })
+	const selectState = useSelectState({ gutter: 8 })
 
 	return (
 		<>
@@ -227,14 +226,22 @@ export default function CompareFdv({ coinsData, protocols }) {
 
 						<input value={selectedCoins[1]?.name} onClick={() => setModalOpen(2)} placeholder="Search coins..." />
 					</TableFilters>
-					<Trigger state={menu}>
+
+					<Select
+						state={selectState}
+						className="bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative max-w-fit"
+					>
 						<span>{compareType?.label}</span>
-						<MenuButtonArrow />
-					</Trigger>
-					<Popover state={menu} composite={false}>
+						<SelectArrow />
+					</Select>
+					<SelectPopover
+						state={selectState}
+						composite={false}
+						className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+					>
 						{compareTypes.map((item) => {
 							return (
-								<Item
+								<SelectItem
 									as="button"
 									key={item.value}
 									onClick={() => {
@@ -250,12 +257,13 @@ export default function CompareFdv({ coinsData, protocols }) {
 											{ shallow: true }
 										)
 									}}
+									className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
 								>
 									{item.label}
-								</Item>
+								</SelectItem>
 							)
 						})}
-					</Popover>
+					</SelectPopover>
 				</SelectWrapper>
 				{coins.length === 2 ? (
 					fdvData === null ? (
@@ -378,11 +386,6 @@ const TableFilters = styled.div`
 			max-width: 400px;
 		}
 	}
-`
-
-const Trigger = styled(Button)`
-	border-radius: 8px;
-	min-width: 120px;
 `
 
 const Switch = styled.button`

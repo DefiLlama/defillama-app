@@ -7,7 +7,6 @@ import styled from 'styled-components'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import {
-	Button,
 	ExtraOption,
 	FlexRow,
 	DetailsWrapper,
@@ -74,6 +73,7 @@ import { GovernanceData } from './Governance'
 import { feesOptions } from '~/components/Filters/protocols/options'
 import { scams } from '~/constants'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -1337,7 +1337,8 @@ function ProtocolContainer({
 										<span>:</span>
 
 										<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category}`} passHref>
-											<Button
+											<ButtonLight
+												className="flex items-center gap-1"
 												as="a"
 												target="_blank"
 												rel="noopener noreferrer"
@@ -1346,7 +1347,7 @@ function ProtocolContainer({
 												style={{ height: '33.5px' }}
 											>
 												<span>{category}</span> <Icon name="arrow-up-right" height={14} width={14} />
-											</Button>
+											</ButtonLight>
 										</Link>
 									</FlexRow>
 								)}
@@ -1372,7 +1373,8 @@ function ProtocolContainer({
 								<div className="flex items-center gap-4 flex-wrap">
 									{url && (
 										<Link href={url} passHref>
-											<Button
+											<ButtonLight
+												className="flex items-center gap-1"
 												as="a"
 												target="_blank"
 												rel="noopener noreferrer"
@@ -1380,13 +1382,14 @@ function ProtocolContainer({
 												color={backgroundColor}
 											>
 												<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-											</Button>
+											</ButtonLight>
 										</Link>
 									)}
 
 									{twitter && (
 										<Link href={`https://twitter.com/${twitter}`} passHref>
-											<Button
+											<ButtonLight
+												className="flex items-center gap-1"
 												as="a"
 												target="_blank"
 												rel="noopener noreferrer"
@@ -1394,7 +1397,7 @@ function ProtocolContainer({
 												color={backgroundColor}
 											>
 												<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-											</Button>
+											</ButtonLight>
 										</Link>
 									)}
 								</div>
@@ -1461,7 +1464,8 @@ function ProtocolContainer({
 									<div className="flex items-center gap-4 flex-wrap">
 										{protocolData.gecko_id && (
 											<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
-												<Button
+												<ButtonLight
+													className="flex items-center gap-1"
 													as="a"
 													target="_blank"
 													rel="noopener noreferrer"
@@ -1469,14 +1473,15 @@ function ProtocolContainer({
 													color={backgroundColor}
 												>
 													<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
-												</Button>
+												</ButtonLight>
 											</Link>
 										)}
 
 										{explorers &&
 											explorers.map(({ blockExplorerLink, blockExplorerName }) => (
 												<Link href={blockExplorerLink} passHref key={blockExplorerName}>
-													<Button
+													<ButtonLight
+														className="flex items-center gap-1"
 														as="a"
 														target="_blank"
 														rel="noopener noreferrer"
@@ -1485,7 +1490,7 @@ function ProtocolContainer({
 													>
 														<span>View on {blockExplorerName}</span>{' '}
 														<Icon name="arrow-up-right" height={14} width={14} />
-													</Button>
+													</ButtonLight>
 												</Link>
 											))}
 									</div>
@@ -1511,7 +1516,8 @@ function ProtocolContainer({
 									<div className="flex items-center gap-4 flex-wrap">
 										{methodologyUrls?.tvl && (
 											<Link href={methodologyUrls.tvl} passHref>
-												<Button
+												<ButtonLight
+													className="flex items-center gap-1"
 													as="a"
 													target="_blank"
 													rel="noopener noreferrer"
@@ -1520,13 +1526,14 @@ function ProtocolContainer({
 												>
 													<span>{isCEX ? 'Wallet Addresses' : 'TVL code'}</span>
 													<Icon name="arrow-up-right" height={14} width={14} />
-												</Button>
+												</ButtonLight>
 											</Link>
 										)}
 
 										{methodologyUrls?.fees && (
 											<Link href={methodologyUrls.fees} passHref>
-												<Button
+												<ButtonLight
+													className="flex items-center gap-1"
 													as="a"
 													target="_blank"
 													rel="noopener noreferrer"
@@ -1535,13 +1542,14 @@ function ProtocolContainer({
 												>
 													<span>Fees and Revenue code</span>
 													<Icon name="arrow-up-right" height={14} width={14} />
-												</Button>
+												</ButtonLight>
 											</Link>
 										)}
 
 										{methodologyUrls?.dexs && (
 											<Link href={methodologyUrls.dexs} passHref>
-												<Button
+												<ButtonLight
+													className="flex items-center gap-1"
 													as="a"
 													target="_blank"
 													rel="noopener noreferrer"
@@ -1550,13 +1558,14 @@ function ProtocolContainer({
 												>
 													<span>Volume code</span>
 													<Icon name="arrow-up-right" height={14} width={14} />
-												</Button>
+												</ButtonLight>
 											</Link>
 										)}
 
 										{methodologyUrls?.derivatives && (
 											<Link href={methodologyUrls.derivatives} passHref>
-												<Button
+												<ButtonLight
+													className="flex items-center gap-1"
 													as="a"
 													target="_blank"
 													rel="noopener noreferrer"
@@ -1565,7 +1574,7 @@ function ProtocolContainer({
 												>
 													<span>Derivatives Volume code</span>
 													<Icon name="arrow-up-right" height={14} width={14} />
-												</Button>
+												</ButtonLight>
 											</Link>
 										)}
 									</div>
@@ -1609,7 +1618,8 @@ function ProtocolContainer({
 										</FlexRow>
 
 										<Link href={hacksData.source} passHref>
-											<Button
+											<ButtonLight
+												className="flex items-center gap-1"
 												as="a"
 												target="_blank"
 												rel="noopener noreferrer"
@@ -1617,7 +1627,7 @@ function ProtocolContainer({
 												color={backgroundColor}
 											>
 												<span>Source</span> <Icon name="arrow-up-right" height={14} width={14} />
-											</Button>
+											</ButtonLight>
 										</Link>
 									</HackDataWrapper>
 								</Section>

@@ -3,7 +3,6 @@ import { MenuButtonArrow } from 'ariakit/menu'
 import { ApplyFilters } from '~/components'
 import { Popover } from '~/components/Popover'
 import { SlidingMenu } from '~/components/SlidingMenu'
-import { PopoverForm, PopoverContent } from './SelectContent'
 
 interface IFilterBetweenRange {
 	name: string
@@ -17,17 +16,25 @@ export function FilterBetweenRange({ name, header, onSubmit, variant = 'primary'
 	if (subMenu) {
 		return (
 			<SlidingMenu label={name}>
-				<PopoverForm onSubmit={onSubmit} data-variant={variant}>
-					<label>
+				<form onSubmit={onSubmit} className="flex flex-col gap-2">
+					<label className="flex flex-col gap-1 m-3 mb-0">
 						<span>Min</span>
-						<input type="number" name="min" />
+						<input
+							type="number"
+							name="min"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+						/>
 					</label>
-					<label>
+					<label className="flex flex-col gap-1 m-3 mb-0">
 						<span>Max</span>
-						<input type="number" name="max" />
+						<input
+							type="number"
+							name="max"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+						/>
 					</label>
 					<ApplyFilters>Apply Filter</ApplyFilters>
-				</PopoverForm>
+				</form>
 			</SlidingMenu>
 		)
 	}
@@ -41,19 +48,27 @@ export function FilterBetweenRange({ name, header, onSubmit, variant = 'primary'
 				</>
 			}
 			content={
-				<PopoverContent>
-					<PopoverForm onSubmit={onSubmit}>
-						<label>
+				<div className="w-[240px] mx-auto">
+					<form onSubmit={onSubmit} className="flex flex-col gap-2">
+						<label className="flex flex-col gap-1 m-3 mb-0">
 							<span>Min</span>
-							<input type="number" name="min" />
+							<input
+								type="number"
+								name="min"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+							/>
 						</label>
-						<label>
+						<label className="flex flex-col gap-1 m-3 mb-0">
 							<span>Max</span>
-							<input type="number" name="max" />
+							<input
+								type="number"
+								name="max"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+							/>
 						</label>
 						<ApplyFilters>Apply Filter</ApplyFilters>
-					</PopoverForm>
-				</PopoverContent>
+					</form>
+				</div>
 			}
 			variant={variant}
 		/>

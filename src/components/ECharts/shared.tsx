@@ -2,28 +2,9 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { useSelectState, SelectArrow, SelectPopover, Select, SelectItem } from 'ariakit/select'
 import { Checkbox } from '~/components'
-import { Input, List } from '~/components/Combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { useComboboxState } from 'ariakit/combobox'
+import { Combobox, ComboboxList, useComboboxState } from 'ariakit/combobox'
 import { useRouter } from 'next/router'
-
-export const Item = styled(SelectItem)`
-	padding: 12px 4px;
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	cursor: pointer;
-
-	:hover,
-	&[data-focus-visible] {
-		outline: none;
-		background: ${({ theme }) => theme.bg3};
-	}
-
-	&:last-of-type {
-		border-radius: 0 0 12px 12px;
-	}
-`
 
 function renderValue(value: Array<string>, title: string) {
 	return (
@@ -88,7 +69,12 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
 					initialFocusRef={focusItemRef}
 					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 				>
-					<Input state={combobox} placeholder="Search..." autoFocus />
+					<Combobox
+						state={combobox}
+						placeholder="Search..."
+						autoFocus
+						className="bg-white dark:bg-black rounded-md py-2 px-3 m-3 mb-0"
+					/>
 
 					{combobox.matches.length > 0 ? (
 						<>
@@ -102,7 +88,7 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
 									</button>
 								)}
 							</span>
-							<List state={combobox} className="!p-0 text-xs">
+							<ComboboxList state={combobox} className="flex flex-col overflow-auto overscroll-contain text-xs">
 								{combobox.matches.map((value, i) => (
 									<SelectItem
 										value={value}
@@ -115,7 +101,7 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
 										<Checkbox checked={select.value.includes(value) ? true : false} />
 									</SelectItem>
 								))}
-							</List>
+							</ComboboxList>
 						</>
 					) : (
 						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>

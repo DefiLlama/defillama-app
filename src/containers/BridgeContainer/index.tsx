@@ -148,7 +148,7 @@ const BridgeInfo = ({
 						minHeight: '460px'
 					}}
 				>
-					<Filters style={{ margin: '16px 16px 0' }}>
+					<Filters style={{ margin: '16px 16px 0', maxWidth: 'fit-content' }}>
 						<Denomination as="button" active={chartType === 'Inflows'} onClick={() => setChartType('Inflows')}>
 							Inflows
 						</Denomination>

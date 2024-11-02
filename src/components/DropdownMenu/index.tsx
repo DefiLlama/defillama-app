@@ -1,8 +1,6 @@
 import Link from 'next/link'
 import { Menu as AriakitMenu, MenuButton, MenuItem, MenuButtonArrow, useMenuState } from 'ariakit/menu'
 import { transparentize } from 'polished'
-import styled from 'styled-components'
-import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IMenuProps {
 	options: string[] | string
@@ -14,150 +12,61 @@ interface IMenuProps {
 }
 
 export function Menu({ options, name, color, isExternal, onItemClick, variant = 'primary', ...props }: IMenuProps) {
-	const [isLarge, renderCallback] = useSetPopoverStyles()
 	const _options = typeof options === 'string' ? [options] : options
 
-	const menu = useMenuState({ gutter: 8, animated: true, renderCallback })
+	const menu = useMenuState({ gutter: 8 })
 
 	return (
 		<>
-			<Button state={menu} color={color} data-variant={variant} {...props}>
+			<MenuButton
+				{...props}
+				style={
+					color
+						? ({ '--btn2-bg': transparentize(0.9, color), '--btn2-hover-bg': transparentize(0.8, color) } as any)
+						: {}
+				}
+				state={menu}
+				className="bg-[var(--btn2-bg)] hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-xl cursor-pointer text-[var(--text1)] flex-nowrap relative max-w-fit"
+			>
 				{name}
 				<MenuButtonArrow />
-			</Button>
-			<Popover state={menu} modal={!isLarge}>
-				{_options.map((value, i) => {
-					return onItemClick ? (
-						<Item as="button" key={value + i} onClick={() => onItemClick(value)}>
-							{value}
-						</Item>
-					) : isExternal ? (
-						<a href={value} target="_blank" rel="noopener noreferrer" key={value + i}>
-							<Item>{value}</Item>
-						</a>
-					) : (
-						<Link href={value} key={value + i} passHref>
-							<Item>{value}</Item>
-						</Link>
-					)
-				})}
-			</Popover>
+			</MenuButton>
+			{menu.mounted ? (
+				<AriakitMenu
+					state={menu}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				>
+					{_options.map((value, i) => {
+						return onItemClick ? (
+							<MenuItem
+								as="button"
+								key={value + i}
+								onClick={() => onItemClick(value)}
+								className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+							>
+								{value}
+							</MenuItem>
+						) : isExternal ? (
+							<MenuItem
+								as="a"
+								href={value}
+								target="_blank"
+								rel="noopener noreferrer"
+								key={value + i}
+								className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+							>
+								{value}
+							</MenuItem>
+						) : (
+							<Link href={value} key={value + i} passHref>
+								<MenuItem className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10">
+									{value}
+								</MenuItem>
+							</Link>
+						)
+					})}
+				</AriakitMenu>
+			) : null}
 		</>
 	)
 }
-
-interface IButtonProps {
-	color?: string
-}
-
-export const Button = styled(MenuButton)<IButtonProps>`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
-	padding: 8px 12px;
-	font-size: 0.825rem;
-	border-radius: 12px;
-	background-color: ${({ color, theme }) => transparentize(0.9, color || theme.primary1)};
-	color: ${({ theme }) => theme.text1};
-
-	white-space: nowrap;
-
-	:hover,
-	:focus-visible {
-		background-color: ${({ color, theme }) => transparentize(0.8, color || theme.primary1)};
-	}
-
-	:focus-visible {
-		outline-offset: 1px;
-	}
-
-	span {
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
-
-	svg {
-		position: relative;
-		top: 1px;
-	}
-
-	&[data-variant='secondary'] {
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-		font-size: 0.75rem;
-
-		:hover,
-		:focus-visible,
-		&[data-focus-visible] {
-			background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-		}
-	}
-`
-// TODO remove repeated styles
-export const Popover = styled(AriakitMenu)`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	height: 60vh;
-	min-width: 180px;
-	font-size: 0.875rem;
-	font-weight: 500;
-	color: ${({ theme }) => theme.text1};
-	background: ${({ theme }) => theme.bg1};
-	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
-	border-radius: 8px 8px 0 0;
-	filter: ${({ theme }) =>
-		theme.mode === 'dark'
-			? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
-			: 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
-	overflow: auto;
-	overscroll-behavior: contain;
-	outline: none !important;
-	z-index: 10;
-
-	opacity: 0;
-	transform: translateY(100%);
-	transition: 0.2s ease;
-
-	&[data-enter] {
-		transform: translateY(0%);
-		opacity: 1;
-	}
-
-	&[data-leave] {
-		transition: 0.1s ease;
-	}
-
-	@media screen and (min-width: 640px) {
-		height: unset;
-		max-height: 400px;
-		font-size: 0.825rem;
-		font-weight: 400;
-		gap: 0px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
-		border-radius: 8px;
-		transform: translateY(0%);
-	}
-`
-
-export const Item = styled(MenuItem)`
-	flex-shrink: 0;
-	padding: 8px 12px;
-	color: ${({ theme }) => theme.text1};
-	cursor: pointer;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	background: none;
-	border: none;
-	border-radius: 8px;
-	text-align: start;
-
-	:hover,
-	:focus-visible,
-	&[data-active-item] {
-		outline: none;
-		background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
-	}
-`

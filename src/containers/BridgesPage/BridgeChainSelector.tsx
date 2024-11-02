@@ -1,12 +1,8 @@
 import * as React from 'react'
-import { MenuButtonArrow, useComboboxState, useMenuState } from 'ariakit'
-import styled from 'styled-components'
-import { Name } from '~/layout/ProtocolAndPool'
-import { Button, Popover } from '~/components/DropdownMenu'
-import { Input, Item, List } from '~/components/Combobox'
+import { Combobox, ComboboxItem, ComboboxList, useComboboxState } from 'ariakit/combobox'
+import { Menu, MenuButton, MenuButtonArrow, useMenuState } from 'ariakit/menu'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import type { ISearchItem } from '~/components/Search/types'
-import { Button as AriaButton } from 'ariakit'
 
 interface IProps {
 	options: ISearchItem[]
@@ -19,7 +15,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true, renderCallback })
+	const combobox = useComboboxState({ defaultList, gutter: 8, animated: isLarge ? false : true, renderCallback })
 
 	const menu = useMenuState(combobox)
 
@@ -34,24 +30,38 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 	)
 
 	return (
-		<div>
-			<Button state={menu}>
-				<Name style={{ fontWeight: 400, fontSize: '1rem' }}>{selectedAsset.name}</Name>
+		<>
+			<MenuButton
+				state={menu}
+				className="bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative max-w-fit"
+			>
+				{selectedAsset.name}
 				<MenuButtonArrow />
-			</Button>
-			<Popover state={menu} modal={!isLarge} composite={false}>
-				<Input state={combobox} placeholder="Search..." autoFocus />
-				{combobox.matches.length > 0 ? (
-					<List state={combobox}>
-						{combobox.matches.map((value, i) => (
-							<ChainButtonLink options={options} value={value} key={value + i} handleClick={handleClick} />
-						))}
-					</List>
-				) : (
-					<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
-				)}
-			</Popover>
-		</div>
+			</MenuButton>
+			{menu.mounted ? (
+				<Menu
+					state={menu}
+					composite={false}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				>
+					<Combobox
+						state={combobox}
+						placeholder="Search..."
+						autoFocus
+						className="bg-white dark:bg-black rounded-md py-2 px-3 m-3 mb-0"
+					/>
+					{combobox.matches.length > 0 ? (
+						<ComboboxList state={combobox} className="flex flex-col overflow-auto overscroll-contain">
+							{combobox.matches.map((value, i) => (
+								<ChainButtonLink options={options} value={value} key={value + i} handleClick={handleClick} />
+							))}
+						</ComboboxList>
+					) : (
+						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
+					)}
+				</Menu>
+			) : null}
+		</>
 	)
 }
 
@@ -64,17 +74,14 @@ const ChainButtonLink = (props: { options: ISearchItem[]; value: string; handleC
 	const matchingOption = getMatchingOption(options, value)
 
 	return (
-		<AriaButton onClick={() => handleClick(matchingOption.name)}>
-			<Item value={value} focusOnHover setValueOnClick={false} role="link">
-				<MatchingOptionWrapper>{matchingOption.name}</MatchingOptionWrapper>
-			</Item>
-		</AriaButton>
+		<ComboboxItem
+			value={value}
+			focusOnHover
+			setValueOnClick={false}
+			onClick={() => handleClick(matchingOption.name)}
+			className="flex items-center gap-1 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+		>
+			{matchingOption.name}
+		</ComboboxItem>
 	)
 }
-
-const MatchingOptionWrapper = styled.div`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 10px;
-`

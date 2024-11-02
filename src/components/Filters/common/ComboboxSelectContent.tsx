@@ -1,26 +1,8 @@
 import { MutableRefObject, useMemo, useState } from 'react'
-import styled from 'styled-components'
 import { useDebounce } from '~/hooks/useDebounce'
 import { SelectItem } from 'ariakit/select'
 import { Checkbox } from '~/components'
 import { slug } from '~/utils'
-
-const LeftContainer = styled.div`
-	display: flex;
-	align-items: center;
-`
-
-const OnlyButton = styled.button`
-	margin-left: 0.4rem;
-	padding: 0;
-	font-weight: 500;
-	opacity: 0;
-	transition: opacity 0.3s;
-
-	:hover {
-		text-decoration: underline;
-	}
-`
 
 interface ISelectContent {
 	options: Array<string>
@@ -72,19 +54,21 @@ const SelectContent = ({
 							key={formattedValue + i}
 							ref={i === 0 && selectedOptions.length === options.length ? focusItemRef : null}
 							focusOnHover
-							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+							className="group flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
 						>
-							<LeftContainer>
-								<span data-name>{value}</span>
-								<OnlyButton
+							<span>{value}</span>
+							{selectOnlyOne ? (
+								<button
 									onClick={(e) => {
 										e.stopPropagation()
 										selectOnlyOne(formattedValue)
 									}}
+									className="font-medium text-xs text-[var(--link)] underline hidden group-hover:inline-block group-focus-visible:inline-block"
 								>
 									Only
-								</OnlyButton>
-							</LeftContainer>
+								</button>
+							) : null}
+
 							<Checkbox checked={isOptionToggled(formattedValue)} />
 						</SelectItem>
 					)

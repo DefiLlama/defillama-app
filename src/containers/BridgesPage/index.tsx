@@ -1,17 +1,7 @@
 import * as React from 'react'
-import { MenuButtonArrow, useComboboxState, useMenuState } from 'ariakit'
-import styled from 'styled-components'
-import { Name } from '~/layout/ProtocolAndPool'
+import { Select, SelectItem, SelectPopover, useSelectState, SelectArrow } from 'ariakit/select'
 import { FormattedName } from '~/components/FormattedName'
-import { Button as DropdownButton, Popover } from '~/components/DropdownMenu'
-import { Item, List } from '~/components/Combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { Button } from 'ariakit'
-
-const OptionWrapper = styled.div`
-	display: flex;
-	gap: 10px;
-`
 
 interface IProps {
 	options: string[]
@@ -20,48 +10,49 @@ interface IProps {
 }
 
 export function ChartSelector({ options, selectedChart, onClick }: IProps) {
-	const defaultList = options
-
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true, renderCallback })
-
-	const menu = useMenuState(combobox)
+	const selectState = useSelectState({
+		value: selectedChart,
+		setValue: onClick,
+		gutter: 8,
+		animated: isLarge ? false : true,
+		renderCallback
+	})
 
 	const onItemClick = (chartType: string) => {
 		onClick(chartType)
 	}
 
-	// Resets combobox value when menu is closed
-	if (!menu.mounted && combobox.value) {
-		combobox.setValue('')
-	}
-
 	return (
-		<div>
-			<DropdownButton state={menu} style={{ fontWeight: 600 }}>
-				<Name>
-					<FormattedName text={selectedChart} maxCharacters={20} fontSize={'16px'} fontWeight={600} />
-				</Name>
-				<MenuButtonArrow />
-			</DropdownButton>
-			<Popover state={menu} composite={false} modal={!isLarge}>
-				<List state={combobox}>
-					{combobox.matches.map((value, i) => (
-						<ChartButtonLink value={value} key={value + i} onItemClick={onItemClick} />
+		<>
+			<Select
+				state={selectState}
+				className="bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative max-w-fit"
+			>
+				<FormattedName text={selectedChart} maxCharacters={20} fontSize={'16px'} fontWeight={600} />
+				<SelectArrow />
+			</Select>
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					composite={false}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				>
+					{options.map((option) => (
+						<SelectItem
+							value={option}
+							key={option}
+							focusOnHover
+							setValueOnClick={false}
+							onClick={() => onItemClick(option)}
+							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+						>
+							{option}
+						</SelectItem>
 					))}
-				</List>
-			</Popover>
-		</div>
-	)
-}
-
-const ChartButtonLink = ({ value, onItemClick }) => {
-	return (
-		<Button onClick={() => onItemClick(value)}>
-			<Item value={value} focusOnHover setValueOnClick={false} role="link">
-				<OptionWrapper>{value}</OptionWrapper>
-			</Item>
-		</Button>
+				</SelectPopover>
+			) : null}
+		</>
 	)
 }

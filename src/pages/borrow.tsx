@@ -8,9 +8,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 import styled from 'styled-components'
 import { useSelectState, SelectArrow, Select, SelectPopover, SelectItem } from 'ariakit/select'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { useComboboxState } from 'ariakit/combobox'
+import { Combobox, ComboboxList, useComboboxState } from 'ariakit/combobox'
 import { useRouter } from 'next/router'
-import { Input, List } from '~/components/Combobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tab, TabList } from '~/components'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
@@ -263,10 +262,15 @@ const TokensSelect = ({
 					initialFocusRef={focusItemRef}
 					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 				>
-					<Input state={combobox} placeholder="Search..." autoFocus />
+					<Combobox
+						state={combobox}
+						placeholder="Search..."
+						autoFocus
+						className="bg-white dark:bg-black rounded-md py-2 px-3 m-3 mb-0"
+					/>
 
 					{combobox.matches.length > 0 ? (
-						<List state={combobox} className="!p-0">
+						<ComboboxList state={combobox} className="flex flex-col overflow-auto overscroll-contain">
 							{combobox.matches.slice(0, resultsLength + 1).map((value, i) => (
 								<SelectItem
 									value={value}
@@ -277,7 +281,7 @@ const TokensSelect = ({
 									{value === 'USD_STABLES' ? searchData[value].name : `${value}`}
 								</SelectItem>
 							))}
-						</List>
+						</ComboboxList>
 					) : (
 						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
 					)}

@@ -13,7 +13,7 @@ export function ResetAllStablecoinFilters({ pathname }: { pathname: string }) {
 					.map((setting) => updater(setting)())
 				router.push(pathname, undefined, { shallow: true })
 			}}
-			style={{ textDecoration: 'underline' }}
+			className="bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative"
 		>
 			Reset all filters
 		</button>

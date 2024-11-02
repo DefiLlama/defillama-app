@@ -1,5 +1,5 @@
 import { darken, transparentize } from 'polished'
-import { ComponentProps, ElementType, ReactNode } from 'react'
+import { ComponentProps, ElementType, forwardRef, ReactNode } from 'react'
 
 const defaultButtonType = 'button' as const
 type ButtonDefaultAsType = typeof defaultButtonType
@@ -41,15 +41,10 @@ export const ButtonDark = <E extends ElementType = ButtonDefaultAsType>({
 	)
 }
 
-export const ButtonLight = <E extends ElementType = ButtonDefaultAsType>({
-	children,
-	as,
-	color,
-	useTextColor,
-	style,
-	className,
-	...props
-}: ButtonProps<E>) => {
+export const ButtonLight = forwardRef(function BLight<E extends ElementType = ButtonDefaultAsType>(
+	{ children, as, color, useTextColor, style, className, ...props }: ButtonProps<E>,
+	ref
+) {
 	const Tag = as || defaultButtonType
 
 	return (
@@ -69,12 +64,13 @@ export const ButtonLight = <E extends ElementType = ButtonDefaultAsType>({
 			className={`py-2 px-3 text-sm font-semibold rounded-xl min-w-fit bg-[var(--btn2-bg)] whitespace-nowrap hover:bg-[var(--btn2-hover-bg)] ${
 				useTextColor ? 'text-[var(--text1)]' : 'text-[var(--btn2-text)]'
 			} ${className ?? ''}`}
+			ref={ref}
 			{...props}
 		>
 			{children}
 		</Tag>
 	)
-}
+})
 
 export const GrayButton = <E extends ElementType = ButtonDefaultAsType>({
 	children,

@@ -14,7 +14,6 @@ import { FlexRow } from '~/layout/ProtocolAndPool'
 import { ButtonLight } from '~/components/ButtonStyled'
 import styled from 'styled-components'
 import { useDialogState, Dialog } from 'ariakit/dialog'
-import { DialogForm } from '~/components/Filters/common/SelectContent'
 import { useMutation } from '@tanstack/react-query'
 import { airdropsEligibilityCheck } from './airdrops'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -210,112 +209,115 @@ export function RecentProtocols({
 					>
 						Check airdrops for address
 					</ButtonLight>
-					<Dialog state={airdropCheckerDialog} className="dialog">
-						<CloseButton
-							onClick={() => {
-								resetEligibilityCheck()
-								airdropCheckerDialog.toggle()
-							}}
-						>
-							<Icon name="x" height={20} width={20} />
-						</CloseButton>
-						{eligibleAirdrops ? (
-							eligibleAirdrops.length === 0 ? (
-								<Error>No airdrops detected for this address</Error>
-							) : (
-								<TableWrapper>
-									{eligibleAirdrops.map((address) => (
-										<AirdropTable key={`airdrop of ${address[0]}`}>
-											<thead>
-												<tr>
-													<th colSpan={2}>{address[0]}</th>
-												</tr>
-												<tr>
-													<th>Protocol Name</th>
-													<th>Token Amount</th>
-												</tr>
-											</thead>
-											<tbody>
-												{address[1].length === 0 ? (
+					{airdropCheckerDialog.mounted ? (
+						<Dialog state={airdropCheckerDialog} className="dialog">
+							<CloseButton
+								onClick={() => {
+									resetEligibilityCheck()
+									airdropCheckerDialog.toggle()
+								}}
+							>
+								<Icon name="x" height={20} width={20} />
+							</CloseButton>
+							{eligibleAirdrops ? (
+								eligibleAirdrops.length === 0 ? (
+									<Error>No airdrops detected for this address</Error>
+								) : (
+									<TableWrapper>
+										{eligibleAirdrops.map((address) => (
+											<AirdropTable key={`airdrop of ${address[0]}`}>
+												<thead>
 													<tr>
-														<td colSpan={2}>
-															<Error>No airdrops detected for this address</Error>
-														</td>
+														<th colSpan={2}>{address[0]}</th>
 													</tr>
-												) : (
-													address[1].map((airdrop) => (
-														<tr key={`${airdrop.name}:${airdrop.claimableAmount}`}>
-															<th>{airdrop.name}</th>
-															<td>
-																{airdrop.isActive ? (
-																	<span data-claimable={true}>
-																		<span>{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`}</span>
-																		{airdrop.page ? (
-																			<Button
-																				as="a"
-																				href={airdrop.page}
-																				target="_blank"
-																				rel="noreferrer noopener"
-																				key={`claim-${airdrop.page}`}
-																				color="green"
-																				style={{ padding: '2px 6px', fontSize: '12px' }}
-																			>
-																				<span>Claim</span>
-																				<Icon name="arrow-up-right" height={14} width={14} />
-																			</Button>
-																		) : null}
-																	</span>
-																) : (
-																	<span data-claimable={false}>
-																		<span>
-																			{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`} - Claim Ended
-																		</span>
-																	</span>
-																)}
+													<tr>
+														<th>Protocol Name</th>
+														<th>Token Amount</th>
+													</tr>
+												</thead>
+												<tbody>
+													{address[1].length === 0 ? (
+														<tr>
+															<td colSpan={2}>
+																<Error>No airdrops detected for this address</Error>
 															</td>
 														</tr>
-													))
-												)}
-											</tbody>
-										</AirdropTable>
-									))}
-								</TableWrapper>
-							)
-						) : (
-							<DialogForm
-								onSubmit={(e) => {
-									e.preventDefault()
-									const form = e.target as HTMLFormElement
-									checkEligibleAirdrops({
-										addresses: form.address.value
-											.split('\n')
-											.join(',')
-											.split(',')
-											.map((x) => x.trim())
-											.filter((x) => x.length > 0)
-									})
-								}}
-								data-variant="secondary"
-							>
-								<label>
-									<span>Provide EVM / SOL address(s) to check airdrops for:</span>
-									<textarea
-										name="address"
-										required
-										disabled={fetchingEligibleAirdrops}
-										placeholder="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045, 0x71a15Ac12ee91BF7c83D08506f3a3588143898B5"
-									/>
-								</label>
+													) : (
+														address[1].map((airdrop) => (
+															<tr key={`${airdrop.name}:${airdrop.claimableAmount}`}>
+																<th>{airdrop.name}</th>
+																<td>
+																	{airdrop.isActive ? (
+																		<span data-claimable={true}>
+																			<span>{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`}</span>
+																			{airdrop.page ? (
+																				<Button
+																					as="a"
+																					href={airdrop.page}
+																					target="_blank"
+																					rel="noreferrer noopener"
+																					key={`claim-${airdrop.page}`}
+																					color="green"
+																					style={{ padding: '2px 6px', fontSize: '12px' }}
+																				>
+																					<span>Claim</span>
+																					<Icon name="arrow-up-right" height={14} width={14} />
+																				</Button>
+																			) : null}
+																		</span>
+																	) : (
+																		<span data-claimable={false}>
+																			<span>
+																				{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`} - Claim Ended
+																			</span>
+																		</span>
+																	)}
+																</td>
+															</tr>
+														))
+													)}
+												</tbody>
+											</AirdropTable>
+										))}
+									</TableWrapper>
+								)
+							) : (
+								<form
+									onSubmit={(e) => {
+										e.preventDefault()
+										const form = e.target as HTMLFormElement
+										checkEligibleAirdrops({
+											addresses: form.address.value
+												.split('\n')
+												.join(',')
+												.split(',')
+												.map((x) => x.trim())
+												.filter((x) => x.length > 0)
+										})
+									}}
+									className="flex flex-col gap-2 p-3 sm:p-0"
+								>
+									<label className="flex flex-col gap-1">
+										<span>Provide EVM / SOL address(s) to check airdrops for:</span>
+										<textarea
+											name="address"
+											required
+											disabled={fetchingEligibleAirdrops}
+											placeholder="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045, 0x71a15Ac12ee91BF7c83D08506f3a3588143898B5"
+											className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+										/>
+									</label>
 
-								<FormSubmitBtn name="submit-btn" disabled={fetchingEligibleAirdrops}>
-									{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
-								</FormSubmitBtn>
-								{errorFetchingEligibleAirdrops ? (
-									<Error>{(errorFetchingEligibleAirdrops as any)?.message ?? 'Failed to fetch'}</Error>
-								) : null}
-							</DialogForm>
-						)}
-					</Dialog>
+									<FormSubmitBtn name="submit-btn" disabled={fetchingEligibleAirdrops}>
+										{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
+									</FormSubmitBtn>
+									{errorFetchingEligibleAirdrops ? (
+										<Error>{(errorFetchingEligibleAirdrops as any)?.message ?? 'Failed to fetch'}</Error>
+									) : null}
+								</form>
+							)}
+						</Dialog>
+					) : null}
 				</FlexRow>
 			) : null}
 
