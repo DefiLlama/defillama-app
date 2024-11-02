@@ -1,7 +1,7 @@
 import { useDialogState, Dialog } from 'ariakit/dialog'
 import { useState } from 'react'
 import { FormSubmitBtn } from '~/components'
-import { DialogForm } from '~/components/Filters/common/Base'
+import { DialogForm } from '~/components/Filters/common/SelectContent'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 

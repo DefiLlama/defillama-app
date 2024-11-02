@@ -4,7 +4,7 @@ import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { lockupsCollateral, badDebt } from '~/containers/YieldsPage/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
-import { SelectContent } from '../common/Base'
+import { SelectContent } from '../common/SelectContent'
 
 export const attributeOptions = [
 	{

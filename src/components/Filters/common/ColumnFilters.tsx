@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { SelectArrow, SelectPopover, Select, useSelectState } from 'ariakit/select'
-import { SelectContent } from './Base'
+import { SelectContent } from './SelectContent'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
 
