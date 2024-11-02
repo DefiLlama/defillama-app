@@ -4,7 +4,7 @@ import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { lockupsCollateral, badDebt } from '~/containers/YieldsPage/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
-import { SelectContent } from '../common/Base'
+import { SelectContent } from '../common/SelectContent'
 
 export const attributeOptions = [
 	{
@@ -296,7 +296,7 @@ export function YieldAttributes({
 			{selectState.mounted ? (
 				<SelectPopover
 					state={selectState}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 				>
 					<SelectContent
 						options={attributeOptionsFiltered}

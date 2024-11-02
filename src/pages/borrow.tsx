@@ -6,13 +6,12 @@ import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
 import { withPerformanceLogging } from '~/utils/perf'
 import styled from 'styled-components'
-import { useSelectState, SelectArrow, Select as AriaSelect } from 'ariakit/select'
+import { useSelectState, SelectArrow, Select, SelectPopover, SelectItem } from 'ariakit/select'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { useComboboxState } from 'ariakit/combobox'
 import { useRouter } from 'next/router'
 import { Input, List } from '~/components/Combobox'
 import { TokenLogo } from '~/components/TokenLogo'
-import { ComboboxSelectPopover, SelectItem } from '~/components/Filters/common'
 import { Tab, TabList } from '~/components'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 
@@ -138,12 +137,6 @@ const Wrapper = styled.div`
 	}
 `
 
-// @media (min-width: 80rem) {
-// 	flex-direction: row;
-// 	justify-content: center;
-// 	align-items: flex-start;
-// }
-
 const Content = styled.div`
 	border-radius: 12px;
 	background: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(246, 246, 246, 0.6)')};
@@ -193,50 +186,6 @@ const PoolsWrapper = styled(Content)`
 	}
 `
 
-const Menu = styled(AriaSelect)`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#17181c' : '#eff0f3')};
-	color: ${({ theme }) => theme.text1};
-	padding: 12px;
-	border-radius: 12px;
-	border: none;
-	margin: 0;
-	width: 100%;
-	font-weight: 500;
-	font-size: 1rem;
-
-	& > *:first-child {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	:focus-visible,
-	&[data-focus-visible] {
-		outline: ${({ theme }) => '1px solid ' + theme.text1};
-	}
-
-	&[data-isempty] {
-		color: ${({ theme }) => theme.text1 + 'A1'};
-	}
-
-	& > *[data-name] {
-		margin-right: auto;
-	}
-`
-
-const Popover = styled(ComboboxSelectPopover)`
-	@media screen and (min-width: 640px) {
-		max-width: 448px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#17181c' : '#eff0f3')};
-	}
-`
-
-const PopoverItem = styled(SelectItem)``
-
 const TokensSelect = ({
 	searchData,
 	query,
@@ -268,7 +217,8 @@ const TokensSelect = ({
 		value: selectedValue,
 		setValue: onChange,
 		gutter: 6,
-		animated: true,
+		animated: isLarge ? false : true,
+		sameWidth: true,
 		renderCallback
 	})
 
@@ -281,37 +231,67 @@ const TokensSelect = ({
 
 	const tokenInSearchData = selectedValue !== '' ? searchData[selectedValue.toUpperCase()] : null
 
+	const [resultsLength, setResultsLength] = React.useState(10)
+
+	const showMoreResults = () => {
+		setResultsLength((prev) => prev + 10)
+	}
+
 	return (
 		<>
-			<Menu state={select} data-isempty={tokenInSearchData ? false : true}>
+			<Select
+				state={select}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 p-3 text-base font-medium rounded-md cursor-pointer text-[var(--text1)] flex-nowrap"
+			>
 				{tokenInSearchData ? (
 					<>
 						<TokenLogo logo={tokenInSearchData.image2} fallbackLogo={tokenInSearchData.image} />
-						<span data-name>
+						<span>
 							{tokenInSearchData.symbol === 'USD_STABLES' ? tokenInSearchData.name : tokenInSearchData.symbol}
 						</span>
 					</>
 				) : (
-					placeholder
+					<span className="opacity-60">{placeholder}</span>
 				)}
-				<SelectArrow />
-			</Menu>
+				<SelectArrow className="ml-auto" />
+			</Select>
 
-			<Popover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
-				<Input state={combobox} placeholder="Search..." autoFocus />
+			{select.mounted ? (
+				<SelectPopover
+					state={select}
+					composite={false}
+					initialFocusRef={focusItemRef}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				>
+					<Input state={combobox} placeholder="Search..." autoFocus />
 
-				{combobox.matches.length > 0 ? (
-					<List state={combobox} className="filter-by-list">
-						{combobox.matches.map((value, i) => (
-							<PopoverItem value={value} key={value + i} focusOnHover>
-								<span data-name>{value === 'USD_STABLES' ? searchData[value].name : `${value}`}</span>
-							</PopoverItem>
-						))}
-					</List>
-				) : (
-					<p id="no-results">No results</p>
-				)}
-			</Popover>
+					{combobox.matches.length > 0 ? (
+						<List state={combobox} className="!p-0">
+							{combobox.matches.slice(0, resultsLength + 1).map((value, i) => (
+								<SelectItem
+									value={value}
+									key={value + i}
+									focusOnHover
+									className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
+								>
+									{value === 'USD_STABLES' ? searchData[value].name : `${value}`}
+								</SelectItem>
+							))}
+						</List>
+					) : (
+						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
+					)}
+
+					{resultsLength < combobox.matches.length ? (
+						<button
+							className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+							onClick={showMoreResults}
+						>
+							See more...
+						</button>
+					) : null}
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }

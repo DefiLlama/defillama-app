@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange, SecondaryLabel } from '../common'
+import { FilterBetweenRange } from '~/components/Filters/common/FilterBetweenRange'
 
 export function McapRange({ variant = 'primary', subMenu }: { variant?: 'primary' | 'secondary'; subMenu?: boolean }) {
 	const router = useRouter()
@@ -30,24 +30,25 @@ export function McapRange({ variant = 'primary', subMenu }: { variant?: 'primary
 	const min = typeof minMcap === 'string' && minMcap !== '' ? Number(minMcap).toLocaleString() : null
 	const max = typeof maxMcap === 'string' && maxMcap !== '' ? Number(maxMcap).toLocaleString() : null
 
-	const label =
-		min || max ? (
-			<>
-				<span>Mcap: </span>
-				<span data-selecteditems>{`${min || 'min'} - ${max || 'max'}`}</span>
-			</>
-		) : (
-			'Mcap'
-		)
-
-	const Header = () => {
-		return <SecondaryLabel>{label}</SecondaryLabel>
-	}
-
 	return (
 		<FilterBetweenRange
 			name="Mcap"
-			header={variant === 'secondary' ? <Header /> : 'Filter by Mcap'}
+			header={
+				variant === 'secondary' ? (
+					<>
+						{min || max ? (
+							<>
+								<span>Mcap: </span>
+								<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
+							</>
+						) : (
+							'Mcap'
+						)}
+					</>
+				) : (
+					'Filter by Mcap'
+				)
+			}
 			onSubmit={handleSubmit}
 			variant={variant}
 			subMenu={subMenu}

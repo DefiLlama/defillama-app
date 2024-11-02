@@ -225,7 +225,7 @@ function AddlOptions({ options }: IAllOptionsProps) {
 			{select.mounted ? (
 				<SelectPopover
 					state={select}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 				>
 					{options.map(({ key, name, help }) => (
 						<SelectItem

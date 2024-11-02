@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { RowLinksWithDropdown } from '~/components/Filters/common'
+import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
 import { formatChartTvlsByDay } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'

@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { SelectArrow, SelectPopover, Select, useSelectState } from 'ariakit/select'
-import { SelectContent } from './Base'
+import { SelectContent } from './SelectContent'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
 
@@ -150,19 +150,21 @@ export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColum
 				<SelectArrow />
 			</Select>
 
-			<SelectPopover
-				state={selectState}
-				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
-			>
-				<SelectContent
-					options={options}
-					selectedOptions={selectedOptions}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					pathname={router.pathname}
-					variant={variant}
-				/>
-			</SelectPopover>
+			{selectState.mounted ? (
+				<SelectPopover
+					state={selectState}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				>
+					<SelectContent
+						options={options}
+						selectedOptions={selectedOptions}
+						clearAllOptions={clearAllOptions}
+						toggleAllOptions={toggleAllOptions}
+						pathname={router.pathname}
+						variant={variant}
+					/>
+				</SelectPopover>
+			) : null}
 		</>
 	)
 }
@@ -218,7 +220,7 @@ export function ColumnFilters2({
 			{selectState.mounted ? (
 				<SelectPopover
 					state={selectState}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh]"
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 				>
 					<SelectContent
 						options={options}

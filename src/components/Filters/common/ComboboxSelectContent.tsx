@@ -1,7 +1,7 @@
 import { MutableRefObject, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { useDebounce } from '~/hooks/useDebounce'
-import { FilterFnsGroup, SelectItem } from './Base'
+import { SelectItem } from 'ariakit/select'
 import { Checkbox } from '~/components'
 import { slug } from '~/utils'
 
@@ -53,11 +53,14 @@ const SelectContent = ({
 }: ISelectContent) => {
 	return (
 		<>
-			<FilterFnsGroup data-variant={variant}>
-				<button onClick={clearAllOptions}>Clear</button>
-
-				<button onClick={toggleAllOptions}>Select all</button>
-			</FilterFnsGroup>
+			<span className="sticky z-[1] top-0 flex flex-wrap justify-between gap-1 bg-[var(--bg1)] text-[var(--link)] text-xs border-b border-white/40 dark:border-black/40">
+				<button onClick={clearAllOptions} className="p-3">
+					Clear
+				</button>
+				<button onClick={toggleAllOptions} className="p-3">
+					Toggle all
+				</button>
+			</span>
 
 			<div className="select-filteredOptions-wrapper">
 				{options.map((value, i) => {
@@ -69,6 +72,7 @@ const SelectContent = ({
 							key={formattedValue + i}
 							ref={i === 0 && selectedOptions.length === options.length ? focusItemRef : null}
 							focusOnHover
+							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
 						>
 							<LeftContainer>
 								<span data-name>{value}</span>
@@ -121,7 +125,7 @@ export const ComboboxSelectContent = ({ autoFocus, options, contentElementId, ..
 					<SelectContent options={filteredOptions.slice(0, 100)} {...props} />
 				</>
 			) : (
-				<p id="no-results">No results</p>
+				<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
 			)}
 		</>
 	)

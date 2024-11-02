@@ -3,7 +3,7 @@ import { MenuButtonArrow } from 'ariakit/menu'
 import { ApplyFilters } from '~/components'
 import { Popover } from '~/components/Popover'
 import { SlidingMenu } from '~/components/SlidingMenu'
-import { PopoverForm, PopoverContent } from './Base'
+import { PopoverForm, PopoverContent } from './SelectContent'
 
 interface IFilterBetweenRange {
 	name: string

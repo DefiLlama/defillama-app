@@ -95,7 +95,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 						))}
 					</List>
 				) : (
-					<p id="no-results">No results</p>
+					<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
 				)}
 			</Popover>
 		</div>
