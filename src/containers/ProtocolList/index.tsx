@@ -295,9 +295,7 @@ function Container({
 								</tbody>
 							</StatsTable2>
 						</OverallMetricsWrapper>
-						{router.isReady && categoryChart ? (
-							<ChainChart datasets={datasets} title="" isThemeDark={isDark} hideTooltip={false} />
-						) : null}
+						{router.isReady && categoryChart ? <ChainChart datasets={datasets} title="" isThemeDark={isDark} /> : null}
 					</StatsSection>
 				) : null}
 

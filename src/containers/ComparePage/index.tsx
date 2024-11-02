@@ -290,7 +290,7 @@ function ComparePage() {
 							<LocalLoader />
 						</div>
 					) : (
-						<ChainChart title="" datasets={data?.data} isThemeDark={isDark} hideTooltip={false} />
+						<ChainChart title="" datasets={data?.data} isThemeDark={isDark} />
 					)}
 				</BreakpointPanel>
 				<Grid>

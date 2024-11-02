@@ -100,13 +100,7 @@ export default function ChainChartPage({
 					<LocalLoader />
 				</div>
 			) : (
-				<ChainChart
-					datasets={chartDatasets}
-					title=""
-					denomination={denomination}
-					isThemeDark={isThemeDark}
-					hideTooltip
-				/>
+				<ChainChart datasets={chartDatasets} title="" denomination={denomination} isThemeDark={isThemeDark} />
 			)}
 		</>
 	)

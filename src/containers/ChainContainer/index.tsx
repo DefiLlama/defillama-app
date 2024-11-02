@@ -726,13 +726,7 @@ export function ChainContainer({
 										<LocalLoader />
 									</div>
 								) : (
-									<ChainChart
-										datasets={chartDatasets}
-										title=""
-										denomination={denomination}
-										isThemeDark={darkMode}
-										hideTooltip={false}
-									/>
+									<ChainChart datasets={chartDatasets} title="" denomination={denomination} isThemeDark={darkMode} />
 								)}
 							</>
 						)}

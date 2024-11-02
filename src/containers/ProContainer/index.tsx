@@ -192,7 +192,6 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 					denomination={denomination}
 					isThemeDark={darkMode}
 					chartType={chartType}
-					hideTooltip={false}
 					isFirstChart={i === 0 || i === 1}
 				/>
 			)
