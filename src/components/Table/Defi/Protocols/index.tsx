@@ -12,7 +12,7 @@ import {
 	getFilteredRowModel,
 	ColumnDef
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import {
 	columnOrders,
 	columnSizes,
@@ -29,9 +29,9 @@ import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
 import { SearchIcon, TableFiltersWithInput } from '../../shared'
 import styled from 'styled-components'
-import { TVLRange } from '~/components/Filters/protocols'
+import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
-import RowFilter from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/common/RowFilter'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))

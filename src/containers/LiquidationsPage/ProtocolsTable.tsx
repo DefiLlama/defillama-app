@@ -1,7 +1,7 @@
 import { ChartData } from '~/utils/liquidations'
 import * as React from 'react'
 import { useStackBy } from './utils'
-import { LiquidatableProtocolsTable } from '~/components/Table'
+import { LiquidatableProtocolsTable } from '~/components/Table/Liquidations'
 
 export const ProtocolsTable = (props: { data: ChartData; prevData: ChartData }) => {
 	const stackBy = useStackBy()

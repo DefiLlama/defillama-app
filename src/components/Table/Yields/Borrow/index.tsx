@@ -6,7 +6,7 @@ import { getColumnSizesKeys } from '../../utils'
 
 const columnSizesKeys = getColumnSizesKeys(columnSizes)
 
-export default function YieldsPoolsTable({ data }: IYieldsTableProps) {
+export function YieldsBorrowTable({ data }: IYieldsTableProps) {
 	return (
 		<YieldsTableWrapper
 			data={data}

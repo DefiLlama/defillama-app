@@ -7,7 +7,7 @@ interface IProps {
 	style?: Record<string, string>
 }
 
-const RowFilter = ({ selectedValue, setValue, values, style }: IProps) => {
+export const RowFilter = ({ selectedValue, setValue, values, style }: IProps) => {
 	return (
 		<div className="flex items-center rounded-lg h-full overflow-x-auto flex-nowrap">
 			{values.map((value) => {
@@ -25,5 +25,3 @@ const RowFilter = ({ selectedValue, setValue, values, style }: IProps) => {
 		</div>
 	)
 }
-
-export default RowFilter

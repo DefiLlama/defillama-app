@@ -9,14 +9,14 @@ import {
 	ColumnOrderState,
 	ColumnSizingState
 } from '@tanstack/react-table'
-import VirtualTable from '../Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from './columns'
 import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
-import { TableFilters } from '../shared'
+import { TableFilters } from '~/components/Table/shared'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
-import RowFilter from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/common/RowFilter'
 import { useRouter } from 'next/router'
 
 export const PERIODS = ['24h', '7d', '30d', '1y']

@@ -1,7 +1,7 @@
 import { ChartData } from '~/utils/liquidations'
 import * as React from 'react'
 import styled from 'styled-components'
-import { LiquidatablePositionsTable } from '~/components/Table'
+import { LiquidatablePositionsTable } from '~/components/Table/Liquidations'
 
 const TableNoticeWrapper = styled.div`
 	margin-bottom: -1rem;

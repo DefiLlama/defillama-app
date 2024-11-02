@@ -108,5 +108,3 @@ const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
 		</div>
 	)
 }
-
-export { attributeOptions } from './Attributes'

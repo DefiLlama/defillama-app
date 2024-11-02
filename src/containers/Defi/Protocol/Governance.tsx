@@ -10,7 +10,7 @@ import {
 	ColumnFiltersState,
 	ColumnDef
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { SearchIcon, SearchWrapper } from '~/components/Table/shared'
 import { Checkbox2 } from '~/components'
 import { formatGovernanceData } from '~/api/categories/protocols'

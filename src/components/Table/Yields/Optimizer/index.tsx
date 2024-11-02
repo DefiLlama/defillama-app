@@ -8,7 +8,7 @@ const columnSizesKeys = getColumnSizesKeys(columnSizes)
 
 const defaultSortingState = [{ id: 'borrowAvailableUsd', desc: true }]
 
-export default function YieldsOptimizerTable({ data }) {
+export function YieldsOptimizerTable({ data }) {
 	const router = useRouter()
 
 	const { excludeRewardApy } = router.query

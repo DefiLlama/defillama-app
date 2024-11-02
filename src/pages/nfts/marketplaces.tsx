@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { NftsmarketplaceTable } from '~/components/Table'
+import { NftsMarketplaceTable } from '~/components/Table/Nfts/Marketplaces'
 import { maxAgeForNext } from '~/api'
 import { getNFTMarketplacesData } from '~/api/categories/nfts'
 import dynamic from 'next/dynamic'
@@ -114,7 +114,7 @@ function Marketplaces({
 					/>
 				)}
 			</ChartWrapper>
-			<NftsmarketplaceTable data={data} />
+			<NftsMarketplaceTable data={data} />
 		</Layout>
 	)
 }

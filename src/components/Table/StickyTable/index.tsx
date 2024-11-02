@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Table, flexRender, RowData } from '@tanstack/react-table'
 import { defaultRangeExtractor, useWindowVirtualizer } from '@tanstack/react-virtual'
 import styled from 'styled-components'
-import SortIcon from '../SortIcon'
+import { SortIcon } from '~/components/Table/SortIcon'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { useSyncScroller } from './useScrollSync'
 
@@ -19,7 +19,7 @@ declare module '@tanstack/table-core' {
 	}
 }
 
-export default function VirtualTable({ instance, skipVirtualization, rowSize, ...props }: ITableProps) {
+export function StickyTable({ instance, skipVirtualization, rowSize, ...props }: ITableProps) {
 	const [tableTop, setTableTop] = React.useState(0)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 

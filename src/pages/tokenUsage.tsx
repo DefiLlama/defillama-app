@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import { ProtocolsByToken } from '~/components/Table'
+import { ProtocolsByToken } from '~/components/Table/Defi/Protocols'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import { LocalLoader } from '~/components/LocalLoader'
 import { TableFilters, TableHeader } from '~/components/Table/shared'

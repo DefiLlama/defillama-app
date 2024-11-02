@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Panel } from '~/components'
-import { OverviewTable } from '~/components/Table'
+import { OverviewTable } from '~/components/Table/Adaptors'
 import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { groupProtocolsByParent, IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'

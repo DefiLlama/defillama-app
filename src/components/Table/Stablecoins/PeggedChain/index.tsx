@@ -7,7 +7,7 @@ import {
 	ExpandedState,
 	getExpandedRowModel
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { peggedChainsColumn } from './columns'
 import type { IPeggedChain } from './types'
 

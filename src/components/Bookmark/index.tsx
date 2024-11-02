@@ -5,7 +5,7 @@ import { standardizeProtocolName } from '~/utils'
 import { Icon } from '~/components/Icon'
 
 // readableProtocolName has proper caps and spaces
-function Bookmark({ readableProtocolName, ...props }) {
+export function Bookmark({ readableProtocolName, ...props }) {
 	const bookmarkRef = useRef(null)
 	const { savedProtocols, addProtocol, removeProtocol } = useWatchlist()
 	// isClient for local storage
@@ -31,5 +31,3 @@ function Bookmark({ readableProtocolName, ...props }) {
 		</button>
 	)
 }
-
-export default Bookmark

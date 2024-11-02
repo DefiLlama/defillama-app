@@ -6,7 +6,7 @@ import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/comp
 import { GroupStablecoins } from '~/components/MultiSelect/Stablecoins'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ChartSelector } from '~/containers/PeggedPage/.'
-import { PeggedChainsTable } from '~/components/Table'
+import { PeggedChainsTable } from '~/components/Table/Stablecoins/PeggedChain'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import {

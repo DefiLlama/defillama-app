@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import YieldsStrategyTable from '~/components/Table/Yields/Strategy'
+import { YieldsStrategyTable } from '~/components/Table/Yields/Strategy'
 import { YieldFiltersV2 } from '~/components/Filters/yields'
 import { filterPool, findStrategyPools } from './utils'
 import { useFormatYieldQueryParams } from './hooks'

@@ -37,8 +37,8 @@ import type {
 	CoinPerformanceRow
 } from './types'
 import { useEffect, useState } from 'react'
-import UpcomingEvent from '../Components/UpcomingEvent'
-import ProgressBar from '../Components/ProgressBar'
+import { UpcomingEvent } from '../Components/UpcomingEvent'
+import { ProgressBar } from '../Components/ProgressBar'
 import { Icon } from '~/components/Icon'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [

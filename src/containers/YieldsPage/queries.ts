@@ -9,7 +9,7 @@ type PriceObject = {
 	timestamp: number
 }
 
-const useGetPrice = (tokens: Array<string>) => {
+export const useGetPrice = (tokens: Array<string>) => {
 	const prices = useQuery({
 		queryKey: ['prices', tokens],
 		queryFn: async () => {
@@ -29,5 +29,3 @@ const useGetPrice = (tokens: Array<string>) => {
 
 	return prices
 }
-
-export { useGetPrice }

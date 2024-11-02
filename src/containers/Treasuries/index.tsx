@@ -9,7 +9,7 @@ import {
 	getFilteredRowModel,
 	ColumnFiltersState
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'

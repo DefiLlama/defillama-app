@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import { YieldsPoolsTable } from '~/components/Table'
+import { YieldsPoolsTable } from '~/components/Table/Yields/Pools'
 import { YieldFiltersV2 } from '~/components/Filters/yields'
 import { Announcement } from '~/components/Announcement'
 import { LocalLoader } from '~/components/LocalLoader'

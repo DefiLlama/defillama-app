@@ -6,7 +6,7 @@ import {
 	getSortedRowModel,
 	getExpandedRowModel
 } from '@tanstack/react-table'
-import VirtualTable from '../Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { liquidatablePositionsColumns, liquidatableProtocolsColumns } from './columns'
 
 export function LiquidatableProtocolsTable({ data }) {

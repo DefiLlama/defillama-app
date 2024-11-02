@@ -7,7 +7,7 @@ import {
 	ColumnOrderState,
 	ColumnSizingState
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { columnSizes, peggedAssetsColumn, assetsColumnOrders } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 

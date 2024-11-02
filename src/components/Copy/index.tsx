@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 
-export default function CopyHelper({ toCopy, ...props }) {
+export function CopyHelper({ toCopy, ...props }) {
 	const [copied, setCopied] = useState(false)
 	const copy = () => {
 		navigator.clipboard.writeText(toCopy)

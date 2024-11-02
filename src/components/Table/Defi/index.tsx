@@ -8,16 +8,16 @@ import {
 	getExpandedRowModel,
 	ColumnOrderState
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { chainsColumn, chainsTableColumnOrders } from './columns'
 import type { IChainsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { DEFI_CHAINS_SETTINGS, useDefiChainsManager } from '~/contexts/LocalStorage'
 import styled from 'styled-components'
-import { TVLRange } from '~/components/Filters/protocols'
+import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 
-export default function DefiProtocolsTable({ data, columns }) {
+export function DefiProtocolsTable({ data, columns }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
 	const instance = useReactTable({
