@@ -14,11 +14,11 @@ import { Wrapper } from '~/components/Table/Table'
 import { protocolsByChainColumns } from './columns'
 import { IProtocolRow } from './types'
 import styled from 'styled-components'
-import RowFilter from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/common/RowFilter'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
-import SortIcon from '../../SortIcon'
+import { SortIcon } from '~/components/Table/SortIcon'
 import {
 	ListHeader,
 	ListOptions,

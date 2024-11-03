@@ -73,7 +73,7 @@ const HorizontalLine = styled.div`
 	background-color: ${({ theme }) => theme.bg4};
 `
 
-const UpcomingEvent = ({
+export const UpcomingEvent = ({
 	noOfTokens = [],
 	timestamp,
 	event,
@@ -198,5 +198,3 @@ const UpcomingEvent = ({
 		</>
 	)
 }
-
-export default UpcomingEvent

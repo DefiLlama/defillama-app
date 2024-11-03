@@ -14,7 +14,7 @@ import { ButtonLight } from '~/components/ButtonStyled'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
 import { AuditInfo } from '~/components/AuditInfo'
-import SEO from '~/components/SEO'
+import { SEO } from '~/components/SEO'
 import { QuestionHelper } from '~/components/QuestionHelper'
 
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
@@ -30,7 +30,7 @@ import {
 	peggedAssetIconUrl
 } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { PeggedAssetByChainTable } from '~/components/Table'
+import { PeggedAssetByChainTable } from '~/components/Table/Stablecoins/PeggedAssetByChain'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { Stat, StatInARow } from '~/layout/Stats/Large'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'

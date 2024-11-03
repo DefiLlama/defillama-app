@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 import { BreakpointPanel, ChartAndValuesWrapper } from '~/components'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { BridgesSearch } from '~/components/Search/Bridges'
-import { BridgeChainsTable } from '~/components/Table'
+import { BridgeChainsTable } from '~/components/Table/Bridges'
 import { toNiceCsvDate, download } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 

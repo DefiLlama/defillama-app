@@ -18,7 +18,7 @@ interface SEOProps {
 	isCEX?: boolean
 }
 
-const SEO = ({
+export const SEO = ({
 	cardName,
 	chain,
 	token,
@@ -147,5 +147,3 @@ const SEO = ({
 		</Head>
 	)
 }
-
-export default SEO

@@ -2,7 +2,7 @@ import * as React from 'react'
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
 import ThemeProvider, { GlobalStyle } from '~/Theme'
-import SEO from '~/components/SEO'
+import { SEO } from '~/components/SEO'
 import Nav from '~/components/Nav'
 import { useIsClient } from '~/hooks'
 

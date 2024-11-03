@@ -39,7 +39,7 @@ const saveEmail = async ({ authToken, email }: { authToken?: string | null; emai
 	}
 }
 
-const useSaveEmail = () => {
+export const useSaveEmail = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: saveEmail,
@@ -48,5 +48,3 @@ const useSaveEmail = () => {
 		}
 	})
 }
-
-export { useSaveEmail }

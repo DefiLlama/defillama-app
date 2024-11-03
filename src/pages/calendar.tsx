@@ -10,7 +10,7 @@ import {
 	ColumnFiltersState
 } from '@tanstack/react-table'
 import styled from 'styled-components'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { calendarColumns } from '~/components/Table/Defi/columns'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 import { withPerformanceLogging } from '~/utils/perf'

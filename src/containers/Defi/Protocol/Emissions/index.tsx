@@ -5,7 +5,7 @@ import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/catego
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { OptionToggle } from '~/components/OptionToggle'
-import UpcomingEvent from '~/components/Table/Components/UpcomingEvent'
+import { UpcomingEvent } from '~/components/Table/Components/UpcomingEvent'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ChartsWrapper, LazyChart, Name, Section } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter, formattedNum, tokenIconUrl } from '~/utils'

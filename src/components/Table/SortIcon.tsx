@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 
-export default function SortIcon({ dir }: { dir: string | boolean }) {
+export function SortIcon({ dir }: { dir: string | boolean }) {
 	return (
 		<Wrapper>
 			<Caret role="img" aria-label="caret-up" active={dir === 'asc'}>

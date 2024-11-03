@@ -7,12 +7,12 @@ import {
 	ColumnFiltersState,
 	getFilteredRowModel
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { columns } from './columns'
 import type { INftCollection } from '../types'
 import { TableHeaderAndSearch, SearchWrapper, SearchIcon } from '../../shared'
 
-export default function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
+export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'volume1d', desc: true }])
 

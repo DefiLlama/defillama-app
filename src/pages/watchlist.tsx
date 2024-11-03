@@ -1,4 +1,4 @@
-import { DefiWatchlistContainer } from '~/containers/Watchlist'
+import { DefiWatchlistContainer } from '~/containers/Watchlist/Defi'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'

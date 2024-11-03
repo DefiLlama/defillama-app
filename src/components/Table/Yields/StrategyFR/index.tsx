@@ -5,7 +5,7 @@ import { getColumnSizesKeys } from '../../utils'
 
 const columnSizesKeys = getColumnSizesKeys(columnSizes)
 
-export default function YieldsStrategyTableFR({ data }) {
+export function YieldsStrategyTableFR({ data }) {
 	return (
 		<YieldsTableWrapper
 			data={data}

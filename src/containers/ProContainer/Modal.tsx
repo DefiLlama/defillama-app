@@ -40,7 +40,7 @@ const CloseButton = styled.button`
 	font-size: 20px;
 	cursor: pointer;
 `
-const Modal = ({ children, onClose, onSave, openText, ...props }) => {
+export const Modal = ({ children, onClose, onSave, openText, ...props }) => {
 	const [isOpen, setIsOpen] = useState(false)
 
 	const openModal = () => {
@@ -83,5 +83,3 @@ const Modal = ({ children, onClose, onSave, openText, ...props }) => {
 		</>
 	)
 }
-
-export default Modal

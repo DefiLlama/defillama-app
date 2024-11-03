@@ -9,7 +9,7 @@ import {
 	ExpandedState,
 	getExpandedRowModel
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { SearchIcon, TableFiltersWithInput } from './shared'
 
 export function TableWithSearch({ data, columns, placeholder, columnToSearch, customFilters = null }) {

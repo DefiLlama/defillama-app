@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { YieldsProjectsTable } from '~/components/Table'
+import { YieldsProjectsTable } from '~/components/Table/Yields/Projects'
 import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/containers/YieldsPage/utils'
 import { maxAgeForNext } from '~/api'

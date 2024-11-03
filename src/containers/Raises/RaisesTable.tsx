@@ -9,7 +9,7 @@ import {
 	ColumnFiltersState
 } from '@tanstack/react-table'
 import styled from 'styled-components'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'

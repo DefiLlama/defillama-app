@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { FlexRow, Section } from '~/layout/ProtocolAndPool'
 import { GridContent } from './Common'
-import { YieldsPoolsTable } from '~/components/Table'
+import { YieldsPoolsTable } from '~/components/Table/Yields/Pools'
 import { getYieldPageData } from '~/api/categories/yield'
 import { sluggify } from '~/utils/cache-client'
 import { useQuery } from '@tanstack/react-query'

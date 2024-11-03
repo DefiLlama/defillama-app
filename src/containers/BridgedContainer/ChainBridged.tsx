@@ -3,7 +3,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import { StatsSection } from '~/layout/Stats/Medium'
 import Layout from '~/layout'
-import SEO from '~/components/SEO'
+import { SEO } from '~/components/SEO'
 import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
 import { Stat } from '~/layout/Stats/Large'
 import { chainIconUrl, formattedNum } from '~/utils'
@@ -15,7 +15,7 @@ import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import styled from 'styled-components'
 import useWindowSize from '~/hooks/useWindowSize'
 import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false

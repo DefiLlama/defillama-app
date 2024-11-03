@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table'
 import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 import { withPerformanceLogging } from '~/utils/perf'

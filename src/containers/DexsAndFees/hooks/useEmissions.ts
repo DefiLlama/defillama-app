@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { PROTOCOL_EMISSION_API } from '~/constants'
 
 // TODO check emissions
-const useEmissions = (protocol) => {
+export const useEmissions = (protocol) => {
 	const { data } = useQuery({
 		queryKey: ['emissions', protocol],
 		queryFn: () =>
@@ -23,5 +23,3 @@ const useEmissions = (protocol) => {
 
 	return Object.keys(result ?? {}).length ? result : null
 }
-
-export default useEmissions

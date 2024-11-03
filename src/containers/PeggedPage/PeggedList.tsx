@@ -8,17 +8,12 @@ import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDr
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ChartSelector } from '~/containers/PeggedPage/.'
-import {
-	Attribute,
-	stablecoinAttributeOptions,
-	PegType,
-	stablecoinPegTypeOptions,
-	BackingType,
-	stablecoinBackingOptions,
-	McapRange,
-	ResetAllStablecoinFilters
-} from '~/components/Filters/stablecoins'
-import { PeggedAssetsTable } from '~/components/Table'
+import { Attribute, stablecoinAttributeOptions } from '~/components/Filters/stablecoins/Attribute'
+import { PegType, stablecoinPegTypeOptions } from '~/components/Filters/stablecoins/PegType'
+import { BackingType, stablecoinBackingOptions } from '~/components/Filters/stablecoins/BackingType'
+import { McapRange } from '~/components/Filters/stablecoins/McapRange'
+import { ResetAllStablecoinFilters } from '~/components/Filters/stablecoins/ResetAll'
+import { PeggedAssetsTable } from '~/components/Table/Stablecoins/PeggedAssets'
 import {
 	useCalcCirculating,
 	useCalcGroupExtraPeggedByDay,

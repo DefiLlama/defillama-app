@@ -1,7 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { getNFTData } from '~/api/categories/nfts'
 import Layout from '~/layout'
-import { NftsCollectionTable } from '~/components/Table'
+import { NftsCollectionTable } from '~/components/Table/Nfts/Collections'
 import { useScrollToTop } from '~/hooks'
 import { NFTsSearch } from '~/components/Search/NFTs'
 import { withPerformanceLogging } from '~/utils/perf'

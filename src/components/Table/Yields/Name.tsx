@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import { ButtonSquare } from '~/layout/Pool'
-import Bookmark from '~/components/Bookmark'
+import { Bookmark } from '~/components/Bookmark'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, tokenIconUrl } from '~/utils'

@@ -11,7 +11,7 @@ import {
 	ColumnFiltersState,
 	getFilteredRowModel
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/Table/Table'
+import { VirtualTable } from '~/components/Table/Table'
 import { hacksColumns, hacksColumnOrders } from '~/components/Table/Defi/columns'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'

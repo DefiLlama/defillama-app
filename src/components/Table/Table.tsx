@@ -2,8 +2,8 @@ import * as React from 'react'
 import { Table, flexRender, RowData } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import styled from 'styled-components'
-import SortIcon from './SortIcon'
-import { QuestionHelper } from '../QuestionHelper'
+import { SortIcon } from '~/components/Table/SortIcon'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -25,7 +25,7 @@ declare module '@tanstack/table-core' {
 	}
 }
 
-export default function VirtualTable({
+export function VirtualTable({
 	instance,
 	skipVirtualization,
 	columnResizeMode,

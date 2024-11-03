@@ -6,7 +6,7 @@ import { getColumnSizesKeys } from '../../utils'
 
 const columnSizesKeys = getColumnSizesKeys(columnSizes)
 
-export default function YieldsLoopTable({ data }: IYieldsTableProps) {
+export function YieldsLoopTable({ data }: IYieldsTableProps) {
 	return (
 		<YieldsTableWrapper
 			data={data}

@@ -37,8 +37,8 @@ import type {
 	CoinPerformanceRow
 } from './types'
 import { useEffect, useState } from 'react'
-import UpcomingEvent from '../Components/UpcomingEvent'
-import ProgressBar from '../Components/ProgressBar'
+import { UpcomingEvent } from '../Components/UpcomingEvent'
+import { ProgressBar } from '../Components/ProgressBar'
 import { Icon } from '~/components/Icon'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
@@ -684,7 +684,18 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		accessorKey: 'link',
 		size: 40,
 		enableSorting: false,
-		cell: ({ getValue }) => <Icon name="arrow-up-right" height={14} width={14} />
+		cell: ({ getValue }) => (
+			<ButtonSquare
+				as="a"
+				href={getValue() as string}
+				target="_blank"
+				rel="noopener noreferrer"
+				data-lgonly
+				useTextColor={true}
+			>
+				<Icon name="arrow-up-right" height={14} width={14} />
+			</ButtonSquare>
+		)
 	}
 ]
 

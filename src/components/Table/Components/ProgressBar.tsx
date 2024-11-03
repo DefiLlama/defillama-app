@@ -38,7 +38,7 @@ const LigthText = styled.div`
 	color: ${({ theme }) => theme.text2};
 `
 
-const ProgressBar = ({ percent, tokenPrice, symbol, name, maxSupply }) => {
+export const ProgressBar = ({ percent, tokenPrice, symbol, name, maxSupply }) => {
 	const tokenSymbol = tokenPrice?.[0]?.symbol?.toUpperCase() || symbol?.toUpperCase() || name
 	return (
 		<Column>
@@ -54,5 +54,3 @@ const ProgressBar = ({ percent, tokenPrice, symbol, name, maxSupply }) => {
 		</Column>
 	)
 }
-
-export default ProgressBar

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import { YieldsBorrowTable } from '~/components/Table'
+import { YieldsBorrowTable } from '~/components/Table/Yields/Borrow'
 import { YieldFiltersV2 } from '~/components/Filters/yields'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'

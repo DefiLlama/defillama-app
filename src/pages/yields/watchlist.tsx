@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { YieldsWatchlistContainer } from '~/containers/Watchlist'
+import { YieldsWatchlistContainer } from '~/containers/Watchlist/Yields'
 import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/containers/YieldsPage/utils'
 import { maxAgeForNext } from '~/api'

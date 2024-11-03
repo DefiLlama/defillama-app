@@ -1,7 +1,7 @@
 import React from 'react'
 import { CloseButton, ModalContent, ModalHeader, ModalTitle, ModalWrapper } from './styles'
 
-const Modal = ({ children, isOpen, onClose, title = '' }) => {
+export const Modal = ({ children, isOpen, onClose, title = '' }) => {
 	if (!isOpen) return null
 	return (
 		<>
@@ -17,5 +17,3 @@ const Modal = ({ children, isOpen, onClose, title = '' }) => {
 		</>
 	)
 }
-
-export default Modal
