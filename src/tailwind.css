@@ -112,12 +112,12 @@
 	}
 
 	body {
-		@apply bg-[#ffffff] dark:bg-[#17181c] text-sm;
+		@apply text-black bg-white dark:text-white dark:bg-[#17181c] text-sm;
 	}
 
 	#__next,
 	[data-rk] {
-		@apply flex flex-col w-full relative min-h-full isolate lg:flex-row text-[#1F1F1F] bg-[#ffffff] dark:text-[#FAFAFA] dark:bg-[#17181c];
+		@apply flex flex-col w-full relative min-h-full isolate lg:flex-row;
 	}
 
 	h1,

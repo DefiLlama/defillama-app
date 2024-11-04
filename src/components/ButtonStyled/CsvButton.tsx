@@ -29,7 +29,11 @@ export const CSVDownloadButton = ({
 
 	return (
 		<>
-			<Button className={className} onClick={() => setVerifyAndDownload((prev) => prev + 1)} style={style}>
+			<Button
+				className={className}
+				onClick={() => (IS_PRO_API_ENABLED ? setVerifyAndDownload((prev) => prev + 1) : onClick())}
+				style={style}
+			>
 				{text}{' '}
 				{IS_PRO_API_ENABLED ? (
 					<span
