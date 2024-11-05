@@ -7,6 +7,7 @@ import styled, { css } from 'styled-components'
 import { CoinsPicker } from '~/containers/Correlations'
 import { formattedNum } from '~/utils'
 import { Icon } from '~/components/Icon'
+import { useDialogState } from 'ariakit'
 
 const unixToDateString = (unixTimestamp) => {
 	if (!unixTimestamp) return ''
@@ -138,6 +139,8 @@ export default function TokenPnl({ coinsData }) {
 		refetch()
 	}
 
+	const dialogState = useDialogState()
+
 	return (
 		<PageWrapper>
 			<h1 className="text-2xl font-medium text-center -mb-5">Token Holder Profit and Loss</h1>
@@ -169,7 +172,12 @@ export default function TokenPnl({ coinsData }) {
 						<Label>Token:</Label>
 						<SearchWrapper>
 							{selectedCoins[0] ? (
-								<SelectedToken onClick={() => setModalOpen(1)}>
+								<SelectedToken
+									onClick={() => {
+										setModalOpen(1)
+										dialogState.toggle()
+									}}
+								>
 									<img
 										src={selectedCoins[0].image}
 										alt={selectedCoins[0].name}
@@ -182,7 +190,14 @@ export default function TokenPnl({ coinsData }) {
 							) : (
 								<>
 									<StyledSearchIcon name="search" height={16} width={16} />
-									<SearchInput onClick={() => setModalOpen(1)} placeholder="Search coins..." readOnly />
+									<SearchInput
+										onClick={() => {
+											setModalOpen(1)
+											dialogState.toggle()
+										}}
+										placeholder="Search coins..."
+										readOnly
+									/>
 								</>
 							)}
 						</SearchWrapper>
@@ -245,8 +260,7 @@ export default function TokenPnl({ coinsData }) {
 
 				<CoinsPicker
 					coinsData={coinsData}
-					isModalOpen={isModalOpen}
-					setModalOpen={setModalOpen}
+					dialogState={dialogState}
 					selectedCoins={{}}
 					queryCoins={coins}
 					selectCoin={(coin) => {
@@ -265,6 +279,7 @@ export default function TokenPnl({ coinsData }) {
 						)
 						refetch()
 						setModalOpen(0)
+						dialogState.toggle()
 					}}
 				/>
 			</ContentWrapper>

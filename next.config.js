@@ -152,6 +152,11 @@ const nextConfig = {
 				source: '/crypto-etf',
 				destination: '/crypto-etf/bitcoin',
 				permanent: true
+			},
+			{
+				source: '/tokenPnl',
+				destination: '/token-pnl',
+				permanent: true
 			}
 		]
 	},

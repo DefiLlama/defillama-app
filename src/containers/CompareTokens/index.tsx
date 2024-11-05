@@ -9,11 +9,11 @@ import { useSelectState, Select, SelectItem, SelectPopover, SelectArrow } from '
 import { useQuery } from '@tanstack/react-query'
 import { SearchIcon } from '~/components/Table/shared'
 import { Icon } from '~/components/Icon'
+import { useDialogState } from 'ariakit'
 
 export default function CompareFdv({ coinsData, protocols }) {
 	const router = useRouter()
 	const [isModalOpen, setModalOpen] = useState(0)
-
 	const { selectedCoins, coins, compareType } = useMemo(() => {
 		const queryCoins = router.query?.coin || ([] as Array<string>)
 
@@ -119,6 +119,8 @@ export default function CompareFdv({ coinsData, protocols }) {
 
 	const selectState = useSelectState({ gutter: 8 })
 
+	const dialogState = useDialogState()
+
 	return (
 		<>
 			<h1 className="text-2xl font-medium mt-2">Compare Tokens</h1>
@@ -127,7 +129,14 @@ export default function CompareFdv({ coinsData, protocols }) {
 					<TableFilters>
 						<SearchIcon />
 
-						<input value={selectedCoins[0]?.name} onClick={() => setModalOpen(1)} placeholder="Search coins..." />
+						<input
+							value={selectedCoins[0]?.name}
+							onClick={() => {
+								setModalOpen(1)
+								dialogState.toggle()
+							}}
+							placeholder="Search coins..."
+						/>
 					</TableFilters>
 					{/* <ReactSelect
 						options={coinsData}
@@ -224,7 +233,14 @@ export default function CompareFdv({ coinsData, protocols }) {
 					<TableFilters>
 						<SearchIcon />
 
-						<input value={selectedCoins[1]?.name} onClick={() => setModalOpen(2)} placeholder="Search coins..." />
+						<input
+							value={selectedCoins[1]?.name}
+							onClick={() => {
+								setModalOpen(2)
+								dialogState.toggle()
+							}}
+							placeholder="Search coins..."
+						/>
 					</TableFilters>
 
 					<Select
@@ -319,8 +335,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 
 				<CoinsPicker
 					coinsData={coinsData}
-					isModalOpen={isModalOpen}
-					setModalOpen={setModalOpen}
+					dialogState={dialogState}
 					selectedCoins={{}}
 					queryCoins={coins}
 					selectCoin={(coin) => {
@@ -338,6 +353,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 							{ shallow: true }
 						)
 						setModalOpen(0)
+						dialogState.toggle()
 					}}
 				/>
 			</Wrapper>
