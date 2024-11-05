@@ -94,7 +94,7 @@ export const ComboboxSelectContent = ({ autoFocus, options, contentElementId, ..
 	return (
 		<>
 			<input
-				className="combobox-input"
+				className="bg-white dark:bg-black rounded-md py-2 px-3 m-3 mb-0"
 				onChange={(e) => setInputValue(e.target.value)}
 				placeholder="Search..."
 				role="combobox"

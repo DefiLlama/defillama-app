@@ -17,10 +17,10 @@ import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import { RowWithSubRows, StatsTable2 } from '~/containers/Defi/Protocol'
 import { categoryProtocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IOverviewProps } from '~/api/categories/adaptors'
-import { Modal } from '~/components/Modal'
-import CompareProtocols from '~/containers/CompareProtocols'
+import { CompareProtocols } from '~/containers/CompareProtocols'
 import { ButtonDark } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
+import { Dialog, DialogDismiss, DialogHeading, useDialogState } from 'ariakit'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -59,7 +59,7 @@ function Container({
 	const [isDark] = useDarkModeManager()
 	const router = useRouter()
 	const [compareProtocols, setCompareProtocols] = React.useState<string[]>([])
-	const [isCompareModalOpen, setIsCompareModalOpen] = React.useState(false)
+
 	const handleRouting = (chain) => {
 		if (chain === 'All') return `/protocols/${category}`
 		return `/protocols/${category}/${chain}`
@@ -156,6 +156,8 @@ function Container({
 	const datasets = React.useMemo(() => {
 		return [{ globalChart: categoryChart }]
 	}, [categoryChart])
+
+	const dialogState = useDialogState()
 
 	return (
 		<>
@@ -311,13 +313,21 @@ function Container({
 				/>
 			</LayoutWrapper>
 			{compareProtocols.length > 0 && (
-				<ButtonDark className="fixed bottom-4 right-4" onClick={() => setIsCompareModalOpen(true)}>
+				<ButtonDark className="fixed bottom-4 right-4" onClick={dialogState.toggle}>
 					Compare Protocols ({compareProtocols.length})
 				</ButtonDark>
 			)}
-			<Modal isOpen={isCompareModalOpen} onClose={() => setIsCompareModalOpen(false)} title="Compare Protocols">
+
+			<Dialog state={dialogState} className="dialog sm:max-w-[70vw]">
+				<span className="flex items-center justify-center gap-1 w-full relative">
+					<DialogHeading className="font-medium text-xl">Compare Protocols</DialogHeading>
+					<DialogDismiss className="absolute right-0 top-0">
+						<Icon name="x" height={16} width={16} />
+						<span className="sr-only">Close dialog</span>
+					</DialogDismiss>
+				</span>
 				<CompareProtocols protocols={compareProtocols.map(slug)} chain={chain} />
-			</Modal>
+			</Dialog>
 		</>
 	)
 }

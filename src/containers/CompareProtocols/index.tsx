@@ -1,5 +1,4 @@
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import { useQuery } from '@tanstack/react-query'
 import React from 'react'
 import { fuseProtocolData } from '~/api/categories/protocols'
@@ -13,13 +12,6 @@ import { LocalLoader } from '~/components/LocalLoader'
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
 })
-
-const ModalBody = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	width: 70vw;
-`
 
 const useProtocols = (protocols: string[], chain?: string) => {
 	const { data, isLoading } = useQuery({
@@ -54,28 +46,19 @@ const useProtocols = (protocols: string[], chain?: string) => {
 	return { data, isLoading, chartData }
 }
 
-const CompareProtocols = ({ protocols, chain }: { protocols: string[]; chain: string }) => {
+export const CompareProtocols = ({ protocols, chain }: { protocols: string[]; chain: string }) => {
 	const { isLoading, chartData } = useProtocols(protocols, chain)
 	const [isDark] = useDarkModeManager()
+
 	return (
-		<ModalBody>
+		<>
 			{chartData.length > 0 && !isLoading ? (
-				<ChainChart
-					datasets={chartData}
-					width={'100%'}
-					title=""
-					compareMode
-					isThemeDark={isDark}
-					showLegend
-					style={{ minWidth: '70vw', maxWidth: '1200px' }}
-				/>
+				<ChainChart datasets={chartData} title="" compareMode isThemeDark={isDark} showLegend />
 			) : (
 				<div className="flex items-center justify-center m-auto min-h-[360px]">
 					<LocalLoader />
 				</div>
 			)}
-		</ModalBody>
+		</>
 	)
 }
-
-export default CompareProtocols

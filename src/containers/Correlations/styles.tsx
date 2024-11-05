@@ -132,5 +132,6 @@ export const Description = styled.div`
 	margin: 0 auto;
 	font-size: 14px;
 	color: ${({ theme }) => theme.text2};
-	width: 500px;
+	max-width: 500px;
+	word-break: break-all;
 `

@@ -235,35 +235,4 @@ export const GlobalStyle = createGlobalStyle`
 		flex-direction: row-reverse;
 	}
 
-	.dialog {
-		color: ${({ theme }) => theme.text1};
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-		border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
-	}
-
-	.combobox-input {
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
-		color: ${({ theme }) => theme.text1};
-		font: inherit;
-		padding: 8px 12px;
-		border: ${({ theme }) => '1px solid ' + theme.text4};
-		border-radius: 8px;
-		margin: 12px 12px 0;
-	
-		:focus-visible {
-			outline: ${({ theme }) => '1px solid ' + theme.text1};
-		}
-	}
-
-	.select-options-wrapper {
-		overflow-y: auto;
-	}
-
-	.checkbox-filter {
-		display: flex;
-		gap: 6px;
-		align-items: center;
-		flex-wrap: nowrap;
-	}
-
 `

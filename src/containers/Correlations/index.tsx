@@ -19,10 +19,10 @@ import { useRouter } from 'next/router'
 import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
-import { CloseButton, ModalContent, ModalWrapper } from '~/components/Modal/styles'
 import { Icon } from '~/components/Icon'
+import { Dialog, DialogDismiss, useDialogState } from 'ariakit'
 
-export function CoinsPicker({ coinsData, isModalOpen, setModalOpen, selectCoin, selectedCoins, queryCoins }: any) {
+export function CoinsPicker({ coinsData, dialogState, selectCoin, selectedCoins, queryCoins }: any) {
 	const parentRef = useRef()
 	const [search, setSearch] = useState('')
 	const filteredCoins = useMemo(() => {
@@ -43,74 +43,76 @@ export function CoinsPicker({ coinsData, isModalOpen, setModalOpen, selectCoin, 
 		estimateSize: () => 50
 	})
 	return (
-		<ModalWrapper open={isModalOpen} onClick={() => setModalOpen(false)}>
-			<ModalContent onClick={(e) => e.stopPropagation()}>
-				<CloseButton>
-					<input
-						value={search}
-						onChange={(e) => {
-							setSearch(e.target?.value)
-						}}
-						placeholder={'Search token...'}
-						style={{ height: '36px' }}
-						autoFocus
-					/>
-					<Icon name="x" height={24} width={24} style={{ marginLeft: '0.5em' }} onClick={() => setModalOpen(false)} />
-				</CloseButton>
-				<SearchBody
-					ref={parentRef}
+		<Dialog state={dialogState} className="dialog flex flex-col items-center sm:max-w-[340px]">
+			<span className="flex items-center gap-1 w-full">
+				<input
+					value={search}
+					onChange={(e) => {
+						setSearch(e.target?.value)
+					}}
+					placeholder="Search token..."
+					className="bg-white dark:bg-black rounded-md py-2 px-3 flex-1"
+					autoFocus
+				/>
+				<DialogDismiss>
+					<Icon name="x" height={24} width={24} />
+					<span className="sr-only">Close dialog</span>
+				</DialogDismiss>
+			</span>
+
+			<SearchBody
+				ref={parentRef}
+				style={{
+					height: 400,
+					width: 300,
+					overflowY: 'auto',
+					contain: 'strict'
+				}}
+			>
+				<div
 					style={{
-						height: 400,
-						width: 300,
-						overflowY: 'auto',
-						contain: 'strict'
+						height: `${rowVirtualizer.getTotalSize()}px`,
+						width: '100%',
+						position: 'relative'
 					}}
 				>
-					<div
-						style={{
-							height: `${rowVirtualizer.getTotalSize()}px`,
-							width: '100%',
-							position: 'relative'
-						}}
-					>
-						{rowVirtualizer.getVirtualItems().map((virtualItem) => {
-							const coin = filteredCoins[virtualItem.index]
+					{rowVirtualizer.getVirtualItems().map((virtualItem) => {
+						const coin = filteredCoins[virtualItem.index]
 
-							if (!coin) return
+						if (!coin) return
 
-							return (
-								<SearchRow
-									style={{
-										position: 'absolute',
-										top: 0,
-										left: 0,
-										width: '100%',
-										height: `${virtualItem.size}px`,
-										transform: `translateY(${virtualItem.start}px)`
+						return (
+							<SearchRow
+								style={{
+									position: 'absolute',
+									top: 0,
+									left: 0,
+									width: '100%',
+									height: `${virtualItem.size}px`,
+									transform: `translateY(${virtualItem.start}px)`
+								}}
+								key={virtualItem.key}
+								onClick={() => selectCoin(coin)}
+							>
+								<Image
+									alt={''}
+									src={coin.image}
+									height={'24px'}
+									width={'24px'}
+									loading="lazy"
+									onError={(e) => {
+										e.currentTarget.src = '/placeholder.png'
 									}}
-									key={virtualItem.key}
-									onClick={() => selectCoin(coin)}
-								>
-									<Image
-										alt={''}
-										src={coin.image}
-										height={'24px'}
-										width={'24px'}
-										loading="lazy"
-										onError={(e) => {
-											e.currentTarget.src = '/placeholder.png'
-										}}
-									/>
-									<span>
-										{coin.name} ({coin.symbol.toUpperCase()})
-									</span>
-								</SearchRow>
-							)
-						})}
-					</div>
-				</SearchBody>
-			</ModalContent>
-		</ModalWrapper>
+								/>
+								<span>
+									{coin.name} ({coin.symbol.toUpperCase()})
+								</span>
+							</SearchRow>
+						)
+					})}
+				</div>
+			</SearchBody>
+		</Dialog>
 	)
 }
 
@@ -171,7 +173,7 @@ export default function Correlations({ coinsData }) {
 			)
 	}, [queryCoins, router])
 
-	const [isModalOpen, setModalOpen] = useState(false)
+	const dialogState = useDialogState()
 
 	return (
 		<>
@@ -237,7 +239,7 @@ export default function Correlations({ coinsData }) {
 							</SearchRow>
 						) : null
 					)}
-					<Add onClick={() => setModalOpen(true)}>
+					<Add onClick={dialogState.toggle}>
 						<div>+</div>
 					</Add>
 				</SelectedBody>
@@ -247,7 +249,7 @@ export default function Correlations({ coinsData }) {
 						{coins.map((coin) => (
 							<HeaderCell key={coin.id}>{coin?.symbol?.toUpperCase()}</HeaderCell>
 						))}
-						<ButtonCell onClick={() => setModalOpen(true)}>+</ButtonCell>
+						<ButtonCell onClick={dialogState.toggle}>+</ButtonCell>
 					</thead>
 					<tbody>
 						{coins.map((coin, i) => (
@@ -276,14 +278,13 @@ export default function Correlations({ coinsData }) {
 							</Row>
 						))}
 						<Row>
-							<ButtonCell onClick={() => setModalOpen(true)}>+</ButtonCell>
+							<ButtonCell onClick={() => dialogState.toggle}>+</ButtonCell>
 						</Row>
 					</tbody>
 				</Table>
 				<CoinsPicker
 					coinsData={coinsData}
-					isModalOpen={isModalOpen}
-					setModalOpen={setModalOpen}
+					dialogState={dialogState}
 					selectedCoins={selectedCoins}
 					queryCoins={queryCoins}
 					selectCoin={(coin) => {
