@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { v4 as uuid } from 'uuid'
-import styled from 'styled-components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
@@ -10,13 +9,9 @@ import { toK } from '~/utils'
 
 echarts.use([TitleComponent, TooltipComponent, EChartTreemap, CanvasRenderer, ToolboxComponent])
 
-export interface IChartProps {
+interface IChartProps {
 	chartData: any
 }
-
-const Wrapper = styled.div`
-	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
-`
 
 const visualMin = -100
 const visualMax = 100
@@ -227,5 +222,5 @@ export default function TreemapChart({ chartData }: IChartProps) {
 		}
 	}, [id, chartDataTree, createInstance, isDark])
 
-	return <Wrapper id={id} style={{ height: '533px', margin: 'auto 0' }}></Wrapper>
+	return <div id={id} className="h-[533px] my-auto" />
 }

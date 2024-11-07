@@ -1,16 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
-import styled from 'styled-components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject, stringToColour } from '../utils'
 import { SelectLegendMultiple } from '../shared'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-
-const Wrapper = styled.div`
-	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
-`
 
 // TODO remove color prop and use stackColors by default
 export default function AreaChart({
@@ -277,7 +272,7 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent])
+	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, hideLegend])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
 
@@ -291,7 +286,7 @@ export default function AreaChart({
 					title={legendOptions.length === 1 ? legendTitle : legendTitle + 's'}
 				/>
 			)}
-			<Wrapper id={id} style={{ height, margin: 'auto 0' }}></Wrapper>
+			<div id={id} style={{ height }} className="my-auto" />
 		</div>
 	)
 }

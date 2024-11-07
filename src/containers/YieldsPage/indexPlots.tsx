@@ -22,7 +22,7 @@ const BarChartYields = dynamic(() => import('~/components/ECharts/BarChart/Yield
 	ssr: false
 }) as React.FC<IChartProps>
 
-const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens, tokenSymbolsList }) => {
+export const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens, tokenSymbolsList }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -100,5 +100,3 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens
 		</>
 	)
 }
-
-export default PlotsPage

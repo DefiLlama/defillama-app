@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import PlotsPage from '~/containers/YieldsPage/indexPlots'
+import { PlotsPage } from '~/containers/YieldsPage/indexPlots'
 import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/containers/YieldsPage/utils'
 import { maxAgeForNext } from '~/api'

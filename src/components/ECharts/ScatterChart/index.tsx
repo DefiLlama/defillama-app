@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { toK } from '~/utils'
 import { v4 as uuid } from 'uuid'
-import styled from 'styled-components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { ScatterChart as EChartScatter } from 'echarts/charts'
@@ -17,7 +16,6 @@ import {
 	DataZoomComponent
 } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { YieldsChartWrapper } from '../shared'
 
 echarts.use([
 	CanvasRenderer,
@@ -36,10 +34,6 @@ echarts.use([
 export interface IChartProps {
 	chartData: any
 }
-
-const Wrapper = styled.div`
-	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
-`
 
 export default function ScatterChart({ chartData }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -217,8 +211,8 @@ export default function ScatterChart({ chartData }: IChartProps) {
 	}, [id, chartData, createInstance, isDark])
 
 	return (
-		<YieldsChartWrapper>
-			<Wrapper id={id} style={{ height: '600px', margin: 'auto 0' }}></Wrapper>
-		</YieldsChartWrapper>
+		<div className="relative rounded-md p-5 bg-[var(--bg6)] flex flex-col items-end">
+			<div id={id} className="h-[600px] w-full" />
+		</div>
 	)
 }

@@ -1,16 +1,11 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
-import styled from 'styled-components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject, stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { toK } from '~/utils'
-
-const Wrapper = styled.div`
-	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
-`
 
 export default function AreaChart({
 	chartData,
@@ -210,7 +205,7 @@ export default function AreaChart({
 
 	return (
 		<div style={{ position: 'relative' }} {...props}>
-			<Wrapper id={id} style={{ height, margin: 'auto 0' }}></Wrapper>
+			<div id={id} style={{ height }} className="my-auto" />
 		</div>
 	)
 }

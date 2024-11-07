@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { v4 as uuid } from 'uuid'
-import styled from 'styled-components'
 import * as echarts from 'echarts/core'
 import {
 	ToolboxComponent,
@@ -13,7 +12,6 @@ import { BarChart, LineChart } from 'echarts/charts'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { YieldsChartWrapper } from '../shared'
 import { download } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
@@ -32,10 +30,6 @@ echarts.use([
 export interface IChartProps {
 	chartData: any
 }
-
-const Wrapper = styled.div`
-	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
-`
 
 export default function BarChartYields({ chartData }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -189,9 +183,9 @@ export default function BarChartYields({ chartData }: IChartProps) {
 	}
 
 	return (
-		<YieldsChartWrapper>
-			<Wrapper id={id} style={{ height: '600px', margin: 'auto 0' }}></Wrapper>
-			<CSVDownloadButton onClick={downloadCsv} style={{ float: 'right' }} />
-		</YieldsChartWrapper>
+		<div className="relative rounded-md p-5 bg-[var(--bg6)] flex flex-col items-end">
+			<div id={id} className="h-[600px] w-full" />
+			<CSVDownloadButton onClick={downloadCsv} />
+		</div>
 	)
 }
