@@ -46,9 +46,11 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 		props: {
 			// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
 			// setting to uppercase, we only show subset of available pools when applying `findOptimzerPools`
-			pools: pools.filter((p) => p.category !== 'CDP').map((p) => ({ ...p, symbol: p.symbol.toUpperCase() })),
+			pools: pools
+				.filter((p) => p.category !== 'CDP' && !p.mintedCoin)
+				.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() })),
 			cdpPools: pools
-				.filter((p) => p.category === 'CDP' && p.mintedCoin)
+				.filter((p) => (p.category === 'CDP' && p.mintedCoin) || (p.category === 'Lending' && p.mintedCoin)) // for lending projects with isolated markets (like morpho-blue) we use the mintedCoin integration
 				.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } })),
 			searchData
 		},
