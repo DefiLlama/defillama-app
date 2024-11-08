@@ -221,6 +221,8 @@ export async function getLendBorrowData() {
 					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
 				)
 				totalAvailableUsd = aaveData?.totalSupplyUsd - aaveData?.totalBorrowUsd
+			} else if (p.project === 'morpho-blue') {
+				totalAvailableUsd = x.debtCeilingUsd
 			} else if (x.totalSupplyUsd === null && x.totalBorrowUsd === null) {
 				totalAvailableUsd = null
 				// GHO pool on aave-v3

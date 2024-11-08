@@ -419,7 +419,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{info.row.original.project.includes('Morpho') ? (
+					{['Morpho Compound', 'Morpho Aave'].includes(info.row.original.project) ? (
 						<QuestionHelper
 							text={`Morpho liquidity comes from the underlying lending protocol pool itself. Available P2P Liquidity: ${
 								info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd > 0

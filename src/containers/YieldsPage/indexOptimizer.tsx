@@ -26,10 +26,10 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 
 	// get cdp collateral -> debt token route
 	const cdpPools = pools
-		.filter((p) => p.category === 'CDP' && p.mintedCoin)
+		.filter((p) => (p.category === 'CDP' && p.mintedCoin) || (p.category === 'Lending' && p.mintedCoin)) // for lending projects with isolated markets (like morpho-blue) we use the mintedCoin integration
 		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
 
-	const lendingPools = pools.filter((p) => p.category !== 'CDP')
+	const lendingPools = pools.filter((p) => p.category !== 'CDP' && !p.mintedCoin)
 	const poolsData = React.useMemo(() => {
 		if (pathname === '/borrow/advanced' && (lend === '' || borrow === '')) {
 			return []
