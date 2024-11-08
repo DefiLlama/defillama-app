@@ -6,7 +6,7 @@ import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import { Button, ExtraOption, FlexRow, Name, Symbol } from '~/layout/ProtocolAndPool'
+import { Button, ExtraOption, Name, Symbol } from '~/layout/ProtocolAndPool'
 import { Checkbox2 } from '~/components'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ButtonLight } from '~/components/ButtonStyled'
@@ -343,14 +343,14 @@ export const PeggedAssetInfo = ({
 							)}
 
 							{pegMechanism && (
-								<FlexRow>
+								<p className="flex items-center gap-2">
 									<>
 										<span>Category</span>
 										<span>:</span>
 										<span>{pegMechanism}</span>
 										<QuestionHelper text={risksHelperTexts[pegMechanism]} />
 									</>
-								</FlexRow>
+								</p>
 							)}
 
 							{mintRedeemDescription && (

@@ -111,12 +111,6 @@ export const Button = ({ children, ...props }: ComponentProps<typeof ButtonLight
 	</ButtonLight>
 )
 
-export const FlexRow = styled.p`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-`
-
 export const DownloadButton = ({ children, ...props }: ComponentProps<typeof ButtonLight>) => (
 	<ButtonLight
 		className="flex items-center gap-4 font-normal whitespace-nowrap font-inter !text-inherit rounded-xl"

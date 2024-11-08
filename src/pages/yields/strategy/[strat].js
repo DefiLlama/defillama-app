@@ -3,7 +3,6 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import {
-	FlexRow,
 	InfoWrapper,
 	Name,
 	Section,
@@ -235,13 +234,13 @@ const PageView = () => {
 			<InfoWrapper>
 				<Section>
 					<h3>Steps</h3>
-					<FlexRow>
+					<p className="flex items-center gap-2">
 						<span>1.</span>
 						Lend {configData?.data.find((c) => c.config_id === lendToken)?.symbol} as collateral on{' '}
 						{configData?.data.find((c) => c.config_id === lendToken)?.project} which earns a Supply APY of{' '}
 						{lendApy?.toFixed(2)}%.
-					</FlexRow>
-					<FlexRow>
+					</p>
+					<p className="flex items-center gap-2">
 						<span>2.</span>
 						Borrow{' '}
 						{lendProjectCategory !== 'CDP'
@@ -250,18 +249,18 @@ const PageView = () => {
 						against your {configData?.data.find((c) => c.config_id === lendToken)?.symbol} collateral with a max LTV of{' '}
 						{(ltv * 100).toFixed()}% and a borrow APY of {borrowApy?.toFixed(2)}% (
 						{borrowApy > 0 ? 'You get paid by borrowing' : 'The interest you need to pay'}).
-					</FlexRow>
+					</p>
 
 					{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
 						configData?.data.find((c) => c.config_id === farmToken)?.symbol && lendProjectCategory !== 'CDP' ? (
-						<FlexRow>
+						<p className="flex items-center gap-2">
 							<span>3.</span>
 							Swap borrowed {configData?.data.find((c) => c.config_id === borrowToken)?.symbol} for{' '}
 							{configData?.data.find((c) => c.config_id === farmToken)?.symbol}
-						</FlexRow>
+						</p>
 					) : null}
 
-					<FlexRow>
+					<p className="flex items-center gap-2">
 						{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
 						configData?.data.find((c) => c.config_id === farmToken)?.symbol ? (
 							<span>4.</span>
@@ -270,23 +269,23 @@ const PageView = () => {
 						)}
 						Farm with {configData?.data.find((c) => c.config_id === farmToken)?.symbol} on{' '}
 						{configData?.data.find((c) => c.config_id === farmToken)?.project} which earns {farmApy?.toFixed(2)}%.
-					</FlexRow>
+					</p>
 
 					{configData?.data.find((c) => c.config_id === lendToken)?.symbol ===
 					configData?.data.find((c) => c.config_id === borrowToken)?.symbol ? (
 						// loop strategies
-						<FlexRow>
+						<p className="flex items-center gap-2">
 							Strategy APY = Recursively lend and borrow{' '}
 							{configData?.data.find((c) => c.config_id === lendToken)?.symbol} up to n-times (Strategy APY is
 							calculated assuming 10 loops)
-						</FlexRow>
+						</p>
 					) : (
 						// non loop strategies
-						<FlexRow>
+						<p className="flex items-center gap-2">
 							Strategy APY = {lendApy?.toFixed(2)}%{' '}
 							{borrowApy > 0 ? `+ ${borrowApy?.toFixed(2)}` : borrowApy?.toFixed(2)}% * {ltv?.toFixed(2)} +{' '}
 							{farmApy?.toFixed(2)}% * {ltv?.toFixed(2)} = {finalAPY?.toFixed(2)}%
-						</FlexRow>
+						</p>
 					)}
 				</Section>
 			</InfoWrapper>

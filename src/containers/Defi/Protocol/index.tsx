@@ -3,12 +3,10 @@ import dynamic from 'next/dynamic'
 import Image from 'next/future/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import {
 	ExtraOption,
-	FlexRow,
 	Name,
 	Section,
 	Symbol,
@@ -71,6 +69,7 @@ import { feesOptions } from '~/components/Filters/protocols/options'
 import { scams } from '~/constants'
 import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
+import { RowWithSubRows } from './RowWithSubRows'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -83,32 +82,6 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
-
-const Bobo = styled.button`
-	position: absolute;
-	bottom: -36px;
-	left: 0;
-
-	img {
-		width: 34px !important;
-		height: 34px !important;
-	}
-
-	@media screen and (min-width: 80rem) {
-		top: 0;
-		right: 0;
-		bottom: initial;
-		left: initial;
-		z-index: 1;
-	}
-`
-
-const HackDataWrapper = styled.div`
-	a {
-		margin-top: 6px;
-		width: fit-content;
-	}
-`
 
 interface IProtocolContainerProps {
 	articles: IArticle[]
@@ -1280,10 +1253,13 @@ function ProtocolContainer({
 								nftVolumeData={nftVolumeData}
 							/>
 
-							<Bobo onClick={() => setBobo(!bobo)}>
+							<button
+								onClick={(prev) => setBobo(!prev)}
+								className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-[1]"
+							>
 								<span className="sr-only">Enable Goblin Mode</span>
-								<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
-							</Bobo>
+								<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" className="h-[34px] w-[34px]" />
+							</button>
 						</div>
 						<GridContent>
 							<Section>
@@ -1291,7 +1267,7 @@ function ProtocolContainer({
 								{description && <p>{description}</p>}
 
 								{category && (
-									<FlexRow>
+									<p className="flex items-center gap-2">
 										<span>Category</span>
 										<span>:</span>
 
@@ -1308,11 +1284,11 @@ function ProtocolContainer({
 												<span>{category}</span> <Icon name="arrow-up-right" height={14} width={14} />
 											</ButtonLight>
 										</Link>
-									</FlexRow>
+									</p>
 								)}
 
 								{forkedFrom && forkedFrom.length > 0 && (
-									<FlexRow>
+									<p className="flex items-center gap-2">
 										<span>Forked from:</span>
 										<>
 											{forkedFrom.map((p, index) => (
@@ -1322,7 +1298,7 @@ function ProtocolContainer({
 												</React.Fragment>
 											))}
 										</>
-									</FlexRow>
+									</p>
 								)}
 
 								{audits && audit_links && (
@@ -1361,10 +1337,10 @@ function ProtocolContainer({
 									)}
 								</div>
 								{twitter && twitterData?.lastTweet ? (
-									<FlexRow>
+									<p className="flex items-center gap-2">
 										<span>Last tweet:</span> {dayjs(twitterData?.lastTweet?.time).fromNow()} (
 										{dayjs(twitterData?.lastTweet?.time).format('YYYY-MM-DD')})
-									</FlexRow>
+									</p>
 								) : null}
 							</Section>
 
@@ -1386,11 +1362,11 @@ function ProtocolContainer({
 							)}
 							{devMetrics && (
 								<Section>
-									<FlexRow as="span">
+									<span className="flex items-center gap-2">
 										<h3>Development Activity</h3>{' '}
 										<p>(updated at {dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})</p>
-									</FlexRow>
-									<FlexRow>
+									</span>
+									<p className="flex items-center gap-2">
 										Weekly commits: {devMetrics?.report?.weekly_contributers.slice(-1)[0]?.cc}
 										<br />
 										Monthly commits: {devMetrics?.report?.monthly_contributers.slice(-1)[0]?.cc}
@@ -1398,11 +1374,11 @@ function ProtocolContainer({
 										Weekly developers: {devMetrics?.report?.weekly_contributers.slice(-1)[0]?.v}
 										<br />
 										Monthly developers: {devMetrics?.report?.monthly_contributers.slice(-1)[0]?.v}
-									</FlexRow>
-									<FlexRow>
+									</p>
+									<p className="flex items-center gap-2">
 										<span>Last commit:</span> {dayjs(devMetrics.last_commit_update_time).fromNow()} (
 										{dayjs(devMetrics.last_commit_update_time).format('YYYY-MM-DD')})
-									</FlexRow>
+									</p>
 								</Section>
 							)}
 							{(address || protocolData.gecko_id || explorers) && (
@@ -1410,14 +1386,14 @@ function ProtocolContainer({
 									<h3>Token Information</h3>
 
 									{address && (
-										<FlexRow>
+										<p className="flex items-center gap-2">
 											<span>Address</span>
 											<span>:</span>
 											<span>
 												{address.split(':').pop().slice(0, 8) + '...' + address.split(':').pop().slice(36, 42)}
 											</span>
 											<CopyHelper toCopy={address.split(':').pop()} disabled={!address} />
-										</FlexRow>
+										</p>
 									)}
 
 									<div className="flex items-center gap-4 flex-wrap">
@@ -1544,41 +1520,41 @@ function ProtocolContainer({
 								<Section>
 									<h3>Hacks</h3>
 
-									<HackDataWrapper>
-										<FlexRow>
+									<div>
+										<p className="flex items-center gap-2">
 											<span>Date</span>
 											<span>:</span>
 											<span>{new Date(hacksData.date * 1000).toLocaleDateString()}</span>
-										</FlexRow>
-										<FlexRow>
+										</p>
+										<p className="flex items-center gap-2">
 											<span>Amount</span>
 											<span>:</span>
 											<span>{formattedNum(hacksData.amount, true)}</span>
-										</FlexRow>
-										<FlexRow>
+										</p>
+										<p className="flex items-center gap-2">
 											<span>Classification</span>
 											<span>:</span>
 											<span>{hacksData.classification}</span>
-										</FlexRow>
-										<FlexRow>
+										</p>
+										<p className="flex items-center gap-2">
 											<span>Technique</span>
 											<span>:</span>
 											<span>{hacksData.technique}</span>
-										</FlexRow>
-										<FlexRow>
+										</p>
+										<p className="flex items-center gap-2">
 											<span>Chain</span>
 											<span>:</span>
 											<span>{hacksData.chain.join(', ')}</span>
-										</FlexRow>
-										<FlexRow>
+										</p>
+										<p className="flex items-center gap-2">
 											<span>Returned Funds</span>
 											<span>:</span>
 											<span>{formattedNum(hacksData.returnedFunds, true)}</span>
-										</FlexRow>
+										</p>
 
 										<Link href={hacksData.source} passHref>
 											<ButtonLight
-												className="flex items-center gap-1"
+												className="flex items-center gap-1 mt-1 max-w-fit"
 												as="a"
 												target="_blank"
 												rel="noopener noreferrer"
@@ -1588,7 +1564,7 @@ function ProtocolContainer({
 												<span>Source</span> <Icon name="arrow-up-right" height={14} width={14} />
 											</ButtonLight>
 										</Link>
-									</HackDataWrapper>
+									</div>
 								</Section>
 							) : null}
 
@@ -1753,54 +1729,8 @@ function ProtocolContainer({
 	)
 }
 
-const Toggle = styled.button`
-	margin-left: -18px;
-	display: flex;
-	align-items: center;
-	gap: 2px;
-	white-space: nowrap;
-
-	& > *[data-arrow] {
-		flex-shrink: 0;
-	}
-
-	&[data-open='true'] {
-		& > *[data-arrow] {
-			transform: rotate(90deg);
-			transition: 0.1s ease;
-		}
-	}
-`
-
 const TabPanel = ({ children, ...props }: any) => {
 	return <div>{props?.state?.selectedId === props?.tabId ? children : null}</div>
-}
-
-export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, helperText }) => {
-	const [open, setOpen] = React.useState(false)
-	return (
-		<>
-			<tr className="group">
-				<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
-					<Toggle onClick={() => setOpen(!open)} data-open={open}>
-						<Icon name="chevron-right" height={16} width={16} data-arrow />
-						<span>{rowHeader}</span>
-						{helperText && <QuestionHelper text={helperText} />}
-					</Toggle>
-					{protocolName && dataType ? (
-						<Flag
-							protocol={protocolName}
-							dataType={dataType}
-							className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-						/>
-					) : null}
-				</th>
-				<td className="font-jetbrains text-right">{rowValue}</td>
-			</tr>
-
-			{open && <>{subRows}</>}
-		</>
-	)
 }
 
 export default ProtocolContainer

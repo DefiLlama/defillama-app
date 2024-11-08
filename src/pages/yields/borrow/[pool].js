@@ -8,7 +8,6 @@ import { download, toK } from '~/utils'
 import {
 	Button,
 	DownloadButton,
-	FlexRow,
 	InfoWrapper,
 	Name,
 	Section,
@@ -290,11 +289,11 @@ const PageView = () => {
 // 			<InfoWrapper>
 // 				<Section>
 // 					<h3>Protocol Information</h3>
-// 					<FlexRow>
+// 					<p className="flex items-center gap-2">
 // 						<span>Category</span>
 // 						<span>:</span>
 // 						<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
-// 					</FlexRow>
+// 					</p>
 
 // 					<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
 

@@ -16,7 +16,7 @@ import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import llamaLogo from '~/assets/peeking-llama.png'
 
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
-import { RowWithSubRows } from '~/containers/Defi/Protocol'
+import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
 import { SEO } from '~/components/SEO'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { TokenLogo } from '~/components/TokenLogo'
