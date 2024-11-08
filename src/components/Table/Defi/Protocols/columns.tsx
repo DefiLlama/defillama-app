@@ -906,7 +906,7 @@ const Tvl = ({ value, rowValues }) => {
 	}
 
 	return (
-		<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+		<span className="flex items-center justify-end gap-1">
 			{text ? <QuestionHelper text={text} /> : null}
 			{rowValues.parentExcluded ? (
 				<QuestionHelper

@@ -10,7 +10,6 @@ import {
 	getPaginationRowModel,
 	flexRender
 } from '@tanstack/react-table'
-import { Wrapper } from '~/components/Table/Table'
 import { protocolsByChainColumns } from './columns'
 import { IProtocolRow } from './types'
 import styled from 'styled-components'
@@ -134,7 +133,7 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 					values={Object.values(TABLE_PERIODS) as Array<string>}
 				/>
 			</ListOptions>
-			<PTable>
+			<div className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)]">
 				<table>
 					<thead>
 						{table.getHeaderGroups().map((headerGroup) => (
@@ -171,7 +170,7 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 						})}
 					</tbody>
 				</table>
-			</PTable>
+			</div>
 			<Footer>
 				<RowFilter
 					selectedValue={null}
@@ -200,43 +199,43 @@ const Body = styled.div`
 	padding: 16px;
 `
 
-const PTable = styled(Wrapper)`
-	margin-bottom: 8px;
-	margin-top: 24px;
+// const PTable = styled(Wrapper)`
+// 	margin-bottom: 8px;
+// 	margin-top: 24px;
 
-	border: none;
-	display: flex;
-	background-color: transparent;
-	table {
-		table-layout: auto;
-		max-width: 700px;
-		width: 100%;
-		margin: 0 auto;
-	}
+// 	border: none;
+// 	display: flex;
+// 	background-color: transparent;
+// 	table {
+// 		table-layout: auto;
+// 		max-width: 700px;
+// 		width: 100%;
+// 		margin: 0 auto;
+// 	}
 
-	th:first-child {
-		min-width: 180px;
-	}
+// 	th:first-child {
+// 		min-width: 180px;
+// 	}
 
-	th > * {
-		padding-left: 12px;
-		padding: 12px;
-	}
-	td {
-		padding: 12px;
-	}
+// 	th > * {
+// 		padding-left: 12px;
+// 		padding: 12px;
+// 	}
+// 	td {
+// 		padding: 12px;
+// 	}
 
-	thead > tr:first-child {
-		th > * {
-			width: fit-content;
-			margin: 0 auto;
-			padding-left: 0;
-		}
-	}
+// 	thead > tr:first-child {
+// 		th > * {
+// 			width: fit-content;
+// 			margin: 0 auto;
+// 			padding-left: 0;
+// 		}
+// 	}
 
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		th:first-child {
-			min-width: 240px;
-		}
-	}
-`
+// 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+// 		th:first-child {
+// 			min-width: 240px;
+// 		}
+// 	}
+// `

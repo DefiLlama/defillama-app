@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { Table, flexRender, RowData } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
-import styled from 'styled-components'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import styled from 'styled-components'
 
 interface ITableProps {
 	instance: Table<any>
@@ -14,7 +14,6 @@ interface ITableProps {
 	rowSize?: number
 	columnResizeMode?: 'onChange' | 'onEnd'
 	renderSubComponent?: ({ row }: { row: any }) => JSX.Element
-	cellStyles?: React.CSSProperties
 	stripedBg?: boolean
 }
 
@@ -31,7 +30,6 @@ export function VirtualTable({
 	columnResizeMode,
 	rowSize,
 	renderSubComponent,
-	cellStyles = {},
 	stripedBg = false,
 	...props
 }: ITableProps) {
@@ -132,7 +130,12 @@ export function VirtualTable({
 	}, [skipVirtualization])
 
 	return (
-		<Wrapper ref={tableContainerRef} id="table-wrapper" {...props}>
+		<div
+			{...props}
+			ref={tableContainerRef}
+			id="table-wrapper"
+			className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)]"
+		>
 			<div
 				ref={tableHeaderRef}
 				id="table-header"
@@ -167,7 +170,7 @@ export function VirtualTable({
 												)}
 											</>
 										)}
-										{meta?.headerHelperText && <Helper text={meta?.headerHelperText} />}
+										{meta?.headerHelperText && <QuestionHelper text={meta?.headerHelperText} />}
 										{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
 									</TableHeader>
 								</Cell>
@@ -218,7 +221,7 @@ export function VirtualTable({
 											ligther={stripedBg && i % 2 === 0}
 											key={cell.id}
 											data-chainpage={isChainPage}
-											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign, ...(cellStyles || {}) }}
+											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign }}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</Cell>
@@ -234,31 +237,9 @@ export function VirtualTable({
 					)
 				})}
 			</div>
-		</Wrapper>
+		</div>
 	)
 }
-
-export const Wrapper = styled.div`
-	isolation: isolate;
-	position: relative;
-	width: 100%;
-	max-width: calc(100vw - 32px);
-	color: ${({ theme }) => theme.text1};
-	background-color: ${({ theme }) => theme.background};
-	border: 1px solid ${({ theme }) => theme.bg3};
-	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
-	border-radius: 12px;
-	overflow-x: auto;
-	margin: 0 auto;
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		max-width: calc(100vw - 276px);
-	}
-
-	a:hover {
-		text-decoration: underline;
-	}
-`
 
 const Cell = styled.div<{ ligther?: boolean }>`
 	flex: 1;
@@ -304,8 +285,4 @@ const TableHeader = styled.span<ITableHeader>`
 	button {
 		padding: 0;
 	}
-`
-
-const Helper = styled(QuestionHelper)`
-	color: ${({ theme }) => theme.text1};
 `

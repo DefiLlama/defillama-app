@@ -2,8 +2,6 @@ import { maxAgeForNext } from '~/api'
 import { Button, ChartsWrapper, LazyChart, Name } from '~/layout/ProtocolAndPool'
 import * as React from 'react'
 import Layout from '~/layout'
-import styled from 'styled-components'
-import { StatsSection } from '~/layout/Stats/Medium'
 import { TokenLogo } from '~/components/TokenLogo'
 import { standardizeProtocolName, tokenIconUrl, chainIconUrl, toK } from '~/utils'
 import {
@@ -117,7 +115,7 @@ export async function getStaticPaths() {
 export default function Protocol({ data, governanceType }) {
 	return (
 		<Layout title={`${data.metadata.name} Governance - DefiLlama`} defaultSEO>
-			<Wrapper>
+			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg7)] border border-[var(--divider)] shadow rounded-xl">
 				<Name>
 					<TokenLogo logo={tokenIconUrl(data.metadata.name)} />
 					<span>{data.metadata.name}</span>
@@ -225,21 +223,12 @@ export default function Protocol({ data, governanceType }) {
 						</Link>
 					)}
 				</div>
-			</Wrapper>
+			</div>
 
 			<GovernanceTable data={data} governanceType={governanceType} />
 		</Layout>
 	)
 }
-
-const Wrapper = styled(StatsSection)`
-	display: flex;
-	flex-direction: column;
-	gap: 36px;
-	padding: 24px;
-	color: ${({ theme }) => theme.text1};
-	background: ${({ theme }) => theme.bg7};
-`
 
 const stackedBarChartColors = {
 	Total: '#4f8fea',

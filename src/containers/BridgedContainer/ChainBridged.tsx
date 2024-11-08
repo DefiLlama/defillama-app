@@ -1,18 +1,15 @@
 import * as React from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
-import { StatsSection } from '~/layout/Stats/Medium'
 import Layout from '~/layout'
 import { SEO } from '~/components/SEO'
-import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
-import { Stat } from '~/layout/Stats/Large'
+import { Name } from '~/layout/ProtocolAndPool'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import dynamic from 'next/dynamic'
 import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import styled from 'styled-components'
 import useWindowSize from '~/hooks/useWindowSize'
 import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
@@ -23,8 +20,6 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
-
-const Stats = styled(StatsSection)``
 
 export default function ChainBridged({ chainData, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
 	const [chartType, setChartType] = React.useState('total')
@@ -63,41 +58,49 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 					}}
 				/>
 				<SEO cardName={chainName} token={chain} />
-				<Stats>
-					<DetailsWrapper style={{ background: 'none' }}>
+				<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+					<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 						<Name>
 							<TokenLogo logo={chainIconUrl(chain)} size={24} />
 							<FormattedName text={chainName + ' Bridged TVL'} fontWeight={700} />
 						</Name>
 
-						<Stat>
-							<span>Total</span>
-							<span>
+						<p className="flex flex-col gap-1 text-base">
+							<span className="text-[#545757] dark:text-[#cccccc]">Total</span>
+							<span className="font-jetbrains font-semibold text-2xl">
 								{formattedNum(
 									+chainData?.total.total + (+chainData?.ownTokens?.total ? +chainData?.ownTokens?.total : 0),
 									true
 								)}
 							</span>
-						</Stat>
-						<Stat>
-							<span>Canonical</span>
-							<span>{formattedNum(chainData?.canonical?.total, true)}</span>
-						</Stat>
-						<Stat>
-							<span>Native</span>
-							<span>{formattedNum(chainData?.native?.total, true)}</span>
-						</Stat>
-						<Stat>
-							<span>Third Party</span>
-							<span>{formattedNum(chainData?.thirdParty?.total, true)}</span>
-						</Stat>
+						</p>
+						<p className="flex flex-col gap-1 text-base">
+							<span className="text-[#545757] dark:text-[#cccccc]">Canonical</span>
+							<span className="font-jetbrains font-semibold text-2xl">
+								{formattedNum(chainData?.canonical?.total, true)}
+							</span>
+						</p>
+						<p className="flex flex-col gap-1 text-base">
+							<span className="text-[#545757] dark:text-[#cccccc]">Native</span>
+							<span className="font-jetbrains font-semibold text-2xl">
+								{formattedNum(chainData?.native?.total, true)}
+							</span>
+						</p>
+						<p className="flex flex-col gap-1 text-base">
+							<span className="text-[#545757] dark:text-[#cccccc]">Third Party</span>
+							<span className="font-jetbrains font-semibold text-2xl">
+								{formattedNum(chainData?.thirdParty?.total, true)}
+							</span>
+						</p>
 						{chainData?.ownTokens?.total ? (
-							<Stat>
-								<span>Own Tokens</span>
-								<span>{formattedNum(chainData?.ownTokens.total, true)}</span>
-							</Stat>
+							<p className="flex flex-col gap-1 text-base">
+								<span className="text-[#545757] dark:text-[#cccccc]">Own Tokens</span>
+								<span className="font-jetbrains font-semibold text-2xl">
+									{formattedNum(chainData?.ownTokens.total, true)}
+								</span>
+							</p>
 						) : null}
-					</DetailsWrapper>
+					</div>
 					<div
 						style={{
 							flex: 1,
@@ -154,8 +157,8 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 							</div>
 						)}
 					</div>
-				</Stats>
-				{chartType !== 'inflows' ? <VirtualTable instance={instance} cellStyles={{ overflow: 'visible' }} /> : null}
+				</div>
+				{chartType !== 'inflows' ? <VirtualTable instance={instance} /> : null}
 			</Layout>
 		</>
 	)

@@ -11,7 +11,6 @@ import { FiltersByChain } from '~/components/Filters/common/FiltersByChain'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 
 import { download, getPercentChange } from '~/utils'
-import { FlexRow } from '~/layout/ProtocolAndPool'
 import { ButtonLight } from '~/components/ButtonStyled'
 import styled from 'styled-components'
 import { useDialogState, Dialog } from 'ariakit/dialog'
@@ -188,7 +187,7 @@ export function RecentProtocols({
 			<ProtocolsChainsSearch step={{ category: 'Home', name: name }} />
 
 			{claimableAirdrops ? (
-				<FlexRow style={{ flexWrap: 'wrap' }}>
+				<span className="flex items-center gap-2 flex-wrap">
 					{claimableAirdrops.map((protocol) => (
 						<Button
 							as="a"
@@ -319,7 +318,7 @@ export function RecentProtocols({
 							)}
 						</Dialog>
 					) : null}
-				</FlexRow>
+				</span>
 			) : null}
 
 			<TableFilters>

@@ -1,8 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { DetailsWrapper, Name, ChartWrapper } from '~/layout/ProtocolAndPool'
-import { StatsSection } from '~/layout/Stats/Medium'
-import { Stat } from '~/layout/Stats/Large'
+import { Name, ChartWrapper } from '~/layout/ProtocolAndPool'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
@@ -35,8 +33,8 @@ interface IDexChartsProps {
 
 export const DexCharts = ({ logo, data, chartData, name, chainsChart, isProtocolPage = false }: IDexChartsProps) => {
 	return (
-		<StatsSection>
-			<DetailsWrapper>
+		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+			<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 				{isProtocolPage ? (
 					<Name>Trading Volume</Name>
 				) : (
@@ -46,28 +44,27 @@ export const DexCharts = ({ logo, data, chartData, name, chainsChart, isProtocol
 					</Name>
 				)}
 
-				<Stat>
-					<span>
+				<p className="flex flex-col text-base">
+					<span className="text-[#545757] dark:text-[#cccccc]">
 						{data.disabled === true
 							? `Last day volume (${formatTimestampAsDate(
 									data.volumeHistory[data.volumeHistory.length - 1].timestamp
 							  )})`
 							: '24h volume'}
 					</span>
-					<span>{formattedNum(data.total1dVolume || '0', true)}</span>
-				</Stat>
-
-				<Stat>
-					<span>
+					<span className="font-jetbrains font-semibold text-2xl">{formattedNum(data.total1dVolume || '0', true)}</span>
+				</p>
+				<p className="flex flex-col text-base">
+					<span className="text-[#545757] dark:text-[#cccccc]">
 						{data.disabled === true
 							? `Last day change (${formatTimestampAsDate(
 									data.volumeHistory[data.volumeHistory.length - 1].timestamp
 							  )})`
 							: '24 change'}
 					</span>
-					<span>{data.change1dVolume || 0}%</span>
-				</Stat>
-			</DetailsWrapper>
+					<span className="font-jetbrains font-semibold text-2xl">{data.change1dVolume || 0}%</span>
+				</p>
+			</div>
 
 			<ChartWrapper>
 				{chartData && chartData.length > 0 && !isProtocolPage && (
@@ -75,6 +72,6 @@ export const DexCharts = ({ logo, data, chartData, name, chainsChart, isProtocol
 				)}
 				{chainsChart && <StackedBarChart title="Volume by chain" chartData={chainsChart} />}
 			</ChartWrapper>
-		</StatsSection>
+		</div>
 	)
 }

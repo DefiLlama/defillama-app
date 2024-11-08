@@ -15,14 +15,12 @@ import { ISettings } from '~/contexts/types'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { PROTOCOLS_API } from '~/constants'
-import { OverallMetricsWrapper } from '~/containers/ChainContainer'
 import { Name } from '~/layout/ProtocolAndPool'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
-import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 import { last } from 'lodash'
-import { RowWithSubRows, StatsTable2 } from '~/containers/Defi/Protocol'
-import { Card, ControlsWrapper, DataWrapper, Grid } from './styles'
+import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
+import { ControlsWrapper, DataWrapper, Grid } from './styles'
 import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
 import { Icon } from '~/components/Icon'
 
@@ -296,40 +294,47 @@ function ComparePage() {
 				<Grid>
 					{data?.data.filter(Boolean)?.map((chainData, i) => {
 						return (
-							<Card key={`${chainData?.chain || i}`}>
-								<OverallMetricsWrapper style={{ borderRight: 'none', maxWidth: '100%' }}>
-									{
-										<Name data-chainname>
-											<TokenLogo logo={chainIconUrl(chainData?.chain)} size={24} />
-											<span>{chainData.chain}</span>
-										</Name>
-									}
-									<AccordionStat data-tvl>
-										<summary>
-											<span data-arrowicon>
-												<Icon name="chevron-right" height={20} width={20} />
-											</span>
+							<div
+								className="flex flex-col justify-between relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl"
+								key={`${chainData?.chain || i}`}
+							>
+								<div className="flex flex-col gap-8 p-5 col-span-1 w-full rounded-xl text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+									<Name data-chainname>
+										<TokenLogo logo={chainIconUrl(chainData?.chain)} size={24} />
+										<span>{chainData.chain}</span>
+									</Name>
 
-											<span data-summaryheader>
-												<span>Total Value Locked</span>
-												<span>{formattedNum(last(chainData.globalChart)?.[1], true)}</span>
+									<details className="group text-base">
+										<summary className="flex items-center">
+											<Icon
+												name="chevron-right"
+												height={20}
+												width={20}
+												className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+											/>
+
+											<span className="flex flex-col">
+												<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+												<span className="font-semibold text-2xl font-jetbrains min-h-8">
+													{formattedNum(last(chainData.globalChart)?.[1], true)}
+												</span>
 											</span>
 										</summary>
 
-										<span style={{ gap: '8px' }}>
-											<StatInARow>
-												<span>Change (24h)</span>
-												<span>{get24hChange(chainData.globalChart) || 0}%</span>
-											</StatInARow>
-										</span>
-									</AccordionStat>
+										<p className="flex items-center flex-wrap justify-between gap-2 mt-3 mb-1">
+											<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
+											<span className="font-jetbrains">{get24hChange(chainData.globalChart) || 0}%</span>
+										</p>
+									</details>
 
-									<StatsTable2>
+									<table className="text-base w-full border-collapse mt-4">
 										<tbody>
 											{chainData?.feesChart?.length ? (
 												<tr>
-													<th>Fees (24h)</th>
-													<td>{formattedNum(last(chainData.feesChart)?.[1], true)}</td>
+													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Fees (24h)</th>
+													<td className="font-jetbrains text-right">
+														{formattedNum(last(chainData.feesChart)?.[1], true)}
+													</td>
 												</tr>
 											) : null}
 
@@ -344,15 +349,23 @@ function ComparePage() {
 														<>
 															{chainData.volumeChart?.length ? (
 																<tr>
-																	<th>Volume (7d)</th>
-																	<td>{formattedNum(getTotalNDaysSum(chainData.volumeChart, 7), true)}</td>
+																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		Volume (7d)
+																	</th>
+																	<td className="font-jetbrains text-right">
+																		{formattedNum(getTotalNDaysSum(chainData.volumeChart, 7), true)}
+																	</td>
 																</tr>
 															) : null}
 
 															{chainData.volumeChart?.length ? (
 																<tr>
-																	<th>Volume (30d)</th>
-																	<td>{formattedNum(getTotalNDaysSum(chainData.volumeChart, 30), true)}</td>
+																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		Volume (30d)
+																	</th>
+																	<td className="font-jetbrains text-right">
+																		{formattedNum(getTotalNDaysSum(chainData.volumeChart, 30), true)}
+																	</td>
 																</tr>
 															) : null}
 														</>
@@ -371,20 +384,32 @@ function ComparePage() {
 														<>
 															{chainData.usersData ? (
 																<tr>
-																	<th>Change (24H)</th>
-																	<td>{formattedNum(get24hChange(chainData.usersData)) || 0}%</td>
+																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		Change (24H)
+																	</th>
+																	<td className="font-jetbrains text-right">
+																		{formattedNum(get24hChange(chainData.usersData)) || 0}%
+																	</td>
 																</tr>
 															) : null}
 															{chainData.usersData.length > 7 ? (
 																<tr>
-																	<th>Change (7d)</th>
-																	<td>{formattedNum(getNDaysChange(chainData.usersData, 7)) || 0}%</td>
+																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		Change (7d)
+																	</th>
+																	<td className="font-jetbrains text-right">
+																		{formattedNum(getNDaysChange(chainData.usersData, 7)) || 0}%
+																	</td>
 																</tr>
 															) : null}
 															{chainData.usersData.length > 30 ? (
 																<tr>
-																	<th>Change (30d)</th>
-																	<td>{formattedNum(getNDaysChange(chainData.usersData, 30)) || 0}%</td>
+																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		Change (30d)
+																	</th>
+																	<td className="font-jetbrains text-right">
+																		{formattedNum(getNDaysChange(chainData.usersData, 30)) || 0}%
+																	</td>
 																</tr>
 															) : null}
 														</>
@@ -402,28 +427,40 @@ function ComparePage() {
 														<>
 															{chainData.rawData.chainTreasury.tokenBreakdowns?.stablecoins ? (
 																<tr>
-																	<th>Stablecoins</th>
-																	<td>
+																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		Stablecoins
+																	</th>
+																	<td className="font-jetbrains text-right">
 																		{formattedNum(chainData.rawData.chainTreasury.tokenBreakdowns?.stablecoins, true)}
 																	</td>
 																</tr>
 															) : null}
 															{chainData.rawData.chainTreasury.tokenBreakdowns?.majors ? (
 																<tr>
-																	<th>Major Tokens (ETH, BTC)</th>
-																	<td>{formattedNum(chainData.rawData.chainTreasury.tokenBreakdowns?.majors, true)}</td>
+																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		Major Tokens (ETH, BTC)
+																	</th>
+																	<td className="font-jetbrains text-right">
+																		{formattedNum(chainData.rawData.chainTreasury.tokenBreakdowns?.majors, true)}
+																	</td>
 																</tr>
 															) : null}
 															{chainData.rawData.chainTreasury.tokenBreakdowns?.others ? (
 																<tr>
-																	<th>Other Tokens</th>
-																	<td>{formattedNum(chainData.rawData.chainTreasury.tokenBreakdowns?.others, true)}</td>
+																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		Other Tokens
+																	</th>
+																	<td className="font-jetbrains text-right">
+																		{formattedNum(chainData.rawData.chainTreasury.tokenBreakdowns?.others, true)}
+																	</td>
 																</tr>
 															) : null}
 															{chainData.rawData.chainTreasury.tokenBreakdowns?.ownTokens ? (
 																<tr>
-																	<th>Own Tokens</th>
-																	<td>
+																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		Own Tokens
+																	</th>
+																	<td className="font-jetbrains text-right">
 																		{formattedNum(chainData.rawData.chainTreasury.tokenBreakdowns?.ownTokens, true)}
 																	</td>
 																</tr>
@@ -434,8 +471,10 @@ function ComparePage() {
 											) : null}
 											{chainData.rawData?.chainTokenInfo?.market_data ? (
 												<tr>
-													<th>{chainData.rawData?.chainTokenInfo?.tokenSymbol} Price</th>
-													<td>
+													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+														{chainData.rawData?.chainTokenInfo?.tokenSymbol} Price
+													</th>
+													<td className="font-jetbrains text-right">
 														{formattedNum(chainData.rawData?.chainTokenInfo?.market_data?.current_price?.usd, true)}
 													</td>
 												</tr>
@@ -443,14 +482,20 @@ function ComparePage() {
 
 											{chainData.rawData?.chainTokenInfo?.market_data ? (
 												<tr>
-													<th>{chainData.rawData?.chainTokenInfo?.tokenSymbol} Market Cap</th>
-													<td>{formattedNum(chainData.rawData?.chainTokenInfo?.market_data?.market_cap?.usd, true)}</td>
+													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+														{chainData.rawData?.chainTokenInfo?.tokenSymbol} Market Cap
+													</th>
+													<td className="font-jetbrains text-right">
+														{formattedNum(chainData.rawData?.chainTokenInfo?.market_data?.market_cap?.usd, true)}
+													</td>
 												</tr>
 											) : null}
 											{chainData.rawData?.chainTokenInfo?.market_data ? (
 												<tr>
-													<th>{chainData.rawData?.chainTokenInfo?.tokenSymbol} FDV</th>
-													<td>
+													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+														{chainData.rawData?.chainTokenInfo?.tokenSymbol} FDV
+													</th>
+													<td className="font-jetbrains text-right">
 														{formattedNum(
 															chainData.rawData?.chainTokenInfo?.market_data?.fully_diluted_valuation?.usd,
 															true
@@ -459,9 +504,9 @@ function ComparePage() {
 												</tr>
 											) : null}
 										</tbody>
-									</StatsTable2>
-								</OverallMetricsWrapper>
-							</Card>
+									</table>
+								</div>
+							</div>
 						)
 					})}
 				</Grid>

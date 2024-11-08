@@ -10,7 +10,6 @@ import { download, toK } from '~/utils'
 import {
 	Button,
 	DownloadButton,
-	FlexRow,
 	InfoWrapper,
 	Name,
 	Section,
@@ -19,9 +18,6 @@ import {
 	LazyChart,
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
-import { PoolDetails } from '~/layout/Pool'
-import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
-import { Stat } from '~/layout/Stats/Large'
 import {
 	useYieldChartData,
 	useYieldConfigData,
@@ -51,11 +47,6 @@ const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
 	loading: () => <></>
 }) as React.FC<IChartProps>
-
-const RiskRating = styled(Stat)`
-	flex-direction: column;
-	align-items: flex-start;
-`
 
 const RatingWrapper = styled.div`
 	display: flex;
@@ -427,8 +418,8 @@ const PageView = (props) => {
 
 	return (
 		<>
-			<StatsSection>
-				<PoolDetails>
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 					<Name style={{ flexWrap: 'wrap' }}>
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 							? `${poolData.symbol} (${poolData.poolMeta})`
@@ -439,31 +430,30 @@ const PageView = (props) => {
 						</Symbol>
 					</Name>
 
-					<StatWrapper>
-						<Stat>
-							<span>APY</span>
-							<span style={{ color: '#fd3c99' }}>{apy}%</span>
-						</Stat>
-						<Stat>
-							<span>30d Avg APY</span>
-							<span style={{ color: '#fd3c99' }}>{apyMean30d}%</span>
-						</Stat>
+					<div className="flex items-end justify-between flex-wrap gap-5 relative">
+						<p className="flex flex-col gap-1">
+							<span className="text-base text-[#545757] dark:text-[#cccccc]">APY</span>
+							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#fd3c99]">{apy}%</span>
+						</p>
+						<p className="flex flex-col gap-1">
+							<span className="text-base text-[#545757] dark:text-[#cccccc]">30d Avg APY</span>
+							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#fd3c99]">{apyMean30d}%</span>
+						</p>
 						<DownloadButton as="button" onClick={downloadCsv}>
 							<Icon name="download-cloud" height={14} width={14} />
 							<span>&nbsp;&nbsp;.csv</span>
 						</DownloadButton>
-					</StatWrapper>
+					</div>
 
-					<Stat>
-						<span>Total Value Locked</span>
-						<span style={{ color: '#4f8fea' }}>${tvlUsd}</span>
-					</Stat>
+					<p className="flex flex-col gap-1">
+						<span className="text-base text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+						<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#4f8fea]">${tvlUsd}</span>
+					</p>
 
 					{hasRiskData && (
-						<RiskRating>
-							<span>Total Risk Rating</span>
-
-							<RatingWrapper>
+						<p className="flex flex-col items-start gap-1">
+							<span className="text-base text-[#545757] dark:text-[#cccccc]">Total Risk Rating</span>
+							<span className="flex items-center gap-4 flex-nowrap">
 								<RatingCircle color={getRatingColor(riskData?.pool_rating_color)}>
 									{riskData?.pool_rating || 'N/A'}
 								</RatingCircle>
@@ -471,29 +461,25 @@ const PageView = (props) => {
 									href={riskData?.pool_url ? riskData?.pool_url : `https://exponential.fi/about-us`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center text-[#445ed0] dark:text-[#2172E5] hover:underline gap-1"
+									className="flex items-center text-[#445ed0] dark:text-[#2172E5] hover:underline gap-1 font-semibold font-jetbrains text-xl"
 								>
-									<RatingDescription>{getRatingDescription(riskData?.pool_rating)}</RatingDescription>
+									<span>{getRatingDescription(riskData?.pool_rating)}</span>
 									<Icon name="external-link" height={16} width={16} />
 								</a>
-							</RatingWrapper>
+							</span>
 							<AssessedBy>Assessed by exponential.fi</AssessedBy>
-						</RiskRating>
+						</p>
 					)}
 
-					<Stat>
-						<span>Outlook</span>
-						{isLoading ? (
-							<span style={{ height: '60px' }}></span>
-						) : (
-							<span data-default-style>
-								{confidence !== null
-									? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
-									: 'No outlook available'}
-							</span>
-						)}
-					</Stat>
-				</PoolDetails>
+					<p className="flex flex-col gap-1">
+						<span className="text-base text-[#545757] dark:text-[#cccccc]">Outlook</span>
+						<span className="text-base leading-normal" style={isLoading ? { height: '60px' } : {}}>
+							{confidence !== null
+								? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
+								: 'No outlook available'}
+						</span>
+					</p>
+				</div>
 
 				<LazyChart style={{ padding: '20px 0' }}>
 					{!isLoading && (
@@ -506,7 +492,7 @@ const PageView = (props) => {
 						/>
 					)}
 				</LazyChart>
-			</StatsSection>
+			</div>
 
 			<ChartsWrapper>
 				{hasRiskData && (
@@ -691,11 +677,11 @@ const PageView = (props) => {
 			<InfoWrapper>
 				<Section>
 					<h3>Protocol Information</h3>
-					<FlexRow>
+					<p className="flex items-center gap-2">
 						<span>Category</span>
 						<span>:</span>
 						<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
-					</FlexRow>
+					</p>
 
 					<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
 

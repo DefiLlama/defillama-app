@@ -1,5 +1,4 @@
 import * as React from 'react'
-import styled from 'styled-components'
 import { useSelectState, SelectArrow, SelectPopover, Select, SelectItem } from 'ariakit/select'
 import { Checkbox } from '~/components'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
@@ -111,21 +110,3 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
 		</>
 	)
 }
-
-export const ProtocolChartWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	padding: 0 0 20px 0;
-	min-height: 460px;
-	grid-column: span 1;
-`
-
-export const YieldsChartWrapper = styled.div`
-	position: relative;
-	padding: 20px;
-	border-radius: 12px;
-	background: ${({ theme }) => theme.bg6};
-	border: ${({ theme }) => '1px solid ' + theme.divider};
-	box-shadow: ${({ theme }) => theme.shadowSm};
-`

@@ -12,6 +12,7 @@ const Wrapper = styled.div<{ isProtocolPage: boolean }>`
 	padding: 8px;
 	border-radius: 10px;
 	width: 390px;
+	margin: -4px;
 	${({ isProtocolPage }) => (isProtocolPage ? 'border-radius:10px 10px 0px 0px; ' : '10px')}
 `
 

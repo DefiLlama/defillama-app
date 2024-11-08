@@ -160,10 +160,14 @@ export const Total24hColumn = (
 				([name]) => name.toLowerCase() === methodologyKey.toLowerCase()
 			)?.[1]
 
+			if (!methodology) {
+				return `$${formattedNum(value)}`
+			}
+
 			return (
-				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{methodology ? <QuestionHelper text={methodology} textAlign="center" /> : null}
-					<span>${formattedNum(value)}</span>
+				<span className="flex items-center justify-end gap-1">
+					{methodology ? <QuestionHelper text={methodology} /> : null}
+					<span>${formattedNum(info.getValue())}</span>
 				</span>
 			)
 		},
@@ -188,9 +192,14 @@ export const TotalAllTimeColumn = (
 			if (Number.isNaN(formattedNum(info.getValue())) || formattedNum(info.getValue()) === '0') return <></>
 			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
 			const methodology = Object.entries(rawMethodology).find(([name]) => accessor.includes(name))?.[1]
+
+			if (!methodology) {
+				return `$${formattedNum(info.getValue())}`
+			}
+
 			return (
-				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{methodology ? <QuestionHelper text={methodology} textAlign="center" /> : null}
+				<span className="flex items-center justify-end gap-1">
+					{methodology ? <QuestionHelper text={methodology} /> : null}
 					<span>${formattedNum(info.getValue())}</span>
 				</span>
 			)

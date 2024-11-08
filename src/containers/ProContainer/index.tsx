@@ -6,7 +6,6 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { DetailsWrapper } from '~/layout/ProtocolAndPool'
 
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
@@ -42,17 +41,6 @@ const ChartsBody = styled.div<{ itemsCount }>`
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart/index'), {
 	ssr: false
 })
-
-const Game: any = dynamic(() => import('~/game'))
-
-export const StatsSection = styled.div`
-	border-radius: 12px;
-	background: ${({ theme }) => theme.bg6};
-	box-shadow: ${({ theme }) => theme.shadowSm};
-	position: relative;
-	isolation: isolate;
-	height: 100%;
-`
 
 export const ChartBody = styled.div`
 	border-radius: 12px;
@@ -344,17 +332,4 @@ export const ChartWrapper = styled.div`
 	padding: 16px 0;
 	grid-column: span 1;
 	min-height: 442px;
-`
-
-export const OverallMetricsWrapper = styled(DetailsWrapper)`
-	background: none;
-	gap: 8px;
-
-	& > *[data-chainname] {
-		margin-bottom: 16px;
-	}
-
-	& > *[data-tvl] {
-		margin-bottom: 8px;
-	}
 `

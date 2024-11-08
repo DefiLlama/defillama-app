@@ -3,25 +3,20 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import {
-	FlexRow,
 	InfoWrapper,
 	Name,
 	Section,
 	ChartsWrapper,
 	LazyChart,
 	ChartsPlaceholder,
-	ChartWrapper,
-	DetailsTable
+	ChartWrapper
 } from '~/layout/ProtocolAndPool'
-import { PoolDetails } from '~/layout/Pool'
-import { StatsSection } from '~/layout/Stats/Medium'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
 	useConfigPool,
 	useYieldConfigData
 } from '~/api/categories/yield/client'
-import styled from 'styled-components'
 import { calculateLoopAPY } from '~/api/categories/yield/index'
 import { toK } from '~/utils'
 
@@ -186,68 +181,66 @@ const PageView = () => {
 
 	return (
 		<>
-			<StatsSection>
-				<PoolDetails>
-					<Name style={{ flexWrap: 'wrap' }}>APY Breakdown:</Name>
-					<TableWrapper>
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+					<h1 className="text-xl">APY Breakdown:</h1>
+					<table className="w-full text-base border-collapse">
 						<tbody>
-							<tr>
-								<th>Strategy APY:</th>
-								<td>{finalAPY?.toFixed(2)}%</td>
-							</tr>
-
-							<tr data-divider>
-								<th></th>
+							<tr className="border-b border-[var(--divider)]">
+								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Strategy APY:</th>
+								<td className="font-jetbrains text-right pb-1">{finalAPY?.toFixed(2)}%</td>
 							</tr>
 
 							<tr>
-								<th>Supply APY:</th>
-								<td>{lendApy?.toFixed(2)}%</td>
+								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pt-1">Supply APY:</th>
+								<td className="font-jetbrains text-right">{lendApy?.toFixed(2)}%</td>
 							</tr>
 
 							<tr>
-								<th>Borrow APY:</th>
-								<td>{borrowApy?.toFixed(2)}%</td>
+								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Borrow APY:</th>
+								<td className="font-jetbrains text-right">{borrowApy?.toFixed(2)}%</td>
 							</tr>
 
 							<tr>
-								<th>Farm APY:</th>
-								<td>{farmApy?.toFixed(2)}%</td>
+								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Farm APY:</th>
+								<td className="font-jetbrains text-right">{farmApy?.toFixed(2)}%</td>
 							</tr>
 
 							<tr>
-								<th>Max LTV:</th>
-								<td>{ltv?.toFixed(2) * 100}%</td>
+								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Max LTV:</th>
+								<td className="font-jetbrains text-right">{ltv?.toFixed(2) * 100}%</td>
 							</tr>
 
 							<tr>
-								<th>Available Borrow Liquidity:</th>
-								<td>${toK(borrowAvailable)}</td>
+								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+									Available Borrow Liquidity:
+								</th>
+								<td className="font-jetbrains text-right">${toK(borrowAvailable)}</td>
 							</tr>
 
 							<tr>
-								<th>Farm TVL:</th>
-								<td>${toK(farmTVL)}</td>
+								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Farm TVL:</th>
+								<td className="font-jetbrains text-right">${toK(farmTVL)}</td>
 							</tr>
 						</tbody>
-					</TableWrapper>
-				</PoolDetails>
+					</table>
+				</div>
 
 				<ChartWrapper style={{ position: 'relative' }}>
 					<AreaChart title="Strategy APY" chartData={finalChart} color={backgroundColor} valueSymbol={'%'} />
 				</ChartWrapper>
-			</StatsSection>
+			</div>
 
 			<InfoWrapper>
 				<Section>
 					<h3>Steps</h3>
-					<FlexRow>
+					<p className="flex items-center gap-2">
 						<span>1.</span>
 						Lend {configData?.data.find((c) => c.config_id === lendToken)?.symbol} as collateral on{' '}
 						{configData?.data.find((c) => c.config_id === lendToken)?.project} which earns a Supply APY of{' '}
 						{lendApy?.toFixed(2)}%.
-					</FlexRow>
-					<FlexRow>
+					</p>
+					<p className="flex items-center gap-2">
 						<span>2.</span>
 						Borrow{' '}
 						{lendProjectCategory !== 'CDP'
@@ -256,18 +249,18 @@ const PageView = () => {
 						against your {configData?.data.find((c) => c.config_id === lendToken)?.symbol} collateral with a max LTV of{' '}
 						{(ltv * 100).toFixed()}% and a borrow APY of {borrowApy?.toFixed(2)}% (
 						{borrowApy > 0 ? 'You get paid by borrowing' : 'The interest you need to pay'}).
-					</FlexRow>
+					</p>
 
 					{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
 						configData?.data.find((c) => c.config_id === farmToken)?.symbol && lendProjectCategory !== 'CDP' ? (
-						<FlexRow>
+						<p className="flex items-center gap-2">
 							<span>3.</span>
 							Swap borrowed {configData?.data.find((c) => c.config_id === borrowToken)?.symbol} for{' '}
 							{configData?.data.find((c) => c.config_id === farmToken)?.symbol}
-						</FlexRow>
+						</p>
 					) : null}
 
-					<FlexRow>
+					<p className="flex items-center gap-2">
 						{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
 						configData?.data.find((c) => c.config_id === farmToken)?.symbol ? (
 							<span>4.</span>
@@ -276,23 +269,23 @@ const PageView = () => {
 						)}
 						Farm with {configData?.data.find((c) => c.config_id === farmToken)?.symbol} on{' '}
 						{configData?.data.find((c) => c.config_id === farmToken)?.project} which earns {farmApy?.toFixed(2)}%.
-					</FlexRow>
+					</p>
 
 					{configData?.data.find((c) => c.config_id === lendToken)?.symbol ===
 					configData?.data.find((c) => c.config_id === borrowToken)?.symbol ? (
 						// loop strategies
-						<FlexRow>
+						<p className="flex items-center gap-2">
 							Strategy APY = Recursively lend and borrow{' '}
 							{configData?.data.find((c) => c.config_id === lendToken)?.symbol} up to n-times (Strategy APY is
 							calculated assuming 10 loops)
-						</FlexRow>
+						</p>
 					) : (
 						// non loop strategies
-						<FlexRow>
+						<p className="flex items-center gap-2">
 							Strategy APY = {lendApy?.toFixed(2)}%{' '}
 							{borrowApy > 0 ? `+ ${borrowApy?.toFixed(2)}` : borrowApy?.toFixed(2)}% * {ltv?.toFixed(2)} +{' '}
 							{farmApy?.toFixed(2)}% * {ltv?.toFixed(2)} = {finalAPY?.toFixed(2)}%
-						</FlexRow>
+						</p>
 					)}
 				</Section>
 			</InfoWrapper>
@@ -356,21 +349,6 @@ const barChartStacks = {
 	Base: 'a',
 	Reward: 'a'
 }
-
-const TableWrapper = styled(DetailsTable)`
-	tr[data-divider] {
-		position: relative;
-		th::before {
-			content: '';
-			position: absolute;
-			top: 5px;
-			left: 0;
-			right: 0;
-			height: 10px;
-			border-top: 1px solid ${({ theme }) => theme.divider};
-		}
-	}
-`
 
 export default function YieldPoolPage(props) {
 	return (

@@ -12,9 +12,7 @@ import {
 } from '@tanstack/react-table'
 import styled from 'styled-components'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { ChartWrapper, ChartsWrapper, DetailsWrapper, LazyChart, Name } from '~/layout/ProtocolAndPool'
-import { StatsSection } from '~/layout/Stats/Medium'
-import { AccordionStat2, StatInARow } from '~/layout/Stats/Large'
+import { ChartWrapper, ChartsWrapper, LazyChart } from '~/layout/ProtocolAndPool'
 import { VirtualTable } from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import { Announcement } from '~/components/Announcement'
@@ -160,37 +158,38 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				pathname={pathname}
 			/>
 
-			<StatsSection>
-				<DetailsWrapper>
-					<Name>{investorName}</Name>
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+					<h1 className="font-semibold text-2xl">{investorName}</h1>
 
-					<AccordionStat2>
+					<details className="group text-base">
 						<summary>
-							<span data-arrowicon>
-								<Icon name="chevron-right" height={20} width={20} />
-							</span>
+							<Icon
+								name="chevron-right"
+								height={20}
+								width={20}
+								className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+							/>
 
-							<span data-summaryheader>
-								<span>Total Investments</span>
-								<span>{filteredRaisesList.length}</span>
+							<span className="flex items-center justify-between gap-2 flex-wrap">
+								<span className="text-[#545757] dark:text-[#cccccc]">Total Investments</span>
+								<span className="font-jetbrains">{filteredRaisesList.length}</span>
 							</span>
 						</summary>
 
-						<span style={{ gap: '8px' }}>
-							{raisesByCategory.map(({ name, value }) => (
-								<StatInARow key={'total' + name + value}>
-									<span>{name}</span>
-									<span>{value}</span>
-								</StatInARow>
-							))}
-						</span>
-					</AccordionStat2>
-				</DetailsWrapper>
+						{raisesByCategory.map(({ name, value }) => (
+							<p className="flex items-center flex-wrap justify-between gap-2 my-1" key={'total' + name + value}>
+								<span className="text-[#545757] dark:text-[#cccccc]">{name}</span>
+								<span className="font-jetbrains">{value}</span>
+							</p>
+						))}
+					</details>
+				</div>
 
 				<ChartWrapper>
 					<BarChart chartData={fundingRoundsByMonth} title="Monthly Investments" valueSymbol="" />
 				</ChartWrapper>
-			</StatsSection>
+			</div>
 
 			<ChartsWrapper style={{ marginTop: '-16px' }}>
 				<LazyChart>

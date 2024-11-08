@@ -12,12 +12,10 @@ import {
 } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { v4 as uuid } from 'uuid'
-import styled from 'styled-components'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import type { IOrderBookChartProps } from './types'
 import { useMedia } from '~/hooks/useMedia'
-import { stringToColour } from '~/components/ECharts/utils'
 
 echarts.use([
 	CanvasRenderer,
@@ -240,13 +238,5 @@ export default function OrderBookChart({ height = '360px', chartData }: IOrderBo
 		}
 	}, [id, chartData, createInstance, isDark, isSmall])
 
-	return (
-		<div style={{ position: 'relative' }}>
-			<Wrapper id={id} style={{ height, margin: 'auto 0' }}></Wrapper>
-		</div>
-	)
+	return <div id={id} style={{ height }} />
 }
-
-const Wrapper = styled.div`
-	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
-`

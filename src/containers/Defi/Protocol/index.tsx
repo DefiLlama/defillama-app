@@ -3,13 +3,10 @@ import dynamic from 'next/dynamic'
 import Image from 'next/future/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import {
 	ExtraOption,
-	FlexRow,
-	DetailsWrapper,
 	Name,
 	Section,
 	Symbol,
@@ -17,7 +14,6 @@ import {
 	LazyChart,
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
-import { StatsSection } from '~/layout/Stats/Medium'
 import { Checkbox2 } from '~/components'
 import { Bookmark } from '~/components/Bookmark'
 import { CopyHelper } from '~/components/Copy'
@@ -60,7 +56,6 @@ import {
 } from './Common'
 import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
 import { Flag } from './Flag'
-import { AccordionStat } from '~/layout/Stats/Large'
 import { sluggify } from '~/utils/cache-client'
 import dayjs from 'dayjs'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -74,6 +69,7 @@ import { feesOptions } from '~/components/Filters/protocols/options'
 import { scams } from '~/constants'
 import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
+import { RowWithSubRows } from './RowWithSubRows'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -86,120 +82,6 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
-
-const Bobo = styled.button`
-	position: absolute;
-	bottom: -36px;
-	left: 0;
-
-	img {
-		width: 34px !important;
-		height: 34px !important;
-	}
-
-	@media screen and (min-width: 80rem) {
-		top: 0;
-		right: 0;
-		bottom: initial;
-		left: initial;
-		z-index: 1;
-	}
-`
-
-const ProtocolDetailsWrapper = styled(DetailsWrapper)`
-	gap: 0px;
-
-	@media screen and (min-width: 80rem) {
-		max-width: 300px;
-	}
-`
-
-const ProtocolStatsTable = styled.table`
-	width: 100%;
-	border-collapse: collapse;
-
-	caption,
-	thead th {
-		font-weight: 400;
-		font-size: 0.75rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
-	}
-
-	caption {
-		color: ${({ theme }) => theme.text1};
-	}
-
-	th {
-		font-weight: 400;
-		font-size: 1rem;
-		text-align: start;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
-		display: flex;
-		align-items: center;
-		gap: 4px;
-
-		div[data-tooltipanchor='true'] {
-			button {
-				opacity: 0;
-			}
-
-			button:focus-visible {
-				opacity: 1;
-			}
-		}
-
-		div[data-tooltipanchor='true']:focus-visible {
-			button {
-				opacity: 1;
-			}
-		}
-	}
-
-	th:hover {
-		div[data-tooltipanchor='true'] {
-			button {
-				opacity: 1;
-			}
-		}
-	}
-
-	td:not(.investors) {
-		font-weight: 600;
-		font-size: 1rem;
-		text-align: right;
-		font-family: var(--font-jetbrains);
-	}
-
-	thead td {
-		> * {
-			width: min-content;
-			background: none;
-			margin-left: auto;
-			color: ${({ theme }) => theme.text1};
-		}
-	}
-
-	thead > tr > *,
-	caption {
-		padding: 0 0 4px;
-	}
-
-	tbody > tr > * {
-		padding: 4px 0;
-	}
-
-	.question-helper {
-		padding: 0 16px 4px;
-	}
-`
-
-const HackDataWrapper = styled.div`
-	a {
-		margin-top: 6px;
-		width: fit-content;
-	}
-`
 
 interface IProtocolContainerProps {
 	articles: IArticle[]
@@ -684,59 +566,79 @@ function ProtocolContainer({
 						)}
 					</TabList>
 					<TabPanel state={tab} tabId="information">
-						<StatsSection style={{ borderRadius: '0px' }}>
-							<ProtocolDetailsWrapper style={{ borderRadius: '0px' }}>
+						<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)]">
+							<div className="flex flex-col p-5 col-span-1 w-full xl:w-[380px] text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 								<Name>
 									<TokenLogo logo={tokenIconUrl(name)} size={24} />
 									<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 									<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
-
 									<Bookmark readableProtocolName={name} />
 								</Name>
 
-								<AccordionStat style={{ margin: '24px 0 16px' }}>
-									<summary>
-										<span data-arrowicon>
-											<Icon name="chevron-right" height={20} width={20} />
-										</span>
-										<span data-summaryheader>
-											<span>
-												<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
-												<Flag protocol={protocolData.name} dataType={'TVL'} isLending={category === 'Lending'} />
+								<details className="group mt-6 mb-4">
+									<summary className="flex items-center">
+										<Icon
+											name="chevron-right"
+											height={20}
+											width={20}
+											className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+										/>
+										<span className="flex flex-col">
+											<span className="flex items-center flex-nowrap gap-2">
+												<span className="text-base text-[#545757] dark:text-[#cccccc]">
+													{isCEX ? 'Total Assets' : 'Total Value Locked'}
+												</span>
+												<Flag
+													protocol={protocolData.name}
+													dataType={'TVL'}
+													isLending={category === 'Lending'}
+													className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+												/>
 											</span>
-											<span>{formatPrice(totalVolume || '0')}</span>
+											<span className="font-semibold text-2xl font-jetbrains min-h-8">
+												{formatPrice(totalVolume || '0')}
+											</span>
 										</span>
 									</summary>
 
-									<span>
+									<table className="text-base w-full border-collapse mt-4">
 										{tvls.length > 0 && (
-											<ProtocolStatsTable>
-												<caption>{isCEX ? 'Assets by chain' : 'Chain Breakdown'}</caption>
+											<table className="w-full border-collapse">
+												<caption className="text-xs text-[#545757] dark:text-[#cccccc] text-left pb-1">
+													{isCEX ? 'Assets by chain' : 'Chain Breakdown'}
+												</caption>
 												<tbody>
 													{tvls.map((chainTvl) => (
 														<tr key={JSON.stringify(chainTvl)}>
-															<th>{capitalizeFirstLetter(chainTvl[0])}</th>
-															<td>{formatPrice((chainTvl[1] || 0) as number)}</td>
+															<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+																{capitalizeFirstLetter(chainTvl[0])}
+															</th>
+															<td className="font-jetbrains text-right">{formatPrice((chainTvl[1] || 0) as number)}</td>
 														</tr>
 													))}
 												</tbody>
-											</ProtocolStatsTable>
+											</table>
 										)}
 
 										{extraTvls.length > 0 && (
-											<ProtocolStatsTable>
+											<table className="w-full border-collapse mt-4">
 												<thead>
 													<tr>
-														<th>Include in TVL (optional)</th>
-														<td className="question-helper">
-															<QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
+														<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+															Include in TVL (optional)
+														</th>
+														<td>
+															<QuestionHelper
+																text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation'
+																className="ml-auto"
+															/>
 														</td>
 													</tr>
 												</thead>
 												<tbody>
 													{extraTvls.map(([option, value]) => (
 														<tr key={option + value}>
-															<th>
+															<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
 																<ExtraOption>
 																	<Checkbox2
 																		type="checkbox"
@@ -749,46 +651,41 @@ function ProtocolContainer({
 																	</span>
 																</ExtraOption>
 															</th>
-															<td>{formatPrice(value)}</td>
+															<td className="font-jetbrains text-right">{formatPrice(value)}</td>
 														</tr>
 													))}
 												</tbody>
-											</ProtocolStatsTable>
+											</table>
 										)}
-									</span>
-								</AccordionStat>
+									</table>
+								</details>
 
-								<StatsTable2>
+								<table className="text-base w-full border-collapse mt-4">
 									<tbody>
 										{tokenCGData?.marketCap?.current ? (
 											<>
-												<tr>
-													<th>
+												<tr className="group">
+													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 														<span>Market Cap</span>
-														<Flag protocol={protocolData.name} dataType={'Market Cap'} />
+														<Flag
+															protocol={protocolData.name}
+															dataType={'Market Cap'}
+															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+														/>
 													</th>
-													<td>{formatPrice(tokenCGData.marketCap.current)}</td>
+													<td className="font-jetbrains text-right">{formatPrice(tokenCGData.marketCap.current)}</td>
 												</tr>
 
 												{nextEventDescription ? (
-													<tr style={{ position: 'relative', top: '-6px' }}>
-														<td
-															style={{
-																opacity: '0.6',
-																fontFamily: 'var(--inter)',
-																fontWeight: 400,
-																fontSize: '0.875rem',
-																padding: '0px',
-																textAlign: 'right'
-															}}
-															colSpan={2}
-														>
+													<tr className="relative -top-[6px]">
+														<td className="text-sm opacity-60 text-right" colSpan={2}>
 															{nextEventDescription}
 														</td>
 													</tr>
 												) : null}
 											</>
 										) : null}
+
 										{tokenCGData?.price?.current ? (
 											<RowWithSubRows
 												protocolName={protocolData.name}
@@ -800,19 +697,19 @@ function ProtocolContainer({
 													<>
 														{tokenCGData.price.ath ? (
 															<tr>
-																<SubrowTh data-subvalue>{`All Time High (${new Date(
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`All Time High (${new Date(
 																	tokenCGData.price.athDate
-																).toLocaleDateString()})`}</SubrowTh>
-																<td data-subvalue>{formatPrice(tokenCGData.price.ath)}</td>
+																).toLocaleDateString()})`}</th>
+																<td className="text-sm text-right">{formatPrice(tokenCGData.price.ath)}</td>
 															</tr>
 														) : null}
 
 														{tokenCGData.price.atl ? (
 															<tr>
-																<SubrowTh data-subvalue>{`All Time Low (${new Date(
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`All Time Low (${new Date(
 																	tokenCGData.price.atlDate
-																).toLocaleDateString()})`}</SubrowTh>
-																<td data-subvalue>{formatPrice(tokenCGData.price.atl)}</td>
+																).toLocaleDateString()})`}</th>
+																<td className="text-sm text-right">{formatPrice(tokenCGData.price.atl)}</td>
 															</tr>
 														) : null}
 													</>
@@ -820,12 +717,16 @@ function ProtocolContainer({
 											/>
 										) : null}
 										{tokenCGData?.fdv?.current ? (
-											<tr>
-												<th>
+											<tr className="group">
+												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 													<span>Fully Diluted Valuation</span>
-													<Flag protocol={protocolData.name} dataType={'FDV'} />
+													<Flag
+														protocol={protocolData.name}
+														dataType={'FDV'}
+														className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+													/>
 												</th>
-												<td>{formatPrice(tokenCGData.fdv.current)}</td>
+												<td className="font-jetbrains text-right">{formatPrice(tokenCGData.fdv.current)}</td>
 											</tr>
 										) : null}
 										{tokenCGData?.volume24h?.total ? (
@@ -839,27 +740,22 @@ function ProtocolContainer({
 													<>
 														{tokenCGData?.volume24h?.cex ? (
 															<tr>
-																<SubrowTh data-subvalue>CEX Volume</SubrowTh>
-																<td data-subvalue>{formatPrice(tokenCGData.volume24h.cex)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	CEX Volume
+																</th>
+																<td className="text-sm text-right">{formatPrice(tokenCGData.volume24h.cex)}</td>
 															</tr>
 														) : null}
 														{tokenCGData?.volume24h?.dex ? (
 															<>
 																<tr>
-																	<SubrowTh data-subvalue>DEX Volume</SubrowTh>
-																	<td data-subvalue>{formatPrice(tokenCGData.volume24h.dex)}</td>
+																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		DEX Volume
+																	</th>
+																	<td className="text-sm text-right">{formatPrice(tokenCGData.volume24h.dex)}</td>
 																</tr>
-																<tr style={{ position: 'relative', top: '-6px' }}>
-																	<td
-																		style={{
-																			opacity: '0.6',
-																			fontFamily: 'var(--inter)',
-																			fontWeight: 400,
-																			fontSize: '0.875rem',
-																			padding: '0px'
-																		}}
-																		colSpan={2}
-																	>{`(${formatPercentage(
+																<tr className="relative -top-[6px]">
+																	<td className="text-sm opacity-60 text-right" colSpan={2}>{`(${formatPercentage(
 																		(tokenCGData.volume24h.dex / tokenCGData.volume24h.total) * 100
 																	)}%)`}</td>
 																</tr>
@@ -871,25 +767,20 @@ function ProtocolContainer({
 										) : null}
 										{stakedAmount ? (
 											<>
-												<tr>
-													<th>
+												<tr className="group">
+													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 														<span>Staked</span>
-														<Flag protocol={protocolData.name} dataType={'Staked'} />
+														<Flag
+															protocol={protocolData.name}
+															dataType={'Staked'}
+															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+														/>
 													</th>
-													<td>{formatPrice(stakedAmount)}</td>
+													<td className="font-jetbrains text-right">{formatPrice(stakedAmount)}</td>
 												</tr>
 												{tokenCGData?.marketCap?.current ? (
-													<tr style={{ position: 'relative', top: '-6px' }}>
-														<td
-															style={{
-																opacity: '0.6',
-																fontFamily: 'var(--inter)',
-																fontWeight: 400,
-																fontSize: '0.875rem',
-																padding: '0px'
-															}}
-															colSpan={2}
-														>
+													<tr className="relative -top-[6px]">
+														<td className="text-sm opacity-60 text-right" colSpan={2}>
 															{`(${((stakedAmount / tokenCGData.marketCap.current) * 100).toLocaleString(undefined, {
 																maximumFractionDigits: 2
 															})}% of mcap)`}
@@ -911,8 +802,10 @@ function ProtocolContainer({
 															.filter((c) => c[0].endsWith('-borrowed'))
 															.map((c) => (
 																<tr key={JSON.stringify(c)}>
-																	<SubrowTh data-subvalue>{c[0].split('-')[0]}</SubrowTh>
-																	<td data-subvalue>{formatPrice(c[1])}</td>
+																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		{c[0].split('-')[0]}
+																	</th>
+																	<td className="text-sm text-right">{formatPrice(c[1])}</td>
 																</tr>
 															))}
 													</>
@@ -930,8 +823,8 @@ function ProtocolContainer({
 													<>
 														{tokenLiquidity.map((item) => (
 															<tr key={'token-liq' + item[0] + item[1] + item[2]}>
-																<SubrowTh data-subvalue>{`${item[0]} (${item[1]})`}</SubrowTh>
-																<td data-subvalue>{formatPrice(item[2])}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`${item[0]} (${item[1]})`}</th>
+																<td className="text-sm text-right">{formatPrice(item[2])}</td>
 															</tr>
 														))}
 													</>
@@ -949,20 +842,24 @@ function ProtocolContainer({
 													<>
 														{allTimeVolume ? (
 															<tr>
-																<SubrowTh data-subvalue>{`Cumulative Volume`}</SubrowTh>
-																<td data-subvalue>{formatPrice(allTimeVolume)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Volume`}</th>
+																<td className="text-sm text-right">{formatPrice(allTimeVolume)}</td>
 															</tr>
 														) : null}
 													</>
 												}
 											/>
 										) : dailyVolume ? (
-											<tr>
-												<th>
+											<tr className="group">
+												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 													<span>Volume 24h</span>
-													<Flag protocol={protocolData.name} dataType={'Volume'} />
+													<Flag
+														protocol={protocolData.name}
+														dataType={'Volume'}
+														className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+													/>
 												</th>
-												<td>{formatPrice(dailyVolume)}</td>
+												<td className="font-jetbrains text-right">{formatPrice(dailyVolume)}</td>
 											</tr>
 										) : null}
 										{dailyDerivativesVolume && allTimeDerivativesVolume ? (
@@ -976,20 +873,24 @@ function ProtocolContainer({
 													<>
 														{allTimeDerivativesVolume ? (
 															<tr>
-																<SubrowTh data-subvalue>{`Cumulative Volume`}</SubrowTh>
-																<td data-subvalue>{formatPrice(allTimeDerivativesVolume)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Volume`}</th>
+																<td className="text-sm text-right">{formatPrice(allTimeDerivativesVolume)}</td>
 															</tr>
 														) : null}
 													</>
 												}
 											/>
 										) : dailyDerivativesVolume ? (
-											<tr>
-												<th>
+											<tr className="group">
+												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 													<span>Derivatives Volume 24h</span>
-													<Flag protocol={protocolData.name} dataType={'Derivatives Volume'} />
+													<Flag
+														protocol={protocolData.name}
+														dataType={'Derivatives Volume'}
+														className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+													/>
 												</th>
-												<td>{formatPrice(dailyDerivativesVolume)}</td>
+												<td className="font-jetbrains text-right">{formatPrice(dailyDerivativesVolume)}</td>
 											</tr>
 										) : null}
 										{dailyAggregatorsVolume && allTimeAggregatorsVolume ? (
@@ -1003,20 +904,24 @@ function ProtocolContainer({
 													<>
 														{allTimeAggregatorsVolume ? (
 															<tr>
-																<SubrowTh data-subvalue>{`Cumulative Volume`}</SubrowTh>
-																<td data-subvalue>{formatPrice(allTimeAggregatorsVolume)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Volume`}</th>
+																<td className="text-sm text-right">{formatPrice(allTimeAggregatorsVolume)}</td>
 															</tr>
 														) : null}
 													</>
 												}
 											/>
 										) : dailyAggregatorsVolume ? (
-											<tr>
-												<th>
+											<tr className="group">
+												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 													<span>Aggregators Volume 24h</span>
-													<Flag protocol={protocolData.name} dataType={'Aggregators Volume'} />
+													<Flag
+														protocol={protocolData.name}
+														dataType={'Aggregators Volume'}
+														className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+													/>
 												</th>
-												<td>{formatPrice(dailyAggregatorsVolume)}</td>
+												<td className="font-jetbrains text-right">{formatPrice(dailyAggregatorsVolume)}</td>
 											</tr>
 										) : null}
 										{dailyDerivativesAggregatorVolume && allTimeDerivativesAggregatorVolume ? (
@@ -1030,30 +935,40 @@ function ProtocolContainer({
 													<>
 														{allTimeDerivativesAggregatorVolume ? (
 															<tr>
-																<SubrowTh data-subvalue>{`Cumulative Volume`}</SubrowTh>
-																<td data-subvalue>{formatPrice(allTimeDerivativesAggregatorVolume)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Volume`}</th>
+																<td className="text-sm text-right">
+																	{formatPrice(allTimeDerivativesAggregatorVolume)}
+																</td>
 															</tr>
 														) : null}
 													</>
 												}
 											/>
 										) : dailyDerivativesAggregatorVolume ? (
-											<tr>
-												<th>
+											<tr className="group">
+												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 													<span>Derivatives Aggs Volume 24h</span>
-													<Flag protocol={protocolData.name} dataType={'Derivatives Aggregators Volume'} />
+													<Flag
+														protocol={protocolData.name}
+														dataType={'Derivatives Aggregators Volume'}
+														className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+													/>
 												</th>
-												<td>{formatPrice(dailyDerivativesAggregatorVolume)}</td>
+												<td className="font-jetbrains text-right">{formatPrice(dailyDerivativesAggregatorVolume)}</td>
 											</tr>
 										) : null}
 
 										{dailyOptionsVolume ? (
-											<tr>
-												<th>
+											<tr className="group">
+												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 													<span>Options Premium Volume 24h</span>
-													<Flag protocol={protocolData.name} dataType={'Options Premium Volume 24h'} />
+													<Flag
+														protocol={protocolData.name}
+														dataType={'Options Premium Volume 24h'}
+														className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+													/>
 												</th>
-												<td>{formatPrice(dailyOptionsVolume)}</td>
+												<td className="font-jetbrains text-right">{formatPrice(dailyOptionsVolume)}</td>
 											</tr>
 										) : null}
 
@@ -1067,21 +982,21 @@ function ProtocolContainer({
 												subRows={
 													<>
 														<tr>
-															<SubrowTh data-subvalue>{`Fees 30d`}</SubrowTh>
-															<td data-subvalue>{formatPrice(fees30d)}</td>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Fees 30d`}</th>
+															<td className="text-sm text-right">{formatPrice(fees30d)}</td>
 														</tr>
 
 														{dailyFees ? (
 															<tr>
-																<SubrowTh data-subvalue>{`Fees 24h`}</SubrowTh>
-																<td data-subvalue>{formatPrice(dailyFees)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Fees 24h`}</th>
+																<td className="text-sm text-right">{formatPrice(dailyFees)}</td>
 															</tr>
 														) : null}
 
 														{allTimeFees ? (
 															<tr>
-																<SubrowTh data-subvalue>{`Cumulative Fees`}</SubrowTh>
-																<td data-subvalue>{formatPrice(allTimeFees)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Fees`}</th>
+																<td className="text-sm text-right">{formatPrice(allTimeFees)}</td>
 															</tr>
 														) : null}
 													</>
@@ -1098,14 +1013,14 @@ function ProtocolContainer({
 												subRows={
 													<>
 														<tr>
-															<SubrowTh data-subvalue>{`Revenue 30d`}</SubrowTh>
-															<td data-subvalue>{formatPrice(revenue30d)}</td>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Revenue 30d`}</th>
+															<td className="text-sm text-right">{formatPrice(revenue30d)}</td>
 														</tr>
 
 														{dailyRevenueFinal ? (
 															<tr>
-																<SubrowTh data-subvalue>{`Revenue 24h`}</SubrowTh>
-																<td data-subvalue>{formatPrice(dailyRevenueFinal)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Revenue 24h`}</th>
+																<td className="text-sm text-right">{formatPrice(dailyRevenueFinal)}</td>
 															</tr>
 														) : null}
 													</>
@@ -1123,20 +1038,26 @@ function ProtocolContainer({
 													<>
 														{users.newUsers ? (
 															<tr>
-																<SubrowTh data-subvalue>New Addresses 24h</SubrowTh>
-																<td data-subvalue>{formattedNum(users.newUsers, false)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	New Addresses 24h
+																</th>
+																<td className="text-sm text-right">{formattedNum(users.newUsers, false)}</td>
 															</tr>
 														) : null}
 														{users.transactions ? (
 															<tr>
-																<SubrowTh data-subvalue>Transactions 24h</SubrowTh>
-																<td data-subvalue>{formattedNum(users.transactions, false)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	Transactions 24h
+																</th>
+																<td className="text-sm text-right">{formattedNum(users.transactions, false)}</td>
 															</tr>
 														) : null}
 														{users.gasUsd ? (
 															<tr>
-																<SubrowTh data-subvalue>Gas Used 24h</SubrowTh>
-																<td data-subvalue>{formatPrice(users.gasUsd)}</td>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	Gas Used 24h
+																</th>
+																<td className="text-sm text-right">{formatPrice(users.gasUsd)}</td>
 															</tr>
 														) : null}
 													</>
@@ -1160,8 +1081,10 @@ function ProtocolContainer({
 														{Object.entries(treasury).map(([cat, tre]) => {
 															return (
 																<tr key={'treasury' + cat + tre}>
-																	<SubrowTh data-subvalue>{capitalizeFirstLetter(cat)}</SubrowTh>
-																	<td data-subvalue>{formatPrice(tre)}</td>
+																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		{capitalizeFirstLetter(cat)}
+																	</th>
+																	<td className="text-sm text-right">{formatPrice(tre)}</td>
 																</tr>
 															)
 														})}
@@ -1184,10 +1107,10 @@ function ProtocolContainer({
 																.map((raise) => (
 																	<React.Fragment key={raise.date + raise.amount}>
 																		<tr>
-																			<SubrowTh data-subvalue>
+																			<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																				{new Date(raise.date * 1000).toISOString().split('T')[0]}
-																			</SubrowTh>
-																			<td data-subvalue>
+																			</th>
+																			<td className="text-sm text-right">
 																				{raise.source ? (
 																					<a target="_blank" rel="noopener noreferrer" href={raise.source}>
 																						{formatRaise(raise)}
@@ -1198,7 +1121,7 @@ function ProtocolContainer({
 																			</td>
 																		</tr>
 																		<tr key={raise.source}>
-																			<td colSpan={2} className="investors">
+																			<td colSpan={2} className="text-sm text-right pb-4">
 																				<b>Investors</b>:{' '}
 																				{(raise as any).leadInvestors
 																					.concat((raise as any).otherInvestors)
@@ -1228,9 +1151,14 @@ function ProtocolContainer({
 													<>
 														{controversialProposals.map((proposal) => (
 															<tr key={proposal.title}>
-																<td data-subvalue style={{ textAlign: 'left' }}>
+																<td className="text-sm text-left p-1">
 																	{proposal.link ? (
-																		<a href={proposal.link} target="_blank" rel="noreferrer noopener">
+																		<a
+																			href={proposal.link}
+																			target="_blank"
+																			rel="noreferrer noopener"
+																			className="underline"
+																		>
 																			{proposal.title}
 																		</a>
 																	) : (
@@ -1258,34 +1186,38 @@ function ProtocolContainer({
 												subRows={
 													<>
 														<tr>
-															<SubrowTh data-subvalue>Headcount</SubrowTh>
-															<td data-subvalue>{expenses.headcount}</td>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																Headcount
+															</th>
+															<td className="text-sm text-right">{expenses.headcount}</td>
 														</tr>
 
 														{Object.entries(expenses.annualUsdCost || {}).map(([cat, exp]: [string, number]) => {
 															return (
 																<tr key={'expenses' + cat + exp}>
-																	<SubrowTh data-subvalue>{capitalizeFirstLetter(cat)}</SubrowTh>
-																	<td data-subvalue>{formatPrice(exp)}</td>
+																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		{capitalizeFirstLetter(cat)}
+																	</th>
+																	<td className="text-sm text-right">{formatPrice(exp)}</td>
 																</tr>
 															)
 														})}
 
 														<tr>
-															<SubrowTh data-subvalue>
-																<a href={expenses.sources?.[0] ?? null}>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																<a href={expenses.sources?.[0] ?? null} className="underline">
 																	Source{' '}
 																	<Icon name="arrow-up-right" height={10} width={10} style={{ display: 'inline' }} />
 																</a>
-															</SubrowTh>
-															<td data-subvalue></td>
+															</th>
+															<td className="text-sm text-right"></td>
 														</tr>
 													</>
 												}
 											/>
 										)}
 									</tbody>
-								</StatsTable2>
+								</table>
 
 								<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
 								{!isParentProtocol ? (
@@ -1297,7 +1229,7 @@ function ProtocolContainer({
 										isLight
 									/>
 								) : null}
-							</ProtocolDetailsWrapper>
+							</div>
 
 							<ProtocolChart
 								protocolData={protocolData}
@@ -1321,18 +1253,21 @@ function ProtocolContainer({
 								nftVolumeData={nftVolumeData}
 							/>
 
-							<Bobo onClick={() => setBobo(!bobo)}>
+							<button
+								onClick={(prev) => setBobo(!prev)}
+								className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-[1]"
+							>
 								<span className="sr-only">Enable Goblin Mode</span>
-								<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
-							</Bobo>
-						</StatsSection>
+								<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" className="h-[34px] w-[34px]" />
+							</button>
+						</div>
 						<GridContent>
 							<Section>
 								<h3>{isCEX ? 'Exchange Information' : 'Protocol Information'}</h3>
 								{description && <p>{description}</p>}
 
 								{category && (
-									<FlexRow>
+									<p className="flex items-center gap-2">
 										<span>Category</span>
 										<span>:</span>
 
@@ -1349,11 +1284,11 @@ function ProtocolContainer({
 												<span>{category}</span> <Icon name="arrow-up-right" height={14} width={14} />
 											</ButtonLight>
 										</Link>
-									</FlexRow>
+									</p>
 								)}
 
 								{forkedFrom && forkedFrom.length > 0 && (
-									<FlexRow>
+									<p className="flex items-center gap-2">
 										<span>Forked from:</span>
 										<>
 											{forkedFrom.map((p, index) => (
@@ -1363,7 +1298,7 @@ function ProtocolContainer({
 												</React.Fragment>
 											))}
 										</>
-									</FlexRow>
+									</p>
 								)}
 
 								{audits && audit_links && (
@@ -1402,10 +1337,10 @@ function ProtocolContainer({
 									)}
 								</div>
 								{twitter && twitterData?.lastTweet ? (
-									<FlexRow>
+									<p className="flex items-center gap-2">
 										<span>Last tweet:</span> {dayjs(twitterData?.lastTweet?.time).fromNow()} (
 										{dayjs(twitterData?.lastTweet?.time).format('YYYY-MM-DD')})
-									</FlexRow>
+									</p>
 								) : null}
 							</Section>
 
@@ -1427,11 +1362,11 @@ function ProtocolContainer({
 							)}
 							{devMetrics && (
 								<Section>
-									<FlexRow as="span">
+									<span className="flex items-center gap-2">
 										<h3>Development Activity</h3>{' '}
 										<p>(updated at {dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})</p>
-									</FlexRow>
-									<FlexRow>
+									</span>
+									<p className="flex items-center gap-2">
 										Weekly commits: {devMetrics?.report?.weekly_contributers.slice(-1)[0]?.cc}
 										<br />
 										Monthly commits: {devMetrics?.report?.monthly_contributers.slice(-1)[0]?.cc}
@@ -1439,11 +1374,11 @@ function ProtocolContainer({
 										Weekly developers: {devMetrics?.report?.weekly_contributers.slice(-1)[0]?.v}
 										<br />
 										Monthly developers: {devMetrics?.report?.monthly_contributers.slice(-1)[0]?.v}
-									</FlexRow>
-									<FlexRow>
+									</p>
+									<p className="flex items-center gap-2">
 										<span>Last commit:</span> {dayjs(devMetrics.last_commit_update_time).fromNow()} (
 										{dayjs(devMetrics.last_commit_update_time).format('YYYY-MM-DD')})
-									</FlexRow>
+									</p>
 								</Section>
 							)}
 							{(address || protocolData.gecko_id || explorers) && (
@@ -1451,14 +1386,14 @@ function ProtocolContainer({
 									<h3>Token Information</h3>
 
 									{address && (
-										<FlexRow>
+										<p className="flex items-center gap-2">
 											<span>Address</span>
 											<span>:</span>
 											<span>
 												{address.split(':').pop().slice(0, 8) + '...' + address.split(':').pop().slice(36, 42)}
 											</span>
 											<CopyHelper toCopy={address.split(':').pop()} disabled={!address} />
-										</FlexRow>
+										</p>
 									)}
 
 									<div className="flex items-center gap-4 flex-wrap">
@@ -1585,41 +1520,41 @@ function ProtocolContainer({
 								<Section>
 									<h3>Hacks</h3>
 
-									<HackDataWrapper>
-										<FlexRow>
+									<div>
+										<p className="flex items-center gap-2">
 											<span>Date</span>
 											<span>:</span>
 											<span>{new Date(hacksData.date * 1000).toLocaleDateString()}</span>
-										</FlexRow>
-										<FlexRow>
+										</p>
+										<p className="flex items-center gap-2">
 											<span>Amount</span>
 											<span>:</span>
 											<span>{formattedNum(hacksData.amount, true)}</span>
-										</FlexRow>
-										<FlexRow>
+										</p>
+										<p className="flex items-center gap-2">
 											<span>Classification</span>
 											<span>:</span>
 											<span>{hacksData.classification}</span>
-										</FlexRow>
-										<FlexRow>
+										</p>
+										<p className="flex items-center gap-2">
 											<span>Technique</span>
 											<span>:</span>
 											<span>{hacksData.technique}</span>
-										</FlexRow>
-										<FlexRow>
+										</p>
+										<p className="flex items-center gap-2">
 											<span>Chain</span>
 											<span>:</span>
 											<span>{hacksData.chain.join(', ')}</span>
-										</FlexRow>
-										<FlexRow>
+										</p>
+										<p className="flex items-center gap-2">
 											<span>Returned Funds</span>
 											<span>:</span>
 											<span>{formattedNum(hacksData.returnedFunds, true)}</span>
-										</FlexRow>
+										</p>
 
 										<Link href={hacksData.source} passHref>
 											<ButtonLight
-												className="flex items-center gap-1"
+												className="flex items-center gap-1 mt-1 max-w-fit"
 												as="a"
 												target="_blank"
 												rel="noopener noreferrer"
@@ -1629,7 +1564,7 @@ function ProtocolContainer({
 												<span>Source</span> <Icon name="arrow-up-right" height={14} width={14} />
 											</ButtonLight>
 										</Link>
-									</HackDataWrapper>
+									</div>
 								</Section>
 							) : null}
 
@@ -1794,91 +1729,8 @@ function ProtocolContainer({
 	)
 }
 
-const Toggle = styled.button`
-	margin-left: -18px;
-	display: flex;
-	align-items: center;
-	gap: 2px;
-	white-space: nowrap;
-
-	& > *[data-arrow] {
-		flex-shrink: 0;
-	}
-
-	&[data-open='true'] {
-		& > *[data-arrow] {
-			transform: rotate(90deg);
-			transition: 0.1s ease;
-		}
-	}
-`
-
 const TabPanel = ({ children, ...props }: any) => {
 	return <div>{props?.state?.selectedId === props?.tabId ? children : null}</div>
 }
-
-export const StatsTable2 = styled(ProtocolStatsTable)`
-	th[data-subvalue],
-	td[data-subvalue] {
-		font-weight: 400;
-		font-family: var(--inter);
-		font-size: 0.875rem;
-	}
-
-	td {
-		color: ${({ theme }) => theme.text1};
-	}
-
-	td[data-parentvalue] {
-		white-space: nowrap;
-	}
-
-	a {
-		text-decoration: underline;
-		text-decoration-color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
-	}
-
-	tr[data-parentrow] {
-		div[data-tooltipanchor='true'] {
-			button {
-				position: relative;
-				top: 2px;
-			}
-		}
-	}
-
-	tr[data-parentrow]:hover {
-		div[data-tooltipanchor='true'] {
-			button {
-				opacity: 1;
-			}
-		}
-	}
-`
-
-export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, helperText }) => {
-	const [open, setOpen] = React.useState(false)
-	return (
-		<>
-			<tr data-parentrow>
-				<th>
-					<Toggle onClick={() => setOpen(!open)} data-open={open}>
-						<Icon name="chevron-right" height={16} width={16} data-arrow />
-						<span>{rowHeader}</span>
-						{helperText && <QuestionHelper text={helperText} />}
-					</Toggle>
-					{protocolName && dataType ? <Flag protocol={protocolName} dataType={dataType} /> : null}
-				</th>
-				<td data-parentvalue>{rowValue}</td>
-			</tr>
-
-			{open && <>{subRows}</>}
-		</>
-	)
-}
-
-export const SubrowTh = styled.th`
-	margin-left: 1em;
-`
 
 export default ProtocolContainer

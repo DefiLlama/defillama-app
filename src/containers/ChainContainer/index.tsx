@@ -7,7 +7,6 @@ import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { StatsSection } from '~/layout/Stats/Medium'
 import { LocalLoader } from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -15,11 +14,9 @@ import { chainIconUrl, formattedNum } from '~/utils'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 
 import llamaLogo from '~/assets/peeking-llama.png'
-import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
-import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
 
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
-import { RowWithSubRows, StatsTable2, SubrowTh } from '~/containers/Defi/Protocol'
+import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
 import { SEO } from '~/components/SEO'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -323,35 +320,35 @@ export function ChainContainer({
 					<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} alternativeOthersText="Chains" />
 				</nav>
 
-				<StatsSection>
-					<OverallMetricsWrapper>
+				<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+					<div className="flex flex-col gap-2 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 						{selectedChain !== 'All' && (
-							<Name data-chainname>
+							<h1 className="flex items-center flex-nowrap gap-2 mb-4">
 								<TokenLogo logo={chainIconUrl(selectedChain)} size={24} />
-								<span>{selectedChain}</span>
-							</Name>
+								<span className="text-xl">{selectedChain}</span>
+							</h1>
 						)}
-						<AccordionStat data-tvl>
-							<summary>
-								<span data-arrowicon>
-									<Icon name="chevron-right" height={20} width={20} />
-								</span>
-
-								<span data-summaryheader>
-									<span>Total Value Locked</span>
-									<span>{tvl}</span>
+						<details className="group text-base">
+							<summary className="flex items-center">
+								<Icon
+									name="chevron-right"
+									height={20}
+									width={20}
+									className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+								/>
+								<span className="flex flex-col">
+									<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+									<span className="font-semibold text-2xl font-jetbrains min-h-8">{tvl}</span>
 								</span>
 							</summary>
 
-							<span style={{ gap: '8px' }}>
-								<StatInARow>
-									<span>Change (24h)</span>
-									<span>{percentChange || 0}%</span>
-								</StatInARow>
-							</span>
-						</AccordionStat>
+							<p className="flex items-center flex-wrap justify-between gap-2 mt-3 mb-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
+								<span className="font-jetbrains">{percentChange || 0}%</span>
+							</p>
+						</details>
 
-						<StatsTable2>
+						<table className="text-base w-full border-collapse mt-4">
 							<tbody>
 								{stablecoinsData?.totalMcapCurrent ? (
 									<RowWithSubRows
@@ -364,14 +361,18 @@ export function ChainContainer({
 											<>
 												{stablecoinsData.change7d ? (
 													<tr>
-														<SubrowTh>Change (7d)</SubrowTh>
-														<td>{stablecoinsData.change7d}%</td>
+														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Change (7d)
+														</th>
+														<td className="text-right font-jetbrains">{stablecoinsData.change7d}%</td>
 													</tr>
 												) : null}
 												{stablecoinsData.dominance ? (
 													<tr>
-														<SubrowTh>{stablecoinsData.topToken.symbol} Dominance</SubrowTh>
-														<td>{stablecoinsData.dominance}%</td>
+														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															{stablecoinsData.topToken.symbol} Dominance
+														</th>
+														<td className="text-right font-jetbrains">{stablecoinsData.dominance}%</td>
 													</tr>
 												) : null}
 											</>
@@ -381,15 +382,19 @@ export function ChainContainer({
 
 								{feesAndRevenueData?.totalFees24h ? (
 									<tr>
-										<th>Fees (24h)</th>
-										<td>{formattedNum(feesAndRevenueData?.totalFees24h, true)}</td>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Fees (24h)</th>
+										<td className="font-jetbrains text-right">
+											{formattedNum(feesAndRevenueData?.totalFees24h, true)}
+										</td>
 									</tr>
 								) : null}
 
 								{feesAndRevenueData?.totalRevenue24h ? (
 									<tr>
-										<th>Revenue (24h)</th>
-										<td>{formattedNum(feesAndRevenueData?.totalRevenue24h, true)}</td>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Revenue (24h)</th>
+										<td className="font-jetbrains text-right">
+											{formattedNum(feesAndRevenueData?.totalRevenue24h, true)}
+										</td>
 									</tr>
 								) : null}
 
@@ -404,17 +409,25 @@ export function ChainContainer({
 											<>
 												{volumeData.totalVolume7d ? (
 													<tr>
-														<SubrowTh>Volume (7d)</SubrowTh>
-														<td>{formattedNum(volumeData.totalVolume7d, true)}</td>
+														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Volume (7d)
+														</th>
+														<td className="text-right font-jetbrains">
+															{formattedNum(volumeData.totalVolume7d, true)}
+														</td>
 													</tr>
 												) : null}
 												<tr>
-													<SubrowTh>Weekly Change</SubrowTh>
-													<td>{volumeData.weeklyChange}%</td>
+													<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														Weekly Change
+													</th>
+													<td className="text-right font-jetbrains">{volumeData.weeklyChange}%</td>
 												</tr>
 												<tr>
-													<SubrowTh>DEX vs CEX dominance</SubrowTh>
-													<td>{volumeData.dexsDominance}%</td>
+													<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														DEX vs CEX dominance
+													</th>
+													<td className="text-right font-jetbrains">{volumeData.dexsDominance}%</td>
 												</tr>
 											</>
 										}
@@ -423,15 +436,17 @@ export function ChainContainer({
 
 								{totalFundingAmount ? (
 									<tr>
-										<th>Total Funding Amount</th>
-										<td>{formattedNum(totalFundingAmount, true)}</td>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+											Total Funding Amount
+										</th>
+										<td className="font-jetbrains text-right">{formattedNum(totalFundingAmount, true)}</td>
 									</tr>
 								) : null}
 
 								{inflowsData?.netInflows ? (
 									<tr>
-										<th>Inflows (24h)</th>
-										<td>{formattedNum(inflowsData.netInflows, true)}</td>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Inflows (24h)</th>
+										<td className="font-jetbrains text-right">{formattedNum(inflowsData.netInflows, true)}</td>
 									</tr>
 								) : null}
 
@@ -446,14 +461,18 @@ export function ChainContainer({
 											<>
 												{userData.newUsers ? (
 													<tr>
-														<SubrowTh>New Addresses (24h)</SubrowTh>
-														<td>{formattedNum(userData.newUsers, false)}</td>
+														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															New Addresses (24h)
+														</th>
+														<td className="text-right font-jetbrains">{formattedNum(userData.newUsers, false)}</td>
 													</tr>
 												) : null}
 												{userData.transactions ? (
 													<tr>
-														<SubrowTh>Transactions (24h)</SubrowTh>
-														<td>{formattedNum(userData.transactions, false)}</td>
+														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Transactions (24h)
+														</th>
+														<td className="text-right font-jetbrains">{formattedNum(userData.transactions, false)}</td>
 													</tr>
 												) : null}
 											</>
@@ -471,26 +490,42 @@ export function ChainContainer({
 											<>
 												{chainTreasury.tokenBreakdowns?.stablecoins ? (
 													<tr>
-														<SubrowTh>Stablecoins</SubrowTh>
-														<td>{formattedNum(chainTreasury.tokenBreakdowns?.stablecoins, true)}</td>
+														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Stablecoins
+														</th>
+														<td className="text-right font-jetbrains">
+															{formattedNum(chainTreasury.tokenBreakdowns?.stablecoins, true)}
+														</td>
 													</tr>
 												) : null}
 												{chainTreasury.tokenBreakdowns?.majors ? (
 													<tr>
-														<SubrowTh>Major Tokens (ETH, BTC)</SubrowTh>
-														<td>{formattedNum(chainTreasury.tokenBreakdowns?.majors, true)}</td>
+														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Major Tokens (ETH, BTC)
+														</th>
+														<td className="text-right font-jetbrains">
+															{formattedNum(chainTreasury.tokenBreakdowns?.majors, true)}
+														</td>
 													</tr>
 												) : null}
 												{chainTreasury.tokenBreakdowns?.others ? (
 													<tr>
-														<SubrowTh>Other Tokens</SubrowTh>
-														<td>{formattedNum(chainTreasury.tokenBreakdowns?.others, true)}</td>
+														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Other Tokens
+														</th>
+														<td className="text-right font-jetbrains">
+															{formattedNum(chainTreasury.tokenBreakdowns?.others, true)}
+														</td>
 													</tr>
 												) : null}
 												{chainTreasury.tokenBreakdowns?.ownTokens ? (
 													<tr>
-														<SubrowTh>Own Tokens</SubrowTh>
-														<td>{formattedNum(chainTreasury.tokenBreakdowns?.ownTokens, true)}</td>
+														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Own Tokens
+														</th>
+														<td className="text-right font-jetbrains">
+															{formattedNum(chainTreasury.tokenBreakdowns?.ownTokens, true)}
+														</td>
 													</tr>
 												) : null}
 											</>
@@ -511,8 +546,10 @@ export function ChainContainer({
 													.map((raise) => (
 														<React.Fragment key={raise.date + raise.amount}>
 															<tr>
-																<th data-subvalue>{new Date(raise.date * 1000).toISOString().split('T')[0]}</th>
-																<td data-subvalue>
+																<th className="text-left mb-auto font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	{new Date(raise.date * 1000).toISOString().split('T')[0]}
+																</th>
+																<td className="text-right">
 																	{raise.source ? (
 																		<a target="_blank" rel="noopener noreferrer" href={raise.source}>
 																			{formatRaise(raise)}
@@ -523,7 +560,7 @@ export function ChainContainer({
 																</td>
 															</tr>
 															<tr key={raise.source}>
-																<td colSpan={2} className="investors">
+																<td colSpan={2} className="text-right">
 																	<b>Investors</b>:{' '}
 																	{(raise as any).leadInvestors
 																		.concat((raise as any).otherInvestors)
@@ -557,40 +594,48 @@ export function ChainContainer({
 													<>
 														{chainAssets.native?.total ? (
 															<tr>
-																<SubrowTh>
+																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	Native
 																	<QuestionHelper text="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)" />
-																</SubrowTh>
-																<td>{formattedNum(chainAssets.native.total, true)}</td>
+																</th>
+																<td className="text-right font-jetbrains">
+																	{formattedNum(chainAssets.native.total, true)}
+																</td>
 															</tr>
 														) : null}
 														{chainAssets.ownTokens?.total ? (
 															<tr>
-																<SubrowTh>
+																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	Own Tokens
 																	<QuestionHelper text="Marketcap of the governance token of the chain" />
-																</SubrowTh>
-																<td>{formattedNum(chainAssets.ownTokens.total, true)}</td>
+																</th>
+																<td className="text-right font-jetbrains">
+																	{formattedNum(chainAssets.ownTokens.total, true)}
+																</td>
 															</tr>
 														) : null}
 
 														{chainAssets.canonical?.total ? (
 															<tr>
-																<SubrowTh>
+																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	Canonical
 																	<QuestionHelper text="Tokens that were bridged to the chain through the canonical bridge" />
-																</SubrowTh>
-																<td>{formattedNum(chainAssets.canonical.total, true)}</td>
+																</th>
+																<td className="text-right font-jetbrains">
+																	{formattedNum(chainAssets.canonical.total, true)}
+																</td>
 															</tr>
 														) : null}
 
 														{chainAssets.thirdParty?.total ? (
 															<tr>
-																<SubrowTh>
+																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	Third Party
 																	<QuestionHelper text="Tokens that were bridged to the chain through third party bridges" />
-																</SubrowTh>
-																<td>{formattedNum(chainAssets.thirdParty.total, true)}</td>
+																</th>
+																<td className="text-right font-jetbrains">
+																	{formattedNum(chainAssets.thirdParty.total, true)}
+																</td>
 															</tr>
 														) : null}
 													</>
@@ -602,25 +647,37 @@ export function ChainContainer({
 
 								{chainTokenInfo?.market_data ? (
 									<tr>
-										<th>{chainTokenInfo?.tokenSymbol} Price</th>
-										<td>{formattedNum(chainTokenInfo?.market_data?.current_price?.usd, true)}</td>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+											{chainTokenInfo?.tokenSymbol} Price
+										</th>
+										<td className="font-jetbrains text-right">
+											{formattedNum(chainTokenInfo?.market_data?.current_price?.usd, true)}
+										</td>
 									</tr>
 								) : null}
 
 								{chainTokenInfo?.market_data ? (
 									<tr>
-										<th>{chainTokenInfo?.tokenSymbol} Market Cap</th>
-										<td>{formattedNum(chainTokenInfo?.market_data?.market_cap?.usd, true)}</td>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+											{chainTokenInfo?.tokenSymbol} Market Cap
+										</th>
+										<td className="font-jetbrains text-right">
+											{formattedNum(chainTokenInfo?.market_data?.market_cap?.usd, true)}
+										</td>
 									</tr>
 								) : null}
 								{chainTokenInfo?.market_data ? (
 									<tr>
-										<th>{chainTokenInfo?.tokenSymbol} FDV</th>
-										<td>{formattedNum(chainTokenInfo?.market_data?.fully_diluted_valuation?.usd, true)}</td>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+											{chainTokenInfo?.tokenSymbol} FDV
+										</th>
+										<td className="font-jetbrains text-right">
+											{formattedNum(chainTokenInfo?.market_data?.fully_diluted_valuation?.usd, true)}
+										</td>
 									</tr>
 								) : null}
 							</tbody>
-						</StatsTable2>
+						</table>
 						<CSVDownloadButton
 							isLight
 							style={{ width: '100px', marginTop: 'auto', marginLeft: '-12px' }}
@@ -633,7 +690,7 @@ export function ChainContainer({
 								)
 							}}
 						/>
-					</OverallMetricsWrapper>
+					</div>
 
 					<ChartWrapper>
 						{easterEgg ? (
@@ -735,16 +792,16 @@ export function ChainContainer({
 						<img src={llamaLogo.src} width="41px" height="34px" alt="" />
 						<span className="sr-only">Activate Easter Egg</span>
 					</button>
-				</StatsSection>
+				</div>
 
 				{finalProtocolsList.length > 0 ? (
 					<ProtocolsByChainTable data={finalProtocolsList} />
 				) : (
-					<p style={{ textAlign: 'center', margin: '256px 0' }}>{`${selectedChain} chain has no protocols listed`}</p>
+					<p className="text-center my-[256px]">{`${selectedChain} chain has no protocols listed`}</p>
 				)}
 
 				{fetchingProtocolsList || fetchingProtocolsFeesAndRevenueByChain || fetchingProtocolsVolumeByChain ? (
-					<p style={{ textAlign: 'center', padding: '16px 0' }}>Loading...</p>
+					<p className="text-center my-1">Loading...</p>
 				) : null}
 			</div>
 		</>
@@ -793,22 +850,4 @@ export const ChartWrapper = styled.div`
 	padding: 16px 0;
 	grid-column: span 1;
 	min-height: 442px;
-`
-
-export const OverallMetricsWrapper = styled(DetailsWrapper)`
-	background: none;
-	gap: 8px;
-
-	& > *[data-chainname] {
-		margin-bottom: 16px;
-	}
-
-	& > *[data-tvl] {
-		margin-bottom: 8px;
-	}
-
-	@media screen and (min-width: 80rem) {
-		max-width: 300px;
-		border-right: ${({ theme }) => '1px solid ' + theme.divider};
-	}
 `

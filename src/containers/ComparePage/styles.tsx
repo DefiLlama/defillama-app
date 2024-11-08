@@ -1,11 +1,4 @@
 import styled from 'styled-components'
-import { StatsSection } from '~/layout/Stats/Medium'
-
-export const Card = styled(StatsSection)`
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-`
 
 export const Grid = styled.div`
 	display: grid;

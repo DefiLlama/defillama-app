@@ -2,7 +2,7 @@ import * as React from 'react'
 import Link from 'next/link'
 
 import Layout from '~/layout'
-import { Button, FlexRow, InfoWrapper, Section, SectionHeader, ChartsWrapper } from '~/layout/ProtocolAndPool'
+import { Button, InfoWrapper, Section, SectionHeader, ChartsWrapper } from '~/layout/ProtocolAndPool'
 import { CopyHelper } from '~/components/Copy'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { AuditInfo } from '~/components/AuditInfo'
@@ -139,16 +139,16 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					{props.protocolSummary.description && <p>{props.protocolSummary.description}</p>}
 
 					{props.protocolSummary.category && (
-						<FlexRow>
+						<p className="flex items-center gap-2">
 							<span>Category:</span>
 							<Link href={`/${props.protocolSummary.type}?category=${props.protocolSummary.category}`}>
 								{props.protocolSummary.category}
 							</Link>
-						</FlexRow>
+						</p>
 					)}
 
 					{props.protocolSummary.forkedFrom && props.protocolSummary.forkedFrom.length > 0 && (
-						<FlexRow>
+						<p className="flex items-center gap-2">
 							<span>Forked from:</span>
 							<>
 								{props.protocolSummary.forkedFrom.map((p, index) => (
@@ -157,7 +157,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 									</Link>
 								))}
 							</>
-						</FlexRow>
+						</p>
 					)}
 
 					{props.protocolSummary.audits && props.protocolSummary.audit_links && (
@@ -190,7 +190,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						{blockExplorers && (
 							<>
 								{blockExplorers.map((blockExplorer) => (
-									<FlexRow key={blockExplorer.address}>
+									<p className="flex items-center gap-2" key={blockExplorer.address}>
 										<span>{`${capitalizeFirstLetter(
 											blockExplorer.chain ? `${blockExplorer.chain} address:` : 'address:'
 										)}`}</span>
@@ -202,7 +202,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 												<Icon name="arrow-up-right" height={14} width={14} />
 											</Button>
 										</Link>
-									</FlexRow>
+									</p>
 								))}
 							</>
 						)}

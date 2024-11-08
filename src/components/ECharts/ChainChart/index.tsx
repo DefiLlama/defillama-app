@@ -2,17 +2,12 @@ import { useCallback, useEffect, useMemo } from 'react'
 import uniq from 'lodash/uniq'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
-import styled from 'styled-components'
 import { getUtcDateObject } from '../utils'
 import { useDefaults } from '../useDefaults'
 import { useRouter } from 'next/router'
 import { primaryColor } from '~/constants/colors'
 import { toK } from '~/utils'
 import { cumulativeSum, groupByTimeFrame } from './utils'
-
-const Wrapper = styled.div`
-	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
-`
 
 const groupableCharts = ['feesChart', 'volumeChart', 'aggregatorsData', 'derivativesData', 'chainTokenVolumeData']
 
@@ -861,7 +856,7 @@ export default function AreaChart({
 
 	return (
 		<div style={{ position: 'relative', minHeight: height }} {...props}>
-			<Wrapper id={id} style={{ minHeight: height, margin: 'auto 0' }}></Wrapper>
+			<div id={id} style={{ minHeight: height }} className="my-auto" />
 		</div>
 	)
 }

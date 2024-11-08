@@ -19,7 +19,6 @@ import { useSaveEmail } from './queries/useEmail'
 import DiscordButton from './DiscordButton'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import Link from 'next/link'
-import { FlexRow } from '~/layout/ProtocolAndPool'
 import { Icon } from '~/components/Icon'
 
 const Body = styled.div`
@@ -212,10 +211,10 @@ const ProApi = () => {
 										<th>Free</th>
 										<th>300$/mo</th>
 										<th>
-											<FlexRow as="span">
+											<span className="flex items-center gap-2">
 												Github Contributor
 												<QuestionHelper text="Only available to users who have contributed to DefiLlama repos, lasts for 3 months" />
-											</FlexRow>
+											</span>
 										</th>
 									</tr>
 									<tr>

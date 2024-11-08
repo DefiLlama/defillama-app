@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { FlexRow, Section } from '~/layout/ProtocolAndPool'
+import { Section } from '~/layout/ProtocolAndPool'
 import { GridContent } from './Common'
 import { YieldsPoolsTable } from '~/components/Table/Yields/Pools'
 import { getYieldPageData } from '~/api/categories/yield'
@@ -36,16 +36,16 @@ export function ProtocolPools({ protocol, data, protocolData }) {
 	return (
 		<GridContent>
 			<Section>
-				<FlexRow>
+				<p className="flex items-center gap-2">
 					<span>Number of pools tracked</span>
 					<span>:</span>
 					<span>{data.noOfPoolsTracked}</span>
-				</FlexRow>
-				<FlexRow>
+				</p>
+				<p className="flex items-center gap-2">
 					<span>Average APY</span>
 					<span>:</span>
 					<span>{data.averageAPY.toFixed(2)}%</span>
-				</FlexRow>
+				</p>
 
 				{isLoading ? (
 					<p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>

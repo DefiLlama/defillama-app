@@ -1,17 +1,12 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
-import styled from 'styled-components'
 import { getUtcDateObject, stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { toK } from '~/utils'
 import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useRouter } from 'next/router'
-
-const Wrapper = styled.div`
-	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
-`
 
 const customOffsets = {
 	Contributers: 60,
@@ -647,9 +642,5 @@ export default function AreaBarChart({
 		yAxisByIndex
 	])
 
-	return (
-		<div style={{ position: 'relative', marginTop: 16 }} {...props}>
-			<Wrapper id={id} style={{ height, margin: 'auto 0' }}></Wrapper>
-		</div>
-	)
+	return <div id={id} style={{ height }} />
 }

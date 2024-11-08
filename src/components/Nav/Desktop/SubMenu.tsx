@@ -29,8 +29,8 @@ export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function
 	}
 
 	return (
-		<details ref={ref} open={active ? true : false} className="group select-none">
-			<summary className="group/summary -ml-[6px] font-semibold rounded-md flex items-center gap-3 list-none hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 p-[6px] cursor-pointer">
+		<details ref={ref} open={active ? true : false} className="group">
+			<summary className="group/summary -ml-[6px] font-semibold rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 p-[6px]">
 				<span className="group-hover/summary:animate-wiggle group-focus-visible/summary:animate-wiggle">
 					{navLinks[name].icon}
 				</span>
