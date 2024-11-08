@@ -4,7 +4,6 @@ import styled from 'styled-components'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { Wrapper, ChartWrapper, TableHeader, Fallback } from '~/layout/Chain'
-import { StatsWrapper, Stat } from '~/layout/Stats/Large'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { formattedNum } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
@@ -73,26 +72,30 @@ export function UsersByChain({ chart, backgroundColor, name, chains, chain }: IU
 					<RowLinksWithDropdown links={chains} activeLink={chain} />
 				</nav>
 
-				<StatsWrapper>
-					<Stat>
-						<span>24h Unique Users</span>
-						<span>{formattedNum(recentMetrics?.['Unique Users'])}</span>
-					</Stat>
+				<div className="flex flex-col px-4 col-span-1 xl:p-0 xl:pl-9 xl:min-w-[380px]">
+					<p className="flex flex-col gap-1 text-base">
+						<span className="text-[#545757] dark:text-[#cccccc]">24h Unique Users</span>
+						<span className="font-jetbrains font-semibold text-2xl">
+							{formattedNum(recentMetrics?.['Unique Users'])}
+						</span>
+					</p>
 
-					<hr />
+					<hr className="my-5 border-[var(--divider)] xl:my-8" />
 
-					<Stat>
-						<span>24h New Users</span>
-						<span>{formattedNum(recentMetrics?.['New Users'])}</span>
-					</Stat>
+					<p className="flex flex-col gap-1 text-base">
+						<span className="text-[#545757] dark:text-[#cccccc]">24h New Users</span>
+						<span className="font-jetbrains font-semibold text-2xl">{formattedNum(recentMetrics?.['New Users'])}</span>
+					</p>
 
-					<hr />
+					<hr className="my-5 border-[var(--divider)] xl:my-8" />
 
-					<Stat>
-						<span>24h Transactions</span>
-						<span>{formattedNum(recentMetrics?.['Daily Transactions'])}</span>
-					</Stat>
-				</StatsWrapper>
+					<p className="flex flex-col gap-1 text-base">
+						<span className="text-[#545757] dark:text-[#cccccc]">24h Transactions</span>
+						<span className="font-jetbrains font-semibold text-2xl">
+							{formattedNum(recentMetrics?.['Daily Transactions'])}
+						</span>
+					</p>
+				</div>
 				<ChartContainer>
 					<BarChart
 						chartData={allTxsChart}

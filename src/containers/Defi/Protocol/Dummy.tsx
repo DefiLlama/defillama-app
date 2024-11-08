@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { Button, Name } from '~/layout/ProtocolAndPool'
-import { StatsSection } from '~/layout/Stats/Medium'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
 import { transparentize } from 'polished'
@@ -9,7 +8,6 @@ import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { SEO } from '~/components/SEO'
 import { standardizeProtocolName, tokenIconUrl } from '~/utils'
-import styled from 'styled-components'
 import { Treasury } from './Treasury'
 import { ProtocolFeesRevenueVolumeCharts } from './Fees'
 import { OtherProtocols, ProtocolLink } from './Common'
@@ -25,7 +23,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name: data.name }} />
 
-			<Wrapper>
+			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg7)] border border-[var(--divider)] shadow rounded-xl">
 				{data?.otherProtocols?.length > 1 && (
 					<OtherProtocols style={{ margin: '-24px -24px -12px' }}>
 						{data.otherProtocols.map((p) => (
@@ -81,16 +79,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 				{data.treasury && <Treasury protocolName={protocol} />}
 
 				<ProtocolFeesRevenueVolumeCharts data={data} />
-			</Wrapper>
+			</div>
 		</Layout>
 	)
 }
-
-export const Wrapper = styled(StatsSection)`
-	display: flex;
-	flex-direction: column;
-	gap: 36px;
-	padding: 24px;
-	color: ${({ theme }) => theme.text1};
-	background: ${({ theme }) => theme.bg7};
-`

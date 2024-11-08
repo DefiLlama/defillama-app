@@ -8,7 +8,17 @@ import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
 
-export function Flag({ protocol, dataType, isLending }: { protocol: string; dataType?: string; isLending?: boolean }) {
+export function Flag({
+	protocol,
+	dataType,
+	isLending,
+	className
+}: {
+	protocol: string
+	dataType?: string
+	isLending?: boolean
+	className?: string
+}) {
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState(false)
 	const dialog = useDialogState()
@@ -54,15 +64,12 @@ export function Flag({ protocol, dataType, isLending }: { protocol: string; data
 		<>
 			{dataType ? (
 				<Tooltip content="Report incorrect data">
-					<button onClick={dialog.toggle}>
+					<button onClick={dialog.toggle} className={className}>
 						<Icon name="flag" height={14} width={14} />
 					</button>
 				</Tooltip>
 			) : (
-				<button
-					onClick={dialog.toggle}
-					style={{ textAlign: 'left', margin: 'auto 0 0 -4px', paddingTop: '24px', textDecoration: 'underline' }}
-				>
+				<button onClick={dialog.toggle} className="text-left mt-auto pt-6 underline">
 					Report incorrect data
 				</button>
 			)}

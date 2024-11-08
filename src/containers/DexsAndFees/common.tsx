@@ -163,10 +163,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						<PanelHiddenMobileHelper>
 							<div>
 								<h2>Weekly change</h2>
-								<QuestionHelper
-									text={`Change of last 7d volume over the previous 7d volume of all dexs`}
-									textAlign="center"
-								/>
+								<QuestionHelper text={`Change of last 7d volume over the previous 7d volume of all dexs`} />
 							</div>
 							{props.data.change_7dover7d > 0 ? (
 								<p style={{ '--tile-text-color': '#3cfd99' } as React.CSSProperties}>
@@ -197,10 +194,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 								<PanelHiddenMobileHelper>
 									<div>
 										<h2>DEX vs CEX dominance</h2>
-										<QuestionHelper
-											text={`Dexs dominance over aggregated dexs and cexs volume (24h)`}
-											textAlign="center"
-										/>
+										<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume (24h)`} />
 									</div>
 									<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
 										{' '}

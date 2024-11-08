@@ -326,19 +326,19 @@ export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
 
 export const useGeckoId = (addressData: string | null) => {
 	const [chain, address] = addressData?.split(':') ?? [null, null]
-
 	const { data, error, isLoading } = useQuery({
 		queryKey: [`geckoId/${addressData}`],
-		queryFn: address
-			? chain === 'coingecko'
-				? () => ({ id: address })
-				: () => fetchApi(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`)
-			: () => null,
+		queryFn:
+			address && address !== '-'
+				? chain === 'coingecko'
+					? () => ({ id: address })
+					: () => fetchApi(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`)
+				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
 
-	return { data: data?.id, isLoading, error }
+	return { data: data?.id ?? null, isLoading, error }
 }
 
 export const usePriceChart = (geckoId?: string) => {

@@ -16,11 +16,8 @@ import {
 	ChartsWrapper,
 	LazyChart,
 	ChartsPlaceholder,
-	ChartWrapper,
-	DetailsTable
+	ChartWrapper
 } from '~/layout/ProtocolAndPool'
-import { PoolDetails } from '~/layout/Pool'
-import { StatsSection } from '~/layout/Stats/Medium'
 import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
 import { getColorFromNumber } from '~/utils'
 import styled from 'styled-components'
@@ -178,8 +175,8 @@ const PageView = () => {
 
 // 	return (
 // 		<>
-// 			<StatsSection>
-// 				<PoolDetails>
+// 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+// 				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 // 					<Name style={{ flexWrap: 'wrap' }}>
 // 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 // 							? `${poolData.symbol} (${poolData.poolMeta})`
@@ -190,53 +187,45 @@ const PageView = () => {
 // 						</Symbol>
 // 					</Name>
 
-// 					<TableWrapper>
+// 					<table className="w-full text-base border-collapse">
 // 						<tbody>
 // 							<tr>
-// 								<th>Supply Base APY:</th>
-// 								<td>{apyBase.toFixed(2)}%</td>
+// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Supply Base APY:</th>
+// 								<td className="font-jetbrains text-right">{apyBase.toFixed(2)}%</td>
 // 							</tr>
-// 							<tr>
-// 								<th>Supply Reward APY:</th>
-// 								<td>{apyReward.toFixed(2)}%</td>
-// 							</tr>
-
-// 							<tr data-divider>
-// 								<th></th>
+// 							<tr className="border-b border-[var(--divider)]">
+// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Supply Reward APY:</th>
+// 								<td className="font-jetbrains text-right">{apyReward.toFixed(2)}%</td>
 // 							</tr>
 
 // 							<tr>
-// 								<th>Net Borrow APY:</th>
-// 								<td>{newBorrowApy.toFixed(2)}%</td>
+// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pt-1">Net Borrow APY:</th>
+// 								<td className="font-jetbrains text-right">{newBorrowApy.toFixed(2)}%</td>
 // 							</tr>
 // 							<tr>
-// 								<th>Borrow Base APY:</th>
-// 								<td>{apyBaseBorrow.toFixed(2)}%</td>
+// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Borrow Base APY:</th>
+// 								<td className="font-jetbrains text-right">{apyBaseBorrow.toFixed(2)}%</td>
 // 							</tr>
-// 							<tr>
-// 								<th>Borrow Reward APY:</th>
-// 								<td>{apyRewardBorrow.toFixed(2)}%</td>
-// 							</tr>
-
-// 							<tr data-divider>
-// 								<th></th>
+// 							<tr className="border-b border-[var(--divider)]">
+// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Borrow Reward APY:</th>
+// 								<td className="font-jetbrains text-right">{apyRewardBorrow.toFixed(2)}%</td>
 // 							</tr>
 
 // 							<tr>
-// 								<th>Supplied:</th>
-// 								<td>${toK(totalSupplyUsd ?? 0)}</td>
+// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pt-1">Supplied:</th>
+// 								<td className="font-jetbrains text-right">${toK(totalSupplyUsd ?? 0)}</td>
 // 							</tr>
 // 							<tr>
-// 								<th>Borrowed:</th>
-// 								<td>${toK(totalBorrowUsd ?? 0)}</td>
+// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Borrowed:</th>
+// 								<td className="font-jetbrains text-right">${toK(totalBorrowUsd ?? 0)}</td>
 // 							</tr>
 // 							<tr>
-// 								<th>Available:</th>
-// 								<td>${toK(totalAvailableUsd ?? 0)}</td>
+// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Available:</th>
+// 								<td className="font-jetbrains text-right">${toK(totalAvailableUsd ?? 0)}</td>
 // 							</tr>
 // 						</tbody>
 // 					</TableWrapper>
-// 				</PoolDetails>
+// 				</div>
 
 // 				<ChartWrapper style={{ position: 'relative' }}>
 // 					<AreaChart title="Net Borrow APY" chartData={netBorrowChartData} color={backgroundColor} valueSymbol={'%'} />
@@ -251,7 +240,7 @@ const PageView = () => {
 // 					<Icon name="download-cloud" height={14} width={14} />
 // 					<span>&nbsp;&nbsp;.csv</span>
 // 				</DownloadToCSV>
-// 			</StatsSection>
+// 			</div>
 
 // 			<ChartsWrapper>
 // 				{fetchingChartData ? (
@@ -355,21 +344,6 @@ const DownloadToCSV = styled(DownloadButton)`
 	position: absolute;
 	top: 20px;
 	right: 24px;
-`
-
-const TableWrapper = styled(DetailsTable)`
-	tr[data-divider] {
-		position: relative;
-		th::before {
-			content: '';
-			position: absolute;
-			top: 5px;
-			left: 0;
-			right: 0;
-			height: 10px;
-			border-top: 1px solid ${({ theme }) => theme.divider};
-		}
-	}
 `
 
 export default function YieldPoolPage(props) {

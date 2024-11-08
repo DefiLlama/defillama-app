@@ -6,8 +6,7 @@ import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import { Button, DetailsTable, ExtraOption, FlexRow, DetailsWrapper, Name, Symbol } from '~/layout/ProtocolAndPool'
-import { StatsSection } from '~/layout/Stats/Medium'
+import { Button, ExtraOption, FlexRow, Name, Symbol } from '~/layout/ProtocolAndPool'
 import { Checkbox2 } from '~/components'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ButtonLight } from '~/components/ButtonStyled'
@@ -32,7 +31,6 @@ import {
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedAssetByChainTable } from '~/components/Table/Stablecoins/PeggedAssetByChain'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
-import { Stat, StatInARow } from '~/layout/Stats/Large'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 
@@ -255,7 +253,7 @@ export const PeggedAssetInfo = ({
 
 	return (
 		<>
-			<StatsSection>
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 				<TabWrapper>
 					<TabContainer state={tab} className="tab-list" aria-label="Pegged Tabs">
 						<PeggedTab className="tab" id={defaultSelectedId} color={backgroundColor}>
@@ -270,47 +268,47 @@ export const PeggedAssetInfo = ({
 					</TabContainer>
 
 					<TabPanel state={tab} tabId={defaultSelectedId}>
-						<DetailsWrapper>
+						<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 							<Name>
 								<TokenLogo logo={logo} size={24} />
 								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 								<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
 							</Name>
 
-							<Stat>
-								<span>Market Cap</span>
-								<span>
-									<span>{formattedNum(mcap || '0', true)}</span>
-								</span>
-							</Stat>
+							<p className="flex flex-col gap-1">
+								<span className="text-base text-[#545757] dark:text-[#cccccc]">Market Cap</span>
+								<span className="font-semibold text-2xl font-jetbrains min-h-8">{formattedNum(mcap || '0', true)}</span>
+							</p>
 
-							<StatInARow>
-								<span>Price</span>
-								<span>{price === null ? '-' : formattedNum(price, true)}</span>
-							</StatInARow>
+							<p className="flex items-center flex-wrap justify-between gap-2 text-base">
+								<span className="text-[#545757] dark:text-[#cccccc]">Price</span>
+								<span className="font-jetbrains">{price === null ? '-' : formattedNum(price, true)}</span>
+							</p>
 
 							{totalCirculating && (
-								<DetailsTable>
-									<caption>Issuance Stats</caption>
+								<table className="w-full border-collapse text-base">
+									<caption className="text-xs text-[#545757] dark:text-[#cccccc] text-left pb-1">
+										Issuance Stats
+									</caption>
 									<tbody>
 										<tr>
-											<th>Total Circulating</th>
-											<td>{toK(totalCirculating)}</td>
+											<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Total Circulating</th>
+											<td className="font-jetbrains text-right">{toK(totalCirculating)}</td>
 										</tr>
 									</tbody>
-								</DetailsTable>
+								</table>
 							)}
 
 							{extraPeggeds.length > 0 && (
-								<DetailsTable>
-									<caption>
+								<table className="w-full border-collapse text-base">
+									<caption className="text-xs text-[#545757] dark:text-[#cccccc] text-left pb-1 flex items-center gap-1 flex-wrap">
 										<span>Optional Circulating Counts</span>
 										<QuestionHelper text="Use this option to choose whether to include coins that have been minted but have never been circulating." />
 									</caption>
 									<tbody>
 										{extraPeggeds.map((option) => (
 											<tr key={option}>
-												<th>
+												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
 													<ExtraOption>
 														<Checkbox2
 															type="checkbox"
@@ -323,14 +321,14 @@ export const PeggedAssetInfo = ({
 														</span>
 													</ExtraOption>
 												</th>
-												<td>{toK(unreleased)}</td>
+												<td className="font-jetbrains text-right">{toK(unreleased)}</td>
 											</tr>
 										))}
 									</tbody>
-								</DetailsTable>
+								</table>
 							)}
 							<CSVDownloadButton onClick={downloadCsv} isLight />
-						</DetailsWrapper>
+						</div>
 					</TabPanel>
 
 					<TabPanel state={tab}>
@@ -526,7 +524,7 @@ export const PeggedAssetInfo = ({
 					)}
 					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}
 				</div>
-			</StatsSection>
+			</div>
 
 			<PeggedAssetByChainTable data={groupedChains} />
 		</>

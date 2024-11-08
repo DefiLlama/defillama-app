@@ -80,7 +80,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+				<span className="flex items-center justify-end gap-1">
 					{info.row.original.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY!'} />
 					) : info.row.original.project === 'Uniswap V3' ? (
@@ -113,7 +113,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+				<span className="flex items-center justify-end gap-1">
 					{info.row.original.project === 'Fraxlend' ? (
 						<QuestionHelper
 							text={'Supply APY is for FRAX being lent to the pool, you do not earn interest on your collateral!'}
@@ -269,7 +269,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+				<span className="flex items-center justify-end gap-1">
 					{info.row.original.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY!'} />
 					) : info.row.original.project === 'Uniswap V3' ? (

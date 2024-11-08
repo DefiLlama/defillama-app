@@ -2,11 +2,9 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import { Button, DetailsWrapper, LazyChart, Name } from '~/layout/ProtocolAndPool'
-import { StatsSection } from '~/layout/Stats/Medium'
+import { Button, LazyChart, Name } from '~/layout/ProtocolAndPool'
 import { BridgesSearch } from '~/components/Search/Bridges'
 import { TokenLogo } from '~/components/TokenLogo'
-import { FormattedName } from '~/components/FormattedName'
 import { SEO } from '~/components/SEO'
 import { BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange } from '~/utils'
@@ -84,39 +82,39 @@ const BridgeInfo = ({
 
 	return (
 		<>
-			<StatsSection>
-				<DetailsWrapper>
-					<Name>
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+				<div className="flex flex-col gap-9 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+					<h1 className="flex flex-nowrap items-center gap-1 text-xl font-bold">
 						<TokenLogo logo={logo} size={24} />
-						<FormattedName text={displayName ? displayName + ' ' : ''} maxCharacters={25} fontWeight={700} />
-					</Name>
+						<span>{displayName}</span>
+					</h1>
 
 					<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
 
-					<Stat>
-						<span>Deposited to {currentChain} (24h)</span>
-						<span>
+					<p className="flex flex-col gap-1 text-base">
+						<span className="text-[#545757] dark:text-[#cccccc]">Deposited to {currentChain} (24h)</span>
+						<span className="font-jetbrains font-semibold text-2xl">
 							{formattedNum(
 								currentChain === 'All Chains' ? config?.last24hVolume || '0' : currentDepositsUSD || '0',
 								true
 							)}
 						</span>
-					</Stat>
+					</p>
 
-					<Stat>
-						<span>Withdrawn from {currentChain} (24h)</span>
-						<span>
+					<p className="flex flex-col gap-1 text-base">
+						<span className="text-[#545757] dark:text-[#cccccc]">Withdrawn from {currentChain} (24h)</span>
+						<span className="font-jetbrains font-semibold text-2xl">
 							{formattedNum(
 								currentChain === 'All Chains' ? config?.last24hVolume || '0' : currentWithdrawalsUSD || '0',
 								true
 							)}
 						</span>
-					</Stat>
+					</p>
 
-					<Stat>
-						<span>Volume Change (24h)</span>
-						<span>{volPercentChange + '%'}</span>
-					</Stat>
+					<p className="flex flex-col gap-1 text-base">
+						<span className="text-[#545757] dark:text-[#cccccc]">Volume Change (24h)</span>
+						<span className="font-jetbrains font-semibold text-2xl">{volPercentChange + '%'}</span>
+					</p>
 					{config?.url ? (
 						<Link href={config.url} passHref>
 							<Button
@@ -127,16 +125,14 @@ const BridgeInfo = ({
 								style={{
 									width: '120px',
 									display: 'flex',
-									justifyContent: 'center',
-									marginLeft: '-8px',
-									marginTop: '-16px'
+									justifyContent: 'center'
 								}}
 							>
 								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</Button>
 						</Link>
 					) : null}
-				</DetailsWrapper>
+				</div>
 
 				<div
 					style={{
@@ -176,7 +172,7 @@ const BridgeInfo = ({
 						)}
 					</LazyChart>
 				</div>
-			</StatsSection>
+			</div>
 
 			<TableNoticeWrapper>
 				<AddressesTableSwitch />
@@ -261,23 +257,3 @@ const inflowChartStacks = {
 	Deposited: 'stackA',
 	Withdrawn: 'stackA'
 }
-
-const Stat = styled.h1`
-	font-size: 1.5rem;
-	font-weight: 600;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-
-	& > *:first-child {
-		font-weight: 400;
-		font-size: 1rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
-	}
-
-	& > *:nth-child(2) {
-		font-family: var(--font-jetbrains);
-		min-height: 2rem;
-	}
-`

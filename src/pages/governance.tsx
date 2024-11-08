@@ -11,7 +11,6 @@ import {
 	getExpandedRowModel
 } from '@tanstack/react-table'
 import styled from 'styled-components'
-import { StatsSection } from '~/layout/Stats/Medium'
 import { VirtualTable } from '~/components/Table/Table'
 import { governanceColumns } from '~/components/Table/Defi/columns'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
@@ -93,15 +92,6 @@ export default function Governance({ data }) {
 		</Layout>
 	)
 }
-
-export const Wrapper = styled(StatsSection)`
-	display: flex;
-	flex-direction: column;
-	gap: 36px;
-	padding: 24px;
-	color: ${({ theme }) => theme.text1};
-	background: ${({ theme }) => theme.bg7};
-`
 
 const SubrowData = styled.span`
 	display: flex;

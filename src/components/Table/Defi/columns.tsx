@@ -1086,10 +1086,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			return (
 				<>
 					{info.getValue() === undefined ? (
-						<QuestionHelper
-							text="This CEX has not published a list of all hot and cold wallets"
-							style={{ marginLeft: 'auto' }}
-						/>
+						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
 					) : (
 						'$' + formattedNum(info.getValue())
 					)}
@@ -1532,6 +1529,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'LSD',
 		accessorKey: 'lsdSymbol',
 		cell: ({ getValue, row }) => {
+			if (!row.original.pegInfo) return `${getValue()}`
 			return (
 				<span className="flex items-center justify-end gap-1">
 					{row.original.pegInfo ? <QuestionHelper text={row.original.pegInfo} /> : null}

@@ -1,8 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
-import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
-import { Stat } from '~/layout/Stats/Large'
+import { Name } from '~/layout/ProtocolAndPool'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
 import { capitalizeFirstLetter, formattedNum, standardizeProtocolName } from '~/utils'
@@ -105,7 +103,7 @@ export const ProtocolChart = ({
 	const [enabledSettings] = useFeesManager()
 
 	return (
-		<StatsSection>
+		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 			{childProtocols && childProtocols.length > 0 && (
 				<OtherProtocols>
 					{tabs.map((p) => (
@@ -118,7 +116,10 @@ export const ProtocolChart = ({
 				</OtherProtocols>
 			)}
 			{!fullChart ? (
-				<DetailsWrapper style={{ borderTopLeftRadius: tabs?.length > 1 ? 0 : '12px' }}>
+				<div
+					className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto"
+					style={{ borderTopLeftRadius: tabs?.length > 1 ? 0 : '12px' }}
+				>
 					<>
 						{name && (
 							<Name>
@@ -127,50 +128,46 @@ export const ProtocolChart = ({
 							</Name>
 						)}
 						{data.total24h || data.total24h === 0 ? (
-							<StatWrapper>
-								<Stat>
-									<span>
-										{data.disabled === true
-											? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-													+chartData[0][chartData[0].length - 1][0]
-											  )})`
-											: `${typeString} (24h)`}
-									</span>
-									<span>{formattedNum(data.total24h || '0', true)}</span>
-								</Stat>
-							</StatWrapper>
+							<p className="flex flex-col gap-1 text-base">
+								<span className="text-[#545757] dark:text-[#cccccc]">
+									{data.disabled === true
+										? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+												+chartData[0][chartData[0].length - 1][0]
+										  )})`
+										: `${typeString} (24h)`}
+								</span>
+								<span className="font-jetbrains font-semibold text-2xl">
+									{formattedNum(data.total24h || '0', true)}
+								</span>
+							</p>
 						) : null}
 						{data.dailyRevenue || data.dailyRevenue === 0 ? (
-							<StatWrapper>
-								<Stat>
-									<span>
-										{data.disabled === true
-											? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-													+chartData[0][chartData[0].length - 1][0]
-											  )})`
-											: `${type === 'options' ? 'Premium Volume' : 'Revenue'} (24h)`}
-									</span>
-									<span>
-										{formattedNum(
-											(data.dailyRevenue ?? 0) +
-												(enabledSettings.bribes ? (data as any).dailyBribesRevenue ?? 0 : 0) +
-												(enabledSettings.tokentax ? (data as any).dailyTokenTaxes ?? 0 : 0),
-											true
-										)}
-									</span>
-								</Stat>
-							</StatWrapper>
+							<p className="flex flex-col gap-1 text-base">
+								<span className="text-[#545757] dark:text-[#cccccc]">
+									{data.disabled === true
+										? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+												+chartData[0][chartData[0].length - 1][0]
+										  )})`
+										: `${type === 'options' ? 'Premium Volume' : 'Revenue'} (24h)`}
+								</span>
+								<span className="font-jetbrains font-semibold text-2xl">
+									{formattedNum(
+										(data.dailyRevenue ?? 0) +
+											(enabledSettings.bribes ? (data as any).dailyBribesRevenue ?? 0 : 0) +
+											(enabledSettings.tokentax ? (data as any).dailyTokenTaxes ?? 0 : 0),
+										true
+									)}
+								</span>
+							</p>
 						) : null}
 						{totalAllTime ? (
-							<StatWrapper>
-								<Stat>
-									<span>{`All time ${typeSimple}`}</span>
-									<span>{formattedNum(totalAllTime, true)}</span>
-								</Stat>
-							</StatWrapper>
+							<p className="flex flex-col gap-1 text-base">
+								<span className="text-[#545757] dark:text-[#cccccc]">{`All time ${typeSimple}`}</span>
+								<span className="font-jetbrains font-semibold text-2xl">{formattedNum(totalAllTime, true)}</span>
+							</p>
 						) : null}
 					</>
-				</DetailsWrapper>
+				</div>
 			) : (
 				// TODO: Temporal work around to unlock feature
 				<>‎</>
@@ -212,7 +209,7 @@ export const ProtocolChart = ({
 					/>
 				)}
 			</div>
-		</StatsSection>
+		</div>
 	)
 }
 

@@ -154,8 +154,16 @@
 		@apply block max-w-full;
 	}
 
+	details {
+		@apply select-none;
+	}
+
 	details summary::-webkit-details-marker {
 		@apply hidden;
+	}
+
+	summary {
+		@apply list-none cursor-pointer;
 	}
 
 	#table-header {

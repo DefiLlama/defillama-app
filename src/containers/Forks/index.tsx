@@ -6,9 +6,7 @@ import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
-import { LayoutWrapper, OverallMetricsWrapper } from '~/containers/ChainContainer'
-import { StatsSection } from '~/layout/Stats/Medium'
-import { Stat } from '~/layout/Stats/Large'
+import { LayoutWrapper } from '~/containers/ChainContainer'
 import type { IChartProps } from '~/components/ECharts/types'
 import styled from 'styled-components'
 import { LazyChart } from '~/layout/ProtocolAndPool'
@@ -74,28 +72,28 @@ export const ForkContainer = ({
 				</nav>
 			)}
 
-			<StatsSection>
-				<OverallMetricsWrapper style={{ gap: '32px' }}>
-					<Stat style={{ marginBottom: 0 }}>
-						<span>Total Value Locked</span>
-						<span>{tvl}</span>
-					</Stat>
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+				<div className="flex flex-col gap-8 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+					<p className="flex flex-col gap-1 text-base">
+						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+						<span className="font-jetbrains font-semibold text-2xl">{tvl}</span>
+					</p>
 
-					<Stat>
-						<span>Change (24h)</span>
-						<span>{percentChange || 0}%</span>
-					</Stat>
+					<p className="flex flex-col gap-1 text-base">
+						<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
+						<span className="font-jetbrains font-semibold text-2xl">{percentChange || 0}%</span>
+					</p>
 
-					<Stat>
-						<span>{topToken.name} Dominance</span>
-						<span>{dominance}%</span>
-					</Stat>
-				</OverallMetricsWrapper>
+					<p className="flex flex-col gap-1 text-base">
+						<span className="text-[#545757] dark:text-[#cccccc]">{topToken.name} Dominance</span>
+						<span className="font-jetbrains font-semibold text-2xl">{dominance}%</span>
+					</p>
+				</div>
 
 				<ChartWrapper>
 					<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
 				</ChartWrapper>
-			</StatsSection>
+			</div>
 
 			<ProtocolsTableWithSearch data={protocolsData as any} skipVirtualization={skipTableVirtualization} />
 		</LayoutWrapper>

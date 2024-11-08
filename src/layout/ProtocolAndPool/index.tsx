@@ -126,61 +126,6 @@ export const DownloadButton = ({ children, ...props }: ComponentProps<typeof But
 	</ButtonLight>
 )
 
-export const DetailsTable = styled.table`
-	border-collapse: collapse;
-
-	caption,
-	thead th {
-		font-weight: 400;
-		font-size: 0.75rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
-	}
-
-	caption {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 8px;
-	}
-
-	th {
-		font-weight: 400;
-		font-size: 1rem;
-		text-align: start;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
-	}
-
-	td {
-		font-weight: 600;
-		font-size: 1rem;
-		text-align: right;
-		font-family: var(--font-jetbrains);
-	}
-
-	thead td {
-		> * {
-			width: min-content;
-			background: none;
-			margin-left: auto;
-			color: ${({ theme }) => theme.text1};
-		}
-	}
-
-	thead > tr > *,
-	caption {
-		padding: 0 0 4px;
-	}
-
-	tbody > tr > * {
-		padding: 4px 0;
-	}
-
-	.question-helper {
-		padding: 0 16px 4px;
-	}
-`
-
 export const ExtraOption = styled.label`
 	display: flex;
 	align-items: center;

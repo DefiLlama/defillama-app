@@ -154,7 +154,7 @@ export function DefiChainsTable({ data }) {
 
 				<TVLRange />
 			</TableOptions>
-			<VirtualTable instance={instance} cellStyles={{ overflow: 'visible' }} />
+			<VirtualTable instance={instance} />
 		</>
 	)
 }

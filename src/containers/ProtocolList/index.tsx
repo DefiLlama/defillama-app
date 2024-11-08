@@ -8,13 +8,11 @@ import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
-import { LayoutWrapper, OverallMetricsWrapper } from '~/containers/ChainContainer'
-import { StatsSection } from '~/layout/Stats/Medium'
+import { LayoutWrapper } from '~/containers/ChainContainer'
 import { chainIconUrl, formattedNum, getPercentChange, slug } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Name } from '~/layout/ProtocolAndPool'
-import { AccordionStat, StatInARow } from '~/layout/Stats/Large'
-import { RowWithSubRows, StatsTable2 } from '~/containers/Defi/Protocol'
+import { RowWithSubRows } from '~/containers/Defi/Protocol'
 import { categoryProtocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IOverviewProps } from '~/api/categories/adaptors'
 import { CompareProtocols } from '~/containers/CompareProtocols'
@@ -192,38 +190,37 @@ function Container({
 					</nav>
 				)}
 				{category ? (
-					<StatsSection style={{ padding: '16px 8px', minHeight: '394px' }}>
-						<OverallMetricsWrapper>
+					<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl py-4 px-2 min-h-[394px]">
+						<div className="flex flex-col gap-8 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 							{chain !== 'All' && chain && (
 								<Name data-chainname>
 									<TokenLogo logo={chainIconUrl(chain)} size={24} />
 									<span>{chain}</span>
 								</Name>
 							)}
-							<AccordionStat data-tvl>
-								<summary>
-									<span data-arrowicon>
-										<Icon name="chevron-right" height={20} width={20} />
-									</span>
-
-									<span data-summaryheader>
-										<span>Total Value Locked</span>
-										<span>{tvl}</span>
+							<details className="group text-base">
+								<summary className="flex items-center">
+									<Icon
+										name="chevron-right"
+										height={20}
+										width={20}
+										className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+									/>
+									<span className="flex flex-col">
+										<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+										<span className="font-semibold text-2xl font-jetbrains min-h-8">{tvl}</span>
 									</span>
 								</summary>
-
-								<span style={{ gap: '8px' }}>
-									<StatInARow>
-										<span>Change (24h)</span>
-										<span>{percentChange || 0}%</span>
-									</StatInARow>
-									<StatInARow>
-										<span>{topToken.name} Dominance</span>
-										<span>{dominance}%</span>
-									</StatInARow>
-								</span>
-							</AccordionStat>
-							<StatsTable2>
+								<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
+									<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
+									<span className="font-jetbrains">{percentChange || 0}%</span>
+								</p>
+								<p className="flex items-center flex-wrap justify-between gap-2 my-1">
+									<span className="text-[#545757] dark:text-[#cccccc]">{topToken.name} Dominance</span>
+									<span className="font-jetbrains">{dominance}%</span>
+								</p>
+							</details>
+							<table>
 								<tbody>
 									{totals.volume_24h ? (
 										<RowWithSubRows
@@ -236,8 +233,10 @@ function Container({
 												<>
 													{totals.volume_7d ? (
 														<tr>
-															<th>Volume (7d)</th>
-															<td>{formattedNum(totals.volume_7d, true)}</td>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																Volume (7d)
+															</th>
+															<td className="text-sm text-right">{formattedNum(totals.volume_7d, true)}</td>
 														</tr>
 													) : null}
 												</>
@@ -255,14 +254,18 @@ function Container({
 												<>
 													{totals.fees_7d ? (
 														<tr>
-															<th>Fees (7d)</th>
-															<td>{formattedNum(totals.fees_7d, true)}</td>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																Fees (7d)
+															</th>
+															<td className="text-sm text-right">{formattedNum(totals.fees_7d, true)}</td>
 														</tr>
 													) : null}
 													{totals.fees_30d ? (
 														<tr>
-															<th>Fees (30d)</th>
-															<td>{formattedNum(totals.fees_30d, true)}</td>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																Fees (30d)
+															</th>
+															<td className="text-sm text-right">{formattedNum(totals.fees_30d, true)}</td>
 														</tr>
 													) : null}
 												</>
@@ -280,14 +283,18 @@ function Container({
 												<>
 													{totals.revenue_7d ? (
 														<tr>
-															<th>Revenue (7d)</th>
-															<td>{formattedNum(totals.revenue_7d, true)}</td>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																Revenue (7d)
+															</th>
+															<td className="text-sm text-right">{formattedNum(totals.revenue_7d, true)}</td>
 														</tr>
 													) : null}
 													{totals.revenue_30d ? (
 														<tr>
-															<th>Revenue (30d)</th>
-															<td>{formattedNum(totals.revenue_30d, true)}</td>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																Revenue (30d)
+															</th>
+															<td className="text-sm text-right">{formattedNum(totals.revenue_30d, true)}</td>
 														</tr>
 													) : null}
 												</>
@@ -295,10 +302,10 @@ function Container({
 										/>
 									) : null}
 								</tbody>
-							</StatsTable2>
-						</OverallMetricsWrapper>
+							</table>
+						</div>
 						{router.isReady && categoryChart ? <ChainChart datasets={datasets} title="" isThemeDark={isDark} /> : null}
-					</StatsSection>
+					</div>
 				) : null}
 
 				<ProtocolsTableWithSearch

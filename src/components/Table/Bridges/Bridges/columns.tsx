@@ -1,5 +1,4 @@
 import { ColumnDef } from '@tanstack/react-table'
-import styled from 'styled-components'
 import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import {
@@ -35,11 +34,13 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 			}
 
 			return (
-				<Name>
+				<span className="flex items-center gap-2">
 					<span>{index + 1}</span>
 					{icon && <TokenLogo logo={iconLink} data-lgonly />}
-					<CustomLink href={`/bridge/${linkValue}`}>{value}</CustomLink>
-				</Name>
+					<CustomLink href={`/bridge/${linkValue}`} className="overflow-hidden text-ellipsis whitespace-nowrap">
+						{value}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 240
@@ -111,11 +112,13 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
-				<Name>
+				<span className="flex items-center gap-2">
 					<span>{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(value)} data-lgonly />
-					<CustomLink href={`/bridges/${value}`}>{value}</CustomLink>
-				</Name>
+					<CustomLink href={`/bridges/${value}`} className="overflow-hidden text-ellipsis whitespace-nowrap">
+						{value}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 240
@@ -230,9 +233,9 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 			const value = getValue() as string
 			const linkValue = standardizeProtocolName(value)
 			return (
-				<Name>
-					<CustomLink href={`/bridge/${linkValue}`}>{value}</CustomLink>
-				</Name>
+				<CustomLink href={`/bridge/${linkValue}`} className="overflow-hidden text-ellipsis whitespace-nowrap">
+					{value}
+				</CustomLink>
 			)
 		},
 		size: 180
@@ -328,10 +331,10 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 
 			if (value) {
 				return (
-					<LinkToBlockExplorer href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
-						<span>{symbol}</span>
+					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+						<span className="overflow-hidden text-ellipsis whitespace-nowrap">{symbol}</span>
 						<Icon name="external-link" height={10} width={10} />
-					</LinkToBlockExplorer>
+					</a>
 				)
 			} else return <>Not found</>
 		},
@@ -391,10 +394,12 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 			const { blockExplorerLink } = getBlockExplorerForAddress(value)
 			if (value) {
 				return (
-					<LinkToBlockExplorer href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
-						<span>{formattedValue.slice(0, 5) + '...' + formattedValue.slice(-4)}</span>
+					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+						<span className="overflow-hidden text-ellipsis whitespace-nowrap">
+							{formattedValue.slice(0, 5) + '...' + formattedValue.slice(-4)}
+						</span>
 						<Icon name="external-link" height={10} width={10} />
-					</LinkToBlockExplorer>
+					</a>
 				)
 			} else return <>Not found</>
 		},
@@ -576,32 +581,3 @@ export const largeTxsColumnSizes = {
 		txHash: 160
 	}
 }
-
-const Name = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	position: relative;
-
-	a {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		whitespace: nowrap;
-	}
-`
-
-const LinkToBlockExplorer = styled.a`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-
-	span {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		whitespace: nowrap;
-	}
-
-	svg {
-		flex-shrink: 0;
-	}
-`
