@@ -204,6 +204,22 @@
 	.drawer[data-leave] {
 		transition: 0.1s ease-out;
 	}
+
+	.section-in-grid {
+		@apply flex flex-col gap-4 col-span-full xl:col-span-1 py-6 first-of-type:pt-0 last-of-type:pb-0 border-[var(--text5)] xl:even:pl-6 xl:odd:pr-6 xl:only:p-0 xl:odd:border-r;
+	}
+
+	.section-in-grid:nth-child(n + 2) {
+		@apply border-t;
+	}
+
+	.section-in-grid:nth-child(2) {
+		@apply xl:border-t-0;
+	}
+
+	.section-in-grid:nth-child(odd):last-child {
+		@apply border-r-0 col-span-2;
+	}
 }
 
 @layer utilities {

@@ -6,7 +6,7 @@ import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import { Button, ExtraOption, Name, Symbol } from '~/layout/ProtocolAndPool'
+import { Button } from '~/layout/ProtocolAndPool'
 import { Checkbox2 } from '~/components'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ButtonLight } from '~/components/ButtonStyled'
@@ -269,11 +269,11 @@ export const PeggedAssetInfo = ({
 
 					<TabPanel state={tab} tabId={defaultSelectedId}>
 						<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-							<Name>
+							<h1 className="flex items-center gap-2 text-xl">
 								<TokenLogo logo={logo} size={24} />
 								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-								<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
-							</Name>
+								<span className="font-normal mr-auto">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
+							</h1>
 
 							<p className="flex flex-col gap-1">
 								<span className="text-base text-[#545757] dark:text-[#cccccc]">Market Cap</span>
@@ -309,7 +309,7 @@ export const PeggedAssetInfo = ({
 										{extraPeggeds.map((option) => (
 											<tr key={option}>
 												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-													<ExtraOption>
+													<label className="flex items-center gap-2 cursor-pointer">
 														<Checkbox2
 															type="checkbox"
 															value={option}
@@ -319,7 +319,7 @@ export const PeggedAssetInfo = ({
 														<span style={{ opacity: extraPeggedsEnabled[option] ? 1 : 0.7 }}>
 															{capitalizeFirstLetter(option)}
 														</span>
-													</ExtraOption>
+													</label>
 												</th>
 												<td className="font-jetbrains text-right">{toK(unreleased)}</td>
 											</tr>

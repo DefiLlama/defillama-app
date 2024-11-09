@@ -2,7 +2,7 @@ import dynamic from 'next/dynamic'
 import { useFetchProtocolTreasury } from '~/api/categories/protocols/client'
 import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { ChartsWrapper, LazyChart, Section } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/layout/ProtocolAndPool'
 import { buildProtocolAddlChartsData } from './utils'
 import { useState } from 'react'
 import styled from 'styled-components'
@@ -17,11 +17,11 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 
 export function Treasury({ protocolName }) {
 	return (
-		<Section id="treasury">
+		<div className="section-in-grid" id="treasury">
 			<h3>Treasury</h3>
 
 			<TreasuryChart protocolName={protocolName} />
-		</Section>
+		</div>
 	)
 }
 
@@ -72,9 +72,9 @@ export const TreasuryChart = ({ protocolName }) => {
 			</Checkbox>
 
 			{!isLoading && (!data || top10Tokens.length === 0) ? (
-				<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0, minHeight: '360px' }}></ChartsWrapper>
+				<div className="grid grid-cols-2 rounded-xl min-h-[360px]"></div>
 			) : (
-				<ChartsWrapper style={{ background: 'none', border: 'none', padding: 0 }}>
+				<div className="grid grid-cols-2 rounded-xl min-h-[360px]">
 					<LazyChart style={{ minHeight: '320px' }}>
 						<PieChart chartData={top10Tokens} />
 					</LazyChart>
@@ -87,7 +87,7 @@ export const TreasuryChart = ({ protocolName }) => {
 					<LazyChart style={{ minHeight: '320px' }}>
 						<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />
 					</LazyChart>
-				</ChartsWrapper>
+				</div>
 			)}
 		</>
 	)

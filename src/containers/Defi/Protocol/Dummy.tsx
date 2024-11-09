@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Link from 'next/link'
-import { Button, Name } from '~/layout/ProtocolAndPool'
+import { Button } from '~/layout/ProtocolAndPool'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
 import { transparentize } from 'polished'
@@ -39,10 +39,10 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 					</OtherProtocols>
 				)}
 
-				<Name>
+				<h1 className="flex items-center gap-2 text-xl">
 					<TokenLogo logo={data.logo} size={24} />
 					<FormattedName text={data.name} maxCharacters={16} fontWeight={700} />
-				</Name>
+				</h1>
 
 				{data.description && <p>{data.description}</p>}
 

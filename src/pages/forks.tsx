@@ -1,8 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import Layout from '~/layout'
-import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
@@ -34,20 +32,6 @@ export const getStaticProps = withPerformanceLogging('forks', async () => {
 	}
 })
 
-const ChartsWrapper = styled(Panel)`
-	min-height: 402px;
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 16px;
-
-	& > * {
-		grid-cols: span 1;
-	}
-
-	@media screen and (min-width: 80rem) {
-		grid-template-columns: 1fr 1fr;
-	}
-`
 const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens, forkColors }) => {
 	const forkedTokensData = useCalcStakePool2Tvl(parentTokens)
 
@@ -102,7 +86,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 				Total Value Locked All Forks <CSVDownloadButton onClick={downloadCSV} />
 			</h1>
 
-			<ChartsWrapper>
+			<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 bg-[var(--bg6)] min-h-[424px] shadow rounded-xl p-4">
 				<PieChart chartData={tokenTvls} stackColors={forkColors} />
 				<AreaChart
 					chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -115,7 +99,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 					title=""
 					expandTo100Percent={true}
 				/>
-			</ChartsWrapper>
+			</div>
 
 			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
 				<RowLinksWithDropdown links={tokenLinks} activeLink="All" />

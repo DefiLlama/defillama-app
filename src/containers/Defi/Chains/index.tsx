@@ -1,6 +1,5 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import { DefiChainsTable } from '~/components/Table/Defi'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
@@ -21,25 +20,6 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
-
-const ChartsWrapper = styled.div`
-	min-height: 402px;
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 16px;
-	background: ${({ theme }) => theme.bg6};
-	border: ${({ theme }) => '1px solid ' + theme.divider};
-	box-shadow: ${({ theme }) => theme.shadowSm};
-	border-radius: 12px;
-
-	& > * {
-		grid-cols: span 1;
-	}
-
-	@media screen and (min-width: 80rem) {
-		grid-template-columns: 1fr 1fr;
-	}
-`
 
 export default function ChainsContainer({
 	chainsUnique,
@@ -142,7 +122,7 @@ export default function ChainsContainer({
 					<CSVDownloadButton onClick={downloadCsv} />
 				</div>
 
-				<ChartsWrapper>
+				<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 bg-[var(--bg6)] min-h-[402px]">
 					<PieChart chartData={pieChartData} stackColors={colorsByChain} />
 					<AreaChart
 						chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -155,7 +135,7 @@ export default function ChainsContainer({
 						title=""
 						expandTo100Percent={true}
 					/>
-				</ChartsWrapper>
+				</div>
 
 				<DefiChainsTable data={groupedChains} />
 			</LayoutWrapper>

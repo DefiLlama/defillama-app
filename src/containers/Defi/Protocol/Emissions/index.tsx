@@ -7,7 +7,7 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { OptionToggle } from '~/components/OptionToggle'
 import { UpcomingEvent } from '~/components/Table/Components/UpcomingEvent'
 import { TokenLogo } from '~/components/TokenLogo'
-import { ChartsWrapper, LazyChart, Name, Section } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter, formattedNum, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
 import {
@@ -35,10 +35,10 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
 	return (
-		<Section id="emissions" style={{ paddingLeft: 0, gridColumn: '1 / -1' }}>
+		<div className="section-in-grid" id="emissions" style={{ paddingLeft: 0, gridColumn: '1 / -1' }}>
 			{!isEmissionsPage && <h3>Emissions</h3>}
 			<ChartContainer data={data} isEmissionsPage={isEmissionsPage} />
-		</Section>
+		</div>
 	)
 }
 
@@ -135,10 +135,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		<>
 			<div style={{ display: 'flex', justifyContent: isEmissionsPage ? 'space-between' : 'flex-end' }}>
 				{isEmissionsPage ? (
-					<Name>
+					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={tokenIconUrl(data.name)} />
 						<span>{data.name}</span>
-					</Name>
+					</h1>
 				) : null}
 				<div style={{ gap: '8px', display: 'flex', justifyContent: 'flex-end', padding: '8px' }}>
 					<OptionToggle
@@ -167,7 +167,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</Filters>
 			)}
 
-			<ChartsWrapper style={styles}>
+			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)]" style={styles}>
 				{data.categories?.[dataType] && data.chartData?.[dataType] && data.stackColors?.[dataType] && (
 					<LazyChart>
 						<AreaChart
@@ -225,7 +225,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						)}
 					</RowWrapper>
 				</ChartWrapper>
-			</ChartsWrapper>
+			</div>
 			<BoxContainer>
 				{tokenPrice ? (
 					<Box>

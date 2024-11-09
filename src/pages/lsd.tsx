@@ -39,21 +39,6 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	}
 })
 
-const ChartsWrapper = styled.div`
-	min-height: 360px;
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 16px;
-
-	& > * {
-		grid-cols: span 1;
-	}
-
-	@media screen and (min-width: 80rem) {
-		grid-template-columns: 1fr 1fr;
-	}
-`
-
 const TabContainer = styled.div`
 	padding: 16px;
 	display: flex;
@@ -104,7 +89,7 @@ const PageView = ({
 
 				<TabContainer>
 					{tab === 'breakdown' ? (
-						<ChartsWrapper>
+						<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 rounded-xl bg-[var(--bg6)] min-h-[360px]">
 							<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
 
 							<AreaChart
@@ -118,7 +103,7 @@ const PageView = ({
 								title=""
 								expandTo100Percent={true}
 							/>
-						</ChartsWrapper>
+						</div>
 					) : (
 						<>
 							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>

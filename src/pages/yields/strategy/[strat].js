@@ -2,15 +2,7 @@ import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import {
-	InfoWrapper,
-	Name,
-	Section,
-	ChartsWrapper,
-	LazyChart,
-	ChartsPlaceholder,
-	ChartWrapper
-} from '~/layout/ProtocolAndPool'
+import { LazyChart, ChartWrapper } from '~/layout/ProtocolAndPool'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
@@ -231,68 +223,64 @@ const PageView = () => {
 				</ChartWrapper>
 			</div>
 
-			<InfoWrapper>
-				<Section>
-					<h3>Steps</h3>
-					<p className="flex items-center gap-2">
-						<span>1.</span>
-						Lend {configData?.data.find((c) => c.config_id === lendToken)?.symbol} as collateral on{' '}
-						{configData?.data.find((c) => c.config_id === lendToken)?.project} which earns a Supply APY of{' '}
-						{lendApy?.toFixed(2)}%.
-					</p>
-					<p className="flex items-center gap-2">
-						<span>2.</span>
-						Borrow{' '}
-						{lendProjectCategory !== 'CDP'
-							? configData?.data.find((c) => c.config_id === borrowToken)?.symbol
-							: configData?.data.find((c) => c.config_id === borrowToken)?.mintedCoin}{' '}
-						against your {configData?.data.find((c) => c.config_id === lendToken)?.symbol} collateral with a max LTV of{' '}
-						{(ltv * 100).toFixed()}% and a borrow APY of {borrowApy?.toFixed(2)}% (
-						{borrowApy > 0 ? 'You get paid by borrowing' : 'The interest you need to pay'}).
-					</p>
+			<div className="flex flex-col gap-4 bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl p-6">
+				<h3>Steps</h3>
+				<p className="flex items-center gap-2">
+					<span>1.</span>
+					Lend {configData?.data.find((c) => c.config_id === lendToken)?.symbol} as collateral on{' '}
+					{configData?.data.find((c) => c.config_id === lendToken)?.project} which earns a Supply APY of{' '}
+					{lendApy?.toFixed(2)}%.
+				</p>
+				<p className="flex items-center gap-2">
+					<span>2.</span>
+					Borrow{' '}
+					{lendProjectCategory !== 'CDP'
+						? configData?.data.find((c) => c.config_id === borrowToken)?.symbol
+						: configData?.data.find((c) => c.config_id === borrowToken)?.mintedCoin}{' '}
+					against your {configData?.data.find((c) => c.config_id === lendToken)?.symbol} collateral with a max LTV of{' '}
+					{(ltv * 100).toFixed()}% and a borrow APY of {borrowApy?.toFixed(2)}% (
+					{borrowApy > 0 ? 'You get paid by borrowing' : 'The interest you need to pay'}).
+				</p>
 
+				{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
+					configData?.data.find((c) => c.config_id === farmToken)?.symbol && lendProjectCategory !== 'CDP' ? (
+					<p className="flex items-center gap-2">
+						<span>3.</span>
+						Swap borrowed {configData?.data.find((c) => c.config_id === borrowToken)?.symbol} for{' '}
+						{configData?.data.find((c) => c.config_id === farmToken)?.symbol}
+					</p>
+				) : null}
+
+				<p className="flex items-center gap-2">
 					{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
-						configData?.data.find((c) => c.config_id === farmToken)?.symbol && lendProjectCategory !== 'CDP' ? (
-						<p className="flex items-center gap-2">
-							<span>3.</span>
-							Swap borrowed {configData?.data.find((c) => c.config_id === borrowToken)?.symbol} for{' '}
-							{configData?.data.find((c) => c.config_id === farmToken)?.symbol}
-						</p>
-					) : null}
-
-					<p className="flex items-center gap-2">
-						{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
-						configData?.data.find((c) => c.config_id === farmToken)?.symbol ? (
-							<span>4.</span>
-						) : (
-							<span>3.</span>
-						)}
-						Farm with {configData?.data.find((c) => c.config_id === farmToken)?.symbol} on{' '}
-						{configData?.data.find((c) => c.config_id === farmToken)?.project} which earns {farmApy?.toFixed(2)}%.
-					</p>
-
-					{configData?.data.find((c) => c.config_id === lendToken)?.symbol ===
-					configData?.data.find((c) => c.config_id === borrowToken)?.symbol ? (
-						// loop strategies
-						<p className="flex items-center gap-2">
-							Strategy APY = Recursively lend and borrow{' '}
-							{configData?.data.find((c) => c.config_id === lendToken)?.symbol} up to n-times (Strategy APY is
-							calculated assuming 10 loops)
-						</p>
+					configData?.data.find((c) => c.config_id === farmToken)?.symbol ? (
+						<span>4.</span>
 					) : (
-						// non loop strategies
-						<p className="flex items-center gap-2">
-							Strategy APY = {lendApy?.toFixed(2)}%{' '}
-							{borrowApy > 0 ? `+ ${borrowApy?.toFixed(2)}` : borrowApy?.toFixed(2)}% * {ltv?.toFixed(2)} +{' '}
-							{farmApy?.toFixed(2)}% * {ltv?.toFixed(2)} = {finalAPY?.toFixed(2)}%
-						</p>
+						<span>3.</span>
 					)}
-				</Section>
-			</InfoWrapper>
+					Farm with {configData?.data.find((c) => c.config_id === farmToken)?.symbol} on{' '}
+					{configData?.data.find((c) => c.config_id === farmToken)?.project} which earns {farmApy?.toFixed(2)}%.
+				</p>
 
-			<ChartsWrapper>
+				{configData?.data.find((c) => c.config_id === lendToken)?.symbol ===
+				configData?.data.find((c) => c.config_id === borrowToken)?.symbol ? (
+					// loop strategies
+					<p className="flex items-center gap-2">
+						Strategy APY = Recursively lend and borrow {configData?.data.find((c) => c.config_id === lendToken)?.symbol}{' '}
+						up to n-times (Strategy APY is calculated assuming 10 loops)
+					</p>
+				) : (
+					// non loop strategies
+					<p className="flex items-center gap-2">
+						Strategy APY = {lendApy?.toFixed(2)}% {borrowApy > 0 ? `+ ${borrowApy?.toFixed(2)}` : borrowApy?.toFixed(2)}
+						% * {ltv?.toFixed(2)} + {farmApy?.toFixed(2)}% * {ltv?.toFixed(2)} = {finalAPY?.toFixed(2)}%
+					</p>
+				)}
+			</div>
+
+			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
 				{fetchingLendData ? (
-					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 				) : (
 					lendHistory?.data?.length && (
 						<>
@@ -334,7 +322,7 @@ const PageView = () => {
 						</>
 					)
 				)}
-			</ChartsWrapper>
+			</div>
 		</>
 	)
 }

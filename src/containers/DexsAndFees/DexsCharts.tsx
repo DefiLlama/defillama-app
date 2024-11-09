@@ -1,6 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { Name, ChartWrapper } from '~/layout/ProtocolAndPool'
+import { ChartWrapper } from '~/layout/ProtocolAndPool'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
@@ -36,12 +36,12 @@ export const DexCharts = ({ logo, data, chartData, name, chainsChart, isProtocol
 		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 			<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 				{isProtocolPage ? (
-					<Name>Trading Volume</Name>
+					<h1 className="flex items-center gap-2 text-xl">Trading Volume</h1>
 				) : (
-					<Name>
+					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-					</Name>
+					</h1>
 				)}
 
 				<p className="flex flex-col text-base">

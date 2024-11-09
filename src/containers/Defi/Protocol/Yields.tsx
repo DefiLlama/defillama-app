@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { Section } from '~/layout/ProtocolAndPool'
-import { GridContent } from './Common'
 import { YieldsPoolsTable } from '~/components/Table/Yields/Pools'
 import { getYieldPageData } from '~/api/categories/yield'
 import { sluggify } from '~/utils/cache-client'
@@ -34,8 +33,8 @@ export function ProtocolPools({ protocol, data, protocolData }) {
 	})
 
 	return (
-		<GridContent>
-			<Section>
+		<div className="grid grid-cols-2 p-6 xl:grid-rows-[repeat(2,auto)]">
+			<div className="section-in-grid">
 				<p className="flex items-center gap-2">
 					<span>Number of pools tracked</span>
 					<span>:</span>
@@ -54,7 +53,7 @@ export function ProtocolPools({ protocol, data, protocolData }) {
 				) : (
 					<YieldsPoolsTable data={poolsList} />
 				)}
-			</Section>
-		</GridContent>
+			</div>
+		</div>
 	)
 }

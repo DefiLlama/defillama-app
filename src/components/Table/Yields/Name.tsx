@@ -1,5 +1,4 @@
 import styled from 'styled-components'
-import { ButtonSquare } from '~/layout/Pool'
 import { Bookmark } from '~/components/Bookmark'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -8,6 +7,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { FormattedName } from '~/components/FormattedName'
 import useWindowSize from '~/hooks/useWindowSize'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
 
 interface INameYieldPoolProps {
 	value: string
@@ -63,9 +63,16 @@ export function NameYieldPool({
 			<span>{index}</span>
 
 			{url ? (
-				<ButtonSquare as="a" href={url} target="_blank" rel="noopener noreferrer" data-lgonly useTextColor={true}>
+				<ButtonLight
+					className="hidden lg:flex items-center justify-center gap-4 !p-[6px]"
+					as="a"
+					href={url}
+					target="_blank"
+					rel="noopener noreferrer"
+					useTextColor={true}
+				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonSquare>
+				</ButtonLight>
 			) : (
 				''
 			)}

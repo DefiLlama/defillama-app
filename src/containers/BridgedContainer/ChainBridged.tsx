@@ -3,7 +3,6 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import Layout from '~/layout'
 import { SEO } from '~/components/SEO'
-import { Name } from '~/layout/ProtocolAndPool'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
@@ -60,10 +59,10 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 				<SEO cardName={chainName} token={chain} />
 				<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 					<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-						<Name>
+						<h1 className="flex items-center gap-2 text-xl">
 							<TokenLogo logo={chainIconUrl(chain)} size={24} />
 							<FormattedName text={chainName + ' Bridged TVL'} fontWeight={700} />
-						</Name>
+						</h1>
 
 						<p className="flex flex-col gap-1 text-base">
 							<span className="text-[#545757] dark:text-[#cccccc]">Total</span>

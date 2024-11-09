@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table'
 import styled from 'styled-components'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { ChartWrapper, ChartsWrapper, LazyChart } from '~/layout/ProtocolAndPool'
+import { ChartWrapper, LazyChart } from '~/layout/ProtocolAndPool'
 import { VirtualTable } from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import { Announcement } from '~/components/Announcement'
@@ -191,14 +191,14 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				</ChartWrapper>
 			</div>
 
-			<ChartsWrapper style={{ marginTop: '-16px' }}>
+			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow -mt-4">
 				<LazyChart>
 					<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
 				</LazyChart>
 				<LazyChart>
 					<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
 				</LazyChart>
-			</ChartsWrapper>
+			</div>
 
 			<RaisesTable raises={filteredRaisesList} downloadCsv={() => downloadCsv({ raises })} />
 		</Layout>

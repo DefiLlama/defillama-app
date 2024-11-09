@@ -5,7 +5,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { getColorFromNumber, getDominancePercent } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { LANGS_API } from '~/constants'
-import { ChartsWrapper, LazyChart, SectionHeader } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/layout/ProtocolAndPool'
 import type { IChartProps } from '~/components/ECharts/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -86,9 +86,9 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 		<Layout title={`Languages - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Languages', hideOptions: true }} />
 
-			<SectionHeader>Breakdown by Smart Contract Languages</SectionHeader>
+			<h2 className="font-semibold text-xl -mb-6 ml-1">Breakdown by Smart Contract Languages</h2>
 
-			<ChartsWrapper>
+			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
 				<LazyChart>
 					<AreaChart
 						chartData={langs}
@@ -111,10 +111,10 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 						stackColors={colors}
 					/>
 				</LazyChart>
-			</ChartsWrapper>
+			</div>
 
-			<SectionHeader>Open/Closed Source breakdown of solana protocols</SectionHeader>
-			<ChartsWrapper>
+			<h2 className="font-semibold text-xl -mb-6 ml-1">Open/Closed Source breakdown of solana protocols</h2>
+			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
 				<LazyChart>
 					<AreaChart
 						chartData={osDominance}
@@ -125,7 +125,7 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 						hideDefaultLegend
 					/>
 				</LazyChart>
-			</ChartsWrapper>
+			</div>
 		</Layout>
 	)
 }
