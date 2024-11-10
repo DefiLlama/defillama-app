@@ -37,7 +37,7 @@ export function LTV({ placeholder }: { placeholder: string }) {
 				placeholder={placeholder}
 				onChange={onChange}
 				type="number"
-				className="p-2 pl-8 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white"
+				className="p-2 pl-8 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white border border-black/10 dark:border-white/10"
 			/>
 		</div>
 	)
