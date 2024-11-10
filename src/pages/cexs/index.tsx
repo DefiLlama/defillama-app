@@ -466,6 +466,12 @@ export const cexData: Array<ICex> = [
 		coinSymbol: null
 	},
 	{
+		name: 'P2PB2B',
+		slug: 'p2pb2b',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Bitcointry',
 		slug: 'bitcointry',
 		coin: 'BTTY',
