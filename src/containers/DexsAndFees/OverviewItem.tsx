@@ -2,7 +2,6 @@ import * as React from 'react'
 import Link from 'next/link'
 
 import Layout from '~/layout'
-import { Button, InfoWrapper, Section, SectionHeader, ChartsWrapper } from '~/layout/ProtocolAndPool'
 import { CopyHelper } from '~/components/Copy'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { AuditInfo } from '~/components/AuditInfo'
@@ -21,6 +20,7 @@ import { useEmissions } from './hooks/useEmissions'
 import { sluggify } from '~/utils/cache-client'
 import { useFeesManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
 
 function ProtocolContainer(props: IProtocolContainerProps) {
 	useScrollToTop()
@@ -132,10 +132,10 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				chartType="chain"
 				protocolSummary={props.protocolSummary}
 			/> */}
-			<SectionHeader>Information</SectionHeader>
-			<InfoWrapper>
-				<Section>
-					<h3>Protocol information</h3>
+			<h2 className="font-semibold text-xl -mb-6 ml-1">Information</h2>
+			<div className="grid grid-cols-2 xl:grid-rows-[repeat(2,auto)] gap-4 bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl p-6">
+				<div className="section-in-grid">
+					<h3 className="font-semibold text-lg">Protocol information</h3>
 					{props.protocolSummary.description && <p>{props.protocolSummary.description}</p>}
 
 					{props.protocolSummary.category && (
@@ -167,25 +167,25 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					<div className="flex items-center gap-4 flex-wrap">
 						{props.protocolSummary.url && (
 							<Link href={props.protocolSummary.url} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+								<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-								</Button>
+								</ButtonLight>
 							</Link>
 						)}
 
 						{props.protocolSummary.twitter && (
 							<Link href={`https://twitter.com/${props.protocolSummary.twitter}`} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+								<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-								</Button>
+								</ButtonLight>
 							</Link>
 						)}
 					</div>
-				</Section>
+				</div>
 
 				{(blockExplorers.length > 0 || props.protocolSummary.gecko_id) && (
-					<Section>
-						<h3>Token Information</h3>
+					<div className="section-in-grid">
+						<h3 className="font-semibold text-lg">Token Information</h3>
 
 						{blockExplorers && (
 							<>
@@ -197,10 +197,10 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 										<span>{blockExplorer.address.slice(0, 8) + '...' + blockExplorer.address?.slice(36, 42)}</span>
 										<CopyHelper toCopy={blockExplorer.address} disabled={!blockExplorer.address} />
 										<Link href={blockExplorer.blockExplorerLink} passHref>
-											<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+											<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 												<span>View on {blockExplorer.blockExplorerName}</span>{' '}
 												<Icon name="arrow-up-right" height={14} width={14} />
-											</Button>
+											</ButtonLight>
 										</Link>
 									</p>
 								))}
@@ -210,17 +210,17 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						{props.protocolSummary.gecko_id && (
 							<div className="flex items-center gap-4 flex-wrap">
 								<Link href={`https://www.coingecko.com/en/coins/${props.protocolSummary.gecko_id}`} passHref>
-									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+									<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 										<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
-									</Button>
+									</ButtonLight>
 								</Link>
 							</div>
 						)}
-					</Section>
+					</div>
 				)}
 				{props.protocolSummary.methodologyURL && (
-					<Section>
-						<h3>Methodology</h3>
+					<div className="section-in-grid">
+						<h3 className="font-semibold text-lg">Methodology</h3>
 						{props.protocolSummary.methodology?.['Fees'] ? (
 							<p>{`Fees: ${props.protocolSummary.methodology['Fees']}`}</p>
 						) : null}
@@ -231,19 +231,19 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 
 						<div className="flex items-center gap-4 flex-wrap">
 							<Link href={props.protocolSummary.methodologyURL} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+								<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Check the code</span>
 									<Icon name="arrow-up-right" height={14} width={14} />
-								</Button>
+								</ButtonLight>
 							</Link>
 						</div>
-					</Section>
+					</div>
 				)}
-			</InfoWrapper>
+			</div>
 			{(enableVersionsChart || enableTokensChart || enableChainsChart) && (
 				<>
-					<SectionHeader>Charts</SectionHeader>
-					<ChartsWrapper>
+					<h2 className="font-semibold text-xl -mb-6 ml-1">Charts</h2>
+					<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
 						{enableVersionsChart && (
 							<ChartByType
 								type={props.protocolSummary.type}
@@ -265,7 +265,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 								chartType="chain"
 							/>
 						)}
-					</ChartsWrapper>
+					</div>
 				</>
 			)}
 		</Layout>

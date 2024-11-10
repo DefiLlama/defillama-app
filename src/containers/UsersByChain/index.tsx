@@ -1,9 +1,7 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
-import { Wrapper, ChartWrapper, TableHeader, Fallback } from '~/layout/Chain'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { formattedNum } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
@@ -67,7 +65,7 @@ export function UsersByChain({ chart, backgroundColor, name, chains, chain }: IU
 		>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Users', hideOptions: true }} />
 
-			<Wrapper>
+			<div className="grid grid-cols-1 gap-8 isolate sm:p-4 xl:gap-12 xl:grid-cols-[auto_1fr]">
 				<nav className="flex items-center gap-5 overflow-hidden col-span-full">
 					<RowLinksWithDropdown links={chains} activeLink={chain} />
 				</nav>
@@ -96,7 +94,7 @@ export function UsersByChain({ chart, backgroundColor, name, chains, chain }: IU
 						</span>
 					</p>
 				</div>
-				<ChartContainer>
+				<div className="col-span-full min-h-[360px] flex flex-col xl:col-span-1 -mt-8 xl:mt-0">
 					<BarChart
 						chartData={allTxsChart}
 						stacks={stacks}
@@ -104,11 +102,10 @@ export function UsersByChain({ chart, backgroundColor, name, chains, chain }: IU
 						title=""
 						chartOptions={chartOptions}
 					/>
-				</ChartContainer>
-
-				<TableHeader>User Rankings</TableHeader>
-				<Fallback>{`No protocols being tracked on this chain`}</Fallback>
-			</Wrapper>
+				</div>
+				<h1 className="font-bold text-xl -mb-6 xl:mx-4">User Rankings</h1>
+				<p className="p-5 text-center col-span-full xl:mx-4 rounded-md">{`No protocols being tracked on this chain`}</p>
+			</div>
 		</Layout>
 	)
 }
@@ -131,11 +128,3 @@ const chartOptions = {
 		right: null // set legend to center, default is right on larger screens
 	}
 }
-
-const ChartContainer = styled(ChartWrapper)`
-	margin-top: -32px;
-
-	@media screen and (min-width: 80rem) {
-		margin-top: 0;
-	}
-`

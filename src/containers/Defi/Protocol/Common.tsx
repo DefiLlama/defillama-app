@@ -13,16 +13,6 @@ export const TabLayout = styled.span`
 	box-shadow: ${({ theme }) => theme.shadowSm};
 `
 
-export const GridContent = styled.div`
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	padding: 24px;
-
-	@media screen and (min-width: 80rem) {
-		grid-template-rows: repeat(2, auto);
-	}
-`
-
 export const TabList = styled(AriakitTabList)`
 	display: flex;
 	flex-wrap: nowrap;

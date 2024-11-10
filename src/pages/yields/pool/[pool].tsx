@@ -7,17 +7,7 @@ import styled from 'styled-components'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
-import {
-	Button,
-	DownloadButton,
-	InfoWrapper,
-	Name,
-	Section,
-	Symbol,
-	ChartsWrapper,
-	LazyChart,
-	ChartsPlaceholder
-} from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/components/LazyChart'
 import {
 	useYieldChartData,
 	useYieldConfigData,
@@ -32,6 +22,7 @@ import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '~/utils/async'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -420,15 +411,15 @@ const PageView = (props) => {
 		<>
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-					<Name style={{ flexWrap: 'wrap' }}>
+					<h1 className="flex items-center gap-2 text-xl flex-wrap">
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 							? `${poolData.symbol} (${poolData.poolMeta})`
 							: poolData.symbol ?? 'Loading'}
 
-						<Symbol>
+						<span className="font-normal mr-auto">
 							({projectName} - {poolData.chain})
-						</Symbol>
-					</Name>
+						</span>
+					</h1>
 
 					<div className="flex items-end justify-between flex-wrap gap-5 relative">
 						<p className="flex flex-col gap-1">
@@ -439,10 +430,10 @@ const PageView = (props) => {
 							<span className="text-base text-[#545757] dark:text-[#cccccc]">30d Avg APY</span>
 							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#fd3c99]">{apyMean30d}%</span>
 						</p>
-						<DownloadButton as="button" onClick={downloadCsv}>
+						<ButtonLight onClick={downloadCsv} useTextColor={true}>
 							<Icon name="download-cloud" height={14} width={14} />
 							<span>&nbsp;&nbsp;.csv</span>
-						</DownloadButton>
+						</ButtonLight>
 					</div>
 
 					<p className="flex flex-col gap-1">
@@ -494,7 +485,7 @@ const PageView = (props) => {
 				</LazyChart>
 			</div>
 
-			<ChartsWrapper>
+			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
 				{hasRiskData && (
 					<RiskRatingSection>
 						<RiskRatingTitle>
@@ -603,7 +594,7 @@ const PageView = (props) => {
 				)}
 
 				{isLoading ? (
-					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 				) : (
 					<>
 						{barChartData?.length ? (
@@ -629,11 +620,11 @@ const PageView = (props) => {
 						) : null}
 					</>
 				)}
-			</ChartsWrapper>
+			</div>
 
-			<ChartsWrapper>
+			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
 				{fetchingChartDataBorrow ? (
-					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 				) : (
 					<>
 						{areaChartDataBorrow?.length ? (
@@ -672,45 +663,43 @@ const PageView = (props) => {
 						) : null}
 					</>
 				)}
-			</ChartsWrapper>
+			</div>
 
-			<InfoWrapper>
-				<Section>
-					<h3>Protocol Information</h3>
-					<p className="flex items-center gap-2">
-						<span>Category</span>
-						<span>:</span>
-						<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
-					</p>
+			<div className="flex flex-col gap-4 bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl p-6">
+				<h3 className="font-semibold text-lg">Protocol Information</h3>
+				<p className="flex items-center gap-2">
+					<span>Category</span>
+					<span>:</span>
+					<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+				</p>
 
-					<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
+				<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
 
-					<div className="flex items-center gap-4 flex-wrap">
-						{(url || isLoading) && (
-							<Link href={url} passHref>
-								<Button
-									as="a"
-									target="_blank"
-									rel="noopener noreferrer"
-									useTextColor={true}
-									color={backgroundColor}
-									disabled={isLoading}
-								>
-									<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-								</Button>
-							</Link>
-						)}
+				<div className="flex items-center gap-4 flex-wrap">
+					{(url || isLoading) && (
+						<Link href={url} passHref>
+							<ButtonLight
+								as="a"
+								target="_blank"
+								rel="noopener noreferrer"
+								useTextColor={true}
+								color={backgroundColor}
+								disabled={isLoading}
+							>
+								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
+							</ButtonLight>
+						</Link>
+					)}
 
-						{twitter && (
-							<Link href={`https://twitter.com/${twitter}`} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-									<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-								</Button>
-							</Link>
-						)}
-					</div>
-				</Section>
-			</InfoWrapper>
+					{twitter && (
+						<Link href={`https://twitter.com/${twitter}`} passHref>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
+							</ButtonLight>
+						</Link>
+					)}
+				</div>
+			</div>
 		</>
 	)
 }

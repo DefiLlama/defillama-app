@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Link from 'next/link'
-import { Button, Name } from '~/layout/ProtocolAndPool'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
 import { transparentize } from 'polished'
@@ -13,6 +12,7 @@ import { ProtocolFeesRevenueVolumeCharts } from './Fees'
 import { OtherProtocols, ProtocolLink } from './Common'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
 
 export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 	const router = useRouter()
@@ -39,27 +39,27 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 					</OtherProtocols>
 				)}
 
-				<Name>
+				<h1 className="flex items-center gap-2 text-xl">
 					<TokenLogo logo={data.logo} size={24} />
 					<FormattedName text={data.name} maxCharacters={16} fontWeight={700} />
-				</Name>
+				</h1>
 
 				{data.description && <p>{data.description}</p>}
 
 				<div className=" flex items-center flex-wrap gap-4">
 					{data.url && (
 						<Link href={data.url} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 
 					{data.twitter && (
 						<Link href={`https://twitter.com/${data.twitter}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 
@@ -68,10 +68,10 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 							href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/treasury/${data.treasury}`}
 							passHref
 						>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 								<span>Methodology</span>
 								<Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 				</div>

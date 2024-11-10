@@ -1,6 +1,5 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { Name } from '~/layout/ProtocolAndPool'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
 import { capitalizeFirstLetter, formattedNum, standardizeProtocolName } from '~/utils'
@@ -122,10 +121,10 @@ export const ProtocolChart = ({
 				>
 					<>
 						{name && (
-							<Name>
+							<h1 className="flex items-center gap-2 text-xl">
 								<TokenLogo logo={logo} size={24} />
 								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-							</Name>
+							</h1>
 						)}
 						{data.total24h || data.total24h === 0 ? (
 							<p className="flex flex-col gap-1 text-base">

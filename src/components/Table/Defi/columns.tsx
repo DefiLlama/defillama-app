@@ -5,7 +5,6 @@ import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { ButtonSquare } from '~/layout/Pool'
 import {
 	capitalizeFirstLetter,
 	chainIconUrl,
@@ -40,6 +39,7 @@ import { useEffect, useState } from 'react'
 import { UpcomingEvent } from '../Components/UpcomingEvent'
 import { ProgressBar } from '../Components/ProgressBar'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -235,16 +235,15 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		size: 60,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<ButtonSquare
+			<ButtonLight
+				className="flex items-center justify-center gap-4 !p-[6px]"
 				as="a"
 				href={getValue() as string}
 				target="_blank"
 				rel="noopener noreferrer"
-				data-lgonly
-				useTextColor={true}
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
-			</ButtonSquare>
+			</ButtonLight>
 		)
 	},
 	{
@@ -468,16 +467,15 @@ export const expensesColumns: ColumnDef<any>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonSquare
+				<ButtonLight
+					className="flex items-center justify-center gap-4 !p-[6px]"
 					as="a"
 					href={getValue()[0] as string}
 					target="_blank"
 					rel="noopener noreferrer"
-					data-lgonly
-					useTextColor={true}
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonSquare>
+				</ButtonLight>
 			) : null
 	}
 ]
@@ -685,16 +683,15 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		size: 40,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<ButtonSquare
+			<ButtonLight
+				className="flex items-center justify-center gap-4 !p-[6px]"
 				as="a"
 				href={getValue() as string}
 				target="_blank"
 				rel="noopener noreferrer"
-				data-lgonly
-				useTextColor={true}
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
-			</ButtonSquare>
+			</ButtonLight>
 		)
 	}
 ]
@@ -1253,17 +1250,15 @@ export const cexColumn: ColumnDef<any>[] = [
 		cell: ({ getValue }) => (
 			<>
 				{getValue() === undefined ? null : (
-					<ButtonSquare
+					<ButtonLight
+						className="flex items-center justify-center gap-4 !p-[6px]"
 						as="a"
 						href={getValue() as string}
 						target="_blank"
 						rel="noopener noreferrer"
-						data-lgonly
-						useTextColor={true}
-						style={{ width: '21px' }}
 					>
 						<Icon name="arrow-up-right" height={14} width={14} />
-					</ButtonSquare>
+					</ButtonLight>
 				)}
 			</>
 		),
@@ -1281,17 +1276,15 @@ export const cexColumn: ColumnDef<any>[] = [
 				{getValue() === undefined ? (
 					<QuestionHelper text="This CEX has no published their wallet addresses" />
 				) : (
-					<ButtonSquare
+					<ButtonLight
+						className="flex items-center justify-center gap-4 !p-[6px]"
 						as="a"
 						href={getValue() as string}
 						target="_blank"
 						rel="noopener noreferrer"
-						data-lgonly
-						useTextColor={true}
-						style={{ width: '21px' }}
 					>
 						<Icon name="arrow-up-right" height={14} width={14} />
-					</ButtonSquare>
+					</ButtonLight>
 				)}
 			</>
 		),
@@ -1706,16 +1699,15 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonSquare
+				<ButtonLight
+					className="flex items-center justify-center gap-4 !p-[6px]"
 					as="a"
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
-					data-lgonly
-					useTextColor={true}
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonSquare>
+				</ButtonLight>
 			) : null
 	},
 	{
@@ -1725,16 +1717,15 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonSquare
+				<ButtonLight
+					className="flex items-center justify-center gap-4 !p-[6px]"
 					as="a"
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
-					data-lgonly
-					useTextColor={true}
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonSquare>
+				</ButtonLight>
 			) : null
 	},
 	{

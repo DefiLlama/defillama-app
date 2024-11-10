@@ -5,18 +5,6 @@ import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
-import {
-	Button,
-	DownloadButton,
-	InfoWrapper,
-	Name,
-	Section,
-	Symbol,
-	ChartsWrapper,
-	LazyChart,
-	ChartsPlaceholder,
-	ChartWrapper
-} from '~/layout/ProtocolAndPool'
 import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
 import { getColorFromNumber } from '~/utils'
 import styled from 'styled-components'
@@ -181,9 +169,9 @@ const PageView = () => {
 // 							? `${poolData.symbol} (${poolData.poolMeta})`
 // 							: poolData.symbol ?? 'Loading'}
 
-// 						<Symbol>
+// 					<span className="font-normal mr-auto">
 // 							({projectName} - {poolData.chain})
-// 						</Symbol>
+// 						</span>
 // 					</Name>
 
 // 					<table className="w-full text-base border-collapse">
@@ -226,24 +214,24 @@ const PageView = () => {
 // 					</TableWrapper>
 // 				</div>
 
-// 				<ChartWrapper style={{ position: 'relative' }}>
+// 				<LazyChart>
 // 					<AreaChart title="Net Borrow APY" chartData={netBorrowChartData} color={backgroundColor} valueSymbol={'%'} />
 
-// 					<DownloadToCSV as="button" onClick={downloadCsv}>
+// 					<ButtonLight as="button" onClick={downloadCsv} useTextColor={true}>
 // 						<Icon name="download-cloud" height={14} width={14} />
 // 						<span>&nbsp;&nbsp;.csv</span>
-// 					</DownloadToCSV>
-// 				</ChartWrapper>
+// 					</ButtonLight>
+// 				</LazyChart>
 
-// 				<DownloadToCSV as="button" onClick={downloadCsv}>
+// 				<ButtonLight as="button" onClick={downloadCsv} useTextColor={true}>
 // 					<Icon name="download-cloud" height={14} width={14} />
 // 					<span>&nbsp;&nbsp;.csv</span>
-// 				</DownloadToCSV>
+// 				</ButtonLight>
 // 			</div>
 
-// 			<ChartsWrapper>
+// 			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
 // 				{fetchingChartData ? (
-// 					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+// 					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 // 				) : (
 // 					chart?.data?.length && (
 // 						<>
@@ -284,11 +272,11 @@ const PageView = () => {
 // 						</>
 // 					)
 // 				)}
-// 			</ChartsWrapper>
+// 			</div>
 
-// 			<InfoWrapper>
-// 				<Section>
-// 					<h3>Protocol Information</h3>
+// <div className="flex flex-col gap-4 bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl p-6">
+
+// 					<h3 className="font-semibold text-lg">Protocol Information</h3>
 // 					<p className="flex items-center gap-2">
 // 						<span>Category</span>
 // 						<span>:</span>
@@ -321,8 +309,7 @@ const PageView = () => {
 // 							</Link>
 // 						)}
 // 					</div>
-// 				</Section>
-// 			</InfoWrapper>
+// 				</div>
 // 		</>
 // 	)
 // }
@@ -338,12 +325,6 @@ const barChartStacks = {
 	Base: 'a',
 	Reward: 'a'
 }
-
-const DownloadToCSV = styled(DownloadButton)`
-	position: absolute;
-	top: 20px;
-	right: 24px;
-`
 
 export default function YieldPoolPage(props) {
 	return (

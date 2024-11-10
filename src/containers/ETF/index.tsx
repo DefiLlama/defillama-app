@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import { toK } from '~/utils'
 import { Tab, TabList } from '~/components'
 import type { IChartProps, IPieChartProps, IBarChartProps } from '~/components/ECharts/types'
@@ -50,7 +49,7 @@ export const ETFContainer = ({
 				<span className="font-jetbrains">{`$${toK(totalAum)}`}</span>
 			</h1>
 
-			<ChartsContainer>
+			<div className="rounded-xl bg-[var(--bg6)] shadow">
 				<TabList>
 					<Tab onClick={() => setTab('volume')} aria-selected={tab === 'volume'}>
 						Volume
@@ -63,9 +62,9 @@ export const ETFContainer = ({
 					</Tab>
 				</TabList>
 
-				<TabContainer>
+				<div className="flex flex-col p-4 min-h-[392px]">
 					{tab === 'aum' ? (
-						<ChartsWrapper>
+						<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 min-h-[392px]">
 							<PieChart chartData={aumOverview} stackColors={tickerColors} usdFormat={false} />
 
 							<AreaChart
@@ -79,9 +78,9 @@ export const ETFContainer = ({
 								title=""
 								expandTo100Percent={true}
 							/>
-						</ChartsWrapper>
+						</div>
 					) : tab === 'volume' ? (
-						<ChartsWrapper>
+						<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 min-h-[392px]">
 							<PieChart chartData={volumeOverview} stackColors={tickerColors} usdFormat={false} />
 
 							<AreaChart
@@ -95,7 +94,7 @@ export const ETFContainer = ({
 								title=""
 								expandTo100Percent={true}
 							/>
-						</ChartsWrapper>
+						</div>
 					) : tab === 'flows' ? (
 						<>
 							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
@@ -128,38 +127,10 @@ export const ETFContainer = ({
 							/>
 						</>
 					) : null}
-				</TabContainer>
-			</ChartsContainer>
+				</div>
+			</div>
 
 			<TableWithSearch data={overview} columns={ETFColumn} columnToSearch={'ticker'} placeholder={'Search ETF...'} />
 		</>
 	)
 }
-
-const ChartsWrapper = styled.div`
-	min-height: 360px;
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 16px;
-
-	& > * {
-		grid-cols: span 1;
-	}
-
-	@media screen and (min-width: 80rem) {
-		grid-template-columns: 1fr 1fr;
-	}
-`
-
-const TabContainer = styled.div`
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	min-height: 360px;
-`
-const ChartsContainer = styled.div`
-	background-color: ${({ theme }) => theme.advancedBG};
-	border: 1px solid ${({ theme }) => theme.bg3};
-	border-radius: 8px;
-`

@@ -38,7 +38,7 @@ export function YieldFiltersV2({
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
 
 	return (
-		<div>
+		<div className="bg-white dark:bg-black shadow rounded-md">
 			<div className="relative flex items-center gap-2 flex-wrap p-4 rounded-t-md bg-white dark:bg-black">
 				<h1>{header}</h1>
 				{trackingStats ? <p>{trackingStats}</p> : null}

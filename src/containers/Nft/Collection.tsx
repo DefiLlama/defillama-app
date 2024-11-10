@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { Name, ChartWrapper, ChartsWrapper, LazyChart, Button } from '~/layout/ProtocolAndPool'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import dynamic from 'next/dynamic'
@@ -13,6 +12,8 @@ import { getNFTCollection } from '~/api/categories/nfts'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
+import { LazyChart } from '~/components/LazyChart'
 
 const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
 	ssr: false
@@ -64,10 +65,10 @@ export function NFTCollectionContainer() {
 
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-					<Name>
+					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={data[0].image} fallbackLogo={data?.[0]?.image} size={48} />
 						<FormattedName text={name} fontWeight={700} />
-					</Name>
+					</h1>
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-[#545757] dark:text-[#cccccc]">Floor Price</span>
@@ -89,7 +90,7 @@ export function NFTCollectionContainer() {
 					</p>
 
 					<Link href={`https://etherscan.io/token/${address.split(':')[0]}`} passHref>
-						<Button
+						<ButtonLight
 							as="a"
 							target="_blank"
 							rel="noopener noreferrer"
@@ -97,11 +98,11 @@ export function NFTCollectionContainer() {
 							style={{ width: 'fit-content' }}
 						>
 							<span>View on Etherscan</span> <Icon name="arrow-up-right" height={14} width={14} />
-						</Button>
+						</ButtonLight>
 					</Link>
 				</div>
 
-				<ChartWrapper style={{ padding: '20px 0 0 0' }}>
+				<div className="col-span-1 py-4 min-h-[412px]">
 					<div className="flex items-center gap-1 flex-nowrap ml-auto px-5">
 						<input
 							type="checkbox"
@@ -124,17 +125,17 @@ export function NFTCollectionContainer() {
 						salesMedian1d={salesMedian1d as any}
 						volume={stats}
 					/>
-				</ChartWrapper>
+				</div>
 			</div>
 
-			<ChartsWrapper>
-				<LazyChart style={{ minHeight: '360px', padding: '20px 16px 20px 0' }}>
+			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
+				<LazyChart>
 					<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
 				</LazyChart>
-				<LazyChart style={{ minHeight: '360px', padding: '20px 16px 20px 0' }}>
+				<LazyChart>
 					<OrderbookChart chartData={orderbook} />
 				</LazyChart>
-			</ChartsWrapper>
+			</div>
 		</Layout>
 	)
 }

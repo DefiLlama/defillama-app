@@ -11,7 +11,6 @@ import dynamic from 'next/dynamic'
 import { LayoutWrapper } from '~/containers/ChainContainer'
 import { chainIconUrl, formattedNum, getPercentChange, slug } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { Name } from '~/layout/ProtocolAndPool'
 import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
 import { categoryProtocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IOverviewProps } from '~/api/categories/adaptors'
@@ -193,10 +192,10 @@ function Container({
 					<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl py-4 px-2 min-h-[394px]">
 						<div className="flex flex-col gap-8 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 							{chain !== 'All' && chain && (
-								<Name data-chainname>
+								<h1 className="flex items-center gap-2 text-xl">
 									<TokenLogo logo={chainIconUrl(chain)} size={24} />
 									<span>{chain}</span>
-								</Name>
+								</h1>
 							)}
 							<details className="group text-base">
 								<summary className="flex items-center">

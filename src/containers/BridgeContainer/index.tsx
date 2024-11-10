@@ -1,8 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import Layout from '~/layout'
-import { Button, LazyChart, Name } from '~/layout/ProtocolAndPool'
 import { BridgesSearch } from '~/components/Search/Bridges'
 import { TokenLogo } from '~/components/TokenLogo'
 import { SEO } from '~/components/SEO'
@@ -17,6 +15,8 @@ import { getBridgePageDatanew } from '~/api/categories/bridges'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
+import { LazyChart } from '~/components/LazyChart'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -25,21 +25,6 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
-
-const TableNoticeWrapper = styled.div`
-	display: flex;
-	gap: 16px;
-	align-items: flex-end;
-	justify-content: space-between;
-	flex-wrap: wrap;
-	margin-bottom: -2rem;
-
-	p {
-		opacity: 0.6;
-		font-size: 0.875rem;
-		font-style: italic;
-	}
-`
 
 const BridgeInfo = ({
 	displayName,
@@ -117,7 +102,7 @@ const BridgeInfo = ({
 					</p>
 					{config?.url ? (
 						<Link href={config.url} passHref>
-							<Button
+							<ButtonLight
 								as="a"
 								target="_blank"
 								rel="noopener noreferrer"
@@ -129,7 +114,7 @@ const BridgeInfo = ({
 								}}
 							>
 								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					) : null}
 				</div>
@@ -174,11 +159,11 @@ const BridgeInfo = ({
 				</div>
 			</div>
 
-			<TableNoticeWrapper>
+			<div className="flex items-end justify-between flex-wrap -mb-8">
 				<AddressesTableSwitch />
 
-				<p>All stats in table are for the previous day.</p>
-			</TableNoticeWrapper>
+				<p className="opacity-60 text-sm italic">All stats in table are for the previous day.</p>
+			</div>
 
 			{isBridgesShowingAddresses ? (
 				<BridgeAddressesTable data={addressesTableData} />
@@ -226,9 +211,9 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	}
 
 	return (
-		<InfoWrapper>
+		<div className="flex flex-col gap-10 p-4">
 			<BridgeInfo {...data} />
-		</InfoWrapper>
+		</div>
 	)
 }
 
@@ -247,12 +232,6 @@ const volumeChartOptions = {
 	}
 }
 
-const InfoWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 40px;
-	padding: 16px;
-`
 const inflowChartStacks = {
 	Deposited: 'stackA',
 	Withdrawn: 'stackA'

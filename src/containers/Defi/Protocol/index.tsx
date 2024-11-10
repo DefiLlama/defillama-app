@@ -5,15 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
-import {
-	ExtraOption,
-	Name,
-	Section,
-	Symbol,
-	ChartsWrapper,
-	LazyChart,
-	ChartsPlaceholder
-} from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/components/LazyChart'
 import { Checkbox2 } from '~/components'
 import { Bookmark } from '~/components/Bookmark'
 import { CopyHelper } from '~/components/Copy'
@@ -46,14 +38,7 @@ import { DLNewsLogo } from '~/components/News/Logo'
 import { Announcement } from '~/components/Announcement'
 import { useTabState } from 'ariakit'
 import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
-import {
-	GridContent,
-	TabLayout,
-	CustomTabList as TabList,
-	CustomTab as Tab,
-	OtherProtocols,
-	ProtocolLink
-} from './Common'
+import { TabLayout, CustomTabList as TabList, CustomTab as Tab, OtherProtocols, ProtocolLink } from './Common'
 import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
 import { Flag } from './Flag'
 import { sluggify } from '~/utils/cache-client'
@@ -568,12 +553,12 @@ function ProtocolContainer({
 					<TabPanel state={tab} tabId="information">
 						<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)]">
 							<div className="flex flex-col p-5 col-span-1 w-full xl:w-[380px] text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-								<Name>
+								<h1 className="flex items-center gap-2 text-xl">
 									<TokenLogo logo={tokenIconUrl(name)} size={24} />
 									<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-									<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
+									<span className="font-normal mr-auto">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
 									<Bookmark readableProtocolName={name} />
-								</Name>
+								</h1>
 
 								<details className="group mt-6 mb-4">
 									<summary className="flex items-center">
@@ -639,7 +624,7 @@ function ProtocolContainer({
 													{extraTvls.map(([option, value]) => (
 														<tr key={option + value}>
 															<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-																<ExtraOption>
+																<label className="flex items-center gap-2 cursor-pointer">
 																	<Checkbox2
 																		type="checkbox"
 																		value={option}
@@ -649,7 +634,7 @@ function ProtocolContainer({
 																	<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
 																		{capitalizeFirstLetter(option)}
 																	</span>
-																</ExtraOption>
+																</label>
 															</th>
 															<td className="font-jetbrains text-right">{formatPrice(value)}</td>
 														</tr>
@@ -1261,9 +1246,9 @@ function ProtocolContainer({
 								<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" className="h-[34px] w-[34px]" />
 							</button>
 						</div>
-						<GridContent>
-							<Section>
-								<h3>{isCEX ? 'Exchange Information' : 'Protocol Information'}</h3>
+						<div className="grid grid-cols-2 p-6 xl:grid-rows-[repeat(2,auto)]">
+							<div className="section-in-grid">
+								<h3 className="font-semibold text-lg">{isCEX ? 'Exchange Information' : 'Protocol Information'}</h3>
 								{description && <p>{description}</p>}
 
 								{category && (
@@ -1342,12 +1327,12 @@ function ProtocolContainer({
 										{dayjs(twitterData?.lastTweet?.time).format('YYYY-MM-DD')})
 									</p>
 								) : null}
-							</Section>
+							</div>
 
 							{articles && articles.length > 0 && (
-								<Section>
+								<div className="section-in-grid">
 									<div className="flex items-center justify-between">
-										<h3>Latest from DL News</h3>
+										<h3 className="font-semibold text-lg">Latest from DL News</h3>
 										<Link href="https://www.dlnews.com" passHref>
 											<a>
 												<DLNewsLogo width={102} height={22} />
@@ -1358,12 +1343,12 @@ function ProtocolContainer({
 									{articles.map((article, idx) => (
 										<NewsCard key={`news_card_${idx}`} {...article} color={backgroundColor} />
 									))}
-								</Section>
+								</div>
 							)}
 							{devMetrics && (
-								<Section>
+								<div className="section-in-grid">
 									<span className="flex items-center gap-2">
-										<h3>Development Activity</h3>{' '}
+										<h3 className="font-semibold text-lg">Development Activity</h3>{' '}
 										<p>(updated at {dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})</p>
 									</span>
 									<p className="flex items-center gap-2">
@@ -1379,11 +1364,11 @@ function ProtocolContainer({
 										<span>Last commit:</span> {dayjs(devMetrics.last_commit_update_time).fromNow()} (
 										{dayjs(devMetrics.last_commit_update_time).format('YYYY-MM-DD')})
 									</p>
-								</Section>
+								</div>
 							)}
 							{(address || protocolData.gecko_id || explorers) && (
-								<Section>
-									<h3>Token Information</h3>
+								<div className="section-in-grid">
+									<h3 className="font-semibold text-lg">Token Information</h3>
 
 									{address && (
 										<p className="flex items-center gap-2">
@@ -1429,7 +1414,7 @@ function ProtocolContainer({
 												</Link>
 											))}
 									</div>
-								</Section>
+								</div>
 							)}
 
 							{(methodology ||
@@ -1437,8 +1422,8 @@ function ProtocolContainer({
 								helperTexts?.revenue ||
 								(helperTexts?.users && users?.activeUsers) ||
 								Object.values(methodologyUrls ?? {}).filter((x) => !!x).length > 0) && (
-								<Section>
-									<h3>Methodology</h3>
+								<div className="section-in-grid">
+									<h3 className="font-semibold text-lg">Methodology</h3>
 									{methodology && (
 										<p>
 											{isCEX ? 'Total Assets' : 'TVL'}: {methodology}
@@ -1513,12 +1498,12 @@ function ProtocolContainer({
 											</Link>
 										)}
 									</div>
-								</Section>
+								</div>
 							)}
 
 							{hacksData ? (
-								<Section>
-									<h3>Hacks</h3>
+								<div className="section-in-grid">
+									<h3 className="font-semibold text-lg">Hacks</h3>
 
 									<div>
 										<p className="flex items-center gap-2">
@@ -1565,12 +1550,12 @@ function ProtocolContainer({
 											</ButtonLight>
 										</Link>
 									</div>
-								</Section>
+								</div>
 							) : null}
 
 							{similarProtocols && similarProtocols.length > 0 ? (
-								<Section>
-									<h3>Competitors</h3>
+								<div className="section-in-grid">
+									<h3 className="font-semibold text-lg">Competitors</h3>
 
 									<div className="flex items-center gap-4 flex-wrap">
 										{similarProtocols.map((similarProtocol) => (
@@ -1585,15 +1570,15 @@ function ProtocolContainer({
 											</Link>
 										))}
 									</div>
-								</Section>
+								</div>
 							) : null}
-						</GridContent>
+						</div>
 					</TabPanel>
 					{showCharts && (
 						<TabPanel state={tab} tabId="tvl-charts">
-							<ChartsWrapper style={{ background: 'none', border: 'none' }}>
+							<div className="grid grid-cols-2 rounded-xl">
 								{isLoading ? (
-									<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+									<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 								) : (
 									<>
 										{chainsSplit && chainsUnique?.length > 1 && (
@@ -1655,7 +1640,7 @@ function ProtocolContainer({
 										)}
 									</>
 								)}
-							</ChartsWrapper>
+							</div>
 						</TabPanel>
 					)}
 					{stablecoins && stablecoins.length > 0 && (

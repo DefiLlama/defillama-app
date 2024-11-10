@@ -1,8 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import Layout from '~/layout'
-import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
@@ -119,7 +117,7 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 
 			<h1 className="text-2xl font-medium -mb-5">Protocol Categories</h1>
 
-			<ChartsWrapper>
+			<div className="bg-[var(--bg6)] min-h-[424px] shadow rounded-xl p-4">
 				<AreaChart
 					chartData={categoriesWithExtraTvlsByDay}
 					stacks={uniqueCategories}
@@ -130,7 +128,7 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 					valueSymbol="$"
 					title=""
 				/>
-			</ChartsWrapper>
+			</div>
 
 			<TableWithSearch
 				data={categories}
@@ -141,14 +139,3 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 		</Layout>
 	)
 }
-
-const ChartsWrapper = styled(Panel)`
-	min-height: 402px;
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 16px;
-
-	& > * {
-		grid-cols: span 1;
-	}
-`

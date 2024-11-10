@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama.png'
 
 const MobileSearch = dynamic(() => import('~/components/Search/Base/Mobile').then((m) => m.MobileSearch), {
 	ssr: false,
@@ -19,7 +18,13 @@ export function MobileNav() {
 			<Link href="/" passHref>
 				<a className="flex-shrink-0 mr-auto">
 					<span className="sr-only">Navigate to Home Page</span>
-					<img src={logoLight.src} alt="" height={36} width={105} className="object-contain object-left mr-auto" />
+					<img
+						src="/defillama-press-kit/defi/PNG/defillama.png"
+						alt=""
+						height={36}
+						width={105}
+						className="object-contain object-left mr-auto"
+					/>
 				</a>
 			</Link>
 			{!router.pathname.startsWith('/yield') && !router.pathname.startsWith('/raises') ? <MobileSearch /> : null}

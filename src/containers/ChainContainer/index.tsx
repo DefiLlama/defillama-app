@@ -692,7 +692,7 @@ export function ChainContainer({
 						/>
 					</div>
 
-					<ChartWrapper>
+					<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[502px]">
 						{easterEgg ? (
 							<Game />
 						) : (
@@ -787,7 +787,7 @@ export function ChainContainer({
 								)}
 							</>
 						)}
-					</ChartWrapper>
+					</div>
 					<button onClick={activateEasterEgg} className="absolute -bottom-9 left-0">
 						<img src={llamaLogo.src} width="41px" height="34px" alt="" />
 						<span className="sr-only">Activate Easter Egg</span>
@@ -841,13 +841,4 @@ export const LayoutWrapper = styled.div`
 	@media (max-width: ${({ theme }) => theme.bpMed}) {
 		margin: -12px;
 	}
-`
-
-export const ChartWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	padding: 16px 0;
-	grid-column: span 1;
-	min-height: 442px;
 `

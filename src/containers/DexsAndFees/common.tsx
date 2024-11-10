@@ -15,12 +15,11 @@ import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { useChartInterval } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
-import { ChartWrapper } from '~/layout/ProtocolAndPool'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
 	loading: () => (
-		<div className="flex items-center justify-center m-auto">
+		<div className="flex items-center justify-center m-auto min-h-[360px]">
 			<LocalLoader />
 		</div>
 	)
@@ -29,7 +28,7 @@ const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false,
 	loading: () => (
-		<div className="flex items-center justify-center m-auto">
+		<div className="flex items-center justify-center m-auto min-h-[360px]">
 			<LocalLoader />
 		</div>
 	)
@@ -254,7 +253,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 					</FiltersWrapperRow>
 				</>
 				{barsData && barsData.length > 0 && (
-					<ChartWrapper>
+					<div className="min-h-[360px]">
 						{chartType === 'Dominance' ? (
 							<AreaChart title="" chartData={barsData} stacks={props.chartData[1]} expandTo100Percent valueSymbol="%" />
 						) : (
@@ -268,7 +267,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 								/* stackColors={stackedBarChartColors} */
 							/>
 						)}
-					</ChartWrapper>
+					</div>
 				)}
 			</Panel>
 		</ChartAndValuesWrapper>

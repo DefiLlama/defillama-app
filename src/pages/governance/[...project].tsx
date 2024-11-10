@@ -1,5 +1,4 @@
 import { maxAgeForNext } from '~/api'
-import { Button, ChartsWrapper, LazyChart, Name } from '~/layout/ProtocolAndPool'
 import * as React from 'react'
 import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -21,6 +20,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { Icon } from '~/components/Icon'
+import { LazyChart } from '~/components/LazyChart'
+import { ButtonLight } from '~/components/ButtonStyled'
 
 const fetch = fetchWithErrorLogging
 
@@ -116,10 +117,10 @@ export default function Protocol({ data, governanceType }) {
 	return (
 		<Layout title={`${data.metadata.name} Governance - DefiLlama`} defaultSEO>
 			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg7)] border border-[var(--divider)] shadow rounded-xl">
-				<Name>
+				<h1 className="flex items-center gap-2 text-xl">
 					<TokenLogo logo={tokenIconUrl(data.metadata.name)} />
 					<span>{data.metadata.name}</span>
-				</Name>
+				</h1>
 
 				<div className="flex flex-wrap justify-between gap-4">
 					{data.stats.chainName ? (
@@ -170,7 +171,7 @@ export default function Protocol({ data, governanceType }) {
 					) : null}
 				</div>
 
-				<ChartsWrapper>
+				<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)]">
 					<LazyChart>
 						<BarChart
 							title={'Activity'}
@@ -187,39 +188,39 @@ export default function Protocol({ data, governanceType }) {
 							stackColors={stackedBarChartColors}
 						/>
 					</LazyChart>
-				</ChartsWrapper>
+				</div>
 
 				<div className="flex flex-wrap items-center gap-9">
 					{data.metadata.domain && (
 						<Link href={`https://${data.metadata.domain}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 
 					{data.metadata.twitter && (
 						<Link href={`https://twitter.com/${data.metadata.twitter}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 
 					{data.metadata.github && (
 						<Link href={`https://github.com/${data.metadata.github}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>Github</span>
 								<Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 
 					{data.metadata.coingecko && (
 						<Link href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 				</div>

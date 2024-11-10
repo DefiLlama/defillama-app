@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import data from './final.json'
-import { ChartWrapper } from '~/layout/ProtocolAndPool'
 import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { toNiceDateYear } from '~/utils'
@@ -60,13 +59,13 @@ const tableData = data.banks.map((b: any) => {
 const Banks = () => {
 	return (
 		<Layout title="Bank Failures">
-			<ChartWrapper>
+			<div className="relative col-span-2 p-4 shadow rounded-xl">
 				<BarChart
 					chartData={Object.entries(data.years).map((t) => [new Date(t[0]).getTime() / 1e3, t[1] * 1e6])}
 					title="Assets of failed banks (inflation adjusted)"
 					valueSymbol="$"
 				/>
-			</ChartWrapper>
+			</div>
 			<TableWithSearch
 				data={tableData}
 				columns={banksTableColumns}

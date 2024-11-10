@@ -159,12 +159,12 @@ export default function ProtocolChart({
 			isLoading={isLoading}
 			fetchingTypes={fetchingTypes}
 			chartData={chartData}
-			color={'#0c2956'}
+			color={'#335cd7'}
 			valueSymbol={valueSymbol}
 			chartsUnique={chartsUnique}
 			events={events}
 			hallmarks={events === 'true' ? protocolData.hallmarks : null}
-			chartColors={emptyObject}
+			chartColors={chartColors}
 			bobo={false}
 			unlockTokenSymbol={unlockTokenSymbol}
 			isThemeDark={isThemeDark}
@@ -173,4 +173,4 @@ export default function ProtocolChart({
 	)
 }
 
-const emptyObject = {}
+const chartColors = { TVL: '#335cd7' }

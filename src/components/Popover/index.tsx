@@ -55,19 +55,20 @@ export function EmbedChart({ color }) {
 	const [extraTvlsEnabled] = useDefiManager()
 	const [isDarkTheme] = useDarkModeManager()
 
-	let path = router.asPath === '/' ? '/chain/All' : router.asPath
+	let path = router.asPath === '/' ? '/chain/All' : router.asPath.split('#')[0].split('?')[0]
 
 	if (!path.includes('?')) {
 		path += '?'
 	}
 
+	const extras = []
 	for (const option in extraTvlsEnabled) {
 		if (extraTvlsEnabled[option]) {
-			path += `&include_${option}_in_tvl=true`
+			extras.push(`include_${option}_in_tvl=true`)
 		}
 	}
 
-	path += isDarkTheme ? '&theme=dark' : '&theme=light'
+	extras.push(isDarkTheme ? 'theme=dark' : 'theme=light')
 
 	const url = `<iframe width="640px" height="360px" src="https://defillama.com/chart${path}" title="DefiLlama" frameborder="0"></iframe>`
 

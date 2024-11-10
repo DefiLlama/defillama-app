@@ -1,7 +1,7 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { ChartsWrapper, LazyChart } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/components/LazyChart'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { Announcement } from '~/components/Announcement'
 import { useRouter } from 'next/router'
@@ -23,11 +23,11 @@ export default function AdapterTest() {
 	return (
 		<Layout title={`Tests`} defaultSEO>
 			<Announcement>This page is just used for tests, don't trust anything on this page</Announcement>
-			<ChartsWrapper>
+			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
 				<LazyChart>
 					<BarChart chartData={chartData} title="Data" />
 				</LazyChart>
-			</ChartsWrapper>
+			</div>
 		</Layout>
 	)
 }

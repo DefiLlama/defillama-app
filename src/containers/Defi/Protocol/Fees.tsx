@@ -1,6 +1,5 @@
 import * as React from 'react'
 import type { IFusedProtocolData } from '~/api/types'
-import { ChartsWrapper } from '~/layout/ProtocolAndPool'
 import { slug } from '~/utils'
 import { ChartByType2 } from '~/containers/DexsAndFees/charts'
 
@@ -9,7 +8,7 @@ export const ProtocolFeesRevenueVolumeCharts = ({ data }: { data: IFusedProtocol
 	const hasVersions = (data.otherProtocols ?? []).length > 0
 
 	return (
-		<ChartsWrapper style={{ background: 'none', border: 'none' }}>
+		<div className="grid grid-cols-2 rounded-xl">
 			{metrics.map(([key, enabled]) => {
 				return enabled && key !== 'medianApy' ? (
 					<React.Fragment key={key + 'fees-revenue-volume-charts'}>
@@ -21,7 +20,7 @@ export const ProtocolFeesRevenueVolumeCharts = ({ data }: { data: IFusedProtocol
 					</React.Fragment>
 				) : null
 			})}
-		</ChartsWrapper>
+		</div>
 	)
 }
 
@@ -29,11 +28,11 @@ export function FeesAndRevenueCharts({ data }: { data: IFusedProtocolData }) {
 	const hasVersions = (data.otherProtocols ?? []).length > 0
 
 	return (
-		<ChartsWrapper style={{ background: 'none', border: 'none' }}>
+		<div className="grid grid-cols-2 rounded-xl">
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} breakdownChart={false} />
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} />
 			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={'fees'} /> : null}
-		</ChartsWrapper>
+		</div>
 	)
 }
 
@@ -47,10 +46,10 @@ export function VolumeCharts({
 	const hasVersions = (data.otherProtocols ?? []).length > 0
 
 	return (
-		<ChartsWrapper style={{ background: 'none', border: 'none' }}>
+		<div className="grid grid-cols-2 rounded-xl">
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={type} breakdownChart={false} />
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={type} breakdownChart={true} />
 			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={type} /> : null}
-		</ChartsWrapper>
+		</div>
 	)
 }

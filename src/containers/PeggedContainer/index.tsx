@@ -6,7 +6,6 @@ import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import { Button, ExtraOption, Name, Symbol } from '~/layout/ProtocolAndPool'
 import { Checkbox2 } from '~/components'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ButtonLight } from '~/components/ButtonStyled'
@@ -269,11 +268,11 @@ export const PeggedAssetInfo = ({
 
 					<TabPanel state={tab} tabId={defaultSelectedId}>
 						<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-							<Name>
+							<h1 className="flex items-center gap-2 text-xl">
 								<TokenLogo logo={logo} size={24} />
 								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-								<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
-							</Name>
+								<span className="font-normal mr-auto">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
+							</h1>
 
 							<p className="flex flex-col gap-1">
 								<span className="text-base text-[#545757] dark:text-[#cccccc]">Market Cap</span>
@@ -309,7 +308,7 @@ export const PeggedAssetInfo = ({
 										{extraPeggeds.map((option) => (
 											<tr key={option}>
 												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-													<ExtraOption>
+													<label className="flex items-center gap-2 cursor-pointer">
 														<Checkbox2
 															type="checkbox"
 															value={option}
@@ -319,7 +318,7 @@ export const PeggedAssetInfo = ({
 														<span style={{ opacity: extraPeggedsEnabled[option] ? 1 : 0.7 }}>
 															{capitalizeFirstLetter(option)}
 														</span>
-													</ExtraOption>
+													</label>
 												</th>
 												<td className="font-jetbrains text-right">{toK(unreleased)}</td>
 											</tr>
@@ -373,7 +372,7 @@ export const PeggedAssetInfo = ({
 							{blockExplorerLink !== undefined && (
 								<span>
 									<Link href={blockExplorerLink} passHref>
-										<Button
+										<ButtonLight
 											as="a"
 											target="_blank"
 											rel="noopener noreferrer"
@@ -381,7 +380,7 @@ export const PeggedAssetInfo = ({
 											color={backgroundColor}
 										>
 											<span>View on {blockExplorerName}</span> <Icon name="arrow-up-right" height={14} width={14} />
-										</Button>
+										</ButtonLight>
 									</Link>
 								</span>
 							)}
@@ -389,7 +388,7 @@ export const PeggedAssetInfo = ({
 							{url && (
 								<span>
 									<Link href={url} passHref>
-										<Button
+										<ButtonLight
 											as="a"
 											target="_blank"
 											rel="noopener noreferrer"
@@ -398,7 +397,7 @@ export const PeggedAssetInfo = ({
 										>
 											<span>Website</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
-										</Button>
+										</ButtonLight>
 									</Link>
 								</span>
 							)}
@@ -406,7 +405,7 @@ export const PeggedAssetInfo = ({
 							{twitter && (
 								<span>
 									<Link href={twitter} passHref>
-										<Button
+										<ButtonLight
 											as="a"
 											target="_blank"
 											rel="noopener noreferrer"
@@ -415,7 +414,7 @@ export const PeggedAssetInfo = ({
 										>
 											<span>Twitter</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
-										</Button>
+										</ButtonLight>
 									</Link>
 								</span>
 							)}
@@ -423,7 +422,7 @@ export const PeggedAssetInfo = ({
 							{wiki && (
 								<span>
 									<Link href={wiki} passHref>
-										<Button
+										<ButtonLight
 											as="a"
 											target="_blank"
 											rel="noopener noreferrer"
@@ -432,7 +431,7 @@ export const PeggedAssetInfo = ({
 										>
 											<span>DeFiLlama Wiki</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
-										</Button>
+										</ButtonLight>
 									</Link>
 								</span>
 							)}
@@ -440,7 +439,7 @@ export const PeggedAssetInfo = ({
 							{onCoinGecko === 'true' && (
 								<span>
 									<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} passHref>
-										<Button
+										<ButtonLight
 											as="a"
 											target="_blank"
 											rel="noopener noreferrer"
@@ -449,7 +448,7 @@ export const PeggedAssetInfo = ({
 										>
 											<span>CoinGecko</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
-										</Button>
+										</ButtonLight>
 									</Link>
 								</span>
 							)}

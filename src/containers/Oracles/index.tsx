@@ -1,8 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import { download } from '~/utils'
-import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
 import { ButtonDark } from '~/components/ButtonStyled'
@@ -19,20 +17,6 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-const ChartsWrapper = styled(Panel)`
-	min-height: 402px;
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 16px;
-
-	& > * {
-		grid-cols: span 1;
-	}
-
-	@media screen and (min-width: 80rem) {
-		grid-template-columns: 1fr 1fr;
-	}
-`
 const Oracles = ({
 	chartData,
 	tokensProtocols,
@@ -83,7 +67,7 @@ const Oracles = ({
 				<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
 			</div>
 
-			<ChartsWrapper>
+			<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 bg-[var(--bg6)] min-h-[424px] shadow rounded-xl p-4">
 				<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
 				<AreaChart
 					chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -96,7 +80,7 @@ const Oracles = ({
 					title=""
 					expandTo100Percent={true}
 				/>
-			</ChartsWrapper>
+			</div>
 
 			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
 				<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />

@@ -15,7 +15,6 @@ import { ISettings } from '~/contexts/types'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { PROTOCOLS_API } from '~/constants'
-import { Name } from '~/layout/ProtocolAndPool'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { last } from 'lodash'
@@ -299,10 +298,10 @@ function ComparePage() {
 								key={`${chainData?.chain || i}`}
 							>
 								<div className="flex flex-col gap-8 p-5 col-span-1 w-full rounded-xl text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-									<Name data-chainname>
+									<h1 className="flex items-center gap-2 text-xl">
 										<TokenLogo logo={chainIconUrl(chainData?.chain)} size={24} />
 										<span>{chainData.chain}</span>
-									</Name>
+									</h1>
 
 									<details className="group text-base">
 										<summary className="flex items-center">
