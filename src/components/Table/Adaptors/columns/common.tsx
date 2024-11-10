@@ -4,7 +4,7 @@ import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug } from '~/utils'
-import { AccordionButton, Name } from '../../shared'
+import { Name } from '../../shared'
 import { IDexsRow } from '../types'
 import { Icon } from '~/components/Icon'
 
@@ -29,7 +29,8 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 		return (
 			<Name depth={row.depth}>
 				{row.subRows?.length > 0 && (
-					<AccordionButton
+					<button
+						className="absolute -left-[2px]"
 						{...{
 							onClick: row.getToggleExpandedHandler()
 						}}
@@ -45,7 +46,7 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 								<span className="sr-only">Hide child protocols</span>
 							</>
 						)}
-					</AccordionButton>
+					</button>
 				)}
 				<span>{index + 1}</span>
 				<TokenLogo logo={row.original.logo} data-lgonly />

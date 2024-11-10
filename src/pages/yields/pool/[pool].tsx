@@ -2,8 +2,6 @@ import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
-
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
@@ -16,7 +14,6 @@ import {
 } from '~/api/categories/yield/client'
 import { getColorFromNumber } from '~/utils'
 import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
-
 import exponentialLogo from '~/assets/exponential.avif'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { useQuery } from '@tanstack/react-query'
@@ -39,50 +36,16 @@ const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	loading: () => <></>
 }) as React.FC<IChartProps>
 
-const RatingWrapper = styled.div`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-`
-
-const RatingCircle = styled.div`
-	width: 30px;
-	height: 30px;
-	border-radius: 50%;
-	background-color: ${(props) => props.color};
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	color: white;
-	font-weight: bold;
-	font-size: 1rem;
-`
-
-const RatingText = styled.span`
-	font-size: 1.2rem;
-	font-weight: bold;
-`
-
-const RatingDescription = styled.span`
-	font-size: 1.2rem;
-`
-
-const AssessedBy = styled.span`
-	font-size: 0.7rem;
-	font-weight: bold;
-	margin-top: 4px;
-`
-
 const getRatingColor = (rating) => {
 	switch (rating?.toLowerCase()) {
 		case 'green':
-			return '#009400'
+			return { backgroundColor: '#009400', color: 'white' }
 		case 'yellow':
-			return '#b69f1c'
+			return { backgroundColor: '#b69f1c', color: 'black' }
 		case 'red':
-			return 'firebrick'
+			return { backgroundColor: 'firebrick', color: 'white' }
 		default:
-			return '#9E9E9E'
+			return { backgroundColor: '#9E9E9E', color: 'white' }
 	}
 }
 
@@ -102,132 +65,6 @@ const getRatingDescription = (rating) => {
 			return 'Not rated'
 	}
 }
-
-const RiskRatingSection = styled.div`
-	display: flex;
-	flex-direction: column;
-	background: ${({ theme }) => theme.bg6};
-	border-radius: 12px;
-	padding: 24px;
-
-	@media screen and (max-width: 80rem) {
-		grid-column: span 2;
-	}
-`
-
-const RiskRatingTitle = styled.h2`
-	font-size: 1.2rem;
-	margin-bottom: 24px;
-	color: ${({ theme }) => theme.text1};
-	display: flex;
-	align-items: center;
-	gap: 12px;
-`
-
-const RiskRatingContent = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	position: relative;
-`
-
-const TotalRiskWrapper = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	border-radius: 12px;
-	padding: 12px;
-	margin-bottom: 16px;
-	min-width: 160px;
-`
-
-const ResultWrapper = styled.div`
-	display: flex;
-	align-items: center;
-`
-
-const TotalRiskCircle = styled.div<{ color: string }>`
-	width: 30px;
-	height: 30px;
-	border-radius: 50%;
-	background-color: ${(props) => getRatingColor(props.color)};
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	margin-right: 16px;
-`
-
-const TotalRiskGrade = styled.span`
-	font-size: 16px;
-	font-weight: bold;
-	color: white;
-`
-
-const TotalRiskInfo = styled.div`
-	display: flex;
-	flex-direction: column;
-`
-
-const FactorsContainer = styled.div`
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	flex-grow: 1;
-	width: 100%;
-	position: relative;
-`
-
-const TotalRiskContainer = styled(FactorsContainer)``
-
-const Factor = styled.div`
-	display: flex;
-	align-items: center;
-	border: 1px solid ${({ theme }) => theme.text4};
-	border-radius: 16px;
-	padding: 6px;
-	position: relative;
-	margin-bottom: 12px;
-	font-weight: semibold;
-`
-
-const FactorBadge = styled.div<{ color: string }>`
-	background-color: ${(props) => getRatingColor(props.color)};
-	color: white;
-	font-size: 0.8rem;
-	font-weight: bold;
-	padding: 4px 0;
-	border-radius: 12px;
-	margin-right: 12px;
-	width: 80px;
-	text-align: center;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-`
-
-const FactorLabel = styled.span`
-	font-size: 0.9rem;
-	color: ${({ theme }) => theme.text1};
-	margin-right: 8px;
-	flex: 1; // Allow label to take up remaining space
-`
-
-const FactorAssets = styled.div`
-	display: flex;
-	gap: 4px;
-	margin-left: auto;
-`
-
-const Asset = styled.div<{ color: string }>`
-	border-radius: 16px;
-	font-size: 0.6rem;
-	padding: 4px 8px;
-	border: 2px solid ${(props) => getRatingColor(props.color)};
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	gap: 4px;
-`
 
 const PageView = (props) => {
 	const { query } = useRouter()
@@ -444,10 +281,13 @@ const PageView = (props) => {
 					{hasRiskData && (
 						<p className="flex flex-col items-start gap-1">
 							<span className="text-base text-[#545757] dark:text-[#cccccc]">Total Risk Rating</span>
-							<span className="flex items-center gap-4 flex-nowrap">
-								<RatingCircle color={getRatingColor(riskData?.pool_rating_color)}>
+							<span className="flex items-center gap-2 flex-nowrap">
+								<span
+									className="w-7 h-7 rounded-full flex items-center justify-center text-base font-bold"
+									style={getRatingColor(riskData?.pool_rating_color)}
+								>
 									{riskData?.pool_rating || 'N/A'}
-								</RatingCircle>
+								</span>
 								<a
 									href={riskData?.pool_url ? riskData?.pool_url : `https://exponential.fi/about-us`}
 									target="_blank"
@@ -458,7 +298,7 @@ const PageView = (props) => {
 									<Icon name="external-link" height={16} width={16} />
 								</a>
 							</span>
-							<AssessedBy>Assessed by exponential.fi</AssessedBy>
+							<span className="text-xs font-bold mt-1">Assessed by exponential.fi</span>
 						</p>
 					)}
 
@@ -487,110 +327,120 @@ const PageView = (props) => {
 
 			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
 				{hasRiskData && (
-					<RiskRatingSection>
-						<RiskRatingTitle>
+					<div className="flex flex-col col-span-2 xl:col-span-1 p-6">
+						<h2 className="mb-6 flex items-center gap-3 text-lg font-bold">
 							Risk Rating by exponential.fi{' '}
 							<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} alt="" />
-						</RiskRatingTitle>
-						<RiskRatingContent>
-							<FactorsContainer>
-								<Factor>
-									<FactorBadge color={riskData?.pool_design?.rating_color}>
+						</h2>
+						<div className="flex flex-col items-start relative">
+							<div className="flex flex-col justify-between flex-1 w-full relative">
+								<div className="flex items-center p-1 border border-[var(--text4)] mb-3 last:mb-0 rounded-2xl gap-2">
+									<p
+										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
+										style={getRatingColor(riskData?.pool_design?.rating_color)}
+									>
 										{riskData?.pool_design?.rating || 'N/A'}
-									</FactorBadge>
-									<FactorLabel>Pool Design</FactorLabel>
-								</Factor>
-								<Factor>
-									<FactorBadge color={riskData?.assets?.rating_color}>{riskData?.assets?.rating || 'N/A'}</FactorBadge>
-									<FactorLabel>Assets</FactorLabel>
-									<FactorAssets>
-										{riskData?.assets?.underlying?.map((asset, index) => (
-											<Asset
-												key={index}
-												color={asset.rating_color}
-												title={asset.name}
-												onClick={() => {
-													if (asset.url) {
-														window.open(asset.url, '_blank')
-													}
-												}}
+									</p>
+									<p className="text-sm flex-1">Pool Design</p>
+								</div>
+								<div className="flex items-center p-1 border border-[var(--text4)] mb-3 last:mb-0 rounded-2xl gap-2">
+									<p
+										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
+										style={getRatingColor(riskData?.assets?.rating_color)}
+									>
+										{riskData?.assets?.rating || 'N/A'}
+									</p>
+									<p className="text-sm flex-1">Assets</p>
+									<div className="flex items-center gap-1 ml-auto">
+										{riskData?.assets?.underlying?.map((asset) => (
+											<a
+												className="py-1 px-2 text-xs rounded-2xl flex items-center gap-1 border"
+												key={`asset-underlying-${asset.name}-${asset.url}`}
+												style={{ borderColor: getRatingColor(asset.rating_color).backgroundColor }}
+												href={asset.url}
+												target="_blank"
+												rel="noreferrer noopener"
 											>
 												{asset.name} {asset.url ? <Icon name="arrow-up-right" height={14} width={14} /> : null}
-											</Asset>
+											</a>
 										))}
-									</FactorAssets>
-								</Factor>
-								<Factor>
-									<FactorBadge color={riskData?.protocols?.underlying[0]?.rating_color}>
+									</div>
+								</div>
+								<div className="flex items-center p-1 border border-[var(--text4)] mb-3 last:mb-0 rounded-2xl gap-2">
+									<p
+										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
+										style={getRatingColor(riskData?.protocols?.underlying[0]?.rating_color)}
+									>
 										{riskData?.protocols?.underlying[0]?.rating || 'N/A'}
-									</FactorBadge>
-									<FactorLabel>Protocols</FactorLabel>
-									<FactorAssets>
+									</p>
+									<p className="text-sm flex-1">Protocols</p>
+									<div className="flex items-center gap-1 ml-auto">
 										{riskData?.protocols?.underlying
 											?.filter((p) => p?.name)
-											.map((protocol, index) => (
-												<Asset
-													key={index}
-													color={protocol.rating_color}
-													title={protocol.name}
-													onClick={() => {
-														if (protocol.url) {
-															window.open(protocol.url, '_blank')
-														}
-													}}
+											.map((protocol) => (
+												<a
+													className="py-1 px-2 text-xs rounded-2xl flex items-center gap-1 border"
+													key={`protocol-underlying-${protocol.name}-${protocol.url}`}
+													style={{ borderColor: getRatingColor(protocol.rating_color).backgroundColor }}
+													href={protocol.url}
+													target="_blank"
+													rel="noreferrer noopener"
 												>
 													{protocol.name} {protocol.url ? <Icon name="arrow-up-right" height={14} width={14} /> : null}
-												</Asset>
+												</a>
 											))}
-									</FactorAssets>
-								</Factor>
-								<Factor>
-									<FactorBadge color={riskData?.chain?.rating_color}>{riskData?.chain?.rating || 'N/A'}</FactorBadge>
-									<FactorLabel>Chain</FactorLabel>
-									<FactorAssets>
+									</div>
+								</div>
+								<div className="flex items-center p-1 border border-[var(--text4)] mb-3 last:mb-0 rounded-2xl gap-2">
+									<p
+										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
+										style={getRatingColor(riskData?.chain?.rating_color)}
+									>
+										{riskData?.chain?.rating || 'N/A'}
+									</p>
+									<p className="text-sm flex-1">Chain</p>
+									<div className="flex items-center gap-1 ml-auto">
 										{riskData?.chain?.underlying
 											?.filter((c) => c?.name)
-											.map((chain, index) => (
-												<Asset
-													key={index}
-													color={chain.rating_color}
-													title={chain.name}
-													onClick={() => {
-														if (chain.url) {
-															window.open(chain.url, '_blank')
-														}
-													}}
+											.map((chain) => (
+												<a
+													className="py-1 px-2 text-xs rounded-2xl flex items-center gap-1 border"
+													key={`chain-underlying-${chain.name}-${chain.url}`}
+													style={{ borderColor: getRatingColor(chain.rating_color).backgroundColor }}
+													href={chain.url}
+													target="_blank"
+													rel="noreferrer noopener"
 												>
 													{chain.name} {chain.url ? <Icon name="arrow-up-right" height={14} width={14} /> : null}
-												</Asset>
+												</a>
 											))}
-									</FactorAssets>
-								</Factor>
-							</FactorsContainer>
-							<TotalRiskContainer>
-								<TotalRiskWrapper>
-									<ResultWrapper>
-										<TotalRiskCircle color={riskData?.pool_rating_color}>
-											<TotalRiskGrade>{riskData?.pool_rating || 'N/A'}</TotalRiskGrade>
-										</TotalRiskCircle>
-										<TotalRiskInfo>
-											<h3>{getRatingDescription(riskData?.pool_rating)}</h3>
-										</TotalRiskInfo>
-									</ResultWrapper>
+									</div>
+								</div>
+							</div>
+							<div className="flex flex-col justify-between flex-1 w-full relative">
+								<div className="flex items-center justify-between rounded-xl min-w-[160px] mb-4 p-3">
+									<h3 className="flex items-center gap-1 text-base font-bold">
+										<span
+											className="w-7 h-7 rounded-full flex items-center justify-center"
+											style={getRatingColor(riskData?.pool_rating_color)}
+										>
+											{riskData?.pool_rating || 'N/A'}
+										</span>
+										<span>{getRatingDescription(riskData?.pool_rating)}</span>
+									</h3>
 									<a
 										href={riskData?.pool_url || 'https://exponential.fi/about-us'}
 										target="_blank"
 										rel="noopener noreferrer"
-										style={{ '--color': backgroundColor } as React.CSSProperties}
-										className="text-[var(--color)] font-medium flex items-center gap-2 py-2 px-3 text-[#445ed0] dark:text-[#2172E5] hover:underline"
+										className="font-medium flex items-center gap-2 text-[#445ed0] dark:text-[#2172E5] hover:underline"
 									>
 										<span>{riskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
 										<Icon name="external-link" height={16} width={16} />
 									</a>
-								</TotalRiskWrapper>
-							</TotalRiskContainer>
-						</RiskRatingContent>
-					</RiskRatingSection>
+								</div>
+							</div>
+						</div>
+					</div>
 				)}
 
 				{isLoading ? (

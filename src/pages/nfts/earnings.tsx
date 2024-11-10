@@ -6,7 +6,7 @@ import { NFTsSearch } from '~/components/Search/NFTs'
 import { withPerformanceLogging } from '~/utils/perf'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ColumnDef } from '@tanstack/react-table'
-import { AccordionButton, Name } from '~/components/Table/shared'
+import { Name } from '~/components/Table/shared'
 import { formattedNum } from '~/utils'
 import { TokenLogo, FallbackLogo } from '~/components/TokenLogo'
 import { Icon } from '~/components/Icon'
@@ -74,7 +74,8 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 			return (
 				<Name depth={row.depth}>
 					{row.subRows?.length > 0 ? (
-						<AccordionButton
+						<button
+							className="absolute -left-[2px]"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -90,7 +91,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 									<span className="sr-only">Hide child protocols</span>
 								</>
 							)}
-						</AccordionButton>
+						</button>
 					) : null}
 
 					<span>{index + 1}</span>

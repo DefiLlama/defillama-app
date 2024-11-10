@@ -2,7 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
-import { AccordionButton, Name } from '../shared'
+import { Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { IFeesRow } from './types'
 import { Icon } from '~/components/Icon'
@@ -23,7 +23,8 @@ export const feesColumn: ColumnDef<IFeesRow>[] = [
 			return (
 				<Name depth={row.depth}>
 					{row.subRows?.length > 0 && (
-						<AccordionButton
+						<button
+							className="absolute -left-[2px]"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -39,7 +40,7 @@ export const feesColumn: ColumnDef<IFeesRow>[] = [
 									<span className="sr-only">Hide child protocols</span>
 								</>
 							)}
-						</AccordionButton>
+						</button>
 					)}
 					<span>{index + 1}</span>
 					<TokenLogo logo={logo} />

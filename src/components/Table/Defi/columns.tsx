@@ -19,7 +19,7 @@ import {
 	toNiceDayMonthYear,
 	toNiceHour
 } from '~/utils'
-import { AccordionButton, Name } from '../shared'
+import { Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type {
 	ICategoryRow,
@@ -490,7 +490,8 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 
 			return (
 				<Name depth={row.depth}>
-					<AccordionButton
+					<button
+						className="absolute -left-[2px]"
 						{...{
 							onClick: row.getToggleExpandedHandler()
 						}}
@@ -506,7 +507,7 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 								<span className="sr-only">Hide child protocols</span>
 							</>
 						)}
-					</AccordionButton>
+					</button>
 					<span>{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<CustomLink href={`/governance/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
@@ -707,7 +708,8 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			return (
 				<Name depth={row.depth}>
 					{row.subRows?.length > 0 && (
-						<AccordionButton
+						<button
+							className="absolute -left-[2px]"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -723,7 +725,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 									<span className="sr-only">Hide child protocols</span>
 								</>
 							)}
-						</AccordionButton>
+						</button>
 					)}
 					<span>{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
@@ -936,7 +938,8 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 			return (
 				<Name depth={row.depth}>
 					{row.subRows?.length > 0 && (
-						<AccordionButton
+						<button
+							className="absolute -left-[2px]"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -952,7 +955,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 									<span className="sr-only">Hide child protocols</span>
 								</>
 							)}
-						</AccordionButton>
+						</button>
 					)}
 					<span>{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />

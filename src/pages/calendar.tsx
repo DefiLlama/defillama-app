@@ -12,7 +12,6 @@ import {
 import styled from 'styled-components'
 import { VirtualTable } from '~/components/Table/Table'
 import { calendarColumns } from '~/components/Table/Defi/columns'
-import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 import { withPerformanceLogging } from '~/utils/perf'
 import { Announcement } from '~/components/Announcement'
 import calendarEvents from '~/constants/calendar'
@@ -20,6 +19,7 @@ import { formatPercentage } from '~/utils'
 import { PROTOCOL_EMISSIONS_API } from '~/constants'
 import { BasicDropdown } from '~/components/Filters/common/BasicDropdown'
 import { useRouter } from 'next/router'
+import { Icon } from '~/components/Icon'
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
@@ -130,31 +130,34 @@ export default function Protocols({ emissions }) {
 		<Layout title={`Calendar - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>Want us to track other events? Tweet at @0xngmi on twitter!</Announcement>
 
-			<TableHeaderAndSearch>
-				<h1 className="text-2xl font-medium -mb-5">Crypto Calendar</h1>
+			<div className="flex items-center gap-4 flex-wrap last:*:ml-auto -mb-6">
+				<h1 className="text-2xl font-medium">Crypto Calendar</h1>
 
-				<div style={{ marginBottom: '-23px' }}>
-					<BasicDropdown
-						pathname={pathname}
-						options={options}
-						selectedOptions={selectedOptions}
-						label="Type"
-						urlKey="type"
+				<BasicDropdown
+					pathname={pathname}
+					options={options}
+					selectedOptions={selectedOptions}
+					label="Type"
+					urlKey="type"
+				/>
+
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
 					/>
-				</div>
-
-				<SearchWrapper>
-					<SearchIcon size={16} />
-
 					<input
 						value={projectName}
 						onChange={(e) => {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search events..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</SearchWrapper>
-			</TableHeaderAndSearch>
+				</div>
+			</div>
 
 			<TableWrapper instance={instance} skipVirtualization />
 		</Layout>

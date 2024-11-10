@@ -19,7 +19,6 @@ import { Announcement } from '~/components/Announcement'
 import { RaisesFilters } from '~/components/Filters/raises'
 import { useRouter } from 'next/router'
 import useWindowSize from '~/hooks/useWindowSize'
-import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
 import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -82,21 +81,26 @@ function RaisesTable({ raises, downloadCsv }) {
 
 	return (
 		<>
-			<TableFiltersWithInput>
-				<SearchIcon size={16} />
-
-				<input
-					value={projectName}
-					onChange={(e) => {
-						setProjectName(e.target.value)
-					}}
-					placeholder="Search projects..."
-				/>
-
-				<CSVDownloadButton onClick={downloadCsv} />
+			<div className="flex items-center gap-4 flex-wrap -mb-2">
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={projectName}
+						onChange={(e) => {
+							setProjectName(e.target.value)
+						}}
+						placeholder="Search projects..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+					/>
+				</div>
+				<CSVDownloadButton onClick={downloadCsv} style={{ marginLeft: 'auto' }} />
 				<CSVDownloadButton customText="Download .json" onClick={() => window.open('https://api.llama.fi/raises')} />
-			</TableFiltersWithInput>
-
+			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</>
 	)

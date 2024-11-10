@@ -9,7 +9,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDaysAgo } from '~/utils'
-import { AccordionButton, Name } from '../../shared'
+import { Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
 import { removedCategories } from '~/constants'
@@ -37,7 +37,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			return (
 				<Name depth={row.depth}>
 					{row.subRows?.length > 0 ? (
-						<AccordionButton
+						<button
+							className="absolute -left-[2px]"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -53,7 +54,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 									<span className="sr-only">Hide child protocols</span>
 								</>
 							)}
-						</AccordionButton>
+						</button>
 					) : (
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
 					)}
@@ -371,7 +372,8 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 			return (
 				<Name depth={row.depth}>
 					{row.subRows?.length > 0 ? (
-						<AccordionButton
+						<button
+							className="absolute -left-[2px]"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -387,7 +389,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 									<span className="sr-only">Hide child protocols</span>
 								</>
 							)}
-						</AccordionButton>
+						</button>
 					) : (
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
 					)}
@@ -548,7 +550,8 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 			return (
 				<Name>
 					{row.subRows?.length > 0 ? (
-						<AccordionButton
+						<button
+							className="absolute -left-[2px]"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -564,7 +567,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 									<span className="sr-only">Hide child protocols</span>
 								</>
 							)}
-						</AccordionButton>
+						</button>
 					) : null}
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />

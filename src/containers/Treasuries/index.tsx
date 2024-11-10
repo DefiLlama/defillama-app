@@ -1,5 +1,4 @@
 import { maxAgeForNext } from '~/api'
-import { SearchWrapper, SearchIcon, TableHeaderAndSearch } from '~/components/Table/shared'
 import * as React from 'react'
 import {
 	useReactTable,
@@ -14,6 +13,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download } from '~/utils'
+import { Icon } from '~/components/Icon'
 
 const fetch = fetchWithErrorLogging
 
@@ -106,24 +106,28 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 
 	return (
 		<>
-			<TableHeaderAndSearch>
-				<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
-					<span>Protocol Treasuries</span>
-					<CSVDownloadButton onClick={downloadCSV} isLight />
-				</h1>
+			<div className="flex items-center gap-4 flex-wrap last:*:ml-auto -mb-6">
+				<h1 className="text-2xl font-medium">Protocol Treasuries</h1>
 
-				<SearchWrapper>
-					<SearchIcon size={16} />
+				<CSVDownloadButton onClick={downloadCSV} isLight />
 
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
 					<input
 						value={projectName}
 						onChange={(e) => {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</SearchWrapper>
-			</TableHeaderAndSearch>
+				</div>
+			</div>
 
 			<VirtualTable instance={instance} />
 		</>

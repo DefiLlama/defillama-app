@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import styled from 'styled-components'
 import {
 	useReactTable,
 	SortingState,
@@ -17,7 +16,7 @@ import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import useWindowSize from '~/hooks/useWindowSize'
 import { ChartSelector } from '~/containers/PeggedPage'
-import { SearchIcon } from '~/components/Table/shared'
+import { Icon } from '~/components/Icon'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -74,17 +73,22 @@ function HacksTable({ data }) {
 
 	return (
 		<>
-			<TableFilters>
-				<SearchIcon />
-
+			<div className="relative w-full sm:max-w-[280px] -mb-6 ml-auto">
+				<Icon
+					name="search"
+					height={16}
+					width={16}
+					className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+				/>
 				<input
 					value={projectName}
 					onChange={(e) => {
 						setProjectName(e.target.value)
 					}}
 					placeholder="Search projects..."
+					className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 				/>
-			</TableFilters>
+			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</>
@@ -128,32 +132,5 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 		</Layout>
 	)
 }
-
-export const TableFilters = styled.div`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-	margin: 0 0 -20px;
-	position: relative;
-
-	input {
-		width: 100%;
-		margin-right: auto;
-		border-radius: 8px;
-		padding: 8px;
-		padding-left: 32px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
-
-		font-size: 0.875rem;
-		border: none;
-	}
-
-	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		input {
-			max-width: 400px;
-		}
-	}
-`
 
 export default HacksContainer

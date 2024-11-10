@@ -4,7 +4,6 @@ import Layout from '~/layout'
 import { FormSubmitBtn, Panel } from '~/components'
 import { RecentlyListedProtocolsTable } from '~/components/Table/Defi/Protocols'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { HideForkedProtocols } from '~/components/Filters/protocols/HideForkedProtocols'
 import { FiltersByChain } from '~/components/Filters/common/FiltersByChain'
@@ -321,16 +320,15 @@ export function RecentProtocols({
 				</span>
 			) : null}
 
-			<TableFilters>
-				<TableHeader>{header}</TableHeader>
+			<div className="flex items-center flex-wrap gap-2 -mb-5">
+				<h1 className="text-2xl font-medium mr-auto">{header}</h1>
 
-				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-					<TVLRange />
-					<CSVDownloadButton onClick={downloadCSV} isLight style={{ color: 'inherit', fontWeight: 'normal' }} />
-				</Dropdowns>
+				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+				<TVLRange />
+				<CSVDownloadButton onClick={downloadCSV} isLight style={{ color: 'inherit', fontWeight: 'normal' }} />
+
 				{forkedList && <HideForkedProtocols />}
-			</TableFilters>
+			</div>
 
 			{protocolsData.length > 0 ? (
 				<RecentlyListedProtocolsTable data={protocolsData} />

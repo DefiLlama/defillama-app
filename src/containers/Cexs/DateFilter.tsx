@@ -1,24 +1,5 @@
-import styled from 'styled-components'
 import DatePicker from 'react-datepicker'
-
-import { CalendarIcon } from '~/components/Table/shared'
-
-export const DateInput = styled.input``
-export const FilterContainer = styled.div`
-	display: flex;
-
-	padding-right: 8px;
-	padding-left: 8px;
-	background-color: ${({ theme }) => theme.bg6};
-	border-radius: 8px;
-
-	align-items: center;
-
-	input {
-		max-width: 102px;
-		margin-right: 8px;
-	}
-`
+import { Icon } from '~/components/Icon'
 
 export const formatDate = (date) =>
 	new Intl.DateTimeFormat('en-US', {
@@ -31,12 +12,21 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 	const [startHour, endHour] = hours
 
 	return (
-		<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-			From
-			<FilterContainer>
-				<div style={{ position: 'relative' }}>
-					<CalendarIcon size={16} />
-					<DateInput value={startDate && `${formatDate(startDate)}`} onClick={() => onStartChange(null)} />
+		<div className="flex items-center gap-2 relative">
+			<label>From</label>
+			<div className="flex items-center gap-1">
+				<div className="relative">
+					<Icon
+						name="calendar"
+						width={16}
+						height={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={startDate && `${formatDate(startDate)}`}
+						onClick={() => onStartChange(null)}
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
+					/>
 				</div>
 				<div style={{ position: 'absolute', zIndex: 100, top: 0, display: startDate ? 'none' : 'block' }}>
 					{/* @ts-ignore */}
@@ -49,18 +39,29 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 						shouldCloseOnSelect={true}
 					/>
 				</div>
-				<input
-					value={startHour}
-					onChange={(e) => setHours([e.target?.value, endHour])}
-					style={{ width: '24px', paddingLeft: 0, marginRight: 0, paddingRight: 0 }}
-				/>
-				h
-			</FilterContainer>
-			to
-			<FilterContainer>
-				<div style={{ position: 'relative' }}>
-					<CalendarIcon size={16} />
-					<DateInput value={endDate && `${formatDate(endDate)}`} onClick={() => onEndChange(null)} />
+				<label className="flex items-center gap-1">
+					<input
+						value={startHour}
+						onChange={(e) => setHours([e.target?.value, endHour])}
+						className="p-2 rounded-md border border-black/10 dark:border-white/10 w-10"
+					/>
+					<span>h</span>
+				</label>
+			</div>
+			<label>to</label>
+			<div className="flex items-center gap-1">
+				<div className="relative">
+					<Icon
+						name="calendar"
+						width={16}
+						height={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={endDate && `${formatDate(endDate)}`}
+						onClick={() => onEndChange(null)}
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
+					/>
 				</div>
 				<div style={{ position: 'absolute', top: 0, zIndex: 100, display: endDate ? 'none' : 'block' }}>
 					{/* @ts-ignore */}
@@ -73,13 +74,15 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 						shouldCloseOnSelect={true}
 					/>
 				</div>
-				<input
-					value={endHour}
-					onChange={(e) => setHours([startHour, e.target?.value])}
-					style={{ width: '24px', paddingLeft: 0, marginRight: 0, paddingRight: 0 }}
-				/>
-				h
-			</FilterContainer>
+				<label className="flex items-center gap-1">
+					<input
+						value={endHour}
+						onChange={(e) => setHours([startHour, e.target?.value])}
+						className="p-2 rounded-md border border-black/10 dark:border-white/10 w-10"
+					/>
+					<span>h</span>
+				</label>
+			</div>
 		</div>
 	)
 }

@@ -10,7 +10,7 @@ import {
 	getExpandedRowModel
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
-import { SearchIcon, TableFiltersWithInput } from './shared'
+import { Icon } from '~/components/Icon'
 
 export function TableWithSearch({ data, columns, placeholder, columnToSearch, customFilters = null }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -50,19 +50,25 @@ export function TableWithSearch({ data, columns, placeholder, columnToSearch, cu
 
 	return (
 		<>
-			<TableFiltersWithInput>
-				<SearchIcon size={16} />
-
-				<input
-					style={{ marginRight: '8px' }}
-					value={projectName}
-					onChange={(e) => {
-						setProjectName(e.target.value)
-					}}
-					placeholder={placeholder}
-				/>
+			<div className="flex items-center last:*:ml-auto -mb-6">
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={projectName}
+						onChange={(e) => {
+							setProjectName(e.target.value)
+						}}
+						placeholder={placeholder}
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+					/>
+				</div>
 				{customFilters}
-			</TableFiltersWithInput>
+			</div>
 			<VirtualTable instance={instance} />
 		</>
 	)

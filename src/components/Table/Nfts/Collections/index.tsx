@@ -10,7 +10,7 @@ import {
 import { VirtualTable } from '~/components/Table/Table'
 import { columns } from './columns'
 import type { INftCollection } from '../types'
-import { TableHeaderAndSearch, SearchWrapper, SearchIcon } from '../../shared'
+import { Icon } from '~/components/Icon'
 
 export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -42,21 +42,26 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 
 	return (
 		<>
-			<TableHeaderAndSearch>
-				<h1 className="text-2xl font-medium -mb-5">NFT Collections</h1>
+			<div className="flex items-center gap-4 flex-wrap last:*:ml-auto -mb-6">
+				<h1 className="text-2xl font-medium">NFT Collections</h1>
 
-				<SearchWrapper>
-					<SearchIcon size={16} />
-
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
 					<input
 						value={collectionName}
 						onChange={(e) => {
 							setCollectionName(e.target.value)
 						}}
 						placeholder="Search collections..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</SearchWrapper>
-			</TableHeaderAndSearch>
+				</div>
+			</div>
 			<VirtualTable instance={instance} />
 		</>
 	)

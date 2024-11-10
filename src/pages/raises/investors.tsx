@@ -17,9 +17,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { RowFilter } from '~/components/Filters/common/RowFilter'
-import { SearchWrapper, SearchIcon } from '~/components/Table/shared'
 import { Announcement } from '~/components/Announcement'
-import styled from 'styled-components'
+import { Icon } from '~/components/Icon'
 
 const columns = ['name', 'medianAmount', 'chains', 'projects', 'deals', 'category', 'roundType']
 
@@ -150,51 +149,35 @@ const ActiveInvestors = ({ data }) => {
 				</a>
 			</Announcement>
 
-			<TableFilters>
-				<h1>Investors</h1>
+			<div className="flex items-center gap-4 flex-wrap last:*:ml-auto -mb-2">
+				<h1 className="text-2xl font-medium">Investors</h1>
 
-				<SWrapper>
-					<SearchIcon size={16} />
-
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
 					<input
 						value={investorName}
 						onChange={(e) => {
 							setInvestorName(e.target.value)
 						}}
 						placeholder="Search investors..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</SWrapper>
+				</div>
 
 				<RowFilter
 					setValue={(val) => onPeriodClick(val)}
 					values={['All', '30d', '180d', '1 year']}
 					selectedValue={period}
 				/>
-			</TableFilters>
+			</div>
 			<VirtualTable instance={instance} />
 		</Layout>
 	)
 }
-
-const SWrapper = styled(SearchWrapper)`
-	margin: 0;
-	bottom: 0;
-`
-
-const TableFilters = styled.div`
-	display: flex;
-	align-items: center;
-	gap: 16px;
-	flex-wrap: wrap;
-
-	h1 {
-		font-weight: 500;
-		font-size: 24px;
-	}
-
-	& > *:last-child {
-		margin-left: auto;
-	}
-`
 
 export default ActiveInvestors

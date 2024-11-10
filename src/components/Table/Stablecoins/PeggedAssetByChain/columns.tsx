@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { AccordionButton, Name } from '../../shared'
+import { Name } from '../../shared'
 import { chainIconUrl, formattedNum, formattedPercent } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import type { IPeggedAssetByChainRow } from './types'
@@ -21,7 +21,8 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 			return (
 				<Name depth={row.depth}>
 					{row.subRows?.length > 0 && (
-						<AccordionButton
+						<button
+							className="absolute -left-[2px]"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -37,7 +38,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 									<span className="sr-only">Hide child protocols</span>
 								</>
 							)}
-						</AccordionButton>
+						</button>
 					)}
 
 					{isSubRow ? (

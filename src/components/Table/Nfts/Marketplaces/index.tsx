@@ -10,7 +10,7 @@ import {
 import { VirtualTable } from '~/components/Table/Table'
 import { columns } from './columns'
 import type { INftMarketplace } from '../types'
-import { TableHeaderAndSearch, SearchWrapper, SearchIcon } from '../../shared'
+import { Icon } from '~/components/Icon'
 
 export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -42,21 +42,22 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 
 	return (
 		<>
-			<TableHeaderAndSearch>
-				{/* <Header>NFT Marketplaces</Header> */}
-
-				<SearchWrapper>
-					<SearchIcon size={16} />
-
-					<input
-						value={collectionName}
-						onChange={(e) => {
-							setCollectionName(e.target.value)
-						}}
-						placeholder="Search marketplace..."
-					/>
-				</SearchWrapper>
-			</TableHeaderAndSearch>
+			<div className="relative w-full sm:max-w-[280px] ml-auto -mb-6">
+				<Icon
+					name="search"
+					height={16}
+					width={16}
+					className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+				/>
+				<input
+					value={collectionName}
+					onChange={(e) => {
+						setCollectionName(e.target.value)
+					}}
+					placeholder="Search marketplace..."
+					className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+				/>
+			</div>
 			<VirtualTable instance={instance} />
 		</>
 	)

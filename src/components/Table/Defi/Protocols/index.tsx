@@ -27,11 +27,11 @@ import {
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
-import { SearchIcon, TableFiltersWithInput } from '../../shared'
 import styled from 'styled-components'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { RowFilter } from '~/components/Filters/common/RowFilter'
+import { Icon } from '~/components/Icon'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -449,17 +449,22 @@ export function ProtocolsTableWithSearch({
 
 	return (
 		<>
-			<TableFiltersWithInput>
-				<SearchIcon size={16} />
-
+			<div className="relative w-full sm:max-w-[280px] ml-auto">
+				<Icon
+					name="search"
+					height={16}
+					width={16}
+					className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+				/>
 				<input
 					value={projectName}
 					onChange={(e) => {
 						setProjectName(e.target.value)
 					}}
 					placeholder="Search protocols..."
+					className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 				/>
-			</TableFiltersWithInput>
+			</div>
 			<VirtualTable instance={instance} skipVirtualization={skipVirtualization} />
 		</>
 	)
@@ -515,17 +520,22 @@ export function RecentlyListedProtocolsTable({ data }: { data: Array<IProtocolRo
 
 	return (
 		<>
-			<TableFiltersWithInput>
-				<SearchIcon size={16} />
-
+			<div className="relative w-full sm:max-w-[280px] ml-auto -mb-6">
+				<Icon
+					name="search"
+					height={16}
+					width={16}
+					className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+				/>
 				<input
 					value={projectName}
 					onChange={(e) => {
 						setProjectName(e.target.value)
 					}}
 					placeholder="Search protocols..."
+					className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 				/>
-			</TableFiltersWithInput>
+			</div>
 			<VirtualTable instance={instance} />
 		</>
 	)

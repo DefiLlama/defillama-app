@@ -14,7 +14,6 @@ import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from
 import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
-import { TableFilters } from '~/components/Table/shared'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
 import { RowFilter } from '~/components/Filters/common/RowFilter'
 import { useRouter } from 'next/router'
@@ -157,7 +156,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 
 	return (
 		<>
-			<TableFilters style={{ justifyContent: 'flex-end' }}>
+			<div className="flex items-center justify-end flex-wrap gap-5 -mb-5">
 				{isSimpleFees ? null : (
 					<ColumnFilters2
 						label={'Columns'}
@@ -179,7 +178,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 					/>
 				)}
 				{type === 'fees' ? <RowFilter selectedValue={period} setValue={setNewPeriod} values={PERIODS} /> : null}
-			</TableFilters>
+			</div>
 
 			<VirtualTable instance={instance} />
 		</>

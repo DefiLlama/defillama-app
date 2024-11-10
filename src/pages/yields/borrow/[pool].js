@@ -7,7 +7,6 @@ import { AuditInfo } from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
 import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
 import { getColorFromNumber } from '~/utils'
-import styled from 'styled-components'
 import { useEffect } from 'react'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {

@@ -11,13 +11,12 @@ import {
 	ColumnDef
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
-import { SearchIcon, SearchWrapper } from '~/components/Table/shared'
-import { Checkbox2 } from '~/components'
 import { formatGovernanceData } from '~/api/categories/protocols'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { useQuery } from '@tanstack/react-query'
+import { Icon } from '~/components/Icon'
 
 const fetch = fetchWithErrorLogging
 
@@ -57,31 +56,36 @@ export function GovernanceTable({ data, governanceType }) {
 
 	return (
 		<>
-			<TableFilters>
+			<div className="flex items-center gap-4 flex-wrap -mb-6">
 				<h1 className="text-2xl font-medium">Proposals</h1>
 
-				<FilterProposals>
-					<Checkbox2
+				<label className="flex items-center gap-1 flex-nowrap ml-auto cursor-pointer">
+					<input
 						type="checkbox"
 						value="controversial proposals"
 						checked={filterControversialProposals}
 						onChange={() => setFilterProposals(!filterControversialProposals)}
 					/>
 					<span>Filter Controversial Proposals</span>
-				</FilterProposals>
+				</label>
 
-				<SearchWrapper style={{ bottom: 0, marginLeft: 0 }}>
-					<SearchIcon size={16} />
-
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
 					<input
 						value={proposalname}
 						onChange={(e) => {
 							setProposalName(e.target.value)
 						}}
 						placeholder="Search proposals..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</SearchWrapper>
-			</TableFilters>
+				</div>
+			</div>
 
 			<TableWrapper instance={instance} skipVirtualization />
 		</>
@@ -164,7 +168,7 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 	)
 
 	return data && data.length > 0 ? (
-		<Wrapper>
+		<div className="flex flex-col gap-4 max-w-[calc(100vw-32px)] lg:!max-w-[calc(100vw-276px-32px)]">
 			{apisByCategory.length > 1 ? (
 				<Filters color={color} style={{ marginLeft: 'auto' }}>
 					{apisByCategory.map((apiCat, index) => (
@@ -190,23 +194,9 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 						: 'tally'
 				}
 			/>
-		</Wrapper>
+		</div>
 	) : null
 }
-
-const Wrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	padding: 24px;
-	max-width: calc(100vw - 32px);
-
-	& > * {
-		@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-			max-width: calc(100vw - 276px - 66px) !important;
-		}
-	}
-`
 
 const TableWrapper = styled(VirtualTable)`
 	table {
@@ -219,29 +209,6 @@ const TableWrapper = styled(VirtualTable)`
 		td > a {
 			text-decoration: underline;
 		}
-	}
-`
-
-const TableFilters = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	flex-wrap: wrap;
-
-	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-		flex-direction: row;
-		align-items: center;
-	}
-`
-const FilterProposals = styled.label`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: nowrap;
-	margin-left: auto;
-
-	span {
-		white-space: nowrap;
 	}
 `
 

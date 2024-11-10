@@ -7,7 +7,6 @@ import styled from 'styled-components'
 import { CoinsPicker } from '~/containers/Correlations'
 import { useSelectState, Select, SelectItem, SelectPopover, SelectArrow } from 'ariakit/select'
 import { useQuery } from '@tanstack/react-query'
-import { SearchIcon } from '~/components/Table/shared'
 import { Icon } from '~/components/Icon'
 import { useDialogState } from 'ariakit'
 
@@ -126,9 +125,13 @@ export default function CompareFdv({ coinsData, protocols }) {
 			<h1 className="text-2xl font-medium mt-2">Compare Tokens</h1>
 			<Wrapper>
 				<SelectWrapper>
-					<TableFilters>
-						<SearchIcon />
-
+					<div className="relative w-full sm:max-w-[280px]">
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						/>
 						<input
 							value={selectedCoins[0]?.name}
 							onClick={() => {
@@ -136,8 +139,9 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogState.toggle()
 							}}
 							placeholder="Search coins..."
+							className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
-					</TableFilters>
+					</div>
 					{/* <ReactSelect
 						options={coinsData}
 						value={selectedCoins[0]}
@@ -230,9 +234,13 @@ export default function CompareFdv({ coinsData, protocols }) {
 						style={{ width: '100%' }}
 						filterOption={createFilter({ ignoreAccents: false })}
 					/> */}
-					<TableFilters>
-						<SearchIcon />
-
+					<div className="relative w-full sm:max-w-[280px]">
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						/>
 						<input
 							value={selectedCoins[1]?.name}
 							onClick={() => {
@@ -240,8 +248,9 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogState.toggle()
 							}}
 							placeholder="Search coins..."
+							className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
-					</TableFilters>
+					</div>
 
 					<Select
 						state={selectState}
@@ -375,32 +384,6 @@ const SelectWrapper = styled.div`
 	@media (min-width: ${({ theme }) => theme.bpMed}) {
 		flex-direction: row;
 		gap: 36px;
-	}
-`
-
-const TableFilters = styled.div`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-	position: relative;
-
-	input {
-		width: 100%;
-		margin-right: auto;
-		border-radius: 8px;
-		padding: 8px;
-		padding-left: 32px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
-
-		font-size: 0.875rem;
-		border: none;
-	}
-
-	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		input {
-			max-width: 400px;
-		}
 	}
 `
 

@@ -3,7 +3,6 @@ import { formattedNum, formattedPercent } from '~/utils'
 import { NameYieldPool, PoolStrategyRoute } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsStrategyTableRow } from '../types'
-import { PoolStrategyWithProjects } from '../../shared'
 import { Tooltip } from '~/components/Tooltip'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { lockupsRewards, earlyExit } from '~/containers/YieldsPage/utils'
@@ -20,7 +19,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<PoolStrategyWithProjects>
+				<div className="flex flex-col gap-2 text-xs">
 					<NameYieldPool
 						value={name}
 						// in case of cdp row.original.pool === row.original.borrow.pool
@@ -39,7 +38,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						chain={row.original.chains[0]}
 						index={index + 1}
 					/>
-				</PoolStrategyWithProjects>
+				</div>
 			)
 		},
 		size: 400

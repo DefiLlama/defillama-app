@@ -146,7 +146,7 @@ export default function TokenPnl({ coinsData }) {
 			<h1 className="text-2xl font-medium text-center -mb-5">Token Holder Profit and Loss</h1>
 			<ContentWrapper>
 				<SelectWrapper>
-					<TableFilters>
+					<div className="flex flex-col gap-2">
 						<Label>Start Date:</Label>
 						<DatePicker
 							value={unixToDateString(start)}
@@ -155,9 +155,9 @@ export default function TokenPnl({ coinsData }) {
 							min={unixToDateString(0)}
 							max={unixToDateString(now)}
 						/>
-					</TableFilters>
+					</div>
 
-					<TableFilters>
+					<div className="flex flex-col gap-2">
 						<Label>End Date:</Label>
 						<DatePicker
 							value={unixToDateString(end)}
@@ -166,42 +166,41 @@ export default function TokenPnl({ coinsData }) {
 							min={unixToDateString(start)}
 							max={new Date().toISOString().split('T')[0]}
 						/>
-					</TableFilters>
+					</div>
 
-					<TableFilters>
+					<div className="flex flex-col gap-2">
 						<Label>Token:</Label>
-						<SearchWrapper>
-							{selectedCoins[0] ? (
-								<SelectedToken
+
+						{selectedCoins[0] ? (
+							<SelectedToken
+								onClick={() => {
+									setModalOpen(1)
+									dialogState.toggle()
+								}}
+							>
+								<img
+									src={selectedCoins[0].image}
+									alt={selectedCoins[0].name}
+									width={24}
+									height={24}
+									style={{ borderRadius: '50%' }}
+								/>
+								<span>{selectedCoins[0].name}</span>
+							</SelectedToken>
+						) : (
+							<>
+								<StyledSearchIcon name="search" height={16} width={16} />
+								<SearchInput
 									onClick={() => {
 										setModalOpen(1)
 										dialogState.toggle()
 									}}
-								>
-									<img
-										src={selectedCoins[0].image}
-										alt={selectedCoins[0].name}
-										width={24}
-										height={24}
-										style={{ borderRadius: '50%' }}
-									/>
-									<span>{selectedCoins[0].name}</span>
-								</SelectedToken>
-							) : (
-								<>
-									<StyledSearchIcon name="search" height={16} width={16} />
-									<SearchInput
-										onClick={() => {
-											setModalOpen(1)
-											dialogState.toggle()
-										}}
-										placeholder="Search coins..."
-										readOnly
-									/>
-								</>
-							)}
-						</SearchWrapper>
-					</TableFilters>
+									placeholder="Search coins..."
+									readOnly
+								/>
+							</>
+						)}
+					</div>
 				</SelectWrapper>
 
 				<FixedWidthWrapper>
@@ -338,12 +337,6 @@ const SelectWrapper = styled.div`
 	width: 100%;
 `
 
-const TableFilters = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
-`
-
 const PageWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
@@ -416,11 +409,6 @@ const InfoValue = styled.span<{ color?: string }>`
 	font-size: 1.1rem;
 	font-weight: 600;
 	color: ${({ color, theme }) => color || theme.text1};
-`
-
-const SearchWrapper = styled.div`
-	position: relative;
-	width: 100%;
 `
 
 const SearchInput = styled.input`

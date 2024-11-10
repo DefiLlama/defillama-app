@@ -3,7 +3,6 @@ import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTa
 import Layout from '~/layout'
 import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { TableFilters, TableHeader } from '~/components/Table/shared'
 import { VirtualTable } from '~/components/Table/Table'
 import { useDebounce } from '~/hooks/useDebounce'
 import { formattedPercent } from '~/utils'
@@ -104,17 +103,15 @@ export default function TrendingContracts() {
 	return (
 		<Layout title={`Trending Contracts - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Trending Contracts', hideOptions: true }} />
-			<TableHeader style={{ margin: 0 }}>
-				<span>Trending Contracts </span>{' '}
-			</TableHeader>
-			<TableFilters>
+			<div className="flex items-center flex-wrap gap-5 -mb-5">
+				<h1 className="text-2xl font-medium mr-auto">Trending Contracts</h1>
 				<RowFilter selectedValue={value} setValue={(val: string) => setValue(val)} values={['1d', '7d', '30d']} />
 				<RowFilter
 					selectedValue={chain}
 					setValue={(val: string) => setChain(val)}
 					values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}
 				/>
-			</TableFilters>
+			</div>
 
 			{isLoading ? (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>

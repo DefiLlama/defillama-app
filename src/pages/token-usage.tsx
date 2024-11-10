@@ -4,7 +4,6 @@ import Layout from '~/layout'
 import { ProtocolsByToken } from '~/components/Table/Defi/Protocols'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import { LocalLoader } from '~/components/LocalLoader'
-import { TableFilters, TableHeader } from '~/components/Table/shared'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
@@ -85,8 +84,8 @@ export default function Tokens({ searchData }) {
 					<></>
 				) : (
 					<>
-						<TableFilters>
-							<TableHeader>{`${tokenSymbol.toUpperCase()} usage in protocols`}</TableHeader>
+						<div className="flex items-center justify-between flex-wrap gap-5 -mb-5">
+							<h1 className="text-2xl font-medium">{`${tokenSymbol.toUpperCase()} usage in protocols`}</h1>
 							<CSVDownloadButton onClick={downloadCSV} />
 
 							{/* <div className="flex items-center gap-4">
@@ -103,7 +102,7 @@ export default function Tokens({ searchData }) {
 								/>
 								<span>Include CEXs</span>
 							</div> */}
-						</TableFilters>
+						</div>
 
 						<ProtocolsByToken data={filteredProtocols} />
 					</>
@@ -122,7 +121,7 @@ export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 				.filter((token) => token.name && token.symbol && token.image)
 				.map((token) => ({
 					name: `${token.name}`,
-					route: `/tokenUsage?token=${token.symbol}`,
+					route: `/token-usage?token=${token.symbol}`,
 					symbol: token.symbol,
 					logo: token.image2 || null,
 					fallbackLogo: token.image || null

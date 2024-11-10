@@ -8,13 +8,12 @@ import {
 	ColumnOrderState,
 	ColumnFiltersState
 } from '@tanstack/react-table'
-import styled from 'styled-components'
 import { VirtualTable } from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import useWindowSize from '~/hooks/useWindowSize'
-import { SearchIcon, TableFiltersWithInput } from '~/components/Table/shared'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ButtonDark } from '~/components/ButtonStyled'
+import { Icon } from '~/components/Icon'
 
 const columnResizeMode = 'onChange'
 
@@ -65,24 +64,33 @@ export function RaisesTable({ raises, downloadCsv }) {
 
 	return (
 		<>
-			<TableFiltersWithInput>
-				<SearchIcon size={16} />
-
-				<input
-					value={projectName}
-					onChange={(e) => {
-						setProjectName(e.target.value)
-					}}
-					placeholder="Search projects..."
-				/>
+			<div className="flex items-center gap-4 flex-wrap -mb-6">
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={projectName}
+						onChange={(e) => {
+							setProjectName(e.target.value)
+						}}
+						placeholder="Search projects..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+					/>
+				</div>
 
 				<ButtonDark
 					as="a"
 					target="_blank"
 					rel="noreferrer noopener"
 					href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093"
+					className="ml-auto flex items-center gap-1"
 				>
-					Methodology & biases
+					<span>Methodology & biases</span>
+					<Icon name="external-link" height={14} width={14} />
 				</ButtonDark>
 
 				<CSVDownloadButton
@@ -91,18 +99,9 @@ export function RaisesTable({ raises, downloadCsv }) {
 						window.open('https://api.llama.fi/raises')
 					}}
 				/>
-			</TableFiltersWithInput>
+			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</>
 	)
 }
-
-export const DownloadButton = styled.button`
-	font-size: 0.875rem;
-	display: flex;
-	align-items: center;
-	background: ${({ theme }) => theme.bg3};
-	padding: 4px 6px;
-	border-radius: 6px;
-`

@@ -157,6 +157,11 @@ const nextConfig = {
 				source: '/tokenPnl',
 				destination: '/token-pnl',
 				permanent: true
+			},
+			{
+				source: '/tokenUsage',
+				destination: '/token-usage',
+				permanent: true
 			}
 		]
 	},
