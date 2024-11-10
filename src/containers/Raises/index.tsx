@@ -2,7 +2,6 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import type { IBarChartProps } from '~/components/ECharts/types'
-import { ChartWrapper } from '~/layout/ProtocolAndPool'
 import { Announcement } from '~/components/Announcement'
 import { RaisesFilters } from '~/components/Filters/raises'
 import { useRouter } from 'next/router'
@@ -76,9 +75,9 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					/>
 				</div>
 
-				<ChartWrapper>
+				<div className="col-span-1 py-4 min-h-[392px]">
 					<BarChart chartData={monthlyInvestment} title="Monthly sum" valueSymbol="$" />
-				</ChartWrapper>
+				</div>
 			</div>
 
 			<RaisesTable raises={filteredRaisesList} downloadCsv={() => downloadCsv({ raises })} />

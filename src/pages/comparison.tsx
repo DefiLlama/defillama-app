@@ -152,7 +152,7 @@ export default function CompareProtocolsTvls({
 					options={selectedProtocols ?? []}
 					setOptions={setSelectedProtocols}
 				/>
-				<ChartWrapper>
+				<div className="relative col-span-2 p-4 shadow rounded-xl">
 					<AreaChart
 						chartData={chartData}
 						title="Protocols"
@@ -162,7 +162,7 @@ export default function CompareProtocolsTvls({
 						hideDefaultLegend
 					/>
 					{isLoading && <Loading>Loading...</Loading>}
-				</ChartWrapper>
+				</div>
 			</Wrapper>
 		</Layout>
 	)

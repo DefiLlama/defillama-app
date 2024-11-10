@@ -5,7 +5,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { getColorFromNumber, getDominancePercent } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { LANGS_API } from '~/constants'
-import { LazyChart } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/components/LazyChart'
 import type { IChartProps } from '~/components/ECharts/types'
 import { withPerformanceLogging } from '~/utils/perf'
 

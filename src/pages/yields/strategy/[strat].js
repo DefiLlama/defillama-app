@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import { LazyChart, ChartWrapper } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/components/LazyChart'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
@@ -218,9 +218,9 @@ const PageView = () => {
 					</table>
 				</div>
 
-				<ChartWrapper style={{ position: 'relative' }}>
+				<LazyChart>
 					<AreaChart title="Strategy APY" chartData={finalChart} color={backgroundColor} valueSymbol={'%'} />
-				</ChartWrapper>
+				</LazyChart>
 			</div>
 
 			<div className="flex flex-col gap-4 bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl p-6">

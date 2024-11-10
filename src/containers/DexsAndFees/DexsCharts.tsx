@@ -1,6 +1,5 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { ChartWrapper } from '~/layout/ProtocolAndPool'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
@@ -66,12 +65,12 @@ export const DexCharts = ({ logo, data, chartData, name, chainsChart, isProtocol
 				</p>
 			</div>
 
-			<ChartWrapper>
+			<div className="min-h-[360px]">
 				{chartData && chartData.length > 0 && !isProtocolPage && (
 					<StackedBarChart title="Total volume" chartData={chartData} />
 				)}
 				{chainsChart && <StackedBarChart title="Volume by chain" chartData={chainsChart} />}
-			</ChartWrapper>
+			</div>
 		</div>
 	)
 }

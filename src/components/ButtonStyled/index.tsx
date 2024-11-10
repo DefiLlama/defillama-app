@@ -61,7 +61,7 @@ export const ButtonLight = forwardRef(function BLight<E extends ElementType = Bu
 					...(style ?? {})
 				} as any
 			}
-			className={`py-2 px-3 text-sm font-semibold rounded-xl min-w-fit bg-[var(--btn2-bg)] whitespace-nowrap hover:bg-[var(--btn2-hover-bg)] ${
+			className={`flex items-center gap-1 py-2 px-3 text-sm font-semibold rounded-xl min-w-fit bg-[var(--btn2-bg)] whitespace-nowrap hover:bg-[var(--btn2-hover-bg)] ${
 				useTextColor ? 'text-[var(--text1)]' : 'text-[var(--btn2-text)]'
 			} ${className ?? ''}`}
 			ref={ref}

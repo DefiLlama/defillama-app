@@ -7,21 +7,10 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { OptionToggle } from '~/components/OptionToggle'
 import { UpcomingEvent } from '~/components/Table/Components/UpcomingEvent'
 import { TokenLogo } from '~/components/TokenLogo'
-import { LazyChart } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/components/LazyChart'
 import { capitalizeFirstLetter, formattedNum, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
-import {
-	Body,
-	Box as BoxComponent,
-	BoxContainer,
-	ChartWrapper,
-	Header,
-	PieChartContainer,
-	Row,
-	RowWrapper,
-	Separator,
-	Value
-} from './styles'
+import { Body, Box as BoxComponent, BoxContainer, Header, Row, Separator, Value } from './styles'
 import { IEmission } from './types'
 import { Icon } from '~/components/Icon'
 
@@ -75,7 +64,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		})
 		return index === -1 ? 0 : index
 	}, [sortedEvents])
-	const styles: Record<string, string> = { display: 'flex', flexDirection: 'column' }
 
 	if (!data) return null
 
@@ -167,7 +155,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</Filters>
 			)}
 
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)]" style={styles}>
+			<div className="flex flex-col rounded-xl bg-[var(--bg6)]">
 				{data.categories?.[dataType] && data.chartData?.[dataType] && data.stackColors?.[dataType] && (
 					<LazyChart>
 						<AreaChart
@@ -182,49 +170,45 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						/>
 					</LazyChart>
 				)}
-				<ChartWrapper>
-					<RowWrapper>
-						{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
-							<PieChartContainer>
-								<LazyChart>
-									<PieChart
-										showLegend
-										title="Allocation"
-										chartData={pieChartDataAllocation}
-										stackColors={data.stackColors[dataType]}
-										usdFormat={false}
-									/>
-								</LazyChart>
-							</PieChartContainer>
-						)}
-						{unlockedPercent > 0 && (
-							<PieChartContainer>
-								<LazyChart>
-									<PieChart
-										formatTooltip={({ value, data: { name } }) => `${name}: ${value?.toFixed(2)}%`}
-										showLegend
-										radius={['50%', '70%']}
-										title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
-										chartData={[
-											{ name: 'Unlocked', value: unlockedPercent },
-											{ name: 'Locked', value: 100 - unlockedPercent }
-										]}
-										stackColors={{ Unlocked: '#0c5dff', Locked: '#ff4e21' }}
-										usdFormat={false}
-										customLabel={{
-											show: true,
-											position: 'center',
-											fontSize: 16,
-											formatter: ({ percent }) => {
-												return `${percent.toFixed(0)}%`
-											}
-										}}
-									/>
-								</LazyChart>
-							</PieChartContainer>
-						)}
-					</RowWrapper>
-				</ChartWrapper>
+
+				<div className="grid grid-cols-2 ">
+					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
+						<LazyChart>
+							<PieChart
+								showLegend
+								title="Allocation"
+								chartData={pieChartDataAllocation}
+								stackColors={data.stackColors[dataType]}
+								usdFormat={false}
+							/>
+						</LazyChart>
+					)}
+
+					{unlockedPercent > 0 && (
+						<LazyChart>
+							<PieChart
+								formatTooltip={({ value, data: { name } }) => `${name}: ${value?.toFixed(2)}%`}
+								showLegend
+								radius={['50%', '70%']}
+								title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
+								chartData={[
+									{ name: 'Unlocked', value: unlockedPercent },
+									{ name: 'Locked', value: 100 - unlockedPercent }
+								]}
+								stackColors={{ Unlocked: '#0c5dff', Locked: '#ff4e21' }}
+								usdFormat={false}
+								customLabel={{
+									show: true,
+									position: 'center',
+									fontSize: 16,
+									formatter: ({ percent }) => {
+										return `${percent.toFixed(0)}%`
+									}
+								}}
+							/>
+						</LazyChart>
+					)}
+				</div>
 			</div>
 			<BoxContainer>
 				{tokenPrice ? (

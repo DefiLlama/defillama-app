@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table'
 import styled from 'styled-components'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { ChartWrapper, LazyChart } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/components/LazyChart'
 import { VirtualTable } from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import { Announcement } from '~/components/Announcement'
@@ -186,9 +186,9 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 					</details>
 				</div>
 
-				<ChartWrapper>
+				<div className="col-span-1 py-4 min-h-[392px]">
 					<BarChart chartData={fundingRoundsByMonth} title="Monthly Investments" valueSymbol="" />
-				</ChartWrapper>
+				</div>
 			</div>
 
 			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow -mt-4">

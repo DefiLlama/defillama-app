@@ -7,7 +7,7 @@ import styled from 'styled-components'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
-import { Button, DownloadButton, LazyChart } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/components/LazyChart'
 import {
 	useYieldChartData,
 	useYieldConfigData,
@@ -22,6 +22,7 @@ import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '~/utils/async'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -429,10 +430,10 @@ const PageView = (props) => {
 							<span className="text-base text-[#545757] dark:text-[#cccccc]">30d Avg APY</span>
 							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#fd3c99]">{apyMean30d}%</span>
 						</p>
-						<DownloadButton as="button" onClick={downloadCsv}>
+						<ButtonLight onClick={downloadCsv} useTextColor={true}>
 							<Icon name="download-cloud" height={14} width={14} />
 							<span>&nbsp;&nbsp;.csv</span>
-						</DownloadButton>
+						</ButtonLight>
 					</div>
 
 					<p className="flex flex-col gap-1">
@@ -677,7 +678,7 @@ const PageView = (props) => {
 				<div className="flex items-center gap-4 flex-wrap">
 					{(url || isLoading) && (
 						<Link href={url} passHref>
-							<Button
+							<ButtonLight
 								as="a"
 								target="_blank"
 								rel="noopener noreferrer"
@@ -686,15 +687,15 @@ const PageView = (props) => {
 								disabled={isLoading}
 							>
 								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 
 					{twitter && (
 						<Link href={`https://twitter.com/${twitter}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 				</div>

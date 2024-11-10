@@ -62,9 +62,9 @@ export const ETFContainer = ({
 					</Tab>
 				</TabList>
 
-				<div className="flex flex-col p-4 min-h-[402px]">
+				<div className="flex flex-col p-4 min-h-[392px]">
 					{tab === 'aum' ? (
-						<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 min-h-[402px]">
+						<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 min-h-[392px]">
 							<PieChart chartData={aumOverview} stackColors={tickerColors} usdFormat={false} />
 
 							<AreaChart
@@ -80,7 +80,7 @@ export const ETFContainer = ({
 							/>
 						</div>
 					) : tab === 'volume' ? (
-						<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 min-h-[402px]">
+						<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 min-h-[392px]">
 							<PieChart chartData={volumeOverview} stackColors={tickerColors} usdFormat={false} />
 
 							<AreaChart

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { Button, LazyChart } from '~/layout/ProtocolAndPool'
 import { BridgesSearch } from '~/components/Search/Bridges'
 import { TokenLogo } from '~/components/TokenLogo'
 import { SEO } from '~/components/SEO'
@@ -16,6 +15,8 @@ import { getBridgePageDatanew } from '~/api/categories/bridges'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
+import { LazyChart } from '~/components/LazyChart'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -101,7 +102,7 @@ const BridgeInfo = ({
 					</p>
 					{config?.url ? (
 						<Link href={config.url} passHref>
-							<Button
+							<ButtonLight
 								as="a"
 								target="_blank"
 								rel="noopener noreferrer"
@@ -113,7 +114,7 @@ const BridgeInfo = ({
 								}}
 							>
 								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					) : null}
 				</div>

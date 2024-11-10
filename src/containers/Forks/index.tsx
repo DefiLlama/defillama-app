@@ -9,7 +9,7 @@ import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { LayoutWrapper } from '~/containers/ChainContainer'
 import type { IChartProps } from '~/components/ECharts/types'
 import styled from 'styled-components'
-import { LazyChart } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/components/LazyChart'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -89,10 +89,9 @@ export const ForkContainer = ({
 						<span className="font-jetbrains font-semibold text-2xl">{dominance}%</span>
 					</p>
 				</div>
-
-				<ChartWrapper>
+				<div className="col-span-1 py-4 min-h-[392px]">
 					<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
-				</ChartWrapper>
+				</div>
 			</div>
 
 			<ProtocolsTableWithSearch data={protocolsData as any} skipVirtualization={skipTableVirtualization} />

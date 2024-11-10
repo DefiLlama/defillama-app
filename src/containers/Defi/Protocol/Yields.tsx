@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Section } from '~/layout/ProtocolAndPool'
 import { YieldsPoolsTable } from '~/components/Table/Yields/Pools'
 import { getYieldPageData } from '~/api/categories/yield'
 import { sluggify } from '~/utils/cache-client'

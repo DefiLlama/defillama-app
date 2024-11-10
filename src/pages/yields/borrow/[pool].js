@@ -5,7 +5,6 @@ import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
-import { Button, DownloadButton, LazyChart, ChartWrapper } from '~/layout/ProtocolAndPool'
 import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
 import { getColorFromNumber } from '~/utils'
 import styled from 'styled-components'
@@ -215,19 +214,19 @@ const PageView = () => {
 // 					</TableWrapper>
 // 				</div>
 
-// 				<ChartWrapper style={{ position: 'relative' }}>
+// 				<LazyChart>
 // 					<AreaChart title="Net Borrow APY" chartData={netBorrowChartData} color={backgroundColor} valueSymbol={'%'} />
 
-// 					<DownloadToCSV as="button" onClick={downloadCsv}>
+// 					<ButtonLight as="button" onClick={downloadCsv} useTextColor={true}>
 // 						<Icon name="download-cloud" height={14} width={14} />
 // 						<span>&nbsp;&nbsp;.csv</span>
-// 					</DownloadToCSV>
-// 				</ChartWrapper>
+// 					</ButtonLight>
+// 				</LazyChart>
 
-// 				<DownloadToCSV as="button" onClick={downloadCsv}>
+// 				<ButtonLight as="button" onClick={downloadCsv} useTextColor={true}>
 // 					<Icon name="download-cloud" height={14} width={14} />
 // 					<span>&nbsp;&nbsp;.csv</span>
-// 				</DownloadToCSV>
+// 				</ButtonLight>
 // 			</div>
 
 // 			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
@@ -326,12 +325,6 @@ const barChartStacks = {
 	Base: 'a',
 	Reward: 'a'
 }
-
-const DownloadToCSV = styled(DownloadButton)`
-	position: absolute;
-	top: 20px;
-	right: 24px;
-`
 
 export default function YieldPoolPage(props) {
 	return (

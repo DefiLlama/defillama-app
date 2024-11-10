@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { ChartWrapper, LazyChart, Button } from '~/layout/ProtocolAndPool'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import dynamic from 'next/dynamic'
@@ -13,6 +12,8 @@ import { getNFTCollection } from '~/api/categories/nfts'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
+import { ButtonLight } from '~/components/ButtonStyled'
+import { LazyChart } from '~/components/LazyChart'
 
 const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
 	ssr: false
@@ -89,7 +90,7 @@ export function NFTCollectionContainer() {
 					</p>
 
 					<Link href={`https://etherscan.io/token/${address.split(':')[0]}`} passHref>
-						<Button
+						<ButtonLight
 							as="a"
 							target="_blank"
 							rel="noopener noreferrer"
@@ -97,11 +98,11 @@ export function NFTCollectionContainer() {
 							style={{ width: 'fit-content' }}
 						>
 							<span>View on Etherscan</span> <Icon name="arrow-up-right" height={14} width={14} />
-						</Button>
+						</ButtonLight>
 					</Link>
 				</div>
 
-				<ChartWrapper style={{ padding: '20px 0 0 0' }}>
+				<div className="col-span-1 py-4 min-h-[412px]">
 					<div className="flex items-center gap-1 flex-nowrap ml-auto px-5">
 						<input
 							type="checkbox"
@@ -124,14 +125,14 @@ export function NFTCollectionContainer() {
 						salesMedian1d={salesMedian1d as any}
 						volume={stats}
 					/>
-				</ChartWrapper>
+				</div>
 			</div>
 
 			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
-				<LazyChart style={{ minHeight: '360px', padding: '20px 16px 20px 0' }}>
+				<LazyChart>
 					<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
 				</LazyChart>
-				<LazyChart style={{ minHeight: '360px', padding: '20px 16px 20px 0' }}>
+				<LazyChart>
 					<OrderbookChart chartData={orderbook} />
 				</LazyChart>
 			</div>

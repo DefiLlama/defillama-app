@@ -4,17 +4,10 @@ import { NftsMarketplaceTable } from '~/components/Table/Nfts/Marketplaces'
 import { maxAgeForNext } from '~/api'
 import { getNFTMarketplacesData } from '~/api/categories/nfts'
 import dynamic from 'next/dynamic'
-import { Panel } from '~/components'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
-import styled from 'styled-components'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { NFTsSearch } from '~/components/Search/NFTs'
 import { withPerformanceLogging } from '~/utils/perf'
-
-const FlatDenomination = styled(Denomination)`
-	white-space: nowrap;
-	overflow: hidden;
-`
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -62,15 +55,15 @@ function Marketplaces({
 
 			<h1 className="text-2xl font-medium -mb-5">NFT Marketplaces</h1>
 
-			<Filters color={'#4f8fea'} style={{ marginLeft: 'auto' }}>
-				<FlatDenomination active={!dominanceChart} onClick={() => setDominanceChart(false)}>
+			<Filters color={'#4f8fea'} className="ml-auto">
+				<Denomination active={!dominanceChart} onClick={() => setDominanceChart(false)}>
 					Absolute
-				</FlatDenomination>
-				<FlatDenomination active={dominanceChart} onClick={() => setDominanceChart(true)}>
+				</Denomination>
+				<Denomination active={dominanceChart} onClick={() => setDominanceChart(true)}>
 					Relative
-				</FlatDenomination>
+				</Denomination>
 			</Filters>
-			<ChartWrapper>
+			<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 bg-[var(--bg6)] min-h-[392px] rounded-xl shadow p-4">
 				{dominanceChart ? (
 					<AreaChart
 						chartData={dominance}
@@ -113,25 +106,10 @@ function Marketplaces({
 						tooltipOrderBottomUp
 					/>
 				)}
-			</ChartWrapper>
+			</div>
 			<NftsMarketplaceTable data={data} />
 		</Layout>
 	)
 }
 
 export default Marketplaces
-
-const ChartWrapper = styled(Panel)`
-	min-height: 402px;
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 16px;
-
-	& > * {
-		grid-cols: span 1;
-	}
-
-	@media screen and (min-width: 80rem) {
-		grid-template-columns: 1fr 1fr;
-	}
-`

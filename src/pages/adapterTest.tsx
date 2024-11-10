@@ -1,7 +1,7 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { LazyChart } from '~/layout/ProtocolAndPool'
+import { LazyChart } from '~/components/LazyChart'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { Announcement } from '~/components/Announcement'
 import { useRouter } from 'next/router'

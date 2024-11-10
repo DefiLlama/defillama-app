@@ -1,5 +1,4 @@
 import { maxAgeForNext } from '~/api'
-import { Button, LazyChart } from '~/layout/ProtocolAndPool'
 import * as React from 'react'
 import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -21,6 +20,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { Icon } from '~/components/Icon'
+import { LazyChart } from '~/components/LazyChart'
+import { ButtonLight } from '~/components/ButtonStyled'
 
 const fetch = fetchWithErrorLogging
 
@@ -192,34 +193,34 @@ export default function Protocol({ data, governanceType }) {
 				<div className="flex flex-wrap items-center gap-9">
 					{data.metadata.domain && (
 						<Link href={`https://${data.metadata.domain}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 
 					{data.metadata.twitter && (
 						<Link href={`https://twitter.com/${data.metadata.twitter}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 
 					{data.metadata.github && (
 						<Link href={`https://github.com/${data.metadata.github}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>Github</span>
 								<Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 
 					{data.metadata.coingecko && (
 						<Link href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 								<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</Button>
+							</ButtonLight>
 						</Link>
 					)}
 				</div>
