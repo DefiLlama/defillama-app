@@ -163,9 +163,9 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 		tokenToLend && tokenToBorrow
 			? cdpRoutes.filter(
 					(p) =>
-						(tokenToLend === 'USD_Stables' ? p.stablecoin : removeMetaTag(p.symbol).includes(tokenToLend)) &&
+						(isStable(tokenToLend) ? p.stablecoin : removeMetaTag(p.symbol).includes(tokenToLend)) &&
 						// tokenToBorrow in the context of cdps -> minted stablecoin -> always true
-						(tokenToBorrow === 'USD_Stables' ? true : removeMetaTag(p.borrow.symbol).includes(tokenToBorrow))
+						(isStable(tokenToBorrow) ? true : removeMetaTag(p.borrow.symbol).includes(tokenToBorrow))
 			  )
 			: []
 
@@ -180,7 +180,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
-			(tokenToLend === 'USD_Stables' ? true : removeMetaTag(symbol).includes(tokenToLend)) &&
+			(isStable(tokenToLend) ? true : removeMetaTag(symbol).includes(tokenToLend)) &&
 			ltv > 0 &&
 			!removeMetaTag(symbol).includes('AMM')
 	)
@@ -192,14 +192,14 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 		if (
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
-			(tokenToBorrow === 'USD_Stables' ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow)) ||
+			(isStable(tokenToBorrow) ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow)) ||
 			removeMetaTag(pool.symbol).includes('AMM') ||
 			pool.apyBorrow === null ||
 			// remove any pools where token is not borrowable
 			pool.borrowable === false
 		)
 			return acc
-		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
+		if (isStable(tokenToBorrow) && !pool.stablecoin) return acc
 
 		const collatteralPools = availableToLend.filter(
 			(collateralPool) =>
@@ -208,7 +208,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 				(tokenToBorrow ? !removeMetaTag(collateralPool.symbol).includes(tokenToBorrow) : true) &&
 				collateralPool.pool !== pool.pool &&
 				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
-				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true) &&
+				(isStable(tokenToLend) ? collateralPool.stablecoin : true) &&
 				(pool.project === 'compound-v3' ? removeMetaTag(pool.symbol) === 'USDC' : true)
 		)
 
@@ -237,7 +237,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 	if (tokenToBorrow) {
 		// filter to suitable farm strategies
 		const farmPools = allPools.filter((i) =>
-			tokenToBorrow === 'USD_Stables' ? i.stablecoin : removeMetaTag(i.symbol).includes(tokenToBorrow)
+			isStable(tokenToBorrow) ? i.stablecoin : removeMetaTag(i.symbol).includes(tokenToBorrow)
 		)
 		for (const p of lendBorrowPairs) {
 			for (const i of farmPools) {
@@ -247,7 +247,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 				// (special case of USD_Stables selector for which we need to check if the pool is a stablecoin
 				// and also if the subset matches (eg if debt token = DAI -> should not be matched against a USDC farm)
 				if (
-					tokenToBorrow === 'USD_Stables'
+					isStable(tokenToBorrow)
 						? !i.stablecoin || !removeMetaTag(i.symbol).includes(removeMetaTag(p.borrow.symbol).toUpperCase())
 						: !removeMetaTag(i.symbol).includes(tokenToBorrow)
 				)
