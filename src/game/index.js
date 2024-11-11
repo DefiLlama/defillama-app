@@ -1,145 +1,9 @@
+import Head from 'next/head'
 import * as React from 'react'
-import styled from 'styled-components'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
-
-const Style = styled.div`
-	.icon {
-		-webkit-user-select: none;
-		user-select: none;
-		display: inline-block;
-	}
-
-	.icon-offline {
-		content: -webkit-image-set(
-			url(/game/default_100_percent/100-error-offline.png) 1x,
-			url(/game/default_200_percent/200-error-offline.png) 2x
-		);
-		position: relative;
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	/* Offline page */
-
-	.interstitial-wrapper {
-		color: #2b2b2b;
-		font-size: 1em;
-		line-height: 1.55;
-		margin: 0 auto;
-		/*max-width: 600px;*/
-		padding-top: 100px;
-		width: 100%;
-	}
-
-	disabled.runner-container {
-		height: 150px;
-		/*max-width: 600px;*/
-		overflow: hidden;
-		/*position: absolute;
-    top: 35px;
-    width: 44px;*/
-	}
-
-	.runner-canvas {
-		height: 150px;
-		/*max-width: 600px;*/
-		opacity: 1;
-		overflow: hidden;
-		position: absolute;
-		bottom: 0;
-		z-index: 2;
-	}
-
-	.controller {
-		background: rgba(247, 247, 247, 0.1);
-		height: 100vh;
-		left: 0;
-		position: absolute;
-		top: 0;
-		width: 100vw;
-		z-index: 1;
-	}
-
-	#offline-resources {
-		display: none;
-	}
-
-	@media (max-width: 420px) {
-		.suggested-left > #control-buttons,
-		.suggested-right > #control-buttons {
-			float: none;
-		}
-		.snackbar {
-			left: 0;
-			bottom: 0;
-			width: 100%;
-			border-radius: 0;
-		}
-	}
-
-	@media (max-height: 350px) {
-		h1 {
-			margin: 0 0 15px;
-		}
-		.icon-offline {
-			margin: 0 0 10px;
-		}
-		.interstitial-wrapper {
-			margin-top: 5%;
-		}
-		.nav-wrapper {
-			margin-top: 30px;
-		}
-	}
-
-	@media (min-width: 600px) and (max-width: 736px) and (orientation: landscape) {
-		.offline .interstitial-wrapper {
-			margin-left: 0;
-			margin-right: 0;
-		}
-	}
-
-	@media (min-width: 420px) and (max-width: 736px) and (min-height: 240px) and (max-height: 420px) and (orientation: landscape) {
-		.interstitial-wrapper {
-			margin-bottom: 100px;
-		}
-	}
-
-	@media (min-height: 240px) and (orientation: landscape) {
-		.offline .interstitial-wrapper {
-			margin-bottom: 90px;
-		}
-		.icon-offline {
-			margin-bottom: 20px;
-		}
-	}
-
-	@media (max-height: 320px) and (orientation: landscape) {
-		.icon-offline {
-			margin-bottom: 0;
-		}
-		.offline .runner-container {
-			top: 10px;
-		}
-	}
-
-	@media (max-width: 240px) {
-		.interstitial-wrapper {
-			overflow: inherit;
-			padding: 0 8px;
-		}
-	}
-
-	#startHeader {
-		text-align: center;
-		font-family: 'Open Sans', sans-serif;
-	}
-`
 
 const Game = () => {
 	React.useEffect(() => {
@@ -154,6 +18,9 @@ const Game = () => {
 
 	return (
 		<>
+			<Head>
+				<link rel="stylesheet" type="text/css" href="/game.css" />
+			</Head>
 			<div id="messageBox" className="sendmessage">
 				<h1 id="startHeader">Press Space to start</h1>
 				<div className="niokbutton" id={'asdasd' /*onclick="okbuttonsend()"*/}></div>
@@ -201,8 +68,8 @@ const Game = () => {
 
 export default function GameWrapper() {
 	return (
-		<Style className="offline" id="t">
+		<div className="offline" id="t">
 			<Game />
-		</Style>
+		</div>
 	)
 }

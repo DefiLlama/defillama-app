@@ -220,6 +220,10 @@
 	.section-in-grid:nth-child(odd):last-child {
 		@apply border-r-0 col-span-2;
 	}
+
+	.scheme-container {
+		display: none;
+	}
 }
 
 @layer utilities {

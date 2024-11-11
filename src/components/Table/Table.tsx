@@ -15,6 +15,7 @@ interface ITableProps {
 	columnResizeMode?: 'onChange' | 'onEnd'
 	renderSubComponent?: ({ row }: { row: any }) => JSX.Element
 	stripedBg?: boolean
+	style?: React.CSSProperties
 }
 
 declare module '@tanstack/table-core' {

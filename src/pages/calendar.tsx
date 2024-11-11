@@ -9,7 +9,6 @@ import {
 	getFilteredRowModel,
 	ColumnFiltersState
 } from '@tanstack/react-table'
-import styled from 'styled-components'
 import { VirtualTable } from '~/components/Table/Table'
 import { calendarColumns } from '~/components/Table/Defi/columns'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -159,13 +158,7 @@ export default function Protocols({ emissions }) {
 				</div>
 			</div>
 
-			<TableWrapper instance={instance} skipVirtualization />
+			<VirtualTable instance={instance} style={{ tableLayout: 'auto' }} skipVirtualization />
 		</Layout>
 	)
 }
-
-const TableWrapper = styled(VirtualTable)`
-	table {
-		table-layout: auto;
-	}
-`

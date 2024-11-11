@@ -132,7 +132,7 @@ interface IProtocolContainerProps {
 	chartDenominations?: Array<{ symbol: string; geckoId: string | null }>
 	protocolHasForks?: boolean
 	twitterData?: { tweets: Array<{ date: string; id: string; message: string }> }
-	hacksData?: {
+	hacksData?: Array<{
 		date: number
 		name: string
 		classification: string
@@ -144,7 +144,7 @@ interface IProtocolContainerProps {
 		source: string
 		returnedFunds: number | null
 		defillamaId: string
-	}
+	}>
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -1505,51 +1505,53 @@ function ProtocolContainer({
 								<div className="section-in-grid">
 									<h3 className="font-semibold text-lg">Hacks</h3>
 
-									<div>
-										<p className="flex items-center gap-2">
-											<span>Date</span>
-											<span>:</span>
-											<span>{new Date(hacksData.date * 1000).toLocaleDateString()}</span>
-										</p>
-										<p className="flex items-center gap-2">
-											<span>Amount</span>
-											<span>:</span>
-											<span>{formattedNum(hacksData.amount, true)}</span>
-										</p>
-										<p className="flex items-center gap-2">
-											<span>Classification</span>
-											<span>:</span>
-											<span>{hacksData.classification}</span>
-										</p>
-										<p className="flex items-center gap-2">
-											<span>Technique</span>
-											<span>:</span>
-											<span>{hacksData.technique}</span>
-										</p>
-										<p className="flex items-center gap-2">
-											<span>Chain</span>
-											<span>:</span>
-											<span>{hacksData.chain.join(', ')}</span>
-										</p>
-										<p className="flex items-center gap-2">
-											<span>Returned Funds</span>
-											<span>:</span>
-											<span>{formattedNum(hacksData.returnedFunds, true)}</span>
-										</p>
+									{hacksData.map((hack) => (
+										<div key={`hack-${hack.date}-${name}`}>
+											<p className="flex items-center gap-2">
+												<span>Date</span>
+												<span>:</span>
+												<span>{new Date(hack.date * 1000).toLocaleDateString()}</span>
+											</p>
+											<p className="flex items-center gap-2">
+												<span>Amount</span>
+												<span>:</span>
+												<span>{formattedNum(hack.amount, true)}</span>
+											</p>
+											<p className="flex items-center gap-2">
+												<span>Classification</span>
+												<span>:</span>
+												<span>{hack.classification}</span>
+											</p>
+											<p className="flex items-center gap-2">
+												<span>Technique</span>
+												<span>:</span>
+												<span>{hack.technique}</span>
+											</p>
+											<p className="flex items-center gap-2">
+												<span>Chain</span>
+												<span>:</span>
+												<span>{hack.chain.join(', ')}</span>
+											</p>
+											<p className="flex items-center gap-2">
+												<span>Returned Funds</span>
+												<span>:</span>
+												<span>{formattedNum(hack.returnedFunds, true)}</span>
+											</p>
 
-										<Link href={hacksData.source} passHref>
-											<ButtonLight
-												className="flex items-center gap-1 mt-1 max-w-fit"
-												as="a"
-												target="_blank"
-												rel="noopener noreferrer"
-												useTextColor={true}
-												color={backgroundColor}
-											>
-												<span>Source</span> <Icon name="arrow-up-right" height={14} width={14} />
-											</ButtonLight>
-										</Link>
-									</div>
+											<Link href={hack.source} passHref>
+												<ButtonLight
+													className="flex items-center gap-1 mt-1 max-w-fit"
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
+													<span>Source</span> <Icon name="arrow-up-right" height={14} width={14} />
+												</ButtonLight>
+											</Link>
+										</div>
+									))}
 								</div>
 							) : null}
 

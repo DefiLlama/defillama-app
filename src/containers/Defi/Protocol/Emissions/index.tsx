@@ -372,11 +372,11 @@ export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
 	const { data, isLoading } = useGetProtocolEmissions(protocolName)
 
 	if (isLoading) {
-		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
+		return <p className="my-[180px] text-center">Loading...</p>
 	}
 
 	if (!data) {
-		return <p style={{ margin: '180px 0', textAlign: 'center' }}></p>
+		return <p className="my-[180px] text-center"></p>
 	}
 
 	return <ChartContainer data={data} />

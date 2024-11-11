@@ -30,7 +30,7 @@ export const TreasuryChart = ({ protocolName }) => {
 	const { data, isLoading } = useFetchProtocolTreasury(protocolName, includeTreasury)
 
 	if (isLoading) {
-		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
+		return <p className="my-[180px] text-center">Loading...</p>
 	}
 
 	const tokens = Object.entries(data?.chainTvls ?? {})

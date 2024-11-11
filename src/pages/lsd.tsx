@@ -1,6 +1,5 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
@@ -39,19 +38,6 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	}
 })
 
-const TabContainer = styled.div`
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	min-height: 360px;
-`
-const ChartsContainer = styled.div`
-	background-color: ${({ theme }) => theme.advancedBG};
-	border: 1px solid ${({ theme }) => theme.bg3};
-	border-radius: 8px;
-`
-
 const PageView = ({
 	areaChartData,
 	pieChartData,
@@ -77,7 +63,7 @@ const PageView = ({
 				<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
 			</h1>
 
-			<ChartsContainer>
+			<div className="rounded-xl shadow bg-[var(--bg6)] w-full flex flex-col">
 				<TabList>
 					<Tab onClick={() => setTab('breakdown')} aria-selected={tab === 'breakdown'}>
 						Breakdown
@@ -87,9 +73,9 @@ const PageView = ({
 					</Tab>
 				</TabList>
 
-				<TabContainer>
+				<div className="flex flex-col items-center gap-4 p-4 min-h-[360px] w-full">
 					{tab === 'breakdown' ? (
-						<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 rounded-xl bg-[var(--bg6)] min-h-[360px]">
+						<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 rounded-xl bg-[var(--bg6)] min-h-[360px]">
 							<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
 
 							<AreaChart
@@ -136,8 +122,8 @@ const PageView = ({
 							/>
 						</>
 					)}
-				</TabContainer>
-			</ChartsContainer>
+				</div>
+			</div>
 
 			<TableWithSearch
 				data={tokensList}

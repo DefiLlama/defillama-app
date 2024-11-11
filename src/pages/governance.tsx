@@ -10,7 +10,6 @@ import {
 	ColumnFiltersState,
 	getExpandedRowModel
 } from '@tanstack/react-table'
-import styled from 'styled-components'
 import { VirtualTable } from '~/components/Table/Table'
 import { governanceColumns } from '~/components/Table/Defi/columns'
 import { GOVERNANCE_SNAPSHOT_API, GOVERNANCE_COMPOUND_API, GOVERNANCE_TALLY_API } from '~/constants'
@@ -97,19 +96,12 @@ export default function Governance({ data }) {
 	)
 }
 
-const SubrowData = styled.span`
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	padding-left: 72px;
-`
-
 const renderSubComponent = ({ row }) => {
 	return (
-		<SubrowData>
+		<span className="flex flex-col gap-1 pl-[72px]">
 			{Object.entries(row.original.subRowData).map(([type, value]) => (
 				<span key={row.original.name + type + value}>{capitalizeFirstLetter(type) + ' Proposals : ' + value}</span>
 			))}
-		</SubrowData>
+		</span>
 	)
 }

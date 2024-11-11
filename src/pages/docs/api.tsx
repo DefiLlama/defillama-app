@@ -1,32 +1,21 @@
-import styled from 'styled-components'
 import Layout from '~/layout'
-import DarkSwagger from '~/docs/swaggerDark'
 import yamlApiSpec from '~/docs/resolvedSpec.json'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useEffect } from 'react'
 import 'swagger-ui/dist/swagger-ui.css'
+import Head from 'next/head'
 
 export default function ApiDocs({ spec = yamlApiSpec }: { spec: any }) {
-	const [isDark] = useDarkModeManager()
-
-	const Wrapper = isDark ? DarkSwagger : styled.div``
-
 	return (
-		<Layout title={`API Docs - DefiLlama`}>
-			<HideSections>
-				<Wrapper>
-					<Swagger spec={spec} />
-				</Wrapper>
-			</HideSections>
-		</Layout>
+		<>
+			<Head>
+				<link rel="stylesheet" type="text/css" href="/swagger-dark.css" />
+			</Head>
+			<Layout title={`API Docs - DefiLlama`}>
+				<Swagger spec={spec} />
+			</Layout>
+		</>
 	)
 }
-
-const HideSections = styled.div`
-	.scheme-container {
-		display: none;
-	}
-`
 
 function Swagger({ spec }) {
 	useEffect(() => {

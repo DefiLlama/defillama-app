@@ -156,7 +156,7 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 	})
 
 	if (isLoading) {
-		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
+		return <p className="my-[180px] text-center">Loading...</p>
 	}
 
 	const apisByCategory = apis.map((apiUrl) =>

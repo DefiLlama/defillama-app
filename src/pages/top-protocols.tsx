@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import styled from 'styled-components'
 import Layout from '~/layout'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -121,11 +120,7 @@ export default function Chains({ data, columns }) {
 				<span>Top Protocols</span>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</h1>
-			<Table instance={instance} skipVirtualization />
+			<VirtualTable instance={instance} style={{ height: '85vh' }} skipVirtualization />
 		</Layout>
 	)
 }
-
-const Table = styled(VirtualTable)`
-	height: 85vh;
-`

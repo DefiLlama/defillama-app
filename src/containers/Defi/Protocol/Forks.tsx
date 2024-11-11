@@ -17,15 +17,15 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 	})
 
 	if (isLoading) {
-		return <p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
+		return <p className="my-[180px] text-center">Loading...</p>
 	}
 
 	if (error) {
-		return <p style={{ margin: '180px 0', textAlign: 'center' }}>{JSON.stringify(error)}</p>
+		return <p className="my-[180px] text-center">{JSON.stringify(error)}</p>
 	}
 
 	return (
-		<div style={{ minHeight: '460px' }}>
+		<div className="min-h-[460px]">
 			<ForkContainer {...data} skipTableVirtualization />
 		</div>
 	)

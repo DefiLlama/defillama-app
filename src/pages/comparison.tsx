@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
@@ -145,8 +144,8 @@ export default function CompareProtocolsTvls({
 		<Layout title={`Compare Protocols TVLs - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Compare Protocols' }} />
 
-			<Wrapper>
-				<Legend
+			<div className="relative flex flex-col">
+				<SelectLegendMultiple
 					title={'Selected Protocols'}
 					allOptions={protocols}
 					options={selectedProtocols ?? []}
@@ -161,45 +160,13 @@ export default function CompareProtocolsTvls({
 						stackColors={colors}
 						hideDefaultLegend
 					/>
-					{isLoading && <Loading>Loading...</Loading>}
+					{isLoading && (
+						<p className="text-[var(--text1)] text-center absolute top-0 right-0 bottom-0 left-0 grid place-items-center">
+							Loading...
+						</p>
+					)}
 				</div>
-			</Wrapper>
+			</div>
 		</Layout>
 	)
 }
-
-const Wrapper = styled.div`
-	position: relative;
-	height: 424px;
-	display: flex;
-	flex-direction: column;
-`
-
-const ChartWrapper = styled.div`
-	margin-top: auto;
-	position: relative;
-	padding: 12px;
-	border-radius: 12px;
-	background: ${({ theme }) => theme.bg7};
-	height: 384px;
-`
-
-const Loading = styled.div`
-	position: absolute;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 0;
-	display: grid;
-	place-items: center;
-	z-index: 1;
-	background: ${({ theme }) => theme.bg7};
-	height: 384px;
-	border-radius: 12px;
-`
-
-const Legend = styled(SelectLegendMultiple)`
-	position: absolute;
-	top: 0;
-	right: 0;
-`

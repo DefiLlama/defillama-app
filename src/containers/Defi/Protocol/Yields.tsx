@@ -46,9 +46,9 @@ export function ProtocolPools({ protocol, data, protocolData }) {
 				</p>
 
 				{isLoading ? (
-					<p style={{ margin: '180px 0', textAlign: 'center' }}>Loading...</p>
+					<p className="my-[180px] text-center">Loading...</p>
 				) : !poolsList ? (
-					<p style={{ margin: '180px 0', textAlign: 'center' }}></p>
+					<p className="my-[180px] text-center"></p>
 				) : (
 					<YieldsPoolsTable data={poolsList} />
 				)}
