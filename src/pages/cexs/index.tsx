@@ -460,6 +460,13 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://dune.com/21co/backpack-exchange'
 	},
 	{
+		name: 'Ourbit',
+		slug: 'ourbit',
+		coin: null,
+		coinSymbol: null,
+		walletsLink: 'https://www.ourbit.com/assets/reserve-proof'
+	},
+	{
 		name: 'HashKey Global',
 		slug: 'hashkey-global',
 		coin: null,
