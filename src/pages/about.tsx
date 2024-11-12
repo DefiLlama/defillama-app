@@ -1,7 +1,31 @@
 import * as React from 'react'
+import { maxAgeForNext } from '~/api'
+import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import Layout from '~/layout'
+import { fetchApi } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
-function AboutPage() {
+export const getStaticProps = withPerformanceLogging('about', async () => {
+	const [protocolsRaw, yields, fees, dexs] = await Promise.all([
+		getSimpleProtocolsPageData(),
+		fetchApi('https://yields.llama.fi/pools'),
+		fetchApi(`https://api.llama.fi/overview/fees?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`),
+		fetchApi(`https://api.llama.fi/overview/dexs?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`)
+	])
+
+	return {
+		props: {
+			protocols: protocolsRaw.protocols.length,
+			chains: protocolsRaw.chains.length,
+			pools: yields.data.length,
+			fees: fees.protocols.length,
+			dexs: dexs.protocols.length
+		},
+		revalidate: maxAgeForNext([22])
+	}
+})
+
+function AboutPage(props: any) {
 	return (
 		<Layout title="DefiLlama - DeFi Dashboard" defaultSEO>
 			<h1 className="text-2xl font-medium mt-2 -mb-5">About</h1>
@@ -31,6 +55,21 @@ function AboutPage() {
 					from hundreds of protocols.
 				</p>
 				<p>Our focus is on accurate data and transparent methodology.</p>
+			</div>
+
+			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+				<h2 className="font-semibold text-lg">Stats</h2>
+				<hr className="border-black/20 dark:border-white/20" />
+				<p>
+					We track:
+					<ul style={{ listStyle: 'inside' }}>
+						<li>{props.protocols} protocols</li>
+						<li>{props.chains} chains</li>
+						<li>{props.pools} pools</li>
+						<li>Revenue for {props.fees} protocols</li>
+						<li>Volume for {props.dexs} DEXs</li>
+					</ul>
+				</p>
 			</div>
 
 			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
@@ -76,7 +115,7 @@ function AboutPage() {
 					.
 				</p>
 				<p>
-					For questions around product, methodology, data... You'll get mych faster responses by using our priority
+					For questions around product, methodology, data... You'll get much faster responses by using our priority
 					support, available{' '}
 					<a
 						className="text-[var(--blue)] hover:underline"
