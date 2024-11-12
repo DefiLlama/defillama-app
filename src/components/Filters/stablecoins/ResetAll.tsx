@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { useStablecoinsManager, STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 
-export function ResetAllStablecoinFilters({ pathname }: { pathname: string }) {
+export function ResetAllStablecoinFilters({ pathname, subMenu }: { pathname: string; subMenu: boolean }) {
 	const router = useRouter()
 	const [state, updater] = useStablecoinsManager()
 
@@ -13,7 +13,7 @@ export function ResetAllStablecoinFilters({ pathname }: { pathname: string }) {
 					.map((setting) => updater(setting)())
 				router.push(pathname, undefined, { shallow: true })
 			}}
-			className="bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative"
+			className="rounded-md py-2 px-3 text-sm sm:text-xs bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] max-sm:text-left"
 		>
 			Reset all filters
 		</button>

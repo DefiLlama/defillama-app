@@ -146,7 +146,7 @@ export function Rounds({ rounds = [], selectedRounds, pathname, variant = 'prima
 				{isSelected ? (
 					<>
 						<span>Round: </span>
-						<span data-selecteditems>
+						<span className="text-[var(--link)]">
 							{selectedRounds.length > 2
 								? `${selectedRounds[0]} + ${selectedRounds.length - 1} others`
 								: selectedRounds.join(', ')}

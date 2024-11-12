@@ -13,7 +13,7 @@ interface ISelectContent {
 	isOptionToggled: (option: any) => boolean
 	clearAllOptions: () => void
 	toggleAllOptions: () => void
-	selectOnlyOne: (options: string) => void
+	selectOnlyOne?: (options: string) => void
 	isSlugValue?: boolean
 }
 

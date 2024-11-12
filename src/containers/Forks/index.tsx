@@ -8,8 +8,6 @@ import { useDefiManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { LayoutWrapper } from '~/containers/ChainContainer'
 import type { IChartProps } from '~/components/ECharts/types'
-import styled from 'styled-components'
-import { LazyChart } from '~/components/LazyChart'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -98,9 +96,3 @@ export const ForkContainer = ({
 		</LayoutWrapper>
 	)
 }
-
-const ChartWrapper = styled(LazyChart)`
-	padding: 16px 0;
-	grid-column: span 1;
-	min-height: 392px;
-`

@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import { GroupStablecoins } from '~/components/MultiSelect/Stablecoins'
@@ -27,17 +26,6 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
-
-const AssetFilters = styled.div`
-	margin: 12px 0 16px;
-
-	& > h2 {
-		margin: 0 2px 8px;
-		font-weight: 600;
-		font-size: 0.825rem;
-		color: ${({ theme }) => theme.text1};
-	}
-`
 
 function PeggedChainsOverview({
 	chainCirculatings,
@@ -173,10 +161,10 @@ function PeggedChainsOverview({
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
-			<AssetFilters>
-				<h2>Filters</h2>
+			<div className="flex flex-col gap-1">
+				<h2 className="font-semibold text-sm">Filters</h2>
 				<GroupStablecoins label="Filters" />
-			</AssetFilters>
+			</div>
 
 			<PeggedChainsTable data={groupedChains} />
 		</>

@@ -152,7 +152,7 @@ export function Investors({
 				{isSelected ? (
 					<>
 						<span>Investor: </span>
-						<span data-selecteditems>
+						<span className="text-[var(--link)]">
 							{selectedInvestors.length > 2
 								? `${selectedInvestors[0]} + ${selectedInvestors.length - 1} others`
 								: selectedInvestors.join(', ')}

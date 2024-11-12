@@ -152,7 +152,7 @@ export function Sectors({
 				{isSelected ? (
 					<>
 						<span>Sector: </span>
-						<span data-selecteditems>
+						<span className="text-[var(--link)]">
 							{selectedSectors.length > 2
 								? `${selectedSectors[0]} + ${selectedSectors.length - 1} others`
 								: selectedSectors.join(', ')}

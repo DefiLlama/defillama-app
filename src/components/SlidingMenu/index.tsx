@@ -74,12 +74,12 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 						ref={ref}
 						{...props}
 					>
-						<span>{label}</span>
+						<span className="text-sm">{label}</span>
 						<MenuButtonArrow placement="right" />
 					</Select>
 				) : (
 					<MenuButton className="sliding-menu-button" state={menu} showOnHover={false} data-variant={variant}>
-						<span>{label}</span>
+						<span className="text-sm">{label}</span>
 						<MenuButtonArrow />
 					</MenuButton>
 				)
@@ -94,7 +94,7 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 					ref={ref}
 					{...props}
 				>
-					<span>{label}</span>
+					<span className="text-sm">{label}</span>
 					<MenuButtonArrow placement="right" />
 				</MenuButton>
 			)}
@@ -127,7 +127,7 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 									>
 										<MenuButtonArrow placement="left" />
 									</button>
-									<h2 className="text-base font-medium">{label}</h2>
+									<h2 className="text-sm font-medium">{label}</h2>
 								</div>
 							) : null}
 							{children}
@@ -157,7 +157,7 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 									>
 										<MenuButtonArrow placement="left" />
 									</button>
-									<h2 className="text-base font-medium">{label}</h2>
+									<h2 className="text-sm font-medium">{label}</h2>
 								</div>
 							) : null}
 							{children}

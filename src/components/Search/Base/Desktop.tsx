@@ -17,6 +17,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		placeholder = 'Search...',
 		value,
 		className,
+		variant,
 		...extra
 	} = props
 
@@ -61,6 +62,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 				withValue={withValue}
 				onSearchTermChange={onSearchTermChange}
 				filtersExists={filters ? true : false}
+				variant={variant}
 			/>
 
 			{/* dark: #101010 */}
@@ -126,7 +128,7 @@ interface IInputProps {
 	filtersExists?: boolean
 }
 
-function Input({ state, placeholder, withValue, hideIcon, onSearchTermChange, filtersExists }: IInputProps) {
+function Input({ state, placeholder, withValue, hideIcon, onSearchTermChange, filtersExists, variant }: IInputProps) {
 	const inputField = React.useRef<HTMLInputElement>()
 
 	React.useEffect(() => {
@@ -154,7 +156,10 @@ function Input({ state, placeholder, withValue, hideIcon, onSearchTermChange, fi
 	return (
 		<>
 			{!hideIcon ? (
-				<button onClick={onClick} className="absolute top-[14px] left-3 opacity-50">
+				<button
+					onClick={onClick}
+					className={variant === 'secondary' ? 'absolute top-2 left-[6px]' : 'absolute top-[14px] left-3 opacity-50'}
+				>
 					{state.mounted ? (
 						<>
 							<span className="sr-only">Close Search</span>
@@ -177,13 +182,21 @@ function Input({ state, placeholder, withValue, hideIcon, onSearchTermChange, fi
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className={`p-3 pl-9 ${
-					filtersExists ? 'rounded-t-md' : 'rounded-md'
-				} text-base bg-white text-black dark:bg-black dark:text-white`}
+				className={
+					variant === 'secondary'
+						? 'p-[6px] pl-8 rounded-md text-base bg-[#eaeaea] text-black dark:bg-[#22242a] dark:text-white'
+						: `p-3 pl-9 ${
+								filtersExists ? 'rounded-t-md' : 'rounded-md'
+						  } text-base bg-white text-black dark:bg-black dark:text-white`
+				}
 			/>
 
 			{!hideIcon ? (
-				<span className="absolute top-2 right-3 bg-[#f5f5f5] dark:bg-[#151515] text-[var(--link)] font-medium p-[6px] rounded-md">
+				<span
+					className={`absolute ${
+						variant === 'secondary' ? 'top-1 right-1 p-1' : 'top-2 right-3 p-[6px]'
+					} bg-[#f5f5f5] dark:bg-[#151515] text-[var(--link)] font-medium rounded-md`}
+				>
 					⌘K
 				</span>
 			) : null}

@@ -138,7 +138,7 @@ export function FiltersByChain({
 				{isSelected ? (
 					<>
 						<span>Chain: </span>
-						<span data-selecteditems>
+						<span className="text-[var(--link)]">
 							{selectedChains.length > 2
 								? `${selectedChains[0]} + ${selectedChains.length - 1} others`
 								: selectedChains.join(', ')}

@@ -5,6 +5,8 @@ import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
+import { SlidingMenu } from '~/components/SlidingMenu'
+import { SelectContent } from '../common/SelectContent'
 
 const { DEPEGGED } = STABLECOINS_SETTINGS
 
@@ -17,7 +19,7 @@ export const stablecoinAttributeOptions = [
 	}
 ]
 
-export function Attribute({ pathname }: { pathname: string }) {
+export function Attribute({ pathname, subMenu }: { pathname: string; subMenu: boolean }) {
 	const router = useRouter()
 
 	const { attribute = [], chain, ...queries } = router.query
@@ -102,20 +104,35 @@ export function Attribute({ pathname }: { pathname: string }) {
 		)
 	}
 
-	const totalSelected = values.length
+	if (subMenu) {
+		return (
+			<SlidingMenu label="Attribute" selectState={selectState}>
+				<SelectContent
+					options={stablecoinAttributeOptions}
+					selectedOptions={values}
+					clearAllOptions={clear}
+					toggleAllOptions={toggleAll}
+					variant="secondary"
+					pathname={pathname}
+				/>
+			</SlidingMenu>
+		)
+	}
 
 	return (
 		<>
 			<Select
 				state={selectState}
-				className="bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative"
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
 			>
-				<span>Filter by Attribute</span>
-				{totalSelected > 0 ? (
-					<span className="absolute -top-1 -right-1 text-[10px] rounded-full min-w-4 bg-[var(--bg4)]">
-						{totalSelected}
-					</span>
-				) : null}
+				{values.length > 0 ? (
+					<>
+						<span>Attribute: </span>
+						<span className="text-[var(--link)]">{values.length}</span>
+					</>
+				) : (
+					'Attribute'
+				)}
 				<SelectArrow />
 			</Select>
 			{selectState.mounted ? (

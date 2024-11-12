@@ -5,6 +5,9 @@ import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
+import { SlidingMenu } from '~/components/SlidingMenu'
+import { SelectContent } from '../common/SelectContent'
+import { useMemo } from 'react'
 
 export const stablecoinPegTypeOptions = [
 	{
@@ -75,24 +78,30 @@ export const stablecoinPegTypeOptions = [
 	}
 ]
 
-export function PegType({ pathname }: { pathname: string }) {
+export function PegType({ pathname, subMenu }: { pathname: string; subMenu: boolean }) {
 	const router = useRouter()
 
 	const { pegtype = [], chain, ...queries } = router.query
 
-	const values = stablecoinPegTypeOptions
-		.filter((o) => {
-			if (pegtype) {
-				if (pegtype.length === 0) {
-					return true
-				} else if (typeof pegtype === 'string') {
-					return o.key === pegtype
-				} else {
-					return pegtype.includes(o.key)
-				}
-			}
-		})
-		.map((o) => o.key)
+	const { values, selectedNames } = useMemo(() => {
+		const values = Object.fromEntries(
+			stablecoinPegTypeOptions
+				.filter((o) => {
+					if (pegtype) {
+						if (pegtype.length === 0) {
+							return true
+						} else if (typeof pegtype === 'string') {
+							return o.key === pegtype
+						} else {
+							return pegtype.includes(o.key)
+						}
+					}
+				})
+				.map((o) => [o.key, o.name])
+		)
+
+		return { values: Object.keys(values), selectedNames: Object.values(values) }
+	}, [stablecoinPegTypeOptions, pegtype])
 
 	const updatePegTypes = (newFilters) => {
 		if (values.length === 1 && newFilters.length === 0) {
@@ -160,20 +169,39 @@ export function PegType({ pathname }: { pathname: string }) {
 		)
 	}
 
-	const totalSelected = values.length
+	if (subMenu) {
+		return (
+			<SlidingMenu label="Peg Type" selectState={selectState}>
+				<SelectContent
+					options={stablecoinPegTypeOptions}
+					selectedOptions={values}
+					clearAllOptions={clear}
+					toggleAllOptions={toggleAll}
+					variant="secondary"
+					pathname={pathname}
+				/>
+			</SlidingMenu>
+		)
+	}
 
 	return (
 		<>
 			<Select
 				state={selectState}
-				className="bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative"
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
 			>
-				<span>Filter by Peg Type</span>
-				{totalSelected > 0 ? (
-					<span className="absolute -top-1 -right-1 text-[10px] rounded-full min-w-4 bg-[var(--bg4)]">
-						{totalSelected}
-					</span>
-				) : null}
+				{selectedNames.length > 0 ? (
+					<>
+						<span>Peg: </span>
+						<span className="text-[var(--link)]">
+							{selectedNames.length > 2
+								? `${selectedNames[0]} + ${selectedNames.length - 1} others`
+								: selectedNames.join(', ')}
+						</span>
+					</>
+				) : (
+					'Peg Type'
+				)}
 				<SelectArrow />
 			</Select>
 			<SelectPopover

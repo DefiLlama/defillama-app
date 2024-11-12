@@ -35,6 +35,7 @@ export interface IBaseSearchProps {
 	withValue?: boolean
 	value?: string | null
 	className?: string
+	variant?: 'primary' | 'secondary'
 }
 
 export interface ICommonSearchProps {

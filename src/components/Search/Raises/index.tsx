@@ -120,7 +120,7 @@ function Input({ state, placeholder, withValue, hideIcon, onSearchTermChange }: 
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="p-[6px] pl-8 rounded-md text-base bg-[#eaeaea] text-black dark:bg-[#22242a] dark:text-white "
+				className="p-[6px] pl-8 rounded-md text-base bg-[#eaeaea] text-black dark:bg-[#22242a] dark:text-white"
 			/>
 
 			<span className="absolute top-1 right-1 bg-[#f5f5f5] dark:bg-[#151515] text-[var(--link)] font-medium p-1 rounded-md">

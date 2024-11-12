@@ -1,18 +1,14 @@
 import * as React from 'react'
 
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ChartSelector } from '~/containers/PeggedPage/.'
-import { Attribute, stablecoinAttributeOptions } from '~/components/Filters/stablecoins/Attribute'
-import { PegType, stablecoinPegTypeOptions } from '~/components/Filters/stablecoins/PegType'
-import { BackingType, stablecoinBackingOptions } from '~/components/Filters/stablecoins/BackingType'
-import { McapRange } from '~/components/Filters/stablecoins/McapRange'
-import { ResetAllStablecoinFilters } from '~/components/Filters/stablecoins/ResetAll'
+import { stablecoinAttributeOptions } from '~/components/Filters/stablecoins/Attribute'
+import { stablecoinPegTypeOptions } from '~/components/Filters/stablecoins/PegType'
+import { stablecoinBackingOptions } from '~/components/Filters/stablecoins/BackingType'
 import { PeggedAssetsTable } from '~/components/Table/Stablecoins/PeggedAssets'
 import {
 	useCalcCirculating,
@@ -21,7 +17,7 @@ import {
 } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { formattedNum, getPercentChange, getPeggedDominance, toNiceCsvDate, download } from '~/utils'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { PeggedFilters } from '~/components/Filters/stablecoins'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -35,25 +31,6 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
 
-const ChartFilters = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: flex-end;
-	gap: 20px;
-	margin: 0 0 -18px;
-`
-
-const Dropdowns = styled.span`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 20px;
-
-	button {
-		font-weight: 400;
-	}
-`
 // TODO: chart colors by stablecoins logo
 function PeggedAssetsOverview({
 	selectedChain = 'All',
@@ -212,18 +189,7 @@ function PeggedAssetsOverview({
 
 	return (
 		<>
-			<PeggedSearch step={{ category: 'Stablecoins', name: title }} />
-
-			<ChartFilters>
-				<Dropdowns>
-					<Attribute pathname={path} />
-					<BackingType pathname={path} />
-					<PegType pathname={path} />
-					<McapRange />
-					<ResetAllStablecoinFilters pathname={path} />
-				</Dropdowns>
-				<CSVDownloadButton onClick={downloadCsv} />
-			</ChartFilters>
+			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
