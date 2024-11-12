@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Panel } from '~/components'
 import { YieldsOptimizerTable } from '~/components/Table/Yields/Optimizer'
 import { YieldFiltersV2 } from '~/components/Filters/yields'
 import { useFormatYieldQueryParams } from './hooks'
@@ -185,7 +184,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 			{poolsData.length > 0 ? (
 				<YieldsOptimizerTable data={poolsDataWithAmounts} />
 			) : (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
 					Given a token to use for collateral and a token to borrow, this calculator will look at all the lending
 					protocols
 					<br />
@@ -200,7 +199,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 					<br />
 					<br />
 					To start just select two tokens above.
-				</Panel>
+				</p>
 			)}
 		</>
 	)

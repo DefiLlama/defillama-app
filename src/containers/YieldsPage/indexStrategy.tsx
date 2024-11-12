@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Panel } from '~/components'
 import { YieldsStrategyTable } from '~/components/Table/Yields/Strategy'
 import { YieldFiltersV2 } from '~/components/Filters/yields'
 import { filterPool, findStrategyPools } from './utils'
@@ -108,7 +107,7 @@ const YieldsStrategyPage = ({
 			{poolsData.length > 0 ? (
 				<YieldsStrategyTable data={poolsData} />
 			) : (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
 					Given a collateral token this finder will display "lend-borrow-farm" strategies across all our tracked pools.
 					<br />
 					It calculates the total Strategy APY taking into account the individual apy components at each step.
@@ -118,7 +117,7 @@ const YieldsStrategyPage = ({
 					<br />
 					<br />
 					To start just select a collateral token above.
-				</Panel>
+				</p>
 			)}
 		</>
 	)

@@ -1,12 +1,11 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { Panel } from '~/components'
 import { TokenLogo } from '~/components/TokenLogo'
 
 const PressPanel = ({ imageFilename }) => (
-	<Panel style={{ padding: '18px 25px' }}>
+	<div className="border border-black/10 dark:border-white/10 rounded-md text-center p-4">
 		<TokenLogo logo={`/press/${imageFilename}`} size={150} />
-	</Panel>
+	</div>
 )
 
 const pressList = [
@@ -48,126 +47,122 @@ function PressPage() {
 	return (
 		<Layout title="Press - DefiLlama" defaultSEO>
 			<h1 className="text-2xl font-medium -mb-5">Press & Media</h1>
-			<Panel>
-				<div className="flex flex-col gap-4">
-					<h2 className="font-semibold text-lg">About DeFiLlama</h2>
-					<hr className="border-black/20 dark:border-white/20" />
-					<p>
-						DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
-						<a
-							className="text-[var(--blue)] hover:underline"
-							target="_blank"
-							rel="noopener noreferrer"
-							href="https://github.com/DefiLlama/DefiLlama-Adapters"
-						>
-							open-source
-						</a>{' '}
-						and maintained by a team of passionate individuals and{' '}
-						<a
-							className="text-[var(--blue)] hover:underline"
-							target="_blank"
-							rel="noopener noreferrer"
-							href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors"
-						>
-							contributors
-						</a>{' '}
-						from hundreds of protocols.
-					</p>
-					<p>Our focus is on accurate data and transparent methodology.</p>
-				</div>
-			</Panel>
-			<Panel>
-				<div className="flex flex-col gap-4">
-					<h2 className="font-semibold text-lg">Contact</h2>
-					<hr className="border-black/20 dark:border-white/20" />
-					<p>
-						Contact us on{' '}
-						<a
-							className="text-[var(--blue)] hover:underline"
-							target="_blank"
-							rel="noopener noreferrer"
-							href="https://twitter.com/defillama"
-						>
-							Twitter
-						</a>{' '}
-						or{' '}
-						<a
-							className="text-[var(--blue)] hover:underline"
-							target="_blank"
-							rel="noopener noreferrer"
-							href="https://discord.defillama.com"
-						>
-							Discord
-						</a>{' '}
-						or by email{' '}
-						<a
-							className="text-[var(--blue)] hover:underline"
-							target="_blank"
-							rel="noopener noreferrer"
-							href="mailto:contact@llama-corp.com"
-						>
-							contact@llama-corp.com
-						</a>
-					</p>
-					<p>
-						DeFiLlama is a part of{' '}
-						<a
-							className="text-[var(--blue)] hover:underline"
-							target="_blank"
-							rel="noopener noreferrer"
-							href="https://twitter.com/llamacorporg"
-						>
-							Llama Corp
-						</a>
-						.
-					</p>
-					<p>
-						Llama Corp is a collective building out the decentralized future with data analytics, infrastructure,
-						payments, cross-chain and media solutions used by more than 10M monthly users.
-					</p>
-				</div>
-			</Panel>
-			<Panel>
-				<div className="flex flex-col gap-4">
-					<h2 className="font-semibold text-lg">Press</h2>
-					<hr className="border-black/20 dark:border-white/20" />
 
-					<p>DL Data is free to use by anyone. Attribution is always appreciated.</p>
-					<hr className="border-black/20 dark:border-white/20" />
-					<p>DeFiLlama is used across a large number of media organisations and financial institutions.</p>
-					<div className="grid grid-cols-[repeat(auto-fit,minmax(100px,200px))] place-content-center w-full gap-2 mt-4">
-						{pressList.map((imageFilename) => (
-							<a
-								className="text-[var(--blue)] hover:underline"
-								target="_blank"
-								rel="noopener noreferrer"
-								href={imageFilename[1]}
-								key={imageFilename[0]}
-							>
-								<PressPanel imageFilename={imageFilename[0]} />
-							</a>
-						))}
-					</div>
-				</div>
-			</Panel>
-			<Panel>
-				<div className="flex flex-col gap-4">
-					<h2 className="font-semibold text-lg">Branding Assets</h2>
-					<hr className="border-black/20 dark:border-white/20" />
-					<p>
-						You can download all our branding assets from{' '}
+			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+				<h2 className="font-semibold text-lg">About DeFiLlama</h2>
+				<hr className="border-black/20 dark:border-white/20" />
+				<p>
+					DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
+					<a
+						className="text-[var(--blue)] hover:underline"
+						target="_blank"
+						rel="noopener noreferrer"
+						href="https://github.com/DefiLlama/DefiLlama-Adapters"
+					>
+						open-source
+					</a>{' '}
+					and maintained by a team of passionate individuals and{' '}
+					<a
+						className="text-[var(--blue)] hover:underline"
+						target="_blank"
+						rel="noopener noreferrer"
+						href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors"
+					>
+						contributors
+					</a>{' '}
+					from hundreds of protocols.
+				</p>
+				<p>Our focus is on accurate data and transparent methodology.</p>
+			</div>
+
+			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+				<h2 className="font-semibold text-lg">Contact</h2>
+				<hr className="border-black/20 dark:border-white/20" />
+				<p>
+					Contact us on{' '}
+					<a
+						className="text-[var(--blue)] hover:underline"
+						target="_blank"
+						rel="noopener noreferrer"
+						href="https://twitter.com/defillama"
+					>
+						Twitter
+					</a>{' '}
+					or{' '}
+					<a
+						className="text-[var(--blue)] hover:underline"
+						target="_blank"
+						rel="noopener noreferrer"
+						href="https://discord.defillama.com"
+					>
+						Discord
+					</a>{' '}
+					or by email{' '}
+					<a
+						className="text-[var(--blue)] hover:underline"
+						target="_blank"
+						rel="noopener noreferrer"
+						href="mailto:contact@llama-corp.com"
+					>
+						contact@llama-corp.com
+					</a>
+				</p>
+				<p>
+					DeFiLlama is a part of{' '}
+					<a
+						className="text-[var(--blue)] hover:underline"
+						target="_blank"
+						rel="noopener noreferrer"
+						href="https://twitter.com/llamacorporg"
+					>
+						Llama Corp
+					</a>
+					.
+				</p>
+				<p>
+					Llama Corp is a collective building out the decentralized future with data analytics, infrastructure,
+					payments, cross-chain and media solutions used by more than 10M monthly users.
+				</p>
+			</div>
+
+			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+				<h2 className="font-semibold text-lg">Press</h2>
+				<hr className="border-black/20 dark:border-white/20" />
+
+				<p>DL Data is free to use by anyone. Attribution is always appreciated.</p>
+				<hr className="border-black/20 dark:border-white/20" />
+				<p>DeFiLlama is used across a large number of media organisations and financial institutions.</p>
+				<div className="grid grid-cols-[repeat(auto-fit,minmax(100px,200px))] place-content-center w-full gap-2 mt-4">
+					{pressList.map((imageFilename) => (
 						<a
 							className="text-[var(--blue)] hover:underline"
 							target="_blank"
 							rel="noopener noreferrer"
-							href="/defillama-press-kit.zip"
+							href={imageFilename[1]}
+							key={imageFilename[0]}
 						>
-							here
+							<PressPanel imageFilename={imageFilename[0]} />
 						</a>
-						.
-					</p>
+					))}
 				</div>
-			</Panel>
+			</div>
+
+			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+				<h2 className="font-semibold text-lg">Branding Assets</h2>
+				<hr className="border-black/20 dark:border-white/20" />
+				<p>
+					You can download all our branding assets from{' '}
+					<a
+						className="text-[var(--blue)] hover:underline"
+						target="_blank"
+						rel="noopener noreferrer"
+						href="/defillama-press-kit.zip"
+					>
+						here
+					</a>
+					.
+				</p>
+			</div>
 		</Layout>
 	)
 }

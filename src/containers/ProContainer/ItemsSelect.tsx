@@ -1,40 +1,12 @@
 import { createFilter } from 'react-select'
 import { useState } from 'react'
-import styled from 'styled-components'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { sluggify } from '~/utils/cache-client'
 import { Modal } from './Modal'
 import { getChainData } from '~/containers/ComparePage'
 import { ChartTypes } from '~/containers/Defi/Protocol/ProtocolPro'
-import { transparentize } from 'polished'
 import { useQuery } from '@tanstack/react-query'
-
-export const Filters = styled.div`
-	display: flex;
-	vertical-align: center;
-	border-radius: 12px;
-	background-color: ${({ theme }) => transparentize(0.9, theme.primary1)};
-	box-shadow: ${({ theme }) => theme.shadowSm};
-	width: fit-content;
-	height: fit-content;
-	padding: 8px;
-	min-height: 38px;
-`
-export const FilterHeader = styled.div`
-	font-size: 14px;
-	line-height: 2;
-	margin-right: 16px;
-	margin-left: 16px;
-	margin-top: 4px;
-`
-
-export const FilterRow = styled.div`
-	width: 500px;
-	display: flex;
-	margin-bottom: 16px;
-	justify-content: space-between;
-`
 
 export const chainChartOptions = [
 	{
@@ -127,7 +99,7 @@ const getProtocolData = (data) => {
 	return chartProps
 }
 
-const ItemsSelect = ({ chains, setItems, setProtocolProps }: Props) => {
+export const ItemsSelect = ({ chains, setItems, setProtocolProps }: Props) => {
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain: 'All' })
 	const [selectedItem, setSelectedChain] = useState(null)
 	const [selectedCharts, setSelectedCharts] = useState([])
@@ -152,11 +124,11 @@ const ItemsSelect = ({ chains, setItems, setProtocolProps }: Props) => {
 		reset()
 	}
 	return (
-		<Filters>
+		<div className="flex align-middle rounded-md shadow w-fit h-fit min-h-[38px] p-2 bg-[var(--primary1)] bg-opacity-90">
 			<Modal onClose={reset} onSave={onCloseClick} openText="Add Chart" style={{ marhinTop: '8px' }}>
 				<div style={{ paddingRight: '8px' }}>
-					<FilterRow>
-						<FilterHeader>Select protocol or chain</FilterHeader>
+					<div className="w-[500px] flex justify-between items-center mb-4">
+						<div className="text-sm mx-4 mt-1">Select protocol or chain</div>
 						<span className="w-[300px]">
 							<ReactSelect
 								filterOption={createFilter({ ignoreAccents: false, ignoreCase: false })}
@@ -168,9 +140,9 @@ const ItemsSelect = ({ chains, setItems, setProtocolProps }: Props) => {
 								value={selectedItem}
 							/>
 						</span>
-					</FilterRow>
-					<FilterRow>
-						<FilterHeader>Pick charts</FilterHeader>
+					</div>
+					<div className="w-[500px] flex justify-between items-center mb-4">
+						<div className="text-sm mx-4 mt-1">Pick charts</div>
 						<span className="w-[300px]">
 							<ReactSelect
 								isMulti
@@ -182,10 +154,9 @@ const ItemsSelect = ({ chains, setItems, setProtocolProps }: Props) => {
 								value={selectedCharts}
 							/>
 						</span>
-					</FilterRow>
+					</div>
 				</div>
 			</Modal>
-		</Filters>
+		</div>
 	)
 }
-export default ItemsSelect

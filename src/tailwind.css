@@ -116,7 +116,7 @@
 	}
 
 	#__next,
-	[data-rk] {
+	#__next > [data-rk] {
 		@apply flex flex-col w-full relative min-h-full isolate lg:flex-row;
 	}
 

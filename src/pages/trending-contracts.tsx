@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import Layout from '~/layout'
-import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { VirtualTable } from '~/components/Table/Table'
 import { useDebounce } from '~/hooks/useDebounce'
@@ -114,13 +113,11 @@ export default function TrendingContracts() {
 			</div>
 
 			{isLoading ? (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Loading...
-				</Panel>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">Loading...</p>
 			) : error ? (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
 					Sorry, couldn't fetch trending contracts.
-				</Panel>
+				</p>
 			) : (
 				<VirtualTable instance={instance} />
 			)}

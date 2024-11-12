@@ -1,16 +1,7 @@
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
-
 import { GH_CLIENT_ID } from './lib/constants'
 import useGithubAuth from './queries/useGithubAuth'
 import { Icon } from '~/components/Icon'
-
-const Description = styled.p`
-	margin-top: 10px;
-	color: ${({ theme }) => theme.text2};
-	font-size: 14px;
-	text-align: center;
-`
 
 const SignInWithGithub = () => {
 	const { data: auth } = useGithubAuth()
@@ -28,10 +19,10 @@ const SignInWithGithub = () => {
 				>
 					Log Out ({auth.login}) <Icon name="github" height={24} width={24} />
 				</button>
-				<Description>
+				<p className="text-sm text-center mt-3 text-[var(--text2)]">
 					You are not a contributor. You need to contribute to the DefiLlama project to get free access to the premium
 					API.
-				</Description>
+				</p>
 			</div>
 		)
 	}
@@ -47,7 +38,7 @@ const SignInWithGithub = () => {
 				>
 					Log Out ({auth.login}) <Icon name="github" height={24} width={24} />
 				</button>
-				<Description>You have free access to the premium API.</Description>
+				<p className="text-sm text-center mt-3 text-[var(--text2)]">You have free access to the premium API.</p>
 			</div>
 		)
 	}
@@ -58,7 +49,9 @@ const SignInWithGithub = () => {
 					Sign in with GitHub <Icon name="github" height={24} width={24} />
 				</button>
 			</a>
-			<Description>DefiLlama contributors will have free 3 month access to premium API.</Description>
+			<p className="text-sm text-center mt-3 text-[var(--text2)]">
+				DefiLlama contributors will have free 3 month access to premium API.
+			</p>
 		</div>
 	)
 }

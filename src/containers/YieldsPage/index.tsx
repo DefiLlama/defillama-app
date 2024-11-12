@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Panel } from '~/components'
 import { YieldsPoolsTable } from '~/components/Table/Yields/Pools'
 import { YieldFiltersV2 } from '~/components/Filters/yields'
 import { Announcement } from '~/components/Announcement'
@@ -248,9 +247,9 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 			) : poolsData.length > 0 ? (
 				<YieldsPoolsTable data={poolsData} />
 			) : (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
 					Couldn't find any pools for these filters
-				</Panel>
+				</p>
 			)}
 		</>
 	)

@@ -1,5 +1,4 @@
 import React from 'react'
-import styled from 'styled-components'
 import discordLogo from '~/assets/discord-mark-white.png'
 import useDiscordOAuth from './queries/useDiscordAuth'
 
@@ -13,40 +12,14 @@ const DiscordButton = () => {
 	}
 
 	return (
-		<StyledButton onClick={handleClick}>
-			Join Discord
-			<DiscordLogo src={discordLogo.src} alt="Discord Logo" />
-		</StyledButton>
+		<button
+			onClick={handleClick}
+			className="flex items-center gap-2 bg-[#2172e5] text-white font-bold text-sm px-5 py-3 rounded-xl hover:bg-[#677bc4] disabled:bg-[#a9a9a9]"
+		>
+			<span>Join Discord</span>
+			<img src={discordLogo.src} alt="Discord Logo" height={20} />
+		</button>
 	)
 }
-
-const StyledButton = styled.button`
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: #2172e5;
-	color: #fff;
-	height: 32px;
-	font-size: 0.825rem;
-	font-weight: bold;
-	padding: 10px 20px;
-	border: none;
-	border-radius: 12px;
-	cursor: pointer;
-
-	&:hover {
-		background-color: #677bc4;
-	}
-
-	&:disabled {
-		background-color: #a9a9a9;
-		cursor: not-allowed;
-	}
-`
-
-const DiscordLogo = styled.img`
-	height: 20px;
-	margin-left: 10px;
-`
 
 export default DiscordButton

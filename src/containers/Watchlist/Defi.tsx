@@ -1,6 +1,4 @@
 import { useMemo } from 'react'
-import styled from 'styled-components'
-import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Menu } from '~/components/DropdownMenu'
 import { useIsClient } from '~/hooks'
@@ -14,17 +12,6 @@ import { Icon } from '~/components/Icon'
 interface IFolder {
 	isSaved?: boolean
 }
-
-const Action = styled.button<IFolder>`
-	svg {
-		fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
-
-		path,
-		line {
-			stroke: ${({ theme: { text1 } }) => text1};
-		}
-	}
-`
 
 export function DefiWatchlistContainer() {
 	const [extraTvlsEnabled] = useDefiManager()
@@ -80,26 +67,24 @@ export function DefiWatchlistContainer() {
 					})}
 					onItemClick={(value) => setSelectedPortfolio(value)}
 				/>
-				<Action onClick={addPortfolio}>
+				<button onClick={addPortfolio}>
 					<Icon name="folder-plus" height={24} width={24} />
-				</Action>
+				</button>
 				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
-					<Action onClick={removePortfolio}>
+					<button onClick={removePortfolio}>
 						<Icon name="trash-2" height={24} width={24} />
-					</Action>
+					</button>
 				)}
 			</span>
 
 			{fetchingProtocolsList || fetchingProtocolsVolumeByChain || fetchingProtocolsFeesAndRevenueByChain ? (
-				<Panel>
-					<p style={{ textAlign: 'center' }}>Fetching protocols...</p>
-				</Panel>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">Fetching protocols...</p>
 			) : filteredProtocols.length ? (
 				<ProtocolsByChainTable data={filteredProtocols} />
 			) : (
-				<Panel>
-					<p style={{ textAlign: 'center' }}>You have not saved any protocols.</p>
-				</Panel>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
+					You have not saved any protocols.
+				</p>
 			)}
 		</>
 	)

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import styled from 'styled-components'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { useRouter } from 'next/router'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -12,9 +11,9 @@ import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordi
 import { useState } from 'react'
 import { ChartTypes, SortableItem } from '../Defi/Protocol/ProtocolPro'
 import { groupBy as lodahGroupBy, mapValues } from 'lodash'
-import ItemsSelect, { chainChartOptions, FilterHeader } from './ItemsSelect'
+import { ItemsSelect, chainChartOptions } from './ItemsSelect'
 import { useCompare } from '~/containers/ComparePage'
-import SelectedItem from './SelectedItem'
+import { SelectedItem } from './SelectedItem'
 import { LocalLoader } from '~/components/LocalLoader'
 import { sluggify } from '~/utils/cache-client'
 import { RowFilter } from '~/components/Filters/common/RowFilter'
@@ -24,43 +23,9 @@ import { useVerified } from './hooks/useVerified'
 import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import Subscribe from './Subscribe'
 
-const ChartsBody = styled.div<{ itemsCount }>`
-	width: 100%;
-	display: grid;
-	grid-template-columns: ${({ itemsCount }) => `repeat(${itemsCount >= 2 ? 2 : itemsCount}, 1fr)`};
-	grid-gap: 10px;
-	margin-top: 16px;
-	& > div {
-		height: 100%;
-	}
-	& > div > div {
-		height: 100%;
-	}
-`
-
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart/index'), {
 	ssr: false
 })
-
-export const ChartBody = styled.div`
-	border-radius: 12px;
-	background: ${({ theme }) => theme.bg6};
-	box-shadow: ${({ theme }) => theme.shadowSm};
-	padding-top: 8px;
-	padding: 8px;
-`
-
-export const Filters = styled.div`
-	display: flex;
-	gap: 8px;
-	margin-bottom: 8px;
-`
-
-export const SelectedItems = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-`
 
 const defaultBlocks = [
 	'chain-Ethereum-fees',
@@ -204,7 +169,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 					name: selectedChain === 'All' ? 'All Protocols' : selectedChain
 				}}
 			/>
-			<SelectedItems>
+			<div className="flex flex-wrap gap-2">
 				{Object.entries(itemsByGroups).map(([name, items]) => {
 					return (
 						<SelectedItem
@@ -218,8 +183,8 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 				})}
 
 				<ItemsSelect chains={chainOptions} setItems={setItems} setProtocolProps={setProtocolProps} />
-			</SelectedItems>
-			<Filters>
+			</div>
+			<div className="flex gap-2 mb-2">
 				<RowFilter
 					style={{ width: 'fit-content', height: '100%' }}
 					selectedValue={period as string}
@@ -250,29 +215,32 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 						)
 					}
 				/>
-			</Filters>
-			<LayoutWrapper>
+			</div>
+			<div className="flex flex-col p-3 gap-5 rounded-md border border-wblack/10 dark:border-white/10 bg-white dark:bg-[#090a0b] -mt-3 md:mt-0">
 				{isLoading ? (
 					<div className="flex items-center justify-center m-auto min-h-[360px]">
 						<LocalLoader />
 					</div>
 				) : (
-					<ChartsBody itemsCount={items?.length}>
+					<div
+						className="w-full grid gap-3 mt-4 *:w-full *:*:w-full"
+						style={{ gridTemplateColumns: `repeat(${items?.length >= 2 ? 2 : items.length}, 1fr)` }}
+					>
 						<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 							<SortableContext items={items} strategy={rectSortingStrategy}>
 								{items.map((id, i) => (
 									<SortableItem id={id} key={id + items.length} isTable={id.includes('table')}>
-										<ChartBody>
-											<FilterHeader style={{ fontWeight: 'bold' }}>{getName(id)}</FilterHeader>
+										<div className="rounded-cl p-2 shadow bg-[var(--bg6)]">
+											<div className="font-bold text-sm mx-4 mt-1">{getName(id)}</div>
 											{renderChart(id, i)}
-										</ChartBody>
+										</div>
 									</SortableItem>
 								))}
 							</SortableContext>
 						</DndContext>
-					</ChartsBody>
-				)}{' '}
-			</LayoutWrapper>
+					</div>
+				)}
+			</div>
 		</>
 	)
 
@@ -290,46 +258,23 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 	}
 }
 
-export const LayoutWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	padding: 12px;
-	gap: 20px;
-	background-color: ${({ theme }) => (theme.mode === 'dark' ? '#090a0b' : 'white')};
-	border: ${({ theme }) => '1px solid ' + theme.divider};
-	border-radius: 12px;
-	box-shadow: ${({ theme }) => theme.shadowSm};
+// LayoutWrapper todo styles
+// & > *:last-child {
+// 	background: none;
 
-	& > *:last-child {
-		background: none;
+// 	th,
+// 	td {
+// 		background: ${({ theme }) => (theme.mode === 'dark' ? '#090a0b' : 'white')};
+// 	}
 
-		th,
-		td {
-			background: ${({ theme }) => (theme.mode === 'dark' ? '#090a0b' : 'white')};
-		}
+// 	th:not(:last-child),
+// 	td:not(:last-child) {
+// 		border-right: 1px solid ${({ theme }) => theme.divider};
+// 	}
 
-		th:not(:last-child),
-		td:not(:last-child) {
-			border-right: 1px solid ${({ theme }) => theme.divider};
-		}
+// 	border: ${({ theme }) => '1px solid ' + theme.divider};
 
-		border: ${({ theme }) => '1px solid ' + theme.divider};
-
-		@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-			max-width: calc(100vw - 276px - 40px);
-		}
-	}
-
-	@media (max-width: ${({ theme }) => theme.bpMed}) {
-		margin: -12px;
-	}
-`
-
-export const ChartWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	padding: 16px 0;
-	grid-column: span 1;
-	min-height: 442px;
-`
+// 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+// 		max-width: calc(100vw - 276px - 40px);
+// 	}
+// }

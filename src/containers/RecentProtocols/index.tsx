@@ -1,17 +1,15 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import { FormSubmitBtn, Panel } from '~/components'
+import { FormSubmitBtn } from '~/components'
 import { RecentlyListedProtocolsTable } from '~/components/Table/Defi/Protocols'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { HideForkedProtocols } from '~/components/Filters/protocols/HideForkedProtocols'
 import { FiltersByChain } from '~/components/Filters/common/FiltersByChain'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-
 import { download, getPercentChange } from '~/utils'
 import { ButtonLight } from '~/components/ButtonStyled'
-import styled from 'styled-components'
 import { useDialogState, Dialog } from 'ariakit/dialog'
 import { useMutation } from '@tanstack/react-query'
 import { airdropsEligibilityCheck } from './airdrops'
@@ -188,17 +186,18 @@ export function RecentProtocols({
 			{claimableAirdrops ? (
 				<span className="flex items-center gap-2 flex-wrap">
 					{claimableAirdrops.map((protocol) => (
-						<Button
+						<ButtonLight
 							as="a"
 							href={protocol.page}
 							target="_blank"
 							rel="noreferrer noopener"
 							key={`claim-${protocol.page}`}
-							color="green"
+							color="#008000"
+							style={{ '--btn2-text': '#00ab00' }}
 						>
 							<span>{protocol.name}</span>
 							<Icon name="arrow-up-right" height={14} width={14} />
-						</Button>
+						</ButtonLight>
 					))}
 					<ButtonLight
 						onClick={() => {
@@ -210,65 +209,79 @@ export function RecentProtocols({
 					</ButtonLight>
 					{airdropCheckerDialog.mounted ? (
 						<Dialog state={airdropCheckerDialog} className="dialog">
-							<CloseButton
+							<button
 								onClick={() => {
 									resetEligibilityCheck()
 									airdropCheckerDialog.toggle()
 								}}
+								className="-mb-6 ml-auto"
 							>
 								<Icon name="x" height={20} width={20} />
-							</CloseButton>
+							</button>
 							{eligibleAirdrops ? (
 								eligibleAirdrops.length === 0 ? (
-									<Error>No airdrops detected for this address</Error>
+									<p className="text-red-500 text-center">No airdrops detected for this address</p>
 								) : (
-									<TableWrapper>
+									<div className="isolate relative w-full overflow-auto">
 										{eligibleAirdrops.map((address) => (
-											<AirdropTable key={`airdrop of ${address[0]}`}>
+											<table key={`airdrop of ${address[0]}`} className="border-collapse w-full mt-4 first:mt-0">
 												<thead>
 													<tr>
-														<th colSpan={2}>{address[0]}</th>
+														<th
+															colSpan={2}
+															className="p-2 font-semibold text-center whitespace-nowrap border border-black/10 dark:border-white/10"
+														>
+															{address[0]}
+														</th>
 													</tr>
 													<tr>
-														<th>Protocol Name</th>
-														<th>Token Amount</th>
+														<th className="p-2 font-semibold text-center whitespace-nowrap border border-black/10 dark:border-white/10">
+															Protocol Name
+														</th>
+														<th className="p-2 font-semibold text-center whitespace-nowrap border border-black/10 dark:border-white/10">
+															Token Amount
+														</th>
 													</tr>
 												</thead>
 												<tbody>
 													{address[1].length === 0 ? (
 														<tr>
-															<td colSpan={2}>
-																<Error>No airdrops detected for this address</Error>
+															<td
+																colSpan={2}
+																className="p-2 font-normal text-center whitespace-nowrap border border-black/10 dark:border-white/10"
+															>
+																<p className="text-red-500 text-center">No airdrops detected for this address</p>
 															</td>
 														</tr>
 													) : (
 														address[1].map((airdrop) => (
 															<tr key={`${airdrop.name}:${airdrop.claimableAmount}`}>
-																<th>{airdrop.name}</th>
-																<td>
+																<th className="p-2 font-normal text-center whitespace-nowrap border border-black/10 dark:border-white/10">
+																	{airdrop.name}
+																</th>
+																<td className="p-2 font-normal text-center whitespace-nowrap border border-black/10 dark:border-white/10">
 																	{airdrop.isActive ? (
-																		<span data-claimable={true}>
+																		<span className="flex items-center justify-center gap-2">
 																			<span>{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`}</span>
 																			{airdrop.page ? (
-																				<Button
+																				<ButtonLight
 																					as="a"
 																					href={airdrop.page}
 																					target="_blank"
 																					rel="noreferrer noopener"
 																					key={`claim-${airdrop.page}`}
-																					color="green"
-																					style={{ padding: '2px 6px', fontSize: '12px' }}
+																					className="flex items-center justify-center"
+																					color="#008000"
+																					style={{ padding: '2px 6px', fontSize: '12px', '--btn2-text': '#00ab00' }}
 																				>
 																					<span>Claim</span>
 																					<Icon name="arrow-up-right" height={14} width={14} />
-																				</Button>
+																				</ButtonLight>
 																			) : null}
 																		</span>
 																	) : (
-																		<span data-claimable={false}>
-																			<span>
-																				{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`} - Claim Ended
-																			</span>
+																		<span className="opacity-70">
+																			{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`} - Claim Ended
 																		</span>
 																	)}
 																</td>
@@ -276,9 +289,9 @@ export function RecentProtocols({
 														))
 													)}
 												</tbody>
-											</AirdropTable>
+											</table>
 										))}
-									</TableWrapper>
+									</div>
 								)
 							) : (
 								<form
@@ -311,7 +324,9 @@ export function RecentProtocols({
 										{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
 									</FormSubmitBtn>
 									{errorFetchingEligibleAirdrops ? (
-										<Error>{(errorFetchingEligibleAirdrops as any)?.message ?? 'Failed to fetch'}</Error>
+										<p className="text-red-500 text-center">
+											{(errorFetchingEligibleAirdrops as any)?.message ?? 'Failed to fetch'}
+										</p>
 									) : null}
 								</form>
 							)}
@@ -330,74 +345,13 @@ export function RecentProtocols({
 				{forkedList && <HideForkedProtocols />}
 			</div>
 
-			{protocolsData.length > 0 ? (
+			{protocolsData.length > 0 && false ? (
 				<RecentlyListedProtocolsTable data={protocolsData} />
 			) : (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
 					Couldn't find any protocols for these filters
-				</Panel>
+				</p>
 			)}
 		</Layout>
 	)
 }
-
-export const Button = styled(ButtonLight)`
-	display: flex;
-	gap: 4px;
-	align-items: center;
-	padding: 8px 12px;
-	font-size: 0.875rem;
-	font-weight: 500;
-	white-space: nowrap;
-	font-family: var(--font-inter);
-	color: green;
-`
-
-const CloseButton = styled.button`
-	margin: 0 -8px -16px auto;
-`
-
-const Error = styled.p`
-	color: red;
-	text-align: center;
-`
-
-const AirdropTable = styled.table`
-	border-collapse: collapse;
-	width: 100%;
-
-	th,
-	td {
-		padding: 8px;
-		font-weight: 400;
-		text-align: center;
-		white-space: nowrap;
-		border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
-	}
-
-	td > span {
-		display: flex;
-		justify-content: center;
-		gap: 4px;
-	}
-
-	td > span[data-claimable='false'] {
-		position: relative;
-		opacity: 0.7;
-	}
-
-	thead > tr > th {
-		font-weight: 600;
-	}
-
-	&:not(first-child) {
-		margin-top: 16px;
-	}
-`
-
-const TableWrapper = styled.div`
-	isolation: isolate;
-	position: relative;
-	width: 100%;
-	overflow: auto;
-`

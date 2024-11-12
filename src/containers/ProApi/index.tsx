@@ -1,4 +1,3 @@
-import styled from 'styled-components'
 import React, { useEffect, useRef } from 'react'
 import { useAccount } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
@@ -21,84 +20,17 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import Link from 'next/link'
 import { Icon } from '~/components/Icon'
 
-const Body = styled.div`
-	margin-top: 120px;
-	text-align: center;
-	display: flex;
-	justify-content: center;
-	flex-direction: column;
-	align-items: center;
-	margin: 0 auto;
-`
-
-const Content = styled.div`
-	margin-top: 16px;
-	display: grid;
-	gap: 16px;
-`
-
-const ListBody = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	align-items: center;
-`
-
-const ListItem = styled.div`
-	display: flex;
-	gap: 8px;
-	font-size: 16px;
-	align-items: center;
-`
-
-const PricePerMonth = styled.div`
-	font-size: 32px;
-	font-weight: bold;
-`
-
 interface Props {
 	price: number
 }
 
 const PriceComponent: React.FC<Props> = ({ price }) => {
 	return (
-		<PricePerMonth>
+		<div className="font-bold text-3xl">
 			<span style={{ color: 'gray' }}>{price}$</span> / <span style={{ fontSize: '18px' }}>month</span>
-		</PricePerMonth>
+		</div>
 	)
 }
-
-export const Box = styled.div`
-	display: flex;
-	flex-direction: column;
-	font-size: 16px;
-	width: 100%;
-	border-radius: 10px;
-	transition: all 0.3s ease;
-	padding: 16px;
-	background-color: ${({ theme }) => theme.bg1};
-	color: ${({ theme }) => theme.text1};
-	gap: 16px;
-`
-
-const Input = styled.input`
-	padding: 10px;
-	border: none;
-	border-radius: 10px;
-	height: 32px;
-	color: ${({ theme }) => theme.text1};
-	background-color: ${({ theme }) => theme.bg7};
-
-	&:focus {
-		outline: none;
-	}
-
-	&::placeholder {
-		color: ${({ theme }) => theme.text3};
-	}
-
-	width: 200px;
-`
 
 const ProApi = () => {
 	const wallet = useAccount()
@@ -154,12 +86,11 @@ const ProApi = () => {
 	}, [isSubscribed])
 
 	return (
-		<Body>
+		<div className="flex flex-col justify-center items-center mx-auto mt-3 text-center">
 			<img src={logo.src} width="120px" height="120px" alt="logo" />
-			<Content>
-				<div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-					<h1>DefiLlama Pro API</h1>
-				</div>
+			<div className="grid gap-4 mt-4">
+				<h1>DefiLlama Pro API</h1>
+
 				{authToken && isSubscribed ? null : (
 					<>
 						<PriceComponent price={subscriptionAmount} />
@@ -168,11 +99,11 @@ const ProApi = () => {
 				)}
 
 				{ghAuth?.login ? (
-					<Box>
+					<div className="flex flex-col text-base w-full rounded-md p-4 bg-[var(--bg1)] gap-4">
 						<SignInWithGithub />
-					</Box>
+					</div>
 				) : authToken && isSubscribed ? null : (
-					<Box>
+					<div className="flex flex-col text-base w-full rounded-md p-4 bg-[var(--bg1)] gap-4">
 						{isSubscribed ? (
 							<button
 								onClick={() => {
@@ -197,20 +128,24 @@ const ProApi = () => {
 								<SignInWithGithub />
 							</>
 						)}
-					</Box>
+					</div>
 				)}
 
 				{!authToken || !(isSubscribed || ghAuth?.isContributor) ? (
 					<>
 						<h2>Pricing:</h2>
-						<TableWrapper>
-							<PricingTable>
+						<div className="overflow-auto text-center">
+							<table className="border-collapse">
 								<tbody>
 									<tr>
-										<th></th>
-										<th>Free</th>
-										<th>300$/mo</th>
-										<th>
+										<th className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]"></th>
+										<th className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Free
+										</th>
+										<th className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											300$/mo
+										</th>
+										<th className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
 											<span className="flex items-center gap-2">
 												Github Contributor
 												<QuestionHelper text="Only available to users who have contributed to DefiLlama repos, lasts for 3 months" />
@@ -218,43 +153,81 @@ const ProApi = () => {
 										</th>
 									</tr>
 									<tr>
-										<td>Access to TVL, revenue/fees and prices</td>
-										<td>Yes</td>
-										<td>Yes</td>
-										<td>Yes</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Access to TVL, revenue/fees and prices
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Yes
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Yes
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Yes
+										</td>
 									</tr>
 									<tr>
-										<td>Access to all data (unlocks, active users, token liq...)</td>
-										<td>No</td>
-										<td>Yes</td>
-										<td>Yes</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Access to all data (unlocks, active users, token liq...)
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											No
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Yes
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Yes
+										</td>
 									</tr>
 									<tr>
-										<td>Rate limits</td>
-										<td>10-200 reqs/minute</td>
-										<td>1k reqs/minute</td>
-										<td>1k reqs/minute</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Rate limits
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											10-200 reqs/minute
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											1k reqs/minute
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											1k reqs/minute
+										</td>
 									</tr>
 									<tr>
-										<td>Credits</td>
-										<td></td>
-										<td>1M calls/month</td>
-										<td>200k calls/month</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Credits
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]"></td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											1M calls/month
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											200k calls/month
+										</td>
 									</tr>
 									<tr>
-										<td>Support</td>
-										<td>Public discord</td>
-										<td>Priority support</td>
-										<td>Priority support</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Support
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Public discord
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Priority support
+										</td>
+										<td className="p-3 whitespace-nowrap border border-black/10 dark:border-white/10 bg-[var(--bg1)] text-[var(--text1)]">
+											Priority support
+										</td>
 									</tr>
 								</tbody>
-							</PricingTable>
+							</table>
 							<Link href="/pro-api/docs" passHref>
 								<a className="text-[var(--blue)] underline">
 									Click here a full lists of all endpoints available in Pro
 								</a>
 							</Link>
-						</TableWrapper>
+						</div>
 					</>
 				) : (
 					<>
@@ -262,7 +235,7 @@ const ProApi = () => {
 							<h2>API Key</h2>
 						</div>
 
-						<Box>
+						<div className="flex flex-col text-base w-full rounded-md p-4 bg-[var(--bg1)] gap-4">
 							<div style={{ display: 'flex' }}>
 								<h4>API Key</h4>: {apiKey || '-'}
 								<span
@@ -304,7 +277,7 @@ const ProApi = () => {
 									</ButtonDark>
 								</div>
 							)}
-						</Box>
+						</div>
 
 						{ghAuth?.login ? null : (
 							<>
@@ -312,7 +285,7 @@ const ProApi = () => {
 									<h2>Personal Info</h2>
 								</div>
 
-								<Box>
+								<div className="flex flex-col text-base w-full rounded-md p-4 bg-[var(--bg1)] gap-4">
 									<div style={{ display: 'flex' }}>
 										<h4>Address</h4>: {wallet?.address}
 										<span
@@ -327,7 +300,12 @@ const ProApi = () => {
 									<div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
 										<h4>Email:</h4>
 										<div style={{ display: 'flex', gap: '8px' }}>
-											<Input placeholder="Add Email..." value={email} onChange={(e) => setEmail(e.target.value)} />{' '}
+											<input
+												placeholder="Add Email..."
+												value={email}
+												onChange={(e) => setEmail(e.target.value)}
+												className="p-[10px] border-none border-[10px] h-8 text-[var(--text1)] bg-[var(--bg7)] placeholder:text-[var(--text3)] w-full max-w-52"
+											/>{' '}
 											<ButtonDark onClick={() => saveEmail({ email, authToken })}>Save</ButtonDark>
 										</div>
 									</div>
@@ -339,32 +317,16 @@ const ProApi = () => {
 									<div style={{ display: 'flex', gap: '8px' }}>
 										<DiscordButton />
 									</div>
-								</Box>
+								</div>
 							</>
 						)}
 
 						{subs?.length ? <Subscriptions startPayment={startPayment} /> : null}
 					</>
 				)}
-			</Content>
-		</Body>
+			</div>
+		</div>
 	)
 }
-
-const TableWrapper = styled.div`
-	overflow: auto;
-`
-const PricingTable = styled.table`
-	border-collapse: collapse;
-
-	th,
-	td {
-		padding: 12px;
-		background-color: ${({ theme }) => theme.bg1};
-		color: ${({ theme }) => theme.text1};
-		border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? theme.bg2 : theme.bg3)};
-		white-space: nowrap;
-	}
-`
 
 export default ProApi

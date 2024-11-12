@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Panel } from '~/components'
 import { OverviewTable } from '~/components/Table/Adaptors'
 import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
@@ -305,11 +304,9 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					selectedCategories={selectedCategories}
 				/>
 			) : (
-				<Panel>
-					<p style={{ textAlign: 'center' }}>
-						{`Looks like we couldn't find any protocol👀. 🦙🦙🦙 are working on it.`}
-					</p>
-				</Panel>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
+					{`Looks like we couldn't find any protocol👀. 🦙🦙🦙 are working on it.`}
+				</p>
 			)}
 		</>
 	)

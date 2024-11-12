@@ -1,4 +1,3 @@
-import * as React from 'react'
 import styled from 'styled-components'
 import { CheckboxCheck } from 'ariakit'
 import { BasicLink } from '~/components/Link'
@@ -15,30 +14,6 @@ export const Panel = styled.div`
 	border-radius: 8px;
 	border: 1px solid ${({ theme }) => theme.bg3};
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
-`
-
-export const PanelThicc = styled(Panel)`
-	display: none;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-
-	@media (min-width: 80rem) {
-		display: flex;
-	}
-`
-
-export const PanelSmol = styled(Panel)`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-
-	@media (min-width: 80rem) {
-		display: none;
-	}
 `
 
 export const ChartAndValuesWrapper = styled.div`
@@ -92,27 +67,6 @@ export const BreakpointPanel = styled(Panel)`
 export const PanelHiddenMobile = styled(BreakpointPanel)`
 	@media screen and (max-width: 50rem) {
 		display: none;
-	}
-`
-
-export const Divider = () => <hr className="border-[rgba(43,43,43,0.035)] dark:border-[rgba(43,43,43,0.435)]" />
-
-export const IconWrapper = styled.div`
-	position: absolute;
-	right: 0;
-	border-radius: 3px;
-	height: 16px;
-	width: 16px;
-	padding: 0px;
-	bottom: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: ${({ theme }) => theme.text1};
-
-	:hover {
-		cursor: pointer;
-		opacity: 0.7;
 	}
 `
 

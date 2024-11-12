@@ -10,7 +10,6 @@ import {
 	ColumnOrderState,
 	ColumnFiltersState
 } from '@tanstack/react-table'
-import styled from 'styled-components'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { VirtualTable } from '~/components/Table/Table'
@@ -105,15 +104,6 @@ function RaisesTable({ raises, downloadCsv }) {
 		</>
 	)
 }
-
-export const DownloadButton = styled.button`
-	font-size: 0.875rem;
-	display: flex;
-	align-items: center;
-	background: ${({ theme }) => theme.bg3};
-	padding: 4px 6px;
-	border-radius: 6px;
-`
 
 export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname } = useRouter()

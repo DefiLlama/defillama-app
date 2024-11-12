@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Panel } from '~/components'
 import { YieldsBorrowTable } from '~/components/Table/Yields/Borrow'
 import { YieldFiltersV2 } from '~/components/Filters/yields'
 import { useFormatYieldQueryParams } from './hooks'
@@ -98,9 +97,9 @@ const YieldPageBorrow = ({ pools, projectList, chainList, categoryList, tokens, 
 			{poolsData.length > 0 ? (
 				<YieldsBorrowTable data={poolsData} />
 			) : (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
 					Couldn't find any pools for these filters
-				</Panel>
+				</p>
 			)}
 		</>
 	)

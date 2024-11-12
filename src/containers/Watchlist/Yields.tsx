@@ -1,6 +1,4 @@
 import { useMemo } from 'react'
-import styled from 'styled-components'
-import { Panel } from '~/components'
 import { Menu } from '~/components/DropdownMenu'
 import { YieldsPoolsTable } from '~/components/Table/Yields/Pools'
 import { useIsClient } from '~/hooks'
@@ -8,21 +6,6 @@ import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
 import { OptionToggle } from '~/components/OptionToggle'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
-
-interface IFolder {
-	isSaved?: boolean
-}
-
-const Action = styled.button<IFolder>`
-	svg {
-		fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
-
-		path,
-		line {
-			stroke: ${({ theme: { text1 } }) => text1};
-		}
-	}
-`
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()
@@ -97,13 +80,13 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 			<span className="flex items-center flex-wrap gap-4 mt-3 -mb-5">
 				<h2>Current portfolio:</h2>
 				<Menu name={selectedPortfolio} options={portfolios} onItemClick={(value) => setSelectedPortfolio(value)} />
-				<Action onClick={addPortfolio}>
+				<button onClick={addPortfolio}>
 					<Icon name="folder-plus" height={24} width={24} />
-				</Action>
+				</button>
 				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
-					<Action onClick={removePortfolio}>
+					<button onClick={removePortfolio}>
 						<Icon name="trash-2" height={24} width={24} />
-					</Action>
+					</button>
 				)}
 
 				<OptionToggle
@@ -229,9 +212,9 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 			{filteredProtocols.length ? (
 				<YieldsPoolsTable data={filteredProtocols} />
 			) : (
-				<Panel>
-					<p style={{ textAlign: 'center' }}>You have not saved any pools.</p>
-				</Panel>
+				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
+					You have not saved any pools.
+				</p>
 			)}
 		</>
 	)

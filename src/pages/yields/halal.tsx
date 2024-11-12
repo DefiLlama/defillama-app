@@ -92,7 +92,6 @@ const blackListedTokens = ['AUSDT', 'OUSD', 'AUSDC']
 
 import { useState } from 'react'
 import Layout from '~/layout'
-import { PanelThicc } from '~/components'
 import YieldPage from '~/containers/YieldsPage'
 import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/containers/YieldsPage/utils'
@@ -131,7 +130,7 @@ export default function YieldPlots(data) {
 	return (
 		<Layout title={`Halal - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<PanelThicc as="p" style={{ whiteSpace: 'pre-line', display: 'block' }}>
+			<p className="border border-black/10 dark:border-white/10 p-5 rounded-md whitespace-pre-line text-center">
 				This list aims to a practical tracker for halal defi yields.
 				<br />
 				Shariah-compliant defi is pretty subjective so our approach is to be practical and list DEXs, yield farming and
@@ -146,7 +145,7 @@ export default function YieldPlots(data) {
 					Full explanation of methodology
 				</button>
 				{methodologyActivated && methodologyMessage}
-			</PanelThicc>
+			</p>
 			<YieldPage {...data} />
 		</Layout>
 	)

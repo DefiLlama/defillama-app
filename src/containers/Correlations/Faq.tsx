@@ -1,7 +1,5 @@
-import { Panel } from '~/components'
-
 export const FAQ = () => (
-	<Panel className="mx-auto max-w-xl flex flex-col gap-4">
+	<div className="mx-auto max-w-xl flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
 		<div className="flex flex-col gap-1">
 			<h2 className="font-semibold text-lg">Correlation</h2>
 			Positively correlated variables tend to move together, negatively correlated variables move inversely to each
@@ -28,5 +26,5 @@ export const FAQ = () => (
 			<h2 className="font-semibold text-lg">Zero</h2>
 			<p>A value of 0 indicates no correlation between two variables.</p>
 		</div>
-	</Panel>
+	</div>
 )

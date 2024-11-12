@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import Layout from '~/layout'
-import { PanelThicc } from '~/components'
 import YieldPageLoop from '~/containers/YieldsPage/indexLoop'
 import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/containers/YieldsPage/utils'
@@ -63,7 +62,7 @@ export default function YieldBorrow(data) {
 		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
 
-			<PanelThicc as="p" style={{ whiteSpace: 'pre-line', display: 'block' }}>
+			<p className="border border-black/10 dark:border-white/10 p-5 rounded-md whitespace-pre-line text-center">
 				This page displays leveraged lending APY values. The way this works:
 				<br />
 				1. deposit collateral amount N into pool X
@@ -78,7 +77,7 @@ export default function YieldBorrow(data) {
 					Example
 				</button>
 				{methodologyActivated && methodologyMessage}
-			</PanelThicc>
+			</p>
 			<YieldPageLoop {...data} />
 		</Layout>
 	)
