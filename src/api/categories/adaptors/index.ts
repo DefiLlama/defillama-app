@@ -265,9 +265,6 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		const emission30d = emissionBreakdown?.[slugName]?.emission30d ?? null
 
 		const protocolBribes = bribesData?.protocols?.find(({ name }) => name === protocol.name)
-		const bribes24h = protocolBribes?.total24h
-		const bribes7d = protocolBribes?.total7d
-		const bribes30d = protocolBribes?.total30d
 
 		const holdersRev = holderRevenueProtocols?.[protocol.name]
 
@@ -285,9 +282,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			emission24h: emission24h ?? null,
 			emission7d: emission7d ?? null,
 			emission30d: emission30d ?? null,
-			bribes24h: bribes24h ?? null,
-			bribes7d: bribes7d ?? null,
-			bribes30d: bribes30d ?? null,
+			bribes24h: protocolBribes?.total24h ?? null,
+			bribes7d: protocolBribes?.total7d ?? null,
+			bribes30d: protocolBribes?.total30d ?? null,
 			dailyHoldersRevenue: holdersRev?.total24h ?? null,
 			netEarnings24h:
 				emission24h !== 0 && emission24h ? revenueProtocols?.[protocol.name]?.total24h - emission24h : null,
@@ -408,7 +405,7 @@ export const groupProtocolsByParent = ({
 			mainRow.dailyPremiumVolume = subRows.reduce(reduceSumByAttribute('dailyPremiumVolume'), null)
 			mainRow.dailyProtocolRevenue = subRows.reduce(reduceSumByAttribute('dailyProtocolRevenue'), null)
 			mainRow.dailySupplySideRevenue = subRows.reduce(reduceSumByAttribute('dailySupplySideRevenue'), null)
-			mainRow.dailyBribesRevenue = subRows.reduce(reduceSumByAttribute('dailyBribesRevenue'), null)
+			mainRow.bribes24h = subRows.reduce(reduceSumByAttribute('bribes24h'), null)
 
 			mainRow.mcap = subRows.reduce(reduceSumByAttribute('mcap'), null)
 			mainRow.chains = getUniqueArray(subRows.map((d) => d.chains).flat())
@@ -442,13 +439,13 @@ export const groupProtocolsByParent = ({
 			if (revenue24h && !Number.isNaN(Number(revenue24h))) {
 				revenue24h =
 					+revenue24h +
-					(enabledSettings.bribes ? mainRow.dailyBribesRevenue ?? 0 : 0) +
+					(enabledSettings.bribes ? mainRow.bribes24h ?? 0 : 0) +
 					(enabledSettings.tokentax ? mainRow.dailyTokenTaxes ?? 0 : 0)
 				revenue7d = +revenue7d + (enabledSettings.bribes ? mainRow.bribes7d ?? 0 : 0)
 				revenue30d = +revenue30d + (enabledSettings.bribes ? mainRow.bribes30d ?? 0 : 0)
 			}
 			if (dailyHoldersRevenue && !Number.isNaN(Number(dailyHoldersRevenue))) {
-				dailyHoldersRevenue = +dailyHoldersRevenue + (enabledSettings.bribes ? mainRow.dailyBribesRevenue ?? 0 : 0)
+				dailyHoldersRevenue = +dailyHoldersRevenue + (enabledSettings.bribes ? mainRow.bribes24h ?? 0 : 0)
 			}
 
 			mainRow.revenue24h = revenue24h
