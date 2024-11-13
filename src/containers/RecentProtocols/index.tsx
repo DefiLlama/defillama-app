@@ -345,7 +345,7 @@ export function RecentProtocols({
 				{forkedList && <HideForkedProtocols />}
 			</div>
 
-			{protocolsData.length > 0 && false ? (
+			{protocolsData.length > 0 ? (
 				<RecentlyListedProtocolsTable data={protocolsData} />
 			) : (
 				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
