@@ -19,7 +19,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { last } from 'lodash'
 import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
-import { ControlsWrapper, DataWrapper, Grid } from './styles'
+// import { ControlsWrapper, DataWrapper, Grid } from './styles'
 import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
 import { Icon } from '~/components/Icon'
 
@@ -208,7 +208,7 @@ function ComparePage() {
 					name: 'Open Protocol'
 				}}
 			/>
-			<ControlsWrapper>
+			<div className="w-full max-w-fit flex items-center gap-2">
 				<h2>Compare chains: </h2>
 
 				<ReactSelect
@@ -223,10 +223,10 @@ function ComparePage() {
 					components={components}
 					placeholder="Select Chains..."
 				/>
-			</ControlsWrapper>
+			</div>
 
-			<DataWrapper>
-				<BreakpointPanel id="chartWrapper" style={{ minHeight: '430px' }}>
+			<div className="flex flex-col gap-2 relative">
+				<BreakpointPanel id="chartWrapper" style={{ minHeight: '438px' }}>
 					<div className="mb-auto flex items-center gap-2 ml-auto">
 						{[
 							{
@@ -290,7 +290,7 @@ function ComparePage() {
 						<ChainChart title="" datasets={data?.data} isThemeDark={isDark} />
 					)}
 				</BreakpointPanel>
-				<Grid>
+				<div className="grid grid-cols-1 xl:grid-cols-2 grow gap-2">
 					{data?.data.filter(Boolean)?.map((chainData, i) => {
 						return (
 							<div
@@ -508,8 +508,8 @@ function ComparePage() {
 							</div>
 						)
 					})}
-				</Grid>
-			</DataWrapper>
+				</div>
+			</div>
 		</>
 	)
 }

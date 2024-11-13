@@ -1,5 +1,5 @@
 import { SelectItem } from 'ariakit/select'
-import { Checkbox } from '~/components'
+import { Checkbox } from '~/components/Checkbox'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 

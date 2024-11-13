@@ -1,6 +1,5 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import { Checkbox } from 'ariakit'
-
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'

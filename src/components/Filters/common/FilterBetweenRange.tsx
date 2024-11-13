@@ -1,6 +1,5 @@
 import { FormEventHandler, ReactNode } from 'react'
 import { MenuButtonArrow } from 'ariakit/menu'
-import { ApplyFilters } from '~/components'
 import { Popover } from '~/components/Popover'
 import { SlidingMenu } from '~/components/SlidingMenu'
 
@@ -22,7 +21,7 @@ export function FilterBetweenRange({ name, header, onSubmit, variant = 'primary'
 						<input
 							type="number"
 							name="min"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
 						/>
 					</label>
 					<label className="flex flex-col gap-1 m-3 mb-0">
@@ -30,10 +29,12 @@ export function FilterBetweenRange({ name, header, onSubmit, variant = 'primary'
 						<input
 							type="number"
 							name="max"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
 						/>
 					</label>
-					<ApplyFilters>Apply Filter</ApplyFilters>
+					<button className="p-3 mt-3 bg-[#2172e5] text-white rounded-b-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50">
+						Apply Filter
+					</button>
 				</form>
 			</SlidingMenu>
 		)
@@ -55,7 +56,7 @@ export function FilterBetweenRange({ name, header, onSubmit, variant = 'primary'
 							<input
 								type="number"
 								name="min"
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
 							/>
 						</label>
 						<label className="flex flex-col gap-1 m-3 mb-0">
@@ -63,10 +64,12 @@ export function FilterBetweenRange({ name, header, onSubmit, variant = 'primary'
 							<input
 								type="number"
 								name="max"
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
 							/>
 						</label>
-						<ApplyFilters>Apply Filter</ApplyFilters>
+						<button className="p-3 mt-3 bg-[#2172e5] text-white rounded-b-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50">
+							Apply Filter
+						</button>
 					</form>
 				</div>
 			}

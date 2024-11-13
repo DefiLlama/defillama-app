@@ -1,26 +1,21 @@
 import * as React from 'react'
 
-import styled from 'styled-components'
-
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-
-const SortbaleBody = styled.div<{ isTable: boolean }>`
-	cursor: pointer;
-	grid-column: ${({ isTable }) => (isTable ? '1/-1' : 'auto')};
-`
 
 export function SortableItem(props) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: props.id })
 	const style = {
 		transform: CSS.Translate.toString(transform),
-		transition
+		transition,
+		cursor: 'pointer',
+		gridColumn: props.isTable ? '1/-1' : 'auto'
 	}
 
 	return (
-		<SortbaleBody ref={setNodeRef} style={style} {...props} {...attributes} {...listeners}>
+		<div ref={setNodeRef} style={style} {...props} {...attributes} {...listeners}>
 			{props.children}
-		</SortbaleBody>
+		</div>
 	)
 }
 export const ChartTypes = {

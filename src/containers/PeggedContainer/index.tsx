@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic'
 import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
-import { Checkbox2 } from '~/components'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { FormattedName } from '~/components/FormattedName'
@@ -244,7 +243,7 @@ export const PeggedAssetInfo = ({
 											<tr key={option}>
 												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
 													<label className="flex items-center gap-2 cursor-pointer">
-														<Checkbox2
+														<input
 															type="checkbox"
 															value={option}
 															checked={extraPeggedsEnabled[option]}

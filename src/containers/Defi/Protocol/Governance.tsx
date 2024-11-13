@@ -1,5 +1,4 @@
 import * as React from 'react'
-import styled from 'styled-components'
 import { toNiceDayMonthAndYear, formattedNum } from '~/utils'
 import {
 	useReactTable,
@@ -198,20 +197,6 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 	) : null
 }
 
-const TableWrapper = styled(VirtualTable)`
-	table {
-		table-layout: auto;
-
-		tr > :first-child {
-			position: relative;
-		}
-
-		td > a {
-			text-decoration: underline;
-		}
-	}
-`
-
 interface IProposal {
 	title: string
 	state: 'open' | 'closed'
@@ -303,7 +288,12 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 		id: 'state',
 		accessorFn: (row) => (row.state === 'closed' ? 0 : 1),
 		cell: (info) => (
-			<State data-isactive={info.getValue() === 0 ? false : true}>{info.getValue() === 0 ? 'Closed' : 'Active'}</State>
+			<span
+				data-isactive={info.getValue() === 0 ? false : true}
+				className="text-[#f85149] data-[isactive=true]:text-[#3fb950]"
+			>
+				{info.getValue() === 0 ? 'Closed' : 'Active'}
+			</span>
 		),
 		meta: { align: 'end' }
 	},
@@ -389,10 +379,4 @@ const proposalsTallyColumns: ColumnDef<IProposal>[] = [
 	}
 ]
 
-const State = styled.span`
-	&[data-isactive='false'] {
-		color: #f85149;
-	}
-	color: #3fb950;
-`
 const formatText = (text: string, length) => (text.length > length ? text.slice(0, length + 1) + '...' : text)

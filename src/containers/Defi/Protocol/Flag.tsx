@@ -1,6 +1,5 @@
 import { useDialogState, Dialog } from 'ariakit/dialog'
 import { useState } from 'react'
-import { FormSubmitBtn } from '~/components'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 
@@ -88,7 +87,7 @@ export function Flag({
 								name="protocol"
 								value={protocol}
 								disabled
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
 							/>
 						</label>
 						<label className="flex flex-col gap-1">
@@ -98,12 +97,12 @@ export function Flag({
 									name="dataType"
 									value={dataType}
 									disabled
-									className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+									className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
 								/>
 							) : (
 								<select
 									name="dataType"
-									className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+									className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
 								>
 									<option value="TVL">TVL</option>
 									<option value="Mcap">Mcap</option>
@@ -135,19 +134,23 @@ export function Flag({
 							<span>What's wrong about it? (optional)</span>
 							<textarea
 								name="message"
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
 							/>
 						</label>
 						<label className="flex flex-col gap-1">
 							<span>Where can we find correct information? (optional)</span>
 							<textarea
 								name="correctSource"
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
 							/>
 						</label>
-						<FormSubmitBtn name="submit-btn" disabled={loading}>
+						<button
+							name="submit-btn"
+							disabled={loading}
+							className="p-3 mt-3 bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+						>
 							Report
-						</FormSubmitBtn>
+						</button>
 						{error && (
 							<small style={{ textAlign: 'center', color: 'red' }}>Something went wrong, couldn't submit report</small>
 						)}

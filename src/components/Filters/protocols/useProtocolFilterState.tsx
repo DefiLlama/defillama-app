@@ -1,5 +1,4 @@
 import { useSelectState } from 'ariakit'
-import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { useDefiManager, useFeesManager, useTvlAndFeesManager } from '~/contexts/LocalStorage'
 import { feesOptions, protocolsAndChainsOptions } from './options'
 
@@ -48,15 +47,11 @@ export function useFeesFilterState(props?: { [key: string]: any }) {
 		}
 	}
 
-	const [isLarge, renderCallback] = useSetPopoverStyles()
-
 	const select = useSelectState({
 		value: selectedOptions,
 		setValue: onChange,
 		defaultValue: selectedOptions,
 		gutter: 6,
-		animated: isLarge ? false : true,
-		renderCallback,
 		...props
 	})
 
@@ -88,16 +83,11 @@ export function useTvlAndFeesFilterState({
 		}
 	}
 
-	const [isLarge, renderCallback] = useSetPopoverStyles()
-
 	const select = useSelectState({
 		value: selectedOptions,
 		setValue: onChange,
 		defaultValue: selectedOptions,
-		gutter: 6,
-		animated: isLarge ? false : true,
-		renderCallback,
-		sameWidth: true
+		gutter: 6
 	})
 
 	return select

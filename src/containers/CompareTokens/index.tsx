@@ -434,59 +434,6 @@ const Wrapper2 = styled.div`
 	gap: 16px;
 `
 
-// const Option = (props) => {
-// 	return (
-// 		<components.Option {...props}>
-// 			<Image
-// 				alt={''}
-// 				src={props.data.image}
-// 				height={'20px'}
-// 				width={'20px'}
-// 				loading="lazy"
-// 				onError={(e) => {
-// 					e.currentTarget.src = '/placeholder.png'
-// 				}}
-// 			/>
-// 			<span>{props.children}</span>
-// 		</components.Option>
-// 	)
-// }
-
-// const SingleValue = (props) => {
-// 	return (
-// 		<components.SingleValue {...props}>
-// 			<Image
-// 				alt={''}
-// 				src={props.data.image}
-// 				height={'20px'}
-// 				width={'20px'}
-// 				loading="lazy"
-// 				onError={(e) => {
-// 					e.currentTarget.src = '/placeholder.png'
-// 				}}
-// 			/>
-// 			<span>{props.children}</span>
-// 		</components.SingleValue>
-// 	)
-// }
-
-// const Menu = (props) => {
-// 	// console.log({ props })
-// 	// const rowVirtualizer = useVirtualizer({
-// 	// 	count: props.option.length,
-// 	// 	getScrollElement: () => props.innerRef.current,
-// 	// 	estimateSize: () => 50
-// 	// })
-// 	return <components.Menu {...props} />
-// }
-
-// mcap
-// fdv
-// tvl
-// volume
-// revenue
-// fees
-
 const compareTypes = [
 	{ label: 'Mcap', value: 'mcap' },
 	{ label: 'FDV', value: 'fdv' },

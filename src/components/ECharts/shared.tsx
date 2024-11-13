@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useSelectState, SelectArrow, SelectPopover, Select, SelectItem } from 'ariakit/select'
-import { Checkbox } from '~/components'
+import { Checkbox } from '~/components/Checkbox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { Combobox, ComboboxList, useComboboxState } from 'ariakit/combobox'
 import { useRouter } from 'next/router'

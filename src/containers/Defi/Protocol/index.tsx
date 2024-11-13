@@ -6,7 +6,6 @@ import { useRouter } from 'next/router'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { LazyChart } from '~/components/LazyChart'
-import { Checkbox2 } from '~/components'
 import { Bookmark } from '~/components/Bookmark'
 import { CopyHelper } from '~/components/Copy'
 import { FormattedName } from '~/components/FormattedName'
@@ -625,7 +624,7 @@ function ProtocolContainer({
 														<tr key={option + value}>
 															<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
 																<label className="flex items-center gap-2 cursor-pointer">
-																	<Checkbox2
+																	<input
 																		type="checkbox"
 																		value={option}
 																		checked={extraTvlsEnabled[option]}

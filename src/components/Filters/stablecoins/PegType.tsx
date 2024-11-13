@@ -1,6 +1,6 @@
 import { Select, SelectPopover, SelectArrow, useSelectState, SelectItem } from 'ariakit/select'
 import { useRouter } from 'next/router'
-import { Checkbox } from '~/components'
+import { Checkbox } from '~/components/Checkbox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 import { Tooltip } from '~/components/Tooltip'

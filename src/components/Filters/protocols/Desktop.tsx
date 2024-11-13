@@ -1,5 +1,5 @@
 import { Select, SelectArrow, SelectItem, SelectPopover } from 'ariakit/select'
-import { Checkbox } from '~/components'
+import { Checkbox } from '~/components/Checkbox'
 import { useDefiManager, useFeesManager, useTvlAndFeesManager } from '~/contexts/LocalStorage'
 import { feesOptions, protocolsAndChainsOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'

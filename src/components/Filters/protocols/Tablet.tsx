@@ -1,5 +1,5 @@
 import { SelectLabel, Select, SelectArrow, SelectItem, SelectPopover } from 'ariakit/select'
-import { Checkbox } from '~/components'
+import { Checkbox } from '~/components/Checkbox'
 import { feesOptions, protocolsAndChainsOptions } from './options'
 import { useFeesFilterState, useProtocolsFilterState, useTvlAndFeesFilterState } from './useProtocolFilterState'
 import { Tooltip } from '~/components/Tooltip'

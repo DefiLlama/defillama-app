@@ -1,7 +1,7 @@
 import { MutableRefObject, useMemo, useState } from 'react'
 import { useDebounce } from '~/hooks/useDebounce'
 import { SelectItem } from 'ariakit/select'
-import { Checkbox } from '~/components'
+import { Checkbox } from '~/components/Checkbox'
 import { slug } from '~/utils'
 
 interface ISelectContent {

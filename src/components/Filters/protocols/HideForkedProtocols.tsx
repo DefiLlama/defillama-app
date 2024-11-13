@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import { Checkbox2 } from '~/components'
 
 export function HideForkedProtocols() {
 	const router = useRouter()
@@ -23,7 +22,7 @@ export function HideForkedProtocols() {
 	}
 	return (
 		<label className="flex items-center gap-1 cursor-pointer">
-			<Checkbox2 type="checkbox" value="hideForks" checked={!toHide} onChange={hide} />
+			<input type="checkbox" value="hideForks" checked={!toHide} onChange={hide} />
 			<span>Hide Forked Protocols</span>
 		</label>
 	)
