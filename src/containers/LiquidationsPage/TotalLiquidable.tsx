@@ -2,7 +2,6 @@ import * as React from 'react'
 import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { useStackBy } from './utils'
 import { LiquidationsContext } from '~/containers/LiquidationsPage/context'
-import { DownloadButtonSmol } from './DownloadButton'
 
 export const TotalLiquidable = (props: ChartData) => {
 	const stackBy = useStackBy()
@@ -25,7 +24,6 @@ export const TotalLiquidable = (props: ChartData) => {
 		<>
 			<h1>Total Liquidatable (USD)</h1>
 			<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>${totalLiquidable}</p>
-			<DownloadButtonSmol symbol={props.symbol} />
 		</>
 	)
 }

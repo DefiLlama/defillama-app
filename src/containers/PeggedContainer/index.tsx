@@ -4,7 +4,6 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
 import { transparentize } from 'polished'
-import styled from 'styled-components'
 import Layout from '~/layout'
 import { Checkbox2 } from '~/components'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
@@ -49,78 +48,6 @@ const risksHelperTexts = {
 	'crypto-backed':
 		'Crypto-backed assets are backed by cryptoassets locked in a smart contract as collateral. Risks of crypto-backed assets include smart contract risk, collateral volatility and liquidation, and de-pegging.'
 }
-
-const TabContainer = styled(TabList)`
-	display: flex;
-
-	& > *:first-child {
-		border-top-left-radius: 12px;
-	}
-
-	& > :nth-child(3) {
-		border-top-right-radius: 12px;
-	}
-
-	@media screen and (min-width: 80rem) {
-		& > :nth-child(3) {
-			border-top-right-radius: 0px;
-		}
-	}
-`
-
-const PeggedTab = styled(Tab)`
-	padding: 8px 24px;
-	white-space: nowrap;
-	border-bottom: 1px solid transparent;
-	flex: 1;
-
-	&[aria-selected='true'] {
-		border-bottom: ${({ color }) => '1px solid ' + color};
-	}
-
-	& + & {
-		border-left: ${({ theme }) => '1px solid ' + theme.divider};
-	}
-
-	:first-child {
-		border-top-left-radius: 12px;
-	}
-
-	:hover,
-	:focus-visible {
-		background-color: ${({ color }) => transparentize(0.9, color)};
-	}
-`
-
-const TabWrapper = styled.section`
-	display: flex;
-	flex-direction: column;
-	background: ${({ theme }) => theme.bg7};
-	border-top-left-radius: 12px;
-	border-top-right-radius: 12px;
-
-	@media screen and (min-width: 80rem) {
-		width: 380px;
-		border-top-right-radius: 0;
-		border-bottom-right-radius: 0;
-		border-bottom-left-radius: 12px;
-	}
-`
-
-const PeggedDescription = styled.p`
-	font-weight: 400;
-	font-size: 0.875rem;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-
-	& > *:first-child {
-		font-weight: 400;
-		font-size: 0.875rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
-	}
-`
 
 const Capitalize = (str) => {
 	return str.charAt(0).toUpperCase() + str.slice(1)
@@ -253,18 +180,26 @@ export const PeggedAssetInfo = ({
 	return (
 		<>
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<TabWrapper>
-					<TabContainer state={tab} className="tab-list" aria-label="Pegged Tabs">
-						<PeggedTab className="tab" id={defaultSelectedId} color={backgroundColor}>
+				<div className="flex flex-col col-span-1 w-full xl:w-[380px] text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+					<TabList
+						state={tab}
+						aria-label="Pegged Tabs"
+						className="flex"
+						style={{ '--bg-color': backgroundColor, '--bg-hover': transparentize(0.9, backgroundColor) } as any}
+					>
+						<Tab
+							className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-xl hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]"
+							id={defaultSelectedId}
+						>
 							Stats
-						</PeggedTab>
-						<PeggedTab className="tab" color={backgroundColor}>
+						</Tab>
+						<Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]">
 							Info
-						</PeggedTab>
-						<PeggedTab className="tab" color={backgroundColor}>
+						</Tab>
+						<Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tr-xl xl:rounded-none border-l border-black/10 dark:border-white/10 hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]">
 							Links
-						</PeggedTab>
-					</TabContainer>
+						</Tab>
+					</TabList>
 
 					<TabPanel state={tab} tabId={defaultSelectedId}>
 						<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
@@ -326,39 +261,33 @@ export const PeggedAssetInfo = ({
 									</tbody>
 								</table>
 							)}
-							<CSVDownloadButton onClick={downloadCsv} isLight />
+							<CSVDownloadButton onClick={downloadCsv} isLight style={{ maxWidth: 'fit-content' }} />
 						</div>
 					</TabPanel>
 
 					<TabPanel state={tab}>
 						<div className="flex flex-col gap-9 p-6 pb-[calc(24px_+_0.4375rem)] overflow-auto text-[var(--text1)]">
 							{description && (
-								<PeggedDescription>
-									<>
-										<span>Description</span>
-										<span>{description}</span>
-									</>
-								</PeggedDescription>
+								<p className="flex flex-col gap-2">
+									<span className="font-medium">Description</span>
+									<span>{description}</span>
+								</p>
 							)}
 
 							{pegMechanism && (
 								<p className="flex items-center gap-2">
-									<>
-										<span>Category</span>
-										<span>:</span>
-										<span>{pegMechanism}</span>
-										<QuestionHelper text={risksHelperTexts[pegMechanism]} />
-									</>
+									<span className="font-medium">Category</span>
+									<span>:</span>
+									<span>{pegMechanism}</span>
+									<QuestionHelper text={risksHelperTexts[pegMechanism]} />
 								</p>
 							)}
 
 							{mintRedeemDescription && (
-								<PeggedDescription>
-									<>
-										<span>Minting and Redemption</span>
-										<span>{mintRedeemDescription}</span>
-									</>
-								</PeggedDescription>
+								<p className="flex flex-col gap-2">
+									<span className="font-medium">Minting and Redemption</span>
+									<span>{mintRedeemDescription}</span>
+								</p>
 							)}
 
 							{pegMechanism === 'fiat-backed' && auditLinks && (
@@ -467,19 +396,10 @@ export const PeggedAssetInfo = ({
 							</ButtonLight>
 						</div>
 					</TabPanel>
-				</TabWrapper>
+				</div>
 
-				<div
-					style={{
-						flex: 1,
-						display: 'flex',
-						flexDirection: 'column',
-						gap: '16px',
-						padding: '0 0 20px 0',
-						minHeight: '460px'
-					}}
-				>
-					<Filters style={{ margin: '16px 16px 0', maxWidth: 'fit-content' }} color={backgroundColor}>
+				<div className="flex-1 flex flex-col p-4 pb-0 min-h-[416px]">
+					<Filters style={{ maxWidth: 'fit-content' }} color={backgroundColor}>
 						<Denomination as="button" active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
 							Total Circ
 						</Denomination>

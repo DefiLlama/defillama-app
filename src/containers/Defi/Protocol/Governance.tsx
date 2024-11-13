@@ -87,7 +87,7 @@ export function GovernanceTable({ data, governanceType }) {
 				</div>
 			</div>
 
-			<TableWrapper instance={instance} skipVirtualization />
+			<VirtualTable instance={instance} />
 		</>
 	)
 }
@@ -168,7 +168,7 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 	)
 
 	return data && data.length > 0 ? (
-		<div className="flex flex-col gap-4 max-w-[calc(100vw-32px)] lg:!max-w-[calc(100vw-276px-32px)]">
+		<div className="flex flex-col gap-7 max-w-[calc(100vw-32px)] lg:!max-w-[calc(100vw-276-32px)] p-4">
 			{apisByCategory.length > 1 ? (
 				<Filters color={color} style={{ marginLeft: 'auto' }}>
 					{apisByCategory.map((apiCat, index) => (

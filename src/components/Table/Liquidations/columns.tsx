@@ -121,14 +121,15 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 			}
 			// cut middle, leave only first 6 and last 4 letters
 			return (
-				<a href={value.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+				<a href={value.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 justify-end">
 					{value.displayName.length > 13
 						? `${value.displayName.substring(0, 6)}...${value.displayName.substring(value.displayName.length - 4)}`
 						: value.displayName}
 					<Icon name="external-link" height={10} width={10} />
 				</a>
 			)
-		}
+		},
+		meta: { align: 'end' }
 	},
 	{
 		header: 'Value in USD',
@@ -136,7 +137,8 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 		cell: ({ getValue }) => {
 			const _value = (getValue() as number).toLocaleString()
 			return <span>${_value}</span>
-		}
+		},
+		meta: { align: 'end' }
 	},
 	{
 		header: 'Token Amount',
@@ -144,7 +146,8 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 		cell: ({ getValue }) => {
 			const _value = (getValue() as number).toLocaleString()
 			return <span>{_value}</span>
-		}
+		},
+		meta: { align: 'end' }
 	},
 	{
 		header: 'Liquidation Price',
@@ -158,7 +161,8 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 			)
 		},
 		meta: {
-			headerHelperText: 'Liquidation price in USD.'
+			headerHelperText: 'Liquidation price in USD.',
+			align: 'end'
 		}
 	}
 ]

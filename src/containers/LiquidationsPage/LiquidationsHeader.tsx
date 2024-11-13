@@ -2,51 +2,27 @@ import * as React from 'react'
 import Link from 'next/link'
 import { Combobox, ComboboxItem, ComboboxList, useComboboxState } from 'ariakit/combobox'
 import { Menu, MenuButton, MenuButtonArrow, useMenuState } from 'ariakit/menu'
-import styled from 'styled-components'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import type { ISearchItem } from '~/components/Search/types'
-import { StackBySwitch } from './StackBySwitch'
 import { ChartData } from '~/utils/liquidations'
-import { DownloadButton } from './DownloadButton'
-
-const LiquidationsHeaderWrapper = styled.div`
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	align-items: center;
-	gap: 10px;
-	position: relative;
-	margin-top: 1rem;
-
-	@media (min-width: 80rem) {
-		flex-direction: row;
-		align-items: flex-start;
-	}
-`
-const ButtonsGroup = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 10px;
-
-	@media (min-width: 80rem) {
-		align-items: flex-end;
-	}
-`
+import { download } from '~/utils'
+import { getLiquidationsCsvData } from '~/utils/liquidations'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 export const LiquidationsHeader = (props: { data: ChartData; options: ISearchItem[] }) => {
 	const { data, options } = props
 	return (
-		<LiquidationsHeaderWrapper>
+		<div className="flex items-center justify-between gap-2 flex-wrap -mb-5">
 			<AssetSelector symbol={data.symbol} options={options} />
-			<ButtonsGroup>
-				<StackBySwitch />
-				<DownloadButton symbol={data.symbol} />
-			</ButtonsGroup>
-		</LiquidationsHeaderWrapper>
+			<CSVDownloadButton
+				onClick={async () => {
+					const csvString = await getLiquidationsCsvData(data.symbol)
+					download(`${data.symbol}-all-positions.csv`, csvString)
+				}}
+			/>
+		</div>
 	)
 }
 

@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars*/
 import * as React from 'react'
-import styled from 'styled-components'
 import ReactSwitch from 'react-switch'
 import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
@@ -12,25 +11,7 @@ import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import Image from 'next/future/image'
 import boboLogo from '~/assets/boboSmug.png'
 import dynamic from 'next/dynamic'
-
-const Bobo = styled.button`
-	position: absolute;
-	bottom: -36px;
-	left: 0;
-
-	img {
-		width: 34px !important;
-		height: 34px !important;
-	}
-
-	@media screen and (min-width: 80rem) {
-		top: 0;
-		right: 0;
-		bottom: initial;
-		left: initial;
-		z-index: 1;
-	}
-`
+import { StackBySwitch } from './StackBySwitch'
 
 const LiquidationsChart = dynamic(() => import('./LiquidationsChart').then((module) => module.LiquidationsChart), {
 	ssr: false
@@ -40,7 +21,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 	const { data, prevData } = props
 	const [bobo, setBobo] = React.useState(false)
 	return (
-		<Wrapper>
+		<ChartAndValuesWrapper>
 			<BreakpointPanels>
 				<BreakpointPanel>
 					<TotalLiquidable {...data} />
@@ -53,17 +34,21 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				</PanelHiddenMobile>
 			</BreakpointPanels>
 			<BreakpointPanel className="min-h-[438px]">
-				<div className="flex items-center justify-between gap-4 mb-auto mx-2">
+				<div className="flex items-center gap-4 -mt-2 mb-auto mx-2 flex-wrap">
+					<StackBySwitch />
 					<CumulativeToggle />
 					<CurrencyToggle symbol={data.symbol} />
 				</div>
-				<Bobo onClick={() => setBobo(!bobo)}>
+				<button
+					onClick={() => setBobo(!bobo)}
+					className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-[1]"
+				>
 					<span className="sr-only">Enable Goblin Mode</span>
-					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
-				</Bobo>
+					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" className="h-[34px] w-[34px]" />
+				</button>
 				<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />
 			</BreakpointPanel>
-		</Wrapper>
+		</ChartAndValuesWrapper>
 	)
 }
 
@@ -97,7 +82,7 @@ const CumulativeToggle = () => {
 	const isLiqsCumulative = liqsSettings[LIQS_CUMULATIVE]
 
 	return (
-		<div className="flex items-center gap-1">
+		<div className="flex items-center gap-1 ml-auto">
 			{/* @ts-ignore:next-line */}
 			<ReactSwitch
 				onChange={toggleLiqsSettings(LIQS_CUMULATIVE)}
@@ -165,8 +150,3 @@ const getDangerousPositionsAmount = (
 	}
 	return dangerousPositionsAmount
 }
-
-const Wrapper = styled(ChartAndValuesWrapper)`
-	z-index: 0;
-	margin-top: -1rem;
-`

@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import styled from 'styled-components'
 import { getPeggedAssetPageData } from '~/api/categories/stablecoins'
 import { primaryColor } from '~/constants/colors'
 import { PeggedAssetInfo } from '~/containers/PeggedContainer'
@@ -12,38 +11,16 @@ export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
 	})
 
 	if (isLoading) {
-		return (
-			<Wrapper>
-				<p className="my-[180px] text-center">Loading...</p>
-			</Wrapper>
-		)
+		return <p className="my-[180px] text-center">Loading...</p>
 	}
 
 	if (!data) {
-		return (
-			<Wrapper>
-				<p className="my-[180px] text-center">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
-			</Wrapper>
-		)
+		return <p className="my-[180px] text-center">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
 	}
 
 	return (
-		<Wrapper>
+		<div className="flex flex-col gap-4 p-4">
 			<PeggedAssetInfo {...data.props} backgroundColor={primaryColor} />
-		</Wrapper>
+		</div>
 	)
 }
-
-const Wrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	padding: 24px;
-	max-width: calc(100vw - 32px);
-
-	& > * {
-		@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-			max-width: calc(100vw - 276px - 66px) !important;
-		}
-	}
-`

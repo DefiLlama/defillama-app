@@ -9,7 +9,7 @@ import { LiquidationsHeader } from '~/containers/LiquidationsPage/LiquidationsHe
 import { LiquidationsContent } from '~/containers/LiquidationsPage/LiquidationsContent'
 import { ProtocolsTable } from '~/containers/LiquidationsPage/ProtocolsTable'
 import { TableSwitch } from '~/containers/LiquidationsPage/TableSwitch'
-import { PositionsTable, SmolHints } from '~/containers/LiquidationsPage/PositionsTable'
+import { PositionsTable } from '~/containers/LiquidationsPage/PositionsTable'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import type { ISearchItem } from '~/components/Search/types'
 import { maxAgeForNext } from '~/api'
@@ -109,15 +109,15 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				</>
 			)} */}
 
-			<h1 className="text-2xl font-medium -mb-5 text-center xl:text-start">Liquidation levels in DeFi 💦</h1>
+			<h1 className="text-2xl font-medium -mb-5">Liquidation levels in DeFi 💦</h1>
 			<LiquidationsHeader data={data} options={options} />
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />
 			</LiquidationsProvider>
-			<SmolHints>
+			<p className="flex items-center justify-end gap-1 flex-nowrap italic -mt-4 opacity-60">
 				<Icon name="clock" height={12} width={13} />
-				<i>Last updated {minutesAgo}min ago</i>
-			</SmolHints>
+				<span>Last updated {minutesAgo}min ago</span>
+			</p>
 			<TableSwitch />
 			{isLiqsShowingInspector && <PositionsTable data={data} prevData={prevData} />}
 			{!isLiqsShowingInspector && <ProtocolsTable data={data} prevData={prevData} />}

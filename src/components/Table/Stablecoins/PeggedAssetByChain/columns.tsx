@@ -74,7 +74,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 	{
 		header: 'Bridged Amount',
 		accessorKey: 'bridgedAmount',
-		size: 140,
+		size: 145,
 		meta: {
 			align: 'end'
 		}
@@ -129,7 +129,7 @@ export const columnSizes = {
 	0: {
 		name: 160,
 		bridgeInfo: 240,
-		bridgedAmount: 140,
+		bridgedAmount: 145,
 		change_1d: 110,
 		change_7d: 110,
 		change_1m: 110,
@@ -138,7 +138,7 @@ export const columnSizes = {
 	900: {
 		name: 280,
 		bridgeInfo: 240,
-		bridgedAmount: 140,
+		bridgedAmount: 145,
 		change_1d: 110,
 		change_7d: 110,
 		change_1m: 110,

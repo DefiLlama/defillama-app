@@ -1,43 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import styled from 'styled-components'
 import { Icon } from '~/components/Icon'
-
-const PaginationContainer = styled.div`
-	display: flex;
-	width: 100%;
-	justify-content: center;
-	align-items: center;
-	background-color: ${({ theme }) => theme.bg6};
-	border-radius: 12px;
-`
-
-const PaginationSlide = styled.div`
-	display: flex;
-	justify-content: flex-start;
-	align-items: flex-start;
-	overflow: hidden;
-`
-
-const PaginationItem = styled.div<{ isStartItem: boolean }>`
-	flex: 1 0 auto;
-	padding: 1rem;
-	text-align: center;
-	color: ${({ theme }) => theme.text1};
-	cursor: pointer;
-	transition: background-color 0.3s ease;
-	position: relative;
-`
-
-const PaginationArrow = styled.button`
-	background-color: ${({ theme }) => theme.bg2};
-	color: ${({ theme }) => theme.text1};
-	border: none;
-	padding: 0.5rem;
-	margin: 0 1rem;
-	cursor: pointer;
-	transition: background-color 0.3s ease;
-	border-radius: 12px;
-`
 
 const Pagination = ({ items, startIndex = 0 }) => {
 	const [visibleItems, setVisibleItems] = useState(1)
@@ -95,25 +57,33 @@ const Pagination = ({ items, startIndex = 0 }) => {
 	const endIndex = startI + visibleItems
 	const currentItems = items.slice(startI, endIndex)
 	return (
-		<PaginationContainer ref={paginationRef}>
-			<PaginationArrow onClick={handlePrevPage}>
+		<div ref={paginationRef} className="flex items-center justify-center rounded-xl bg-[var(--bg6)] w-full">
+			<button
+				onClick={handlePrevPage}
+				className="bg-[var(--bg2)] text-[var(--text1)] p-2 rounded-xl disabled:opacity-0"
+				disabled={currentPage === 0}
+			>
 				<Icon name="arrow-left" height={24} width={24} />
-			</PaginationArrow>
-			<PaginationSlide>
+			</button>
+			<div className="flex items-start justify-start overflow-hidden">
 				{currentItems.map((item, index) => (
-					<PaginationItem
+					<div
 						key={startI + index}
 						onClick={() => handlePageChange(startI + index)}
-						isStartItem={startI + index === startIndex}
+						className="flex-[1_0_auto] p-4 text-center relative"
 					>
 						{item}
-					</PaginationItem>
+					</div>
 				))}
-			</PaginationSlide>
-			<PaginationArrow onClick={handleNextPage}>
+			</div>
+			<button
+				onClick={handleNextPage}
+				className="bg-[var(--bg2)] text-[var(--text1)] p-2 rounded-xl disabled:opacity-0"
+				disabled={currentPage === totalPages - 1}
+			>
 				<Icon name="arrow-right" height={24} width={24} />
-			</PaginationArrow>
-		</PaginationContainer>
+			</button>
+		</div>
 	)
 }
 

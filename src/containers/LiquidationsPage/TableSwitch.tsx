@@ -9,7 +9,7 @@ export const TableSwitch = () => {
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
 
 	return (
-		<div className="flex items-center gap-2 rounded-md h-11 w-64 bg-[var(--bg6)] mx-auto p-[6px]">
+		<div className="flex items-center gap-2 rounded-md h-11 w-64 bg-[var(--bg6)] p-[6px] -mb-5">
 			<button
 				className="flex flex-1 justify-center items-center gap-1 rounded-md p-[6px] data-[active=true]:bg-[#445ed0]"
 				data-active={!isLiqsShowingInspector}

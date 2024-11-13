@@ -1,21 +1,6 @@
 import { ChartData } from '~/utils/liquidations'
 import * as React from 'react'
-import styled from 'styled-components'
 import { LiquidatablePositionsTable } from '~/components/Table/Liquidations'
-
-const TableNoticeWrapper = styled.div`
-	margin-bottom: -1rem;
-`
-
-export const SmolHints = styled.div`
-	display: flex;
-	gap: 6px;
-	flex-direction: row;
-	justify-content: flex-end;
-	align-items: center;
-	margin-top: -1rem;
-	opacity: 0.6;
-`
 
 export const PositionsTable = (props: { data: ChartData; prevData: ChartData }) => {
 	const rows = React.useMemo(() => {
@@ -34,14 +19,9 @@ export const PositionsTable = (props: { data: ChartData; prevData: ChartData }) 
 
 	return (
 		<>
-			<TableNoticeWrapper>
-				<SmolHints>
-					<i>
-						Displaying the largest {rows.length} positions out of {props.data.totalPositions} in total
-					</i>
-				</SmolHints>
-			</TableNoticeWrapper>
-
+			<p className="text-right italic opacity-60 -mb-5 md:-mt-6">
+				Displaying the largest {rows.length} positions out of {props.data.totalPositions} in total
+			</p>
 			<LiquidatablePositionsTable data={rows} />
 		</>
 	)

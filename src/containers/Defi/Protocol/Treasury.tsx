@@ -5,7 +5,6 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { buildProtocolAddlChartsData } from './utils'
 import { useState } from 'react'
-import styled from 'styled-components'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -66,10 +65,10 @@ export const TreasuryChart = ({ protocolName }) => {
 
 	return (
 		<>
-			<Checkbox>
+			<label className="flex flex-nowrap gap-2 items-center justify-end cursor-pointe m-4">
 				<input type="checkbox" checked={includeTreasury} onChange={() => setIncludeTreasury(!includeTreasury)} />
 				<span>Include own tokens</span>
-			</Checkbox>
+			</label>
 
 			{!isLoading && (!data || top10Tokens.length === 0) ? (
 				<div className="grid grid-cols-2 rounded-xl min-h-[360px]"></div>
@@ -92,13 +91,3 @@ export const TreasuryChart = ({ protocolName }) => {
 		</>
 	)
 }
-
-const Checkbox = styled.label`
-	margin: 16px 40px auto;
-	display: flex;
-	flex-wrap: nowrap;
-	gap: 8px;
-	align-items: center;
-	justify-content: flex-end;
-	cursor: pointer;
-`

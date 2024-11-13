@@ -10,7 +10,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { LazyChart } from '~/components/LazyChart'
 import { capitalizeFirstLetter, formattedNum, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
-import { Body, Box as BoxComponent, BoxContainer, Header, Row, Separator, Value } from './styles'
 import { IEmission } from './types'
 import { Icon } from '~/components/Icon'
 
@@ -112,13 +111,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		.filter(Boolean)
 	const unlockedPercent = 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
 
-	const Box = (props) => (
-		<BoxComponent
-			{...props}
-			style={!isEmissionsPage ? { background: 'none', border: 'none', marginTop: '8px' } : { ...(props?.style || {}) }}
-		/>
-	)
-
 	return (
 		<>
 			<div style={{ display: 'flex', justifyContent: isEmissionsPage ? 'space-between' : 'flex-end' }}>
@@ -210,160 +202,173 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					)}
 				</div>
 			</div>
-			<BoxContainer>
+
+			<div>
 				{tokenPrice ? (
-					<Box>
-						<Value style={{ alignSelf: 'start' }}>Price</Value>
+					<div
+						className="flex flex-col items-center justify-start p-4 w-full rounded-md border border-black/10 dark:border-white/10 bg-[var(--bg7)] h-full"
+						style={!isEmissionsPage ? { background: 'none', border: 'none', marginTop: '8px' } : {}}
+					>
+						<h1 className="text-base text-[var(--text3)] mr-auto">Price</h1>
 						<div style={{ alignSelf: 'start', display: 'flex', gap: '6px', textAlign: 'center' }}>
-							<Header>{tokenPrice ? `$${formattedNum(tokenPrice)}` : 'N/A'}</Header>
-							<Value
+							<h2 className="text-center text-xl font-medium">{tokenPrice ? `$${formattedNum(tokenPrice)}` : 'N/A'}</h2>
+							<p
 								style={{
-									color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)',
-									marginTop: '4px',
-									fontSize: '14px'
+									color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)'
 								}}
+								className="text-sm mt-1"
 							>
 								{percentChange > 0 && '+'}
 								{percentChange}%
-							</Value>
+							</p>
 						</div>
-						<Body style={{ marginTop: '8px' }}>
-							<Row>
+						<div className="flex flex-col text-base gap-2 mt-2 w-full">
+							<p className="flex justify-between flex-wrap">
 								<span>Market Cap</span>
-								<Value>{tokenMcap ? `$${formattedNum(tokenMcap)}` : 'N/A'}</Value>
-							</Row>
-							<Separator />
-							<Row>
+								<span className="text-base text-[var(--text3)]">
+									{tokenMcap ? `$${formattedNum(tokenMcap)}` : 'N/A'}
+								</span>
+							</p>
+							<hr className="border-black/10 dark:border-white/10" />
+							<p className="flex justify-between flex-wrap">
 								<span>Volume (24h)</span>
-								<Value>{tokenVolume ? `$${formattedNum(tokenVolume)}` : 'N/A'}</Value>
-							</Row>
+								<span className="text-base text-[var(--text3)]">
+									{tokenVolume ? `$${formattedNum(tokenVolume)}` : 'N/A'}
+								</span>
+							</p>
 							{data?.meta?.circSupply ? (
 								<>
-									<Separator />
-									<Row>
+									<hr className="border-black/10 dark:border-white/10" />
+									<p className="flex justify-between flex-wrap">
 										<span>Circulating Supply</span>
-										<Value>{formattedNum(data.meta.circSupply)}</Value>
-									</Row>
+										<span className="text-base text-[var(--text3)]">{formattedNum(data.meta.circSupply)}</span>
+									</p>
 								</>
 							) : null}
-						</Body>
-					</Box>
+						</div>
+					</div>
 				) : null}
 
 				{data.token &&
 				Object.entries(data.tokenAllocation?.[dataType]?.current || {}).length &&
 				Object.entries(data.tokenAllocation?.[dataType]?.final || {}).length ? (
-					<Box>
-						<Header>Token Allocation</Header>
-						<Body>
-							<Row>
-								<h4 style={{ fontSize: '16px' }}>Current</h4>
-							</Row>
-							<Row>
+					<div
+						className="flex flex-col items-center justify-start p-4 w-full rounded-md border border-black/10 dark:border-white/10 bg-[var(--bg7)] h-full"
+						style={!isEmissionsPage ? { background: 'none', border: 'none', marginTop: '8px' } : {}}
+					>
+						<h1 className="text-center text-xl font-medium">Token Allocation</h1>
+						<div className="flex flex-col text-base gap-2 w-full">
+							<h4 style={{ fontSize: '16px' }}>Current</h4>
+
+							<div className="flex justify-between flex-wrap">
 								{chunk(Object.entries(data.tokenAllocation[dataType].current)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
-										<Row key={`${cat}-${i}`}>
-											<Value key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</Value>
-										</Row>
+										<p className="text-base text-[var(--text3)]" key={cat}>{`${capitalizeFirstLetter(
+											cat
+										)} - ${perc}%`}</p>
 									))
 								)}
-							</Row>
-							<Separator />
-							<Row>
-								<h4 style={{ fontSize: '16px' }}>Final</h4>
-							</Row>
-							<Row>
+							</div>
+							<hr className="border-black/10 dark:border-white/10" />
+
+							<h4 style={{ fontSize: '16px' }}>Final</h4>
+
+							<div className="flex justify-between flex-wrap">
 								{chunk(Object.entries(data.tokenAllocation[dataType].final)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
-										<Row key={`${cat}-${i}`}>
-											<Value key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</Value>
-										</Row>
+										<p className="text-base text-[var(--text3)]" key={cat}>{`${capitalizeFirstLetter(
+											cat
+										)} - ${perc}%`}</p>
 									))
 								)}
-							</Row>
-						</Body>
-					</Box>
-				) : null}
-			</BoxContainer>
-
-			<div>
-				{data.events?.length > 0 ? (
-					<Box style={{ width: '100%' }}>
-						<Header>Upcoming Events</Header>
-
-						<Pagination
-							startIndex={upcomingEventIndex}
-							items={sortedEvents.map(([ts, events]: any) => (
-								<UpcomingEvent
-									key={ts}
-									{...{
-										event: events,
-										noOfTokens: events.map((x) => x.noOfTokens),
-										timestamp: ts,
-										price: tokenPrice,
-										symbol: tokenPrice?.symbol,
-										mcap: tokenMcap,
-										maxSupply: data.meta.maxSupply,
-										name: data.name,
-										tooltipStyles: { position: 'relative', top: 0 },
-										isProtocolPage: true
-									}}
-								/>
-							))}
-						/>
-					</Box>
+							</div>
+						</div>
+					</div>
 				) : null}
 			</div>
-			<BoxContainer>
+
+			{data.events?.length > 0 ? (
+				<div
+					className="flex flex-col items-center justify-start p-4 w-full rounded-md border border-black/10 dark:border-white/10 bg-[var(--bg7)] h-full"
+					style={!isEmissionsPage ? { background: 'none', border: 'none', marginTop: '8px' } : {}}
+				>
+					<h1 className="text-center text-xl font-medium">Upcoming Events</h1>
+
+					<Pagination
+						startIndex={upcomingEventIndex}
+						items={sortedEvents.map(([ts, events]: any) => (
+							<UpcomingEvent
+								key={ts}
+								{...{
+									event: events,
+									noOfTokens: events.map((x) => x.noOfTokens),
+									timestamp: ts,
+									price: tokenPrice,
+									symbol: tokenPrice?.symbol,
+									mcap: tokenMcap,
+									maxSupply: data.meta.maxSupply,
+									name: data.name,
+									tooltipStyles: { position: 'relative', top: 0 },
+									isProtocolPage: true
+								}}
+							/>
+						))}
+					/>
+				</div>
+			) : null}
+
+			<div className="flex flex-wrap *:flex-1 gap-4">
 				{data.sources?.length > 0 ? (
-					<Box style={{ maxWidth: '50%' }}>
-						<Header>Sources</Header>
-						<Body>
+					<div
+						className="flex flex-col items-center justify-start p-4 w-full rounded-md border border-black/10 dark:border-white/10 bg-[var(--bg7)] h-full"
+						style={!isEmissionsPage ? { background: 'none', border: 'none', marginTop: '8px' } : {}}
+					>
+						<h1 className="text-center text-xl font-medium">Sources</h1>
+						<div className="flex flex-col text-base gap-2 w-full">
 							{data.sources.map((source, i) => (
-								<Row key={source}>
-									<a
-										href={source}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="text-white text-base flex items-center font-medium gap-2"
-									>
-										<span>
-											{i + 1} {new URL(source).hostname}
-										</span>
-										<Icon name="external-link" height={16} width={16} />
-									</a>
-									<a target="_blank" rel="noreferrer noopener" href={source}></a>
-								</Row>
+								<a
+									href={source}
+									key={source}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-white text-base flex items-center font-medium gap-2"
+								>
+									<span>
+										{i + 1} {new URL(source).hostname}
+									</span>
+									<Icon name="external-link" height={16} width={16} />
+								</a>
 							))}
-						</Body>
-					</Box>
+						</div>
+					</div>
 				) : null}
 				{data.notes?.length > 0 ? (
-					<Box style={{ maxWidth: '50%' }}>
-						<Header>Notes</Header>
-						<Body>
+					<div
+						className="flex flex-col items-center justify-start p-4 w-full rounded-md border border-black/10 dark:border-white/10 bg-[var(--bg7)] h-full"
+						style={!isEmissionsPage ? { background: 'none', border: 'none', marginTop: '8px' } : {}}
+					>
+						<h1 className="text-center text-xl font-medium">Notes</h1>
+						<div className="flex flex-col text-base gap-2 w-full">
 							{data.notes.map((note) => (
-								<Row key={note}>
-									<span>{note}</span>
-								</Row>
+								<p key={note}>{note}</p>
 							))}
-						</Body>
-					</Box>
+						</div>
+					</div>
 				) : null}
 				{data.futures?.openInterest || data.futures?.fundingRate ? (
-					<Box style={{ maxWidth: '50%' }}>
-						<Header>Futures</Header>
-						<Body>
-							<Row>
-								{data.futures.openInterest ? (
-									<p>{`Open Interest: $${formattedNum(data.futures.openInterest)}`}</p>
-								) : null}
-							</Row>
-							<Row>{data.futures.fundingRate ? <p>{`Funding Rate: ${data.futures.fundingRate}%`}</p> : null}</Row>
-						</Body>
-					</Box>
+					<div
+						className="flex flex-col items-center justify-start p-4 w-full rounded-md border border-black/10 dark:border-white/10 bg-[var(--bg7)] h-full"
+						style={!isEmissionsPage ? { background: 'none', border: 'none', marginTop: '8px' } : {}}
+					>
+						<h1 className="text-center text-xl font-medium">Futures</h1>
+						<div className="flex flex-col text-base gap-2 w-full">
+							{data.futures.openInterest ? <p>{`Open Interest: $${formattedNum(data.futures.openInterest)}`}</p> : null}
+
+							<>{data.futures.fundingRate ? <p>{`Funding Rate: ${data.futures.fundingRate}%`}</p> : null}</>
+						</div>
+					</div>
 				) : null}
-			</BoxContainer>
+			</div>
 		</>
 	)
 }
