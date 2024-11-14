@@ -105,7 +105,9 @@ export const descriptions = {
 		'Protocols that help organizations manage and optimize their treasury assets and funds using automated strategies',
 	'OTC Marketplace':
 		'A decentralized platform where users can trade assets directly peer-to-peer, using secure smart contracts',
-	'Yield Lottery': 'DeFi protocol where users deposit funds for a chance to win the pooled yield as prizes'
+	'Yield Lottery': 'DeFi protocol where users deposit funds for a chance to win the pooled yield as prizes',
+	'Token Locker':
+		'Protocols that lock digital assets like fungible tokens, NFTs, and LP tokens, ensuring restricted access for a set duration'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
