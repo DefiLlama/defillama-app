@@ -1,7 +1,6 @@
 import { trim } from 'lodash'
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import styled, { css, keyframes } from 'styled-components'
 import { maxAgeForNext } from '~/api'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import Layout from '~/layout'
@@ -79,227 +78,6 @@ export const getStaticProps = withPerformanceLogging('pitch', async () => {
 		revalidate: maxAgeForNext([22])
 	}
 })
-
-const DateInputWrapper = styled.div`
-	position: relative;
-	width: 100%;
-`
-
-const HiddenDateInput = styled.input`
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	opacity: 0;
-	cursor: pointer;
-`
-
-const PageWrapper = styled.div`
-	max-width: 1200px;
-	margin: 0 auto;
-	padding: 10px 20px;
-	color: ${({ theme }) => theme.text1};
-	background-color: ${({ theme }) => theme.bg1};
-	border-radius: 8px;
-`
-
-const ContentWrapper = styled.div`
-	display: flex;
-	gap: 40px;
-
-	@media (max-width: 1024px) {
-		flex-direction: column;
-	}
-`
-
-const MainContent = styled.div`
-	flex: 1;
-`
-
-const ResultContent = styled.div`
-	width: 300px;
-	position: sticky;
-	top: 40px;
-	align-self: flex-start;
-
-	@media (max-width: 1024px) {
-		width: 100%;
-		position: relative;
-		top: 0;
-	}
-`
-
-const Description = styled.p`
-	font-size: 16px;
-	line-height: 1.6;
-	text-align: center;
-	color: ${({ theme }) => theme.text2};
-	margin-bottom: 20px;
-`
-
-const SectionTitle = styled.h2`
-	font-size: 24px;
-	color: ${({ theme }) => theme.text1};
-	margin-bottom: 20px;
-	border-bottom: 2px solid ${({ theme }) => theme.primary1};
-	padding-bottom: 10px;
-`
-
-const FilterContainer = styled.div`
-	margin-bottom: 24px;
-`
-
-const Label = styled.label`
-	display: block;
-	margin-bottom: 8px;
-	color: ${({ theme }) => theme.text2};
-	font-weight: 600;
-`
-
-const inputStyles = css`
-	width: 100%;
-	padding: 12px;
-	border: 1px solid ${({ theme }) => theme.bg3};
-	border-radius: 8px;
-	background-color: ${({ theme }) => theme.bg2};
-	color: ${({ theme }) => theme.text1};
-	font-size: 16px;
-	transition: all 0.3s ease;
-
-	&:focus {
-		outline: none;
-		border-color: ${({ theme }) => theme.primary1};
-		box-shadow: 0 0 0 2px ${({ theme }) => theme.primary1}33;
-	}
-`
-
-const Input = styled.input`
-	${inputStyles}
-`
-
-const TextArea = styled.textarea`
-	${inputStyles}
-	min-height: 120px;
-	resize: vertical;
-`
-
-const Button = styled.button`
-	background-color: ${({ theme, disabled }) => (disabled ? theme.bg3 : theme.primary1)};
-	color: ${({ theme, disabled }) => (disabled ? theme.text3 : theme.white)};
-	padding: 12px 24px;
-	border: none;
-	border-radius: 8px;
-	width: 100%;
-	cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-	font-size: 18px;
-	font-weight: 600;
-	transition: all 0.3s ease;
-	margin-top: 12px;
-	display: block;
-
-	&:hover {
-		background-color: ${({ theme, disabled }) => (disabled ? theme.bg3 : theme.primary2)};
-	}
-`
-
-const ResultsContainer = styled.div`
-	padding: 20px;
-	background-color: ${({ theme }) => theme.bg2};
-	border-radius: 8px;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	min-height: 130px;
-`
-
-const WarningText = styled.p`
-	color: ${({ theme }) => theme.red1};
-	font-weight: 600;
-`
-
-const StyledReactSelect = styled(ReactSelect)`
-	.react-select__control {
-		${inputStyles}
-	}
-
-	.react-select__menu {
-		background-color: ${({ theme }) => theme.bg2};
-		border: 1px solid ${({ theme }) => theme.bg3};
-	}
-
-	.react-select__option {
-		background-color: ${({ theme }) => theme.bg2};
-		color: ${({ theme }) => theme.text1};
-
-		&:hover {
-			background-color: ${({ theme }) => theme.bg3};
-		}
-	}
-`
-
-const ResultText = styled.p`
-	font-size: 16px;
-	margin-bottom: 10px;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-`
-
-const ResultValue = styled.span`
-	font-weight: 600;
-`
-
-const USDAmount = styled.span`
-	color: ${({ theme }) => theme.green1};
-	font-weight: 700;
-`
-
-const DateInputDisplay = styled.input`
-	${inputStyles}
-	cursor: pointer;
-`
-
-const moveAnimation = keyframes`
-  0% {
-    left: 0;
-		border-top-left-radius: 8px;
-	  border-top-right-radius:0;
-  }
-
-	50% {
-		border-radius: 8px;
-	}
-  
-	100% {
-    left: calc(100% - 30%);
-		border-top-left-radius: 0;
-	  border-top-right-radius:8px;
-  }
-`
-
-const LoadingLine = styled.div`
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 30%;
-	height: 4px;
-	background-color: #3498db;
-	animation: ${moveAnimation} 1s ease-in-out infinite alternate;
-`
-
-const DatePicker = ({ value, onChange, max }) => {
-	const hiddenInputRef = useRef(null)
-
-	const handleClick = () => {
-		hiddenInputRef.current.showPicker()
-	}
-
-	return (
-		<DateInputWrapper onClick={handleClick}>
-			<DateInputDisplay type="text" value={value} readOnly placeholder="Select a date" />
-			<HiddenDateInput ref={hiddenInputRef} type="date" value={value} onChange={onChange} max={max} />
-		</DateInputWrapper>
-	)
-}
 
 const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRounds }) => {
 	const [filters, setFilters] = useState({
@@ -407,19 +185,19 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 
 	return (
 		<Layout title="VC Filter - DefiLlama" defaultSEO>
-			<PageWrapper>
-				<h1 className="text-2xl font-medium text-center my-3">Connect with Investors</h1>
-				<Description>
+			<div className="w-full max-w-4xl mx-auto rounded-md bg-[var(--bg1)] shadow p-5 flex flex-col gap-5">
+				<h1 className="text-2xl font-medium text-center">Connect with Investors</h1>
+				<p className="text-base text-center text-[var(--text2)]">
 					Filter a list of VCs by their investments in DeFi projects to connect with the right investors for your
 					project.
-				</Description>
-				<ContentWrapper>
-					<MainContent>
-						<SectionTitle>Filter Investors</SectionTitle>
+				</p>
+				<div className="flex flex-col lg:flex-row gap-10 relative">
+					<div className="flex-1 flex flex-col gap-4">
+						<h2 className="text-2xl">Filter Investors</h2>
 
-						<FilterContainer>
-							<Label>Categories:</Label>
-							<StyledReactSelect
+						<label className="flex flex-col gap-1 text-sm">
+							<span className="font-medium">Categories:</span>
+							<ReactSelect
 								isMulti
 								options={categoryOptions}
 								value={filters.categories.map((category) => ({ value: category, label: category }))}
@@ -430,10 +208,10 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									)
 								}
 							/>
-						</FilterContainer>
-						<FilterContainer>
-							<Label>DeFi Categories:</Label>
-							<StyledReactSelect
+						</label>
+						<label className="flex flex-col gap-1 text-sm">
+							<span className="font-medium">DeFi Categories:</span>
+							<ReactSelect
 								isMulti
 								options={defiCategoryOptions}
 								value={filters.defiCategories.map((category) => ({ value: category, label: category }))}
@@ -444,10 +222,10 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									)
 								}
 							/>
-						</FilterContainer>
-						<FilterContainer>
-							<Label>Round Types:</Label>
-							<StyledReactSelect
+						</label>
+						<label className="flex flex-col gap-1 text-sm">
+							<span className="font-medium">Round Types:</span>
+							<ReactSelect
 								isMulti
 								options={roundTypeOptions}
 								value={filters.roundTypes.map((round) => ({ value: round, label: round }))}
@@ -458,10 +236,10 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									)
 								}
 							/>
-						</FilterContainer>
-						<FilterContainer>
-							<Label>Chains:</Label>
-							<StyledReactSelect
+						</label>
+						<label className="flex flex-col gap-1 text-sm">
+							<span className="font-medium">Chains:</span>
+							<ReactSelect
 								isMulti
 								options={chainOptions}
 								value={filters.chains.map((chain) => ({ value: chain, label: chain }))}
@@ -472,93 +250,119 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									)
 								}
 							/>
-						</FilterContainer>
-						<FilterContainer>
-							<Label>Minimum last investment time:</Label>
-							<DatePicker
+						</label>
+						<label className="flex flex-col gap-1 text-sm">
+							<span className="font-medium">Minimum last investment time:</span>
+							<input
+								type="date"
+								className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
 								value={unixToDateString(filters.minLastRoundTime)}
 								onChange={handleDateChange}
 								max={new Date().toISOString().split('T')[0]}
+								onFocus={async (e) => {
+									try {
+										e.target.showPicker()
+									} catch (error) {}
+								}}
 							/>
-						</FilterContainer>
-						<FilterContainer>
-							<Label>Minimum number of investments:</Label>
-							<Input
+						</label>
+						<label className="flex flex-col gap-1 text-sm">
+							<span className="font-medium">Minimum number of investments:</span>
+							<input
 								type="number"
 								value={filters.minimumInvestments}
 								onChange={(e) => handleFilterChange('minimumInvestments', parseInt(e.target.value))}
+								className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
 							/>
-						</FilterContainer>
+						</label>
 
-						<SectionTitle>Project Information</SectionTitle>
-						<form onSubmit={handleSubmit}>
-							<FilterContainer>
-								<Label>Project Name:</Label>
-								<Input
+						<h2 className="text-2xl">Project Information</h2>
+
+						<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+							<label className="flex flex-col gap-1 text-sm">
+								<span className="font-medium">Project Name:</span>
+								<input
 									type="text"
 									name="projectName"
 									value={projectInfo.projectName}
 									onChange={handleProjectInfoChange}
 									required
+									className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
 								/>
-							</FilterContainer>
-							<FilterContainer>
-								<Label>Link for further info:</Label>
-								<Input name="link" value={projectInfo.link} onChange={handleProjectInfoChange} />
-							</FilterContainer>
-							<FilterContainer>
-								<Label>Short Pitch:</Label>
-								<TextArea name="textPitch" value={projectInfo.textPitch} onChange={handleProjectInfoChange} required />
-							</FilterContainer>
-							<FilterContainer>
-								<Label>Founder Email:</Label>
-								<Input
+							</label>
+							<label className="flex flex-col gap-1 text-sm">
+								<span className="font-medium">Link for further info:</span>
+								<input
+									name="link"
+									value={projectInfo.link}
+									onChange={handleProjectInfoChange}
+									className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
+								/>
+							</label>
+							<label className="flex flex-col gap-1 text-sm">
+								<span className="font-medium">Short Pitch:</span>
+								<textarea
+									name="textPitch"
+									value={projectInfo.textPitch}
+									onChange={handleProjectInfoChange}
+									required
+									className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
+								/>
+							</label>
+							<label className="flex flex-col gap-1 text-sm">
+								<span className="font-medium">Founder Email:</span>
+								<input
 									type="email"
 									name="founderEmail"
 									value={projectInfo.founderEmail}
 									onChange={handleProjectInfoChange}
 									required
+									className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
 								/>
-							</FilterContainer>
-							<Button type="submit" disabled={isSubmitting}>
+							</label>
+							<button
+								type="submit"
+								disabled={isSubmitting}
+								className="bg-[var(--primary1)] disabled:bg-[var(--bg3)] text-white disabled:text-[var(--text3)] py-2 px-6 rounded-md w-full text-lg font-semibold"
+							>
 								{isSubmitting ? 'Submitting...' : 'Submit'}
-							</Button>
+							</button>
 						</form>
-					</MainContent>
-					<ResultContent>
-						{
-							<ResultsContainer>
-								<h2 style={{ marginBottom: '8px' }}>Results</h2>
-								{isLoading ? <LoadingLine /> : null}
+					</div>
+					<div className="w-full max-w-xs lg:sticky lg:top-10 flex flex-col gap-2 shadow h-fit p-4 rounded-md bg-[var(--bg2)]">
+						<h2>Results</h2>
+						{isLoading ? <div className="absolute top-0 left-0 h-1 w-[30%] bg-[#3498db] animate-linebeat" /> : null}
 
+						<p className="text-base flex items-center flex-wrap gap-1 justify-between">
+							<span>Matched Investors:</span>{' '}
+							<span className="font-semibold">{hasSelectedFilters ? matchedInvestors || '0' : '0'}</span>
+						</p>
+						<p className="text-base flex items-center flex-wrap gap-1 justify-between">
+							<span>Total Cost:</span>
+							{matchedInvestors && hasSelectedFilters ? (
+								<span className="font-semibold text-[var(--green1)]">${totalCost}</span>
+							) : (
+								<span className="font-semibold">0</span>
+							)}
+						</p>
+						{matchedInvestors > 100 && hasSelectedFilters ? (
+							<p className="text-red-500">To reduce costs, please filter further.</p>
+						) : null}
+						{paymentLink ||
+							(true && (
 								<>
-									<ResultText>
-										Matched Investors: <ResultValue>{hasSelectedFilters ? matchedInvestors || '0' : '0'}</ResultValue>
-									</ResultText>
-									<ResultText>
-										Total Cost:{' '}
-										{matchedInvestors && hasSelectedFilters ? (
-											<USDAmount>${totalCost}</USDAmount>
-										) : (
-											<ResultValue> 0 </ResultValue>
-										)}
-									</ResultText>
-									{matchedInvestors > 100 && hasSelectedFilters ? (
-										<WarningText>To reduce costs, please filter further.</WarningText>
-									) : null}
-									{paymentLink && (
-										<>
-											<Button onClick={() => window.open(paymentLink, '_blank')} disabled={isSubmitting}>
-												{isSubmitting ? 'Processing...' : 'Go to Payment'}
-											</Button>
-										</>
-									)}
+									<button
+										onClick={() => window.open(paymentLink, '_blank')}
+										disabled={isSubmitting}
+										className="bg-[var(--primary1)] disabled:bg-[var(--bg3)] text-white disabled:text-[var(--text3)] py-2 px-6 rounded-md w-full text-lg font-semibold"
+									>
+										{isSubmitting ? 'Processing...' : 'Go to Payment'}
+									</button>
 								</>
-							</ResultsContainer>
-						}
-					</ResultContent>
-				</ContentWrapper>
-			</PageWrapper>
+							))}
+					</div>
+				</div>
+			</div>
 		</Layout>
 	)
 }

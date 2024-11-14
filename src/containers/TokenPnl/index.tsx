@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import React, { useMemo, useState, useRef, useCallback } from 'react'
+import React, { useMemo, useState, useCallback } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
 import { LocalLoader } from '~/components/LocalLoader'
-import styled, { css } from 'styled-components'
 import { CoinsPicker } from '~/containers/Correlations'
 import { formattedNum } from '~/utils'
 import { Icon } from '~/components/Icon'
@@ -18,29 +17,6 @@ const unixToDateString = (unixTimestamp) => {
 const dateStringToUnix = (dateString) => {
 	if (!dateString) return ''
 	return Math.floor(new Date(dateString).getTime() / 1000)
-}
-
-const DatePicker = ({ value, onChange, max, min, onClose }) => {
-	const hiddenInputRef = useRef(null)
-
-	const handleClick = () => {
-		hiddenInputRef.current.showPicker()
-	}
-
-	const handleChange = (e) => {
-		const newDate = e.target.value
-		if (newDate !== value) {
-			onChange({ target: { value: newDate } })
-			onClose()
-		}
-	}
-
-	return (
-		<DateInputWrapper onClick={handleClick}>
-			<DateInputDisplay type="text" value={value} readOnly placeholder="Select a date" />
-			<HiddenDateInput ref={hiddenInputRef} type="date" value={value} onChange={handleChange} max={max} min={min} />
-		</DateInputWrapper>
-	)
 }
 
 export default function TokenPnl({ coinsData }) {
@@ -135,127 +111,151 @@ export default function TokenPnl({ coinsData }) {
 		}
 	}
 
-	const handleDatePickerClose = () => {
-		refetch()
-	}
-
 	const dialogState = useDialogState()
 
 	return (
-		<PageWrapper>
-			<h1 className="text-2xl font-medium text-center -mb-5">Token Holder Profit and Loss</h1>
-			<ContentWrapper>
-				<SelectWrapper>
-					<div className="flex flex-col gap-2">
-						<Label>Start Date:</Label>
-						<DatePicker
-							value={unixToDateString(start)}
-							onChange={(e) => updateDateAndFetchPnl(e.target.value, true)}
-							onClose={handleDatePickerClose}
-							min={unixToDateString(0)}
-							max={unixToDateString(now)}
-						/>
-					</div>
+		<div className="flex flex-col gap-2 items-center w-full max-w-sm mx-auto">
+			<h1 className="text-2xl font-medium text-center">Token Holder Profit and Loss</h1>
+			<div className="bg-[var(--bg1)] w-full p-4 rounded-md shadow flex flex-col gap-4">
+				<label className="flex flex-col gap-1 text-sm">
+					<span>Start Date:</span>
+					<input
+						type="date"
+						className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
+						value={unixToDateString(start)}
+						onChange={(e) => updateDateAndFetchPnl(e.target.value, true)}
+						min={unixToDateString(0)}
+						max={unixToDateString(now)}
+						onFocus={async (e) => {
+							try {
+								e.target.showPicker()
+							} catch (error) {}
+						}}
+					/>
+				</label>
 
-					<div className="flex flex-col gap-2">
-						<Label>End Date:</Label>
-						<DatePicker
-							value={unixToDateString(end)}
-							onChange={(e) => updateDateAndFetchPnl(e.target.value, false)}
-							onClose={handleDatePickerClose}
-							min={unixToDateString(start)}
-							max={new Date().toISOString().split('T')[0]}
-						/>
-					</div>
+				<label className="flex flex-col gap-1 text-sm">
+					<span>End Date:</span>
+					<input
+						type="date"
+						className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
+						value={unixToDateString(end)}
+						onChange={(e) => updateDateAndFetchPnl(e.target.value, false)}
+						min={unixToDateString(start)}
+						max={new Date().toISOString().split('T')[0]}
+						onFocus={async (e) => {
+							try {
+								e.target.showPicker()
+							} catch (error) {}
+						}}
+					/>
+				</label>
 
-					<div className="flex flex-col gap-2">
-						<Label>Token:</Label>
+				<label className="flex flex-col gap-1 text-sm">
+					<span>Token:</span>
 
-						{selectedCoins[0] ? (
-							<SelectedToken
+					{selectedCoins[0] ? (
+						<button
+							onClick={() => {
+								setModalOpen(1)
+								dialogState.toggle()
+							}}
+							className="flex items-center gap-1 p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
+						>
+							<img
+								src={selectedCoins[0].image}
+								alt={selectedCoins[0].name}
+								width={24}
+								height={24}
+								className="rounded-full"
+							/>
+							<span>{selectedCoins[0].name}</span>
+						</button>
+					) : (
+						<>
+							<button
 								onClick={() => {
 									setModalOpen(1)
 									dialogState.toggle()
 								}}
+								className="flex items-center gap-1 p-[6px] rounded-md text-base bg-white text-black/60 dark:bg-black dark:text-white/60 border border-black/10 dark:border-white/10"
 							>
-								<img
-									src={selectedCoins[0].image}
-									alt={selectedCoins[0].name}
-									width={24}
-									height={24}
-									style={{ borderRadius: '50%' }}
-								/>
-								<span>{selectedCoins[0].name}</span>
-							</SelectedToken>
-						) : (
-							<>
-								<StyledSearchIcon name="search" height={16} width={16} />
-								<SearchInput
-									onClick={() => {
-										setModalOpen(1)
-										dialogState.toggle()
-									}}
-									placeholder="Search coins..."
-									readOnly
-								/>
-							</>
-						)}
-					</div>
-				</SelectWrapper>
+								<Icon name="search" height={16} width={16} />
+								<span>Search coins...</span>
+							</button>
+						</>
+					)}
+				</label>
 
-				<FixedWidthWrapper>
+				<>
 					{coins.length === 1 && (
-						<ResultWrapper>
+						<div className="flex flex-col items-center justify-center">
 							{isLoading ? (
 								<div className="flex items-center justify-center m-auto">
 									<LocalLoader />
 								</div>
 							) : isError ? (
-								<ErrorContent>
-									<ErrorTitle>Error</ErrorTitle>
-									<ErrorMessage>{error instanceof Error ? error.message : 'An error occurred'}</ErrorMessage>
-									<RetryButton onClick={() => refetch()}>Retry</RetryButton>
-								</ErrorContent>
+								<div className="flex flex-col gap-1 items-center text-base">
+									<h2 className="text-red-500 font-bold text-2xl">Error</h2>
+									<p>{error instanceof Error ? error.message : 'An error occurred'}</p>
+									<button
+										onClick={() => refetch()}
+										className="rounded-md py-[6px] px-4 bg-[var(--link-active-bg)] text-white"
+									>
+										Retry
+									</button>
+								</div>
 							) : (
 								pnlData && (
-									<ResultContent>
-										<ResultTitle color={parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red'}>
-											{parseFloat(pnlData.pnl) >= 0 ? 'Profit' : 'Loss'}
-										</ResultTitle>
-										<PnlValue color={parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red'}>{pnlData.pnl}</PnlValue>
-										{pnlData.coinInfo && (
-											<CoinInfo>
-												<InfoItem>
-													<InfoLabel>Start Price:</InfoLabel>
-													<InfoValue>{pnlData.startPrice ? `$${formattedNum(pnlData.startPrice)}` : 'N/A'}</InfoValue>
-												</InfoItem>
-												<InfoItem>
-													<InfoLabel>End Price:</InfoLabel>
-													<InfoValue>{pnlData.endPrice ? `$${formattedNum(pnlData.endPrice)}` : 'N/A'}</InfoValue>
-												</InfoItem>
-												<InfoItem>
-													<InfoLabel>Current Price:</InfoLabel>
-													<InfoValue>${formattedNum(pnlData.coinInfo.current_price)}</InfoValue>
-												</InfoItem>
+									<div className="flex flex-col items-center gap-3">
+										<h2
+											className="font-bold text-2xl flex flex-col items-center"
+											style={{ color: parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red' }}
+										>
+											<span>{parseFloat(pnlData.pnl) >= 0 ? 'Profit' : 'Loss'}</span>
+											<span>{pnlData.pnl}</span>
+										</h2>
 
-												<InfoItem>
-													<InfoLabel>24h Change:</InfoLabel>
-													<InfoValue color={pnlData.coinInfo.price_change_percentage_24h >= 0 ? 'green' : 'red'}>
+										{pnlData.coinInfo && (
+											<div className="grid grid-cols-2 gap-4 w-full">
+												<p className="flex flex-col items-center">
+													<span className="text-[var(--text2)]">Start Price:</span>
+													<span className="font-semibold text-lg">
+														{pnlData.startPrice ? `$${formattedNum(pnlData.startPrice)}` : 'N/A'}
+													</span>
+												</p>
+												<p className="flex flex-col items-center">
+													<span className="text-[var(--text2)]">End Price:</span>
+													<span className="font-semibold text-lg">
+														{pnlData.endPrice ? `$${formattedNum(pnlData.endPrice)}` : 'N/A'}
+													</span>
+												</p>
+												<p className="flex flex-col items-center">
+													<span className="text-[var(--text2)]">Current Price:</span>
+													<span className="font-semibold text-lg">${formattedNum(pnlData.coinInfo.current_price)}</span>
+												</p>
+
+												<p className="flex flex-col items-center">
+													<span className="text-[var(--text2)]">24h Change:</span>
+													<span
+														className="font-semibold text-lg"
+														style={{ color: pnlData.coinInfo.price_change_percentage_24h >= 0 ? 'green' : 'red' }}
+													>
 														{pnlData.coinInfo.price_change_percentage_24h.toFixed(2)}%
-													</InfoValue>
-												</InfoItem>
-												<InfoItem>
-													<InfoLabel>All-Time High:</InfoLabel>
-													<InfoValue>${formattedNum(pnlData.coinInfo.ath)}</InfoValue>
-												</InfoItem>
-											</CoinInfo>
+													</span>
+												</p>
+												<p className="flex flex-col items-center">
+													<span className="text-[var(--text2)]">All-Time High:</span>
+													<span className="font-semibold text-lg">${formattedNum(pnlData.coinInfo.ath)}</span>
+												</p>
+											</div>
 										)}
-									</ResultContent>
+									</div>
 								)
 							)}
-						</ResultWrapper>
+						</div>
 					)}
-				</FixedWidthWrapper>
+				</>
 
 				<CoinsPicker
 					coinsData={coinsData}
@@ -281,203 +281,7 @@ export default function TokenPnl({ coinsData }) {
 						dialogState.toggle()
 					}}
 				/>
-			</ContentWrapper>
-		</PageWrapper>
+			</div>
+		</div>
 	)
 }
-
-const inputStyles = css`
-	width: 100%;
-	padding: 12px;
-	border: 1px solid ${({ theme }) => theme.bg3};
-	border-radius: 8px;
-	background-color: ${({ theme }) => theme.bg7};
-	color: ${({ theme }) => theme.text1};
-	font-size: 16px;
-	transition: all 0.3s ease;
-
-	&:focus {
-		outline: none;
-		border-color: ${({ theme }) => theme.primary1};
-		box-shadow: 0 0 0 2px ${({ theme }) => theme.primary1}33;
-	}
-`
-
-const DateInputDisplay = styled.input`
-	${inputStyles}
-	cursor: pointer;
-`
-
-const DateInputWrapper = styled.div`
-	position: relative;
-	width: 100%;
-`
-
-const HiddenDateInput = styled.input`
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	opacity: 0;
-	cursor: pointer;
-`
-
-const Label = styled.label`
-	display: block;
-	margin-bottom: 8px;
-	color: ${({ theme }) => theme.text2};
-	font-weight: 600;
-`
-
-const SelectWrapper = styled.div`
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-	gap: 1.5rem;
-	width: 100%;
-`
-
-const PageWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	padding: 2rem;
-	max-width: 1200px;
-	margin: 0 auto;
-	gap: 2rem;
-`
-
-const ContentWrapper = styled.div`
-	min-width: 350px;
-	background: ${({ theme }) => theme.bg1};
-	border-radius: 12px;
-	padding: 2rem;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-`
-
-const ResultWrapper = styled.div`
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	width: 100%;
-	height: 100%;
-	margin-top: 0.5rem;
-	background: ${({ theme }) => theme.bg1};
-	border-radius: 8px;
-	padding: 1.5rem;
-`
-
-const ResultContent = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 12px;
-	width: 100%;
-`
-
-const ResultTitle = styled.h2<{ color: string }>`
-	font-size: 1.5rem;
-	font-weight: bold;
-	color: ${({ color }) => color};
-`
-
-const PnlValue = styled.span<{ color: string }>`
-	font-size: 2rem;
-	font-weight: bold;
-	margin-bottom: 1rem;
-	color: ${({ color }) => color};
-`
-
-const CoinInfo = styled.div`
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 1rem;
-	width: 100%;
-`
-
-const InfoItem = styled.div`
-	display: flex;
-	flex-direction: column;
-`
-
-const InfoLabel = styled.span`
-	font-size: 0.9rem;
-	color: ${({ theme }) => theme.text2};
-`
-
-const InfoValue = styled.span<{ color?: string }>`
-	font-size: 1.1rem;
-	font-weight: 600;
-	color: ${({ color, theme }) => color || theme.text1};
-`
-
-const SearchInput = styled.input`
-	${inputStyles}
-	padding-left: 2.5rem;
-	cursor: pointer;
-`
-
-const StyledSearchIcon = styled(Icon)`
-	position: absolute;
-	left: 1rem;
-	top: 50%;
-	transform: translateY(-50%);
-	color: ${({ theme }) => theme.text2};
-`
-
-const SelectedToken = styled.div`
-	${inputStyles}
-	display: flex;
-	align-items: center;
-	cursor: pointer;
-	padding: 8px 12px;
-
-	img {
-		margin-right: 8px;
-	}
-
-	span {
-		font-weight: 500;
-	}
-`
-
-const FixedWidthWrapper = styled.div`
-	width: 100%;
-	min-height: 200px;
-`
-
-const ErrorContent = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	width: 100%;
-`
-
-const ErrorTitle = styled.h2`
-	font-size: 1.5rem;
-	font-weight: bold;
-	color: ${({ theme }) => theme.red1};
-	margin-bottom: 1rem;
-`
-
-const ErrorMessage = styled.p`
-	font-size: 1rem;
-	color: ${({ theme }) => theme.text1};
-	text-align: center;
-	margin-bottom: 1rem;
-`
-
-const RetryButton = styled.button`
-	background-color: ${({ theme }) => theme.primary1};
-	color: white;
-	border: none;
-	border-radius: 8px;
-	padding: 0.5rem 1rem;
-	font-size: 1rem;
-	cursor: pointer;
-	transition: background-color 0.2s;
-
-	&:hover {
-		background-color: ${({ theme }) => theme.primary2};
-	}
-`

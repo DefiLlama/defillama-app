@@ -29,12 +29,29 @@ module.exports = {
 						opacity: 1,
 						right: '0%'
 					}
+				},
+				linebeat: {
+					'0%': {
+						left: 0,
+						'border-top-left-radius': '8px',
+						'border-top-right-radius': 0
+					},
+
+					'50%': {
+						'border-radius': '8px'
+					},
+					'100%': {
+						left: 'calc(100% - 30%)',
+						'border-top-left-radius': 0,
+						'border-top-right-radius': '8px'
+					}
 				}
 			},
 			animation: {
 				loader: 'loader 800ms linear infinite',
 				wiggle: 'wiggle 300ms ease-out',
-				slidein: 'slidein 300ms ease-out'
+				slidein: 'slidein 300ms ease-out',
+				linebeat: 'linebeat 1s ease-in-out infinite alternate'
 			}
 		}
 	},
