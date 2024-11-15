@@ -13,7 +13,6 @@ import Subscriptions from './Subscriptions'
 import useGithubAuth from './queries/useGithubAuth'
 import SignInWithGithub from './SignInWithGithub'
 import { useGetCurrentKey } from './queries/useGetCurrentKey'
-import { Description } from '~/containers/Correlations/styles'
 import { useSaveEmail } from './queries/useEmail'
 import DiscordButton from './DiscordButton'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -309,11 +308,11 @@ const ProApi = () => {
 											<ButtonDark onClick={() => saveEmail({ email, authToken })}>Save</ButtonDark>
 										</div>
 									</div>
-									<div>
-										<Description style={{ textAlign: 'left', margin: 'auto', width: 'auto', marginTop: '-12px' }}>
-											We will use your email to send you important updates and notifications about your subscription.
-										</Description>
-									</div>
+
+									<p className="text-left m-auto -mt-3 w-auto mx-auto text-sm max-w-lg text-[var(--text2)]">
+										We will use your email to send you important updates and notifications about your subscription.
+									</p>
+
 									<div style={{ display: 'flex', gap: '8px' }}>
 										<DiscordButton />
 									</div>
