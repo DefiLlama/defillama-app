@@ -1,19 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
-import {
-	Body,
-	ButtonCell,
-	Cell,
-	HeaderCell,
-	Row,
-	SearchRow,
-	SelectedBody,
-	Table,
-	Image,
-	SearchBody,
-	Add,
-	Description
-} from './styles'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import { FAQ } from './Faq'
@@ -60,14 +46,13 @@ export function CoinsPicker({ coinsData, dialogState, selectCoin, selectedCoins,
 				</DialogDismiss>
 			</span>
 
-			<SearchBody
+			<div
 				ref={parentRef}
 				style={{
 					height: 400,
-					width: 300,
-					overflowY: 'auto',
-					contain: 'strict'
+					width: 300
 				}}
+				className="no-scrollbar contain-strict overflow-y-auto"
 			>
 				<div
 					style={{
@@ -82,19 +67,16 @@ export function CoinsPicker({ coinsData, dialogState, selectCoin, selectedCoins,
 						if (!coin) return
 
 						return (
-							<SearchRow
+							<button
 								style={{
-									position: 'absolute',
-									top: 0,
-									left: 0,
-									width: '100%',
 									height: `${virtualItem.size}px`,
 									transform: `translateY(${virtualItem.start}px)`
 								}}
 								key={virtualItem.key}
 								onClick={() => selectCoin(coin)}
+								className="absolute top-0 left-0 w-full flex items-center gap-2 px-1 py-2 border-b border-black/40 dark:border-white/40"
 							>
-								<Image
+								<img
 									alt={''}
 									src={coin.image}
 									height={'24px'}
@@ -103,15 +85,16 @@ export function CoinsPicker({ coinsData, dialogState, selectCoin, selectedCoins,
 									onError={(e) => {
 										e.currentTarget.src = '/placeholder.png'
 									}}
+									className="inline-block object-cover aspect-square rounded-full bg-[var(--bg3)] flex-shrink-0"
 								/>
 								<span>
 									{coin.name} ({coin.symbol.toUpperCase()})
 								</span>
-							</SearchRow>
+							</button>
 						)
 					})}
 				</div>
-			</SearchBody>
+			</div>
 		</Dialog>
 	)
 }
@@ -203,12 +186,12 @@ export default function Correlations({ coinsData }) {
 				</button>
 			</div>
 
-			<Body>
-				<SelectedBody>
+			<div className="flex flex-col sm:flex-row mx-auto">
+				<div className="no-scrollbar overflow-auto mr-8 mt-3 flex flex-col">
 					<h2 className="text-lg font-medium">Selected Coins</h2>
 					{Object.values(selectedCoins).map((coin) =>
 						coin ? (
-							<SearchRow
+							<button
 								key={coin.symbol.toUpperCase()}
 								onClick={() =>
 									router.push(
@@ -223,8 +206,9 @@ export default function Correlations({ coinsData }) {
 										{ shallow: true }
 									)
 								}
+								className="flex items-center gap-2 px-1 py-2 border-b border-black/40 dark:border-white/40"
 							>
-								<Image
+								<img
 									alt={''}
 									src={coin.image}
 									height={'24px'}
@@ -233,55 +217,84 @@ export default function Correlations({ coinsData }) {
 									onError={(e) => {
 										e.currentTarget.src = '/placeholder.png'
 									}}
+									className="inline-block object-cover aspect-square rounded-full bg-[var(--bg3)] flex-shrink-0"
 								/>
 								<span>{coin.symbol.toUpperCase()}</span>
-								<Icon name="x" height={14} width={14} />
-							</SearchRow>
+								<Icon name="x" height={14} width={14} className="ml-auto" />
+							</button>
 						) : null
 					)}
-					<Add onClick={dialogState.toggle}>
-						<div>+</div>
-					</Add>
-				</SelectedBody>
-				<Table>
+					<button onClick={dialogState.toggle} className="w-full text-xl py-2">
+						+
+					</button>
+				</div>
+				<table className="table-fixed text-center overflow-hidden max-w-lg">
 					<thead>
 						<th />
 						{coins.map((coin) => (
-							<HeaderCell key={coin.id}>{coin?.symbol?.toUpperCase()}</HeaderCell>
+							<td
+								key={coin.id}
+								className="w-12 h-12 relative hover:after:absolute hover:after:left-0 hover:after:bg-[rgba(0,153,255,0.5)] hover:after:top-[-5000px] hover:after:h-[10000px] hover:after:w-full hover:after:z-[-1] hover:after:content-[''] font-bold"
+							>
+								{coin?.symbol?.toUpperCase()}
+							</td>
 						))}
-						<ButtonCell onClick={dialogState.toggle}>+</ButtonCell>
+						<td>
+							<button
+								onClick={dialogState.toggle}
+								className="w-12 h-12 text-2xl hover:bg-[rgba(0,153,255,0.5)] focus-visible:hover:bg-[rgba(0,153,255,0.5)]"
+							>
+								+
+							</button>
+						</td>
 					</thead>
 					<tbody>
 						{coins.map((coin, i) => (
-							<Row key={coin.id + i + period}>
-								<HeaderCell>{coin?.symbol?.toUpperCase()}</HeaderCell>
+							<tr key={coin.id + i + period} className="hover:bg-[rgba(0,153,255,0.5)]">
+								<td className="w-12 h-12 relative hover:after:absolute hover:after:left-0 hover:after:bg-[rgba(0,153,255,0.5)] hover:after:top-[-5000px] hover:after:h-[10000px] hover:after:w-full hover:after:z-[-1] hover:after:content-[''] font-bold">
+									{coin?.symbol?.toUpperCase()}
+								</td>
 								{correlations[coin.id]?.map((corr) =>
 									corr === null ? (
-										<Image
+										<img
 											key={coin.image}
 											alt={''}
 											src={coin.image}
 											height={'24px'}
 											width={'24px'}
-											style={{ marginTop: '13px' }}
 											loading="lazy"
 											onError={(e) => {
 												e.currentTarget.src = '/placeholder.png'
 											}}
+											className="inline-block object-cover aspect-square rounded-full bg-[var(--bg3)] flex-shrink-0 mt-3"
 										/>
 									) : (
-										<Cell value={Number(corr)} key={corr + coin.id + period}>
+										<td
+											key={corr + coin.id + period}
+											style={{
+												backgroundColor:
+													+corr > 0 ? `rgba(53, 222, 59, ${Number(corr)})` : `rgb(255,0,0, ${-Number(corr)})`
+											}}
+											className="w-12 h-12 relative hover:after:absolute hover:after:left-0 hover:after:bg-[rgba(0,153,255,0.5)] hover:after:top-[-5000px] hover:after:h-[10000px] hover:after:w-full hover:after:z-[-1] hover:after:content-['']"
+										>
 											{corr}
-										</Cell>
+										</td>
 									)
 								)}
-							</Row>
+							</tr>
 						))}
-						<Row>
-							<ButtonCell onClick={() => dialogState.toggle}>+</ButtonCell>
-						</Row>
+						<tr>
+							<td>
+								<button
+									onClick={dialogState.toggle}
+									className="w-12 h-12 text-2xl hover:bg-[rgba(0,153,255,0.5)] focus-visible:hover:bg-[rgba(0,153,255,0.5)]"
+								>
+									+
+								</button>
+							</td>
+						</tr>
 					</tbody>
-				</Table>
+				</table>
 				<CoinsPicker
 					coinsData={coinsData}
 					dialogState={dialogState}
@@ -301,11 +314,11 @@ export default function Correlations({ coinsData }) {
 						)
 					}}
 				/>
-			</Body>
-			<Description>
+			</div>
+			<p className="text-center mx-auto text-sm max-w-lg text-[var(--text2)]">
 				Correlation is calculated by using each day as a single data point, and this calculation depends on the selected
 				period. For example, if you select a period of one year, the correlation will be computed from 365 data points.
-			</Description>
+			</p>
 			<FAQ />
 		</>
 	)

@@ -3,7 +3,6 @@ import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
 import { CACHE_SERVER } from '~/constants'
 import { LocalLoader } from '~/components/LocalLoader'
-import styled from 'styled-components'
 import { CoinsPicker } from '~/containers/Correlations'
 import { useSelectState, Select, SelectItem, SelectPopover, SelectArrow } from 'ariakit/select'
 import { useQuery } from '@tanstack/react-query'
@@ -122,16 +121,32 @@ export default function CompareFdv({ coinsData, protocols }) {
 
 	return (
 		<>
-			<h1 className="text-2xl font-medium mt-2">Compare Tokens</h1>
-			<Wrapper>
-				<SelectWrapper>
+			<h1 className="text-2xl font-medium mt-2 text-center w-full max-w-sm mx-auto relative lg:-left-[116px]">
+				Compare Tokens
+			</h1>
+			<div className="flex flex-col items-center gap-2 w-full max-w-sm mx-auto relative lg:-left-[116px]">
+				<div className="flex flex-col sm:flex-row sm:items-center gap-4">
 					<div className="relative w-full sm:max-w-[280px]">
-						<Icon
-							name="search"
-							height={16}
-							width={16}
-							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-						/>
+						{selectedCoins[0] ? (
+							<img
+								alt={''}
+								src={selectedCoins[0].image}
+								height={16}
+								width={16}
+								loading="lazy"
+								onError={(e) => {
+									e.currentTarget.src = '/placeholder.png'
+								}}
+								className="inline-block object-cover aspect-square rounded-full flex-shrink-0 bg-[var(--bg3)] absolute top-0 bottom-0 my-auto left-2"
+							/>
+						) : (
+							<Icon
+								name="search"
+								height={16}
+								width={16}
+								className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+							/>
+						)}
 						<input
 							value={selectedCoins[0]?.name}
 							onClick={() => {
@@ -139,7 +154,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogState.toggle()
 							}}
 							placeholder="Search coins..."
-							className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-black/10 dark:border-white/10 w-full py-[6px] px-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
 						/>
 					</div>
 					{/* <ReactSelect
@@ -178,7 +193,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 						}}
 						filterOption={createFilter({ ignoreAccents: false })}
 					/> */}
-					<Switch
+					<button
 						onClick={() => {
 							if (coins.length > 1) {
 								router.push(
@@ -194,9 +209,11 @@ export default function CompareFdv({ coinsData, protocols }) {
 								)
 							}
 						}}
+						className="p-1 flex items-center justify-center flex-shrink-0"
 					>
 						<Icon name="repeat" height={16} width={16} />
-					</Switch>
+						<span className="sr-only">Switch tokens</span>
+					</button>
 					{/* <ReactSelect
 						options={coinsData}
 						value={selectedCoins[1]}
@@ -235,12 +252,26 @@ export default function CompareFdv({ coinsData, protocols }) {
 						filterOption={createFilter({ ignoreAccents: false })}
 					/> */}
 					<div className="relative w-full sm:max-w-[280px]">
-						<Icon
-							name="search"
-							height={16}
-							width={16}
-							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-						/>
+						{selectedCoins[1] ? (
+							<img
+								alt={''}
+								src={selectedCoins[1].image}
+								height={16}
+								width={16}
+								loading="lazy"
+								onError={(e) => {
+									e.currentTarget.src = '/placeholder.png'
+								}}
+								className="inline-block object-cover aspect-square rounded-full flex-shrink-0 bg-[var(--bg3)] absolute top-0 bottom-0 my-auto left-2"
+							/>
+						) : (
+							<Icon
+								name="search"
+								height={16}
+								width={16}
+								className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+							/>
+						)}
 						<input
 							value={selectedCoins[1]?.name}
 							onClick={() => {
@@ -248,58 +279,57 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogState.toggle()
 							}}
 							placeholder="Search coins..."
-							className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
 						/>
 					</div>
-
-					<Select
-						state={selectState}
-						className="bg-[var(--btn2-bg)] hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative md:min-w-[120px] md:max-w-fit"
-					>
-						<span>{compareType?.label}</span>
-						<SelectArrow />
-					</Select>
-					<SelectPopover
-						state={selectState}
-						composite={false}
-						className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
-					>
-						{compareTypes.map((item) => {
-							return (
-								<SelectItem
-									as="button"
-									key={item.value}
-									onClick={() => {
-										router.push(
-											{
-												pathname: router.pathname,
-												query: {
-													...router.query,
-													type: item.value
-												}
-											},
-											undefined,
-											{ shallow: true }
-										)
-									}}
-									className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
-								>
-									{item.label}
-								</SelectItem>
-							)
-						})}
-					</SelectPopover>
-				</SelectWrapper>
+				</div>
+				<Select
+					state={selectState}
+					className="bg-[var(--btn2-bg)] hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] flex-nowrap relative w-full"
+				>
+					<span>{compareType?.label}</span>
+					<SelectArrow />
+				</Select>
+				<SelectPopover
+					state={selectState}
+					composite={false}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				>
+					{compareTypes.map((item) => {
+						return (
+							<SelectItem
+								as="button"
+								key={item.value}
+								onClick={() => {
+									router.push(
+										{
+											pathname: router.pathname,
+											query: {
+												...router.query,
+												type: item.value
+											}
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}}
+								className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+							>
+								{item.label}
+							</SelectItem>
+						)
+					})}
+				</SelectPopover>
 				{coins.length === 2 ? (
 					fdvData === null ? (
 						<div className="flex items-center justify-center m-auto min-h-[360px]">
 							<LocalLoader />
 						</div>
 					) : (
-						<Wrapper2>
-							<Header>
-								<ImageWrapper>
-									<Image
+						<div className="flex flex-col gap-2 items-center mt-10">
+							<h2 className="flex flex-wrap items-center justify-center gap-1 font-normal text-base">
+								<span className="flex items-center gap-1">
+									<img
 										alt={''}
 										src={selectedCoins[0].image}
 										height={'20px'}
@@ -308,12 +338,13 @@ export default function CompareFdv({ coinsData, protocols }) {
 										onError={(e) => {
 											e.currentTarget.src = '/placeholder.png'
 										}}
+										className="inline-block object-cover aspect-square rounded-full flex-shrink-0 bg-[var(--bg3)]"
 									/>
 									<span>{selectedCoins[0].symbol.toUpperCase()}</span>
-								</ImageWrapper>
+								</span>
 								<span>WITH THE {compareType.label.toUpperCase()} OF</span>
-								<ImageWrapper>
-									<Image
+								<span className="flex items-center gap-1">
+									<img
 										alt={''}
 										src={selectedCoins[1].image}
 										height={'20px'}
@@ -322,13 +353,14 @@ export default function CompareFdv({ coinsData, protocols }) {
 										onError={(e) => {
 											e.currentTarget.src = '/placeholder.png'
 										}}
+										className="inline-block object-cover aspect-square rounded-full flex-shrink-0 bg-[var(--bg3)]"
 									/>
 									<span>{selectedCoins[1].symbol.toUpperCase()}</span>
-								</ImageWrapper>
-							</Header>
+								</span>
+							</h2>
 
 							{newPrice !== undefined && increase !== undefined ? (
-								<p className="text-base font-medium">
+								<p className="text-lg font-bold">
 									$
 									{newPrice.toLocaleString(
 										undefined, // leave undefined to use the visitor's browser
@@ -338,7 +370,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 									({increase.toFixed(2)}x)
 								</p>
 							) : null}
-						</Wrapper2>
+						</div>
 					)
 				) : null}
 
@@ -365,74 +397,10 @@ export default function CompareFdv({ coinsData, protocols }) {
 						dialogState.toggle()
 					}}
 				/>
-			</Wrapper>
+			</div>
 		</>
 	)
 }
-
-const SelectWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-
-	& > span {
-		min-width: min(90vw, 300px);
-		width: 100%;
-		white-space: nowrap;
-	}
-
-	@media (min-width: ${({ theme }) => theme.bpMed}) {
-		flex-direction: row;
-		gap: 36px;
-	}
-`
-
-const Switch = styled.button`
-	padding: 4px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	flex-shrink: 0;
-`
-
-const Image = styled.img`
-	display: inline-block;
-	object-fit: cover;
-	aspect-ratio: 1;
-	background: ${({ theme }) => theme.bg3};
-	border-radius: 50%;
-	flex-shrink: 0;
-`
-
-const ImageWrapper = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 4px;
-`
-
-const Header = styled.h2`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: center;
-	gap: 4px;
-	font-weight: 400;
-	font-size: 14px;
-`
-
-const Wrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 80px;
-`
-
-const Wrapper2 = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 16px;
-`
 
 const compareTypes = [
 	{ label: 'Mcap', value: 'mcap' },

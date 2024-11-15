@@ -5,7 +5,6 @@ import { disclaimer, findOptimizerPools } from '~/containers/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
 import { withPerformanceLogging } from '~/utils/perf'
-import styled from 'styled-components'
 import { useSelectState, SelectArrow, Select, SelectPopover, SelectItem } from 'ariakit/select'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { Combobox, ComboboxList, useComboboxState } from 'ariakit/combobox'
@@ -85,23 +84,25 @@ export default function YieldBorrow(data) {
 	return (
 		<Layout title={`Borrow Aggregator - DefiLlama`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<Wrapper>
-				<FormWrapper>
-					<label>
-						<span data-label>Borrow</span>
+			<div className="flex flex-col mx-auto w-full max-w-md gap-4">
+				<div className="rounded-md bg-white/60 dark:bg-black/60 flex flex-col gap-5 p-4 overflow-y-auto">
+					<label className="flex flex-col gap-1 w-full">
+						<span className="text-base">Borrow</span>
 						<TokensSelect searchData={data.searchData} query={'borrow'} placeholder="Select token to borrow" />
 					</label>
 
-					<label>
-						<span data-label>Collateral</span>
+					<label className="flex flex-col gap-1 w-full">
+						<span className="text-base">Collateral</span>
 						<TokensSelect searchData={data.searchData} query={'collateral'} placeholder="Select token for collateral" />
 						{borrowToken && !collateralToken ? (
-							<small>Select your collateral token to see real borrow cost!</small>
+							<small className="text-center mt-[2px] text-orange-500">
+								Select your collateral token to see real borrow cost!
+							</small>
 						) : null}
 					</label>
 
 					{borrowToken || collateralToken ? (
-						<label data-checkbox>
+						<label className="flex gap-1 mx-auto cursor-pointer">
 							<input
 								type="checkbox"
 								checked={includeIncentives}
@@ -113,79 +114,15 @@ export default function YieldBorrow(data) {
 									)
 								}
 							/>
-							<span data-label>Include Incentives</span>
+							<span className="text-base">Include Incentives</span>
 						</label>
 					) : null}
-				</FormWrapper>
+				</div>
 				{(borrowToken || collateralToken) && <PoolsList pools={filteredPools} />}
-			</Wrapper>
+			</div>
 		</Layout>
 	)
 }
-
-const Wrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 16px;
-
-	max-width: 992px;
-	margin: 0 -16px;
-
-	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		margin: 0 auto;
-		width: 100%;
-	}
-`
-
-const Content = styled.div`
-	border-radius: 12px;
-	background: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(246, 246, 246, 0.6)')};
-	width: 100%;
-	max-width: 480px;
-
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-	padding: 16px;
-	overflow-y: auto;
-`
-
-const FormWrapper = styled(Content)`
-	label {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-
-		& > *[data-label] {
-			font-size: 1rem;
-			font-weight: 400;
-		}
-	}
-
-	label[data-checkbox] {
-		cursor: pointer;
-		flex-direction: row;
-		margin: 0 auto;
-	}
-
-	small {
-		color: orange;
-		text-align: center;
-		margin-top: 2px;
-	}
-
-	height: 252px;
-`
-
-const PoolsWrapper = styled(Content)`
-	padding: 0px 0px 16px;
-
-	& > *[data-emptytext] {
-		text-align: center;
-		margin: 16px 16px 24px;
-	}
-`
 
 const TokensSelect = ({
 	searchData,
@@ -356,7 +293,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 	const finalPools: Array<IPool> = Object.values(filteredPools2)
 
 	return (
-		<PoolsWrapper>
+		<div className="rounded-md bg-white/60 dark:bg-black/60 flex flex-col overflow-y-auto">
 			<TabList>
 				<Tab onClick={() => setTab('safe')} aria-selected={tab === 'safe'}>
 					Safe
@@ -367,21 +304,21 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 			</TabList>
 
 			{finalPools.length === 0 ? (
-				<p data-emptytext>Couldn't find any pools</p>
+				<p className="m-4 mb-6 text-center">Couldn't find any pools</p>
 			) : (
 				<tbody>
-					<ProjectsWrapper>
+					<table className="border-separate border-spacing-y-2 w-[calc(100%-32px)] m-4">
 						{finalPools.map((pool) => (
-							<Project key={JSON.stringify(pool)}>
-								<th>
-									<span data-pname>
+							<tr key={JSON.stringify(pool)} className="p-3">
+								<th className="rounded-l-md bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
+									<span className="flex items-center gap-1">
 										<TokenLogo logo={tokenIconUrl(pool.projectName)} size={20} />
 										<span>{pool.projectName}</span>
 									</span>
 								</th>
 
-								<td>
-									<span data-metric>
+								<td className="bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
+									<span className="flex flex-col">
 										<span>
 											{(
 												(borrow && collateral
@@ -398,7 +335,9 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 											).toLocaleString(undefined, { maximumFractionDigits: 2 })}
 											%
 										</span>
-										<span>{borrow && collateral ? 'Net APY' : borrow ? 'Net Borrow APY' : 'Net Supply APY'}</span>
+										<span className="text-xs opacity-70">
+											{borrow && collateral ? 'Net APY' : borrow ? 'Net Borrow APY' : 'Net Supply APY'}
+										</span>
 									</span>
 								</td>
 
@@ -423,63 +362,17 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 									</span>
 								</td> */}
 
-								<td>
-									<span data-pname data-cname>
+								<td className="rounded-r-md bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
+									<span className="flex items-center justify-end gap-1">
 										<TokenLogo logo={chainIconUrl(pool.chain)} size={20} />
 										<span>{pool.chain}</span>
 									</span>
 								</td>
-							</Project>
+							</tr>
 						))}
-					</ProjectsWrapper>
+					</table>
 				</tbody>
 			)}
-		</PoolsWrapper>
+		</div>
 	)
 }
-
-const ProjectsWrapper = styled.table`
-	margin: -8px 16px;
-	border-collapse: separate;
-	border-spacing: 0 8px;
-	width: calc(100% - 32px);
-`
-
-const Project = styled.tr`
-	padding: 12px;
-
-	& > *:first-child {
-		border-radius: 12px 0px 0px 12px;
-	}
-
-	& > *:last-child {
-		border-radius: 0px 12px 12px 0px;
-	}
-
-	th,
-	td {
-		font-weight: 400;
-		font-size: 0.875rem;
-		padding: 8px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#17181c' : '#eff0f3')};
-	}
-
-	& > * > *[data-pname] {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-	}
-	& > * > *[data-cname] {
-		justify-content: flex-end;
-	}
-
-	& > * > *[data-metric] {
-		display: flex;
-		flex-direction: column;
-
-		& > *:last-child {
-			font-size: 0.75rem;
-			opacity: 0.6;
-		}
-	}
-`
