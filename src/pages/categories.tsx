@@ -107,7 +107,12 @@ export const descriptions = {
 		'A decentralized platform where users can trade assets directly peer-to-peer, using secure smart contracts',
 	'Yield Lottery': 'DeFi protocol where users deposit funds for a chance to win the pooled yield as prizes',
 	'Token Locker':
-		'Protocols that lock digital assets like fungible tokens, NFTs, and LP tokens, ensuring restricted access for a set duration'
+		'Protocols that lock digital assets like fungible tokens, NFTs, and LP tokens, ensuring restricted access for a set duration',
+	'Bug Bounty': 'Protocols that incentivize security researchers to find and report vulnerabilities in smart contracts',
+	'DCA Tools':
+		'Protocols that automate dollar-cost averaging, allowing users to make regular crypto investments automatically',
+	'Managed Token Pools':
+		'Protocols where token pools are actively controlled and managed by a designated operator or governance'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
