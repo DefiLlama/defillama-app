@@ -18,7 +18,6 @@ import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import type { IProtocolContainerProps } from '../types'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
-import { OtherProtocols, ProtocolLink } from '~/containers/Defi/Protocol/Common'
 import Link from 'next/link'
 import { useFeesManager } from '~/contexts/LocalStorage'
 
@@ -104,15 +103,18 @@ export const ProtocolChart = ({
 	return (
 		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 			{childProtocols && childProtocols.length > 0 && (
-				<OtherProtocols>
+				<nav className="col-span-1 xl:col-span-2 flex overflow-x-auto rounded-t-xl bg-[var(--bg7)] border-b border-black/10 dark:border-white/10">
 					{tabs.map((p) => (
 						<Link href={`/${type}/${standardizeProtocolName(p)}`} key={p} passHref>
-							<ProtocolLink active={router.asPath === `/${type}/${standardizeProtocolName(p)}`} color={'#fff'}>
+							<a
+								data-active={router.asPath.split('#')[0].split('?')[0] === `/${type}/${standardizeProtocolName(p)}`}
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-tl-xl data-[active=true]:bg-[var(--link-hover-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
+							>
 								{p}
-							</ProtocolLink>
+							</a>
 						</Link>
 					))}
-				</OtherProtocols>
+				</nav>
 			)}
 			{!fullChart ? (
 				<div

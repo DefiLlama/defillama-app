@@ -2,7 +2,6 @@ import * as React from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import dynamic from 'next/dynamic'
 import { toK } from '~/utils'
-import { Tab, TabList } from '~/components'
 import type { IChartProps, IPieChartProps, IBarChartProps } from '~/components/ECharts/types'
 import { groupDataByDays } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
@@ -50,17 +49,29 @@ export const ETFContainer = ({
 			</h1>
 
 			<div className="rounded-xl bg-[var(--bg6)] shadow">
-				<TabList>
-					<Tab onClick={() => setTab('volume')} aria-selected={tab === 'volume'}>
+				<div className="flex flex-wrap overflow-x-auto border-b border-black/10 dark:border-white/10">
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('volume')}
+						data-selected={tab === 'volume'}
+					>
 						Volume
-					</Tab>
-					<Tab onClick={() => setTab('aum')} aria-selected={tab === 'aum'}>
+					</button>
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('aum')}
+						data-selected={tab === 'aum'}
+					>
 						AUM
-					</Tab>
-					<Tab onClick={() => setTab('flows')} aria-selected={tab === 'flows'}>
+					</button>
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('flows')}
+						data-selected={tab === 'flows'}
+					>
 						Flows
-					</Tab>
-				</TabList>
+					</button>
+				</div>
 
 				<div className="flex flex-col p-4 min-h-[392px]">
 					{tab === 'aum' ? (

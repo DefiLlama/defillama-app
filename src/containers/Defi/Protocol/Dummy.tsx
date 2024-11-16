@@ -9,7 +9,6 @@ import { SEO } from '~/components/SEO'
 import { standardizeProtocolName, tokenIconUrl } from '~/utils'
 import { Treasury } from './Treasury'
 import { ProtocolFeesRevenueVolumeCharts } from './Fees'
-import { OtherProtocols, ProtocolLink } from './Common'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
@@ -25,18 +24,21 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 
 			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg7)] border border-[var(--divider)] shadow rounded-xl">
 				{data?.otherProtocols?.length > 1 && (
-					<OtherProtocols style={{ margin: '-24px -24px -12px' }}>
+					<nav
+						className="flex overflow-x-auto rounded-xl bg-[var(--bg7)] w-full max-w-fit -m-6 -mb-3"
+						style={{ '--active-bg': transparentize(0.9, backgroundColor) } as any}
+					>
 						{data.otherProtocols.map((p) => (
 							<Link href={`/protocol/${standardizeProtocolName(p)}`} key={p} passHref>
-								<ProtocolLink
-									active={router.asPath === `/protocol/${standardizeProtocolName(p)}`}
-									color={backgroundColor}
+								<a
+									data-active={router.asPath.split('#')[0].split('?')[0] === `/protocol/${standardizeProtocolName(p)}`}
+									className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-xl last:rounded-r-xl data-[active=true]:bg-[var(--active-bg)] hover:bg-[var(--active-bg)] focus-visible:bg-[var(--active-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
 								>
 									{p}
-								</ProtocolLink>
+								</a>
 							</Link>
 						))}
-					</OtherProtocols>
+					</nav>
 				)}
 
 				<h1 className="flex items-center gap-2 text-xl">

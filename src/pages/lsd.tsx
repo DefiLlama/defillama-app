@@ -6,14 +6,12 @@ import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { formattedNum, toK } from '~/utils'
-
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
 import { primaryColor } from '~/constants/colors'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { groupDataByDays } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
-import { Tab, TabList } from '~/components'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -64,14 +62,22 @@ const PageView = ({
 			</h1>
 
 			<div className="rounded-xl shadow bg-[var(--bg6)] w-full flex flex-col">
-				<TabList>
-					<Tab onClick={() => setTab('breakdown')} aria-selected={tab === 'breakdown'}>
+				<div className="flex flex-wrap overflow-x-auto border-b border-black/10 dark:border-white/10">
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('breakdown')}
+						data-selected={tab === 'breakdown'}
+					>
 						Breakdown
-					</Tab>
-					<Tab onClick={() => setTab('inflows')} aria-selected={tab === 'inflows'}>
+					</button>
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('inflows')}
+						data-selected={tab === 'inflows'}
+					>
 						Inflows
-					</Tab>
-				</TabList>
+					</button>
+				</div>
 
 				<div className="flex flex-col items-center gap-4 p-4 min-h-[360px] w-full">
 					{tab === 'breakdown' ? (

@@ -2,7 +2,7 @@ import * as React from 'react'
 import Link from 'next/link'
 
 import dynamic from 'next/dynamic'
-import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
+import { useTabState, Tab, TabList, TabPanel } from 'ariakit/tab'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { PeggedSearch } from '~/components/Search/Stablecoins'

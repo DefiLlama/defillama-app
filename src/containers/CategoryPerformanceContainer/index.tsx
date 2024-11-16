@@ -5,7 +5,6 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
 import { primaryColor } from '~/constants/colors'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
-import { Tab, TabList } from '~/components'
 import { useScrollToTop } from '~/hooks'
 import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
 
@@ -132,17 +131,29 @@ export const CategoryPerformanceContainer = ({
 			</h1>
 
 			<div className="rounded-md bg-white dark:bg-black border border-black/10 dark:border-white/10">
-				<TabList>
-					<Tab onClick={() => setTab('linechart')} aria-selected={tab === 'linechart'}>
+				<div className="flex flex-wrap overflow-x-auto border-b border-black/10 dark:border-white/10">
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('linechart')}
+						data-selected={tab === 'linechart'}
+					>
 						Linechart
-					</Tab>
-					<Tab onClick={() => setTab('barchart')} aria-selected={tab === 'barchart'}>
+					</button>
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('barchart')}
+						data-selected={tab === 'barchart'}
+					>
 						Barchart
-					</Tab>
-					<Tab onClick={() => setTab('heatmap')} aria-selected={tab === 'heatmap'}>
+					</button>
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('heatmap')}
+						data-selected={tab === 'heatmap'}
+					>
 						Heatmap
-					</Tab>
-				</TabList>
+					</button>
+				</div>
 
 				<div className="flex flex-col p-4 gap-4 min-h-[360px]">
 					<>

@@ -10,7 +10,6 @@ import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { Combobox, ComboboxList, useComboboxState } from 'ariakit/combobox'
 import { useRouter } from 'next/router'
 import { TokenLogo } from '~/components/TokenLogo'
-import { Tab, TabList } from '~/components'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
@@ -294,14 +293,22 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 
 	return (
 		<div className="rounded-md bg-white/60 dark:bg-black/60 flex flex-col overflow-y-auto">
-			<TabList>
-				<Tab onClick={() => setTab('safe')} aria-selected={tab === 'safe'}>
+			<div className="flex flex-wrap overflow-x-auto border-b border-black/10 dark:border-white/10">
+				<button
+					className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+					onClick={() => setTab('safe')}
+					data-selected={tab === 'safe'}
+				>
 					Safe
-				</Tab>
-				<Tab onClick={() => setTab('degen')} aria-selected={tab === 'degen'}>
+				</button>
+				<button
+					className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+					onClick={() => setTab('degen')}
+					data-selected={tab === 'degen'}
+				>
 					Degen
-				</Tab>
-			</TabList>
+				</button>
+			</div>
 
 			{finalPools.length === 0 ? (
 				<p className="m-4 mb-6 text-center">Couldn't find any pools</p>
