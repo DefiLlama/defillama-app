@@ -166,7 +166,7 @@ export const ProtocolChart = ({
 				// TODO: Temporal work around to unlock feature
 				<>‎</>
 			)}
-			<div className={`flex flex-col gap-4 py-3 ${fullChart ? 'col-span-1' : 'col-span-2'}`}>
+			<div className={`flex flex-col gap-4 py-3 ${!fullChart ? 'col-span-1' : 'col-span-2'}`}>
 				{barsData && barsData.length > 0 && (
 					<div className="flex gap-2 flex-row items-center flex-wrap justify-between mx-4">
 						<>{title ?? ''}</>
