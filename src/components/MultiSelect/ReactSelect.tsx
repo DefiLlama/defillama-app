@@ -4,12 +4,11 @@ const customStyles = {
 	control: (provided) => ({
 		...provided,
 		background: 'var(--bg6)',
-		padding: '4px 2px',
+		padding: '2px',
 		borderRadius: '8px',
-		border: 'none',
+		border: '1px solid var(--form-control-border)',
 		color: 'var(--text1)',
-		boxShadow:
-			'0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04)',
+		boxShadow: 'none',
 		margin: 0,
 		zIndex: 0
 	}),

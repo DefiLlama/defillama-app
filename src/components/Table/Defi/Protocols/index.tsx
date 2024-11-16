@@ -449,7 +449,7 @@ export function ProtocolsTableWithSearch({
 
 	return (
 		<>
-			<div className="relative w-full sm:max-w-[280px] ml-auto">
+			<div className="relative w-full sm:max-w-[280px] ml-auto -mb-4">
 				<Icon
 					name="search"
 					height={16}

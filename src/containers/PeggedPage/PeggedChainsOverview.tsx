@@ -1,7 +1,6 @@
 import * as React from 'react'
 
 import dynamic from 'next/dynamic'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import { GroupStablecoins } from '~/components/MultiSelect/Stablecoins'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ChartSelector } from '~/containers/PeggedPage/.'
@@ -107,24 +106,23 @@ function PeggedChainsOverview({
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
 			<CSVDownloadButton onClick={downloadCsv} style={{ width: '150px', alignSelf: 'flex-end' }} />
-			<ChartAndValuesWrapper>
-				<BreakpointPanels>
-					<BreakpointPanel>
-						<h1>Total {title}</h1>
-						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{mcapToDisplay}</p>
-					</BreakpointPanel>
-					<BreakpointPanel>
-						<h2>Change (7d)</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {percentChange || 0}%</p>
-					</BreakpointPanel>
-					<BreakpointPanel>
-						<h2>{topChain.name} Dominance</h2>
-						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {dominance}%</p>
-					</BreakpointPanel>
-				</BreakpointPanels>
-				<BreakpointPanel id="chartWrapper" style={{ gap: '16px', minHeight: '450px', justifyContent: 'space-between' }}>
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+				<div className="flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+					<p className="flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Total {title}</span>
+						<span className="font-semibold text-2xl font-jetbrains">{mcapToDisplay}</span>
+					</p>
+					<p className="flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Change (7d)</span>
+						<span className="font-semibold text-2xl font-jetbrains">{percentChange || 0}%</span>
+					</p>
+					<p className="flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">{topChain.name} Dominance</span>
+						<span className="font-semibold text-2xl font-jetbrains">{dominance}%</span>
+					</p>
+				</div>
+				<div className="flex flex-col gap-4 py-4 col-span-1 *:ml-4 last:*:ml-0 min-h-[444px]">
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-
 					{chartType === 'Total Market Cap' && (
 						<AreaChart
 							title=""
@@ -158,8 +156,8 @@ function PeggedChainsOverview({
 						/>
 					)}
 					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}
-				</BreakpointPanel>
-			</ChartAndValuesWrapper>
+				</div>
+			</div>
 
 			<div className="flex flex-col gap-1">
 				<h2 className="font-semibold text-sm">Filters</h2>

@@ -22,8 +22,8 @@ export const TotalLiquidable = (props: ChartData) => {
 
 	return (
 		<>
-			<h1>Total Liquidatable (USD)</h1>
-			<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>${totalLiquidable}</p>
+			<span className="text-[#545757] dark:text-[#cccccc]">Total Liquidatable (USD)</span>
+			<span className="font-semibold text-2xl font-jetbrains">${totalLiquidable}</span>
 		</>
 	)
 }

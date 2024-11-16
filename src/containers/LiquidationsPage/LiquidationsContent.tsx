@@ -2,7 +2,6 @@
 import * as React from 'react'
 import ReactSwitch from 'react-switch'
 import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { TotalLiquidable } from './TotalLiquidable'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { LiquidationsContext } from '~/containers/LiquidationsPage/context'
@@ -21,19 +20,19 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 	const { data, prevData } = props
 	const [bobo, setBobo] = React.useState(false)
 	return (
-		<ChartAndValuesWrapper>
-			<BreakpointPanels>
-				<BreakpointPanel>
+		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+			<div className="flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+				<p className="flex flex-col">
 					<TotalLiquidable {...data} />
-				</BreakpointPanel>
-				<PanelHiddenMobile>
+				</p>
+				<p className="hidden md:flex flex-col">
 					<LiquidableChanges24H data={data} prevData={prevData} />
-				</PanelHiddenMobile>
-				<PanelHiddenMobile>
+				</p>
+				<p className="hidden md:flex flex-col">
 					<DangerousPositionsAmount data={data} />
-				</PanelHiddenMobile>
-			</BreakpointPanels>
-			<BreakpointPanel className="min-h-[438px]">
+				</p>
+			</div>
+			<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[438px]">
 				<div className="flex items-center gap-4 -mt-2 mb-auto mx-2 flex-wrap">
 					<StackBySwitch />
 					<CumulativeToggle />
@@ -47,8 +46,8 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" className="h-[34px] w-[34px]" />
 				</button>
 				<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />
-			</BreakpointPanel>
-		</ChartAndValuesWrapper>
+			</div>
+		</div>
 	)
 }
 
@@ -107,10 +106,8 @@ const DangerousPositionsAmount = (props: { data: ChartData }) => {
 	)
 	return (
 		<>
-			<h2>Within -20% of current price</h2>
-			<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
-				${getReadableValue(dangerousPositionsAmount)}
-			</p>
+			<span className="text-[#545757] dark:text-[#cccccc]">Within -20% of current price</span>
+			<span className="font-semibold text-2xl font-jetbrains">${getReadableValue(dangerousPositionsAmount)}</span>
 		</>
 	)
 }

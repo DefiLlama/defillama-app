@@ -3,8 +3,6 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
-
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
@@ -48,10 +46,6 @@ export const FiltersWrapperRow = styled(FiltersWrapper)`
 	font-weight: 600;
 	color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)')};
 	font-size: 1.3em;
-`
-
-const AdjustedBreakpointPannels = styled(BreakpointPanels)`
-	min-width: 17rem;
 `
 
 export interface IMainBarChartProps {
@@ -134,85 +128,72 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	)
 
 	return (
-		<ChartAndValuesWrapper>
+		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 			{typeof props.data.total24h === 'number' ||
 			typeof props.data.change_1d === 'number' ||
 			typeof props.data.change_1m === 'number' ||
 			(typeof props.data.dexsDominance === 'number' && props.type === 'dexs') ||
 			(typeof props.data.change_7dover7d === 'number' && props.type === 'dexs') ||
 			(typeof props.data.total7d === 'number' && props.type === 'dexs') ? (
-				<AdjustedBreakpointPannels>
+				<div className="flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 					{!Number.isNaN(props.data.total24h) ? (
-						<BreakpointPanel>
-							<h1>Total {dataType} (24h)</h1>
-							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
-								{formattedNum(props.data.total24h, true)}
-							</p>
-						</BreakpointPanel>
+						<p className="flex flex-col">
+							<span className="text-[#545757] dark:text-[#cccccc]">Total {dataType} (24h)</span>
+							<span className="font-semibold text-2xl font-jetbrains">{formattedNum(props.data.total24h, true)}</span>
+						</p>
 					) : null}
 					{props.type === 'dexs' && !Number.isNaN(props.data.total7d) ? (
-						<BreakpointPanel>
-							<h1>Total {dataType} (7d)</h1>
-							<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
-								{formattedNum(props.data.total7d, true)}
-							</p>
-						</BreakpointPanel>
+						<p className="flex flex-col">
+							<span className="text-[#545757] dark:text-[#cccccc]">Total {dataType} (7d)</span>
+							<span className="font-semibold text-2xl font-jetbrains">{formattedNum(props.data.total7d, true)}</span>
+						</p>
 					) : null}
 					{props.type === 'dexs' && !Number.isNaN(props.data.change_7dover7d) ? (
-						<PanelHiddenMobileHelper>
-							<div>
-								<h2>Weekly change</h2>
+						<p className="hidden md:flex flex-col">
+							<span className="flex items-center gap-1 text-[#545757] dark:text-[#cccccc]">
+								<span>Weekly change</span>
 								<QuestionHelper text={`Change of last 7d volume over the previous 7d volume of all dexs`} />
-							</div>
+							</span>
 							{props.data.change_7dover7d > 0 ? (
-								<p style={{ '--tile-text-color': '#3cfd99' } as React.CSSProperties}>
-									{' '}
-									{props.data.change_7dover7d || 0}%
-								</p>
+								<span className="font-semibold text-2xl font-jetbrains">{props.data.change_7dover7d || 0}%</span>
 							) : (
-								<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
-									{' '}
-									{props.data.change_7dover7d || 0}%
-								</p>
+								<span className="font-semibold text-2xl font-jetbrains">{props.data.change_7dover7d || 0}%</span>
 							)}
-						</PanelHiddenMobileHelper>
+						</p>
 					) : null}
 					{props.type !== 'dexs' && !Number.isNaN(props.data.change_1d) ? (
-						<PanelHiddenMobile>
-							<h2>Change (24h)</h2>
+						<p className="hidden md:flex flex-col">
+							<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
 							{props.data.change_1d > 0 ? (
-								<p style={{ '--tile-text-color': '#3cfd99' } as React.CSSProperties}> {props.data.change_1d || 0}%</p>
+								<span className="font-semibold text-2xl font-jetbrains">{props.data.change_1d || 0}%</span>
 							) : (
-								<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {props.data.change_1d || 0}%</p>
+								<span className="font-semibold text-2xl font-jetbrains">{props.data.change_1d || 0}%</span>
 							)}
-						</PanelHiddenMobile>
+						</p>
 					) : null}
 					{props.type === 'dexs' && !Number.isNaN(props.data.dexsDominance) ? (
 						<>
 							{!props.name && (
-								<PanelHiddenMobileHelper>
-									<div>
+								<p className="hidden md:flex flex-col">
+									<span className="flex items-center gap-1 text-[#545757] dark:text-[#cccccc]">
 										<h2>DEX vs CEX dominance</h2>
 										<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume (24h)`} />
-									</div>
-									<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
-										{' '}
-										{props.data.dexsDominance || 0}%
-									</p>
-								</PanelHiddenMobileHelper>
+									</span>
+									<span className="font-semibold text-2xl font-jetbrains">{props.data.dexsDominance || 0}%</span>
+								</p>
 							)}
 						</>
 					) : !Number.isNaN(props.data.change_1m) ? (
-						<PanelHiddenMobile>
-							<h2>Change (30d)</h2>
-							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.change_1m || 0}%</p>
-						</PanelHiddenMobile>
+						<p className="hidden md:flex flex-col">
+							<span className="text-[#545757] dark:text-[#cccccc]">Change (30d)</span>
+							<span className="font-semibold text-2xl font-jetbrains">{props.data.change_1m || 0}%</span>
+						</p>
 					) : null}
-				</AdjustedBreakpointPannels>
+				</div>
 			) : (
 				<></>
 			)}
-			<Panel style={{ padding: 0, width: '100%' }}>
+			<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[418px]">
 				<>
 					<FiltersWrapperRow>
 						<FiltersAligned color={'#4f8fea'}>
@@ -269,19 +250,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						)}
 					</div>
 				)}
-			</Panel>
-		</ChartAndValuesWrapper>
+			</div>
+		</div>
 	)
 }
-
-const PanelHiddenMobileHelper = styled(PanelHiddenMobile)`
-	& > div {
-		display: inline-flex;
-		gap: 0.5em;
-	}
-	& > div > h2 {
-		min-width: 0;
-		font-weight: 500;
-		font-size: 1rem;
-	}
-`

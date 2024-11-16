@@ -5,7 +5,6 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 
-import { BreakpointPanel } from '~/components'
 import { Toggle } from '~/components/ECharts/ProtocolChart/Misc'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
@@ -226,7 +225,7 @@ function ComparePage() {
 			</div>
 
 			<div className="flex flex-col gap-2 relative">
-				<BreakpointPanel id="chartWrapper" style={{ minHeight: '438px' }}>
+				<div className="border border-[var(--divider)] shadow rounded-md p-4 min-h-[438px]">
 					<div className="mb-auto flex items-center gap-2 ml-auto">
 						{[
 							{
@@ -289,7 +288,7 @@ function ComparePage() {
 					) : (
 						<ChainChart title="" datasets={data?.data} isThemeDark={isDark} />
 					)}
-				</BreakpointPanel>
+				</div>
 				<div className="grid grid-cols-1 xl:grid-cols-2 grow gap-2">
 					{data?.data.filter(Boolean)?.map((chainData, i) => {
 						return (

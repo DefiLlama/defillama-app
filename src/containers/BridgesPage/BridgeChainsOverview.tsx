@@ -1,6 +1,5 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { BreakpointPanel, ChartAndValuesWrapper } from '~/components'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { BridgesSearch } from '~/components/Search/Bridges'
 import { BridgeChainsTable } from '~/components/Table/Bridges'
@@ -49,13 +48,11 @@ function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, f
 				<CSVDownloadButton onClick={downloadCsv} />
 			</h1>
 
-			<ChartAndValuesWrapper>
-				<BreakpointPanel id="chartWrapper" style={{ gap: '16px', minHeight: '450px', justifyContent: 'space-between' }}>
-					{formattedVolumeChartData && formattedVolumeChartData.length > 0 && (
-						<StackedBarChart chartData={formattedVolumeChartData as IStackedBarChartProps['chartData']} />
-					)}
-				</BreakpointPanel>
-			</ChartAndValuesWrapper>
+			<div className="border border-[var(--divider)] shadow rounded-md p-4 min-h-[394px]">
+				{formattedVolumeChartData && formattedVolumeChartData.length > 0 && (
+					<StackedBarChart chartData={formattedVolumeChartData as IStackedBarChartProps['chartData']} />
+				)}
+			</div>
 
 			<BridgeChainsTable data={filteredChains} />
 		</>

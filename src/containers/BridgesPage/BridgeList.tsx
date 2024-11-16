@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { BRIDGES_SHOWING_TXS, useBridgesManager } from '~/contexts/LocalStorage'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
@@ -178,28 +177,22 @@ function BridgesOverview({
 				<span>Bridge Volume in {selectedChain === 'All' ? 'all bridges' : selectedChain}</span>
 				<CSVDownloadButton onClick={downloadCsv} />
 			</h1>
-			<ChartAndValuesWrapper>
-				<BreakpointPanels>
-					<BreakpointPanel>
-						<h1>Total volume (24h)</h1>
-						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
-							{formattedNum(dayTotalVolume, true)}
-						</p>
-					</BreakpointPanel>
-					<PanelHiddenMobile>
-						<h1>Total volume (7d)</h1>
-						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
-							{formattedNum(weekTotalVolume, true)}
-						</p>
-					</PanelHiddenMobile>
-					<PanelHiddenMobile>
-						<h1>Total volume (1mo)</h1>
-						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
-							{formattedNum(monthTotalVolume, true)}
-						</p>
-					</PanelHiddenMobile>
-				</BreakpointPanels>
-				<BreakpointPanel id="chartWrapper" style={{ gap: '16px', minHeight: '450px', justifyContent: 'space-between' }}>
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+				<div className="flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+					<p className="flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (24h)</span>
+						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(dayTotalVolume, true)}</span>
+					</p>
+					<p className="hidden md:flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (7d)</span>
+						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(weekTotalVolume, true)}</span>
+					</p>
+					<p className="hidden md:flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (1mo)</span>
+						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(monthTotalVolume, true)}</span>
+					</p>
+				</div>
+				<div className="flex flex-col gap-4 py-4 col-span-1 *:ml-4 last:*:ml-0 min-h-[444px]">
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 					{chartType === 'Net Flow' && chainNetFlowData && chainNetFlowData.length > 0 && (
 						<BarChart
@@ -248,8 +241,8 @@ function BridgesOverview({
 					)}
 					{chartType === '24h Tokens Deposited' && <PieChart chartData={tokenWithdrawals} />}
 					{chartType === '24h Tokens Withdrawn' && <PieChart chartData={tokenDeposits} />}
-				</BreakpointPanel>
-			</ChartAndValuesWrapper>
+				</div>
+			</div>
 			<TxsTableSwitch />
 			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
 				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />

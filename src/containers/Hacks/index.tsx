@@ -13,7 +13,6 @@ import {
 import { VirtualTable } from '~/components/Table/Table'
 import { hacksColumns, hacksColumnOrders } from '~/components/Table/Defi/columns'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import useWindowSize from '~/hooks/useWindowSize'
 import { ChartSelector } from '~/containers/PeggedPage'
 import { Icon } from '~/components/Icon'
@@ -100,22 +99,22 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 	const chartTypeList = ['Total Value Hacked', 'Pie']
 	return (
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
-			<ChartAndValuesWrapper>
-				<BreakpointPanels>
-					<BreakpointPanel>
-						<h1>Total Value Hacked (USD)</h1>
-						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{totalHacked}b</p>
-					</BreakpointPanel>
-					<BreakpointPanel>
-						<h1>Total Value Hacked in DeFi (USD)</h1>
-						<p style={{ '--tile-text-color': '#bd3399' } as React.CSSProperties}>{totalHackedDefi}b</p>
-					</BreakpointPanel>
-					<BreakpointPanel>
-						<h1>Total Value Hacked in Bridges (USD)</h1>
-						<p style={{ '--tile-text-color': '#bd3399' } as React.CSSProperties}>{totalRugs}b</p>
-					</BreakpointPanel>
-				</BreakpointPanels>
-				<BreakpointPanel id="chartWrapper" style={{ gap: '16px', minHeight: '450px', justifyContent: 'space-between' }}>
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+				<div className="flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+					<p className="flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Hacked (USD)</span>
+						<span className="font-semibold text-2xl font-jetbrains">{totalHacked}b</span>
+					</p>
+					<p className="flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Hacked in DeFi (USD)</span>
+						<span className="font-semibold text-2xl font-jetbrains">{totalHackedDefi}b</span>
+					</p>
+					<p className="flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Hacked in Bridges (USD)</span>
+						<span className="font-semibold text-2xl font-jetbrains">{totalRugs}b</span>
+					</p>
+				</div>
+				<div className="flex flex-col gap-4 py-4 col-span-1 *:ml-4 last:*:ml-0 min-h-[444px]">
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 
 					{chartType === 'Total Value Hacked' && monthlyHacks ? (
@@ -126,8 +125,8 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 					) : (
 						<PieChart chartData={pieChartData} />
 					)}
-				</BreakpointPanel>
-			</ChartAndValuesWrapper>
+				</div>
+			</div>
 			<HacksTable data={data} />
 		</Layout>
 	)
