@@ -10,10 +10,7 @@ import { LocalLoader } from '~/components/LocalLoader'
 import dynamic from 'next/dynamic'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { chainIconUrl, formattedNum } from '~/utils'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
-
 import llamaLogo from '~/assets/peeking-llama.png'
-
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
 import { SEO } from '~/components/SEO'
@@ -23,7 +20,6 @@ import { EmbedChart } from '~/components/Popover'
 import { primaryColor } from '~/constants/colors'
 import { useFetchChainChartData } from './useFetchChainChartData'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-
 import { formatRaise, formatRaisedAmount } from '~/containers/Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -731,48 +727,52 @@ export function ChainContainer({
 									</div>
 
 									{DENOMINATIONS.length > 1 && (
-										<Filters>
+										<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
 											{DENOMINATIONS.map((D) => (
-												<Denomination
-													active={denomination === D}
+												<button
+													data-active={denomination === D}
 													key={'denomination' + D}
-													as="button"
+													className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
 													onClick={() => updateRoute('currency', D, router)}
 												>
 													{D}
-												</Denomination>
+												</button>
 											))}
-										</Filters>
+										</div>
 									)}
 									{hasAtleasOneBarChart ? (
 										<>
-											<Filters color={primaryColor}>
-												<Denomination
-													as="button"
-													active={groupBy === 'daily' || !groupBy}
+											<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
+												<button
+													className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+													data-active={groupBy === 'daily' || !groupBy}
 													onClick={() => updateGroupBy('daily')}
 												>
 													Daily
-												</Denomination>
-												<Denomination as="button" active={groupBy === 'weekly'} onClick={() => updateGroupBy('weekly')}>
+												</button>
+												<button
+													className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+													data-active={groupBy === 'weekly'}
+													onClick={() => updateGroupBy('weekly')}
+												>
 													Weekly
-												</Denomination>
-												<Denomination
-													as="button"
-													active={groupBy === 'monthly'}
+												</button>
+												<button
+													className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+													data-active={groupBy === 'monthly'}
 													onClick={() => updateGroupBy('monthly')}
 												>
 													Monthly
-												</Denomination>
-												<Denomination
-													as="button"
-													active={groupBy === 'cumulative'}
+												</button>
+												<button
+													className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+													data-active={groupBy === 'cumulative'}
 													onClick={() => updateGroupBy('cumulative')}
 												>
 													Cumulative
-												</Denomination>
+												</button>
 												<EmbedChart color={primaryColor} />
-											</Filters>
+											</div>
 										</>
 									) : null}
 								</div>

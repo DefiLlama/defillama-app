@@ -4,7 +4,6 @@ import { NftsMarketplaceTable } from '~/components/Table/Nfts/Marketplaces'
 import { maxAgeForNext } from '~/api'
 import { getNFTMarketplacesData } from '~/api/categories/nfts'
 import dynamic from 'next/dynamic'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { NFTsSearch } from '~/components/Search/NFTs'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -55,14 +54,22 @@ function Marketplaces({
 
 			<h1 className="text-2xl font-medium -mb-5">NFT Marketplaces</h1>
 
-			<Filters color={'#4f8fea'} className="ml-auto">
-				<Denomination active={!dominanceChart} onClick={() => setDominanceChart(false)}>
+			<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
+				<button
+					data-active={!dominanceChart}
+					className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+					onClick={() => setDominanceChart(false)}
+				>
 					Absolute
-				</Denomination>
-				<Denomination active={dominanceChart} onClick={() => setDominanceChart(true)}>
+				</button>
+				<button
+					data-active={dominanceChart}
+					className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+					onClick={() => setDominanceChart(true)}
+				>
 					Relative
-				</Denomination>
-			</Filters>
+				</button>
+			</div>
 			<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 bg-[var(--bg6)] min-h-[392px] rounded-xl shadow p-4">
 				{dominanceChart ? (
 					<AreaChart

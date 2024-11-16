@@ -2,7 +2,6 @@ import { chunk, groupBy, omit, sum } from 'lodash'
 import dynamic from 'next/dynamic'
 import { useMemo, useState } from 'react'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { OptionToggle } from '~/components/OptionToggle'
 import { UpcomingEvent } from '~/components/Table/Components/UpcomingEvent'
@@ -137,14 +136,22 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</div>
 			</div>
 			{data.chartData?.realtime?.length > 0 && (
-				<Filters style={{ marginLeft: 'auto' }}>
-					<Denomination as="button" active={dataType === 'documented'} onClick={() => setDataType('documented')}>
+				<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
+					<button
+						data-active={dataType === 'documented'}
+						className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+						onClick={() => setDataType('documented')}
+					>
 						Documented
-					</Denomination>
-					<Denomination as="button" active={dataType === 'realtime'} onClick={() => setDataType('realtime')}>
+					</button>
+					<button
+						data-active={dataType === 'realtime'}
+						className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+						onClick={() => setDataType('realtime')}
+					>
 						Realtime
-					</Denomination>
-				</Filters>
+					</button>
+				</div>
 			)}
 
 			<div className="flex flex-col rounded-xl bg-[var(--bg6)]">

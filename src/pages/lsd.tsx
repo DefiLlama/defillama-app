@@ -9,8 +9,6 @@ import { formattedNum, toK } from '~/utils'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
-import { primaryColor } from '~/constants/colors'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { groupDataByDays } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
@@ -97,24 +95,40 @@ const PageView = ({
 							/>
 						</div>
 					) : (
-						<>
-							<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
-								<Denomination as="button" active={groupBy === 'daily'} onClick={() => setGroupBy('daily')}>
+						<div className="flex flex-col w-full gap-1">
+							<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
+								<button
+									data-active={groupBy === 'daily'}
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									onClick={() => setGroupBy('daily')}
+								>
 									Daily
-								</Denomination>
+								</button>
 
-								<Denomination as="button" active={groupBy === 'weekly'} onClick={() => setGroupBy('weekly')}>
+								<button
+									data-active={groupBy === 'weekly'}
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									onClick={() => setGroupBy('weekly')}
+								>
 									Weekly
-								</Denomination>
+								</button>
 
-								<Denomination as="button" active={groupBy === 'monthly'} onClick={() => setGroupBy('monthly')}>
+								<button
+									data-active={groupBy === 'monthly'}
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									onClick={() => setGroupBy('monthly')}
+								>
 									Monthly
-								</Denomination>
+								</button>
 
-								<Denomination as="button" active={groupBy === 'cumulative'} onClick={() => setGroupBy('cumulative')}>
+								<button
+									data-active={groupBy === 'cumulative'}
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									onClick={() => setGroupBy('cumulative')}
+								>
 									Cumulative
-								</Denomination>
-							</Filters>
+								</button>
+							</div>
 
 							<BarChart
 								chartData={inflowsData}
@@ -126,7 +140,7 @@ const PageView = ({
 								valueSymbol="ETH"
 								title=""
 							/>
-						</>
+						</div>
 					)}
 				</div>
 			</div>

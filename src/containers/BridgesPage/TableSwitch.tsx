@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import * as React from 'react'
 import { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { Icon } from '~/components/Icon'
 
 export const TxsTableSwitch = () => {
@@ -35,25 +34,23 @@ export const AddressesTableSwitch = () => {
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
 
 	return (
-		<Filters>
-			<Denomination
-				as="button"
-				active={!isBridgesShowingAddresses}
+		<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
+			<button
+				data-active={!isBridgesShowingAddresses}
 				onClick={toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
-				style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+				className="flex items-center gap-2 rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
 			>
 				<Icon name="trending-up" height={14} width={14} />
 				<span>Tokens</span>
-			</Denomination>
-			<Denomination
-				as="button"
-				active={isBridgesShowingAddresses}
+			</button>
+			<button
+				data-active={isBridgesShowingAddresses}
 				onClick={toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
-				style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+				className="flex items-center gap-2 rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
 			>
 				<Icon name="users" height={14} width={14} />
 				<span>Addresses</span>
-			</Denomination>
-		</Filters>
+			</button>
+		</div>
 	)
 }

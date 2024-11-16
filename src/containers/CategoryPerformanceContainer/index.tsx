@@ -3,8 +3,6 @@ import dynamic from 'next/dynamic'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
-import { primaryColor } from '~/constants/colors'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { useScrollToTop } from '~/hooks'
 import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
 
@@ -157,26 +155,31 @@ export const CategoryPerformanceContainer = ({
 
 				<div className="flex flex-col p-4 gap-4 min-h-[360px]">
 					<>
-						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
+						<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
 							{(['7D', '30D', 'YTD', '365D'] as const).map((period) => (
-								<Denomination key={period} as="button" active={groupBy === period} onClick={() => setGroupBy(period)}>
+								<button
+									key={period}
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									data-active={groupBy === period}
+									onClick={() => setGroupBy(period)}
+								>
 									{period}
-								</Denomination>
+								</button>
 							))}
-						</Filters>
-						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
+						</div>
+						<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
 							<p className="pl-2 text-xs">Show as:</p>
 							{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
-								<Denomination
+								<button
 									key={denom}
-									as="button"
-									active={groupByDenom === denom}
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									data-active={groupByDenom === denom}
 									onClick={() => setGroupByDenom(denom)}
 								>
 									{denom}
-								</Denomination>
+								</button>
 							))}
-						</Filters>
+						</div>
 					</>
 					{tab === 'barchart' ? (
 						<>

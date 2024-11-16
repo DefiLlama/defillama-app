@@ -1,10 +1,7 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import styled from 'styled-components'
 import { useRouter } from 'next/router'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
-import { FiltersWrapper } from '~/components/ECharts/ProtocolChart/Misc'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
 import type { IDexChartsProps } from './types'
@@ -31,22 +28,6 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 		</div>
 	)
 }) as React.FC<IChartProps>
-
-export const FlatDenomination = styled(Denomination)`
-	white-space: nowrap;
-	overflow: hidden;
-`
-export const FiltersAligned = styled(Filters)``
-
-export const FiltersWrapperRow = styled(FiltersWrapper)`
-	justify-content: space-between;
-	flex-direction: row;
-	margin: 1rem 1rem 0 1rem;
-	align-items: center;
-	font-weight: 600;
-	color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)')};
-	font-size: 1.3em;
-`
 
 export interface IMainBarChartProps {
 	type: string
@@ -127,14 +108,23 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 		[props.chartData, chartInterval]
 	)
 
+	const valuesExist =
+		typeof props.data.total24h === 'number' ||
+		typeof props.data.change_1d === 'number' ||
+		typeof props.data.change_1m === 'number' ||
+		(typeof props.data.dexsDominance === 'number' && props.type === 'dexs') ||
+		(typeof props.data.change_7dover7d === 'number' && props.type === 'dexs') ||
+		(typeof props.data.total7d === 'number' && props.type === 'dexs')
+			? true
+			: false
+
 	return (
-		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-			{typeof props.data.total24h === 'number' ||
-			typeof props.data.change_1d === 'number' ||
-			typeof props.data.change_1m === 'number' ||
-			(typeof props.data.dexsDominance === 'number' && props.type === 'dexs') ||
-			(typeof props.data.change_7dover7d === 'number' && props.type === 'dexs') ||
-			(typeof props.data.total7d === 'number' && props.type === 'dexs') ? (
+		<div
+			className={`grid grid-cols-1 ${
+				valuesExist ? 'xl:grid-cols-[auto_1fr]' : ''
+			} relative isolate bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl`}
+		>
+			{valuesExist ? (
 				<div className="flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 					{!Number.isNaN(props.data.total24h) ? (
 						<p className="flex flex-col">
@@ -195,43 +185,50 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			)}
 			<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[418px]">
 				<>
-					<FiltersWrapperRow>
-						<FiltersAligned color={'#4f8fea'}>
+					<div className="flex gap-2 flex-row items-center flex-wrap justify-between mx-4">
+						<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] font-normal text-sm">
 							{GROUP_INTERVALS_LIST.map((dataInterval) => (
-								<FlatDenomination
+								<a
 									key={dataInterval}
 									onClick={() => changeChartInterval(dataInterval)}
-									active={dataInterval === chartInterval}
+									data-active={dataInterval === chartInterval}
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10 cursor-pointer"
 								>
 									{dataInterval}
-								</FlatDenomination>
+								</a>
 							))}
-						</FiltersAligned>
+						</div>
 						{props.chartTypes && (
-							<Filters color={'#4f8fea'}>
+							<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] font-normal text-sm">
 								{props.chartTypes.map((dataType) => (
 									<Link href={`${router.asPath.split('?')[0]}?dataType=${dataType}`} key={dataType} shallow passHref>
-										<FlatDenomination active={dataType === props.selectedType}>{dataType}</FlatDenomination>
+										<a
+											data-active={dataType === props.selectedType}
+											className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10 cursor-pointer"
+										>
+											{dataType}
+										</a>
 									</Link>
 								))}
-							</Filters>
+							</div>
 						)}
 						{props.chartData?.[1]?.length > 1 ? (
-							<Filters color={'#4f8fea'}>
+							<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] font-normal text-sm">
 								{GROUP_CHART_LIST.map((dataType) => (
-									<FlatDenomination
-										active={dataType === chartType}
+									<button
+										className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10 cursor-pointer"
+										data-active={dataType === chartType}
 										key={dataType}
 										onClick={() => setChartType(dataType)}
 									>
 										{dataType}
-									</FlatDenomination>
+									</button>
 								))}
-							</Filters>
+							</div>
 						) : (
 							<></>
 						)}
-					</FiltersWrapperRow>
+					</div>
 				</>
 				{barsData && barsData.length > 0 && (
 					<div className="min-h-[360px]">

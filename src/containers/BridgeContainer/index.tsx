@@ -10,7 +10,6 @@ import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { BridgeTokensTable, BridgeAddressesTable } from '~/components/Table/Bridges'
 import { AddressesTableSwitch } from '~/containers/BridgesPage/TableSwitch'
 import { BridgeChainSelector } from '~/containers/BridgesPage/BridgeChainSelector'
-import { Filters, Denomination } from '~/components/ECharts/ProtocolChart/Misc'
 import { getBridgePageDatanew } from '~/api/categories/bridges'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
@@ -129,17 +128,29 @@ const BridgeInfo = ({
 						minHeight: '460px'
 					}}
 				>
-					<Filters style={{ margin: '16px 16px 0', maxWidth: 'fit-content' }}>
-						<Denomination as="button" active={chartType === 'Inflows'} onClick={() => setChartType('Inflows')}>
+					<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] m-4 mb-0">
+						<button
+							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							data-active={chartType === 'Inflows'}
+							onClick={() => setChartType('Inflows')}
+						>
 							Inflows
-						</Denomination>
-						<Denomination as="button" active={chartType === 'Tokens To'} onClick={() => setChartType('Tokens To')}>
+						</button>
+						<button
+							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							data-active={chartType === 'Tokens To'}
+							onClick={() => setChartType('Tokens To')}
+						>
 							Tokens To
-						</Denomination>
-						<Denomination as="button" active={chartType === 'Tokens From'} onClick={() => setChartType('Tokens From')}>
+						</button>
+						<button
+							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							data-active={chartType === 'Tokens From'}
+							onClick={() => setChartType('Tokens From')}
+						>
 							Tokens From
-						</Denomination>
-					</Filters>
+						</button>
+					</div>
 					<LazyChart>
 						{chartType === 'Inflows' && volumeChartDataByChain && volumeChartDataByChain.length > 0 && (
 							<BarChart

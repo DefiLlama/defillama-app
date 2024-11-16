@@ -13,9 +13,9 @@ import { VirtualTable } from '~/components/Table/Table'
 import { formatGovernanceData } from '~/api/categories/protocols'
 
 import { fetchWithErrorLogging } from '~/utils/async'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
+import { transparentize } from 'polished'
 
 const fetch = fetchWithErrorLogging
 
@@ -169,18 +169,21 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 	return data && data.length > 0 ? (
 		<div className="flex flex-col gap-7 max-w-[calc(100vw-32px)] lg:!max-w-[calc(100vw-276-32px)] p-4">
 			{apisByCategory.length > 1 ? (
-				<Filters color={color} style={{ marginLeft: 'auto' }}>
+				<div
+					className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit ml-auto"
+					style={{ backgroundColor: transparentize(0.8, color) }}
+				>
 					{apisByCategory.map((apiCat, index) => (
-						<Denomination
-							as="button"
+						<button
 							key={apiCat + 'governance-table-filter'}
 							onClick={() => setApiCategoryIndex(index)}
-							active={apiCategoryIndex === index}
+							data-active={apiCategoryIndex === index}
+							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
 						>
 							{apiCat}
-						</Denomination>
+						</button>
 					))}
-				</Filters>
+				</div>
 			) : null}
 
 			<GovernanceTable

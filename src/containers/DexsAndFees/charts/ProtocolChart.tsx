@@ -6,14 +6,7 @@ import { capitalizeFirstLetter, formattedNum, standardizeProtocolName } from '~/
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
-import {
-	aggregateDataByInterval,
-	DataIntervalType,
-	FiltersAligned,
-	FiltersWrapperRow,
-	FlatDenomination,
-	GROUP_INTERVALS_LIST
-} from '../common'
+import { aggregateDataByInterval, DataIntervalType, GROUP_INTERVALS_LIST } from '../common'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import type { IProtocolContainerProps } from '../types'
 import { LocalLoader } from '~/components/LocalLoader'
@@ -173,22 +166,23 @@ export const ProtocolChart = ({
 				// TODO: Temporal work around to unlock feature
 				<>‎</>
 			)}
-			<div className="flex flex-col gap-4 py-3 col-span-1">
+			<div className={`flex flex-col gap-4 py-3 ${fullChart ? 'col-span-1' : 'col-span-2'}`}>
 				{barsData && barsData.length > 0 && (
-					<FiltersWrapperRow>
+					<div className="flex gap-2 flex-row items-center flex-wrap justify-between mx-4">
 						<>{title ?? ''}</>
-						<FiltersAligned color={'#4f8fea'}>
+						<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto font-normal text-sm">
 							{INTERVALS_LIST.map((dataInterval) => (
-								<FlatDenomination
+								<button
 									key={dataInterval}
 									onClick={() => setBarInterval(dataInterval)}
-									active={dataInterval === barInterval}
+									data-active={dataInterval === barInterval}
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
 								>
 									{dataInterval}
-								</FlatDenomination>
+								</button>
 							))}
-						</FiltersAligned>
-					</FiltersWrapperRow>
+						</div>
+					</div>
 				)}
 
 				{barInterval === 'Cumulative' ? (
@@ -228,21 +222,22 @@ export const ChartOnly = ({ title, chartData }) => {
 	return (
 		<>
 			{barsData && barsData.length > 0 && (
-				<FiltersWrapperRow style={{ margin: '0 20px 20px', flexDirection: 'column', alignItems: 'flex-start' }}>
+				<div className="flex flex-col gap-2 m-5 mt-0">
 					<>{title ?? ''}</>
 
-					<FiltersAligned color={'#4f8fea'}>
+					<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto font-normal text-sm">
 						{INTERVALS_LIST.map((dataInterval) => (
-							<FlatDenomination
+							<button
 								key={dataInterval}
 								onClick={() => setBarInterval(dataInterval)}
-								active={dataInterval === barInterval}
+								data-active={dataInterval === barInterval}
+								className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
 							>
 								{dataInterval}
-							</FlatDenomination>
+							</button>
 						))}
-					</FiltersAligned>
-				</FiltersWrapperRow>
+					</div>
+				</div>
 			)}
 
 			{barInterval === 'Cumulative' ? (

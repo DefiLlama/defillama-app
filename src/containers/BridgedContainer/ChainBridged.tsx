@@ -6,7 +6,6 @@ import { SEO } from '~/components/SEO'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import dynamic from 'next/dynamic'
 import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -114,7 +113,7 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 					>
 						<h2 style={{ margin: '0 auto' }}>Tokens Breakdown</h2>
 
-						<Filters style={{ marginLeft: '16px' }}>
+						<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-4">
 							{[
 								{ type: 'total', name: 'Total' },
 								{ type: 'canonical', name: 'Canonical' },
@@ -126,12 +125,17 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 								.filter(Boolean)
 								.map(({ type, name }) =>
 									chainData[type]?.total !== '0' ? (
-										<Denomination as="button" active={chartType === type} onClick={() => setChartType(type)} key={name}>
+										<button
+											className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+											data-active={chartType === type}
+											onClick={() => setChartType(type)}
+											key={name}
+										>
 											{name}
-										</Denomination>
+										</button>
 									) : null
 								)}
-						</Filters>
+						</div>
 
 						{chartType !== 'inflows' ? (
 							<div style={{ width: Math.min(+screenWidth.width / 1.5, 600) + 'px' }}>

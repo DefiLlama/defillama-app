@@ -27,7 +27,6 @@ import {
 } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedAssetByChainTable } from '~/components/Table/Stablecoins/PeggedAssetByChain'
-import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/Misc'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 
@@ -397,21 +396,40 @@ export const PeggedAssetInfo = ({
 					</TabPanel>
 				</div>
 
-				<div className="flex-1 flex flex-col p-4 pb-0 min-h-[416px]">
-					<Filters style={{ maxWidth: 'fit-content' }} color={backgroundColor}>
-						<Denomination as="button" active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
+				<div className="flex-1 flex flex-col gap-2 p-4 pb-0 min-h-[416px]">
+					<div
+						className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit"
+						style={{ backgroundColor: transparentize(0.8, backgroundColor) }}
+					>
+						<button
+							data-active={chartType === 'Mcap'}
+							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							onClick={() => setChartType('Mcap')}
+						>
 							Total Circ
-						</Denomination>
-						<Denomination as="button" active={chartType === 'Pie'} onClick={() => setChartType('Pie')}>
+						</button>
+						<button
+							data-active={chartType === 'Pie'}
+							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							onClick={() => setChartType('Pie')}
+						>
 							Pie
-						</Denomination>
-						<Denomination as="button" active={chartType === 'Dominance'} onClick={() => setChartType('Dominance')}>
+						</button>
+						<button
+							data-active={chartType === 'Dominance'}
+							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							onClick={() => setChartType('Dominance')}
+						>
 							Dominance
-						</Denomination>
-						<Denomination as="button" active={chartType === 'Chain Mcaps'} onClick={() => setChartType('Chain Mcaps')}>
+						</button>
+						<button
+							data-active={chartType === 'Chain Mcaps'}
+							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							onClick={() => setChartType('Chain Mcaps')}
+						>
 							Area
-						</Denomination>
-					</Filters>
+						</button>
+					</div>
 
 					{chartType === 'Mcap' && (
 						<AreaChart

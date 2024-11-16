@@ -6,11 +6,12 @@ import dynamic from 'next/dynamic'
 import { useDefiManager, useDarkModeManager } from '~/contexts/LocalStorage'
 import type { IChartProps } from '../types'
 import { LazyChart } from '~/components/LazyChart'
-import { Denomination, Filters, FiltersWrapper, Toggle } from './Misc'
+import { Toggle } from './Misc'
 import { BAR_CHARTS } from './utils'
 import { useFetchAndFormatChartData } from './useFetchAndFormatChartData'
 import { EmbedChart } from '~/components/Popover'
 import { IFusedProtocolData, NftVolumeData } from '~/api/types'
+import { transparentize } from 'polished'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -929,9 +930,12 @@ export default function ProtocolChart({
 				</div>
 			) : null}
 
-			<FiltersWrapper>
+			<div className="flex flex-col gap-2 mx-4 sm:flex-row sm:items-center sm:flex-wrap sm:justify-between">
 				{chartDenominations.length > 0 && (
-					<Filters color={color} style={{ marginRight: 'auto' }}>
+					<div
+						style={{ backgroundColor: transparentize(0.8, color) }}
+						className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] mr-auto"
+					>
 						{chartDenominations.map((D) => (
 							<Link
 								href={realPathname + `denomination=${D.symbol}` + (groupBy ? `&groupBy=${groupBy}` : '')}
@@ -939,51 +943,77 @@ export default function ProtocolChart({
 								shallow
 								passHref
 							>
-								<Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
+								<a
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									data-active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}
+								>
 									{D.symbol}
-								</Denomination>
+								</a>
 							</Link>
 						))}
-					</Filters>
+					</div>
 				)}
 
 				{hasAtleasOneBarChart ? (
 					<>
-						<Filters color={color}>
+						<div
+							style={{ backgroundColor: transparentize(0.8, color) }}
+							className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit ml-auto"
+						>
 							<Link
 								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=daily'}
 								shallow
 								passHref
 							>
-								<Denomination active={groupBy === 'daily' || !groupBy}>Daily</Denomination>
+								<a
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									data-active={groupBy === 'daily' || !groupBy}
+								>
+									Daily
+								</a>
 							</Link>
 							<Link
 								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=weekly'}
 								shallow
 								passHref
 							>
-								<Denomination active={groupBy === 'weekly'}>Weekly</Denomination>
+								<a
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									data-active={groupBy === 'weekly'}
+								>
+									Weekly
+								</a>
 							</Link>
 							<Link
 								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=monthly'}
 								shallow
 								passHref
 							>
-								<Denomination active={groupBy === 'monthly'}>Monthly</Denomination>
+								<a
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									data-active={groupBy === 'monthly'}
+								>
+									Monthly
+								</a>
 							</Link>
 							<Link
 								href={realPathname + (denomination ? `denomination=${denomination}&` : '') + 'groupBy=cumulative'}
 								shallow
 								passHref
 							>
-								<Denomination active={groupBy === 'cumulative'}>Cumulative</Denomination>
+								<a
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									data-active={groupBy === 'cumulative'}
+								>
+									Cumulative
+								</a>
 							</Link>
-						</Filters>
+						</div>
 					</>
 				) : null}
 
 				<EmbedChart color={color} />
-			</FiltersWrapper>
+			</div>
 
 			<ProtocolChartOnly
 				isRouterReady={router.isReady}
@@ -1053,5 +1083,3 @@ export const ProtocolChartOnly = ({
 		</LazyChart>
 	)
 }
-
-export { Denomination, Filters, Toggle }
