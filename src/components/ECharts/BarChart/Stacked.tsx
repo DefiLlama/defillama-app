@@ -11,7 +11,6 @@ import {
 	ToolboxComponent,
 	TooltipComponent
 } from 'echarts/components'
-import { v4 as uuid } from 'uuid'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { useMedia } from '~/hooks/useMedia'
@@ -58,7 +57,7 @@ export default function StackedBarChart({
 	showLegend,
 	isMonthly
 }: IStackedBarChartProps) {
-	const id = useMemo(() => uuid(), [])
+	const id = useMemo(() => crypto.randomUUID(), [])
 
 	const [isDark] = useDarkModeManager()
 	const series = useMemo(() => {

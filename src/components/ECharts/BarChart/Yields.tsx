@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo } from 'react'
-import { v4 as uuid } from 'uuid'
 import * as echarts from 'echarts/core'
 import {
 	ToolboxComponent,
@@ -32,7 +31,7 @@ export interface IChartProps {
 }
 
 export default function BarChartYields({ chartData }: IChartProps) {
-	const id = useMemo(() => uuid(), [])
+	const id = useMemo(() => crypto.randomUUID(), [])
 
 	const [isDark] = useDarkModeManager()
 

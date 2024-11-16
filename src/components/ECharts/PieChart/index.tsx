@@ -3,7 +3,6 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { PieChart as EPieChart } from 'echarts/charts'
 import { GridComponent, TitleComponent, TooltipComponent, GraphicComponent } from 'echarts/components'
-import { v4 as uuid } from 'uuid'
 import type { IPieChartProps } from '../types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
@@ -22,7 +21,7 @@ export default function PieChart({
 	customLabel,
 	...props
 }: IPieChartProps) {
-	const id = useMemo(() => uuid(), [])
+	const id = useMemo(() => crypto.randomUUID(), [])
 	const [isDark] = useDarkModeManager()
 
 	const series = useMemo(() => {

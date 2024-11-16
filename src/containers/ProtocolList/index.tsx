@@ -8,7 +8,6 @@ import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
-import { LayoutWrapper } from '~/containers/ChainContainer'
 import { chainIconUrl, formattedNum, getPercentChange, slug } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
@@ -182,7 +181,7 @@ function Container({
 				) : null}
 			</div>
 
-			<LayoutWrapper>
+			<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
 				{showChainList && (
 					<nav className="flex items-center gap-5 overflow-hidden">
 						<RowLinksWithDropdown links={chainOptions} activeLink={chain} />
@@ -317,7 +316,7 @@ function Container({
 					}
 					removeColumns={columnsToRemove}
 				/>
-			</LayoutWrapper>
+			</div>
 			{compareProtocols.length > 0 && (
 				<ButtonDark className="fixed bottom-4 right-4" onClick={dialogState.toggle}>
 					Compare Protocols ({compareProtocols.length})

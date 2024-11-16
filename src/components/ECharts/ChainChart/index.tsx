@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import uniq from 'lodash/uniq'
 import * as echarts from 'echarts/core'
-import { v4 as uuid } from 'uuid'
 import { getUtcDateObject } from '../utils'
 import { useDefaults } from '../useDefaults'
 import { useRouter } from 'next/router'
@@ -84,7 +83,7 @@ export default function AreaChart({
 	showLegend = false,
 	...props
 }) {
-	const id = useMemo(() => uuid(), [])
+	const id = useMemo(() => crypto.randomUUID(), [])
 	const { query: routerRoute, pathname } = useRouter()
 	const period = Number((routerRoute.period as string)?.replace('d', ''))
 	const { groupBy } = routerRoute

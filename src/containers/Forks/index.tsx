@@ -6,7 +6,6 @@ import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
-import { LayoutWrapper } from '~/containers/ChainContainer'
 import type { IChartProps } from '~/components/ECharts/types'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
@@ -63,7 +62,7 @@ export const ForkContainer = ({
 	const percentChange = volumeChangeUSD?.toFixed(2)
 
 	return (
-		<LayoutWrapper>
+		<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
 			{tokenLinks?.length > 0 && (
 				<nav className="flex">
 					<RowLinksWithDropdown links={tokenLinks} activeLink={token} alternativeOthersText="Others" />
@@ -93,6 +92,6 @@ export const ForkContainer = ({
 			</div>
 
 			<ProtocolsTableWithSearch data={protocolsData as any} skipVirtualization={skipTableVirtualization} />
-		</LayoutWrapper>
+		</div>
 	)
 }

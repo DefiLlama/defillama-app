@@ -11,7 +11,6 @@ import {
 	DataZoomComponent
 } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { v4 as uuid } from 'uuid'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import type { IOrderBookChartProps } from './types'
@@ -29,7 +28,7 @@ echarts.use([
 ])
 
 export default function OrderBookChart({ height = '360px', chartData }: IOrderBookChartProps) {
-	const id = React.useMemo(() => uuid(), [])
+	const id = React.useMemo(() => crypto.randomUUID(), [])
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
 	const [isDark] = useDarkModeManager()

@@ -9,7 +9,6 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { useGroupChainsByParent } from '~/hooks/data'
-import { LayoutWrapper } from '~/containers/ChainContainer'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useRouter } from 'next/router'
 
@@ -112,7 +111,7 @@ export default function ChainsContainer({
 				}}
 			/>
 
-			<LayoutWrapper>
+			<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
 				<nav className="flex">
 					<RowLinksWithDropdown links={categories} activeLink={category} />
 				</nav>
@@ -138,7 +137,7 @@ export default function ChainsContainer({
 				</div>
 
 				<DefiChainsTable data={groupedChains} />
-			</LayoutWrapper>
+			</div>
 		</>
 	)
 }

@@ -1,7 +1,5 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import styled from 'styled-components'
-
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
@@ -27,20 +25,6 @@ const TreemapChart = dynamic(() => import('~/components/ECharts/TreemapChart2'),
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IAreaChartProps>
-
-const ChartsContainer = styled.div`
-	background-color: ${({ theme }) => theme.advancedBG};
-	border: 1px solid ${({ theme }) => theme.bg3};
-	border-radius: 8px;
-`
-
-const TabContainer = styled.div`
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	min-height: 360px;
-`
 
 // for linechart
 function calculateDenominatedChange(data, denominatedCoin) {
@@ -147,7 +131,7 @@ export const CategoryPerformanceContainer = ({
 				{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
 			</h1>
 
-			<ChartsContainer>
+			<div className="rounded-md bg-white dark:bg-black border border-black/10 dark:border-white/10">
 				<TabList>
 					<Tab onClick={() => setTab('linechart')} aria-selected={tab === 'linechart'}>
 						Linechart
@@ -160,7 +144,7 @@ export const CategoryPerformanceContainer = ({
 					</Tab>
 				</TabList>
 
-				<TabContainer>
+				<div className="flex flex-col p-4 gap-4 min-h-[360px]">
 					<>
 						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
 							{(['7D', '30D', 'YTD', '365D'] as const).map((period) => (
@@ -170,7 +154,7 @@ export const CategoryPerformanceContainer = ({
 							))}
 						</Filters>
 						<Filters color={primaryColor} style={{ marginLeft: 'auto' }}>
-							<DenominationLabel>Show as:</DenominationLabel>
+							<p className="pl-2 text-xs">Show as:</p>
 							{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
 								<Denomination
 									key={denom}
@@ -205,8 +189,8 @@ export const CategoryPerformanceContainer = ({
 					) : (
 						<TreemapChart chartData={treemapChart} />
 					)}
-				</TabContainer>
-			</ChartsContainer>
+				</div>
+			</div>
 
 			<TableWithSearch
 				data={sortedPctChanges}
@@ -223,8 +207,3 @@ const areaChartoptions = {
 		position: 'right'
 	}
 }
-
-const DenominationLabel = styled.p`
-	padding-left: 8px;
-	font-size: 12px;
-`

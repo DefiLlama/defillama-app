@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
-import { v4 as uuid } from 'uuid'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -14,7 +13,7 @@ export default function NonTimeSeriesBarChart({
 	height = '360px',
 	tooltipOrderBottomUp
 }: IBarChartProps) {
-	const id = useMemo(() => uuid(), [])
+	const id = useMemo(() => crypto.randomUUID(), [])
 
 	const [isThemeDark] = useDarkModeManager()
 

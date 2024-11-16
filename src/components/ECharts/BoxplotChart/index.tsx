@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo } from 'react'
-import { v4 as uuid } from 'uuid'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BoxplotChart as EChartBoxPlot } from 'echarts/charts'
@@ -36,7 +35,7 @@ export interface IChartProps {
 }
 
 export default function BoxplotChart({ chartData }: IChartProps) {
-	const id = useMemo(() => uuid(), [])
+	const id = useMemo(() => crypto.randomUUID(), [])
 
 	const [isDark] = useDarkModeManager()
 

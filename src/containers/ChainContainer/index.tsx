@@ -1,5 +1,4 @@
 import * as React from 'react'
-import styled from 'styled-components'
 import { Announcement } from '~/components/Announcement'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
@@ -807,38 +806,3 @@ export function ChainContainer({
 		</>
 	)
 }
-
-export const LayoutWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	padding: 12px;
-	gap: 20px;
-	background-color: ${({ theme }) => (theme.mode === 'dark' ? '#090a0b' : 'white')};
-	border: ${({ theme }) => '1px solid ' + theme.divider};
-	border-radius: 12px;
-	box-shadow: ${({ theme }) => theme.shadowSm};
-
-	& > *:last-child {
-		background: none;
-
-		th,
-		td {
-			background: ${({ theme }) => (theme.mode === 'dark' ? '#090a0b' : 'white')};
-		}
-
-		th:not(:last-child),
-		td:not(:last-child) {
-			border-right: 1px solid ${({ theme }) => theme.divider};
-		}
-
-		border: ${({ theme }) => '1px solid ' + theme.divider};
-
-		@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-			max-width: calc(100vw - 276px - 40px);
-		}
-	}
-
-	@media (max-width: ${({ theme }) => theme.bpMed}) {
-		margin: -12px;
-	}
-`

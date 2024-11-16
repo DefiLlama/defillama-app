@@ -48,7 +48,6 @@
 		"styled-components": "^5.3.5",
 		"swagger-ui": "^4.12.0",
 		"tsx": "^3.12.7",
-		"uuid": "^8.3.2",
 		"wagmi": "0.12.19"
 	},
 	"devDependencies": {

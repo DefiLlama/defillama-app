@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
-import { v4 as uuid } from 'uuid'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject, stringToColour } from '../utils'
 import type { IChartProps } from '../types'
@@ -25,7 +24,7 @@ export default function AreaChart({
 	hideGradient = false,
 	...props
 }: IChartProps) {
-	const id = useMemo(() => uuid(), [])
+	const id = useMemo(() => crypto.randomUUID(), [])
 
 	const chartsStack = stacks || customLegendOptions
 
