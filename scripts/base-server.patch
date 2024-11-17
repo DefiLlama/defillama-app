@@ -1,14 +1,5 @@
 --- ./node_modules/next/dist/server/base-server.js
 +++ ./node_modules/next/dist/server/base-server.js
-@@ -444,6 +444,8 @@
-         };
-     }
-     async renderToResponseWithComponents({ req , res , pathname , renderOpts: opts  }, { components , query  }) {
-+        // disable iframe
-+        res.setHeader("X-Frame-Options", "SAMEORIGIN");
-         var ref, ref4, ref5, ref6, ref7;
-         const is404Page = pathname === "/404";
-         const is500Page = pathname === "/500";
 @@ -802,6 +804,11 @@
              // set x-nextjs-cache header to match the header
              // we set for the image-optimizer
