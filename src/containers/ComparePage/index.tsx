@@ -4,8 +4,6 @@ import dynamic from 'next/dynamic'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
-
-import { Toggle } from '~/components/ECharts/ProtocolChart/Misc'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
@@ -21,6 +19,7 @@ import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
 // import { ControlsWrapper, DataWrapper, Grid } from './styles'
 import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
 import { Icon } from '~/components/Icon'
+import { transparentize } from 'polished'
 
 const fetch = fetchWithErrorLogging
 
@@ -226,7 +225,10 @@ function ComparePage() {
 
 			<div className="flex flex-col gap-2 relative">
 				<div className="border border-[var(--divider)] shadow rounded-md p-4 min-h-[438px]">
-					<div className="mb-auto flex items-center gap-2 ml-auto">
+					<div
+						className="mb-auto flex items-center gap-2 ml-auto"
+						style={{ '--bg': transparentize(0.8, '#445ed0'), '--active-bg': transparentize(0.4, '#445ed0') } as any}
+					>
 						{[
 							{
 								id: 'tvl',
@@ -262,7 +264,7 @@ function ComparePage() {
 							}
 						].map(({ id, name, key }) =>
 							data?.data?.some((val) => val?.[key] && val?.[key]?.length > 0) ? (
-								<Toggle key={id}>
+								<label key={id} className="text-sm font-medium cursor-pointer rounded-xl hover:bg-[var(--bg)]">
 									<input
 										key={id}
 										type="checkbox"
@@ -270,11 +272,13 @@ function ComparePage() {
 											updateRoute(id, router.query[id] === 'true' ? 'false' : 'true', router)
 										}}
 										checked={router.query[id] === 'true'}
+										className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
 									/>
-									<span data-wrapper="true">
-										<span>{name}</span>
+
+									<span className="flex items-center relative z-[1] py-2 px-3 rounded-xl bg-[var(--bg)] peer-checked:bg-[var(--active-bg)] peer-focus-visible:outline">
+										{name}
 									</span>
-								</Toggle>
+								</label>
 							) : (
 								false
 							)
