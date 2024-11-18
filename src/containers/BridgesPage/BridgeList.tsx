@@ -25,6 +25,10 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
 }) as React.FC<IPieChartProps>
 
+const NetflowChart = dynamic(() => import('~/components/ECharts/BarChart/NetflowChart'), {
+	ssr: false
+}) as React.FC<any>
+
 function BridgesOverview({
 	selectedChain = 'All',
 	chains = [],
@@ -41,7 +45,7 @@ function BridgesOverview({
 
 	const chartTypeList =
 		selectedChain === 'All'
-			? ['Volumes']
+			? ['Volumes', 'Net Flow By Chain']
 			: ['Net Flow', 'Net Flow (%)', 'Inflows', '24h Tokens Deposited', '24h Tokens Withdrawn']
 
 	const [bridgesSettings] = useBridgesManager()
@@ -173,7 +177,7 @@ function BridgesOverview({
 				}}
 				onToggleClick={(enabled) => setEnableBreakdownChart(enabled)}
 			/>
-			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
+			<h1 className="text-2xl font-medium mb-2 flex items-center justify-between flex-wrap gap-4">
 				<span>Bridge Volume in {selectedChain === 'All' ? 'all bridges' : selectedChain}</span>
 				<CSVDownloadButton onClick={downloadCsv} />
 			</h1>
@@ -224,6 +228,13 @@ function BridgesOverview({
 							key={['Deposits', 'Withdrawals'] as any} // escape hatch to rerender state in legend options
 							chartOptions={volumeChartOptions}
 						/>
+					)}
+					{chartType === 'Net Flow By Chain' && (
+						<div className="grid grid-cols-1 relative isolate bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl mb-4">
+							<div className="p-4">
+								<NetflowChart height="600px" />
+							</div>
+						</div>
 					)}
 					{chartType === 'Volumes' && chartData && chartData.length > 0 && (
 						<StackedBarChart

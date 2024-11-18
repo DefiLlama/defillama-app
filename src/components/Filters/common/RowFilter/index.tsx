@@ -9,7 +9,7 @@ interface IProps {
 
 export const RowFilter = ({ selectedValue, setValue, values, style }: IProps) => {
 	return (
-		<div className="flex items-center rounded-lg h-full overflow-x-auto flex-nowrap">
+		<div className="flex items-center rounded-lg h-full overflow-x-auto flex-nowrap w-fit" style={style}>
 			{values.map((value) => {
 				return (
 					<button

@@ -77,6 +77,7 @@ export const BRIDGEVOLUME_API = 'https://bridges.llama.fi/bridgevolume'
 export const BRIDGELARGETX_API = 'https://bridges.llama.fi/largetransactions'
 export const BRIDGETX_API = 'https://bridges.llama.fi/transactions'
 export const BRIDGEINFLOWS_API = 'https://api.llama.fi/chain-assets/historical-flows'
+export const NETFLOWS_API = 'https://bridges.llama.fi/netflows'
 
 export const YIELD_POOLS_API = 'https://yields.llama.fi/pools'
 export const YIELD_POOLS_LAMBDA_API = 'https://yields.llama.fi/poolsEnriched'
