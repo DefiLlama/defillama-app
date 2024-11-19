@@ -844,7 +844,10 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			},
 			chartDenominations,
 			protocolHasForks: (forks?.props?.tokens ?? []).includes(protocolData.name),
-			hacksData: (protocolData.id ? hacks?.filter((hack) => +hack.defillamaId === +protocolData.id) : null) ?? null,
+			hacksData:
+				(protocolData.id
+					? hacks?.filter((hack) => +hack.defillamaId === +protocolData.id)?.sort((a, b) => a.date - b.date)
+					: null) ?? null,
 			dailyBribesRevenue,
 			dailyTokenTaxes,
 			bribesRevenue30d,

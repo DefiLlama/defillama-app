@@ -1577,7 +1577,10 @@ function ProtocolContainer({
 												<p className="flex items-center gap-2">
 													<span>Date</span>
 													<span>:</span>
-													<span>{new Date(hack.date * 1000).toLocaleDateString()}</span>
+													<span>
+														{new Date(hack.date * 1000).toLocaleDateString()} (
+														{((Date.now() / 1e3 - hack.date) / (30 * 24 * 3600)).toFixed(0)} months ago)
+													</span>
 												</p>
 												<p className="flex items-center gap-2">
 													<span>Amount</span>
