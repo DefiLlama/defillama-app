@@ -11,11 +11,6 @@ export const Name = styled.span<INameProps>`
 	padding-left: ${({ depth }) => (depth ? depth * 48 : depth === 0 ? 24 : 0)}px;
 	position: relative;
 
-	& > *[data-bookmark] {
-		position: absolute;
-		left: -2px;
-	}
-
 	a {
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -24,15 +19,5 @@ export const Name = styled.span<INameProps>`
 
 	a:hover {
 		text-decoration: underline;
-	}
-
-	& > *[data-lgonly] {
-		display: none;
-	}
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		& > *[data-lgonly] {
-			display: flex;
-		}
 	}
 `

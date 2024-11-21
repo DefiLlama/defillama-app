@@ -185,10 +185,6 @@ const Wrapper = styled.span`
 	align-items: center;
 	gap: 8px;
 
-	& > *[data-lgonly] {
-		display: none;
-	}
-
 	& > * {
 		flex-shrink: 0;
 	}
@@ -198,12 +194,6 @@ const Wrapper = styled.span`
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-		& > *[data-lgonly] {
-			display: flex;
-		}
 	}
 `
 

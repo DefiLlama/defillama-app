@@ -71,7 +71,8 @@ export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		TVLColumn,
 		TotalAllTimeColumn('volume'),
 		allChains ? undefined : VolumeTVLColumn,
-		DominanceColumn
+		DominanceColumn,
+		Total24hColumn('Volume', 'total30d', `Cumulative last 30d volume`, undefined, 'Volume (30d)')
 	].filter((c) => c !== undefined)
 
 export const derivativesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
