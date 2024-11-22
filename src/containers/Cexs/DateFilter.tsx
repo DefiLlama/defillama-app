@@ -43,7 +43,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					<input
 						value={startHour}
 						onChange={(e) => setHours([e.target?.value, endHour])}
-						className="p-2 rounded-md border border-black/10 dark:border-white/10 w-10"
+						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-black/10 dark:border-white/10 w-10"
 					/>
 					<span>h</span>
 				</label>
@@ -78,7 +78,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					<input
 						value={endHour}
 						onChange={(e) => setHours([startHour, e.target?.value])}
-						className="p-2 rounded-md border border-black/10 dark:border-white/10 w-10"
+						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-black/10 dark:border-white/10 w-10"
 					/>
 					<span>h</span>
 				</label>
