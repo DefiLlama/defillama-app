@@ -36,7 +36,7 @@ import type {
 	CoinPerformanceRow
 } from './types'
 import { useEffect, useState } from 'react'
-import { UpcomingEvent } from '../Components/UpcomingEvent'
+import { UpcomingEvent } from '../../../containers/Defi/Protocol/Emissions/UpcomingEvent'
 import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
 
