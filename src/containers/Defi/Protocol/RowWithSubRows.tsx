@@ -15,9 +15,9 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 							height={16}
 							width={16}
 							data-open={open}
-							className="data-[open=true]:rotate-90 transition-transform duration-100"
+							className="data-[open=true]:rotate-90 transition-transform duration-100 flex-shrink-0"
 						/>
-						<span>{rowHeader}</span>
+						<span className="whitespace-nowrap">{rowHeader}</span>
 						{helperText && <QuestionHelper text={helperText} />}
 					</button>
 					{protocolName && dataType ? (

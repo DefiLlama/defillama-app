@@ -37,7 +37,6 @@ import type {
 } from './types'
 import { useEffect, useState } from 'react'
 import { UpcomingEvent } from '../Components/UpcomingEvent'
-import { ProgressBar } from '../Components/ProgressBar'
 import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
 
@@ -322,13 +321,20 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			const percetage = (100 - (row.original.totalLocked / row.original.maxSupply) * 100).toPrecision(2)
 
 			return (
-				<ProgressBar
-					percent={percetage}
-					maxSupply={row.original.maxSupply}
-					symbol={row.original.tSymbol}
-					tokenPrice={row.original.tokenPrice}
-					name={row.original.name}
-				/>
+				<div className="flex flex-col gap-2 px-2">
+					<span className="flex items-center gap-2 justify-between">
+						<span className="text-[#3255d7]">{formattedNum(percetage)}%</span>
+						<span className="text-[var(--text2)]">
+							{formattedNum(row.original.maxSupply)} {row.original.tSymbol}
+						</span>
+					</span>
+					<div
+						className="h-2 rounded-full w-full"
+						style={{
+							background: `linear-gradient(90deg, #3255d7 ${percetage}%, var(--bg4) ${percetage}%)`
+						}}
+					/>
+				</div>
 			)
 		},
 		size: 240,
