@@ -367,7 +367,8 @@ function ProtocolContainer({
 			  null
 			: null
 
-	const tab = router.isReady ? router.asPath.split('#')?.[1] ?? 'information' : 'information'
+	const isClient = useIsClient()
+	const tab = isClient ? router.asPath.split('#')?.[1] ?? 'information' : 'information'
 	const setTab = (newTab, e) => {
 		if (e.ctrlKey || e.metaKey) {
 			window.open(router.asPath.split('#')[0] + '#' + newTab)
@@ -381,7 +382,7 @@ function ProtocolContainer({
 	const formatPrice = (value?: number | string | null): string | number | null => {
 		if (Number.isNaN(Number(value))) return null
 
-		if (router.isReady && !fetchingChainPrice && chainPrice?.price && denomination && denomination !== 'USD') {
+		if (isClient && !fetchingChainPrice && chainPrice?.price && denomination && denomination !== 'USD') {
 			return formattedNum(Number(value) / chainPrice.price, false) + ` ${chainPrice.symbol}`
 		}
 
@@ -399,8 +400,6 @@ function ProtocolContainer({
 		dailyRevenueFinal = dailyRevenue + (dailyTokenTaxes ?? 0)
 		revenue30dFinal = revenue30dFinal + (tokenTaxesRevenue30d ?? 0)
 	}
-
-	const isClient = useIsClient()
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '16px' }}>
