@@ -8,13 +8,8 @@ import type { IYieldTableRow } from '../types'
 import { lockupsRewards, earlyExit } from '~/containers/YieldsPage/utils'
 import { CustomLink } from '~/components/Link'
 import { ImageWithFallback } from '~/components/ImageWithFallback'
-import styled from 'styled-components'
 
 const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
-
-const ChartImage = styled(ImageWithFallback)`
-	margin-left: auto;
-`
 
 export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
@@ -208,12 +203,12 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			if (!configID) return null
 			return (
 				<CustomLink href={`/yields/pool/${configID}`} target="_blank">
-					<ChartImage
+					<ImageWithFallback
 						src={`https://yield-charts.llama.fi/yield-chart/${configID}`}
 						alt=""
 						width={90}
 						height={30}
-						style={{ marginLeft: 'auto' }}
+						className="ml-auto"
 						unoptimized
 					/>
 				</CustomLink>

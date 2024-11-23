@@ -166,7 +166,13 @@ export function YieldFilterDropdowns({
 			)}
 
 			{excludeBadDebt && selectedAttributes && (
-				<label className={isMobile ? 'sliding-menu-button align-reverse' : 'flex items-center gap-1 flex-nowrap'}>
+				<label
+					className={
+						isMobile
+							? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
+							: 'flex items-center gap-1 flex-nowrap'
+					}
+				>
 					<input
 						type="checkbox"
 						value="excludeBadDebt"
@@ -192,7 +198,13 @@ export function YieldFilterDropdowns({
 			)}
 
 			{excludeRewardApy && (
-				<label className={isMobile ? 'sliding-menu-button align-reverse' : 'flex items-center gap-1 flex-nowrap'}>
+				<label
+					className={
+						isMobile
+							? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
+							: 'flex items-center gap-1 flex-nowrap'
+					}
+				>
 					<input
 						type="checkbox"
 						value="excludeRewardApy"
@@ -216,7 +228,13 @@ export function YieldFilterDropdowns({
 			)}
 
 			{includeLsdApy && (
-				<label className={isMobile ? 'sliding-menu-button align-reverse' : 'flex items-center gap-1 flex-nowrap'}>
+				<label
+					className={
+						isMobile
+							? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
+							: 'flex items-center gap-1 flex-nowrap'
+					}
+				>
 					<input
 						type="checkbox"
 						value="includeLsdApy"

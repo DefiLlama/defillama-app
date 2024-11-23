@@ -8,7 +8,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDaysAgo } from '~/utils'
-import { Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
 import { removedCategories } from '~/constants'
@@ -34,7 +33,10 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			)
 
 			return (
-				<Name depth={row.depth}>
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
 					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-[2px]"
@@ -58,12 +60,15 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
 					)}
 
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
 					<span className="flex flex-col">
-						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+						<CustomLink
+							href={`/protocol/${slug(value)}`}
+							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>{`${value}`}</CustomLink>
 
 						<Tooltip content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
@@ -74,7 +79,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 							<Icon name="alert-triangle" height={14} width={14} />
 						</Tooltip>
 					)}
-				</Name>
+				</span>
 			)
 		},
 		size: 240
@@ -354,7 +359,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -369,7 +374,10 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 			)
 
 			return (
-				<Name depth={row.depth}>
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
 					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-[2px]"
@@ -393,12 +401,15 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
 					)}
 
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
 					<span className="flex flex-col">
-						<CustomLink href={`/protocol/${slug(value)}`} className="whitespace-nowrap">{`${value}`}</CustomLink>
+						<CustomLink
+							href={`/protocol/${slug(value)}`}
+							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>{`${value}`}</CustomLink>
 
 						<Tooltip content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
@@ -409,7 +420,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 							<Icon name="alert-triangle" height={14} width={14} />
 						</Tooltip>
 					)}
-				</Name>
+				</span>
 			)
 		},
 		size: 240
@@ -533,7 +544,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	},
 	...protocolsColumns.filter((c: any) => c.accessorKey !== 'name'),
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -547,7 +558,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 			)
 
 			return (
-				<Name>
+				<span className="flex items-center gap-2">
 					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-[2px]"
@@ -572,7 +583,10 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
 					<span className="flex flex-col">
-						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+						<CustomLink
+							href={`/protocol/${slug(value)}`}
+							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>{`${value}`}</CustomLink>
 
 						<Tooltip content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
@@ -583,7 +597,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 							<Icon name="alert-triangle" height={14} width={14} />
 						</Tooltip>
 					)}
-				</Name>
+				</span>
 			)
 		},
 		size: 240
@@ -685,7 +699,7 @@ export const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 
 export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -693,12 +707,18 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name depth={row.depth}>
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
 					<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
-					<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/protocol/${slug(value)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>{`${value}`}</CustomLink>
+				</span>
 			)
 		},
 		size: 260
@@ -928,7 +948,7 @@ const Tvl = ({ value, rowValues }) => {
 
 export const protocolsByTokenColumns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -936,16 +956,19 @@ export const protocolsByTokenColumns: ColumnDef<{ name: string; amountUsd: numbe
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
-					<span>{index + 1}</span>
+				<span className="flex items-center gap-2">
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
-					<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/protocol/${slug(value)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>{`${value}`}</CustomLink>
+				</span>
 			)
 		}
 	},
 	{
-		header: () => <Name>Category</Name>,
+		header: () => 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
 		meta: {
@@ -953,7 +976,7 @@ export const protocolsByTokenColumns: ColumnDef<{ name: string; amountUsd: numbe
 		}
 	},
 	{
-		header: () => <Name>Amount</Name>,
+		header: () => 'Amount',
 		accessorKey: 'amountUsd',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
 		meta: {

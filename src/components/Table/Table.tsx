@@ -6,7 +6,6 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import styled from 'styled-components'
 
 interface ITableProps {
 	instance: Table<any>
@@ -155,9 +154,15 @@ export function VirtualTable({
 							const value = flexRender(header.column.columnDef.header, header.getContext())
 
 							return (
-								<Cell key={header.id} data-chainpage={isChainPage} style={{ minWidth: `${header.getSize() ?? 100}px` }}>
-									<TableHeader
-										align={
+								<div
+									key={header.id}
+									data-chainpage={isChainPage}
+									style={{ minWidth: `${header.getSize() ?? 100}px` }}
+									className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
+								>
+									<span
+										className="flex items-center justify-start data-[align=center]:justify-center data-[align=end]:justify-end flex-nowrap gap-1 relative font-medium *:whitespace-nowrap"
+										data-align={
 											meta?.align ??
 											(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
 										}
@@ -173,8 +178,8 @@ export function VirtualTable({
 										)}
 										{meta?.headerHelperText && <QuestionHelper text={meta?.headerHelperText} />}
 										{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
-									</TableHeader>
-								</Cell>
+									</span>
+								</div>
 							)
 						})}
 					</div>
@@ -218,14 +223,15 @@ export function VirtualTable({
 									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 
 									return (
-										<Cell
-											ligther={stripedBg && i % 2 === 0}
+										<div
 											key={cell.id}
+											data-ligther={stripedBg && i % 2 === 0}
 											data-chainpage={isChainPage}
+											className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
 											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign }}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</Cell>
+										</div>
 									)
 								})}
 							</div>
@@ -241,49 +247,3 @@ export function VirtualTable({
 		</div>
 	)
 }
-
-const Cell = styled.div<{ ligther?: boolean }>`
-	flex: 1;
-	flex-shrink: 0;
-	padding: 12px;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	background-color: ${({ theme, ligther }) => (ligther && theme.mode === 'dark' ? '#1c1d22' : theme.background)};
-	border-bottom: 1px solid ${({ theme }) => theme.divider};
-	border-right: 1px solid ${({ theme }) => theme.divider};
-	&[data-chainpage='true'] {
-		background-color: ${({ theme }) => theme.bg6};
-	}
-	&:first-child {
-		position: sticky;
-		left: 0;
-		z-index: 1;
-	}
-`
-
-interface ITableHeader {
-	align: 'start' | 'end' | 'center'
-}
-
-const TableHeader = styled.span<ITableHeader>`
-	display: flex;
-	justify-content: ${({ align }) => (align === 'center' ? 'center' : align === 'end' ? 'flex-end' : 'flex-start')};
-	align-items: center;
-	flex-wrap: nowrap;
-	gap: 4px;
-	font-weight: 500;
-	position: relative;
-
-	& > * {
-		white-space: nowrap;
-	}
-
-	svg {
-		flex-shrink: 0;
-	}
-
-	button {
-		padding: 0;
-	}
-`

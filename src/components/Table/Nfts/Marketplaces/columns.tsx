@@ -2,8 +2,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import type { INftMarketplace } from '../types'
 import { formattedPercent } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { Name } from '../../shared'
-import styled from 'styled-components'
 
 export const columns: ColumnDef<INftMarketplace>[] = [
 	{
@@ -17,10 +15,11 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 			const icon = row.original.exchangeName.toLowerCase().replace(' aggregator', '').replace(' ', '-')
 
 			return (
-				<Name>
-					<span>{index + 1}</span> <TokenLogo logo={`https://icons.llamao.fi/icons/protocols/${icon}`} data-lgonly />
-					{name}
-				</Name>
+				<span className="flex items-center gap-2">
+					<span className="flex-shrink-0">{index + 1}</span>
+					<TokenLogo logo={`https://icons.llamao.fi/icons/protocols/${icon}`} data-lgonly />
+					<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{name}</span>
+				</span>
 			)
 		},
 		size: 280
@@ -42,13 +41,13 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		cell: (info) => (
 			<>
 				{info.getValue() ? (
-					<ValueWithETH>
+					<span className="flex items-center gap-1 justify-end flex-nowrap">
 						<span>{(+info.getValue()).toFixed(2)}</span>
-						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
 							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
 						</svg>
-					</ValueWithETH>
+					</span>
 				) : (
 					''
 				)}
@@ -66,13 +65,13 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		cell: (info) => (
 			<>
 				{info.getValue() ? (
-					<ValueWithETH>
+					<span className="flex items-center gap-1 justify-end flex-nowrap">
 						<span>{(+info.getValue()).toFixed(2)}</span>
-						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
 							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
 						</svg>
-					</ValueWithETH>
+					</span>
 				) : (
 					''
 				)}
@@ -123,15 +122,3 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		}
 	}
 ]
-
-const ValueWithETH = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	justify-content: flex-end;
-	flex-wrap: nowrap;
-
-	& > *[data-eth] {
-		height: 12px;
-	}
-`

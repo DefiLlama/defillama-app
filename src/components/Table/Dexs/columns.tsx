@@ -3,14 +3,13 @@ import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
-import { Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { IDexsRow } from './types'
 import { Icon } from '~/components/Icon'
 
 export const dexsColumn: ColumnDef<IDexsRow>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -20,7 +19,10 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name depth={row.depth}>
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
 					{row.subRows?.length > 0 && (
 						<button
 							className="absolute -left-[2px]"
@@ -41,10 +43,13 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 							)}
 						</button>
 					)}
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
-					<CustomLink href={`/dex/${slug(name)}`}>{`${value}`}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/dex/${slug(name)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>{`${value}`}</CustomLink>
+				</span>
 			)
 		},
 		size: 240
@@ -125,7 +130,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 
 export const volumesByChainsColumns: ColumnDef<IDexsRow>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -133,11 +138,14 @@ export const volumesByChainsColumns: ColumnDef<IDexsRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
-					<span>{index + 1}</span>
+				<span className="flex items-center gap-2">
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(value)} data-lgonly />
-					<CustomLink href={`/dexs/${slug(value)}`}>{`${value}`}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/dexs/${slug(value)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>{`${value}`}</CustomLink>
+				</span>
 			)
 		},
 		size: 240

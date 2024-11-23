@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { Name } from '../../shared'
 import { chainIconUrl, formattedNum, formattedPercent } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import type { IPeggedAssetByChainRow } from './types'
@@ -9,7 +8,7 @@ import { Icon } from '~/components/Icon'
 
 export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -19,7 +18,10 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 			const symbol = row.original.symbol && row.original.symbol !== '-' ? ` (${row.original.symbol})` : ''
 
 			return (
-				<Name depth={row.depth}>
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
 					{row.subRows?.length > 0 && (
 						<button
 							className="absolute -left-[2px]"
@@ -48,12 +50,17 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 						</>
 					) : (
 						<>
-							<span>{index + 1}</span>
+							<span className="flex-shrink-0">{index + 1}</span>
 							<TokenLogo logo={chainIconUrl(value)} data-lgonly />
-							<CustomLink href={`/stablecoins/${value}`}>{value + symbol}</CustomLink>
+							<CustomLink
+								href={`/stablecoins/${value}`}
+								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							>
+								{value + symbol}
+							</CustomLink>
 						</>
 					)}
-				</Name>
+				</span>
 			)
 		},
 		size: 280

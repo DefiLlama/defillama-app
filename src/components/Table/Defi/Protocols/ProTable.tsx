@@ -12,26 +12,12 @@ import {
 } from '@tanstack/react-table'
 import { protocolsByChainColumns } from './columns'
 import { IProtocolRow } from './types'
-import styled from 'styled-components'
 import { RowFilter } from '~/components/Filters/common/RowFilter'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { SortIcon } from '~/components/Table/SortIcon'
-import {
-	ListHeader,
-	ListOptions,
-	TABLE_CATEGORIES,
-	TABLE_PERIODS,
-	defaultColumns,
-	protocolsByChainTableColumns
-} from '.'
-
-const Footer = styled.div`
-	display: flex;
-	justify-content: space-between;
-	width: 100%;
-`
+import { TABLE_CATEGORIES, TABLE_PERIODS, defaultColumns, protocolsByChainTableColumns } from '.'
 
 export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain })
@@ -119,9 +105,9 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 	}
 
 	return (
-		<Body>
-			<ListHeader>{chain} Protocols</ListHeader>
-			<ListOptions>
+		<div className="flex flex-col items-center h-full p-4">
+			<div className="flex items-center justify-between flex-wrap gap-2 -mb-3">
+				<h3 className="text-lg font-medium mr-auto">{chain} Protocols</h3>
 				<RowFilter
 					setValue={setFilter('category')}
 					selectedValue={filterState}
@@ -132,7 +118,7 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 					selectedValue={filterState}
 					values={Object.values(TABLE_PERIODS) as Array<string>}
 				/>
-			</ListOptions>
+			</div>
 			<div className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)]">
 				<table>
 					<thead>
@@ -171,14 +157,14 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 					</tbody>
 				</table>
 			</div>
-			<Footer>
+			<div className="flex items-center justify-between w-full">
 				<RowFilter
 					selectedValue={null}
 					setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}
 					values={['Previous', 'Next']}
 				/>
-				<div style={{ display: 'flex' }}>
-					<div style={{ marginTop: '6px', marginRight: '8px' }}>Per page</div>
+				<div className="flex">
+					<div className="mr-2 mt-[6px]">Per page</div>
 					<RowFilter
 						style={{ alignSelf: 'flex-end' }}
 						selectedValue={String(table.getState().pagination.pageSize)}
@@ -186,18 +172,10 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 						setValue={(val) => table.setPageSize(Number(val))}
 					/>
 				</div>
-			</Footer>
-		</Body>
+			</div>
+		</div>
 	)
 }
-
-const Body = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	height: 100%;
-	padding: 16px;
-`
 
 // const PTable = styled(Wrapper)`
 // 	margin-bottom: 8px;

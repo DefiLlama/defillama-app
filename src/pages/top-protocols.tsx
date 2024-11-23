@@ -8,7 +8,6 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { VirtualTable } from '~/components/Table/Table'
 import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { IFormattedProtocol } from '~/api/types'
-import { Name } from '~/components/Table/shared'
 import { descriptions } from './categories'
 import { withPerformanceLogging } from '~/utils/perf'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -77,11 +76,16 @@ export default function Chains({ data, columns }) {
 				enableSorting: false,
 				cell: ({ getValue, row }) => {
 					return (
-						<Name>
-							<span>{row.index + 1}</span>
+						<span className="flex items-center gap-2">
+							<span className="flex-shrink-0">{row.index + 1}</span>
 							<TokenLogo logo={chainIconUrl(getValue())} />
-							<CustomLink href={`/chain/${getValue()}`}>{getValue()}</CustomLink>
-						</Name>
+							<CustomLink
+								href={`/chain/${getValue()}`}
+								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							>
+								{getValue()}
+							</CustomLink>
+						</span>
 					)
 				},
 				size: 200
