@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
-import ThemeProvider, { GlobalStyle } from '~/Theme'
 import { SEO } from '~/components/SEO'
 import Nav from '~/components/Nav'
 import { useIsClient } from '~/hooks'
@@ -29,18 +28,14 @@ export default function Layout({ title, children, defaultSEO = false, ...props }
 
 			{defaultSEO ? <SEO /> : null}
 
-			<ThemeProvider>
-				{/* @ts-ignore */}
-				<GlobalStyle />
-				<Nav />
-				<main
-					{...props}
-					className="flex flex-col gap-7 w-full min-h-full text-[var(--text1)] isolate p-4 lg:p-7 lg:pl-[248px]"
-				>
-					{children}
-				</main>
-				{isClient ? <Toaster /> : null}
-			</ThemeProvider>
+			<Nav />
+			<main
+				{...props}
+				className="flex flex-col gap-7 w-full min-h-full text-[var(--text1)] isolate p-4 lg:p-7 lg:pl-[248px]"
+			>
+				{children}
+			</main>
+			{isClient ? <Toaster /> : null}
 		</>
 	)
 }

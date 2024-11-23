@@ -30,6 +30,16 @@ module.exports = {
 						right: '0%'
 					}
 				},
+				slideup: {
+					'0%': {
+						opacity: 0,
+						transform: 'translateY(100%)'
+					},
+					'100%': {
+						opacity: 1,
+						transform: 'translateY(0%)'
+					}
+				},
 				linebeat: {
 					'0%': {
 						left: 0,
@@ -51,6 +61,7 @@ module.exports = {
 				loader: 'loader 800ms linear infinite',
 				wiggle: 'wiggle 300ms ease-out',
 				slidein: 'slidein 300ms ease-out',
+				slideup: 'slideup 300ms ease-out',
 				linebeat: 'linebeat 1s ease-in-out infinite alternate'
 			}
 		}

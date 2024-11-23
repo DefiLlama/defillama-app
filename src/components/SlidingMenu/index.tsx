@@ -68,18 +68,17 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 				selectState ? (
 					<Select
 						as="div"
-						className="sliding-menu-button"
+						className="flex items-center justify-between gap-3 py-2 px-3"
 						state={selectState}
-						data-variant={variant}
 						ref={ref}
 						{...props}
 					>
-						<span className="text-sm">{label}</span>
+						<span className="overflow-hidden whitespace-nowrap text-ellipsis">{label}</span>
 						<MenuButtonArrow placement="right" />
 					</Select>
 				) : (
-					<MenuButton className="sliding-menu-button" state={menu} showOnHover={false} data-variant={variant}>
-						<span className="text-sm">{label}</span>
+					<MenuButton className="flex items-center justify-between gap-3 py-2 px-3" state={menu} showOnHover={false}>
+						<span className="overflow-hidden whitespace-nowrap text-ellipsis">{label}</span>
 						<MenuButtonArrow />
 					</MenuButton>
 				)
@@ -87,14 +86,13 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 				// Otherwise, we just render the menu button.
 				<MenuButton
 					as="div"
-					className="sliding-menu-button"
+					className="flex items-center justify-between gap-3 py-2 px-3 bg-[var(--btn-bg)] rounded-md"
 					state={menu}
 					showOnHover={false}
-					data-variant={variant}
 					ref={ref}
 					{...props}
 				>
-					<span className="text-sm">{label}</span>
+					<span className="overflow-hidden whitespace-nowrap text-ellipsis">{label}</span>
 					<MenuButtonArrow placement="right" />
 				</MenuButton>
 			)}
@@ -109,16 +107,14 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 						autoFocusOnShow={autoFocus}
 						autoFocusOnHide={autoFocus}
 						composite={true}
-						data-variant={variant}
 						data-menuwrapper={false}
-						className="sliding-menu"
+						className="h-[70vh] flex flex-col gap-2 rounded-md bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 p-2 overflow-x-auto data-[menuwrapper=true]:animate-slideup data-[leave]:z-0"
 					>
 						<MenuContext.Provider value={contextValue}>
 							{isSubmenu ? (
 								<div className="grid items-end grid-cols-[1fr_auto_1fr]">
 									<button
-										className="sliding-menu-item"
-										data-variant={variant}
+										className="flex items-center justify-between gap-3 py-2 px-3"
 										onClick={() => {
 											selectState.hide()
 											menu.hide()
@@ -127,7 +123,7 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 									>
 										<MenuButtonArrow placement="left" />
 									</button>
-									<h2 className="text-sm font-medium">{label}</h2>
+									<h2 className="py-[6px] px-3 font-medium">{label}</h2>
 								</div>
 							) : null}
 							{children}
@@ -142,22 +138,20 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 						autoFocusOnShow={autoFocus}
 						autoFocusOnHide={autoFocus}
 						modal={!isLarge}
-						data-variant={variant}
 						data-menuwrapper={!isSubmenu ? 'true' : 'false'}
-						className="sliding-menu"
+						className="h-[70vh] flex flex-col gap-2 rounded-md bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 p-2 overflow-x-auto data-[menuwrapper=true]:animate-slideup data-[leave]:z-0"
 					>
 						<MenuContext.Provider value={contextValue}>
 							{isSubmenu ? (
 								<div className="grid items-end grid-cols-[1fr_auto_1fr]">
 									<button
-										className="sliding-menu-item"
-										data-variant={variant}
+										className="flex items-center justify-between gap-3 py-2 px-3"
 										onClick={menu.hide}
 										aria-label="Back to parent menu"
 									>
 										<MenuButtonArrow placement="left" />
 									</button>
-									<h2 className="text-sm font-medium">{label}</h2>
+									<h2 className="py-[6px] px-3 font-medium">{label}</h2>
 								</div>
 							) : null}
 							{children}
@@ -180,9 +174,8 @@ export const MenuItem = forwardRef<HTMLButtonElement, MenuItemProps>(function SM
 ) {
 	return (
 		<BaseMenuItem
-			className="sliding-menu-button"
+			className="flex items-center justify-between gap-3 py-2 px-3"
 			as="button"
-			data-variant={variant}
 			focusOnHover={false}
 			ref={ref}
 			{...props}
