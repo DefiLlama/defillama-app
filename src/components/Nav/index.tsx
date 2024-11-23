@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
@@ -26,7 +25,7 @@ const Fallback = () => {
 						src="/defillama-press-kit/defi/PNG/defillama.png"
 						height={36}
 						width={105}
-						className="object-contain object-left mr-auto mb-4 lg:hidden"
+						className="object-contain object-left mr-auto mb-4 block lg:hidden"
 						alt=""
 					/>
 				</a>
@@ -35,19 +34,19 @@ const Fallback = () => {
 	)
 }
 
-const Desktop: any = dynamic<React.ReactNode>(() => import('./Desktop').then((m) => m.DesktopNav), {
-	loading: () => <Fallback />
-})
+const Desktop: any = React.lazy(() => import('./Desktop').then((m) => ({ default: m.DesktopNav })))
 
-const Mobile: any = dynamic<React.ReactNode>(() => import('./Mobile').then((m) => m.MobileNav), {
-	loading: () => <Fallback />
-})
+const Mobile: any = React.lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
 
 export default function Nav() {
 	return (
 		<>
-			<Desktop />
-			<Mobile />
+			<React.Suspense fallback={<Fallback />}>
+				<Desktop />
+			</React.Suspense>
+			<React.Suspense fallback={<Fallback />}>
+				<Mobile />
+			</React.Suspense>
 		</>
 	)
 }

@@ -74,22 +74,18 @@ export function VirtualTable({
 			const tableWrapperEl = document.getElementById('table-wrapper')
 			const tableHeaderDuplicate = document.getElementById('table-header-dup')
 
-			if (
-				!skipVirtualization &&
-				tableHeaderRef.current &&
-				tableWrapperEl &&
-				tableWrapperEl.getBoundingClientRect().top <= 20 &&
-				tableHeaderDuplicate
-			) {
-				tableHeaderRef.current.style.position = 'fixed'
-				tableHeaderRef.current.style.top = '0px'
-				tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
-				tableHeaderRef.current.style['overflow-x'] = 'overlay'
-				tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
-			} else {
-				tableHeaderRef.current.style.position = 'relative'
-				tableHeaderRef.current.style['overflow-x'] = 'initial'
-				tableHeaderDuplicate.style.height = '0px'
+			if (tableHeaderRef.current && tableHeaderDuplicate) {
+				if (!skipVirtualization && tableWrapperEl && tableWrapperEl.getBoundingClientRect().top <= 20) {
+					tableHeaderRef.current.style.position = 'fixed'
+					tableHeaderRef.current.style.top = '0px'
+					tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
+					tableHeaderRef.current.style['overflow-x'] = 'overlay'
+					tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
+				} else {
+					tableHeaderRef.current.style.position = 'relative'
+					tableHeaderRef.current.style['overflow-x'] = 'initial'
+					tableHeaderDuplicate.style.height = '0px'
+				}
 			}
 		}
 
@@ -102,10 +98,12 @@ export function VirtualTable({
 		const tableWrapperEl = document.getElementById('table-wrapper')
 
 		const onScroll = () => {
-			if (!skipVirtualization && tableHeaderRef.current) {
-				tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
-			} else {
-				tableHeaderRef.current.scrollLeft = 0
+			if (tableHeaderRef.current) {
+				if (!skipVirtualization) {
+					tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
+				} else {
+					tableHeaderRef.current.scrollLeft = 0
+				}
 			}
 		}
 
