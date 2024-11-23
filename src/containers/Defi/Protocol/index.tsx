@@ -1570,7 +1570,7 @@ function ProtocolContainer({
 									</div>
 								)}
 
-								{hacksData.length > 0 ? (
+								{hacksData && hacksData.length > 0 ? (
 									<div className="section-in-grid">
 										<h3 className="font-semibold text-lg">Hacks</h3>
 

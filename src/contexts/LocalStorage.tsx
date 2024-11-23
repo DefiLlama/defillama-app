@@ -177,7 +177,7 @@ const UPDATE_KEY_OPTIONALLY_PERSIST = 'UPDATE_KEY_OPTIONALLY_PERSIST'
 
 const LocalStorageContext = createContext(null)
 
-export function useLocalStorageContext() {
+function useLocalStorageContext() {
 	return useContext(LocalStorageContext)
 }
 

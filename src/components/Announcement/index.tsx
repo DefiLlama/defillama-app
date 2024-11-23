@@ -2,7 +2,6 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
-import { useIsClient } from '~/hooks'
 
 // change 'value' for new announcements
 export const ANNOUNCEMENT = {
@@ -36,6 +35,14 @@ const getAnnouncementKey = (router: NextRouter) => {
 	else return 'defi'
 }
 
+function subscribe(callback: () => void) {
+	window.addEventListener('storage', callback)
+
+	return () => {
+		window.removeEventListener('storage', callback)
+	}
+}
+
 export function Announcement({
 	children,
 	notCancellable,
@@ -45,7 +52,6 @@ export function Announcement({
 	notCancellable?: boolean
 	warning?: boolean
 }) {
-	const [rerenderKey, rerender] = React.useState(1)
 	const router = useRouter()
 
 	const { key, value } = ANNOUNCEMENT[getAnnouncementKey(router)]
@@ -55,14 +61,16 @@ export function Announcement({
 
 	const closeAnnouncement = () => {
 		localStorage.setItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
-		rerender(rerenderKey + 1)
+		window.dispatchEvent(new Event('storage'))
 	}
 
-	const isClient = useIsClient()
+	const store = React.useSyncExternalStore(
+		subscribe,
+		() => localStorage.getItem(routeAnnouncementKey) ?? null,
+		() => null
+	)
 
-	const store = isClient ? JSON.parse(localStorage.getItem(routeAnnouncementKey) || '{}') : {}
-
-	if (notCancellable ? false : store.value === routeAnnouncementValue) {
+	if (notCancellable ? false : JSON.parse(store)?.value === routeAnnouncementValue) {
 		return null
 	}
 

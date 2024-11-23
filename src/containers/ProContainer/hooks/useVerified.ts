@@ -1,17 +1,29 @@
 import { utils } from 'ethers'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
-import { useLocalStorage } from '~/hooks/useLocalStorage'
+
+function subscribe(callback: () => void) {
+	window.addEventListener('storage', callback)
+
+	return () => {
+		window.removeEventListener('storage', callback)
+	}
+}
 
 export const useVerified = ({ verify } = { verify: () => null }) => {
 	const { data: signMessageData, signMessage, variables } = useSignMessage()
 	const wallet = useAccount()
 	const [isVerified, setIsVerified] = useState(false)
-	const [signature, setSignature] = useLocalStorage(`signature_${wallet?.address?.toLowerCase()}`, null) as [
-		`0x${string}`,
-		(value: string) => void
-	]
+
+	const sig = useSyncExternalStore(
+		subscribe,
+		() => localStorage.getItem(`signature_${wallet?.address?.toLowerCase()}`) ?? null,
+		() => null
+	)
+
+	const signature = JSON.parse(sig)
+
 	const message = `DefiLlama Pro Sign In. Confirming ownership of wallet: ${wallet.address?.toLowerCase()}. Please Sign this message to verify your ownership!`
 	const router = useRouter()
 	useEffect(() => {
@@ -24,7 +36,8 @@ export const useVerified = ({ verify } = { verify: () => null }) => {
 
 				if (recoveredAddress === wallet.address) {
 					setIsVerified(true)
-					setSignature(signMessageData)
+					localStorage.setItem(`signature_${wallet?.address?.toLowerCase()}`, JSON.stringify(signMessageData))
+					window.dispatchEvent(new Event('storage'))
 					verify()
 				}
 			} else if (signature) {
@@ -36,7 +49,7 @@ export const useVerified = ({ verify } = { verify: () => null }) => {
 				}
 			}
 		})()
-	}, [signMessageData, variables?.message, isVerified, signature, wallet.address, setSignature, message, verify])
+	}, [signMessageData, variables?.message, isVerified, signature, wallet.address, message, verify])
 
 	useEffect(() => {
 		if (isVerified && router.query.from) {
