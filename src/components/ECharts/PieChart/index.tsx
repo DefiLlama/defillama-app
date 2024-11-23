@@ -2,12 +2,20 @@ import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { PieChart as EPieChart } from 'echarts/charts'
-import { GridComponent, TitleComponent, TooltipComponent, GraphicComponent } from 'echarts/components'
+import { GridComponent, TitleComponent, TooltipComponent, GraphicComponent, LegendComponent } from 'echarts/components'
 import type { IPieChartProps } from '../types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 
-echarts.use([CanvasRenderer, EPieChart, TooltipComponent, TitleComponent, GridComponent, GraphicComponent])
+echarts.use([
+	CanvasRenderer,
+	EPieChart,
+	TooltipComponent,
+	TitleComponent,
+	GridComponent,
+	GraphicComponent,
+	LegendComponent
+])
 
 export default function PieChart({
 	height = '360px',

@@ -17,7 +17,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 					<TokenLogo logo={item.image} fallbackLogo={item?.image} />
 					<CustomLink
 						href={`/nfts/collection/${slug(item.collectionId)}`}
-						className="overflow-ellipsis hover:underline"
+						className="overflow-ellipsis whitespace-nowrap hover:underline"
 					>{`${item.name}`}</CustomLink>
 				</span>
 			)

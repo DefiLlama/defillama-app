@@ -17,7 +17,7 @@ interface ILayoutProps {
 	style?: React.CSSProperties
 }
 
-export default function Layout({ title, children, defaultSEO = false, ...props }: ILayoutProps) {
+export default function Layout({ title, children, defaultSEO = false, backgroundColor, ...props }: ILayoutProps) {
 	const isClient = useIsClient()
 	return (
 		<>

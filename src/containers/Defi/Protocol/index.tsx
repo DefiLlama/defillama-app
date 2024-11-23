@@ -52,6 +52,7 @@ import { scams } from '~/constants'
 import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { RowWithSubRows } from './RowWithSubRows'
+import { useIsClient } from '~/hooks'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -399,6 +400,8 @@ function ProtocolContainer({
 		revenue30dFinal = revenue30dFinal + (tokenTaxesRevenue30d ?? 0)
 	}
 
+	const isClient = useIsClient()
+
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '16px' }}>
 			<SEO
@@ -472,7 +475,7 @@ function ProtocolContainer({
 				</nav>
 			)}
 
-			{router.isReady ? (
+			{isClient ? (
 				<div className="flex flex-col rounded-xl bg-[var(--bg7)] border border-black/5 dark:border-white/5">
 					<div
 						className="flex overflow-x-auto border-b border-black/10 dark:border-white/10"
