@@ -1609,22 +1609,10 @@
   dependencies:
     "@tanstack/table-core" "8.20.1"
 
-"@tanstack/react-virtual@^3.9.0":
-  version "3.9.0"
-  resolved "https://registry.yarnpkg.com/@tanstack/react-virtual/-/react-virtual-3.9.0.tgz#728e3a1917cb98fb67a17f4190e75f531f1eb0de"
-  integrity sha512-5TeTSQBMV1PIFzBP9cduIX5klRaTvbOw+CxRx3LaUhwqiZLEZBZqz8anEIqG4eHNhDAe+BLarRDeNE9cNM1/EA==
-  dependencies:
-    "@tanstack/virtual-core" "3.9.0"
-
 "@tanstack/table-core@8.20.1":
   version "8.20.1"
   resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.20.1.tgz#74bfab10fa35bed51fa0bd2f3539a331d7e78f1b"
   integrity sha512-5Ly5TIRHnWH7vSDell9B/OVyV380qqIJVg7H7R7jU4fPEmOD4smqAX7VRflpYI09srWR8aj5OLD2Ccs1pI5mTg==
-
-"@tanstack/virtual-core@3.9.0":
-  version "3.9.0"
-  resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.9.0.tgz#60db41fe8a19bb1a21873d86d8731416391e838a"
-  integrity sha512-Saga7/QRGej/IDCVP5BgJ1oDqlDT2d9rQyoflS3fgMS8ntJ8JGw/LBqK2GorHa06+VrNFc0tGz65XQHJQJetFQ==
 
 "@types/connect@^3.4.33":
   version "3.4.38"
@@ -7403,6 +7391,11 @@ valtio@1.11.2:
   dependencies:
     proxy-compare "2.5.1"
     use-sync-external-store "1.2.0"
+
+virtua@^0.37.4:
+  version "0.37.4"
+  resolved "https://registry.yarnpkg.com/virtua/-/virtua-0.37.4.tgz#ccd79c499fdff0d7465c9e5e275dd2afa1fb0ee6"
+  integrity sha512-A5K8GQDTQEFRtUW467tPNG/RLNDzFVl5HcJur1W0J9G0HAXHYyS1XAIT7/W7n7NSuil67jmaCtLXLDGFm9A48A==
 
 wagmi@0.12.19:
   version "0.12.19"

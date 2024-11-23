@@ -16,7 +16,6 @@ interface IYieldsTableWrapper {
 	columnSizes: any
 	columnSizesKeys: any
 	columnOrders: any
-	skipVirtualization?: boolean
 	rowSize?: number
 	columnVisibility?: Record<string, boolean>
 	setColumnVisibility?: React.Dispatch<React.SetStateAction<{}>>
@@ -29,7 +28,6 @@ export const YieldsTableWrapper = ({
 	columnSizes,
 	columnSizesKeys,
 	columnOrders,
-	skipVirtualization,
 	rowSize,
 	columnVisibility,
 	setColumnVisibility,
@@ -74,5 +72,5 @@ export const YieldsTableWrapper = ({
 		instance.setColumnOrder(order)
 	}, [windowSize, instance, columnSizes, columnSizesKeys, columnOrders])
 
-	return <VirtualTable instance={instance} skipVirtualization={skipVirtualization} rowSize={rowSize} />
+	return <VirtualTable instance={instance} rowSize={rowSize} />
 }

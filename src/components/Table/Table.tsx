@@ -1,12 +1,11 @@
 import * as React from 'react'
 import { Table, flexRender, RowData } from '@tanstack/react-table'
-import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { useIsClient } from '~/hooks'
+import { WindowVirtualizer } from 'virtua'
 
 interface ITableProps {
 	instance: Table<any>
@@ -35,28 +34,17 @@ export function VirtualTable({
 	...props
 }: ITableProps) {
 	const router = useRouter()
-	const [tableTop, setTableTop] = React.useState(0)
+
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 
 	const { rows } = instance.getRowModel()
-
-	React.useEffect(() => {
-		if (!skipVirtualization && tableContainerRef?.current) {
-			setTableTop(tableContainerRef.current.offsetTop)
-		}
-	}, [skipVirtualization])
-
-	React.useEffect(() => {
-		if (!skipVirtualization) {
-		}
-	}, [skipVirtualization])
 
 	React.useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
 			if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
 				toast.error("Native browser search isn't well supported, please use search boxes / ctrl-k / cmd-k instead", {
 					id: 'native-search-warn',
-					icon: <Icon name="alert-triangle" color="red" height={16} width={16} style={{ flexShrink: 0 }} />
+					icon: <Icon name="alert-triangle" color="red" height={16} width={16} className="flex-shrink-0" />
 				})
 			}
 		}
@@ -66,18 +54,9 @@ export function VirtualTable({
 		return () => window.removeEventListener('keydown', focusSearchBar)
 	}, [])
 
-	const rowVirtualizer = useWindowVirtualizer({
-		count: rows.length,
-		estimateSize: () => rowSize || 50,
-		overscan: 5,
-		scrollMargin: tableTop
-	})
-
-	const virtualItems = rowVirtualizer.getVirtualItems()
 	const isChainPage =
 		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
 	let minTableWidth = 0
-	const isClient = useIsClient()
 
 	for (const headerGroup of instance.getHeaderGroups()) {
 		for (const header of headerGroup.headers) {
@@ -86,6 +65,8 @@ export function VirtualTable({
 	}
 
 	const tableHeaderRef = React.useRef<HTMLDivElement>()
+
+	const TableBodyWrapper = skipVirtualization ? React.Fragment : WindowVirtualizer
 
 	React.useEffect(() => {
 		const onScroll = () => {
@@ -137,20 +118,12 @@ export function VirtualTable({
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
-			className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)]"
+			data-chainpage={isChainPage}
+			className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] data-[chainpage=true]:bg-[var(--bg6)] border border-[var(--bg3)]"
 		>
-			<div
-				ref={tableHeaderRef}
-				id="table-header"
-				style={{
-					display: 'flex',
-					flexDirection: 'column',
-					zIndex: 10,
-					...(skipVirtualization ? { minWidth: `${minTableWidth}px` } : {})
-				}}
-			>
+			<div ref={tableHeaderRef} id="table-header" className="flex flex-col z-10">
 				{instance.getHeaderGroups().map((headerGroup) => (
-					<div key={headerGroup.id} style={{ display: 'flex', position: 'relative' }}>
+					<div key={headerGroup.id} className="flex relative">
 						{headerGroup.headers.map((header) => {
 							// get header text alignment
 							const meta = header.column.columnDef.meta
@@ -161,7 +134,7 @@ export function VirtualTable({
 									key={header.id}
 									data-chainpage={isChainPage}
 									style={{ minWidth: `${header.getSize() ?? 100}px` }}
-									className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
+									className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[lighter=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
 								>
 									<span
 										className="flex items-center justify-start data-[align=center]:justify-center data-[align=end]:justify-end flex-nowrap gap-1 relative font-medium *:whitespace-nowrap"
@@ -189,48 +162,21 @@ export function VirtualTable({
 				))}
 			</div>
 			<div id="table-header-dup"></div>
-			<div
-				style={
-					skipVirtualization
-						? { minWidth: `${minTableWidth}px` }
-						: {
-								height: `${rowVirtualizer.getTotalSize()}px`,
-								width: '100%',
-								position: 'relative',
-								...(instance.getHeaderGroups().length === 1 ? { minWidth: `${minTableWidth}px` } : {})
-						  }
-				}
-			>
-				{(skipVirtualization ? rows : virtualItems).map((row, i) => {
-					const rowTorender = skipVirtualization ? row : rows[row.index]
-					const trStyle: React.CSSProperties = skipVirtualization
-						? {
-								display: 'flex',
-								position: 'relative'
-						  }
-						: {
-								position: 'absolute',
-								top: `${row.start - rowVirtualizer.options.scrollMargin}px`,
-								left: 0,
-								width: '100%',
-								height: `${row.size}px`,
-								opacity: rowTorender.original.disabled ? 0.3 : 1,
-								display: 'flex'
-						  }
-
+			<TableBodyWrapper>
+				{rows.map((row, i) => {
 					return (
-						<React.Fragment key={rowTorender.id}>
-							<div style={trStyle}>
-								{rowTorender.getVisibleCells().map((cell) => {
+						<React.Fragment key={row.id}>
+							<div className="flex relative">
+								{row.getVisibleCells().map((cell) => {
 									// get header text alignment
 									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 
 									return (
 										<div
 											key={cell.id}
-											data-ligther={stripedBg && i % 2 === 0}
+											data-lighter={stripedBg && i % 2 === 0}
 											data-chainpage={isChainPage}
-											className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
+											className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[lighter=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
 											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign }}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -238,15 +184,11 @@ export function VirtualTable({
 									)
 								})}
 							</div>
-							{renderSubComponent && rowTorender.getIsExpanded() && (
-								<>
-									<div>{renderSubComponent({ row: rowTorender })}</div>
-								</>
-							)}
+							{renderSubComponent && row.getIsExpanded() && <div>{renderSubComponent({ row })}</div>}
 						</React.Fragment>
 					)
 				})}
-			</div>
+			</TableBodyWrapper>
 		</div>
 	)
 }

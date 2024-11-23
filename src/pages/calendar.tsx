@@ -158,7 +158,7 @@ export default function Protocols({ emissions }) {
 				</div>
 			</div>
 
-			<VirtualTable instance={instance} style={{ tableLayout: 'auto' }} skipVirtualization />
+			<VirtualTable instance={instance} />
 		</Layout>
 	)
 }

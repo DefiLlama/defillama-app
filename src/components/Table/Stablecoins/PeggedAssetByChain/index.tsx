@@ -60,5 +60,5 @@ export function PeggedAssetByChainTable({ data }) {
 		instance.setColumnOrder(order)
 	}, [windowSize, instance])
 
-	return <VirtualTable instance={instance} skipVirtualization />
+	return <VirtualTable instance={instance} />
 }

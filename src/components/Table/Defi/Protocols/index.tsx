@@ -338,13 +338,11 @@ export function ProtocolsTableWithSearch({
 	data,
 	addlColumns,
 	removeColumns,
-	skipVirtualization,
 	columns
 }: {
 	data: Array<IProtocolRow>
 	addlColumns?: Array<string>
 	removeColumns?: Array<string>
-	skipVirtualization?: boolean
 	columns?: ColumnDef<any>[]
 }) {
 	const columnsToUse = React.useMemo(() => columns ?? protocolsColumns, [columns])
@@ -436,7 +434,7 @@ export function ProtocolsTableWithSearch({
 					className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 				/>
 			</div>
-			<VirtualTable instance={instance} skipVirtualization={skipVirtualization} />
+			<VirtualTable instance={instance} />
 		</>
 	)
 }

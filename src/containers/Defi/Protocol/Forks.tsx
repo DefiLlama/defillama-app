@@ -26,7 +26,7 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 
 	return (
 		<div className="min-h-[460px]">
-			<ForkContainer {...data} skipTableVirtualization />
+			<ForkContainer {...data} />
 		</div>
 	)
 }
