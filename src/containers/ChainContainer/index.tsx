@@ -703,7 +703,7 @@ export function ChainContainer({
 												>
 													<input
 														type="checkbox"
-														onClick={() => {
+														onChange={() => {
 															updateRoute(
 																id,
 																id === 'tvl'

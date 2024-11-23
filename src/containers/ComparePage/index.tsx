@@ -268,7 +268,7 @@ function ComparePage() {
 									<input
 										key={id}
 										type="checkbox"
-										onClick={() => {
+										onChange={() => {
 											updateRoute(id, router.query[id] === 'true' ? 'false' : 'true', router)
 										}}
 										checked={router.query[id] === 'true'}
