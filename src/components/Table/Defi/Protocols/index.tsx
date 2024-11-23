@@ -200,7 +200,7 @@ export const defaultColumns = JSON.stringify({
 export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	const optionsKey = 'protocolsTableColumns'
 	const valuesInStorage = JSON.parse(
-		typeof window !== 'undefined' ? window.localStorage.getItem(optionsKey) ?? defaultColumns : defaultColumns
+		typeof document !== 'undefined' ? window.localStorage.getItem(optionsKey) ?? defaultColumns : defaultColumns
 	)
 	const [columnVisibility, setColumnVisibility] = React.useState(valuesInStorage)
 

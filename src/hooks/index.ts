@@ -45,7 +45,7 @@ export const useScrollToTop = () => {
 export const useIsClient = () => {
 	const [isClient, setIsClient] = useState(false)
 
-	const windowType = typeof window
+	const windowType = typeof document
 
 	useEffect(() => {
 		if (windowType !== 'undefined') {

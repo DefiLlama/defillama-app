@@ -8,7 +8,7 @@ const Pagination = ({ items, startIndex = 0 }) => {
 
 	useEffect(() => {
 		const calculateVisibleItems = () => {
-			if (typeof window !== 'undefined' && paginationRef.current) {
+			if (typeof document !== 'undefined' && paginationRef.current) {
 				const paginationWidth = paginationRef.current.offsetWidth - 200
 				const itemsPerPage = Math.floor(paginationWidth / 390)
 				setVisibleItems(itemsPerPage)

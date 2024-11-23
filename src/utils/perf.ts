@@ -3,7 +3,7 @@ import { GetStaticProps, GetStaticPropsContext } from 'next'
 import { RedisCachePayload, getCache, setCache } from './cache-client'
 import { maxAgeForNext } from '~/api'
 
-const isServer = typeof window === 'undefined'
+const isServer = typeof document === 'undefined'
 const REDIS_URL = process.env.REDIS_URL as string
 const IS_RUNTIME = !!process.env.IS_RUNTIME
 

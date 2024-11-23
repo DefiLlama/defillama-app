@@ -40,7 +40,7 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees])
 	const optionsKey = 'protocolsTableColumns'
 	const valuesInStorage = JSON.parse(
-		typeof window !== 'undefined' ? window.localStorage.getItem(optionsKey) ?? defaultColumns : defaultColumns
+		typeof document !== 'undefined' ? window.localStorage.getItem(optionsKey) ?? defaultColumns : defaultColumns
 	)
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
