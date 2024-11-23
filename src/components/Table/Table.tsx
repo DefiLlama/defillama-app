@@ -118,6 +118,7 @@ export function VirtualTable({
 
 	return (
 		<div
+			style={!isClient ? { minHeight: `${(rowSize ?? 50) * rows.length}px` } : {}}
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
