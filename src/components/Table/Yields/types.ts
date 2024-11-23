@@ -42,7 +42,6 @@ export interface IYieldsProjectsTableRow {
 
 export interface IYieldsTableProps {
 	data: Array<IYieldTableRow>
-	skipVirtualization?: boolean
 }
 
 export interface IYieldsOptimizerTableRow extends IYieldTableRow {

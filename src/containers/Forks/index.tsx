@@ -19,14 +19,7 @@ const chartColors = {
 	TVL: '#4f8fea'
 }
 
-export const ForkContainer = ({
-	chartData,
-	tokenLinks,
-	token,
-	filteredProtocols,
-	parentTokens,
-	skipTableVirtualization
-}) => {
+export const ForkContainer = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
 	const [extraTvlsEnabled] = useDefiManager()
 
 	const { protocolsData, parentForks, finalChartData, totalVolume, volumeChangeUSD } = useMemo(() => {
@@ -91,7 +84,7 @@ export const ForkContainer = ({
 				</div>
 			</div>
 
-			<ProtocolsTableWithSearch data={protocolsData as any} skipVirtualization={skipTableVirtualization} />
+			<ProtocolsTableWithSearch data={protocolsData as any} />
 		</div>
 	)
 }

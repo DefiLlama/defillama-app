@@ -64,7 +64,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<span className="flex flex-col">
+					<span className="flex flex-col -my-2">
 						<CustomLink
 							href={`/protocol/${slug(value)}`}
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
@@ -86,7 +86,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	},
 	{
 		id: 'category',
-
 		header: 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
@@ -406,7 +405,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<span className="flex flex-col">
+					<span className="flex flex-col -my-2">
 						<CustomLink
 							href={`/protocol/${slug(value)}`}
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
@@ -584,7 +583,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<span className="flex flex-col">
+					<span className="flex flex-col -my-2">
 						<CustomLink
 							href={`/protocol/${slug(value)}`}
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
