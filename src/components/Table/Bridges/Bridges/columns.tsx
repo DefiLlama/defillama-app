@@ -35,7 +35,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 
 			return (
 				<span className="flex items-center gap-2">
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 					{icon && <TokenLogo logo={iconLink} data-lgonly />}
 					<CustomLink href={`/bridge/${linkValue}`} className="overflow-hidden text-ellipsis whitespace-nowrap">
 						{value}
@@ -113,7 +113,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
 				<span className="flex items-center gap-2">
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(value)} data-lgonly />
 					<CustomLink href={`/bridges/${value}`} className="overflow-hidden text-ellipsis whitespace-nowrap">
 						{value}

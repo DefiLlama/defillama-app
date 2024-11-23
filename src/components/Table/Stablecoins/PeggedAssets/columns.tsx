@@ -1,5 +1,4 @@
 import { ColumnDef } from '@tanstack/react-table'
-import styled from 'styled-components'
 import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -19,11 +18,16 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 			const symbol = row.original.symbol && row.original.symbol !== '-' ? ` (${row.original.symbol})` : ''
 
 			return (
-				<Name>
-					<span>{index + 1}</span>
+				<span className="flex items-center gap-2">
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={peggedAssetIconUrl(value)} data-lgonly />
-					<CustomLink href={`/stablecoin/${slug(value)}`}>{value + symbol}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/stablecoin/${slug(value)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{value + symbol}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 240
@@ -268,26 +272,3 @@ function pegDeviationText(pegDeviationInfo) {
 	const date = new Date(timestamp * 1000).toISOString().slice(0, 10)
 	return `On ${date}, ${formatPriceSource[priceSource]} reported a price of $${formattedNum(price)}.`
 }
-
-const Name = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	position: relative;
-
-	a {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		whitespace: nowrap;
-	}
-
-	& > *[data-logo] {
-		display: none;
-	}
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		& > *[data-logo] {
-			display: flex;
-		}
-	}
-`

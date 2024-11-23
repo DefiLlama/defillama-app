@@ -2,9 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { slug, formattedPercent } from '~/utils'
-import { Name } from '../../shared'
 import type { INftCollection } from '../types'
-import styled from 'styled-components'
 
 export const columns: ColumnDef<INftCollection>[] = [
 	{
@@ -15,10 +13,13 @@ export const columns: ColumnDef<INftCollection>[] = [
 			const item = row.original
 
 			return (
-				<Name>
+				<span className="flex items-center gap-2">
 					<TokenLogo logo={item.image} fallbackLogo={item?.image} />
-					<CustomLink href={`/nfts/collection/${slug(item.collectionId)}`}>{`${item.name}`}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/nfts/collection/${slug(item.collectionId)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>{`${item.name}`}</CustomLink>
+				</span>
 			)
 		},
 		size: 200
@@ -30,13 +31,13 @@ export const columns: ColumnDef<INftCollection>[] = [
 		cell: (info) => (
 			<>
 				{info.getValue() ? (
-					<ValueWithETH>
+					<span className="flex items-center gap-1 justify-end flex-nowrap">
 						<span>{info.getValue()}</span>
-						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
 							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
 						</svg>
-					</ValueWithETH>
+					</span>
 				) : (
 					''
 				)}{' '}
@@ -72,13 +73,13 @@ export const columns: ColumnDef<INftCollection>[] = [
 		cell: (info) => (
 			<>
 				{info.getValue() ? (
-					<ValueWithETH>
+					<span className="flex items-center gap-1 justify-end flex-nowrap">
 						<span>{info.getValue()}</span>
-						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
 							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
 						</svg>
-					</ValueWithETH>
+					</span>
 				) : (
 					''
 				)}
@@ -96,13 +97,13 @@ export const columns: ColumnDef<INftCollection>[] = [
 		cell: (info) => (
 			<>
 				{info.getValue() ? (
-					<ValueWithETH>
+					<span className="flex items-center gap-1 justify-end flex-nowrap">
 						<span>{info.getValue()}</span>
-						<svg fill="#777E91" data-eth xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
 							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
 						</svg>
-					</ValueWithETH>
+					</span>
 				) : (
 					''
 				)}
@@ -140,15 +141,3 @@ export const columns: ColumnDef<INftCollection>[] = [
 		}
 	}
 ]
-
-const ValueWithETH = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	justify-content: flex-end;
-	flex-wrap: nowrap;
-
-	& > *[data-eth] {
-		height: 12px;
-	}
-`

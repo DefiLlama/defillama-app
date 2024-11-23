@@ -1,5 +1,4 @@
 import { ColumnDef, sortingFns } from '@tanstack/react-table'
-import styled from 'styled-components'
 import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -19,7 +18,6 @@ import {
 	toNiceDayMonthYear,
 	toNiceHour
 } from '~/utils'
-import { Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type {
 	ICategoryRow,
@@ -49,9 +47,15 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
-					<span>{index + 1}</span> <CustomLink href={`/oracles/${getValue()}`}>{getValue()}</CustomLink>
-				</Name>
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>
+					<CustomLink
+						href={`/oracles/${getValue()}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue()}
+					</CustomLink>
+				</span>
 			)
 		}
 	},
@@ -104,13 +108,18 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
-					<span>{index + 1}</span>
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 
-					<CustomLink href={`/forks/${getValue()}`}>{getValue()}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/forks/${getValue()}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue()}
+					</CustomLink>
+				</span>
 			)
 		}
 	},
@@ -151,9 +160,15 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
-					<span>{index + 1}</span> <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink>
-				</Name>
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>{' '}
+					<CustomLink
+						href={`/protocols/${getValue()}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue()}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 200
@@ -190,7 +205,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Name>{getValue()}</Name>
+			return <>{getValue()}</>
 		},
 		size: 180
 	},
@@ -281,10 +296,15 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
+				<span className="flex items-center gap-2 relative">
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink href={`/unlocks/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/unlocks/${standardizeProtocolName(getValue() as string)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue()}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 220
@@ -354,7 +374,9 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			return (
 				<span className="flex flex-col gap-1">
 					{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}
-					<LightText>{formattedNum(row.original.unlocksPerDay) + (symbol ? ` ${symbol.toUpperCase()}` : '')}</LightText>
+					<span className="min-w-[120px] opacity-60">
+						{formattedNum(row.original.unlocksPerDay) + (symbol ? ` ${symbol.toUpperCase()}` : '')}
+					</span>
 				</span>
 			)
 		},
@@ -401,14 +423,19 @@ export const calendarColumns: ColumnDef<any>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
-					<span>{index + 1}</span>
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>
 					{row.original.type === 'Unlock' ? (
-						<CustomLink href={`/unlocks/${standardizeProtocolName(row.original.link)}`}>{getValue()}</CustomLink>
+						<CustomLink
+							href={`/unlocks/${standardizeProtocolName(row.original.link)}`}
+							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
+							{getValue()}
+						</CustomLink>
 					) : (
 						getValue()
 					)}
-				</Name>
+				</span>
 			)
 		},
 		size: 220
@@ -438,11 +465,16 @@ export const expensesColumns: ColumnDef<any>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
-					<span>{index + 1}</span>
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink href={`/protocol/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/protocol/${standardizeProtocolName(getValue() as string)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue()}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 220
@@ -495,7 +527,10 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name depth={row.depth}>
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
 					<button
 						className="absolute -left-[2px]"
 						{...{
@@ -514,10 +549,15 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 							</>
 						)}
 					</button>
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink href={`/governance/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/governance/${standardizeProtocolName(getValue() as string)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue()}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 220
@@ -561,7 +601,12 @@ export const activeInvestorsColumns: ColumnDef<{
 			return (
 				<Tooltip content={'Looking for investors? Send your pitch to selected ones through us'}>
 					<div className="flex gap-2" onClick={() => window.open('/pitch', '_blank')}>
-						<CustomLink href={`/raises/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+						<CustomLink
+							href={`/raises/${standardizeProtocolName(getValue() as string)}`}
+							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
+							{getValue()}
+						</CustomLink>
 						<Icon
 							name="mail"
 							style={{ minHeight: '16px', minWidth: '16px', width: '16px', height: '16px' }}
@@ -643,7 +688,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Name>{getValue()}</Name>
+			return <>{getValue()}</>
 		},
 		size: 200
 	},
@@ -705,14 +750,17 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 
 export const chainsColumn: ColumnDef<IChainsRow>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name depth={row.depth}>
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
 					{row.subRows?.length > 0 && (
 						<button
 							className="absolute -left-[2px]"
@@ -733,10 +781,15 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 							)}
 						</button>
 					)}
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink href={`/chain/${getValue()}`}>{getValue()}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/chain/${getValue()}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue()}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 200
@@ -935,14 +988,17 @@ const keySorting = (key: string) => (rowA, rowB) => {
 
 export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: () => 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name depth={row.depth}>
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
 					{row.subRows?.length > 0 && (
 						<button
 							className="absolute -left-[2px]"
@@ -963,10 +1019,15 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 							)}
 						</button>
 					)}
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink href={`/bridged/${getValue()}`}>{getValue()}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/bridged/${getValue()}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue()}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 200
@@ -1053,7 +1114,7 @@ export const bridgedChainColumns: ColumnDef<any>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Name>{getValue()}</Name>
+			return <>{getValue()}</>
 		}
 	},
 	{
@@ -1074,14 +1135,19 @@ export const cexColumn: ColumnDef<any>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
-					<span>{index + 1}</span>
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>
 					{row.original.slug === undefined ? (
 						getValue()
 					) : (
-						<CustomLink href={`/cex/${slug(row.original.slug)}`}>{getValue()}</CustomLink>
+						<CustomLink
+							href={`/cex/${slug(row.original.slug)}`}
+							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
+							{getValue()}
+						</CustomLink>
 					)}
-				</Name>
+				</span>
 			)
 		}
 	},
@@ -1143,11 +1209,18 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: '24hInflows',
 		size: 120,
 		cell: (info) => (
-			<InflowOutflow
-				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
+			<span
+				className="text-[var(--text1)]"
+				style={
+					(info.getValue() as number) < 0
+						? ({ '--text1': '#f85149' } as any)
+						: (info.getValue() as number) > 0
+						? { '--text1': '#3fb950' }
+						: {}
+				}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
-			</InflowOutflow>
+			</span>
 		),
 		sortingFn: sortingFns.datetime,
 		meta: {
@@ -1159,11 +1232,18 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: '7dInflows',
 		size: 120,
 		cell: (info) => (
-			<InflowOutflow
-				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
+			<span
+				className="text-[var(--text1)]"
+				style={
+					(info.getValue() as number) < 0
+						? ({ '--text1': '#f85149' } as any)
+						: (info.getValue() as number) > 0
+						? { '--text1': '#3fb950' }
+						: {}
+				}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
-			</InflowOutflow>
+			</span>
 		),
 		sortingFn: sortingFns.datetime,
 		meta: {
@@ -1175,11 +1255,18 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: '1mInflows',
 		size: 120,
 		cell: (info) => (
-			<InflowOutflow
-				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
+			<span
+				className="text-[var(--text1)]"
+				style={
+					(info.getValue() as number) < 0
+						? ({ '--text1': '#f85149' } as any)
+						: (info.getValue() as number) > 0
+						? { '--text1': '#3fb950' }
+						: {}
+				}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
-			</InflowOutflow>
+			</span>
 		),
 		sortingFn: sortingFns.datetime,
 		meta: {
@@ -1191,11 +1278,18 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: 'customRange',
 		size: 200,
 		cell: (info) => (
-			<InflowOutflow
-				data-variant={(info.getValue() as number) < 0 ? 'red' : (info.getValue() as number) > 0 ? 'green' : 'white'}
+			<span
+				className="text-[var(--text1)]"
+				style={
+					(info.getValue() as number) < 0
+						? ({ '--text1': '#f85149' } as any)
+						: (info.getValue() as number) > 0
+						? { '--text1': '#3fb950' }
+						: {}
+				}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
-			</InflowOutflow>
+			</span>
 		),
 		sortingFn: sortingFns.datetime,
 		meta: {
@@ -1316,11 +1410,16 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 			const slug = (row.original.slug as string).split('-(treasury)')[0]
 
 			return (
-				<Name>
-					<span>{index + 1}</span>
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
-					<CustomLink href={`/protocol/${slug}#treasury`}>{name}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/protocol/${slug}#treasury`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{name}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 220
@@ -1471,10 +1570,15 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			const nameSlug = row.original.name.replace(/\s+/g, '-').toLowerCase()
 
 			return (
-				<Name>
-					<span>{index + 1}</span> <TokenLogo logo={row.original.logo} data-lgonly />
-					<CustomLink href={`/protocol/${nameSlug}`}>{getValue()}</CustomLink>
-				</Name>
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span> <TokenLogo logo={row.original.logo} data-lgonly />
+					<CustomLink
+						href={`/protocol/${nameSlug}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue()}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 280
@@ -1615,10 +1719,15 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
-					<span>{index + 1}</span>
-					<CustomLink href={row.original.url}>{getValue()}</CustomLink>
-				</Name>
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>
+					<CustomLink
+						href={row.original.url}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue()}
+					</CustomLink>
+				</span>
 			)
 		},
 		size: 100
@@ -1697,7 +1806,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
-			return <Name>{getValue()}</Name>
+			return <>{getValue()}</>
 		},
 		size: 120
 	},
@@ -1785,16 +1894,25 @@ export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name>
-					<span>{index + 1}.</span>
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>
 					{['bitcoin', 'ethereum', 'solana'].includes(row.original.id) ? (
-						<CustomLink href={`https://www.coingecko.com/en/coins/${row.original.id}`} target="_blank">
+						<CustomLink
+							href={`https://www.coingecko.com/en/coins/${row.original.id}`}
+							target="_blank"
+							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
 							{getValue()}
 						</CustomLink>
 					) : (
-						<CustomLink href={`/narrative-tracker/${row.original.id}`}>{getValue()}</CustomLink>
+						<CustomLink
+							href={`/narrative-tracker/${row.original.id}`}
+							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
+							{getValue()}
+						</CustomLink>
 					)}
-				</Name>
+				</span>
 			)
 		},
 		size: 240
@@ -1846,12 +1964,16 @@ export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
-				<Name>
+				<span className="flex items-center gap-2 relative">
 					<span>{index + 1}.</span>
-					<CustomLink href={`https://www.coingecko.com/en/coins/${row.original.id}`} target="_blank">
+					<CustomLink
+						href={`https://www.coingecko.com/en/coins/${row.original.id}`}
+						target="_blank"
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
 						{getValue()}
 					</CustomLink>
-				</Name>
+				</span>
 			)
 		},
 		size: 240
@@ -1899,18 +2021,6 @@ function formatCexInflows(value) {
 
 	return `${isNegative ? '-' : '+'} $${toK(x)}`
 }
-
-export const InflowOutflow = styled.span`
-	color: ${({ theme }) => theme.text1};
-
-	&[data-variant='green'] {
-		color: #3fb950;
-	}
-
-	&[data-variant='red'] {
-		color: #f85149;
-	}
-`
 
 // key: min width of window/screen
 // values: table columns order
@@ -2059,11 +2169,6 @@ const TooltipContent = ({ dominance, protocolName }) => {
 	)
 }
 
-const LightText = styled.span`
-	opacity: 0.6;
-	min-width: 120px;
-`
-
 const SimpleUpcomingEvent = ({ timestamp, name }) => {
 	const timeLeft = timestamp - Date.now() / 1e3
 	const days = Math.floor(timeLeft / 86400)
@@ -2080,118 +2185,20 @@ const SimpleUpcomingEvent = ({ timestamp, name }) => {
 	}, [])
 
 	return (
-		<EventWrapper>
+		<span className="flex items-center gap-2">
 			<span>{name}</span>
-			<span data-divider></span>
-			<TimeLeft>
-				<span>
-					<span>{days}</span>
-					<span>D</span>
-				</span>
-
-				<span data-divider></span>
-
-				<span>
-					<span>{hours}</span>
-					<span>H</span>
-				</span>
-
-				<span data-divider></span>
-
-				<span>
-					<span>{minutes}</span>
-					<span>M</span>
-				</span>
-
-				<span data-divider></span>
-
-				<span>
-					<span>{seconds}</span>
-					<span>S</span>
-				</span>
-			</TimeLeft>
-
-			<span data-divider></span>
-
-			<span>
+			<span className="h-10 w-[1px] bg-[var(--bg4)]" />
+			<span className="flex items-center gap-1">
+				<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">{days}D</span>
+				<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">{hours}H</span>
+				<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">{minutes}M</span>
+				<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">{seconds}S</span>
+			</span>
+			<span className="h-10 w-[1px] bg-[var(--bg4)]" />
+			<span className="flex items-center justify-between gap-2">
 				<span>{toNiceDayMonthYear(timestamp)}</span>
 				<span>{toNiceHour(timestamp)}</span>
 			</span>
-		</EventWrapper>
+		</span>
 	)
 }
-
-const TimeLeft = styled.span`
-	display: flex;
-	align-items: center;
-	flex-wrap: nowrap;
-	gap: 8px;
-	font-size: 0.825rem;
-
-	& > * {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-
-		& > *:nth-child(1) {
-			padding: 4px;
-			background: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)')};
-			color: ${({ theme }) => (theme.mode === 'dark' ? 'black' : 'white')};
-			border-radius: 4px;
-			min-width: 25px;
-			text-align: center;
-			font-weight: 500;
-		}
-
-		& > *:nth-child(2) {
-			opacity: 0.6;
-		}
-	}
-
-	& > *[data-divider='true'] {
-		height: 4px;
-		width: 1px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)')};
-		margin: auto 0;
-	}
-`
-
-const EventWrapper = styled.span`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	flex-wrap: nowrap;
-	font-size: 0.75rem;
-	background: ${({ theme }) => (theme.mode === 'dark' ? 'black' : '#f2f2f2')};
-	border-radius: 4px;
-	padding: 8px;
-
-	& > *[data-divider='true'] {
-		height: 40px;
-		width: 1px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')};
-		margin: 0 8px;
-	}
-
-	& > *:first-child,
-	& > *:last-child {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-
-		& > *:nth-child(2) {
-			opacity: 0.6;
-		}
-	}
-
-	& > *:last-child {
-		& > *:last-child {
-			text-align: end;
-		}
-	}
-
-	& > *:first-child {
-		overflow-wrap: break-word;
-		white-space: normal;
-	}
-`

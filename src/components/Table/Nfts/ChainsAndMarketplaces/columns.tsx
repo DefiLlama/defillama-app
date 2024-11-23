@@ -3,7 +3,6 @@ import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { capitalizeFirstLetter, chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
-import { Name } from '../../shared'
 import type { INftsCollectionRow } from '../types'
 
 export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
@@ -15,19 +14,15 @@ export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 			const item = row.original
 
 			return (
-				<Name>
+				<span className="flex items-center gap-2">
 					<TokenLogo logo={chainIconUrl(item.chain)} />
 					<CustomLink
-						style={{
-							marginLeft: '16px',
-							whiteSpace: 'nowrap',
-							minWidth: '200px'
-						}}
 						href={'/nfts/chain/' + item.chain}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
 					>
 						{capitalizeFirstLetter(item.chain)}
 					</CustomLink>
-				</Name>
+				</span>
 			)
 		},
 		size: 200
@@ -87,19 +82,15 @@ export const marketplacesColumns: ColumnDef<INftsCollectionRow>[] = [
 		cell: ({ row }) => {
 			const item = row.original
 			return (
-				<Name>
+				<span className="flex items-center gap-2">
 					<TokenLogo logo={tokenIconUrl(item.marketplace)} />
 					<CustomLink
-						style={{
-							marginLeft: '16px',
-							whiteSpace: 'nowrap',
-							minWidth: '200px'
-						}}
 						href={'/nfts/marketplace/' + item.slug}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
 					>
 						{capitalizeFirstLetter(item.marketplace)}
 					</CustomLink>
-				</Name>
+				</span>
 			)
 		},
 		size: 200

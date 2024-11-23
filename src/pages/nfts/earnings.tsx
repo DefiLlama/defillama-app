@@ -6,7 +6,6 @@ import { NFTsSearch } from '~/components/Search/NFTs'
 import { withPerformanceLogging } from '~/utils/perf'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ColumnDef } from '@tanstack/react-table'
-import { Name } from '~/components/Table/shared'
 import { formattedNum } from '~/utils'
 import { TokenLogo, FallbackLogo } from '~/components/TokenLogo'
 import { Icon } from '~/components/Icon'
@@ -63,7 +62,7 @@ interface IEarnings {
 
 const earningsColumns: ColumnDef<IEarnings>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -72,7 +71,10 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 			const logo = row.original.logo ?? row.subRows?.[0]?.original?.logo
 
 			return (
-				<Name depth={row.depth}>
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
 					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-[2px]"
@@ -94,13 +96,13 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 						</button>
 					) : null}
 
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 
 					{logo ? <TokenLogo logo={logo} data-lgonly /> : <FallbackLogo />}
 
 					{row.subRows?.length === 0 ? (
 						<a
-							className="text-[var(--blue)] hover:underline"
+							className="text-[var(--blue)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`royalties/${row.original.defillamaId}`}
@@ -110,7 +112,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 					) : (
 						<span>{value}</span>
 					)}
-				</Name>
+				</span>
 			)
 		},
 		size: 240

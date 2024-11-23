@@ -5,7 +5,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { CHAINS_API, CONFIG_API } from '~/constants'
 import { chainIconUrl } from '~/utils'
 import { getReadableValue } from '~/utils/liquidations'
-import { Name } from '../shared'
 import { ILiquidablePositionsRow, ILiquidableProtocolRow } from './types'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
@@ -201,11 +200,16 @@ const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 	if (!data) return <span>{_value}</span>
 
 	return (
-		<Name>
-			<span>{index + 1}</span>
+		<span className="flex items-center gap-2">
+			<span className="flex-shrink-0">{index + 1}</span>
 			<TokenLogo logo={data.logo} data-lgonly />
-			<CustomLink href={`/protocol/${_value}`}>{data.name}</CustomLink>
-		</Name>
+			<CustomLink
+				href={`/protocol/${_value}`}
+				className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
+			>
+				{data.name}
+			</CustomLink>
+		</span>
 	)
 }
 
@@ -231,11 +235,16 @@ const ChainName = ({ value, index }: { value: string; index?: number }) => {
 	}
 
 	return (
-		<Name>
-			{(index || index === 0) && <span>{index + 1}</span>}
+		<span className="flex items-center gap-2">
+			{(index || index === 0) && <span className="flex-shrink-0">{index + 1}</span>}
 			<TokenLogo logo={chainIconUrl(name)} data-lgonly />
-			<CustomLink href={`/chain/${_name}`}>{_name}</CustomLink>
-		</Name>
+			<CustomLink
+				href={`/chain/${_name}`}
+				className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
+			>
+				{_name}
+			</CustomLink>
+		</span>
 	)
 }
 

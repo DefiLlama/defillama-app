@@ -14,7 +14,6 @@ import type { IChainsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { DEFI_CHAINS_SETTINGS, useDefiChainsManager } from '~/contexts/LocalStorage'
-import styled from 'styled-components'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 
 export function DefiProtocolsTable({ data, columns }) {
@@ -132,7 +131,7 @@ export function DefiChainsTable({ data }) {
 
 	return (
 		<>
-			<TableOptions>
+			<div className="flex items-center justify-end flex-wrap gap-3 -mb-3">
 				<ColumnFilters2
 					label={'Group Chains'}
 					options={DEFI_CHAINS_SETTINGS}
@@ -153,21 +152,8 @@ export function DefiChainsTable({ data }) {
 				/>
 
 				<TVLRange />
-			</TableOptions>
+			</div>
 			<VirtualTable instance={instance} />
 		</>
 	)
 }
-
-const TableOptions = styled.div`
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	margin: 0 0 -12px;
-	justify-content: flex-end;
-	flex-wrap: wrap;
-
-	button {
-		font-weight: 600;
-	}
-`

@@ -27,7 +27,6 @@ import {
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { RowFilter } from '~/components/Filters/common/RowFilter'
@@ -307,8 +306,8 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 
 	return (
 		<>
-			<ListOptions>
-				<ListHeader>Protocol Rankings</ListHeader>
+			<div className="flex items-center justify-between flex-wrap gap-2 -mb-3">
+				<h3 className="text-lg font-medium mr-auto">Protocol Rankings</h3>
 				<RowFilter
 					setValue={setFilter('category')}
 					selectedValue={filterState}
@@ -329,39 +328,11 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					subMenu={false}
 				/>
 				<TVLRange />
-			</ListOptions>
-			<PTable instance={instance} />
+			</div>
+			<VirtualTable instance={instance} />
 		</>
 	)
 }
-
-const PTable = styled(VirtualTable)`
-	table {
-		table-layout: auto;
-	}
-
-	th:first-child {
-		min-width: 180px;
-	}
-
-	th:not(:first-child) > * {
-		padding-left: 12px;
-	}
-
-	thead > tr:first-child {
-		th > * {
-			width: fit-content;
-			margin: 0 auto;
-			padding-left: 0;
-		}
-	}
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		th:first-child {
-			min-width: 240px;
-		}
-	}
-`
 
 export function ProtocolsTableWithSearch({
 	data,
@@ -574,28 +545,3 @@ export function ProtocolsByToken({ data }: { data: Array<{ name: string; amountU
 
 	return <VirtualTable instance={instance} />
 }
-
-export const ListOptions = styled.div`
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	margin: 0 0 -12px;
-	justify-content: space-between;
-	flex-wrap: wrap;
-
-	button {
-		font-weight: 600;
-	}
-`
-
-export const ListHeader = styled.h3`
-	font-size: 1.125rem;
-	color: ${({ theme }) => theme.text1};
-	font-weight: 500;
-	white-space: nowrap;
-	margin-right: auto;
-
-	@media screen and (max-width: 40rem) {
-		font-size: 1rem;
-	}
-`

@@ -2,14 +2,13 @@ import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
-import { Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { IFeesRow } from './types'
 import { Icon } from '~/components/Icon'
 
 export const feesColumn: ColumnDef<IFeesRow>[] = [
 	{
-		header: () => <Name>Name</Name>,
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -21,7 +20,10 @@ export const feesColumn: ColumnDef<IFeesRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<Name depth={row.depth}>
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
 					{row.subRows?.length > 0 && (
 						<button
 							className="absolute -left-[2px]"
@@ -42,10 +44,13 @@ export const feesColumn: ColumnDef<IFeesRow>[] = [
 							)}
 						</button>
 					)}
-					<span>{index + 1}</span>
+					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={logo} />
-					<CustomLink href={`/fees/${slug(mappedValue as string)}`}>{`${name}${symbol}`}</CustomLink>
-				</Name>
+					<CustomLink
+						href={`/fees/${slug(mappedValue as string)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>{`${name}${symbol}`}</CustomLink>
+				</span>
 			)
 		},
 		size: 200

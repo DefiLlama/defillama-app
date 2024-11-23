@@ -1,4 +1,3 @@
-import styled from 'styled-components'
 import { Bookmark } from '~/components/Bookmark'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -57,14 +56,14 @@ export function NameYieldPool({
 			: 10)
 
 	return (
-		<Wrapper>
+		<span className="flex items-center gap-2">
 			{bookmark ? <Bookmark readableProtocolName={configID} data-lgonly /> : null}
 
-			<span>{index}</span>
+			<span className="flex-shrink-0">{index}</span>
 
 			{url ? (
 				<ButtonLight
-					className="hidden lg:flex items-center justify-center gap-4 !p-[6px]"
+					className="hidden lg:flex items-center justify-center gap-4 !p-[6px] flex-shrink-0"
 					as="a"
 					href={url}
 					target="_blank"
@@ -80,11 +79,11 @@ export function NameYieldPool({
 			{withoutLink ? (
 				<FormattedName text={value} maxCharacters={mc} link fontWeight={500} />
 			) : (
-				<CustomLink href={tokenUrl} target="_blank">
+				<CustomLink href={tokenUrl} target="_blank" className="overflow-hidden whitespace-nowrap text-ellipsis">
 					<FormattedName text={value} maxCharacters={mc} link fontWeight={500} />
 				</CustomLink>
 			)}
-		</Wrapper>
+		</span>
 	)
 }
 
@@ -93,7 +92,7 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
-		<AirdropWrapper {...props}>
+		<span className="flex items-center relative pl-6" {...props}>
 			{airdrop && project !== 'Fraxlend' ? (
 				<Tooltip
 					content="This project has no token and might airdrop one to depositors in the future"
@@ -106,9 +105,11 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 			{withoutLink ? (
 				<FormattedName text={project} maxCharacters={20} link fontWeight={500} />
 			) : (
-				<CustomLink href={tokenUrl}>{project}</CustomLink>
+				<CustomLink href={tokenUrl} className="overflow-hidden whitespace-nowrap text-ellipsis ml-2">
+					{project}
+				</CustomLink>
 			)}
-		</AirdropWrapper>
+		</span>
 	)
 }
 
@@ -117,10 +118,12 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
-		<Wrapper>
+		<span className="flex items-center gap-2">
 			<TokenLogo logo={iconUrl} />
-			<CustomLink href={tokenUrl}>{project}</CustomLink>
-		</Wrapper>
+			<CustomLink href={tokenUrl} className="overflow-hidden whitespace-nowrap text-ellipsis">
+				{project}
+			</CustomLink>
+		</span>
 	)
 }
 
@@ -130,27 +133,27 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 	const chainIcon = chainIconUrl(chain)
 
 	return (
-		<Wrapper>
-			<HideIndex>{index}</HideIndex>
+		<span className="flex items-center gap-2">
+			<span className="opacity-0 flex-shrink-0">{index}</span>
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
-			<ProjectWrapper>
+			<span className="flex items-center gap-1">
 				{airdropProject1 ? (
 					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
 				) : null}
 				<TokenLogo logo={iconUrl1} />
-				<span>{project1}</span>
-			</ProjectWrapper>
+				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{project1}</span>
+			</span>
 			<span>{'->'}</span>
-			<ProjectWrapper>
+			<span className="flex items-center gap-1">
 				{airdropProject2 ? (
 					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
 				) : null}
 
 				<TokenLogo logo={iconUrl2} />
-				<span>{project2}</span>
-			</ProjectWrapper>
-		</Wrapper>
+				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{project2}</span>
+			</span>
+		</span>
 	)
 }
 
@@ -160,72 +163,22 @@ export function FRStrategyRoute({ project1, airdropProject1, project2, airdropPr
 	const chainIcon = chainIconUrl(chain)
 
 	return (
-		<Wrapper>
-			<HideIndex>{index}</HideIndex>
+		<span className="flex items-center gap-2">
+			<span className="opacity-0 flex-shrink-0">{index}</span>
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
-			<ProjectWrapper>
+			<span className="flex items-center gap-1">
 				{airdropProject1 ? (
 					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
 				) : null}
 				<TokenLogo logo={iconUrl1} />
-				<span>{project1}</span>
-			</ProjectWrapper>
+				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{project1}</span>
+			</span>
 			<span>{'|'}</span>
-			<ProjectWrapper>
+			<span className="flex items-center gap-1">
 				<TokenLogo logo={iconUrl2} />
-				<span>{project2}</span>
-			</ProjectWrapper>
-		</Wrapper>
+				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{project2}</span>
+			</span>
+		</span>
 	)
 }
-
-const Wrapper = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-
-	& > * {
-		flex-shrink: 0;
-	}
-
-	a:last-of-type {
-		flex-shrink: 1;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-`
-
-const AirdropWrapper = styled(Wrapper)`
-	gap: 0px;
-	position: relative;
-	padding-left: 24px;
-
-	a:last-of-type {
-		margin-left: 8px;
-	}
-`
-
-const Airdrop = styled.span`
-	width: 24px;
-	margin-left: -32px;
-`
-
-const ProjectWrapper = styled.span`
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	flex-shrink: 1;
-
-	& > * {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-`
-
-const HideIndex = styled.span`
-	visibility: hidden;
-	padding-right: 4px;
-`
