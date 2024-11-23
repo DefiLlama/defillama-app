@@ -86,7 +86,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	},
 	{
 		id: 'category',
-
 		header: 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
