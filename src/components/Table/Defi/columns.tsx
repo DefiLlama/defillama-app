@@ -53,7 +53,7 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 						href={`/oracles/${getValue()}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as string}
 					</CustomLink>
 				</span>
 			)
@@ -117,7 +117,7 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 						href={`/forks/${getValue()}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as string}
 					</CustomLink>
 				</span>
 			)
@@ -166,7 +166,7 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 						href={`/protocols/${getValue()}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as string}
 					</CustomLink>
 				</span>
 			)
@@ -204,9 +204,6 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <>{getValue()}</>
-		},
 		size: 180
 	},
 	{
@@ -228,7 +225,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		size: 140,
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Tooltip content={getValue() as string}>{getValue()}</Tooltip>
+			return <Tooltip content={getValue() as string}>{getValue() as string}</Tooltip>
 		}
 	},
 	{
@@ -302,7 +299,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 						href={`/unlocks/${standardizeProtocolName(getValue() as string)}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as string}
 					</CustomLink>
 				</span>
 			)
@@ -430,10 +427,10 @@ export const calendarColumns: ColumnDef<any>[] = [
 							href={`/unlocks/${standardizeProtocolName(row.original.link)}`}
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
-							{getValue()}
+							{getValue() as string}
 						</CustomLink>
 					) : (
-						getValue()
+						(getValue() as string)
 					)}
 				</span>
 			)
@@ -472,7 +469,7 @@ export const expensesColumns: ColumnDef<any>[] = [
 						href={`/protocol/${standardizeProtocolName(getValue() as string)}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as string}
 					</CustomLink>
 				</span>
 			)
@@ -482,9 +479,6 @@ export const expensesColumns: ColumnDef<any>[] = [
 	{
 		header: 'Headcount',
 		accessorKey: 'headcount',
-		cell: ({ getValue }) => {
-			return <>{getValue()}</>
-		},
 		meta: {
 			align: 'end'
 		}
@@ -555,7 +549,7 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 						href={`/governance/${standardizeProtocolName(getValue() as string)}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as string}
 					</CustomLink>
 				</span>
 			)
@@ -605,7 +599,7 @@ export const activeInvestorsColumns: ColumnDef<{
 							href={`/raises/${standardizeProtocolName(getValue() as string)}`}
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
-							{getValue()}
+							{getValue() as string}
 						</CustomLink>
 						<Icon
 							name="mail"
@@ -623,9 +617,6 @@ export const activeInvestorsColumns: ColumnDef<{
 	{
 		header: 'Deals',
 		accessorKey: 'deals',
-		cell: ({ getValue }) => {
-			return <>{getValue()}</>
-		},
 		size: 120,
 		meta: {
 			align: 'end'
@@ -636,7 +627,7 @@ export const activeInvestorsColumns: ColumnDef<{
 		header: 'Median Amount',
 		accessorKey: 'medianAmount',
 		cell: ({ getValue }) => {
-			return <>${getValue()}m</>
+			return <>${getValue() as string}m</>
 		},
 		size: 140,
 		meta: {
@@ -657,18 +648,12 @@ export const activeInvestorsColumns: ColumnDef<{
 		header: 'Top Project Category',
 		accessorKey: 'category',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <>{getValue()}</>
-		},
 		size: 160
 	},
 	{
 		header: 'Top Round Type',
 		accessorKey: 'roundType',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <>{getValue()}</>
-		},
 		size: 120
 	},
 	{
@@ -676,7 +661,7 @@ export const activeInvestorsColumns: ColumnDef<{
 		accessorKey: 'projects',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Tooltip content={getValue()}>{getValue()}</Tooltip>
+			return <Tooltip content={getValue() as string | null}>{getValue() as string | null}</Tooltip>
 		},
 		size: 240
 	}
@@ -687,9 +672,6 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <>{getValue()}</>
-		},
 		size: 200
 	},
 	{
@@ -726,7 +708,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 	{
 		header: 'Language',
 		accessorKey: 'language',
-		cell: ({ getValue }) => <>{getValue() ?? ''}</>,
+		cell: ({ getValue }) => <>{(getValue() ?? null) as string | null}</>,
 		size: 140
 	},
 	{
@@ -787,7 +769,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 						href={`/chain/${getValue()}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as string | null}
 					</CustomLink>
 				</span>
 			)
@@ -941,7 +923,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
-			return <>{info.getValue() ?? null}</>
+			return <>{(info.getValue() ?? null) as string | null}</>
 		},
 		size: 120,
 		meta: {
@@ -1025,7 +1007,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 						href={`/bridged/${getValue()}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as any}
 					</CustomLink>
 				</span>
 			)
@@ -1112,10 +1094,7 @@ export const bridgedChainColumns: ColumnDef<any>[] = [
 	{
 		header: 'Token',
 		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <>{getValue()}</>
-		}
+		enableSorting: false
 	},
 	{
 		header: 'Total Bridged',
@@ -1138,13 +1117,13 @@ export const cexColumn: ColumnDef<any>[] = [
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span>
 					{row.original.slug === undefined ? (
-						getValue()
+						(getValue() as string | null)
 					) : (
 						<CustomLink
 							href={`/cex/${slug(row.original.slug)}`}
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
-							{getValue()}
+							{getValue() as string | null}
 						</CustomLink>
 					)}
 				</span>
@@ -1299,7 +1278,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: 'Auditor',
 		accessorKey: 'auditor',
-		cell: ({ getValue }) => <>{getValue() === undefined ? null : getValue()}</>,
+		cell: ({ getValue }) => <>{(getValue() ?? null) as string | null}</>,
 		size: 100,
 		meta: {
 			align: 'end'
@@ -1576,7 +1555,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 						href={`/protocol/${nameSlug}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as string | null}
 					</CustomLink>
 				</span>
 			)
@@ -1639,7 +1618,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			return (
 				<span className="flex items-center justify-end gap-1">
 					{row.original.pegInfo ? <QuestionHelper text={row.original.pegInfo} /> : null}
-					{getValue()}
+					{getValue() as string | null}
 				</span>
 			)
 		},
@@ -1676,7 +1655,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			const TooltipContent = () => {
 				return <>{row.original.mcap ? <span>{`Market Cap: $${toK(row.original.mcap)}`}</span> : null}</>
 			}
-			return <Tooltip content={<TooltipContent />}>{getValue() ? getValue() : null}</Tooltip>
+			return <Tooltip content={<TooltipContent />}>{(getValue() ?? null) as string | null}</Tooltip>
 		},
 		meta: {
 			align: 'end'
@@ -1725,7 +1704,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 						href={row.original.url}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as string | null}
 					</CustomLink>
 				</span>
 			)
@@ -1735,7 +1714,6 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 	{
 		header: 'Issuer',
 		accessorKey: 'issuer',
-		cell: ({ getValue }) => <>{getValue()}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1792,7 +1770,6 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 	{
 		header: 'Custodian',
 		accessorKey: 'custodian',
-		cell: ({ getValue }) => <>{getValue()}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1805,9 +1782,6 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			return <>{getValue()}</>
-		},
 		size: 120
 	},
 	{
@@ -1868,7 +1842,6 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 	{
 		header: 'Start',
 		accessorKey: 'startTime',
-		cell: ({ getValue }) => <>{getValue()}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1877,7 +1850,6 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 	{
 		header: 'End',
 		accessorKey: 'endTime',
-		cell: ({ getValue }) => <>{getValue()}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1902,14 +1874,14 @@ export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 							target="_blank"
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
-							{getValue()}
+							{getValue() as string | null}
 						</CustomLink>
 					) : (
 						<CustomLink
 							href={`/narrative-tracker/${row.original.id}`}
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
-							{getValue()}
+							{getValue() as string | null}
 						</CustomLink>
 					)}
 				</span>
@@ -1948,7 +1920,6 @@ export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 	{
 		header: '# of Coins',
 		accessorKey: 'nbCoins',
-		cell: ({ getValue }) => <>{getValue()}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1971,7 +1942,7 @@ export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 						target="_blank"
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{getValue()}
+						{getValue() as string | null}
 					</CustomLink>
 				</span>
 			)

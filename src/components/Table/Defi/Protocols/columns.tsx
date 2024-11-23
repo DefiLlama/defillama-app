@@ -90,7 +90,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
-		cell: ({ getValue }) => (getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink> : ''),
+		cell: ({ getValue }) =>
+			getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue() as string | null}</CustomLink> : '',
 		size: 140,
 		meta: {
 			align: 'end'
@@ -428,7 +429,8 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'category',
-		cell: ({ getValue }) => (getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink> : ''),
+		cell: ({ getValue }) =>
+			getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue() as string | null}</CustomLink> : '',
 		size: 140
 	},
 	{
@@ -476,7 +478,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
-			return <>{info.getValue() ?? null}</>
+			return <>{(info.getValue() ?? null) as string | null}</>
 		},
 		sortUndefined: 'last',
 		size: 100,
@@ -760,7 +762,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
-			return <>{info.getValue() ?? null}</>
+			return <>{(info.getValue() ?? null) as string | null}</>
 		},
 		sortUndefined: 'last',
 		size: 120,

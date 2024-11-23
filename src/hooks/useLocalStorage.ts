@@ -4,7 +4,7 @@ export const useLocalStorage = (key, initialValue): [string, (val: string) => vo
 	const [value, setValue] = useState(initialValue)
 
 	useEffect(() => {
-		if (typeof window !== 'undefined') {
+		if (typeof document !== 'undefined') {
 			const storedValue = localStorage.getItem(key)
 
 			if (storedValue) {
@@ -22,7 +22,7 @@ export const useLocalStorage = (key, initialValue): [string, (val: string) => vo
 	}, [key, initialValue])
 
 	const updateValue = (newValue) => {
-		if (typeof window !== 'undefined') {
+		if (typeof document !== 'undefined') {
 			setValue(newValue)
 			localStorage.setItem(key, JSON.stringify(newValue))
 		}

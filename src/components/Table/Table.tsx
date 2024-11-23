@@ -6,6 +6,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { useIsClient } from '~/hooks'
 
 interface ITableProps {
 	instance: Table<any>
@@ -76,6 +77,8 @@ export function VirtualTable({
 	const isChainPage =
 		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
 	let minTableWidth = 0
+	const isClient = useIsClient()
+
 	for (const headerGroup of instance.getHeaderGroups()) {
 		for (const header of headerGroup.headers) {
 			minTableWidth += header.getSize() ?? 0

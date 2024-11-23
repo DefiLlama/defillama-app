@@ -5,7 +5,7 @@ function getInitialState(query: string, defaultState?: boolean) {
 	if (defaultState !== undefined) {
 		return defaultState
 	}
-	if (typeof window !== 'undefined') {
+	if (typeof document !== 'undefined') {
 		return window.matchMedia(query).matches
 	}
 	return false

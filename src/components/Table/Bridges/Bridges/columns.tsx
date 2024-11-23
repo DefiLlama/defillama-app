@@ -95,7 +95,6 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 	{
 		header: '24h # of Txs',
 		accessorKey: 'txsPrevDay',
-		cell: (info) => <>{info.getValue()}</>,
 		size: 120,
 		meta: {
 			align: 'end'
@@ -439,7 +438,6 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 	{
 		header: 'Total Transactions',
 		accessorKey: 'txs',
-		cell: (info) => <>{info.getValue()}</>,
 		size: 120,
 		meta: {
 			align: 'end'

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { useIsClient } from '~/hooks'
 
 // change 'value' for new announcements
 export const ANNOUNCEMENT = {
@@ -57,7 +58,9 @@ export function Announcement({
 		rerender(rerenderKey + 1)
 	}
 
-	const store = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem(routeAnnouncementKey) || '{}') : {}
+	const isClient = useIsClient()
+
+	const store = isClient ? JSON.parse(localStorage.getItem(routeAnnouncementKey) || '{}') : {}
 
 	if (notCancellable ? false : store.value === routeAnnouncementValue) {
 		return null

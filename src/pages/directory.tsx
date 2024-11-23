@@ -33,7 +33,7 @@ export default function Protocols({ protocols }) {
 	})
 
 	const onItemClick = (item) => {
-		typeof window !== undefined && window.open(item.route, '_blank')
+		typeof document !== undefined && window.open(item.route, '_blank')
 	}
 
 	const [resultsLength, setResultsLength] = useState(10)

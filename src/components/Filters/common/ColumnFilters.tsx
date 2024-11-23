@@ -211,7 +211,10 @@ export function ColumnFilters2({
 				className="bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative"
 			>
 				<span>{label}</span>
-				<span className="absolute -top-1 -right-1 text-[10px] rounded-full min-w-4 bg-[var(--bg4)]">
+				<span
+					className="absolute -top-1 -right-1 text-[10px] rounded-full min-w-4 bg-[var(--bg4)]"
+					suppressHydrationWarning
+				>
 					{selectedOptions.length}
 				</span>
 				<SelectArrow />
