@@ -1,6 +1,8 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { DesktopNav } from './Desktop'
+import { MobileNav } from './Mobile'
 
 const Fallback = () => {
 	const [darkMode] = useDarkModeManager()
@@ -34,19 +36,28 @@ const Fallback = () => {
 	)
 }
 
-const Desktop: any = React.lazy(() => import('./Desktop').then((m) => ({ default: m.DesktopNav })))
+// const Desktop: any = React.lazy(() => import('./Desktop').then((m) => ({ default: m.DesktopNav })))
 
-const Mobile: any = React.lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
+// const Mobile: any = React.lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
+
+// export default function Nav() {
+// 	return (
+// 		<>
+// 			<React.Suspense fallback={<Fallback />}>
+// 				<Desktop />
+// 			</React.Suspense>
+// 			<React.Suspense fallback={<Fallback />}>
+// 				<Mobile />
+// 			</React.Suspense>
+// 		</>
+// 	)
+// }
 
 export default function Nav() {
 	return (
 		<>
-			<React.Suspense fallback={<Fallback />}>
-				<Desktop />
-			</React.Suspense>
-			<React.Suspense fallback={<Fallback />}>
-				<Mobile />
-			</React.Suspense>
+			<DesktopNav />
+			<MobileNav />
 		</>
 	)
 }
