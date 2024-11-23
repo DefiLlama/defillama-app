@@ -24,19 +24,8 @@ declare module '@tanstack/table-core' {
 		headerHelperText?: string
 	}
 }
-export function VirtualTable({
-	instance,
-	skipVirtualization,
-	columnResizeMode,
-	rowSize,
-	renderSubComponent,
-	stripedBg = false,
-	...props
-}: ITableProps) {
-	return <></>
-}
 
-export function VirtualTable2({
+export function VirtualTable({
 	instance,
 	skipVirtualization,
 	columnResizeMode,

@@ -159,7 +159,6 @@ const columns = (chain: string) =>
 		{
 			header: 'Transactions',
 			accessorKey: 'txns',
-			cell: (info) => <>{info.getValue()}</>,
 			meta: {
 				align: 'end'
 			}
@@ -175,7 +174,6 @@ const columns = (chain: string) =>
 		{
 			header: 'Active Accounts',
 			accessorKey: 'active_accounts',
-			cell: (info) => <>{info.getValue()}</>,
 			meta: {
 				align: 'end'
 			}

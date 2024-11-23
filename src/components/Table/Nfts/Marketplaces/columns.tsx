@@ -18,7 +18,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 				<span className="flex items-center gap-2">
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={`https://icons.llamao.fi/icons/protocols/${icon}`} data-lgonly />
-					<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{name}</span>
+					<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{name as string}</span>
 				</span>
 			)
 		},
