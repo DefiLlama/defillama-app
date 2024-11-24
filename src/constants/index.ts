@@ -153,6 +153,8 @@ export const CATEGORY_COIN_PRICES_API = 'https://fdv-server.llama.fi/prices'
 export const CATEGORY_INFO_API = 'https://fdv-server.llama.fi/info'
 export const COINS_INFO_API = 'https://fdv-server.llama.fi/coinInfo'
 
+export const LIQUIDITY_API = 'https://defillama-datasets.llama.fi/liquidity.json'
+
 export const scams = [
 	'SyncDEX Finance',
 	'Avatr',

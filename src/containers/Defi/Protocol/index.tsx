@@ -1638,9 +1638,9 @@ function ProtocolContainer({
 													passHref
 													key={'Competitors ' + JSON.stringify(similarProtocol)}
 												>
-													<a target="_blank" style={{ textDecoration: 'underline' }}>{`${
-														similarProtocol.name
-													} (${formatPrice(similarProtocol.tvl)})`}</a>
+													<a target="_blank" className="underline">{`${similarProtocol.name}${
+														similarProtocol.tvl ? `(${formatPrice(similarProtocol.tvl)})` : ''
+													}`}</a>
 												</Link>
 											))}
 										</div>
