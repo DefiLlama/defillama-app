@@ -112,7 +112,9 @@ export const descriptions = {
 	'DCA Tools':
 		'Protocols that automate dollar-cost averaging, allowing users to make regular crypto investments automatically',
 	'Managed Token Pools':
-		'Protocols where token pools are actively controlled and managed by a designated operator or governance'
+		'Protocols where token pools are actively controlled and managed by a designated operator or governance',
+	'Developer Tools':
+		'Platforms and services providing APIs, integrations, or other resources to facilitate the development and management of blockchain applications'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
