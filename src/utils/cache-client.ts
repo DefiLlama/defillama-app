@@ -14,6 +14,10 @@ if (typeof window === 'undefined' && USE_REDIS) {
 
 		redis = redisUrl ? new Redis(redisUrl) : null
 
+		redis.on('connect', () => {
+			console.log('[cache] [redis] connected')
+		})
+
 		redis.on('error', (error) => {
 			console.error('[cache] [redis error]', redisUrl)
 			console.error(error)
