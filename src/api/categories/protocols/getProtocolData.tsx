@@ -507,7 +507,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 
 	let inflowsExist = false
 
-	let nftDataExist = protocolMetadata[protocolData.id]?.nfts
+	let nftDataExist = protocolMetadata[protocolData.id]?.nfts ? true : false
 	let nftVolumeData = []
 
 	if (nftDataExist) {
