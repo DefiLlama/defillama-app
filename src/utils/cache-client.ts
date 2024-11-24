@@ -7,13 +7,13 @@ const IS_RUNTIME = !!process.env.IS_RUNTIME
 if (typeof window === 'undefined' && USE_REDIS) {
 	// Server-side execution
 
-	import('ioredis').then(({ Redis }) => {
+	import('ioredis').then((Redis) => {
 		const redisUrl = IS_RUNTIME ? REDIS_URL : EXT_REDIS_URL
 
 		console.log('[cache] [connecting to redis]', redisUrl)
 
 		try {
-			redis = redisUrl ? new Redis(redisUrl) : null
+			redis = redisUrl ? new Redis.default(redisUrl) : null
 
 			console.log("redis", redis)
 
