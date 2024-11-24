@@ -1,4 +1,4 @@
-const fs = require('fs')
+import fs from 'fs'
 
 // read the build.log file into base64 string
 const buildLog = fs.readFileSync('./build.log', 'utf8')
