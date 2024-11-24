@@ -12,18 +12,22 @@ if (typeof window === 'undefined' && USE_REDIS) {
 
 		console.log('[cache] [connecting to redis]', redisUrl)
 
-		redis = redisUrl ? new Redis(redisUrl) : null
+		try {
+			redis = redisUrl ? new Redis(redisUrl) : null
 
-		console.log("redis", redis)
+			console.log("redis", redis)
 
-		redis.on('connect', () => {
-			console.log('[cache] [redis] connected')
-		})
+			redis.on('connect', () => {
+				console.log('[cache] [redis] connected')
+			})
 
-		redis.on('error', (error) => {
-			console.error('[cache] [redis error]', redisUrl)
-			console.error(error)
-		})
+			redis.on('error', (error) => {
+				console.error('[cache] [redis error]', redisUrl)
+				console.error(error)
+			})
+		} catch (e) {
+			console.log('[cache] [redis connection error]', e)
+		}
 	})
 }
 
