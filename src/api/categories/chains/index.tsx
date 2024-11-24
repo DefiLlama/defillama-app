@@ -64,22 +64,21 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const totalTrackedUserData = await fetchWithErrorLogging(`${ACTIVE_USERS_API}`)
-		.then((res) => res.json())
-		.catch(() => null)
+	const [totalTrackedUserData, chainAssets, chainsConfig] = await Promise.all([
+		fetchWithErrorLogging(`${ACTIVE_USERS_API}`)
+			.then((res) => res.json())
+			.catch(() => null),
+		fetchWithErrorLogging(CHAINS_ASSETS)
+			.then((res) => res.json())
+			.catch(() => ({})),
+		fetchWithErrorLogging(CHAINS_API)
+			.then((res) => res.json())
+			.catch(() => [])
+	])
 
-	const chainAssets = await fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json())
-	const chainAssetsChart =
-		chain && chain !== 'All'
-			? await fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`)
-					.then((r) => r.json())
-					.catch(() => null)
-			: null
-
-	const chainsConfig = await fetchWithErrorLogging(CHAINS_API).then((res) => res.json())
 	const currentChain = chainsConfig.find((c) => c.name.toLowerCase() === chain?.toLowerCase())
-
 	const hasUserData = chain ? !!totalTrackedUserData?.[`chain#${chain?.toLowerCase()}`] : false
+
 	const [
 		chartData,
 		{ protocols, chains, parentProtocols },
@@ -94,7 +93,8 @@ export async function getChainPageData(chain?: string) {
 		raisesData,
 		devMetricsData,
 		treasuriesData,
-		cgData
+		cgData,
+		chainAssetsChart
 	] = await Promise.all([
 		fetchWithErrorLogging(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
@@ -180,8 +180,14 @@ export async function getChainPageData(chain?: string) {
 			? fetchOverCache(
 					`https://pro-api.coingecko.com/api/v3/coins/${currentChain?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 			  ).then((res) => res.json())
-			: {}
+			: {},
+		chain && chain !== 'All' && chainAssets[chain?.toLowerCase()]
+			? await fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`)
+					.then((r) => r.json())
+					.catch(() => null)
+			: null
 	])
+
 	const chainTreasury = treasuriesData?.find(
 		(t) => t?.name?.toLowerCase().startsWith(`${chain?.toLowerCase()}`) && ['Services', 'Chain'].includes(t?.category)
 	)

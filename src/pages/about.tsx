@@ -60,16 +60,16 @@ function AboutPage(props: any) {
 			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
 				<h2 className="font-semibold text-lg">Stats</h2>
 				<hr className="border-black/20 dark:border-white/20" />
-				<p>
-					We track:
-					<ul style={{ listStyle: 'inside' }}>
+				<div>
+					<p>We track:</p>
+					<ul className="list-disc list-inside">
 						<li>{props.protocols} protocols</li>
 						<li>{props.chains} chains</li>
 						<li>{props.pools} pools</li>
 						<li>Revenue for {props.fees} protocols</li>
 						<li>Volume for {props.dexs} DEXs</li>
 					</ul>
-				</p>
+				</div>
 			</div>
 
 			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">

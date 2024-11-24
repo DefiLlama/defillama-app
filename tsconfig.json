@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"target": "es5",
+		"target": "es2022",
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"allowJs": true,
 		"baseUrl": ".",
@@ -23,6 +23,6 @@
 		"allowSyntheticDefaultImports": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"exclude": ["node_modules", "cypress"],
-	"include": ["**/*.js", "**/*.ts", "**/*.tsx"]
+	"exclude": ["node_modules"],
+	"include": ["**/*.js", "**/*.ts", "**/*.tsx", "postcss.config.cjs"]
 }
