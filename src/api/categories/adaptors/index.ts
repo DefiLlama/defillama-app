@@ -148,24 +148,14 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
 			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
 
-	const [
-		request,
-		protocolsData,
-		feesOrRevenue,
-		cexVolume,
-		emissionBreakdown,
-		bribesData,
-		holdersRevenueData,
-		nftsEarnings
-	]: [
+	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData, holdersRevenueData]: [
 		IGetOverviewResponseBody,
 		{ protocols: LiteProtocol[]; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
 		number,
 		Record<string, Record<string, number>>,
 		IGetOverviewResponseBody,
-		IGetOverviewResponseBody,
-		any
+		IGetOverviewResponseBody
 	] = await Promise.all([
 		fetch(getAPIUrl(type, chain, type === 'fees', true)).then(handleFetchResponse),
 		fetch(PROTOCOLS_API).then(handleFetchResponse),
@@ -175,8 +165,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse),
 		type === 'fees'
 			? fetch(getAPIUrl(type, chain, true, true, 'dailyHoldersRevenue')).then(handleFetchResponse)
-			: Promise.resolve({ protocols: [] }),
-		getNFTCollectionEarnings()
+			: Promise.resolve({ protocols: [] })
 	])
 
 	const {
@@ -310,27 +299,27 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		return acc
 	}, {} as IJSON<IOverviewProps['protocols'][number]>)
 
-	if (type === 'fees') {
-		nftsEarnings?.earnings?.forEach((nft) => {
-			if (chain && !nft.chains?.some((c) => c?.toLowerCase() === chain)) return
-			const { total24h, total7d, total30d } = nft
+	// if (type === 'fees') {
+	// 	nftsEarnings?.earnings?.forEach((nft) => {
+	// 		if (chain && !nft.chains?.some((c) => c?.toLowerCase() === chain)) return
+	// 		const { total24h, total7d, total30d } = nft
 
-			if (nft.subRows?.length > 0) {
-				nft.logo = nft.subRows[0].logo || nft.logo || null
-				nft.subRows.forEach((subRow) => {
-					subRow.category = 'NFT'
-					subRow.revenue24h = subRow.total24h
-					subRow.revenue7d = subRow.total7d
-					subRow.revenue30d = subRow.total30d
-				})
-			}
-			nft.category = 'NFT'
-			nft.revenue24h = total24h
-			nft.revenue7d = total7d
-			nft.revenue30d = total30d
-			finalProtocolsList[nft.defillamaId] = nft
-		})
-	}
+	// 		if (nft.subRows?.length > 0) {
+	// 			nft.logo = nft.subRows[0].logo || nft.logo || null
+	// 			nft.subRows.forEach((subRow) => {
+	// 				subRow.category = 'NFT'
+	// 				subRow.revenue24h = subRow.total24h
+	// 				subRow.revenue7d = subRow.total7d
+	// 				subRow.revenue30d = subRow.total30d
+	// 			})
+	// 		}
+	// 		nft.category = 'NFT'
+	// 		nft.revenue24h = total24h
+	// 		nft.revenue7d = total7d
+	// 		nft.revenue30d = total30d
+	// 		finalProtocolsList[nft.defillamaId] = nft
+	// 	})
+	// }
 
 	/* 	if (revenue?.totalDataChart) 
 			allCharts.push(["Revenue", revenue.totalDataChart]) */

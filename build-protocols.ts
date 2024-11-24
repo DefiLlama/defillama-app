@@ -244,5 +244,3 @@ for (const protocol of Object.entries(nameToId)) {
 writeFileSync(`./metadata/protocols.json`, JSON.stringify(finalProtocols, null, 4), 'utf8')
 
 console.log('finished building protocol metadata')
-
-process.exit(0)
