@@ -6,7 +6,7 @@ const IS_RUNTIME = !!process.env.IS_RUNTIME
 
 if (typeof window === 'undefined' && USE_REDIS) {
 	// Server-side execution
-	let Redis
+	let Redis: any
 	import('ioredis').then((mod) => (Redis = mod.Redis))
 
 	const redisUrl = IS_RUNTIME ? REDIS_URL : EXT_REDIS_URL
