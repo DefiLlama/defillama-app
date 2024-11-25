@@ -4,11 +4,12 @@ import { getPeggedOverviewPageData } from '.'
 import { buildPeggedChartData } from '~/utils/stablecoins'
 import { useQuery } from '@tanstack/react-query'
 
-export const useFetchPeggedList = () => {
+export const useFetchPeggedList = ({ disabled }: { disabled?: boolean }) => {
 	return useQuery({
-		queryKey: [PEGGEDS_API],
+		queryKey: [PEGGEDS_API, disabled],
 		queryFn: () => fetchApi(PEGGEDS_API),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		enabled: !disabled
 	})
 }
 

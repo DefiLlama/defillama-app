@@ -4,7 +4,7 @@ import { generateGetOverviewItemPageDate, ProtocolAdaptorSummaryProps } from '.'
 import type { IGetOverviewResponseBody } from './types'
 import { useQuery } from '@tanstack/react-query'
 
-export const useFetchAdaptorsList = (type: string) => {
+export const useFetchAdaptorsList = (type: string, disabled?: boolean) => {
 	const url = `${DIMENISIONS_OVERVIEW_API}/${
 		type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
 	}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
@@ -12,7 +12,8 @@ export const useFetchAdaptorsList = (type: string) => {
 		queryKey: ['adaptors-list', url],
 		queryFn: url ? () => fetchApi(url) : () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !disabled
 	})
 }
 

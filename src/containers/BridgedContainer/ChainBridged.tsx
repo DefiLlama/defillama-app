@@ -21,21 +21,29 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 
 export default function ChainBridged({ chainData, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
 	const [chartType, setChartType] = React.useState('total')
-	const top10Tokens = Object.entries(chainData?.[chartType]?.breakdown ?? [])
-		.sort((a, b) => +b[1] - +a[1])
-		.slice(0, 10)
-	const otherTokens = Object.entries(chainData?.[chartType]?.breakdown ?? [])
-		.sort((a, b) => +b[1] - +a[1])
-		.slice(10)
-	const otherTotal = otherTokens.reduce((acc, [_, value]) => acc + +value, 0)
-	const tokens = [...top10Tokens, ['Other', otherTotal]]
+
+	const { tokens, tableData } = React.useMemo(() => {
+		const top10Tokens = Object.entries(chainData?.[chartType]?.breakdown ?? [])
+			.sort((a, b) => +b[1] - +a[1])
+			.slice(0, 10)
+		const otherTokens = Object.entries(chainData?.[chartType]?.breakdown ?? [])
+			.sort((a, b) => +b[1] - +a[1])
+			.slice(10)
+		const otherTotal = otherTokens.reduce((acc, [_, value]) => acc + +value, 0)
+		const tokens = [...top10Tokens, ['Other', otherTotal]]
+
+		const tableData = Object.entries(chainData?.[chartType]?.breakdown ?? []).map(([name, value]) => ({
+			name: name?.toLowerCase() === name ? name?.toUpperCase() : name,
+			value
+		}))
+
+		return { tokens, tableData }
+	}, [chainData])
+
 	const screenWidth = useWindowSize()
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'value', desc: true }])
 	const instance = useReactTable({
-		data: Object.entries(chainData?.[chartType]?.breakdown ?? []).map(([name, value]) => ({
-			name: name?.toLowerCase() === name ? name?.toUpperCase() : name,
-			value
-		})),
+		data: tableData,
 		columns: bridgedChainColumns,
 		state: {
 			sorting
@@ -99,44 +107,41 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 							</p>
 						) : null}
 					</div>
-					<div
-						style={{
-							flex: 1,
-							display: 'flex',
-							flexDirection: 'column',
-							alignItems: 'center',
-							gap: '16px',
-							marginTop: '16px',
-							padding: '8px 24px 20px 0',
-							minHeight: '460px'
-						}}
-					>
-						<h2 style={{ margin: '0 auto' }}>Tokens Breakdown</h2>
+					<div className="flex-1 flex flex-col items-center gap-4 mt-4 pt-2 pr-6 pb-5 pl-0 min-h-[460px]">
+						<h2 className="text-center">Tokens Breakdown</h2>
 
-						<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-4">
-							{[
-								{ type: 'total', name: 'Total' },
-								{ type: 'canonical', name: 'Canonical' },
-								{ type: 'native', name: 'Native' },
-								{ type: 'thirdParty', name: 'Third Party' },
-								inflows ? { type: 'inflows', name: 'Inflows' } : null,
-								chainData?.ownTokens?.total ? { type: 'ownTokens', name: 'Own Tokens' } : null
-							]
-								.filter(Boolean)
-								.map(({ type, name }) =>
-									chainData[type]?.total !== '0' ? (
-										<button
-											className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
-											data-active={chartType === type}
-											onClick={() => setChartType(type)}
-											key={name}
-										>
-											{name}
-										</button>
-									) : null
-								)}
+						<div className="z-10 flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-4">
+							{chartTypes.map(({ type, name }) =>
+								chainData[type]?.total !== '0' ? (
+									<button
+										className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+										data-active={chartType === type}
+										onClick={() => setChartType(type)}
+										key={'bridged-' + name}
+									>
+										{name}
+									</button>
+								) : null
+							)}
+							{inflows ? (
+								<button
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									data-active={chartType === 'inflows'}
+									onClick={() => setChartType('inflows')}
+								>
+									Inflows
+								</button>
+							) : null}
+							{chainData?.ownTokens?.total ? (
+								<button
+									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									data-active={chartType === 'ownTokens'}
+									onClick={() => setChartType('ownTokens')}
+								>
+									Own Tokens
+								</button>
+							) : null}
 						</div>
-
 						{chartType !== 'inflows' ? (
 							<div style={{ width: Math.min(+screenWidth.width / 1.5, 600) + 'px' }}>
 								<PieChart
@@ -148,7 +153,7 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 								/>
 							</div>
 						) : (
-							<div style={{ width: '100%' }}>
+							<div className="w-full">
 								<BarChart
 									chartData={inflows}
 									title=""
@@ -161,8 +166,15 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 						)}
 					</div>
 				</div>
-				{chartType !== 'inflows' ? <VirtualTable instance={instance} /> : null}
+				{chartType !== 'inflows' ? <VirtualTable instance={instance} skipVirtualization /> : null}
 			</Layout>
 		</>
 	)
 }
+
+const chartTypes = [
+	{ type: 'total', name: 'Total' },
+	{ type: 'canonical', name: 'Canonical' },
+	{ type: 'native', name: 'Native' },
+	{ type: 'thirdParty', name: 'Third Party' }
+]

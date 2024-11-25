@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
+import { IGetSearchList } from '~/components/Search/types'
 import { NFT_COLLECTIONS_API } from '~/constants'
 
 import { fetchApi } from '~/utils/async'
 
-export const useFetchNftCollectionsList = () => {
+export const useFetchNftCollectionsList = ({ disabled }: { disabled?: boolean }): IGetSearchList => {
 	const { data, isLoading, isError } = useQuery({
 		queryKey: [NFT_COLLECTIONS_API],
 		queryFn: () =>
@@ -21,7 +22,8 @@ export const useFetchNftCollectionsList = () => {
 					console.log(err)
 					return []
 				}),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		enabled: !disabled
 	})
 
 	return { data, error: isError, loading: isLoading, onSearchTermChange: null, onItemClick: null }

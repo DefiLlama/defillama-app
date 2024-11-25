@@ -3,8 +3,8 @@ import { useFetchAdaptorsList } from '~/api/categories/adaptors/client'
 import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from '~/utils'
 import type { IBaseSearchProps, IGetSearchList } from '../types'
 
-export function useGetAdaptorsSearchList(type: string, onlyChains?: boolean): IGetSearchList {
-	const { data, isLoading, isError } = useFetchAdaptorsList(type)
+export function useGetAdaptorsSearchList(type: string, onlyChains?: boolean, disabled?: boolean): IGetSearchList {
+	const { data, isLoading, isError } = useFetchAdaptorsList(type, disabled)
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
 		const list = (onlyChains === true ? data?.allChains.map((chain) => ({ name: chain })) : data?.protocols) ?? []

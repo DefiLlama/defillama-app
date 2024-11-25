@@ -17,7 +17,7 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 	hideFilters?: boolean
 }
 
-export function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
+export function ProtocolsChainsSearch({ hideFilters, ...props }: IProtocolsChainsSearch) {
 	const isClient = useIsClient()
 
 	if (!isClient) {
@@ -26,17 +26,15 @@ export function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
 
 	return (
 		<SearchV2 indexName="protocols">
-			<Search {...props} />
+			<Search hideFilters={hideFilters} {...props} />
 		</SearchV2>
 	)
 }
 
-const Search = (props: IProtocolsChainsSearch) => {
+const Search = ({ hideFilters = false, options, ...props }: IProtocolsChainsSearch) => {
 	const { refine } = useSearchBox()
 
 	const { results, status } = useInstantSearch({ catchError: true })
-
-	const { options, hideFilters = false } = props
 
 	const data = useFormatDefiSearchResults(results)
 

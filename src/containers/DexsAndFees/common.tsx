@@ -166,7 +166,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							{!props.name && (
 								<p className="hidden md:flex flex-col">
 									<span className="flex items-center gap-1 text-[#545757] dark:text-[#cccccc]">
-										<h2>DEX vs CEX dominance</h2>
+										<span>DEX vs CEX dominance</span>
 										<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume (24h)`} />
 									</span>
 									<span className="font-semibold text-2xl font-jetbrains">{props.data.dexsDominance || 0}%</span>

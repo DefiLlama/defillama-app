@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'react'
 import { getAvailableAssetsList } from '~/utils/liquidations'
-import type { IGetSearchList } from '../types'
+import { useQuery } from '@tanstack/react-query'
+import { IGetSearchList } from '../types'
 
-export function useGetLiquidationSearchList(): IGetSearchList {
-	const [searchList, setSearchList] = useState<IGetSearchList>({ data: [], loading: true })
-	useEffect(() => {
-		const fetchAssetsList = async () => {
-			const availableAssetsList = await getAvailableAssetsList()
-			setSearchList({ data: availableAssetsList.assets, loading: false })
-		}
+export function useGetLiquidationSearchList({ disabled }: { disabled?: boolean }): IGetSearchList {
+	const { data, isLoading, isError } = useQuery({
+		queryKey: ['liquidation-serach-list'],
+		queryFn: () =>
+			getAvailableAssetsList().catch((err) => {
+				console.error(err)
+				return null
+			}),
+		staleTime: 60 * 60 * 1000,
+		enabled: !disabled
+	})
 
-		fetchAssetsList().catch((err) => {
-			console.error(err)
-		})
-	}, [])
-	return searchList
+	return { data: data?.assets ?? null, loading: isLoading, error: isError }
 }

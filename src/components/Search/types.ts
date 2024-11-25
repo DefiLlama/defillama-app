@@ -24,7 +24,7 @@ export interface IStep {
 }
 
 export interface IBaseSearchProps {
-	data: ISearchItem[]
+	data?: ISearchItem[] | null
 	loading?: boolean
 	step?: IStep
 	onSearchTermChange?: (searchValue: string) => void

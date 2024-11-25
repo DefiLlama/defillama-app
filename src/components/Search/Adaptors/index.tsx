@@ -5,6 +5,7 @@ import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import type { ICommonSearchProps } from '../types'
 import { useGetAdaptorsSearchList } from './hooks'
 import { TabletFeesFilters } from '~/components/Filters/protocols/Tablet'
+import { useIsClient } from '~/hooks'
 
 interface IAdaptorSearchProps extends ICommonSearchProps {
 	onlyChains?: boolean
@@ -14,15 +15,24 @@ interface IAdaptorSearchProps extends ICommonSearchProps {
 	enableToggle?: boolean
 }
 
-export function AdaptorsSearch({ type, enableToggle, ...props }: IAdaptorSearchProps) {
+export function AdaptorsSearch({ type, enableToggle, onToggleClick, toggleStatus, ...props }: IAdaptorSearchProps) {
 	const { data, loading } = useGetAdaptorsSearchList(type, props.onlyChains)
+	const isClient = useIsClient()
 
 	return (
 		<DesktopSearch
 			{...props}
 			data={data}
 			loading={loading}
-			filters={enableToggle ? <BreakdownToggle {...props} /> : type === 'fees' ? <FeesToggles /> : null}
+			filters={
+				!isClient ? (
+					<></>
+				) : enableToggle ? (
+					<BreakdownToggle onToggleClick={onToggleClick} toggleStatus={toggleStatus} {...props} />
+				) : type === 'fees' ? (
+					<FeesToggles />
+				) : null
+			}
 		/>
 	)
 }

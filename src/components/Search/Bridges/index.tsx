@@ -23,7 +23,7 @@ export function BridgesSearch(props: IBridgesSearchProps) {
 	return <DesktopSearch {...props} data={data} loading={loading} />
 }
 
-export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
+export function BridgesSearchWithBreakdown({ onToggleClick, ...props }: IBridgesSearchProps) {
 	const [isToggleEnabled, setIsToggleEnabled] = useState(false)
 	const { data, loading } = useGetBridgesSearchList()
 
@@ -33,14 +33,14 @@ export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
 			data={data}
 			loading={loading}
 			filters={
-				props.onToggleClick && (
+				onToggleClick && (
 					<ul className="flex items-center flex-end">
 						<li className="ml-5 first-of-type:ml-0">
 							<OptionToggle
 								name="Bridge breakdown"
 								toggle={() => {
 									setIsToggleEnabled((prev) => {
-										props.onToggleClick(!prev)
+										onToggleClick(!prev)
 										return !prev
 									})
 								}}

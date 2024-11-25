@@ -4,8 +4,8 @@ import { peggedAssetIconUrl, standardizeProtocolName } from '~/utils'
 import type { IBaseSearchProps, IGetSearchList } from '../types'
 
 // TODO add pegged chains list
-export function useGetStablecoinsSearchList(): IGetSearchList {
-	const { data, isLoading, isError } = useFetchPeggedList()
+export function useGetStablecoinsSearchList({ disabled }: { disabled?: boolean }): IGetSearchList {
+	const { data, isLoading, isError } = useFetchPeggedList({ disabled })
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(
 		() =>

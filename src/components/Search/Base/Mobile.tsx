@@ -9,7 +9,7 @@ import { useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { useFormatDefiSearchResults } from '../ProtocolsChains/hooks'
 import { SearchV2 } from '../InstantSearch'
 import { Icon } from '~/components/Icon'
-import { ISearchItem } from '../types'
+import { IGetSearchList, ISearchItem } from '../types'
 import { TokenLogo } from '~/components/TokenLogo'
 
 export function MobileSearch() {
@@ -106,14 +106,14 @@ const DefiSearch = () => {
 		</>
 	)
 }
-const useMobileSearchResult = () => {
+const useMobileSearchResult = (): IGetSearchList => {
 	const router = useRouter()
 
-	const stablecoinsSearchList = useGetStablecoinsSearchList()
-	const liquidationSearchList = useGetLiquidationSearchList()
-	const dexesSearchList = useGetDexesSearchList()
-	const nftCollectionsList = useFetchNftCollectionsList()
-	const feesSearchList = useGetFeesSearchList()
+	const stablecoinsSearchList = useGetStablecoinsSearchList({ disabled: !router.pathname.startsWith('/stablecoin') })
+	const liquidationSearchList = useGetLiquidationSearchList({ disabled: !router.pathname.startsWith('/liquidations') })
+	const dexesSearchList = useGetDexesSearchList({ disabled: !router.pathname.startsWith('/dex') })
+	const nftCollectionsList = useFetchNftCollectionsList({ disabled: !router.pathname.startsWith('/nft') })
+	const feesSearchList = useGetFeesSearchList({ disabled: !router.pathname.startsWith('/fee') })
 
 	if (router.pathname.startsWith('/stablecoin')) {
 		return stablecoinsSearchList
@@ -197,12 +197,12 @@ function MobileSearchV1() {
 	)
 }
 
-function useGetFeesSearchList() {
-	return useGetAdaptorsSearchList('fees')
+function useGetFeesSearchList({ disabled }: { disabled?: boolean }) {
+	return useGetAdaptorsSearchList('fees', false, disabled)
 }
 
-function useGetDexesSearchList() {
-	return useGetAdaptorsSearchList('dexs')
+function useGetDexesSearchList({ disabled }: { disabled?: boolean }) {
+	return useGetAdaptorsSearchList('dexs', false, disabled)
 }
 
 const filterAnSortResults = (data: Array<ISearchItem>, inputValue: string): Array<ISearchItem> => {
