@@ -7,7 +7,7 @@ interface IPeggedSearchProps extends ICommonSearchProps {
 }
 
 export function PeggedSearch(props: IPeggedSearchProps) {
-	const { data, loading } = useGetStablecoinsSearchList()
+	const { data, loading } = useGetStablecoinsSearchList({ disabled: false })
 
 	return <DesktopSearch {...props} data={data} loading={loading} />
 }
