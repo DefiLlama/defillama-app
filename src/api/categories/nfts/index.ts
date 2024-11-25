@@ -160,8 +160,18 @@ const formatNftVolume = (volume, column) => {
 
 export const getNFTMarketplacesData = async () => {
 	const [data, volume] = await Promise.all([
-		fetch(NFT_MARKETPLACES_STATS_API).then((res) => res.json()),
-		fetch(NFT_MARKETPLACES_VOLUME_API).then((res) => res.json())
+		fetch(NFT_MARKETPLACES_STATS_API)
+			.then((res) => res.json())
+			.catch(() => {
+				console.log(`[HTTP] [ERROR] ${NFT_MARKETPLACES_STATS_API}`)
+				return []
+			}),
+		fetch(NFT_MARKETPLACES_VOLUME_API)
+			.then((res) => res.json())
+			.catch(() => {
+				console.log(`[HTTP] [ERROR] ${NFT_MARKETPLACES_VOLUME_API}`)
+				return []
+			})
 	])
 
 	const volumeSorted = volume.map((v) => ({ ...v, date: new Date(v.day).getTime() })).sort((a, b) => a.date - b.date)
