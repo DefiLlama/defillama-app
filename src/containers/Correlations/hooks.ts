@@ -1,7 +1,7 @@
 import { useQueries } from '@tanstack/react-query'
 
 export const usePriceCharts = (geckoIds = []) => {
-	const data = useQueries<any>({
+	const data = useQueries({
 		queries: geckoIds.map((id) => ({
 			queryKey: ['price_chart', id],
 			queryFn: async () => {

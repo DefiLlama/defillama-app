@@ -27,7 +27,7 @@ export function Tooltip({ content, children, color, fontSize, anchorStyles, plac
 				style={{ ...anchorStyles, color, fontSize: fontSize ?? 'inherit' } as any}
 				className="cursor-pointer flex items-center overflow-hidden text-ellipsis whitespace-nowrap flex-shrink-0"
 				data-tooltipanchor
-				as="button"
+				as="span"
 			>
 				{children}
 			</TooltipAnchor>
