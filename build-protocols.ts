@@ -51,8 +51,8 @@ for (const protocol of expensesData) {
 
 const treasuryData = await fetch(PROTOCOLS_TREASURY).then((res) => res.json())
 for (const protocol of treasuryData) {
-	finalProtocols[protocol.id.split('-')[0]] = {
-		...finalProtocols[protocol.id.split('-')[0]],
+	finalProtocols[protocol.id.split('-treasury')[0]] = {
+		...finalProtocols[protocol.id.split('-treasury')[0]],
 		treasury: true
 	}
 }
@@ -104,9 +104,11 @@ for (const raise of raisesData.raises) {
 
 const activeUsersData = await fetch(ACTIVE_USERS_API).then((res) => res.json())
 for (const protocol in activeUsersData) {
-	finalProtocols[protocol] = {
-		...finalProtocols[protocol],
-		activeUsers: true
+	if (!protocol.startsWith('chain')) {
+		finalProtocols[protocol] = {
+			...finalProtocols[protocol],
+			activeUsers: true
+		}
 	}
 }
 
