@@ -19,5 +19,6 @@ sudo apt-get install -y patch rclone
 patch ./node_modules/next/dist/server/send-payload/revalidate-headers.js <scripts/revalidate-headers.patch
 patch ./node_modules/next/dist/server/response-cache/index.js <scripts/response-cache.patch
 patch ./node_modules/next/dist/server/base-server.js <scripts/base-server.patch
+patch ./node_modules/next/dist/server/serve-static.js <scripts/serve-static.patch
 
 echo "Patched Next.js"

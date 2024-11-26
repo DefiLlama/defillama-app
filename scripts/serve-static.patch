@@ -1,0 +1,11 @@
+--- node_modules/next/dist/server/serve-static.js
++++ node_modules/next/dist/server/serve-static.js
+@@ -20,7 +20,7 @@
+ });
+ function serveStatic(req, res, path) {
+     return new Promise((resolve, reject)=>{
+-        (0, _send).default(req, path).on("directory", ()=>{
++        (0, _send).default(req, path, {etag: false}).on("directory", ()=>{
+             // We don't allow directories to be read.
+             const err = new Error("No directory access");
+             err.code = "ENOENT";
