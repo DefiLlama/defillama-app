@@ -498,6 +498,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'Arkham Exchange',
+		slug: 'arkham-exchange',
+		coin: 'ARKM',
+		coinSymbol: 'ARKM'
+	},
+	{
 		name: 'Hibt',
 		slug: 'hibt',
 		coin: null,
