@@ -173,7 +173,7 @@ export function RecentProtocols({
 	const {
 		data: eligibleAirdrops,
 		mutate: checkEligibleAirdrops,
-		isLoading: fetchingEligibleAirdrops,
+		isPending: fetchingEligibleAirdrops,
 		error: errorFetchingEligibleAirdrops,
 		reset: resetEligibilityCheck
 	} = useMutation({ mutationFn: airdropsEligibilityCheck })

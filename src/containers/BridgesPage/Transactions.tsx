@@ -80,7 +80,7 @@ const downloadTxs = async ({ bridges, startDate, endDate, selectedBridge }) => {
 }
 
 export const BridgeTransactionsPage = ({ bridges }) => {
-	const { mutate, isLoading, error } = useMutation({ mutationFn: downloadTxs })
+	const { mutate, isPending, error } = useMutation({ mutationFn: downloadTxs })
 
 	return (
 		<>
@@ -135,9 +135,9 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 				</select>
 				<button
 					className="py-2 px-3 text-base font-semibold rounded-lg bg-[var(--link-bg)] text-[var(--link-text)] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-active-bg)] disabled:cursor-not-allowed disabled:opacity-60"
-					disabled={isLoading}
+					disabled={isPending}
 				>
-					{isLoading ? 'Downloading...' : 'Download .CSV'}
+					{isPending ? 'Downloading...' : 'Download .CSV'}
 				</button>
 
 				{error ? <p className="text-red-500 text-center">{(error as any).message}</p> : null}
