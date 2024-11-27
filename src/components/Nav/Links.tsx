@@ -310,14 +310,10 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Icon name="layers" height={16} width={16} />
 	},
-	'Crypto ETFs': {
-		main: [
-			{ name: 'BTC', path: '/crypto-etf/bitcoin' },
-			{ name: 'ETH', path: '/crypto-etf/ethereum' }
-		],
+	ETFs: {
+		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Icon name="trending-up" height={16} width={16} />,
-		newTag: true
+		icon: <Icon name="trending-up" height={16} width={16} />
 	},
 	'Narrative Tracker': {
 		main: [],
@@ -350,6 +346,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
 	{ name: 'LlamaFeed', url: 'https://feed.defillama.com/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lsd' },
+	{ name: 'ETFs', url: '/etfs' },
 	{ name: 'Pro API', url: '/pro-api' },
 	{ name: 'Narrative Tracker', url: '/narrative-tracker' }
 ]
