@@ -2,9 +2,11 @@ import yamlApiSpec from '~/docs/proSpec.json'
 import openApiSpec from '~/docs/resolvedSpec.json'
 import 'swagger-ui/dist/swagger-ui.css'
 import ApiDocs from '../docs/api'
+import { useIsClient } from '~/hooks'
 
 export default function Docs() {
-	if (typeof document === 'undefined') {
+	const isCLient = useIsClient()
+	if (!isCLient) {
 		return <>Loading...</>
 	}
 	const apiKey = window.localStorage.getItem(`pro_apikey`) ?? 'APIKEY'

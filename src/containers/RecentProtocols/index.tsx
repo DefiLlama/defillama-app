@@ -190,7 +190,7 @@ export function RecentProtocols({
 							href={protocol.page}
 							target="_blank"
 							rel="noreferrer noopener"
-							key={`claim-${protocol.page}`}
+							key={`claim-${protocol.name}`}
 							color="#008000"
 							style={{ '--btn2-text': '#00ab00' }}
 						>
@@ -268,7 +268,7 @@ export function RecentProtocols({
 																					href={airdrop.page}
 																					target="_blank"
 																					rel="noreferrer noopener"
-																					key={`claim-${airdrop.page}`}
+																					key={`can-claim-${airdrop.name}`}
 																					className="flex items-center justify-center"
 																					color="#008000"
 																					style={{ padding: '2px 6px', fontSize: '12px', '--btn2-text': '#00ab00' }}
