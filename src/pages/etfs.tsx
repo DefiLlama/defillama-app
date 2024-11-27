@@ -8,6 +8,7 @@ import { ETFColumn } from '~/components/Table/Defi/columns'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getETFData } from '~/api/categories/protocols'
 import Layout from '~/layout'
+import { groupDataByDays } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -22,12 +23,6 @@ interface AssetSectionProps {
 	iconUrl: string
 	flows: number
 	aum: number
-}
-
-interface FlowData {
-	day: string
-	gecko_id: string
-	total_flow_usd: number
 }
 
 interface TransformedFlow {
@@ -65,9 +60,8 @@ const AssetSection = ({ name, iconUrl, flows, aum }: AssetSectionProps) => (
 
 export const getStaticProps = withPerformanceLogging('etfs', async () => {
 	const data = await getETFData()
-	const transformedFlows = transformFlowsData(data.props.flows)
 
-	const maxDate = Math.max(...transformedFlows.map((item) => Number(item.date)))
+	const maxDate = Math.max(...data.props.flows.map((item) => Number(item.date)))
 	const formattedDate = new Date(maxDate * 1000).toLocaleDateString('en-US', {
 		month: 'long',
 		day: 'numeric',
@@ -81,28 +75,33 @@ export const getStaticProps = withPerformanceLogging('etfs', async () => {
 		}))
 		.sort((a, b) => b.flows - a.flows)
 
+	const processedFlows = data.props.flows.reduce((acc, { gecko_id, day, total_flow_usd }) => {
+		const timestamp = (new Date(day).getTime() / 86400 / 1000) * 86400
+		acc[timestamp] = {
+			...acc[timestamp],
+			[gecko_id.charAt(0).toUpperCase() + gecko_id.slice(1)]: total_flow_usd
+		}
+		return acc
+	}, {})
+
+	const totalsByAsset = processedSnapshot.reduce((acc: AssetTotals, item) => {
+		acc[item.asset.toLowerCase()] = {
+			aum: (acc[item.asset.toLowerCase()]?.aum || 0) + item.aum,
+			flows: (acc[item.asset.toLowerCase()]?.flows || 0) + item.flows
+		}
+		return acc
+	}, {})
+
 	return {
 		props: {
 			snapshot: processedSnapshot,
-			flows: transformedFlows,
+			flows: processedFlows,
+			totalsByAsset,
 			lastUpdated: formattedDate
 		},
 		revalidate: 5 * 60
 	}
 })
-
-function transformFlowsData(data: FlowData[]): TransformedFlow[] {
-	const flowsByDate = data.reduce((acc: { [key: string]: TransformedFlow }, item) => {
-		const date = Math.floor((new Date(item.day).getTime() / 86400 / 1000) * 86400).toString()
-		if (!acc[date]) {
-			acc[date] = { date }
-		}
-		const capitalizedId = item.gecko_id.charAt(0).toUpperCase() + item.gecko_id.slice(1)
-		acc[date][capitalizedId] = item.total_flow_usd
-		return acc
-	}, {})
-	return Object.values(flowsByDate)
-}
 
 interface PageViewProps {
 	snapshot: Array<{
@@ -113,23 +112,14 @@ interface PageViewProps {
 	}>
 	flows: TransformedFlow[]
 	lastUpdated: string
+	totalsByAsset: AssetTotals
 }
 
-const PageView = ({ snapshot, flows, lastUpdated }: PageViewProps) => {
+const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
 	const tickers = ['Bitcoin', 'Ethereum']
 
-	const totalsByAsset = React.useMemo(
-		() =>
-			snapshot.reduce((acc: AssetTotals, item) => {
-				acc[item.asset] = {
-					aum: (acc[item.asset]?.aum || 0) + item.aum,
-					flows: (acc[item.asset]?.flows || 0) + item.flows
-				}
-				return acc
-			}, {}),
-		[snapshot]
-	)
+	const chartData = groupDataByDays(flows, groupBy, tickers, true)
 
 	return (
 		<>
@@ -198,13 +188,14 @@ const PageView = ({ snapshot, flows, lastUpdated }: PageViewProps) => {
 						</div>
 
 						<BarChart
-							chartData={flows}
+							chartData={chartData}
 							hideDefaultLegend
 							customLegendName="ETF"
 							customLegendOptions={tickers}
+							stacks={{ Bitcoin: 'A', Ethereum: 'A' }}
+							stackColors={{ Bitcoin: '#F7931A', Ethereum: '#6B7280' }}
 							valueSymbol="$"
 							title=""
-							stackColors={{ Bitcoin: '#F7931A', Ethereum: '#6B7280' }}
 						/>
 					</div>
 				</div>
