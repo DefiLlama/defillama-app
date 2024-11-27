@@ -134,7 +134,28 @@ export default function ProtocolChart({
 		aggregators,
 		premiumVolume,
 		derivativesAggregators
-	} = enabled || router.query
+	} = enabled || {
+		...router.query,
+		...((!metrics.tvl
+			? metrics.fees
+				? { fees: router.query.fees ?? 'true', ...(metrics.revenue ? { revenue: router.query.revenue ?? 'true' } : {}) }
+				: metrics.dexs
+				? { dexs: router.query.dexs ?? 'true' }
+				: metrics.derivatives
+				? { derivativesVolume: router.query.derivativesVolume ?? 'true' }
+				: metrics.options
+				? { premiumVolume: router.query.premiumVolume ?? 'true' }
+				: metrics.aggregators
+				? { aggregators: router.query.aggregators ?? 'true' }
+				: metrics.derivativesAggregators
+				? { derivativesAggregators: router.query.derivativesAggregators ?? 'true' }
+				: metrics.bridge
+				? { bridgeVolume: router.query.bridgeVolume ?? 'true' }
+				: metrics.unlocks
+				? { unlocks: router.query.unlocks ?? 'true' }
+				: {}
+			: {}) as Record<string, string>)
+	}
 
 	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
 		useFetchAndFormatChartData({

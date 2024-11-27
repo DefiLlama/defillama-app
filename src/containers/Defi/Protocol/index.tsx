@@ -242,7 +242,7 @@ function ProtocolContainer({
 			return weeksFromLastTweet
 		}
 	}, [twitterData])
-	const totalVolume = React.useMemo(() => {
+	const totalValue = React.useMemo(() => {
 		let tvl = 0
 
 		Object.entries(tvlBreakdowns).forEach(([section, sectionTvl]: any) => {
@@ -407,7 +407,7 @@ function ProtocolContainer({
 				cardName={name}
 				token={name}
 				logo={tokenIconUrl(name)}
-				tvl={formattedNum(totalVolume, true)?.toString()}
+				tvl={formattedNum(totalValue, true)?.toString()}
 				isCEX={isCEX}
 			/>
 
@@ -625,92 +625,104 @@ function ProtocolContainer({
 										<Bookmark readableProtocolName={name} />
 									</h1>
 
-									<details className="group mt-6 mb-4">
-										<summary className="flex items-center">
-											<Icon
-												name="chevron-right"
-												height={20}
-												width={20}
-												className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
-											/>
-											<span className="flex flex-col">
-												<span className="flex items-center flex-nowrap gap-2">
-													<span className="text-base text-[#545757] dark:text-[#cccccc]">
-														{isCEX ? 'Total Assets' : 'Total Value Locked'}
+									{totalValue ? (
+										<details className="group mt-6 mb-4">
+											<summary className="flex items-center">
+												<Icon
+													name="chevron-right"
+													height={20}
+													width={20}
+													className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+												/>
+												<span className="flex flex-col">
+													<span className="flex items-center flex-nowrap gap-2">
+														<span className="text-base text-[#545757] dark:text-[#cccccc]">
+															{isCEX ? 'Total Assets' : 'Total Value Locked'}
+														</span>
+														<Flag
+															protocol={protocolData.name}
+															dataType={'TVL'}
+															isLending={category === 'Lending'}
+															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+														/>
 													</span>
-													<Flag
-														protocol={protocolData.name}
-														dataType={'TVL'}
-														isLending={category === 'Lending'}
-														className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-													/>
+													<span className="font-semibold text-2xl font-jetbrains min-h-8">
+														{formatPrice(totalValue || '0')}
+													</span>
 												</span>
-												<span className="font-semibold text-2xl font-jetbrains min-h-8">
-													{formatPrice(totalVolume || '0')}
-												</span>
-											</span>
-										</summary>
+											</summary>
 
-										<table className="text-base w-full border-collapse mt-4">
-											{tvls.length > 0 && (
-												<table className="w-full border-collapse">
-													<caption className="text-xs text-[#545757] dark:text-[#cccccc] text-left pb-1">
-														{isCEX ? 'Assets by chain' : 'Chain Breakdown'}
-													</caption>
-													<tbody>
-														{tvls.map((chainTvl) => (
-															<tr key={JSON.stringify(chainTvl)}>
-																<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-																	{capitalizeFirstLetter(chainTvl[0])}
-																</th>
-																<td className="font-jetbrains text-right">
-																	{formatPrice((chainTvl[1] || 0) as number)}
-																</td>
-															</tr>
-														))}
-													</tbody>
-												</table>
-											)}
+											<table className="text-base w-full border-collapse mt-4">
+												<tbody>
+													<tr>
+														<td>
+															{tvls.length > 0 && (
+																<table className="w-full border-collapse">
+																	<caption className="text-xs text-[#545757] dark:text-[#cccccc] text-left pb-1">
+																		{isCEX ? 'Assets by chain' : 'Chain Breakdown'}
+																	</caption>
+																	<tbody>
+																		{tvls.map((chainTvl) => (
+																			<tr key={JSON.stringify(chainTvl)}>
+																				<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+																					{capitalizeFirstLetter(chainTvl[0])}
+																				</th>
+																				<td className="font-jetbrains text-right">
+																					{formatPrice((chainTvl[1] || 0) as number)}
+																				</td>
+																			</tr>
+																		))}
+																	</tbody>
+																</table>
+															)}
+														</td>
+													</tr>
 
-											{extraTvls.length > 0 && (
-												<table className="w-full border-collapse mt-4">
-													<thead>
-														<tr>
-															<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-																Include in TVL (optional)
-															</th>
-															<td>
-																<QuestionHelper
-																	text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation'
-																	className="ml-auto"
-																/>
-															</td>
-														</tr>
-													</thead>
-													<tbody>
-														{extraTvls.map(([option, value]) => (
-															<tr key={option + value}>
-																<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-																	<label className="flex items-center gap-2 cursor-pointer">
-																		<input
-																			type="checkbox"
-																			value={option}
-																			checked={extraTvlsEnabled[option]}
-																			onChange={updater(option)}
-																		/>
-																		<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
-																			{capitalizeFirstLetter(option)}
-																		</span>
-																	</label>
-																</th>
-																<td className="font-jetbrains text-right">{formatPrice(value)}</td>
-															</tr>
-														))}
-													</tbody>
-												</table>
-											)}
-										</table>
-									</details>
+													<tr>
+														<td>
+															{extraTvls.length > 0 && (
+																<table className="w-full border-collapse mt-4">
+																	<thead>
+																		<tr>
+																			<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+																				Include in TVL (optional)
+																			</th>
+																			<td>
+																				<QuestionHelper
+																					text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation'
+																					className="ml-auto"
+																				/>
+																			</td>
+																		</tr>
+																	</thead>
+																	<tbody>
+																		{extraTvls.map(([option, value]) => (
+																			<tr key={option + value}>
+																				<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+																					<label className="flex items-center gap-2 cursor-pointer">
+																						<input
+																							type="checkbox"
+																							value={option}
+																							checked={extraTvlsEnabled[option]}
+																							onChange={updater(option)}
+																						/>
+																						<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
+																							{capitalizeFirstLetter(option)}
+																						</span>
+																					</label>
+																				</th>
+																				<td className="font-jetbrains text-right">{formatPrice(value)}</td>
+																			</tr>
+																		))}
+																	</tbody>
+																</table>
+															)}
+														</td>
+													</tr>
+												</tbody>
+											</table>
+										</details>
+									) : null}
 
 									<table className="text-base w-full border-collapse mt-4">
 										<tbody>
@@ -1503,7 +1515,7 @@ function ProtocolContainer({
 										{helperTexts?.users && users?.activeUsers ? <p>Addresses: {helperTexts.users}</p> : null}
 
 										<div className="flex items-center gap-4 flex-wrap">
-											{methodologyUrls?.tvl && (
+											{methodologyUrls?.tvl && methodologyUrls.tvl !== 'dummy.js' && (
 												<Link href={methodologyUrls.tvl} passHref>
 													<ButtonLight
 														className="flex items-center gap-1"
