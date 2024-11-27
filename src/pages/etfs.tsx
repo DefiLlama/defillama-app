@@ -61,8 +61,9 @@ const AssetSection = ({ name, iconUrl, flows, aum }: AssetSectionProps) => (
 export const getStaticProps = withPerformanceLogging('etfs', async () => {
 	const data = await getETFData()
 
-	const maxDate = Math.max(...data.props.flows.map((item) => Number(item.date)))
-	const formattedDate = new Date(maxDate * 1000).toLocaleDateString('en-US', {
+	const maxDate = Math.max(...data.props.flows.map((item) => new Date(item.day).getTime()))
+
+	const formattedDate = new Date(maxDate).toLocaleDateString('en-US', {
 		month: 'long',
 		day: 'numeric',
 		year: 'numeric'
