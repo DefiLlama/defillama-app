@@ -94,10 +94,8 @@ export const YIELD_PROJECT_MEDIAN_API = 'https://yields.llama.fi/medianProject'
 export const YIELD_RISK_API_EXPONENTIAL = 'https://yields.llama.fi/risk'
 
 export const LSD_RATES_API = 'https://yields.llama.fi/lsdRates'
-export const ETF_OVERVIEW_API = 'https://etfs.llama.fi/overview'
-export const ETF_HISTORY_API = 'https://etfs.llama.fi/history'
-export const ETF_OVERVIEW_ETH_API = 'https://etfs.llama.fi/overviewEth'
-export const ETF_HISTORY_ETH_API = 'https://etfs.llama.fi/historyEth'
+export const ETF_SNAPSHOT_API = 'https://etfs.llama.fi/snapshot'
+export const ETF_FLOWS_API = 'https://etfs.llama.fi/flows'
 
 export const LIQUIDATIONS_HISTORICAL_R2_PATH = DATASETS_R2_PATH + '/liqs'
 

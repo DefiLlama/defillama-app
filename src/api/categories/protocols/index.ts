@@ -15,10 +15,8 @@ import {
 	LSD_RATES_API,
 	CHAINS_ASSETS,
 	CHART_API,
-	ETF_OVERVIEW_API,
-	ETF_HISTORY_API,
-	ETF_OVERVIEW_ETH_API,
-	ETF_HISTORY_ETH_API,
+	ETF_SNAPSHOT_API,
+	ETF_FLOWS_API,
 	CHAINS_API_V2,
 	CHAIN_ASSETS_FLOWS,
 	BRIDGEINFLOWS_API,
@@ -940,81 +938,14 @@ export async function getLSDPageData() {
 	}
 }
 
-export async function getETFData(coin) {
-	const OVERVIEW_API = coin === 'bitcoin' ? ETF_OVERVIEW_API : ETF_OVERVIEW_ETH_API
-	const HISTORY_API = coin === 'bitcoin' ? ETF_HISTORY_API : ETF_HISTORY_ETH_API
-
-	const [overview, history] = await Promise.all(
-		[OVERVIEW_API, HISTORY_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
+export async function getETFData() {
+	const [snapshot, flows] = await Promise.all(
+		[ETF_SNAPSHOT_API, ETF_FLOWS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
 	)
-
-	const totalAum = overview.reduce((acc, a) => acc + a.aum, 0)
-	const aumOverview = overview.map((i) => ({ name: i.ticker, value: i.aum }))
-	const volumeOverview = overview.map((i) => ({ name: i.ticker, value: i.volume }))
-
-	const reformat = (fieldName) => {
-		let totalValuesByTimestamp = {}
-		history.forEach((entry) => {
-			if (!totalValuesByTimestamp[entry.timestamp]) {
-				totalValuesByTimestamp[entry.timestamp] = 0
-			}
-			totalValuesByTimestamp[entry.timestamp] += entry[fieldName]
-		})
-
-		let reformattedData = {}
-		history.forEach((entry) => {
-			const timestamp = entry.timestamp
-			const ticker = entry.ticker
-			const value = entry[fieldName]
-			const totalValueDay = totalValuesByTimestamp[timestamp]
-
-			if (!reformattedData[timestamp]) {
-				reformattedData[timestamp] = { date: timestamp }
-			}
-			// relative
-			if (fieldName === 'flows') {
-				reformattedData[timestamp][ticker] = value
-			} else {
-				reformattedData[timestamp][ticker] = (value / totalValueDay) * 100
-			}
-		})
-
-		return Object.values(reformattedData)
-	}
-
-	const aumHistory = reformat('aum')
-	const volumeHistory = reformat('volume')
-	const flowsHistory = reformat('flows').reduce((acc, { date, ...values }) => {
-		acc[date] = values
-		return acc
-	}, {})
-
-	const tickerColors = {}
-	overview
-		.map((i) => i.ticker)
-		.forEach((ticker, index) => {
-			tickerColors[ticker] = getColorFromNumber(index, 11)
-		})
-
-	const tickers = Object.keys(tickerColors)
-
-	const barChartStacks = {}
-	for (const ticker of tickers) {
-		barChartStacks[ticker] = 'A'
-	}
-
 	return {
 		props: {
-			overview,
-			totalAum,
-			aumOverview,
-			volumeOverview,
-			aumHistory,
-			volumeHistory,
-			flowsHistory,
-			barChartStacks,
-			tickers,
-			tickerColors
+			snapshot: snapshot.sort((a, b) => b.flows - a.flows),
+			flows
 		}
 	}
 }

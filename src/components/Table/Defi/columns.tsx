@@ -1691,7 +1691,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 
 export const ETFColumn: ColumnDef<IETFRow>[] = [
 	{
-		header: 'Ticker',
+		header: 'ETF',
 		accessorKey: 'ticker',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -1720,6 +1720,28 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		size: 160
 	},
 	{
+		header: 'Chain',
+		accessorKey: 'chain',
+		enableSorting: true,
+		cell: ({ getValue }) => (
+			<IconsRow links={getValue() as Array<string>} url="" iconType="chain" disableLinks={true} />
+		),
+		meta: {
+			align: 'end'
+		},
+		size: 160
+	},
+
+	{
+		header: 'Flows',
+		accessorKey: 'flows',
+		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
 		header: 'AUM',
 		accessorKey: 'aum',
 		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
@@ -1732,44 +1754,6 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		header: 'Volume',
 		accessorKey: 'volume',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
-		header: 'Flows',
-		accessorKey: 'flows',
-		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
-		header: 'Price',
-		accessorKey: 'price',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 100
-	},
-	{
-		header: 'Terminal fee',
-		accessorKey: 'pct_fee',
-		cell: ({ getValue }) => {
-			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
-		header: 'Custodian',
-		accessorKey: 'custodian',
 		meta: {
 			align: 'end'
 		},
