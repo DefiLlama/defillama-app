@@ -3,8 +3,12 @@ import yamlApiSpec from '~/docs/resolvedSpec.json'
 import { useEffect } from 'react'
 import 'swagger-ui/dist/swagger-ui.css'
 import Head from 'next/head'
+import { useIsClient } from '~/hooks'
 
 export default function ApiDocs({ spec = yamlApiSpec }: { spec: any }) {
+	const isClient = useIsClient()
+	if (!isClient) return null
+
 	return (
 		<>
 			<Head>
