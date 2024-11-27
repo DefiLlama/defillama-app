@@ -1,14 +1,15 @@
-import * as React from 'react'
 import dynamic from 'next/dynamic'
-import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
+import { getRevenuesByCategories } from '~/api/categories/fees'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
-import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
-import { withPerformanceLogging } from '~/utils/perf'
 import type { IChartProps } from '~/components/ECharts/types'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { categoriesColumn } from '~/components/Table/Defi/columns'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -16,23 +17,44 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 
 export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const protocols = await getProtocolsRaw()
+	const aggregatedRevenuesByCat = await getRevenuesByCategories()
 	const chartAndColorsData = await getCategoriesPageData()
 
 	let categories = {}
+
 	protocols.protocols.forEach((p) => {
 		const cat = p.category
-		if (categories[cat] === undefined) {
-			categories[cat] = { protocols: 0, tvl: 0 }
+		if (!categories[cat]) {
+			categories[cat] = { protocols: 0, tvl: 0, revenue: 0 }
 		}
 		categories[cat].protocols++
 		categories[cat].tvl += p.tvl
 	})
 
-	const formattedCategories = Object.entries(categories).map(([name, details]: [string, { tvl: number }]) => ({
-		name,
-		...details,
-		description: descriptions[name] || ''
-	}))
+	Object.entries(aggregatedRevenuesByCat).forEach(([category, revenue]) => {
+		if (!categories[category]) {
+			categories[category] = { protocols: 0, tvl: 0, revenue: 0 }
+		}
+		categories[category].revenue = revenue
+	})
+
+	const allCategories = new Set([...Object.keys(categories), ...Object.keys(aggregatedRevenuesByCat)])
+
+	allCategories.forEach((cat) => {
+		if (!categories[cat]) {
+			categories[cat] = { protocols: 0, tvl: 0, revenue: 0 }
+		}
+	})
+
+	const formattedCategories = Object.entries(categories).map(
+		([name, details]: [string, { tvl: number; revenue: number; protocols: number }]) => ({
+			name,
+			protocols: details.protocols > 0 ? details.protocols : '',
+			tvl: details.tvl,
+			revenue: details.revenue,
+			description: descriptions[name] || ''
+		})
+	)
 
 	return {
 		props: {
