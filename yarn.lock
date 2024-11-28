@@ -862,12 +862,12 @@
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.0.0"
 
-"@meilisearch/instant-meilisearch@^0.19.3":
-  version "0.19.3"
-  resolved "https://registry.yarnpkg.com/@meilisearch/instant-meilisearch/-/instant-meilisearch-0.19.3.tgz#1bfb8ec5f552c7c1f828496e13e797a7c30000bd"
-  integrity sha512-TLJoV05V+q+4zbdmycwfvAnsOsLtU7u+G1J++T3JdpZmOrXSf0jZEXEzl9i8j8Ch5C5aevglazZlG53r3qQMNQ==
+"@meilisearch/instant-meilisearch@^0.22.0":
+  version "0.22.0"
+  resolved "https://registry.yarnpkg.com/@meilisearch/instant-meilisearch/-/instant-meilisearch-0.22.0.tgz#8cfaee69406708d0dd65efe31c298e62d7bb366f"
+  integrity sha512-vIIzUMgyIIqzrtukGRN3w2OEcTgVJjZpU1wTMnVVN6YPpIOZwMxOnuuufTV7xa5b5WIX53oFYVLG2MtINDShew==
   dependencies:
-    meilisearch "^0.41.0"
+    meilisearch "^0.45.0"
 
 "@metamask/safe-event-emitter@2.0.0", "@metamask/safe-event-emitter@^2.0.0":
   version "2.0.0"
@@ -2332,10 +2332,10 @@ ajv@^6.10.0, ajv@^6.12.4:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
-algoliasearch-helper@3.22.4:
-  version "3.22.4"
-  resolved "https://registry.yarnpkg.com/algoliasearch-helper/-/algoliasearch-helper-3.22.4.tgz#a9de9b69a79528c65d0149978c0d5bece7240484"
-  integrity sha512-fvBCywguW9f+939S6awvRMstqMF1XXcd2qs1r1aGqL/PJ1go/DqN06tWmDVmhCDqBJanm++imletrQWf0G2S1g==
+algoliasearch-helper@3.22.5:
+  version "3.22.5"
+  resolved "https://registry.yarnpkg.com/algoliasearch-helper/-/algoliasearch-helper-3.22.5.tgz#2fcc26814e10a121a2c2526a1b05c754061c56c0"
+  integrity sha512-lWvhdnc+aKOKx8jyA3bsdEgHzm/sglC4cYdMG4xSQyRiPLJVJtH/IVYZG3Hp6PkTEhQqhyVYkeP9z2IlcHJsWw==
   dependencies:
     "@algolia/events" "^4.0.1"
 
@@ -3030,7 +3030,7 @@ cosmiconfig@^7.0.0:
     path-type "^4.0.0"
     yaml "^1.10.0"
 
-cross-fetch@^3.1.4, cross-fetch@^3.1.6:
+cross-fetch@^3.1.4:
   version "3.1.8"
   resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.1.8.tgz#0327eba65fd68a7d119f8fb2bf9334a1a7956f82"
   integrity sha512-cvA+JwZoU0Xq+h6WkMvAUqPEYy92Obet6UdKLfW60qn99ftItKjB5T+BkyWOFWe2pUyfQ+IJHmpOTznqk1M6Kg==
@@ -4546,23 +4546,23 @@ instantsearch-ui-components@0.9.0:
   dependencies:
     "@babel/runtime" "^7.1.2"
 
-instantsearch.js@4.74.0:
-  version "4.74.0"
-  resolved "https://registry.yarnpkg.com/instantsearch.js/-/instantsearch.js-4.74.0.tgz#af5205c40c3b49daec29bf977cb30e19893257e0"
-  integrity sha512-IbKAvnQ03cxb1Ni1OpLv6Yuu1W7Cu1zGru77rvgzYyPsurknpjQHdBicszSZlKaK/zND7D5vhSNZoliiz9nuEQ==
+instantsearch.js@4.75.5:
+  version "4.75.5"
+  resolved "https://registry.yarnpkg.com/instantsearch.js/-/instantsearch.js-4.75.5.tgz#922b5f8c3cd95c46488994beaf53c8bffea16d49"
+  integrity sha512-XnplrpnSfFzVtoL7YBKWbf3FPwmjfSFM8BN+nnuRsfzwUwWgb7zQLxh2mRtohUFI9fnA7vAcJlDcmichfYgjmA==
   dependencies:
     "@algolia/events" "^4.0.1"
     "@types/dom-speech-recognition" "^0.0.1"
     "@types/google.maps" "^3.55.12"
     "@types/hogan.js" "^3.0.0"
     "@types/qs" "^6.5.3"
-    algoliasearch-helper "3.22.4"
+    algoliasearch-helper "3.22.5"
     hogan.js "^3.0.2"
     htm "^3.0.0"
     instantsearch-ui-components "0.9.0"
     preact "^10.10.0"
     qs "^6.5.1 < 6.10"
-    search-insights "^2.15.0"
+    search-insights "^2.17.2"
 
 internal-slot@^1.0.3:
   version "1.0.3"
@@ -5221,12 +5221,10 @@ media-query-parser@^2.0.2:
   dependencies:
     "@babel/runtime" "^7.12.5"
 
-meilisearch@^0.41.0:
-  version "0.41.0"
-  resolved "https://registry.yarnpkg.com/meilisearch/-/meilisearch-0.41.0.tgz#98fc50dd8ce4f2446aa4445e3cecd47e3c9afde5"
-  integrity sha512-5KcGLxEXD7E+uNO7R68rCbGSHgCqeM3Q3RFFLSsN7ZrIgr8HPDXVAIlP4LHggAZfk0FkSzo8VSXifHCwa2k80g==
-  dependencies:
-    cross-fetch "^3.1.6"
+meilisearch@^0.45.0:
+  version "0.45.0"
+  resolved "https://registry.yarnpkg.com/meilisearch/-/meilisearch-0.45.0.tgz#52364961c0cee328ae3ff55d221cc7682ee3a891"
+  integrity sha512-+zCzEqE+CumY4icB0Vox180adZqaNtnr60hJWGiEdmol5eWmksfY8rYsTcz87styXC2ZOg+2yF56gdH6oyIBTA==
 
 memoize-one@^6.0.0:
   version "6.0.0"
@@ -6137,25 +6135,25 @@ react-inspector@^6.0.1:
   resolved "https://registry.yarnpkg.com/react-inspector/-/react-inspector-6.0.1.tgz#1a37f0165d9df81ee804d63259eaaeabe841287d"
   integrity sha512-cxKSeFTf7jpSSVddm66sKdolG90qURAX3g1roTeaN6x0YEbtWc8JpmFN9+yIqLNH2uEkYerWLtJZIXRIFuBKrg==
 
-react-instantsearch-core@7.13.0:
-  version "7.13.0"
-  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-7.13.0.tgz#1541931fe1ce071cbc8e91a1f30092190500559b"
-  integrity sha512-2LMhGJISWnbC1bbewqKQ1MimF1iGwtd0ezqGeWSNy1Ld6Eh1Dj2r1FAn0Wow30rC91oWkPj6/rLUKz9ibzabrA==
+react-instantsearch-core@7.13.8:
+  version "7.13.8"
+  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-7.13.8.tgz#1087ae05150e92204fd1ab83464fed3942fae087"
+  integrity sha512-1bcHCFJ3Qw9HWFkeM5MNMqzw0BI4LIR61qI1lPAcJREih9NXy3R3inPeOk2T2FKkgAp5PJbjNQ3DOTxErV88jg==
   dependencies:
     "@babel/runtime" "^7.1.2"
-    algoliasearch-helper "3.22.4"
-    instantsearch.js "4.74.0"
+    algoliasearch-helper "3.22.5"
+    instantsearch.js "4.75.5"
     use-sync-external-store "^1.0.0"
 
-react-instantsearch@^7.13.0:
-  version "7.13.0"
-  resolved "https://registry.yarnpkg.com/react-instantsearch/-/react-instantsearch-7.13.0.tgz#ead207c6a2970704ee7c745e65b41c9d1a595d81"
-  integrity sha512-12auG0AI4oS8yuu2IfA61JjmTNk+pd9KkKvCJukMI+3t6U16sHUJsPMj9/zAHrDm+Zgdgr9ZsszIKtr9/VQ/CQ==
+react-instantsearch@^7.13.8:
+  version "7.13.8"
+  resolved "https://registry.yarnpkg.com/react-instantsearch/-/react-instantsearch-7.13.8.tgz#baf0fe429764402048b8895f4cb659caaf57fbb8"
+  integrity sha512-14t7qAlp5H2dD+ljQLPhMZt40JX7YGKXdAooGZBo8IB+0M7NHAhsn/SVRdxSObb9bx1hg4uaBIZ51Wajgw8Xbg==
   dependencies:
     "@babel/runtime" "^7.1.2"
     instantsearch-ui-components "0.9.0"
-    instantsearch.js "4.74.0"
-    react-instantsearch-core "7.13.0"
+    instantsearch.js "4.75.5"
+    react-instantsearch-core "7.13.8"
 
 react-intersection-observer@^9.2.2:
   version "9.4.0"
@@ -6577,10 +6575,10 @@ scrypt-js@3.0.1:
   resolved "https://registry.yarnpkg.com/scrypt-js/-/scrypt-js-3.0.1.tgz#d314a57c2aef69d1ad98a138a21fe9eafa9ee312"
   integrity sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==
 
-search-insights@^2.15.0:
-  version "2.17.0"
-  resolved "https://registry.yarnpkg.com/search-insights/-/search-insights-2.17.0.tgz#34db501d51d493a2a3d8ef50a852c2002f17eade"
-  integrity sha512-AskayU3QNsXQzSL6v4LTYST7NNfs2HWyHHB+sdORP9chsytAhro5XRfToAMI/LAVYgNbzowVZTMfBRodgbUHKg==
+search-insights@^2.17.2:
+  version "2.17.3"
+  resolved "https://registry.yarnpkg.com/search-insights/-/search-insights-2.17.3.tgz#8faea5d20507bf348caba0724e5386862847b661"
+  integrity sha512-RQPdCYTa8A68uM2jwxoY842xDhvx3E5LFL1LxvxCNMev4o5mLuokczhzjAgGwUZBAmOKZknArSxLKmXtIi2AxQ==
 
 semver@^6.3.1:
   version "6.3.1"

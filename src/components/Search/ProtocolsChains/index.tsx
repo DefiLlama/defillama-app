@@ -26,9 +26,11 @@ export function ProtocolsChainsSearch({ hideFilters, ...props }: IProtocolsChain
 	}
 
 	return (
-		<SearchV2 indexName="protocols">
-			<Search hideFilters={hideFilters} {...props} />
-		</SearchV2>
+		<span style={{ minHeight: hideFilters ? '48px' : '96px' }}>
+			<SearchV2 indexName="protocols">
+				<Search hideFilters={hideFilters} {...props} />
+			</SearchV2>
+		</span>
 	)
 }
 
