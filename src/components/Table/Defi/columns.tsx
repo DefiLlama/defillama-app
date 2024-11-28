@@ -1,4 +1,7 @@
 import { ColumnDef, sortingFns } from '@tanstack/react-table'
+import { useEffect, useState } from 'react'
+import { ButtonLight } from '~/components/ButtonStyled'
+import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -18,25 +21,22 @@ import {
 	toNiceDayMonthYear,
 	toNiceHour
 } from '~/utils'
+import { UpcomingEvent } from '../../../containers/Defi/Protocol/Emissions/UpcomingEvent'
 import { formatColumnOrder } from '../utils'
 import type {
+	AirdropRow,
+	CategoryPerformanceRow,
+	CoinPerformanceRow,
+	IBridgedRow,
 	ICategoryRow,
 	IChainsRow,
-	IForksRow,
-	IOraclesRow,
-	ILSDRow,
 	IEmission,
-	IGovernance,
 	IETFRow,
-	AirdropRow,
-	IBridgedRow,
-	CategoryPerformanceRow,
-	CoinPerformanceRow
+	IForksRow,
+	IGovernance,
+	ILSDRow,
+	IOraclesRow
 } from './types'
-import { useEffect, useState } from 'react'
-import { UpcomingEvent } from '../../../containers/Defi/Protocol/Emissions/UpcomingEvent'
-import { Icon } from '~/components/Icon'
-import { ButtonLight } from '~/components/ButtonStyled'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -176,13 +176,25 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	{
 		header: 'Protocols',
 		accessorKey: 'protocols',
-		size: 140
+		size: 100
 	},
 	{
 		header: 'Combined TVL',
 		accessorKey: 'tvl',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
-		size: 140
+		cell: ({ getValue }) => {
+			const value = getValue() as number | null
+			return value && value > 0 ? <>{'$' + formattedNum(value)}</> : <></>
+		},
+		size: 135
+	},
+	{
+		header: 'Combined 24h Revenue',
+		accessorKey: 'revenue',
+		cell: ({ getValue }) => {
+			const value = getValue() as number | null
+			return value && value > 0 ? <>{'$' + formattedNum(value)}</> : <></>
+		},
+		size: 200
 	},
 	{
 		header: 'Description',
