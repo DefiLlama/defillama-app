@@ -1515,7 +1515,7 @@ function ProtocolContainer({
 										{helperTexts?.users && users?.activeUsers ? <p>Addresses: {helperTexts.users}</p> : null}
 
 										<div className="flex items-center gap-4 flex-wrap">
-											{methodologyUrls?.tvl && methodologyUrls.tvl !== 'dummy.js' && (
+											{methodologyUrls?.tvl && !methodologyUrls.tvl.endsWith('dummy.js') && (
 												<Link href={methodologyUrls.tvl} passHref>
 													<ButtonLight
 														className="flex items-center gap-1"

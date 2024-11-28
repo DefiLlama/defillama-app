@@ -185,7 +185,7 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 			const value = getValue() as number | null
 			return value && value > 0 ? <>{'$' + formattedNum(value)}</> : <></>
 		},
-		size: 120
+		size: 135
 	},
 	{
 		header: 'Combined 24h Revenue',
@@ -194,7 +194,7 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 			const value = getValue() as number | null
 			return value && value > 0 ? <>{'$' + formattedNum(value)}</> : <></>
 		},
-		size: 120
+		size: 200
 	},
 	{
 		header: 'Description',
