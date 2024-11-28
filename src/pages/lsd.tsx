@@ -211,6 +211,7 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 					return sum + t.tokens[key]
 				}, 0)
 
+				//
 				return {
 					name: protocol.name,
 					date: date(t),
