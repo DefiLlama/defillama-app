@@ -12,6 +12,7 @@ import { TxsTableSwitch } from '~/containers/BridgesPage/TableSwitch'
 import { useBuildBridgeChartData } from '~/utils/bridges'
 import { formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { useEffect } from 'react'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -42,6 +43,11 @@ function BridgesOverview({
 }) {
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Net Flow')
+	const [chartView, setChartView] = React.useState<'default' | 'netflow'>('default')
+
+	useEffect(() => {
+		setChartView('netflow')
+	}, [])
 
 	const chartTypeList =
 		selectedChain === 'All'
@@ -145,7 +151,6 @@ function BridgesOverview({
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = React.useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
 		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
-		// start from i = 1 to exclude current day
 
 		if (filteredBridges) {
 			filteredBridges?.forEach((bridge) => {
@@ -179,73 +184,127 @@ function BridgesOverview({
 				<div className="flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (24h)</span>
-						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(dayTotalVolume, true)}</span>
+						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(dayTotalVolume, true)}</span>
 					</p>
 					<p className="hidden md:flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (7d)</span>
-						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(weekTotalVolume, true)}</span>
+						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(weekTotalVolume, true)}</span>
 					</p>
 					<p className="hidden md:flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (1mo)</span>
-						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(monthTotalVolume, true)}</span>
+						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(monthTotalVolume, true)}</span>
 					</p>
 				</div>
 				<div className="flex flex-col gap-4 py-4 col-span-1 *:ml-4 last:*:ml-0 min-h-[444px]">
-					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-					{chartType === 'Net Flow' && chainNetFlowData && chainNetFlowData.length > 0 && (
-						<BarChart
-							chartData={chainNetFlowData}
-							title=""
-							hideDefaultLegend={true}
-							customLegendName="Volume"
-							customLegendOptions={['Net Flow']}
-						/>
-					)}
-					{chartType === 'Net Flow (%)' && chainPercentageNet && chainPercentageNet.length > 0 && (
-						<BarChart
-							chartData={chainPercentageNet}
-							title=""
-							valueSymbol="%"
-							stacks={{ Inflows: 'stackA', Outflows: 'stackA' }}
-							hideDefaultLegend={true}
-							customLegendName="Volume"
-							customLegendOptions={['Inflows', 'Outflows']}
-						/>
-					)}
-					{chartType === 'Inflows' && chainVolumeData && chainVolumeData.length > 0 && (
-						<BarChart
-							chartData={chainVolumeData}
-							title=""
-							hideDefaultLegend={true}
-							customLegendName="Volume"
-							customLegendOptions={['Deposits', 'Withdrawals']}
-							key={['Deposits', 'Withdrawals'] as any} // escape hatch to rerender state in legend options
-							chartOptions={volumeChartOptions}
-						/>
-					)}
-					{chartType === 'Net Flow By Chain' && (
-						<div className="grid grid-cols-1 relative isolate bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl mb-4">
-							<div className="p-4">
-								<NetflowChart height="600px" />
+					{selectedChain === 'All' ? (
+						<>
+							<div className="flex items-center gap-2 p-2 rounded-lg">
+								<button
+									className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
+										chartView === 'netflow'
+											? 'bg-blue-500 text-white shadow-lg hover:opacity-90 ring-blue-500 ring-offset-2 '
+											: 'bg-[var(--bg7)] text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)] border border-[var(--divider)]'
+									}`}
+									onClick={() => setChartView('netflow')}
+								>
+									Net Flows By Chain
+								</button>
+								<button
+									className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
+										chartView === 'default'
+											? 'bg-blue-500 text-white shadow-lg hover:opacity-90 ring-blue-500 ring-offset-2 '
+											: 'bg-[var(--bg7)] text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)] border border-[var(--divider)]'
+									}`}
+									onClick={() => setChartView('default')}
+								>
+									Volume Chart
+								</button>
 							</div>
-						</div>
-					)}
-					{chartType === 'Volumes' && chartData && chartData.length > 0 && (
-						<StackedBarChart
-							chartData={
-								enableBreakdownChart
-									? (chartData as IStackedBarChartProps['chartData'])
-									: [
-											{
-												name: selectedChain,
-												data: chartData as IStackedBarChartProps['chartData'][0]['data']
+
+							{chartView === 'default' ? (
+								<>
+									{chartType === 'Volumes' && chartData && chartData.length > 0 && (
+										<StackedBarChart
+											chartData={
+												enableBreakdownChart
+													? (chartData as IStackedBarChartProps['chartData'])
+													: [
+															{
+																name: selectedChain,
+																data: chartData as IStackedBarChartProps['chartData'][0]['data']
+															}
+													  ]
 											}
-									  ]
-							}
-						/>
+										/>
+									)}
+								</>
+							) : (
+								<div className="relative shadow rounded-xl">
+									<div className="p-4">
+										<NetflowChart height="600px" />
+									</div>
+								</div>
+							)}
+						</>
+					) : (
+						<>
+							<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+							{chartType === 'Net Flow' && chainNetFlowData && chainNetFlowData.length > 0 && (
+								<BarChart
+									chartData={chainNetFlowData}
+									title=""
+									hideDefaultLegend={true}
+									customLegendName="Volume"
+									customLegendOptions={['Net Flow']}
+								/>
+							)}
+							{chartType === 'Net Flow (%)' && chainPercentageNet && chainPercentageNet.length > 0 && (
+								<BarChart
+									chartData={chainPercentageNet}
+									title=""
+									valueSymbol="%"
+									stacks={{ Inflows: 'stackA', Outflows: 'stackA' }}
+									hideDefaultLegend={true}
+									customLegendName="Volume"
+									customLegendOptions={['Inflows', 'Outflows']}
+								/>
+							)}
+							{chartType === 'Inflows' && chainVolumeData && chainVolumeData.length > 0 && (
+								<BarChart
+									chartData={chainVolumeData}
+									title=""
+									hideDefaultLegend={true}
+									customLegendName="Volume"
+									customLegendOptions={['Deposits', 'Withdrawals']}
+									key={['Deposits', 'Withdrawals'] as any} // escape hatch to rerender state in legend options
+									chartOptions={volumeChartOptions}
+								/>
+							)}
+							{chartType === 'Net Flow By Chain' && (
+								<div className="grid grid-cols-1 relative isolate shadow rounded-xl mb-4">
+									<div className="p-4">
+										<NetflowChart height="600px" />
+									</div>
+								</div>
+							)}
+							{chartType === 'Volumes' && chartData && chartData.length > 0 && (
+								<StackedBarChart
+									chartData={
+										enableBreakdownChart
+											? (chartData as IStackedBarChartProps['chartData'])
+											: [
+													{
+														name: selectedChain,
+														data: chartData as IStackedBarChartProps['chartData'][0]['data']
+													}
+											  ]
+									}
+								/>
+							)}
+							{chartType === '24h Tokens Deposited' && <PieChart chartData={tokenWithdrawals} />}
+							{chartType === '24h Tokens Withdrawn' && <PieChart chartData={tokenDeposits} />}
+						</>
 					)}
-					{chartType === '24h Tokens Deposited' && <PieChart chartData={tokenWithdrawals} />}
-					{chartType === '24h Tokens Withdrawn' && <PieChart chartData={tokenDeposits} />}
 				</div>
 			</div>
 			<TxsTableSwitch />

@@ -6,6 +6,7 @@ import { capitalize } from 'lodash'
 import { useQuery } from '@tanstack/react-query'
 import { RowFilter } from '~/components/Filters/common/RowFilter'
 import { NETFLOWS_API } from '~/constants'
+import llamaLogo from '~/assets/logo_white_long.svg'
 
 interface INetflowChartProps {
 	data: Array<{
@@ -52,6 +53,7 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 	}, [data])
 
 	const createInstance = useCallback(() => {
+		if (!echarts) return null
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
 		return instance || echarts.init(document.getElementById(id))
 	}, [id])
@@ -68,26 +70,30 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 				formatter: function (params) {
 					const chain = params[0].axisValue
 					const value = (params[0].value || 0) + (params[1].value || 0)
-					return `${chain}<br/>Net Flow: ${value > 0 ? '+' : ''}${toK(value)}`
+					return `<div class="flex flex-col gap-1">
+						<span class="font-medium">${chain}</span>
+						<span>Net Flow: ${value > 0 ? '+' : ''}${toK(value)}</span>
+					</div>`
 				}
 			},
 			grid: {
-				top: 80,
+				top: 100,
 				bottom: 20,
-				left: 120,
-				right: 60
+				left: 140,
+				right: 80
 			},
 			xAxis: {
 				type: 'value',
 				position: 'top',
 				splitLine: {
 					lineStyle: {
-						color: '#a1a1aa',
-						opacity: 0.1
+						color: isThemeDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+						type: 'dashed'
 					}
 				},
 				axisLabel: {
-					formatter: (value) => toK(value)
+					formatter: (value) => toK(value),
+					color: isThemeDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)'
 				}
 			},
 			yAxis: {
@@ -97,21 +103,9 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 				splitLine: { show: false },
 				data: chains,
 				axisLabel: {
-					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-					rich: {
-						icon: {
-							height: 20,
-							width: 20,
-							backgroundColor: (params: any) => {
-								return `https://icons.llamao.fi/icons/chains/rsz_${params.value.toLowerCase()}?w=48&h=48`
-							}
-						},
-						value: {
-							height: 20,
-							align: 'center',
-							padding: [0, 0, 0, 10]
-						}
-					}
+					color: isThemeDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+					fontSize: 13,
+					padding: [0, 0, 0, 50]
 				}
 			},
 			series: [
@@ -122,20 +116,17 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 					data: negativeData,
 					itemStyle: {
 						color: '#ef4444',
-						borderRadius: 0
+						borderRadius: [0, 4, 4, 0]
 					},
-					symbol: 'none',
-					symbolSize: 0,
-					barCategoryGap: '40%',
+					barWidth: '50%',
 					label: {
 						show: true,
 						position: 'left',
 						formatter: (params) => (params.value !== 0 ? toK(params.value) : ''),
-						backgroundColor: isThemeDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-						padding: [4, 8],
-						color: isThemeDark ? '#fff' : '#000',
-						borderRadius: 4,
-						fontSize: 12
+						backgroundColor: 'transparent',
+						color: '#ef4444',
+						fontSize: 12,
+						fontWeight: 500
 					}
 				},
 				{
@@ -144,41 +135,59 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 					stack: 'Total',
 					data: positiveData,
 					itemStyle: {
-						color: '#22c55e'
+						color: '#22c55e',
+						borderRadius: [4, 0, 0, 4]
 					},
+					barWidth: '50%',
 					label: {
 						show: true,
 						position: 'right',
 						formatter: (params) => (params.value !== 0 ? toK(params.value) : ''),
-						padding: [4, 8],
-						borderRadius: 4,
-						color: isThemeDark ? '#fff' : '#000',
-						fontSize: 12
+						backgroundColor: 'transparent',
+						color: '#22c55e',
+						fontSize: 12,
+						fontWeight: 500
 					}
 				}
 			],
-			graphic: chains.map((chain, index) => ({
-				type: 'image',
-				id: `icon-${chain}`,
-				style: {
-					image: `https://icons.llamao.fi/icons/chains/rsz_${chain.toLowerCase()}?w=48&h=48`,
-					width: 20,
-					height: 20
+			graphic: [
+				{
+					type: 'image',
+					id: 'logo',
+					left: 'center',
+					top: 'center',
+					style: {
+						image: llamaLogo.src,
+						width: 150,
+						height: 50,
+						opacity: 0.15
+					},
+					z: -1
 				},
-				left: 10,
-				top: (chains.length - 1 - index) * ((parseInt(height) - 100) / chains.length) + 90,
-				z: 100,
-				clipPath: {
-					type: 'rect',
-					shape: {
-						x: 0,
-						y: 0,
+				...chains.map((chain, index) => ({
+					type: 'image',
+					id: `icon-${chain}`,
+
+					style: {
+						image: `https://icons.llamao.fi/icons/chains/rsz_${chain.toLowerCase()}?w=48&h=48`,
 						width: 20,
-						height: 20,
-						r: 50
+						height: 20
+					},
+					left: 10,
+					top: (chains.length - 1 - index) * ((parseInt(height) - 100) / chains.length) + 90,
+					z: 100,
+					clipPath: {
+						type: 'rect',
+						shape: {
+							x: 0,
+							y: 0,
+							width: 20,
+							height: 20,
+							r: 50
+						}
 					}
-				}
-			}))
+				}))
+			]
 		}
 
 		chartInstance.setOption(option)
@@ -197,13 +206,16 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 
 	return (
 		<div style={{ position: 'relative' }}>
-			<RowFilter
-				values={['day', 'week', 'month']}
-				selectedValue={period}
-				setValue={setPeriod}
-				style={{ marginLeft: 'auto' }}
-			/>
 			<div id={id} style={{ height, margin: 'auto 0' }}></div>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'center',
+					marginTop: '20px'
+				}}
+			>
+				<RowFilter values={['day', 'week', 'month']} selectedValue={period} setValue={setPeriod} />
+			</div>
 		</div>
 	)
 }
