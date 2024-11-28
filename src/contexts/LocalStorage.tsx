@@ -321,14 +321,16 @@ const toggleDarkMode = () => {
 	window.dispatchEvent(new Event('storage'))
 }
 export function useDarkModeManager() {
-	const isDarkMode = useSyncExternalStore(
+	const store = useSyncExternalStore(
 		subscribe,
 		() => localStorage.getItem(DARK_MODE) ?? 'true',
 		() => 'true'
 	)
 
+	const isDarkMode = store === 'true'
+
 	useEffect(() => {
-		if (isDarkMode === 'false') {
+		if (!isDarkMode) {
 			document.documentElement.classList.remove('dark')
 			document.documentElement.classList.add('light')
 		} else {
@@ -337,7 +339,7 @@ export function useDarkModeManager() {
 		}
 	}, [isDarkMode])
 
-	return [isDarkMode, toggleDarkMode]
+	return [isDarkMode, toggleDarkMode] as [boolean, () => void]
 }
 
 // TODO fix unnecessary rerenders on all state managers
