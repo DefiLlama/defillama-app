@@ -203,10 +203,18 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 				if (i > 0 && date(arr[i - 1]) == date(t)) {
 					return { value: 0 }
 				}
+				// get all ETH related token keys
+				const ethKeys = Object.keys(t.tokens).filter((k) => k.includes('ETH'))
+
+				// sum up all ETH token values
+				const totalEthValue = ethKeys.reduce((sum, key) => {
+					return sum + t.tokens[key]
+				}, 0)
+
 				return {
 					name: protocol.name,
 					date: date(t),
-					value: t.tokens[Object.keys(t.tokens).filter((k) => k.includes('ETH'))[0]]
+					value: totalEthValue
 				}
 			})
 		})
