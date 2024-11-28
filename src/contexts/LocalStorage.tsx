@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars*/
-import { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
+import { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useSyncExternalStore } from 'react'
 import { trackGoal } from 'fathom-client'
 import { standardizeProtocolName } from '~/utils'
 import { useIsClient } from '~/hooks'
@@ -308,21 +308,27 @@ export function Updater() {
 	return null
 }
 
-export function useDarkModeManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const isClient = useIsClient()
-	let darkMode = state[DARK_MODE]
-	let isDarkMode = isClient ? darkMode : true
+function subscribe(callback: () => void) {
+	window.addEventListener('storage', callback)
 
-	const toggleDarkMode = useCallback(
-		(value) => {
-			updateKey(DARK_MODE, value === false || value === true ? value : !isDarkMode)
-		},
-		[updateKey, isDarkMode]
+	return () => {
+		window.removeEventListener('storage', callback)
+	}
+}
+
+const toggleDarkMode = () => {
+	localStorage.setItem(DARK_MODE, localStorage.getItem(DARK_MODE) === 'true' ? 'false' : 'true')
+	window.dispatchEvent(new Event('storage'))
+}
+export function useDarkModeManager() {
+	const isDarkMode = useSyncExternalStore(
+		subscribe,
+		() => localStorage.getItem(DARK_MODE) ?? 'true',
+		() => 'true'
 	)
 
 	useEffect(() => {
-		if (!isDarkMode) {
+		if (isDarkMode === 'false') {
 			document.documentElement.classList.remove('dark')
 			document.documentElement.classList.add('light')
 		} else {

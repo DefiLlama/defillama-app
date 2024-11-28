@@ -84,7 +84,7 @@ const isUnlocks = (pathname: string) => pathname.startsWith('/unlocks')
 const isCEX = (pathname: string) => pathname.startsWith('/cexs') || pathname.startsWith('/cex/')
 const isGovernance = (pathname: string) => pathname.startsWith('/governance')
 const isLSD = (pathname: string) => pathname.startsWith('/lsd')
-const isETF = (pathname: string) => pathname.startsWith('/crypto-etf')
+const isETF = (pathname: string) => pathname.startsWith('/crypto-etf') || pathname === '/etfs'
 const isNarrativeTracker = (pathname: string) => pathname.startsWith('/narrative-tracker')
 
 const isActive = ({ pathname, category }: { pathname: string; category: string }) => {

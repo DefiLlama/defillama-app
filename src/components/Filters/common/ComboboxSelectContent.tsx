@@ -54,7 +54,7 @@ const SelectContent = ({
 							key={formattedValue + i}
 							ref={i === 0 && selectedOptions.length === options.length ? focusItemRef : null}
 							focusOnHover
-							className="group flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+							className="group flex items-center last:*:ml-auto gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
 						>
 							<span>{value}</span>
 							{selectOnlyOne ? (
