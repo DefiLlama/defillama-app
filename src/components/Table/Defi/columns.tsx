@@ -1703,7 +1703,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 
 export const ETFColumn: ColumnDef<IETFRow>[] = [
 	{
-		header: 'ETF',
+		header: 'Ticker',
 		accessorKey: 'ticker',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
@@ -1732,7 +1732,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		size: 160
 	},
 	{
-		header: 'Chain',
+		header: 'Coin',
 		accessorKey: 'chain',
 		enableSorting: true,
 		cell: ({ getValue }) => (
@@ -1743,11 +1743,12 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		},
 		size: 160
 	},
-
 	{
 		header: 'Flows',
 		accessorKey: 'flows',
-		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
+		cell: ({ getValue }) => (
+			<span className="font-bold">{getValue() !== null ? '$' + formattedNum(getValue()) : null}</span>
+		),
 		meta: {
 			align: 'end'
 		},

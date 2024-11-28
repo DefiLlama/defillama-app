@@ -17,6 +17,7 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 const labelClass = 'text-sm text-[#545757] dark:text-[#cccccc]'
 const flowValueClass = 'font-jetbrains text-2xl'
 const aumValueClass = 'font-jetbrains text-xl'
+const headerClass = 'text-xl font-medium text-black dark:text-white'
 
 interface AssetSectionProps {
 	name: string
@@ -129,9 +130,9 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 			<div className="rounded-xl bg-[var(--bg6)] shadow">
 				<div className="flex flex-col md:flex-row p-8 min-h-[392px]">
 					{/* Left Panel */}
-					<div className="w-full md:w-96 flex flex-col md:pr-12">
+					<div className="w-full md:w-80 flex flex-col md:pr-12">
 						<div className="flex flex-col gap-2 mb-8">
-							<span className={labelClass}>Daily Stats</span>
+							<span className={headerClass}>Daily Stats</span>
 							<span className="text-sm opacity-60">{lastUpdated}</span>
 						</div>
 
@@ -151,6 +152,9 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							/>
 						</div>
 					</div>
+
+					{/* Mobile Divider */}
+					<div className="h-px w-full bg-gray-200 dark:bg-gray-800 my-8 md:hidden" />
 
 					{/* Main Chart Area */}
 					<div className="flex flex-col flex-1 w-full gap-1">
@@ -196,7 +200,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							stacks={{ Bitcoin: 'A', Ethereum: 'A' }}
 							stackColors={{ Bitcoin: '#F7931A', Ethereum: '#6B7280' }}
 							valueSymbol="$"
-							title=""
+							title="Flows"
 						/>
 					</div>
 				</div>
