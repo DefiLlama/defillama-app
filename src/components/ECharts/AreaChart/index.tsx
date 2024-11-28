@@ -26,6 +26,7 @@ export default function AreaChart({
 	hideGradient = false,
 	hideOthersInTooltip,
 	hideLegend = true,
+	hideDefaultLegend,
 	...props
 }: IChartProps) {
 	const id = useMemo(() => crypto.randomUUID(), [])
