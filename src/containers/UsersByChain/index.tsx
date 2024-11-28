@@ -63,7 +63,7 @@ export function UsersByChain({ chart, backgroundColor, name, chains, chain }: IU
 			backgroundColor={backgroundColor && transparentize(0.6, backgroundColor)}
 			style={{ gap: '36px' }}
 		>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Users', hideOptions: true }} />
+			<ProtocolsChainsSearch hideFilters />
 
 			<div className="grid grid-cols-1 gap-8 isolate sm:p-4 xl:gap-12 xl:grid-cols-[auto_1fr]">
 				<nav className="flex items-center gap-5 overflow-hidden col-span-full">

@@ -20,7 +20,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO cardName={data.name} token={data.name} logo={tokenIconUrl(data.name)} />
 
-			<ProtocolsChainsSearch step={{ category: 'Protocols', name: data.name }} />
+			<ProtocolsChainsSearch />
 
 			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg7)] border border-[var(--divider)] shadow rounded-xl">
 				{data?.otherProtocols?.length > 1 && (

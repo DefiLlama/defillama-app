@@ -180,7 +180,7 @@ export function RecentProtocols({
 
 	return (
 		<Layout title={title} defaultSEO>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: name }} />
+			<ProtocolsChainsSearch />
 
 			{claimableAirdrops ? (
 				<span className="flex items-center gap-2 flex-wrap">

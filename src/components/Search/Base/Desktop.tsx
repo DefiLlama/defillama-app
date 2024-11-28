@@ -10,7 +10,6 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	const {
 		data,
 		loading = false,
-		step,
 		onSearchTermChange,
 		filters,
 		withValue,

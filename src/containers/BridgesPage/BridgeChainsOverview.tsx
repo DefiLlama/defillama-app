@@ -36,12 +36,7 @@ function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, f
 
 	return (
 		<>
-			<BridgesSearch
-				step={{
-					category: 'Bridges',
-					name: 'Chains'
-				}}
-			/>
+			<BridgesSearch />
 
 			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
 				<span>Bridge Inflows by Chain</span>

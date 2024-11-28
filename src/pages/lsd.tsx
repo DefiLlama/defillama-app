@@ -52,7 +52,7 @@ const PageView = ({
 
 	return (
 		<>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'ETH Liquid Staking Derivatives' }} />
+			<ProtocolsChainsSearch hideFilters />
 
 			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between gap-4 flex-wrap">
 				<span>Total Value Locked ETH LSDs</span>

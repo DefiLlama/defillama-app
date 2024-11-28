@@ -200,12 +200,7 @@ function ComparePage() {
 
 	return (
 		<>
-			<ProtocolsChainsSearch
-				step={{
-					category: 'Compare Protocols',
-					name: 'Open Protocol'
-				}}
-			/>
+			<ProtocolsChainsSearch />
 			<div className="w-full max-w-fit flex items-center gap-2">
 				<h2>Compare chains: </h2>
 

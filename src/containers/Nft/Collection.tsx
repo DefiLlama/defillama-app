@@ -54,14 +54,7 @@ export function NFTCollectionContainer() {
 
 	return (
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
-			<NFTsSearch
-				step={{
-					category: 'NFT Collections',
-					name: name,
-					route: 'nfts',
-					hideOptions: true
-				}}
-			/>
+			<NFTsSearch />
 
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">

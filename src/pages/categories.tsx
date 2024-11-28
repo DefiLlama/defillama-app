@@ -144,7 +144,7 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Categories' }} />
+			<ProtocolsChainsSearch />
 
 			<h1 className="text-2xl font-medium -mb-5">Protocol Categories</h1>
 

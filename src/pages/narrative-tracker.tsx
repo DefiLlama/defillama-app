@@ -21,7 +21,7 @@ export const getStaticProps = withPerformanceLogging('narrative-tracker', async 
 export default function CategoryPerformance(props) {
 	return (
 		<Layout title={`Narrative Tracker - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Narrative Tracker' }} />
+			<ProtocolsChainsSearch hideFilters />
 			<CategoryPerformanceContainer {...props} />
 		</Layout>
 	)

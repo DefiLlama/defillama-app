@@ -124,7 +124,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 	return (
 		<>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Exchange Traded Funds' }} />
+			<ProtocolsChainsSearch hideFilters />
 
 			<div className="rounded-xl bg-[var(--bg6)] shadow">
 				<div className="flex flex-col md:flex-row p-8 min-h-[392px]">

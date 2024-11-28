@@ -72,14 +72,7 @@ export default function PeggedContainer(props) {
 				tvl={formattedNum(props.mcap, true)?.toString()}
 			/>
 
-			<PeggedSearch
-				step={{
-					category: 'Stablecoin',
-					name: Capitalize(symbol),
-					route: 'stablecoins',
-					hideOptions: true
-				}}
-			/>
+			<PeggedSearch />
 
 			<PeggedAssetInfo {...props} />
 		</Layout>

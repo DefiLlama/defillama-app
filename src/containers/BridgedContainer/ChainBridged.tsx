@@ -56,13 +56,7 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 	return (
 		<>
 			<Layout title={`${chainName}: Bridged TVL - DefiLlama`} style={{ gap: '24px' }}>
-				<ProtocolsChainsSearch
-					hideFilters
-					step={{
-						category: 'Chains',
-						name: 'All Chains'
-					}}
-				/>
+				<ProtocolsChainsSearch hideFilters />
 				<SEO cardName={chainName} token={chain} />
 				<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 					<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">

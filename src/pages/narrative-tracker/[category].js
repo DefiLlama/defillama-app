@@ -29,9 +29,7 @@ export async function getStaticPaths() {
 export default function Returns(props) {
 	return (
 		<Layout title={`Narrative Tracker - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch
-				step={{ category: 'Narrative Tracker', name: props.categoryName, route: 'narrative-tracker' }}
-			/>
+			<ProtocolsChainsSearch />
 			<CategoryPerformanceContainer {...props} />
 		</Layout>
 	)

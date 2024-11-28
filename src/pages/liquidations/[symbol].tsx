@@ -84,9 +84,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 
-			<LiquidationsSearch
-				step={{ category: 'Home', name: `${data.symbol.toUpperCase()} Liquidation Levels`, hideOptions: true }}
-			/>
+			<LiquidationsSearch />
 
 			{/* {!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
 				<>

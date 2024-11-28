@@ -194,12 +194,7 @@ export default function BridgeContainer(props) {
 		>
 			<SEO cardName={props.displayName} token={props.displayName} />
 
-			<BridgesSearch
-				step={{
-					category: 'Bridges',
-					name: props.displayName
-				}}
-			/>
+			<BridgesSearch />
 
 			<BridgeInfo {...props} />
 		</Layout>

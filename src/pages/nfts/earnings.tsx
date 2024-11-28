@@ -25,14 +25,7 @@ function Earnings({ earnings }) {
 	//x
 	return (
 		<Layout title="NFT Earnings - DefiLlama" defaultSEO>
-			<NFTsSearch
-				step={{
-					category: 'Home',
-					name: 'NFT Earnings',
-					route: '',
-					hideOptions: true
-				}}
-			/>
+			<NFTsSearch />
 
 			<h1 className="text-2xl font-medium -mb-5">NFTs Earnings</h1>
 

@@ -96,10 +96,6 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 
 			<AdaptorsSearch
 				type={props.protocolSummary.type}
-				step={{
-					category: capitalizeFirstLetter(props.protocolSummary.type),
-					name: props.protocolSummary.displayName
-				}}
 				/* onToggleClick={
 					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
 					? (enabled) => setEnableBreakdownChart(enabled)

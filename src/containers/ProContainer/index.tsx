@@ -163,12 +163,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 
 	return (
 		<>
-			<ProtocolsChainsSearch
-				step={{
-					category: 'Home',
-					name: selectedChain === 'All' ? 'All Protocols' : selectedChain
-				}}
-			/>
+			<ProtocolsChainsSearch />
 			<div className="flex flex-wrap gap-2">
 				{Object.entries(itemsByGroups).map(([name, items]) => {
 					return (

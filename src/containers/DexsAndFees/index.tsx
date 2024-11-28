@@ -241,10 +241,6 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			)}
 			<AdaptorsSearch
 				type={props.type}
-				step={{
-					category: chain === 'All' ? 'Home' : capitalizeFirstLetter(props.type),
-					name: chain === 'All' ? capitalizeFirstLetter(props.type) : chain === 'all' ? 'Chains' : chain
-				}}
 				enableToggle={props.type !== 'fees' && props.chain !== 'all'}
 				onToggleClick={
 					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0

@@ -142,7 +142,7 @@ export default function CompareProtocolsTvls({
 
 	return (
 		<Layout title={`Compare Protocols TVLs - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Compare Protocols' }} />
+			<ProtocolsChainsSearch />
 
 			<div className="relative flex flex-col">
 				<SelectLegendMultiple

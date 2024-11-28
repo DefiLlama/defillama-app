@@ -303,12 +303,7 @@ export function ChainContainer({
 				{' !'}
 			</Announcement>
 
-			<ProtocolsChainsSearch
-				step={{
-					category: 'Home',
-					name: selectedChain === 'All' ? 'All Protocols' : selectedChain
-				}}
-			/>
+			<ProtocolsChainsSearch />
 
 			<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
 				<nav className="flex">

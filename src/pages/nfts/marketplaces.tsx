@@ -43,14 +43,7 @@ function Marketplaces({
 	//x
 	return (
 		<Layout title="NFT Marketplaces - DefiLlama" defaultSEO>
-			<NFTsSearch
-				step={{
-					category: 'Home',
-					name: 'NFT Marketplaces',
-					route: '',
-					hideOptions: true
-				}}
-			/>
+			<NFTsSearch />
 
 			<h1 className="text-2xl font-medium -mb-5">NFT Marketplaces</h1>
 

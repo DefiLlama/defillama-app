@@ -21,7 +21,7 @@ export const getStaticProps = withPerformanceLogging('etfs', async () => {
 const PageView = ({ airdrops }) => {
 	return (
 		<>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Airdrop Directory' }} />
+			<ProtocolsChainsSearch />
 
 			<TableWithSearch
 				data={airdrops}

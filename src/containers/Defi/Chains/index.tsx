@@ -104,12 +104,7 @@ export default function ChainsContainer({
 
 	return (
 		<>
-			<ProtocolsChainsSearch
-				step={{
-					category: 'Chains',
-					name: category === 'All' ? 'All Chains' : category
-				}}
-			/>
+			<ProtocolsChainsSearch />
 
 			<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
 				<nav className="flex">

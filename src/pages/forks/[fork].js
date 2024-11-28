@@ -31,7 +31,7 @@ export async function getStaticPaths() {
 export default function Forks(props) {
 	return (
 		<Layout title={`Forks - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch step={{ category: 'Forks', name: props.token, route: 'forks' }} />
+			<ProtocolsChainsSearch />
 
 			<ForkContainer {...props} />
 		</Layout>

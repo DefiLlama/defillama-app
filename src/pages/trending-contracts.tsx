@@ -101,7 +101,7 @@ export default function TrendingContracts() {
 
 	return (
 		<Layout title={`Trending Contracts - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Trending Contracts', hideOptions: true }} />
+			<ProtocolsChainsSearch hideFilters />
 			<div className="flex items-center flex-wrap gap-5 -mb-5">
 				<h1 className="text-2xl font-medium mr-auto">Trending Contracts</h1>
 				<RowFilter selectedValue={value} setValue={(val: string) => setValue(val)} values={['1d', '7d', '30d']} />

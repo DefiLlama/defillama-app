@@ -104,7 +104,7 @@ function PeggedChainsOverview({
 
 	return (
 		<>
-			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
+			<PeggedSearch />
 			<CSVDownloadButton onClick={downloadCsv} style={{ width: '150px', alignSelf: 'flex-end' }} />
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 				<div className="flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">

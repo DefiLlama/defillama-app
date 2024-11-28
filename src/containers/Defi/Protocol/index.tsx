@@ -411,7 +411,7 @@ function ProtocolContainer({
 				isCEX={isCEX}
 			/>
 
-			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={toggleOptions} />
+			<ProtocolsChainsSearch options={toggleOptions} />
 
 			{scams.includes(name) && (
 				<Announcement warning={true} notCancellable={true}>

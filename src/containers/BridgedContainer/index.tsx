@@ -42,13 +42,7 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 
 	return (
 		<>
-			<ProtocolsChainsSearch
-				hideFilters
-				step={{
-					category: 'Chains',
-					name: 'All Chains'
-				}}
-			/>
+			<ProtocolsChainsSearch hideFilters />
 			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
 				<span>Bridged TVL for All chains</span>
 				<CSVDownloadButton onClick={onCSVDownload} />

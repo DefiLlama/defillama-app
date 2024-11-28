@@ -84,7 +84,7 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
 	return (
 		<Layout title={`Languages - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Languages', hideOptions: true }} />
+			<ProtocolsChainsSearch hideFilters />
 
 			<h2 className="font-semibold text-xl -mb-6 ml-1">Breakdown by Smart Contract Languages</h2>
 

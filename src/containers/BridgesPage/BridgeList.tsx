@@ -170,13 +170,7 @@ function BridgesOverview({
 
 	return (
 		<>
-			<BridgesSearchWithBreakdown
-				step={{
-					category: 'Bridges',
-					name: selectedChain
-				}}
-				onToggleClick={(enabled) => setEnableBreakdownChart(enabled)}
-			/>
+			<BridgesSearchWithBreakdown onToggleClick={(enabled) => setEnableBreakdownChart(enabled)} />
 			<h1 className="text-2xl font-medium mb-2 flex items-center justify-between flex-wrap gap-4">
 				<span>Bridge Volume in {selectedChain === 'All' ? 'all bridges' : selectedChain}</span>
 				<CSVDownloadButton onClick={downloadCsv} />

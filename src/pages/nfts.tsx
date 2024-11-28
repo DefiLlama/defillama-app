@@ -21,14 +21,7 @@ export default function NFTHomePage(props) {
 	useScrollToTop()
 	return (
 		<Layout title="NFTs - DefiLlama" defaultSEO>
-			<NFTsSearch
-				step={{
-					category: 'Home',
-					name: 'NFT Collections',
-					route: '',
-					hideOptions: true
-				}}
-			/>
+			<NFTsSearch />
 
 			<NftsCollectionTable data={props.collections || []} />
 		</Layout>

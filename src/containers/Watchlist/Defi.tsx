@@ -54,7 +54,7 @@ export function DefiWatchlistContainer() {
 
 	return (
 		<>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Watchlist' }} />
+			<ProtocolsChainsSearch />
 
 			<h1 className="text-2xl font-medium -mb-5">Saved Protocols</h1>
 

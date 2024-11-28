@@ -17,11 +17,12 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 	hideFilters?: boolean
 }
 
+const empty = []
 export function ProtocolsChainsSearch({ hideFilters, ...props }: IProtocolsChainsSearch) {
 	const isClient = useIsClient()
 
 	if (!isClient) {
-		return <DesktopSearch {...props} data={[]} loading={true} filters={<></>} />
+		return <DesktopSearch {...props} data={empty} loading={true} filters={hideFilters ? null : <></>} />
 	}
 
 	return (

@@ -15,18 +15,9 @@ export interface ISearchItem {
 	symbol?: string
 }
 
-// Define breadcrumb of the search
-export interface IStep {
-	category: string
-	name: string
-	route?: string
-	hideOptions?: boolean
-}
-
 export interface IBaseSearchProps {
 	data?: ISearchItem[] | null
 	loading?: boolean
-	step?: IStep
 	onSearchTermChange?: (searchValue: string) => void
 	customPath?: (item: string) => string
 	onItemClick?: (item: ISearchItem) => void
@@ -39,7 +30,6 @@ export interface IBaseSearchProps {
 }
 
 export interface ICommonSearchProps {
-	step?: IBaseSearchProps['step']
 	onItemClick?: IBaseSearchProps['onItemClick']
 }
 

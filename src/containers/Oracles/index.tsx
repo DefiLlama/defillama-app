@@ -60,7 +60,7 @@ const Oracles = ({
 
 	return (
 		<>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Oracles' }} />
+			<ProtocolsChainsSearch />
 
 			<div className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
 				<h1>Total Value Secured All Oracles {chain ? `on ${chain}` : ''}</h1>

@@ -157,13 +157,7 @@ function Container({
 
 	return (
 		<>
-			<ProtocolsChainsSearch
-				step={{
-					category: category || 'Home',
-					name: routeName,
-					route: 'categories'
-				}}
-			/>
+			<ProtocolsChainsSearch />
 			<div className="flex gap-2">
 				<h1 className="text-2xl font-medium -mb-5">{title}</h1>
 				{csvDownload ? (
