@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { BarChart } from 'echarts/charts'
+import { CanvasRenderer } from 'echarts/renderers'
+import { TooltipComponent, GridComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
 import { capitalize } from 'lodash'
@@ -7,6 +10,8 @@ import { useQuery } from '@tanstack/react-query'
 import { RowFilter } from '~/components/Filters/common/RowFilter'
 import { NETFLOWS_API } from '~/constants'
 import llamaLogo from '~/assets/logo_white_long.svg'
+
+echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
 
 interface INetflowChartProps {
 	data: Array<{
@@ -23,7 +28,10 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 
 	const { data = [] } = useQuery({
 		queryKey: ['netflowData', period],
-		queryFn: () => fetch(`${NETFLOWS_API}/${period}`).then((res) => res.json())
+		queryFn: () =>
+			fetch(`${NETFLOWS_API}/${period}`)
+				.then((res) => res.json())
+				.catch(() => [])
 	})
 
 	const { positiveData, negativeData, chains } = useMemo(() => {

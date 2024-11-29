@@ -8,7 +8,7 @@ import { fetchOverCacheJson } from '~/utils/perf'
 const fetch = fetchWithErrorLogging
 
 export const getBridges = () =>
-	fetch(BRIDGES_API + '/?includeChains=true')
+	fetch(BRIDGES_API + '?includeChains=true')
 		.then((r) => r.json())
 		.then(({ bridges, chains }) => ({
 			bridges,
