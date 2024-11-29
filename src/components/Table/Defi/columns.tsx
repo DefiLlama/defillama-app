@@ -1645,13 +1645,17 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		cell: ({ getValue, row }) => {
 			const TooltipContent = () => {
 				return (
-					<>
+					<span className="flex flex-col gap-1">
 						<span>{`Market Rate: ${row.original?.marketRate?.toFixed(4)}`}</span>
 						<span>{`Expected Rate: ${row.original?.expectedRate?.toFixed(4)}`}</span>
-					</>
+					</span>
 				)
 			}
-			return <Tooltip content={<TooltipContent />}>{getValue() ? formattedPercent(getValue()) : null}</Tooltip>
+			return (
+				<Tooltip content={<TooltipContent />} anchorStyles={{ justifyContent: 'flex-end' }}>
+					{getValue() ? formattedPercent(getValue()) : null}
+				</Tooltip>
+			)
 		},
 		meta: {
 			align: 'end',
@@ -1667,7 +1671,11 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			const TooltipContent = () => {
 				return <>{row.original.mcap ? <span>{`Market Cap: $${toK(row.original.mcap)}`}</span> : null}</>
 			}
-			return <Tooltip content={<TooltipContent />}>{(getValue() ?? null) as string | null}</Tooltip>
+			return (
+				<Tooltip content={<TooltipContent />} anchorStyles={{ justifyContent: 'flex-end' }}>
+					{(getValue() ?? null) as string | null}
+				</Tooltip>
+			)
 		},
 		meta: {
 			align: 'end'
