@@ -4,5 +4,6 @@ export enum ADAPTOR_TYPES {
 	AGGREGATORS = 'aggregators',
 	DERIVATIVES = 'derivatives',
 	DERIVATIVES_AGGREGATOR = 'derivatives-aggregator',
-	OPTIONS = 'options'
+	OPTIONS = 'options',
+	BRIDGE_AGGREGATORS = 'bridge-aggregators'
 }

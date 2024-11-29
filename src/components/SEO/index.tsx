@@ -63,7 +63,8 @@ export const SEO = ({
 			pageType === ADAPTOR_TYPES.AGGREGATORS ||
 			pageType === ADAPTOR_TYPES.DERIVATIVES ||
 			pageType === ADAPTOR_TYPES.DERIVATIVES_AGGREGATOR ||
-			pageType === ADAPTOR_TYPES.OPTIONS
+			pageType === ADAPTOR_TYPES.OPTIONS ||
+			pageType === ADAPTOR_TYPES.BRIDGE_AGGREGATORS
 		) {
 			valueHeader = '24h volume'
 		} else {

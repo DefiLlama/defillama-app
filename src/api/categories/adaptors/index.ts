@@ -9,7 +9,6 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
-import { getNFTCollectionEarnings } from '../nfts'
 import { ISettings } from '~/contexts/types'
 
 const fetch = fetchWithErrorLogging
@@ -31,12 +30,13 @@ export const getOverviewItem = (
 	type: string,
 	protocolName: string,
 	dataType?: string
-): Promise<ProtocolAdaptorSummaryResponse> =>
-	fetch(
+): Promise<ProtocolAdaptorSummaryResponse> => {
+	return fetch(
 		`${DIMENISIONS_SUMMARY_BASE_API}/${
 			type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
 		}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`
 	).then(handleFetchResponse)
+}
 export const getOverview = (
 	type: string,
 	chain?: string,

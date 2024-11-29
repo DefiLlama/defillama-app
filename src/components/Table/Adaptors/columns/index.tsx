@@ -33,6 +33,8 @@ export const getColumnsByType = (type: string, allChains?: boolean, isSimple?: b
 			return derivativesColumns(allChains)
 		case 'derivatives-aggregator':
 			return derivatesAggregatorColumns(allChains)
+		case 'bridge-aggregators':
+			return bridgeAggregatorsColumns(allChains)
 		default:
 			return volumesColumns(allChains)
 	}
@@ -120,6 +122,20 @@ export const derivatesAggregatorColumns = (allChains?: boolean): ColumnDef<IDexs
 	[
 		NameColumn('derivatives-aggregator', allChains),
 		allChains ? undefined : ChainsColumn('derivatives-aggregator'),
+		Change1dColumn,
+		Change7dColumn,
+		Change1mColumn,
+		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Open Interest', 'dailyOpenInterest', 'updated daily at 00:00UTC', undefined, 'Open Interest', true),
+		TotalAllTimeColumn('volume'),
+		allChains ? undefined : VolumeTVLColumn,
+		DominanceColumn
+	].filter((c) => c !== undefined)
+
+export const bridgeAggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('bridge-aggregators', allChains),
+		allChains ? undefined : ChainsColumn('bridge-aggregators'),
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,

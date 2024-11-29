@@ -324,7 +324,13 @@ interface ITitleProps {
 const TitleByType: React.FC<ITitleProps> = (props) => {
 	let title = capitalizeFirstLetter(props.type)
 	if (volumeTypes.includes(props.type)) {
-		title = `${title === 'Derivatives-aggregator' ? 'Derivatives Aggregator' : title} volume`
+		title = `${
+			title === 'Derivatives-aggregator'
+				? 'Derivatives Aggregator'
+				: title === 'Bridge-aggregators'
+				? 'Bridge Aggregators'
+				: title
+		} volume`
 	} else if (props.type === 'fees') {
 		if (props.chain === 'all') title = 'Ranking by fees'
 		else title = 'Ranking by fees and revenue'

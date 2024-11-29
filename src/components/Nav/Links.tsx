@@ -271,7 +271,8 @@ export const navLinks: ILinks = {
 			{ name: 'Perps (Chains)', path: '/derivatives/chains' },
 			{ name: 'Perp Aggregators', path: '/derivatives-aggregator', newTag: true },
 			{ name: 'Options', path: '/options' },
-			{ name: 'Options (Chains)', path: '/options/chains' }
+			{ name: 'Options (Chains)', path: '/options/chains' },
+			{ name: 'Bridge Aggregators', path: '/bridge-aggregators', newTag: true }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <Icon name="bar-chart" height={16} width={16} />

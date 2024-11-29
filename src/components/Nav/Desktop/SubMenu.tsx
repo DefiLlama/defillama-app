@@ -72,7 +72,8 @@ const isDexs = (pathname: string) =>
 	pathname.startsWith('/dex/') ||
 	pathname.startsWith('/aggregator') ||
 	pathname.startsWith('/derivatives') ||
-	pathname.startsWith('/options')
+	pathname.startsWith('/options') ||
+	pathname.startsWith('/bridge-aggregators')
 const isFees = (pathname: string) =>
 	pathname === '/fees' || pathname.startsWith('/fees/') || pathname.startsWith('/fee/')
 const isRaises = (pathname: string) => pathname.startsWith('/raises')
