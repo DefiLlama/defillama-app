@@ -46,7 +46,7 @@ const PageView = ({
 	barChartStacks
 }) => {
 	const [tab, setTab] = React.useState('breakdown')
-	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
+	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('weekly')
 
 	const inflowsData = groupDataByDays(inflowsChartData, groupBy, tokens, true)
 

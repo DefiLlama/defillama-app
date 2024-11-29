@@ -118,7 +118,7 @@ interface PageViewProps {
 }
 
 const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
-	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
+	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('weekly')
 	const tickers = ['Bitcoin', 'Ethereum']
 
 	const chartData = groupDataByDays(flows, groupBy, tickers, true)
