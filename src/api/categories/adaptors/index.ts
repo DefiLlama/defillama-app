@@ -146,7 +146,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const feesOrRevenueApi =
 		type === 'options'
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
-			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
+			: getAPIUrl(type, chain, true, true, 'dailyRevenue') + '&a=19'
 
 	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData, holdersRevenueData]: [
 		IGetOverviewResponseBody,
