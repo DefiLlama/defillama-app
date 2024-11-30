@@ -127,7 +127,7 @@ export const formatProtocolsData = ({
 						protocol.oraclesByChain[chain].includes(oracle)
 					)
 				} else {
-					if (DEFI_SETTINGS_KEYS.includes(sectionName)) {
+					if (DEFI_SETTINGS_KEYS.includes(sectionName) || sectionName === "excludeParent") {
 						p.extraTvl[sectionName] = protocol.chainTvls[sectionName]
 					}
 				}
