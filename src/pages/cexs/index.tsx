@@ -516,6 +516,12 @@ export const cexData: Array<ICex> = [
 		coinSymbol: 'HTB'
 	},
 	{
+		name: 'BiTomato',
+		slug: 'bitomato',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'CoinEx',
 		slug: 'coinex',
 		coin: 'CET',
