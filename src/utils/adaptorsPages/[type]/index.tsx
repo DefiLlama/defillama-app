@@ -50,7 +50,12 @@ const AllChainsDexs = (props: IOverviewContainerProps) => {
 	const isSimpleFees = router?.pathname?.includes('/fees/simple')
 
 	return (
-		<Layout title={`${capitalizeFirstLetter(props.type)} - DefiLlama`}>
+		<Layout
+			title={`${props.type
+				.split('-')
+				.map((x) => capitalizeFirstLetter(x))
+				.join(' ')} - DefiLlama`}
+		>
 			<SEO pageType={props.type} />
 			<OverviewContainer {...props} isSimpleFees={isSimpleFees} />
 		</Layout>

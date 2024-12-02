@@ -41,6 +41,7 @@ export interface Protocol {
 	treasury?: string
 	governanceID?: Array<string>
 	stablecoins?: Array<string>
+	deprecated?: boolean
 }
 
 // TODO cleanup

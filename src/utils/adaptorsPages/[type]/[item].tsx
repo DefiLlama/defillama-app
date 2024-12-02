@@ -3,7 +3,7 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getOverview, getOverviewItemPageData, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 import OverviewItemContainer from '~/containers/DexsAndFees/OverviewItem'
-import { standardizeProtocolName } from '~/utils'
+import { capitalizeFirstLetter, standardizeProtocolName } from '~/utils'
 import { volumeTypes } from '../utils'
 
 export type PageParams = {
@@ -66,7 +66,10 @@ export default function ProtocolItem({ protocolSummary, ...props }: InferGetStat
 	const type = volumeTypes.includes(protocolSummary.type) ? 'volume' : protocolSummary.type
 	return (
 		<OverviewItemContainer
-			title={`${protocolSummary.name} ${type} - DefiLlama`}
+			title={`${protocolSummary.name} ${`${type
+				.split('-')
+				.map((x) => capitalizeFirstLetter(x))
+				.join(' ')} - DefiLlama`} - DefiLlama`}
 			{...props}
 			protocolSummary={protocolSummary}
 		/>

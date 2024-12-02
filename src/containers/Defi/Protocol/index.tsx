@@ -220,7 +220,8 @@ function ProtocolContainer({
 		raises,
 		metrics,
 		isHourlyChart,
-		stablecoins
+		stablecoins,
+		deprecated
 	} = protocolData
 
 	const router = useRouter()
@@ -620,7 +621,7 @@ function ProtocolContainer({
 								<div className="flex flex-col p-5 col-span-1 w-full xl:w-[380px] text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 									<h1 className="flex items-center gap-2 text-xl">
 										<TokenLogo logo={tokenIconUrl(name)} size={24} />
-										<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
+										<span>{name ? name + `${deprecated ? '(*Deprecated*)' : ''}` + ' ' : ''}</span>
 										<span className="font-normal mr-auto">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
 										<Bookmark readableProtocolName={name} />
 									</h1>
