@@ -622,7 +622,7 @@ function ProtocolContainer({
 									<h1 className="flex items-center gap-2 text-xl">
 										<TokenLogo logo={tokenIconUrl(name)} size={24} />
 										<span className="font-bold">
-											{name ? name + `${deprecated ? '(*Deprecated*)' : ''}` + ' ' : ''}
+											{name ? name + `${deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
 										</span>
 										<span className="font-normal mr-auto">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
 										<Bookmark readableProtocolName={name} />
