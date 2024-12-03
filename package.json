@@ -11,7 +11,7 @@
 		"postinstall": "./scripts/postinstall.sh",
 		"dev": "next dev",
 		"format": "prettier --write .",
-		"build:metadata": "tsx ./build-protocols.ts",
+		"build:metadata": "tsx ./build-metadata.ts",
 		"build": "yarn run build:metadata & ./scripts/build.sh",
 		"start": "./scripts/prestart.sh & next start --keepAliveTimeout 61000",
 		"start:server": "./scripts/prestart.sh & node server.js",

@@ -1,6 +1,8 @@
 import { writeFileSync } from 'node:fs'
 import {
 	ACTIVE_USERS_API,
+	BRIDGES_API,
+	CHAINS_ASSETS,
 	DIMENISIONS_OVERVIEW_API,
 	HACKS_API,
 	LIQUIDITY_API,
@@ -14,8 +16,14 @@ import {
 export const slug = (tokenName = '') => tokenName?.toLowerCase().split(' ').join('-').split("'").join('')
 
 const finalProtocols = {}
+const finalChains = {}
 
 const tvlData = await fetch(PROTOCOLS_API).then((res) => res.json())
+
+for (const chain of tvlData.chains) {
+	finalChains[chain] = {}
+}
+
 const nameToId = {}
 for (const protocol of tvlData.protocols) {
 	nameToId[protocol.defillamaId] = protocol.name
@@ -104,7 +112,15 @@ for (const raise of raisesData.raises) {
 
 const activeUsersData = await fetch(ACTIVE_USERS_API).then((res) => res.json())
 for (const protocol in activeUsersData) {
-	if (!protocol.startsWith('chain')) {
+	if (protocol.startsWith('chain')) {
+		const chain = Object.keys(finalChains).find((chain) => protocol === `chain#${chain.toLowerCase()}`)
+		if (chain) {
+			finalChains[chain] = {
+				...finalChains[chain],
+				activeUsers: true
+			}
+		}
+	} else {
 		finalProtocols[protocol] = {
 			...finalProtocols[protocol],
 			activeUsers: true
@@ -245,4 +261,20 @@ for (const protocol of Object.entries(nameToId)) {
 
 writeFileSync(`./metadata/protocols.json`, JSON.stringify(finalProtocols, null, 4), 'utf8')
 
-console.log('finished building protocol metadata')
+const bridgesData = await fetch(`${BRIDGES_API}?includeChains=true`).then((res) => res.json())
+for (const chain of bridgesData.chains) {
+	if (finalChains[chain.name]) {
+		finalChains[chain.name] = { ...finalChains[chain.name], inflows: true }
+	}
+}
+
+const chainAssetsData = await fetch(CHAINS_ASSETS).then((res) => res.json())
+for (const chain in chainAssetsData) {
+	if (finalChains[chain]) {
+		finalChains[chain] = { ...finalChains[chain], chainAssets: true }
+	}
+}
+
+writeFileSync(`./metadata/chains.json`, JSON.stringify(finalChains, null, 4), 'utf8')
+
+console.log('finished building metadata')

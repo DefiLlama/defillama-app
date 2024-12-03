@@ -3,7 +3,6 @@ import mapValues from 'lodash/mapValues'
 import sumBy from 'lodash/sumBy'
 
 import {
-	ACTIVE_USERS_API,
 	CHAINS_API,
 	CHAINS_ASSETS,
 	CHAINS_ASSETS_CHART,
@@ -28,7 +27,7 @@ import { getPeggedDominance, getPercentChange } from '~/utils'
 import { buildPeggedChartData } from '~/utils/stablecoins'
 import { getPeggedOverviewPageData } from '../stablecoins'
 import { getBridgeOverviewPageData } from '../bridges'
-import { getOverview } from '../adaptors'
+import chainsMetadata from 'metadata/chains.json'
 
 const getExtraTvlCharts = (data) => {
 	const {
@@ -64,10 +63,7 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const [totalTrackedUserData, chainAssets, chainsConfig] = await Promise.all([
-		fetchWithErrorLogging(`${ACTIVE_USERS_API}`)
-			.then((res) => res.json())
-			.catch(() => null),
+	const [chainAssets, chainsConfig] = await Promise.all([
 		fetchWithErrorLogging(CHAINS_ASSETS)
 			.then((res) => res.json())
 			.catch(() => ({})),
@@ -77,7 +73,7 @@ export async function getChainPageData(chain?: string) {
 	])
 
 	const currentChain = chainsConfig.find((c) => c.name.toLowerCase() === chain?.toLowerCase())
-	const hasUserData = chain ? !!totalTrackedUserData?.[`chain#${chain?.toLowerCase()}`] : false
+	const hasUserData = chain ? chainsMetadata[chain]?.activeUsers : false
 
 	const [
 		chartData,
@@ -139,7 +135,7 @@ export async function getChainPageData(chain?: string) {
 				console.log('ERROR fetching stablecoins data of chain', chain, err)
 				return {}
 			}),
-		!chain || chain === 'All'
+		!chain || chain === 'All' || !chainsMetadata[chain]?.inflows
 			? null
 			: getBridgeOverviewPageData(chain)
 					.then((data) => {
@@ -181,7 +177,7 @@ export async function getChainPageData(chain?: string) {
 					`https://pro-api.coingecko.com/api/v3/coins/${currentChain?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 			  ).then((res) => res.json())
 			: {},
-		chain && chain !== 'All' && chainAssets[chain?.toLowerCase()]
+		chain && chain !== 'All' && chainsMetadata[chain]?.chainAssets
 			? await fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain}`)
 					.then((r) => r.json())
 					.catch(() => null)

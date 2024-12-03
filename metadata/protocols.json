@@ -357,7 +357,8 @@
     "179": {
         "tvl": true,
         "governance": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "181": {
         "tvl": true,
@@ -374,8 +375,7 @@
         "liquidity": true,
         "raises": true,
         "fees": true,
-        "revenue": true,
-        "emissions": true
+        "revenue": true
     },
     "183": {
         "tvl": true
@@ -709,8 +709,7 @@
         "liquidity": true
     },
     "259": {
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "260": {
         "tvl": true,
@@ -761,6 +760,7 @@
     },
     "271": {
         "tvl": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -840,7 +840,8 @@
         "raises": true
     },
     "287": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "289": {
         "tvl": true,
@@ -863,7 +864,8 @@
     },
     "293": {
         "tvl": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "294": {
         "tvl": true,
@@ -949,6 +951,7 @@
     "317": {
         "tvl": true,
         "governance": true,
+        "activeUsers": true,
         "dexs": true
     },
     "318": {
@@ -981,6 +984,7 @@
     },
     "324": {
         "tvl": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -1048,7 +1052,8 @@
     "338": {
         "tvl": true,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "339": {
         "tvl": true
@@ -1177,7 +1182,8 @@
         "dexs": true
     },
     "368": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "369": {
         "tvl": true
@@ -1253,6 +1259,7 @@
     "384": {
         "tvl": true,
         "governance": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -1279,7 +1286,8 @@
         "tvl": true
     },
     "391": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "392": {
         "tvl": true,
@@ -1296,7 +1304,8 @@
         "tvl": true
     },
     "396": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "397": {
         "tvl": true,
@@ -1434,7 +1443,8 @@
     },
     "429": {
         "tvl": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "430": {
         "tvl": true
@@ -1620,6 +1630,7 @@
     },
     "471": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "472": {
@@ -1628,7 +1639,8 @@
     },
     "473": {
         "tvl": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "474": {
         "tvl": true,
@@ -1681,7 +1693,8 @@
         "tvl": true
     },
     "486": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "487": {
         "tvl": true
@@ -1853,7 +1866,8 @@
         "tvl": true
     },
     "532": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "533": {
         "tvl": true,
@@ -1906,6 +1920,7 @@
     },
     "544": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "545": {
@@ -1965,6 +1980,7 @@
     },
     "561": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -2013,7 +2029,8 @@
         "tvl": true
     },
     "575": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "576": {
         "tvl": true,
@@ -2033,7 +2050,8 @@
         "tvl": true
     },
     "580": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "581": {
         "tvl": true,
@@ -2097,7 +2115,8 @@
         "tvl": true
     },
     "595": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "596": {
         "tvl": true,
@@ -2187,7 +2206,8 @@
     "619": {
         "tvl": true,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "620": {
         "tvl": true
@@ -2198,6 +2218,7 @@
     "622": {
         "tvl": true,
         "liquidity": true,
+        "hacks": true,
         "activeUsers": true,
         "fees": true,
         "revenue": true,
@@ -2232,7 +2253,8 @@
     },
     "629": {
         "tvl": true,
-        "raises": true
+        "raises": true,
+        "activeUsers": true
     },
     "630": {
         "tvl": true,
@@ -2352,6 +2374,7 @@
     },
     "659": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "660": {
@@ -2465,7 +2488,8 @@
         "tvl": true
     },
     "692": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "693": {
         "tvl": true,
@@ -2477,6 +2501,7 @@
     },
     "695": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "696": {
@@ -2521,6 +2546,7 @@
     },
     "707": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "709": {
@@ -2580,7 +2606,8 @@
         "tvl": true
     },
     "724": {
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "725": {
         "tvl": true
@@ -2625,7 +2652,8 @@
         "tvl": true
     },
     "737": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "738": {
         "tvl": true
@@ -2650,7 +2678,8 @@
         "revenue": true
     },
     "743": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "744": {
         "tvl": true
@@ -2842,7 +2871,8 @@
         "tvl": true
     },
     "817": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "818": {
         "tvl": true
@@ -3002,6 +3032,7 @@
     },
     "863": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "864": {
@@ -3014,7 +3045,8 @@
         "tvl": true
     },
     "867": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "868": {
         "tvl": true,
@@ -3072,6 +3104,7 @@
     },
     "883": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "884": {
@@ -3126,7 +3159,8 @@
         "tvl": true
     },
     "897": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "898": {
         "tvl": true
@@ -3287,6 +3321,7 @@
         "liquidity": true,
         "hacks": true,
         "raises": true,
+        "activeUsers": true,
         "dexs": true
     },
     "945": {
@@ -3389,8 +3424,7 @@
         "derivatives": true
     },
     "971": {
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "973": {
         "tvl": true,
@@ -3411,7 +3445,8 @@
         "tvl": true
     },
     "978": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "979": {
         "tvl": true
@@ -3464,10 +3499,12 @@
     "995": {
         "tvl": true,
         "governance": true,
-        "raises": true
+        "raises": true,
+        "activeUsers": true
     },
     "996": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "997": {
         "tvl": true
@@ -3544,7 +3581,8 @@
     },
     "1019": {
         "tvl": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "1020": {
         "tvl": true
@@ -3590,7 +3628,8 @@
         "liquidity": true
     },
     "1032": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "1033": {
         "tvl": true
@@ -3749,6 +3788,7 @@
     "1074": {
         "tvl": true,
         "hacks": true,
+        "activeUsers": true,
         "dexs": true
     },
     "1075": {
@@ -4357,6 +4397,7 @@
     },
     "1253": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "1255": {
@@ -4498,6 +4539,7 @@
     "1296": {
         "tvl": true,
         "liquidity": true,
+        "activeUsers": true,
         "dexs": true
     },
     "1297": {
@@ -4682,6 +4724,7 @@
     },
     "1351": {
         "tvl": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -4711,7 +4754,8 @@
         "liquidity": true
     },
     "1359": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "1360": {
         "tvl": true,
@@ -4724,10 +4768,12 @@
         "tvl": true
     },
     "1363": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "1364": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "1365": {
         "tvl": true
@@ -4970,8 +5016,7 @@
     "1433": {
         "tvl": true,
         "treasury": true,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "1434": {
         "tvl": true
@@ -5037,8 +5082,6 @@
         "tvl": true
     },
     "1451": {
-        "tvl": true,
-        "liquidity": true,
         "raises": true
     },
     "1452": {
@@ -5069,6 +5112,7 @@
         "tvl": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -5442,7 +5486,8 @@
         "tvl": true
     },
     "1570": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "1571": {
         "tvl": true,
@@ -5502,7 +5547,8 @@
         "tvl": true
     },
     "1586": {
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "1587": {
         "tvl": true
@@ -5669,7 +5715,8 @@
     "1631": {
         "tvl": true,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "1632": {
         "tvl": true,
@@ -5781,6 +5828,7 @@
     },
     "1662": {
         "tvl": true,
+        "liquidity": true,
         "raises": true
     },
     "1663": {
@@ -5946,7 +5994,8 @@
         "tvl": true
     },
     "1710": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "1711": {
         "tvl": true
@@ -6085,6 +6134,7 @@
     },
     "1750": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "1751": {
@@ -6174,7 +6224,8 @@
         "tvl": true
     },
     "1775": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "1776": {
         "tvl": true
@@ -6347,7 +6398,8 @@
         "activeUsers": true
     },
     "1824": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "1825": {
         "tvl": true,
@@ -6467,13 +6519,15 @@
         "tvl": true
     },
     "1857": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "1858": {
         "tvl": true
     },
     "1859": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "1860": {
@@ -6604,7 +6658,8 @@
         "revenue": true
     },
     "1893": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "1894": {
         "tvl": true
@@ -7135,7 +7190,8 @@
         "tvl": true
     },
     "2046": {
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "2047": {
         "tvl": true
@@ -7225,7 +7281,8 @@
     },
     "2071": {
         "tvl": true,
-        "raises": true
+        "raises": true,
+        "activeUsers": true
     },
     "2072": {
         "tvl": true
@@ -7315,7 +7372,8 @@
         "tvl": true
     },
     "2098": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2099": {
         "tvl": true,
@@ -7327,7 +7385,8 @@
     },
     "2101": {
         "tvl": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "2102": {
         "tvl": true,
@@ -7354,7 +7413,8 @@
         "tvl": true
     },
     "2108": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2109": {
         "tvl": true,
@@ -7397,6 +7457,7 @@
     },
     "2118": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "2119": {
@@ -7558,7 +7619,6 @@
     },
     "2159": {
         "tvl": true,
-        "liquidity": true,
         "raises": true
     },
     "2160": {
@@ -7650,16 +7710,19 @@
         "tvl": true
     },
     "2183": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2184": {
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "2185": {
         "tvl": true
     },
     "2186": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2187": {
         "tvl": true,
@@ -7673,7 +7736,8 @@
     },
     "2190": {
         "tvl": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2191": {
         "tvl": true
@@ -7733,6 +7797,7 @@
     "2203": {
         "tvl": true,
         "liquidity": true,
+        "activeUsers": true,
         "dexs": true
     },
     "2204": {
@@ -7924,7 +7989,8 @@
     },
     "2255": {
         "tvl": true,
-        "raises": true
+        "raises": true,
+        "activeUsers": true
     },
     "2256": {
         "tvl": true,
@@ -8002,6 +8068,7 @@
     "2283": {
         "tvl": true,
         "treasury": true,
+        "activeUsers": true,
         "dexs": true
     },
     "2284": {
@@ -8156,7 +8223,7 @@
     },
     "2331": {
         "tvl": true,
-        "liquidity": true
+        "activeUsers": true
     },
     "2332": {
         "tvl": true,
@@ -8191,7 +8258,8 @@
     "2339": {
         "tvl": true,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "2340": {
         "tvl": true
@@ -8228,6 +8296,7 @@
     "2350": {
         "tvl": true,
         "governance": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -8377,7 +8446,8 @@
         "hacks": true
     },
     "2389": {
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "2390": {
         "tvl": true
@@ -8414,7 +8484,8 @@
     "2397": {
         "tvl": true,
         "liquidity": true,
-        "raises": true
+        "raises": true,
+        "activeUsers": true
     },
     "2398": {
         "tvl": true
@@ -8425,6 +8496,7 @@
     "2400": {
         "tvl": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -9092,7 +9164,8 @@
         "tvl": true
     },
     "2577": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2578": {
         "tvl": true
@@ -9175,6 +9248,7 @@
     },
     "2603": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "2604": {
@@ -9218,8 +9292,7 @@
         "dexs": true
     },
     "2612": {
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "2613": {
         "tvl": true
@@ -9252,7 +9325,8 @@
     "2618": {
         "tvl": true,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "tvl": true
@@ -9309,7 +9383,8 @@
         "revenue": true
     },
     "2632": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2633": {
         "tvl": true,
@@ -9361,6 +9436,7 @@
     "2644": {
         "tvl": true,
         "raises": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -9445,6 +9521,7 @@
     },
     "2666": {
         "tvl": true,
+        "activeUsers": true,
         "derivatives": true
     },
     "2667": {
@@ -9505,6 +9582,7 @@
     "2685": {
         "tvl": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -9530,7 +9608,8 @@
         "tvl": true
     },
     "2691": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2692": {
         "tvl": true
@@ -9544,6 +9623,7 @@
     "2695": {
         "tvl": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
@@ -9620,7 +9700,8 @@
         "tvl": true
     },
     "2716": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2717": {
         "tvl": true
@@ -9640,7 +9721,8 @@
     },
     "2721": {
         "tvl": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2722": {
         "tvl": true
@@ -9783,7 +9865,8 @@
         "dexs": true
     },
     "2757": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2758": {
         "tvl": true
@@ -9803,10 +9886,12 @@
         "hacks": true
     },
     "2762": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2763": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2764": {
         "tvl": true
@@ -9843,6 +9928,7 @@
     },
     "2773": {
         "tvl": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -9861,7 +9947,8 @@
         "tvl": true
     },
     "2779": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2781": {
         "tvl": true
@@ -9910,6 +9997,7 @@
     "2795": {
         "tvl": true,
         "liquidity": true,
+        "hacks": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -9941,6 +10029,7 @@
     },
     "2803": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "2804": {
@@ -9954,7 +10043,8 @@
         "liquidity": true
     },
     "2806": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2807": {
         "tvl": true,
@@ -9976,7 +10066,8 @@
         "tvl": true
     },
     "2812": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2813": {
         "tvl": true
@@ -9998,7 +10089,8 @@
         "emissions": true
     },
     "2818": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2819": {
         "tvl": true
@@ -10007,7 +10099,8 @@
         "tvl": true
     },
     "2821": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2822": {
         "tvl": true
@@ -10101,7 +10194,8 @@
     },
     "2846": {
         "tvl": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2847": {
         "tvl": true,
@@ -10163,10 +10257,12 @@
     "2862": {
         "tvl": true,
         "hacks": true,
+        "activeUsers": true,
         "derivatives": true
     },
     "2863": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2864": {
         "tvl": true,
@@ -10176,7 +10272,8 @@
         "dexs": true
     },
     "2865": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2866": {
         "tvl": true
@@ -10198,7 +10295,8 @@
         "tvl": true
     },
     "2872": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2873": {
         "tvl": true
@@ -10233,7 +10331,8 @@
         "tvl": true
     },
     "2883": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2884": {
         "tvl": true
@@ -10245,6 +10344,7 @@
     "2886": {
         "tvl": true,
         "liquidity": true,
+        "activeUsers": true,
         "derivatives": true
     },
     "2887": {
@@ -10294,6 +10394,7 @@
     "2898": {
         "tvl": true,
         "treasury": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -10307,7 +10408,8 @@
         "derivatives": true
     },
     "2900": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2901": {
         "tvl": true
@@ -10317,7 +10419,8 @@
     },
     "2903": {
         "tvl": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "2904": {
         "tvl": true,
@@ -10337,6 +10440,7 @@
     },
     "2907": {
         "tvl": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -10376,11 +10480,13 @@
         "tvl": true
     },
     "2918": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2919": {
         "tvl": true,
-        "raises": true
+        "raises": true,
+        "activeUsers": true
     },
     "2920": {
         "tvl": true
@@ -10511,7 +10617,8 @@
         "raises": true
     },
     "2957": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2959": {
         "tvl": true,
@@ -10555,6 +10662,7 @@
     "2968": {
         "tvl": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "emissions": true
@@ -10563,7 +10671,8 @@
         "tvl": true
     },
     "2970": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "2971": {
         "tvl": true
@@ -11195,8 +11304,7 @@
         "liquidity": true
     },
     "3142": {
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "3143": {
         "tvl": true,
@@ -11901,6 +12009,7 @@
     },
     "3328": {
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -11969,6 +12078,7 @@
     },
     "3341": {
         "tvl": true,
+        "activeUsers": true,
         "dexs": true
     },
     "3342": {
@@ -12097,6 +12207,7 @@
     },
     "3373": {
         "tvl": true,
+        "liquidity": true,
         "derivatives": true
     },
     "3374": {
@@ -12230,6 +12341,7 @@
     },
     "3409": {
         "tvl": true,
+        "liquidity": true,
         "dexs": true
     },
     "3410": {
@@ -12295,6 +12407,7 @@
     "3429": {
         "tvl": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -12603,8 +12716,7 @@
     },
     "3510": {
         "tvl": true,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "3511": {
         "tvl": true
@@ -12726,7 +12838,8 @@
         "tvl": true
     },
     "3540": {
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "3541": {
         "tvl": true
@@ -12853,7 +12966,8 @@
         "tvl": true
     },
     "3582": {
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "3583": {
         "tvl": true
@@ -13066,8 +13180,7 @@
         "revenue": true
     },
     "3644": {
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "3645": {
         "tvl": true,
@@ -13665,7 +13778,8 @@
         "tvl": true
     },
     "3820": {
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "3821": {
         "tvl": true
@@ -13795,8 +13909,7 @@
         "liquidity": true
     },
     "3858": {
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "3859": {
         "tvl": true
@@ -14021,6 +14134,7 @@
     },
     "3921": {
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -14217,6 +14331,7 @@
     },
     "3977": {
         "tvl": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -15119,7 +15234,8 @@
         "derivatives": true
     },
     "4216": {
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "4217": {
         "tvl": true,
@@ -15356,6 +15472,7 @@
     },
     "4287": {
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -16030,9 +16147,6 @@
     "4481": {
         "tvl": true
     },
-    "4482": {
-        "tvl": true
-    },
     "4483": {
         "tvl": true
     },
@@ -16086,7 +16200,8 @@
         "tvl": true
     },
     "4498": {
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "4500": {
         "tvl": true,
@@ -16127,7 +16242,8 @@
         "tvl": true
     },
     "4509": {
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "4510": {
         "tvl": true,
@@ -17714,7 +17830,6 @@
         "tvl": true
     },
     "4966": {
-        "tvl": true,
         "hacks": true
     },
     "4967": {
@@ -18698,7 +18813,8 @@
         "revenue": true
     },
     "5234": {
-        "tvl": true
+        "tvl": true,
+        "raises": true
     },
     "5235": {
         "tvl": true
@@ -19086,7 +19202,8 @@
         "dexs": true
     },
     "5347": {
-        "tvl": true
+        "tvl": true,
+        "raises": true
     },
     "5348": {
         "tvl": true
@@ -19348,6 +19465,9 @@
         "revenue": true,
         "dexs": true
     },
+    "5424": {
+        "tvl": true
+    },
     "5425": {
         "tvl": true
     },
@@ -19390,7 +19510,10 @@
         "tvl": true
     },
     "5437": {
-        "tvl": true
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5438": {
         "tvl": true
@@ -19405,6 +19528,44 @@
         "tvl": true
     },
     "5442": {
+        "tvl": true
+    },
+    "5443": {
+        "tvl": true
+    },
+    "5444": {
+        "tvl": true
+    },
+    "5445": {
+        "tvl": true
+    },
+    "5446": {
+        "tvl": false,
+        "fees": true,
+        "revenue": true
+    },
+    "5447": {
+        "tvl": true,
+        "liquidity": true
+    },
+    "5448": {
+        "tvl": true
+    },
+    "5450": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true
+    },
+    "5451": {
+        "tvl": true
+    },
+    "5452": {
+        "tvl": false
+    },
+    "5453": {
+        "tvl": true
+    },
+    "5454": {
         "tvl": true
     },
     "5567": {
@@ -19502,12 +19663,12 @@
         "dexs": true,
         "emissions": true
     },
-    "parent#kamino-finance": {
+    "parent#morpho": {
         "tvl": true,
-        "liquidity": true,
+        "governance": true,
+        "raises": true,
         "fees": true,
-        "revenue": true,
-        "emissions": true
+        "revenue": true
     },
     "parent#compound-finance": {
         "tvl": true,
@@ -19518,12 +19679,12 @@
         "revenue": true,
         "emissions": true
     },
-    "parent#morpho": {
+    "parent#kamino-finance": {
         "tvl": true,
-        "governance": true,
-        "raises": true,
+        "liquidity": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "parent#venus-finance": {
         "tvl": true,
@@ -19552,11 +19713,6 @@
         "revenue": true,
         "emissions": true
     },
-    "parent#sanctum": {
-        "tvl": true,
-        "raises": true,
-        "dexs": true
-    },
     "parent#jupiter": {
         "tvl": true,
         "liquidity": true,
@@ -19572,6 +19728,18 @@
         "raises": true,
         "fees": true,
         "revenue": true
+    },
+    "parent#sanctum": {
+        "tvl": true,
+        "raises": true,
+        "dexs": true
+    },
+    "parent#kelp-dao": {
+        "tvl": true
+    },
+    "parent#hyperliquid": {
+        "tvl": true,
+        "derivatives": true
     },
     "parent#pancakeswap": {
         "tvl": true,
@@ -19592,19 +19760,12 @@
         "fees": true,
         "revenue": true
     },
-    "parent#hyperliquid": {
-        "tvl": true,
-        "derivatives": true
-    },
     "parent#lombard-finance": {
         "tvl": true
     },
     "parent#swell": {
         "tvl": true,
         "emissions": true
-    },
-    "parent#kelp-dao": {
-        "tvl": true
     },
     "parent#avalon-labs": {
         "tvl": true
@@ -19647,14 +19808,14 @@
         "dexs": true,
         "derivatives": true
     },
-    "parent#pulsex": {
-        "tvl": true,
-        "dexs": true
-    },
     "parent#fluid": {
         "tvl": true,
         "fees": true,
         "revenue": true,
+        "dexs": true
+    },
+    "parent#pulsex": {
+        "tvl": true,
         "dexs": true
     },
     "parent#gmx": {
@@ -19678,10 +19839,6 @@
         "fees": true,
         "revenue": true
     },
-    "parent#stakestone": {
-        "tvl": true,
-        "raises": true
-    },
     "parent#benqi": {
         "tvl": true,
         "treasury": true,
@@ -19690,11 +19847,21 @@
         "revenue": true,
         "emissions": true
     },
+    "parent#sun": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
     "parent#uncx-network": {
         "tvl": true,
         "liquidity": true,
         "fees": true,
         "revenue": true
+    },
+    "parent#stakestone": {
+        "tvl": true,
+        "raises": true
     },
     "parent#frax-finance": {
         "tvl": true,
@@ -19709,18 +19876,18 @@
     "parent#marginfi": {
         "tvl": true
     },
-    "parent#sun": {
+    "parent#navi-protocol": {
         "tvl": true,
+        "raises": true,
         "fees": true,
         "revenue": true,
-        "dexs": true
+        "aggregator": true,
+        "emissions": true
     },
-    "parent#bedrock": {
+    "parent#suilend-protocol": {
         "tvl": true,
-        "raises": true
-    },
-    "parent#solayer": {
-        "tvl": true
+        "fees": true,
+        "revenue": true
     },
     "parent#lista-dao": {
         "tvl": true,
@@ -19728,10 +19895,9 @@
         "fees": true,
         "revenue": true
     },
-    "parent#suilend-protocol": {
+    "parent#bedrock": {
         "tvl": true,
-        "fees": true,
-        "revenue": true
+        "raises": true
     },
     "parent#stargate-finance": {
         "tvl": true,
@@ -19751,13 +19917,8 @@
         "derivatives": true,
         "emissions": true
     },
-    "parent#navi-protocol": {
-        "tvl": true,
-        "raises": true,
-        "fees": true,
-        "revenue": true,
-        "aggregator": true,
-        "emissions": true
+    "parent#solayer": {
+        "tvl": true
     },
     "parent#vvs-finance": {
         "tvl": true,
@@ -19766,10 +19927,10 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#tonstakers": {
+    "parent#trufin-protocol": {
         "tvl": true
     },
-    "parent#trufin-protocol": {
+    "parent#tonstakers": {
         "tvl": true
     },
     "parent#cetus": {
@@ -19779,9 +19940,6 @@
         "dexs": true,
         "aggregator": true,
         "emissions": true
-    },
-    "parent#echo-protocol": {
-        "tvl": true
     },
     "parent#synthetix": {
         "tvl": true,
@@ -19793,18 +19951,15 @@
         "derivatives": true,
         "emissions": true
     },
+    "parent#echo-protocol": {
+        "tvl": true
+    },
     "parent#yearn": {
         "tvl": true,
         "governance": true,
         "treasury": true,
         "liquidity": true,
         "emissions": true
-    },
-    "parent#origin-defi": {
-        "tvl": true,
-        "governance": true,
-        "fees": true,
-        "revenue": true
     },
     "parent#sushi": {
         "tvl": true,
@@ -19819,13 +19974,25 @@
         "aggregator": true,
         "emissions": true
     },
+    "parent#origin-defi": {
+        "tvl": true,
+        "governance": true,
+        "fees": true,
+        "revenue": true
+    },
+    "parent#bouncebit-cedefi": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true
+    },
+    "parent#folks-finance": {
+        "tvl": true,
+        "raises": true
+    },
     "parent#cian-protocol": {
         "tvl": true
     },
     "parent#lorenzo-protocol": {
-        "tvl": true
-    },
-    "parent#bouncebit-cedefi": {
         "tvl": true
     },
     "parent#scallop": {
@@ -19835,21 +20002,18 @@
         "revenue": true,
         "aggregator": true
     },
+    "parent#meta-pool": {
+        "tvl": true
+    },
     "parent#overnight-finance": {
         "tvl": true,
         "emissions": true
     },
-    "parent#meta-pool": {
+    "parent#neopin": {
         "tvl": true
     },
     "parent#meteora": {
         "tvl": true,
-        "dexs": true
-    },
-    "parent#merchant-moe": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
         "dexs": true
     },
     "parent#thala-labs": {
@@ -19860,18 +20024,24 @@
         "dexs": true,
         "emissions": true
     },
+    "parent#nostra": {
+        "tvl": true,
+        "dexs": true
+    },
     "parent#thruster": {
         "tvl": true,
         "fees": true,
         "revenue": true,
         "dexs": true
     },
-    "parent#nostra": {
-        "tvl": true,
-        "dexs": true
-    },
     "parent#ring-protocol": {
         "tvl": true
+    },
+    "parent#merchant-moe": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#particle": {
         "tvl": true
@@ -19886,17 +20056,6 @@
         "liquidity": true,
         "emissions": true
     },
-    "parent#folks-finance": {
-        "tvl": true,
-        "raises": true
-    },
-    "parent#tranchess": {
-        "tvl": true,
-        "governance": true,
-        "treasury": true,
-        "liquidity": true,
-        "emissions": true
-    },
     "parent#izumi-finance": {
         "tvl": true,
         "governance": true,
@@ -19904,10 +20063,12 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#superstate": {
+    "parent#tranchess": {
         "tvl": true,
-        "fees": true,
-        "revenue": true
+        "governance": true,
+        "treasury": true,
+        "liquidity": true,
+        "emissions": true
     },
     "parent#camelot": {
         "tvl": true,
@@ -19917,15 +20078,25 @@
         "dexs": true,
         "emissions": true
     },
+    "parent#astherus": {
+        "tvl": true,
+        "raises": true
+    },
+    "parent#superstate": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true
+    },
+    "parent#hatom-protocol": {
+        "tvl": true,
+        "liquidity": true
+    },
     "parent#maple-finance": {
         "tvl": true,
         "treasury": true,
         "liquidity": true,
         "fees": true,
         "revenue": true
-    },
-    "parent#anzen-finance": {
-        "tvl": true
     },
     "parent#trader-joe": {
         "tvl": true,
@@ -19938,19 +20109,11 @@
         "dexs": true,
         "emissions": true
     },
+    "parent#anzen-finance": {
+        "tvl": true
+    },
     "parent#cygnus-finance": {
         "tvl": true
-    },
-    "parent#astherus": {
-        "tvl": true,
-        "raises": true
-    },
-    "parent#neopin": {
-        "tvl": true
-    },
-    "parent#hatom-protocol": {
-        "tvl": true,
-        "liquidity": true
     },
     "parent#arrakis-finance": {
         "tvl": true,
@@ -19965,6 +20128,10 @@
         "dexs": true,
         "derivatives": true
     },
+    "parent#aftermath-finance": {
+        "tvl": true,
+        "aggregator": true
+    },
     "parent#velodrome": {
         "tvl": true,
         "governance": true,
@@ -19975,13 +20142,10 @@
         "dexs": true,
         "emissions": true
     },
-    "parent#aftermath-finance": {
+    "parent#stake.link": {
         "tvl": true,
-        "aggregator": true
-    },
-    "parent#wemix.fi": {
-        "tvl": true,
-        "dexs": true
+        "governance": true,
+        "liquidity": true
     },
     "parent#lyra": {
         "tvl": true,
@@ -19993,29 +20157,42 @@
         "derivatives": true,
         "options": true
     },
-    "parent#apex-protocol": {
+    "parent#wemix.fi": {
         "tvl": true,
+        "dexs": true
+    },
+    "parent#blur": {
+        "tvl": true,
+        "liquidity": true,
+        "nfts": true,
+        "activeUsers": true,
+        "fees": true,
+        "revenue": true,
+        "emissions": true
+    },
+    "parent#inverse-finance": {
+        "tvl": true,
+        "governance": true,
+        "expenses": true,
         "treasury": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true,
-        "derivatives": true
+        "revenue": true
     },
     "parent#contango": {
         "tvl": true,
         "treasury": true,
         "derivatives": true
     },
+    "parent#bancor": {
+        "tvl": true,
+        "governance": true,
+        "activeUsers": true,
+        "dexs": true
+    },
     "parent#idex": {
         "tvl": true,
         "derivatives": true
-    },
-    "parent#euler": {
-        "tvl": true,
-        "governance": true,
-        "treasury": true,
-        "liquidity": true,
-        "emissions": true
     },
     "parent#quickswap": {
         "tvl": true,
@@ -20028,11 +20205,19 @@
         "derivatives": true,
         "emissions": true
     },
-    "parent#aevo": {
+    "parent#euler": {
         "tvl": true,
+        "governance": true,
+        "treasury": true,
         "liquidity": true,
-        "derivatives": true,
-        "options": true
+        "emissions": true
+    },
+    "parent#benddao": {
+        "tvl": true,
+        "governance": true,
+        "treasury": true,
+        "liquidity": true,
+        "emissions": true
     },
     "parent#thena": {
         "tvl": true,
@@ -20044,46 +20229,13 @@
         "dexs": true,
         "derivatives": true
     },
-    "parent#stake.link": {
+    "parent#apex-protocol": {
         "tvl": true,
-        "governance": true,
-        "liquidity": true
-    },
-    "parent#blur": {
-        "tvl": true,
-        "liquidity": true,
-        "nfts": true,
-        "activeUsers": true,
-        "fees": true,
-        "revenue": true,
-        "emissions": true
-    },
-    "parent#bancor": {
-        "tvl": true,
-        "governance": true,
-        "activeUsers": true,
-        "dexs": true
-    },
-    "parent#inverse-finance": {
-        "tvl": true,
-        "governance": true,
-        "expenses": true,
         "treasury": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true
-    },
-    "parent#synfutures": {
-        "tvl": true,
-        "fees": true,
         "revenue": true,
         "derivatives": true
-    },
-    "parent#dragon-swap": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
     },
     "parent#abracadabra": {
         "tvl": true,
@@ -20094,24 +20246,29 @@
         "revenue": true,
         "emissions": true
     },
+    "parent#aevo": {
+        "tvl": true,
+        "liquidity": true,
+        "derivatives": true,
+        "options": true
+    },
     "parent#sovryn": {
         "tvl": true,
         "governance": true,
         "liquidity": true
     },
+    "parent#synfutures": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "derivatives": true
+    },
     "parent#pando": {
         "tvl": true,
         "dexs": true
     },
-    "parent#tangible": {
+    "parent#dragon-swap": {
         "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "emissions": true
-    },
-    "parent#allbridge": {
-        "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -20119,15 +20276,42 @@
     "parent#hydro-protocol": {
         "tvl": true
     },
-    "parent#zklend-finance": {
-        "tvl": true
+    "parent#capybara-exchange": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true,
+        "derivatives": true
     },
-    "parent#benddao": {
+    "parent#yield-yak": {
+        "tvl": true,
+        "governance": true,
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "aggregator": true
+    },
+    "parent#tangible": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "emissions": true
+    },
+    "parent#beethoven-x": {
         "tvl": true,
         "governance": true,
         "treasury": true,
         "liquidity": true,
-        "emissions": true
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#allbridge": {
+        "tvl": true,
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#alien-base": {
         "tvl": true,
@@ -20138,22 +20322,14 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#yield-yak": {
+    "parent#dragonswap": {
         "tvl": true,
-        "governance": true,
-        "liquidity": true,
-        "fees": true,
-        "revenue": true,
-        "aggregator": true
-    },
-    "parent#beethoven-x": {
-        "tvl": true,
-        "governance": true,
-        "treasury": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
+    },
+    "parent#zklend-finance": {
+        "tvl": true
     },
     "parent#alpaca-finance": {
         "tvl": true,
@@ -20165,9 +20341,8 @@
         "liquidity": true,
         "dexs": true
     },
-    "parent#deri": {
+    "parent#parcl": {
         "tvl": true,
-        "treasury": true,
         "liquidity": true
     },
     "parent#woofi": {
@@ -20179,8 +20354,9 @@
         "dexs": true,
         "emissions": true
     },
-    "parent#dragonswap": {
+    "parent#pharaoh-exchange": {
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -20189,32 +20365,20 @@
         "tvl": true,
         "dexs": true
     },
+    "parent#powercity": {
+        "tvl": true
+    },
+    "parent#deri": {
+        "tvl": true,
+        "treasury": true,
+        "liquidity": true
+    },
     "parent#kinetix": {
         "tvl": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
         "derivatives": true
-    },
-    "parent#parcl": {
-        "tvl": true,
-        "liquidity": true
-    },
-    "parent#powercity": {
-        "tvl": true
-    },
-    "parent#capybara-exchange": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true,
-        "derivatives": true
-    },
-    "parent#pharaoh-exchange": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
     },
     "parent#spookyswap": {
         "tvl": true,
@@ -20225,26 +20389,12 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#aptin-finance": {
-        "tvl": true
-    },
     "parent#h2-finance": {
         "tvl": true,
         "dexs": true
     },
-    "parent#helix": {
-        "tvl": true,
-        "dexs": true,
-        "derivatives": true
-    },
-    "parent#mux-protocol": {
-        "tvl": true,
-        "governance": true,
-        "liquidity": true,
-        "fees": true,
-        "revenue": true,
-        "derivatives": true,
-        "aggregatorDerivatives": true
+    "parent#aptin-finance": {
+        "tvl": true
     },
     "parent#dodo": {
         "tvl": true,
@@ -20263,6 +20413,23 @@
         "liquidity": true,
         "emissions": true
     },
+    "parent#mux-protocol": {
+        "tvl": true,
+        "governance": true,
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "derivatives": true,
+        "aggregatorDerivatives": true
+    },
+    "parent#sundaeswap": {
+        "tvl": true,
+        "dexs": true
+    },
+    "parent#klayswap": {
+        "tvl": true,
+        "dexs": true
+    },
     "parent#orderly-network": {
         "tvl": true,
         "liquidity": true,
@@ -20271,38 +20438,26 @@
         "dexs": true,
         "derivatives": true
     },
-    "parent#flowx-finance": {
+    "parent#mimo": {
         "tvl": true,
-        "dexs": true,
-        "aggregator": true
-    },
-    "parent#sundaeswap": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#juicebox": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true
-    },
-    "parent#lynex": {
-        "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
     },
-    "parent#notional": {
+    "parent#helix": {
         "tvl": true,
-        "governance": true,
-        "treasury": true,
-        "liquidity": true
+        "dexs": true,
+        "derivatives": true
     },
     "parent#equalizer": {
         "tvl": true,
         "liquidity": true,
         "fees": true,
         "revenue": true,
+        "dexs": true
+    },
+    "parent#increment-finance": {
+        "tvl": true,
         "dexs": true
     },
     "parent#bluefin": {
@@ -20312,56 +20467,40 @@
         "dexs": true,
         "derivatives": true
     },
-    "parent#bonsaidao-ecosystem": {
+    "parent#gondi": {
         "tvl": true,
-        "governance": true,
-        "treasury": true,
-        "liquidity": true
+        "raises": true
     },
-    "parent#9inch": {
+    "parent#clearpool": {
+        "tvl": true,
+        "liquidity": true,
+        "emissions": true
+    },
+    "parent#lynex": {
+        "tvl": true,
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#flowx-finance": {
+        "tvl": true,
+        "dexs": true,
+        "aggregator": true
+    },
+    "parent#juicebox": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true
+    },
+    "parent#tenderize": {
         "tvl": true
-    },
-    "parent#hiveswap": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#increment-finance": {
-        "tvl": true,
-        "dexs": true
     },
     "parent#pooltogether": {
         "tvl": true,
         "governance": true,
         "treasury": true,
         "liquidity": true
-    },
-    "parent#tenderize": {
-        "tvl": true
-    },
-    "parent#deepbook": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#native": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#mimo": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#steakhut-finance": {
-        "tvl": true,
-        "liquidity": true
-    },
-    "parent#caviarnine": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true,
-        "aggregator": true
     },
     "parent#maverick-protocol": {
         "tvl": true,
@@ -20371,35 +20510,73 @@
         "dexs": true,
         "emissions": true
     },
+    "parent#hiveswap": {
+        "tvl": true,
+        "dexs": true
+    },
+    "parent#parax": {
+        "tvl": true
+    },
+    "parent#native": {
+        "tvl": true,
+        "dexs": true
+    },
+    "parent#notional": {
+        "tvl": true,
+        "governance": true,
+        "treasury": true,
+        "liquidity": true
+    },
+    "parent#swapscanner": {
+        "tvl": true
+    },
+    "parent#fathom": {
+        "tvl": true,
+        "dexs": true
+    },
+    "parent#buttonwood": {
+        "tvl": true
+    },
+    "parent#caviarnine": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true,
+        "aggregator": true
+    },
+    "parent#steakhut-finance": {
+        "tvl": true,
+        "liquidity": true
+    },
+    "parent#bonsaidao-ecosystem": {
+        "tvl": true,
+        "governance": true,
+        "treasury": true,
+        "liquidity": true
+    },
+    "parent#zenlink": {
+        "tvl": true
+    },
+    "parent#deepbook": {
+        "tvl": true,
+        "dexs": true
+    },
     "parent#metronome": {
         "tvl": true,
         "governance": true,
         "treasury": true,
         "liquidity": true
     },
-    "parent#parax": {
-        "tvl": true
-    },
-    "parent#pstake-finance": {
-        "tvl": true,
-        "governance": true,
-        "liquidity": true
-    },
-    "parent#buttonwood": {
+    "parent#9inch": {
         "tvl": true
     },
     "parent#btcfi": {
         "tvl": true
     },
-    "parent#prisma": {
+    "parent#stellaswap": {
         "tvl": true,
         "liquidity": true,
-        "fees": true,
-        "revenue": true,
-        "emissions": true
-    },
-    "parent#zenlink": {
-        "tvl": true
+        "dexs": true
     },
     "parent#lifinity": {
         "tvl": true,
@@ -20408,10 +20585,11 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#ribbon-finance": {
+    "parent#messina.one": {
+        "tvl": true
+    },
+    "parent#prisma": {
         "tvl": true,
-        "governance": true,
-        "treasury": true,
         "liquidity": true,
         "fees": true,
         "revenue": true,
@@ -20422,14 +20600,25 @@
         "governance": true,
         "liquidity": true
     },
-    "parent#stellaswap": {
+    "parent#ribbon-finance": {
         "tvl": true,
+        "governance": true,
+        "treasury": true,
         "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "emissions": true
+    },
+    "parent#balanceddao": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
         "dexs": true
     },
-    "parent#klayswap": {
+    "parent#pstake-finance": {
         "tvl": true,
-        "dexs": true
+        "governance": true,
+        "liquidity": true
     },
     "parent#lybra-finance": {
         "tvl": true,
@@ -20441,9 +20630,13 @@
     "parent#kujira-protocol": {
         "tvl": true
     },
-    "parent#gondi": {
+    "parent#biswap": {
         "tvl": true,
-        "raises": true
+        "governance": true,
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#factor": {
         "tvl": true,
@@ -20457,10 +20650,8 @@
         "fees": true,
         "revenue": true
     },
-    "parent#biswap": {
+    "parent#arthswap": {
         "tvl": true,
-        "governance": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -20473,27 +20664,11 @@
         "dexs": true,
         "derivatives": true
     },
-    "parent#balanceddao": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
     "parent#macaron": {
         "tvl": true,
         "dexs": true
     },
-    "parent#fathom": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#arthswap": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#messina.one": {
+    "parent#nimbora": {
         "tvl": true
     },
     "parent#apeswap": {
@@ -20505,16 +20680,13 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#nimbora": {
-        "tvl": true
-    },
-    "parent#blend": {
-        "tvl": true
-    },
     "parent#typus-finance": {
         "tvl": true,
         "treasury": true,
         "options": true
+    },
+    "parent#lisa-finance": {
+        "tvl": true
     },
     "parent#fulcrom": {
         "tvl": true,
@@ -20524,12 +20696,19 @@
         "dexs": true,
         "derivatives": true
     },
+    "parent#blend": {
+        "tvl": true
+    },
+    "parent#shade-protocol": {
+        "tvl": true,
+        "liquidity": true
+    },
     "parent#rabbitx-fusion": {
         "tvl": true,
         "liquidity": true,
         "derivatives": true
     },
-    "parent#lisa-finance": {
+    "parent#dojoswap": {
         "tvl": true
     },
     "parent#spool-protocol": {
@@ -20537,21 +20716,11 @@
         "governance": true,
         "treasury": true
     },
-    "parent#nile-exchange": {
+    "parent#sparkdex": {
         "tvl": true,
         "fees": true,
         "revenue": true,
         "dexs": true
-    },
-    "parent#swapscanner": {
-        "tvl": true
-    },
-    "parent#dojoswap": {
-        "tvl": true
-    },
-    "parent#shade-protocol": {
-        "tvl": true,
-        "liquidity": true
     },
     "parent#bluemove": {
         "tvl": true,
@@ -20565,33 +20734,8 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#sparkdex": {
+    "parent#nile-exchange": {
         "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#ipor": {
-        "tvl": true,
-        "governance": true,
-        "treasury": true,
-        "liquidity": true,
-        "derivatives": true,
-        "emissions": true
-    },
-    "parent#level-finance": {
-        "tvl": true,
-        "governance": true,
-        "treasury": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true,
-        "derivatives": true,
-        "emissions": true
-    },
-    "parent#solidly-labs": {
-        "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -20603,10 +20747,34 @@
     "parent#white-whale": {
         "tvl": true
     },
+    "parent#ipor": {
+        "tvl": true,
+        "governance": true,
+        "treasury": true,
+        "liquidity": true,
+        "derivatives": true,
+        "emissions": true
+    },
+    "parent#magicsea": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
     "parent#temple-dao": {
         "tvl": true,
         "liquidity": true,
         "dexs": true
+    },
+    "parent#solidly-labs": {
+        "tvl": true,
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#arcadia-finance": {
+        "tvl": true
     },
     "parent#zkswap-finance": {
         "tvl": true,
@@ -20614,6 +20782,17 @@
         "revenue": true,
         "dexs": true,
         "emissions": true
+    },
+    "parent#tetu": {
+        "tvl": true,
+        "governance": true,
+        "liquidity": true,
+        "dexs": true
+    },
+    "parent#fenix-finance": {
+        "tvl": true,
+        "raises": true,
+        "dexs": true
     },
     "parent#hercules": {
         "tvl": true,
@@ -20626,20 +20805,15 @@
     "parent#opyn": {
         "tvl": true
     },
-    "parent#tetu": {
+    "parent#level-finance": {
         "tvl": true,
         "governance": true,
-        "liquidity": true,
-        "dexs": true
-    },
-    "parent#arcadia-finance": {
-        "tvl": true
-    },
-    "parent#tropykus-finance": {
-        "tvl": true
-    },
-    "parent#metastreet": {
-        "tvl": true
+        "treasury": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true,
+        "derivatives": true,
+        "emissions": true
     },
     "parent#sphere": {
         "tvl": true,
@@ -20647,20 +20821,97 @@
         "expenses": true,
         "liquidity": true
     },
+    "parent#metastreet": {
+        "tvl": true
+    },
+    "parent#tropykus-finance": {
+        "tvl": true
+    },
+    "parent#velocimeter": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
     "parent#polynomial-protocol": {
         "tvl": true,
         "raises": true,
         "derivatives": true
     },
-    "parent#fenix-finance": {
+    "parent#gammaswaplabs": {
         "tvl": true,
-        "raises": true,
         "dexs": true
     },
     "parent#lodestar-finance": {
         "tvl": true,
         "governance": true,
         "liquidity": true
+    },
+    "parent#gullnetwork": {
+        "tvl": true,
+        "raises": true
+    },
+    "parent#hadouken-finance": {
+        "tvl": true,
+        "dexs": true
+    },
+    "parent#swaap": {
+        "tvl": true,
+        "dexs": true
+    },
+    "parent#charm-finance": {
+        "tvl": true
+    },
+    "parent#trado-finance": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "derivatives": true
+    },
+    "parent#kim-exchange": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#mm-finance": {
+        "tvl": true,
+        "governance": true,
+        "activeUsers": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#taiga-protocol": {
+        "tvl": true
+    },
+    "parent#inception": {
+        "tvl": true
+    },
+    "parent#bracket-protocol": {
+        "tvl": true
+    },
+    "parent#compx": {
+        "tvl": true
+    },
+    "parent#teahouse-finance": {
+        "tvl": true
+    },
+    "parent#orchai": {
+        "tvl": true,
+        "liquidity": true
+    },
+    "parent#friend-tech": {
+        "tvl": true,
+        "liquidity": true,
+        "fees": true,
+        "revenue": true
+    },
+    "parent#satori-finance": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "derivatives": true
     },
     "parent#baseswap": {
         "tvl": true,
@@ -20672,93 +20923,14 @@
         "dexs": true,
         "emissions": true
     },
-    "parent#gullnetwork": {
-        "tvl": true,
-        "raises": true
-    },
-    "parent#swaap": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#charm-finance": {
-        "tvl": true
-    },
-    "parent#kim-exchange": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
     "parent#timeswap": {
-        "tvl": true
-    },
-    "parent#mm-finance": {
-        "tvl": true,
-        "governance": true,
-        "activeUsers": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#inception": {
-        "tvl": true
-    },
-    "parent#nuri-exchange": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#hadouken-finance": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#bracket-protocol": {
-        "tvl": true
-    },
-    "parent#teahouse-finance": {
-        "tvl": true
-    },
-    "parent#magicsea": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#friend-tech": {
-        "tvl": true,
-        "liquidity": true,
-        "fees": true,
-        "revenue": true
-    },
-    "parent#gammaswaplabs": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#levvy-finance": {
         "tvl": true
     },
     "parent#ocelex": {
         "tvl": true
     },
-    "parent#satori-finance": {
+    "parent#algofi": {
         "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "derivatives": true
-    },
-    "parent#taiga-protocol": {
-        "tvl": true
-    },
-    "parent#oath-foundation": {
-        "tvl": true,
-        "liquidity": true
-    },
-    "parent#guru-network-dao": {
-        "tvl": true,
-        "treasury": true,
-        "fees": true,
-        "revenue": true,
         "dexs": true
     },
     "parent#pepeteam": {
@@ -20766,12 +20938,21 @@
         "fees": true,
         "revenue": true
     },
-    "parent#orchai": {
+    "parent#oath-foundation": {
         "tvl": true,
         "liquidity": true
     },
-    "parent#compx": {
-        "tvl": true
+    "parent#timeless": {
+        "tvl": true,
+        "governance": true,
+        "liquidity": true
+    },
+    "parent#spiritswap": {
+        "tvl": true,
+        "governance": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#koi-finance": {
         "tvl": true,
@@ -20780,42 +20961,31 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#trado-finance": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "derivatives": true
-    },
-    "parent#timeless": {
-        "tvl": true,
-        "governance": true,
-        "liquidity": true
-    },
     "parent#hummus-exchange": {
         "tvl": true,
         "liquidity": true,
         "dexs": true
     },
-    "parent#delv": {
-        "tvl": true
-    },
-    "parent#paraluni": {
-        "tvl": true
-    },
-    "parent#ktx.finance": {
+    "parent#guru-network-dao": {
         "tvl": true,
+        "treasury": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "derivatives": true
+        "dexs": true
     },
-    "parent#bulbaswap": {
+    "parent#avely-finance": {
+        "tvl": true
+    },
+    "parent#nuri-exchange": {
         "tvl": true,
         "fees": true,
         "revenue": true,
         "dexs": true
     },
-    "parent#claystack": {
+    "parent#interlay": {
+        "tvl": true
+    },
+    "parent#paraluni": {
         "tvl": true
     },
     "parent#ramses-exchange": {
@@ -20825,56 +20995,50 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#interlay": {
+    "parent#delv": {
+        "tvl": true
+    },
+    "parent#claystack": {
+        "tvl": true
+    },
+    "parent#ociswap": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#bulbaswap": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#ktx.finance": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true,
+        "derivatives": true
+    },
+    "parent#levvy-finance": {
         "tvl": true
     },
     "parent#marginx": {
         "tvl": true,
         "dexs": true
     },
-    "parent#algofi": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#radiant": {
-        "tvl": true,
-        "governance": true,
-        "liquidity": true,
-        "raises": true,
-        "activeUsers": true,
-        "fees": true,
-        "revenue": true,
-        "emissions": true
-    },
     "parent#ajna": {
         "tvl": true
     },
-    "parent#velocimeter": {
+    "parent#bmx": {
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true
+        "dexs": true,
+        "derivatives": true
     },
     "parent#fusionx-finance": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#spiritswap": {
-        "tvl": true,
-        "governance": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#pearlfi": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#ociswap": {
         "tvl": true,
         "fees": true,
         "revenue": true,
@@ -20886,16 +21050,20 @@
         "treasury": true,
         "liquidity": true
     },
-    "parent#bmx": {
+    "parent#orion-protocol": {
         "tvl": true,
         "liquidity": true,
+        "aggregator": true
+    },
+    "parent#radiant": {
+        "tvl": true,
+        "governance": true,
+        "liquidity": true,
+        "raises": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "derivatives": true
-    },
-    "parent#adrastea": {
-        "tvl": true
+        "emissions": true
     },
     "parent#dopex": {
         "tvl": true,
@@ -20906,29 +21074,13 @@
         "options": true,
         "emissions": true
     },
-    "parent#orion-protocol": {
-        "tvl": true,
-        "liquidity": true,
-        "aggregator": true
-    },
-    "parent#cream-finance": {
-        "tvl": true,
-        "governance": true,
-        "liquidity": true
+    "parent#enosys": {
+        "tvl": true
     },
     "parent#planet": {
         "tvl": true,
         "governance": true,
         "dexs": true
-    },
-    "parent#avely-finance": {
-        "tvl": true
-    },
-    "parent#bitswap-bb": {
-        "tvl": true
-    },
-    "parent#astarter": {
-        "tvl": true
     },
     "parent#eddyfinance": {
         "tvl": true,
@@ -20936,9 +21088,29 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#beta-finance": {
+    "parent#cream-finance": {
         "tvl": true,
+        "governance": true,
         "liquidity": true
+    },
+    "parent#bitswap-bb": {
+        "tvl": true
+    },
+    "parent#ubeswap": {
+        "tvl": true,
+        "dexs": true
+    },
+    "parent#adrastea": {
+        "tvl": true
+    },
+    "parent#pearlfi": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#astarter": {
+        "tvl": true
     },
     "parent#premia": {
         "tvl": true,
@@ -20949,15 +21121,9 @@
         "options": true,
         "emissions": true
     },
-    "parent#ubeswap": {
+    "parent#mint-club": {
         "tvl": true,
-        "dexs": true
-    },
-    "parent#hope-money": {
-        "tvl": true
-    },
-    "parent#enosys": {
-        "tvl": true
+        "liquidity": true
     },
     "parent#sudoswap": {
         "tvl": true,
@@ -20968,14 +21134,27 @@
         "fees": true,
         "revenue": true
     },
-    "parent#affine-defi": {
+    "parent#goldstation": {
+        "tvl": true
+    },
+    "parent#jewelswap": {
+        "tvl": true
+    },
+    "parent#hope-money": {
+        "tvl": true
+    },
+    "parent#xswap-protocol": {
         "tvl": true,
-        "raises": true
+        "dexs": true
     },
     "parent#bao-finance": {
         "tvl": true,
         "governance": true,
         "liquidity": true
+    },
+    "parent#affine-defi": {
+        "tvl": true,
+        "raises": true
     },
     "parent#squadswap": {
         "tvl": true,
@@ -20987,17 +21166,6 @@
         "tvl": true,
         "emissions": true
     },
-    "parent#mint-club": {
-        "tvl": true,
-        "liquidity": true
-    },
-    "parent#zebra": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#velvet.capital": {
-        "tvl": true
-    },
     "parent#kyberswap": {
         "tvl": true,
         "treasury": true,
@@ -21008,17 +21176,37 @@
         "dexs": true,
         "aggregator": true
     },
-    "parent#hydradex": {
+    "parent#velvet.capital": {
+        "tvl": true
+    },
+    "parent#zebra": {
+        "tvl": true,
+        "dexs": true
+    },
+    "parent#kleva-protocol": {
+        "tvl": true
+    },
+    "parent#cleopatra-exchange": {
         "tvl": true,
         "fees": true,
         "revenue": true,
         "dexs": true
     },
-    "parent#goldstation": {
-        "tvl": true
+    "parent#tealswap": {
+        "tvl": true,
+        "dexs": true
     },
-    "parent#jewelswap": {
-        "tvl": true
+    "parent#vapordex": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#hydradex": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#swapr": {
         "tvl": true,
@@ -21029,17 +21217,6 @@
         "tvl": true,
         "dexs": true
     },
-    "parent#xswap-protocol": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#jediswap": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#cega": {
-        "tvl": true
-    },
     "parent#knightswap": {
         "tvl": true,
         "dexs": true
@@ -21047,12 +21224,9 @@
     "parent#scrub-money": {
         "tvl": true
     },
-    "parent#pods-finance": {
-        "tvl": true
-    },
-    "parent#perennial": {
+    "parent#jediswap": {
         "tvl": true,
-        "derivatives": true
+        "dexs": true
     },
     "parent#morphex": {
         "tvl": true,
@@ -21062,10 +21236,20 @@
         "dexs": true,
         "derivatives": true
     },
-    "parent#vapordex": {
+    "parent#cega": {
+        "tvl": true
+    },
+    "parent#pods-finance": {
+        "tvl": true
+    },
+    "parent#perennial": {
         "tvl": true,
-        "fees": true,
-        "revenue": true,
+        "derivatives": true
+    },
+    "parent#tethys-finance": {
+        "tvl": true,
+        "governance": true,
+        "liquidity": true,
         "dexs": true
     },
     "parent#tokenlon": {
@@ -21075,61 +21259,36 @@
         "dexs": true,
         "aggregator": true
     },
-    "parent#cleopatra-exchange": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#tethys-finance": {
-        "tvl": true,
-        "governance": true,
-        "liquidity": true,
-        "dexs": true
-    },
-    "parent#empmoney": {
-        "tvl": true
-    },
-    "parent#kleva-protocol": {
-        "tvl": true
-    },
-    "parent#clearpool": {
-        "tvl": true,
-        "liquidity": true,
-        "emissions": true
-    },
-    "parent#myswap": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#amulet": {
-        "tvl": true,
-        "liquidity": true
-    },
-    "parent#dexfinance": {
-        "tvl": true,
-        "treasury": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
     "parent#meridian": {
         "tvl": true,
         "liquidity": true,
         "dexs": true,
         "emissions": true
     },
-    "parent#nest-protocol": {
-        "tvl": true,
-        "governance": true
-    },
-    "parent#puzzleswaporg": {
+    "parent#empmoney": {
         "tvl": true
+    },
+    "parent#myswap": {
+        "tvl": true,
+        "dexs": true
+    },
+    "parent#tomb-finance": {
+        "tvl": true,
+        "governance": true,
+        "dexs": true
+    },
+    "parent#volt-finance": {
+        "tvl": true,
+        "governance": true,
+        "dexs": true
     },
     "parent#demex": {
         "tvl": true,
         "dexs": true,
         "derivatives": true
+    },
+    "parent#amulet": {
+        "tvl": true
     },
     "parent#maia-dao-ecosystem": {
         "tvl": true,
@@ -21140,50 +21299,52 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#tomb-finance": {
-        "tvl": true,
-        "governance": true,
-        "dexs": true
+    "parent#puzzleswaporg": {
+        "tvl": true
     },
-    "parent#tealswap": {
+    "parent#nest-protocol": {
         "tvl": true,
-        "dexs": true
+        "governance": true
     },
-    "parent#volt-finance": {
+    "parent#iguanadex": {
+        "tvl": true
+    },
+    "parent#dexfinance": {
         "tvl": true,
-        "governance": true,
+        "treasury": true,
+        "fees": true,
+        "revenue": true,
         "dexs": true
     },
     "parent#sablier-finance": {
         "tvl": true,
         "raises": true
     },
-    "parent#iguanadex": {
-        "tvl": true
-    },
-    "parent#dtx": {
+    "parent#beta-finance": {
         "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
+        "liquidity": true
+    },
+    "parent#sienna-network": {
+        "tvl": true
     },
     "parent#cozy-finance": {
         "tvl": true
+    },
+    "parent#hats.finance": {
+        "tvl": true
+    },
+    "parent#revert": {
+        "tvl": true
+    },
+    "parent#quipuswap": {
+        "tvl": true,
+        "liquidity": true,
+        "dexs": true
     },
     "parent#sperax": {
         "tvl": true,
         "governance": true,
         "liquidity": true
-    },
-    "parent#hats.finance": {
-        "tvl": true
-    },
-    "parent#wynd": {
-        "tvl": true,
-        "raises": true
-    },
-    "parent#revert": {
-        "tvl": true
     },
     "parent#blasterswap": {
         "tvl": true,
@@ -21201,13 +21362,12 @@
         "raises": true,
         "derivatives": true
     },
-    "parent#quipuswap": {
-        "tvl": true,
-        "liquidity": true,
-        "dexs": true
-    },
     "parent#myso": {
         "tvl": true
+    },
+    "parent#lif3.com": {
+        "tvl": true,
+        "dexs": true
     },
     "parent#cryptex-finance": {
         "tvl": true,
@@ -21217,7 +21377,13 @@
         "fees": true,
         "revenue": true
     },
-    "parent#sienna-network": {
+    "parent#paladin-finance": {
+        "tvl": true,
+        "governance": true,
+        "treasury": true,
+        "liquidity": true
+    },
+    "parent#verylongswap": {
         "tvl": true
     },
     "parent#grizzlyfi": {
@@ -21228,19 +21394,34 @@
         "dexs": true,
         "derivatives": true
     },
-    "parent#lif3.com": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#verylongswap": {
-        "tvl": true
-    },
     "parent#pegasys": {
         "tvl": true,
         "dexs": true
     },
+    "parent#swapbased": {
+        "tvl": true,
+        "liquidity": true,
+        "activeUsers": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true,
+        "derivatives": true
+    },
+    "parent#icecreamswap": {
+        "tvl": true,
+        "dexs": true
+    },
+    "parent#wynd": {
+        "tvl": true,
+        "raises": true
+    },
     "parent#aperture-finance": {
         "tvl": true
+    },
+    "parent#wise-lending": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true
     },
     "parent#bitgenie": {
         "tvl": true,
@@ -21248,10 +21429,10 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#jet": {
+    "parent#zkbob_": {
         "tvl": true
     },
-    "parent#zkbob_": {
+    "parent#weft-finance": {
         "tvl": true
     },
     "parent#ascent-exchange": {
@@ -21260,25 +21441,7 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#icecreamswap": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#swapbased": {
-        "tvl": true,
-        "activeUsers": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true,
-        "derivatives": true
-    },
-    "parent#paladin-finance": {
-        "tvl": true,
-        "governance": true,
-        "treasury": true,
-        "liquidity": true
-    },
-    "parent#value-finance": {
+    "parent#jet": {
         "tvl": true
     },
     "parent#voltage": {
@@ -21287,28 +21450,19 @@
         "revenue": true,
         "dexs": true
     },
+    "parent#value-finance": {
+        "tvl": true
+    },
+    "parent#loxodrome": {
+        "tvl": true
+    },
     "parent#handle-finance": {
         "tvl": true,
         "governance": true,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
-    "parent#dackieswap": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#superswap": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
-    },
-    "parent#arbswap": {
-        "tvl": true,
-        "activeUsers": true
-    },
-    "parent#loxodrome": {
+    "parent#lfgswap": {
         "tvl": true
     },
     "parent#fwx": {
@@ -21319,23 +21473,18 @@
         "dexs": true,
         "derivatives": true
     },
-    "parent#bounceclub": {
-        "tvl": true
-    },
-    "parent#wise-lending": {
+    "parent#dackieswap": {
         "tvl": true,
-        "fees": true,
-        "revenue": true
-    },
-    "parent#fuji-finance": {
-        "tvl": true
-    },
-    "parent#pika-protocol": {
-        "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "dexs": true
+    },
+    "parent#arbswap": {
+        "tvl": true,
+        "activeUsers": true
+    },
+    "parent#bounceclub": {
+        "tvl": true
     },
     "parent#polycat-finance": {
         "tvl": true,
@@ -21344,13 +21493,19 @@
         "activeUsers": true,
         "dexs": true
     },
-    "parent#lfgswap": {
+    "parent#fuji-finance": {
         "tvl": true
     },
-    "parent#cap-finance": {
+    "parent#claimswap": {
         "tvl": true,
-        "treasury": true,
-        "liquidity": true
+        "dexs": true
+    },
+    "parent#pika-protocol": {
+        "tvl": true,
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "derivatives": true
     },
     "parent#beamswap": {
         "tvl": true,
@@ -21358,6 +21513,24 @@
         "revenue": true,
         "dexs": true,
         "derivatives": true
+    },
+    "parent#superswap": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#pawnfi": {
+        "tvl": true,
+        "governance": true
+    },
+    "parent#cap-finance": {
+        "tvl": true,
+        "treasury": true,
+        "liquidity": true
+    },
+    "parent#astaria": {
+        "tvl": true
     },
     "parent#swapmode": {
         "tvl": true,
@@ -21373,7 +21546,7 @@
         "tvl": true,
         "treasury": true
     },
-    "parent#astaria": {
+    "parent#crunchy-network": {
         "tvl": true
     },
     "parent#novaswap": {
@@ -21386,20 +21559,15 @@
         "tvl": true,
         "governance": true
     },
+    "parent#algebra": {
+        "tvl": true
+    },
+    "parent#based-finance": {
+        "tvl": true
+    },
     "parent#unilend": {
         "tvl": true,
         "liquidity": true
-    },
-    "parent#pawnfi": {
-        "tvl": true,
-        "governance": true
-    },
-    "parent#claimswap": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#crunchy-network": {
-        "tvl": true
     },
     "parent#fringe-finance": {
         "tvl": true
@@ -21410,13 +21578,16 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#based-finance": {
+    "parent#dove-swap": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
+    },
+    "parent#caviar": {
         "tvl": true
     },
     "parent#a51-finance": {
-        "tvl": true
-    },
-    "parent#algebra": {
         "tvl": true
     },
     "parent#monoswap": {
@@ -21424,12 +21595,6 @@
     },
     "parent#velocore": {
         "tvl": true,
-        "dexs": true
-    },
-    "parent#dove-swap": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
         "dexs": true
     },
     "parent#ruby.exchange": {
@@ -21445,6 +21610,14 @@
         "tvl": true,
         "dexs": true
     },
+    "parent#synthswap": {
+        "tvl": true,
+        "emissions": true
+    },
+    "parent#lsdx-finance": {
+        "tvl": true,
+        "treasury": true
+    },
     "parent#dfx-finance": {
         "tvl": true,
         "governance": true,
@@ -21452,26 +21625,8 @@
         "dexs": true,
         "emissions": true
     },
-    "parent#lsdx-finance": {
-        "tvl": true,
-        "treasury": true
-    },
-    "parent#synthswap": {
-        "tvl": true,
-        "emissions": true
-    },
-    "parent#caviar": {
-        "tvl": true
-    },
     "parent#poolz-finance": {
         "tvl": true
-    },
-    "parent#secta-finance": {
-        "tvl": true
-    },
-    "parent#standard-protocol": {
-        "tvl": true,
-        "dexs": true
     },
     "parent#unidex": {
         "tvl": true,
@@ -21481,23 +21636,31 @@
         "derivatives": true,
         "aggregatorDerivatives": true
     },
+    "parent#secta-finance": {
+        "tvl": true
+    },
+    "parent#standard-protocol": {
+        "tvl": true,
+        "dexs": true
+    },
     "parent#themis-pro": {
         "tvl": true,
         "treasury": true
-    },
-    "parent#echodex": {
-        "tvl": true,
-        "dexs": true
     },
     "parent#zyberswap": {
         "tvl": true,
         "governance": true,
         "treasury": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
         "emissions": true
+    },
+    "parent#echodex": {
+        "tvl": true,
+        "dexs": true
     },
     "parent#ede": {
         "tvl": true,
@@ -21507,16 +21670,10 @@
         "dexs": true,
         "derivatives": true
     },
-    "parent#z-protocol": {
-        "tvl": true
-    },
-    "parent#arbitrum-exchange": {
+    "parent#huckleberry": {
         "tvl": true,
-        "liquidity": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "governance": true,
+        "dexs": true
     },
     "parent#solidlizard": {
         "tvl": true,
@@ -21531,26 +21688,41 @@
         "liquidity": true,
         "dexs": true
     },
-    "parent#huckleberry": {
-        "tvl": true,
-        "governance": true,
-        "dexs": true
-    },
     "parent#spin": {
         "tvl": true
     },
-    "parent#stabl.fi": {
+    "parent#arbitrum-exchange": {
+        "tvl": true,
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true,
+        "emissions": true
+    },
+    "parent#z-protocol": {
         "tvl": true
     },
     "parent#oswap": {
         "tvl": true,
         "dexs": true
     },
-    "parent#magik-finance": {
+    "parent#stabl.fi": {
         "tvl": true
     },
     "parent#modemax": {
         "tvl": true
+    },
+    "parent#magik-finance": {
+        "tvl": true
+    },
+    "parent#fixes-inscription": {
+        "tvl": true
+    },
+    "parent#dtx": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#supswap": {
         "tvl": true,
@@ -21561,14 +21733,10 @@
     "parent#w3-foundation": {
         "tvl": true
     },
-    "parent#linehub": {
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true,
-        "derivatives": true
+    "parent#halotrade": {
+        "tvl": true
     },
-    "parent#fixes-inscription": {
+    "parent#fuzion": {
         "tvl": true
     },
     "parent#y2k-finance": {
@@ -21579,16 +21747,13 @@
         "derivatives": true,
         "emissions": true
     },
-    "parent#fuzion": {
-        "tvl": true
-    },
-    "parent#halotrade": {
-        "tvl": true
-    },
     "parent#baptswap": {
         "tvl": true
     },
     "parent#etcswap": {
+        "tvl": true
+    },
+    "parent#electroswap": {
         "tvl": true
     },
     "parent#equation": {
@@ -21604,21 +21769,6 @@
         "governance": true,
         "treasury": true
     },
-    "parent#metavault": {
-        "tvl": true,
-        "governance": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true,
-        "derivatives": true
-    },
-    "parent#fairyswap": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#electroswap": {
-        "tvl": true
-    },
     "parent#cyberblast": {
         "tvl": true
     },
@@ -21626,6 +21776,17 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
+        "dexs": true
+    },
+    "parent#linehub": {
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true,
+        "derivatives": true
+    },
+    "parent#fairyswap": {
+        "tvl": true,
         "dexs": true
     },
     "parent#uniwswap": {
@@ -21643,21 +21804,29 @@
         "tvl": true,
         "governance": true
     },
-    "parent#atlendis": {
-        "tvl": true
-    },
-    "parent#crust-finance": {
-        "tvl": true
-    },
     "parent#joltify-finance": {
-        "tvl": true
-    },
-    "parent#rehold": {
         "tvl": true
     },
     "parent#throne": {
         "tvl": true,
         "dexs": true
+    },
+    "parent#rehold": {
+        "tvl": true
+    },
+    "parent#crust-finance": {
+        "tvl": true
+    },
+    "parent#atlendis": {
+        "tvl": true
+    },
+    "parent#metavault": {
+        "tvl": true,
+        "governance": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true,
+        "derivatives": true
     },
     "parent#archly-finance": {
         "tvl": true,
@@ -21670,21 +21839,14 @@
         "governance": true,
         "liquidity": true
     },
-    "parent#glacier-finance": {
-        "tvl": true
-    },
     "parent#subzero": {
         "tvl": true,
         "dexs": true
     },
-    "parent#omnidex": {
+    "parent#glacier-finance": {
         "tvl": true
     },
-    "parent#clober": {
-        "tvl": true,
-        "dexs": true
-    },
-    "parent#mare-finance": {
+    "parent#omnidex": {
         "tvl": true
     },
     "parent#forge-sx": {
@@ -21696,13 +21858,7 @@
     "parent#diamond": {
         "tvl": true
     },
-    "parent#astar-exchange": {
-        "tvl": true
-    },
-    "parent#unlockd": {
-        "tvl": true
-    },
-    "parent#openworld": {
+    "parent#mare-finance": {
         "tvl": true
     },
     "parent#hector-network": {
@@ -21710,18 +21866,38 @@
         "governance": true,
         "treasury": true
     },
+    "parent#astar-exchange": {
+        "tvl": true
+    },
+    "parent#unlockd": {
+        "tvl": true
+    },
     "parent#ilend": {
+        "tvl": true
+    },
+    "parent#openworld": {
         "tvl": true
     },
     "parent#frogswap": {
         "tvl": true
     },
+    "parent#clober": {
+        "tvl": true,
+        "dexs": true
+    },
     "parent#magicfox": {
         "tvl": true
+    },
+    "parent#animal-farm": {
+        "tvl": true,
+        "governance": true
     },
     "parent#brewlabs": {
         "tvl": true,
         "treasury": true
+    },
+    "parent#kayak": {
+        "tvl": true
     },
     "parent#onering": {
         "tvl": true,
@@ -21734,19 +21910,8 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#animal-farm": {
-        "tvl": true,
-        "governance": true
-    },
-    "parent#kayak": {
-        "tvl": true
-    },
     "parent#ajira-pay": {
         "tvl": true
-    },
-    "parent#surfswap": {
-        "tvl": true,
-        "dexs": true
     },
     "parent#starfish": {
         "tvl": true
@@ -21757,6 +21922,10 @@
         "revenue": true,
         "dexs": true,
         "derivatives": true
+    },
+    "parent#surfswap": {
+        "tvl": true,
+        "dexs": true
     },
     "parent#cookiebase": {
         "tvl": true
@@ -21835,7 +22004,6 @@
         "revenue": true,
         "dexs": true
     },
-    "parent#weft-finance": {},
     "parent#9mm": {},
     "chan#scroll": {
         "raises": true
@@ -21844,6 +22012,9 @@
         "raises": true
     },
     "parent#canary": {
+        "activeUsers": true
+    },
+    "parent#paraspace": {
         "activeUsers": true
     }
 }
