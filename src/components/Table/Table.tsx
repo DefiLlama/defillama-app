@@ -67,8 +67,6 @@ export function VirtualTable({
 
 	const tableHeaderRef = React.useRef<HTMLDivElement>()
 
-	const TableBodyWrapper = skipVirtualization ? React.Fragment : WindowVirtualizer
-
 	React.useEffect(() => {
 		const onScroll = () => {
 			const tableWrapperEl = document.getElementById('table-wrapper')
@@ -114,87 +112,113 @@ export function VirtualTable({
 
 	const isClient = useIsClient()
 
+	const skipVzn = isClient ? !skipVirtualization : true
+
 	return (
 		<div
-			style={!isClient ? { minHeight: `${(rowSize ?? 50) * rows.length}px` } : {}}
+			style={{ minHeight: `${(rowSize ?? 50) * rows.length}px` }}
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
 			data-chainpage={isChainPage}
 			className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] data-[chainpage=true]:bg-[var(--bg6)] border border-[var(--bg3)]"
 		>
-			{isClient || skipVirtualization ? (
-				<>
-					<div ref={tableHeaderRef} id="table-header" className="flex flex-col z-10">
-						{instance.getHeaderGroups().map((headerGroup) => (
-							<div key={headerGroup.id} className="flex relative">
-								{headerGroup.headers.map((header) => {
+			<div ref={tableHeaderRef} id="table-header" className="flex flex-col z-10">
+				{instance.getHeaderGroups().map((headerGroup) => (
+					<div key={headerGroup.id} className="flex relative">
+						{headerGroup.headers.map((header) => {
+							// get header text alignment
+							const meta = header.column.columnDef.meta
+							const value = flexRender(header.column.columnDef.header, header.getContext())
+
+							return (
+								<div
+									key={header.id}
+									data-chainpage={isChainPage}
+									style={{ minWidth: `${header.getSize() ?? 100}px` }}
+									className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[lighter=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
+								>
+									<span
+										className="flex items-center justify-start data-[align=center]:justify-center data-[align=end]:justify-end flex-nowrap gap-1 relative font-medium *:whitespace-nowrap"
+										data-align={
+											meta?.align ??
+											(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
+										}
+									>
+										{header.isPlaceholder ? null : (
+											<>
+												{header.column.getCanSort() ? (
+													<button onClick={() => header.column.toggleSorting()}>{value}</button>
+												) : (
+													value
+												)}
+											</>
+										)}
+										{meta?.headerHelperText && <QuestionHelper text={meta?.headerHelperText} />}
+										{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+									</span>
+								</div>
+							)
+						})}
+					</div>
+				))}
+			</div>
+			<div id="table-header-dup"></div>
+			<TableBodyWrapper skipVirtualization={skipVzn}>
+				{(isClient ? rows : rows.slice(0, 20)).map((row, i) => {
+					return (
+						<React.Fragment key={row.id}>
+							<TableRow skipVirtualization={skipVzn}>
+								{row.getVisibleCells().map((cell) => {
 									// get header text alignment
-									const meta = header.column.columnDef.meta
-									const value = flexRender(header.column.columnDef.header, header.getContext())
+									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 
 									return (
 										<div
-											key={header.id}
+											key={cell.id}
+											data-lighter={stripedBg && i % 2 === 0}
 											data-chainpage={isChainPage}
-											style={{ minWidth: `${header.getSize() ?? 100}px` }}
 											className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[lighter=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
+											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign }}
 										>
-											<span
-												className="flex items-center justify-start data-[align=center]:justify-center data-[align=end]:justify-end flex-nowrap gap-1 relative font-medium *:whitespace-nowrap"
-												data-align={
-													meta?.align ??
-													(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
-												}
-											>
-												{header.isPlaceholder ? null : (
-													<>
-														{header.column.getCanSort() ? (
-															<button onClick={() => header.column.toggleSorting()}>{value}</button>
-														) : (
-															value
-														)}
-													</>
-												)}
-												{meta?.headerHelperText && <QuestionHelper text={meta?.headerHelperText} />}
-												{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
-											</span>
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</div>
 									)
 								})}
-							</div>
-						))}
-					</div>
-					<div id="table-header-dup"></div>
-					<TableBodyWrapper>
-						{rows.map((row, i) => {
-							return (
-								<React.Fragment key={row.id}>
-									<div className="flex relative">
-										{row.getVisibleCells().map((cell) => {
-											// get header text alignment
-											const textAlign = cell.column.columnDef.meta?.align ?? 'start'
-
-											return (
-												<div
-													key={cell.id}
-													data-lighter={stripedBg && i % 2 === 0}
-													data-chainpage={isChainPage}
-													className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[lighter=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
-													style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign }}
-												>
-													{flexRender(cell.column.columnDef.cell, cell.getContext())}
-												</div>
-											)
-										})}
-									</div>
-									{renderSubComponent && row.getIsExpanded() && <div>{renderSubComponent({ row })}</div>}
-								</React.Fragment>
-							)
-						})}
-					</TableBodyWrapper>
-				</>
-			) : null}
+							</TableRow>
+							{renderSubComponent && row.getIsExpanded() && (
+								<TableRow skipVirtualization={skipVzn}>{renderSubComponent({ row })}</TableRow>
+							)}
+						</React.Fragment>
+					)
+				})}
+			</TableBodyWrapper>
 		</div>
 	)
+}
+
+const TableBodyWrapper = ({
+	children,
+	skipVirtualization
+}: {
+	children: React.ReactNode
+	skipVirtualization: boolean
+}) => {
+	if (skipVirtualization) {
+		return <>{children}</>
+	}
+
+	return (
+		<div className="*:*:flex *:*:relative">
+			<WindowVirtualizer>{children}</WindowVirtualizer>
+		</div>
+	)
+}
+
+const TableRow = ({ children, skipVirtualization }: { children: React.ReactNode; skipVirtualization: boolean }) => {
+	if (skipVirtualization) {
+		return <div className="flex relative">{children}</div>
+	}
+
+	return <>{children}</>
 }

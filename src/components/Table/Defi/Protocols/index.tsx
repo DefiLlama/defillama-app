@@ -36,70 +36,6 @@ const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
 
-export function ProtocolsTable({
-	data,
-	addlColumns,
-	removeColumns
-}: {
-	data: Array<IProtocolRow>
-	addlColumns?: Array<string>
-	removeColumns?: Array<string>
-}) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
-	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
-
-	const columnsData = React.useMemo(
-		() =>
-			addlColumns || removeColumns
-				? [
-						...protocolsColumns.filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
-						...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
-				  ]
-				: protocolsColumns,
-		[addlColumns, removeColumns]
-	)
-
-	const instance = useReactTable({
-		data,
-		columns: columnsData,
-		state: {
-			sorting,
-			expanded,
-			columnOrder,
-			columnSizing
-		},
-		onExpandedChange: setExpanded,
-		getSubRows: (row: IProtocolRow) => row.subRows,
-		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
-	})
-
-	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = windowSize.width
-			? columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
-			: defaultOrder
-
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
-
-		instance.setColumnSizing(columnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [windowSize, instance])
-
-	return <VirtualTable instance={instance} />
-}
-
 export enum TABLE_CATEGORIES {
 	FEES = 'Fees',
 	REVENUE = 'Revenue',
@@ -124,9 +60,20 @@ export const protocolsByChainTableColumns = [
 	{ name: 'Fees 24h', key: 'fees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Monthly Avg 1Y Fees',
+		key: 'fees_1y',
+		category: TABLE_CATEGORIES.FEES
+	},
 	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Revenue 7d', key: 'revenue_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'Revenue 30d', key: 'revenue_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
+	{ name: 'Revenue 1y', key: 'revenue_1y', category: TABLE_CATEGORIES.REVENUE },
+	{
+		name: 'Monthly Avg 1Y Rev',
+		key: 'average_revenue_1y',
+		category: TABLE_CATEGORIES.REVENUE
+	},
 	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Cumulative Fees', key: 'cumulativeFees', category: TABLE_CATEGORIES.FEES },
 	{
@@ -197,17 +144,20 @@ export const defaultColumns = JSON.stringify({
 	cumulativeVolume: false
 })
 
-export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
-	const optionsKey = 'protocolsTableColumns'
-	const valuesInStorage = JSON.parse(
-		typeof document !== 'undefined' ? window.localStorage.getItem(optionsKey) ?? defaultColumns : defaultColumns
-	)
-	const [columnVisibility, setColumnVisibility] = React.useState(valuesInStorage)
+function subscribe(callback: () => void) {
+	window.addEventListener('storage', callback)
 
+	return () => {
+		window.removeEventListener('storage', callback)
+	}
+}
+
+const optionsKey = 'protocolsTableColumns'
+
+const ProtocolsTable = ({ data, columnsInStorage }: { data: Array<IProtocolRow>; columnsInStorage: string }) => {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const [filterState, setFilterState] = React.useState(null)
 
 	const instance = useReactTable({
 		data,
@@ -216,7 +166,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 			sorting,
 			expanded,
 			columnSizing,
-			columnVisibility
+			columnVisibility: JSON.parse(columnsInStorage)
 		},
 		sortingFns: {
 			alphanumericFalsyLast: (rowA, rowB, columnId) => {
@@ -266,43 +216,67 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 			})
 		},
 		onColumnSizingChange: setColumnSizing,
-		onColumnVisibilityChange: setColumnVisibility,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
+	return (
+		<>
+			<VirtualTable instance={instance} />
+		</>
+	)
+}
+
+export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
+	const columnsInStorage = React.useSyncExternalStore(
+		subscribe,
+		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		() => defaultColumns
+	)
+
+	const [filterState, setFilterState] = React.useState(null)
+
 	const clearAllOptions = () => {
-		window.localStorage.setItem(optionsKey, '{}')
-		instance.getToggleAllColumnsVisibilityHandler()({ checked: false } as any)
+		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, false])))
+		window.localStorage.setItem(optionsKey, ops)
+		window.dispatchEvent(new Event('storage'))
 	}
 	const toggleAllOptions = () => {
 		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, true])))
 		window.localStorage.setItem(optionsKey, ops)
-		instance.getToggleAllColumnsVisibilityHandler()({ checked: true } as any)
+		window.dispatchEvent(new Event('storage'))
 	}
 
-	const addOption = (newOptions, setLocalStorage = true) => {
+	const addOption = (newOptions) => {
 		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id) ? true : false])
+			protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key) ? true : false])
 		)
-		if (setLocalStorage) window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		instance.setColumnVisibility(ops)
+		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
+		window.dispatchEvent(new Event('storage'))
 	}
 	const setFilter = (key) => (newState) => {
-		const stateToSet = newState === filterState ? null : newState
-		const newOptions = protocolsByChainTableColumns
-			.filter((column) => (column[key] !== undefined && stateToSet !== null ? column[key] === newState : true))
-			.map((op) => op.key)
+		const newOptions = Object.fromEntries(
+			protocolsByChainTableColumns.map((column) => [
+				[column.key],
+				['name', 'category'].includes(column.key) ? true : column[key] === newState
+			])
+		)
 
-		addOption(newOptions, false)
-		setFilterState(stateToSet)
+		if (columnsInStorage === JSON.stringify(newOptions)) {
+			toggleAllOptions()
+			setFilterState(null)
+		} else {
+			window.localStorage.setItem(optionsKey, JSON.stringify(newOptions))
+			window.dispatchEvent(new Event('storage'))
+			setFilterState(newState)
+		}
 	}
 
-	const selectedOptions = instance
-		.getAllLeafColumns()
-		.filter((col) => col.getIsVisible())
-		.map((col) => col.id)
+	const selectedOptions = React.useMemo(() => {
+		const storage = JSON.parse(columnsInStorage)
+		return protocolsByChainTableColumns.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
+	}, [columnsInStorage])
 
 	return (
 		<>
@@ -329,7 +303,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 				/>
 				<TVLRange />
 			</div>
-			<VirtualTable instance={instance} />
+			<ProtocolsTable data={data} columnsInStorage={columnsInStorage} />
 		</>
 	)
 }
