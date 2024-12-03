@@ -265,11 +265,12 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 
 		if (columnsInStorage === JSON.stringify(newOptions)) {
 			toggleAllOptions()
+			setFilterState(null)
 		} else {
 			window.localStorage.setItem(optionsKey, JSON.stringify(newOptions))
 			window.dispatchEvent(new Event('storage'))
+			setFilterState(newState)
 		}
-		setFilterState(newState)
 	}
 
 	const selectedOptions = React.useMemo(() => {
