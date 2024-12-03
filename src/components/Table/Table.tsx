@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { WindowVirtualizer } from 'virtua'
+import { useIsClient } from '~/hooks'
 
 interface ITableProps {
 	instance: Table<any>
@@ -109,6 +110,10 @@ export function VirtualTable({
 		return () => tableWrapperEl.removeEventListener('scroll', onScroll)
 	}, [skipVirtualization])
 
+	const isClient = useIsClient()
+
+	const skipVzn = isClient ? !skipVirtualization : true
+
 	return (
 		<div
 			style={{ minHeight: `${(rowSize ?? 50) * rows.length}px` }}
@@ -159,11 +164,11 @@ export function VirtualTable({
 				))}
 			</div>
 			<div id="table-header-dup"></div>
-			<TableBodyWrapper skipVirtualization={skipVirtualization}>
-				{rows.map((row, i) => {
+			<TableBodyWrapper skipVirtualization={skipVzn}>
+				{(isClient ? rows : rows.slice(0, 20)).map((row, i) => {
 					return (
 						<React.Fragment key={row.id}>
-							<TableRow skipVirtualization={skipVirtualization}>
+							<TableRow skipVirtualization={skipVzn}>
 								{row.getVisibleCells().map((cell) => {
 									// get header text alignment
 									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
@@ -182,7 +187,7 @@ export function VirtualTable({
 								})}
 							</TableRow>
 							{renderSubComponent && row.getIsExpanded() && (
-								<TableRow skipVirtualization={skipVirtualization}>{renderSubComponent({ row })}</TableRow>
+								<TableRow skipVirtualization={skipVzn}>{renderSubComponent({ row })}</TableRow>
 							)}
 						</React.Fragment>
 					)
