@@ -67,8 +67,6 @@ export function VirtualTable({
 
 	const tableHeaderRef = React.useRef<HTMLDivElement>()
 
-	const TableBodyWrapper = skipVirtualization ? React.Fragment : WindowVirtualizer
-
 	React.useEffect(() => {
 		const onScroll = () => {
 			const tableWrapperEl = document.getElementById('table-wrapper')
@@ -116,7 +114,7 @@ export function VirtualTable({
 
 	return (
 		<div
-			style={!isClient ? { minHeight: `${(rowSize ?? 50) * rows.length}px` } : {}}
+			style={{ minHeight: `${(rowSize ?? 50) * rows.length}px` }}
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
@@ -166,11 +164,11 @@ export function VirtualTable({
 						))}
 					</div>
 					<div id="table-header-dup"></div>
-					<TableBodyWrapper>
+					<TableBodyWrapper skipVirtualization={skipVirtualization}>
 						{rows.map((row, i) => {
 							return (
 								<React.Fragment key={row.id}>
-									<div className="flex relative">
+									<TableRow skipVirtualization={skipVirtualization}>
 										{row.getVisibleCells().map((cell) => {
 											// get header text alignment
 											const textAlign = cell.column.columnDef.meta?.align ?? 'start'
@@ -187,8 +185,10 @@ export function VirtualTable({
 												</div>
 											)
 										})}
-									</div>
-									{renderSubComponent && row.getIsExpanded() && <div>{renderSubComponent({ row })}</div>}
+									</TableRow>
+									{renderSubComponent && row.getIsExpanded() && (
+										<TableRow skipVirtualization={skipVirtualization}>{renderSubComponent({ row })}</TableRow>
+									)}
 								</React.Fragment>
 							)
 						})}
@@ -197,4 +197,30 @@ export function VirtualTable({
 			) : null}
 		</div>
 	)
+}
+
+const TableBodyWrapper = ({
+	children,
+	skipVirtualization
+}: {
+	children: React.ReactNode
+	skipVirtualization: boolean
+}) => {
+	if (skipVirtualization) {
+		return <>{children}</>
+	}
+
+	return (
+		<div className="*:*:flex *:*:relative">
+			<WindowVirtualizer>{children}</WindowVirtualizer>
+		</div>
+	)
+}
+
+const TableRow = ({ children, skipVirtualization }: { children: React.ReactNode; skipVirtualization: boolean }) => {
+	if (skipVirtualization) {
+		return <div className="flex relative">{children}</div>
+	}
+
+	return <>{children}</>
 }
