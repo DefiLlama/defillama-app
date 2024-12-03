@@ -182,7 +182,7 @@ export async function getChainPageData(chain?: string) {
 			  ).then((res) => res.json())
 			: {},
 		chain && chain !== 'All' && chainAssets[chain?.toLowerCase()]
-			? await fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`)
+			? await fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain}`)
 					.then((r) => r.json())
 					.catch(() => null)
 			: null

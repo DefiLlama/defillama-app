@@ -89,7 +89,7 @@ export const useGetChainAssetsChart = (chain?: string) => {
 		queryKey: [`chainAssetsChart/${chain}`],
 		queryFn:
 			chain && chain !== 'All'
-				? () => fetch(`${CHAINS_ASSETS_CHART}/${chain?.toLowerCase()}`).then((r) => r.json())
+				? () => fetch(`${CHAINS_ASSETS_CHART}/${chain}`).then((r) => r.json())
 				: () => null,
 		staleTime: 60 * 60 * 1000
 	})
