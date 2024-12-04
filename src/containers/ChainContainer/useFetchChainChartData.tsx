@@ -194,9 +194,9 @@ export const useFetchChainChartData = ({
 					.getTime() / 1000
 			)
 			if (!extraTvlsEnabled?.govtokens && data.ownTokens) {
-				return [ts, data.total - data.ownTokens]
+				return [ts, data.total]
 			}
-			return [ts, data.total]
+			return [ts, data.total + data.ownTokens]
 		})
 
 		const chartDatasets = [
