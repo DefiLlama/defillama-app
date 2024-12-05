@@ -49,7 +49,6 @@
 		"react-switch": "^6.0.0",
 		"swagger-ui": "^4.12.0",
 		"tsx": "^4.19.2",
-		"virtua": "^0.37.4",
 		"wagmi": "0.12.19"
 	},
 	"devDependencies": {

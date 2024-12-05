@@ -7406,11 +7406,6 @@ valtio@1.11.2:
     proxy-compare "2.5.1"
     use-sync-external-store "1.2.0"
 
-virtua@^0.37.4:
-  version "0.37.4"
-  resolved "https://registry.yarnpkg.com/virtua/-/virtua-0.37.4.tgz#ccd79c499fdff0d7465c9e5e275dd2afa1fb0ee6"
-  integrity sha512-A5K8GQDTQEFRtUW467tPNG/RLNDzFVl5HcJur1W0J9G0HAXHYyS1XAIT7/W7n7NSuil67jmaCtLXLDGFm9A48A==
-
 wagmi@0.12.19:
   version "0.12.19"
   resolved "https://registry.yarnpkg.com/wagmi/-/wagmi-0.12.19.tgz#5f5038330907f70c033ea51ef8a9136289567256"
