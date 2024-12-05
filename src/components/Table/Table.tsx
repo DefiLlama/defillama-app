@@ -1,12 +1,11 @@
 import * as React from 'react'
 import { Table, flexRender, RowData } from '@tanstack/react-table'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { WindowVirtualizer } from 'virtua'
-import { useIsClient } from '~/hooks'
 
 interface ITableProps {
 	instance: Table<any>
@@ -35,17 +34,28 @@ export function VirtualTable({
 	...props
 }: ITableProps) {
 	const router = useRouter()
-
+	const [tableTop, setTableTop] = React.useState(0)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 
 	const { rows } = instance.getRowModel()
+
+	React.useEffect(() => {
+		if (!skipVirtualization && tableContainerRef?.current) {
+			setTableTop(tableContainerRef.current.offsetTop)
+		}
+	}, [skipVirtualization])
+
+	React.useEffect(() => {
+		if (!skipVirtualization) {
+		}
+	}, [skipVirtualization])
 
 	React.useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
 			if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
 				toast.error("Native browser search isn't well supported, please use search boxes / ctrl-k / cmd-k instead", {
 					id: 'native-search-warn',
-					icon: <Icon name="alert-triangle" color="red" height={16} width={16} className="flex-shrink-0" />
+					icon: <Icon name="alert-triangle" color="red" height={16} width={16} style={{ flexShrink: 0 }} />
 				})
 			}
 		}
@@ -55,6 +65,14 @@ export function VirtualTable({
 		return () => window.removeEventListener('keydown', focusSearchBar)
 	}, [])
 
+	const rowVirtualizer = useWindowVirtualizer({
+		count: rows.length,
+		estimateSize: () => rowSize || 50,
+		overscan: 5,
+		scrollMargin: tableTop
+	})
+
+	const virtualItems = rowVirtualizer.getVirtualItems()
 	const isChainPage =
 		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
 	let minTableWidth = 0
@@ -72,18 +90,22 @@ export function VirtualTable({
 			const tableWrapperEl = document.getElementById('table-wrapper')
 			const tableHeaderDuplicate = document.getElementById('table-header-dup')
 
-			if (tableHeaderRef.current && tableHeaderDuplicate) {
-				if (!skipVirtualization && tableWrapperEl && tableWrapperEl.getBoundingClientRect().top <= 20) {
-					tableHeaderRef.current.style.position = 'fixed'
-					tableHeaderRef.current.style.top = '0px'
-					tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
-					tableHeaderRef.current.style['overflow-x'] = 'overlay'
-					tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
-				} else {
-					tableHeaderRef.current.style.position = 'relative'
-					tableHeaderRef.current.style['overflow-x'] = 'initial'
-					tableHeaderDuplicate.style.height = '0px'
-				}
+			if (
+				!skipVirtualization &&
+				tableHeaderRef.current &&
+				tableWrapperEl &&
+				tableWrapperEl.getBoundingClientRect().top <= 20 &&
+				tableHeaderDuplicate
+			) {
+				tableHeaderRef.current.style.position = 'fixed'
+				tableHeaderRef.current.style.top = '0px'
+				tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
+				tableHeaderRef.current.style['overflow-x'] = 'overlay'
+				tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
+			} else {
+				tableHeaderRef.current.style.position = 'relative'
+				tableHeaderRef.current.style['overflow-x'] = 'initial'
+				tableHeaderDuplicate.style.height = '0px'
 			}
 		}
 
@@ -96,12 +118,10 @@ export function VirtualTable({
 		const tableWrapperEl = document.getElementById('table-wrapper')
 
 		const onScroll = () => {
-			if (tableHeaderRef.current) {
-				if (!skipVirtualization) {
-					tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
-				} else {
-					tableHeaderRef.current.scrollLeft = 0
-				}
+			if (!skipVirtualization && tableHeaderRef.current) {
+				tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
+			} else {
+				tableHeaderRef.current.scrollLeft = 0
 			}
 		}
 
@@ -110,22 +130,25 @@ export function VirtualTable({
 		return () => tableWrapperEl.removeEventListener('scroll', onScroll)
 	}, [skipVirtualization])
 
-	const isClient = useIsClient()
-
-	const skipVzn = isClient ? !skipVirtualization : true
-
 	return (
 		<div
-			style={{ minHeight: `${(rowSize ?? 50) * rows.length}px` }}
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
-			data-chainpage={isChainPage}
-			className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] data-[chainpage=true]:bg-[var(--bg6)] border border-[var(--bg3)]"
+			className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)]"
 		>
-			<div ref={tableHeaderRef} id="table-header" className="flex flex-col z-10">
+			<div
+				ref={tableHeaderRef}
+				id="table-header"
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					zIndex: 10,
+					...(skipVirtualization ? { minWidth: `${minTableWidth}px` } : {})
+				}}
+			>
 				{instance.getHeaderGroups().map((headerGroup) => (
-					<div key={headerGroup.id} className="flex relative">
+					<div key={headerGroup.id} style={{ display: 'flex', position: 'relative' }}>
 						{headerGroup.headers.map((header) => {
 							// get header text alignment
 							const meta = header.column.columnDef.meta
@@ -136,7 +159,7 @@ export function VirtualTable({
 									key={header.id}
 									data-chainpage={isChainPage}
 									style={{ minWidth: `${header.getSize() ?? 100}px` }}
-									className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[lighter=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
+									className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
 								>
 									<span
 										className="flex items-center justify-start data-[align=center]:justify-center data-[align=end]:justify-end flex-nowrap gap-1 relative font-medium *:whitespace-nowrap"
@@ -164,61 +187,64 @@ export function VirtualTable({
 				))}
 			</div>
 			<div id="table-header-dup"></div>
-			<TableBodyWrapper skipVirtualization={skipVzn}>
-				{(isClient ? rows : rows.slice(0, 20)).map((row, i) => {
+			<div
+				style={
+					skipVirtualization
+						? { minWidth: `${minTableWidth}px` }
+						: {
+								height: `${rowVirtualizer.getTotalSize()}px`,
+								width: '100%',
+								position: 'relative',
+								...(instance.getHeaderGroups().length === 1 ? { minWidth: `${minTableWidth}px` } : {})
+						  }
+				}
+			>
+				{(skipVirtualization ? rows : virtualItems).map((row, i) => {
+					const rowTorender = skipVirtualization ? row : rows[row.index]
+					const trStyle: React.CSSProperties = skipVirtualization
+						? {
+								display: 'flex',
+								position: 'relative'
+						  }
+						: {
+								position: 'absolute',
+								top: `${row.start - rowVirtualizer.options.scrollMargin}px`,
+								left: 0,
+								width: '100%',
+								height: `${row.size}px`,
+								opacity: rowTorender.original.disabled ? 0.3 : 1,
+								display: 'flex'
+						  }
+
 					return (
-						<React.Fragment key={row.id}>
-							<TableRow skipVirtualization={skipVzn}>
-								{row.getVisibleCells().map((cell) => {
+						<React.Fragment key={rowTorender.id}>
+							<div style={trStyle}>
+								{rowTorender.getVisibleCells().map((cell) => {
 									// get header text alignment
 									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 
 									return (
 										<div
 											key={cell.id}
-											data-lighter={stripedBg && i % 2 === 0}
+											data-ligther={stripedBg && i % 2 === 0}
 											data-chainpage={isChainPage}
-											className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[lighter=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
+											className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
 											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign }}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</div>
 									)
 								})}
-							</TableRow>
-							{renderSubComponent && row.getIsExpanded() && (
-								<TableRow skipVirtualization={skipVzn}>{renderSubComponent({ row })}</TableRow>
+							</div>
+							{renderSubComponent && rowTorender.getIsExpanded() && (
+								<>
+									<div>{renderSubComponent({ row: rowTorender })}</div>
+								</>
 							)}
 						</React.Fragment>
 					)
 				})}
-			</TableBodyWrapper>
+			</div>
 		</div>
 	)
-}
-
-const TableBodyWrapper = ({
-	children,
-	skipVirtualization
-}: {
-	children: React.ReactNode
-	skipVirtualization: boolean
-}) => {
-	if (skipVirtualization) {
-		return <>{children}</>
-	}
-
-	return (
-		<div className="*:*:flex *:*:relative">
-			<WindowVirtualizer>{children}</WindowVirtualizer>
-		</div>
-	)
-}
-
-const TableRow = ({ children, skipVirtualization }: { children: React.ReactNode; skipVirtualization: boolean }) => {
-	if (skipVirtualization) {
-		return <div className="flex relative">{children}</div>
-	}
-
-	return <>{children}</>
 }
