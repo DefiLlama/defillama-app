@@ -76,6 +76,28 @@ function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
 					tokenSet.add('Others')
 				}
 			}
+
+			if (tokenSet.size === 0) {
+				if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
+					chainTvls[section].tokens?.forEach((dayTokens) => {
+						// filters tokens that have no name or their value is near zero and pick top 10 tokens from the list
+						const topTokens = Object.entries(dayTokens.tokens)
+							.filter((t: [string, number]) => !(t[0].startsWith('UNKNOWN') && t[1] < 1))
+							.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
+
+						if (topTokens.length > 10) {
+							othersCategoryExist = true
+						}
+
+						topTokens.slice(0, 11).forEach(([symbol]) => tokenSet.add(symbol))
+					})
+
+					// if 'others' exist, add it to the end of unique token list
+					if (othersCategoryExist) {
+						tokenSet.add('Others')
+					}
+				}
+			}
 		}
 	}
 
@@ -295,6 +317,8 @@ export const buildProtocolAddlChartsData = ({
 				extraTvlsEnabled,
 				tokensUnique
 			})
+
+			console.log({ tokensUnique, tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown })
 
 			const { usdInflows, tokenInflows } = buildInflows({
 				chainTvls: protocolData.chainTvls,
