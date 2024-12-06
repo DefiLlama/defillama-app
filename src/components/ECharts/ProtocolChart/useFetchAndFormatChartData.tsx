@@ -34,6 +34,7 @@ interface ChartData {
 	Options: number
 	Aggregators: number
 	DerivativesAggregators: number
+	BridgeAggregators: number
 	Unlocks: number
 	ActiveAddresses: number
 	NewAddresses: number
@@ -103,7 +104,8 @@ export function useFetchAndFormatChartData({
 	nftVolumeData,
 	aggregators,
 	premiumVolume,
-	derivativesAggregators
+	derivativesAggregators,
+	bridgeAggregators
 }): ReturnType {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, isLoading: denominationLoading } = useDenominationPriceHistory(
@@ -215,6 +217,14 @@ export function useFetchAndFormatChartData({
 			enableBreakdownChart: false,
 			disabled: isRouterReady && metrics.derivativesAggregators && derivativesAggregators === 'true' ? false : true
 		})
+
+	const { data: bridgeAggregatorsVolumeData, isLoading: fetchingBriddgeAggregatorsVolume } = useGetOverviewChartData({
+		name: protocol,
+		dataToFetch: 'bridge-aggregators',
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: isRouterReady && metrics.bridgeAggregators && bridgeAggregators === 'true' ? false : true
+	})
 
 	const showNonUsdDenomination =
 		denomination &&
@@ -602,6 +612,21 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
+		if (bridgeAggregatorsVolumeData) {
+			chartsUnique.push('Bridge Aggregators Volume')
+
+			bridgeAggregatorsVolumeData.forEach((item) => {
+				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = {}
+				}
+
+				chartData[date]['Bridge Aggregators Volume'] = showNonUsdDenomination
+					? +item['Bridge-aggregators'] / getPriceAtDate(date, denominationHistory.prices)
+					: item['Bridge-aggregators']
+			})
+		}
+
 		if (feesAndRevenue) {
 			if (fees === 'true') {
 				chartsUnique.push('Fees')
@@ -948,6 +973,7 @@ export function useFetchAndFormatChartData({
 		optionsVolumeData,
 		aggregatorsVolumeData,
 		derivativesAggregatorsVolumeData,
+		bridgeAggregatorsVolumeData,
 		feesAndRevenue,
 		twitterData,
 		unlocksData,

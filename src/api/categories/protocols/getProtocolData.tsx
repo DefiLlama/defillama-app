@@ -614,7 +614,8 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		'Contributers Commits',
 		'NFT Volume',
 		'Premium Volume',
-		'Derivatives Aggregators Volume'
+		'Derivatives Aggregators Volume',
+		'Bridge Aggregators Volume'
 	]
 
 	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
@@ -764,6 +765,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					derivatives: protocolMetadata[protocolData.id]?.derivatives ? true : false,
 					aggregators: protocolMetadata[protocolData.id]?.aggregator ? true : false,
 					derivativesAggregators: protocolMetadata[protocolData.id]?.aggregatorDerivatives ? true : false,
+					bridgeAggregators: protocolMetadata[protocolData.id]?.bridgeAggregators ? true : false,
 					options: protocolMetadata[protocolData.id]?.options ? true : false,
 					medianApy: medianApy.data.length > 0,
 					inflows: inflowsExist,

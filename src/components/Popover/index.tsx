@@ -57,6 +57,10 @@ export function EmbedChart({ color }) {
 
 	let path = router.asPath === '/' ? '/chain/All' : router.asPath.split('#')[0].split('?')[0]
 
+	if (typeof document !== undefined) {
+		path += window.location.search
+	}
+
 	if (!path.includes('?')) {
 		path += '?'
 	}

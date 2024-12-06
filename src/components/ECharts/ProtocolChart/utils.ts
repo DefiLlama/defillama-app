@@ -22,7 +22,8 @@ export const BAR_CHARTS = [
 	'NFT Volume',
 	'Aggregators Volume',
 	'Premium Volume',
-	'Derivatives Aggregators Volume'
+	'Derivatives Aggregators Volume',
+	'Bridge Aggregators Volume'
 ]
 
 export const DISABLED_CUMULATIVE_CHARTS = ['Developers', 'Contributers', , 'Devs Commits', 'Contributers Commits']

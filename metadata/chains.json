@@ -87,38 +87,35 @@
         "inflows": true,
         "chainAssets": true
     },
-    "Scroll": {
-        "activeUsers": true,
+    "dYdX": {
         "chainAssets": true
     },
-    "dYdX": {
+    "Scroll": {
+        "activeUsers": true,
         "chainAssets": true
     },
     "Near": {
         "inflows": true
     },
     "TON": {},
-    "Gnosis": {
-        "inflows": true,
-        "chainAssets": true
-    },
     "BSquared": {
         "inflows": true,
         "chainAssets": true
     },
+    "Gnosis": {
+        "inflows": true,
+        "chainAssets": true
+    },
+    "Zircuit": {},
     "Starknet": {
         "chainAssets": true
     },
     "Kaia": {},
     "Sei": {},
-    "Algorand": {
-        "activeUsers": true,
-        "inflows": true
-    },
+    "EOS": {},
     "BOB": {
         "chainAssets": true
     },
-    "EOS": {},
     "Rootstock": {
         "inflows": true,
         "chainAssets": true
@@ -127,24 +124,27 @@
         "inflows": true,
         "chainAssets": true
     },
-    "Hedera": {},
     "AILayer": {},
     "Mode": {
         "inflows": true,
         "chainAssets": true
     },
-    "Zircuit": {},
+    "MultiversX": {},
+    "Algorand": {
+        "activeUsers": true,
+        "inflows": true
+    },
     "Ronin": {
         "chainAssets": true
     },
     "Celo": {
         "inflows": true
     },
+    "Hedera": {},
     "Merlin": {
         "inflows": true,
         "chainAssets": true
     },
-    "MultiversX": {},
     "Osmosis": {
         "inflows": true,
         "chainAssets": true
@@ -158,30 +158,28 @@
     "ZKsync Era": {
         "chainAssets": true
     },
-    "IOTA EVM": {},
     "WEMIX3.0": {},
+    "IOTA EVM": {},
     "ICP": {},
     "Hydration": {},
     "Tezos": {},
     "BounceBit": {},
-    "Neutron": {},
-    "Stellar": {},
     "Metis": {
         "inflows": true,
         "chainAssets": true
     },
+    "XRPL": {},
+    "Fraxtal": {},
     "Injective": {
         "inflows": true,
         "chainAssets": true
     },
+    "Neutron": {},
+    "Stellar": {},
     "Manta": {
         "chainAssets": true
     },
-    "Fraxtal": {},
     "Fuel Ignition": {
-        "chainAssets": true
-    },
-    "zkLink Nova": {
         "chainAssets": true
     },
     "Flow": {
@@ -193,24 +191,30 @@
     "Conflux": {},
     "Radix": {},
     "Cronos zkEVM": {},
-    "Flare": {},
-    "IoTeX": {
+    "ApeChain": {
         "chainAssets": true
     },
-    "ApeChain": {},
     "Bifrost Network": {},
+    "Flare": {},
+    "Kujira": {
+        "inflows": true
+    },
     "Moonbeam": {
         "inflows": true
     },
-    "Kujira": {
+    "zkLink Nova": {
+        "chainAssets": true
+    },
+    "Aurora": {
         "inflows": true
     },
     "Astar": {
         "inflows": true
     },
     "Mayachain": {},
-    "Aurora": {
-        "inflows": true
+    "MAP Protocol": {},
+    "IoTeX": {
+        "chainAssets": true
     },
     "Reya Network": {
         "chainAssets": true
@@ -219,32 +223,29 @@
     "XDC": {
         "inflows": true
     },
-    "MAP Protocol": {},
     "NEO": {},
-    "Icon": {},
     "Chainflip": {},
+    "Icon": {},
     "Secret": {
         "inflows": true
     },
-    "opBNB": {},
     "Rollux": {},
+    "opBNB": {},
     "Chiliz": {},
     "Bifrost": {},
-    "ZetaChain": {},
-    "Bitcoincash": {},
-    "XRPL": {},
-    "Immutable zkEVM": {},
-    "Waves": {},
     "Alephium": {
         "chainAssets": true
     },
-    "FSC": {},
+    "ZetaChain": {},
+    "Waves": {},
+    "Bitcoincash": {},
+    "Immutable zkEVM": {},
     "Polygon zkEVM": {
         "inflows": true,
         "chainAssets": true
     },
     "DefiChain": {},
-    "EOS EVM": {},
+    "FSC": {},
     "Ontology": {},
     "X Layer": {
         "inflows": true
@@ -254,6 +255,7 @@
     "Canto": {
         "inflows": true
     },
+    "Terra2": {},
     "Dogechain": {
         "inflows": true
     },
@@ -261,258 +263,258 @@
         "inflows": true
     },
     "Venom": {},
-    "Terra2": {},
     "Onus": {},
-    "Oraichain": {},
     "Dymension": {},
-    "GodwokenV1": {},
+    "Oraichain": {},
     "Litecoin": {
         "activeUsers": true
     },
-    "Dexalot": {},
+    "GodwokenV1": {},
     "Proton": {},
+    "Nuls": {},
+    "Shibarium": {},
     "Carbon": {},
     "Astar zkEVM": {},
+    "Beam": {},
+    "Dexalot": {},
+    "Eclipse": {},
     "Wanchain": {
         "inflows": true
     },
-    "Shibarium": {},
-    "Nuls": {},
     "DFK": {},
-    "Beam": {},
-    "Vite": {},
-    "Acala": {
-        "inflows": true
-    },
-    "DFS Network": {},
+    "Kardia": {},
+    "Bahamut": {},
     "Polynomial": {
         "chainAssets": true
     },
+    "Acala": {
+        "inflows": true
+    },
+    "Vite": {},
+    "DFS Network": {},
     "Gravity": {},
+    "Oasys": {},
+    "Interlay": {},
+    "re.al": {},
     "Morph": {
         "chainAssets": true
     },
-    "Vision": {},
-    "Eclipse": {},
-    "Interlay": {},
     "Harmony": {},
-    "re.al": {},
-    "Bahamut": {},
-    "Oasys": {},
-    "Horizen EON": {},
-    "FunctionX": {},
+    "Vision": {},
     "smartBCH": {},
-    "Zilliqa": {},
+    "RENEC": {},
     "UX": {},
+    "FunctionX": {},
+    "Horizen EON": {},
+    "Zilliqa": {},
     "aelf": {},
     "ThunderCore": {
         "inflows": true
     },
-    "BEVM": {},
     "Oasis Sapphire": {},
+    "BEVM": {},
+    "Hydra": {},
+    "Lisk": {
+        "chainAssets": true
+    },
     "Wax": {},
-    "Theta": {},
-    "Songbird": {},
     "AirDAO": {},
+    "Theta": {},
     "Boba": {
         "inflows": true,
         "chainAssets": true
     },
-    "OKTChain": {},
+    "Kadena": {},
     "Meter": {
+        "chainAssets": true
+    },
+    "OKTChain": {},
+    "Xai": {
         "chainAssets": true
     },
     "World Chain": {},
     "Velas": {},
-    "Xai": {
-        "chainAssets": true
-    },
-    "Kadena": {},
     "Persistence One": {},
-    "Hydra": {},
+    "Songbird": {},
     "DeFiVerse": {},
-    "KCC": {
-        "inflows": true
-    },
     "Degen": {
         "chainAssets": true
+    },
+    "Neon": {},
+    "Elastos": {},
+    "KCC": {
+        "inflows": true
     },
     "Terra Classic": {
         "inflows": true
     },
-    "XPLA": {},
-    "Elastos": {},
-    "Milkomeda C1": {},
-    "CosmosHub": {},
-    "HAQQ": {},
-    "Archway": {},
     "Etherlink": {},
-    "IDEX": {},
-    "Kardia": {},
+    "XPLA": {},
+    "CosmosHub": {},
+    "Everscale": {},
+    "HAQQ": {},
+    "Milkomeda C1": {},
     "Bitrock": {},
-    "Lisk": {
-        "chainAssets": true
-    },
     "Fuse": {
         "inflows": true
     },
-    "Neon": {},
-    "Everscale": {},
-    "VeChain": {},
-    "Oasis Emerald": {},
     "Arbitrum Nova": {
         "inflows": true
     },
-    "Rangers": {},
-    "Equilibrium": {},
-    "RENEC": {},
+    "Oasis Emerald": {},
+    "IDEX": {},
     "Elysium": {
         "chainAssets": true
     },
-    "Stargaze": {},
+    "VeChain": {},
+    "Rangers": {},
+    "Equilibrium": {},
     "RSS3": {
         "chainAssets": true
     },
-    "SKALE Europa": {},
-    "ShimmerEVM": {
-        "inflows": true
-    },
+    "exSat": {},
     "SatoshiVM": {},
     "Sanko": {
         "chainAssets": true
     },
-    "Chihuahua": {},
+    "ShimmerEVM": {
+        "inflows": true
+    },
+    "SKALE Europa": {},
     "Obyte": {},
+    "Genesys": {},
     "Evmos": {
         "inflows": true
     },
     "Energi": {},
-    "Ultron": {},
+    "Chihuahua": {},
     "LaChain Network": {},
+    "Ultron": {},
     "EthereumClassic": {},
+    "Naka": {},
+    "Taraxa": {},
     "Starcoin": {},
+    "Bittorrent": {},
     "Juno": {
         "inflows": true
     },
-    "Bittorrent": {},
-    "Genesys": {},
     "Karura": {
         "inflows": true
     },
-    "NOS": {},
-    "Naka": {},
-    "Bostrom": {},
-    "Kroma": {},
-    "CSC": {},
     "Heco": {},
+    "NOS": {},
+    "Kintsugi": {},
     "Nolus": {},
+    "Bostrom": {},
     "Viction": {},
-    "Boba_Bnb": {},
-    "HeLa": {},
+    "Kroma": {},
     "ENULS": {},
+    "CSC": {},
     "Migaloo": {},
+    "HeLa": {},
     "Tombchain": {},
-    "Saakuru": {},
-    "Taraxa": {},
-    "Dash": {},
-    "LightLink": {},
     "Crab": {},
+    "Dash": {},
+    "Saakuru": {},
+    "LightLink": {},
     "Massa": {},
     "Shido": {},
-    "EnergyWeb": {},
+    "Step": {},
     "Mint": {
         "inflows": true,
         "chainAssets": true
     },
+    "EnergyWeb": {},
     "UNIT0": {},
     "Shape": {},
-    "Step": {},
-    "Q Protocol": {},
-    "Zora": {},
     "Ancient8": {},
-    "inEVM": {},
     "DeFiChain EVM": {},
+    "Zora": {},
+    "Q Protocol": {},
+    "Boba_Bnb": {},
+    "inEVM": {},
+    "Archway": {},
     "Endurance": {},
     "Sora": {},
+    "EthereumPoW": {},
+    "MEER": {},
     "Zkfair": {
         "inflows": true
     },
-    "EthereumPoW": {},
-    "MEER": {},
-    "Godwoken": {},
+    "Loop": {},
     "Matchain": {},
+    "Stargaze": {},
+    "Godwoken": {},
     "ALV": {},
     "Polkadex": {},
-    "Loop": {},
-    "Nahmii": {},
-    "Shiden": {},
-    "Bitkub Chain": {},
-    "Aura Network": {},
     "Electroneum": {},
-    "Rari": {},
+    "Shiden": {},
+    "Nahmii": {},
+    "Aura Network": {},
+    "Bitkub Chain": {},
     "Cyber": {},
+    "Rari": {},
     "Newton": {},
     "Neo X Mainnet": {},
     "Comdex": {},
-    "Areon Network": {},
     "SXnetwork": {},
     "Findora": {},
-    "Polkadot": {},
+    "Areon Network": {},
     "Libre": {},
-    "Kintsugi": {},
     "Grove": {},
     "Crescent": {},
-    "Syscoin": {},
     "JBC": {},
-    "Concordium": {},
+    "Syscoin": {},
     "REI": {},
+    "Concordium": {},
     "Planq": {},
     "MVC": {},
-    "MultiVAC": {},
     "Ham": {},
-    "Callisto": {},
+    "MultiVAC": {},
     "Cube": {},
     "HPB": {},
+    "Callisto": {},
     "Manta Atlantic": {},
+    "ETHF": {},
     "Lachain": {},
+    "EOS EVM": {},
     "GoChain": {},
     "Darwinia": {},
     "OntologyEVM": {},
-    "ETHF": {},
-    "Zeniq": {},
     "Sifchain": {
         "inflows": true
     },
-    "Tenet": {},
-    "Joltify": {},
+    "Zeniq": {},
     "Bitgert": {},
+    "Joltify": {},
+    "Tenet": {},
     "REIchain": {},
     "Bitnet": {},
     "Aeternity": {},
     "Milkomeda A1": {},
-    "exSat": {},
     "Palm": {},
-    "Lung": {},
     "Asset Chain": {},
     "Pego": {},
-    "Goerli": {},
+    "Corn": {},
+    "Nibiru": {},
     "Celestia": {},
     "BandChain": {},
     "Sommelier": {},
     "Stride": {
         "inflows": true
     },
+    "Goerli": {},
+    "Polkadot": {},
     "Kusama": {},
     "Dexit": {},
     "Omax": {},
     "Fusion": {},
     "Boba_Avax": {},
     "Stafi": {},
-    "Nibiru": {},
     "OXFUN": {},
     "Empire": {},
-    "Echelon": {},
     "Hoo": {},
+    "Echelon": {},
     "Quicksilver": {},
     "CLV": {},
     "Pokt": {},
@@ -537,6 +539,7 @@
     "MUUCHAIN": {},
     "Tlchain": {},
     "Bitindi": {},
+    "Lung": {},
     "Bone": {},
     "Lukso": {}
 }

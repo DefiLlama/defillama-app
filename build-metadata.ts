@@ -29,11 +29,11 @@ for (const protocol of tvlData.protocols) {
 	nameToId[protocol.defillamaId] = protocol.name
 
 	finalProtocols[protocol.defillamaId] = {
-		tvl: protocol.tvl !== null ? true : false,
+		tvl: protocol.tvl ? true : false,
 		...(protocol.governanceID ? { governance: true } : {})
 	}
 
-	if (protocol.parentProtocol && protocol.tvl !== null) {
+	if (protocol.parentProtocol && protocol.tvl) {
 		finalProtocols[protocol.parentProtocol] = {
 			...finalProtocols[protocol.parentProtocol],
 			tvl: true
@@ -243,6 +243,23 @@ for (const protocol of aggregatorDerivativesData.protocols) {
 		finalProtocols[protocol.parentProtocol] = {
 			...finalProtocols[protocol.parentProtocol],
 			aggregatorDerivatives: true
+		}
+	}
+}
+
+const bridgeAggregatorsData = await fetch(
+	`${DIMENISIONS_OVERVIEW_API}/bridge-aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+).then((res) => res.json())
+for (const protocol of bridgeAggregatorsData.protocols) {
+	finalProtocols[protocol.defillamaId] = {
+		...finalProtocols[protocol.defillamaId],
+		bridgeAggregators: true
+	}
+
+	if (protocol.parentProtocol) {
+		finalProtocols[protocol.parentProtocol] = {
+			...finalProtocols[protocol.parentProtocol],
+			bridgeAggregators: true
 		}
 	}
 }

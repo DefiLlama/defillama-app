@@ -69,7 +69,8 @@ const CHART_TYPES = [
 	'contributersCommits',
 	'devCommits',
 	'nftVolume',
-	'derivativesAggregators'
+	'derivativesAggregators',
+	'bridgeAggregators'
 ]
 
 export default function ProtocolChart({
@@ -132,6 +133,7 @@ export default function ProtocolChart({
 		devCommits,
 		nftVolume,
 		aggregators,
+		bridgeAggregators,
 		premiumVolume,
 		derivativesAggregators
 	} = enabled || {
@@ -147,6 +149,8 @@ export default function ProtocolChart({
 				? { premiumVolume: router.query.premiumVolume ?? 'true' }
 				: metrics.aggregators
 				? { aggregators: router.query.aggregators ?? 'true' }
+				: metrics.bridgeAggregators
+				? { bridgeAggregators: router.query.bridgeAggregators ?? 'true' }
 				: metrics.derivativesAggregators
 				? { derivativesAggregators: router.query.derivativesAggregators ?? 'true' }
 				: metrics.bridge
@@ -206,7 +210,8 @@ export default function ProtocolChart({
 			nftVolume,
 			nftVolumeData,
 			aggregators,
-			derivativesAggregators
+			derivativesAggregators,
+			bridgeAggregators
 		})
 
 	const realPathname =
@@ -258,6 +263,7 @@ export default function ProtocolChart({
 			metrics.unlocks ||
 			metrics.aggregators ||
 			metrics.derivativesAggregators ||
+			metrics.bridgeAggregators ||
 			activeUsersId ||
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
 			historicalChainTvls['staking']?.tvl?.length > 0 ||
@@ -1007,6 +1013,31 @@ export default function ProtocolChart({
 
 							<span className="flex items-center relative z-[1] py-2 px-3 rounded-xl bg-[var(--bg)] peer-checked:bg-[var(--active-bg)] peer-focus-visible:outline">
 								Aggregators Volume
+							</span>
+						</label>
+					)}
+
+					{metrics.bridgeAggregators && (
+						<label className="text-sm font-medium cursor-pointer rounded-xl hover:bg-[var(--bg)]">
+							<input
+								type="checkbox"
+								value="bridgeAggregators"
+								checked={bridgeAggregators === 'true'}
+								onChange={() =>
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...router.query, bridgeAggregators: bridgeAggregators === 'true' ? false : true }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}
+								className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
+							/>
+
+							<span className="flex items-center relative z-[1] py-2 px-3 rounded-xl bg-[var(--bg)] peer-checked:bg-[var(--active-bg)] peer-focus-visible:outline">
+								Bridge Aggregators Volume
 							</span>
 						</label>
 					)}

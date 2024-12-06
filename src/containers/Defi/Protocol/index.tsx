@@ -587,6 +587,15 @@ function ProtocolContainer({
 								Derivatives Aggregators Volume
 							</button>
 						)}
+						{metrics.bridgeAggregators && (
+							<button
+								data-active={tab === 'bridge-aggregators'}
+								onClick={(e) => setTab('bridge-aggregators', e)}
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+							>
+								Bridge Aggregators Volume
+							</button>
+						)}
 						{metrics.options && (
 							<button
 								data-active={tab === 'options-volume'}
@@ -1581,6 +1590,21 @@ function ProtocolContainer({
 													</ButtonLight>
 												</Link>
 											)}
+											{methodologyUrls?.bridgeAggregators && (
+												<Link href={methodologyUrls.bridgeAggregators} passHref>
+													<ButtonLight
+														className="flex items-center gap-1"
+														as="a"
+														target="_blank"
+														rel="noopener noreferrer"
+														useTextColor={true}
+														color={backgroundColor}
+													>
+														<span>Bridge Aggregators Volume code</span>
+														<Icon name="arrow-up-right" height={14} width={14} />
+													</ButtonLight>
+												</Link>
+											)}
 										</div>
 									</div>
 								)}
@@ -1774,6 +1798,11 @@ function ProtocolContainer({
 					{metrics.derivativesAggregators && tab === 'aggregator-derivatives' ? (
 						<div>
 							<VolumeCharts data={protocolData} type="aggregator-derivatives" />
+						</div>
+					) : null}
+					{metrics.bridgeAggregators && tab === 'bridge-aggregators' ? (
+						<div>
+							<VolumeCharts data={protocolData} type="bridge-aggregators" />
 						</div>
 					) : null}
 					{metrics.aggregators && tab === 'aggregators-volume' ? (
