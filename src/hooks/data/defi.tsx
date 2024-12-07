@@ -331,7 +331,7 @@ export const formatProtocolsList = ({
 		}
 		allProtocols[protocolName] = {
 			...allProtocols?.[protocolName],
-			chains: protocol.chains ?? [],
+			...(!protocol.chains ? { chains: protocol.chains ?? [] } : {}),
 			fees_24h: protocol.total24h ?? undefined,
 			revenue_24h: protocol.revenue24h ?? undefined,
 			holderRevenue_24h: protocol.dailyHoldersRevenue ?? undefined,
@@ -358,7 +358,7 @@ export const formatProtocolsList = ({
 		}
 		allProtocols[protocolName] = {
 			...allProtocols[protocolName],
-			chains: protocol.chains ?? [],
+			...(!protocol.chains ? { chains: protocol.chains ?? [] } : {}),
 			volume_24h: protocol.total24h,
 			volume_7d: protocol.total7d,
 			volumeChange_7d: protocol['change_7dover7d'],
