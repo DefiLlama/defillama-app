@@ -566,7 +566,7 @@ function ProtocolContainer({
 								onClick={(e) => setTab('derivatives-volume', e)}
 								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
-								Derivatives Volume
+								Perps Volume
 							</button>
 						)}
 						{metrics.aggregators && (
@@ -584,7 +584,7 @@ function ProtocolContainer({
 								onClick={(e) => setTab('aggregator-derivatives', e)}
 								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
-								Derivatives Aggregators Volume
+								Perps Aggregators Volume
 							</button>
 						)}
 						{metrics.bridgeAggregators && (
@@ -941,8 +941,8 @@ function ProtocolContainer({
 											{dailyDerivativesVolume && allTimeDerivativesVolume ? (
 												<RowWithSubRows
 													protocolName={protocolData.name}
-													dataType="Derivatives Volume"
-													rowHeader="Derivatives Volume 24h"
+													dataType="Perps Volume"
+													rowHeader="Perps Volume 24h"
 													rowValue={formatPrice(dailyDerivativesVolume)}
 													helperText={null}
 													subRows={
@@ -959,10 +959,10 @@ function ProtocolContainer({
 											) : dailyDerivativesVolume ? (
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
-														<span>Derivatives Volume 24h</span>
+														<span>Perps Volume 24h</span>
 														<Flag
 															protocol={protocolData.name}
-															dataType={'Derivatives Volume'}
+															dataType={'Perps Volume'}
 															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 														/>
 													</th>
@@ -1003,8 +1003,8 @@ function ProtocolContainer({
 											{dailyDerivativesAggregatorVolume && allTimeDerivativesAggregatorVolume ? (
 												<RowWithSubRows
 													protocolName={protocolData.name}
-													dataType="Derivatives Aggregators Volume"
-													rowHeader="Derivatives Aggs Volume 24h"
+													dataType="Perps Aggregators Volume"
+													rowHeader="Perps Aggs Volume 24h"
 													rowValue={formatPrice(dailyDerivativesAggregatorVolume)}
 													helperText={null}
 													subRows={
@@ -1023,10 +1023,10 @@ function ProtocolContainer({
 											) : dailyDerivativesAggregatorVolume ? (
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
-														<span>Derivatives Aggs Volume 24h</span>
+														<span>Perps Aggs Volume 24h</span>
 														<Flag
 															protocol={protocolData.name}
-															dataType={'Derivatives Aggregators Volume'}
+															dataType={'Perps Aggregators Volume'}
 															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 														/>
 													</th>
@@ -1585,7 +1585,7 @@ function ProtocolContainer({
 														useTextColor={true}
 														color={backgroundColor}
 													>
-														<span>Derivatives Volume code</span>
+														<span>Perps Volume code</span>
 														<Icon name="arrow-up-right" height={14} width={14} />
 													</ButtonLight>
 												</Link>

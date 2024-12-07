@@ -491,7 +491,7 @@ export default function ProtocolChart({
 							/>
 
 							<span className="flex items-center relative z-[1] py-2 px-3 rounded-xl bg-[var(--bg)] peer-checked:bg-[var(--active-bg)] peer-focus-visible:outline">
-								Derivatives Volume
+								Perps Volume
 							</span>
 						</label>
 					)}
@@ -518,7 +518,7 @@ export default function ProtocolChart({
 							/>
 
 							<span className="flex items-center relative z-[1] py-2 px-3 rounded-xl bg-[var(--bg)] peer-checked:bg-[var(--active-bg)] peer-focus-visible:outline">
-								Derivatives Aggregators
+								Perps Aggregators
 							</span>
 						</label>
 					)}

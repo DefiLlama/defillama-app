@@ -553,7 +553,7 @@ export function useFetchAndFormatChartData({
 		}
 
 		if (derivativesVolumeData) {
-			chartsUnique.push('Derivatives Volume')
+			chartsUnique.push('Perps Volume')
 
 			derivativesVolumeData.forEach((item) => {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
@@ -561,7 +561,7 @@ export function useFetchAndFormatChartData({
 					chartData[date] = {}
 				}
 
-				chartData[date]['Derivatives Volume'] = showNonUsdDenomination
+				chartData[date]['Perps Volume'] = showNonUsdDenomination
 					? +item.Derivatives / getPriceAtDate(date, denominationHistory.prices)
 					: item.Derivatives
 			})
@@ -598,7 +598,7 @@ export function useFetchAndFormatChartData({
 		}
 
 		if (derivativesAggregatorsVolumeData) {
-			chartsUnique.push('Derivatives Aggregators Volume')
+			chartsUnique.push('Perps Aggregators Volume')
 
 			derivativesAggregatorsVolumeData.forEach((item) => {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
@@ -606,7 +606,7 @@ export function useFetchAndFormatChartData({
 					chartData[date] = {}
 				}
 
-				chartData[date]['Derivatives Aggregators Volume'] = showNonUsdDenomination
+				chartData[date]['Perps Aggregators Volume'] = showNonUsdDenomination
 					? +item['Aggregator-derivatives'] / getPriceAtDate(date, denominationHistory.prices)
 					: item['Aggregator-derivatives']
 			})
@@ -1056,7 +1056,7 @@ export function useFetchAndFormatChartData({
 	}
 
 	if (fetchingDerivativesVolume) {
-		fetchingTypes.push('derivatives volume')
+		fetchingTypes.push('perps volume')
 	}
 
 	if (fetchingAggregatorsVolume) {

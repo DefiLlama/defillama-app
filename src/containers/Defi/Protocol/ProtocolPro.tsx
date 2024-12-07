@@ -24,7 +24,7 @@ export const ChartTypes = {
 	tokenPrice: 'Token Price',
 	fdv: 'FDV',
 	volume: 'Volume',
-	derivativesVolume: 'Derivatives Volume',
+	derivativesVolume: 'Perps Volume',
 	fees: 'Fees',
 	revenue: 'Revenue',
 	unlocks: 'Unlocks',

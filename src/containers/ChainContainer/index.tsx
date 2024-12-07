@@ -207,7 +207,7 @@ export function ChainContainer({
 			name: `${chainTokenInfo?.tokenSymbol} Volume`,
 			isVisible: chartDatasets?.[0]?.chainTokenVolumeData?.length ? true : false
 		},
-		{ id: 'derivatives', name: 'Derivatives Volume', isVisible: chartDatasets?.[0]?.derivativesData ? true : false },
+		{ id: 'derivatives', name: 'Perps Volume', isVisible: chartDatasets?.[0]?.derivativesData ? true : false },
 		{ id: 'aggregators', name: 'Aggregators Volume', isVisible: chartDatasets?.[0]?.aggregatorsData ? true : false },
 		{ id: 'chainAssets', name: 'Bridged TVL', isVisible: chartDatasets?.[0]?.chainAssetsData ? true : false }
 	]

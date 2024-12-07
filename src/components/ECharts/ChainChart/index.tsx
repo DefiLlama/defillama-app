@@ -460,8 +460,8 @@ export default function AreaChart({
 				const color = getColor(isCompare) || colors.derivatives
 				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
-					name: namePrefix + 'Derivatives Volume',
-					chartId: 'Derivatives',
+					name: namePrefix + 'Perps Volume',
+					chartId: 'Perps',
 					symbol: 'none',
 					type: 'bar',
 					data: [],

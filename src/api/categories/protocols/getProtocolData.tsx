@@ -589,7 +589,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		'Fees',
 		'Revenue',
 		'Volume',
-		'Derivatives Volume',
+		'Perps Volume',
 		'Unlocks',
 		'Active Addresses',
 		'New Addresses',
@@ -614,7 +614,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		'Contributers Commits',
 		'NFT Volume',
 		'Premium Volume',
-		'Derivatives Aggregators Volume',
+		'Perps Aggregators Volume',
 		'Bridge Aggregators Volume'
 	]
 

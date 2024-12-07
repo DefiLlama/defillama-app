@@ -325,8 +325,10 @@ const TitleByType: React.FC<ITitleProps> = (props) => {
 	let title = capitalizeFirstLetter(props.type)
 	if (volumeTypes.includes(props.type)) {
 		title = `${
-			title === 'Derivatives-aggregator'
-				? 'Derivatives Aggregator'
+			title === 'Derivatives'
+				? 'Perps'
+				: title === 'Derivatives-aggregator'
+				? 'Perps Aggregator'
 				: title === 'Bridge-aggregators'
 				? 'Bridge Aggregators'
 				: title

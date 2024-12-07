@@ -89,11 +89,11 @@ export default function AreaBarChart({
 
 		if (
 			stacks.includes('Volume') ||
-			stacks.includes('Derivatives Volume') ||
+			stacks.includes('Perps Volume') ||
 			stacks.includes('Fees') ||
 			stacks.includes('Revenue')
 		) {
-			yAxisByIndex['Volume+Derivatives Volume+Fees+Revenue'] =
+			yAxisByIndex['Volume+Perps Volume+Fees+Revenue'] =
 				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
 		}
 
@@ -174,8 +174,8 @@ export default function AreaBarChart({
 				options['yAxisIndex'] = yAxisByIndex['TVL+Mcap+FDV+Borrowed+Staking']
 			} else if (['Bridge Deposits', 'Bridge Withdrawals'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Bridge Deposits+Bridge Withdrawals']
-			} else if (['Volume', 'Derivatives Volume', 'Fees', 'Revenue'].includes(stack)) {
-				options['yAxisIndex'] = yAxisByIndex['Volume+Derivatives Volume+Fees+Revenue']
+			} else if (['Volume', 'Perps Volume', 'Fees', 'Revenue'].includes(stack)) {
+				options['yAxisIndex'] = yAxisByIndex['Volume+Perps Volume+Fees+Revenue']
 			} else if (['Active Addresses', 'New Addresses'].includes(stack)) {
 				options['yAxisIndex'] = yAxisByIndex['Active Addresses+New Addresses']
 			} else if (['Total Proposals', 'Successful Proposals'].includes(stack)) {
@@ -368,7 +368,7 @@ export default function AreaBarChart({
 				})
 			}
 
-			if (type === 'Volume+Derivatives Volume+Fees+Revenue') {
+			if (type === 'Volume+Perps Volume+Fees+Revenue') {
 				yAxiss.push({
 					...options
 				})

@@ -53,7 +53,7 @@ const AllChainsDexs = (props: IOverviewContainerProps) => {
 		<Layout
 			title={`${props.type
 				.split('-')
-				.map((x) => capitalizeFirstLetter(x))
+				.map((x) => (x === 'derivatives' ? 'Perps' : capitalizeFirstLetter(x)))
 				.join(' ')} - DefiLlama`}
 		>
 			<SEO pageType={props.type} />

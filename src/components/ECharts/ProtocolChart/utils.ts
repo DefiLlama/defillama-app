@@ -1,6 +1,6 @@
 export const BAR_CHARTS = [
 	'Volume',
-	'Derivatives Volume',
+	'Perps Volume',
 	'Fees',
 	'Revenue',
 	'Active Addresses',
@@ -22,7 +22,7 @@ export const BAR_CHARTS = [
 	'NFT Volume',
 	'Aggregators Volume',
 	'Premium Volume',
-	'Derivatives Aggregators Volume',
+	'Perps Aggregators Volume',
 	'Bridge Aggregators Volume'
 ]
 

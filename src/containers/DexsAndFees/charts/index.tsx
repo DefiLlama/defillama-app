@@ -29,7 +29,7 @@ const chartTitleBy = (chartType: CHART_TYPES, breakdown: boolean) => {
 		default:
 			return (title: string, type: string) => {
 				if (type === 'fees' && !breakdown) return `${capitalizeFirstLetter(type)} and revenue`
-				if (type === 'aggregator-derivatives') return 'Derivatives Aggregator' + (breakdown ? ' by chain' : '')
+				if (type === 'aggregator-derivatives') return 'Perps Aggregator' + (breakdown ? ' by chain' : '')
 				return title && title !== ''
 					? title
 					: `${capitalizeFirstLetter(type)}${breakdown ? ' by chain' : ' and revenue'}`
