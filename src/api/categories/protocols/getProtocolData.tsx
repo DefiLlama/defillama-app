@@ -152,10 +152,10 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 		}
 	})
 
-	const dailyRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyRevenue || 0), 0) ?? null
+	const dailyRevenue = revenueData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const dailyBribesRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyBribesRevenue || 0), 0) ?? null
 	const dailyTokenTaxes = revenueData?.reduce((acc, curr) => (acc += curr.dailyTokenTaxes || 0), 0) ?? null
-	const dailyFees = feesData?.reduce((acc, curr) => (acc += curr.dailyFees || 0), 0) ?? null
+	const dailyFees = feesData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const fees30d = feesData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const revenue30d = revenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const bribesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.bribesRevenue30d || 0), 0) ?? null
@@ -659,10 +659,10 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		}
 	})
 
-	const dailyRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyRevenue || 0), 0) ?? null
+	const dailyRevenue = revenueData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const dailyBribesRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyBribesRevenue || 0), 0) ?? null
 	const dailyTokenTaxes = revenueData?.reduce((acc, curr) => (acc += curr.dailyTokenTaxes || 0), 0) ?? null
-	const dailyFees = feesData?.reduce((acc, curr) => (acc += curr.dailyFees || 0), 0) ?? null
+	const dailyFees = feesData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const fees30d = feesData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const revenue30d = revenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const bribesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.bribesRevenue30d || 0), 0) ?? null
