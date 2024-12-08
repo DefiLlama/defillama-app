@@ -136,7 +136,15 @@ export const descriptions = {
 	'Managed Token Pools':
 		'Protocols where token pools are actively controlled and managed by a designated operator or governance',
 	'Developer Tools':
-		'Platforms and services providing APIs, integrations, or other resources to facilitate the development and management of blockchain applications'
+		'Platforms and services providing APIs, integrations, or other resources to facilitate the development and management of blockchain applications',
+	'Stablecoin Issuer':
+		'Company that creates and manages stablecoins designed to maintain a stable value, typically pegged to a fiat like the US dollar',
+	'Coins Tracker':
+		'A tool that aggregates and displays real-time token prices, trading volumes, and market trends from decentralized exchanges',
+	Domains: 'Decentralized naming services that map human-readable names to blockchain addresses',
+	'NFT Launchpad': 'Platforms that enable creators to mint, manage, and launch NFT collections',
+	'Trading App':
+		'Apps that simplify trading tokens like memecoins with user-friendly interfaces, real-time updates, self-custodial tools, and direct fiat on-ramps for casual traders'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
