@@ -325,7 +325,6 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 // used in /protocols/[category]
 export async function getProtocolsPageData(category?: string, chain?: string) {
 	const { protocols, chains, parentProtocols } = await getProtocols()
-
 	const normalizedCategory = category?.toLowerCase().replace(' ', '_')
 	const feesRes = await getFeesAndRevenueProtocolsByChain({
 		chain
