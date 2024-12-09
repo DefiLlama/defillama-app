@@ -89,7 +89,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(totalValue, true)}</span>
 					</p>
 					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Volume Secured (30d)</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Total Perp DEX Volume Secured (30d)</span>
 						<span className="font-semibold text-2xl font-jetbrains">
 							{' '}
 							{formattedNum(oracleMonthlyVolumes[token] ?? 0, true)}
