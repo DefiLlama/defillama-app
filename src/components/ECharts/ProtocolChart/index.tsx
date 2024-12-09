@@ -641,5 +641,5 @@ export default function AreaBarChart({
 		yAxisByIndex
 	])
 
-	return <div id={id} style={{ height }} />
+	return <div id={id} style={{ height, ...(props.style ?? {}) }} />
 }

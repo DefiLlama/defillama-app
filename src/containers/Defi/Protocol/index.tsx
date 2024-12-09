@@ -1332,7 +1332,7 @@ function ProtocolContainer({
 								/>
 
 								<button
-									onClick={(prev) => setBobo(!prev)}
+									onClick={() => setBobo(!bobo)}
 									className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-[1]"
 								>
 									<span className="sr-only">Enable Goblin Mode</span>
