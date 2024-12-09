@@ -202,12 +202,12 @@ export function ChainContainer({
 		{
 			id: 'chainTokenMcap',
 			name: `${chainTokenInfo?.tokenSymbol} MCap`,
-			isVisible: chartDatasets?.[0]?.chainTokenMcapData?.length ? true : false
+			isVisible: chainTokenInfo?.tokenSymbol ? true : false
 		},
 		{
 			id: 'chainTokenVolume',
 			name: `${chainTokenInfo?.tokenSymbol} Volume`,
-			isVisible: chartDatasets?.[0]?.chainTokenVolumeData?.length ? true : false
+			isVisible: chainTokenInfo?.tokenSymbol ? true : false
 		}
 	]
 

@@ -40,7 +40,9 @@ export default function ChainChartPage({
 	inflowsData,
 	userData,
 	devMetricsData,
-	chainTokenInfo
+	chainTokenInfo,
+	perpsData,
+	chainAssets
 }) {
 	const router = useRouter()
 	const selectedChain = chain ?? 'All'
@@ -75,7 +77,8 @@ export default function ChainChartPage({
 		extraTvlCharts,
 		extraTvlsEnabled,
 		devMetricsData,
-		chainTokenInfo
+		perpsData,
+		chainAssets
 	})
 
 	const isThemeDark = theme === 'dark' ? true : false
