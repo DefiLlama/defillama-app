@@ -51,7 +51,13 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 			let totalFees24h: DataValue = null
 			let totalRevenue24h: DataValue = null
 			let totalAssets: DataValue = null
-			let chainAssets: DataValue = null
+			let chainAssets: {
+				total?: number | null
+				canonical?: number | null
+				ownTokens?: number | null
+				native?: number | null
+				thirdParty?: number | null
+			} = {}
 			let nftVolume: DataValue = null
 
 			finalData[parentName] = {}
@@ -70,7 +76,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 				totalFees24h = parentData.totalFees24h || null
 				totalRevenue24h = parentData.totalRevenue24h || null
 				totalAssets = parentData.totalAssets || null
-				chainAssets = parentData.chainAssets || null
+				chainAssets = { ...(parentData.chainAssets ?? {}) }
 				nftVolume = parentData.nftVolume || null
 				finalData[parentName] = {
 					...parentData,
@@ -93,7 +99,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 
 						const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
 
-						if (childData && alreadyAdded === undefined) {
+						if (childData && !alreadyAdded) {
 							tvl += childData.tvl
 							tvlPrevDay += childData.tvlPrevDay
 							tvlPrevWeek += childData.tvlPrevWeek
@@ -106,7 +112,15 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 							totalFees24h += childData.totalFees24h || null
 							totalRevenue24h += childData.totalRevenue24h || null
 							totalAssets += childData.totalAssets || null
-							chainAssets += childData.chainAssets || null
+
+							if (childData.chainAssets) {
+								chainAssets.total = +(chainAssets.total ?? 0) + +(childData.chainAssets.total ?? 0)
+								chainAssets.ownTokens = +(chainAssets.ownTokens ?? 0) + +(childData.chainAssets.ownTokens ?? 0)
+								chainAssets.canonical = +(chainAssets.canonical ?? 0) + +(childData.chainAssets.canonical ?? 0)
+								chainAssets.native = +(chainAssets.native ?? 0) + +(childData.chainAssets.native ?? 0)
+								chainAssets.thirdParty = +(chainAssets.thirdParty ?? 0) + +(childData.chainAssets.thirdParty ?? 0)
+							}
+
 							nftVolume += childData.nftVolume || null
 							const subChains = finalData[parentName].subRows || []
 							let mcaptvl = mcap && tvl ? +(mcap / tvl).toFixed(2) : null

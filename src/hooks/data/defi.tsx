@@ -123,18 +123,29 @@ export function formatDataWithExtraTvls({
 
 		let assets = null
 
-		if (chainAssets) {
-			assets = chainAssets?.[props?.name?.toLowerCase()]
+		if (chainAssets && props.name && chainAssets[props.name]) {
+			let total = chainAssets[props.name].total?.total.split('.')[0] ?? null
+			const ownTokens = chainAssets[props.name].ownTokens?.total.split('.')[0] ?? null
+			const canonical = chainAssets[props.name].canonical?.total.split('.')[0] ?? null
+			const native = chainAssets[props.name].native?.total.split('.')[0] ?? null
+			const thirdParty = chainAssets[props.name].thirdParty?.total.split('.')[0] ?? null
 
-			if (assets && extraTvlsEnabled.govtokens && assets?.ownTokens) {
-				const total = assets.total.total + assets.ownTokens.total
-				assets = { ...assets, total: { ...assets.total, total } }
+			if (extraTvlsEnabled.govtokens && ownTokens) {
+				total = +(total ?? 0) + +ownTokens
+			}
+
+			assets = {
+				total: total == 0 ? null : total,
+				ownTokens: ownTokens == '0' ? null : ownTokens,
+				canonical: canonical == '0' ? null : canonical,
+				native: native == '0' ? null : native,
+				thirdParty: thirdParty == '0' ? null : thirdParty
 			}
 		}
 
 		return {
 			...props,
-			chainAssets: assets ?? null,
+			chainAssets: assets,
 			tvl: finalTvl < 0 ? 0 : finalTvl,
 			tvlPrevDay: finalTvlPrevDay < 0 ? 0 : finalTvlPrevDay,
 			tvlPrevWeek: finalTvlPrevWeek < 0 ? 0 : finalTvlPrevWeek,

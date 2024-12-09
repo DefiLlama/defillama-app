@@ -838,7 +838,7 @@ export const getNewChainsPageData = async (category: string) => {
 			chainAssets: chainsAssets ?? null,
 			chainTvls: chainTvls.map((chain) => {
 				const name = chain.name.toLowerCase()
-				const totalAssets = chainsAssets[name]?.total?.total ?? null
+
 				const nftVolume = chainNftsVolume[name] ?? null
 				const { total24h, revenue24h } = feesAndRevenueChains.find((x) => x.name.toLowerCase() === name) || {}
 
@@ -848,7 +848,6 @@ export const getNewChainsPageData = async (category: string) => {
 
 				return {
 					...chain,
-					totalAssets: totalAssets ? +Number(totalAssets).toFixed(2) : null,
 					nftVolume: nftVolume ? +Number(nftVolume).toFixed(2) : null,
 					totalVolume24h: dexsTotal24h || 0,
 					totalFees24h: total24h || 0,

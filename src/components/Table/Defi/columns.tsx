@@ -849,38 +849,42 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		accessorKey: 'chainAssets',
 		cell: ({ getValue }) => {
 			const chainAssets: any = getValue()
-			if (!chainAssets) return null
-			const totalValue = formattedNum(chainAssets.total.total, true)
+			if (!chainAssets?.total) return null
+
 			const chainAssetsBreakdown = (
 				<div className="w-52 flex flex-col gap-1">
-					{chainAssets.native && (
+					{chainAssets.native ? (
 						<div className="flex items-center gap-1 justify-between">
 							<span>Native:</span>
-							<span>{formattedNum(chainAssets.native.total, true)}</span>
+							<span>{formattedNum(+chainAssets.native, true)}</span>
 						</div>
-					)}
-					{chainAssets.canonical && (
+					) : null}
+					{chainAssets.canonical ? (
 						<div className="flex items-center gap-1 justify-between">
 							<span>Canonical:</span>
-							<span>{formattedNum(chainAssets.canonical.total, true)}</span>
+							<span>{formattedNum(+chainAssets.canonical, true)}</span>
 						</div>
-					)}
-
-					{chainAssets.ownTokens && (
+					) : null}
+					{chainAssets.ownTokens ? (
 						<div className="flex items-center gap-1 justify-between">
 							<span>Own Tokens:</span>
-							<span>{formattedNum(chainAssets.ownTokens.total, true)}</span>
+							<span>{formattedNum(+chainAssets.ownTokens, true)}</span>
 						</div>
-					)}
-					{chainAssets.thirdParty && (
+					) : null}
+					{chainAssets.thirdParty ? (
 						<div className="flex items-center gap-1 justify-between">
 							<span>Third Party:</span>
-							<span>{formattedNum(chainAssets.thirdParty.total, true)}</span>
+							<span>{formattedNum(+chainAssets.thirdParty, true)}</span>
 						</div>
-					)}
+					) : null}
 				</div>
 			)
-			return <Tooltip content={chainAssetsBreakdown}>{totalValue}</Tooltip>
+
+			return (
+				<Tooltip content={chainAssetsBreakdown} anchorStyles={{ justifyContent: 'flex-end' }}>
+					{formattedNum(+chainAssets.total, true)}
+				</Tooltip>
+			)
 		},
 		sortingFn: (rowA, rowB) => {
 			const valueA = rowA.original?.chainAssets?.total.total
@@ -891,7 +895,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 
 			return parseFloat(valueB) - parseFloat(valueA)
 		},
-		size: 200,
+		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -938,19 +942,6 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			return <>{(info.getValue() ?? null) as string | null}</>
 		},
 		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Total Bridged',
-		accessorKey: 'totalAssets',
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		size: 125,
 		meta: {
 			align: 'end'
 		}

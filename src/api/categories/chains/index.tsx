@@ -240,7 +240,7 @@ export async function getChainPageData(chain?: string) {
 			chainTreasury: chainTreasury ?? null,
 			chainAssetsChart: chainAssetsChart ?? null,
 			chainRaises: chainRaises ?? null,
-			chainAssets: chainAssets[chain?.toLowerCase()] ?? null,
+			chainAssets: chain ? chainAssets[chain] ?? null : null,
 			chainsSet: chains,
 			chainOptions: ['All'].concat(chains).map((label) => ({ label, to: setSelectedChain(label) })),
 			protocolsList,
