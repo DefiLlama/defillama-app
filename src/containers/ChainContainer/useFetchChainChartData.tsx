@@ -85,7 +85,7 @@ export const useFetchChainChartData = ({
 	)
 
 	const isFetchingChartData =
-		(denomination !== 'USD' && fetchingDenominationPriceHistory) ||
+		fetchingDenominationPriceHistory ||
 		fetchingVolumeChartDataByChain ||
 		fetchingFeesAndRevenueChartDataByChain ||
 		fetchingStablecoinsChartDataByChain ||
