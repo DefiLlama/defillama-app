@@ -90,7 +90,7 @@ export default function Protocols({ data }) {
 				</div>
 			</div>
 
-			<VirtualTable instance={instance} stripedBg />
+			<VirtualTable instance={instance} stripedBg rowSize={80} />
 		</Layout>
 	)
 }
