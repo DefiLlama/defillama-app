@@ -20,14 +20,14 @@ import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchOverCache } from '~/utils/perf'
 import { maxAgeForNext } from '~/api'
-import { getDexVolumeByChain } from '../dexs'
 import { getCexVolume } from '../adaptors/utils'
-import { getFeesAndRevenueByChain } from '../fees'
 import { getPeggedDominance, getPercentChange } from '~/utils'
 import { buildPeggedChartData } from '~/utils/stablecoins'
 import { getPeggedOverviewPageData } from '../stablecoins'
 import { getBridgeOverviewPageData } from '../bridges'
 import chainsMetadata from 'metadata/chains.json'
+import { getOverview } from '../adaptors'
+import { getFeesAndRevenueByChain } from '../fees'
 
 const getExtraTvlCharts = (data) => {
 	const {
@@ -90,11 +90,13 @@ export async function getChainPageData(chain?: string) {
 		devMetricsData,
 		treasuriesData,
 		cgData,
-		chainAssetsChart
+		chainAssetsChart,
+		perpsData,
+		nftVolumesData
 	] = await Promise.all([
 		fetchWithErrorLogging(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
-		getDexVolumeByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
+		chain && chain !== 'All' ? getOverview('dexs', chain.toLowerCase(), undefined, false, false) : null,
 		getCexVolume(),
 		getFeesAndRevenueByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
 		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chain)
@@ -178,9 +180,13 @@ export async function getChainPageData(chain?: string) {
 			  ).then((res) => res.json())
 			: {},
 		chain && chain !== 'All' && chainsMetadata[chain]?.chainAssets
-			? await fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain}`)
+			? fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain}`)
 					.then((r) => r.json())
 					.catch(() => null)
+			: null,
+		chain && chain !== 'All' ? getOverview('derivatives', chain.toLowerCase(), undefined, false, false) : null,
+		chain && chain !== 'All'
+			? fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
 			: null
 	])
 
@@ -251,6 +257,11 @@ export async function getChainPageData(chain?: string) {
 				dexsDominance:
 					cexVolume && volume?.total24h ? +((volume.total24h / (cexVolume + volume.total24h)) * 100).toFixed(2) : null
 			},
+			perpsData: {
+				totalVolume24h: perpsData?.total24h ?? null,
+				totalVolume7d: perpsData?.total7d ?? null,
+				weeklyChange: perpsData?.change_7dover7d ?? null
+			},
 			feesAndRevenueData: { totalFees24h: fees?.total24h ?? null, totalRevenue24h: revenue?.total24h ?? null },
 			stablecoinsData,
 			devMetricsData,
@@ -258,6 +269,7 @@ export async function getChainPageData(chain?: string) {
 			userData: { activeUsers, newUsers, transactions },
 			raisesChart,
 			noContext: false,
+			nftVolumesData: nftVolumesData ? nftVolumesData[chain.toLowerCase()] ?? null : null,
 			...charts
 		},
 		revalidate: maxAgeForNext([22])

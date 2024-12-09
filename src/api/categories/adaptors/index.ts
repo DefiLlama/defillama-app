@@ -29,7 +29,9 @@ export const getDexs = (): Promise<IGetDexsResponseBody> => fetch(`${DEXS_API}?e
 export const getOverviewItem = (
 	type: string,
 	protocolName: string,
-	dataType?: string
+	dataType?: string,
+	excludeTotalDataChart?: boolean,
+	excludeTotalDataChartBreakdown?: boolean
 ): Promise<ProtocolAdaptorSummaryResponse> => {
 	return fetch(
 		`${DIMENISIONS_SUMMARY_BASE_API}/${

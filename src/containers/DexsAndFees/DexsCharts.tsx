@@ -5,7 +5,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 import { IDexResponse } from '~/api/categories/dexs/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
+import { formatTimestampAsDate } from '~/api/categories/adaptors/utils'
 import { LocalLoader } from '~/components/LocalLoader'
 
 // TODO remove duplicate bar chart component and use '~/components/ECharts/BarChart'

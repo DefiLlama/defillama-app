@@ -55,6 +55,7 @@ export function ChainContainer({
 	totalFundingAmount,
 	volumeData,
 	feesAndRevenueData,
+	perpsData,
 	stablecoinsData,
 	inflowsData,
 	userData,
@@ -62,7 +63,8 @@ export function ChainContainer({
 	chainTokenInfo,
 	chainTreasury,
 	chainRaises,
-	chainAssets
+	chainAssets,
+	nftVolumesData
 }) {
 	const {
 		fullProtocolsList,
@@ -93,16 +95,18 @@ export function ChainContainer({
 		}
 	}
 
-	let CHAIN_SYMBOL = null
-	let chainGeckoId = null
+	let CHAIN_SYMBOL = chainTokenInfo?.tokenSymbol ?? null
+	let chainGeckoId = chainTokenInfo?.gecko_id ?? null
 
 	if (selectedChain !== 'All') {
-		let chainDenomination = chainCoingeckoIds[selectedChain] ?? chainCoingeckoIdsForGasNotMcap[selectedChain] ?? null
+		if (!chainGeckoId) {
+			chainGeckoId =
+				chainCoingeckoIds[selectedChain]?.gecko_id ?? chainCoingeckoIdsForGasNotMcap[selectedChain]?.gecko_id ?? null
+		}
 
-		chainGeckoId = chainDenomination?.geckoId ?? null
-
-		if (chainGeckoId && chainDenomination.symbol) {
-			CHAIN_SYMBOL = chainDenomination.symbol
+		if (!CHAIN_SYMBOL) {
+			CHAIN_SYMBOL =
+				chainCoingeckoIds[selectedChain]?.symbol ?? chainCoingeckoIdsForGasNotMcap[selectedChain]?.symbol ?? null
 		}
 	}
 
@@ -117,7 +121,6 @@ export function ChainContainer({
 	const { totalValueUSD, valueChangeUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
 		denomination,
 		selectedChain,
-		chainGeckoId,
 		volumeData,
 		feesAndRevenueData,
 		stablecoinsData,
@@ -128,7 +131,9 @@ export function ChainContainer({
 		extraTvlCharts,
 		extraTvlsEnabled,
 		devMetricsData,
-		chainTokenInfo
+		chainGeckoId,
+		perpsData,
+		chainAssets
 	})
 
 	const chartOptions = [
@@ -152,11 +157,8 @@ export function ChainContainer({
 			name: 'Revenue',
 			isVisible: feesAndRevenueData?.totalRevenue24h ? true : false
 		},
-		{
-			id: 'price',
-			name: 'Price',
-			isVisible: DENOMINATIONS.length > 1
-		},
+		{ id: 'derivatives', name: 'Perps Volume', isVisible: perpsData?.totalVolume24h ? true : false },
+		{ id: 'chainAssets', name: 'Bridged TVL', isVisible: chainAssets ? true : false },
 		{
 			id: 'addresses',
 			name: 'Addresses',
@@ -194,8 +196,8 @@ export function ChainContainer({
 		},
 		{
 			id: 'chainTokenPrice',
-			name: `${chainTokenInfo?.tokenSymbol} Price`,
-			isVisible: chartDatasets?.[0]?.chainTokenMcapData?.length ? true : false
+			name: `${CHAIN_SYMBOL} Price`,
+			isVisible: CHAIN_SYMBOL ? true : false
 		},
 		{
 			id: 'chainTokenMcap',
@@ -206,10 +208,7 @@ export function ChainContainer({
 			id: 'chainTokenVolume',
 			name: `${chainTokenInfo?.tokenSymbol} Volume`,
 			isVisible: chartDatasets?.[0]?.chainTokenVolumeData?.length ? true : false
-		},
-		{ id: 'derivatives', name: 'Perps Volume', isVisible: chartDatasets?.[0]?.derivativesData ? true : false },
-		{ id: 'aggregators', name: 'Aggregators Volume', isVisible: chartDatasets?.[0]?.aggregatorsData ? true : false },
-		{ id: 'chainAssets', name: 'Bridged TVL', isVisible: chartDatasets?.[0]?.chainAssetsData ? true : false }
+		}
 	]
 
 	const hasAtleasOneBarChart = chartOptions.reduce((acc, curr) => {
@@ -418,6 +417,34 @@ export function ChainContainer({
 														DEX vs CEX dominance
 													</th>
 													<td className="text-right font-jetbrains">{volumeData.dexsDominance}%</td>
+												</tr>
+											</>
+										}
+									/>
+								) : null}
+
+								{perpsData?.totalVolume24h ? (
+									<RowWithSubRows
+										rowHeader={'Perps Volume (24h)'}
+										rowValue={formattedNum(perpsData.totalVolume24h, true)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{perpsData.totalVolume7d ? (
+													<tr>
+														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Perps Volume (7d)
+														</th>
+														<td className="text-right font-jetbrains">{formattedNum(perpsData.totalVolume7d, true)}</td>
+													</tr>
+												) : null}
+												<tr>
+													<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														Weekly Change
+													</th>
+													<td className="text-right font-jetbrains">{perpsData.weeklyChange}%</td>
 												</tr>
 											</>
 										}
@@ -633,6 +660,13 @@ export function ChainContainer({
 											</>
 										}
 									/>
+								) : null}
+
+								{nftVolumesData ? (
+									<tr>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">NFT Volume (24h)</th>
+										<td className="font-jetbrains text-right">{formattedNum(nftVolumesData, true)}</td>
+									</tr>
 								) : null}
 
 								{chainTokenInfo?.market_data ? (

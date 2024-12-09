@@ -973,6 +973,11 @@ export const chainCoingeckoIdsForGasNotMcap = {
 		symbol: 'ETH',
 		cmcId: '1027'
 	},
+	Base: {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
 	'ZKsync Era': {
 		geckoId: 'ethereum',
 		symbol: 'ETH',
