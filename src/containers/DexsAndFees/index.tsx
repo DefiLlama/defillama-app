@@ -328,7 +328,7 @@ const TitleByType: React.FC<ITitleProps> = (props) => {
 			title === 'Derivatives'
 				? 'Perps'
 				: title === 'Derivatives-aggregator'
-				? 'Perps Aggregator'
+				? 'Perps Aggregators'
 				: title === 'Bridge-aggregators'
 				? 'Bridge Aggregators'
 				: title

@@ -157,7 +157,7 @@ export function ChainContainer({
 			name: 'Revenue',
 			isVisible: feesAndRevenueData?.totalRevenue24h ? true : false
 		},
-		{ id: 'derivatives', name: 'Perps Volume', isVisible: perpsData?.totalVolume24h ? true : false },
+		{ id: 'perps', name: 'Perps Volume', isVisible: perpsData?.totalVolume24h ? true : false },
 		{ id: 'chainAssets', name: 'Bridged TVL', isVisible: chainAssets ? true : false },
 		{
 			id: 'addresses',

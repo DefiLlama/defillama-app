@@ -8,7 +8,7 @@ import { primaryColor } from '~/constants/colors'
 import { toK } from '~/utils'
 import { cumulativeSum, groupByTimeFrame } from './utils'
 
-const groupableCharts = ['feesChart', 'volumeChart', 'aggregatorsData', 'derivativesData', 'chainTokenVolumeData']
+const groupableCharts = ['feesChart', 'volumeChart', 'aggregatorsData', 'perpsChart', 'chainTokenVolumeData']
 
 const colors = {
 	tvl: '#335cd7',
@@ -26,7 +26,7 @@ const colors = {
 	devsCommits: '#39601f',
 	tokenPrice: '#c7da1f',
 	tokenMcap: '#1fda38',
-	derivatives: '#305a00',
+	perps: '#305a00',
 	aggregators: '#ff7b00',
 	chainAssets: '#fa7b00',
 	tokenVolume: '#ff008c'
@@ -456,8 +456,8 @@ export default function AreaChart({
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
-			if (route.derivatives === 'true' && data?.derivativesData) {
-				const color = getColor(isCompare) || colors.derivatives
+			if (route.perps === 'true' && data?.perpsChart) {
+				const color = getColor(isCompare) || colors.perps
 				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Perps Volume',
@@ -471,7 +471,7 @@ export default function AreaChart({
 					},
 					areaStyle: areaColor
 				})
-				data?.derivativesData.forEach(([date, value]) => {
+				data?.perpsChart.forEach(([date, value]) => {
 					if (Number(date) > Number(data?.globalChart[0][0]))
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
@@ -542,7 +542,7 @@ export default function AreaChart({
 		route.chainTokenPrice,
 		route.chainTokenMcap,
 		route.aggregators,
-		route.derivatives,
+		route.perps,
 		route.chainAssets,
 		route.chainTokenVolume,
 		denomination,
@@ -583,7 +583,7 @@ export default function AreaChart({
 			'Token Price': 55,
 			'Token Mcap': 55,
 			Aggregators: 55,
-			Derivatives: 55,
+			Perps: 55,
 			'Token Volume': 60
 		}
 		let offsetAcc = -60
@@ -760,10 +760,10 @@ export default function AreaChart({
 				{
 					...yAxis,
 					scale: true,
-					id: 'Derivatives',
+					id: 'Perps',
 					axisLabel: {
 						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : colors.derivatives)
+						color: () => (isCompare ? '#fff' : colors.perps)
 					}
 				},
 				{

@@ -75,8 +75,8 @@ export const useFetchChainChartData = ({
 		userData.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
 	)
 
-	const { data: derivativesData, isLoading: fetchingDerivativesData } = useGetItemOverviewByChain(
-		perpsData?.totalVolume24h && router.query.derivatives === 'true' ? selectedChain : null,
+	const { data: perpsChart, isLoading: fetchingPerpsChartData } = useGetItemOverviewByChain(
+		perpsData?.totalVolume24h && router.query.perps === 'true' ? selectedChain : null,
 		'derivatives'
 	)
 
@@ -92,7 +92,7 @@ export const useFetchChainChartData = ({
 		fetchingInflowsChartData ||
 		fetchingUsersChartData ||
 		fetchingTransactionsChartData ||
-		fetchingDerivativesData ||
+		fetchingPerpsChartData ||
 		fetchingChainAssetsChart
 
 	const globalChart = useMemo(() => {
@@ -165,7 +165,7 @@ export const useFetchChainChartData = ({
 					price
 			  ])
 
-		const finalDerivativesChart = isNonUSDDenomination ? null : derivativesData?.totalDataChart
+		const finalPerpsChart = isNonUSDDenomination ? null : perpsChart?.totalDataChart
 
 		const finalFeesAndRevenueChart = isNonUSDDenomination
 			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
@@ -215,7 +215,7 @@ export const useFetchChainChartData = ({
 				chainTokenPriceData: finalPriceChart,
 				chainTokenMcapData: finalMcapChart,
 				chainTokenVolumeData: finalTokenVolumeChart,
-				derivativesData: finalDerivativesChart,
+				perpsChart: finalPerpsChart,
 				chainAssetsData: finalChainAssetsChart
 			}
 		]
@@ -226,7 +226,7 @@ export const useFetchChainChartData = ({
 		denominationPriceHistory,
 		globalChart,
 		volumeChart,
-		derivativesData?.totalDataChart,
+		perpsChart?.totalDataChart,
 		feesAndRevenueChart,
 		devMetricsData?.report?.monthly_devs,
 		chainAssetsChart,
