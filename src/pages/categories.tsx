@@ -144,7 +144,9 @@ export const descriptions = {
 	Domains: 'Decentralized naming services that map human-readable names to blockchain addresses',
 	'NFT Launchpad': 'Platforms that enable creators to mint, manage, and launch NFT collections',
 	'Trading App':
-		'Apps that simplify trading tokens like memecoins with user-friendly interfaces, real-time updates, self-custodial tools, and direct fiat on-ramps for casual traders'
+		'Apps that simplify trading tokens like memecoins with user-friendly interfaces, real-time updates, self-custodial tools, and direct fiat on-ramps for casual traders',
+	Foundation:
+		'A foundation supporting blockchain ecosystems by funding research, development, and community initiatives'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
