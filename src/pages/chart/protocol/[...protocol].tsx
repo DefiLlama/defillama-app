@@ -46,7 +46,7 @@ export default function ProtocolChart({
 		tokenPrice,
 		fdv,
 		volume,
-		derivativesVolume,
+		perpsVolume,
 		fees,
 		revenue,
 		unlocks,
@@ -72,7 +72,7 @@ export default function ProtocolChart({
 		nftVolume,
 		aggregators,
 		premiumVolume,
-		derivativesAggregators,
+		perpsAggregators,
 		bridgeAggregators
 	} = router.query
 
@@ -98,7 +98,7 @@ export default function ProtocolChart({
 			tokenPrice,
 			fdv,
 			volume,
-			derivativesVolume,
+			perpsVolume,
 			fees,
 			revenue,
 			unlocks,
@@ -137,7 +137,7 @@ export default function ProtocolChart({
 			nftVolumeData,
 			aggregators,
 			premiumVolume,
-			derivativesAggregators,
+			perpsAggregators,
 			bridgeAggregators
 		})
 	const isThemeDark = router.query.theme === 'dark' ? true : false

@@ -61,8 +61,8 @@ export const SEO = ({
 		} else if (
 			pageType === ADAPTOR_TYPES.DEXS ||
 			pageType === ADAPTOR_TYPES.AGGREGATORS ||
-			pageType === ADAPTOR_TYPES.DERIVATIVES ||
-			pageType === ADAPTOR_TYPES.DERIVATIVES_AGGREGATOR ||
+			pageType === ADAPTOR_TYPES.PERPS ||
+			pageType === ADAPTOR_TYPES.PERPS_AGGREGATOR ||
 			pageType === ADAPTOR_TYPES.OPTIONS ||
 			pageType === ADAPTOR_TYPES.BRIDGE_AGGREGATORS
 		) {

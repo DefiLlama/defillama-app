@@ -403,7 +403,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		)
 
 		const { protocols: derivativeProtocols } = await fetchWithErrorLogging(
-			getAPIUrl(ADAPTOR_TYPES.DERIVATIVES, chain, true, true)
+			getAPIUrl(ADAPTOR_TYPES.PERPS, chain, true, true)
 		)
 			.then((r) => r.json())
 			.catch(() => ({ protocols: [] }))
@@ -529,7 +529,7 @@ export async function getOraclePageDataByChain(chain: string) {
 		)
 
 		const { protocols: derivativeProtocols } = await fetchWithErrorLogging(
-			getAPIUrl(ADAPTOR_TYPES.DERIVATIVES, chain, true, true)
+			getAPIUrl(ADAPTOR_TYPES.PERPS, chain, true, true)
 		)
 			.then((r) => r.json())
 			.catch(() => ({ protocols: [] }))

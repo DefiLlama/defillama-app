@@ -142,6 +142,46 @@ const nextConfig = {
 				source: '/tokenUsage',
 				destination: '/token-usage',
 				permanent: true
+			},
+			{
+				source: '/derivatives',
+				destination: '/perps',
+				permanent: true
+			},
+			{
+				source: '/derivatives/:slug',
+				destination: '/perps/:slug',
+				permanent: true
+			},
+			{
+				source: '/derivatives/chains',
+				destination: '/perps/chains',
+				permanent: true
+			},
+			{
+				source: '/derivatives/chains/:slug',
+				destination: '/perps/chains/:slug',
+				permanent: true
+			},
+			{
+				source: '/derivatives-aggregator',
+				destination: '/perps-aggregators',
+				permanent: true
+			},
+			{
+				source: '/derivatives-aggregator/:slug',
+				destination: '/perps-aggregators/:slug',
+				permanent: true
+			},
+			{
+				source: '/derivatives-aggregator/chains',
+				destination: '/perps-aggregators/chains',
+				permanent: true
+			},
+			{
+				source: '/derivatives-aggregator/chains/:slug',
+				destination: '/perps-aggregators/chains/:slug',
+				permanent: true
 			}
 		]
 	},

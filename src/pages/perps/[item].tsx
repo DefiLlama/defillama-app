@@ -1,7 +1,7 @@
 import { type } from '.'
 import { getStaticPropsByType } from '~/utils/adaptorsPages/[type]/[item]'
 import { withPerformanceLogging } from '~/utils/perf'
-export const getStaticProps = withPerformanceLogging('derivatives/[item]', getStaticPropsByType(type))
+export const getStaticProps = withPerformanceLogging('perps/[item]', getStaticPropsByType(type))
 
 export async function getStaticPaths() {
 	return {

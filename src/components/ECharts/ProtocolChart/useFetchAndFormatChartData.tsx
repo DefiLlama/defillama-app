@@ -26,32 +26,48 @@ const fetch = fetchWithErrorLogging
 
 interface ChartData {
 	date: string
-	TVL: number
-	Staking: number
-	Borrowed: number
-	Volume: number
-	Derivatives: number
-	Options: number
-	Aggregators: number
-	DerivativesAggregators: number
-	BridgeAggregators: number
-	Unlocks: number
-	ActiveAddresses: number
-	NewAddresses: number
-	Events: number
-	Transactions: number
-	GasUsed: number
-	MedianAPY: number
-	USDInflows: number
-	Governance: number
-	Fees: number
-	Revenue: number
+	TVL?: number
+	Staking?: number
+	Borrowed?: number
+	Mcap?: number
+	'Token Price'?: number
+	FDV?: number
+	'Token Volume'?: number
+	'Token Liquidity'?: number
+	'Bridge Deposits'?: number
+	'Bridge Withdrawals'?: number
+	Volume?: number
+	'Perps Volume'?: number
+	'Premium Volume'?: number
+	'Aggregators Volume'?: number
+	'Perps Aggregators Volume'?: number
+	'Bridge Aggregators Volume'?: number
+	Fees?: number
+	Revenue?: number
+	Tweets?: number
+	Unlocks?: number
+	'Active Addresses'?: number
+	'New Addresses'?: number
+	Transactions?: number
+	'Gas Used'?: number
+	'Median APY'?: number
+	'USD Inflows'?: number
+	'Total Proposals'?: number
+	'Successful Proposals'?: number
+	'Max Votes'?: number
+	Contributers?: number
+	Developers?: number
+	'NFT Volume'?: number
+	'Devs Commits'?: number
+	'Contributers Commits'?: number
+	Treasury?: number
+	Events?: number
 }
 interface ReturnType {
 	fetchingTypes: string[]
 	isLoading: boolean
 	chartData: ChartData[]
-	chartsUnique: string[]
+	chartsUnique: Array<keyof ChartData>
 	unlockTokenSymbol: string
 	valueSymbol: string
 }
@@ -65,7 +81,7 @@ export function useFetchAndFormatChartData({
 	tokenPrice,
 	fdv,
 	volume,
-	derivativesVolume,
+	perpsVolume,
 	fees,
 	revenue,
 	unlocks,
@@ -104,7 +120,7 @@ export function useFetchAndFormatChartData({
 	nftVolumeData,
 	aggregators,
 	premiumVolume,
-	derivativesAggregators,
+	perpsAggregators,
 	bridgeAggregators
 }): ReturnType {
 	// fetch denomination on protocol chains
@@ -185,12 +201,12 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && volume === 'true' && metrics.dexs ? false : true
 	})
 
-	const { data: derivativesVolumeData, isLoading: fetchingDerivativesVolume } = useGetOverviewChartData({
+	const { data: perpsVolumeData, isLoading: fetchingPerpsVolume } = useGetOverviewChartData({
 		name: protocol,
 		dataToFetch: 'derivatives',
 		type: 'chains',
 		enableBreakdownChart: false,
-		disabled: isRouterReady && derivativesVolume === 'true' && metrics.derivatives ? false : true
+		disabled: isRouterReady && perpsVolume === 'true' && metrics.perps ? false : true
 	})
 
 	const { data: optionsVolumeData, isLoading: fetchingOptionsVolume } = useGetOverviewChartData({
@@ -209,14 +225,13 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && metrics.aggregators && aggregators === 'true' ? false : true
 	})
 
-	const { data: derivativesAggregatorsVolumeData, isLoading: fetchingDerivativesAggregatorsVolume } =
-		useGetOverviewChartData({
-			name: protocol,
-			dataToFetch: 'aggregator-derivatives',
-			type: 'chains',
-			enableBreakdownChart: false,
-			disabled: isRouterReady && metrics.derivativesAggregators && derivativesAggregators === 'true' ? false : true
-		})
+	const { data: perpsAggregatorsVolumeData, isLoading: fetchingPerpsAggregatorsVolume } = useGetOverviewChartData({
+		name: protocol,
+		dataToFetch: 'aggregator-derivatives',
+		type: 'chains',
+		enableBreakdownChart: false,
+		disabled: isRouterReady && metrics.perpsAggregators && perpsAggregators === 'true' ? false : true
+	})
 
 	const { data: bridgeAggregatorsVolumeData, isLoading: fetchingBriddgeAggregatorsVolume } = useGetOverviewChartData({
 		name: protocol,
@@ -552,10 +567,10 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
-		if (derivativesVolumeData) {
+		if (perpsVolumeData) {
 			chartsUnique.push('Perps Volume')
 
-			derivativesVolumeData.forEach((item) => {
+			perpsVolumeData.forEach((item) => {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = {}
@@ -597,10 +612,10 @@ export function useFetchAndFormatChartData({
 			})
 		}
 
-		if (derivativesAggregatorsVolumeData) {
+		if (perpsAggregatorsVolumeData) {
 			chartsUnique.push('Perps Aggregators Volume')
 
-			derivativesAggregatorsVolumeData.forEach((item) => {
+			perpsAggregatorsVolumeData.forEach((item) => {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = {}
@@ -969,10 +984,10 @@ export function useFetchAndFormatChartData({
 		tokenLiquidityData,
 		bridgeVolumeData,
 		volumeData,
-		derivativesVolumeData,
+		perpsVolumeData,
 		optionsVolumeData,
 		aggregatorsVolumeData,
-		derivativesAggregatorsVolumeData,
+		perpsAggregatorsVolumeData,
 		bridgeAggregatorsVolumeData,
 		feesAndRevenue,
 		twitterData,
@@ -1055,7 +1070,7 @@ export function useFetchAndFormatChartData({
 		fetchingTypes.push('volume')
 	}
 
-	if (fetchingDerivativesVolume) {
+	if (fetchingPerpsVolume) {
 		fetchingTypes.push('perps volume')
 	}
 
@@ -1107,7 +1122,7 @@ export function useFetchAndFormatChartData({
 		denominationLoading ||
 		fetchingFees ||
 		fetchingVolume ||
-		fetchingDerivativesVolume ||
+		fetchingPerpsVolume ||
 		fetchingActiveAddresses ||
 		fetchingNewAddresses ||
 		fetchingTransactions ||

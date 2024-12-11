@@ -54,7 +54,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "116": {
@@ -204,7 +204,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "145": {
         "tvl": true,
@@ -1049,7 +1049,7 @@
         "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "338": {
         "tvl": true,
@@ -3229,7 +3229,7 @@
         "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "917": {
         "tvl": true
@@ -3423,7 +3423,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "971": {
         "tvl": true
@@ -3579,7 +3579,7 @@
         "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "1019": {
         "tvl": true,
@@ -6215,7 +6215,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "1773": {
         "tvl": true,
@@ -6323,7 +6323,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "1802": {
         "tvl": true,
@@ -6335,7 +6335,7 @@
     "1804": {
         "tvl": true,
         "raises": true,
-        "derivatives": true
+        "perps": true
     },
     "1805": {
         "tvl": true
@@ -6435,7 +6435,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "1834": {
         "tvl": true
@@ -6597,7 +6597,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "1879": {
         "tvl": true,
@@ -7035,7 +7035,7 @@
     },
     "2001": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "2002": {
         "tvl": true
@@ -7572,7 +7572,7 @@
         "tvl": true,
         "liquidity": true,
         "raises": true,
-        "derivatives": true
+        "perps": true
     },
     "2148": {
         "tvl": true
@@ -7681,7 +7681,7 @@
     "2175": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true
+        "perps": true
     },
     "2176": {
         "tvl": true
@@ -7986,7 +7986,7 @@
         "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2255": {
         "tvl": true,
@@ -8028,7 +8028,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2265": {
         "tvl": true
@@ -8107,7 +8107,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "2297": {
@@ -8117,7 +8117,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2300": {
         "tvl": true
@@ -8182,7 +8182,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2321": {
         "tvl": true
@@ -8204,7 +8204,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2327": {
         "tvl": true,
@@ -8214,7 +8214,7 @@
     "2328": {
         "tvl": true,
         "raises": true,
-        "derivatives": true
+        "perps": true
     },
     "2329": {
         "tvl": true
@@ -8325,7 +8325,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "2357": {
         "tvl": true,
@@ -8387,7 +8387,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2376": {
         "tvl": true,
@@ -8407,7 +8407,7 @@
     },
     "2380": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "2381": {
         "tvl": true,
@@ -8475,7 +8475,7 @@
         "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2396": {
         "tvl": true,
@@ -9059,7 +9059,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "2549": {
@@ -9355,7 +9355,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2626": {
         "tvl": true,
@@ -9389,7 +9389,7 @@
     },
     "2633": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "2634": {
         "tvl": true
@@ -9418,7 +9418,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2642": {
         "tvl": true
@@ -9503,7 +9503,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2663": {
         "tvl": true
@@ -9523,7 +9523,7 @@
     "2666": {
         "tvl": true,
         "activeUsers": true,
-        "derivatives": true
+        "perps": true
     },
     "2667": {
         "tvl": true,
@@ -9759,7 +9759,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "2731": {
         "tvl": true,
@@ -10010,7 +10010,7 @@
         "tvl": true,
         "liquidity": true,
         "raises": true,
-        "derivatives": true
+        "perps": true
     },
     "2798": {
         "tvl": true
@@ -10075,7 +10075,7 @@
     "2814": {
         "tvl": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "2815": {
         "tvl": true
@@ -10203,7 +10203,7 @@
     },
     "2848": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "2849": {
         "tvl": true,
@@ -10258,7 +10258,7 @@
         "tvl": true,
         "hacks": true,
         "activeUsers": true,
-        "derivatives": true
+        "perps": true
     },
     "2863": {
         "tvl": true,
@@ -10345,7 +10345,7 @@
         "tvl": true,
         "liquidity": true,
         "activeUsers": true,
-        "derivatives": true
+        "perps": true
     },
     "2887": {
         "tvl": true
@@ -10357,7 +10357,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2890": {
         "tvl": true,
@@ -10405,7 +10405,7 @@
         "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2900": {
         "tvl": true,
@@ -10624,7 +10624,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "2960": {
@@ -10711,7 +10711,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2981": {
         "tvl": true,
@@ -10719,7 +10719,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "aggregatorDerivatives": true,
+        "perpsAggregators": true,
         "emissions": true
     },
     "2982": {
@@ -10727,7 +10727,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "2983": {
         "tvl": true
@@ -10876,7 +10876,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3026": {
         "tvl": true
@@ -10997,7 +10997,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3057": {
         "tvl": true,
@@ -11017,7 +11017,7 @@
     "3061": {
         "tvl": true,
         "raises": true,
-        "derivatives": true
+        "perps": true
     },
     "3062": {
         "tvl": true
@@ -11100,7 +11100,7 @@
     "3085": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true
+        "perps": true
     },
     "3086": {
         "tvl": true
@@ -11429,7 +11429,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3175": {
         "tvl": true
@@ -11550,7 +11550,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "3210": {
         "tvl": true,
@@ -11704,7 +11704,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3252": {
         "tvl": true
@@ -11821,7 +11821,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3282": {
         "tvl": true,
@@ -11898,7 +11898,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3302": {
         "tvl": true,
@@ -11999,7 +11999,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3326": {
         "tvl": true
@@ -12019,7 +12019,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3330": {
         "tvl": true,
@@ -12088,7 +12088,7 @@
     "3343": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true
+        "perps": true
     },
     "3344": {
         "tvl": true,
@@ -12180,7 +12180,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3366": {
         "tvl": true
@@ -12208,7 +12208,7 @@
     "3373": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true
+        "perps": true
     },
     "3374": {
         "tvl": true
@@ -12221,7 +12221,7 @@
     "3376": {
         "tvl": true,
         "raises": true,
-        "derivatives": true
+        "perps": true
     },
     "3377": {
         "tvl": true,
@@ -12569,7 +12569,7 @@
         "tvl": true,
         "liquidity": true,
         "hacks": true,
-        "derivatives": true
+        "perps": true
     },
     "3475": {
         "tvl": true
@@ -12604,7 +12604,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3484": {
         "tvl": true
@@ -12712,7 +12712,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "3510": {
         "tvl": true,
@@ -12792,7 +12792,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3531": {
         "tvl": true,
@@ -12828,12 +12828,12 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3538": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true
+        "perps": true
     },
     "3539": {
         "tvl": true
@@ -13024,7 +13024,7 @@
     },
     "3599": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "3600": {
         "tvl": true
@@ -13034,7 +13034,7 @@
     },
     "3602": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "3603": {
         "tvl": true,
@@ -13048,7 +13048,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "3607": {
         "tvl": true
@@ -13062,7 +13062,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3610": {
         "tvl": true
@@ -13100,7 +13100,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "3621": {
         "tvl": true
@@ -13200,7 +13200,7 @@
     },
     "3648": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "3649": {
         "tvl": true
@@ -13313,7 +13313,7 @@
     "3678": {
         "tvl": true,
         "raises": true,
-        "derivatives": true
+        "perps": true
     },
     "3679": {
         "tvl": true
@@ -13485,7 +13485,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3727": {
         "tvl": true
@@ -13553,7 +13553,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3748": {
         "tvl": true
@@ -13610,7 +13610,7 @@
     },
     "3763": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "3764": {
         "tvl": true
@@ -13685,7 +13685,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "3793": {
         "tvl": true,
@@ -13833,7 +13833,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3836": {
         "tvl": true,
@@ -14000,7 +14000,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3884": {
         "tvl": true
@@ -14100,7 +14100,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3912": {
         "tvl": true
@@ -14146,7 +14146,7 @@
     "3923": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true,
+        "perps": true,
         "options": true
     },
     "3924": {
@@ -14260,7 +14260,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3956": {
         "tvl": true
@@ -14365,7 +14365,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "3984": {
         "tvl": true
@@ -14525,7 +14525,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4027": {
         "tvl": true
@@ -14587,7 +14587,7 @@
     },
     "4045": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "4046": {
         "tvl": true
@@ -14664,7 +14664,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4068": {
         "tvl": true
@@ -14695,7 +14695,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4075": {
         "tvl": true
@@ -14703,7 +14703,7 @@
     "4077": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true
+        "perps": true
     },
     "4078": {
         "tvl": true
@@ -14743,7 +14743,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "4088": {
         "tvl": true,
@@ -14769,7 +14769,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4095": {
         "tvl": true,
@@ -14803,7 +14803,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4103": {
         "tvl": true
@@ -14822,14 +14822,14 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4108": {
         "tvl": true,
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4109": {
         "tvl": true
@@ -14838,7 +14838,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4111": {
         "tvl": true
@@ -15225,13 +15225,13 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4215": {
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4216": {
         "tvl": true,
@@ -15592,7 +15592,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4320": {
         "tvl": true
@@ -15739,7 +15739,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4366": {
         "tvl": true,
@@ -15808,7 +15808,7 @@
     "4382": {
         "tvl": true,
         "governance": true,
-        "derivatives": true
+        "perps": true
     },
     "4383": {
         "tvl": true
@@ -15954,7 +15954,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4427": {
         "tvl": true,
@@ -16026,12 +16026,12 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4447": {
         "tvl": false,
         "raises": true,
-        "aggregatorDerivatives": true
+        "perpsAggregators": true
     },
     "4448": {
         "tvl": true
@@ -16072,7 +16072,7 @@
     },
     "4458": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "4459": {
         "tvl": true
@@ -16219,7 +16219,7 @@
     },
     "4503": {
         "tvl": true,
-        "aggregatorDerivatives": true
+        "perpsAggregators": true
     },
     "4504": {
         "tvl": true
@@ -16234,7 +16234,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4507": {
         "tvl": true
@@ -16404,7 +16404,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4557": {
         "tvl": false,
@@ -16449,7 +16449,7 @@
     "4568": {
         "tvl": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "4569": {
         "tvl": true
@@ -16687,7 +16687,7 @@
     },
     "4636": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "4637": {
         "tvl": true
@@ -16703,7 +16703,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4643": {
         "tvl": true
@@ -16746,7 +16746,7 @@
     "4655": {
         "tvl": false,
         "raises": true,
-        "aggregatorDerivatives": true
+        "perpsAggregators": true
     },
     "4656": {
         "tvl": false,
@@ -17036,7 +17036,7 @@
     },
     "4738": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "4739": {
         "tvl": true
@@ -17310,7 +17310,7 @@
     },
     "4817": {
         "tvl": false,
-        "aggregatorDerivatives": true
+        "perpsAggregators": true
     },
     "4818": {
         "tvl": true
@@ -17328,7 +17328,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4823": {
         "tvl": true
@@ -17399,13 +17399,13 @@
     },
     "4841": {
         "tvl": false,
-        "aggregatorDerivatives": true
+        "perpsAggregators": true
     },
     "4842": {
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4843": {
         "tvl": true
@@ -17618,7 +17618,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "4904": {
         "tvl": true,
@@ -17784,7 +17784,7 @@
     },
     "4954": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "4955": {
         "tvl": true
@@ -18008,7 +18008,7 @@
     },
     "5012": {
         "tvl": false,
-        "aggregatorDerivatives": true
+        "perpsAggregators": true
     },
     "5013": {
         "tvl": false,
@@ -18023,7 +18023,7 @@
     },
     "5016": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "5017": {
         "tvl": true,
@@ -18155,7 +18155,7 @@
     "5054": {
         "tvl": false,
         "liquidity": true,
-        "aggregatorDerivatives": true
+        "perpsAggregators": true
     },
     "5055": {
         "tvl": true
@@ -18242,7 +18242,7 @@
     },
     "5074": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "5075": {
         "tvl": true
@@ -18259,7 +18259,7 @@
     "5079": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true
+        "perps": true
     },
     "5080": {
         "tvl": true
@@ -18466,7 +18466,7 @@
     "5137": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true
+        "perps": true
     },
     "5138": {
         "tvl": false,
@@ -18519,7 +18519,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "5152": {
         "tvl": true
@@ -18565,7 +18565,7 @@
     },
     "5165": {
         "tvl": false,
-        "aggregatorDerivatives": true
+        "perpsAggregators": true
     },
     "5166": {
         "tvl": true
@@ -18607,7 +18607,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "5178": {
         "tvl": true
@@ -18735,7 +18735,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "5209": {
         "tvl": true
@@ -18891,7 +18891,7 @@
     },
     "5257": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "5258": {
         "tvl": true
@@ -18941,7 +18941,7 @@
     },
     "5273": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "5274": {
         "tvl": true
@@ -18996,7 +18996,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "5291": {
         "tvl": true,
@@ -19093,7 +19093,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "5315": {
         "tvl": true
@@ -19229,7 +19229,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "5354": {
         "tvl": true,
@@ -19763,7 +19763,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
+        "perps": true,
         "aggregator": true,
         "emissions": true
     },
@@ -19781,7 +19781,7 @@
     },
     "parent#hyperliquid": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#pancakeswap": {
         "tvl": true,
@@ -19791,7 +19791,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true,
+        "perps": true,
         "options": true
     },
     "parent#marinade-finance": {
@@ -19848,7 +19848,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#sun": {
         "tvl": true,
@@ -19873,7 +19873,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "parent#stakewise": {
@@ -19938,7 +19938,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "parent#bedrock": {
@@ -19966,7 +19966,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "parent#solayer": {
@@ -20155,7 +20155,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
+        "perps": true,
         "options": true
     },
     "parent#maple-finance": {
@@ -20193,7 +20193,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#inverse-finance": {
         "tvl": true,
@@ -20221,7 +20221,7 @@
     "parent#contango": {
         "tvl": true,
         "treasury": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#wemix.fi": {
         "tvl": true,
@@ -20230,7 +20230,7 @@
     "parent#idex": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#bancor": {
         "tvl": true,
@@ -20246,7 +20246,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "parent#benddao": {
@@ -20269,13 +20269,13 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#synfutures": {
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#abracadabra": {
         "tvl": true,
@@ -20294,7 +20294,7 @@
     "parent#aevo": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true,
+        "perps": true,
         "options": true
     },
     "parent#thena": {
@@ -20305,7 +20305,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#dragon-swap": {
         "tvl": true,
@@ -20360,7 +20360,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#allbridge": {
         "tvl": true,
@@ -20423,7 +20423,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#spookyswap": {
         "tvl": true,
@@ -20470,8 +20470,8 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
-        "aggregatorDerivatives": true
+        "perps": true,
+        "perpsAggregators": true
     },
     "parent#tenderize": {
         "tvl": true
@@ -20497,7 +20497,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#increment-finance": {
         "tvl": true,
@@ -20506,7 +20506,7 @@
     "parent#helix": {
         "tvl": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#juicebox": {
         "tvl": true,
@@ -20533,7 +20533,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#native": {
         "tvl": true,
@@ -20716,7 +20716,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#nimbora": {
         "tvl": true
@@ -20734,7 +20734,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#bluemove": {
         "tvl": true,
@@ -20757,7 +20757,7 @@
     "parent#rabbitx-fusion": {
         "tvl": true,
         "liquidity": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#spool-protocol": {
         "tvl": true,
@@ -20820,7 +20820,7 @@
         "governance": true,
         "treasury": true,
         "liquidity": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "parent#zkswap-finance": {
@@ -20861,7 +20861,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "parent#gammaswaplabs": {
@@ -20874,7 +20874,7 @@
     "parent#polynomial-protocol": {
         "tvl": true,
         "raises": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#sphere": {
         "tvl": true,
@@ -20889,7 +20889,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#inception": {
         "tvl": true
@@ -20989,7 +20989,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#baseswap": {
         "tvl": true,
@@ -21068,7 +21068,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#bulbaswap": {
         "tvl": true,
@@ -21087,7 +21087,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#ajna": {
         "tvl": true
@@ -21253,7 +21253,7 @@
     },
     "parent#perennial": {
         "tvl": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#bladeswap": {
         "tvl": true,
@@ -21291,7 +21291,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#meridian": {
         "tvl": true,
@@ -21344,7 +21344,7 @@
     "parent#demex": {
         "tvl": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#iguanadex": {
         "tvl": true
@@ -21420,7 +21420,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#myso": {
         "tvl": true
@@ -21437,13 +21437,13 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#logx": {
         "tvl": true,
         "liquidity": true,
         "raises": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#pegasys": {
         "tvl": true,
@@ -21535,7 +21535,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#fuji-finance": {
         "tvl": true
@@ -21552,14 +21552,14 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#pika-protocol": {
         "tvl": true,
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#claimswap": {
         "tvl": true,
@@ -21674,8 +21674,8 @@
         "governance": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
-        "aggregatorDerivatives": true
+        "perps": true,
+        "perpsAggregators": true
     },
     "parent#standard-protocol": {
         "tvl": true,
@@ -21706,7 +21706,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#huckleberry": {
         "tvl": true,
@@ -21789,7 +21789,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true,
+        "perps": true,
         "emissions": true
     },
     "parent#w3-foundation": {
@@ -21818,14 +21818,14 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#linehub": {
         "tvl": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#fairyswap": {
         "tvl": true,
@@ -21868,7 +21868,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#atlendis": {
         "tvl": true
@@ -21966,7 +21966,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#cookiebase": {
         "tvl": true
@@ -21980,7 +21980,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "aggregatorDerivatives": true
+        "perpsAggregators": true
     },
     "parent#covo-finance": {
         "tvl": true,
@@ -21988,7 +21988,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#bank-of-cronos": {
         "tvl": true,
@@ -22014,7 +22014,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "derivatives": true
+        "perps": true
     },
     "parent#lighter": {
         "tvl": true,

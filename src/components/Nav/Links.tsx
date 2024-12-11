@@ -267,9 +267,9 @@ export const navLinks: ILinks = {
 			{ name: 'DEXs', path: '/dexs' },
 			{ name: 'Chains', path: '/dexs/chains' },
 			{ name: 'Aggregators', path: '/aggregators', newTag: true },
-			{ name: 'Perps', path: '/derivatives' },
-			{ name: 'Perps (Chains)', path: '/derivatives/chains' },
-			{ name: 'Perp Aggregators', path: '/derivatives-aggregator', newTag: true },
+			{ name: 'Perps', path: '/perps' },
+			{ name: 'Perps (Chains)', path: '/perps/chains' },
+			{ name: 'Perp Aggregators', path: '/perps-aggregators', newTag: true },
 			{ name: 'Options', path: '/options' },
 			{ name: 'Options (Chains)', path: '/options/chains' },
 			{ name: 'Bridge Aggregators', path: '/bridge-aggregators', newTag: true }

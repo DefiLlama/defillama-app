@@ -109,7 +109,7 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
-	const derivativesData = derivatesProtocols?.protocols?.filter(
+	const perpsData = derivatesProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
@@ -160,18 +160,18 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 	const revenue30d = revenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const bribesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.bribesRevenue30d || 0), 0) ?? null
 	const tokenTaxesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.tokenTaxesRevenue30d || 0), 0) ?? null
-	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
+	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
-	const dailyDerivativesVolume =
-		derivativesData?.reduce((acc, curr) => {
-			if (curr.dailyVolume && curr.dailyVolume > 0) {
-				acc += curr.dailyVolume
+	const dailyPerpsVolume =
+		perpsData?.reduce((acc, curr) => {
+			if (curr.total24h && curr.total24h > 0) {
+				acc += curr.total24h
 			}
 			return acc
 		}, 0) ?? null
-	const allTimeDerivativesVolume =
-		derivativesData?.reduce((acc, curr) => {
+	const allTimePerpsVolume =
+		perpsData?.reduce((acc, curr) => {
 			if (curr.totalAllTime && curr.totalAllTime > 0) {
 				acc += curr.totalAllTime
 			}
@@ -208,9 +208,9 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 					fees: protocolMetadata[protocolData.id]?.fees ? true : false,
 					revenue: protocolMetadata[protocolData.id]?.revenue ? true : false,
 					dexs: protocolMetadata[protocolData.id]?.dexs ? true : false,
-					derivatives: protocolMetadata[protocolData.id]?.derivatives ? true : false,
+					perps: protocolMetadata[protocolData.id]?.perps ? true : false,
 					aggregators: protocolMetadata[protocolData.id]?.aggregator ? true : false,
-					derivativesAggregators: protocolMetadata[protocolData.id]?.aggregatorDerivatives ? true : false,
+					perpsAggregators: protocolMetadata[protocolData.id]?.perpsAggregators ? true : false,
 					options: protocolMetadata[protocolData.id]?.options ? true : false,
 					medianApy: false,
 					inflows: inflowsExist,
@@ -241,8 +241,8 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 			revenue30d,
 			dailyVolume,
 			allTimeVolume,
-			dailyDerivativesVolume,
-			allTimeDerivativesVolume,
+			dailyPerpsVolume,
+			allTimePerpsVolume,
 			controversialProposals,
 			governanceApis: governanceApis.filter((x) => !!x),
 			methodologyUrls: {
@@ -251,7 +251,7 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 					: null,
 				fees: feesData?.[0]?.methodologyURL ?? null,
 				dexs: volumeData?.[0]?.methodologyURL ?? null,
-				derivatives: derivativesData?.[0]?.methodologyURL ?? null
+				perps: perpsData?.[0]?.methodologyURL ?? null
 			},
 			chartDenominations,
 			protocolHasForks: false,
@@ -447,7 +447,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.derivatives
+		protocolMetadata[protocolData.id]?.perps
 			? fetchOverCache(
 					`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -496,7 +496,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.aggregatorDerivatives
+		protocolMetadata[protocolData.id]?.perpsAggregators
 			? fetchOverCache(
 					`${DIMENISIONS_OVERVIEW_API}/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -565,7 +565,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
-	const derivativesData = derivatesProtocols?.protocols?.filter(
+	const perpsData = derivatesProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
@@ -577,7 +577,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
-	const derivativesAggregatorData = derivatesAggregatorProtocols?.protocols?.filter(
+	const perpsAggregatorData = derivatesAggregatorProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
@@ -667,18 +667,17 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 	const revenue30d = revenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const bribesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.bribesRevenue30d || 0), 0) ?? null
 	const tokenTaxesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.tokenTaxesRevenue30d || 0), 0) ?? null
-	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
-	const dailyDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
-	const dailyAggregatorsVolume = aggregatorsData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
+	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
+	const dailyPerpsVolume = perpsData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
+	const dailyAggregatorsVolume = aggregatorsData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const allTimeAggregatorsVolume = aggregatorsData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
-	const dailyDerivativesAggregatorVolume =
-		derivativesAggregatorData?.reduce((acc, curr) => (acc += curr.dailyVolume || 0), 0) ?? null
-	const allTimeDerivativesAggregatorVolume =
-		derivativesAggregatorData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
-	const dailyOptionsVolume = optionsData?.reduce((acc, curr) => (acc += curr.dailyPremiumVolume || 0), 0) ?? null
+	const dailyPerpsAggregatorVolume = perpsAggregatorData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
+	const allTimePerpsAggregatorVolume =
+		perpsAggregatorData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const dailyOptionsVolume = optionsData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
-	const allTimeDerivativesVolume = derivativesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const allTimePerpsVolume = perpsData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const metrics = protocolData.metrics || {}
 	const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
 	const projectYields = yields?.data?.filter(
@@ -762,9 +761,9 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					fees: protocolMetadata[protocolData.id]?.fees ? true : false,
 					revenue: protocolMetadata[protocolData.id]?.revenue ? true : false,
 					dexs: protocolMetadata[protocolData.id]?.dexs ? true : false,
-					derivatives: protocolMetadata[protocolData.id]?.derivatives ? true : false,
+					perps: protocolMetadata[protocolData.id]?.perps ? true : false,
 					aggregators: protocolMetadata[protocolData.id]?.aggregator ? true : false,
-					derivativesAggregators: protocolMetadata[protocolData.id]?.aggregatorDerivatives ? true : false,
+					perpsAggregators: protocolMetadata[protocolData.id]?.perpsAggregators ? true : false,
 					bridgeAggregators: protocolMetadata[protocolData.id]?.bridgeAggregators ? true : false,
 					options: protocolMetadata[protocolData.id]?.options ? true : false,
 					medianApy: medianApy.data.length > 0,
@@ -796,12 +795,12 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			revenue30d,
 			dailyVolume,
 			allTimeVolume,
-			dailyDerivativesVolume,
-			allTimeDerivativesVolume,
+			dailyPerpsVolume,
+			allTimePerpsVolume,
 			dailyAggregatorsVolume,
 			allTimeAggregatorsVolume,
-			dailyDerivativesAggregatorVolume,
-			allTimeDerivativesAggregatorVolume,
+			dailyPerpsAggregatorVolume,
+			allTimePerpsAggregatorVolume,
 			dailyOptionsVolume,
 			controversialProposals,
 			governanceApis: governanceApis.filter((x) => !!x),
@@ -871,7 +870,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					: null,
 				fees: feesData?.[0]?.methodologyURL ?? null,
 				dexs: volumeData?.[0]?.methodologyURL ?? null,
-				derivatives: derivativesData?.[0]?.methodologyURL ?? null
+				perps: perpsData?.[0]?.methodologyURL ?? null
 			},
 			chartDenominations,
 			protocolHasForks: (forks?.props?.tokens ?? []).includes(protocolData.name),

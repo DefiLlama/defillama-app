@@ -95,12 +95,12 @@ interface IProtocolContainerProps {
 	dailyTokenTaxes: number | null
 	dailyVolume: number | null
 	allTimeVolume: number | null
-	dailyDerivativesVolume: number | null
-	allTimeDerivativesVolume: number | null
+	dailyPerpsVolume: number | null
+	allTimePerpsVolume: number | null
 	dailyAggregatorsVolume: number | null
 	allTimeAggregatorsVolume: number | null
-	dailyDerivativesAggregatorVolume: number | null
-	allTimeDerivativesAggregatorVolume: number | null
+	dailyPerpsAggregatorVolume: number | null
+	allTimePerpsAggregatorVolume: number | null
 	dailyOptionsVolume: number | null
 	controversialProposals: Array<{ title: string; link?: string }> | null
 	governanceApis: Array<string> | null
@@ -176,12 +176,12 @@ function ProtocolContainer({
 	tokenTaxesRevenue30d,
 	dailyVolume,
 	allTimeVolume,
-	dailyDerivativesVolume,
-	allTimeDerivativesVolume,
+	dailyPerpsVolume,
+	allTimePerpsVolume,
 	dailyAggregatorsVolume,
 	allTimeAggregatorsVolume,
-	dailyDerivativesAggregatorVolume,
-	allTimeDerivativesAggregatorVolume,
+	dailyPerpsAggregatorVolume,
+	allTimePerpsAggregatorVolume,
 	dailyOptionsVolume,
 	controversialProposals,
 	governanceApis,
@@ -560,10 +560,10 @@ function ProtocolContainer({
 								Volume
 							</button>
 						)}
-						{metrics.derivatives && (
+						{metrics.perps && (
 							<button
-								data-active={tab === 'derivatives-volume'}
-								onClick={(e) => setTab('derivatives-volume', e)}
+								data-active={tab === 'perps-volume'}
+								onClick={(e) => setTab('perps-volume', e)}
 								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Perps Volume
@@ -578,10 +578,10 @@ function ProtocolContainer({
 								Aggregators Volume
 							</button>
 						)}
-						{metrics.derivativesAggregators && (
+						{metrics.perpsAggregators && (
 							<button
-								data-active={tab === 'aggregator-derivatives'}
-								onClick={(e) => setTab('aggregator-derivatives', e)}
+								data-active={tab === 'perps-aggregator'}
+								onClick={(e) => setTab('perps-aggregator', e)}
 								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Perps Aggregators Volume
@@ -938,25 +938,25 @@ function ProtocolContainer({
 													<td className="font-jetbrains text-right">{formatPrice(dailyVolume)}</td>
 												</tr>
 											) : null}
-											{dailyDerivativesVolume && allTimeDerivativesVolume ? (
+											{dailyPerpsVolume && allTimePerpsVolume ? (
 												<RowWithSubRows
 													protocolName={protocolData.name}
 													dataType="Perps Volume"
 													rowHeader="Perps Volume 24h"
-													rowValue={formatPrice(dailyDerivativesVolume)}
+													rowValue={formatPrice(dailyPerpsVolume)}
 													helperText={null}
 													subRows={
 														<>
-															{allTimeDerivativesVolume ? (
+															{allTimePerpsVolume ? (
 																<tr>
 																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Volume`}</th>
-																	<td className="text-sm text-right">{formatPrice(allTimeDerivativesVolume)}</td>
+																	<td className="text-sm text-right">{formatPrice(allTimePerpsVolume)}</td>
 																</tr>
 															) : null}
 														</>
 													}
 												/>
-											) : dailyDerivativesVolume ? (
+											) : dailyPerpsVolume ? (
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 														<span>Perps Volume 24h</span>
@@ -966,7 +966,7 @@ function ProtocolContainer({
 															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 														/>
 													</th>
-													<td className="font-jetbrains text-right">{formatPrice(dailyDerivativesVolume)}</td>
+													<td className="font-jetbrains text-right">{formatPrice(dailyPerpsVolume)}</td>
 												</tr>
 											) : null}
 											{dailyAggregatorsVolume && allTimeAggregatorsVolume ? (
@@ -1000,27 +1000,25 @@ function ProtocolContainer({
 													<td className="font-jetbrains text-right">{formatPrice(dailyAggregatorsVolume)}</td>
 												</tr>
 											) : null}
-											{dailyDerivativesAggregatorVolume && allTimeDerivativesAggregatorVolume ? (
+											{dailyPerpsAggregatorVolume && allTimePerpsAggregatorVolume ? (
 												<RowWithSubRows
 													protocolName={protocolData.name}
 													dataType="Perps Aggregators Volume"
 													rowHeader="Perps Aggs Volume 24h"
-													rowValue={formatPrice(dailyDerivativesAggregatorVolume)}
+													rowValue={formatPrice(dailyPerpsAggregatorVolume)}
 													helperText={null}
 													subRows={
 														<>
-															{allTimeDerivativesAggregatorVolume ? (
+															{allTimePerpsAggregatorVolume ? (
 																<tr>
 																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Volume`}</th>
-																	<td className="text-sm text-right">
-																		{formatPrice(allTimeDerivativesAggregatorVolume)}
-																	</td>
+																	<td className="text-sm text-right">{formatPrice(allTimePerpsAggregatorVolume)}</td>
 																</tr>
 															) : null}
 														</>
 													}
 												/>
-											) : dailyDerivativesAggregatorVolume ? (
+											) : dailyPerpsAggregatorVolume ? (
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 														<span>Perps Aggs Volume 24h</span>
@@ -1030,7 +1028,7 @@ function ProtocolContainer({
 															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 														/>
 													</th>
-													<td className="font-jetbrains text-right">{formatPrice(dailyDerivativesAggregatorVolume)}</td>
+													<td className="font-jetbrains text-right">{formatPrice(dailyPerpsAggregatorVolume)}</td>
 												</tr>
 											) : null}
 
@@ -1575,8 +1573,8 @@ function ProtocolContainer({
 												</Link>
 											)}
 
-											{methodologyUrls?.derivatives && (
-												<Link href={methodologyUrls.derivatives} passHref>
+											{methodologyUrls?.perps && (
+												<Link href={methodologyUrls.perps} passHref>
 													<ButtonLight
 														className="flex items-center gap-1"
 														as="a"
@@ -1790,12 +1788,12 @@ function ProtocolContainer({
 							<VolumeCharts data={protocolData} />
 						</div>
 					) : null}
-					{metrics.derivatives && tab === 'derivatives-volume' ? (
+					{metrics.perps && tab === 'perps-volume' ? (
 						<div>
 							<VolumeCharts data={protocolData} type="derivatives" />
 						</div>
 					) : null}
-					{metrics.derivativesAggregators && tab === 'aggregator-derivatives' ? (
+					{metrics.perpsAggregators && tab === 'perps-aggregator' ? (
 						<div>
 							<VolumeCharts data={protocolData} type="aggregator-derivatives" />
 						</div>

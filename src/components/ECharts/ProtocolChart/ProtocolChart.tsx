@@ -47,7 +47,7 @@ const CHART_TYPES = [
 	'tokenLiquidity',
 	'fdv',
 	'volume',
-	'derivativesVolume',
+	'perpsVolume',
 	'premiumVolume',
 	'fees',
 	'revenue',
@@ -69,7 +69,7 @@ const CHART_TYPES = [
 	'contributersCommits',
 	'devCommits',
 	'nftVolume',
-	'derivativesAggregators',
+	'perpsAggregators',
 	'bridgeAggregators'
 ]
 
@@ -108,7 +108,7 @@ export default function ProtocolChart({
 		tokenPrice,
 		fdv,
 		volume,
-		derivativesVolume,
+		perpsVolume,
 		fees,
 		revenue,
 		unlocks,
@@ -135,7 +135,7 @@ export default function ProtocolChart({
 		aggregators,
 		bridgeAggregators,
 		premiumVolume,
-		derivativesAggregators
+		perpsAggregators
 	} = enabled || {
 		...router.query,
 		...((!metrics.tvl
@@ -143,16 +143,16 @@ export default function ProtocolChart({
 				? { fees: router.query.fees ?? 'true', ...(metrics.revenue ? { revenue: router.query.revenue ?? 'true' } : {}) }
 				: metrics.dexs
 				? { dexs: router.query.dexs ?? 'true' }
-				: metrics.derivatives
-				? { derivativesVolume: router.query.derivativesVolume ?? 'true' }
+				: metrics.perps
+				? { perpsVolume: router.query.perpsVolume ?? 'true' }
 				: metrics.options
 				? { premiumVolume: router.query.premiumVolume ?? 'true' }
 				: metrics.aggregators
 				? { aggregators: router.query.aggregators ?? 'true' }
 				: metrics.bridgeAggregators
 				? { bridgeAggregators: router.query.bridgeAggregators ?? 'true' }
-				: metrics.derivativesAggregators
-				? { derivativesAggregators: router.query.derivativesAggregators ?? 'true' }
+				: metrics.perpsAggregators
+				? { perpsAggregators: router.query.perpsAggregators ?? 'true' }
 				: metrics.bridge
 				? { bridgeVolume: router.query.bridgeVolume ?? 'true' }
 				: metrics.unlocks
@@ -171,7 +171,7 @@ export default function ProtocolChart({
 			tokenPrice,
 			fdv,
 			volume,
-			derivativesVolume,
+			perpsVolume,
 			premiumVolume,
 			fees,
 			revenue,
@@ -210,7 +210,7 @@ export default function ProtocolChart({
 			nftVolume,
 			nftVolumeData,
 			aggregators,
-			derivativesAggregators,
+			perpsAggregators,
 			bridgeAggregators
 		})
 
@@ -258,11 +258,11 @@ export default function ProtocolChart({
 			metrics.bridge ||
 			metrics.fees ||
 			metrics.dexs ||
-			metrics.derivatives ||
+			metrics.perps ||
 			metrics.options ||
 			metrics.unlocks ||
 			metrics.aggregators ||
-			metrics.derivativesAggregators ||
+			metrics.perpsAggregators ||
 			metrics.bridgeAggregators ||
 			activeUsersId ||
 			historicalChainTvls['borrowed']?.tvl?.length > 0 ||
@@ -471,17 +471,17 @@ export default function ProtocolChart({
 						</label>
 					)}
 
-					{metrics.derivatives && (
+					{metrics.perps && (
 						<label className="text-sm font-medium cursor-pointer rounded-xl hover:bg-[var(--bg)]">
 							<input
 								type="checkbox"
-								value="derivativesVolume"
-								checked={derivativesVolume === 'true'}
+								value="perpsVolume"
+								checked={perpsVolume === 'true'}
 								onChange={() =>
 									router.push(
 										{
 											pathname: router.pathname,
-											query: { ...router.query, derivativesVolume: derivativesVolume === 'true' ? false : true }
+											query: { ...router.query, perpsVolume: perpsVolume === 'true' ? false : true }
 										},
 										undefined,
 										{ shallow: true }
@@ -495,19 +495,19 @@ export default function ProtocolChart({
 							</span>
 						</label>
 					)}
-					{metrics.derivativesAggregators && (
+					{metrics.perpsAggregators && (
 						<label className="text-sm font-medium cursor-pointer rounded-xl hover:bg-[var(--bg)]">
 							<input
 								type="checkbox"
-								value="derivativesAggregators"
-								checked={derivativesAggregators === 'true'}
+								value="perpsAggregators"
+								checked={perpsAggregators === 'true'}
 								onChange={() =>
 									router.push(
 										{
 											pathname: router.pathname,
 											query: {
 												...router.query,
-												derivativesAggregators: derivativesAggregators === 'true' ? false : true
+												perpsAggregators: perpsAggregators === 'true' ? false : true
 											}
 										},
 										undefined,

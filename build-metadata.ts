@@ -179,19 +179,19 @@ for (const protocol of volumeData.protocols) {
 	}
 }
 
-const derivativesData = await fetch(
+const perpsData = await fetch(
 	`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 ).then((res) => res.json())
-for (const protocol of derivativesData.protocols) {
+for (const protocol of perpsData.protocols) {
 	finalProtocols[protocol.defillamaId] = {
 		...finalProtocols[protocol.defillamaId],
-		derivatives: true
+		perps: true
 	}
 
 	if (protocol.parentProtocol) {
 		finalProtocols[protocol.parentProtocol] = {
 			...finalProtocols[protocol.parentProtocol],
-			derivatives: true
+			perps: true
 		}
 	}
 }
@@ -230,19 +230,19 @@ for (const protocol of optionsData.protocols) {
 	}
 }
 
-const aggregatorDerivativesData = await fetch(
+const perpsAggregatorsData = await fetch(
 	`${DIMENISIONS_OVERVIEW_API}/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 ).then((res) => res.json())
-for (const protocol of aggregatorDerivativesData.protocols) {
+for (const protocol of perpsAggregatorsData.protocols) {
 	finalProtocols[protocol.defillamaId] = {
 		...finalProtocols[protocol.defillamaId],
-		aggregatorDerivatives: true
+		perpsAggregators: true
 	}
 
 	if (protocol.parentProtocol) {
 		finalProtocols[protocol.parentProtocol] = {
 			...finalProtocols[protocol.parentProtocol],
-			aggregatorDerivatives: true
+			perpsAggregators: true
 		}
 	}
 }

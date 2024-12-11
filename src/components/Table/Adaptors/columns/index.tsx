@@ -30,9 +30,9 @@ export const getColumnsByType = (type: string, allChains?: boolean, isSimple?: b
 		case 'aggregators':
 			return aggregatorsColumns(allChains)
 		case 'derivatives':
-			return derivativesColumns(allChains)
+			return perpsColumns(allChains)
 		case 'derivatives-aggregator':
-			return derivatesAggregatorColumns(allChains)
+			return perpsAggregatorColumns(allChains)
 		case 'bridge-aggregators':
 			return bridgeAggregatorsColumns(allChains)
 		default:
@@ -77,10 +77,10 @@ export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Total24hColumn('Volume', 'total30d', `Cumulative last 30d volume`, undefined, 'Volume (30d)')
 	].filter((c) => c !== undefined)
 
-export const derivativesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const perpsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
-		NameColumn('derivatives', allChains),
-		allChains ? undefined : ChainsColumn('derivatives'),
+		NameColumn('perps', allChains),
+		allChains ? undefined : ChainsColumn('perps'),
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
@@ -118,10 +118,10 @@ export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 		DominanceColumn
 	].filter((c) => c !== undefined)
 
-export const derivatesAggregatorColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const perpsAggregatorColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
-		NameColumn('derivatives-aggregator', allChains),
-		allChains ? undefined : ChainsColumn('derivatives-aggregator'),
+		NameColumn('perps-aggregators', allChains),
+		allChains ? undefined : ChainsColumn('perps-aggregators'),
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
