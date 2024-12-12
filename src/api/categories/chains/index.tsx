@@ -28,6 +28,7 @@ import { getBridgeOverviewPageData } from '../bridges'
 import chainsMetadata from 'metadata/chains.json'
 import { getOverview } from '../adaptors'
 import { getFeesAndRevenueByChain } from '../fees'
+import { getDexVolumeByChain } from '../dexs'
 
 const getExtraTvlCharts = (data) => {
 	const {
@@ -96,7 +97,7 @@ export async function getChainPageData(chain?: string) {
 	] = await Promise.all([
 		fetchWithErrorLogging(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
-		chain && chain !== 'All' ? getOverview('dexs', chain.toLowerCase(), undefined, false, false) : null,
+		getDexVolumeByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
 		getCexVolume(),
 		getFeesAndRevenueByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
 		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chain)
