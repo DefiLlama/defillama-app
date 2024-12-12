@@ -81,7 +81,7 @@ export const useFetchChainChartData = ({
 	)
 
 	const { data: chainAssetsChart, isLoading: fetchingChainAssetsChart } = useGetChainAssetsChart(
-		chainAssets ? selectedChain : null
+		chainAssets && router.query.chainAssets === 'true' ? selectedChain : null
 	)
 
 	const isFetchingChartData =

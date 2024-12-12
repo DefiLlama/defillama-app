@@ -12,13 +12,14 @@ import {
 	PROTOCOLS_TREASURY,
 	RAISES_API
 } from '~/constants'
+import { fetchOverCache } from '~/utils/perf'
 
 export const slug = (tokenName = '') => tokenName?.toLowerCase().split(' ').join('-').split("'").join('')
 
 const finalProtocols = {}
 const finalChains = {}
 
-const tvlData = await fetch(PROTOCOLS_API).then((res) => res.json())
+const tvlData = await fetchOverCache(PROTOCOLS_API).then((res) => res.json())
 
 for (const chain of tvlData.chains) {
 	finalChains[chain] = {}
@@ -51,7 +52,7 @@ for (const protocol of tvlData.parentProtocols) {
 	}
 }
 
-const expensesData = await fetch(PROTOCOLS_EXPENSES_API).then((res) => res.json())
+const expensesData = await fetchOverCache(PROTOCOLS_EXPENSES_API).then((res) => res.json())
 for (const protocol of expensesData) {
 	finalProtocols[protocol.protocolId] = {
 		...finalProtocols[protocol.protocolId],
@@ -59,7 +60,7 @@ for (const protocol of expensesData) {
 	}
 }
 
-const treasuryData = await fetch(PROTOCOLS_TREASURY).then((res) => res.json())
+const treasuryData = await fetchOverCache(PROTOCOLS_TREASURY).then((res) => res.json())
 for (const protocol of treasuryData) {
 	finalProtocols[protocol.id.split('-treasury')[0]] = {
 		...finalProtocols[protocol.id.split('-treasury')[0]],
@@ -69,7 +70,7 @@ for (const protocol of treasuryData) {
 
 // todo YIELD_POOLS_API & YIELD_CONFIG_API
 
-const liquidityData = await fetch(LIQUIDITY_API).then((res) => res.json())
+const liquidityData = await fetchOverCache(LIQUIDITY_API).then((res) => res.json())
 for (const protocol of liquidityData) {
 	finalProtocols[protocol.id] = {
 		...finalProtocols[protocol.id],
@@ -79,7 +80,7 @@ for (const protocol of liquidityData) {
 
 // todo forks api
 
-const hacksData = await fetch(HACKS_API).then((res) => res.json())
+const hacksData = await fetchOverCache(HACKS_API).then((res) => res.json())
 for (const protocol of hacksData) {
 	if (protocol.defillamaId) {
 		finalProtocols[protocol.defillamaId.toString()] = {
@@ -89,7 +90,7 @@ for (const protocol of hacksData) {
 	}
 }
 
-const nftMarketplacesData = await fetch(NFT_MARKETPLACES_STATS_API).then((res) => res.json())
+const nftMarketplacesData = await fetchOverCache(NFT_MARKETPLACES_STATS_API).then((res) => res.json())
 for (const market of nftMarketplacesData) {
 	const marketplaceExists = Object.entries(nameToId).find(
 		(protocol) => slug(market.exchangeName) === slug(protocol[1] as string)
@@ -102,7 +103,7 @@ for (const market of nftMarketplacesData) {
 	}
 }
 
-const raisesData = await fetch(RAISES_API).then((res) => res.json())
+const raisesData = await fetchOverCache(RAISES_API).then((res) => res.json())
 for (const raise of raisesData.raises) {
 	if (raise.defillamaId && !raise.defillamaId.startsWith('chain')) {
 		finalProtocols[raise.defillamaId] = {
@@ -112,7 +113,7 @@ for (const raise of raisesData.raises) {
 	}
 }
 
-const activeUsersData = await fetch(ACTIVE_USERS_API).then((res) => res.json())
+const activeUsersData = await fetchOverCache(ACTIVE_USERS_API).then((res) => res.json())
 for (const protocol in activeUsersData) {
 	if (protocol.startsWith('chain')) {
 		const chain = Object.keys(finalChains).find((chain) => protocol === `chain#${chain.toLowerCase()}`)
@@ -130,7 +131,7 @@ for (const protocol in activeUsersData) {
 	}
 }
 
-const feesData = await fetch(
+const feesData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 ).then((res) => res.json())
 for (const protocol of feesData.protocols) {
@@ -147,7 +148,7 @@ for (const protocol of feesData.protocols) {
 	}
 }
 
-const revenueData = await fetch(
+const revenueData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
 ).then((res) => res.json())
 for (const protocol of revenueData.protocols) {
@@ -164,7 +165,7 @@ for (const protocol of revenueData.protocols) {
 	}
 }
 
-const volumeData = await fetch(
+const volumeData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 ).then((res) => res.json())
 for (const protocol of volumeData.protocols) {
@@ -181,7 +182,7 @@ for (const protocol of volumeData.protocols) {
 	}
 }
 
-const perpsData = await fetch(
+const perpsData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 ).then((res) => res.json())
 for (const protocol of perpsData.protocols) {
@@ -198,7 +199,7 @@ for (const protocol of perpsData.protocols) {
 	}
 }
 
-const aggregatorsData = await fetch(
+const aggregatorsData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 ).then((res) => res.json())
 for (const protocol of aggregatorsData.protocols) {
@@ -215,7 +216,7 @@ for (const protocol of aggregatorsData.protocols) {
 	}
 }
 
-const optionsData = await fetch(
+const optionsData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 ).then((res) => res.json())
 for (const protocol of optionsData.protocols) {
@@ -232,7 +233,7 @@ for (const protocol of optionsData.protocols) {
 	}
 }
 
-const perpsAggregatorsData = await fetch(
+const perpsAggregatorsData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 ).then((res) => res.json())
 for (const protocol of perpsAggregatorsData.protocols) {
@@ -249,7 +250,7 @@ for (const protocol of perpsAggregatorsData.protocols) {
 	}
 }
 
-const bridgeAggregatorsData = await fetch(
+const bridgeAggregatorsData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/bridge-aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 ).then((res) => res.json())
 for (const protocol of bridgeAggregatorsData.protocols) {
@@ -266,7 +267,7 @@ for (const protocol of bridgeAggregatorsData.protocols) {
 	}
 }
 
-const emmissionsData = await fetch(`https://defillama-datasets.llama.fi/emissionsProtocolsList`).then((res) =>
+const emmissionsData = await fetchOverCache(`https://defillama-datasets.llama.fi/emissionsProtocolsList`).then((res) =>
 	res.json()
 )
 for (const protocol of Object.entries(nameToId)) {
@@ -280,14 +281,14 @@ for (const protocol of Object.entries(nameToId)) {
 
 writeFileSync(`./metadata/protocols.json`, JSON.stringify(finalProtocols, null, 4), 'utf8')
 
-const bridgesData = await fetch(`${BRIDGES_API}?includeChains=true`).then((res) => res.json())
+const bridgesData = await fetchOverCache(`${BRIDGES_API}?includeChains=true`).then((res) => res.json())
 for (const chain of bridgesData.chains) {
 	if (finalChains[chain.name]) {
 		finalChains[chain.name] = { ...finalChains[chain.name], inflows: true }
 	}
 }
 
-const chainAssetsData = await fetch(CHAINS_ASSETS).then((res) => res.json())
+const chainAssetsData = await fetchOverCache(CHAINS_ASSETS).then((res) => res.json())
 for (const chain in chainAssetsData) {
 	if (finalChains[chain]) {
 		finalChains[chain] = { ...finalChains[chain], chainAssets: true }

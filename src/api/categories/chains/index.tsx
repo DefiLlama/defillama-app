@@ -91,7 +91,6 @@ export async function getChainPageData(chain?: string) {
 		devMetricsData,
 		treasuriesData,
 		cgData,
-		chainAssetsChart,
 		perpsData,
 		nftVolumesData
 	] = await Promise.all([
@@ -180,11 +179,6 @@ export async function getChainPageData(chain?: string) {
 					`https://pro-api.coingecko.com/api/v3/coins/${currentChain?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 			  ).then((res) => res.json())
 			: {},
-		chain && chain !== 'All' && chainsMetadata[chain]?.chainAssets
-			? fetchWithErrorLogging(`${CHAINS_ASSETS_CHART}/${chain}`)
-					.then((r) => r.json())
-					.catch(() => null)
-			: null,
 		chain && chain !== 'All' ? getOverview('derivatives', chain.toLowerCase(), undefined, false, false) : null,
 		chain && chain !== 'All'
 			? fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
@@ -245,7 +239,6 @@ export async function getChainPageData(chain?: string) {
 			...(chain && { chain }),
 			chainTokenInfo: currentChain ? { ...currentChain, ...(cgData || {}) } : null,
 			chainTreasury: chainTreasury ?? null,
-			chainAssetsChart: chainAssetsChart ?? null,
 			chainRaises: chainRaises ?? null,
 			chainAssets: chain ? chainAssets[chain] ?? null : null,
 			chainsSet: chains,
