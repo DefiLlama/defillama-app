@@ -5,6 +5,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocolData, getProtocolDataLite } from '~/api/categories/protocols/getProtocolData'
 import { isCpusHot } from '~/utils/cache-client'
 import { useQuery } from '@tanstack/react-query'
+import protocolMetadata from 'metadata/protocols.json'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/[...protocol]',
@@ -18,6 +19,12 @@ export const getStaticProps = withPerformanceLogging(
 
 		if (IS_RUNTIME) {
 			isHot = await isCpusHot()
+		}
+
+		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
+
+		if (!metadata) {
+			return { notFound: true, props: null }
 		}
 
 		const protocolData = await getProtocol(protocol)

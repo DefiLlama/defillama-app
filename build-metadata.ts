@@ -29,6 +29,7 @@ for (const protocol of tvlData.protocols) {
 	nameToId[protocol.defillamaId] = protocol.name
 
 	finalProtocols[protocol.defillamaId] = {
+		name: slug(protocol.name),
 		tvl: protocol.tvl ? true : false,
 		...(protocol.governanceID ? { governance: true } : {})
 	}
@@ -44,6 +45,7 @@ for (const protocol of tvlData.parentProtocols) {
 	nameToId[protocol.id] = protocol.name
 
 	finalProtocols[protocol.id] = {
+		name: slug(protocol.name),
 		...finalProtocols[protocol.id],
 		...(protocol.governanceID ? { governance: true } : {})
 	}
