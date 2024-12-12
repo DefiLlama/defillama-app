@@ -69,6 +69,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		IS_RUNTIME &&
 			!options?.silent &&
 			isServer &&
+			end - start > 10_000 &&
 			console.log(`[fetch-cache] [HIT] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
 
 		return new Response(blob, responseInit)
@@ -123,6 +124,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		IS_RUNTIME &&
 			!options?.silent &&
 			isServer &&
+			end - start > 10_000 &&
 			console.log(`[fetch-cache] [MISS] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
 		return new Response(blob, responseInit)
 	}
