@@ -1617,11 +1617,13 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'LSD',
 		accessorKey: 'lsdSymbol',
 		cell: ({ getValue, row }) => {
-			if (!row.original.pegInfo) return `${getValue()}`
+			const value = getValue()
+			const stringValue = typeof value === 'string' ? value : ''
+			if (!row.original.pegInfo) return stringValue
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{row.original.pegInfo ? <QuestionHelper text={row.original.pegInfo} /> : null}
-					{getValue() as string | null}
+					{row.original.pegInfo && <QuestionHelper text={row.original.pegInfo} />}
+					{stringValue}
 				</span>
 			)
 		},
