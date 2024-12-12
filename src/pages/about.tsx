@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import Layout from '~/layout'
 import { fetchApi } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -9,8 +10,8 @@ export const getStaticProps = withPerformanceLogging('about', async () => {
 	const [protocolsRaw, yields, fees, dexs] = await Promise.all([
 		getSimpleProtocolsPageData(),
 		fetchApi('https://yields.llama.fi/pools'),
-		fetchApi(`https://api.llama.fi/overview/fees?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`),
-		fetchApi(`https://api.llama.fi/overview/dexs?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`)
+		fetchApi(`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`),
+		fetchApi(`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`)
 	])
 
 	return {

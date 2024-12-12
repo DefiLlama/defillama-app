@@ -1112,8 +1112,24 @@ export function useFetchAndFormatChartData({
 	}
 
 	if (fetchingDevMetrics) {
-		fetchingTypes.push('devMetrics')
-		fetchingTypes.push('contributersMetrics')
+		fetchingTypes.push('dev metrics')
+		fetchingTypes.push('contributers metrics')
+	}
+
+	if (fetchingAggregatorsVolume) {
+		fetchingTypes.push('aggregators volume')
+	}
+
+	if (fetchingOptionsVolume) {
+		fetchingTypes.push('options volume')
+	}
+
+	if (fetchingPerpsAggregatorsVolume) {
+		fetchingTypes.push('perps aggregators volume')
+	}
+
+	if (fetchingBriddgeAggregatorsVolume) {
+		fetchingTypes.push('bridge aggregators volume')
 	}
 
 	const isLoadingData =
@@ -1135,7 +1151,10 @@ export function useFetchAndFormatChartData({
 		fetchingTokenLiquidity ||
 		fetchingTwitter ||
 		fetchingDevMetrics ||
-		fetchingAggregatorsVolume
+		fetchingAggregatorsVolume ||
+		fetchingOptionsVolume ||
+		fetchingPerpsAggregatorsVolume ||
+		fetchingBriddgeAggregatorsVolume
 
 	return {
 		fetchingTypes,
@@ -1274,8 +1293,8 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 			}
 		}
 	}
-
-	return Object.entries(tvlDictionary)
+	const final = Object.entries(tvlDictionary)
+	return final.length < 50 ? final.filter((x) => x[1] !== 0) : final
 }
 
 const firstDayOfMonth = (dateString) => {

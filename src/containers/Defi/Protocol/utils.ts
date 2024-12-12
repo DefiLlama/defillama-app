@@ -318,8 +318,6 @@ export const buildProtocolAddlChartsData = ({
 				tokensUnique
 			})
 
-			console.log({ tokensUnique, tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown })
-
 			const { usdInflows, tokenInflows } = buildInflows({
 				chainTvls: protocolData.chainTvls,
 				extraTvlsEnabled,
