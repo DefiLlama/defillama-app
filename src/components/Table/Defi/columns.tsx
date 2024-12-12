@@ -1745,9 +1745,18 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 	{
 		header: 'Flows',
 		accessorKey: 'flows',
-		cell: ({ getValue }) => (
-			<span className="font-bold">{getValue() !== null ? '$' + formattedNum(getValue()) : null}</span>
-		),
+		cell: ({ getValue }) => {
+			const value = getValue() as number | null
+			const formattedValue = value !== null ? '$' + formattedNum(value) : null
+
+			return (
+				<span
+					className={`font-bold ${value && value > 0 ? 'text-green-500' : value && value < 0 ? 'text-red-500' : ''}`}
+				>
+					{formattedValue}
+				</span>
+			)
+		},
 		meta: {
 			align: 'end'
 		},
