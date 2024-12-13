@@ -1,4 +1,4 @@
-import type { SVGProps } from 'react'
+import { memo, type SVGProps } from 'react'
 
 type Name =
 	| 'arrow-up-right'
@@ -61,10 +61,10 @@ type Name =
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
 }
-export function Icon({ name, ...props }: IIcon) {
+export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
 			<use href={`/icons.svg#${name}`} />
 		</svg>
 	)
-}
+})
