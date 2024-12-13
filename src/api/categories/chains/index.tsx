@@ -21,7 +21,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import { fetchOverCache } from '~/utils/perf'
 import { maxAgeForNext } from '~/api'
 import { getCexVolume } from '../adaptors/utils'
-import { getPeggedDominance, getPercentChange } from '~/utils'
+import { getPeggedDominance, getPercentChange, slug } from '~/utils'
 import { buildPeggedChartData } from '~/utils/stablecoins'
 import { getPeggedOverviewPageData } from '../stablecoins'
 import { getBridgeOverviewPageData } from '../bridges'
@@ -64,17 +64,11 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const [chainAssets, chainsConfig] = await Promise.all([
-		fetchWithErrorLogging(CHAINS_ASSETS)
-			.then((res) => res.json())
-			.catch(() => ({})),
-		fetchWithErrorLogging(CHAINS_API)
-			.then((res) => res.json())
-			.catch(() => [])
-	])
+	const chainMetadata = chain ? chainsMetadata[slug(chain)] ?? {} : {}
 
-	const currentChain = chainsConfig.find((c) => c.name.toLowerCase() === chain?.toLowerCase())
-	const hasUserData = chain ? chainsMetadata[chain]?.activeUsers : false
+	if (chain && !chainMetadata) {
+		return { notFound: true, props: null }
+	}
 
 	const [
 		chartData,
@@ -92,21 +86,30 @@ export async function getChainPageData(chain?: string) {
 		treasuriesData,
 		cgData,
 		perpsData,
-		nftVolumesData
+		nftVolumesData,
+		chainAssets
 	] = await Promise.all([
-		fetchWithErrorLogging(CHART_API + (chain ? '/' + chain : '')).then((r) => r.json()),
+		fetchWithErrorLogging(CHART_API + (chain ? '/' + chainMetadata?.name : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
-		getDexVolumeByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
+		getDexVolumeByChain({
+			chain: chainMetadata?.name,
+			excludeTotalDataChart: true,
+			excludeTotalDataChartBreakdown: true
+		}),
 		getCexVolume(),
-		getFeesAndRevenueByChain({ chain, excludeTotalDataChart: true, excludeTotalDataChartBreakdown: true }),
-		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chain)
+		getFeesAndRevenueByChain({
+			chain: chainMetadata?.name,
+			excludeTotalDataChart: true,
+			excludeTotalDataChartBreakdown: true
+		}),
+		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chainMetadata?.name)
 			.then((data) => {
 				const { peggedAreaChartData, peggedAreaTotalData } = buildPeggedChartData(
 					data?.chartDataByPeggedAsset,
 					data?.peggedAssetNames,
 					Object.values(data?.peggedNameToChartDataIndex || {}),
 					'mcap',
-					!chain || chain === 'All' ? 'All' : chain
+					!chain || chain === 'All' ? 'All' : chainMetadata?.name
 				)
 				let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
 				let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
@@ -134,12 +137,12 @@ export async function getChainPageData(chain?: string) {
 				}
 			})
 			.catch((err) => {
-				console.log('ERROR fetching stablecoins data of chain', chain, err)
+				console.log('ERROR fetching stablecoins data of chain', chainMetadata?.name, err)
 				return {}
 			}),
-		!chain || chain === 'All' || !chainsMetadata[chain]?.inflows
+		!chain || chain === 'All' || !chainMetadata?.inflows
 			? null
-			: getBridgeOverviewPageData(chain)
+			: getBridgeOverviewPageData(chainMetadata?.name)
 					.then((data) => {
 						return {
 							netInflows: data?.chainVolumeData?.length
@@ -148,50 +151,59 @@ export async function getChainPageData(chain?: string) {
 						}
 					})
 					.catch(() => null),
-		!chain || chain === 'All' || !hasUserData
+		!chain || chain === 'All' || !chainMetadata?.activeUsers
 			? null
-			: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chain}`)
+			: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chainMetadata?.name}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
-		!chain || chain === 'All' || !hasUserData
+		!chain || chain === 'All' || !chainMetadata?.activeUsers
 			? null
-			: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${chain}`)
+			: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${chainMetadata?.name}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
 
-		!chain || chain === 'All' || !hasUserData
+		!chain || chain === 'All' || !chainMetadata?.activeUsers
 			? null
-			: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${chain}`)
+			: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${chainMetadata?.name}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
 		fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
 		!chain || chain === 'All'
 			? null
-			: fetch(`${DEV_METRICS_API}/chain/${chain?.toLowerCase()}.json`)
+			: fetch(`${DEV_METRICS_API}/chain/${chainMetadata?.name?.toLowerCase()}.json`)
 					.then((r) => r.json())
 					.catch(() => null),
 		!chain || chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
-		currentChain?.gecko_id
+		chainMetadata?.gecko_id
 			? fetchOverCache(
-					`https://pro-api.coingecko.com/api/v3/coins/${currentChain?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+					`https://pro-api.coingecko.com/api/v3/coins/${chainMetadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 			  ).then((res) => res.json())
 			: {},
-		chain && chain !== 'All' ? getOverview('derivatives', chain.toLowerCase(), undefined, false, false) : null,
+		chain && chain !== 'All'
+			? getOverview('derivatives', chainMetadata?.name?.toLowerCase(), undefined, false, false)
+			: null,
 		chain && chain !== 'All'
 			? fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
-			: null
+			: null,
+		fetchWithErrorLogging(CHAINS_ASSETS)
+			.then((res) => res.json())
+			.catch(() => ({}))
 	])
 
 	const chainTreasury = treasuriesData?.find(
-		(t) => t?.name?.toLowerCase().startsWith(`${chain?.toLowerCase()}`) && ['Services', 'Chain'].includes(t?.category)
+		(t) =>
+			t?.name?.toLowerCase().startsWith(`${chainMetadata?.name?.toLowerCase()}`) &&
+			['Services', 'Chain'].includes(t?.category)
 	)
-	const chainRaises = raisesData?.raises?.filter((r) => r?.defillamaId === `chain#${chain?.toLowerCase()}`)
+	const chainRaises = raisesData?.raises?.filter(
+		(r) => r?.defillamaId === `chain#${chainMetadata?.name?.toLowerCase()}`
+	)
 
 	const filteredProtocols = formatProtocolsData({
-		chain,
+		chain: chainMetadata?.name,
 		protocols,
 		removeBridges: true
 	})
@@ -236,11 +248,17 @@ export async function getChainPageData(chain?: string) {
 
 	return {
 		props: {
-			...(chain && { chain }),
-			chainTokenInfo: currentChain ? { ...currentChain, ...(cgData || {}) } : null,
+			...(chainMetadata?.name && { chain: chainMetadata.name }),
+			chainTokenInfo: chainMetadata
+				? {
+						gecko_id: chainMetadata.gecko_id ?? null,
+						tokenSymbol: chainMetadata.tokenSymbol ?? null,
+						...(cgData || {})
+				  }
+				: null,
 			chainTreasury: chainTreasury ?? null,
 			chainRaises: chainRaises ?? null,
-			chainAssets: chain ? chainAssets[chain] ?? null : null,
+			chainAssets: chainMetadata?.name ? chainAssets[chainMetadata.name] ?? null : null,
 			chainsSet: chains,
 			chainOptions: ['All'].concat(chains).map((label) => ({ label, to: setSelectedChain(label) })),
 			protocolsList,
@@ -263,7 +281,8 @@ export async function getChainPageData(chain?: string) {
 			userData: { activeUsers, newUsers, transactions },
 			raisesChart,
 			noContext: false,
-			nftVolumesData: nftVolumesData ? nftVolumesData[chain.toLowerCase()] ?? null : null,
+			nftVolumesData:
+				nftVolumesData && chainMetadata?.name ? nftVolumesData[chainMetadata.name.toLowerCase()] ?? null : null,
 			...charts
 		},
 		revalidate: maxAgeForNext([22])

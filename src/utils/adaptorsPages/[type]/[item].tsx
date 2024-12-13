@@ -13,7 +13,6 @@ export type PageParams = {
 const getStaticProps: GetStaticProps<PageParams> = async ({
 	params
 }: GetStaticPropsContext<{ type: string; item: string }>) => {
-	console.log(params.type, params.item)
 	const data = await getOverviewItemPageData(params.type, params.item).catch((e) =>
 		console.info(`Item page data not found ${params.type} ${params.item}`, e)
 	)

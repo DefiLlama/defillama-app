@@ -2,6 +2,7 @@ import { writeFileSync } from 'node:fs'
 import {
 	ACTIVE_USERS_API,
 	BRIDGES_API,
+	CHAINS_API,
 	CHAINS_ASSETS,
 	DIMENISIONS_OVERVIEW_API,
 	HACKS_API,
@@ -22,7 +23,7 @@ const finalChains = {}
 const tvlData = await fetchOverCache(PROTOCOLS_API).then((res) => res.json())
 
 for (const chain of tvlData.chains) {
-	finalChains[chain] = {}
+	finalChains[slug(chain)] = { name: chain }
 }
 
 const nameToId = {}
@@ -292,6 +293,17 @@ const chainAssetsData = await fetchOverCache(CHAINS_ASSETS).then((res) => res.js
 for (const chain in chainAssetsData) {
 	if (finalChains[chain]) {
 		finalChains[chain] = { ...finalChains[chain], chainAssets: true }
+	}
+}
+
+const chainsData = await fetchOverCache(CHAINS_API).then((res) => res.json())
+for (const chain of chainsData) {
+	if (finalChains[slug(chain.name)] && chain.gecko_id) {
+		finalChains[slug(chain.name)] = {
+			...finalChains[slug(chain.name)],
+			gecko_id: chain.gecko_id,
+			tokenSymbol: chain.tokenSymbol
+		}
 	}
 }
 
