@@ -14,7 +14,10 @@ export const getStaticProps = withPerformanceLogging('index/pro', async () => {
 		props: {
 			...data.props,
 			totalFundingAmount: data.props.raisesChart
-				? Object.values(data.props.raisesChart).reduce((acc, curr) => (acc += curr), 0) * 1e6
+				? (Object.values(data.props.raisesChart).reduce(
+						(acc, curr) => ((acc as number) += curr as number),
+						0
+				  ) as number) * 1e6
 				: null
 		},
 		revalidate: maxAgeForNext([22])
