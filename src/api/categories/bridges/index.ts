@@ -164,7 +164,7 @@ export async function getBridgeOverviewPageData(chain) {
 		bridgeNames,
 		bridgeNameToChartDataIndex,
 		chartDataByBridge,
-		chainVolumeData,
+		chainVolumeData: chainVolumeData ?? [],
 		bridgeStatsCurrentDay,
 		largeTxsData,
 		chain: chain ?? 'All'
