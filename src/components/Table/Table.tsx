@@ -24,7 +24,7 @@ declare module '@tanstack/table-core' {
 	}
 }
 
-export const VirtualTable = React.memo(function VirtualTable({
+export function VirtualTable({
 	instance,
 	skipVirtualization,
 	columnResizeMode,
@@ -242,4 +242,4 @@ export const VirtualTable = React.memo(function VirtualTable({
 			</div>
 		</div>
 	)
-})
+}
