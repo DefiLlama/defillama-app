@@ -28,10 +28,10 @@ export function Settings() {
 	const onChange = (values) => {
 		if (values.length < selectedOptions.length) {
 			const off = selectedOptions.find((o) => !values.includes(o))
-			updater(off)()
+			updater(off)?.()
 		} else {
 			const on = values.find((o) => !selectedOptions.includes(o))
-			updater(on)()
+			updater(on)?.()
 		}
 	}
 	const [isLarge, renderCallback] = useSetPopoverStyles()

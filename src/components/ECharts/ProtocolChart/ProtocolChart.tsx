@@ -73,7 +73,7 @@ const CHART_TYPES = [
 	'bridgeAggregators'
 ]
 
-export default function ProtocolChart({
+const ProtocolChart = React.memo(function ProtocolChart({
 	protocol,
 	color,
 	historicalChainTvls,
@@ -1147,9 +1147,11 @@ export default function ProtocolChart({
 			/>
 		</div>
 	)
-}
+})
 
-export const ProtocolChartOnly = ({
+export default ProtocolChart
+
+export const ProtocolChartOnly = React.memo(function ProtocolChartOnly({
 	isRouterReady,
 	isLoading,
 	fetchingTypes,
@@ -1164,7 +1166,7 @@ export const ProtocolChartOnly = ({
 	unlockTokenSymbol,
 	isThemeDark,
 	isMonthly
-}) => {
+}: any) {
 	return (
 		<LazyChart style={{ padding: 0, minHeight: '360px' }}>
 			{!isRouterReady ? null : isLoading ? (
@@ -1196,4 +1198,4 @@ export const ProtocolChartOnly = ({
 			)}
 		</LazyChart>
 	)
-}
+})
