@@ -10,7 +10,7 @@ const MobileSearch = dynamic(() => import('~/components/Search/Base/Mobile').the
 	loading: () => <></>
 }) as React.FC
 
-export function MobileNav() {
+export const MobileNav = React.memo(function MobileNav() {
 	const router = useRouter()
 
 	return (
@@ -32,4 +32,4 @@ export function MobileNav() {
 			<Menu />
 		</nav>
 	)
-}
+})

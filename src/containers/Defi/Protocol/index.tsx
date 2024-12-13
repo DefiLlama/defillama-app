@@ -153,7 +153,7 @@ function explainAnnualized(text: string | undefined) {
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
-function ProtocolContainer({
+const ProtocolContainer = React.memo(function ProtocolContainer({
 	articles,
 	devMetrics,
 	title,
@@ -1827,6 +1827,6 @@ function ProtocolContainer({
 			) : null}
 		</Layout>
 	)
-}
+})
 
 export default ProtocolContainer

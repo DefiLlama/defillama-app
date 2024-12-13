@@ -4,7 +4,7 @@ import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { buildProtocolAddlChartsData } from './utils'
-import { useState } from 'react'
+import { useState, memo } from 'react'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -24,7 +24,7 @@ export function Treasury({ protocolName }) {
 	)
 }
 
-export const TreasuryChart = ({ protocolName }) => {
+export const TreasuryChart = memo(function TreasuryChart({ protocolName }: { protocolName: string }) {
 	const [includeTreasury, setIncludeTreasury] = useState(true)
 	const { data, isLoading } = useFetchProtocolTreasury(protocolName, includeTreasury)
 
@@ -90,4 +90,4 @@ export const TreasuryChart = ({ protocolName }) => {
 			)}
 		</>
 	)
-}
+})
