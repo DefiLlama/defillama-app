@@ -1435,7 +1435,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 
 			return (
 				<Tooltip content={<TooltipContent dominance={dominance} protocolName={info.row.original.name} />}>
-					<span className="h-5 !w-full ml-auto bg-white flex items-center flex-nowrap">
+					<span className="h-5 !w-full max-w-[100px] ml-auto bg-white flex items-center flex-nowrap">
 						{dominance.map((dom) => {
 							const color = breakdownColor(dom[0])
 							const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
