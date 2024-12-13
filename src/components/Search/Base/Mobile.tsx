@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useDebounce } from '~/hooks/useDebounce'
 import { useGetLiquidationSearchList } from '../Liquidations/hooks'
@@ -6,7 +6,6 @@ import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
 import { useGetAdaptorsSearchList } from '../Adaptors/hooks'
 import { useFetchNftCollectionsList } from '~/api/categories/nfts/client'
 import { useInstantSearch, useSearchBox } from 'react-instantsearch'
-import { useFormatDefiSearchResults } from '../ProtocolsChains/hooks'
 import { SearchV2 } from '../InstantSearch'
 import { Icon } from '~/components/Icon'
 import { IGetSearchList, ISearchItem } from '../types'
@@ -28,20 +27,18 @@ export function MobileSearch() {
 	)
 }
 
-const MobileSearchV2 = () => {
+const MobileSearchV2 = memo(function MobileSearchV2() {
 	return (
 		<SearchV2 indexName="protocols">
 			<DefiSearch />
 		</SearchV2>
 	)
-}
+})
 
-const DefiSearch = () => {
+const DefiSearch = memo(function DefiSearch() {
 	const { refine } = useSearchBox()
 
 	const { results, status } = useInstantSearch({ catchError: true })
-
-	const data = useFormatDefiSearchResults(results)
 
 	const [inputValue, setInputValue] = useState('')
 	const [display, setDisplay] = useState(false)
@@ -54,7 +51,10 @@ const DefiSearch = () => {
 		setResultsLength((prev) => prev + 10)
 	}
 
-	const finalResults = useMemo(() => filterAnSortResults(data, debouncedInputValue), [debouncedInputValue, data])
+	const finalResults = useMemo(
+		() => filterAnSortResults(results.hits, debouncedInputValue),
+		[debouncedInputValue, results.hits]
+	)
 
 	return (
 		<>
@@ -105,7 +105,8 @@ const DefiSearch = () => {
 			)}
 		</>
 	)
-}
+})
+
 const useMobileSearchResult = (): IGetSearchList => {
 	const router = useRouter()
 
@@ -130,7 +131,7 @@ const useMobileSearchResult = (): IGetSearchList => {
 	}
 }
 
-function MobileSearchV1() {
+const MobileSearchV1 = memo(function MobileSearchV1() {
 	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()
 
 	const [inputValue, setInputValue] = useState('')
@@ -195,7 +196,7 @@ function MobileSearchV1() {
 			)}
 		</>
 	)
-}
+})
 
 function useGetFeesSearchList({ disabled }: { disabled?: boolean }) {
 	return useGetAdaptorsSearchList('fees', false, disabled)

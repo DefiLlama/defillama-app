@@ -7,7 +7,6 @@ import { DesktopTvlAndFeesFilters } from '~/components/Filters/protocols/Desktop
 import { TabletTvlAndFeesFilters } from '~/components/Filters/protocols/Tablet'
 import { useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { SearchV2 } from '../InstantSearch'
-import { useFormatDefiSearchResults } from './hooks'
 import { useIsClient } from '~/hooks'
 import { memo, useCallback, useMemo } from 'react'
 
@@ -43,8 +42,6 @@ const Search = memo(function Search({ hideFilters = false, options, ...props }: 
 
 	const { results, status } = useInstantSearch({ catchError: true })
 
-	const data = useFormatDefiSearchResults(results)
-
 	const onSearchTermChange = useCallback(
 		(value: string) => {
 			refine(value)
@@ -58,7 +55,7 @@ const Search = memo(function Search({ hideFilters = false, options, ...props }: 
 		<>
 			<DesktopSearch
 				{...props}
-				data={data}
+				data={results.hits}
 				loading={status === 'loading'}
 				filters={memoizedFilters}
 				onSearchTermChange={onSearchTermChange}
