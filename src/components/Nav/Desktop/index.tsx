@@ -8,10 +8,10 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SubMenu } from './SubMenu'
 import { NewTag } from '../NewTag'
 
-export function DesktopNav() {
+export const DesktopNav = React.memo(function DesktopNav() {
 	const { asPath } = useRouter()
 	const isYieldApp = useYieldApp()
-	const [darkMode, toggleDarkMode] = useDarkModeManager()
+	const [darkMode] = useDarkModeManager()
 
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
@@ -106,7 +106,7 @@ export function DesktopNav() {
 				}
 			})}
 
-			<ThemeSwitch darkMode={darkMode} toggle={toggleDarkMode} />
+			<ThemeSwitch />
 		</nav>
 	)
-}
+})
