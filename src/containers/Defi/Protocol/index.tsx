@@ -8,7 +8,7 @@ import Layout from '~/layout'
 import { LazyChart } from '~/components/LazyChart'
 import { Bookmark } from '~/components/Bookmark'
 import { CopyHelper } from '~/components/Copy'
-import { FormattedName } from '~/components/FormattedName'
+
 import { TokenLogo } from '~/components/TokenLogo'
 import { SEO } from '~/components/SEO'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'

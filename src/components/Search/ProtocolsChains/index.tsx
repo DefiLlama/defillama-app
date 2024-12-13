@@ -7,8 +7,8 @@ import { DesktopTvlAndFeesFilters } from '~/components/Filters/protocols/Desktop
 import { TabletTvlAndFeesFilters } from '~/components/Filters/protocols/Tablet'
 import { useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { SearchV2 } from '../InstantSearch'
-import { useFormatDefiSearchResults } from './hooks'
 import { useIsClient } from '~/hooks'
+import { memo, useCallback, useMemo } from 'react'
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -18,7 +18,10 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 }
 
 const empty = []
-export function ProtocolsChainsSearch({ hideFilters, ...props }: IProtocolsChainsSearch) {
+export const ProtocolsChainsSearch = memo(function ProtocolsChainsSearch({
+	hideFilters,
+	...props
+}: IProtocolsChainsSearch) {
 	const isClient = useIsClient()
 
 	if (!isClient) {
@@ -32,29 +35,34 @@ export function ProtocolsChainsSearch({ hideFilters, ...props }: IProtocolsChain
 			</SearchV2>
 		</span>
 	)
-}
+})
 
-const Search = ({ hideFilters = false, options, ...props }: IProtocolsChainsSearch) => {
+const Search = memo(function Search({ hideFilters = false, options, ...props }: IProtocolsChainsSearch) {
 	const { refine } = useSearchBox()
 
 	const { results, status } = useInstantSearch({ catchError: true })
 
-	const data = useFormatDefiSearchResults(results)
+	const onSearchTermChange = useCallback(
+		(value: string) => {
+			refine(value)
+		},
+		[refine]
+	)
+
+	const memoizedFilters = useMemo(() => (hideFilters ? null : <TvlOptions options={options} />), [hideFilters, options])
 
 	return (
 		<>
 			<DesktopSearch
 				{...props}
-				data={data}
+				data={results.hits}
 				loading={status === 'loading'}
-				filters={hideFilters ? null : <TvlOptions options={options} />}
-				onSearchTermChange={(value) => {
-					refine(value)
-				}}
+				filters={memoizedFilters}
+				onSearchTermChange={onSearchTermChange}
 			/>
 		</>
 	)
-}
+})
 
 const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) => {
 	const router = useRouter()

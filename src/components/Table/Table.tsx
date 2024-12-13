@@ -46,11 +46,6 @@ export function VirtualTable({
 	}, [skipVirtualization])
 
 	React.useEffect(() => {
-		if (!skipVirtualization) {
-		}
-	}, [skipVirtualization])
-
-	React.useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
 			if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
 				toast.error("Native browser search isn't well supported, please use search boxes / ctrl-k / cmd-k instead", {
