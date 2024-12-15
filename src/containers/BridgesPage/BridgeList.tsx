@@ -13,6 +13,7 @@ import { useBuildBridgeChartData } from '~/utils/bridges'
 import { formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useEffect } from 'react'
+import BridgeVolumeChart from '~/components/Charts/BridgeVolumeChart'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -42,17 +43,12 @@ function BridgesOverview({
 	largeTxsData
 }) {
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
-	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Net Flow')
-	const [chartView, setChartView] = React.useState<'default' | 'netflow'>('default')
+	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
+	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 
 	useEffect(() => {
 		setChartView('netflow')
 	}, [])
-
-	const chartTypeList =
-		selectedChain === 'All'
-			? ['Volumes', 'Net Flow By Chain']
-			: ['Net Flow', 'Net Flow (%)', 'Inflows', '24h Tokens Deposited', '24h Tokens Withdrawn']
 
 	const [bridgesSettings] = useBridgesManager()
 	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
@@ -209,46 +205,55 @@ function BridgesOverview({
 								>
 									Net Flows By Chain
 								</button>
+
 								<button
 									className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
-										chartView === 'default'
+										chartView === 'volume'
 											? 'bg-blue-500 text-white shadow-lg hover:opacity-90 ring-blue-500 ring-offset-2 '
 											: 'bg-[var(--bg7)] text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)] border border-[var(--divider)]'
 									}`}
-									onClick={() => setChartView('default')}
+									onClick={() => setChartView('volume')}
 								>
-									Volume Chart
+									Bridge Volume
 								</button>
 							</div>
 
-							{chartView === 'default' ? (
-								<>
-									{chartType === 'Volumes' && chartData && chartData.length > 0 && (
-										<StackedBarChart
-											chartData={
-												enableBreakdownChart
-													? (chartData as IStackedBarChartProps['chartData'])
-													: [
-															{
-																name: selectedChain,
-																data: chartData as IStackedBarChartProps['chartData'][0]['data']
-															}
-													  ]
-											}
-										/>
-									)}
-								</>
-							) : (
+							{chartView === 'netflow' ? (
 								<div className="relative shadow rounded-xl">
 									<div className="p-4">
 										<NetflowChart height="600px" />
+									</div>
+								</div>
+							) : (
+								<div className="relative shadow rounded-xl">
+									<div className="p-4">
+										<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="600px" />
 									</div>
 								</div>
 							)}
 						</>
 					) : (
 						<>
-							<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+							<ChartSelector
+								options={[
+									'Bridge Volume',
+									'Net Flow',
+									'Net Flow (%)',
+									'Inflows',
+									'24h Tokens Deposited',
+									'24h Tokens Withdrawn'
+								]}
+								selectedChart={chartType}
+								onClick={setChartType}
+							/>
+
+							{chartType === 'Bridge Volume' && (
+								<div className="relative shadow rounded-xl">
+									<div className="p-4">
+										<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="600px" />
+									</div>
+								</div>
+							)}
 							{chartType === 'Net Flow' && chainNetFlowData && chainNetFlowData.length > 0 && (
 								<BarChart
 									chartData={chainNetFlowData}
@@ -269,16 +274,8 @@ function BridgesOverview({
 									customLegendOptions={['Inflows', 'Outflows']}
 								/>
 							)}
-							{chartType === 'Inflows' && chainVolumeData && chainVolumeData.length > 0 && (
-								<BarChart
-									chartData={chainVolumeData}
-									title=""
-									hideDefaultLegend={true}
-									customLegendName="Volume"
-									customLegendOptions={['Deposits', 'Withdrawals']}
-									key={['Deposits', 'Withdrawals'] as any} // escape hatch to rerender state in legend options
-									chartOptions={volumeChartOptions}
-								/>
+							{chartType === 'Inflows' && (
+								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="600px" />
 							)}
 							{chartType === 'Net Flow By Chain' && (
 								<div className="grid grid-cols-1 relative isolate shadow rounded-xl mb-4">
