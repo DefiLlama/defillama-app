@@ -887,8 +887,8 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			)
 		},
 		sortingFn: (rowA, rowB) => {
-			const valueA = rowA.original?.chainAssets?.total.total
-			const valueB = rowB.original?.chainAssets?.total.total
+			const valueA = rowA.original?.chainAssets?.total
+			const valueB = rowB.original?.chainAssets?.total
 
 			if (valueA === undefined || valueA === null) return 1
 			if (valueB === undefined || valueB === null) return -1
