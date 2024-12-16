@@ -612,8 +612,10 @@ export function ChainContainer({
 														{chainAssets.native?.total ? (
 															<tr>
 																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																	Native
-																	<QuestionHelper text="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)" />
+																	<span className="flex items-center gap-1">
+																		<span>Native</span>
+																		<QuestionHelper text="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)" />
+																	</span>
 																</th>
 																<td className="text-right font-jetbrains">
 																	{formattedNum(chainAssets.native.total, true)}
@@ -623,8 +625,10 @@ export function ChainContainer({
 														{chainAssets.ownTokens?.total ? (
 															<tr>
 																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																	Own Tokens
-																	<QuestionHelper text="Marketcap of the governance token of the chain" />
+																	<span className="flex items-center gap-1">
+																		<span>Own Tokens</span>
+																		<QuestionHelper text="Marketcap of the governance token of the chain" />
+																	</span>
 																</th>
 																<td className="text-right font-jetbrains">
 																	{formattedNum(chainAssets.ownTokens.total, true)}
@@ -635,8 +639,10 @@ export function ChainContainer({
 														{chainAssets.canonical?.total ? (
 															<tr>
 																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																	Canonical
-																	<QuestionHelper text="Tokens that were bridged to the chain through the canonical bridge" />
+																	<span className="flex items-center gap-1">
+																		<span>Canonical</span>
+																		<QuestionHelper text="Tokens that were bridged to the chain through the canonical bridge" />
+																	</span>
 																</th>
 																<td className="text-right font-jetbrains">
 																	{formattedNum(chainAssets.canonical.total, true)}
@@ -647,8 +653,10 @@ export function ChainContainer({
 														{chainAssets.thirdParty?.total ? (
 															<tr>
 																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																	Third Party
-																	<QuestionHelper text="Tokens that were bridged to the chain through third party bridges" />
+																	<span className="flex items-center gap-1">
+																		<span>Third Party</span>
+																		<QuestionHelper text="Tokens that were bridged to the chain through third party bridges" />
+																	</span>
 																</th>
 																<td className="text-right font-jetbrains">
 																	{formattedNum(chainAssets.thirdParty.total, true)}
