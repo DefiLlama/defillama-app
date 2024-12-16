@@ -325,7 +325,7 @@ function Container({
 						<span className="sr-only">Close dialog</span>
 					</DialogDismiss>
 				</span>
-				<CompareProtocols protocols={compareProtocols.map(slug)} chain={chain} />
+				<CompareProtocols protocols={compareProtocols.map(slug)} chain={chain} dialogState={dialogState} />
 			</Dialog>
 		</>
 	)

@@ -8,6 +8,7 @@ import { fetchApi } from '~/utils/async'
 import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
+import { DialogState } from 'ariakit'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -46,13 +47,21 @@ const useProtocols = (protocols: string[], chain?: string) => {
 	return { data, isLoading, chartData }
 }
 
-export const CompareProtocols = ({ protocols, chain }: { protocols: string[]; chain: string }) => {
+export const CompareProtocols = ({
+	protocols,
+	chain,
+	dialogState
+}: {
+	protocols: string[]
+	chain: string
+	dialogState?: DialogState
+}) => {
 	const { isLoading, chartData } = useProtocols(protocols, chain)
 	const [isDark] = useDarkModeManager()
 
 	return (
 		<>
-			{chartData.length > 0 && !isLoading ? (
+			{chartData.length > 0 && !isLoading && dialogState?.mounted ? (
 				<ChainChart datasets={chartData} title="" compareMode isThemeDark={isDark} showLegend />
 			) : (
 				<div className="flex items-center justify-center m-auto min-h-[360px]">
