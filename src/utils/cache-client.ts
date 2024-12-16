@@ -93,6 +93,7 @@ export const setPageBuildTimes = async (pageUrl, cacheObject) => {
 	} catch (error) {
 		console.error('[error] [cache] [failed to set]', cacheObject)
 		console.error(error)
+		await redis.del('page_build_times')
 		return false
 	}
 }
