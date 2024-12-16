@@ -1,6 +1,6 @@
 // import { performance } from 'perf_hooks'
 import { GetStaticProps, GetStaticPropsContext } from 'next'
-import { RedisCachePayload, getCache, setCache } from './cache-client'
+import { RedisCachePayload, getCache, setCache, setPageBuildTimes } from './cache-client'
 import { maxAgeForNext } from '~/api'
 
 const isServer = typeof document === 'undefined'
@@ -19,6 +19,7 @@ export const withPerformanceLogging = <T extends {}>(
 			const end = Date.now()
 
 			if (end - start > 10_000) {
+				await setPageBuildTimes([end, `${(end - start).toFixed(0)}ms`, `${filename} ${params ?? ''}`])
 				console.log(
 					`[PREPARED] [${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
 				)

@@ -1,4 +1,4 @@
-import { getOverview } from '~/api/categories/adaptors'
+import { setPageBuildTimes } from '~/utils/cache-client'
 import { getStaticPropsByType } from './index'
 
 export const getStaticPathsByType = (type: string) => async () => {
@@ -21,6 +21,7 @@ export const getStaticPathsByType = (type: string) => async () => {
 	return { paths, fallback: 'blocking' }	*/
 
 	// If want to prerender all paths, comment the code below and uncomment the code above instead of commenting .slice(0, 5) (more efficient above)
+	const start = Date.now()
 	const allChainsData = await getStaticPropsByType(type)({ params: { type } })
 	const paths = allChainsData.props.protocols
 		.sort((a, b) => {
@@ -30,6 +31,12 @@ export const getStaticPathsByType = (type: string) => async () => {
 		.map((chain) => ({
 			params: { type, chain: chain.name.toLowerCase() }
 		}))
+	const end = Date.now()
+
+	if (end - start > 10_000) {
+		await setPageBuildTimes([end, `${(end - start).toFixed(0)}ms`, `adaptorPages:${type}:chains`])
+		console.log(`[PREPARED] [${(end - start).toFixed(0)}ms] <adaptorPages:${type}:chains>`)
+	}
 
 	// { fallback: false } means other routes should 404
 	return { paths, fallback: 'blocking' }

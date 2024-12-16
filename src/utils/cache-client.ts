@@ -82,6 +82,21 @@ export const setCache = async (payload: RedisCachePayload, ttl?: string | number
 	}
 }
 
+export const setPageBuildTimes = async (cacheObject) => {
+	if (!redis) {
+		return false
+	}
+
+	try {
+		await redis.set('page_build_times', JSON.stringify(cacheObject))
+		return true
+	} catch (error) {
+		console.error('[error] [cache] [failed to set]', cacheObject)
+		console.error(error)
+		return false
+	}
+}
+
 export const isCpusHot = async () => {
 	if (!redis) {
 		return false
