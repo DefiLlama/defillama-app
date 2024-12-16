@@ -19,7 +19,7 @@ export const withPerformanceLogging = <T extends {}>(
 			const end = Date.now()
 
 			if (end - start > 10_000) {
-				await setPageBuildTimes([end, `${(end - start).toFixed(0)}ms`, `${filename} ${params ?? ''}`])
+				await setPageBuildTimes(`${filename} ${params ?? ''}`, [end, `${(end - start).toFixed(0)}ms`])
 				console.log(
 					`[PREPARED] [${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
 				)

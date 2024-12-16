@@ -82,13 +82,13 @@ export const setCache = async (payload: RedisCachePayload, ttl?: string | number
 	}
 }
 
-export const setPageBuildTimes = async (cacheObject) => {
+export const setPageBuildTimes = async (pageUrl, cacheObject) => {
 	if (!redis) {
 		return false
 	}
 
 	try {
-		await redis.set('page_build_times', JSON.stringify(cacheObject))
+		await redis.hset('page_build_times', pageUrl, JSON.stringify(cacheObject))
 		return true
 	} catch (error) {
 		console.error('[error] [cache] [failed to set]', cacheObject)

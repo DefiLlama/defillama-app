@@ -34,7 +34,7 @@ export const getStaticPathsByType = (type: string) => async () => {
 	const end = Date.now()
 
 	if (end - start > 10_000) {
-		await setPageBuildTimes([end, `${(end - start).toFixed(0)}ms`, `adaptorPages:${type}:chains`])
+		await setPageBuildTimes(`adaptorPages:${type}:chains`, [end, `${(end - start).toFixed(0)}ms`])
 		console.log(`[PREPARED] [${(end - start).toFixed(0)}ms] <adaptorPages:${type}:chains>`)
 	}
 
