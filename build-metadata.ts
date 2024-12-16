@@ -148,6 +148,12 @@ for (const protocol of feesData.protocols) {
 		}
 	}
 }
+for (const chain of feesData.allChains ?? []) {
+	finalChains[slug(chain)] = {
+		...finalChains[slug(chain)],
+		fees: true
+	}
+}
 
 const revenueData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
@@ -182,6 +188,12 @@ for (const protocol of volumeData.protocols) {
 		}
 	}
 }
+for (const chain of volumeData.allChains ?? []) {
+	finalChains[slug(chain)] = {
+		...finalChains[slug(chain)],
+		dexs: true
+	}
+}
 
 const perpsData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
@@ -197,6 +209,12 @@ for (const protocol of perpsData.protocols) {
 			...finalProtocols[protocol.parentProtocol],
 			perps: true
 		}
+	}
+}
+for (const chain of perpsData.allChains ?? []) {
+	finalChains[slug(chain)] = {
+		...finalChains[slug(chain)],
+		derivatives: true
 	}
 }
 
@@ -216,6 +234,12 @@ for (const protocol of aggregatorsData.protocols) {
 		}
 	}
 }
+for (const chain of aggregatorsData.allChains ?? []) {
+	finalChains[slug(chain)] = {
+		...finalChains[slug(chain)],
+		aggregators: true
+	}
+}
 
 const optionsData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
@@ -231,6 +255,12 @@ for (const protocol of optionsData.protocols) {
 			...finalProtocols[protocol.parentProtocol],
 			options: true
 		}
+	}
+}
+for (const chain of optionsData.allChains ?? []) {
+	finalChains[slug(chain)] = {
+		...finalChains[slug(chain)],
+		options: true
 	}
 }
 
@@ -250,6 +280,12 @@ for (const protocol of perpsAggregatorsData.protocols) {
 		}
 	}
 }
+for (const chain of perpsAggregatorsData.allChains ?? []) {
+	finalChains[slug(chain)] = {
+		...finalChains[slug(chain)],
+		'aggregator-derivatives': true
+	}
+}
 
 const bridgeAggregatorsData = await fetchOverCache(
 	`${DIMENISIONS_OVERVIEW_API}/bridge-aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
@@ -265,6 +301,12 @@ for (const protocol of bridgeAggregatorsData.protocols) {
 			...finalProtocols[protocol.parentProtocol],
 			bridgeAggregators: true
 		}
+	}
+}
+for (const chain of bridgeAggregatorsData.allChains ?? []) {
+	finalChains[slug(chain)] = {
+		...finalChains[slug(chain)],
+		'bridge-aggregators': true
 	}
 }
 

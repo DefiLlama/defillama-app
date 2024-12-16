@@ -1,7 +1,7 @@
 import type { LiteProtocol, IParentProtocol } from '~/api/types'
 import { PROTOCOLS_API, DIMENISIONS_SUMMARY_BASE_API, MCAPS_API, EMISSION_BREAKDOWN_API } from '~/constants'
 import { getUniqueArray } from '~/containers/DexsAndFees/utils'
-import { capitalizeFirstLetter, chainIconUrl, getPercentChange } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, getPercentChange, slug } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { getCexVolume, handleFetchResponse, iterateAndRemoveUndefined } from './utils'
@@ -10,6 +10,7 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
 import { ISettings } from '~/contexts/types'
+import chainMetadata from 'metadata/chains.json'
 
 const fetch = fetchWithErrorLogging
 
@@ -145,10 +146,9 @@ function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string
 
 // - used in /[type] and /[type]/chains/[chain]
 export const getChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
-	const feesOrRevenueApi =
-		type === 'options'
-			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
-			: getAPIUrl(type, chain, true, true, 'dailyRevenue') + '&a=19'
+	if (chain && !chainMetadata[slug(chain)][type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type]) {
+		return null
+	}
 
 	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData, holdersRevenueData]: [
 		IGetOverviewResponseBody,
@@ -161,10 +161,16 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	] = await Promise.all([
 		fetch(getAPIUrl(type, chain, type === 'fees', true)).then(handleFetchResponse),
 		fetch(PROTOCOLS_API).then(handleFetchResponse),
-		fetch(feesOrRevenueApi).then(handleFetchResponse),
+		type === 'options'
+			? fetch(getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')).then(handleFetchResponse)
+			: type === 'fees'
+			? fetch(getAPIUrl(type, chain, true, true, 'dailyRevenue') + '&a=19').then(handleFetchResponse)
+			: Promise.resolve({}),
 		type === 'dexs' ? getCexVolume() : Promise.resolve(0),
 		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse),
-		fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse),
+		type === 'fees'
+			? fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse)
+			: Promise.resolve({ protocols: [] }),
 		type === 'fees'
 			? fetch(getAPIUrl(type, chain, true, true, 'dailyHoldersRevenue')).then(handleFetchResponse)
 			: Promise.resolve({ protocols: [] })
