@@ -726,12 +726,13 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 	const tokenValue = tokenPrice ? tokensUnlockedInNextEvent * tokenPrice : null
 	const unlockPercent = tokenValue && tokenMcap ? (tokenValue / tokenMcap) * 100 : null
 
-	const nextEventDescription =
-		tokensUnlockedInNextEvent && unlockPercent
-			? `${unlockPercent ? formatPercentage(unlockPercent) + '% ' : ''}`
-			: `${tokensUnlockedInNextEvent.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${
-					protocolData.symbol ?? 'tokens'
-			  }`
+	const nextEventDescription = unlockPercent
+		? `${formatPercentage(unlockPercent)}% ${protocolData.symbol ?? 'tokens'}`
+		: tokensUnlockedInNextEvent
+		? `${tokensUnlockedInNextEvent.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${
+				protocolData.symbol ?? 'tokens'
+		  }`
+		: null
 
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 
@@ -861,9 +862,10 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						) ?? null
 				}
 			},
-			nextEventDescription: upcomingEvent[0]?.timestamp
-				? `${nextEventDescription} will be unlocked ${timeFromNow(upcomingEvent[0].timestamp)}`
-				: null,
+			nextEventDescription:
+				upcomingEvent[0]?.timestamp && nextEventDescription
+					? `${nextEventDescription} will be unlocked ${timeFromNow(upcomingEvent[0].timestamp)}`
+					: null,
 			methodologyUrls: {
 				tvl: protocolData.module
 					? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
