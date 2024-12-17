@@ -29,7 +29,7 @@ const Oracles = ({
 }) => {
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
 	const { tokenTvls, tokensList } = React.useMemo(() => {
-		const tvls = Object.entries(chainsWithExtraTvlsByDay[chainsWithExtraTvlsByDay.length - 1])
+		const tvls = Object.entries(chainsWithExtraTvlsByDay[chainsWithExtraTvlsByDay.length - 1] ?? {})
 			.filter((item) => item[0] !== 'date')
 			.map((token) => ({ name: token[0], value: token[1] ?? 0 } as { name: string; value: number }))
 			.sort((a, b) => b.value - a.value)

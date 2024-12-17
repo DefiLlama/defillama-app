@@ -181,7 +181,10 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 	const [extraTvls] = useDefiManager()
 
-	return groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled: extraTvls })
+	return useMemo(
+		() => groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled: extraTvls }),
+		[extraTvls, chains, tvlTypes]
+	)
 }
 
 // returns tvl by day for a single token
