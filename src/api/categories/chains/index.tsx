@@ -64,7 +64,7 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const chainMetadata = chain ? chainsMetadata[slug(chain)] ?? {} : {}
+	const chainMetadata = chain ? chainsMetadata[slug(chain)] : {}
 
 	if (chain && !chainMetadata) {
 		return { notFound: true, props: null }
@@ -89,7 +89,7 @@ export async function getChainPageData(chain?: string) {
 		nftVolumesData,
 		chainAssets
 	] = await Promise.all([
-		fetchWithErrorLogging(CHART_API + (chain ? '/' + chainMetadata?.name : '')).then((r) => r.json()),
+		fetchWithErrorLogging(CHART_API + (chainMetadata ? `/${chainMetadata.name}` : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
 		getDexVolumeByChain({
 			chain: chainMetadata?.name,
