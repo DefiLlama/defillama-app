@@ -119,8 +119,8 @@ for (const protocol in activeUsersData) {
 	if (protocol.startsWith('chain')) {
 		const chain = Object.keys(finalChains).find((chain) => protocol === `chain#${chain.toLowerCase()}`)
 		if (chain) {
-			finalChains[chain] = {
-				...finalChains[chain],
+			finalChains[slug(chain)] = {
+				...(finalChains[slug(chain)] ?? { name: chain }),
 				activeUsers: true
 			}
 		}
@@ -150,7 +150,7 @@ for (const protocol of feesData.protocols) {
 }
 for (const chain of feesData.allChains ?? []) {
 	finalChains[slug(chain)] = {
-		...finalChains[slug(chain)],
+		...(finalChains[slug(chain)] ?? { name: chain }),
 		fees: true
 	}
 }
@@ -190,7 +190,7 @@ for (const protocol of volumeData.protocols) {
 }
 for (const chain of volumeData.allChains ?? []) {
 	finalChains[slug(chain)] = {
-		...finalChains[slug(chain)],
+		...(finalChains[slug(chain)] ?? { name: chain }),
 		dexs: true
 	}
 }
@@ -213,7 +213,7 @@ for (const protocol of perpsData.protocols) {
 }
 for (const chain of perpsData.allChains ?? []) {
 	finalChains[slug(chain)] = {
-		...finalChains[slug(chain)],
+		...(finalChains[slug(chain)] ?? { name: chain }),
 		derivatives: true
 	}
 }
@@ -236,7 +236,7 @@ for (const protocol of aggregatorsData.protocols) {
 }
 for (const chain of aggregatorsData.allChains ?? []) {
 	finalChains[slug(chain)] = {
-		...finalChains[slug(chain)],
+		...(finalChains[slug(chain)] ?? { name: chain }),
 		aggregators: true
 	}
 }
@@ -259,7 +259,7 @@ for (const protocol of optionsData.protocols) {
 }
 for (const chain of optionsData.allChains ?? []) {
 	finalChains[slug(chain)] = {
-		...finalChains[slug(chain)],
+		...(finalChains[slug(chain)] ?? { name: chain }),
 		options: true
 	}
 }
@@ -282,7 +282,7 @@ for (const protocol of perpsAggregatorsData.protocols) {
 }
 for (const chain of perpsAggregatorsData.allChains ?? []) {
 	finalChains[slug(chain)] = {
-		...finalChains[slug(chain)],
+		...(finalChains[slug(chain)] ?? { name: chain }),
 		'aggregator-derivatives': true
 	}
 }
@@ -305,7 +305,7 @@ for (const protocol of bridgeAggregatorsData.protocols) {
 }
 for (const chain of bridgeAggregatorsData.allChains ?? []) {
 	finalChains[slug(chain)] = {
-		...finalChains[slug(chain)],
+		...(finalChains[slug(chain)] ?? { name: chain }),
 		'bridge-aggregators': true
 	}
 }
@@ -326,15 +326,15 @@ writeFileSync(`./metadata/protocols.json`, JSON.stringify(finalProtocols, null, 
 
 const bridgesData = await fetchOverCache(`${BRIDGES_API}?includeChains=true`).then((res) => res.json())
 for (const chain of bridgesData.chains) {
-	if (finalChains[chain.name]) {
-		finalChains[chain.name] = { ...finalChains[chain.name], inflows: true }
+	if (finalChains[slug(chain.name)]) {
+		finalChains[slug(chain.name)] = { ...(finalChains[slug(chain.name)] ?? { name: chain.name }), inflows: true }
 	}
 }
 
 const chainAssetsData = await fetchOverCache(CHAINS_ASSETS).then((res) => res.json())
 for (const chain in chainAssetsData) {
-	if (finalChains[chain]) {
-		finalChains[chain] = { ...finalChains[chain], chainAssets: true }
+	if (finalChains[slug(chain)]) {
+		finalChains[slug(chain)] = { ...(finalChains[slug(chain)] ?? { name: chain }), chainAssets: true }
 	}
 }
 
@@ -342,7 +342,7 @@ const chainsData = await fetchOverCache(CHAINS_API).then((res) => res.json())
 for (const chain of chainsData) {
 	if (finalChains[slug(chain.name)] && chain.gecko_id) {
 		finalChains[slug(chain.name)] = {
-			...finalChains[slug(chain.name)],
+			...(finalChains[slug(chain.name)] ?? { name: chain.name }),
 			gecko_id: chain.gecko_id,
 			tokenSymbol: chain.tokenSymbol
 		}
