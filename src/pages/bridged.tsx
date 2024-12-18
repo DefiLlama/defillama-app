@@ -5,7 +5,7 @@ import { maxAgeForNext } from '~/api'
 import { getChainsBridged, getNewChainsPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = withPerformanceLogging('chains', async () => {
+export const getStaticProps = withPerformanceLogging('bridged', async () => {
 	const data = await getChainsBridged()
 
 	return {

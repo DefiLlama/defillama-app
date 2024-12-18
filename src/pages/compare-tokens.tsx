@@ -6,7 +6,7 @@ import { getProtocols } from '~/api/categories/protocols'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { fetchWithErrorLogging } from '~/utils/async'
 
-export const getStaticProps = withPerformanceLogging('correlation', async () => {
+export const getStaticProps = withPerformanceLogging('compare-tokens', async () => {
 	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols, volumeProtocols] = await Promise.all([
 		getAllCGTokensList(),
 		getProtocols(),

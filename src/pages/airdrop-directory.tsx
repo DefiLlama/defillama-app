@@ -9,7 +9,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 
 import { AirdropColumn } from '~/components/Table/Defi/columns'
 
-export const getStaticProps = withPerformanceLogging('etfs', async () => {
+export const getStaticProps = withPerformanceLogging('airdrop-directory', async () => {
 	const airdrops = await getAirdropDirectoryData()
 
 	return {

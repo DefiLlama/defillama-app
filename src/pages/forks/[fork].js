@@ -5,7 +5,7 @@ import { getForkPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ForkContainer } from '~/containers/Forks'
 
-export const getStaticProps = withPerformanceLogging('fees/chains/index', async ({ params: { fork } }) => {
+export const getStaticProps = withPerformanceLogging('forks', async ({ params: { fork } }) => {
 	const data = await getForkPageData(fork)
 
 	return {

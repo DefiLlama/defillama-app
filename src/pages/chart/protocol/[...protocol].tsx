@@ -9,7 +9,7 @@ import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
-	'protocol/[...protocol]',
+	'chart/protocol/[...protocol]',
 	async ({
 		params: {
 			protocol: [protocol]

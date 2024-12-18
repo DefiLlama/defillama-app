@@ -21,7 +21,7 @@ import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { fetchWithErrorLogging } from '~/utils/async'
 
-export const getStaticProps = withPerformanceLogging('unlocks', async () => {
+export const getStaticProps = withPerformanceLogging('calendar', async () => {
 	const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
 
 	const emissions = res.map((protocol) => {

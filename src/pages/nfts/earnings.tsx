@@ -10,7 +10,7 @@ import { formattedNum } from '~/utils'
 import { TokenLogo, FallbackLogo } from '~/components/TokenLogo'
 import { Icon } from '~/components/Icon'
 
-export const getStaticProps = withPerformanceLogging('nfts/marketplaces', async () => {
+export const getStaticProps = withPerformanceLogging('nfts/earnings', async () => {
 	const data = await getNFTCollectionEarnings()
 
 	return {

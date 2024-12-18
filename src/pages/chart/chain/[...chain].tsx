@@ -13,7 +13,7 @@ const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'),
 })
 
 export const getStaticProps = withPerformanceLogging(
-	'chain/[...chain]',
+	'chart/chain/[...chain]',
 	async ({
 		params: {
 			chain: [chain]
