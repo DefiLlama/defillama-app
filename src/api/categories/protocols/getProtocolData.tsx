@@ -3,7 +3,7 @@ import { last } from 'lodash'
 import { formatPercentage, selectColor, slug, timeFromNow, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
-import { fuseProtocolData, getProtocolsRaw, getProtocolEmissons, getForkPageData } from '~/api/categories/protocols'
+import { fuseProtocolData, getProtocolsRaw, getProtocolEmissons } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import {
@@ -60,47 +60,62 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 		) ?? []
 	).map((g) => g.toLowerCase())
 
-	const [allProtocols, users, feesProtocols, revenueProtocols, volumeProtocols, derivatesProtocols] = await Promise.all(
-		[
-			getProtocolsRaw(),
-			fetchWithErrorLogging(ACTIVE_USERS_API)
-				.then((res) => res.json())
-				.then((data) => data?.[protocolData.id] ?? null)
-				.catch(() => null),
-			fetchWithErrorLogging(
-				`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch fees protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetchWithErrorLogging(
-				`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
-			)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch revenue protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetchWithErrorLogging(
-				`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				}),
-			fetchWithErrorLogging(
-				`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
-					return {}
-				})
-		]
-	)
+	const [allProtocols, users, feesProtocols, revenueProtocols, volumeProtocols, derivatesProtocols]: [
+		any,
+		any,
+		any,
+		any,
+		any,
+		any
+	] = await Promise.all([
+		getProtocolsRaw(),
+		protocolMetadata[protocolData.id]?.activeUsers
+			? fetchWithErrorLogging(ACTIVE_USERS_API)
+					.then((res) => res.json())
+					.then((data) => data?.[protocolData.id] ?? null)
+					.catch(() => null)
+			: null,
+		protocolMetadata[protocolData.id]?.fees
+			? fetchWithErrorLogging(
+					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+			  )
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					})
+			: [],
+		protocolMetadata[protocolData.id]?.revenue
+			? fetchWithErrorLogging(
+					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
+			  )
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					})
+			: {},
+		protocolMetadata[protocolData.id]?.dexs
+			? fetchWithErrorLogging(
+					`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+			  )
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					})
+			: {},
+		protocolMetadata[protocolData.id]?.perps
+			? fetchWithErrorLogging(
+					`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+			  )
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					})
+			: {}
+	])
 	let controversialProposals = []
 
 	const feesData = feesProtocols?.protocols?.filter(
@@ -260,7 +275,7 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 				perps: perpsData?.[0]?.methodologyURL ?? null
 			},
 			chartDenominations,
-			protocolHasForks: false,
+			protocolHasForks: protocolMetadata[protocolData.id]?.forks ? true : false,
 			hacksData: null,
 			dailyBribesRevenue,
 			dailyTokenTaxes,
@@ -323,7 +338,6 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		yields,
 		yieldsConfig,
 		liquidityInfo,
-		forks,
 		hacks,
 		raises,
 		backgroundColor,
@@ -345,7 +359,6 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
-		any,
 		any,
 		any,
 		any,
@@ -409,10 +422,6 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		getForkPageData().catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_FORKS]:', protocol, err instanceof Error ? err.message : '')
-			return {}
-		}),
 		protocolMetadata[protocolData.id]?.hacks
 			? fetchWithErrorLogging(HACKS_API)
 					.then((res) => res.json())
@@ -897,7 +906,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 				perps: perpsData?.[0]?.methodologyURL ?? null
 			},
 			chartDenominations,
-			protocolHasForks: (forks?.props?.tokens ?? []).includes(protocolData.name),
+			protocolHasForks: protocolMetadata[protocolData.id]?.forks ? true : false,
 			hacksData:
 				(protocolData.id
 					? hacks?.filter((hack) => +hack.defillamaId === +protocolData.id)?.sort((a, b) => a.date - b.date)

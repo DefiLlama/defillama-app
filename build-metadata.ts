@@ -5,6 +5,7 @@ import {
 	CHAINS_API,
 	CHAINS_ASSETS,
 	DIMENISIONS_OVERVIEW_API,
+	FORK_API,
 	HACKS_API,
 	LIQUIDITY_API,
 	NFT_MARKETPLACES_STATS_API,
@@ -42,7 +43,8 @@ const [
 	emmissionsData,
 	bridgesData,
 	chainAssetsData,
-	chainsData
+	chainsData,
+	forksData
 ] = await Promise.all([
 	fetchOverCache(PROTOCOLS_API).then((res) => res.json()),
 	fetchOverCache(YIELD_POOLS_API)
@@ -84,7 +86,8 @@ const [
 	fetchOverCache(`https://defillama-datasets.llama.fi/emissionsProtocolsList`).then((res) => res.json()),
 	fetchOverCache(`${BRIDGES_API}?includeChains=true`).then((res) => res.json()),
 	fetchOverCache(CHAINS_ASSETS).then((res) => res.json()),
-	fetchOverCache(CHAINS_API).then((res) => res.json())
+	fetchOverCache(CHAINS_API).then((res) => res.json()),
+	fetchOverCache(FORK_API).then((res) => res.json())
 ])
 
 for (const chain of tvlData.chains) {
@@ -100,7 +103,8 @@ for (const protocol of tvlData.protocols) {
 		name,
 		tvl: protocol.tvl ? true : false,
 		yields: yieldsData.find((pool) => pool.project === name) ? true : false,
-		...(protocol.governanceID ? { governance: true } : {})
+		...(protocol.governanceID ? { governance: true } : {}),
+		...(forksData.forks[protocol.name] ? { forks: true } : {})
 	}
 
 	if (protocol.parentProtocol) {
@@ -125,7 +129,8 @@ for (const protocol of tvlData.parentProtocols) {
 			? true
 			: false,
 		...finalProtocols[protocol.id],
-		...(protocol.governanceID ? { governance: true } : {})
+		...(protocol.governanceID ? { governance: true } : {}),
+		...(forksData.forks[protocol.name] ? { forks: true } : {})
 	}
 }
 
