@@ -797,7 +797,9 @@ export const getNewChainsPageData = async (category: string) => {
 		getChainsPageDataByType('dexs'),
 		getChainPageDataByType('fees'),
 		getPeggedAssets(),
-		fetchWithErrorLogging(ACTIVE_USERS_API).then((res) => res.json()),
+		fetchWithErrorLogging(ACTIVE_USERS_API)
+			.then((res) => res.json())
+			.catch(() => ({})),
 		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json()),
 		fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
 	])
