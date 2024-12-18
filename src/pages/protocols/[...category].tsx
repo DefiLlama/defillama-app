@@ -3,10 +3,11 @@ import { ProtocolList } from '~/containers/ProtocolList'
 import { maxAgeForNext } from '~/api'
 import { getProtocolsPageData } from '~/api/categories/protocols'
 import { PROTOCOLS_API } from '~/constants/index'
-import { capitalizeFirstLetter } from '~/utils'
+import { capitalizeFirstLetter, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { descriptions } from '../categories'
 
 const fetch = fetchWithErrorLogging
 
@@ -17,7 +18,15 @@ export const getStaticProps = withPerformanceLogging(
 			category: [category, chain]
 		}
 	}) => {
-		const props = await getProtocolsPageData(category, chain)
+		const categoryName = Object.entries(descriptions).find((d) => slug(d[0]) === slug(category))
+
+		if (!categoryName) {
+			return {
+				notFound: true
+			}
+		}
+
+		const props = await getProtocolsPageData(categoryName[0], chain)
 
 		if (props.filteredProtocols.length === 0) {
 			return {

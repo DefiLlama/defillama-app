@@ -55,6 +55,7 @@ export const getProtocols = () =>
 		}))
 
 export const getProtocol = async (protocolName: string) => {
+	const start = Date.now()
 	try {
 		const data: IProtocolResponse = await fetchWithErrorLogging(`${PROTOCOL_API}/${protocolName}`).then((res) =>
 			res.json()
@@ -82,7 +83,7 @@ export const getProtocol = async (protocolName: string) => {
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
 	} catch (e) {
-		console.log('[ERROR] generating ', `${PROTOCOL_API}/${protocolName}`, e)
+		console.log(`[ERROR] [${Date.now() - start}ms] <${PROTOCOL_API}/${protocolName}>`, e)
 
 		return null
 	}
