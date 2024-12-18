@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging(
 	}) => {
 		const protocolData = await getProtocol(protocol)
 
-		const data = await getProtocolData(protocol, protocolData)
+		const data = await getProtocolData(protocol, protocolData, true)
 		data.props.noContext = true
 		return data
 	}
