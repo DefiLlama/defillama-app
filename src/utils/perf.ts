@@ -28,6 +28,10 @@ export const withPerformanceLogging = <T extends {}>(
 			return props
 		} catch (error) {
 			const end = Date.now()
+			await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')} ERROR`, [
+				end,
+				`${(end - start).toFixed(0)}ms`
+			])
 			console.log(
 				`[ERROR] [${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
 			)

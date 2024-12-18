@@ -1,6 +1,5 @@
 import { PROTOCOLS_API } from '~/constants/index'
 import Layout from '~/layout'
-import { maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/chains'
 
 import { withPerformanceLogging } from '~/utils/perf'
@@ -15,12 +14,7 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 
 	const data = await getChainPageData(chain)
 
-	return {
-		props: {
-			...data.props
-		},
-		revalidate: maxAgeForNext([22])
-	}
+	return data
 })
 
 export async function getStaticPaths() {

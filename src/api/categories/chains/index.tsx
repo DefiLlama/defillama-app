@@ -3,9 +3,7 @@ import mapValues from 'lodash/mapValues'
 import sumBy from 'lodash/sumBy'
 
 import {
-	CHAINS_API,
 	CHAINS_ASSETS,
-	CHAINS_ASSETS_CHART,
 	CHART_API,
 	DEV_METRICS_API,
 	PROTOCOLS_API,
@@ -64,7 +62,7 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const chainMetadata = chain && chain !== 'All' ? chainsMetadata[slug(chain)] : null
+	const chainMetadata = chain && chain !== 'All' ? chainsMetadata[slug(chain)] ?? null : null
 
 	if (chain && chain !== 'All' && !chainMetadata) {
 		return { notFound: true, props: null }
@@ -91,17 +89,21 @@ export async function getChainPageData(chain?: string) {
 	] = await Promise.all([
 		fetchWithErrorLogging(CHART_API + (chainMetadata ? `/${chainMetadata.name}` : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
-		getDexVolumeByChain({
-			chain: chainMetadata?.name,
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
-		}),
+		!chain || (chain !== 'All' && chainMetadata?.dexs)
+			? getDexVolumeByChain({
+					chain: chainMetadata?.name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: null,
 		getCexVolume(),
-		getFeesAndRevenueByChain({
-			chain: chainMetadata?.name,
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
-		}),
+		!chain || (chain !== 'All' && chainMetadata?.fees)
+			? getFeesAndRevenueByChain({
+					chain: chainMetadata?.name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: { fees: null, revenue: null },
 		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chainMetadata?.name)
 			.then((data) => {
 				const { peggedAreaChartData, peggedAreaTotalData } = buildPeggedChartData(
@@ -182,7 +184,7 @@ export async function getChainPageData(chain?: string) {
 					`https://pro-api.coingecko.com/api/v3/coins/${chainMetadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 			  ).then((res) => res.json())
 			: {},
-		chain && chain !== 'All'
+		chain && chain !== 'All' && chainMetadata?.derivatives
 			? getOverview('derivatives', chainMetadata?.name?.toLowerCase(), undefined, false, false)
 			: null,
 		chain && chain !== 'All'
