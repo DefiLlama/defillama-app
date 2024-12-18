@@ -387,12 +387,14 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		fetchWithErrorLogging(YIELD_POOLS_API)
-			.then((res) => res.json())
-			.catch((err) => {
-				console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
-				return {}
-			}),
+		protocolMetadata[protocolData.id]?.yields
+			? fetchWithErrorLogging(YIELD_POOLS_API)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
+						return {}
+					})
+			: {},
 		fetchWithErrorLogging(YIELD_CONFIG_API)
 			.then((res) => res.json())
 			.catch((err) => {
@@ -476,11 +478,13 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		fetchWithErrorLogging(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
-			.then((res) => res.json())
-			.catch(() => {
-				return { data: [] }
-			}),
+		protocolMetadata[protocolData.id]?.yields
+			? fetchWithErrorLogging(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
+					.then((res) => res.json())
+					.catch(() => {
+						return { data: [] }
+					})
+			: { data: [] },
 		protocolData.gecko_id
 			? fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
 					.then((res) => res.json())
@@ -699,10 +703,9 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 	const allTimePerpsVolume = perpsData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const metrics = protocolData.metrics || {}
 	const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
+	const otherProtocols = protocolData?.otherProtocols?.map((p) => sluggify(p)) ?? []
 	const projectYields = yields?.data?.filter(
-		({ project }) =>
-			project === protocol ||
-			(protocolData?.parentProtocol ? false : protocolData?.otherProtocols?.map((p) => sluggify(p)).includes(project))
+		({ project }) => project === protocol || (protocolData?.parentProtocol ? false : otherProtocols.includes(project))
 	)
 
 	// token liquidity
