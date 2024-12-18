@@ -98,7 +98,7 @@ export const setPageBuildTimes = async (pageUrl, cacheObject) => {
 }
 
 export const isCpusHot = async () => {
-	return true
+	return false
 	/*
 	if (!redis) {
 		return false
