@@ -19,16 +19,6 @@ export function withErrorLogging<T extends any[], R>(
 	}
 }
 
-export async function fetchWithThrows(url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> {
-	const start = Date.now()
-	const res = await fetchOverCache(url, options)
-	if (res.status >= 400) {
-		const end = Date.now()
-		throw new Error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
-	}
-	return res
-}
-
 export async function fetchWithErrorLogging(
 	url: RequestInfo | URL,
 	options?: FetchOverCacheOptions
@@ -38,33 +28,37 @@ export async function fetchWithErrorLogging(
 		const res = await fetchOverCache(url, options)
 		if (res.status >= 400) {
 			const end = Date.now()
-			console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
+			console.error(`[HTTP] [0] [error] [${res.status}] [${end - start}ms] <${url}>`)
 		}
 		return res
 	} catch (error) {
-		try {
-			const res = await fetchOverCache(url, options)
-			if (res.status >= 400) {
-				const end = Date.now()
-				console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
-			}
-			return res
-		} catch (error) {
-			try {
-				const res = await fetchOverCache(url, options)
-				if (res.status >= 400) {
-					const end = Date.now()
-					console.error(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
-				}
-				return res
-			} catch (error) {
-				const end = Date.now()
-				console.error(
-					`[HTTP] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${end - start}ms] <${url}>`
-				)
-				return null
-			}
-		}
+		// try {
+		// 	const res = await fetchOverCache(url, options)
+		// 	if (res.status >= 400) {
+		// 		const end = Date.now()
+		// 		console.error(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] <${url}>`)
+		// 	}
+		// 	return res
+		// } catch (error) {
+		// 	try {
+		// 		const res = await fetchOverCache(url, options)
+		// 		if (res.status >= 400) {
+		// 			const end = Date.now()
+		// 			console.error(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] <${url}>`)
+		// 		}
+		// 		return res
+		// 	} catch (error) {
+		// 		const end = Date.now()
+		// 		console.error(
+		// 			`[HTTP] [3] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${
+		// 				end - start
+		// 			}ms] <${url}>`
+		// 		)
+		// 		return null
+		// 	}
+		// }
+
+		throw error
 	}
 }
 
@@ -94,7 +88,7 @@ export async function wrappedFetch(
 
 	async function _getData(retiresLeft = 0, attempts = 0) {
 		try {
-			const res = await fetch(endpoint).then((res) => res.json())
+			const res = await fetchWithErrorLogging(endpoint).then((res) => res.json())
 			return res
 		} catch (error) {
 			if (retiresLeft > 0) {
@@ -116,7 +110,7 @@ export const fetchApi = async (url: string | Array<string>) => {
 	try {
 		const data =
 			typeof url === 'string'
-				? await fetch(url).then(async (res) => {
+				? await fetchWithErrorLogging(url).then(async (res) => {
 						if (!res.ok) {
 							throw new Error(res.statusText ?? `Failed to fetch ${url}`)
 						}
@@ -125,7 +119,7 @@ export const fetchApi = async (url: string | Array<string>) => {
 				  })
 				: await Promise.all(
 						url.map((u) =>
-							fetch(u).then(async (res) => {
+							fetchWithErrorLogging(u).then(async (res) => {
 								if (!res.ok) {
 									throw new Error(res.statusText ?? `Failed to fetch ${u}`)
 								}
