@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging('index/pro', async () => {
 			...data.props,
 			totalFundingAmount: data.props.raisesChart
 				? (Object.values(data.props.raisesChart).reduce(
-						(acc, curr) => ((acc as number) += curr as number),
+						(acc, curr) => ((acc as number) += (curr ?? 0) as number),
 						0
 				  ) as number) * 1e6
 				: null

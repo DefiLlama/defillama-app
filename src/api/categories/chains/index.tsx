@@ -64,9 +64,9 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const chainMetadata = chain ? chainsMetadata[slug(chain)] : {}
+	const chainMetadata = chain && chain !== 'All' ? chainsMetadata[slug(chain)] : null
 
-	if (chain && !chainMetadata) {
+	if (chain && chain !== 'All' && !chainMetadata) {
 		return { notFound: true, props: null }
 	}
 
