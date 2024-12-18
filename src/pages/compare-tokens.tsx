@@ -4,18 +4,21 @@ import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import CompareTokens from '~/containers/CompareTokens'
 import { getProtocols } from '~/api/categories/protocols'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
+import { fetchWithErrorLogging } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging('correlation', async () => {
 	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols, volumeProtocols] = await Promise.all([
 		getAllCGTokensList(),
 		getProtocols(),
-		fetch(`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+		fetchWithErrorLogging(
+			`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+		)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(`Couldn't fetch fees protocols list at path: compare-tokens`, 'Error:', err)
 				return {}
 			}),
-		fetch(
+		fetchWithErrorLogging(
 			`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
 		)
 			.then((res) => res.json())
@@ -23,7 +26,9 @@ export const getStaticProps = withPerformanceLogging('correlation', async () => 
 				console.log(`Couldn't fetch revenue protocols list at path: compare-tokens`, 'Error:', err)
 				return {}
 			}),
-		fetch(`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+		fetchWithErrorLogging(
+			`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+		)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(`Couldn't fetch dex protocols list at path: compare-tokens`, 'Error:', err)

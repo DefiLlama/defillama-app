@@ -135,15 +135,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 	}
 }
 
-export const fetchOverCacheJson = async <T = any>(
-	url: RequestInfo | URL,
-	options?: FetchOverCacheOptions
-): Promise<T> => {
-	const data = await fetchOverCache(url, options).then((res) => handleServerResponse(res, url as string))
-	return data as T
-}
-
-export async function handleServerResponse(res: Response, url: string) {
+async function handleServerResponse(res: Response, url: string) {
 	const data = await res.json()
 
 	if (res.status !== 200 || data.error) {

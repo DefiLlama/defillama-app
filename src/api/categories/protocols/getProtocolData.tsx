@@ -23,11 +23,11 @@ import {
 	DIMENISIONS_OVERVIEW_API,
 	LIQUIDITY_API
 } from '~/constants'
-import { fetchOverCache, fetchOverCacheJson } from '~/utils/perf'
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { sluggify } from '~/utils/cache-client'
 import protocolMetadata from 'metadata/protocols.json'
+import { fetchWithErrorLogging } from '~/utils/async'
 
 export const getProtocolDataLite = async (protocol: string, protocolRes: IProtocolResponse) => {
 	if (!protocolRes) {
@@ -63,17 +63,19 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 	const [allProtocols, users, feesProtocols, revenueProtocols, volumeProtocols, derivatesProtocols] = await Promise.all(
 		[
 			getProtocolsRaw(),
-			fetch(ACTIVE_USERS_API)
+			fetchWithErrorLogging(ACTIVE_USERS_API)
 				.then((res) => res.json())
 				.then((data) => data?.[protocolData.id] ?? null)
 				.catch(() => null),
-			fetch(`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			fetchWithErrorLogging(
+				`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+			)
 				.then((res) => res.json())
 				.catch((err) => {
 					console.log(`Couldn't fetch fees protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 				}),
-			fetch(
+			fetchWithErrorLogging(
 				`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
 			)
 				.then((res) => res.json())
@@ -81,13 +83,17 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 					console.log(`Couldn't fetch revenue protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 				}),
-			fetch(`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			fetchWithErrorLogging(
+				`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+			)
 				.then((res) => res.json())
 				.catch((err) => {
 					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 				}),
-			fetch(`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`)
+			fetchWithErrorLogging(
+				`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+			)
 				.then((res) => res.json())
 				.catch((err) => {
 					console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
@@ -270,7 +276,7 @@ const fetchGovernanceData = async (apis: Array<string>) => {
 	const governanceData = await Promise.all(
 		apis.map((gapi) =>
 			gapi
-				? fetchOverCache(gapi)
+				? fetchWithErrorLogging(gapi)
 						.then((res) => res.json())
 						.then((data) => {
 							return Object.values(data.proposals)
@@ -366,43 +372,56 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			return []
 		}),
 		protocolMetadata[protocolData.id]?.expenses
-			? fetchOverCacheJson(PROTOCOLS_EXPENSES_API).catch((err) => {
-					console.log('[HTTP]:[ERROR]:[PROTOCOL_EXPENSES]:', protocol, err instanceof Error ? err.message : '')
-					return []
-			  })
+			? fetchWithErrorLogging(PROTOCOLS_EXPENSES_API)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log('[HTTP]:[ERROR]:[PROTOCOL_EXPENSES]:', protocol, err instanceof Error ? err.message : '')
+						return []
+					})
 			: [],
 		protocolMetadata[protocolData.id]?.treasury
-			? fetchOverCacheJson(PROTOCOLS_TREASURY).catch((err) => {
-					console.log('[HTTP]:[ERROR]:[PROTOCOL_TREASURY]:', protocol, err instanceof Error ? err.message : '')
-					return []
-			  })
+			? fetchWithErrorLogging(PROTOCOLS_TREASURY)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log('[HTTP]:[ERROR]:[PROTOCOL_TREASURY]:', protocol, err instanceof Error ? err.message : '')
+						return []
+					})
 			: [],
-		fetchOverCacheJson(YIELD_POOLS_API).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
-			return {}
-		}),
-		fetchOverCacheJson(YIELD_CONFIG_API).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELDCONFIG]:', protocol, err instanceof Error ? err.message : '')
-			return null
-		}),
+		fetchWithErrorLogging(YIELD_POOLS_API)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
+				return {}
+			}),
+		fetchWithErrorLogging(YIELD_CONFIG_API)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELDCONFIG]:', protocol, err instanceof Error ? err.message : '')
+				return null
+			}),
 		protocolMetadata[protocolData.id]?.liquidity
-			? fetchOverCacheJson(LIQUIDITY_API).catch((err) => {
-					console.log('[HTTP]:[ERROR]:[PROTOCOL_LIQUIDITYINFO]:', protocol, err instanceof Error ? err.message : '')
-					return []
-			  })
+			? fetchWithErrorLogging(LIQUIDITY_API)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log('[HTTP]:[ERROR]:[PROTOCOL_LIQUIDITYINFO]:', protocol, err instanceof Error ? err.message : '')
+						return []
+					})
 			: [],
 		getForkPageData().catch((err) => {
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_FORKS]:', protocol, err instanceof Error ? err.message : '')
 			return {}
 		}),
 		protocolMetadata[protocolData.id]?.hacks
-			? fetchOverCacheJson(HACKS_API).catch((err) => {
-					console.log('[HTTP]:[ERROR]:[PROTOCOL_HACKS]:', protocol, err instanceof Error ? err.message : '')
-					return []
-			  })
+			? fetchWithErrorLogging(HACKS_API)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log('[HTTP]:[ERROR]:[PROTOCOL_HACKS]:', protocol, err instanceof Error ? err.message : '')
+						return []
+					})
 			: [],
 		protocolMetadata[protocolData.id]?.raises
-			? fetchOverCacheJson(RAISES_API)
+			? fetchWithErrorLogging(RAISES_API)
+					.then((res) => res.json())
 					.then((r) => r.raises)
 					.catch((err) => {
 						console.log('[HTTP]:[ERROR]:[PROTOCOL_RAISES]:', protocol, err instanceof Error ? err.message : '')
@@ -412,13 +431,13 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		getColor(tokenIconPaletteUrl(protocolData.name)),
 		getProtocolsRaw(),
 		protocolMetadata[protocolData.id]?.activeUsers
-			? fetchOverCache(ACTIVE_USERS_API)
+			? fetchWithErrorLogging(ACTIVE_USERS_API)
 					.then((res) => res.json())
 					.then((data) => data?.[protocolData.id] ?? null)
 					.catch(() => null)
 			: null,
 		protocolMetadata[protocolData.id]?.fees
-			? fetchOverCache(
+			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
 					.then((res) => res.json())
@@ -428,7 +447,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					})
 			: [],
 		protocolMetadata[protocolData.id]?.revenue
-			? fetchOverCache(
+			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
 			  )
 					.then((res) => res.json())
@@ -438,7 +457,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					})
 			: {},
 		protocolMetadata[protocolData.id]?.dexs
-			? fetchOverCache(
+			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
 					.then((res) => res.json())
@@ -448,7 +467,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					})
 			: {},
 		protocolMetadata[protocolData.id]?.perps
-			? fetchOverCache(
+			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
 					.then((res) => res.json())
@@ -457,13 +476,13 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		fetchOverCache(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
+		fetchWithErrorLogging(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
 			.then((res) => res.json())
 			.catch(() => {
 				return { data: [] }
 			}),
 		protocolData.gecko_id
-			? fetchOverCache(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
+			? fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
 					.then((res) => res.json())
 					.then(({ data }) => data)
 					.catch(() => null as any)
@@ -471,13 +490,13 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		protocolMetadata[protocolData.id]?.emissions
 			? getProtocolEmissons(protocol)
 			: { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } },
-		fetchOverCache(devMetricsProtocolUrl)
+		fetchWithErrorLogging(devMetricsProtocolUrl)
 			.then((r) => r.json())
 			.catch((e) => {
 				return null
 			}),
 		protocolMetadata[protocolData.id]?.aggregator
-			? fetchOverCache(
+			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
 					.then((res) => res.json())
@@ -487,7 +506,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					})
 			: {},
 		protocolMetadata[protocolData.id]?.options
-			? fetchOverCache(
+			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
 					.then((res) => res.json())
@@ -497,7 +516,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					})
 			: {},
 		protocolMetadata[protocolData.id]?.perpsAggregators
-			? fetchOverCache(
+			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
 					.then((res) => res.json())
@@ -515,7 +534,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 	let nftVolumeData = []
 
 	if (nftDataExist) {
-		nftVolumeData = await fetchOverCache(NFT_MARKETPLACES_VOLUME_API)
+		nftVolumeData = await fetchWithErrorLogging(NFT_MARKETPLACES_VOLUME_API)
 			.then((r) => r.json())
 			.then((r) => {
 				const chartByDate = r

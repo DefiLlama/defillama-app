@@ -1,5 +1,5 @@
 import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
-import { fetchOverCache } from '~/utils/perf'
+import { fetchWithErrorLogging } from '~/utils/async'
 
 interface Protocol {
 	category: string | null
@@ -27,7 +27,7 @@ export const getFeesAndRevenueByChain = async ({
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 	const [fees, revenue] = await Promise.all([
-		fetchOverCache(apiUrl)
+		fetchWithErrorLogging(apiUrl)
 			.then((res) => {
 				if (res.status === 200) {
 					return res.json()
@@ -39,7 +39,7 @@ export const getFeesAndRevenueByChain = async ({
 				console.log('Error at ', apiUrl, err)
 				return null
 			}),
-		fetchOverCache(`${apiUrl}&dataType=dailyRevenue`)
+		fetchWithErrorLogging(`${apiUrl}&dataType=dailyRevenue`)
 			.then((res) => {
 				if (res.status === 200) {
 					return res.json()
@@ -63,7 +63,7 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 	}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
 
 	const [fees, revenue] = await Promise.all([
-		fetchOverCache(apiUrl)
+		fetchWithErrorLogging(apiUrl)
 			.then((res) => {
 				if (res.status === 200) {
 					return res.json()
@@ -75,7 +75,7 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 				console.log('Error at ', apiUrl, err)
 				return null
 			}),
-		fetchOverCache(`${apiUrl}&dataType=dailyRevenue`)
+		fetchWithErrorLogging(`${apiUrl}&dataType=dailyRevenue`)
 			.then((res) => {
 				if (res.status === 200) {
 					return res.json()
@@ -109,7 +109,7 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 export const getRevenuesByCategories = async (): Promise<AggregatedRevenues> => {
 	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees/all?dataType=dailyRevenue&excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
 
-	const revenues: RevenuesResponse | null = await fetchOverCache(apiUrl)
+	const revenues: RevenuesResponse | null = await fetchWithErrorLogging(apiUrl)
 		.then((res) => {
 			if (res.status === 200) {
 				return res.json()

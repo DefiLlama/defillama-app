@@ -5,8 +5,9 @@ import { maxAgeForNext } from '~/api'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
+import { fetchWithErrorLogging } from '~/utils/async'
 
-const get = (url) => fetch(url).then((r) => r.json())
+const get = (url) => fetchWithErrorLogging(url).then((r) => r.json())
 
 interface VC {
 	name: string

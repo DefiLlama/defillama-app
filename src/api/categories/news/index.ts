@@ -35,8 +35,6 @@ export interface IArticlesResponse {
 }
 
 export const fetchArticles = async ({ tags = '', size = 2 }) => {
-	const startTime = Date.now()
-
 	const articlesRes: IArticlesResponse = await fetchWithErrorLogging(`https://api.llama.fi/news/articles`)
 		.then((res) => res.json())
 		.catch((err) => {
@@ -55,10 +53,6 @@ export const fetchArticles = async ({ tags = '', size = 2 }) => {
 				href: `https://dlnews.com${element.canonical_url}`,
 				imgSrc: element.promo_items?.basic?.url ?? null
 			})) ?? []
-
-	if (Date.now() - startTime > 5_000) {
-		console.log('done fetching articles', tags, 'in', Date.now() - startTime)
-	}
 
 	return articles.slice(0, size)
 }

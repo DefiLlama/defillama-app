@@ -16,7 +16,6 @@ import {
 import { formatProtocolsData } from '../protocols/utils'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { fetchOverCache } from '~/utils/perf'
 import { maxAgeForNext } from '~/api'
 import { getCexVolume } from '../adaptors/utils'
 import { getPeggedDominance, getPercentChange, slug } from '~/utils'
@@ -175,12 +174,12 @@ export async function getChainPageData(chain?: string) {
 		fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
 		!chain || chain === 'All'
 			? null
-			: fetch(`${DEV_METRICS_API}/chain/${chainMetadata?.name?.toLowerCase()}.json`)
+			: fetchWithErrorLogging(`${DEV_METRICS_API}/chain/${chainMetadata?.name?.toLowerCase()}.json`)
 					.then((r) => r.json())
 					.catch(() => null),
 		!chain || chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
 		chainMetadata?.gecko_id
-			? fetchOverCache(
+			? fetchWithErrorLogging(
 					`https://pro-api.coingecko.com/api/v3/coins/${chainMetadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 			  ).then((res) => res.json())
 			: {},

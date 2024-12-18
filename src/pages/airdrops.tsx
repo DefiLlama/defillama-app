@@ -3,7 +3,8 @@ import { maxAgeForNext } from '~/api'
 import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API, RAISES_API } from '~/constants'
-import { fetchOverCache, withPerformanceLogging } from '~/utils/perf'
+import { withPerformanceLogging } from '~/utils/perf'
+import { fetchWithErrorLogging } from '~/utils/async'
 
 const exclude = [
 	'DeerFi',
@@ -115,8 +116,8 @@ const exclude = [
 export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 	const [protocolsRaw, { forks }, { raises }, claimableAirdrops] = await Promise.all([
 		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls', 'defillamaId']),
-		fetchOverCache(FORK_API).then((r) => r.json()),
-		fetchOverCache(RAISES_API).then((r) => r.json()),
+		fetchWithErrorLogging(FORK_API).then((r) => r.json()),
+		fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
 		getAirdropDirectoryData()
 	])
 

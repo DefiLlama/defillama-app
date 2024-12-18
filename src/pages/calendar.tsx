@@ -19,9 +19,10 @@ import { PROTOCOL_EMISSIONS_API } from '~/constants'
 import { BasicDropdown } from '~/components/Filters/common/BasicDropdown'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { fetchWithErrorLogging } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
-	const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
+	const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
 
 	const emissions = res.map((protocol) => {
 		const unlocksByDate = {}
