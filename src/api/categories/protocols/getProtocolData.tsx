@@ -507,7 +507,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			: {},
 		protocolMetadata[protocolData.id]?.options
 			? fetchWithErrorLogging(
-					`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
+					`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyPremiumVolume`
 			  )
 					.then((res) => res.json())
 					.catch((err) => {
