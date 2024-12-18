@@ -29,264 +29,6 @@ import { sluggify } from '~/utils/cache-client'
 import protocolMetadata from 'metadata/protocols.json'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 
-export const getProtocolDataLite = async (protocol: string, protocolRes: IProtocolResponse) => {
-	if (!protocolRes) {
-		return { notFound: true, props: null }
-	}
-
-	let inflowsExist = false
-
-	if (protocolRes.chainTvls) {
-		Object.keys(protocolRes.chainTvls).forEach((chain) => {
-			if (protocolRes.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
-				inflowsExist = true
-			}
-			delete protocolRes.chainTvls[chain].tokensInUsd
-			delete protocolRes.chainTvls[chain].tokens
-		})
-	}
-
-	const protocolData = fuseProtocolData(protocolRes)
-
-	const governanceApis = (
-		protocolData.governanceID?.map((gid) =>
-			gid.startsWith('snapshot:')
-				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|’|')/g, '/')}.json`
-				: gid.startsWith('compound:')
-				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|’|')/g, '/')}.json`
-				: gid.startsWith('tally:')
-				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|’|')/g, '/')}.json`
-				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|’|')/g, '/')}.json`
-		) ?? []
-	).map((g) => g.toLowerCase())
-
-	const [allProtocols, users, feesProtocols, revenueProtocols, volumeProtocols, derivatesProtocols]: [
-		any,
-		any,
-		any,
-		any,
-		any,
-		any
-	] = await Promise.all([
-		getProtocolsRaw(),
-		protocolMetadata[protocolData.id]?.activeUsers
-			? fetchWithTimeout(ACTIVE_USERS_API, 5_000)
-					.then((res) => res.json())
-					.then((data) => data?.[protocolData.id] ?? null)
-					.catch(() => null)
-			: null,
-		protocolMetadata[protocolData.id]?.fees
-			? fetchWithErrorLogging(
-					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
-			: [],
-		protocolMetadata[protocolData.id]?.revenue
-			? fetchWithErrorLogging(
-					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
-			: {},
-		protocolMetadata[protocolData.id]?.dexs
-			? fetchWithErrorLogging(
-					`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
-			: {},
-		protocolMetadata[protocolData.id]?.perps
-			? fetchWithErrorLogging(
-					`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
-			: {}
-	])
-	let controversialProposals = []
-
-	const feesData = feesProtocols?.protocols?.filter(
-		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
-	)
-
-	const revenueData = revenueProtocols?.protocols?.filter(
-		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
-	)
-
-	const volumeData = volumeProtocols?.protocols?.filter(
-		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
-	)
-
-	const perpsData = derivatesProtocols?.protocols?.filter(
-		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
-	)
-
-	const similarProtocols =
-		allProtocols && protocolData.category
-			? allProtocols.protocols
-					.filter((p) => {
-						if (p.category) {
-							return (
-								p.category.toLowerCase() === protocolData.category.toLowerCase() &&
-								p.name.toLowerCase() !== protocolData.name?.toLowerCase()
-							)
-						} else return false
-					})
-					.map((p) => {
-						let commonChains = 0
-
-						protocolData?.chains?.forEach((chain) => {
-							if (p.chains.includes(chain)) {
-								commonChains += 1
-							}
-						})
-
-						return { name: p.name, tvl: p.tvl, commonChains }
-					})
-					.sort((a, b) => b.tvl - a.tvl)
-			: []
-
-	const similarProtocolsSet = new Set<string>()
-
-	const protocolsWithCommonChains = [...similarProtocols].sort((a, b) => b.commonChains - a.commonChains).slice(0, 5)
-
-	// first 5 are the protocols that are on same chain + same category
-	protocolsWithCommonChains.forEach((p) => similarProtocolsSet.add(p.name))
-
-	// last 5 are the protocols in same category
-	similarProtocols.forEach((p) => {
-		if (similarProtocolsSet.size < 10) {
-			similarProtocolsSet.add(p.name)
-		}
-	})
-
-	const dailyRevenue = revenueData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
-	const dailyBribesRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyBribesRevenue || 0), 0) ?? null
-	const dailyTokenTaxes = revenueData?.reduce((acc, curr) => (acc += curr.dailyTokenTaxes || 0), 0) ?? null
-	const dailyFees = feesData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
-	const fees30d = feesData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
-	const revenue30d = revenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
-	const bribesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.bribesRevenue30d || 0), 0) ?? null
-	const tokenTaxesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.tokenTaxesRevenue30d || 0), 0) ?? null
-	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
-	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
-	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
-	const dailyPerpsVolume =
-		perpsData?.reduce((acc, curr) => {
-			if (curr.total24h && curr.total24h > 0) {
-				acc += curr.total24h
-			}
-			return acc
-		}, 0) ?? null
-	const allTimePerpsVolume =
-		perpsData?.reduce((acc, curr) => {
-			if (curr.totalAllTime && curr.totalAllTime > 0) {
-				acc += curr.totalAllTime
-			}
-			return acc
-		}, 0) ?? null
-
-	const metrics = protocolData.metrics || {}
-
-	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
-
-	if (protocolData.chains && protocolData.chains.length > 0) {
-		chartDenominations.push({ symbol: 'USD', geckoId: null })
-
-		if (chainCoingeckoIds[protocolData.chains[0]]?.geckoId) {
-			chartDenominations.push(chainCoingeckoIds[protocolData.chains[0]])
-		} else {
-			chartDenominations.push(chainCoingeckoIds['Ethereum'])
-		}
-	}
-
-	return {
-		props: {
-			articles: [],
-			protocol,
-			devMetrics: {},
-			nftVolumeData: {},
-			protocolData: {
-				...protocolData,
-				symbol: protocolData.symbol ?? null,
-				metrics: {
-					...metrics,
-					tvl: protocolMetadata[protocolData.id]?.tvl ? true : false,
-					devMetrics: false,
-					fees: protocolMetadata[protocolData.id]?.fees ? true : false,
-					revenue: protocolMetadata[protocolData.id]?.revenue ? true : false,
-					dexs: protocolMetadata[protocolData.id]?.dexs ? true : false,
-					perps: protocolMetadata[protocolData.id]?.perps ? true : false,
-					aggregators: protocolMetadata[protocolData.id]?.aggregator ? true : false,
-					perpsAggregators: protocolMetadata[protocolData.id]?.perpsAggregators ? true : false,
-					options: protocolMetadata[protocolData.id]?.options ? true : false,
-					medianApy: false,
-					inflows: inflowsExist,
-					unlocks: protocolMetadata[protocolData.id]?.unlocks ? true : false,
-					bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
-					treasury: protocolMetadata[protocolData.id]?.treasury ? true : false,
-					tokenLiquidity: protocolMetadata[protocolData.id]?.liquidity ? true : false,
-					nftVolume: protocolMetadata[protocolData.id]?.nfts ? true : false
-				}
-			},
-			backgroundColor: '#ffffff',
-			similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
-				similarProtocols.find((p) => p.name === protocolName)
-			),
-			chartColors: [],
-			users: users
-				? {
-						activeUsers: users.users?.value ?? null,
-						newUsers: users.newUsers?.value ?? null,
-						transactions: users.txs?.value ?? null,
-						gasUsd: users.gasUsd?.value ?? null
-				  }
-				: null,
-			dailyRevenue,
-			dailyFees,
-			allTimeFees,
-			fees30d,
-			revenue30d,
-			dailyVolume,
-			allTimeVolume,
-			dailyPerpsVolume,
-			allTimePerpsVolume,
-			controversialProposals,
-			governanceApis: governanceApis.filter((x) => !!x),
-			methodologyUrls: {
-				tvl: protocolData.module
-					? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
-					: null,
-				fees: feesData?.[0]?.methodologyURL ?? null,
-				dexs: volumeData?.[0]?.methodologyURL ?? null,
-				perps: perpsData?.[0]?.methodologyURL ?? null
-			},
-			chartDenominations,
-			protocolHasForks: protocolMetadata[protocolData.id]?.forks ? true : false,
-			hacksData: null,
-			dailyBribesRevenue,
-			dailyTokenTaxes,
-			bribesRevenue30d,
-			tokenTaxesRevenue30d,
-			clientSide: true
-		},
-		revalidate: maxAgeForNext([22])
-	}
-}
-
 const fetchGovernanceData = async (apis: Array<string>) => {
 	const governanceData = await Promise.all(
 		apis.map((gapi) =>
@@ -308,7 +50,7 @@ const fetchGovernanceData = async (apis: Array<string>) => {
 
 	return governanceData
 }
-export const getProtocolData = async (protocol: string, protocolRes: IProtocolResponse) => {
+export const getProtocolData = async (protocol: string, protocolRes: IProtocolResponse, isCpusHot: boolean) => {
 	if (!protocolRes) {
 		return { notFound: true, props: null }
 	}
@@ -380,11 +122,13 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		any,
 		any
 	] = await Promise.all([
-		fetchArticles({ tags: protocol }).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:', protocol, err instanceof Error ? err.message : '')
-			return []
-		}),
-		protocolMetadata[protocolData.id]?.expenses
+		!isCpusHot
+			? fetchArticles({ tags: protocol }).catch((err) => {
+					console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:', protocol, err instanceof Error ? err.message : '')
+					return []
+			  })
+			: [],
+		protocolMetadata[protocolData.id]?.expenses && !isCpusHot
 			? fetchWithErrorLogging(PROTOCOLS_EXPENSES_API)
 					.then((res) => res.json())
 					.catch((err) => {
@@ -392,7 +136,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		protocolMetadata[protocolData.id]?.treasury
+		protocolMetadata[protocolData.id]?.treasury && !isCpusHot
 			? fetchWithErrorLogging(PROTOCOLS_TREASURY)
 					.then((res) => res.json())
 					.catch((err) => {
@@ -400,7 +144,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		protocolMetadata[protocolData.id]?.yields
+		protocolMetadata[protocolData.id]?.yields && !isCpusHot
 			? fetchWithErrorLogging(YIELD_POOLS_API)
 					.then((res) => res.json())
 					.catch((err) => {
@@ -408,13 +152,15 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		fetchWithErrorLogging(YIELD_CONFIG_API)
-			.then((res) => res.json())
-			.catch((err) => {
-				console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELDCONFIG]:', protocol, err instanceof Error ? err.message : '')
-				return null
-			}),
-		protocolMetadata[protocolData.id]?.liquidity
+		!isCpusHot
+			? fetchWithErrorLogging(YIELD_CONFIG_API)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELDCONFIG]:', protocol, err instanceof Error ? err.message : '')
+						return null
+					})
+			: null,
+		protocolMetadata[protocolData.id]?.liquidity && !isCpusHot
 			? fetchWithErrorLogging(LIQUIDITY_API)
 					.then((res) => res.json())
 					.catch((err) => {
@@ -422,7 +168,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		protocolMetadata[protocolData.id]?.hacks
+		protocolMetadata[protocolData.id]?.hacks && !isCpusHot
 			? fetchWithErrorLogging(HACKS_API)
 					.then((res) => res.json())
 					.catch((err) => {
@@ -430,7 +176,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		protocolMetadata[protocolData.id]?.raises
+		protocolMetadata[protocolData.id]?.raises && !isCpusHot
 			? fetchWithErrorLogging(RAISES_API)
 					.then((res) => res.json())
 					.then((r) => r.raises)
@@ -441,13 +187,13 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			: [],
 		getColor(tokenIconPaletteUrl(protocolData.name)),
 		getProtocolsRaw(),
-		protocolMetadata[protocolData.id]?.activeUsers
+		protocolMetadata[protocolData.id]?.activeUsers && !isCpusHot
 			? fetchWithTimeout(ACTIVE_USERS_API, 10_000)
 					.then((res) => res.json())
 					.then((data) => data?.[protocolData.id] ?? null)
 					.catch(() => null)
 			: null,
-		protocolMetadata[protocolData.id]?.fees
+		protocolMetadata[protocolData.id]?.fees && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -457,7 +203,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: [],
-		protocolMetadata[protocolData.id]?.revenue
+		protocolMetadata[protocolData.id]?.revenue && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
 			  )
@@ -467,7 +213,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.dexs
+		protocolMetadata[protocolData.id]?.dexs && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -477,7 +223,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.perps
+		protocolMetadata[protocolData.id]?.perps && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -487,28 +233,30 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.yields
+		protocolMetadata[protocolData.id]?.yields && !isCpusHot
 			? fetchWithErrorLogging(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
 					.then((res) => res.json())
 					.catch(() => {
 						return { data: [] }
 					})
 			: { data: [] },
-		protocolData.gecko_id
+		protocolData.gecko_id && !isCpusHot
 			? fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
 					.then((res) => res.json())
 					.then(({ data }) => data)
 					.catch(() => null as any)
 			: null,
-		protocolMetadata[protocolData.id]?.emissions
+		protocolMetadata[protocolData.id]?.emissions && !isCpusHot
 			? getProtocolEmissons(protocol)
 			: { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } },
-		fetchWithTimeout(devMetricsProtocolUrl, 10_000)
-			.then((r) => r.json())
-			.catch((e) => {
-				return null
-			}),
-		protocolMetadata[protocolData.id]?.aggregator
+		!isCpusHot
+			? fetchWithTimeout(devMetricsProtocolUrl, 10_000)
+					.then((r) => r.json())
+					.catch((e) => {
+						return null
+					})
+			: null,
+		protocolMetadata[protocolData.id]?.aggregator && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -518,7 +266,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.options
+		protocolMetadata[protocolData.id]?.options && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyPremiumVolume`
 			  )
@@ -528,7 +276,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.perpsAggregators
+		protocolMetadata[protocolData.id]?.perpsAggregators && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -538,7 +286,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		fetchGovernanceData(governanceApis)
+		fetchGovernanceData(!isCpusHot ? governanceApis : [])
 	])
 
 	let inflowsExist = false
@@ -546,7 +294,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 	let nftDataExist = protocolMetadata[protocolData.id]?.nfts ? true : false
 	let nftVolumeData = []
 
-	if (nftDataExist) {
+	if (nftDataExist && !isCpusHot) {
 		nftVolumeData = await fetchWithTimeout(NFT_MARKETPLACES_VOLUME_API, 10_000)
 			.then((r) => r.json())
 			.then((r) => {
@@ -805,7 +553,9 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
 					treasury: protocolMetadata[protocolData.id]?.treasury ? true : false,
 					tokenLiquidity: protocolMetadata[protocolData.id]?.liquidity ? true : false,
-					nftVolume: nftDataExist
+					nftVolume: nftDataExist,
+					yields: protocolMetadata[protocolData.id]?.yields ? true : false,
+					forks: protocolMetadata[protocolData.id]?.forks ? true : false
 				}
 			},
 			backgroundColor,
@@ -907,7 +657,6 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 				perps: perpsData?.[0]?.methodologyURL ?? null
 			},
 			chartDenominations,
-			protocolHasForks: protocolMetadata[protocolData.id]?.forks ? true : false,
 			hacksData:
 				(protocolData.id
 					? hacks?.filter((hack) => +hack.defillamaId === +protocolData.id)?.sort((a, b) => a.date - b.date)
@@ -915,7 +664,8 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			dailyBribesRevenue,
 			dailyTokenTaxes,
 			bribesRevenue30d,
-			tokenTaxesRevenue30d
+			tokenTaxesRevenue30d,
+			clientSide: isCpusHot
 		},
 		revalidate: maxAgeForNext([22])
 	}

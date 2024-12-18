@@ -128,7 +128,6 @@ interface IProtocolContainerProps {
 	nextEventDescription: string | null
 	methodologyUrls: { [type: string]: string | null }
 	chartDenominations?: Array<{ symbol: string; geckoId: string | null }>
-	protocolHasForks?: boolean
 	twitterData?: { tweets: Array<{ date: string; id: string; message: string }> }
 	hacksData?: Array<{
 		date: number
@@ -193,7 +192,6 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 	nextEventDescription,
 	methodologyUrls,
 	chartDenominations = [],
-	protocolHasForks = false,
 	hacksData,
 	nftVolumeData
 }: IProtocolContainerProps) {
@@ -533,7 +531,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 								Unlocks
 							</button>
 						)}
-						{yields && (
+						{metrics.yields && (
 							<button
 								data-active={tab === 'yields'}
 								onClick={(e) => setTab('yields', e)}
@@ -614,7 +612,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 								Governance
 							</button>
 						)}
-						{protocolHasForks && (
+						{metrics.forks && (
 							<button
 								data-active={tab === 'forks'}
 								onClick={(e) => setTab('forks', e)}
@@ -1773,7 +1771,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<UnlocksCharts protocolName={protocol} />
 						</div>
 					) : null}
-					{yields && tab === 'yields' ? (
+					{metrics.yields && tab === 'yields' ? (
 						<div>
 							<ProtocolPools data={yields} protocol={protocol} protocolData={protocolData} />
 						</div>
@@ -1818,7 +1816,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<GovernanceData apis={governanceApis} color={backgroundColor} />
 						</div>
 					) : null}
-					{protocolHasForks && tab === 'forks' ? (
+					{metrics.forks && tab === 'forks' ? (
 						<div>
 							<ForksData protocolName={name} />
 						</div>
