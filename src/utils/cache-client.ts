@@ -98,6 +98,8 @@ export const setPageBuildTimes = async (pageUrl, cacheObject) => {
 }
 
 export const isCpusHot = async () => {
+	return true
+	/*
 	if (!redis) {
 		return false
 	}
@@ -130,6 +132,7 @@ export const isCpusHot = async () => {
 		console.error(error)
 		return false
 	}
+	*/
 }
 
 export const getCache = async (Key: string) => {
