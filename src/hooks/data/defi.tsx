@@ -1,9 +1,9 @@
+import { IOverviewProps } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
+import { removedCategories } from '~/constants'
 import { ISettings } from '~/contexts/types'
 import { getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
-import { IOverviewProps, getAnnualizedRatio } from '~/api/categories/adaptors'
-import { removedCategories } from '~/constants'
 
 interface IData {
 	tvl: number
@@ -22,26 +22,11 @@ interface Breakdown {
 }
 
 export interface ChainAssets {
-	canonical: {
-		total: string
-		breakdown: Breakdown
-	}
-	native: {
-		total: string
-		breakdown: Breakdown
-	}
-	thirdParty: {
-		total: string
-		breakdown: Breakdown
-	}
-	total: {
-		breakdown: Breakdown
-		total: string
-	}
-	ownTokens: {
-		breakdown: Breakdown
-		total: string
-	}
+	canonical: string
+	native: string
+	thirdParty: string
+	total: string
+	ownTokens: string
 }
 
 interface IFormattedDataWithExtraTvlProps {
