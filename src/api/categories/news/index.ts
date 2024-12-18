@@ -1,4 +1,4 @@
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 
 export interface IArticle {
 	headline: string
@@ -35,7 +35,7 @@ export interface IArticlesResponse {
 }
 
 export const fetchArticles = async ({ tags = '', size = 2 }) => {
-	const articlesRes: IArticlesResponse = await fetchWithErrorLogging(`https://api.llama.fi/news/articles`)
+	const articlesRes: IArticlesResponse = await fetchWithTimeout(`https://api.llama.fi/news/articles`, 10_000)
 		.then((res) => res.json())
 		.catch((err) => {
 			console.log(err)

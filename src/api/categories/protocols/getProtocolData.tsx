@@ -27,7 +27,7 @@ import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { sluggify } from '~/utils/cache-client'
 import protocolMetadata from 'metadata/protocols.json'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 
 export const getProtocolDataLite = async (protocol: string, protocolRes: IProtocolResponse) => {
 	if (!protocolRes) {
@@ -70,7 +70,7 @@ export const getProtocolDataLite = async (protocol: string, protocolRes: IProtoc
 	] = await Promise.all([
 		getProtocolsRaw(),
 		protocolMetadata[protocolData.id]?.activeUsers
-			? fetchWithErrorLogging(ACTIVE_USERS_API)
+			? fetchWithTimeout(ACTIVE_USERS_API, 5_000)
 					.then((res) => res.json())
 					.then((data) => data?.[protocolData.id] ?? null)
 					.catch(() => null)
@@ -442,7 +442,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		getColor(tokenIconPaletteUrl(protocolData.name)),
 		getProtocolsRaw(),
 		protocolMetadata[protocolData.id]?.activeUsers
-			? fetchWithErrorLogging(ACTIVE_USERS_API)
+			? fetchWithTimeout(ACTIVE_USERS_API, 10_000)
 					.then((res) => res.json())
 					.then((data) => data?.[protocolData.id] ?? null)
 					.catch(() => null)
@@ -503,7 +503,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		protocolMetadata[protocolData.id]?.emissions
 			? getProtocolEmissons(protocol)
 			: { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } },
-		fetchWithErrorLogging(devMetricsProtocolUrl)
+		fetchWithTimeout(devMetricsProtocolUrl, 10_000)
 			.then((r) => r.json())
 			.catch((e) => {
 				return null
@@ -547,7 +547,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 	let nftVolumeData = []
 
 	if (nftDataExist) {
-		nftVolumeData = await fetchWithErrorLogging(NFT_MARKETPLACES_VOLUME_API)
+		nftVolumeData = await fetchWithTimeout(NFT_MARKETPLACES_VOLUME_API, 10_000)
 			.then((r) => r.json())
 			.then((r) => {
 				const chartByDate = r
@@ -557,6 +557,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					})
 				return chartByDate
 			})
+			.catch(() => [])
 
 		nftDataExist = (nftVolumeData?.length ?? 0) > 0
 	}

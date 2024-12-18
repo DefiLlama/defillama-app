@@ -68,6 +68,13 @@ export async function fetchWithErrorLogging(
 	}
 }
 
+export async function fetchWithTimeout(url, ms, options = {}) {
+	const controller = new AbortController()
+	const promise = fetchWithErrorLogging(url, { signal: controller.signal, ...options })
+	const timeout = setTimeout(() => controller.abort(), ms)
+	return promise.finally(() => clearTimeout(timeout))
+}
+
 const dataCache: {
 	[key: string]: any
 } = {}
