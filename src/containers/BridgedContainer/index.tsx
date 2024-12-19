@@ -19,6 +19,7 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 			}
 		})
 		.filter((row) => row?.total)
+		.sort((a, b) => b.total.total - a.total.total)
 
 	const onCSVDownload = () => {
 		const csvData = data.map((row) => {
