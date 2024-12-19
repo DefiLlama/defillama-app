@@ -229,6 +229,13 @@ export const cexData: Array<ICex> = [
 		cgDeriv: 'deribit'
 	},
 	{
+		name: 'Bitkub',
+		slug: 'bitkub',
+		coin: 'KUB',
+		coinSymbol: 'KUB',
+		cgId: 'bitkub',
+	},
+	{
 		name: 'Gate.io',
 		slug: 'Gate-io',
 		coin: 'GT',
