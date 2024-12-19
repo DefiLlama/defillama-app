@@ -554,7 +554,10 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					treasury: protocolMetadata[protocolData.id]?.treasury ? true : false,
 					tokenLiquidity: protocolMetadata[protocolData.id]?.liquidity ? true : false,
 					nftVolume: nftDataExist,
-					yields: protocolMetadata[protocolData.id]?.yields ? true : false,
+					yields:
+						protocolMetadata[protocolData.id]?.yields && yields && yields.data && projectYields.length > 0
+							? true
+							: false,
 					forks: protocolMetadata[protocolData.id]?.forks ? true : false
 				}
 			},
