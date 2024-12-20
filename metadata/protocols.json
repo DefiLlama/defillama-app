@@ -3397,9 +3397,9 @@
         "yields": true
     },
     "654": {
-        "name": "beethoven-x-dex",
+        "name": "beets-dex",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true,
         "activeUsers": true,
         "fees": true,
@@ -11436,6 +11436,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -22488,7 +22489,7 @@
         "yields": false
     },
     "4126": {
-        "name": "beethoven-x-sftmx",
+        "name": "beets-lst",
         "tvl": true,
         "yields": false,
         "liquidity": true
@@ -30527,8 +30528,8 @@
         "raises": true
     },
     "parent#beethoven-x": {
-        "name": "beethoven-x",
-        "yields": true,
+        "name": "beets",
+        "yields": false,
         "tvl": true,
         "governance": true,
         "treasury": true,
