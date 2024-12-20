@@ -140,7 +140,7 @@ export function postRuntimeLogs(log) {
 	if (typeof window === 'undefined' && process.env.RUNTIME_LOGS_WEBHOOK) {
 		fetch(process.env.RUNTIME_LOGS_WEBHOOK, {
 			method: 'POST',
-			body: JSON.stringify(log),
+			body: JSON.stringify({ content: log }),
 			headers: { 'Content-Type': 'application/json' }
 		})
 	}
