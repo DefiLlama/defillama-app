@@ -847,8 +847,9 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 	{
 		header: 'Bridged TVL',
 		accessorKey: 'chainAssets',
-		cell: ({ getValue }) => {
-			const chainAssets: any = getValue()
+		accessorFn: (row) => row.chainAssets?.total ?? undefined,
+		cell: ({ row }) => {
+			const chainAssets: any = row.original.chainAssets
 			if (!chainAssets?.total) return null
 
 			const chainAssetsBreakdown = (
@@ -886,15 +887,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 				</Tooltip>
 			)
 		},
-		sortingFn: (rowA, rowB) => {
-			const valueA = rowA.original?.chainAssets?.total
-			const valueB = rowB.original?.chainAssets?.total
-
-			if (valueA === undefined || valueA === null) return 1
-			if (valueB === undefined || valueB === null) return -1
-
-			return parseFloat(valueB) - parseFloat(valueA)
-		},
+		sortUndefined: 'last',
 		size: 120,
 		meta: {
 			align: 'end'
@@ -1023,7 +1016,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		enableSorting: true,
 		sortingFn: keySorting('total'),
 		cell: (info) => {
-			const value = info.getValue()?.total
+			const value = info.getValue()
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		}
@@ -1053,7 +1046,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		enableSorting: true,
 		sortingFn: keySorting('native'),
 		cell: (info) => {
-			const value = info.getValue()?.total
+			const value = info.getValue()
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		}
@@ -1064,7 +1057,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		enableSorting: true,
 		sortingFn: keySorting('canonical'),
 		cell: (info) => {
-			const value = info.getValue()?.total
+			const value = info.getValue()
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		}
@@ -1075,7 +1068,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		enableSorting: true,
 		sortingFn: keySorting('ownTokens'),
 		cell: (info) => {
-			const value = info.getValue()?.total
+			const value = info.getValue()
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		}
@@ -1086,7 +1079,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		enableSorting: true,
 		sortingFn: keySorting('thirdParty'),
 		cell: (info) => {
-			const value = info.getValue()?.total
+			const value = info.getValue()
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		}
