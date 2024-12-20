@@ -1,0 +1,31 @@
+name: Run script and commit every 60 minutes
+
+on:
+  schedule:
+    - cron: '* * * * *'
+
+jobs:
+  run-scheduled-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Run build:metadata
+        run: yarn run build:metadata
+
+      - name: Commit changes
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add .
+          git commit -m "update metadata" || echo "No changes to commit"
+          git push
