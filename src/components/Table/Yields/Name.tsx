@@ -113,6 +113,7 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 	)
 }
 
+//
 export function YieldsProject({ project, projectslug }: INameYield) {
 	const iconUrl = tokenIconUrl(project)
 	const tokenUrl = `/yields?project=${projectslug}`
