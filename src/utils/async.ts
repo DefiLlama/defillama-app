@@ -11,7 +11,7 @@ export function withErrorLogging<T extends any[], R>(
 		} catch (error) {
 			const name = fn.name || 'unknown function'
 			const message = (note ? `[${name}] [error] ` + `[${note}] <` : `<`) + JSON.stringify(args) + '>'
-			console.error(message)
+			postRuntimeLogs(message)
 			if (shouldThrow) {
 				throw error
 			}
@@ -28,7 +28,7 @@ export async function fetchWithErrorLogging(
 		const res = await fetchOverCache(url, options)
 		if (res.status >= 400) {
 			const end = Date.now()
-			console.error(`[HTTP] [0] [error] [${res.status}] [${end - start}ms] <${url}>`)
+			postRuntimeLogs(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
 		}
 		return res
 	} catch (error) {
@@ -36,7 +36,7 @@ export async function fetchWithErrorLogging(
 		// 	const res = await fetchOverCache(url, options)
 		// 	if (res.status >= 400) {
 		// 		const end = Date.now()
-		// 		console.error(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] <${url}>`)
+		// 		postRuntimeLogs(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] <${url}>`)
 		// 	}
 		// 	return res
 		// } catch (error) {
@@ -44,12 +44,12 @@ export async function fetchWithErrorLogging(
 		// 		const res = await fetchOverCache(url, options)
 		// 		if (res.status >= 400) {
 		// 			const end = Date.now()
-		// 			console.error(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] <${url}>`)
+		// 			postRuntimeLogs(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] <${url}>`)
 		// 		}
 		// 		return res
 		// 	} catch (error) {
 		// 		const end = Date.now()
-		// 		console.error(
+		// 		postRuntimeLogs(
 		// 			`[HTTP] [3] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${
 		// 				end - start
 		// 			}ms] <${url}>`
