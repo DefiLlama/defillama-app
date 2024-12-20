@@ -1,5 +1,6 @@
 import { setPageBuildTimes } from '~/utils/cache-client'
 import { getStaticPropsByType } from './index'
+import { postRuntimeLogs } from '~/utils/async'
 
 export const getStaticPathsByType = (type: string) => async () => {
 	// When this is true (in preview environments) don't
@@ -35,7 +36,7 @@ export const getStaticPathsByType = (type: string) => async () => {
 
 	if (end - start > 10_000) {
 		await setPageBuildTimes(`adaptorPages:${type}:chains`, [end, `${(end - start).toFixed(0)}ms`])
-		console.log(`[PREPARED] [${(end - start).toFixed(0)}ms] <adaptorPages:${type}:chains>`)
+		postRuntimeLogs(`[PREPARED] [${(end - start).toFixed(0)}ms] <adaptorPages:${type}:chains>`)
 	}
 
 	// { fallback: false } means other routes should 404
