@@ -30109,6 +30109,21 @@
         "tvl": false,
         "yields": false
     },
+    "5541": {
+        "name": "b14g",
+        "tvl": true,
+        "yields": false
+    },
+    "5542": {
+        "name": "goldsand-by-inshallah",
+        "tvl": true,
+        "yields": false
+    },
+    "5543": {
+        "name": "hackenai",
+        "tvl": false,
+        "yields": false
+    },
     "5567": {
         "fees": true,
         "revenue": true
