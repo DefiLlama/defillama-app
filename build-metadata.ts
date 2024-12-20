@@ -367,7 +367,17 @@ for (const protocol of Object.entries(nameToId)) {
 	}
 }
 
-writeFileSync(`./metadata/protocols.json`, JSON.stringify(finalProtocols, null, 4), 'utf8')
+writeFileSync(
+	`./metadata/protocols.json`,
+	JSON.stringify(
+		Object.keys(finalProtocols)
+			.sort()
+			.reduce((r, k) => ((r[k] = finalProtocols[k]), r), {}),
+		null,
+		4
+	),
+	'utf8'
+)
 
 for (const chain of bridgesData.chains) {
 	if (finalChains[slug(chain.name)]) {
@@ -391,6 +401,16 @@ for (const chain of chainsData) {
 	}
 }
 
-writeFileSync(`./metadata/chains.json`, JSON.stringify(finalChains, null, 4), 'utf8')
+writeFileSync(
+	`./metadata/chains.json`,
+	JSON.stringify(
+		Object.keys(finalChains)
+			.sort()
+			.reduce((r, k) => ((r[k] = finalChains[k]), r), {}),
+		null,
+		4
+	),
+	'utf8'
+)
 
 console.log('finished building metadata')
