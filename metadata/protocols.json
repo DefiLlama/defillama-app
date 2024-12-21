@@ -2405,7 +2405,8 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "484": {
         "name": "marinade-liquid-staking",
@@ -11110,7 +11111,8 @@
     "2086": {
         "name": "rage-trade-v1-(deprecated)",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2087": {
         "name": "chee-finance",
