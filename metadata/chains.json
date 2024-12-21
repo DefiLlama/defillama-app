@@ -494,7 +494,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1777,7 +1776,6 @@
         "name": "Stacks",
         "fees": true,
         "dexs": true,
-        "aggregators": true,
         "gecko_id": "blockstack",
         "tokenSymbol": "STX"
     },
