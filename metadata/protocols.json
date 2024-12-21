@@ -30100,11 +30100,6 @@
         "tvl": true,
         "yields": false
     },
-    "5538": {
-        "name": "swellchain-bridge",
-        "tvl": true,
-        "yields": false
-    },
     "5539": {
         "name": "panoptic",
         "tvl": true,

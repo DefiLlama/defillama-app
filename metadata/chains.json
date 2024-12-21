@@ -1837,7 +1837,8 @@
         "tokenSymbol": "SUI"
     },
     "swellchain": {
-        "name": "Swellchain"
+        "name": "Swellchain",
+        "chainAssets": true
     },
     "sxnetwork": {
         "name": "SXnetwork",
