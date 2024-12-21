@@ -1832,8 +1832,7 @@
     "391": {
         "name": "pantherswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "392": {
         "name": "wardenswap",
@@ -32466,6 +32465,7 @@
         "tvl": true,
         "governance": true,
         "liquidity": true,
+        "activeUsers": true,
         "dexs": true
     },
     "parent#polynomial-protocol": {
