@@ -146,7 +146,10 @@ export const descriptions = {
 	'Trading App':
 		'Apps that simplify trading tokens like memecoins with user-friendly interfaces, real-time updates, self-custodial tools, and direct fiat on-ramps for casual traders',
 	Foundation:
-		'A foundation supporting blockchain ecosystems by funding research, development, and community initiatives'
+		'A foundation supporting blockchain ecosystems by funding research, development, and community initiatives',
+	Liquidations: 'Protocols that enable the purchase of liquidated collateral from lending platforms or CDP protocols',
+	'Bridge Aggregator':
+		'Protocols that consolidate multiple bridging solutions, allowing users to transfer assets across different blockchains by finding the most efficient routes'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
