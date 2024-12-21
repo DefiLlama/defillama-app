@@ -7558,8 +7558,7 @@
         "tvl": true,
         "yields": true,
         "treasury": true,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "1434": {
         "name": "newspace-finance",
@@ -10733,7 +10732,7 @@
     "2007": {
         "name": "grizzlyfi-hives",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "2008": {
         "name": "forteswap",
@@ -15507,7 +15506,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -31515,7 +31514,7 @@
     },
     "parent#grizzlyfi": {
         "name": "grizzlyfi",
-        "yields": true,
+        "yields": false,
         "tvl": true,
         "fees": true,
         "revenue": true,
