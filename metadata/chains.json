@@ -615,6 +615,11 @@
         "gecko_id": "electroneum",
         "tokenSymbol": "ETN"
     },
+    "elys": {
+        "name": "Elys",
+        "gecko_id": "elys-network",
+        "tokenSymbol": "ELYS"
+    },
     "elysium": {
         "name": "Elysium",
         "chainAssets": true

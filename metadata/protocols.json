@@ -2119,8 +2119,7 @@
         "yields": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "439": {
         "name": "the-grand-banks",
@@ -15740,8 +15739,7 @@
     "2911": {
         "name": "aboard-exchange",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2912": {
         "name": "onsen-swap",
@@ -15956,8 +15954,7 @@
         "name": "archi-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2953": {
         "name": "zenith",
@@ -30124,6 +30121,16 @@
     "5543": {
         "name": "hackenai",
         "tvl": false,
+        "yields": false
+    },
+    "5544": {
+        "name": "elys-dex",
+        "tvl": true,
+        "yields": false
+    },
+    "5545": {
+        "name": "theo-network",
+        "tvl": true,
         "yields": false
     },
     "5567": {
