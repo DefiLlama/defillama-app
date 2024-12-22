@@ -52,6 +52,9 @@ echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
+rclone --config scripts/rclone.conf copy ./.next/static artifacts:defillama-app-artifacts
+rclone --config scripts/rclone.conf copy artifacts:defillama-app-artifacts ./.next/static
+
 if [ -z "$NOT_VERCEL" ]; then
   echo "NOT_VERCEL is not set, skipping discord notification"
   exit $BUILD_STATUS
@@ -61,9 +64,6 @@ if [ -n "$IS_BACKUP" ]; then
   echo "IS_BACKUP is set, skipping discord notification"
   exit $BUILD_STATUS
 fi
-
-rclone --config scripts/rclone.conf copy ./.next/static artifacts:defillama-app-artifacts
-rclone --config scripts/rclone.conf copy artifacts:defillama-app-artifacts ./.next/static
 
 node ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH"
 

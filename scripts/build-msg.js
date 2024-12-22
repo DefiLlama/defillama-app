@@ -65,6 +65,9 @@ const COMMIT_HASH = process.argv[8]
 
 let buildSummary = ''
 if (BUILD_STATUS === '0') {
+	if (process.env.IS_SHARD === "true") {
+		return // Skip logging, this is just a shard
+	}
 	buildSummary += `🎉 Build succeeded in ${BUILD_TIME_STR}`
 } else {
 	buildSummary += `🚨 Build failed in ${BUILD_TIME_STR}`
@@ -80,25 +83,32 @@ commitSummary += '\n' + `💬 ${COMMIT_COMMENT}`
 commitSummary += '\n' + `🦙 ${COMMIT_AUTHOR}`
 commitSummary += '\n' + `📸 ${COMMIT_HASH}`
 
+async function checkWebhookResponse(bodyResponse) {
+	if (!bodyResponse.ok) {
+		console.log(`Failed to post webhook`, await bodyResponse.text())
+	}
+}
+
 const sendMessages = async () => {
 	const message = `\`\`\`\n===== COMMIT SUMMARY =====\n${commitSummary}\n\n===== BUILD SUMMARY =====\n${buildSummary}\n\`\`\``
 	const body = { content: message }
-	await fetch(BUILD_STATUS_WEBHOOK, {
+	await checkWebhookResponse(await fetch(BUILD_STATUS_WEBHOOK, {
 		method: 'POST',
 		body: JSON.stringify(body),
 		headers: { 'Content-Type': 'application/json' }
-	})
+	}))
+
 
 	const buildLogId = await uploadBuildLog()
 	const buildLogUrl = `${LOGGER_API_URL}/get/${buildLogId}`
 	const buildLogMessage = `${EMOJI_PEPENOTES} ${buildLogUrl}`
 	console.log(buildLogMessage)
 	const buildLogBody = { content: buildLogMessage }
-	await fetch(BUILD_STATUS_WEBHOOK, {
+	await checkWebhookResponse(await fetch(BUILD_STATUS_WEBHOOK, {
 		method: 'POST',
 		body: JSON.stringify(buildLogBody),
 		headers: { 'Content-Type': 'application/json' }
-	})
+	}))
 
 	const authorMention = formatMention(COMMIT_AUTHOR)
 	const buildLlamasMentions = buildLlamas.map((llama) => formatMention(llama)).join(' ')
@@ -107,22 +117,22 @@ const sendMessages = async () => {
 		if (LLAMAS_LIST) {
 			const llamaMessage = `${EMOJI_CRINGE} ${authorMention}\n${EMOJI_BINOCULARS} ${BUILD_STATUS_DASHBOARD}`
 			const llamaBody = { content: llamaMessage }
-			await fetch(BUILD_STATUS_WEBHOOK, {
+			await checkWebhookResponse(await fetch(BUILD_STATUS_WEBHOOK, {
 				method: 'POST',
 				body: JSON.stringify(llamaBody),
 				headers: { 'Content-Type': 'application/json' }
-			})
+			}))
 		}
 	} else {
 		const emojis = [EMOJI_LLAMACHEER, EMOJI_BONG, EMOJI_BEEGLUBB, EMOJI_UPLLAMA, EMOJI_EVIL]
 		const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)]
 		const llamaMessage = `${randomEmoji}`
 		const llamaBody = { content: llamaMessage }
-		await fetch(BUILD_STATUS_WEBHOOK, {
+		await checkWebhookResponse(await fetch(BUILD_STATUS_WEBHOOK, {
 			method: 'POST',
 			body: JSON.stringify(llamaBody),
 			headers: { 'Content-Type': 'application/json' }
-		})
+		}))
 	}
 }
 
