@@ -28293,7 +28293,7 @@
     },
     "5177": {
         "name": "filament-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "raises": true,
         "fees": true,
