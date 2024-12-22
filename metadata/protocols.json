@@ -1199,8 +1199,7 @@
     "289": {
         "name": "yetiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "290": {
         "name": "penguin-finance",
@@ -2856,6 +2855,7 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -3207,6 +3207,7 @@
         "yields": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -9917,8 +9918,7 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1872": {
         "name": "rift-finance",
@@ -12446,8 +12446,7 @@
     "2333": {
         "name": "julswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2334": {
         "name": "defiedge",
@@ -12813,8 +12812,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "raises": true,
-        "activeUsers": true
+        "raises": true
     },
     "2398": {
         "name": "opyn-convexity",
@@ -14073,7 +14071,8 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "name": "metalx-dex",
