@@ -1404,6 +1404,11 @@
         "gecko_id": "byteball",
         "tokenSymbol": "GBYTE"
     },
+    "odyssey": {
+        "name": "Odyssey",
+        "gecko_id": "dione",
+        "tokenSymbol": "DIONE"
+    },
     "oktchain": {
         "name": "OKTChain",
         "dexs": true,

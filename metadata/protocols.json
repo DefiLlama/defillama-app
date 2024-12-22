@@ -30130,6 +30130,11 @@
         "tvl": true,
         "yields": false
     },
+    "5546": {
+        "name": "diamondswap",
+        "tvl": true,
+        "yields": false
+    },
     "5567": {
         "fees": true,
         "revenue": true
