@@ -25,10 +25,13 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	protocols.protocols.forEach((p) => {
 		const cat = p.category
 		if (!categories[cat]) {
-			categories[cat] = { protocols: 0, tvl: 0, revenue: 0 }
+			categories[cat] = { protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
 		}
 		categories[cat].protocols++
 		categories[cat].tvl += p.tvl
+		categories[cat].tvlPrevDay += p.tvlPrevDay ?? 0
+		categories[cat].tvlPrevWeek += p.tvlPrevWeek ?? 0
+		categories[cat].tvlPrevMonth += p.tvlPrevMonth ?? 0
 	})
 
 	Object.entries(aggregatedRevenuesByCat).forEach(([category, revenue]) => {
@@ -42,15 +45,21 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 	allCategories.forEach((cat) => {
 		if (!categories[cat]) {
-			categories[cat] = { protocols: 0, tvl: 0, revenue: 0 }
+			categories[cat] = { protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
 		}
 	})
 
 	const formattedCategories = Object.entries(categories).map(
-		([name, details]: [string, { tvl: number; revenue: number; protocols: number }]) => ({
+		([name, details]: [
+			string,
+			{ tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number; revenue: number; protocols: number }
+		]) => ({
 			name,
 			protocols: details.protocols > 0 ? details.protocols : '',
 			tvl: details.tvl,
+			tvlPrevDay: details.tvlPrevDay ?? 0,
+			tvlPrevWeek: details.tvlPrevWeek ?? 0,
+			tvlPrevMonth: details.tvlPrevMonth ?? 0,
 			revenue: details.revenue,
 			description: descriptions[name] || ''
 		})
@@ -155,6 +164,24 @@ export const descriptions = {
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
 	const { chainsWithExtraTvlsByDay: categoriesWithExtraTvlsByDay } = useCalcGroupExtraTvlsByDay(chartData)
 
+	const [selectedValue, setValue] = React.useState('Current')
+
+	const finalCategories = React.useMemo(() => {
+		return selectedValue === 'Current'
+			? categories
+			: categories.map((category) => {
+					return {
+						...category,
+						tvl:
+							selectedValue === 'Prev Day'
+								? category.tvlPrevDay
+								: selectedValue === 'Prev Week'
+								? category.tvlPrevWeek
+								: category.tvlPrevMonth
+					}
+			  })
+	}, [categories, selectedValue])
+
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
@@ -175,11 +202,29 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 			</div>
 
 			<TableWithSearch
-				data={categories}
+				data={finalCategories}
 				columns={categoriesColumn}
 				columnToSearch={'name'}
 				placeholder={'Search category...'}
+				customFilters={
+					<div className="flex items-center rounded-lg overflow-x-auto flex-nowrap w-fit">
+						{values.map((value) => {
+							return (
+								<button
+									className="flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm text-black dark:text-white bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-active-bg)] data-[active=true]:text-white"
+									data-active={value === selectedValue}
+									key={value}
+									onClick={() => setValue(value)}
+								>
+									{value}
+								</button>
+							)
+						})}
+					</div>
+				}
 			/>
 		</Layout>
 	)
 }
+
+const values = ['Current', 'Prev Day', 'Prev Week', 'Prev Month']
