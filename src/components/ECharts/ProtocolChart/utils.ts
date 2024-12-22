@@ -26,4 +26,4 @@ export const BAR_CHARTS = [
 	'Bridge Aggregators Volume'
 ]
 
-export const DISABLED_CUMULATIVE_CHARTS = ['Developers', 'Contributers', , 'Devs Commits', 'Contributers Commits']
+export const DISABLED_CUMULATIVE_CHARTS = ['Developers', 'Contributers', 'Devs Commits', 'Contributers Commits']

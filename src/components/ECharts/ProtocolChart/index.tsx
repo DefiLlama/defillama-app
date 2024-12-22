@@ -216,7 +216,7 @@ export default function AreaBarChart({
 									: null
 							}
 					  }
-					: { barWidth: isMonthly ? '5' : '1.2' }),
+					: {}),
 				markLine: {},
 				data: []
 			}
@@ -268,18 +268,7 @@ export default function AreaBarChart({
 		})
 
 		return { series, yAxisByIndex }
-	}, [
-		chartData,
-		stacks,
-		color,
-		customLegendName,
-		hallmarks,
-		isThemeDark,
-		stackColors,
-		isCumulative,
-		isMonthly,
-		groupBy
-	])
+	}, [chartData, stacks, color, customLegendName, hallmarks, isThemeDark, stackColors, isCumulative, groupBy])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
