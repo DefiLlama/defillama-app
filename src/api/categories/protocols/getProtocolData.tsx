@@ -249,7 +249,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		protocolMetadata[protocolData.id]?.emissions && !isCpusHot
 			? getProtocolEmissons(protocol)
 			: { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } },
-		!isCpusHot
+		protocolData.github && !isCpusHot
 			? fetchWithTimeout(devMetricsProtocolUrl, 10_000)
 					.then((r) => r.json())
 					.catch((e) => {

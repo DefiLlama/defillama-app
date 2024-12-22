@@ -42,6 +42,7 @@ export interface Protocol {
 	governanceID?: Array<string>
 	stablecoins?: Array<string>
 	deprecated?: boolean
+	github?: Array<string>
 }
 
 // TODO cleanup
