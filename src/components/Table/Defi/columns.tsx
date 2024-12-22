@@ -1129,6 +1129,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: 'Assets',
 		accessorKey: 'tvl',
+		accessorFn: (row) => row.tvl ?? undefined,
 		cell: (info) => {
 			return (
 				<>
@@ -1140,7 +1141,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				</>
 			)
 		},
-		sortingFn: sortingFns.datetime,
+		sortUndefined: 'last',
 		size: 120,
 		meta: {
 			align: 'end',
@@ -1151,6 +1152,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: 'Clean Assets',
 		accessorKey: 'cleanTvl',
+		accessorFn: (row) => row.cleanTvl ?? undefined,
 		cell: (info) => {
 			const coinSymbol = info.row.original.coinSymbol
 			return (
@@ -1172,7 +1174,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				</span>
 			)
 		},
-		sortingFn: sortingFns.datetime,
+		sortUndefined: 'last',
 		size: 145,
 		meta: {
 			align: 'end',
@@ -1182,6 +1184,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '24h Inflows',
 		accessorKey: '24hInflows',
+		accessorFn: (row) => row['24hInflows'] ?? undefined,
 		size: 120,
 		cell: (info) => (
 			<span
@@ -1197,7 +1200,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
-		sortingFn: sortingFns.datetime,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		}
@@ -1205,6 +1208,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '7d Inflows',
 		accessorKey: '7dInflows',
+		accessorFn: (row) => row['7dInflows'] ?? undefined,
 		size: 120,
 		cell: (info) => (
 			<span
@@ -1220,7 +1224,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
-		sortingFn: sortingFns.datetime,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		}
@@ -1228,6 +1232,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '1m Inflows',
 		accessorKey: '1mInflows',
+		accessorFn: (row) => row['1mInflows'] ?? undefined,
 		size: 120,
 		cell: (info) => (
 			<span
@@ -1243,7 +1248,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
-		sortingFn: sortingFns.datetime,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		}
@@ -1251,6 +1256,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: 'Custom range Inflows',
 		accessorKey: 'customRange',
+		accessorFn: (row) => row.customRange ?? undefined,
 		size: 200,
 		cell: (info) => (
 			<span
@@ -1266,7 +1272,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
-		sortingFn: sortingFns.datetime,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		}
@@ -1292,8 +1298,9 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: 'Spot Volume',
 		accessorKey: 'spotVolume',
+		accessorFn: (row) => row.spotVolume ?? undefined,
 		cell: (info) => (info.getValue() ? '$' + formattedNum(info.getValue()) : null),
-		sortingFn: sortingFns.datetime,
+		sortUndefined: 'last',
 		size: 125,
 		meta: {
 			align: 'end'
@@ -1302,8 +1309,9 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '24h Open Interest',
 		accessorKey: 'oi',
+		accessorFn: (row) => row.oi ?? undefined,
 		cell: (info) => (info.getValue() ? '$' + formattedNum(info.getValue()) : null),
-		sortingFn: sortingFns.datetime,
+		sortUndefined: 'last',
 		size: 160,
 		meta: {
 			align: 'end'
@@ -1312,8 +1320,9 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: 'Avg Leverage',
 		accessorKey: 'leverage',
+		accessorFn: (row) => row.leverage ?? undefined,
 		cell: (info) => (info.getValue() ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
-		sortingFn: sortingFns.datetime,
+		sortUndefined: 'last',
 		size: 120,
 		meta: {
 			align: 'end'
