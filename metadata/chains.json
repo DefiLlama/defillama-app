@@ -823,8 +823,7 @@
         "tokenSymbol": "GO"
     },
     "godwoken": {
-        "name": "Godwoken",
-        "dexs": true
+        "name": "Godwoken"
     },
     "godwokenv1": {
         "name": "GodwokenV1",
