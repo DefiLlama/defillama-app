@@ -494,7 +494,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -997,9 +996,7 @@
         "tokenSymbol": "IOTX"
     },
     "jbc": {
-        "name": "JBC",
-        "fees": true,
-        "dexs": true
+        "name": "JBC"
     },
     "joltify": {
         "name": "Joltify",
