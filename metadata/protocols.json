@@ -2934,7 +2934,8 @@
     "575": {
         "name": "coinswap-space",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "576": {
         "name": "unore",
@@ -10194,6 +10195,7 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -15406,7 +15408,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -17995,7 +17997,8 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "3315": {
         "name": "crescentswap",
