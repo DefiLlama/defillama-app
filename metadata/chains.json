@@ -996,6 +996,7 @@
     },
     "jbc": {
         "name": "JBC",
+        "fees": true,
         "dexs": true
     },
     "joltify": {
@@ -1761,6 +1762,7 @@
     },
     "sonic": {
         "name": "Sonic",
+        "fees": true,
         "dexs": true,
         "aggregators": true
     },
