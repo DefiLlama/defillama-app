@@ -176,24 +176,64 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	{
 		header: 'Protocols',
 		accessorKey: 'protocols',
-		size: 100
+		size: 100,
+		meta: {
+			align: 'end'
+		}
 	},
 	{
 		header: 'Combined TVL',
 		accessorKey: 'tvl',
+		accessorFn: (row) => row.tvl ?? undefined,
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
 			return value && value > 0 ? <>{'$' + formattedNum(value)}</> : <></>
 		},
+		meta: {
+			align: 'end'
+		},
+		sortUndefined: 'last',
 		size: 135
+	},
+	{
+		header: '1d Change',
+		accessorKey: 'change_1d',
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 110,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '7d Change',
+		accessorKey: 'change_7d',
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 110,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '1m Change',
+		accessorKey: 'change_1m',
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 110,
+		meta: {
+			align: 'end'
+		}
 	},
 	{
 		header: 'Combined 24h Revenue',
 		accessorKey: 'revenue',
+		accessorFn: (row) => row.revenue ?? undefined,
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
 			return value && value > 0 ? <>{'$' + formattedNum(value)}</> : <></>
 		},
+		meta: {
+			align: 'end'
+		},
+		sortUndefined: 'last',
 		size: 200
 	},
 	{

@@ -9,6 +9,7 @@ import { categoriesColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import Layout from '~/layout'
+import { getPercentChange } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
@@ -57,9 +58,9 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			name,
 			protocols: details.protocols > 0 ? details.protocols : '',
 			tvl: details.tvl,
-			tvlPrevDay: details.tvlPrevDay ?? 0,
-			tvlPrevWeek: details.tvlPrevWeek ?? 0,
-			tvlPrevMonth: details.tvlPrevMonth ?? 0,
+			change_1d: getPercentChange(details.tvl, details.tvlPrevDay),
+			change_7d: getPercentChange(details.tvl, details.tvlPrevWeek),
+			change_1m: getPercentChange(details.tvl, details.tvlPrevMonth),
 			revenue: details.revenue,
 			description: descriptions[name] || ''
 		})
@@ -164,24 +165,6 @@ export const descriptions = {
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
 	const { chainsWithExtraTvlsByDay: categoriesWithExtraTvlsByDay } = useCalcGroupExtraTvlsByDay(chartData)
 
-	const [selectedValue, setValue] = React.useState('Current')
-
-	const finalCategories = React.useMemo(() => {
-		return selectedValue === 'Current'
-			? categories
-			: categories.map((category) => {
-					return {
-						...category,
-						tvl:
-							selectedValue === 'Prev Day'
-								? category.tvlPrevDay
-								: selectedValue === 'Prev Week'
-								? category.tvlPrevWeek
-								: category.tvlPrevMonth
-					}
-			  })
-	}, [categories, selectedValue])
-
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
@@ -202,29 +185,11 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 			</div>
 
 			<TableWithSearch
-				data={finalCategories}
+				data={categories}
 				columns={categoriesColumn}
 				columnToSearch={'name'}
 				placeholder={'Search category...'}
-				customFilters={
-					<div className="flex items-center rounded-lg overflow-x-auto flex-nowrap w-fit">
-						{values.map((value) => {
-							return (
-								<button
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm text-black dark:text-white bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-active-bg)] data-[active=true]:text-white"
-									data-active={value === selectedValue}
-									key={value}
-									onClick={() => setValue(value)}
-								>
-									{value}
-								</button>
-							)
-						})}
-					</div>
-				}
 			/>
 		</Layout>
 	)
 }
-
-const values = ['Current', 'Prev Day', 'Prev Week', 'Prev Month']

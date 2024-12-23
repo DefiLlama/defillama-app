@@ -18,6 +18,10 @@ export interface ICategoryRow {
 	protocols: number
 	tvl: number
 	description: string
+	change_1d: number
+	change_7d: number
+	change_1m: number
+	revenue: number
 }
 
 export interface IChain {
