@@ -1782,6 +1782,7 @@
         "name": "Stacks",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "gecko_id": "blockstack",
         "tokenSymbol": "STX"
     },
