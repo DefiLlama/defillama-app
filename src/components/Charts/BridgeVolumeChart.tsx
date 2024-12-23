@@ -93,15 +93,15 @@ export default function BridgeVolumeChart({ chain = 'all', height = '360px' }: B
 	if (error) return <div>Error loading bridge volume data</div>
 	return (
 		<>
-			<div className="flex items-center justify-between mb-4 gap-8">
-				<div className="flex items-center gap-2">
-					<span className="text-sm font-medium text-[var(--text2)]">Time Period:</span>
+			<div className="flex flex-wrap gap-4 mb-4">
+				<div className="flex-1 min-w-[200px]">
+					<span className="text-sm font-medium text-[var(--text2)] block mb-2">Time Period:</span>
 					<div className="bg-[var(--bg7)] rounded-lg p-1 flex gap-1">
 						{TIME_PERIODS.map((period) => (
 							<button
 								key={period}
 								onClick={() => setTimePeriod(period)}
-								className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+								className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
 									timePeriod === period
 										? 'bg-blue-500 text-white shadow-sm'
 										: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
@@ -113,12 +113,12 @@ export default function BridgeVolumeChart({ chain = 'all', height = '360px' }: B
 					</div>
 				</div>
 
-				<div className="flex items-center gap-2">
-					<span className="text-sm font-medium text-[var(--text2)]">View:</span>
+				<div className="flex-1 min-w-[200px]">
+					<span className="text-sm font-medium text-[var(--text2)] block mb-2">View:</span>
 					<div className="bg-[var(--bg7)] rounded-lg p-1 flex gap-1">
 						<button
 							onClick={() => setViewType('Split')}
-							className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+							className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
 								viewType === 'Split'
 									? 'bg-blue-500 text-white shadow-sm'
 									: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
@@ -128,7 +128,7 @@ export default function BridgeVolumeChart({ chain = 'all', height = '360px' }: B
 						</button>
 						<button
 							onClick={() => setViewType('Combined')}
-							className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+							className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
 								viewType === 'Combined'
 									? 'bg-blue-500 text-white shadow-sm'
 									: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
@@ -139,12 +139,12 @@ export default function BridgeVolumeChart({ chain = 'all', height = '360px' }: B
 					</div>
 				</div>
 
-				<div className="flex items-center gap-2">
-					<span className="text-sm font-medium text-[var(--text2)]">Metric:</span>
+				<div className="flex-1 min-w-[200px]">
+					<span className="text-sm font-medium text-[var(--text2)] block mb-2">Metric:</span>
 					<div className="bg-[var(--bg7)] rounded-lg p-1 flex gap-1">
 						<button
 							onClick={() => setMetricType('Volume')}
-							className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+							className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
 								metricType === 'Volume'
 									? 'bg-blue-500 text-white shadow-sm'
 									: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
@@ -154,13 +154,13 @@ export default function BridgeVolumeChart({ chain = 'all', height = '360px' }: B
 						</button>
 						<button
 							onClick={() => setMetricType('Transactions')}
-							className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+							className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
 								metricType === 'Transactions'
 									? 'bg-blue-500 text-white shadow-sm'
 									: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
 							}`}
 						>
-							Transactions Number
+							Transactions
 						</button>
 					</div>
 				</div>
