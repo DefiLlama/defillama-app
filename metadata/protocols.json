@@ -3129,8 +3129,7 @@
         "yields": false,
         "governance": true,
         "liquidity": true,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "608": {
         "name": "cap",
@@ -30493,7 +30492,8 @@
     "parent#avalon-labs": {
         "name": "avalon-labs",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "raises": true
     },
     "parent#avely-finance": {
         "name": "avely-finance",
@@ -31588,6 +31588,7 @@
         "name": "inception",
         "yields": true,
         "tvl": true,
+        "fees": true,
         "revenue": true
     },
     "parent#increment-finance": {
