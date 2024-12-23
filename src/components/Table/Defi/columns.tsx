@@ -1004,7 +1004,7 @@ const keySorting = (key: string) => (rowA, rowB) => {
 	return parseFloat(valueB) - parseFloat(valueA)
 }
 
-export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
+export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow>[] = [
 	{
 		header: () => 'Name',
 		accessorKey: 'name',
@@ -1056,7 +1056,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		enableSorting: true,
 		sortingFn: keySorting('total'),
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue()?.total
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		}
@@ -1086,7 +1086,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		enableSorting: true,
 		sortingFn: keySorting('native'),
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue()?.total
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		}
@@ -1097,7 +1097,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		enableSorting: true,
 		sortingFn: keySorting('canonical'),
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue()?.total
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		}
@@ -1108,7 +1108,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		enableSorting: true,
 		sortingFn: keySorting('ownTokens'),
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue()?.total
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		}
@@ -1119,7 +1119,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow['total']>[] = [
 		enableSorting: true,
 		sortingFn: keySorting('thirdParty'),
 		cell: (info) => {
-			const value = info.getValue()
+			const value = info.getValue()?.total
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		}
