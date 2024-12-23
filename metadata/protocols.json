@@ -9460,7 +9460,10 @@
     "1788": {
         "name": "invariant",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "1789": {
         "name": "gale",
@@ -13546,7 +13549,6 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -25996,7 +25998,7 @@
     },
     "4776": {
         "name": "mutuari",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4777": {
@@ -30083,7 +30085,9 @@
     "5533": {
         "name": "memejob",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "5534": {
         "name": "stacks-sbtc",
