@@ -30154,6 +30154,16 @@
         "tvl": true,
         "yields": false
     },
+    "5548": {
+        "name": "neutral-trade",
+        "tvl": true,
+        "yields": false
+    },
+    "5549": {
+        "name": "lander",
+        "tvl": true,
+        "yields": false
+    },
     "5567": {
         "fees": true,
         "revenue": true
