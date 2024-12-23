@@ -31587,7 +31587,8 @@
     "parent#inception": {
         "name": "inception",
         "yields": true,
-        "tvl": true
+        "tvl": true,
+        "revenue": true
     },
     "parent#increment-finance": {
         "name": "increment-finance",
