@@ -271,7 +271,7 @@ export function useFetchAndFormatChartData({
 
 			let prevDate = null
 
-			tvlData.forEach(([dateS, TVL]) => {
+			for (const [dateS, TVL] of tvlData) {
 				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (prevDate && +date - prevDate > 86400) {
@@ -296,18 +296,11 @@ export function useFetchAndFormatChartData({
 				prevDate = +date
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['TVL'] = showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL
-			})
-		}
-
-		if (isHourlyChart && tvl !== 'false') {
-			tvlData.forEach(([dateS, TVL]) => {
-				const date = nearestUtc(+dateS * 1000) / 1000
-				chartData[date] = chartData[dateS]
-			})
+			}
 		}
 
 		if (staking === 'true' && historicalChainTvls['staking']?.tvl?.length > 0) {
@@ -315,7 +308,7 @@ export function useFetchAndFormatChartData({
 
 			let prevDate = null
 
-			historicalChainTvls['staking'].tvl.forEach(({ date: dateS, totalLiquidityUSD }) => {
+			for (const { date: dateS, totalLiquidityUSD } of historicalChainTvls['staking'].tvl) {
 				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (prevDate && +date - prevDate > 86400) {
@@ -342,13 +335,13 @@ export function useFetchAndFormatChartData({
 				prevDate = date
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Staking'] = showNonUsdDenomination
 					? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
 					: totalLiquidityUSD
-			})
+			}
 		}
 
 		if (borrowed === 'true' && historicalChainTvls['borrowed']?.tvl?.length > 0) {
@@ -356,7 +349,7 @@ export function useFetchAndFormatChartData({
 
 			let prevDate = null
 
-			historicalChainTvls['borrowed'].tvl.forEach(({ date: dateS, totalLiquidityUSD }) => {
+			for (const { date: dateS, totalLiquidityUSD } of historicalChainTvls['borrowed'].tvl) {
 				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (prevDate && +date - prevDate > 86400) {
@@ -383,29 +376,29 @@ export function useFetchAndFormatChartData({
 				prevDate = date
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Borrowed'] = showNonUsdDenomination
 					? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
 					: totalLiquidityUSD
-			})
+			}
 		}
 
 		if (geckoId && protocolCGData) {
 			if (mcap === 'true' && protocolCGData['mcaps'] && protocolCGData['mcaps'].length > 0) {
 				chartsUnique.push('Mcap')
 
-				protocolCGData['mcaps'].forEach(([dateMs, Mcap]) => {
+				for (const [dateMs, Mcap] of protocolCGData['mcaps']) {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
 					if (!chartData[date]) {
-						chartData[date] = {}
+						chartData[date] = { date }
 					}
 
 					chartData[date]['Mcap'] = showNonUsdDenomination
 						? Mcap / getPriceAtDate(date, denominationHistory.prices)
 						: Mcap
-				})
+				}
 
 				if (
 					tvlData.length > 0 &&
@@ -427,16 +420,16 @@ export function useFetchAndFormatChartData({
 			if (tokenPrice === 'true') {
 				chartsUnique.push('Token Price')
 
-				protocolCGData['prices'].forEach(([dateMs, price]) => {
+				for (const [dateMs, price] of protocolCGData['prices']) {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
 					if (!chartData[date]) {
-						chartData[date] = {}
+						chartData[date] = { date }
 					}
 
 					chartData[date]['Token Price'] = showNonUsdDenomination
 						? price / getPriceAtDate(date, denominationHistory.prices)
 						: price
-				})
+				}
 
 				if (
 					tvlData.length > 0 &&
@@ -460,15 +453,15 @@ export function useFetchAndFormatChartData({
 
 				const totalSupply = fdvData['data']['total_supply']
 
-				protocolCGData['prices'].forEach(([dateMs, price]) => {
+				for (const [dateMs, price] of protocolCGData['prices']) {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
 					if (!chartData[date]) {
-						chartData[date] = {}
+						chartData[date] = { date }
 					}
 					const fdv = totalSupply * price
 
 					chartData[date]['FDV'] = showNonUsdDenomination ? fdv / getPriceAtDate(date, denominationHistory.prices) : fdv
-				})
+				}
 
 				if (
 					tvlData.length > 0 &&
@@ -489,16 +482,16 @@ export function useFetchAndFormatChartData({
 			if (tokenVolume === 'true') {
 				chartsUnique.push('Token Volume')
 
-				protocolCGData['volumes'].forEach(([dateMs, price]) => {
+				for (const [dateMs, price] of protocolCGData['volumes']) {
 					const date = Math.floor(nearestUtc(dateMs) / 1000)
 					if (!chartData[date]) {
-						chartData[date] = {}
+						chartData[date] = { date }
 					}
 
 					chartData[date]['Token Volume'] = showNonUsdDenomination
 						? price / getPriceAtDate(date, denominationHistory.prices)
 						: price
-				})
+				}
 
 				if (
 					tvlData.length > 0 &&
@@ -521,26 +514,26 @@ export function useFetchAndFormatChartData({
 		if (tokenLiquidityData) {
 			chartsUnique.push('Token Liquidity')
 
-			tokenLiquidityData.forEach((item) => {
+			for (const item of tokenLiquidityData) {
 				const date = Math.floor(nearestUtc(+item[0] * 1000) / 1000)
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Token Liquidity'] = showNonUsdDenomination
 					? item[1] / getPriceAtDate(date, denominationHistory.prices)
 					: item[1]
-			})
+			}
 		}
 
 		if (bridgeVolumeData) {
 			chartsUnique.push('Bridge Deposits')
 			chartsUnique.push('Bridge Withdrawals')
 
-			bridgeVolumeData.forEach((item) => {
+			for (const item of bridgeVolumeData) {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Bridge Deposits'] = showNonUsdDenomination
@@ -549,97 +542,97 @@ export function useFetchAndFormatChartData({
 				chartData[date]['Bridge Withdrawals'] = showNonUsdDenomination
 					? item.Withdrawn / getPriceAtDate(date, denominationHistory.prices)
 					: item.Withdrawn
-			})
+			}
 		}
 
 		if (volumeData) {
 			chartsUnique.push('Volume')
 
-			volumeData.forEach((item) => {
+			for (const item of volumeData) {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Volume'] = showNonUsdDenomination
 					? +item.Dexs / getPriceAtDate(date, denominationHistory.prices)
 					: item.Dexs
-			})
+			}
 		}
 
 		if (perpsVolumeData) {
 			chartsUnique.push('Perps Volume')
 
-			perpsVolumeData.forEach((item) => {
+			for (const item of perpsVolumeData) {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Perps Volume'] = showNonUsdDenomination
 					? +item.Derivatives / getPriceAtDate(date, denominationHistory.prices)
 					: item.Derivatives
-			})
+			}
 		}
 
 		if (optionsVolumeData) {
 			chartsUnique.push('Premium Volume')
 
-			optionsVolumeData.forEach((item) => {
+			for (const item of optionsVolumeData) {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Premium Volume'] = showNonUsdDenomination
 					? +item['Premium volume'] / getPriceAtDate(date, denominationHistory.prices)
 					: item['Premium volume']
-			})
+			}
 		}
 
 		if (aggregatorsVolumeData) {
 			chartsUnique.push('Aggregators Volume')
 
-			aggregatorsVolumeData.forEach((item) => {
+			for (const item of aggregatorsVolumeData) {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Aggregators Volume'] = showNonUsdDenomination
 					? +item.Aggregators / getPriceAtDate(date, denominationHistory.prices)
 					: item.Aggregators
-			})
+			}
 		}
 
 		if (perpsAggregatorsVolumeData) {
 			chartsUnique.push('Perps Aggregators Volume')
 
-			perpsAggregatorsVolumeData.forEach((item) => {
+			for (const item of perpsAggregatorsVolumeData) {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Perps Aggregators Volume'] = showNonUsdDenomination
 					? +item['Aggregator-derivatives'] / getPriceAtDate(date, denominationHistory.prices)
 					: item['Aggregator-derivatives']
-			})
+			}
 		}
 
 		if (bridgeAggregatorsVolumeData) {
 			chartsUnique.push('Bridge Aggregators Volume')
 
-			bridgeAggregatorsVolumeData.forEach((item) => {
+			for (const item of bridgeAggregatorsVolumeData) {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Bridge Aggregators Volume'] = showNonUsdDenomination
 					? +item['Bridge-aggregators'] / getPriceAtDate(date, denominationHistory.prices)
 					: item['Bridge-aggregators']
-			})
+			}
 		}
 
 		if (feesAndRevenue) {
@@ -651,10 +644,10 @@ export function useFetchAndFormatChartData({
 				chartsUnique.push('Revenue')
 			}
 
-			feesAndRevenue.forEach((item) => {
+			for (const item of feesAndRevenue) {
 				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				if (fees === 'true') {
@@ -668,22 +661,22 @@ export function useFetchAndFormatChartData({
 						? +item.Revenue / getPriceAtDate(date, denominationHistory.prices)
 						: item.Revenue
 				}
-			})
+			}
 		}
 
 		if (twitterData && twitterData?.tweets && twitterData?.lastTweet) {
 			chartsUnique.push('Tweets')
 
-			twitterData?.tweets?.forEach((tweet) => {
+			for (const tweet of twitterData?.tweets ?? []) {
 				const date = dayjs(tweet[0] * 1000)
 					.startOf('day')
 					.unix()
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Tweets'] = (chartData[date]['Tweets'] || 0) + tweet[1]
-			})
+			}
 		}
 
 		if (unlocksData && unlocksData.chartData.documented && unlocksData.chartData.documented.length > 0) {
@@ -693,7 +686,7 @@ export function useFetchAndFormatChartData({
 				.forEach((item) => {
 					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 					if (!chartData[date]) {
-						chartData[date] = {}
+						chartData[date] = { date }
 					}
 
 					let totalUnlocked = 0
@@ -711,69 +704,69 @@ export function useFetchAndFormatChartData({
 		if (activeAddressesData) {
 			chartsUnique.push('Active Addresses')
 
-			activeAddressesData.forEach(([dateS, noOfUsers]) => {
+			for (const [dateS, noOfUsers] of activeAddressesData) {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Active Addresses'] = noOfUsers || 0
-			})
+			}
 		}
 		if (newAddressesData) {
 			chartsUnique.push('New Addresses')
 
-			newAddressesData.forEach(([dateS, noOfUsers]) => {
+			for (const [dateS, noOfUsers] of newAddressesData) {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['New Addresses'] = noOfUsers || 0
-			})
+			}
 		}
 		if (transactionsData) {
 			chartsUnique.push('Transactions')
 
-			transactionsData.forEach(([dateS, noOfTxs]) => {
+			for (const [dateS, noOfTxs] of transactionsData) {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Transactions'] = noOfTxs || 0
-			})
+			}
 		}
 		if (gasData) {
 			chartsUnique.push('Gas Used')
 
-			gasData.forEach(([dateS, gasAmount]) => {
+			for (const [dateS, gasAmount] of gasData) {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Gas Used'] = showNonUsdDenomination
 					? gasAmount / getPriceAtDate(date, denominationHistory.prices)
 					: gasAmount
-			})
+			}
 		}
 		if (medianAPYData) {
 			chartsUnique.push('Median APY')
 
-			medianAPYData.forEach(({ date: dateS, medianAPY }) => {
+			for (const { date: dateS, medianAPY } of medianAPYData) {
 				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Median APY'] = medianAPY
-			})
+			}
 		}
 
 		if (!isHourlyChart && usdInflows === 'true' && usdInflowsData) {
@@ -810,7 +803,7 @@ export function useFetchAndFormatChartData({
 				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['USD Inflows'] = inflows
@@ -822,45 +815,46 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Successful Proposals')
 			chartsUnique.push('Max Votes')
 
-			governanceData.forEach((item) =>
-				item.activity?.forEach((item) => {
+			for (const gItem of governanceData) {
+				for (const item of gItem.activity ?? []) {
 					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 
 					if (!chartData[date]) {
-						chartData[date] = {}
+						chartData[date] = { date }
 					}
 
 					chartData[date]['Total Proposals'] = item['Total'] || 0
 					chartData[date]['Successful Proposals'] = item['Successful'] || 0
-				})
-			)
+				}
+			}
 
-			governanceData.forEach((item) =>
-				item.maxVotes?.forEach((item) => {
+			for (const gItem of governanceData) {
+				for (const item of gItem.maxVotes ?? []) {
 					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
 
 					if (!chartData[date]) {
-						chartData[date] = {}
+						chartData[date] = { date }
 					}
 
 					chartData[date]['Max Votes'] = item['Max Votes'] || 0
-				})
-			)
+				}
+			}
 		}
+
 		if (devMetricsData && contributersMetrics === 'true') {
 			chartsUnique.push('Contributers')
 
 			const metricKey = groupBy === 'monthly' ? 'monthly_contributers' : 'weekly_contributers'
 
-			devMetricsData.report?.[metricKey].forEach(({ k, v }) => {
+			for (const { k, v } of devMetricsData.report?.[metricKey] ?? []) {
 				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Contributers'] = v || 0
-			})
+			}
 		}
 
 		if (devMetricsData && devMetrics === 'true') {
@@ -868,21 +862,21 @@ export function useFetchAndFormatChartData({
 
 			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
 
-			devMetricsData.report?.[metricKey].forEach(({ k, v }) => {
+			for (const { k, v } of devMetricsData.report?.[metricKey] ?? []) {
 				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Developers'] = v || 0
-			})
+			}
 		}
 
 		if (nftVolumeData?.length && nftVolume === 'true') {
 			chartsUnique.push('NFT Volume')
 
-			nftVolumeData.forEach(({ date, volume, volumeUsd }) => {
+			for (const { date, volume, volumeUsd } of nftVolumeData) {
 				const ts = Math.floor(nearestUtc(dayjs(date).toDate().getTime()) / 1000)
 
 				if (!chartData[ts]) {
@@ -890,7 +884,7 @@ export function useFetchAndFormatChartData({
 				}
 
 				chartData[ts]['NFT Volume'] = (showNonUsdDenomination ? volume : volumeUsd) || 0
-			})
+			}
 		}
 
 		if (devMetricsData && devCommits === 'true') {
@@ -898,15 +892,15 @@ export function useFetchAndFormatChartData({
 
 			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
 
-			devMetricsData.report?.[metricKey].forEach(({ k, cc }) => {
+			for (const { k, cc } of devMetricsData.report?.[metricKey] ?? []) {
 				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Devs Commits'] = cc || 0
-			})
+			}
 		}
 
 		if (devMetricsData && contributersCommits === 'true') {
@@ -914,15 +908,15 @@ export function useFetchAndFormatChartData({
 
 			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
 
-			devMetricsData.report?.[metricKey].forEach(({ k, cc }) => {
+			for (const { k, cc } of devMetricsData.report?.[metricKey] ?? []) {
 				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Contributers Commits'] = cc || 0
-			})
+			}
 		}
 
 		if (treasuryData) {
@@ -931,7 +925,7 @@ export function useFetchAndFormatChartData({
 
 			let prevDate = null
 
-			tData.forEach(([dateS, treasuryValue]) => {
+			for (const [dateS, treasuryValue] of tData) {
 				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
 
 				// if (prevDate && +date - prevDate > 86400) {
@@ -958,13 +952,13 @@ export function useFetchAndFormatChartData({
 				// prevDate = date
 
 				if (!chartData[date]) {
-					chartData[date] = {}
+					chartData[date] = { date }
 				}
 
 				chartData[date]['Treasury'] = showNonUsdDenomination
 					? treasuryValue / getPriceAtDate(dateS, denominationHistory.prices)
 					: treasuryValue
-			})
+			}
 		}
 
 		return {
@@ -1195,11 +1189,11 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 			chartsUnique.forEach((chartType) => {
 				if (forceGroup) {
 					if (!chartData[currentDate]) {
-						chartData[currentDate] = {}
+						chartData[currentDate] = { date: currentDate }
 					}
 				} else {
 					if (!chartData[date]) {
-						chartData[date] = {}
+						chartData[date] = { date }
 					}
 				}
 
@@ -1217,24 +1211,16 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 			})
 		}
 
-		const finalData = Object.entries(chartData)
+		const finalData = Object.values(chartData)
 		const invalidDateIndex =
 			groupBy === 'weekly'
-				? finalData.slice(-7).findIndex((x) => +x[0] > Math.floor(new Date().getTime() / 1000))
+				? finalData.slice(-7).findIndex((x: any) => +x.date > Math.floor(new Date().getTime() / 1000))
 				: null
 
-		return finalData
-			.slice(0, invalidDateIndex ? -7 + invalidDateIndex : -1)
-			.map(([date, values]: [string, { [key: string]: number }]) => ({
-				date,
-				...values
-			}))
+		return invalidDateIndex ? finalData.slice(0, -7 + invalidDateIndex) : finalData
 	}
 
-	return Object.entries(data).map(([date, values]: [string, { [key: string]: number }]) => ({
-		date,
-		...values
-	}))
+	return Object.values(data)
 }
 
 const getPriceAtDate = (date: string | number, history: Array<[number, number]>) => {
