@@ -1391,8 +1391,7 @@
     },
     "oasis-sapphire": {
         "name": "Oasis Sapphire",
-        "fees": true,
-        "dexs": true
+        "fees": true
     },
     "oasys": {
         "name": "Oasys",

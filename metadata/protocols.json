@@ -1945,7 +1945,8 @@
     "409": {
         "name": "cafeswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "410": {
         "name": "swamp-finance",
@@ -11696,7 +11697,8 @@
     "2186": {
         "name": "usdfi-lending",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2187": {
         "name": "dolomite",
@@ -13846,7 +13848,8 @@
     "2577": {
         "name": "sharky-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2578": {
         "name": "beamer-bridge",
@@ -30071,7 +30074,8 @@
     "5532": {
         "name": "teleswap-ton",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "bridgeAggregators": true
     },
     "5533": {
         "name": "memejob",
@@ -32743,7 +32747,6 @@
         "name": "smbswap",
         "yields": false,
         "tvl": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
