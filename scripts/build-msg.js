@@ -65,9 +65,6 @@ const COMMIT_HASH = process.argv[8]
 
 let buildSummary = ''
 if (BUILD_STATUS === '0') {
-	if (process.env.IS_SHARD === "true") {
-		return // Skip logging, this is just a shard
-	}
 	buildSummary += `🎉 Build succeeded in ${BUILD_TIME_STR}`
 } else {
 	buildSummary += `🚨 Build failed in ${BUILD_TIME_STR}`
@@ -90,6 +87,9 @@ async function checkWebhookResponse(bodyResponse) {
 }
 
 const sendMessages = async () => {
+	if (BUILD_STATUS === '0' && process.env.IS_SHARD === "true") {
+		return // Skip logging, this is just a shard
+	}
 	const message = `\`\`\`\n===== COMMIT SUMMARY =====\n${commitSummary}\n\n===== BUILD SUMMARY =====\n${buildSummary}\n\`\`\``
 	const body = { content: message }
 	await checkWebhookResponse(await fetch(BUILD_STATUS_WEBHOOK, {
