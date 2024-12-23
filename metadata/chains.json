@@ -1132,6 +1132,7 @@
         "activeUsers": true,
         "fees": true,
         "aggregators": true,
+        "bridge-aggregators": true,
         "gecko_id": "litecoin",
         "tokenSymbol": "LTC"
     },
@@ -1325,6 +1326,7 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
+        "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
         "tokenSymbol": "NEAR"
@@ -1391,7 +1393,8 @@
     },
     "oasis-sapphire": {
         "name": "Oasis Sapphire",
-        "fees": true
+        "fees": true,
+        "dexs": true
     },
     "oasys": {
         "name": "Oasys",
@@ -1871,6 +1874,7 @@
         "name": "Taraxa",
         "fees": true,
         "dexs": true,
+        "bridge-aggregators": true,
         "gecko_id": "taraxa",
         "tokenSymbol": "TARA"
     },
