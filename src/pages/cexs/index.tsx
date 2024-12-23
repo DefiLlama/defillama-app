@@ -666,7 +666,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 			if (c.slug === undefined) {
 				return c
 			} else {
-				const res = await Promise.all([
+				const res = await Promise.allSettled([
 					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
 					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
 						r.json()
@@ -682,7 +682,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 					return c
 				}
 
-				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = res
+				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = res.map((p) => p.value)
 
 				let cexTvl = 0
 
