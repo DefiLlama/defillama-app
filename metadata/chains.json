@@ -494,7 +494,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -823,7 +822,8 @@
         "tokenSymbol": "GO"
     },
     "godwoken": {
-        "name": "Godwoken"
+        "name": "Godwoken",
+        "dexs": true
     },
     "godwokenv1": {
         "name": "GodwokenV1",
@@ -995,7 +995,8 @@
         "tokenSymbol": "IOTX"
     },
     "jbc": {
-        "name": "JBC"
+        "name": "JBC",
+        "dexs": true
     },
     "joltify": {
         "name": "Joltify",
@@ -1760,6 +1761,7 @@
     },
     "sonic": {
         "name": "Sonic",
+        "dexs": true,
         "aggregators": true
     },
     "sophon": {
