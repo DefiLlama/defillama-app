@@ -1217,10 +1217,18 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 			})
 		}
 
-		return Object.entries(chartData).map(([date, values]: [string, { [key: string]: number }]) => ({
-			date,
-			...values
-		}))
+		const finalData = Object.entries(chartData)
+		const invalidDateIndex =
+			groupBy === 'weekly'
+				? finalData.slice(-7).findIndex((x) => +x[0] > Math.floor(new Date().getTime() / 1000))
+				: null
+
+		return finalData
+			.slice(0, invalidDateIndex ? -7 + invalidDateIndex : -1)
+			.map(([date, values]: [string, { [key: string]: number }]) => ({
+				date,
+				...values
+			}))
 	}
 
 	return Object.entries(data).map(([date, values]: [string, { [key: string]: number }]) => ({
@@ -1316,7 +1324,7 @@ function lastDayOfWeek(dateString) {
 	date.setSeconds(0)
 	date.setMilliseconds(0)
 
-	return date.getTime() > new Date().getTime() ? new Date().getTime() / 1000 : date.getTime() / 1000
+	return date.getTime() / 1000
 }
 export const lastDayOfMonth = (dateString) => {
 	let date = new Date(dateString)
