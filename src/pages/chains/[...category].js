@@ -25,25 +25,6 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export async function getStaticPaths() {
-	const { chainCoingeckoIds = {} } = await fetch(CONFIG_API).then((res) => res.json())
-
-	const categories = ['All', 'Non-EVM']
-	for (const chain in chainCoingeckoIds) {
-		chainCoingeckoIds[chain].categories?.forEach((category) => {
-			if (!categories.includes(category)) {
-				categories.push(category)
-			}
-		})
-	}
-
-	const paths = categories.map((category) => ({
-		params: { category: [category] }
-	}))
-
-	return { paths, fallback: 'blocking' }
-}
-
 export default function Chains(props) {
 	const { category } = props
 	return (
