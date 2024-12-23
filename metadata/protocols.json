@@ -620,7 +620,7 @@
         "hacks": true
     },
     "199": {
-        "name": "sablier-v1",
+        "name": "sablier-legacy",
         "tvl": true,
         "yields": false
     },
@@ -18075,7 +18075,7 @@
         "liquidity": true
     },
     "3308": {
-        "name": "sablier-v2",
+        "name": "sablier-lockup",
         "tvl": true,
         "yields": false
     },
@@ -30256,6 +30256,11 @@
     },
     "5546": {
         "name": "diamondswap",
+        "tvl": true,
+        "yields": false
+    },
+    "5547": {
+        "name": "lagoon",
         "tvl": true,
         "yields": false
     },
