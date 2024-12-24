@@ -23137,7 +23137,7 @@
     "4244": {
         "name": "staking-rewards-sreth",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "4245": {
         "name": "lessgas",
@@ -32888,7 +32888,7 @@
     },
     "parent#spool-protocol": {
         "name": "yelay-protocol",
-        "yields": true,
+        "yields": false,
         "tvl": true,
         "governance": true,
         "treasury": true
