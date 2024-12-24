@@ -30165,12 +30165,9 @@
     "5551": {
         "name": "zivoe",
         "tvl": false,
-        "yields": false
-    },
-    "5552": {
-        "name": "cronos-zkevm-bridge",
-        "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "5567": {
         "fees": true,
