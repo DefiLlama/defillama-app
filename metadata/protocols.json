@@ -3056,7 +3056,8 @@
     "595": {
         "name": "convergence",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "596": {
         "name": "flux-protocol",
@@ -3632,6 +3633,7 @@
         "name": "dinosaur-eggs",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "696": {
@@ -4183,7 +4185,8 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "816": {
         "name": "xsigma",
@@ -11540,7 +11543,7 @@
     },
     "2159": {
         "name": "amulet-v1",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "raises": true
     },
@@ -14014,6 +14017,7 @@
         "tvl": false,
         "yields": false,
         "governance": true,
+        "nfts": true,
         "raises": true,
         "fees": true,
         "revenue": true
@@ -14475,7 +14479,8 @@
         "tvl": true,
         "yields": false,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2688": {
         "name": "palma-swap",
@@ -17999,7 +18004,8 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "3315": {
         "name": "crescentswap",
