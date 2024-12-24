@@ -1217,7 +1217,7 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 				? finalData.slice(-7).findIndex((x: any) => +x.date > Math.floor(new Date().getTime() / 1000))
 				: null
 
-		return invalidDateIndex ? finalData.slice(0, -7 + invalidDateIndex) : finalData
+		return invalidDateIndex && invalidDateIndex !== -1 ? finalData.slice(0, -7 + invalidDateIndex) : finalData
 	}
 
 	return Object.values(data)

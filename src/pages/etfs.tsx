@@ -80,6 +80,7 @@ export const getStaticProps = withPerformanceLogging('etfs', async () => {
 	const processedFlows = data.props.flows.reduce((acc, { gecko_id, day, total_flow_usd }) => {
 		const timestamp = (new Date(day).getTime() / 86400 / 1000) * 86400
 		acc[timestamp] = {
+			date: timestamp,
 			...acc[timestamp],
 			[gecko_id.charAt(0).toUpperCase() + gecko_id.slice(1)]: total_flow_usd
 		}
