@@ -485,7 +485,8 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
-        "bridge-aggregators": true
+        "bridge-aggregators": true,
+        "chainAssets": true
     },
     "csc": {
         "name": "CSC",

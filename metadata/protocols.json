@@ -30167,6 +30167,11 @@
         "fees": true,
         "revenue": true
     },
+    "5553": {
+        "name": "kopi-dex",
+        "tvl": true,
+        "yields": false
+    },
     "5567": {
         "fees": true,
         "revenue": true
