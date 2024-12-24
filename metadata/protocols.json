@@ -3129,7 +3129,8 @@
         "yields": false,
         "governance": true,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "608": {
         "name": "cap",
@@ -11543,7 +11544,7 @@
     },
     "2159": {
         "name": "amulet-v1",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "raises": true
     },
@@ -15413,7 +15414,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
