@@ -163,7 +163,7 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span>{' '}
 					<CustomLink
-						href={`/protocols/${getValue()}`}
+						href={`/protocols/${slug(getValue() as string)}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}

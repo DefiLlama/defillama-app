@@ -159,7 +159,10 @@ export const descriptions = {
 		'A foundation supporting blockchain ecosystems by funding research, development, and community initiatives',
 	Liquidations: 'Protocols that enable the purchase of liquidated collateral from lending platforms or CDP protocols',
 	'Bridge Aggregator':
-		'Protocols that consolidate multiple bridging solutions, allowing users to transfer assets across different blockchains by finding the most efficient routes'
+		'Protocols that consolidate multiple bridging solutions, allowing users to transfer assets across different blockchains by finding the most efficient routes',
+	'Restaked BTC': '',
+	'Decentralized BTC': '',
+	'Anchor BTC': ''
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
