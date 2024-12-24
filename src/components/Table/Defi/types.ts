@@ -112,10 +112,11 @@ export interface AirdropRow {
 
 export interface IBridgedRow {
 	name: string
-	total: ChainAssets['total']
-	thirdParty: ChainAssets['thirdParty']
-	canonical: ChainAssets['canonical']
-	ownTokens: ChainAssets['ownTokens']
+	total?: { total?: string }
+	thirdParty?: { total?: string }
+	canonical?: { total?: string }
+	ownTokens?: { total?: string }
+	native?: { total?: string }
 	change_24h: number
 }
 

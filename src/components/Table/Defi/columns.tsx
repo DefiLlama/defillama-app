@@ -994,17 +994,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 	}
 ]
 
-const keySorting = (key: string) => (rowA, rowB) => {
-	const valueA = rowA.original?.[key]?.total
-	const valueB = rowB.original?.[key]?.total
-
-	if (valueA === undefined || valueA === null) return 1
-	if (valueB === undefined || valueB === null) return -1
-
-	return parseFloat(valueB) - parseFloat(valueA)
-}
-
-export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow>[] = [
+export const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 	{
 		header: () => 'Name',
 		accessorKey: 'name',
@@ -1053,76 +1043,74 @@ export const bridgedColumns: ColumnDef<IBridgedRow, IBridgedRow>[] = [
 	{
 		header: 'Total Bridged',
 		accessorKey: 'total',
-		enableSorting: true,
-		sortingFn: keySorting('total'),
-		cell: (info) => {
-			const value = info.getValue()?.total
+		accessorFn: (row) => row.total?.total ?? undefined,
+		cell: (info: any) => {
+			const value = info.getValue()
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
-		}
+		},
+		sortUndefined: 'last',
+		meta: { align: 'end' }
 	},
 	{
 		header: 'Change 24h',
 		accessorKey: 'change_24h',
-		enableSorting: true,
-		sortingFn: (rowA, rowB) => {
-			const valueA = String(rowA.original.change_24h)
-			const valueB = String(rowB.original.change_24h)
-
-			if (valueA === undefined || valueA === null) return 1
-			if (valueB === undefined || valueB === null) return -1
-
-			return parseFloat(valueB) - parseFloat(valueA)
-		},
+		accessorFn: (row) => row.change_24h ?? undefined,
 		cell: (info) => {
 			const value = info.getValue()
 			if (!value) return <></>
 			return <div style={{ color: Number(value) > 0 ? '#198600' : '#d92929' }}>{formattedPercent(value)}</div>
-		}
+		},
+		sortUndefined: 'last',
+		meta: { align: 'end' }
 	},
 	{
 		header: 'Native',
 		accessorKey: 'native',
-		enableSorting: true,
-		sortingFn: keySorting('native'),
+		accessorFn: (row) => row.native?.total ?? undefined,
 		cell: (info) => {
-			const value = info.getValue()?.total
+			const value = info.getValue()
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
-		}
+		},
+		sortUndefined: 'last',
+		meta: { align: 'end' }
 	},
 	{
 		header: 'Canonical',
 		accessorKey: 'canonical',
-		enableSorting: true,
-		sortingFn: keySorting('canonical'),
+		accessorFn: (row) => row.canonical?.total ?? undefined,
 		cell: (info) => {
-			const value = info.getValue()?.total
+			const value = info.getValue()
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
-		}
+		},
+		sortUndefined: 'last',
+		meta: { align: 'end' }
 	},
 	{
 		header: 'Own Tokens',
 		accessorKey: 'ownTokens',
-		enableSorting: true,
-		sortingFn: keySorting('ownTokens'),
+		accessorFn: (row) => row.ownTokens?.total ?? undefined,
 		cell: (info) => {
-			const value = info.getValue()?.total
+			const value = info.getValue()
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
-		}
+		},
+		sortUndefined: 'last',
+		meta: { align: 'end' }
 	},
 	{
 		header: 'Third Party',
 		accessorKey: 'thirdParty',
-		enableSorting: true,
-		sortingFn: keySorting('thirdParty'),
+		accessorFn: (row) => row.thirdParty?.total ?? undefined,
 		cell: (info) => {
-			const value = info.getValue()?.total
+			const value = info.getValue()
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
-		}
+		},
+		sortUndefined: 'last',
+		meta: { align: 'end' }
 	}
 ]
 
@@ -1135,9 +1123,11 @@ export const bridgedChainColumns: ColumnDef<any>[] = [
 	{
 		header: 'Total Bridged',
 		accessorKey: 'value',
+		accessorFn: (row) => (row.value ? +row.value : undefined),
 		cell: ({ getValue }) => {
-			return <>{'$' + formattedNum(getValue())}</>
-		}
+			return <>${formattedNum(getValue())}</>
+		},
+		sortUndefined: 'last'
 	}
 ]
 

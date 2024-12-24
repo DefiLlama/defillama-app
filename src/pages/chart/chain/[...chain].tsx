@@ -40,7 +40,6 @@ export default function ChainChartPage({
 	inflowsData,
 	userData,
 	devMetricsData,
-	chainTokenInfo,
 	perpsData,
 	chainAssets
 }) {
