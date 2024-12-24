@@ -9925,8 +9925,7 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1872": {
         "name": "rift-finance",
@@ -11439,6 +11438,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -12734,7 +12734,8 @@
     "2384": {
         "name": "oreoswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2385": {
         "name": "exactly",
@@ -24419,6 +24420,7 @@
         "name": "hyperliquid-spot",
         "tvl": true,
         "yields": false,
+        "revenue": true,
         "dexs": true
     },
     "4483": {
@@ -25426,6 +25428,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -26431,7 +26434,7 @@
     },
     "4861": {
         "name": "aurus",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4862": {
@@ -28823,7 +28826,8 @@
         "name": "lsp.finance",
         "tvl": true,
         "yields": false,
-        "raises": true
+        "raises": true,
+        "revenue": true
     },
     "5298": {
         "name": "rabbit-swap",
@@ -30163,6 +30167,11 @@
     "5551": {
         "name": "zivoe",
         "tvl": false,
+        "yields": false
+    },
+    "5552": {
+        "name": "cronos-zkevm-bridge",
+        "tvl": true,
         "yields": false
     },
     "5567": {
@@ -31560,6 +31569,7 @@
         "name": "hyperliquid",
         "yields": false,
         "tvl": true,
+        "revenue": true,
         "dexs": true,
         "perps": true
     },
