@@ -1943,8 +1943,7 @@
     "409": {
         "name": "cafeswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "410": {
         "name": "swamp-finance",
@@ -2856,7 +2855,6 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -11114,8 +11112,7 @@
     "2086": {
         "name": "rage-trade-v1-(deprecated)",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2087": {
         "name": "chee-finance",
@@ -12455,8 +12452,7 @@
     "2333": {
         "name": "julswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2334": {
         "name": "defiedge",
@@ -14081,8 +14077,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -16081,9 +16076,9 @@
         "yields": false
     },
     "2974": {
-        "name": "extra-finance",
+        "name": "extra-finance-leverage-farming",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true,
         "fees": true,
         "revenue": true
@@ -28834,7 +28829,10 @@
     "5298": {
         "name": "rabbit-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5299": {
         "name": "pinswap",
@@ -30178,6 +30176,16 @@
         "tvl": true,
         "yields": false
     },
+    "5554": {
+        "name": "extra-finance-xlend",
+        "tvl": true,
+        "yields": false
+    },
+    "5555": {
+        "name": "aixcb",
+        "tvl": false,
+        "yields": false
+    },
     "5567": {
         "fees": true,
         "revenue": true
@@ -31249,6 +31257,13 @@
         "treasury": true,
         "liquidity": true,
         "emissions": true
+    },
+    "parent#extra-finance": {
+        "name": "extra-finance",
+        "yields": true,
+        "tvl": true,
+        "fees": true,
+        "revenue": true
     },
     "parent#factor": {
         "name": "factor",
