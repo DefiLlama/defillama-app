@@ -921,6 +921,7 @@
     },
     "hyperliquid": {
         "name": "Hyperliquid",
+        "fees": true,
         "dexs": true,
         "derivatives": true,
         "chainAssets": true

@@ -2933,8 +2933,7 @@
     "575": {
         "name": "coinswap-space",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "576": {
         "name": "unore",
@@ -9925,7 +9924,8 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1872": {
         "name": "rift-finance",
@@ -11438,7 +11438,6 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -12734,8 +12733,7 @@
     "2384": {
         "name": "oreoswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2385": {
         "name": "exactly",
@@ -13882,7 +13880,7 @@
     "2583": {
         "name": "nerveswap",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "2584": {
         "name": "velocimeter-v1",
@@ -18003,8 +18001,7 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "3315": {
         "name": "crescentswap",
@@ -24420,6 +24417,7 @@
         "name": "hyperliquid-spot",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "revenue": true,
         "dexs": true
     },
@@ -25428,7 +25426,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -26434,7 +26431,7 @@
     },
     "4861": {
         "name": "aurus",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4862": {
@@ -28827,6 +28824,7 @@
         "tvl": true,
         "yields": false,
         "raises": true,
+        "fees": true,
         "revenue": true
     },
     "5298": {
@@ -31569,6 +31567,7 @@
         "name": "hyperliquid",
         "yields": false,
         "tvl": true,
+        "fees": true,
         "revenue": true,
         "dexs": true,
         "perps": true
