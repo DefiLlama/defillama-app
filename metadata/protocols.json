@@ -30183,6 +30183,16 @@
         "tvl": false,
         "yields": false
     },
+    "5556": {
+        "name": "bitzap",
+        "tvl": true,
+        "yields": false
+    },
+    "5557": {
+        "name": "stakestone-berachain-vault",
+        "tvl": true,
+        "yields": false
+    },
     "5567": {
         "fees": true,
         "revenue": true
