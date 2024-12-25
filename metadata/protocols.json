@@ -3630,7 +3630,6 @@
         "name": "dinosaur-eggs",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "696": {
