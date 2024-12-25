@@ -31257,7 +31257,7 @@
     },
     "parent#extra-finance": {
         "name": "extra-finance",
-        "yields": true,
+        "yields": false,
         "tvl": true,
         "fees": true,
         "revenue": true
