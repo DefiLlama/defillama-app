@@ -495,7 +495,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1533,6 +1532,7 @@
     },
     "polkadex": {
         "name": "Polkadex",
+        "dexs": true,
         "gecko_id": "polkadex",
         "tokenSymbol": "PDEX"
     },
