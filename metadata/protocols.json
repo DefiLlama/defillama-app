@@ -19496,7 +19496,7 @@
     "3554": {
         "name": "apertureswap",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "3555": {
         "name": "radpie",
@@ -30574,7 +30574,7 @@
     },
     "parent#aperture-finance": {
         "name": "aperture-finance",
-        "yields": true,
+        "yields": false,
         "tvl": true
     },
     "parent#apeswap": {
