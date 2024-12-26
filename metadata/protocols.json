@@ -2766,7 +2766,6 @@
         "name": "soulswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "545": {
@@ -14478,7 +14477,8 @@
         "tvl": true,
         "yields": false,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2688": {
         "name": "palma-swap",
@@ -30202,6 +30202,11 @@
     },
     "5557": {
         "name": "stakestone-berachain-vault",
+        "tvl": true,
+        "yields": false
+    },
+    "5558": {
+        "name": "astherus-asbnb",
         "tvl": true,
         "yields": false
     },
