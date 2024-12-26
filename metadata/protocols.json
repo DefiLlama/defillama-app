@@ -7747,7 +7747,7 @@
     },
     "1468": {
         "name": "pact",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "raises": true,
         "fees": true,
