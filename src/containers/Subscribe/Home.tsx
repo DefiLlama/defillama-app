@@ -2,6 +2,8 @@ import { Tooltip, TooltipAnchor, useTooltipState } from 'ariakit'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useGithubAuth, useIsSubscribed } from '~/containers/Subscribe/queries'
+import { GithubApiKey, SignInWithGithub } from './Github'
+import { SubscribeOnChain } from './Pro'
 
 export function SubscribeHome() {
 	const { data: githubAuthData } = useGithubAuth()
@@ -24,7 +26,8 @@ export function SubscribeHome() {
 		}
 	}, [])
 
-	const tooltip = useTooltipState()
+	const tooltip = useTooltipState({ timeout: 0 })
+
 	return (
 		<>
 			<div className="flex flex-col gap-3 w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] mx-auto pb-[64px] px-5 relative">
@@ -62,7 +65,7 @@ export function SubscribeHome() {
 
 				{githubAuthData?.login ? (
 					<div className="bg-[#222429] border border-[#39393E] rounded-2xl relative z-10 py-10 px-5 flex flex-col gap-1">
-						{/* <GithubApiKey data={githubAuthData} /> */}
+						<GithubApiKey data={githubAuthData} />
 					</div>
 				) : isSubscribed ? (
 					<div className="bg-[#222429] border border-[#39393E] rounded-2xl relative z-10 py-10 px-5 flex flex-col gap-1">
@@ -140,24 +143,19 @@ export function SubscribeHome() {
 								</li>
 								<li className="px-[26px] flex flex-col gap-1">Priority support</li>
 							</ul>
-							<a
-								href="https://stripe.com"
-								target="_blank"
-								rel="noreferrer noopener"
-								className="relative -top-2 flex items-center justify-center gap-1 font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] w-full max-w-[200px] text-center mx-auto shadow-[0px_0px_32px_0px_#5C5CF980]"
-							>
-								<span>Pay with Stripe</span>
-								<Icon name="card" height={16} width={16} />
-							</a>
 
-							<a
-								href="https://defillama.com/pro-api/docs"
-								target="_blank"
-								rel="noreferrer noopener"
-								className="-mb-8 mt-2 text-center underline text-[#8a8c90]"
-							>
-								Click here a full lists of all endpoints available in Pro
-							</a>
+							<div className="flex flex-col gap-2 mt-16 relative -bottom-6">
+								<SubscribeOnChain />
+								<a
+									href="https://defillama.com/docs/api"
+									target="_blank"
+									rel="noreferrer noopener"
+									className="text-[#8a8c90] text-center mx-auto flex flex-nowrap items-center gap-2"
+								>
+									<span className="underline">Or pay with Stripe</span>
+									<Icon name="card" height={16} width={16} />
+								</a>
+							</div>
 						</div>
 						<div className="price-card py-10 px-5 lg:flex-1 flex flex-col border-l border-[#39393E] max-lg:w-[85vw] flex-shrink-0">
 							<h2 className="text-[2rem] font-[800] text-center flex flex-nowrap items-center justify-center gap-1">
@@ -212,7 +210,7 @@ export function SubscribeHome() {
 								</li>
 								<li className="px-[26px] flex flex-col gap-1">Priority support</li>
 							</ul>
-							{/* <SignInWithGithub /> */}
+							<SignInWithGithub />
 						</div>
 					</div>
 				)}
@@ -239,6 +237,14 @@ export function SubscribeHome() {
 						<span className="sr-only">go to pricing type 3</span>
 					</button>
 				</div>
+				<a
+					href="https://defillama.com/pro-api/docs"
+					target="_blank"
+					rel="noreferrer noopener"
+					className="text-center underline text-[#8a8c90]"
+				>
+					Click here a full lists of all endpoints available in Pro
+				</a>
 			</div>
 		</>
 	)
