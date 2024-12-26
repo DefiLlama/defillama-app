@@ -3,7 +3,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useGithubAuth, useIsSubscribed } from '~/containers/Subscribe/queries'
 import { GithubApiKey, SignInWithGithub } from './Github'
-import { SubscribeOnChain } from './Pro'
+import { ProApiKey, SubscribeOnChain } from './Pro'
 
 export function SubscribeHome() {
 	const { data: githubAuthData } = useGithubAuth()
@@ -47,7 +47,7 @@ export function SubscribeHome() {
 						alt=""
 					/>
 				</div>
-				<h1 className="text-[2rem] font-[800] text-center">DL Pro API</h1>
+				<h1 className="text-[2rem] font-[800] text-center">DefiLlama</h1>
 				{isSubscribed ? null : (
 					<p className="text-[#919296] text-center">
 						Upgrade now for increased api limits and premium api endpoints. DefiLlama contributors will have free 3
@@ -69,7 +69,7 @@ export function SubscribeHome() {
 					</div>
 				) : isSubscribed ? (
 					<div className="bg-[#222429] border border-[#39393E] rounded-2xl relative z-10 py-10 px-5 flex flex-col gap-1">
-						{/* <ProApiKey /> */}
+						<ProApiKey />
 					</div>
 				) : (
 					<div
