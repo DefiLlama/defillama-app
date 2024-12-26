@@ -1575,6 +1575,11 @@
         "gecko_id": "proton",
         "tokenSymbol": "XPR"
     },
+    "pryzm": {
+        "name": "Pryzm",
+        "gecko_id": "pryzm",
+        "tokenSymbol": "PRYZM"
+    },
     "pulsechain": {
         "name": "PulseChain",
         "dexs": true,
