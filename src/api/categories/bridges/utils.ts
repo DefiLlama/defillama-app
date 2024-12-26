@@ -1,4 +1,4 @@
-import { getPercentChange, getPrevVolumeFromChart } from '~/utils'
+import { getPercentChange, getPrevVolumeFromChart, slug } from '~/utils'
 import { keepNeededProperties } from '../../shared'
 
 export type DailyBridgeStats = {
@@ -60,7 +60,7 @@ export const formatBridgesData = ({
 	let filteredBridges = [...bridges]
 
 	if (chain) {
-		filteredBridges = filteredBridges.filter(({ chains = [] }) => chains.includes(chain))
+		filteredBridges = filteredBridges.filter(({ chains = [] }) => chains.map((c) => slug(c)).includes(slug(chain)))
 	}
 
 	filteredBridges = filteredBridges.map((bridge) => {
