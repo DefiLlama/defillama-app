@@ -21,7 +21,8 @@
 		"incremental": true,
 		"downlevelIteration": true,
 		"allowSyntheticDefaultImports": true,
-		"noFallthroughCasesInSwitch": true
+		"noFallthroughCasesInSwitch": true,
+		"strictNullChecks": false
 	},
 	"exclude": ["node_modules"],
 	"include": ["**/*.js", "**/*.ts", "**/*.tsx", "postcss.config.cjs"]

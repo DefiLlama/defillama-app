@@ -43,8 +43,8 @@ const Subscribe = ({ refresh, verify }) => {
 	}
 
 	const onSignClick = () => {
-		signMessage({ message })
-		setTimeout(() => refresh(), 1000)
+		// signMessage({ message })
+		// setTimeout(() => refresh(), 1000)
 	}
 
 	return (

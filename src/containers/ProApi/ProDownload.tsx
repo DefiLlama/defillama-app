@@ -1,14 +1,14 @@
 import { useEffect } from 'react'
-import { WalletConfig } from '~/layout/WalletConfig'
+import { WalletProvider } from '~/layout/WalletProvider'
 import { useVerified } from '../ProContainer/hooks/useVerified'
 import { IS_PRO_API_ENABLED } from './lib/constants'
 import { useRouter } from 'next/router'
 
 export const ProCSVDownload = ({ onClick, clicked }: { onClick: () => void; clicked: number }) => {
 	return (
-		<WalletConfig>
+		<WalletProvider>
 			<VerifyAndDownload onClick={onClick} clicked={clicked} />
-		</WalletConfig>
+		</WalletProvider>
 	)
 }
 

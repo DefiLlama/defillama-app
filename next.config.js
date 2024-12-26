@@ -182,6 +182,11 @@ const nextConfig = {
 				source: '/derivatives-aggregator/chains/:slug',
 				destination: '/perps-aggregators/chains/:slug',
 				permanent: true
+			},
+			{
+				source: '/pro-api',
+				destination: '/subscribe',
+				permanent: true
 			}
 		]
 	},
