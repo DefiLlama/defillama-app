@@ -2766,6 +2766,7 @@
         "name": "soulswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "545": {
