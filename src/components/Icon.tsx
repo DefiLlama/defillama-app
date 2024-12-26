@@ -57,6 +57,9 @@ type Name =
 	| 'trending-up'
 	| 'unlock'
 	| 'dollar-sign'
+	| 'check'
+	| 'card'
+	| 'circle-help'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name

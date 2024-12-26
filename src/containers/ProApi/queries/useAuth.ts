@@ -50,51 +50,51 @@ export async function signAndGetAuthToken({
 	refetchToken: () => void
 }) {
 	try {
-		if (!address) {
-			throw new Error('Invalid arguments')
-		}
-		const host = window.location.origin
+		// if (!address) {
+		// 	throw new Error('Invalid arguments')
+		// }
+		// const host = window.location.origin
 
-		const siweMessage = getSIWEMessage({
-			domain: host,
-			address,
-			statement: `Sign in to ${host} to get API Key`,
-			uri: host,
-			version: '1',
-			chainId: optimism.id,
-			nonce: `${Math.floor(Math.random() * 64)}`
-		})
+		// const siweMessage = getSIWEMessage({
+		// 	domain: host,
+		// 	address,
+		// 	statement: `Sign in to ${host} to get API Key`,
+		// 	uri: host,
+		// 	version: '1',
+		// 	chainId: optimism.id,
+		// 	nonce: `${Math.floor(Math.random() * 64)}`
+		// })
 
-		const data = await signMessage({ message: siweMessage as string })
-		const isVerified = verifyMessage(siweMessage, data) === address
+		// const data = await signMessage({ message: siweMessage as string })
+		// const isVerified = verifyMessage(siweMessage, data) === address
 
-		if (!data) {
-			toast.error('Failed to generate signature')
-			throw new Error('Failed to generate signature')
-		}
+		// if (!data) {
+		// 	toast.error('Failed to generate signature')
+		// 	throw new Error('Failed to generate signature')
+		// }
 
-		if (!isVerified) {
-			toast.error('Failed to verify signature')
-			throw new Error('Failed to verify signature')
-		}
+		// if (!isVerified) {
+		// 	toast.error('Failed to verify signature')
+		// 	throw new Error('Failed to verify signature')
+		// }
 
-		window.localStorage.setItem(`signature_${address}_api`, JSON.stringify({ signature: data }))
+		// window.localStorage.setItem(`signature_${address}_api`, JSON.stringify({ signature: data }))
 
-		const verifyRes = await fetch(`${SERVER_API}/sign-in`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ message: siweMessage, signature: data })
-		}).then((r) => r.json())
+		// const verifyRes = await fetch(`${SERVER_API}/sign-in`, {
+		// 	method: 'POST',
+		// 	headers: {
+		// 		'Content-Type': 'application/json'
+		// 	},
+		// 	body: JSON.stringify({ message: siweMessage, signature: data })
+		// }).then((r) => r.json())
 
-		if (!verifyRes.key) {
-			toast.error(verifyRes?.message)
-			throw new Error(verifyRes?.message)
-		}
+		// if (!verifyRes.key) {
+		// 	toast.error(verifyRes?.message)
+		// 	throw new Error(verifyRes?.message)
+		// }
 
-		window.localStorage.setItem(`auth_token_${address.toLowerCase()}`, verifyRes.key)
-		refetchToken()
+		// window.localStorage.setItem(`auth_token_${address.toLowerCase()}`, verifyRes.key)
+		// refetchToken()
 
 		return
 	} catch (error: any) {

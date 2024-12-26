@@ -29,27 +29,27 @@ export const useVerified = ({ verify } = { verify: () => null }) => {
 	useEffect(() => {
 		setIsVerified(false)
 	}, [wallet.address])
-	useEffect(() => {
-		;(async () => {
-			if (variables?.message && signMessageData) {
-				const recoveredAddress = utils.verifyMessage(variables?.message, signMessageData)
+	// useEffect(() => {
+	// 	;(async () => {
+	// 		if (variables?.message && signMessageData) {
+	// 			const recoveredAddress = utils.verifyMessage(variables?.message, signMessageData)
 
-				if (recoveredAddress === wallet.address) {
-					setIsVerified(true)
-					localStorage.setItem(`signature_${wallet?.address?.toLowerCase()}`, JSON.stringify(signMessageData))
-					window.dispatchEvent(new Event('storage'))
-					verify()
-				}
-			} else if (signature) {
-				const recoveredAddress = utils.verifyMessage(message, signature)
+	// 			if (recoveredAddress === wallet.address) {
+	// 				setIsVerified(true)
+	// 				localStorage.setItem(`signature_${wallet?.address?.toLowerCase()}`, JSON.stringify(signMessageData))
+	// 				window.dispatchEvent(new Event('storage'))
+	// 				verify()
+	// 			}
+	// 		} else if (signature) {
+	// 			const recoveredAddress = utils.verifyMessage(message, signature)
 
-				if (recoveredAddress === wallet.address) {
-					setIsVerified(true)
-					verify()
-				}
-			}
-		})()
-	}, [signMessageData, variables?.message, isVerified, signature, wallet.address, message, verify])
+	// 			if (recoveredAddress === wallet.address) {
+	// 				setIsVerified(true)
+	// 				verify()
+	// 			}
+	// 		}
+	// 	})()
+	// }, [signMessageData, variables?.message, isVerified, signature, wallet.address, message, verify])
 
 	useEffect(() => {
 		if (isVerified && router.query.from) {
