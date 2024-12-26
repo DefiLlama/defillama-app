@@ -135,6 +135,7 @@ async function signAndGetAuthToken({ address }: { address?: string | null }) {
 			nonce: `${Math.floor(Math.random() * 64)}`
 		})
 
+		// @ts-ignore
 		const data = await signMessage(config, { message: siweMessage as string })
 		const isVerified = await verifyMessage(config, {
 			address: address as `0x${string}`,
