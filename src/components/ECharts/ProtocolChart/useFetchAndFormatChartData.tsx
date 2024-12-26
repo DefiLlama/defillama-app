@@ -281,7 +281,7 @@ export function useFetchAndFormatChartData({
 						const missingDate = prevDate + 86400 * i
 
 						if (!chartData[missingDate]) {
-							chartData[missingDate] = {}
+							chartData[missingDate] = { date: missingDate }
 						}
 
 						const missingTvl =
