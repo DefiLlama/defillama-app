@@ -2766,7 +2766,6 @@
         "name": "soulswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "545": {
@@ -19485,6 +19484,11 @@
         "revenue": true,
         "dexs": true
     },
+    "3572": {
+        "name": "solv-funds",
+        "tvl": true,
+        "yields": true
+    },
     "3573": {
         "name": "solv-rwa",
         "tvl": true,
@@ -32841,7 +32845,7 @@
     },
     "parent#solv-protocol": {
         "name": "solv-protocol",
-        "yields": false,
+        "yields": true,
         "tvl": true,
         "governance": true,
         "raises": true,
