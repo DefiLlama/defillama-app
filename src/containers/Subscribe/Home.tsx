@@ -113,7 +113,7 @@ export function SubscribeHome() {
 								href="https://defillama.com/docs/api"
 								target="_blank"
 								rel="noreferrer noopener"
-								className="flex-shrink-0 relative -top-2 font-medium rounded-lg border border-[#39393E] py-[14px] w-full max-w-[200px] text-center mx-auto mt-16"
+								className="flex-shrink-0 relative font-medium rounded-lg border border-[#39393E] py-[14px] w-full max-w-[200px] text-center mx-auto mt-14"
 							>
 								Open API doc
 							</a>
@@ -144,16 +144,16 @@ export function SubscribeHome() {
 								<li className="px-[26px] flex flex-col gap-1">Priority support</li>
 							</ul>
 
-							<div className="flex flex-col gap-2 mt-16 relative -bottom-6">
+							<div className="flex flex-nowrap gap-2 w-full max-w-[408px] mx-auto mt-14 relative max-sm:flex-col max-sm:*:w-full">
 								<SubscribeOnChain />
 								<a
 									href="https://defillama.com/docs/api"
 									target="_blank"
 									rel="noreferrer noopener"
-									className="text-[#8a8c90] text-center mx-auto flex flex-nowrap items-center gap-2"
+									className="font-medium rounded-lg border border-[#5C5CF9] py-[14px] flex-1 text-center mx-auto shadow-[0px_0px_32px_0px_#5C5CF980] disabled:cursor-not-allowed flex items-center gap-1 justify-center flex-nowrap"
 								>
-									<span className="underline">Or pay with Stripe</span>
 									<Icon name="card" height={16} width={16} />
+									<span>Pay with Stripe</span>
 								</a>
 							</div>
 						</div>
@@ -241,7 +241,7 @@ export function SubscribeHome() {
 					href="https://defillama.com/pro-api/docs"
 					target="_blank"
 					rel="noreferrer noopener"
-					className="text-center underline text-[#8a8c90]"
+					className="text-center underline text-[#8a8c90] mx-auto"
 				>
 					Click here a full lists of all endpoints available in Pro
 				</a>

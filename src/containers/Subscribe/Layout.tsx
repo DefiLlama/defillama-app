@@ -1,19 +1,21 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import Link from 'next/link'
+import { SEO } from '~/components/SEO'
 import { WalletProvider } from '~/layout/WalletProvider'
 
 export function SubscribeLayout({ children }) {
 	return (
 		<WalletProvider>
+			<SEO />
 			<div className="col-span-full w-full flex flex-col">
-				<header className="min-h-[64px] py-3 px-5 flex items-center justify-between gap-4">
-					<img
+				<header className="min-h-[64px] py-3 px-5 flex items-center justify-end gap-4">
+					{/* <img
 						src="/defillama-press-kit/defi/PNG/defillama.png"
 						height={32}
 						width={94}
 						className="object-contain mr-auto"
 						alt=""
-					/>
+					/> */}
 					<ConnectButton />
 				</header>
 				{children}

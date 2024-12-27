@@ -8,7 +8,7 @@ export const SignInWithGithub = () => {
 
 	if (isLoading) {
 		return (
-			<button className="relative -top-2 flex items-center justify-center flex-nowrap gap-2 font-medium rounded-lg border border-[#39393E] py-[14px] w-full max-w-[200px] text-center mx-auto mt-16 bg-black disabled:cursor-not-allowed">
+			<button className="relative flex items-center justify-center flex-nowrap gap-2 font-medium rounded-lg border border-[#39393E] py-[14px] w-full max-w-[200px] text-center mx-auto mt-14 bg-black disabled:cursor-not-allowed">
 				<Icon name="github" height={16} width={16} />
 				<span>Signing in...</span>
 			</button>
@@ -19,7 +19,7 @@ export const SignInWithGithub = () => {
 		<>
 			<a
 				href={`https://github.com/login/oauth/authorize?client_id=${GH_CLIENT_ID}`}
-				className="relative -top-2 flex items-center justify-center flex-nowrap gap-2 font-medium rounded-lg border border-[#39393E] py-[14px] w-full max-w-[200px] text-center mx-auto mt-16 bg-black disabled:cursor-not-allowed"
+				className="relative flex items-center justify-center flex-nowrap gap-2 font-medium rounded-lg border border-[#39393E] py-[14px] w-full max-w-[200px] text-center mx-auto mt-14 bg-black disabled:cursor-not-allowed"
 			>
 				<Icon name="github" height={16} width={16} />
 				<span>Sign in with GitHub</span>

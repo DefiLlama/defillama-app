@@ -38,10 +38,11 @@ export const SubscribeOnChain = () => {
 	if (!isConnected) {
 		return (
 			<button
-				onClick={openConnectModal}
-				className="font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] w-full max-w-[200px] text-center mx-auto shadow-[0px_0px_32px_0px_#5C5CF980]"
+				onClick={() => openConnectModal()}
+				className="font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] flex-1 text-center mx-auto shadow-[0px_0px_32px_0px_#5C5CF980] flex items-center gap-1 justify-center flex-nowrap"
 			>
-				Connect Wallet
+				<Icon name="wallet" height={16} width={16} />
+				<span>Pay with Crypto</span>
 			</button>
 		)
 	}
@@ -50,9 +51,16 @@ export const SubscribeOnChain = () => {
 		<>
 			<button
 				onClick={() => startPayment()}
-				className="font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] w-full max-w-[200px] text-center mx-auto shadow-[0px_0px_32px_0px_#5C5CF980] disabled:cursor-not-allowed"
+				className="font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] flex-1 text-center mx-auto shadow-[0px_0px_32px_0px_#5C5CF980] disabled:cursor-not-allowed flex items-center gap-1 justify-center flex-nowrap"
 			>
-				{isRefetchingSubStatus ? 'Checking...' : 'Subscribe'}
+				{isRefetchingSubStatus ? (
+					'Checking...'
+				) : (
+					<>
+						<Icon name="wallet" height={16} width={16} />
+						<span>Pay with Crypto</span>
+					</>
+				)}
 			</button>
 		</>
 	)

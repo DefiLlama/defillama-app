@@ -60,6 +60,7 @@ type Name =
 	| 'check'
 	| 'card'
 	| 'circle-help'
+	| 'wallet'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
