@@ -5284,8 +5284,7 @@
         "name": "opendao",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "1020": {
         "name": "arkadiko",
@@ -19492,7 +19491,7 @@
     "3572": {
         "name": "solv-funds",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "3573": {
         "name": "solv-rwa",
@@ -32890,7 +32889,7 @@
     },
     "parent#solv-protocol": {
         "name": "solv-protocol",
-        "yields": true,
+        "yields": false,
         "tvl": true,
         "governance": true,
         "raises": true,

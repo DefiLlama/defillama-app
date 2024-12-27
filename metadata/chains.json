@@ -909,8 +909,6 @@
     },
     "hydra": {
         "name": "Hydra",
-        "fees": true,
-        "dexs": true,
         "gecko_id": "hydra",
         "tokenSymbol": "HYDRA"
     },
