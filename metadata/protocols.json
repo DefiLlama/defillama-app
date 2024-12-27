@@ -15952,7 +15952,8 @@
         "name": "archi-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2953": {
         "name": "zenith",
@@ -32509,6 +32510,9 @@
         "name": "paraluni",
         "yields": false,
         "tvl": true
+    },
+    "parent#paraspace": {
+        "activeUsers": true
     },
     "parent#parax": {
         "name": "parallel-super-app",
