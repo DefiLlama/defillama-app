@@ -93,8 +93,7 @@ export const descriptions = {
 	Synthetics: 'Protocol that created a tokenized derivative that mimics the value of another asset.',
 	CDP: 'Protocols that mint its own stablecoin using collateralized lending',
 	Bridge: 'Protocols that bridge tokens from one network to another',
-	'Reserve Currency':
-		'OHM forks: Protocols that uses a reserve of valuable assets acquired through bonding and staking to issue and back its native token',
+	'Reserve Currency': 'Protocols that use a reserve of valuable assets to back its native token. Includes OHM forks',
 	Options: 'Protocols that give you the right to buy an asset at a fixed price',
 	Launchpad: 'Protocols that launch new projects and coins',
 	Gaming: 'Protocols that have gaming components',
