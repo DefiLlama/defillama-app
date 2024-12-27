@@ -9710,7 +9710,7 @@
         "activeUsers": true
     },
     "1825": {
-        "name": "nirvana",
+        "name": "nirvana-v1",
         "tvl": true,
         "yields": false,
         "hacks": true
@@ -27572,7 +27572,7 @@
         "revenue": true
     },
     "5050": {
-        "name": "delta-trade",
+        "name": "deltatrade",
         "tvl": true,
         "yields": false,
         "dexs": true
@@ -28518,7 +28518,7 @@
     },
     "5216": {
         "name": "pit-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "5217": {
@@ -30347,6 +30347,11 @@
     },
     "5562": {
         "name": "windfall",
+        "tvl": true,
+        "yields": false
+    },
+    "5563": {
+        "name": "nirvana-v2",
         "tvl": true,
         "yields": false
     },
@@ -32439,6 +32444,11 @@
     "parent#nimbora": {
         "name": "nimbora",
         "yields": true,
+        "tvl": true
+    },
+    "parent#nirvana": {
+        "name": "nirvana",
+        "yields": false,
         "tvl": true
     },
     "parent#nostra": {
