@@ -13606,7 +13606,8 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -15736,7 +15737,8 @@
     "2911": {
         "name": "aboard-exchange",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2912": {
         "name": "onsen-swap",
