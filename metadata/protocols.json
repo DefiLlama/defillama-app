@@ -5284,7 +5284,8 @@
         "name": "opendao",
         "tvl": true,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "1020": {
         "name": "arkadiko",
@@ -7698,7 +7699,7 @@
     },
     "1468": {
         "name": "pact",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "raises": true,
         "fees": true,
@@ -30242,6 +30243,16 @@
         "tvl": false,
         "yields": false,
         "liquidity": true
+    },
+    "5561": {
+        "name": "gondi-v3",
+        "tvl": true,
+        "yields": false
+    },
+    "5562": {
+        "name": "windfall",
+        "tvl": true,
+        "yields": false
     },
     "5567": {
         "fees": true,
