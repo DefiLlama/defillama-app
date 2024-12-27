@@ -11234,8 +11234,7 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2109": {
         "name": "pyeswap",
@@ -15419,7 +15418,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
@@ -15489,7 +15488,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
@@ -15711,7 +15710,6 @@
         "name": "chronos-v1",
         "tvl": true,
         "yields": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
