@@ -165,7 +165,7 @@ export function SubscribeHome() {
 							</ul>
 
 							<div className="w-full max-w-[408px] mx-auto mt-0 flex flex-col gap-2">
-								<SignIn />
+								<SignIn text="Already a subscriber? Sign In" />
 								<div className="flex flex-nowrap gap-2 relative max-sm:flex-col max-sm:*:w-full">
 									<PayWithCrypto pro={true} />
 									<a

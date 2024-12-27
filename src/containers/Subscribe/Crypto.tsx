@@ -1,5 +1,4 @@
 import { useAccount } from 'wagmi'
-import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useGetCreditsUsage, useGetCurrentKey, useIsSubscribed, useSignInWithEthereum } from './queries'
 import { useEffect, useRef } from 'react'
 import { llamaAddress, proSubscriptionAmount, supporterSubscriptionAmount } from '../ProApi/lib/constants'
@@ -9,7 +8,6 @@ import { Icon } from '~/components/Icon'
 // TODO handle sub top ups
 export const PayWithCrypto = ({ pro }: { pro: boolean }) => {
 	const { isConnected } = useAccount()
-	const { openConnectModal } = useConnectModal()
 	const { data: isSubscribed, refetch: refetchSubStatus, isRefetching: isRefetchingSubStatus } = useIsSubscribed()
 	const intervalRef = useRef<NodeJS.Timeout>()
 
@@ -31,25 +29,25 @@ export const PayWithCrypto = ({ pro }: { pro: boolean }) => {
 
 	useEffect(() => {
 		return () => {
-			if (intervalRef.current && isSubscribed) {
+			if (intervalRef.current && (isSubscribed || !isConnected)) {
 				clearInterval(intervalRef.current)
 			}
 		}
-	}, [isSubscribed])
+	}, [isSubscribed, isConnected])
 
-	if (!isConnected) {
-		return (
-			<button
-				onClick={() => openConnectModal()}
-				className={`font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] flex-1 text-center mx-auto ${
-					pro ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''
-				} flex items-center gap-1 justify-center flex-nowrap`}
-			>
-				<Icon name="wallet" height={16} width={16} />
-				<span>Pay with Crypto</span>
-			</button>
-		)
-	}
+	// if (!isConnected) {
+	// 	return (
+	// 		<button
+	// 			onClick={() => openConnectModal()}
+	// 			className={`font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] flex-1 text-center mx-auto ${
+	// 				pro ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''
+	// 			} flex items-center gap-1 justify-center flex-nowrap`}
+	// 		>
+	// 			<Icon name="wallet" height={16} width={16} />
+	// 			<span>Pay with Crypto</span>
+	// 		</button>
+	// 	)
+	// }
 
 	return (
 		<>
