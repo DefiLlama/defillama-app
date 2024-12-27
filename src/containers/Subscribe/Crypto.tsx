@@ -2,12 +2,12 @@ import { useAccount } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useGetCreditsUsage, useGetCurrentKey, useIsSubscribed, useSignInWithEthereum } from './queries'
 import { useEffect, useRef } from 'react'
-import { llamaAddress, subscriptionAmount } from '../ProApi/lib/constants'
+import { llamaAddress, proSubscriptionAmount, supporterSubscriptionAmount } from '../ProApi/lib/constants'
 import { Tooltip, TooltipAnchor, useTooltipState } from 'ariakit'
 import { Icon } from '~/components/Icon'
 
 // TODO handle sub top ups
-export const SubscribeOnChain = () => {
+export const PayWithCrypto = ({ pro }: { pro: boolean }) => {
 	const { isConnected } = useAccount()
 	const { openConnectModal } = useConnectModal()
 	const { data: isSubscribed, refetch: refetchSubStatus, isRefetching: isRefetchingSubStatus } = useIsSubscribed()
@@ -15,7 +15,9 @@ export const SubscribeOnChain = () => {
 
 	const startPayment = (isTopUp = false) => {
 		window.open(
-			`https://subscriptions.llamapay.io/subscribe?to=${llamaAddress}&amount=${subscriptionAmount}&brandColor=%232351be&closeAfterPayment=true`,
+			`https://subscriptions.llamapay.io/subscribe?to=${llamaAddress}&amount=${
+				pro ? proSubscriptionAmount : supporterSubscriptionAmount
+			}&brandColor=%232351be&closeAfterPayment=true`,
 			'Window',
 			`width=600,height=800,left=${window.screen.width / 2 - 300},top=${window.screen.height / 2 - 400}`
 		)
@@ -39,7 +41,9 @@ export const SubscribeOnChain = () => {
 		return (
 			<button
 				onClick={() => openConnectModal()}
-				className="font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] flex-1 text-center mx-auto shadow-[0px_0px_32px_0px_#5C5CF980] flex items-center gap-1 justify-center flex-nowrap"
+				className={`font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] flex-1 text-center mx-auto ${
+					pro ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''
+				} flex items-center gap-1 justify-center flex-nowrap`}
 			>
 				<Icon name="wallet" height={16} width={16} />
 				<span>Pay with Crypto</span>
@@ -51,7 +55,9 @@ export const SubscribeOnChain = () => {
 		<>
 			<button
 				onClick={() => startPayment()}
-				className="font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] flex-1 text-center mx-auto shadow-[0px_0px_32px_0px_#5C5CF980] disabled:cursor-not-allowed flex items-center gap-1 justify-center flex-nowrap"
+				className={`font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] flex-1 text-center mx-auto ${
+					pro ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''
+				} disabled:cursor-not-allowed flex items-center gap-1 justify-center flex-nowrap`}
 			>
 				{isRefetchingSubStatus ? (
 					'Checking...'

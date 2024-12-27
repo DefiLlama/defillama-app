@@ -70,7 +70,8 @@ export const useGithubAuth = () => {
 					pathname: router.pathname,
 					query: {}
 				},
-				undefined
+				undefined,
+				{ shallow: true }
 			)
 		}
 	}, [code, token, router])

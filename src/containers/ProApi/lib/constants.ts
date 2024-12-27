@@ -31,6 +31,8 @@ export const DIVISOR = 1e18
 
 export const llamaAddress = '0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437'.toLowerCase()
 export const subscriptionAmount = 300
+export const proSubscriptionAmount = 300
+export const supporterSubscriptionAmount = 300
 
 export const SERVER_API = 'https://7zlw4f9i3e.execute-api.eu-central-1.amazonaws.com/prod'
 
