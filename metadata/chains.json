@@ -603,7 +603,8 @@
     "eclipse": {
         "name": "Eclipse",
         "fees": true,
-        "dexs": true
+        "dexs": true,
+        "chainAssets": true
     },
     "elastos": {
         "name": "Elastos",
@@ -1710,7 +1711,8 @@
         "tokenSymbol": "SEI"
     },
     "shape": {
-        "name": "Shape"
+        "name": "Shape",
+        "chainAssets": true
     },
     "shibarium": {
         "name": "Shibarium"
@@ -2168,7 +2170,8 @@
     "zora": {
         "name": "Zora",
         "fees": true,
-        "dexs": true
+        "dexs": true,
+        "chainAssets": true
     },
     "zyx": {
         "name": "ZYX",
