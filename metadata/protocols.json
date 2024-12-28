@@ -2343,8 +2343,7 @@
         "name": "baguette",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "474": {
         "name": "canary",
@@ -2856,7 +2855,6 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -5164,8 +5162,7 @@
     "996": {
         "name": "ocp-finance",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "997": {
         "name": "piggy",
@@ -6328,9 +6325,6 @@
         "yields": false
     },
     "1210": {
-        "name": "voyager",
-        "tvl": false,
-        "yields": false,
         "raises": true
     },
     "1211": {
@@ -7124,8 +7118,7 @@
     "1363": {
         "name": "oni-exchange",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1364": {
         "name": "narwhalswap",
@@ -12430,8 +12423,7 @@
     "2331": {
         "name": "swapfish",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2332": {
         "name": "equalizer-exchange",
@@ -12723,8 +12715,7 @@
     "2384": {
         "name": "oreoswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2385": {
         "name": "exactly",
@@ -13838,8 +13829,7 @@
     "2577": {
         "name": "sharky-swap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2578": {
         "name": "beamer-bridge",
@@ -24452,12 +24442,6 @@
         "tvl": true,
         "yields": true,
         "liquidity": true
-    },
-    "4490": {
-        "name": "dymension",
-        "tvl": false,
-        "yields": false,
-        "emissions": true
     },
     "4491": {
         "name": "tonsoffriends",
