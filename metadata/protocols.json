@@ -6784,7 +6784,7 @@
         "yields": false
     },
     "1299": {
-        "name": "guru-network",
+        "name": "guru-network-classic",
         "tvl": true,
         "yields": false,
         "liquidity": true
