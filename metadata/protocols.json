@@ -2342,7 +2342,8 @@
         "name": "baguette",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "474": {
         "name": "canary",
@@ -3891,7 +3892,8 @@
     "743": {
         "name": "neku",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "744": {
         "name": "tranquil-finance",
@@ -11526,7 +11528,7 @@
     },
     "2159": {
         "name": "amulet-v1",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "raises": true
     },
