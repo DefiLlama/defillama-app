@@ -161,7 +161,10 @@ export const descriptions = {
 		'Protocols that consolidate multiple bridging solutions, allowing users to transfer assets across different blockchains by finding the most efficient routes',
 	'Restaked BTC': '',
 	'Decentralized BTC': '',
-	'Anchor BTC': ''
+	'Anchor BTC': '',
+	'Portfolio Tracker': 'Tools that monitor token balances and performance',
+	'Liquidity Automation': 'Automatically manages and adjusts liquidity in DeFi protocols through smart contracts',
+	Fundraising: 'Projects that raise capital for DeFi projects through grants, or community contributions'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
