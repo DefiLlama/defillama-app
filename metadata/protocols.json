@@ -11526,7 +11526,7 @@
     },
     "2159": {
         "name": "amulet-v1",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "raises": true
     },
