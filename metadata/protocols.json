@@ -30584,8 +30584,7 @@
         "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "parent#bancor": {
         "name": "bancor",

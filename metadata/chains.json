@@ -219,6 +219,7 @@
         "name": "Bitcoincash",
         "fees": true,
         "dexs": true,
+        "derivatives": true,
         "aggregators": true,
         "gecko_id": "bitcoin-cash",
         "tokenSymbol": "BCH"
