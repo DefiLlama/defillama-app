@@ -495,6 +495,7 @@
     },
     "cube": {
         "name": "Cube",
+        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1400,7 +1401,6 @@
     },
     "oasys": {
         "name": "Oasys",
-        "dexs": true,
         "gecko_id": "oasys",
         "tokenSymbol": "OAS"
     },
@@ -1604,7 +1604,6 @@
     },
     "rangers": {
         "name": "Rangers",
-        "dexs": true,
         "gecko_id": "rangers-protocol-gas",
         "tokenSymbol": "RPG"
     },
