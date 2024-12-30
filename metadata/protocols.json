@@ -15392,7 +15392,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
