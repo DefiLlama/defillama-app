@@ -28512,7 +28512,7 @@
     },
     "5216": {
         "name": "pit-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5217": {
