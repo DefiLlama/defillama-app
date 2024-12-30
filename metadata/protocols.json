@@ -3723,7 +3723,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "dexs": true
     },
@@ -15382,7 +15382,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -30250,6 +30250,11 @@
     },
     "5570": {
         "name": "shadow-exchange",
+        "tvl": true,
+        "yields": false
+    },
+    "5571": {
+        "name": "satoshi-perps",
         "tvl": true,
         "yields": false
     },
