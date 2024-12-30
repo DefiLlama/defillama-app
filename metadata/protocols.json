@@ -3496,7 +3496,8 @@
     "672": {
         "name": "fegex",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "hacks": true
     },
     "673": {
         "name": "aavegotchi",
@@ -15392,7 +15393,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -15406,7 +15407,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -15476,7 +15477,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
