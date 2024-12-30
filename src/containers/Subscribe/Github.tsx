@@ -8,7 +8,10 @@ export const SignInWithGithub = () => {
 
 	if (isLoading) {
 		return (
-			<button className="relative flex items-center justify-center flex-nowrap gap-2 font-medium rounded-lg border border-[#39393E] py-[14px] w-full text-center mx-auto mt-14 bg-black disabled:cursor-not-allowed">
+			<button
+				className="relative flex items-center justify-center flex-nowrap gap-2 font-medium rounded-lg border border-[#39393E] py-[14px] w-full text-center mx-auto mt-14 bg-black disabled:cursor-not-allowed"
+				disabled
+			>
 				<Icon name="github" height={16} width={16} />
 				<span>Signing in...</span>
 			</button>

@@ -269,6 +269,7 @@ async function getCurrentKey(authToken?: string | null) {
 				const key = localStorage.key(i)
 				if (key?.startsWith('auth_token')) {
 					localStorage.removeItem(key)
+					window.dispatchEvent(new Event('storage'))
 				}
 			}
 		} else {

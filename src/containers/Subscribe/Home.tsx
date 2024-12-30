@@ -113,10 +113,6 @@ export function SubscribeHome() {
 									<span>10-200 requests/minutes</span>
 									<ProgressBar pct={12} />
 								</li>
-								<li className="px-[26px] flex flex-col gap-1">
-									<span>0 calls/month</span>
-									<ProgressBar pct={0} />
-								</li>
 							</ul>
 						</div>
 						<div className="price-card py-10 px-5 lg:flex-1 flex flex-col border-l border-[#39393E] max-lg:w-[85vw] flex-shrink-0">
@@ -187,7 +183,11 @@ export function SubscribeHome() {
 							</p>
 							<p className="text-center font-medium text-[#8a8c90] flex flex-nowrap items-center justify-center gap-1">
 								<span>Free for all Github contributors</span>
-								<TooltipAnchor state={tooltip} className="flex flex-nowrap items-center justify-center gap-1">
+								<TooltipAnchor
+									state={tooltip}
+									className="flex flex-nowrap items-center justify-center gap-1"
+									as="button"
+								>
 									<span className="sr-only">Availability</span>
 									<Icon name="circle-help" height={16} width={16} />
 								</TooltipAnchor>
