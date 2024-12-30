@@ -15505,7 +15505,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
@@ -15578,7 +15578,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
@@ -18202,7 +18202,8 @@
         "yields": true,
         "raises": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "perps": true
     },
     "3330": {
         "name": "velocore-v2",

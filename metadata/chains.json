@@ -329,6 +329,7 @@
     "bsquared": {
         "name": "BSquared",
         "fees": true,
+        "derivatives": true,
         "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
@@ -1136,6 +1137,7 @@
         "activeUsers": true,
         "fees": true,
         "aggregators": true,
+        "bridge-aggregators": true,
         "gecko_id": "litecoin",
         "tokenSymbol": "LTC"
     },
@@ -1160,6 +1162,7 @@
         "name": "Manta",
         "fees": true,
         "dexs": true,
+        "derivatives": true,
         "aggregators": true,
         "bridge-aggregators": true,
         "chainAssets": true,
@@ -1329,6 +1332,7 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
+        "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
         "tokenSymbol": "NEAR"
@@ -1872,6 +1876,7 @@
         "name": "Taiko",
         "fees": true,
         "dexs": true,
+        "derivatives": true,
         "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
@@ -1881,6 +1886,7 @@
         "name": "Taraxa",
         "fees": true,
         "dexs": true,
+        "bridge-aggregators": true,
         "gecko_id": "taraxa",
         "tokenSymbol": "TARA"
     },
