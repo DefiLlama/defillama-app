@@ -15715,7 +15715,7 @@
     "2910": {
         "name": "hydradex-v3",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -31642,7 +31642,7 @@
     },
     "parent#hydradex": {
         "name": "hydradex",
-        "yields": true,
+        "yields": false,
         "tvl": true,
         "fees": true,
         "revenue": true,
