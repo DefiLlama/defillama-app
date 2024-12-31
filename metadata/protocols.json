@@ -16794,8 +16794,13 @@
         "treasury": true
     },
     "3083": {
+        "name": "penpie",
+        "tvl": true,
+        "yields": false,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "fees": true,
+        "revenue": true
     },
     "3084": {
         "name": "l2finance",
@@ -16837,7 +16842,11 @@
         "dexs": true
     },
     "3091": {
-        "liquidity": true
+        "name": "equilibria",
+        "tvl": true,
+        "yields": false,
+        "liquidity": true,
+        "emissions": true
     },
     "3092": {
         "name": "beamswap-v3",
@@ -32153,7 +32162,8 @@
         "treasury": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "parent#mahadao": {
         "name": "mahadao",
