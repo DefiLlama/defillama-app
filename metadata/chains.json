@@ -874,7 +874,6 @@
         "name": "Heco",
         "fees": true,
         "dexs": true,
-        "aggregators": true,
         "gecko_id": "huobi-token",
         "tokenSymbol": "HT"
     },
@@ -2045,7 +2044,6 @@
     },
     "wanchain": {
         "name": "Wanchain",
-        "dexs": true,
         "aggregators": true,
         "inflows": true,
         "gecko_id": "wanchain",
@@ -2119,7 +2117,6 @@
         "name": "ZetaChain",
         "fees": true,
         "dexs": true,
-        "derivatives": true,
         "aggregators": true,
         "bridge-aggregators": true,
         "gecko_id": "zetachain",
