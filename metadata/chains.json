@@ -874,6 +874,7 @@
         "name": "Heco",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "gecko_id": "huobi-token",
         "tokenSymbol": "HT"
     },
@@ -2044,6 +2045,7 @@
     },
     "wanchain": {
         "name": "Wanchain",
+        "dexs": true,
         "aggregators": true,
         "inflows": true,
         "gecko_id": "wanchain",
