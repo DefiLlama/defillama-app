@@ -322,7 +322,6 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
-        "aggregator-derivatives": true,
         "bridge-aggregators": true,
         "inflows": true,
         "chainAssets": true
@@ -815,7 +814,6 @@
         "name": "Gnosis",
         "fees": true,
         "dexs": true,
-        "derivatives": true,
         "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
@@ -2140,7 +2138,6 @@
     },
     "zkfair": {
         "name": "Zkfair",
-        "aggregators": true,
         "inflows": true
     },
     "zklink-nova": {
