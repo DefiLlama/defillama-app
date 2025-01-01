@@ -497,7 +497,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
