@@ -115,7 +115,7 @@ export const descriptions = {
 	'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top',
 	'Liquidity manager': 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs',
 	'Staking Pool': `Refers to platforms where users stake their assets using smart contracts on native blockchains to help secure the network and earn rewards but don't receive a receipt token to use in other Defi apps like with Liquid Staking projects`,
-	'Decentralized Stablecoin': `Coins pegged to USD through decentralized mechanisms`,
+	'"Partially Algorithmic Stablecoin"': `Coins pegged to USD through decentralized mechanisms, but uses an algorithmic mechanism to keep it stable`,
 	SoFi: 'Social Finance Networks',
 	'DEX Aggregator': `A platform that sources liquidity from various decentralized exchanges to provide optimal trade execution in terms of price and slippage`,
 	Restaking: 'Protocols that allow you to stake the same ETH natively and in others protocols',
@@ -164,7 +164,7 @@ export const descriptions = {
 	'Anchor BTC': '',
 	'Portfolio Tracker': 'Tools that monitor token balances and performance',
 	'Liquidity Automation': 'Automatically manages and adjusts liquidity in DeFi protocols through smart contracts',
-	Fundraising: 'Projects that raise capital for DeFi projects through grants, or community contributions'
+	'Charity Fundraising': 'Projects that raise capital for DeFi projects through grants, or community contributions'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
