@@ -2340,7 +2340,8 @@
         "name": "baguette",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "474": {
         "name": "canary",
@@ -3430,6 +3431,7 @@
         "name": "jetswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "660": {
@@ -13527,6 +13529,7 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
