@@ -12,6 +12,7 @@ export function SubscribeHome() {
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
 	const [activePriceCard, setActivePriceCard] = useState(1)
+
 	useEffect(() => {
 		const ref = pricingContainer.current
 		if (!ref) return
