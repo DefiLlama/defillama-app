@@ -1395,7 +1395,6 @@
         "name": "unicly",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -9647,8 +9646,7 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1824": {
         "name": "swapsicle-v1",
@@ -25050,8 +25048,7 @@
         "name": "vfat.io",
         "tvl": true,
         "yields": false,
-        "fees": true,
-        "revenue": true
+        "fees": true
     },
     "4603": {
         "name": "ceto-swap",
