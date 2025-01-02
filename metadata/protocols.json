@@ -6801,8 +6801,7 @@
         "name": "iron-bank",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "1304": {
         "name": "buffer-finance",
@@ -15393,7 +15392,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
