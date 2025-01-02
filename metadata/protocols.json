@@ -30265,6 +30265,11 @@
         "tvl": true,
         "yields": false
     },
+    "5574": {
+        "name": "duckswap",
+        "tvl": true,
+        "yields": false
+    },
     "5805": {
         "fees": true,
         "revenue": true
