@@ -322,6 +322,7 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
+        "aggregator-derivatives": true,
         "bridge-aggregators": true,
         "inflows": true,
         "chainAssets": true
@@ -1331,7 +1332,6 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
-        "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
@@ -2137,6 +2137,7 @@
     },
     "zkfair": {
         "name": "Zkfair",
+        "aggregators": true,
         "inflows": true
     },
     "zklink-nova": {
