@@ -496,7 +496,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -644,7 +643,6 @@
     },
     "energyweb": {
         "name": "EnergyWeb",
-        "dexs": true,
         "gecko_id": "energy-web-token",
         "tokenSymbol": "EWT"
     },
