@@ -270,6 +270,7 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
+        "options": true,
         "aggregator-derivatives": true,
         "bridge-aggregators": true,
         "chainAssets": true
@@ -1179,6 +1180,7 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
+        "options": true,
         "bridge-aggregators": true,
         "chainAssets": true,
         "gecko_id": "mantle",
@@ -1779,7 +1781,8 @@
         "name": "Sonic",
         "fees": true,
         "dexs": true,
-        "aggregators": true
+        "aggregators": true,
+        "options": true
     },
     "sophon": {
         "name": "Sophon",

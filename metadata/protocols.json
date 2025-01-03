@@ -9516,6 +9516,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30280,7 +30281,8 @@
     "5575": {
         "name": "virtuals-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5805": {
         "fees": true,
@@ -32897,6 +32899,7 @@
         "name": "smbswap",
         "yields": false,
         "tvl": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
