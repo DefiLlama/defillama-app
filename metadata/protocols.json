@@ -11712,8 +11712,7 @@
         "name": "sushi-bentobox",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2191": {
         "name": "omnidex-lend",
@@ -13276,7 +13275,7 @@
     },
     "2484": {
         "name": "djed-stablecoin",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "forks": true
     },
