@@ -1985,7 +1985,7 @@
     },
     "416": {
         "name": "westarter",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "417": {
@@ -2763,7 +2763,6 @@
         "name": "soulswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "545": {
@@ -4181,8 +4180,7 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "816": {
         "name": "xsigma",
@@ -15390,7 +15388,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -15414,7 +15412,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -15484,7 +15482,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
@@ -30279,6 +30277,11 @@
         "tvl": true,
         "yields": false
     },
+    "5575": {
+        "name": "virtuals-protocol",
+        "tvl": false,
+        "yields": false
+    },
     "5805": {
         "fees": true,
         "revenue": true
@@ -30873,7 +30876,8 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true
+        "dexs": true,
+        "emissions": true
     },
     "parent#canary": {
         "activeUsers": true
