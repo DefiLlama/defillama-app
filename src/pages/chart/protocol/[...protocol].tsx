@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { getProtocol } from '~/api/categories/protocols'
 import { useFetchProtocolInfows } from '~/api/categories/protocols/client'
 import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
@@ -34,7 +34,8 @@ export default function ProtocolChart({
 	governanceApis,
 	chartDenominations = [],
 	twitterHandle,
-	nftVolumeData
+	nftVolumeData,
+	chartColors
 }) {
 	const router = useRouter()
 
@@ -155,6 +156,13 @@ export default function ProtocolChart({
 		}
 	}, [isThemeDark])
 
+	const finalChartColors = useMemo(() => {
+		if (!chartsUnique.includes('TVL')) {
+			return { ...chartColors, [chartsUnique[0]]: '#335cd7' }
+		}
+		return { ...chartColors, TVL: '#335cd7' }
+	}, [chartColors, chartsUnique])
+
 	return (
 		<ProtocolChartOnly
 			isRouterReady={router.isReady}
@@ -166,7 +174,7 @@ export default function ProtocolChart({
 			chartsUnique={chartsUnique}
 			events={events}
 			hallmarks={events === 'true' ? protocolData.hallmarks : null}
-			chartColors={chartColors}
+			chartColors={finalChartColors}
 			bobo={false}
 			unlockTokenSymbol={unlockTokenSymbol}
 			isThemeDark={isThemeDark}
@@ -174,5 +182,3 @@ export default function ProtocolChart({
 		/>
 	)
 }
-
-const chartColors = { TVL: '#335cd7' }
