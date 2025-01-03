@@ -30282,6 +30282,7 @@
         "name": "virtuals-protocol",
         "tvl": false,
         "yields": false,
+        "fees": true,
         "revenue": true
     },
     "5805": {
