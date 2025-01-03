@@ -56,7 +56,6 @@ export const PayWithCrypto = ({ pro }: { pro: boolean }) => {
 				className={`font-medium rounded-lg border border-[#39393E] bg-[#5C5CF9] py-[14px] flex-1 text-center mx-auto ${
 					pro ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''
 				} disabled:cursor-not-allowed flex items-center gap-1 justify-center flex-nowrap`}
-				disabled
 			>
 				{isRefetchingSubStatus ? (
 					'Checking...'

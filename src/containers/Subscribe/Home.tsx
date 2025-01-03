@@ -165,7 +165,7 @@ export function SubscribeHome() {
 								<SignIn text="Already a subscriber? Sign In" />
 								<div className="flex flex-nowrap gap-2 relative max-sm:flex-col max-sm:*:w-full">
 									<PayWithCrypto pro={true} />
-									<a
+									{/* <a
 										href="https://defillama.com/docs/api"
 										target="_blank"
 										rel="noreferrer noopener"
@@ -173,7 +173,7 @@ export function SubscribeHome() {
 									>
 										<Icon name="card" height={16} width={16} />
 										<span>Pay with Stripe</span>
-									</a>
+									</a> */}
 								</div>
 							</div>
 						</div>
@@ -256,7 +256,7 @@ export function SubscribeHome() {
 								<SignInWithGithub />
 								<div className="flex flex-nowrap gap-2 relative max-sm:flex-col max-sm:*:w-full">
 									<PayWithCrypto pro={false} />
-									<a
+									{/* <a
 										href="https://defillama.com/docs/api"
 										target="_blank"
 										rel="noreferrer noopener"
@@ -264,7 +264,7 @@ export function SubscribeHome() {
 									>
 										<Icon name="card" height={16} width={16} />
 										<span>Pay with Stripe</span>
-									</a>
+									</a> */}
 								</div>
 							</div>
 						</div>
