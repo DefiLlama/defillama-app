@@ -15054,7 +15054,7 @@
     "2795": {
         "name": "thalaswap",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true,
         "hacks": true,
         "fees": true,
@@ -30863,8 +30863,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "parent#canary": {
         "activeUsers": true
@@ -33307,7 +33306,7 @@
     },
     "parent#thala-labs": {
         "name": "thala",
-        "yields": true,
+        "yields": false,
         "tvl": true,
         "liquidity": true,
         "fees": true,
