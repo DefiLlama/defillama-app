@@ -214,7 +214,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						>
 							Connect Wallet
 						</button>
-						<div className="relative w-full flex flex-col items-center opacity-70">
+						{/* <div className="relative w-full flex flex-col items-center opacity-70">
 							<p className="px-2 bg-[var(--bg1)] z-10 text-sm">or continue with email</p>
 							<hr className="absolute top-0 bottom-0 my-auto w-full opacity-30" />
 						</div>
@@ -248,7 +248,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 							{errorFetchingUserEmailData ? (
 								<p className="text-center text-red-500 text-sm">{errorFetchingUserEmailData.message}</p>
 							) : null}
-						</form>
+						</form> */}
 					</>
 				)}
 			</Dialog>
