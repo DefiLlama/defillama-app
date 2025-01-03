@@ -657,7 +657,18 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					: null,
 				fees: feesData?.[0]?.methodologyURL ?? null,
 				dexs: volumeData?.[0]?.methodologyURL ?? null,
-				perps: perpsData?.[0]?.methodologyURL ?? null
+				perps: perpsData?.[0]?.methodologyURL ?? null,
+				treasury: protocolData.treasury
+					? `https://github.com/DefiLlama/DefiLlama-Adapters/blob/main/projects/treasury/${protocolData.treasury}`
+					: null,
+				stablecoins: protocolData.stablecoins
+					? protocolData.stablecoins
+							.map(
+								(name) =>
+									`${name}$https://github.com/DefiLlama/peggedassets-server/blob/master/src/adapters/peggedAssets/${name}/index.ts`
+							)
+							.join(',')
+					: null
 			},
 			chartDenominations,
 			hacksData:

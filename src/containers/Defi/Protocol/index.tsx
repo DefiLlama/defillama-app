@@ -1533,7 +1533,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														useTextColor={true}
 														color={backgroundColor}
 													>
-														<span>{isCEX ? 'Wallet Addresses' : 'TVL code'}</span>
+														<span>{isCEX ? 'Wallet Addresses' : 'TVL'}</span>
 														<Icon name="arrow-up-right" height={14} width={14} />
 													</ButtonLight>
 												</Link>
@@ -1549,7 +1549,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														useTextColor={true}
 														color={backgroundColor}
 													>
-														<span>Fees and Revenue code</span>
+														<span>Fees and Revenue</span>
 														<Icon name="arrow-up-right" height={14} width={14} />
 													</ButtonLight>
 												</Link>
@@ -1565,7 +1565,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														useTextColor={true}
 														color={backgroundColor}
 													>
-														<span>Volume code</span>
+														<span>Volume</span>
 														<Icon name="arrow-up-right" height={14} width={14} />
 													</ButtonLight>
 												</Link>
@@ -1581,11 +1581,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														useTextColor={true}
 														color={backgroundColor}
 													>
-														<span>Perps Volume code</span>
+														<span>Perps Volume</span>
 														<Icon name="arrow-up-right" height={14} width={14} />
 													</ButtonLight>
 												</Link>
 											)}
+
 											{methodologyUrls?.bridgeAggregators && (
 												<Link href={methodologyUrls.bridgeAggregators} passHref>
 													<ButtonLight
@@ -1596,11 +1597,45 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														useTextColor={true}
 														color={backgroundColor}
 													>
-														<span>Bridge Aggregators Volume code</span>
+														<span>Bridge Aggregators Volume</span>
 														<Icon name="arrow-up-right" height={14} width={14} />
 													</ButtonLight>
 												</Link>
 											)}
+
+											{methodologyUrls?.treasury && (
+												<Link href={methodologyUrls.treasury} passHref>
+													<ButtonLight
+														className="flex items-center gap-1"
+														as="a"
+														target="_blank"
+														rel="noopener noreferrer"
+														useTextColor={true}
+														color={backgroundColor}
+													>
+														<span>Treasury</span>
+														<Icon name="arrow-up-right" height={14} width={14} />
+													</ButtonLight>
+												</Link>
+											)}
+
+											{methodologyUrls?.stablecoins
+												? methodologyUrls.stablecoins.split(',').map((stablecoin) => (
+														<Link href={stablecoin.split('$')[1]} passHref key={`code-${stablecoin}`}>
+															<ButtonLight
+																className="flex items-center gap-1"
+																as="a"
+																target="_blank"
+																rel="noopener noreferrer"
+																useTextColor={true}
+																color={backgroundColor}
+															>
+																<span>{stablecoin.split('$')[0]}</span>
+																<Icon name="arrow-up-right" height={14} width={14} />
+															</ButtonLight>
+														</Link>
+												  ))
+												: null}
 										</div>
 									</div>
 								)}
