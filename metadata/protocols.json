@@ -1985,7 +1985,7 @@
     },
     "416": {
         "name": "westarter",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "417": {
@@ -11534,7 +11534,7 @@
     },
     "2159": {
         "name": "amulet-v1",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "raises": true
     },
