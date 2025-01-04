@@ -3053,7 +3053,8 @@
     "595": {
         "name": "convergence",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "596": {
         "name": "flux-protocol",
@@ -3431,6 +3432,7 @@
         "name": "jetswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "660": {
@@ -11227,7 +11229,8 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2109": {
         "name": "pyeswap",
@@ -30291,6 +30294,16 @@
         "tvl": false,
         "yields": false
     },
+    "5578": {
+        "name": "swapx-v2",
+        "tvl": true,
+        "yields": false
+    },
+    "5579": {
+        "name": "swapx-algebra",
+        "tvl": true,
+        "yields": false
+    },
     "5805": {
         "fees": true,
         "revenue": true
@@ -33243,6 +33256,11 @@
         "yields": false,
         "tvl": true,
         "dexs": true
+    },
+    "parent#swapx": {
+        "name": "swapx",
+        "yields": false,
+        "tvl": true
     },
     "parent#swell": {
         "name": "swell",
