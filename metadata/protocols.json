@@ -12257,7 +12257,8 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "perps": true
+        "perps": true,
+        "emissions": true
     },
     "2297": {
         "name": "fairfi",
