@@ -15943,8 +15943,7 @@
         "name": "archi-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2953": {
         "name": "zenith",
