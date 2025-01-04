@@ -2762,6 +2762,7 @@
         "name": "soulswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "545": {
@@ -3610,7 +3611,8 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "693": {
         "name": "superfluid",
@@ -4735,6 +4737,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -14832,7 +14835,8 @@
     "2751": {
         "name": "lfgswap-arbitrum",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2752": {
         "name": "onchain-trade",
@@ -30878,8 +30882,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "parent#canary": {
         "activeUsers": true
