@@ -1943,8 +1943,7 @@
     "409": {
         "name": "cafeswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "410": {
         "name": "swamp-finance",
@@ -7121,8 +7120,7 @@
     "1363": {
         "name": "oni-exchange",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1364": {
         "name": "narwhalswap",
@@ -11430,7 +11428,6 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
