@@ -491,6 +491,11 @@
         "bridge-aggregators": true,
         "chainAssets": true
     },
+    "crossfi": {
+        "name": "CrossFi",
+        "gecko_id": "crossfi-2",
+        "tokenSymbol": "XFI"
+    },
     "csc": {
         "name": "CSC",
         "gecko_id": "coinex-token",

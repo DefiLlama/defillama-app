@@ -2855,7 +2855,6 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -12258,8 +12257,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "perps": true,
-        "emissions": true
+        "perps": true
     },
     "2297": {
         "name": "fairfi",
@@ -12430,8 +12428,7 @@
     "2331": {
         "name": "swapfish",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2332": {
         "name": "equalizer-exchange",
@@ -12724,8 +12721,7 @@
     "2384": {
         "name": "oreoswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2385": {
         "name": "exactly",
@@ -13839,8 +13835,7 @@
     "2577": {
         "name": "sharky-swap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2578": {
         "name": "beamer-bridge",
@@ -30288,6 +30283,11 @@
         "fees": true,
         "revenue": true
     },
+    "5576": {
+        "name": "crossfi-xswap",
+        "tvl": true,
+        "yields": false
+    },
     "5805": {
         "fees": true,
         "revenue": true
@@ -30882,7 +30882,8 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true
+        "dexs": true,
+        "emissions": true
     },
     "parent#canary": {
         "activeUsers": true
