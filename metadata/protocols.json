@@ -3099,8 +3099,7 @@
         "name": "bakeryswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "604": {
         "name": "sherlock",
@@ -30292,7 +30291,9 @@
     "5577": {
         "name": "trust-wallet",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "5578": {
         "name": "swapx-v2",
