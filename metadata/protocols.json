@@ -30286,6 +30286,11 @@
         "tvl": true,
         "yields": false
     },
+    "5577": {
+        "name": "trust-wallet",
+        "tvl": false,
+        "yields": false
+    },
     "5805": {
         "fees": true,
         "revenue": true
