@@ -159,9 +159,9 @@ export const descriptions = {
 	Liquidations: 'Protocols that enable the purchase of liquidated collateral from lending platforms or CDP protocols',
 	'Bridge Aggregator':
 		'Protocols that consolidate multiple bridging solutions, allowing users to transfer assets across different blockchains by finding the most efficient routes',
-	'Restaked BTC': '',
-	'Decentralized BTC': '',
-	'Anchor BTC': '',
+	'Restaked BTC': 'Protocols that enable users to stake their Bitcoin (BTC) natively, receiving a representative receipt token in return',
+	'Decentralized BTC': 'Tokens that represent Bitcoin in a decentralized manner, backed and issued through trustless mechanisms such as smart contracts, without reliance on centralized custodians.',
+	'Anchor BTC': 'Tokens indirectly tied to Bitcoin, backed by assets or instruments that are themselves backed by Bitcoin, offering exposure with additional flexibility but not a direct 1:1 representation of BTC.',
 	'Portfolio Tracker': 'Tools that monitor token balances and performance',
 	'Liquidity Automation': 'Automatically manages and adjusts liquidity in DeFi protocols through smart contracts',
 	'Charity Fundraising': 'Projects that raise capital for DeFi projects through grants, or community contributions'
