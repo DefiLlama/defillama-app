@@ -3054,8 +3054,7 @@
     "595": {
         "name": "convergence",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "596": {
         "name": "flux-protocol",
@@ -11687,7 +11686,8 @@
     "2186": {
         "name": "usdfi-lending",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2187": {
         "name": "dolomite",
@@ -15945,7 +15945,8 @@
         "name": "archi-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2953": {
         "name": "zenith",
@@ -28598,7 +28599,7 @@
     },
     "5257": {
         "name": "capybara-perps",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "perps": true
     },
@@ -32562,6 +32563,9 @@
         "yields": false,
         "tvl": true
     },
+    "parent#paraspace": {
+        "activeUsers": true
+    },
     "parent#parax": {
         "name": "parallel-super-app",
         "yields": false,
@@ -33782,7 +33786,6 @@
         "governance": true,
         "treasury": true,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
