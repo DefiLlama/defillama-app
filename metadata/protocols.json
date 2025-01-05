@@ -10810,9 +10810,6 @@
         "raises": true
     },
     "2022": {
-        "name": "metastreet-v1",
-        "tvl": true,
-        "yields": false,
         "raises": true
     },
     "2023": {
@@ -17442,11 +17439,6 @@
         "name": "collectif-dao",
         "tvl": true,
         "yields": false
-    },
-    "3200": {
-        "name": "metastreet-v2",
-        "tvl": true,
-        "yields": true
     },
     "3201": {
         "name": "chirpfinance",
@@ -27465,11 +27457,6 @@
         "tvl": true,
         "yields": false
     },
-    "5031": {
-        "name": "metastreet-airdrop-pass",
-        "tvl": true,
-        "yields": false
-    },
     "5032": {
         "name": "stakewise-v3",
         "tvl": true,
@@ -30422,6 +30409,11 @@
         "tvl": true,
         "yields": false
     },
+    "5580": {
+        "name": "latch",
+        "tvl": true,
+        "yields": false
+    },
     "5805": {
         "fees": true,
         "revenue": true
@@ -32327,11 +32319,6 @@
     },
     "parent#meta-pool": {
         "name": "meta-pool",
-        "yields": true,
-        "tvl": true
-    },
-    "parent#metastreet": {
-        "name": "metastreet",
         "yields": true,
         "tvl": true
     },
