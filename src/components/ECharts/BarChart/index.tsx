@@ -53,13 +53,14 @@ export default function BarChart({
 		valueSymbol,
 		hideLegend,
 		tooltipOrderBottomUp,
-		isThemeDark
+		isThemeDark,
+		isMonthly
 	})
 
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
 
-		if (!stackKeys || stackKeys?.length === 0) {
+		if (!stackKeys || stackKeys.length === 0) {
 			const series = {
 				name: '',
 				type: 'bar',
@@ -74,14 +75,16 @@ export default function BarChart({
 				data: []
 			}
 
-			chartData.forEach(([date, value]) => {
-				series.data.push([getUtcDateObject(date), value, isMonthly ? 'monthly' : false])
-			})
+			for (const [date, value] of chartData) {
+				series.data.push([getUtcDateObject(date), value])
+			}
 
 			return series
 		} else {
-			const series = selectedStacks.map((stack) => {
-				return {
+			const series = {}
+
+			for (const stack of selectedStacks) {
+				series[stack] = {
 					name: stack,
 					type: 'bar',
 					large: true,
@@ -104,25 +107,17 @@ export default function BarChart({
 					...(seriesConfig?.[defaultStacks[stack]] && seriesConfig?.[defaultStacks[stack]]),
 					data: []
 				}
-			})
+			}
 
-			chartData.forEach(({ date, ...item }) => {
-				selectedStacks.forEach((stack) => {
-					series
-						.find((t) => t.name === stack)
-						?.data.push([getUtcDateObject(date), item[stack] || 0, isMonthly ? 'monthly' : false])
-				})
-			})
-
-			series.forEach((seriesItem) => {
-				if (seriesItem.data.length === 0) {
-					seriesItem.large = false
+			for (const { date, ...item } of chartData) {
+				for (const stack in item) {
+					series[stack]?.data?.push([getUtcDateObject(date), item[stack] || 0])
 				}
-			})
+			}
 
-			return series
+			return Object.values(series).map((s: any) => (s.data.length === 0 ? { ...s, large: false } : s))
 		}
-	}, [barWidths, chartData, color, defaultStacks, seriesConfig, stackColors, stackKeys, selectedStacks, isMonthly])
+	}, [barWidths, chartData, color, defaultStacks, seriesConfig, stackColors, stackKeys, selectedStacks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -190,7 +185,7 @@ export default function BarChart({
 	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions])
 
 	return (
-		<div style={{ position: 'relative' }}>
+		<div className="relative">
 			{customLegendName && customLegendOptions?.length > 1 && (
 				<SelectLegendMultiple
 					allOptions={customLegendOptions}

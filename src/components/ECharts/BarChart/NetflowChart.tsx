@@ -213,7 +213,7 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 	}, [createInstance, chains, positiveData, negativeData, isThemeDark])
 
 	return (
-		<div style={{ position: 'relative' }}>
+		<div className="relative">
 			<div id={id} style={{ height, margin: 'auto 0' }}></div>
 			<div
 				style={{
@@ -222,8 +222,10 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 					marginTop: '20px'
 				}}
 			>
-				<RowFilter values={['day', 'week', 'month']} selectedValue={period} setValue={setPeriod} />
+				<RowFilter values={flowTypes} selectedValue={period} setValue={setPeriod} />
 			</div>
 		</div>
 	)
 }
+
+const flowTypes = ['day', 'week', 'month']

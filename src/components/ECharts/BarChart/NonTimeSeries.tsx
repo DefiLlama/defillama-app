@@ -165,7 +165,7 @@ export default function NonTimeSeriesBarChart({
 	}, [createInstance, defaultChartSettings, series, isThemeDark, chartOptions, valueSymbol])
 
 	return (
-		<div style={{ position: 'relative' }}>
+		<div className="relative">
 			<div id={id} style={{ height, margin: 'auto 0' }}></div>
 		</div>
 	)

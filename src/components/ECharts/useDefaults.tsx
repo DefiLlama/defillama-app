@@ -65,6 +65,7 @@ interface IUseDefaultsProps {
 	unlockTokenSymbol?: string
 	isThemeDark: boolean
 	hideOthersInTooltip?: boolean
+	isMonthly?: boolean
 }
 
 export function useDefaults({
@@ -78,7 +79,8 @@ export function useDefaults({
 	isStackedChart,
 	unlockTokenSymbol = '',
 	isThemeDark,
-	hideOthersInTooltip
+	hideOthersInTooltip,
+	isMonthly
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -120,15 +122,14 @@ export function useDefaults({
 			confine: true,
 			formatter: function (params) {
 				let chartdate = new Date(params[0].value[0]).toLocaleDateString('en-US', {
-					year: params[0].value[2] === 'monthly' ? undefined : 'numeric',
+					year: isMonthly ? undefined : 'numeric',
 					month: 'short',
 					day: 'numeric'
 				})
 
-				chartdate +=
-					params[0].value[2] === 'monthly'
-						? ' - ' + lastDayOfMonth(params[0].value[0]) + ', ' + new Date(params[0].value[0]).getFullYear()
-						: ''
+				chartdate += isMonthly
+					? ' - ' + lastDayOfMonth(params[0].value[0]) + ', ' + new Date(params[0].value[0]).getFullYear()
+					: ''
 
 				let vals
 				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1] !== null)
@@ -375,7 +376,8 @@ export function useDefaults({
 		tooltipOrderBottomUp,
 		unlockTokenSymbol,
 		hideOthersInTooltip,
-		tooltipValuesRelative
+		tooltipValuesRelative,
+		isMonthly
 	])
 
 	return defaults

@@ -300,7 +300,7 @@ export default function StackedBarChart({
 	}, [id, valueSymbol, title, createInstance, series, isDark, color, isSmall, stackColors, showLegend, isMonthly])
 
 	return (
-		<div style={{ position: 'relative' }}>
+		<div className="relative">
 			<div id={id} style={{ height: '360px', margin: 'auto 0' }}></div>
 		</div>
 	)
