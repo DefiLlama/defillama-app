@@ -2761,7 +2761,6 @@
         "name": "soulswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "545": {
@@ -4186,8 +4185,7 @@
     "817": {
         "name": "cashcow-finance",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "818": {
         "name": "cashcow-protocol",
@@ -10183,7 +10181,6 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
