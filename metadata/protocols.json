@@ -772,6 +772,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -9910,7 +9911,8 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1872": {
         "name": "rift-finance",
@@ -28373,7 +28375,7 @@
     "5214": {
         "name": "metrom",
         "tvl": false,
-        "yields": true
+        "yields": false
     },
     "5216": {
         "name": "pit-finance",
@@ -33766,6 +33768,7 @@
         "governance": true,
         "treasury": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
