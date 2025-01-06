@@ -240,7 +240,7 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 		header: 'Description',
 		accessorKey: 'description',
 		enableSorting: false,
-		size: 902
+		size: 1600
 	}
 ]
 

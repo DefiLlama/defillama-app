@@ -255,7 +255,7 @@ export function SubscribeHome() {
 							<div className="w-full max-w-[408px] mx-auto mt-0 flex flex-col gap-2">
 								<SignInWithGithub />
 								<div className="flex flex-nowrap gap-2 relative max-sm:flex-col max-sm:*:w-full">
-									<PayWithCrypto pro={false} />
+									{/* <PayWithCrypto pro={false} /> */}
 									{/* <a
 										href="https://defillama.com/docs/api"
 										target="_blank"
