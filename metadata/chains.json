@@ -1192,6 +1192,11 @@
         "gecko_id": "mantle",
         "tokenSymbol": "MNT"
     },
+    "mantra": {
+        "name": "Mantra",
+        "gecko_id": "mantra-dao",
+        "tokenSymbol": "OM"
+    },
     "map-protocol": {
         "name": "MAP Protocol",
         "dexs": true
@@ -1342,7 +1347,6 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
-        "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
@@ -2060,6 +2064,11 @@
         "gecko_id": "wanchain",
         "tokenSymbol": "WAN"
     },
+    "waterfall": {
+        "name": "Waterfall",
+        "gecko_id": "water-3",
+        "tokenSymbol": "WATER"
+    },
     "waves": {
         "name": "Waves",
         "fees": true,
@@ -2150,7 +2159,6 @@
     },
     "zkfair": {
         "name": "Zkfair",
-        "aggregators": true,
         "inflows": true
     },
     "zklink-nova": {

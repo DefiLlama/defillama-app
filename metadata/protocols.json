@@ -30248,6 +30248,16 @@
         "tvl": true,
         "yields": false
     },
+    "5581": {
+        "name": "aquadex",
+        "tvl": true,
+        "yields": false
+    },
+    "5582": {
+        "name": "mantra-amm",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -32567,9 +32577,6 @@
         "name": "paraluni",
         "yields": false,
         "tvl": true
-    },
-    "parent#paraspace": {
-        "activeUsers": true
     },
     "parent#parax": {
         "name": "parallel-super-app",
