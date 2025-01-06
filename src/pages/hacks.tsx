@@ -77,7 +77,7 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	return {
 		props: {
 			data,
-			monthlyHacks,
+			monthlyHacks: Object.entries(monthlyHacks).map((t) => [getLastDateOfMonth(t[0]) / 1e3, Number(t[1]) * 1e6]),
 			totalHacked,
 			totalHackedDefi,
 			totalRugs,
@@ -87,8 +87,23 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	}
 })
 
-const Raises = ({ data, monthlyHacks, ...props }) => {
+const Raises = ({ data, monthlyHacks, monthlyHacks2, ...props }) => {
 	return <HacksContainer data={data} monthlyHacks={monthlyHacks} {...(props as any)} />
 }
 
 export default Raises
+
+function getLastDateOfMonth(yearMonth) {
+	// Split the input string into year and month
+	let [year, month] = yearMonth.split('-').map(Number)
+
+	// Create a date for the first day of the next month
+	let d = new Date(year, month, 1) // Month is zero-indexed in JavaScript
+
+	// Subtract one day to move to the last day of the current month
+	d.setDate(d.getDate() - 1)
+
+	// Format the date back to 'YYYY-MM-DD'
+	let lastDay = d.getDate().toString().padStart(2, '0') // Ensure two digits for day
+	return new Date(`${year}-${month.toString().padStart(2, '0')}-${lastDay}`).getTime()
+}

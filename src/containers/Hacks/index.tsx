@@ -94,9 +94,10 @@ function HacksTable({ data }) {
 	)
 }
 
+const chartTypeList = ['Total Value Hacked', 'Pie']
+
 const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, totalRugs, pieChartData }) => {
 	const [chartType, setChartType] = React.useState('Total Value Hacked')
-	const chartTypeList = ['Total Value Hacked', 'Pie']
 	return (
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
@@ -118,10 +119,7 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 
 					{chartType === 'Total Value Hacked' && monthlyHacks ? (
-						<BarChart
-							chartData={Object.entries(monthlyHacks).map((t) => [new Date(t[0]).getTime() / 1e3, Number(t[1]) * 1e6])}
-							title="Monthly sum"
-						/>
+						<BarChart chartData={monthlyHacks} title="Monthly sum" />
 					) : (
 						<PieChart chartData={pieChartData} />
 					)}
