@@ -15684,7 +15684,8 @@
     "2911": {
         "name": "aboard-exchange",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2912": {
         "name": "onsen-swap",
