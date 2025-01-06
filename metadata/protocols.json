@@ -1036,11 +1036,6 @@
         "tvl": true,
         "yields": false
     },
-    "268": {
-        "name": "unitrade",
-        "tvl": true,
-        "yields": false
-    },
     "269": {
         "name": "yfii",
         "tvl": true,
@@ -13564,8 +13559,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
