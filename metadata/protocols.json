@@ -1,14 +1,8 @@
 {
-    "1": {
-        "fees": true,
-        "revenue": true
-    },
     "2": {
         "name": "wbtc",
         "tvl": true,
-        "yields": false,
-        "fees": true,
-        "revenue": true
+        "yields": false
     },
     "3": {
         "name": "curve-dex",
@@ -21,10 +15,6 @@
         "fees": true,
         "revenue": true,
         "dexs": true
-    },
-    "74": {
-        "fees": true,
-        "revenue": true
     },
     "111": {
         "name": "aave-v2",
@@ -531,10 +521,6 @@
         "tvl": true,
         "yields": true
     },
-    "185": {
-        "fees": true,
-        "revenue": true
-    },
     "186": {
         "name": "wanswap-dex",
         "tvl": true,
@@ -656,9 +642,7 @@
         "forks": true,
         "treasury": true,
         "liquidity": true,
-        "hacks": true,
-        "fees": true,
-        "revenue": true
+        "hacks": true
     },
     "205": {
         "name": "goose-finance",
@@ -1397,8 +1381,6 @@
         "name": "unicly",
         "tvl": true,
         "yields": false,
-        "fees": true,
-        "revenue": true,
         "dexs": true
     },
     "325": {
@@ -5318,9 +5300,7 @@
     "1027": {
         "name": "xmas-past",
         "tvl": true,
-        "yields": false,
-        "fees": true,
-        "revenue": true
+        "yields": false
     },
     "1028": {
         "name": "mm-finance-cronos",
@@ -6647,8 +6627,6 @@
         "tvl": true,
         "yields": true,
         "liquidity": true,
-        "fees": true,
-        "revenue": true,
         "dexs": true
     },
     "1277": {
@@ -8741,9 +8719,7 @@
     "1659": {
         "name": "sirius-finance",
         "tvl": true,
-        "yields": false,
-        "fees": true,
-        "revenue": true
+        "yields": false
     },
     "1660": {
         "name": "swappi",
@@ -9735,9 +9711,7 @@
     "1839": {
         "name": "aave-arc",
         "tvl": true,
-        "yields": false,
-        "fees": true,
-        "revenue": true
+        "yields": false
     },
     "1840": {
         "name": "sushi-kashi",
@@ -10398,9 +10372,7 @@
     "1958": {
         "name": "parallel-polkadot-liquid-staking",
         "tvl": false,
-        "yields": false,
-        "fees": true,
-        "revenue": true
+        "yields": false
     },
     "1959": {
         "name": "hubble-exchange",
@@ -11220,8 +11192,7 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2109": {
         "name": "pyeswap",
@@ -14969,9 +14940,7 @@
     "2777": {
         "name": "gmcash",
         "tvl": true,
-        "yields": false,
-        "fees": true,
-        "revenue": true
+        "yields": false
     },
     "2779": {
         "name": "zenithswap",
@@ -19148,9 +19117,7 @@
     "3513": {
         "name": "cavalre",
         "tvl": true,
-        "yields": false,
-        "fees": true,
-        "revenue": true
+        "yields": false
     },
     "3514": {
         "name": "vmex-finance",
@@ -19795,9 +19762,7 @@
     "3635": {
         "name": "money-mates",
         "tvl": true,
-        "yields": false,
-        "fees": true,
-        "revenue": true
+        "yields": false
     },
     "3636": {
         "name": "aftermath-afsui",
@@ -21145,9 +21110,7 @@
         "name": "lumi-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "fees": true,
-        "revenue": true
+        "liquidity": true
     },
     "3891": {
         "name": "degate",
@@ -26405,7 +26368,7 @@
     },
     "4861": {
         "name": "aurus",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4862": {
@@ -29498,9 +29461,7 @@
     "5426": {
         "name": "levva",
         "tvl": true,
-        "yields": false,
-        "fees": true,
-        "revenue": true
+        "yields": false
     },
     "5427": {
         "name": "bluefin-amm",
@@ -30214,9 +30175,7 @@
     "5567": {
         "name": "bedrock-brbtc",
         "tvl": true,
-        "yields": false,
-        "fees": true,
-        "revenue": true
+        "yields": false
     },
     "5568": {
         "name": "fiva-protocol",
@@ -30293,59 +30252,127 @@
         "tvl": true,
         "yields": false
     },
-    "5805": {
+    "chain#1": {
         "fees": true,
         "revenue": true
     },
-    "6535": {
+    "chain#1027": {
         "fees": true,
         "revenue": true
     },
-    "6836": {
+    "chain#11840": {
         "fees": true,
         "revenue": true
     },
-    "8453": {
+    "chain#1274": {
         "fees": true,
         "revenue": true
     },
-    "8519": {
+    "chain#13631": {
         "fees": true,
         "revenue": true
     },
-    "9285": {
+    "chain#14803": {
         "fees": true,
         "revenue": true
     },
-    "11840": {
+    "chain#1659": {
         "fees": true,
         "revenue": true
     },
-    "13631": {
+    "chain#1839": {
         "fees": true,
         "revenue": true
     },
-    "14803": {
+    "chain#185": {
         "fees": true,
         "revenue": true
     },
-    "21516": {
+    "chain#1958": {
         "fees": true,
         "revenue": true
     },
-    "22861": {
+    "chain#2": {
         "fees": true,
         "revenue": true
     },
-    "42161": {
+    "chain#200901": {
         "fees": true,
         "revenue": true
     },
-    "42170": {
+    "chain#204": {
         "fees": true,
         "revenue": true
     },
-    "200901": {
+    "chain#21516": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#22861": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#2777": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#324": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#3513": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#3635": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#3890": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#42161": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#42170": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#5426": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#5567": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#5805": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#6535": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#6836": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#74": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#8453": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#8519": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#9285": {
         "fees": true,
         "revenue": true
     },

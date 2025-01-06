@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import HacksContainer from '~/containers/Hacks'
-import { formattedNum, toYearMonth } from '~/utils'
+import { formattedNum } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
@@ -26,8 +26,8 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	const monthlyHacks = {}
 
 	data.forEach((r) => {
-		const monthlyDate = toYearMonth(r.date)
-		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + r.amount
+		const monthlyDate = getLastDateOfMonth(r.date)
+		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + r.amount * 1e6
 	})
 
 	const totalHacked = formattedNum(
@@ -77,7 +77,7 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	return {
 		props: {
 			data,
-			monthlyHacks: Object.entries(monthlyHacks).map((t) => [getLastDateOfMonth(t[0]) / 1e3, Number(t[1]) * 1e6]),
+			monthlyHacks: Object.entries(monthlyHacks),
 			totalHacked,
 			totalHackedDefi,
 			totalRugs,
@@ -87,23 +87,15 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	}
 })
 
-const Raises = ({ data, monthlyHacks, monthlyHacks2, ...props }) => {
-	return <HacksContainer data={data} monthlyHacks={monthlyHacks} {...(props as any)} />
+const Raises = (props) => {
+	return <HacksContainer {...(props as any)} />
 }
 
 export default Raises
 
-function getLastDateOfMonth(yearMonth) {
-	// Split the input string into year and month
-	let [year, month] = yearMonth.split('-').map(Number)
-
-	// Create a date for the first day of the next month
-	let d = new Date(year, month, 1) // Month is zero-indexed in JavaScript
-
-	// Subtract one day to move to the last day of the current month
-	d.setDate(d.getDate() - 1)
-
-	// Format the date back to 'YYYY-MM-DD'
-	let lastDay = d.getDate().toString().padStart(2, '0') // Ensure two digits for day
-	return new Date(`${year}-${month.toString().padStart(2, '0')}-${lastDay}`).getTime()
+function getLastDateOfMonth(currentDate) {
+	const date = new Date(currentDate * 1000)
+	// By passing 0 as the day after the month, JavaScript will return the last day of the previous month.
+	// So add 1 to getUTCMonth()
+	return new Date(date.getUTCFullYear(), date.getUTCMonth() + 1, 0).getTime() / 1e3
 }
