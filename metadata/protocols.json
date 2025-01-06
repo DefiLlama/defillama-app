@@ -3431,7 +3431,6 @@
         "name": "jetswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "660": {
@@ -12804,8 +12803,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "raises": true,
-        "activeUsers": true
+        "raises": true
     },
     "2398": {
         "name": "opyn-convexity",
