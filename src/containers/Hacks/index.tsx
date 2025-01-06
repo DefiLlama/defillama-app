@@ -119,7 +119,7 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 
 					{chartType === 'Total Value Hacked' && monthlyHacks ? (
-						<BarChart chartData={monthlyHacks} title="Monthly sum" />
+						<BarChart chartData={monthlyHacks} title="Monthly sum" isMonthly />
 					) : (
 						<PieChart chartData={pieChartData} />
 					)}

@@ -26,7 +26,7 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	const monthlyHacks = {}
 
 	data.forEach((r) => {
-		const monthlyDate = getLastDateOfMonth(r.date)
+		const monthlyDate = getFirstDateOfTheMonth(r.date)
 		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + r.amount * 1e6
 	})
 
@@ -93,9 +93,7 @@ const Raises = (props) => {
 
 export default Raises
 
-function getLastDateOfMonth(currentDate) {
+function getFirstDateOfTheMonth(currentDate) {
 	const date = new Date(currentDate * 1000)
-	// By passing 0 as the day after the month, JavaScript will return the last day of the previous month.
-	// So add 1 to getUTCMonth()
-	return new Date(date.getUTCFullYear(), date.getUTCMonth() + 1, 0).getTime() / 1e3
+	return new Date(date.getUTCFullYear(), date.getUTCMonth(), 1).getTime() / 1e3
 }
