@@ -15468,7 +15468,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
@@ -15541,7 +15541,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
@@ -30405,6 +30405,16 @@
         "tvl": false,
         "yields": false
     },
+    "5588": {
+        "name": "yieldfi",
+        "tvl": true,
+        "yields": false
+    },
+    "5590": {
+        "name": "dtrinity-dlend",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -31424,6 +31434,11 @@
         "revenue": true,
         "dexs": true,
         "perps": true
+    },
+    "parent#dtrinity": {
+        "name": "dtrinity",
+        "yields": false,
+        "tvl": true
     },
     "parent#dtx": {
         "name": "dtx",
