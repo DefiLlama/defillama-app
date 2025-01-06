@@ -22886,6 +22886,7 @@
         "name": "juice-finance",
         "tvl": true,
         "yields": false,
+        "forks": true,
         "raises": true,
         "fees": true,
         "revenue": true
@@ -30256,6 +30257,11 @@
     "5582": {
         "name": "mantra-amm",
         "tvl": true,
+        "yields": false
+    },
+    "5587": {
+        "name": "coinbase-wallet",
+        "tvl": false,
         "yields": false
     },
     "chain#1": {
