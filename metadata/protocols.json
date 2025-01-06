@@ -30410,6 +30410,11 @@
         "tvl": true,
         "yields": false
     },
+    "5589": {
+        "name": "dtrinity-dusd",
+        "tvl": true,
+        "yields": false
+    },
     "5590": {
         "name": "dtrinity-dlend",
         "tvl": true,
