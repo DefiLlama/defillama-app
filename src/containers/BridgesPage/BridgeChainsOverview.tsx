@@ -1,6 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
+import type { IStackedBarChartProps } from '~/components/ECharts/types'
 import { BridgesSearch } from '~/components/Search/Bridges'
 import { BridgeChainsTable } from '~/components/Table/Bridges'
 import { toNiceCsvDate, download } from '~/utils'
@@ -10,7 +10,7 @@ const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stac
 	ssr: false
 }) as React.FC<IStackedBarChartProps>
 
-function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, formattedVolumeChartData }) {
+function BridgeChainsOverview({ chains, filteredChains, formattedVolumeChartData }) {
 	const downloadCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chains]]
 		let stackedDatasetObject = {} as any

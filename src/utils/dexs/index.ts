@@ -1,5 +1,5 @@
 import { IDexResponse } from '~/api/categories/dexs/types'
-import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
+import type { IStackedBarChartProps } from '~/components/ECharts/types'
 import { capitalizeFirstLetter } from '..'
 
 const summAllVolumes = (breakdownVolumes: IDexResponse['volumeHistory'][0]['dailyVolume']) =>
@@ -74,7 +74,8 @@ export const formatVolumeHistoryToChartDataByProtocol = (
 		}, {} as { [version: string]: number })
 		for (const key of ALL_VERSIONS) {
 			//all versions should have value
-			if (acc[key]) acc[key].push([new Date(timestamp * 1000), rawItems[key] ?? 0]) //default to 0 to avoid buggy chart
+			if (acc[key]) acc[key].push([new Date(timestamp * 1000), rawItems[key] ?? 0])
+			//default to 0 to avoid buggy chart
 			else acc[key] = [[new Date(timestamp * 1000), rawItems[key] ?? 0]]
 		}
 		// return all data by chain

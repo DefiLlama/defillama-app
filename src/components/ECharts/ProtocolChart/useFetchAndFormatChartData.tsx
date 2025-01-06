@@ -1311,12 +1311,5 @@ function lastDayOfWeek(dateString) {
 export const lastDayOfMonth = (dateString) => {
 	let date = new Date(dateString)
 
-	date.setHours(0)
-	date.setSeconds(0)
-	date.setMilliseconds(0)
-
-	let y = date.getFullYear()
-	let m = date.getMonth()
-
-	return new Date(y, m + 1, 0).getDate()
+	return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
 }

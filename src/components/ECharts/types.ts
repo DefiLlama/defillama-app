@@ -64,3 +64,13 @@ export interface IPieChartProps {
 	formatTooltip?: (params: any) => string
 	customLabel?: Record<string, any>
 }
+
+export interface IStackedBarChartProps extends Omit<IChartProps, 'title' | 'chartData'> {
+	title?: string
+	chartData: Array<{
+		name: string
+		data: [Date, number][]
+	}>
+	stackColors?: { name: string; color: string }
+	showLegend?: boolean
+}

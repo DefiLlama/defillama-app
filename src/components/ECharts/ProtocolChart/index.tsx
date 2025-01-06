@@ -28,7 +28,6 @@ export default function AreaBarChart({
 	chartOptions,
 	height = '360px',
 	unlockTokenSymbol = '',
-	isMonthly,
 	isThemeDark,
 	...props
 }: IChartProps) {
@@ -37,6 +36,14 @@ export default function AreaBarChart({
 	const { groupBy } = router.query
 	const isCumulative = router.isReady && groupBy === 'cumulative' ? true : false
 
+	let atleastOneLineChart = false
+
+	stacks.forEach((stack) => {
+		if (!BAR_CHARTS.includes(stack)) {
+			atleastOneLineChart = true
+		}
+	})
+
 	const defaultChartSettings = useDefaults({
 		color,
 		title,
@@ -44,19 +51,12 @@ export default function AreaBarChart({
 		tooltipSort,
 		hideLegend: true,
 		unlockTokenSymbol,
-		isThemeDark
+		isThemeDark,
+		isMonthly: !atleastOneLineChart && groupBy === 'monthly' ? true : false
 	})
 
 	const { series, yAxisByIndex } = useMemo(() => {
 		const chartColor = color || stringToColour()
-
-		let atleastOneLineChart = false
-
-		stacks.forEach((stack) => {
-			if (!BAR_CHARTS.includes(stack)) {
-				atleastOneLineChart = true
-			}
-		})
 
 		const yAxisByIndex = {}
 
@@ -222,17 +222,13 @@ export default function AreaBarChart({
 			}
 		})
 
-		chartData.forEach(({ date, ...item }) => {
-			stacks.forEach((stack) => {
+		for (const { date, ...item } of chartData) {
+			for (const stack of stacks) {
 				series
 					.find((t) => t.name === stack)
-					?.data.push([
-						getUtcDateObject(date),
-						item[stack] || (stack === 'TVL' ? 0 : '-'),
-						!atleastOneLineChart && groupBy === 'monthly' ? 'monthly' : false
-					])
-			})
-		})
+					?.data.push([getUtcDateObject(date), item[stack] || (stack === 'TVL' ? 0 : '-')])
+			}
+		}
 
 		if (series.length > 0 && hallmarks) {
 			series[0] = {
@@ -261,14 +257,14 @@ export default function AreaBarChart({
 			}
 		}
 
-		series.forEach((seriesItem) => {
+		for (const seriesItem of series) {
 			if (seriesItem.data.length === 0) {
 				seriesItem.large = false
 			}
-		})
+		}
 
 		return { series, yAxisByIndex }
-	}, [chartData, stacks, color, customLegendName, hallmarks, isThemeDark, stackColors, isCumulative, groupBy])
+	}, [chartData, stacks, color, customLegendName, hallmarks, isThemeDark, stackColors, isCumulative])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

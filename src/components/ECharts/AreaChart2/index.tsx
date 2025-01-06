@@ -43,10 +43,11 @@ export default function AreaChart({
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
 
-		const series = chartsStack.map((stack, index) => {
+		const series: Record<string, any> = {}
+		let index = 0
+		for (const stack of chartsStack) {
 			const stackColor = stackColors?.[stack]
-
-			return {
+			series[stack] = {
 				name: stack,
 				type: 'line',
 				yAxisIndex: index,
@@ -79,16 +80,17 @@ export default function AreaChart({
 				markLine: {},
 				data: []
 			}
-		})
+			index++
+		}
 
-		chartData.forEach(({ date, ...item }) => {
-			stacks.forEach((stack) => {
-				series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
-			})
-		})
+		for (const { date, ...item } of chartData) {
+			for (const stack of chartsStack) {
+				series[stack].data.push([getUtcDateObject(date), item[stack] || 0])
+			}
+		}
 
-		return series
-	}, [chartData, chartsStack, color, customLegendName, isThemeDark, stackColors, stacks])
+		return Object.values(series)
+	}, [chartData, chartsStack, color, customLegendName, isThemeDark, stackColors])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

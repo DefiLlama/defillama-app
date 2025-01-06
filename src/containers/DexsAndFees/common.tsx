@@ -11,7 +11,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { useChartInterval } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
 
-const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
 	loading: () => (
 		<div className="flex items-center justify-center m-auto min-h-[360px]">
@@ -235,7 +235,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						{chartType === 'Dominance' ? (
 							<AreaChart title="" chartData={barsData} stacks={props.chartData[1]} expandTo100Percent valueSymbol="%" />
 						) : (
-							<StackedBarChart
+							<BarChart
 								title=""
 								chartData={barsData}
 								customLegendOptions={props.chartData[1]}

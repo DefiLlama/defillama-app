@@ -17,7 +17,7 @@ import { useMedia } from '~/hooks/useMedia'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
 import { stringToColour } from '../utils'
-import type { IChartProps } from '../types'
+import type { IStackedBarChartProps } from '../types'
 import 'echarts/lib/component/grid'
 import { UniversalTransition } from 'echarts/features'
 import { lastDayOfMonth } from '../ProtocolChart/useFetchAndFormatChartData'
@@ -37,16 +37,6 @@ echarts.use([
 	DataZoomComponent,
 	GraphicComponent
 ])
-
-export interface IStackedBarChartProps extends Omit<IChartProps, 'title' | 'chartData'> {
-	title?: string
-	chartData: Array<{
-		name: string
-		data: [Date, number][]
-	}>
-	stackColors?: { name: string; color: string }
-	showLegend?: boolean
-}
 
 export default function StackedBarChart({
 	chartData,
@@ -86,11 +76,11 @@ export default function StackedBarChart({
 			}
 		})
 
-		series.forEach((seriesItem) => {
+		for (const seriesItem of series) {
 			if (seriesItem.data.length === 0) {
 				seriesItem.large = false
 			}
-		})
+		}
 
 		return series
 	}, [chartData, color, stackColors])
@@ -139,10 +129,9 @@ export default function StackedBarChart({
 						day: 'numeric'
 					})
 
-					chartdate +=
-						params[0].value[2] === 'monthly'
-							? ' - ' + lastDayOfMonth(params[0].value[0]) + ', ' + new Date(params[0].value[0]).getFullYear()
-							: ''
+					chartdate += isMonthly
+						? ' - ' + lastDayOfMonth(params[0].value[0]) + ', ' + new Date(params[0].value[0]).getFullYear()
+						: ''
 
 					let vals
 					if (valueSymbol !== '%' && valueSymbol !== 'ETH') {

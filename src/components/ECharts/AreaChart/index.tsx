@@ -103,16 +103,18 @@ export default function AreaChart({
 				})
 			}
 
-			chartData.forEach(([date, value]) => {
+			for (const [date, value] of chartData) {
 				series.data.push([getUtcDateObject(date), value])
-			})
+			}
 
 			return series
 		} else {
-			const series = chartsStack.map((token, index) => {
+			const series = {}
+			let index = 0
+			for (const token of chartsStack) {
 				const stackColor = stackColors?.[token]
 
-				return {
+				series[token] = {
 					name: token,
 					type: 'line',
 					emphasis: {
@@ -168,31 +170,31 @@ export default function AreaChart({
 						}
 					})
 				}
-			})
+				index++
+			}
 
-			chartData.forEach(({ date, ...item }) => {
-				const sumOfTheDay = Object.values(item).reduce((acc, curr) => (acc += curr), 0)
-				chartsStack.forEach((stack) => {
-					if (legendOptions && customLegendName ? legendOptions.includes(stack) : true) {
-						const serie = series.find((t) => t.name === stack)
-						if (serie) {
-							const rawValue = item[stack] || 0
-							const value = expandTo100Percent ? (rawValue / sumOfTheDay) * 100 : rawValue
-							if (expandTo100Percent) {
-								serie.stack = 'A'
-								serie.areaStyle = {}
-								serie.lineStyle = {
-									...serie.lineStyle,
-									width: 0
-								}
+			for (const { date, ...item } of chartData) {
+				const sumOfTheDay = Object.values(item).reduce((acc: number, curr: number) => (acc += curr), 0) as number
+
+				for (const stack of chartsStack) {
+					if ((legendOptions && customLegendName ? legendOptions.includes(stack) : true) && series[stack]) {
+						const rawValue = item[stack] || 0
+
+						const value = expandTo100Percent ? (sumOfTheDay ? (rawValue / sumOfTheDay) * 100 : 0) : rawValue
+						if (expandTo100Percent) {
+							series[stack].stack = 'A'
+							series[stack].areaStyle = {}
+							series[stack].lineStyle = {
+								...series[stack].lineStyle,
+								width: 0
 							}
-							serie.data.push([getUtcDateObject(date), value])
 						}
+						series[stack].data.push([getUtcDateObject(date), value])
 					}
-				})
-			})
+				}
+			}
 
-			return series
+			return Object.values(series)
 		}
 	}, [
 		chartData,
