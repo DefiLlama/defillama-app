@@ -3419,7 +3419,7 @@
     },
     "661": {
         "name": "mochifi",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "662": {
