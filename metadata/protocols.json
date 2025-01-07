@@ -30309,6 +30309,16 @@
         "tvl": true,
         "yields": false
     },
+    "5594": {
+        "name": "monstro",
+        "tvl": true,
+        "yields": false
+    },
+    "5595": {
+        "name": "goldstation-dex-v3",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
