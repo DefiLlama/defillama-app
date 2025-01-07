@@ -14042,7 +14042,6 @@
         "tvl": false,
         "yields": false,
         "governance": true,
-        "nfts": true,
         "raises": true,
         "fees": true,
         "revenue": true
@@ -24633,7 +24632,7 @@
     },
     "4511": {
         "name": "pay-protocol",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4512": {
