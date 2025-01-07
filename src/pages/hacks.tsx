@@ -88,12 +88,15 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 })
 
 const Raises = (props) => {
-	return <HacksContainer {...(props as any)} />
+	const monthlyHacks = React.useMemo(() => {
+		return props.monthlyHacks.map((m) => [getFirstDateOfTheMonth(m[0]), m[1]])
+	}, [props.monthlyHacks])
+	return <HacksContainer {...(props as any)} monthlyHacks={monthlyHacks} />
 }
 
 export default Raises
 
 function getFirstDateOfTheMonth(currentDate) {
 	const date = new Date(currentDate * 1000)
-	return new Date(date.getFullYear(), date.getMonth(), 1).getTime() / 1e3
+	return new Date(date.getUTCFullYear(), date.getUTCMonth(), 1).getTime() / 1e3
 }
