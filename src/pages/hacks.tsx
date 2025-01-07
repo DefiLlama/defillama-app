@@ -95,5 +95,5 @@ export default Raises
 
 function getFirstDateOfTheMonth(currentDate) {
 	const date = new Date(currentDate * 1000)
-	return new Date(date.getUTCFullYear(), date.getUTCMonth(), 1).getTime() / 1e3
+	return new Date(date.getFullYear(), date.getMonth(), 1).getTime() / 1e3
 }
