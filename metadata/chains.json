@@ -2039,6 +2039,11 @@
         "gecko_id": "venom",
         "tokenSymbol": "VENOM"
     },
+    "verus": {
+        "name": "Verus",
+        "gecko_id": "verus-coin",
+        "tokenSymbol": "VRSC"
+    },
     "viction": {
         "name": "Viction",
         "fees": true,

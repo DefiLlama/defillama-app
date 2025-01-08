@@ -24320,7 +24320,7 @@
     },
     "4452": {
         "name": "moby",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "options": true
     },
@@ -30451,7 +30451,7 @@
         "yields": false
     },
     "5597": {
-        "name": "dappos",
+        "name": "dappos-intentex",
         "tvl": false,
         "yields": false,
         "fees": true,
@@ -30476,6 +30476,16 @@
         "yields": false,
         "fees": true,
         "revenue": true
+    },
+    "5601": {
+        "name": "verus-market",
+        "tvl": true,
+        "yields": false
+    },
+    "5602": {
+        "name": "nodo-global",
+        "tvl": true,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
