@@ -771,6 +771,7 @@
         "name": "Fraxtal",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "gecko_id": "fraxtal",
         "tokenSymbol": "FXTL"
     },
@@ -992,7 +993,8 @@
     "iota-evm": {
         "name": "IOTA EVM",
         "fees": true,
-        "dexs": true
+        "dexs": true,
+        "derivatives": true
     },
     "iotex": {
         "name": "IoTeX",
@@ -1547,6 +1549,7 @@
     },
     "polkadex": {
         "name": "Polkadex",
+        "dexs": true,
         "gecko_id": "polkadex",
         "tokenSymbol": "PDEX"
     },
@@ -2158,7 +2161,6 @@
     },
     "zkfair": {
         "name": "Zkfair",
-        "aggregators": true,
         "inflows": true
     },
     "zklink-nova": {

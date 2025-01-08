@@ -1374,7 +1374,6 @@
         "name": "unicly",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "325": {
@@ -10150,7 +10149,6 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -29811,7 +29809,9 @@
         "name": "holdstation-swap",
         "tvl": true,
         "yields": false,
-        "fees": true
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5494": {
         "name": "mewfi",
@@ -30281,7 +30281,8 @@
         "name": "coinbase-wallet",
         "tvl": false,
         "yields": false,
-        "fees": true
+        "fees": true,
+        "revenue": true
     },
     "5588": {
         "name": "yieldfi",
@@ -30328,12 +30329,16 @@
         "name": "dappos",
         "tvl": false,
         "yields": false,
-        "fees": true
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5598": {
         "name": "volboost",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "chain#1": {
         "fees": true,
@@ -31769,6 +31774,7 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
+        "dexs": true,
         "perps": true,
         "emissions": true
     },
