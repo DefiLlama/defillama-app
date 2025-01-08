@@ -662,75 +662,77 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												</span>
 											</summary>
 
-											<table className="text-base w-full border-collapse mt-4">
-												<tbody>
-													<tr>
-														<td>
-															{tvls.length > 0 && (
-																<table className="w-full border-collapse">
-																	<caption className="text-xs text-[#545757] dark:text-[#cccccc] text-left pb-1">
-																		{isCEX ? 'Assets by chain' : 'Chain Breakdown'}
-																	</caption>
-																	<tbody>
-																		{tvls.map((chainTvl) => (
-																			<tr key={JSON.stringify(chainTvl)}>
+											<div className="max-h-[50vh] overflow-auto">
+												<table className="text-base w-full border-collapse mt-4">
+													<tbody>
+														<tr>
+															<td>
+																{tvls.length > 0 && (
+																	<table className="w-full border-collapse">
+																		<caption className="text-xs text-[#545757] dark:text-[#cccccc] text-left pb-1">
+																			{isCEX ? 'Assets by chain' : 'Chain Breakdown'}
+																		</caption>
+																		<tbody>
+																			{tvls.map((chainTvl) => (
+																				<tr key={JSON.stringify(chainTvl)}>
+																					<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+																						{capitalizeFirstLetter(chainTvl[0])}
+																					</th>
+																					<td className="font-jetbrains text-right">
+																						{formatPrice((chainTvl[1] || 0) as number)}
+																					</td>
+																				</tr>
+																			))}
+																		</tbody>
+																	</table>
+																)}
+															</td>
+														</tr>
+
+														<tr>
+															<td>
+																{extraTvls.length > 0 && (
+																	<table className="w-full border-collapse mt-4">
+																		<thead>
+																			<tr>
 																				<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-																					{capitalizeFirstLetter(chainTvl[0])}
+																					Include in TVL (optional)
 																				</th>
-																				<td className="font-jetbrains text-right">
-																					{formatPrice((chainTvl[1] || 0) as number)}
+																				<td>
+																					<QuestionHelper
+																						text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation'
+																						className="ml-auto"
+																					/>
 																				</td>
 																			</tr>
-																		))}
-																	</tbody>
-																</table>
-															)}
-														</td>
-													</tr>
-
-													<tr>
-														<td>
-															{extraTvls.length > 0 && (
-																<table className="w-full border-collapse mt-4">
-																	<thead>
-																		<tr>
-																			<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-																				Include in TVL (optional)
-																			</th>
-																			<td>
-																				<QuestionHelper
-																					text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation'
-																					className="ml-auto"
-																				/>
-																			</td>
-																		</tr>
-																	</thead>
-																	<tbody>
-																		{extraTvls.map(([option, value]) => (
-																			<tr key={option + value}>
-																				<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-																					<label className="flex items-center gap-2 cursor-pointer">
-																						<input
-																							type="checkbox"
-																							value={option}
-																							checked={extraTvlsEnabled[option]}
-																							onChange={updater(option)}
-																						/>
-																						<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
-																							{capitalizeFirstLetter(option)}
-																						</span>
-																					</label>
-																				</th>
-																				<td className="font-jetbrains text-right">{formatPrice(value)}</td>
-																			</tr>
-																		))}
-																	</tbody>
-																</table>
-															)}
-														</td>
-													</tr>
-												</tbody>
-											</table>
+																		</thead>
+																		<tbody>
+																			{extraTvls.map(([option, value]) => (
+																				<tr key={option + value}>
+																					<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+																						<label className="flex items-center gap-2 cursor-pointer">
+																							<input
+																								type="checkbox"
+																								value={option}
+																								checked={extraTvlsEnabled[option]}
+																								onChange={updater(option)}
+																							/>
+																							<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
+																								{capitalizeFirstLetter(option)}
+																							</span>
+																						</label>
+																					</th>
+																					<td className="font-jetbrains text-right">{formatPrice(value)}</td>
+																				</tr>
+																			))}
+																		</tbody>
+																	</table>
+																)}
+															</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
 										</details>
 									) : null}
 
