@@ -110,7 +110,7 @@ export default function BarChart({
 			}
 
 			for (const { date, ...item } of chartData) {
-				for (const stack in item) {
+				for (const stack of selectedStacks) {
 					series[stack]?.data?.push([getUtcDateObject(date), item[stack] || 0])
 				}
 			}
