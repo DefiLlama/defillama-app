@@ -13556,8 +13556,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -30341,6 +30340,16 @@
         "yields": false,
         "fees": true,
         "revenue": true
+    },
+    "5599": {
+        "name": "grvt",
+        "tvl": true,
+        "yields": false
+    },
+    "5600": {
+        "name": "creator-bid",
+        "tvl": false,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
