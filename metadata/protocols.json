@@ -30352,7 +30352,9 @@
     "5600": {
         "name": "creator-bid",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "chain#1": {
         "fees": true,
