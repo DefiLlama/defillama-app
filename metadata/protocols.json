@@ -12766,8 +12766,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "raises": true,
-        "activeUsers": true
+        "raises": true
     },
     "2398": {
         "name": "opyn-convexity",
@@ -13490,7 +13489,6 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -14024,8 +14022,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -30311,7 +30308,8 @@
     "5594": {
         "name": "monstro",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "treasury": true
     },
     "5595": {
         "name": "goldstation-dex-v3",
@@ -30328,6 +30326,11 @@
         "tvl": false,
         "yields": false,
         "fees": true
+    },
+    "5598": {
+        "name": "volboost",
+        "tvl": false,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
