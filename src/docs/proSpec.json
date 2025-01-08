@@ -514,7 +514,7 @@
 		"/etfs/historyEth": {
 			"get": {
 				"tags": ["ETFs"],
-				"summary": "Historical AUM of all BTC ETFs",
+				"summary": "Historical AUM of all ETH ETFs",
 				"responses": {
 					"200": {
 						"description": "successful operation"
