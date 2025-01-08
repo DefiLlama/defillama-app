@@ -146,7 +146,7 @@ export default function AreaChart({
 					data: [],
 					show: true
 				} as Record<string, any>)
-				data?.globalChart.forEach(([date, value]) => {
+				data?.globalChart?.forEach(([date, value]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
@@ -286,7 +286,7 @@ export default function AreaChart({
 					areaStyle: areaColor
 				})
 
-				data?.globalChart.forEach(([date, value]) => {
+				data?.globalChart?.forEach(([date, value]) => {
 					series[series.length - 1].data.push([getUtcDateObject(date), (data?.raisesData[date] || 0) * 1e6])
 				})
 			}
