@@ -346,7 +346,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
 	{ name: 'LlamaFeed', url: 'https://feed.defillama.com/', external: true },
-	{ name: 'ETH Liquid Staking', url: '/lsd' },
+	{ name: 'ETH Liquid Staking', url: '/lst' },
 	{ name: 'ETFs', url: '/etfs' },
 	{ name: 'Pro API', url: '/pro-api' },
 	{ name: 'Narrative Tracker', url: '/narrative-tracker' }
