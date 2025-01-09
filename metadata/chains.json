@@ -218,6 +218,7 @@
     },
     "bitcoincash": {
         "name": "Bitcoincash",
+        "fees": true,
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
@@ -573,6 +574,7 @@
     },
     "dogechain": {
         "name": "Dogechain",
+        "fees": true,
         "aggregators": true,
         "inflows": true,
         "gecko_id": "dogechain",

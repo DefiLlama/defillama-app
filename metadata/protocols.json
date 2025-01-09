@@ -1470,7 +1470,8 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "339": {
         "name": "lien",
@@ -15354,7 +15355,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
