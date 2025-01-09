@@ -30370,6 +30370,26 @@
         "tvl": true,
         "yields": false
     },
+    "5603": {
+        "name": "equalizer-cl",
+        "tvl": true,
+        "yields": false
+    },
+    "5604": {
+        "name": "memebox",
+        "tvl": true,
+        "yields": false
+    },
+    "5605": {
+        "name": "mobiusdex",
+        "tvl": true,
+        "yields": false
+    },
+    "5606": {
+        "name": "wavesbridge",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
