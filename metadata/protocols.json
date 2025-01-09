@@ -2512,7 +2512,8 @@
         "name": "mento",
         "tvl": true,
         "yields": false,
-        "raises": true
+        "raises": true,
+        "dexs": true
     },
     "505": {
         "name": "karura-liquid-staking",
@@ -14026,7 +14027,8 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "name": "metalx-dex",

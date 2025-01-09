@@ -833,8 +833,7 @@
         "tokenSymbol": "GO"
     },
     "godwoken": {
-        "name": "Godwoken",
-        "dexs": true
+        "name": "Godwoken"
     },
     "godwokenv1": {
         "name": "GodwokenV1",
@@ -880,6 +879,7 @@
         "name": "Heco",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "gecko_id": "huobi-token",
         "tokenSymbol": "HT"
     },
