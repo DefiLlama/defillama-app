@@ -880,6 +880,7 @@
         "name": "Heco",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "gecko_id": "huobi-token",
         "tokenSymbol": "HT"
     },
@@ -1197,8 +1198,7 @@
         "tokenSymbol": "OM"
     },
     "map-protocol": {
-        "name": "MAP Protocol",
-        "dexs": true
+        "name": "MAP Protocol"
     },
     "massa": {
         "name": "Massa",
