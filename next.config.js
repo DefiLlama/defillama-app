@@ -187,6 +187,11 @@ const nextConfig = {
 				source: '/pro-api',
 				destination: '/subscribe',
 				permanent: true
+			},
+			{
+				source: '/lsd',
+				destination: '/lst',
+				permanent: true
 			}
 		]
 	},

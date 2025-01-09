@@ -157,7 +157,7 @@ const PageView = ({
 
 export default function LSDs(props) {
 	return (
-		<Layout title={`Liquid Staking Derivatives - DefiLlama`} defaultSEO>
+		<Layout title={`Liquid Staking Tokens - DefiLlama`} defaultSEO>
 			<PageView {...props} />
 		</Layout>
 	)
