@@ -1646,7 +1646,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		size: 125
 	},
 	{
-		header: 'LSD',
+		header: 'LST',
 		accessorKey: 'lsdSymbol',
 		cell: ({ getValue, row }) => {
 			const value = getValue()
@@ -1708,7 +1708,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		size: 110
 	},
 	{
-		header: 'LSD APR',
+		header: 'LST APR',
 		accessorKey: 'apy',
 		cell: ({ getValue }) => {
 			const value = getValue() as number

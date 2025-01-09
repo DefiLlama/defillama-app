@@ -55,7 +55,7 @@ const PageView = ({
 			<ProtocolsChainsSearch hideFilters />
 
 			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between gap-4 flex-wrap">
-				<span>Total Value Locked ETH LSDs</span>
+				<span>Total Value Locked ETH LSTs</span>
 				<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
 			</h1>
 
@@ -86,7 +86,7 @@ const PageView = ({
 								chartData={areaChartData}
 								stacks={tokens}
 								stackColors={lsdColors}
-								customLegendName="LSD"
+								customLegendName="LST"
 								customLegendOptions={tokens}
 								hideDefaultLegend
 								valueSymbol="%"
@@ -157,7 +157,7 @@ const PageView = ({
 
 export default function LSDs(props) {
 	return (
-		<Layout title={`Liquid Staking Derivatives - DefiLlama`} defaultSEO>
+		<Layout title={`Liquid Staking Tokens - DefiLlama`} defaultSEO>
 			<PageView {...props} />
 		</Layout>
 	)
