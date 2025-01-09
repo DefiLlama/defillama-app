@@ -18594,7 +18594,8 @@
     "3422": {
         "name": "orange-finance",
         "tvl": true,
-        "yields": true
+        "yields": true,
+        "hacks": true
     },
     "3423": {
         "name": "zena-finance",
@@ -24204,6 +24205,7 @@
         "name": "moby",
         "tvl": false,
         "yields": false,
+        "hacks": true,
         "options": true
     },
     "4453": {
