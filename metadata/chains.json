@@ -502,7 +502,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -948,7 +947,6 @@
     },
     "idex": {
         "name": "IDEX",
-        "derivatives": true,
         "gecko_id": "aurora-dao",
         "tokenSymbol": "IDEX"
     },
@@ -1347,7 +1345,6 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
-        "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
@@ -2144,7 +2141,6 @@
         "name": "ZetaChain",
         "fees": true,
         "dexs": true,
-        "derivatives": true,
         "aggregators": true,
         "bridge-aggregators": true,
         "gecko_id": "zetachain",
