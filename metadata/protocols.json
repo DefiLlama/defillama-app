@@ -2831,7 +2831,6 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -19923,7 +19922,7 @@
     "3664": {
         "name": "primex-finance",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "treasury": true,
         "dexs": true
     },
@@ -30253,7 +30252,7 @@
     "5580": {
         "name": "latch",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "5581": {
         "name": "aquadex",
@@ -31052,8 +31051,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "parent#canary": {
         "activeUsers": true
