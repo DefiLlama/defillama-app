@@ -11685,7 +11685,8 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2193": {
         "name": "amulet-liquidity-staking",
@@ -30423,6 +30424,11 @@
     "5612": {
         "name": "margin-zero",
         "tvl": true,
+        "yields": false
+    },
+    "5613": {
+        "name": "vinunft",
+        "tvl": false,
         "yields": false
     },
     "chain#1": {
