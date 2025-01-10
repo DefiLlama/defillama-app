@@ -103,7 +103,7 @@ export default function AreaChart({
 				})
 			}
 
-			for (const [date, value] of chartData) {
+			for (const [date, value] of chartData ?? []) {
 				series.data.push([getUtcDateObject(date), value])
 			}
 
