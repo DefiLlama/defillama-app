@@ -30433,7 +30433,8 @@
     "5613": {
         "name": "vinunft",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "chain#1": {
         "fees": true,
