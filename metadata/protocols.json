@@ -4613,7 +4613,8 @@
     "897": {
         "name": "mesher",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "898": {
         "name": "beglobal-finance",
