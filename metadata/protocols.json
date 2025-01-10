@@ -34096,7 +34096,7 @@
     },
     "parent#zklend-finance": {
         "name": "zklend-finance",
-        "yields": true,
+        "yields": false,
         "tvl": true
     },
     "parent#zkswap-finance": {

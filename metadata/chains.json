@@ -1800,6 +1800,7 @@
     },
     "sophon": {
         "name": "Sophon",
+        "chainAssets": true,
         "gecko_id": "sophon",
         "tokenSymbol": "SOPH"
     },
