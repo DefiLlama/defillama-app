@@ -43,7 +43,9 @@ export default function PieChart({
 			label: {
 				fontFamily: 'sans-serif',
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-				formatter: '{b}: ({d}%)',
+				formatter: (x) => {
+					return `${x.name.slice(0, 5)}${x.name.length > 5 ? '..' : ''}: (${x.percent}%)`
+				},
 				show: showLegend ? false : true
 			},
 			tooltip: {
