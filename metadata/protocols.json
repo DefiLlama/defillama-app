@@ -10703,7 +10703,7 @@
     "2020": {
         "name": "silo-v1",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true,
         "fees": true,
         "revenue": true
@@ -24514,7 +24514,7 @@
     },
     "4511": {
         "name": "pay-protocol",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4512": {
