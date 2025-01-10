@@ -2166,7 +2166,6 @@
     },
     "zkfair": {
         "name": "Zkfair",
-        "aggregators": true,
         "inflows": true
     },
     "zklink-nova": {
