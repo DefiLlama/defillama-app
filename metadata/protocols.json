@@ -30551,6 +30551,11 @@
         "fees": true,
         "revenue": true
     },
+    "5614": {
+        "name": "pryzm-liquid-staking",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -33028,6 +33033,11 @@
         "fees": true,
         "revenue": true,
         "emissions": true
+    },
+    "parent#pryzm": {
+        "name": "pryzm",
+        "yields": false,
+        "tvl": true
     },
     "parent#pstake-finance": {
         "name": "pstake-finance",
