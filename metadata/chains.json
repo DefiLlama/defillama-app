@@ -503,6 +503,7 @@
     },
     "cube": {
         "name": "Cube",
+        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -2165,6 +2166,7 @@
     },
     "zkfair": {
         "name": "Zkfair",
+        "aggregators": true,
         "inflows": true
     },
     "zklink-nova": {

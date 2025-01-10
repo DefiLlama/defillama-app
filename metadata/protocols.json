@@ -2832,6 +2832,7 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -7097,7 +7098,8 @@
     "1363": {
         "name": "oni-exchange",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1364": {
         "name": "narwhalswap",
@@ -12387,7 +12389,8 @@
     "2331": {
         "name": "swapfish",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2332": {
         "name": "equalizer-exchange",
@@ -12680,7 +12683,8 @@
     "2384": {
         "name": "oreoswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2385": {
         "name": "exactly",
@@ -13790,7 +13794,8 @@
     "2577": {
         "name": "sharky-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2578": {
         "name": "beamer-bridge",
@@ -15346,7 +15351,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -22867,7 +22872,6 @@
         "name": "bladeswap-amm",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "4207": {
@@ -25753,7 +25757,6 @@
         "name": "bladeswap-cl",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "4747": {
@@ -30963,7 +30966,6 @@
         "name": "bladeswap",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "dexs": true
     },
     "parent#blasterswap": {
