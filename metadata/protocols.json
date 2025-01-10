@@ -515,7 +515,8 @@
         "liquidity": true,
         "raises": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "183": {
         "name": "wing-finance",
@@ -26547,8 +26548,7 @@
     "4892": {
         "name": "sorta-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4893": {
         "name": "international-meme-fund",
@@ -29964,12 +29964,14 @@
     "5521": {
         "name": "sonic-market-amm",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5522": {
         "name": "sonic-market-orderbook",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5524": {
         "name": "datadex",
@@ -30843,7 +30845,8 @@
         "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "dexs": true
+        "dexs": true,
+        "emissions": true
     },
     "parent#bancor": {
         "name": "bancor",
@@ -33158,7 +33161,8 @@
     "parent#sonic-market": {
         "name": "sonic-market",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "dexs": true
     },
     "parent#sovryn": {
         "name": "sovryn",
