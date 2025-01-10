@@ -1473,8 +1473,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "339": {
         "name": "lien",
@@ -25449,6 +25448,8 @@
         "name": "eisen-finance",
         "tvl": false,
         "yields": false,
+        "fees": true,
+        "revenue": true,
         "aggregator": true
     },
     "4692": {
@@ -30037,7 +30038,9 @@
         "name": "vader-ai",
         "tvl": false,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "fees": true,
+        "revenue": true
     },
     "5536": {
         "name": "zivoe",
