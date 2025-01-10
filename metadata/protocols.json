@@ -6916,7 +6916,7 @@
     },
     "1330": {
         "name": "beluga",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "1331": {
