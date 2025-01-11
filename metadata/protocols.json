@@ -836,6 +836,7 @@
         "name": "metronome-v1",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "raises": true
     },
     "234": {
@@ -3124,6 +3125,7 @@
         "tvl": true,
         "yields": false,
         "governance": true,
+        "liquidity": true,
         "hacks": true,
         "activeUsers": true
     },
@@ -3849,7 +3851,8 @@
     "734": {
         "name": "openswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "735": {
         "name": "becoswap",
@@ -6585,8 +6588,7 @@
     "1257": {
         "name": "crosschain-bridge",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1258": {
         "name": "flrfarm",
@@ -7887,8 +7889,7 @@
     "1501": {
         "name": "octus-bridge",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1502": {
         "name": "the-parallel",
@@ -11241,7 +11242,8 @@
     "2106": {
         "name": "hopswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2107": {
         "name": "moonlift",
@@ -13021,7 +13023,8 @@
     "2428": {
         "name": "metronome-synth",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2429": {
         "name": "paraluni-dex",
@@ -14502,6 +14505,7 @@
         "tvl": true,
         "yields": false,
         "treasury": true,
+        "liquidity": true,
         "activeUsers": true
     },
     "2688": {
@@ -14967,8 +14971,7 @@
     "2768": {
         "name": "lsdx-farm",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2769": {
         "name": "pancakeswap-amm-v3",
@@ -15836,8 +15839,7 @@
     "2920": {
         "name": "lsdx-ethx",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2921": {
         "name": "blur-lending",
@@ -18102,8 +18104,7 @@
     "3322": {
         "name": "synthswap-v2",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3323": {
         "name": "navi-lending",
@@ -18501,8 +18502,7 @@
     "3385": {
         "name": "synthswap-v3",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3386": {
         "name": "meridian-trade",
@@ -18618,8 +18618,7 @@
     "3406": {
         "name": "tempest-capital",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3407": {
         "name": "fuzio",
@@ -18757,8 +18756,7 @@
     "3431": {
         "name": "synthswap-perps",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3432": {
         "name": "vooi-v1-(deprecated)",
@@ -25191,7 +25189,8 @@
     "4617": {
         "name": "chi-protocol",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4619": {
         "name": "swaap-earn",
@@ -32355,8 +32354,7 @@
         "name": "lsdx-finance",
         "yields": false,
         "tvl": true,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "parent#lybra-finance": {
         "name": "lybra-finance",
@@ -32565,7 +32563,8 @@
         "yields": false,
         "tvl": true,
         "governance": true,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "parent#metropolis-exchange": {
         "name": "metropolis-exchange",
@@ -33641,7 +33640,6 @@
         "name": "synthswap",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "emissions": true
     },
     "parent#taiga-protocol": {
