@@ -4159,8 +4159,7 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "816": {
         "name": "xsigma",
@@ -4718,7 +4717,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -27866,7 +27864,7 @@
     },
     "5133": {
         "name": "forge-game",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5134": {
