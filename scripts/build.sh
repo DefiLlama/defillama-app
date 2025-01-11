@@ -55,7 +55,7 @@ echo ""
 rclone --config scripts/rclone.conf copy ./.next/static artifacts:defillama-app-artifacts
 rclone --config scripts/rclone.conf copy artifacts:defillama-app-artifacts ./.next/static
 
-tree ./.next/static
+ls -R ./.next/static
 
 if [ -z "$NOT_VERCEL" ]; then
   echo "NOT_VERCEL is not set, skipping discord notification"
