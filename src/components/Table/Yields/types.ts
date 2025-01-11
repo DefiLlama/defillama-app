@@ -27,6 +27,7 @@ export interface IYieldTableRow {
 	loopApy: number
 	boost: number
 	apyBorrow: number
+	poolMeta?: string | null
 }
 
 export interface IYieldsProjectsTableRow {

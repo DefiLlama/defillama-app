@@ -26,7 +26,6 @@ export function Tooltip({ content, children, color, fontSize, anchorStyles, plac
 				state={tooltip}
 				style={{ ...anchorStyles, color, fontSize: fontSize ?? 'inherit' } as any}
 				className="cursor-pointer flex items-center overflow-hidden text-ellipsis whitespace-nowrap flex-shrink-0"
-				data-tooltipanchor
 				as="span"
 			>
 				{children}
@@ -34,6 +33,26 @@ export function Tooltip({ content, children, color, fontSize, anchorStyles, plac
 			{tooltip.mounted ? (
 				<AriaTooltip
 					{...props}
+					state={tooltip}
+					className="text-sm p-2 max-w-56 whitespace-pre-wrap rounded-md bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)]"
+				>
+					{content}
+				</AriaTooltip>
+			) : null}
+		</>
+	)
+}
+
+export function Tooltip2({ content, children, className, as, ...props }) {
+	const tooltip = useTooltipState()
+
+	return (
+		<>
+			<TooltipAnchor state={tooltip} as={as} className={className} {...props}>
+				{children}
+			</TooltipAnchor>
+			{tooltip.mounted ? (
+				<AriaTooltip
 					state={tooltip}
 					className="text-sm p-2 max-w-56 whitespace-pre-wrap rounded-md bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)]"
 				>

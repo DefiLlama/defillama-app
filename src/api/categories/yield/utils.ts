@@ -20,10 +20,6 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	// add projectName and audit fields from config to pools array
 	_pools = _pools.map((p) => ({
 		...p,
-		symbol:
-			p.poolMeta !== undefined && p.poolMeta !== null && p.poolMeta.length > 1
-				? `${p.symbol} (${p.poolMeta})`
-				: p.symbol,
 		projectName: _config[p.project]?.name,
 		audits: _config[p.project]?.audits,
 		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',

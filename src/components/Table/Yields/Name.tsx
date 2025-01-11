@@ -2,7 +2,7 @@ import { Bookmark } from '~/components/Bookmark'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
-import { Tooltip } from '~/components/Tooltip'
+import { Tooltip, Tooltip2 } from '~/components/Tooltip'
 import { FormattedName } from '~/components/FormattedName'
 import useWindowSize from '~/hooks/useWindowSize'
 import { Icon } from '~/components/Icon'
@@ -18,6 +18,7 @@ interface INameYieldPoolProps {
 	maxCharacters?: number
 	bookmark?: boolean
 	strategy?: boolean
+	poolMeta?: string | null
 }
 
 interface INameYield {
@@ -37,7 +38,8 @@ export function NameYieldPool({
 	strategy,
 	withoutLink,
 	maxCharacters,
-	bookmark = true
+	bookmark = true,
+	poolMeta
 }: INameYieldPoolProps) {
 	const tokenUrl = strategy ? `/yields/strategy/${configID}` : `/yields/pool/${configID}`
 	const windowSize = useWindowSize()
@@ -76,14 +78,58 @@ export function NameYieldPool({
 				''
 			)}
 
-			{withoutLink ? (
-				<FormattedName text={value} maxCharacters={mc} link fontWeight={500} />
-			) : (
-				<CustomLink href={tokenUrl} target="_blank" className="overflow-hidden whitespace-nowrap text-ellipsis">
-					<FormattedName text={value} maxCharacters={mc} link fontWeight={500} />
-				</CustomLink>
-			)}
+			<LinkWrapper
+				url={withoutLink ? null : tokenUrl}
+				showTooltip={value.length + (poolMeta ? poolMeta.length : 0) >= mc}
+			>
+				{value.length + 2 < mc && poolMeta ? (
+					<>
+						<span>{value}</span>{' '}
+						<span className="bg-[var(--bg3)] text-black dark:text-white px-1 py-[2px] text-xs rounded-lg">
+							{poolMeta}
+						</span>
+					</>
+				) : (
+					<>{value}</>
+				)}
+			</LinkWrapper>
 		</span>
+	)
+}
+
+const LinkWrapper = ({ url, children, showTooltip }) => {
+	if (showTooltip) {
+		return (
+			<>
+				{url ? (
+					<Tooltip2
+						as={CustomLink}
+						href={url}
+						target="_blank"
+						className="overflow-hidden whitespace-nowrap text-ellipsis"
+						content={children}
+					>
+						{children}
+					</Tooltip2>
+				) : (
+					<Tooltip2 className="whitespace-nowrap overflow-hidden text-ellipsis" as="span" content={children}>
+						{children}
+					</Tooltip2>
+				)}
+			</>
+		)
+	}
+
+	return (
+		<>
+			{url ? (
+				<CustomLink href={url} target="_blank" className="overflow-hidden whitespace-nowrap text-ellipsis">
+					{children}
+				</CustomLink>
+			) : (
+				<span className="whitespace-nowrap overflow-hidden text-ellipsis">{children}</span>
+			)}
+		</>
 	)
 }
 
@@ -150,7 +196,6 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 				{airdropProject2 ? (
 					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
 				) : null}
-
 				<TokenLogo logo={iconUrl2} />
 				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{project2}</span>
 			</span>

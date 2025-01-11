@@ -96,7 +96,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 					totalBorrowUsd: curr.totalBorrowUsd,
 					totalAvailableUsd: curr.totalAvailableUsd,
 					ltv: curr.ltv,
-					lsdTokenOnly: curr.lsdTokenOnly
+					lsdTokenOnly: curr.lsdTokenOnly,
+					poolMeta: curr.poolMeta
 				})
 			} else return acc
 		}, [])
