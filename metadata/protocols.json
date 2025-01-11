@@ -15438,7 +15438,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
@@ -28700,7 +28700,9 @@
     "5287": {
         "name": "bonzo-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "5288": {
         "name": "mimo-v3",
