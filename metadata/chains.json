@@ -503,6 +503,7 @@
     },
     "cube": {
         "name": "Cube",
+        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -821,7 +822,6 @@
         "name": "Gnosis",
         "fees": true,
         "dexs": true,
-        "derivatives": true,
         "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
