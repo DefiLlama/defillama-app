@@ -758,7 +758,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -3592,8 +3591,7 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "693": {
         "name": "superfluid",
@@ -6740,8 +6738,7 @@
         "name": "burgerswap",
         "tvl": true,
         "yields": false,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "1296": {
         "name": "zipswap",
@@ -15684,8 +15681,7 @@
     "2911": {
         "name": "aboard-exchange",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2912": {
         "name": "onsen-swap",
@@ -30434,8 +30430,7 @@
         "name": "vinunft",
         "tvl": false,
         "yields": false,
-        "fees": true,
-        "revenue": true
+        "dexs": true
     },
     "5614": {
         "name": "pryzm-liquid-staking",
