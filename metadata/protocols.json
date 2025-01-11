@@ -24746,7 +24746,7 @@
     "4555": {
         "name": "tlx-finance",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true,
         "fees": true,
         "revenue": true,
@@ -26466,7 +26466,7 @@
     },
     "4879": {
         "name": "clearpool-tpool",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "liquidity": true
     },
