@@ -758,7 +758,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -32857,7 +32856,6 @@
         "tvl": true,
         "governance": true,
         "liquidity": true,
-        "activeUsers": true,
         "dexs": true
     },
     "parent#polynomial-protocol": {
