@@ -20457,7 +20457,7 @@
     "3740": {
         "name": "kai-finance",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "3741": {
         "name": "torus",
