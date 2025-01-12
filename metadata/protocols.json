@@ -7527,8 +7527,7 @@
         "tvl": true,
         "yields": true,
         "treasury": true,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "1434": {
         "name": "newspace-finance",
