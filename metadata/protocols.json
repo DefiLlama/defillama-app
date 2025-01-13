@@ -11492,7 +11492,7 @@
     },
     "2159": {
         "name": "amulet-v1",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "raises": true
     },
@@ -15240,7 +15240,6 @@
         "name": "wagmi",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -27912,7 +27911,7 @@
         "dexs": true
     },
     "5142": {
-        "name": "zoth",
+        "name": "zoth-ztln",
         "tvl": true,
         "yields": false
     },
@@ -30367,7 +30366,7 @@
         "yields": false
     },
     "5602": {
-        "name": "nodo-global",
+        "name": "nodo",
         "tvl": true,
         "yields": false
     },
@@ -33990,6 +33989,11 @@
         "revenue": true,
         "dexs": true,
         "emissions": true
+    },
+    "parent#zoth": {
+        "name": "zoth",
+        "yields": false,
+        "tvl": true
     },
     "parent#zyberswap": {
         "name": "zyberswap",
