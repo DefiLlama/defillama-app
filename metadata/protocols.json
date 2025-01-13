@@ -15357,7 +15357,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -15427,7 +15427,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
@@ -30435,6 +30435,26 @@
     "5617": {
         "name": "aurum",
         "tvl": true,
+        "yields": false
+    },
+    "5618": {
+        "name": "lfj-aggregator",
+        "tvl": false,
+        "yields": false
+    },
+    "5619": {
+        "name": "ssi",
+        "tvl": true,
+        "yields": false
+    },
+    "5620": {
+        "name": "botto",
+        "tvl": false,
+        "yields": false
+    },
+    "5621": {
+        "name": "anqa",
+        "tvl": false,
         "yields": false
     },
     "chain#1": {
