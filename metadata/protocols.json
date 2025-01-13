@@ -715,8 +715,7 @@
         "hacks": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "215": {
         "name": "strudel-finance",
@@ -1053,8 +1052,7 @@
         "raises": true,
         "activeUsers": true,
         "fees": true,
-        "revenue": true,
-        "emissions": true
+        "revenue": true
     },
     "271": {
         "name": "honeyswap",
@@ -5765,8 +5763,7 @@
         "liquidity": true,
         "raises": true,
         "fees": true,
-        "revenue": true,
-        "emissions": true
+        "revenue": true
     },
     "1109": {
         "name": "spectra-v1",
@@ -6967,8 +6964,7 @@
         "yields": false,
         "treasury": true,
         "liquidity": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "1340": {
         "name": "icecream-finance",
@@ -8260,8 +8256,7 @@
         "name": "hyphen",
         "tvl": true,
         "yields": false,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "1579": {
         "name": "beefstake",
@@ -8493,8 +8488,7 @@
         "governance": true,
         "treasury": true,
         "liquidity": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "1620": {
         "name": "amaterasu-finance",
@@ -8981,8 +8975,7 @@
         "yields": false,
         "governance": true,
         "fees": true,
-        "revenue": true,
-        "emissions": true
+        "revenue": true
     },
     "1708": {
         "name": "astriddao",
@@ -12688,8 +12681,7 @@
         "treasury": true,
         "liquidity": true,
         "hacks": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "2386": {
         "name": "sandclock",
@@ -13345,8 +13337,7 @@
         "treasury": true,
         "liquidity": true,
         "nfts": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "2505": {
         "name": "orio",
@@ -13586,8 +13577,7 @@
         "name": "ondo-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "2543": {
         "name": "rubydex",
@@ -13624,8 +13614,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "perps": true,
-        "emissions": true
+        "perps": true
     },
     "2549": {
         "name": "poison-finance",
@@ -13839,8 +13828,7 @@
         "treasury": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "2587": {
         "name": "arbiswap",
@@ -14002,8 +13990,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "2617": {
         "name": "dedust",
@@ -14171,8 +14158,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "aggregator": true,
-        "emissions": true
+        "aggregator": true
     },
     "2644": {
         "name": "maverick-v1",
@@ -14290,8 +14276,7 @@
         "name": "forta",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "2665": {
         "name": "apecoin",
@@ -14299,8 +14284,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "2666": {
         "name": "wefi",
@@ -14716,8 +14700,7 @@
         "yields": false,
         "fees": true,
         "revenue": true,
-        "aggregator": true,
-        "emissions": true
+        "aggregator": true
     },
     "2741": {
         "name": "tegisto",
@@ -14787,8 +14770,7 @@
         "name": "onchain-trade",
         "tvl": true,
         "yields": false,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "2753": {
         "name": "velocore-v1",
@@ -15969,8 +15951,7 @@
         "name": "optimism-foundation",
         "tvl": false,
         "yields": false,
-        "treasury": true,
-        "emissions": true
+        "treasury": true
     },
     "2968": {
         "name": "gnd-protocol",
@@ -16059,8 +16040,7 @@
         "raises": true,
         "fees": true,
         "revenue": true,
-        "perpsAggregators": true,
-        "emissions": true
+        "perpsAggregators": true
     },
     "2982": {
         "name": "satori-perp",
@@ -16935,8 +16915,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "3140": {
         "liquidity": true
@@ -17549,8 +17528,7 @@
         "name": "layerbank",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "3251": {
         "name": "beamex-perps",
@@ -17664,8 +17642,7 @@
         "tvl": false,
         "yields": false,
         "liquidity": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "3270": {
         "name": "reax-lending",
@@ -21337,8 +21314,7 @@
         "tvl": true,
         "yields": true,
         "liquidity": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "3934": {
         "name": "stackingdao",
@@ -21818,8 +21794,7 @@
         "tvl": false,
         "yields": false,
         "liquidity": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "4023": {
         "name": "inu-fair",
@@ -25178,8 +25153,7 @@
     "4641": {
         "name": "altlayer",
         "tvl": false,
-        "yields": false,
-        "emissions": true
+        "yields": false
     },
     "4642": {
         "name": "zeno-exchange",
@@ -26764,8 +26738,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "4940": {
         "name": "bracket-escrow-staking",
@@ -30032,11 +30005,6 @@
         "fees": true,
         "revenue": true
     },
-    "5536": {
-        "name": "zivoe",
-        "tvl": false,
-        "yields": false
-    },
     "5537": {
         "name": "kernel-dao",
         "tvl": true,
@@ -30104,9 +30072,6 @@
         "yields": false
     },
     "5551": {
-        "name": "zivoe",
-        "tvl": false,
-        "yields": false,
         "fees": true,
         "revenue": true
     },
