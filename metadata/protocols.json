@@ -9861,7 +9861,7 @@
     },
     "1867": {
         "name": "sonic",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "1868": {
