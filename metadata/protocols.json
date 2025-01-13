@@ -11838,7 +11838,7 @@
     "2218": {
         "name": "animeswap",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "2219": {
         "name": "vendor-v1",
@@ -15343,7 +15343,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -26591,7 +26591,7 @@
     },
     "4903": {
         "name": "bmx-freestyle",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -30364,7 +30364,7 @@
         "yields": false
     },
     "5603": {
-        "name": "equalizer-cl",
+        "name": "2thick",
         "tvl": true,
         "yields": false,
         "liquidity": true
