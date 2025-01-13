@@ -7834,7 +7834,8 @@
         "name": "relaychain",
         "tvl": true,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "1492": {
         "name": "aurigami",
