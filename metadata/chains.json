@@ -897,6 +897,7 @@
     },
     "hela": {
         "name": "HeLa",
+        "dexs": true,
         "gecko_id": "hela",
         "tokenSymbol": "HELA"
     },
