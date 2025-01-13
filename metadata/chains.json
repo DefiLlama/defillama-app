@@ -502,7 +502,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -879,6 +878,7 @@
         "name": "Heco",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "gecko_id": "huobi-token",
         "tokenSymbol": "HT"
     },
@@ -895,7 +895,6 @@
     },
     "hela": {
         "name": "HeLa",
-        "dexs": true,
         "gecko_id": "hela",
         "tokenSymbol": "HELA"
     },
@@ -1547,6 +1546,7 @@
     },
     "polkadex": {
         "name": "Polkadex",
+        "dexs": true,
         "gecko_id": "polkadex",
         "tokenSymbol": "PDEX"
     },
