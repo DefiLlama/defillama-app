@@ -30429,6 +30429,21 @@
         "tvl": true,
         "yields": false
     },
+    "5615": {
+        "name": "zoth-zeusd",
+        "tvl": true,
+        "yields": false
+    },
+    "5616": {
+        "name": "republic-note",
+        "tvl": true,
+        "yields": false
+    },
+    "5617": {
+        "name": "aurum",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
