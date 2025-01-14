@@ -3587,7 +3587,8 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "693": {
         "name": "superfluid",
@@ -9328,7 +9329,6 @@
         "name": "apx-finance",
         "tvl": true,
         "yields": false,
-        "governance": true,
         "raises": true,
         "fees": true,
         "revenue": true,
@@ -30457,6 +30457,16 @@
         "yields": false,
         "aggregator": true
     },
+    "5622": {
+        "name": "kyo-finance",
+        "tvl": true,
+        "yields": false
+    },
+    "5623": {
+        "name": "sonefi",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -30843,7 +30853,10 @@
         "name": "astherus",
         "yields": false,
         "tvl": true,
-        "raises": true
+        "raises": true,
+        "fees": true,
+        "revenue": true,
+        "perps": true
     },
     "parent#atlendis": {
         "name": "atlendis",
@@ -33162,6 +33175,7 @@
         "name": "smbswap",
         "yields": false,
         "tvl": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
