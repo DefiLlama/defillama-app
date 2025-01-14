@@ -84,8 +84,8 @@ export function NameYieldPool({
 			>
 				{poolMeta ? (
 					<>
-						<span>{value}</span>{' '}
-						<span className="bg-[var(--bg3)] text-black dark:text-white px-1 py-[2px] text-xs rounded-lg">
+						<span className="overflow-hidden whitespace-nowrap text-ellipsis">{value}</span>{' '}
+						<span className="bg-[var(--bg3)] text-black dark:text-white px-1 py-[2px] text-xs rounded-lg overflow-hidden whitespace-nowrap text-ellipsis group-data-[tooltipcontent=true]:whitespace-break-spaces">
 							{poolMeta}
 						</span>
 					</>
