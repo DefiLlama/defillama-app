@@ -34,6 +34,7 @@ export async function getYieldPageData() {
 	}
 
 	// get Price data
+	//
 	let pricesList = []
 
 	for (let p of data.pools) {
