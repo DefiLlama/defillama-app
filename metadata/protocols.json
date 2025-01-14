@@ -11182,8 +11182,7 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2109": {
         "name": "pyeswap",
@@ -12187,7 +12186,7 @@
     "2290": {
         "name": "ghostmarket",
         "tvl": false,
-        "yields": true,
+        "yields": false,
         "fees": true,
         "revenue": true
     },
@@ -15329,7 +15328,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2854": {
