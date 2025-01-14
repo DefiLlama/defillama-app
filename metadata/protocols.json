@@ -11835,7 +11835,7 @@
     "2218": {
         "name": "animeswap",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "2219": {
         "name": "vendor-v1",
@@ -30467,6 +30467,16 @@
     },
     "5623": {
         "name": "sonefi",
+        "tvl": true,
+        "yields": false
+    },
+    "5625": {
+        "name": "paragonsdao",
+        "tvl": false,
+        "yields": false
+    },
+    "5626": {
+        "name": "untangled-vault",
         "tvl": true,
         "yields": false
     },
