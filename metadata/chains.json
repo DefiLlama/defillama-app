@@ -948,6 +948,7 @@
     },
     "idex": {
         "name": "IDEX",
+        "derivatives": true,
         "gecko_id": "aurora-dao",
         "tokenSymbol": "IDEX"
     },
