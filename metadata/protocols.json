@@ -28527,7 +28527,7 @@
     },
     "5257": {
         "name": "capybara-perps",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "perps": true
     },
@@ -28552,9 +28552,9 @@
         "yields": false
     },
     "5262": {
-        "name": "swell-eth-earn-vault",
+        "name": "swell-earn",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "5263": {
         "name": "zenolend",
@@ -28803,7 +28803,9 @@
         "name": "maxapy",
         "tvl": true,
         "yields": true,
-        "treasury": true
+        "treasury": true,
+        "fees": true,
+        "revenue": true
     },
     "5307": {
         "name": "morfi",
