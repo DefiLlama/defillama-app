@@ -24948,7 +24948,7 @@
         "yields": false
     },
     "4595": {
-        "name": "untangled",
+        "name": "untangled-rwa",
         "tvl": true,
         "yields": false
     },
@@ -33801,6 +33801,11 @@
     },
     "parent#unlockd": {
         "name": "unlockd",
+        "yields": false,
+        "tvl": true
+    },
+    "parent#untangled": {
+        "name": "untangled",
         "yields": false,
         "tvl": true
     },
