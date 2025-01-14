@@ -378,12 +378,12 @@ export const groupProtocolsByParent = ({
 			const subRows = [...(acc[protocol.parentProtocol]?.subRows ?? []), protocol]
 
 			mainRow.total24h = subRows.reduce(reduceSumByAttribute('total24h'), null)
-			const total48hto24h = subRows.reduce(reduceSumByAttribute('total48hto24h'), null)
 			mainRow.total7d = subRows.reduce(reduceSumByAttribute('total7d'), null)
 			mainRow.total30d = subRows.reduce(reduceSumByAttribute('total30d'), null)
 			mainRow.total1y = subRows.reduce(reduceSumByAttribute('total1y'), null)
 			mainRow.average1y = subRows.reduce(reduceSumByAttribute('average1y'), null)
 			mainRow.totalAllTime = subRows.reduce(reduceSumByAttribute('totalAllTime'), null)
+			const total48hto24h = subRows.reduce(reduceSumByAttribute('total48hto24h'), null)
 			const totalVolume7d = subRows.reduce(reduceSumByAttribute('totalVolume7d'), null)
 			const totalVolume30d = subRows.reduce(reduceSumByAttribute('totalVolume30d'), null)
 			mainRow.change_1d = getPercentChange(mainRow.total24h, total48hto24h)

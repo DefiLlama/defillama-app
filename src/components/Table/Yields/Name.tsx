@@ -82,7 +82,7 @@ export function NameYieldPool({
 				url={withoutLink ? null : tokenUrl}
 				showTooltip={value.length + (poolMeta ? poolMeta.length : 0) >= mc}
 			>
-				{value.length + 2 < mc && poolMeta ? (
+				{poolMeta ? (
 					<>
 						<span>{value}</span>{' '}
 						<span className="bg-[var(--bg3)] text-black dark:text-white px-1 py-[2px] text-xs rounded-lg">
@@ -112,7 +112,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 						{children}
 					</Tooltip2>
 				) : (
-					<Tooltip2 className="whitespace-nowrap overflow-hidden text-ellipsis" as="span" content={children}>
+					<Tooltip2 className="overflow-hidden whitespace-nowrap text-ellipsis" as="span" content={children}>
 						{children}
 					</Tooltip2>
 				)}
@@ -127,7 +127,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 					{children}
 				</CustomLink>
 			) : (
-				<span className="whitespace-nowrap overflow-hidden text-ellipsis">{children}</span>
+				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{children}</span>
 			)}
 		</>
 	)
