@@ -25522,7 +25522,7 @@
     },
     "4708": {
         "name": "icpex",
-        "tvl": false,
+        "tvl": true,
         "yields": true
     },
     "4709": {

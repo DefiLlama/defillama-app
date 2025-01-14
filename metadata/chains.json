@@ -1786,6 +1786,9 @@
         "gecko_id": "sommelier",
         "tokenSymbol": "SOMM"
     },
+    "soneium": {
+        "name": "Soneium"
+    },
     "songbird": {
         "name": "Songbird",
         "gecko_id": "songbird",
