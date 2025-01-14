@@ -1654,7 +1654,6 @@
         "name": "pinkswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "368": {
@@ -3184,7 +3183,6 @@
         "yields": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -12046,8 +12044,7 @@
         "name": "nftfi",
         "tvl": true,
         "yields": false,
-        "raises": true,
-        "activeUsers": true
+        "raises": true
     },
     "2256": {
         "name": "opx-finance",
@@ -34031,7 +34028,6 @@
         "governance": true,
         "treasury": true,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
