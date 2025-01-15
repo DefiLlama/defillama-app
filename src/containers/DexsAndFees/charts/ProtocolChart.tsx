@@ -126,7 +126,7 @@ export const ProtocolChart = ({
 								<span className="text-[#545757] dark:text-[#cccccc]">
 									{data.disabled === true
 										? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-												+chartData[0][chartData[0].length - 1][0]
+												+chartData[0][chartData[0].length - 1].date
 										  )})`
 										: `${typeString} (24h)`}
 								</span>
@@ -139,9 +139,7 @@ export const ProtocolChart = ({
 							<p className="flex flex-col gap-1 text-base">
 								<span className="text-[#545757] dark:text-[#cccccc]">
 									{data.disabled === true
-										? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-												+chartData[0][chartData[0].length - 1][0]
-										  )})`
+										? `Last day revenue (${formatTimestampAsDate(+chartData[0][chartData[0].length - 1].date)})`
 										: `${type === 'options' ? 'Premium Volume' : 'Revenue'} (24h)`}
 								</span>
 								<span className="font-jetbrains font-semibold text-2xl">

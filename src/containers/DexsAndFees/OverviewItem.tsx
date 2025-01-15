@@ -243,21 +243,21 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						{enableVersionsChart && (
 							<ChartByType
 								type={props.protocolSummary.type}
-								protocolName={props.protocolSummary.name}
+								protocolName={props.protocolSummary.slug}
 								chartType="version"
 							/>
 						)}
 						{enableTokensChart && (
 							<ChartByType
 								type={props.protocolSummary.type}
-								protocolName={props.protocolSummary.name}
+								protocolName={props.protocolSummary.slug}
 								chartType="tokens"
 							/>
 						)}
 						{enableChainsChart && (
 							<ChartByType
 								type={props.protocolSummary.type}
-								protocolName={props.protocolSummary.module}
+								protocolName={props.protocolSummary.slug}
 								chartType="chain"
 							/>
 						)}
