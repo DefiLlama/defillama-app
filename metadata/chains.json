@@ -879,7 +879,6 @@
         "name": "Heco",
         "fees": true,
         "dexs": true,
-        "aggregators": true,
         "gecko_id": "huobi-token",
         "tokenSymbol": "HT"
     },
@@ -1788,7 +1787,8 @@
     },
     "soneium": {
         "name": "Soneium",
-        "fees": true
+        "fees": true,
+        "chainAssets": true
     },
     "songbird": {
         "name": "Songbird",
