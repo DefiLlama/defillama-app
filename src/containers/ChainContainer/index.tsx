@@ -387,6 +387,15 @@ export function ChainContainer({
 									</tr>
 								) : null}
 
+								{feesAndRevenueData?.appRevenue24h ? (
+									<tr>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">App Revenue (24h)</th>
+										<td className="font-jetbrains text-right">
+											{formattedNum(feesAndRevenueData?.appRevenue24h, true)}
+										</td>
+									</tr>
+								) : null}
+
 								{volumeData?.totalVolume24h ? (
 									<RowWithSubRows
 										rowHeader={'Volume (24h)'}

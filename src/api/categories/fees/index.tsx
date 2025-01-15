@@ -56,6 +56,34 @@ export const getFeesAndRevenueByChain = async ({
 	return { fees, revenue }
 }
 
+export const getAppRevenueByChain = async ({ chain }: { chain?: string }) => {
+	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${
+		chain && chain !== 'All' ? '/' + chain : ''
+	}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=dailyRevenue`
+
+	const revenue = await fetchWithErrorLogging(apiUrl)
+		.then((res) => {
+			if (res.status === 200) {
+				return res.json()
+			} else {
+				return null
+			}
+		})
+		.catch((err) => {
+			console.log('Error at ', apiUrl, err)
+			return null
+		})
+
+	return revenue
+		? revenue.protocols.reduce((acc, curr) => {
+				if (curr.category !== 'Chain' && !['Tether', 'Circle', 'bloXroute'].includes(curr.name)) {
+					acc += curr.total24h || 0
+				}
+				return acc
+		  }, 0)
+		: null
+}
+
 // - used in /fees and /fees/chain/[chain]
 export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: string }) => {
 	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${

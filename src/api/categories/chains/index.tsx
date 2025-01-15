@@ -24,7 +24,7 @@ import { getPeggedOverviewPageData } from '../stablecoins'
 import { getBridgeOverviewPageData } from '../bridges'
 import chainsMetadata from 'metadata/chains.json'
 import { getOverview } from '../adaptors'
-import { getFeesAndRevenueByChain } from '../fees'
+import { getAppRevenueByChain, getFeesAndRevenueByChain } from '../fees'
 import { getDexVolumeByChain } from '../dexs'
 
 const getExtraTvlCharts = (data) => {
@@ -84,7 +84,8 @@ export async function getChainPageData(chain?: string) {
 		cgData,
 		perpsData,
 		nftVolumesData,
-		chainAssets
+		chainAssets,
+		appRevenue24h
 	] = await Promise.all([
 		fetchWithErrorLogging(CHART_API + (chainMetadata ? `/${chainMetadata.name}` : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
@@ -191,7 +192,8 @@ export async function getChainPageData(chain?: string) {
 			: null,
 		fetchWithErrorLogging(CHAINS_ASSETS)
 			.then((res) => res.json())
-			.catch(() => ({}))
+			.catch(() => ({})),
+		chain && chain !== 'All' ? getAppRevenueByChain({ chain }) : null
 	])
 
 	const chainTreasury = treasuriesData?.find(
@@ -275,7 +277,11 @@ export async function getChainPageData(chain?: string) {
 				totalVolume7d: perpsData?.total7d ?? null,
 				weeklyChange: perpsData?.change_7dover7d ?? null
 			},
-			feesAndRevenueData: { totalFees24h: fees?.total24h ?? null, totalRevenue24h: revenue?.total24h ?? null },
+			feesAndRevenueData: {
+				totalFees24h: fees?.total24h ?? null,
+				totalRevenue24h: revenue?.total24h ?? null,
+				appRevenue24h
+			},
 			stablecoinsData,
 			devMetricsData,
 			inflowsData,
