@@ -743,7 +743,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 
 	return {
 		props: {
-			cexs
+			cexs: cexs.sort((a, b) => b.cleanTvl - a.cleanTvl)
 		},
 		revalidate: maxAgeForNext([22])
 	}
