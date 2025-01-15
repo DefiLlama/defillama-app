@@ -489,6 +489,7 @@
         "derivatives": true,
         "aggregators": true,
         "bridge-aggregators": true,
+        "inflows": true,
         "chainAssets": true
     },
     "crossfi": {
@@ -984,6 +985,7 @@
     "ink": {
         "name": "Ink",
         "fees": true,
+        "inflows": true,
         "chainAssets": true
     },
     "interlay": {
@@ -1801,7 +1803,8 @@
         "fees": true,
         "dexs": true,
         "aggregators": true,
-        "options": true
+        "options": true,
+        "inflows": true
     },
     "sophon": {
         "name": "Sophon",
@@ -1989,6 +1992,7 @@
         "aggregators": true,
         "options": true,
         "bridge-aggregators": true,
+        "inflows": true,
         "gecko_id": "the-open-network",
         "tokenSymbol": "TON"
     },
@@ -1999,6 +2003,7 @@
         "dexs": true,
         "aggregators": true,
         "bridge-aggregators": true,
+        "inflows": true,
         "chainAssets": true,
         "gecko_id": "tron",
         "tokenSymbol": "TRON"
@@ -2167,6 +2172,7 @@
         "name": "Zircuit",
         "fees": true,
         "aggregators": true,
+        "inflows": true,
         "chainAssets": true,
         "gecko_id": "zircuit",
         "tokenSymbol": "ZRC"
