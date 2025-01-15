@@ -79,7 +79,8 @@ export const descriptions = {
 	Dexes: 'Protocols where you can swap/trade cryptocurrency',
 	Yield: 'Protocols that pay you a reward for your staking/LP on their platform',
 	Lending: 'Protocols that allow users to borrow and lend assets',
-	'Cross Chain': 'Protocols that add interoperability between different blockchains',
+	'Cross Chain Bridge':
+		'Protocols that transfer assets between different blockchains through pooled liquidity on each network, instead of relying on mint/burn mechanisms',
 	Staking: 'Protocols that allow you to stake assets in exchange of a reward',
 	Services: 'Protocols that provide a service to the user',
 	'Yield Aggregator': 'Protocols that aggregated yield from diverse protocols',
@@ -170,7 +171,7 @@ export const descriptions = {
 	'Charity Fundraising': 'Projects that raise capital for DeFi projects through grants, or community contributions',
 	'Volume Boosting':
 		'Protocols that artificially increase trading volume and liquidity for tokens, boosting market perception',
-	'DOR': 'Decentralized Offered Rates - The DOR mechanism provides a decentralized benchmark rate for crypto assets',
+	DOR: 'Decentralized Offered Rates - The DOR mechanism provides a decentralized benchmark rate for crypto assets'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
