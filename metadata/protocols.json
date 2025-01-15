@@ -30483,6 +30483,21 @@
         "tvl": true,
         "yields": false
     },
+    "5627": {
+        "name": "sakefinance",
+        "tvl": true,
+        "yields": false
+    },
+    "5628": {
+        "name": "untitledbank",
+        "tvl": true,
+        "yields": false
+    },
+    "5629": {
+        "name": "squidswap",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
