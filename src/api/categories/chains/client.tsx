@@ -1,5 +1,5 @@
 import { getDexVolumeByChain } from '../dexs'
-import { getFeesAndRevenueByChain, getFeesAndRevenueProtocolsByChain } from '../fees'
+import { getAppRevenueByChain, getFeesAndRevenueByChain, getFeesAndRevenueProtocolsByChain } from '../fees'
 import { getOverview } from '../adaptors'
 import { CHAINS_ASSETS_CHART } from '~/constants'
 import { useQuery } from '@tanstack/react-query'
@@ -68,6 +68,21 @@ export function useGetFeesAndRevenueChartDataByChain(chain?: string) {
 	})
 }
 
+export function useGetAppRevenueChartDataByChain(chain?: string) {
+	return useQuery({
+		queryKey: [`feesAndRevenueChartDataByChain/${chain}`],
+		queryFn:
+			chain && chain !== 'All'
+				? () =>
+						getAppRevenueByChain({
+							chain,
+							excludeTotalDataChartBreakdown: false
+						}).then((data) => data.chart)
+				: () => null,
+		staleTime: 60 * 60 * 1000
+	})
+}
+
 export function useGetProtocolsFeesAndRevenueByChain(chain?: string) {
 	return useQuery({
 		queryKey: [`protocolsFeesAndRevenueByChain/${chain}`],
@@ -88,9 +103,7 @@ export const useGetChainAssetsChart = (chain?: string) => {
 	const { data, isLoading } = useQuery({
 		queryKey: [`chainAssetsChart/${chain}`],
 		queryFn:
-			chain && chain !== 'All'
-				? () => fetch(`${CHAINS_ASSETS_CHART}/${chain}`).then((r) => r.json())
-				: () => null,
+			chain && chain !== 'All' ? () => fetch(`${CHAINS_ASSETS_CHART}/${chain}`).then((r) => r.json()) : () => null,
 		staleTime: 60 * 60 * 1000
 	})
 

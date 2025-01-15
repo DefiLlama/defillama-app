@@ -7,6 +7,7 @@ import {
 	useFetchProtocolUsers
 } from '~/api/categories/protocols/client'
 import {
+	useGetAppRevenueChartDataByChain,
 	useGetChainAssetsChart,
 	useGetFeesAndRevenueChartDataByChain,
 	useGetItemOverviewByChain,
@@ -58,6 +59,10 @@ export const useFetchChainChartData = ({
 				: null
 		)
 
+	const { data: appRevenueChart, isLoading: fetchingAppRevenue } = useGetAppRevenueChartDataByChain(
+		feesAndRevenueData?.appRevenue24h && router.query.appRevenue === 'true' ? selectedChain : null
+	)
+
 	const { data: stablecoinsChartData, isLoading: fetchingStablecoinsChartDataByChain } =
 		useGetStabelcoinsChartDataByChain(
 			stablecoinsData?.totalMcapCurrent && router.query.stables === 'true' ? selectedChain : null
@@ -88,6 +93,7 @@ export const useFetchChainChartData = ({
 		fetchingDenominationPriceHistory ||
 		fetchingVolumeChartDataByChain ||
 		fetchingFeesAndRevenueChartDataByChain ||
+		fetchingAppRevenue ||
 		fetchingStablecoinsChartDataByChain ||
 		fetchingInflowsChartData ||
 		fetchingUsersChartData ||
@@ -175,6 +181,10 @@ export const useFetchChainChartData = ({
 			  ])
 			: feesAndRevenueChart
 
+		const finalAppRevenueChart = isNonUSDDenomination
+			? appRevenueChart?.map(([date, revenue]) => [date, revenue / normalizedDenomination[getUtcDateObject(date)]])
+			: appRevenueChart
+
 		const finalDevsChart = devMetricsData?.report?.monthly_devs?.map(({ k, v }) => [
 			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
 			v
@@ -203,6 +213,7 @@ export const useFetchChainChartData = ({
 		const chartDatasets = [
 			{
 				feesChart: finalFeesAndRevenueChart,
+				appRevenueChart: finalAppRevenueChart,
 				volumeChart: finalVolumeChart,
 				globalChart: finalTvlChart,
 				raisesData: raisesChart,
@@ -228,6 +239,7 @@ export const useFetchChainChartData = ({
 		volumeChart,
 		perpsChart?.totalDataChart,
 		feesAndRevenueChart,
+		appRevenueChart,
 		devMetricsData?.report?.monthly_devs,
 		chainAssetsChart,
 		raisesChart,
