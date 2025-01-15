@@ -85,7 +85,7 @@ export async function getChainPageData(chain?: string) {
 		perpsData,
 		nftVolumesData,
 		chainAssets,
-	    appRevenue24h 
+		{ appRevenue24h }
 	] = await Promise.all([
 		fetchWithErrorLogging(CHART_API + (chainMetadata ? `/${chainMetadata.name}` : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
