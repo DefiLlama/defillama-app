@@ -1787,7 +1787,8 @@
     },
     "soneium": {
         "name": "Soneium",
-        "fees": true
+        "fees": true,
+        "chainAssets": true
     },
     "songbird": {
         "name": "Songbird",
