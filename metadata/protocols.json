@@ -10986,7 +10986,8 @@
         "name": "damm-finance",
         "tvl": true,
         "yields": true,
-        "raises": true
+        "raises": true,
+        "activeUsers": true
     },
     "2072": {
         "name": "polyo-exchange",
@@ -11683,8 +11684,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2193": {
         "name": "amulet-liquidity-staking",
@@ -16492,7 +16492,7 @@
         "perps": true
     },
     "3057": {
-        "name": "openeden-t-bills",
+        "name": "openeden",
         "tvl": true,
         "yields": false,
         "fees": true,
@@ -33191,7 +33191,6 @@
         "name": "smbswap",
         "yields": false,
         "tvl": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
