@@ -243,6 +243,7 @@
         "fees": true,
         "dexs": true,
         "aggregators": true,
+        "options": true,
         "bridge-aggregators": true,
         "inflows": true
     },
@@ -983,6 +984,7 @@
     },
     "ink": {
         "name": "Ink",
+        "fees": true,
         "chainAssets": true
     },
     "interlay": {
@@ -1786,7 +1788,8 @@
         "tokenSymbol": "SOMM"
     },
     "soneium": {
-        "name": "Soneium"
+        "name": "Soneium",
+        "fees": true
     },
     "songbird": {
         "name": "Songbird",
@@ -2174,7 +2177,6 @@
     },
     "zklink-nova": {
         "name": "zkLink Nova",
-        "fees": true,
         "aggregators": true,
         "chainAssets": true
     },
