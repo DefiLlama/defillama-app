@@ -81,16 +81,17 @@ export const getAppRevenueByChain = async ({
 			return null
 		})
 
-	const chart = revenue.totalDataChartBreakdown.reduce((acc, curr) => {
-		let rev = 0
-		for (const protocol in curr[1]) {
-			if (!protocolsToExclude.includes(protocol)) {
-				rev += curr[1][protocol]
+	const chart =
+		revenue?.totalDataChartBreakdown?.reduce((acc, curr) => {
+			let rev = 0
+			for (const protocol in curr[1]) {
+				if (!protocolsToExclude.includes(protocol)) {
+					rev += curr[1][protocol]
+				}
 			}
-		}
-		acc = [...acc, [curr[0], rev]]
-		return acc
-	}, [])
+			acc = [...acc, [curr[0], rev]]
+			return acc
+		}, []) ?? []
 
 	return {
 		appRevenue24h: revenue
