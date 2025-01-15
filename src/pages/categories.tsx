@@ -169,7 +169,8 @@ export const descriptions = {
 	'Liquidity Automation': 'Automatically manages and adjusts liquidity in DeFi protocols through smart contracts',
 	'Charity Fundraising': 'Projects that raise capital for DeFi projects through grants, or community contributions',
 	'Volume Boosting':
-		'Protocols that artificially increase trading volume and liquidity for tokens, boosting market perception'
+		'Protocols that artificially increase trading volume and liquidity for tokens, boosting market perception',
+	'DOR': 'Decentralized Offered Rates - The DOR mechanism provides a decentralized benchmark rate for crypto assets',
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
