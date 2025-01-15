@@ -15915,8 +15915,7 @@
     "2957": {
         "name": "seashell",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2959": {
         "name": "holdstation-defutures",
@@ -31151,7 +31150,8 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true
+        "dexs": true,
+        "emissions": true
     },
     "parent#canary": {
         "activeUsers": true
