@@ -195,7 +195,7 @@ export async function getChainPageData(chain?: string) {
 			.catch(() => ({})),
 		chain && chain !== 'All'
 			? getAppRevenueByChain({ chain: chainMetadata?.name, excludeTotalDataChartBreakdown: true })
-			: null
+			: { appRevenue24h: null }
 	])
 
 	const chainTreasury = treasuriesData?.find(
