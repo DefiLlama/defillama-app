@@ -4157,8 +4157,7 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "816": {
         "name": "xsigma",
@@ -30914,7 +30913,6 @@
         "yields": true,
         "tvl": true,
         "governance": true,
-        "activeUsers": true,
         "dexs": true
     },
     "parent#bank-of-cronos": {
