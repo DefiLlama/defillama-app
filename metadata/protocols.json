@@ -1378,7 +1378,6 @@
         "name": "unicly",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "325": {
@@ -14022,8 +14021,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -22018,7 +22016,8 @@
         "name": "brickken",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "raises": true
     },
     "4059": {
         "name": "aptoslaunch",
