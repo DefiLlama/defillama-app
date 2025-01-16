@@ -2021,7 +2021,9 @@
     },
     "unit0": {
         "name": "UNIT0",
-        "dexs": true
+        "dexs": true,
+        "gecko_id": "unit0",
+        "tokenSymbol": "UNIT0"
     },
     "ux": {
         "name": "UX",
