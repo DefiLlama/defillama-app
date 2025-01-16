@@ -11144,7 +11144,8 @@
         "name": "fstswap",
         "tvl": true,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "2102": {
         "name": "titano-swych",
@@ -14781,8 +14782,7 @@
     "2751": {
         "name": "lfgswap-arbitrum",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2752": {
         "name": "onchain-trade",
@@ -24506,7 +24506,7 @@
     },
     "4511": {
         "name": "pay-protocol",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4512": {
@@ -30495,6 +30495,11 @@
     "5629": {
         "name": "squidswap",
         "tvl": true,
+        "yields": false
+    },
+    "5630": {
+        "name": "ooia",
+        "tvl": false,
         "yields": false
     },
     "chain#1": {
