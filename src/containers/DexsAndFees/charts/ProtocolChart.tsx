@@ -58,7 +58,7 @@ export interface IDexChartsProps {
 	chartTypes?: string[]
 	selectedType?: string
 	selectedChartType?: string
-	childProtocols?: string[]
+	siblingProtocols?: string[]
 }
 
 export const ProtocolChart = ({
@@ -70,7 +70,7 @@ export const ProtocolChart = ({
 	title,
 	fullChart = false,
 	totalAllTime,
-	childProtocols,
+	siblingProtocols,
 	disableDefaultLeged = false
 }: IDexChartsProps) => {
 	const router = useRouter()
@@ -79,7 +79,7 @@ export const ProtocolChart = ({
 	const typeSimple = volumeTypes.includes(type) ? 'volume' : type
 
 	const tabs = [name]
-	if (childProtocols) tabs.push(...childProtocols)
+	if (siblingProtocols) tabs.push(...siblingProtocols)
 
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 
@@ -95,7 +95,7 @@ export const ProtocolChart = ({
 
 	return (
 		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-			{childProtocols && childProtocols.length > 0 && (
+			{siblingProtocols && siblingProtocols.length > 0 && (
 				<nav className="col-span-1 xl:col-span-2 flex overflow-x-auto rounded-t-xl bg-[var(--bg7)] border-b border-black/10 dark:border-white/10">
 					{tabs.map((p) => (
 						<Link href={`/${type}/${standardizeProtocolName(p)}`} key={p} passHref>
