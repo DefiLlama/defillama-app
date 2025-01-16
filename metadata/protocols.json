@@ -15447,7 +15447,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -27390,7 +27390,7 @@
         "dexs": true
     },
     "5027": {
-        "name": "4cast",
+        "name": "memecast.ai",
         "tvl": false,
         "yields": false,
         "fees": true,
