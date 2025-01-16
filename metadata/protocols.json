@@ -28684,7 +28684,7 @@
     "5262": {
         "name": "swell-earn",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "5263": {
         "name": "zenolend",
