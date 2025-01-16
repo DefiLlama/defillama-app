@@ -2320,8 +2320,7 @@
         "name": "baguette",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "474": {
         "name": "canary",
@@ -6735,7 +6734,8 @@
         "name": "burgerswap",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "1296": {
         "name": "zipswap",
@@ -30500,6 +30500,11 @@
     "5630": {
         "name": "ooia",
         "tvl": false,
+        "yields": false
+    },
+    "5631": {
+        "name": "cian-bera",
+        "tvl": true,
         "yields": false
     },
     "chain#1": {
