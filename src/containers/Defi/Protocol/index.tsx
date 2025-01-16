@@ -241,7 +241,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 			return weeksFromLastTweet
 		}
 	}, [twitterData])
-	const totalValue = React.useMemo(() => {
+	const { totalValue, hasTvl } = React.useMemo(() => {
 		let tvl = 0
 
 		Object.entries(tvlBreakdowns).forEach(([section, sectionTvl]: any) => {
@@ -277,7 +277,14 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 			})
 		}
 
-		return tvl
+		return {
+			totalValue: tvl,
+			hasTvl:
+				Object.values(tvlBreakdowns).find((x) => x > 0) ||
+				Object.values(historicalChainTvls).find((x) => x.tvl && x.tvl.length > 0)
+					? true
+					: false
+		}
 	}, [extraTvlsEnabled, tvlBreakdowns, historicalChainTvls])
 
 	const {
@@ -635,7 +642,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 										<Bookmark readableProtocolName={name} />
 									</h1>
 
-									{totalValue || totalValue === 0 ? (
+									{totalValue || hasTvl ? (
 										<details className="group mt-6 mb-4">
 											<summary className="flex items-center">
 												<Icon

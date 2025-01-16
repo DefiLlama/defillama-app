@@ -196,41 +196,36 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete
 }
 
 function storeTokensBreakdown({ date, tokens, tokensUnique, directory }) {
+	const tokensOfTheDay = {}
 	// filters tokens that have no name or their value is near zero
-	const tokensOfTheDay = Object.entries(tokens).filter(
-		(t: [string, number]) => !(t[0].startsWith('UNKNOWN') && t[1] < 1)
-	)
+	for (const token in tokens) {
+		if (!(token.startsWith('UNKNOWN') && tokens[token] < 1)) {
+			tokensOfTheDay[token] = tokens[token]
+		}
+	}
 
-	const tokensToShow = []
+	const tokensToShow = {}
 	let remainingTokensSum = 0
 
 	// split tokens of the day into tokens present in top 10 tokens list and add tvl of remaining tokens into category named 'Others'
-	tokensOfTheDay.forEach((token: [string, number]) => {
-		if (tokensUnique.includes(token[0])) {
-			tokensToShow.push(token)
+	for (const token in tokensOfTheDay) {
+		if (tokensUnique.includes(token)) {
+			tokensToShow[token] = tokensOfTheDay[token]
 		} else {
-			remainingTokensSum += token[1]
+			remainingTokensSum += tokensOfTheDay[token]
 		}
-	})
+	}
 
 	// add "Others" to tokens list
 	if (tokensUnique.includes('Others') && remainingTokensSum > 0) {
-		tokensToShow.push(['Others', remainingTokensSum])
+		tokensToShow['Others'] = remainingTokensSum
 	}
 
 	if (!directory[date]) {
 		directory[date] = { date }
 	}
 
-	const sumOfAllTokensInThisDate = Object.fromEntries(tokensToShow)
-
-	for (const token in directory[date]) {
-		if (token !== 'date') {
-			sumOfAllTokensInThisDate[token] = (sumOfAllTokensInThisDate[token] || 0) + directory[date][token]
-		}
-	}
-
-	directory[date] = { ...directory[date], ...sumOfAllTokensInThisDate }
+	directory[date] = { ...directory[date], ...tokensToShow }
 }
 
 function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
@@ -300,16 +295,16 @@ export const buildProtocolAddlChartsData = ({
 		let tokensExists = false
 
 		Object.values(protocolData.chainTvls).forEach((chain) => {
-			if (!tokensInUsdExsists && chain.tokensInUsd) {
+			if (!tokensInUsdExsists && chain.tokensInUsd && chain.tokensInUsd.length > 0) {
 				tokensInUsdExsists = true
 			}
 
-			if (!tokensExists && chain.tokens) {
+			if (!tokensExists && chain.tokens && chain.tokens.length > 0) {
 				tokensExists = true
 			}
 		})
 
-		if (!protocolData.misrepresentedTokens && tokensInUsdExsists && tokensExists) {
+		if (!protocolData.misrepresentedTokens && (tokensInUsdExsists || tokensExists)) {
 			const tokensUnique = getUniqueTokens({ chainTvls: protocolData.chainTvls, extraTvlsEnabled })
 
 			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
