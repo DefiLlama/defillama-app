@@ -635,7 +635,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 										<Bookmark readableProtocolName={name} />
 									</h1>
 
-									{totalValue ? (
+									{totalValue || totalValue === 0 ? (
 										<details className="group mt-6 mb-4">
 											<summary className="flex items-center">
 												<Icon
