@@ -1654,7 +1654,6 @@
         "name": "pinkswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "368": {
@@ -5143,8 +5142,7 @@
     "996": {
         "name": "ocp-finance",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "997": {
         "name": "piggy",
@@ -6744,7 +6742,6 @@
         "tvl": true,
         "yields": true,
         "liquidity": true,
-        "activeUsers": true,
         "dexs": true
     },
     "1297": {
