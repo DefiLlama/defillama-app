@@ -3592,7 +3592,8 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "693": {
         "name": "superfluid",
@@ -8568,7 +8569,8 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "1632": {
         "name": "smbswap-v2",
@@ -11391,6 +11393,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -14425,7 +14428,8 @@
         "tvl": true,
         "yields": false,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2688": {
         "name": "palma-swap",
@@ -30061,7 +30065,8 @@
     "5540": {
         "name": "zeebu",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5541": {
         "name": "b14g",
@@ -30538,6 +30543,21 @@
     "5636": {
         "name": "zarban",
         "tvl": true,
+        "yields": false
+    },
+    "5637": {
+        "name": "symphony-exchange",
+        "tvl": false,
+        "yields": false
+    },
+    "5638": {
+        "name": "ln-exchange-spot",
+        "tvl": false,
+        "yields": false
+    },
+    "5639": {
+        "name": "ln-exchange-perps",
+        "tvl": false,
         "yields": false
     },
     "chain#1": {
@@ -32305,6 +32325,10 @@
         "liquidity": true,
         "fees": true,
         "revenue": true
+    },
+    "parent#ln-exchange": {
+        "name": "untangled",
+        "yields": false
     },
     "parent#lodestar-finance": {
         "name": "lodestar-finance",
