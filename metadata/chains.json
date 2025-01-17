@@ -324,6 +324,7 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
+        "aggregator-derivatives": true,
         "bridge-aggregators": true,
         "inflows": true,
         "chainAssets": true
@@ -504,6 +505,7 @@
     },
     "cube": {
         "name": "Cube",
+        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
