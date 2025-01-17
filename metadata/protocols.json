@@ -3705,7 +3705,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "dexs": true
     },
@@ -30554,6 +30554,7 @@
         "name": "ln-exchange-spot",
         "tvl": false,
         "yields": false,
+        "fees": true,
         "revenue": true,
         "dexs": true
     },
@@ -32340,8 +32341,9 @@
         "revenue": true
     },
     "parent#ln-exchange": {
-        "name": "untangled",
+        "name": "ln-exchange",
         "yields": false,
+        "fees": true,
         "revenue": true,
         "dexs": true,
         "perps": true
