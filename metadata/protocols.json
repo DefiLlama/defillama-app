@@ -5262,8 +5262,7 @@
         "name": "opendao",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "1020": {
         "name": "arkadiko",
@@ -13497,7 +13496,6 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30066,6 +30064,7 @@
         "name": "zeebu",
         "tvl": false,
         "yields": false,
+        "fees": true,
         "revenue": true
     },
     "5541": {
@@ -30548,7 +30547,8 @@
     "5637": {
         "name": "symphony-exchange",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "aggregator": true
     },
     "5638": {
         "name": "ln-exchange-spot",
@@ -30558,6 +30558,11 @@
     "5639": {
         "name": "ln-exchange-perps",
         "tvl": false,
+        "yields": false
+    },
+    "5640": {
+        "name": "sonex",
+        "tvl": true,
         "yields": false
     },
     "chain#1": {
