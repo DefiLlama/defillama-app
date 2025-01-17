@@ -30553,15 +30553,23 @@
     "5638": {
         "name": "ln-exchange-spot",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "revenue": true,
+        "dexs": true
     },
     "5639": {
         "name": "ln-exchange-perps",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "perps": true
     },
     "5640": {
         "name": "sonex",
+        "tvl": true,
+        "yields": false
+    },
+    "5641": {
+        "name": "citrex-markets",
         "tvl": true,
         "yields": false
     },
@@ -32333,7 +32341,10 @@
     },
     "parent#ln-exchange": {
         "name": "untangled",
-        "yields": false
+        "yields": false,
+        "revenue": true,
+        "dexs": true,
+        "perps": true
     },
     "parent#lodestar-finance": {
         "name": "lodestar-finance",
