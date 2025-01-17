@@ -3413,6 +3413,7 @@
         "name": "jetswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "660": {
@@ -29310,6 +29311,7 @@
         "name": "phantom",
         "tvl": false,
         "yields": false,
+        "raises": true,
         "fees": true,
         "revenue": true
     },
@@ -33781,7 +33783,8 @@
     "parent#timeswap": {
         "name": "timeswap",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "raises": true
     },
     "parent#tokenlon": {
         "name": "tokenlon",
