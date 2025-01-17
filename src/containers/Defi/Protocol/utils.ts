@@ -221,35 +221,33 @@ function storeTokensBreakdown({ date, tokens, tokensUnique, directory }) {
 		tokensToShow['Others'] = remainingTokensSum
 	}
 
-	if (!directory[date]) {
-		directory[date] = { date }
+	const dir = { date, ...(directory[date] ?? {}) }
+
+	for (const token in tokensToShow) {
+		dir[token] = (dir[token] || 0) + tokensToShow[token]
 	}
 
-	directory[date] = { ...directory[date], ...tokensToShow }
+	directory[date] = dir
 }
 
 function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 	const tokensInUsd = {}
 	const rawTokens = {}
 
-	for (const section in chainTvls) {
-		const name = section.toLowerCase()
+	for (const chain in chainTvls) {
+		const name = chain.toLowerCase()
 
 		// skip sum of keys like ethereum-staking, arbitrum-vesting
 		if (!name.includes('-')) {
 			// sum key with staking, ethereum, arbitrum etc
 			if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
-				chainTvls[section].tokensInUsd?.forEach(
-					({ date, tokens }: { date: number; tokens: { [token: string]: number } }) => {
-						storeTokensBreakdown({ date, tokens, tokensUnique, directory: tokensInUsd })
-					}
-				)
+				for (const { date, tokens } of chainTvls[chain].tokensInUsd ?? []) {
+					storeTokensBreakdown({ date, tokens, tokensUnique, directory: tokensInUsd })
+				}
 
-				chainTvls[section].tokens?.forEach(
-					({ date, tokens }: { date: number; tokens: { [token: string]: number } }) => {
-						storeTokensBreakdown({ date, tokens, tokensUnique, directory: rawTokens })
-					}
-				)
+				for (const { date, tokens } of chainTvls[chain].tokens) {
+					storeTokensBreakdown({ date, tokens, tokensUnique, directory: rawTokens })
+				}
 			}
 		}
 	}
