@@ -30639,6 +30639,21 @@
         "tvl": true,
         "yields": false
     },
+    "5634": {
+        "name": "neemo-finance",
+        "tvl": true,
+        "yields": false
+    },
+    "5635": {
+        "name": "omniyield",
+        "tvl": true,
+        "yields": false
+    },
+    "5636": {
+        "name": "zarban",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
