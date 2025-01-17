@@ -10984,8 +10984,7 @@
         "name": "damm-finance",
         "tvl": true,
         "yields": true,
-        "raises": true,
-        "activeUsers": true
+        "raises": true
     },
     "2072": {
         "name": "polyo-exchange",
