@@ -26450,7 +26450,8 @@
     "4875": {
         "name": "kernel-protocol",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "raises": true
     },
     "4876": {
         "name": "fixes-launchpad",
@@ -30511,7 +30512,8 @@
     "5630": {
         "name": "ooia",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "aggregator": true
     },
     "5631": {
         "name": "cian-bera",
