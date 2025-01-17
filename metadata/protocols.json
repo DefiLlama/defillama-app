@@ -28540,7 +28540,7 @@
     },
     "5257": {
         "name": "capybara-perps",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "perps": true
     },
