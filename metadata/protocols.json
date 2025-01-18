@@ -4160,8 +4160,7 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "816": {
         "name": "xsigma",
@@ -16479,7 +16478,7 @@
     },
     "3054": {
         "name": "paribus",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "liquidity": true
     },
