@@ -506,6 +506,7 @@
     },
     "cube": {
         "name": "Cube",
+        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -828,7 +829,6 @@
         "name": "Gnosis",
         "fees": true,
         "dexs": true,
-        "derivatives": true,
         "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
@@ -904,6 +904,7 @@
     },
     "hela": {
         "name": "HeLa",
+        "dexs": true,
         "gecko_id": "hela",
         "tokenSymbol": "HELA"
     },
@@ -1806,6 +1807,7 @@
         "name": "Sonic",
         "fees": true,
         "dexs": true,
+        "derivatives": true,
         "aggregators": true,
         "options": true,
         "inflows": true
