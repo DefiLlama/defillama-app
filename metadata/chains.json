@@ -506,7 +506,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -615,6 +614,11 @@
         "fees": true,
         "dexs": true,
         "chainAssets": true
+    },
+    "edu-chain": {
+        "name": "EDU Chain",
+        "gecko_id": "edu-coin",
+        "tokenSymbol": "EDU"
     },
     "elastos": {
         "name": "Elastos",
@@ -1554,7 +1558,6 @@
     },
     "polkadex": {
         "name": "Polkadex",
-        "dexs": true,
         "gecko_id": "polkadex",
         "tokenSymbol": "PDEX"
     },

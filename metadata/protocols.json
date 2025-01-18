@@ -30574,6 +30574,16 @@
         "tvl": true,
         "yields": false
     },
+    "5642": {
+        "name": "edbank",
+        "tvl": true,
+        "yields": false
+    },
+    "5643": {
+        "name": "sailfish-finance",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
