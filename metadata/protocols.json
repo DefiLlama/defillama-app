@@ -13493,6 +13493,7 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -15922,7 +15923,8 @@
     "2957": {
         "name": "seashell",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2959": {
         "name": "holdstation-defutures",
