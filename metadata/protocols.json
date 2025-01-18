@@ -10378,7 +10378,7 @@
     "1948": {
         "name": "matter-defi",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "1949": {
         "name": "civfund",
@@ -15437,7 +15437,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -15447,7 +15447,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
