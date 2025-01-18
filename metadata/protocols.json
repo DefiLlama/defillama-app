@@ -8566,8 +8566,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "1632": {
         "name": "smbswap-v2",
@@ -9886,8 +9885,7 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1872": {
         "name": "rift-finance",
@@ -11392,7 +11390,6 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -13560,8 +13557,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -15456,7 +15452,7 @@
     },
     "2874": {
         "name": "tealswap-v2",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "dexs": true
     },
@@ -18023,7 +18019,7 @@
     "3327": {
         "name": "line-token",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "3328": {
         "name": "swapbased-amm",
