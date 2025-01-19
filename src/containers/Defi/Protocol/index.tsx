@@ -27,10 +27,10 @@ import {
 	standardizeProtocolName,
 	tokenIconUrl
 } from '~/utils'
-import { useFetchProtocol, useFetchProtocolTwitter, useGetTokenPrice } from '~/api/categories/protocols/client'
+import { useFetchProtocolTwitter, useGetTokenPrice } from '~/api/categories/protocols/client'
 import type { IFusedProtocolData, IProtocolDevActivity, NftVolumeData } from '~/api/types'
 import boboLogo from '~/assets/boboSmug.png'
-import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
+import { formatTvlsByChain, formatRaisedAmount, formatRaise, useFetchProtocolAddlChartsData } from './utils'
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
 import { DLNewsLogo } from '~/components/News/Logo'
@@ -337,13 +337,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 
 	const tvls = Object.entries(tvlsByChain)
 
-	const { data: addlProtocolData, isLoading } = useFetchProtocol(protocol)
-
+	const { data: addlProtocolData, isLoading } = useFetchProtocolAddlChartsData(protocol)
 	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, tokenBreakdownPieChart } =
-		React.useMemo(
-			() => buildProtocolAddlChartsData({ protocolData: addlProtocolData, extraTvlsEnabled }),
-			[addlProtocolData, extraTvlsEnabled]
-		)
+		addlProtocolData || {}
 
 	const chainsSplit = React.useMemo(() => {
 		return formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })

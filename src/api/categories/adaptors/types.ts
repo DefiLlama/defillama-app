@@ -55,7 +55,7 @@ export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
 	methodologyURL: string
 	allAddresses?: string[]
 	latestFetchIsOk: boolean
-	siblingProtocols?: string[]
+	linkedProtocols?: string[]
 	slug: string
 }
 

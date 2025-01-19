@@ -1,4 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
+import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl, IRaise } from '~/api/types'
+import { useTvlAndFeesManager } from '~/contexts/LocalStorage'
 import type { ISettings } from '~/contexts/types'
 
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
@@ -245,7 +248,7 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 					storeTokensBreakdown({ date, tokens, tokensUnique, directory: tokensInUsd })
 				}
 
-				for (const { date, tokens } of chainTvls[chain].tokens) {
+				for (const { date, tokens } of chainTvls[chain].tokens ?? []) {
 					storeTokensBreakdown({ date, tokens, tokensUnique, directory: rawTokens })
 				}
 			}
@@ -363,4 +366,23 @@ export const formatRaisedAmount = (n: number) => {
 		return `$${(n / 1e3).toLocaleString(undefined, { maximumFractionDigits: 2 })}b`
 	}
 	return `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
+}
+
+export const useFetchProtocolAddlChartsData = (protocolName) => {
+	const { data: addlProtocolData, isLoading } = useFetchProtocol(protocolName)
+	const [extraTvlsEnabled] = useTvlAndFeesManager()
+
+	const data = useQuery({
+		queryKey: [
+			'protocols-addl-chart-data',
+			protocolName,
+			addlProtocolData ? true : false,
+			JSON.stringify(extraTvlsEnabled)
+		],
+		queryFn: () => buildProtocolAddlChartsData({ protocolData: addlProtocolData, extraTvlsEnabled }),
+		staleTime: 60 * 60 * 1000,
+		refetchInterval: 10 * 60 * 1000
+	})
+
+	return { ...data, isLoading: data.isLoading || isLoading }
 }

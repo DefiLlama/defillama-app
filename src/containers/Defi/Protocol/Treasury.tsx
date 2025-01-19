@@ -4,7 +4,7 @@ import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { buildProtocolAddlChartsData } from './utils'
-import { useState, memo } from 'react'
+import { useState, memo, useMemo } from 'react'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -24,9 +24,15 @@ export function Treasury({ protocolName }) {
 	)
 }
 
-export const TreasuryChart = memo(function TreasuryChart({ protocolName }: { protocolName: string }) {
+export const TreasuryChart = ({ protocolName }: { protocolName: string }) => {
 	const [includeTreasury, setIncludeTreasury] = useState(true)
 	const { data, isLoading } = useFetchProtocolTreasury(protocolName, includeTreasury)
+	const { tokenBreakdown, tokenBreakdownUSD, tokensUnique } = useMemo(() => {
+		return buildProtocolAddlChartsData({
+			protocolData: data,
+			extraTvlsEnabled: {}
+		})
+	}, [data])
 
 	if (isLoading) {
 		return <p className="my-[180px] text-center">Loading...</p>
@@ -58,11 +64,6 @@ export const TreasuryChart = memo(function TreasuryChart({ protocolName }: { pro
 		extraTvlEnabled: {}
 	})
 
-	const { tokenBreakdown, tokenBreakdownUSD, tokensUnique } = buildProtocolAddlChartsData({
-		protocolData: data,
-		extraTvlsEnabled: {}
-	})
-
 	return (
 		<>
 			<label className="flex flex-nowrap gap-2 items-center justify-end cursor-pointe m-4">
@@ -90,4 +91,4 @@ export const TreasuryChart = memo(function TreasuryChart({ protocolName }: { pro
 			)}
 		</>
 	)
-})
+}

@@ -40,7 +40,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 	const [enabledSettings] = useFeesManager()
 	const emissionsChart = useEmissions(sluggify(props.protocolSummary.name))
 
-	const enableVersionsChart = props.protocolSummary.siblingProtocols?.length > 0
+	const enableVersionsChart = props.protocolSummary.linkedProtocols?.length > 0
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
 	const enableChainsChart = props.protocolSummary.type !== 'dexs'
 	const typeSimple = volumeTypes.includes(props.protocolSummary.type) ? 'volume' : props.protocolSummary.type
@@ -117,7 +117,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				type={props.protocolSummary.type}
 				title={mainChart.title}
 				totalAllTime={props.protocolSummary.totalAllTime}
-				siblingProtocols={props.protocolSummary.siblingProtocols}
+				linkedProtocols={props.protocolSummary.linkedProtocols}
 			/>
 
 			{/* Above component should be replaced by the one below but for some reason it makes the chartByVersion not to load to test use dexs/uniswap*/}
