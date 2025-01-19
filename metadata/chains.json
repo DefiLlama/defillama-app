@@ -506,6 +506,7 @@
     },
     "cube": {
         "name": "Cube",
+        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1225,6 +1226,7 @@
     },
     "meer": {
         "name": "MEER",
+        "dexs": true,
         "gecko_id": "qitmeer-network",
         "tokenSymbol": "MEER"
     },
