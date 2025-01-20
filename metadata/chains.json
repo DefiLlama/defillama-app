@@ -1896,7 +1896,6 @@
     },
     "sxnetwork": {
         "name": "SXnetwork",
-        "dexs": true,
         "gecko_id": "sx-network",
         "tokenSymbol": "SX"
     },

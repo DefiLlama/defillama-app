@@ -1776,6 +1776,7 @@
         "name": "meteora-pools",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "dexs": true
     },
     "386": {
