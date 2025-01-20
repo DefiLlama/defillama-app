@@ -10694,7 +10694,7 @@
     "2007": {
         "name": "grizzlyfi-hives",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true
     },
     "2008": {
@@ -32048,7 +32048,7 @@
     },
     "parent#grizzlyfi": {
         "name": "grizzlyfi",
-        "yields": true,
+        "yields": false,
         "tvl": true,
         "liquidity": true,
         "fees": true,
