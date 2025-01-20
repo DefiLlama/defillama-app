@@ -26759,6 +26759,7 @@
         "name": "waterneuron",
         "tvl": true,
         "yields": true,
+        "fees": true,
         "revenue": true
     },
     "4922": {
@@ -30480,7 +30481,7 @@
     "5611": {
         "name": "silo-v2",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true
     },
     "5612": {
