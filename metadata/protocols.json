@@ -3721,6 +3721,7 @@
         "name": "polymarket",
         "tvl": true,
         "yields": false,
+        "forks": true,
         "raises": true,
         "dexs": true
     },
@@ -22678,7 +22679,8 @@
     "4148": {
         "name": "meteora-dlmm",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "4149": {
         "name": "aurelius",
@@ -30601,7 +30603,7 @@
         "yields": false
     },
     "5623": {
-        "name": "sonefi",
+        "name": "sonefi-amm",
         "tvl": true,
         "yields": false
     },
@@ -30700,6 +30702,12 @@
         "name": "sailfish-finance",
         "tvl": false,
         "yields": false
+    },
+    "5644": {
+        "name": "sologenic",
+        "tvl": false,
+        "yields": false,
+        "dexs": true
     },
     "chain#1": {
         "fees": true,
@@ -32711,6 +32719,7 @@
         "name": "meteora",
         "yields": false,
         "tvl": true,
+        "revenue": true,
         "dexs": true
     },
     "parent#metronome": {
@@ -33457,6 +33466,11 @@
         "raises": true,
         "fees": true,
         "revenue": true
+    },
+    "parent#sonefi": {
+        "name": "sonefi",
+        "yields": false,
+        "tvl": true
     },
     "parent#sonic-market": {
         "name": "sonic-market",
