@@ -950,6 +950,7 @@
     },
     "icp": {
         "name": "ICP",
+        "fees": true,
         "dexs": true,
         "gecko_id": "internet-computer",
         "tokenSymbol": "ICP"
@@ -1533,7 +1534,6 @@
     },
     "persistence-one": {
         "name": "Persistence One",
-        "fees": true,
         "dexs": true
     },
     "phantasma": {
@@ -2112,7 +2112,6 @@
     },
     "wemix3.0": {
         "name": "WEMIX3.0",
-        "fees": true,
         "dexs": true,
         "aggregators": true,
         "bridge-aggregators": true
