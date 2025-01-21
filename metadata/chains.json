@@ -57,7 +57,6 @@
         "name": "ApeChain",
         "fees": true,
         "dexs": true,
-        "derivatives": true,
         "aggregators": true,
         "chainAssets": true,
         "gecko_id": "apecoin",
@@ -489,7 +488,6 @@
         "fees": true,
         "dexs": true,
         "derivatives": true,
-        "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
         "chainAssets": true
@@ -506,7 +504,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1748,7 +1745,6 @@
     },
     "shido": {
         "name": "Shido",
-        "dexs": true,
         "gecko_id": "shido-2",
         "tokenSymbol": "SHIDO"
     },
@@ -1987,7 +1983,6 @@
     },
     "tombchain": {
         "name": "Tombchain",
-        "dexs": true,
         "gecko_id": "tomb",
         "tokenSymbol": "TOMB"
     },
@@ -2155,7 +2150,8 @@
         "tokenSymbol": "XPLA"
     },
     "xrpl": {
-        "name": "XRPL"
+        "name": "XRPL",
+        "dexs": true
     },
     "zeniq": {
         "name": "Zeniq"
