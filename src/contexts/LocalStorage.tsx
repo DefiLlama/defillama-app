@@ -139,7 +139,7 @@ export const DEFI_CHAINS_SETTINGS = [
 		key: 'parachain'
 	},
 	{
-		name: 'Subnets',
+		name: 'Avalanche L1s',
 		key: 'subnet'
 	}
 ]
