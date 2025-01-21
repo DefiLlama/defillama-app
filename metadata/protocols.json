@@ -32887,7 +32887,7 @@
         "liquidity": true
     },
     "parent#orderly-network": {
-        "name": "orderly-network",
+        "name": "orderly",
         "yields": false,
         "tvl": true,
         "liquidity": true,
