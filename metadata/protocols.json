@@ -2095,7 +2095,8 @@
         "yields": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "439": {
         "name": "the-grand-banks",
@@ -31814,6 +31815,10 @@
         "tvl": true,
         "raises": true,
         "dexs": true
+    },
+    "parent#filament": {
+        "fees": true,
+        "revenue": true
     },
     "parent#fixes-inscription": {
         "name": "fixes-world",

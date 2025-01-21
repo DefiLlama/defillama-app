@@ -1750,6 +1750,7 @@
     },
     "shido": {
         "name": "Shido",
+        "dexs": true,
         "gecko_id": "shido-2",
         "tokenSymbol": "SHIDO"
     },
