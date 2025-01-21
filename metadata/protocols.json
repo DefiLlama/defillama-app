@@ -4162,8 +4162,7 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "816": {
         "name": "xsigma",
@@ -9624,8 +9623,7 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1824": {
         "name": "swapsicle-v1",
@@ -24207,7 +24205,7 @@
     },
     "4452": {
         "name": "moby",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "hacks": true,
         "options": true
