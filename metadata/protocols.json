@@ -3676,6 +3676,7 @@
         "name": "luaswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "709": {
@@ -13795,7 +13796,8 @@
     "2577": {
         "name": "sharky-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2578": {
         "name": "beamer-bridge",
@@ -26369,7 +26371,7 @@
     },
     "4861": {
         "name": "aurus",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4862": {
