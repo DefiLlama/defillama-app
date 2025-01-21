@@ -578,7 +578,8 @@
     "193": {
         "name": "unit-protocol",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "194": {
         "name": "pancakeswap-amm",
@@ -779,8 +780,7 @@
         "name": "domani-protocol",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "liquidity": true
+        "governance": true
     },
     "225": {
         "name": "enzyme-finance",
@@ -1654,6 +1654,7 @@
         "name": "pinkswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "368": {
@@ -1918,8 +1919,7 @@
     "408": {
         "name": "jetfuel-finance",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "409": {
         "name": "cafeswap",
@@ -2122,8 +2122,7 @@
         "name": "kogefarm",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "liquidity": true
+        "governance": true
     },
     "444": {
         "name": "polydex-cryption-network",
@@ -3730,7 +3729,8 @@
     "717": {
         "name": "decubate",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "718": {
         "name": "alium-swap",
@@ -3768,7 +3768,8 @@
     "724": {
         "name": "handle.fi",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "725": {
         "name": "bishares",
@@ -4324,7 +4325,6 @@
         "tvl": true,
         "yields": false,
         "governance": true,
-        "liquidity": true,
         "dexs": true
     },
     "846": {
@@ -5499,8 +5499,7 @@
     "1060": {
         "name": "entropyfi",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1061": {
         "name": "cakedao",
@@ -7787,8 +7786,7 @@
         "name": "relaychain",
         "tvl": true,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "1492": {
         "name": "aurigami",
@@ -8904,6 +8902,7 @@
         "name": "unbanked",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "raises": true
     },
     "1694": {
@@ -10134,6 +10133,7 @@
         "name": "trustswap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "raises": true
     },
     "1914": {
@@ -11601,8 +11601,7 @@
         "name": "fortress-loans",
         "tvl": true,
         "yields": false,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "2178": {
         "name": "templedao-trade",
@@ -11641,7 +11640,8 @@
     "2184": {
         "name": "handle.fi-perps",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2185": {
         "name": "stabledoin",
@@ -12407,7 +12407,8 @@
     "2333": {
         "name": "julswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2334": {
         "name": "defiedge",
@@ -16995,7 +16996,6 @@
         "name": "stella",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "emissions": true
     },
     "3149": {
@@ -19612,7 +19612,6 @@
         "name": "basedmarkets",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -20726,7 +20725,8 @@
     "3820": {
         "name": "handle.fi-hsp",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3821": {
         "name": "particles-money",
@@ -24399,8 +24399,7 @@
     "4489": {
         "name": "gammaswap",
         "tvl": true,
-        "yields": true,
-        "liquidity": true
+        "yields": true
     },
     "4491": {
         "name": "tonsoffriends",
@@ -24550,8 +24549,7 @@
     "4517": {
         "name": "1intro",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4518": {
         "name": "colend-protocol",
@@ -25022,7 +25020,8 @@
     "4605": {
         "name": "whales-market",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4606": {
         "name": "yieldnest",
@@ -27487,6 +27486,7 @@
         "name": "apex-defi",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -28007,7 +28007,8 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "5158": {
         "name": "enosys-amm-v3",
@@ -29275,12 +29276,14 @@
     "5391": {
         "name": "zkswap-stableswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5392": {
         "name": "zkswap-v3",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5393": {
         "name": "beetroot-finance",
@@ -30386,8 +30389,7 @@
     "5603": {
         "name": "2thick",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5604": {
         "name": "memebox",
@@ -30461,6 +30463,7 @@
         "name": "lfj-aggregator",
         "tvl": false,
         "yields": false,
+        "liquidity": true,
         "aggregator": true
     },
     "5619": {
@@ -30471,7 +30474,8 @@
     "5620": {
         "name": "botto",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5621": {
         "name": "anqa",
@@ -30492,7 +30496,8 @@
     "5625": {
         "name": "paragonsdao",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5626": {
         "name": "untangled-vault",
@@ -30524,6 +30529,9 @@
         "name": "cian-bera",
         "tvl": true,
         "yields": false
+    },
+    "5632": {
+        "liquidity": true
     },
     "5633": {
         "name": "momodrome",
@@ -31917,7 +31925,6 @@
         "name": "gammaswap-protocol",
         "yields": true,
         "tvl": true,
-        "liquidity": true,
         "dexs": true
     },
     "parent#glacier-finance": {
@@ -32010,7 +32017,8 @@
         "yields": false,
         "tvl": true,
         "governance": true,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "parent#hatom-protocol": {
         "name": "hatom-protocol",
