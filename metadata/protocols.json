@@ -29277,13 +29277,17 @@
         "name": "zkswap-stableswap",
         "tvl": true,
         "yields": false,
-        "revenue": true
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5392": {
         "name": "zkswap-v3",
         "tvl": true,
         "yields": false,
-        "revenue": true
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5393": {
         "name": "beetroot-finance",
