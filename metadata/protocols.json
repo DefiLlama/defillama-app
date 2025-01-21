@@ -28111,7 +28111,7 @@
         "yields": false
     },
     "5177": {
-        "name": "filament-finance",
+        "name": "filament-beta",
         "tvl": false,
         "yields": false,
         "raises": true,
@@ -30631,6 +30631,16 @@
         "tvl": false,
         "yields": false
     },
+    "5650": {
+        "name": "filament-v1",
+        "tvl": true,
+        "yields": false
+    },
+    "5651": {
+        "name": "5ire-dapp-staking",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -31817,8 +31827,12 @@
         "dexs": true
     },
     "parent#filament": {
+        "name": "filament-finance",
+        "yields": false,
+        "tvl": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "perps": true
     },
     "parent#fixes-inscription": {
         "name": "fixes-world",
