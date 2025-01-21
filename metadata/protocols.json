@@ -2095,8 +2095,7 @@
         "yields": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "439": {
         "name": "the-grand-banks",
@@ -11392,6 +11391,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -30605,7 +30605,7 @@
     },
     "5647": {
         "name": "sailor",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5648": {
