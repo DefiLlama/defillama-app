@@ -1050,7 +1050,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			return <>${formattedNum(value)}</>
 		},
 		sortUndefined: 'last',
-		meta: { align: 'end' }
+		meta: { align: 'end', headerHelperText: 'Total value of assets on the chain, excluding own tokens' }
 	},
 	{
 		header: 'Change 24h',
@@ -1074,7 +1074,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			return <>${formattedNum(value)}</>
 		},
 		sortUndefined: 'last',
-		meta: { align: 'end' }
+		meta: { align: 'end', headerHelperText: 'Assets minted natively on the chain' }
 	},
 	{
 		header: 'Canonical',
@@ -1086,7 +1086,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			return <>${formattedNum(value)}</>
 		},
 		sortUndefined: 'last',
-		meta: { align: 'end' }
+		meta: { align: 'end', headerHelperText: 'Assets bridged through the official canonical bridge' }
 	},
 	{
 		header: 'Own Tokens',
@@ -1098,7 +1098,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			return <>${formattedNum(value)}</>
 		},
 		sortUndefined: 'last',
-		meta: { align: 'end' }
+		meta: { align: 'end', headerHelperText: 'The chains own token, either for gas or for governance ' }
 	},
 	{
 		header: 'Third Party',
@@ -1110,7 +1110,7 @@ export const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			return <>${formattedNum(value)}</>
 		},
 		sortUndefined: 'last',
-		meta: { align: 'end' }
+		meta: { align: 'end', headerHelperText: 'Assets bridged through bridges that aren’t the canonical bridge' }
 	}
 ]
 
