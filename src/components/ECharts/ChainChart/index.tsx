@@ -241,7 +241,6 @@ export default function AreaChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-
 					yAxisIndex: 5,
 					itemStyle: {
 						color
@@ -280,7 +279,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
-					yAxisIndex: 7,
+					yAxisIndex: 6,
 					itemStyle: {
 						color
 					},
@@ -300,7 +299,7 @@ export default function AreaChart({
 					type: 'bar',
 					symbol: 'none',
 					data: [],
-					yAxisIndex: 8,
+					yAxisIndex: 7,
 					itemStyle: {
 						color
 					},
@@ -321,7 +320,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 9,
+					yAxisIndex: 8,
 					itemStyle: {
 						color
 					},
@@ -342,7 +341,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
-					yAxisIndex: 10,
+					yAxisIndex: 9,
 					itemStyle: {
 						color
 					},
@@ -363,7 +362,7 @@ export default function AreaChart({
 					stack: 'bridge',
 					symbol: 'none',
 					data: [],
-					yAxisIndex: 11,
+					yAxisIndex: 10,
 					itemStyle: {
 						color
 					},
@@ -384,7 +383,7 @@ export default function AreaChart({
 					stack: 'developers',
 					symbol: 'none',
 					data: [],
-					yAxisIndex: 12,
+					yAxisIndex: 11,
 					itemStyle: {
 						color
 					},
@@ -404,7 +403,7 @@ export default function AreaChart({
 					type: 'bar',
 					stack: 'commits',
 					data: [],
-					yAxisIndex: 13,
+					yAxisIndex: 12,
 					itemStyle: {
 						color
 					},
@@ -423,7 +422,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 14,
+					yAxisIndex: 13,
 					itemStyle: {
 						color: color
 					},
@@ -445,7 +444,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 15,
+					yAxisIndex: 14,
 					itemStyle: {
 						color: color
 					},
@@ -466,7 +465,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
-					yAxisIndex: 16,
+					yAxisIndex: 15,
 					itemStyle: {
 						color: color
 					},
@@ -486,7 +485,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: 'bar',
 					data: [],
-					yAxisIndex: 17,
+					yAxisIndex: 16,
 					itemStyle: {
 						color: color
 					},
@@ -506,7 +505,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 18,
+					yAxisIndex: 17,
 					itemStyle: {
 						color: color
 					},
@@ -525,7 +524,7 @@ export default function AreaChart({
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
-					yAxisIndex: 19,
+					yAxisIndex: 18,
 					itemStyle: {
 						color: color
 					},
@@ -594,6 +593,7 @@ export default function AreaChart({
 			Volume: 60,
 			Fees: 55,
 			Revenue: 65,
+			'App Revenue': 65,
 			Price: 65,
 			Raises: 65,
 			Users: 60,
