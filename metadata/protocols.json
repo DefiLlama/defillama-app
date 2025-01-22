@@ -15442,7 +15442,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2854": {
@@ -15466,7 +15466,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
@@ -27882,7 +27882,7 @@
     },
     "5114": {
         "name": "parraton",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "5115": {
