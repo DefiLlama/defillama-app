@@ -22952,7 +22952,8 @@
     "4198": {
         "name": "evaa-protocol",
         "tvl": true,
-        "yields": true
+        "yields": true,
+        "raises": true
     },
     "4199": {
         "name": "thruster-v3",
@@ -30493,7 +30494,8 @@
     "5599": {
         "name": "grvt",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "raises": true
     },
     "5600": {
         "name": "creator-bid",
