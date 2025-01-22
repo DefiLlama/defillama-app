@@ -26906,7 +26906,7 @@
     },
     "4940": {
         "name": "bracket-escrow-staking",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4941": {
