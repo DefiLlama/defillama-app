@@ -11389,7 +11389,6 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -28545,7 +28544,7 @@
     },
     "5257": {
         "name": "capybara-perps",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "perps": true
     },
@@ -30637,6 +30636,16 @@
     },
     "5651": {
         "name": "5ire-dapp-staking",
+        "tvl": false,
+        "yields": false
+    },
+    "5652": {
+        "name": "atoll",
+        "tvl": true,
+        "yields": false
+    },
+    "5653": {
+        "name": "vector.fun",
         "tvl": false,
         "yields": false
     },
@@ -34244,7 +34253,6 @@
         "governance": true,
         "treasury": true,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
