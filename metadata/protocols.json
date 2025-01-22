@@ -3705,7 +3705,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "dexs": true
     },
@@ -30645,9 +30645,8 @@
         "yields": false
     },
     "5653": {
-        "name": "vector.fun",
-        "tvl": false,
-        "yields": false
+        "fees": true,
+        "revenue": true
     },
     "chain#1": {
         "fees": true,
