@@ -1359,6 +1359,7 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
@@ -2114,6 +2115,7 @@
     },
     "wemix3.0": {
         "name": "WEMIX3.0",
+        "fees": true,
         "dexs": true,
         "aggregators": true,
         "bridge-aggregators": true
