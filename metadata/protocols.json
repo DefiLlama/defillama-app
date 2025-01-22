@@ -30645,6 +30645,9 @@
         "yields": false
     },
     "5653": {
+        "name": "vector.fun",
+        "tvl": false,
+        "yields": false,
         "fees": true,
         "revenue": true
     },
