@@ -1653,7 +1653,6 @@
         "name": "pinkswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "368": {
@@ -30581,7 +30580,8 @@
     "5640": {
         "name": "sonex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "raises": true
     },
     "5641": {
         "name": "citrex-markets",
