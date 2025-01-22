@@ -10279,7 +10279,7 @@
     "1927": {
         "name": "mero",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "1929": {
         "name": "algem",
@@ -15539,7 +15539,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
@@ -25149,7 +25149,7 @@
     "4606": {
         "name": "yieldnest",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "4607": {
         "name": "cheelee",
@@ -28507,7 +28507,7 @@
     },
     "5224": {
         "name": "crouton-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "5225": {
@@ -29414,7 +29414,7 @@
     },
     "5393": {
         "name": "beetroot-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "5394": {
@@ -30040,7 +30040,7 @@
     },
     "5508": {
         "name": "utyabswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "dexs": true
     },
@@ -31432,8 +31432,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "parent#canary": {
         "activeUsers": true
