@@ -562,6 +562,7 @@
     },
     "dfk": {
         "name": "DFK",
+        "fees": true,
         "gecko_id": "defi-kingdoms",
         "tokenSymbol": "JEWEL"
     },
