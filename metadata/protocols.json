@@ -2308,6 +2308,7 @@
         "name": "complus-network",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "472": {
@@ -27759,7 +27760,7 @@
     },
     "5114": {
         "name": "parraton",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5115": {
@@ -28384,7 +28385,7 @@
     },
     "5224": {
         "name": "crouton-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5225": {
@@ -29291,7 +29292,7 @@
     },
     "5393": {
         "name": "beetroot-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5394": {
@@ -29917,7 +29918,7 @@
     },
     "5508": {
         "name": "utyabswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "dexs": true
     },
@@ -31309,7 +31310,8 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true
+        "dexs": true,
+        "emissions": true
     },
     "parent#canary": {
         "activeUsers": true
