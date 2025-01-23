@@ -11187,7 +11187,8 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2109": {
         "name": "pyeswap",
@@ -13486,6 +13487,7 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -14765,7 +14767,8 @@
         "name": "antfarm-finance",
         "tvl": true,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2750": {
         "name": "nuon-finance",
@@ -31332,8 +31335,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "parent#canary": {
         "activeUsers": true
