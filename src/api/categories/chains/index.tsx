@@ -194,7 +194,7 @@ export async function getChainPageData(chain?: string) {
 			.then((res) => res.json())
 			.catch(() => ({})),
 		chain && chain !== 'All'
-			? getAppRevenueByChain({ chain: chainMetadata?.name, excludeTotalDataChartBreakdown: true })
+			? getAppRevenueByChain({ chain: chainMetadata?.name, excludeTotalDataChart: true })
 			: { appRevenue24h: null }
 	])
 

@@ -58,15 +58,14 @@ export const getFeesAndRevenueByChain = async ({
 
 export const getAppRevenueByChain = async ({
 	chain,
-	excludeTotalDataChartBreakdown
+	excludeTotalDataChart
 }: {
 	chain?: string
-	excludeTotalDataChartBreakdown: boolean
+	excludeTotalDataChart: boolean
 }) => {
-	const protocolsToExclude = ['Tether', 'Circle', 'bloXroute'].concat(chain ? [chain] : [])
 	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${
 		chain && chain !== 'All' ? '/' + chain : ''
-	}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}&dataType=dailyRevenue`
+	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=false&dataType=dailyAppRevenue`
 
 	const revenue = await fetchWithErrorLogging(apiUrl)
 		.then((res) => {
@@ -81,28 +80,9 @@ export const getAppRevenueByChain = async ({
 			return null
 		})
 
-	const chart =
-		revenue?.totalDataChartBreakdown?.reduce((acc, curr) => {
-			let rev = 0
-			for (const protocol in curr[1]) {
-				if (!protocolsToExclude.includes(protocol)) {
-					rev += curr[1][protocol]
-				}
-			}
-			acc = [...acc, [curr[0], rev]]
-			return acc
-		}, []) ?? []
-
 	return {
-		appRevenue24h: revenue
-			? revenue.protocols.reduce((acc, curr) => {
-					if (!protocolsToExclude.includes(curr.name)) {
-						acc += curr.total24h || 0
-					}
-					return acc
-			  }, 0)
-			: null,
-		chart
+		appRevenue24h: revenue ? revenue.total24h : null,
+		chart: revenue ? revenue.totalDataChart : []
 	}
 }
 
