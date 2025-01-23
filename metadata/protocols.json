@@ -13438,10 +13438,6 @@
         "emissions": true
     },
     "2520": {
-        "name": "gnosis-dao",
-        "tvl": false,
-        "yields": false,
-        "governance": true,
         "treasury": true,
         "liquidity": true
     },
@@ -14616,9 +14612,6 @@
         "yields": false
     },
     "2723": {
-        "name": "arbitrum-dao",
-        "tvl": false,
-        "yields": false,
         "treasury": true
     },
     "2724": {
@@ -17677,9 +17670,6 @@
         "yields": false
     },
     "3271": {
-        "name": "evmos-dao",
-        "tvl": false,
-        "yields": false,
         "treasury": true
     },
     "3272": {
