@@ -2831,7 +2831,6 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -15291,8 +15290,7 @@
         "name": "solisnek-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2847": {
         "name": "world-mobile-token",
@@ -31335,7 +31333,8 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true
+        "dexs": true,
+        "emissions": true
     },
     "parent#canary": {
         "activeUsers": true
