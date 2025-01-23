@@ -30557,14 +30557,14 @@
         "name": "ln-exchange-spot",
         "tvl": false,
         "yields": false,
-        "fees": true,
-        "revenue": true,
         "dexs": true
     },
     "5639": {
         "name": "ln-exchange-perps",
         "tvl": false,
         "yields": false,
+        "fees": true,
+        "revenue": true,
         "perps": true
     },
     "5640": {
