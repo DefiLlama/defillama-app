@@ -43,14 +43,15 @@ export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) =
 	const {
 		chart,
 		extraTvlCharts,
-		chainFeesData,
-		chainVolumeData,
 		bridgeData,
 		feesData,
 		volumeData,
 		txsData,
 		usersData,
-		chainsSet
+		chainsSet,
+		chainTreasury,
+		chainTokenInfo,
+		...others
 	} = data?.data
 	const globalChart = (() => {
 		const globalChart =
@@ -87,37 +88,21 @@ export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) =
 		return globalChart
 	})()
 
-	const chainProtocolsVolumes = (() => {
-		const allProtocolVolumes = []
-		chainVolumeData &&
-			chainVolumeData?.protocols?.forEach((prototcol) =>
-				allProtocolVolumes.push(prototcol, ...(prototcol?.subRows || []))
-			)
-
-		return allProtocolVolumes
-	})()
-
-	const chainProtocolsFees = (() => {
-		const allProtocolFees = []
-		chainFeesData &&
-			chainFeesData?.protocols?.forEach((prototcol) => allProtocolFees.push(prototcol, ...(prototcol?.subRows || [])))
-
-		return allProtocolFees
-	})()
-
 	const bridgeChartData = (() => {
 		return bridgeData
 			? bridgeData?.chainVolumeData?.map((volume) => [volume?.date, volume?.Deposits, volume.Withdrawals])
 			: null
 	})()
 
-	const volumeChart = (() =>
-		volumeData?.totalDataChart[0]?.[0][chain]
-			? volumeData?.totalDataChart?.[0].map((val) => [val.date, val[chain]])
-			: null)()
+	let volumeChart = null
+
+	if (volumeData?.totalDataChart[0]?.length) {
+		const index = volumeData?.totalDataChart[0]?.findIndex((val) => val[chain])
+		volumeChart = volumeData.totalDataChart[0].slice(index).map((val) => [val.date, val[chain]])
+	}
 
 	const feesChart = (() =>
-		feesData?.totalDataChart?.[0].length
+		feesData?.totalDataChart?.[0]?.length
 			? feesData?.totalDataChart?.[0]?.map((val) => [val.date, val.Fees, val.Revenue])
 			: null)()
 
@@ -125,14 +110,14 @@ export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) =
 		feesChart,
 		volumeChart,
 		bridgeChartData,
-		chainProtocolsFees,
-		chainProtocolsVolumes,
 		globalChart,
 		chain,
 		txsData,
 		usersData,
 		chains: chainsSet,
-		rawData: data?.data
+		chainTreasury,
+		chainTokenInfo,
+		...others
 	}
 }
 
@@ -246,7 +231,11 @@ function ComparePage() {
 								name: 'Revenue',
 								key: 'feesChart'
 							},
-
+							{
+								id: 'appRevenue',
+								name: 'App Revenue',
+								key: 'appRevenueChart'
+							},
 							{
 								id: 'addresses',
 								name: 'Active Addresses',
@@ -327,12 +316,20 @@ function ComparePage() {
 									<table className="text-base w-full border-collapse mt-4">
 										<tbody>
 											{chainData?.feesChart?.length ? (
-												<tr>
-													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Fees (24h)</th>
-													<td className="font-jetbrains text-right">
-														{formattedNum(last(chainData.feesChart)?.[1], true)}
-													</td>
-												</tr>
+												<>
+													<tr>
+														<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Fees (24h)</th>
+														<td className="font-jetbrains text-right">
+															{formattedNum(last(chainData.feesChart)?.[1], true)}
+														</td>
+													</tr>
+													<tr>
+														<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Revenue (24h)</th>
+														<td className="font-jetbrains text-right">
+															{formattedNum(last(chainData.feesChart)?.[2], true)}
+														</td>
+													</tr>
+												</>
 											) : null}
 
 											{chainData.volumeChart?.length ? (
@@ -413,52 +410,52 @@ function ComparePage() {
 													}
 												/>
 											) : null}
-											{chainData.rawData.chainTreasury ? (
+											{chainData.chainTreasury ? (
 												<RowWithSubRows
 													rowHeader={'Treasury'}
-													rowValue={formattedNum(chainData.rawData.chainTreasury?.tvl, true)}
+													rowValue={formattedNum(chainData.chainTreasury?.tvl, true)}
 													helperText={null}
 													protocolName={null}
 													dataType={null}
 													subRows={
 														<>
-															{chainData.rawData.chainTreasury.tokenBreakdowns?.stablecoins ? (
+															{chainData.chainTreasury.tokenBreakdowns?.stablecoins ? (
 																<tr>
 																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																		Stablecoins
 																	</th>
 																	<td className="font-jetbrains text-right">
-																		{formattedNum(chainData.rawData.chainTreasury.tokenBreakdowns?.stablecoins, true)}
+																		{formattedNum(chainData.chainTreasury.tokenBreakdowns?.stablecoins, true)}
 																	</td>
 																</tr>
 															) : null}
-															{chainData.rawData.chainTreasury.tokenBreakdowns?.majors ? (
+															{chainData.chainTreasury.tokenBreakdowns?.majors ? (
 																<tr>
 																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																		Major Tokens (ETH, BTC)
 																	</th>
 																	<td className="font-jetbrains text-right">
-																		{formattedNum(chainData.rawData.chainTreasury.tokenBreakdowns?.majors, true)}
+																		{formattedNum(chainData.chainTreasury.tokenBreakdowns?.majors, true)}
 																	</td>
 																</tr>
 															) : null}
-															{chainData.rawData.chainTreasury.tokenBreakdowns?.others ? (
+															{chainData.chainTreasury.tokenBreakdowns?.others ? (
 																<tr>
 																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																		Other Tokens
 																	</th>
 																	<td className="font-jetbrains text-right">
-																		{formattedNum(chainData.rawData.chainTreasury.tokenBreakdowns?.others, true)}
+																		{formattedNum(chainData.chainTreasury.tokenBreakdowns?.others, true)}
 																	</td>
 																</tr>
 															) : null}
-															{chainData.rawData.chainTreasury.tokenBreakdowns?.ownTokens ? (
+															{chainData.chainTreasury.tokenBreakdowns?.ownTokens ? (
 																<tr>
 																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																		Own Tokens
 																	</th>
 																	<td className="font-jetbrains text-right">
-																		{formattedNum(chainData.rawData.chainTreasury.tokenBreakdowns?.ownTokens, true)}
+																		{formattedNum(chainData.chainTreasury.tokenBreakdowns?.ownTokens, true)}
 																	</td>
 																</tr>
 															) : null}
@@ -466,37 +463,34 @@ function ComparePage() {
 													}
 												/>
 											) : null}
-											{chainData.rawData?.chainTokenInfo?.market_data ? (
+											{chainData?.chainTokenInfo?.market_data ? (
 												<tr>
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-														{chainData.rawData?.chainTokenInfo?.tokenSymbol} Price
+														{chainData?.chainTokenInfo?.tokenSymbol} Price
 													</th>
 													<td className="font-jetbrains text-right">
-														{formattedNum(chainData.rawData?.chainTokenInfo?.market_data?.current_price?.usd, true)}
+														{formattedNum(chainData?.chainTokenInfo?.market_data?.current_price?.usd, true)}
 													</td>
 												</tr>
 											) : null}
 
-											{chainData.rawData?.chainTokenInfo?.market_data ? (
+											{chainData?.chainTokenInfo?.market_data ? (
 												<tr>
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-														{chainData.rawData?.chainTokenInfo?.tokenSymbol} Market Cap
+														{chainData?.chainTokenInfo?.tokenSymbol} Market Cap
 													</th>
 													<td className="font-jetbrains text-right">
-														{formattedNum(chainData.rawData?.chainTokenInfo?.market_data?.market_cap?.usd, true)}
+														{formattedNum(chainData?.chainTokenInfo?.market_data?.market_cap?.usd, true)}
 													</td>
 												</tr>
 											) : null}
-											{chainData.rawData?.chainTokenInfo?.market_data ? (
+											{chainData?.chainTokenInfo?.market_data ? (
 												<tr>
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-														{chainData.rawData?.chainTokenInfo?.tokenSymbol} FDV
+														{chainData?.chainTokenInfo?.tokenSymbol} FDV
 													</th>
 													<td className="font-jetbrains text-right">
-														{formattedNum(
-															chainData.rawData?.chainTokenInfo?.market_data?.fully_diluted_valuation?.usd,
-															true
-														)}
+														{formattedNum(chainData?.chainTokenInfo?.market_data?.fully_diluted_valuation?.usd, true)}
 													</td>
 												</tr>
 											) : null}

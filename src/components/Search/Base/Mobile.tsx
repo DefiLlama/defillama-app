@@ -112,7 +112,7 @@ const useMobileSearchResult = (): IGetSearchList => {
 
 	const stablecoinsSearchList = useGetStablecoinsSearchList({ disabled: !router.pathname.startsWith('/stablecoin') })
 	const liquidationSearchList = useGetLiquidationSearchList({ disabled: !router.pathname.startsWith('/liquidations') })
-	const dexesSearchList = useGetDexesSearchList({ disabled: !router.pathname.startsWith('/dex') })
+	const dexsSearchList = useGetDexsSearchList({ disabled: !router.pathname.startsWith('/dex') })
 	const nftCollectionsList = useFetchNftCollectionsList({ disabled: !router.pathname.startsWith('/nft') })
 	const feesSearchList = useGetFeesSearchList({ disabled: !router.pathname.startsWith('/fee') })
 
@@ -121,7 +121,7 @@ const useMobileSearchResult = (): IGetSearchList => {
 	} else if (router.pathname.startsWith('/liquidations')) {
 		return liquidationSearchList
 	} else if (router.pathname.startsWith('/dex')) {
-		return dexesSearchList
+		return dexsSearchList
 	} else if (router.pathname.startsWith('/nft')) {
 		return nftCollectionsList
 	} else if (router.pathname.startsWith('/fee')) {
@@ -202,7 +202,7 @@ function useGetFeesSearchList({ disabled }: { disabled?: boolean }) {
 	return useGetAdaptorsSearchList('fees', false, disabled)
 }
 
-function useGetDexesSearchList({ disabled }: { disabled?: boolean }) {
+function useGetDexsSearchList({ disabled }: { disabled?: boolean }) {
 	return useGetAdaptorsSearchList('dexs', false, disabled)
 }
 

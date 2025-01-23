@@ -124,7 +124,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end',
 			headerHelperText:
-				'Annualised percentage yield from trading fees/supplying. For dexes we use the 24h fees and scale those to a year.'
+				'Annualised percentage yield from trading fees/supplying. For dexs we use the 24h fees and scale those to a year.'
 		}
 	},
 	{
@@ -296,7 +296,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end',
 			headerHelperText:
-				'Annualised percentage yield from trading fees/supplying inclusive of LSD APY (if applicable). For dexes we use the 24h fees and scale those to a year.'
+				'Annualised percentage yield from trading fees/supplying inclusive of LSD APY (if applicable). For dexs we use the 24h fees and scale those to a year.'
 		}
 	},
 	{
