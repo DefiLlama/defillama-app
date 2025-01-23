@@ -193,7 +193,7 @@ export async function getChainPageData(chain?: string) {
 		fetchWithErrorLogging(CHAINS_ASSETS)
 			.then((res) => res.json())
 			.catch(() => ({})),
-		chain && chain !== 'All'
+		!chain || (chain !== 'All' && chainMetadata?.fees)
 			? getAppRevenueByChain({ chain: chainMetadata?.name, excludeTotalDataChart: true })
 			: { appRevenue24h: null }
 	])

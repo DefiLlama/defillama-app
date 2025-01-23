@@ -15,7 +15,6 @@ export const getStaticProps = withPerformanceLogging('bridged', async () => {
 })
 
 export default function Chains(props) {
-	console.log([props])
 	return (
 		<Layout title={`All Chains Bridged TVL - DefiLlama`} defaultSEO>
 			<ChainsContainer {...props} />
