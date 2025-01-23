@@ -711,7 +711,7 @@
     "214": {
         "name": "raydium",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true,
         "hacks": true,
         "fees": true,
@@ -1048,7 +1048,6 @@
         "tvl": true,
         "yields": true,
         "forks": true,
-        "treasury": true,
         "liquidity": true,
         "raises": true,
         "activeUsers": true,
@@ -15354,7 +15353,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -20797,7 +20796,7 @@
         "perps": true
     },
     "3836": {
-        "name": "chimp-exchange",
+        "name": "chimpx-ai",
         "tvl": true,
         "yields": false,
         "fees": true,
@@ -26130,11 +26129,6 @@
         "tvl": true,
         "yields": false
     },
-    "4820": {
-        "name": "resolv-rlp",
-        "tvl": true,
-        "yields": true
-    },
     "4821": {
         "name": "kayen-protocol",
         "tvl": true,
@@ -29621,11 +29615,6 @@
         "tvl": true,
         "yields": false
     },
-    "5456": {
-        "name": "resolv-usr",
-        "tvl": true,
-        "yields": true
-    },
     "5457": {
         "name": "renec-lend",
         "tvl": true,
@@ -30640,6 +30629,16 @@
         "yields": false,
         "fees": true,
         "revenue": true
+    },
+    "5654": {
+        "name": "umoja-ybtc",
+        "tvl": true,
+        "yields": false
+    },
+    "5655": {
+        "name": "resolv",
+        "tvl": true,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
@@ -33233,11 +33232,6 @@
         "yields": false,
         "tvl": true
     },
-    "parent#resolv": {
-        "name": "resolv",
-        "yields": true,
-        "tvl": true
-    },
     "parent#revert": {
         "name": "revert",
         "yields": false,
@@ -33366,7 +33360,6 @@
         "name": "smbswap",
         "yields": false,
         "tvl": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -33951,6 +33944,9 @@
         "yields": false,
         "tvl": true,
         "dexs": true
+    },
+    "parent#umoja-protocol": {
+        "options": true
     },
     "parent#uncx-network": {
         "name": "uncx-network",
