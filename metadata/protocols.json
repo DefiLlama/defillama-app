@@ -1044,16 +1044,15 @@
         "yields": false
     },
     "270": {
-        "name": "liquity",
+        "name": "liquity-v1",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "forks": true,
         "liquidity": true,
         "raises": true,
         "activeUsers": true,
         "fees": true,
-        "revenue": true,
-        "emissions": true
+        "revenue": true
     },
     "271": {
         "name": "honeyswap",
@@ -6744,6 +6743,7 @@
         "tvl": true,
         "yields": true,
         "liquidity": true,
+        "activeUsers": true,
         "dexs": true
     },
     "1297": {
@@ -15329,7 +15329,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -26894,7 +26894,7 @@
         "dexs": true
     },
     "4963": {
-        "name": "umoja-protocol",
+        "name": "umoja-synths",
         "tvl": true,
         "yields": false,
         "fees": true,
@@ -30638,6 +30638,11 @@
     "5655": {
         "name": "resolv",
         "tvl": true,
+        "yields": true
+    },
+    "5656": {
+        "name": "liquity-v2",
+        "tvl": true,
         "yields": false
     },
     "chain#1": {
@@ -32400,6 +32405,16 @@
         "dexs": true,
         "perps": true
     },
+    "parent#liquity": {
+        "name": "liquity",
+        "yields": true,
+        "tvl": true,
+        "forks": true,
+        "treasury": true,
+        "fees": true,
+        "revenue": true,
+        "emissions": true
+    },
     "parent#lisa-finance": {
         "name": "lisa-finance",
         "yields": false,
@@ -33946,6 +33961,11 @@
         "dexs": true
     },
     "parent#umoja-protocol": {
+        "name": "umoja-protocol",
+        "yields": false,
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
         "options": true
     },
     "parent#uncx-network": {
