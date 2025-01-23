@@ -769,7 +769,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												<RowWithSubRows
 													protocolName={protocolData.name}
 													dataType="Token Price"
-													rowHeader={`${assetToken ?? symbol ?? 'Token'} Price`}
+													rowHeader={`${assetToken || symbol ? `$${assetToken ?? symbol}` : 'Token'} Price`}
 													rowValue={formatPrice(tokenCGData.price.current)}
 													helperText={null}
 													subRows={
@@ -811,7 +811,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{tokenCGData?.volume24h?.total ? (
 												<RowWithSubRows
 													protocolName={protocolData.name}
-													rowHeader={`24h ${symbol || 'Token'} Volume`}
+													rowHeader={`24h ${symbol ? `$${symbol}` : 'Token'} Volume`}
 													dataType={'Token Volume'}
 													rowValue={formatPrice(tokenCGData.volume24h.total)}
 													helperText={null}
@@ -895,7 +895,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												<RowWithSubRows
 													protocolName={protocolData.name}
 													dataType="Token Liquidity"
-													rowHeader={`${symbol || 'Token'} Liquidity`}
+													rowHeader={`${symbol ? `$${symbol}` : 'Token'} Liquidity`}
 													rowValue={formatPrice(tokenLiquidity.reduce((acc, curr) => (acc += curr[2]), 0))}
 													helperText={null}
 													subRows={
@@ -1326,7 +1326,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 									governanceApis={governanceApis}
 									isHourlyChart={isHourlyChart}
 									isCEX={isCEX}
-									tokenSymbol={symbol ?? 'Token'}
+									tokenSymbol={symbol ? `$${symbol}` : 'Token'}
 									protocolId={protocolData.id}
 									chartDenominations={chartDenominations}
 									nftVolumeData={nftVolumeData}
