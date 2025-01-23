@@ -1046,7 +1046,7 @@
     "270": {
         "name": "liquity-v1",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "forks": true,
         "liquidity": true,
         "raises": true,
@@ -2306,7 +2306,6 @@
         "name": "complus-network",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "472": {
@@ -31313,8 +31312,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "parent#canary": {
         "activeUsers": true
