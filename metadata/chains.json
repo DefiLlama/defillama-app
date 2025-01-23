@@ -1426,8 +1426,7 @@
     },
     "oasis-sapphire": {
         "name": "Oasis Sapphire",
-        "fees": true,
-        "dexs": true
+        "fees": true
     },
     "oasys": {
         "name": "Oasys",
@@ -1479,9 +1478,13 @@
     "op-mainnet": {
         "name": "OP Mainnet",
         "fees": true,
+        "dexs": true,
+        "derivatives": true,
         "aggregators": true,
+        "options": true,
         "aggregator-derivatives": true,
-        "bridge-aggregators": true
+        "bridge-aggregators": true,
+        "chainAssets": true
     },
     "opbnb": {
         "name": "opBNB",
@@ -1490,17 +1493,6 @@
         "derivatives": true,
         "aggregators": true,
         "aggregator-derivatives": true
-    },
-    "optimism": {
-        "name": "Optimism",
-        "activeUsers": true,
-        "dexs": true,
-        "derivatives": true,
-        "options": true,
-        "inflows": true,
-        "chainAssets": true,
-        "gecko_id": "optimism",
-        "tokenSymbol": "OP"
     },
     "oraichain": {
         "name": "Oraichain",
