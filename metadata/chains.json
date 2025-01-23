@@ -1476,6 +1476,13 @@
         "gecko_id": "onus",
         "tokenSymbol": "ONUS"
     },
+    "op-mainnet": {
+        "name": "OP Mainnet",
+        "fees": true,
+        "aggregators": true,
+        "aggregator-derivatives": true,
+        "bridge-aggregators": true
+    },
     "opbnb": {
         "name": "opBNB",
         "fees": true,
@@ -1487,13 +1494,9 @@
     "optimism": {
         "name": "Optimism",
         "activeUsers": true,
-        "fees": true,
         "dexs": true,
         "derivatives": true,
-        "aggregators": true,
         "options": true,
-        "aggregator-derivatives": true,
-        "bridge-aggregators": true,
         "inflows": true,
         "chainAssets": true,
         "gecko_id": "optimism",
