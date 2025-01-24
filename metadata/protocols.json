@@ -1961,7 +1961,7 @@
     },
     "416": {
         "name": "westarter",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "417": {
@@ -10638,7 +10638,7 @@
     "2007": {
         "name": "grizzlyfi-hives",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true
     },
     "2008": {
@@ -32040,7 +32040,7 @@
     },
     "parent#grizzlyfi": {
         "name": "grizzlyfi",
-        "yields": false,
+        "yields": true,
         "tvl": true,
         "liquidity": true,
         "fees": true,
