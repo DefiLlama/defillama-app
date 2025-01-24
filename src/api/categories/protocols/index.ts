@@ -795,8 +795,8 @@ export const getNewChainsPageData = async (category: string) => {
 		{ chains: stablesChainData },
 		activeUsers,
 		chainsAssets,
-		chainNftsVolume,
-		...appRevenue
+		chainNftsVolume
+		// ...appRevenue
 	] = await Promise.all([
 		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
 		getChainsPageDataByType('dexs'),
@@ -807,8 +807,8 @@ export const getNewChainsPageData = async (category: string) => {
 			.catch(() => ({})),
 		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json()),
 		fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json()),
-		getAppRevenueByChain({ excludeTotalDataChart: false, excludeTotalDataChartBreakdown: false }),
-		...appRevenueChains.map((chain: any) => getAppRevenueByChain({ chain: chain.name }))
+		getAppRevenueByChain({ excludeTotalDataChart: false, excludeTotalDataChartBreakdown: false })
+		// ...appRevenueChains.map((chain: any) => getAppRevenueByChain({ chain: chain.name }))
 	])
 
 	const categoryLinks = [
@@ -863,7 +863,8 @@ export const getNewChainsPageData = async (category: string) => {
 					totalRevenue24h: revenue24h || 0,
 					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === name)?.mcap ?? 0,
 					users: users?.users?.value ?? 0,
-					totalAppRevenue24h: appRevenue.find((c) => c.chain === chain.name)?.appRevenue24h ?? null
+					// totalAppRevenue24h: appRevenue.find((c) => c.chain === chain.name)?.appRevenue24h ?? null
+					totalAppRevenue24h: null
 				}
 			})
 		}
