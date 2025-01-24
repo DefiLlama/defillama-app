@@ -23,10 +23,6 @@ const pressList = [
 		'gs.png',
 		'https://www.gspublishing.com/content/research/en/reports/2021/10/22/3094e0f0-379e-4f11-8dce-7f74a7718eb7.html'
 	],
-	[
-		'boa.png',
-		'https://business.bofa.com/content/dam/flagship/bank-of-america-institute/transformation/web3-only-the-first-inning-may-2022.pdf'
-	],
 	['ms.png', 'https://advisor.morganstanley.com/scott.altemose/documents/field/s/sc/scott-a--altemose/DeFi_Apr.pdf'],
 	['nasdaq.png', 'https://www.nasdaq.com/articles/is-all-defi-doomed'],
 	['wsj.png', 'https://www.wsj.com/articles/why-the-worlds-biggest-traders-are-betting-on-blockchain-data-11638803023'],
@@ -49,7 +45,7 @@ function PressPage() {
 			<h1 className="text-2xl font-medium -mb-5">Press & Media</h1>
 
 			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
-				<h2 className="font-semibold text-lg">About DeFiLlama</h2>
+				<h2 className="font-semibold text-lg">About DefiLlama</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
@@ -108,7 +104,7 @@ function PressPage() {
 					</a>
 				</p>
 				<p>
-					DeFiLlama is a part of{' '}
+					DefiLlama is a part of{' '}
 					<a
 						className="text-[var(--blue)] hover:underline"
 						target="_blank"
@@ -131,7 +127,7 @@ function PressPage() {
 
 				<p>DL Data is free to use by anyone. Attribution is always appreciated.</p>
 				<hr className="border-black/20 dark:border-white/20" />
-				<p>DeFiLlama is used across a large number of media organisations and financial institutions.</p>
+				<p>DefiLlama is used across a large number of media organisations and financial institutions.</p>
 				<div className="grid grid-cols-[repeat(auto-fit,minmax(100px,200px))] place-content-center w-full gap-2 mt-4">
 					{pressList.map((imageFilename) => (
 						<a
