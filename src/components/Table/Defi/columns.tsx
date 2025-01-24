@@ -980,7 +980,8 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		},
 		size: 160,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Sum of revenue of all protocols on the chain. Updated daily at 00:00UTC'
 		}
 	},
 	{
