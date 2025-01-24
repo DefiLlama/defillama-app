@@ -8,7 +8,14 @@ import { primaryColor } from '~/constants/colors'
 import { toK } from '~/utils'
 import { cumulativeSum, groupByTimeFrame } from './utils'
 
-const groupableCharts = ['feesChart', 'volumeChart', 'aggregatorsData', 'perpsChart', 'chainTokenVolumeData']
+const groupableCharts = [
+	'feesChart',
+	'volumeChart',
+	'aggregatorsData',
+	'perpsChart',
+	'chainTokenVolumeData',
+	'appRevenueChart'
+]
 
 const colors = {
 	tvl: '#335cd7',
