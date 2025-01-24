@@ -192,6 +192,11 @@ const nextConfig = {
 				source: '/lsd',
 				destination: '/lst',
 				permanent: true
+			},
+			{
+				source: '/protocols/Dexes',
+				destination: '/protocols/Dexs',
+				permanent: true
 			}
 		]
 	},

@@ -77,7 +77,6 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 export const descriptions = {
 	Dexs: 'Protocols where you can swap/trade cryptocurrency',
-	Dexes: 'Protocols where you can swap/trade cryptocurrency',
 	Yield: 'Protocols that pay you a reward for your staking/LP on their platform',
 	Lending: 'Protocols that allow users to borrow and lend assets',
 	'Cross Chain Bridge':
