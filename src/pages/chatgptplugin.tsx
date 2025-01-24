@@ -23,7 +23,7 @@ function PluginPage() {
 				<p>
 					2. Select a question to ask from the feature list. For instance, if you want to learn about DEX trading
 					activity, the feature list will show you that the plugin can answer questions about the volume of a specific
-					DEX or provide a ranking of DEXes by volume.
+					DEX or provide a ranking of DEXs by volume.
 				</p>
 				<p>
 					Optional: Many of the features have filtering options that you can use to tailor your question. These
