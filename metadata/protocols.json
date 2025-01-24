@@ -30408,7 +30408,10 @@
     "5610": {
         "name": "crypto-valley-exchange",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "perps": true
     },
     "5611": {
         "name": "silo-v2",
