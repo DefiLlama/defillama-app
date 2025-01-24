@@ -943,7 +943,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
-		header: '24h volume',
+		header: '24h Volume',
 		accessorKey: 'totalVolume24h',
 		enableSorting: true,
 		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
@@ -954,7 +954,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
-		header: `24h fees`,
+		header: `24h Fees`,
 		accessorKey: 'totalFees24h',
 		enableSorting: true,
 		cell: (info) => {
@@ -964,6 +964,21 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			return <>${formattedNum(value)}</>
 		},
 		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: `24h App Revenue`,
+		accessorKey: 'totalAppRevenue24h',
+		enableSorting: true,
+		cell: (info) => {
+			const value = info.getValue()
+
+			if (value === null || value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
+			return <>${formattedNum(value)}</>
+		},
+		size: 160,
 		meta: {
 			align: 'end'
 		}

@@ -58,14 +58,16 @@ export const getFeesAndRevenueByChain = async ({
 
 export const getAppRevenueByChain = async ({
 	chain,
-	excludeTotalDataChart
+	excludeTotalDataChart = true,
+	excludeTotalDataChartBreakdown = true
 }: {
 	chain?: string
-	excludeTotalDataChart: boolean
+	excludeTotalDataChart?: boolean
+	excludeTotalDataChartBreakdown?: boolean
 }) => {
 	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${
 		chain && chain !== 'All' ? '/' + chain : ''
-	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=false&dataType=dailyAppRevenue`
+	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}&dataType=dailyAppRevenue`
 
 	const revenue = await fetchWithErrorLogging(apiUrl)
 		.then((res) => {
@@ -82,7 +84,9 @@ export const getAppRevenueByChain = async ({
 
 	return {
 		appRevenue24h: revenue?.total24h ?? null,
-		chart: revenue?.totalDataChart ?? []
+		chart: revenue?.totalDataChart ?? [],
+		protocols: revenue?.protocols ?? [],
+		chain
 	}
 }
 

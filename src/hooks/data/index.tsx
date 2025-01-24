@@ -50,6 +50,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 			let totalVolume24h: DataValue = null
 			let totalFees24h: DataValue = null
 			let totalRevenue24h: DataValue = null
+			let totalAppRevenue24h: DataValue = null
 			let totalAssets: DataValue = null
 			let chainAssets: {
 				total?: number | null
@@ -75,6 +76,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 				totalVolume24h = parentData.totalVolume24h || null
 				totalFees24h = parentData.totalFees24h || null
 				totalRevenue24h = parentData.totalRevenue24h || null
+				totalAppRevenue24h = parentData.totalAppRevenue24h || null
 				totalAssets = parentData.totalAssets || null
 				chainAssets = { ...(parentData.chainAssets ?? {}) }
 				nftVolume = parentData.nftVolume || null
@@ -111,6 +113,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 							totalVolume24h += childData.totalVolume24h || null
 							totalFees24h += childData.totalFees24h || null
 							totalRevenue24h += childData.totalRevenue24h || null
+							totalAppRevenue24h += childData.totalAppRevenue24h || null
 							totalAssets += childData.totalAssets || null
 
 							if (childData.chainAssets) {
@@ -142,6 +145,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 								totalVolume24h,
 								totalFees24h,
 								totalRevenue24h,
+								totalAppRevenue24h,
 								totalAssets,
 								chainAssets,
 								nftVolume,

@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter, getColorFromNumber, standardizeProtocolName } from '~/utils'
+import { capitalizeFirstLetter, getColorFromNumber, slug, standardizeProtocolName } from '~/utils'
 import type { IFusedProtocolData, IOracleProtocols, IProtocolResponse } from '~/api/types'
 import {
 	ACTIVE_USERS_API,
@@ -32,12 +32,13 @@ import {
 } from '~/api/categories/adaptors'
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { getFeesAndRevenueProtocolsByChain } from '../fees'
+import { getAppRevenueByChain, getFeesAndRevenueProtocolsByChain } from '../fees'
 import { getDexVolumeByChain } from '../dexs'
 import { sluggify } from '~/utils/cache-client'
 import { getAPIUrl } from '../adaptors/client'
 import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import chainsMetadata from '../../../../metadata/chains.json'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -786,6 +787,7 @@ interface IExtraPropPerChain {
 }
 
 export const getNewChainsPageData = async (category: string) => {
+	const appRevenueChains = Object.values(chainsMetadata).filter((chain: any) => (chain.fees ? true : false))
 	const [
 		{ categories, chainTvls, ...rest },
 		{ protocols: dexsProtocols },
@@ -793,7 +795,8 @@ export const getNewChainsPageData = async (category: string) => {
 		{ chains: stablesChainData },
 		activeUsers,
 		chainsAssets,
-		chainNftsVolume
+		chainNftsVolume,
+		...appRevenue
 	] = await Promise.all([
 		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
 		getChainsPageDataByType('dexs'),
@@ -803,7 +806,9 @@ export const getNewChainsPageData = async (category: string) => {
 			.then((res) => res.json())
 			.catch(() => ({})),
 		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json()),
-		fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
+		fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json()),
+		getAppRevenueByChain({ excludeTotalDataChart: false, excludeTotalDataChartBreakdown: false }),
+		...appRevenueChains.map((chain: any) => getAppRevenueByChain({ chain: chain.name }))
 	])
 
 	const categoryLinks = [
@@ -841,7 +846,7 @@ export const getNewChainsPageData = async (category: string) => {
 			colorsByChain: colors,
 			chainAssets: chainsAssets ?? null,
 			chainTvls: chainTvls.map((chain) => {
-				const name = chain.name.toLowerCase()
+				const name = slug(chain.name)
 
 				const nftVolume = chainNftsVolume[name] ?? null
 				const { total24h, revenue24h } = feesAndRevenueChains.find((x) => x.name.toLowerCase() === name) || {}
@@ -857,7 +862,8 @@ export const getNewChainsPageData = async (category: string) => {
 					totalFees24h: total24h || 0,
 					totalRevenue24h: revenue24h || 0,
 					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === name)?.mcap ?? 0,
-					users: users?.users?.value ?? 0
+					users: users?.users?.value ?? 0,
+					totalAppRevenue24h: appRevenue.find((c) => c.chain === chain.name)?.appRevenue24h ?? null
 				}
 			})
 		}
