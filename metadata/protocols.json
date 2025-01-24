@@ -5262,7 +5262,8 @@
         "name": "opendao",
         "tvl": true,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "1020": {
         "name": "arkadiko",
@@ -29472,8 +29473,7 @@
         "tvl": true,
         "yields": false,
         "fees": true,
-        "revenue": true,
-        "dexs": true
+        "revenue": true
     },
     "5428": {
         "name": "dexodus-finance",
@@ -31260,7 +31260,6 @@
         "tvl": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
         "perps": true
     },
     "parent#bluemove": {
