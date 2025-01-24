@@ -776,6 +776,11 @@
         "gecko_id": "flow",
         "tokenSymbol": "FLOW"
     },
+    "fluence": {
+        "name": "Fluence",
+        "gecko_id": "fluence-2",
+        "tokenSymbol": "FLT"
+    },
     "fraxtal": {
         "name": "Fraxtal",
         "fees": true,
@@ -1884,6 +1889,14 @@
         "chainAssets": true,
         "gecko_id": "sui",
         "tokenSymbol": "SUI"
+    },
+    "superposition": {
+        "name": "Superposition"
+    },
+    "swan": {
+        "name": "Swan",
+        "gecko_id": "swan-chain",
+        "tokenSymbol": "SWAN"
     },
     "swellchain": {
         "name": "Swellchain",
