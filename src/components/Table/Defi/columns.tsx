@@ -237,20 +237,6 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 		size: 200
 	},
 	{
-		header: 'App Revenue',
-		accessorKey: 'appRevenue',
-		accessorFn: (row) => row.revenue ?? undefined,
-		cell: ({ getValue }) => {
-			const value = getValue() as number | null
-			return value && value > 0 ? <>{'$' + formattedNum(value)}</> : <></>
-		},
-		meta: {
-			align: 'end'
-		},
-		sortUndefined: 'last',
-		size: 140
-	},
-	{
 		header: 'Description',
 		accessorKey: 'description',
 		enableSorting: false,

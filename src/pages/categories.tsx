@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getAppRevenueByChain, getRevenuesByCategories } from '~/api/categories/fees'
+import { getRevenuesByCategories } from '~/api/categories/fees'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
 import type { IChartProps } from '~/components/ECharts/types'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
@@ -20,22 +20,13 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const protocols = await getProtocolsRaw()
 	const aggregatedRevenuesByCat = await getRevenuesByCategories()
 	const chartAndColorsData = await getCategoriesPageData()
-	const appRevenueBYChain = await getAppRevenueByChain({ excludeTotalDataChart: true })
 
 	let categories = {}
 
 	protocols.protocols.forEach((p) => {
 		const cat = p.category
 		if (!categories[cat]) {
-			categories[cat] = {
-				protocols: 0,
-				tvl: 0,
-				tvlPrevDay: 0,
-				tvlPrevWeek: 0,
-				tvlPrevMonth: 0,
-				revenue: 0,
-				appRevenue: 0
-			}
+			categories[cat] = { protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
 		}
 		categories[cat].protocols++
 		categories[cat].tvl += p.tvl
@@ -46,55 +37,23 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 	Object.entries(aggregatedRevenuesByCat).forEach(([category, revenue]) => {
 		if (!categories[category]) {
-			categories[category] = { protocols: 0, tvl: 0, revenue: 0, appRevenue: 0 }
+			categories[category] = { protocols: 0, tvl: 0, revenue: 0 }
 		}
 		categories[category].revenue = revenue
 	})
-
-	for (const protocol of appRevenueBYChain.protocols) {
-		const cat = protocol.category
-		if (!categories[cat]) {
-			categories[cat] = {
-				protocols: 0,
-				tvl: 0,
-				tvlPrevDay: 0,
-				tvlPrevWeek: 0,
-				tvlPrevMonth: 0,
-				revenue: 0,
-				appRevenue: 0
-			}
-		}
-		categories[cat].appRevenue += protocol.total24h
-	}
 
 	const allCategories = new Set([...Object.keys(categories), ...Object.keys(aggregatedRevenuesByCat)])
 
 	allCategories.forEach((cat) => {
 		if (!categories[cat]) {
-			categories[cat] = {
-				protocols: 0,
-				tvl: 0,
-				tvlPrevDay: 0,
-				tvlPrevWeek: 0,
-				tvlPrevMonth: 0,
-				revenue: 0,
-				appRevenue: 0
-			}
+			categories[cat] = { protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
 		}
 	})
 
 	const formattedCategories = Object.entries(categories).map(
 		([name, details]: [
 			string,
-			{
-				tvl: number
-				tvlPrevDay: number
-				tvlPrevWeek: number
-				tvlPrevMonth: number
-				revenue: number
-				protocols: number
-				appRevenue: number
-			}
+			{ tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number; revenue: number; protocols: number }
 		]) => ({
 			name,
 			protocols: details.protocols > 0 ? details.protocols : '',
@@ -103,7 +62,6 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			change_7d: getPercentChange(details.tvl, details.tvlPrevWeek),
 			change_1m: getPercentChange(details.tvl, details.tvlPrevMonth),
 			revenue: details.revenue,
-			appRevenue: details.appRevenue,
 			description: descriptions[name] || ''
 		})
 	)
