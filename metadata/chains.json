@@ -37,6 +37,7 @@
     },
     "algorand": {
         "name": "Algorand",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "aggregators": true,
@@ -111,6 +112,11 @@
         "name": "Areon Network",
         "gecko_id": "areon-network",
         "tokenSymbol": "AREA"
+    },
+    "artela": {
+        "name": "Artela",
+        "gecko_id": "artela-network",
+        "tokenSymbol": "ART"
     },
     "asset-chain": {
         "name": "Asset Chain",

@@ -2619,7 +2619,7 @@
     },
     "524": {
         "name": "ramp",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "liquidity": true
     },
@@ -3877,7 +3877,8 @@
     "743": {
         "name": "neku",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "744": {
         "name": "tranquil-finance",
@@ -6744,7 +6745,6 @@
         "tvl": true,
         "yields": true,
         "liquidity": true,
-        "activeUsers": true,
         "dexs": true
     },
     "1297": {
@@ -9093,7 +9093,7 @@
     },
     "1727": {
         "name": "stakeeasy",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1728": {
@@ -11688,8 +11688,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2193": {
         "name": "amulet-liquidity-staking",
@@ -15338,7 +15337,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2854": {
@@ -15348,7 +15347,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -15362,7 +15361,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
@@ -15432,7 +15431,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
@@ -28535,7 +28534,7 @@
     },
     "5257": {
         "name": "capybara-perps",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "perps": true
     },
@@ -30582,7 +30581,7 @@
     },
     "5643": {
         "name": "sailfish-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5644": {
@@ -30594,7 +30593,8 @@
     "5645": {
         "name": "metastable-musd",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5646": {
         "name": "sonefi-perp",
@@ -30678,6 +30678,31 @@
         "tvl": false,
         "yields": false,
         "aggregator": true
+    },
+    "5662": {
+        "name": "infinitypools",
+        "tvl": true,
+        "yields": false
+    },
+    "5663": {
+        "name": "eddyfinance-v3",
+        "tvl": true,
+        "yields": false
+    },
+    "5664": {
+        "name": "reti-pooling",
+        "tvl": true,
+        "yields": false
+    },
+    "5665": {
+        "name": "artexswap",
+        "tvl": true,
+        "yields": false
+    },
+    "5666": {
+        "name": "babypie",
+        "tvl": true,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
@@ -31015,8 +31040,7 @@
     "parent#arbswap": {
         "name": "arbswap",
         "yields": false,
-        "tvl": true,
-        "activeUsers": true
+        "tvl": true
     },
     "parent#arcadia-finance": {
         "name": "arcadia-finance",
@@ -33046,6 +33070,9 @@
         "yields": false,
         "tvl": true
     },
+    "parent#paraspace": {
+        "activeUsers": true
+    },
     "parent#parax": {
         "name": "parallel-super-app",
         "yields": false,
@@ -33136,7 +33163,6 @@
         "tvl": true,
         "governance": true,
         "liquidity": true,
-        "activeUsers": true,
         "dexs": true
     },
     "parent#polynomial-protocol": {
