@@ -30582,6 +30582,7 @@
     "5642": {
         "name": "edbank",
         "tvl": true,
+        "fees": false,
         "yields": false
     },
     "5643": {
