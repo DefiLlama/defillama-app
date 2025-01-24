@@ -30795,7 +30795,8 @@
     "5661": {
         "name": "starbase",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "aggregator": true
     },
     "chain#1": {
         "fees": true,

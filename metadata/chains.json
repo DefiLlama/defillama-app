@@ -37,7 +37,6 @@
     },
     "algorand": {
         "name": "Algorand",
-        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "aggregators": true,
