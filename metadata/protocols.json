@@ -30792,6 +30792,11 @@
         "tvl": true,
         "yields": false
     },
+    "5661": {
+        "name": "starbase",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -30889,6 +30894,10 @@
         "revenue": true
     },
     "chain#5567": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#57073": {
         "fees": true,
         "revenue": true
     },
