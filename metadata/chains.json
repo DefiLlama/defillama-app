@@ -511,7 +511,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -979,7 +978,6 @@
     "immutable-zkevm": {
         "name": "Immutable zkEVM",
         "fees": true,
-        "dexs": true,
         "chainAssets": true,
         "gecko_id": "immutable-x",
         "tokenSymbol": "IMX"
