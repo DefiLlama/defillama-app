@@ -10380,7 +10380,7 @@
     "1948": {
         "name": "matter-defi",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "1949": {
         "name": "civfund",
