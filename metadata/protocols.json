@@ -1470,7 +1470,8 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "339": {
         "name": "lien",
@@ -11668,7 +11669,8 @@
         "name": "sushi-bentobox",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2191": {
         "name": "omnidex-lend",
@@ -13549,7 +13551,8 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -25342,6 +25345,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -28677,6 +28681,7 @@
         "name": "bonzo-finance",
         "tvl": true,
         "yields": false,
+        "treasury": true,
         "fees": true,
         "revenue": true
     },
@@ -30581,7 +30586,7 @@
         "dexs": true
     },
     "5645": {
-        "name": "metastable-musd",
+        "name": "metastable",
         "tvl": true,
         "yields": false,
         "dexs": true
@@ -30691,6 +30696,11 @@
     },
     "5666": {
         "name": "babypie",
+        "tvl": true,
+        "yields": false
+    },
+    "5667": {
+        "name": "sophon-farm",
         "tvl": true,
         "yields": false
     },
@@ -34320,6 +34330,7 @@
         "governance": true,
         "treasury": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
