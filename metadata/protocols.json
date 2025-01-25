@@ -2472,7 +2472,7 @@
     },
     "495": {
         "name": "hfione",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "496": {
