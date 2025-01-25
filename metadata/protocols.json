@@ -11061,7 +11061,8 @@
     "2086": {
         "name": "rage-trade-v1-(deprecated)",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2087": {
         "name": "chee-finance",
@@ -26448,7 +26449,7 @@
     },
     "4879": {
         "name": "clearpool-tpool",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "liquidity": true
     },
