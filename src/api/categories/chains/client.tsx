@@ -77,7 +77,7 @@ export function useGetAppRevenueChartDataByChain(chain?: string) {
 						getAppRevenueByChain({
 							chain,
 							excludeTotalDataChart: false
-						}).then((data) => data.chart)
+						}).then((data) => data.totalDataChart)
 				: () => null,
 		staleTime: 60 * 60 * 1000
 	})

@@ -85,7 +85,7 @@ export async function getChainPageData(chain?: string) {
 		perpsData,
 		nftVolumesData,
 		chainAssets,
-		{ appRevenue24h }
+		{ totalAppRevenue24h }
 	] = await Promise.all([
 		fetchWithErrorLogging(CHART_API + (chainMetadata ? `/${chainMetadata.name}` : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
@@ -195,7 +195,7 @@ export async function getChainPageData(chain?: string) {
 			.catch(() => ({})),
 		chain && chain !== 'All' && chainMetadata?.fees
 			? getAppRevenueByChain({ chain: chainMetadata?.name, excludeTotalDataChart: true })
-			: { appRevenue24h: null }
+			: { totalAppRevenue24h: null }
 	])
 
 	const chainTreasury = treasuriesData?.find(
@@ -282,7 +282,7 @@ export async function getChainPageData(chain?: string) {
 			feesAndRevenueData: {
 				totalFees24h: fees?.total24h ?? null,
 				totalRevenue24h: revenue?.total24h ?? null,
-				appRevenue24h
+				totalAppRevenue24h
 			},
 			stablecoinsData,
 			devMetricsData,

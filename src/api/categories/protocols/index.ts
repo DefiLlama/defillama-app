@@ -863,7 +863,7 @@ export const getNewChainsPageData = async (category: string) => {
 					totalRevenue24h: revenue24h || 0,
 					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === name)?.mcap ?? 0,
 					users: users?.users?.value ?? 0,
-					totalAppRevenue24h: appRevenue.find((c) => c.chain === chain.name)?.appRevenue24h ?? null
+					totalAppRevenue24h: appRevenue.find((c) => c.chain === chain.name)?.totalAppRevenue24h ?? null
 				}
 			})
 		}

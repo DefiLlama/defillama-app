@@ -978,7 +978,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			if (value === null || value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
 			return <>${formattedNum(value)}</>
 		},
-		size: 160,
+		size: 180,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of revenue of all protocols on the chain. Updated daily at 00:00UTC'

@@ -39,7 +39,8 @@ const CustomOption = ({ innerProps, label, data }) => (
 )
 
 export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
-	const data = await fetch('https://fe-cache.llama.fi/' + chain).then((r) => r.json())
+	const data = await fetch(`https://defillama.com/api/cache/chain/${chain}`).then((r) => r.json())
+
 	const {
 		chart,
 		extraTvlCharts,
@@ -52,7 +53,7 @@ export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) =
 		chainTreasury,
 		chainTokenInfo,
 		...others
-	} = data?.data
+	} = data?.chain
 	const globalChart = (() => {
 		const globalChart =
 			chart &&
@@ -183,6 +184,7 @@ function ComparePage() {
 		.filter(Boolean)
 		.map((chain) => ({ value: chain, label: chain }))
 
+	console.log(data)
 	return (
 		<>
 			<ProtocolsChainsSearch />
@@ -315,18 +317,26 @@ function ComparePage() {
 
 									<table className="text-base w-full border-collapse mt-4">
 										<tbody>
-											{chainData?.feesChart?.length ? (
+											{chainData?.feesAndRevenueData?.totalFees24h ? (
 												<>
 													<tr>
 														<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Fees (24h)</th>
 														<td className="font-jetbrains text-right">
-															{formattedNum(last(chainData.feesChart)?.[1], true)}
+															{formattedNum(chainData.feesAndRevenueData.totalFees24h, true)}
 														</td>
 													</tr>
 													<tr>
 														<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Revenue (24h)</th>
 														<td className="font-jetbrains text-right">
-															{formattedNum(last(chainData.feesChart)?.[2], true)}
+															{formattedNum(chainData.feesAndRevenueData.totalRevenue24h, true)}
+														</td>
+													</tr>
+													<tr>
+														<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+															App Revenue (24h)
+														</th>
+														<td className="font-jetbrains text-right">
+															{formattedNum(chainData.feesAndRevenueData.totalAppRevenue24h, true)}
 														</td>
 													</tr>
 												</>
@@ -341,27 +351,52 @@ function ComparePage() {
 													dataType={null}
 													subRows={
 														<>
-															{chainData.volumeChart?.length ? (
-																<tr>
-																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																		Volume (7d)
-																	</th>
-																	<td className="font-jetbrains text-right">
-																		{formattedNum(getTotalNDaysSum(chainData.volumeChart, 7), true)}
-																	</td>
-																</tr>
-															) : null}
+															<tr>
+																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	Volume (7d)
+																</th>
+																<td className="font-jetbrains text-right">
+																	{formattedNum(getTotalNDaysSum(chainData.volumeChart, 7), true)}
+																</td>
+															</tr>
 
-															{chainData.volumeChart?.length ? (
-																<tr>
-																	<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																		Volume (30d)
-																	</th>
-																	<td className="font-jetbrains text-right">
-																		{formattedNum(getTotalNDaysSum(chainData.volumeChart, 30), true)}
-																	</td>
-																</tr>
-															) : null}
+															<tr>
+																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	Volume (30d)
+																</th>
+																<td className="font-jetbrains text-right">
+																	{formattedNum(getTotalNDaysSum(chainData.volumeChart, 30), true)}
+																</td>
+															</tr>
+														</>
+													}
+												/>
+											) : null}
+
+											{chainData.perpsData?.totalVolume24h ? (
+												<RowWithSubRows
+													rowHeader={'Perps Volume (24h)'}
+													rowValue={formattedNum(chainData.perpsData.totalVolume24h, true)}
+													helperText={null}
+													protocolName={null}
+													dataType={null}
+													subRows={
+														<>
+															<tr>
+																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	Volume (7d)
+																</th>
+																<td className="font-jetbrains text-right">
+																	{formattedNum(chainData.perpsData.totalVolume7d, true)}
+																</td>
+															</tr>
+
+															<tr>
+																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	Weekly Change
+																</th>
+																<td className="font-jetbrains text-right">{chainData.perpsData.weeklyChange}%</td>
+															</tr>
 														</>
 													}
 												/>

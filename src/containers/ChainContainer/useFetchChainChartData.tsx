@@ -60,7 +60,7 @@ export const useFetchChainChartData = ({
 		)
 
 	const { data: appRevenueChart, isLoading: fetchingAppRevenue } = useGetAppRevenueChartDataByChain(
-		feesAndRevenueData?.appRevenue24h && router.query.appRevenue === 'true' ? selectedChain : null
+		feesAndRevenueData?.totalAppRevenue24h && router.query.appRevenue === 'true' ? selectedChain : null
 	)
 
 	const { data: stablecoinsChartData, isLoading: fetchingStablecoinsChartDataByChain } =

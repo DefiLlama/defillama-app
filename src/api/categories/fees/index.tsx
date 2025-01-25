@@ -83,8 +83,8 @@ export const getAppRevenueByChain = async ({
 		})
 
 	return {
-		appRevenue24h: revenue?.total24h ?? null,
-		chart: revenue?.totalDataChart ?? [],
+		totalAppRevenue24h: revenue?.total24h ?? null,
+		totalDataChart: revenue?.totalDataChart ?? [],
 		protocols: revenue?.protocols ?? [],
 		chain
 	}

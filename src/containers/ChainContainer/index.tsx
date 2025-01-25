@@ -160,7 +160,7 @@ export function ChainContainer({
 		{
 			id: 'appRevenue',
 			name: 'App Revenue',
-			isVisible: feesAndRevenueData?.appRevenue24h ? true : false
+			isVisible: feesAndRevenueData?.totalAppRevenue24h ? true : false
 		},
 		{ id: 'perps', name: 'Perps Volume', isVisible: perpsData?.totalVolume24h ? true : false },
 		{ id: 'chainAssets', name: 'Bridged TVL', isVisible: chainAssets ? true : false },
@@ -392,11 +392,11 @@ export function ChainContainer({
 									</tr>
 								) : null}
 
-								{feesAndRevenueData?.appRevenue24h ? (
+								{feesAndRevenueData?.totalAppRevenue24h ? (
 									<tr>
 										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">App Revenue (24h)</th>
 										<td className="font-jetbrains text-right">
-											{formattedNum(feesAndRevenueData?.appRevenue24h, true)}
+											{formattedNum(feesAndRevenueData?.totalAppRevenue24h, true)}
 										</td>
 									</tr>
 								) : null}
