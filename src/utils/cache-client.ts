@@ -175,3 +175,27 @@ export const deleteCache = async (Key: string) => {
 		return false
 	}
 }
+
+export const setObjectCache = async (key: string, data: any, ttl = 3600) => {
+	if (!redis) {
+		return false
+	}
+
+	try {
+		await redis.set(key, JSON.stringify(data), 'EX', ttl)
+		return true
+	} catch (error) {
+		console.error('[error] [cache] [failed to set]', key)
+		console.error(error)
+		return false
+	}
+}
+
+export const getObjectCache = async (key: string) => {
+	if (!redis) {
+		return null
+	}
+
+	const res = await redis.get(key)
+	return res ? JSON.parse(res) : null
+}
