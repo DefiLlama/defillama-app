@@ -3874,8 +3874,7 @@
     "743": {
         "name": "neku",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "744": {
         "name": "tranquil-finance",
@@ -14015,8 +14014,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
