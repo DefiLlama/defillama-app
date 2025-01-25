@@ -1724,7 +1724,7 @@
     },
     "378": {
         "name": "makiswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "raises": true,
         "dexs": true
@@ -1736,7 +1736,7 @@
     },
     "380": {
         "name": "lendhub",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "hacks": true
     },
@@ -2492,7 +2492,7 @@
     },
     "498": {
         "name": "pilot-protocol",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "499": {
@@ -4677,7 +4677,7 @@
     },
     "902": {
         "name": "hswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "903": {
