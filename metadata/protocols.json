@@ -4851,6 +4851,7 @@
         "name": "knightswap-finance",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "943": {
@@ -29183,8 +29184,6 @@
         "name": "superswap-v3",
         "tvl": true,
         "yields": false,
-        "fees": true,
-        "revenue": true,
         "dexs": true
     },
     "5376": {
