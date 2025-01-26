@@ -2308,6 +2308,7 @@
         "name": "complus-network",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "472": {
@@ -13491,6 +13492,7 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -26458,7 +26460,7 @@
     },
     "4879": {
         "name": "clearpool-tpool",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "liquidity": true
     },
