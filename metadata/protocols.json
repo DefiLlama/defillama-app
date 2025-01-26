@@ -3592,7 +3592,8 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "693": {
         "name": "superfluid",
@@ -9626,8 +9627,7 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1824": {
         "name": "swapsicle-v1",
@@ -12775,7 +12775,8 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "raises": true
+        "raises": true,
+        "activeUsers": true
     },
     "2398": {
         "name": "opyn-convexity",
@@ -18163,7 +18164,8 @@
     "3348": {
         "name": "soswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "3349": {
         "name": "echodex-v3",
