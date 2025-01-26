@@ -12604,6 +12604,9 @@
         "tvl": true,
         "yields": false
     },
+    "2369": {
+        "hacks": true
+    },
     "2370": {
         "name": "proteo-defi",
         "tvl": true,
@@ -26360,7 +26363,7 @@
     },
     "4861": {
         "name": "aurus",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4862": {
@@ -30711,6 +30714,11 @@
     "5667": {
         "name": "sophon-farm",
         "tvl": true,
+        "yields": false
+    },
+    "5668": {
+        "name": "superswap-ink",
+        "tvl": false,
         "yields": false
     },
     "chain#1": {
