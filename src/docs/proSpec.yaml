@@ -387,6 +387,56 @@ paths:
         '200':
           description: successful operation
 
+  /api/overview/derivatives:
+    get:
+      tags:
+        - perps
+      summary: Lists all derivatives along summaries of their volumes filtering by chain
+      parameters:
+        - name: excludeTotalDataChart
+          in: query
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+        - name: excludeTotalDataChartBreakdown
+          in: query
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: successful operation
+  /api/summary/derivatives/{protocol}:
+    get:
+      tags:
+        - perps
+      summary: Volume Details about a specific perp protocol
+      parameters:
+        - name: protocol
+          in: path
+          required: true
+          description: protocol slug
+          schema:
+            type: string
+            example: hyperliquid
+        - name: excludeTotalDataChart
+          in: query
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+        - name: excludeTotalDataChartBreakdown
+          in: query
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: successful operation
+
   /usage/APIKEY:
     get:
       tags:

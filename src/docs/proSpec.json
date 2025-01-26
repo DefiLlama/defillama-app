@@ -55,7 +55,9 @@
 	"paths": {
 		"/api/hourly/{protocol}": {
 			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Lists the hourly tvl of a certain protocol",
 				"parameters": [
 					{
@@ -78,7 +80,9 @@
 		},
 		"/api/tokenProtocols/{symbol}": {
 			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Lists the amount of a certain token within all protocols",
 				"parameters": [
 					{
@@ -101,7 +105,9 @@
 		},
 		"/api/inflows/{protocol}/{timestamp}": {
 			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Lists the amount of inflows and outflows for a protocol at a given date",
 				"parameters": [
 					{
@@ -134,7 +140,9 @@
 		},
 		"/api/chainAssets": {
 			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Get assets of all chains",
 				"responses": {
 					"200": {
@@ -145,7 +153,9 @@
 		},
 		"/stablecoins/stablecoindominance/{chain}": {
 			"get": {
-				"tags": ["stablecoins"],
+				"tags": [
+					"stablecoins"
+				],
 				"summary": "Get stablecoin dominance per chain along with the info about the larges coin in a chain",
 				"parameters": [
 					{
@@ -178,7 +188,9 @@
 		},
 		"/api/activeUsers": {
 			"get": {
-				"tags": ["active users"],
+				"tags": [
+					"active users"
+				],
 				"summary": "Get active users on our chains and protocols pages",
 				"responses": {
 					"200": {
@@ -189,7 +201,9 @@
 		},
 		"/api/userData/{type}/{protocolId}": {
 			"get": {
-				"tags": ["active users"],
+				"tags": [
+					"active users"
+				],
 				"summary": "Get user data by type and protocol",
 				"parameters": [
 					{
@@ -222,7 +236,9 @@
 		},
 		"/api/emissions": {
 			"get": {
-				"tags": ["Unlocks"],
+				"tags": [
+					"Unlocks"
+				],
 				"summary": "List of all tokens along with basic info for each",
 				"responses": {
 					"200": {
@@ -233,7 +249,9 @@
 		},
 		"/api/emission/{protocol}": {
 			"get": {
-				"tags": ["Unlocks"],
+				"tags": [
+					"Unlocks"
+				],
 				"summary": "Unlocks data for a given token/protocol. You can find a list of available slugs to query by querying /emissions and then extracting the key `gecko_id`",
 				"parameters": [
 					{
@@ -256,7 +274,9 @@
 		},
 		"/api/categories": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all categories accross all protocols",
 				"responses": {
 					"200": {
@@ -267,7 +287,9 @@
 		},
 		"/api/forks": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all categories accross all protocols",
 				"responses": {
 					"200": {
@@ -278,7 +300,9 @@
 		},
 		"/api/oracles": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all categories accross all protocols",
 				"responses": {
 					"200": {
@@ -289,7 +313,9 @@
 		},
 		"/api/hacks": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all hacks on our Hacks dashboard",
 				"responses": {
 					"200": {
@@ -300,7 +326,9 @@
 		},
 		"/api/raises": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all raises on our Raises dashboard",
 				"responses": {
 					"200": {
@@ -311,7 +339,9 @@
 		},
 		"/api/treasuries": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "List all protocols on our Treasuries dashboard",
 				"responses": {
 					"200": {
@@ -322,7 +352,9 @@
 		},
 		"/api/entities": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "List all entities",
 				"responses": {
 					"200": {
@@ -333,7 +365,9 @@
 		},
 		"/api/historicalLiquidity/{token}": {
 			"get": {
-				"tags": ["token liquidity"],
+				"tags": [
+					"token liquidity"
+				],
 				"summary": "Provides the name of contracts on a determined chain",
 				"parameters": [
 					{
@@ -356,7 +390,9 @@
 		},
 		"/yields/pools": {
 			"get": {
-				"tags": ["Yields"],
+				"tags": [
+					"Yields"
+				],
 				"summary": "Retrieve the latest data for all pools, including enriched information such as predictions",
 				"responses": {
 					"200": {
@@ -367,7 +403,9 @@
 		},
 		"/yields/poolsOld": {
 			"get": {
-				"tags": ["Yields"],
+				"tags": [
+					"Yields"
+				],
 				"summary": "Same as /pools but it also includes a new parameter `pool_old` which usually contains pool address (but not guaranteed)",
 				"responses": {
 					"200": {
@@ -378,7 +416,9 @@
 		},
 		"/yields/chart/{pool}": {
 			"get": {
-				"tags": ["Yields"],
+				"tags": [
+					"Yields"
+				],
 				"summary": "Get historical APY and TVL of a pool",
 				"parameters": [
 					{
@@ -401,7 +441,9 @@
 		},
 		"/yields/chartHourly/{pool}": {
 			"get": {
-				"tags": ["Yields"],
+				"tags": [
+					"Yields"
+				],
 				"summary": "Same as /chart/{pool} but with hourly granularity",
 				"parameters": [
 					{
@@ -424,7 +466,9 @@
 		},
 		"/yields/poolsBorrow": {
 			"get": {
-				"tags": ["Yields"],
+				"tags": [
+					"Yields"
+				],
 				"summary": "Borrow costs APY of assets from lending markets",
 				"responses": {
 					"200": {
@@ -435,7 +479,9 @@
 		},
 		"/yields/chartLendBorrow/{pool}": {
 			"get": {
-				"tags": ["Yields"],
+				"tags": [
+					"Yields"
+				],
 				"summary": "Historical borrow cost APY from a pool on a lending market, pool ids should be obtained from /poolsBorrow",
 				"parameters": [
 					{
@@ -458,7 +504,9 @@
 		},
 		"/yields/perps": {
 			"get": {
-				"tags": ["Yields"],
+				"tags": [
+					"Yields"
+				],
 				"summary": "Funding rates and Open Interest of perps across exchanges, including both Decentralized and Centralized",
 				"responses": {
 					"200": {
@@ -469,7 +517,9 @@
 		},
 		"/yields/lsdRates": {
 			"get": {
-				"tags": ["Yields"],
+				"tags": [
+					"Yields"
+				],
 				"summary": "APY rates of multiple LSDs",
 				"responses": {
 					"200": {
@@ -480,7 +530,9 @@
 		},
 		"/etfs/overview": {
 			"get": {
-				"tags": ["ETFs"],
+				"tags": [
+					"ETFs"
+				],
 				"summary": "Get BTC ETFs and their metrics (aum, price, fees...)",
 				"responses": {
 					"200": {
@@ -491,7 +543,9 @@
 		},
 		"/etfs/overviewEth": {
 			"get": {
-				"tags": ["ETFs"],
+				"tags": [
+					"ETFs"
+				],
 				"summary": "Get ETH ETFs",
 				"responses": {
 					"200": {
@@ -502,7 +556,9 @@
 		},
 		"/etfs/history": {
 			"get": {
-				"tags": ["ETFs"],
+				"tags": [
+					"ETFs"
+				],
 				"summary": "Historical AUM of all BTC ETFs",
 				"responses": {
 					"200": {
@@ -513,8 +569,10 @@
 		},
 		"/etfs/historyEth": {
 			"get": {
-				"tags": ["ETFs"],
-				"summary": "Historical AUM of all ETH ETFs",
+				"tags": [
+					"ETFs"
+				],
+				"summary": "Historical AUM of all BTC ETFs",
 				"responses": {
 					"200": {
 						"description": "successful operation"
@@ -524,7 +582,9 @@
 		},
 		"/fdv/performance/{period}": {
 			"get": {
-				"tags": ["narratives"],
+				"tags": [
+					"narratives"
+				],
 				"summary": "Get chart of narratives based on category performance (with individual coins weighted by mcap)",
 				"parameters": [
 					{
@@ -545,9 +605,87 @@
 				}
 			}
 		},
+		"/api/overview/derivatives": {
+			"get": {
+				"tags": [
+					"perps"
+				],
+				"summary": "Lists all derivatives along summaries of their volumes filtering by chain",
+				"parameters": [
+					{
+						"name": "excludeTotalDataChart",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude aggregated chart from response",
+						"schema": {
+							"type": "boolean"
+						}
+					},
+					{
+						"name": "excludeTotalDataChartBreakdown",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude broken down chart from response",
+						"schema": {
+							"type": "boolean"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/api/summary/derivatives/{protocol}": {
+			"get": {
+				"tags": [
+					"perps"
+				],
+				"summary": "Volume Details about a specific perp protocol",
+				"parameters": [
+					{
+						"name": "protocol",
+						"in": "path",
+						"required": true,
+						"description": "protocol slug",
+						"schema": {
+							"type": "string",
+							"example": "hyperliquid"
+						}
+					},
+					{
+						"name": "excludeTotalDataChart",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude aggregated chart from response",
+						"schema": {
+							"type": "boolean"
+						}
+					},
+					{
+						"name": "excludeTotalDataChartBreakdown",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude broken down chart from response",
+						"schema": {
+							"type": "boolean"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
 		"/usage/APIKEY": {
 			"get": {
-				"tags": ["meta"],
+				"tags": [
+					"meta"
+				],
 				"summary": "Get amount of credits left in the api key, these reset on the 1st of each month",
 				"servers": [
 					{
