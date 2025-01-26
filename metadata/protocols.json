@@ -30711,13 +30711,23 @@
         "tvl": true,
         "yields": false
     },
-    "5667": {
-        "name": "sophon-farm",
+    "5668": {
+        "name": "superswap-ink",
+        "tvl": false,
+        "yields": false
+    },
+    "5669": {
+        "name": "tribe.run",
         "tvl": true,
         "yields": false
     },
-    "5668": {
-        "name": "superswap-ink",
+    "5670": {
+        "name": "nexion",
+        "tvl": true,
+        "yields": false
+    },
+    "5671": {
+        "name": "hfun",
         "tvl": false,
         "yields": false
     },
