@@ -15450,7 +15450,7 @@
     },
     "2874": {
         "name": "tealswap-v2",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "dexs": true
     },
