@@ -511,7 +511,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -629,7 +628,6 @@
     },
     "elastos": {
         "name": "Elastos",
-        "dexs": true,
         "gecko_id": "elastos",
         "tokenSymbol": "ELA"
     },
@@ -2003,6 +2001,7 @@
     },
     "tombchain": {
         "name": "Tombchain",
+        "dexs": true,
         "gecko_id": "tomb",
         "tokenSymbol": "TOMB"
     },
