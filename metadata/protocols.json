@@ -30436,7 +30436,7 @@
     },
     "5616": {
         "name": "republic-note",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5617": {
@@ -30745,6 +30745,26 @@
     },
     "5676": {
         "name": "sonus-exchange-clmm",
+        "tvl": true,
+        "yields": false
+    },
+    "5677": {
+        "name": "noxa",
+        "tvl": true,
+        "yields": false
+    },
+    "5678": {
+        "name": "reservoir-tools-amm",
+        "tvl": true,
+        "yields": false
+    },
+    "5679": {
+        "name": "reservoir-tools-clmm",
+        "tvl": true,
+        "yields": false
+    },
+    "5680": {
+        "name": "beets-dex-v3",
         "tvl": true,
         "yields": false
     },
@@ -33357,6 +33377,11 @@
         "yields": false,
         "tvl": true
     },
+    "parent#reservoir-tools": {
+        "name": "reservoir-tools",
+        "yields": false,
+        "tvl": true
+    },
     "parent#revert": {
         "name": "revert",
         "yields": false,
@@ -33535,7 +33560,8 @@
     },
     "parent#sonus": {
         "name": "sonus-exchange",
-        "yields": false
+        "yields": false,
+        "tvl": true
     },
     "parent#sovryn": {
         "name": "sovryn",

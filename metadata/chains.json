@@ -1,4 +1,7 @@
 {
+    "abstract": {
+        "name": "Abstract"
+    },
     "acala": {
         "name": "Acala",
         "inflows": true,
@@ -1659,6 +1662,9 @@
         "gecko_id": "redbelly-network-token",
         "tokenSymbol": "RBNT"
     },
+    "redstone": {
+        "name": "Redstone"
+    },
     "rei": {
         "name": "REI",
         "gecko_id": "rei-network",
@@ -2176,6 +2182,9 @@
     },
     "zeniq": {
         "name": "Zeniq"
+    },
+    "zero-network": {
+        "name": "Zero Network"
     },
     "zetachain": {
         "name": "ZetaChain",
