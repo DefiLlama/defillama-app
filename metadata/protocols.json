@@ -2831,7 +2831,6 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -5144,8 +5143,7 @@
     "996": {
         "name": "ocp-finance",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "997": {
         "name": "piggy",
@@ -5261,8 +5259,7 @@
         "name": "opendao",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "1020": {
         "name": "arkadiko",
@@ -6915,7 +6912,7 @@
     },
     "1330": {
         "name": "beluga",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1331": {
@@ -11368,7 +11365,7 @@
     "2139": {
         "name": "sommelier",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true,
         "raises": true
     },
@@ -30542,6 +30539,7 @@
         "name": "zarban",
         "tvl": true,
         "yields": false,
+        "treasury": true,
         "fees": true,
         "revenue": true
     },
@@ -30715,7 +30713,9 @@
     "5669": {
         "name": "tribe.run",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "5670": {
         "name": "nexion",
@@ -30731,6 +30731,11 @@
     },
     "5672": {
         "name": "vicuna-finance",
+        "tvl": true,
+        "yields": false
+    },
+    "5674": {
+        "name": "coffer-network",
         "tvl": true,
         "yields": false
     },
@@ -33191,6 +33196,7 @@
         "tvl": true,
         "governance": true,
         "liquidity": true,
+        "activeUsers": true,
         "dexs": true
     },
     "parent#polynomial-protocol": {
