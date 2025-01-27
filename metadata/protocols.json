@@ -2306,7 +2306,6 @@
         "name": "complus-network",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "472": {
@@ -12771,8 +12770,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "raises": true,
-        "activeUsers": true
+        "raises": true
     },
     "2398": {
         "name": "opyn-convexity",
@@ -14782,8 +14780,7 @@
     "2751": {
         "name": "lfgswap-arbitrum",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2752": {
         "name": "onchain-trade",
@@ -30739,6 +30736,16 @@
         "tvl": true,
         "yields": false
     },
+    "5675": {
+        "name": "sonus-exchange-amm",
+        "tvl": true,
+        "yields": false
+    },
+    "5676": {
+        "name": "sonus-exchange-clmm",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -33523,6 +33530,10 @@
         "yields": false,
         "tvl": true,
         "dexs": true
+    },
+    "parent#sonus": {
+        "name": "sonus-exchange",
+        "yields": false
     },
     "parent#sovryn": {
         "name": "sovryn",
