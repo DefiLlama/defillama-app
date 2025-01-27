@@ -1002,6 +1002,7 @@
     "ink": {
         "name": "Ink",
         "fees": true,
+        "aggregators": true,
         "inflows": true,
         "chainAssets": true
     },

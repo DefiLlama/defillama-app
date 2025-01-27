@@ -30829,7 +30829,8 @@
     "5668": {
         "name": "superswap-ink",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "aggregator": true
     },
     "5669": {
         "name": "tribe.run",
