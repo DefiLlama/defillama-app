@@ -1176,8 +1176,7 @@
     "289": {
         "name": "yetiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "290": {
         "name": "penguin-finance",
@@ -9887,8 +9886,7 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1872": {
         "name": "rift-finance",
@@ -30730,6 +30728,11 @@
         "yields": false,
         "fees": true,
         "revenue": true
+    },
+    "5672": {
+        "name": "vicuna-finance",
+        "tvl": true,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
