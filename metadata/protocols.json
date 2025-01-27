@@ -29794,6 +29794,7 @@
         "name": "balancer-v3",
         "tvl": true,
         "yields": true,
+        "forks": true,
         "liquidity": true,
         "fees": true,
         "revenue": true,
@@ -30435,7 +30436,7 @@
     },
     "5616": {
         "name": "republic-note",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "5617": {
@@ -30679,7 +30680,8 @@
     "5662": {
         "name": "infinitypools",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "perps": true
     },
     "5663": {
         "name": "eddyfinance-v3",
