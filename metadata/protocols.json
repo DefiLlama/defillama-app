@@ -2093,7 +2093,8 @@
         "yields": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "439": {
         "name": "the-grand-banks",
@@ -2908,7 +2909,8 @@
     "575": {
         "name": "coinswap-space",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "576": {
         "name": "unore",
@@ -11650,7 +11652,8 @@
     "2186": {
         "name": "usdfi-lending",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2187": {
         "name": "dolomite",
@@ -14024,7 +14027,8 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -15359,7 +15363,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -15429,7 +15433,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
