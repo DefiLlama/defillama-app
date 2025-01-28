@@ -1449,6 +1449,7 @@
     },
     "oasys": {
         "name": "Oasys",
+        "dexs": true,
         "gecko_id": "oasys",
         "tokenSymbol": "OAS"
     },
@@ -2219,7 +2220,6 @@
     },
     "zkfair": {
         "name": "Zkfair",
-        "aggregators": true,
         "inflows": true
     },
     "zklink-nova": {

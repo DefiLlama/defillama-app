@@ -22265,7 +22265,8 @@
     "4081": {
         "name": "inceptionlrt-(isolated-restaking)",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "raises": true
     },
     "4082": {
         "name": "ispolink",
