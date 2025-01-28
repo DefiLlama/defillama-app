@@ -632,7 +632,6 @@
     },
     "elastos": {
         "name": "Elastos",
-        "dexs": true,
         "gecko_id": "elastos",
         "tokenSymbol": "ELA"
     },
@@ -667,7 +666,6 @@
     },
     "energyweb": {
         "name": "EnergyWeb",
-        "dexs": true,
         "gecko_id": "energy-web-token",
         "tokenSymbol": "EWT"
     },
@@ -986,7 +984,6 @@
     "immutable-zkevm": {
         "name": "Immutable zkEVM",
         "fees": true,
-        "dexs": true,
         "chainAssets": true,
         "gecko_id": "immutable-x",
         "tokenSymbol": "IMX"
@@ -1574,7 +1571,6 @@
     },
     "polkadex": {
         "name": "Polkadex",
-        "dexs": true,
         "gecko_id": "polkadex",
         "tokenSymbol": "PDEX"
     },
@@ -2226,7 +2222,6 @@
     },
     "zklink-nova": {
         "name": "zkLink Nova",
-        "fees": true,
         "aggregators": true,
         "chainAssets": true
     },
