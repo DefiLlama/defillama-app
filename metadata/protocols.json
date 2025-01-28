@@ -30880,7 +30880,8 @@
     "5677": {
         "name": "noxa",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true
     },
     "5678": {
         "name": "reservoir-tools-amm",

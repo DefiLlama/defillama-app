@@ -1831,7 +1831,9 @@
         "derivatives": true,
         "aggregators": true,
         "options": true,
-        "inflows": true
+        "inflows": true,
+        "gecko_id": "sonic-3",
+        "tokenSymbol": "S"
     },
     "sophon": {
         "name": "Sophon",
