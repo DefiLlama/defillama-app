@@ -13489,7 +13489,6 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30786,6 +30785,11 @@
     },
     "5682": {
         "name": "shadow-exchange-legacy",
+        "tvl": true,
+        "yields": false
+    },
+    "5684": {
+        "name": "zoo.fun",
         "tvl": true,
         "yields": false
     },
