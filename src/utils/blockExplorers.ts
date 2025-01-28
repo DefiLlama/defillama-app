@@ -120,7 +120,13 @@ const blockExplorers = {
 	xai: ['https://explorer.xai-chain.net/address/', 'XAI Blockscout'],
 	sanko: ['https://explorer.sanko.xyz/address/', 'Sanko Blockscout'],
 	fuse: ['https://explorer.fuse.io/token/', 'Fuse Blockscout'],
-	shape: ['https://shapescan.xyz/address/', 'Shape Explorer']
+	shape: ['https://shapescan.xyz/address/', 'Shape Explorer'],
+	abstract: ['https://abscan.org/address/', 'Abscan'],
+	zero_network: ['https://explorer.zero.network/address/', 'ZERO Network Explorer'],
+	redstone: ['https://explorer.redstone.xyz/address/', 'Redstone Explorer'],
+	ink: ['https://explorer.inkonchain.com/address/', 'Ink Explorer'],
+	sophon: ['https://explorer.sophon.xyz/address/', 'Sophon Explorer'],
+	soneium: ['https://soneium.blockscout.com/address/', 'Soneium Blockscout']
 }
 
 export const getBlockExplorer = (address: string = '') => {
