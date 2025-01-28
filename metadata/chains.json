@@ -2224,6 +2224,7 @@
     },
     "zklink-nova": {
         "name": "zkLink Nova",
+        "fees": true,
         "aggregators": true,
         "chainAssets": true
     },
