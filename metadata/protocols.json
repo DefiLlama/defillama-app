@@ -30810,7 +30810,7 @@
         "name": "infinitypools",
         "tvl": true,
         "yields": false,
-        "perps": true
+        "dexs": true
     },
     "5663": {
         "name": "eddyfinance-v3",
@@ -30881,7 +30881,9 @@
         "name": "noxa",
         "tvl": true,
         "yields": false,
-        "fees": true
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5678": {
         "name": "reservoir-tools-amm",
