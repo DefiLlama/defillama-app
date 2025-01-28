@@ -24633,7 +24633,7 @@
     },
     "4511": {
         "name": "pay-protocol",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4512": {
