@@ -2379,7 +2379,8 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "484": {
         "name": "marinade-liquid-staking",
@@ -15401,7 +15402,8 @@
     "2865": {
         "name": "moonbase-alpha",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2866": {
         "name": "ghost",
@@ -30186,7 +30188,7 @@
         "yields": false
     },
     "5570": {
-        "name": "shadow-exchange",
+        "name": "shadow-exchange-clmm",
         "tvl": true,
         "yields": false,
         "fees": true,
@@ -30761,15 +30763,31 @@
     "5678": {
         "name": "reservoir-tools-amm",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5679": {
         "name": "reservoir-tools-clmm",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5680": {
         "name": "beets-dex-v3",
+        "tvl": true,
+        "yields": false
+    },
+    "5681": {
+        "name": "raccoonswap",
+        "tvl": true,
+        "yields": false
+    },
+    "5682": {
+        "name": "shadow-exchange-legacy",
         "tvl": true,
         "yields": false
     },
@@ -33385,7 +33403,10 @@
     "parent#reservoir-tools": {
         "name": "reservoir-tools",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#revert": {
         "name": "revert",
@@ -33473,6 +33494,14 @@
         "yields": false,
         "tvl": true,
         "liquidity": true
+    },
+    "parent#shadow-exchange": {
+        "name": "shadow-exchange",
+        "yields": false,
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#sharpe-ai": {
         "name": "sharpe-ai",

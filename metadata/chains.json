@@ -1,6 +1,8 @@
 {
     "abstract": {
-        "name": "Abstract"
+        "name": "Abstract",
+        "fees": true,
+        "dexs": true
     },
     "acala": {
         "name": "Acala",
@@ -1007,6 +1009,7 @@
     "ink": {
         "name": "Ink",
         "fees": true,
+        "dexs": true,
         "aggregators": true,
         "inflows": true,
         "chainAssets": true
@@ -1538,6 +1541,11 @@
     "parallel": {
         "name": "Parallel"
     },
+    "parex": {
+        "name": "Parex",
+        "gecko_id": "parex",
+        "tokenSymbol": "PRX"
+    },
     "pego": {
         "name": "Pego",
         "gecko_id": "pego-network-2",
@@ -1666,7 +1674,9 @@
         "tokenSymbol": "RBNT"
     },
     "redstone": {
-        "name": "Redstone"
+        "name": "Redstone",
+        "fees": true,
+        "dexs": true
     },
     "rei": {
         "name": "REI",
@@ -1751,6 +1761,8 @@
     },
     "shape": {
         "name": "Shape",
+        "fees": true,
+        "dexs": true,
         "chainAssets": true
     },
     "shibarium": {
@@ -2189,7 +2201,9 @@
         "name": "Zeniq"
     },
     "zero-network": {
-        "name": "Zero Network"
+        "name": "Zero Network",
+        "fees": true,
+        "dexs": true
     },
     "zetachain": {
         "name": "ZetaChain",
