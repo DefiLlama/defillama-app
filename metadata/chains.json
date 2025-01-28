@@ -40,6 +40,7 @@
     },
     "algorand": {
         "name": "Algorand",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "aggregators": true,
@@ -78,6 +79,7 @@
     },
     "arbitrum": {
         "name": "Arbitrum",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "derivatives": true,
@@ -157,6 +159,7 @@
     },
     "avalanche": {
         "name": "Avalanche",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "derivatives": true,
@@ -182,6 +185,7 @@
     },
     "base": {
         "name": "Base",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "derivatives": true,
@@ -210,6 +214,7 @@
     },
     "bitcoin": {
         "name": "Bitcoin",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "derivatives": true,
@@ -323,6 +328,7 @@
     },
     "bsc": {
         "name": "BSC",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "derivatives": true,
@@ -364,6 +370,7 @@
     },
     "cardano": {
         "name": "Cardano",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "derivatives": true,
@@ -507,6 +514,7 @@
     },
     "cube": {
         "name": "Cube",
+        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -624,6 +632,7 @@
     },
     "elastos": {
         "name": "Elastos",
+        "dexs": true,
         "gecko_id": "elastos",
         "tokenSymbol": "ELA"
     },
@@ -658,6 +667,7 @@
     },
     "energyweb": {
         "name": "EnergyWeb",
+        "dexs": true,
         "gecko_id": "energy-web-token",
         "tokenSymbol": "EWT"
     },
@@ -688,6 +698,7 @@
     },
     "ethereum": {
         "name": "Ethereum",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "derivatives": true,
@@ -975,6 +986,7 @@
     "immutable-zkevm": {
         "name": "Immutable zkEVM",
         "fees": true,
+        "dexs": true,
         "chainAssets": true,
         "gecko_id": "immutable-x",
         "tokenSymbol": "IMX"
@@ -1159,6 +1171,7 @@
     },
     "litecoin": {
         "name": "Litecoin",
+        "activeUsers": true,
         "fees": true,
         "aggregators": true,
         "bridge-aggregators": true,
@@ -1560,6 +1573,7 @@
     },
     "polkadex": {
         "name": "Polkadex",
+        "dexs": true,
         "gecko_id": "polkadex",
         "tokenSymbol": "PDEX"
     },
@@ -1570,6 +1584,7 @@
     },
     "polygon": {
         "name": "Polygon",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "derivatives": true,
@@ -1714,6 +1729,7 @@
     },
     "scroll": {
         "name": "Scroll",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "derivatives": true,
@@ -1780,6 +1796,7 @@
     },
     "solana": {
         "name": "Solana",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "derivatives": true,
@@ -2015,6 +2032,7 @@
     },
     "tron": {
         "name": "Tron",
+        "activeUsers": true,
         "fees": true,
         "dexs": true,
         "aggregators": true,
