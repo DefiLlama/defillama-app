@@ -3587,8 +3587,7 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "693": {
         "name": "superfluid",
@@ -31104,8 +31103,7 @@
     "parent#arbswap": {
         "name": "arbswap",
         "yields": false,
-        "tvl": true,
-        "activeUsers": true
+        "tvl": true
     },
     "parent#arcadia-finance": {
         "name": "arcadia-finance",
