@@ -71,6 +71,7 @@ export function ChainContainer({
 		parentProtocols,
 		isLoading: fetchingProtocolsList
 	} = useGetProtocolsList({ chain: selectedChain })
+
 	const [extraTvlsEnabled] = useDefiManager()
 	const router = useRouter()
 

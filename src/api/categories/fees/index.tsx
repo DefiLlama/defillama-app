@@ -124,18 +124,32 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 	])
 
 	const revenueProtocols =
-		revenue?.protocols?.reduce((acc, protocol) => ({ ...acc, [protocol.name]: protocol }), {}) ?? {}
+		revenue?.protocols?.reduce((acc, protocol) => {
+			if (protocol.category !== 'Chain') {
+				acc = { ...acc, [protocol.name]: protocol }
+			}
+			return acc
+		}, {}) ?? {}
 
 	// TODO: fix missing parent protocols fees and revenue
 	return (
-		fees?.protocols?.map((protocol) => ({
-			...protocol,
-			category: protocol.category,
-			displayName: protocol.displayName ?? protocol.name,
-			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
-			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
-			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null
-		})) ?? []
+		fees?.protocols?.reduce((acc, protocol) => {
+			if (protocol.category !== 'Chain') {
+				acc = [
+					...acc,
+					{
+						...protocol,
+						category: protocol.category,
+						displayName: protocol.displayName ?? protocol.name,
+						revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
+						revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
+						revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null
+					}
+				]
+			}
+
+			return acc
+		}, []) ?? []
 	)
 }
 
