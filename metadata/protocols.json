@@ -7916,7 +7916,7 @@
     },
     "1515": {
         "name": "echidna-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1516": {
@@ -9114,7 +9114,7 @@
     },
     "1731": {
         "name": "honkswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1732": {
@@ -33773,7 +33773,8 @@
         "treasury": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "parent#stationdex": {
         "name": "stationdex",
