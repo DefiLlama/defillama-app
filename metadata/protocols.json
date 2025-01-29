@@ -1917,8 +1917,7 @@
     "408": {
         "name": "jetfuel-finance",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "409": {
         "name": "cafeswap",
@@ -10423,7 +10422,7 @@
     },
     "1967": {
         "name": "pembrock-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1968": {
@@ -11602,8 +11601,7 @@
         "name": "fortress-loans",
         "tvl": true,
         "yields": false,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "2178": {
         "name": "templedao-trade",
@@ -14786,8 +14784,7 @@
     "2751": {
         "name": "lfgswap-arbitrum",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2752": {
         "name": "onchain-trade",
@@ -18164,8 +18161,7 @@
     "3348": {
         "name": "soswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "3349": {
         "name": "echodex-v3",
@@ -30660,7 +30656,8 @@
         "name": "liquity-v2",
         "tvl": true,
         "yields": false,
-        "forks": true
+        "forks": true,
+        "revenue": true
     },
     "5657": {
         "name": "ztln-p",
@@ -30801,12 +30798,14 @@
     "5684": {
         "name": "zoo.fun",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5685": {
         "name": "quill-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5686": {
         "name": "xpress-protocol",
@@ -30822,6 +30821,17 @@
         "name": "origin-sonic",
         "tvl": true,
         "yields": false
+    },
+    "5689": {
+        "name": "libre-capital",
+        "tvl": true,
+        "yields": false
+    },
+    "5690": {
+        "name": "uniswap-v4",
+        "tvl": true,
+        "yields": false,
+        "forks": true
     },
     "chain#1": {
         "fees": true,
@@ -31501,9 +31511,6 @@
         "revenue": true,
         "dexs": true,
         "emissions": true
-    },
-    "parent#canary": {
-        "activeUsers": true
     },
     "parent#cap-finance": {
         "name": "cap-finance",
