@@ -11187,8 +11187,7 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2109": {
         "name": "pyeswap",
@@ -18349,7 +18348,8 @@
     "3380": {
         "name": "baso-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "3381": {
         "name": "thegoblins",
@@ -27994,7 +27994,8 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "5158": {
         "name": "enosys-amm-v3",
