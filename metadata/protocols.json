@@ -13492,6 +13492,7 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30261,7 +30262,7 @@
         "yields": false
     },
     "5582": {
-        "name": "mantra-amm",
+        "name": "mantra-swap",
         "tvl": true,
         "yields": false
     },
@@ -30657,6 +30658,7 @@
         "tvl": true,
         "yields": false,
         "forks": true,
+        "fees": true,
         "revenue": true
     },
     "5657": {
@@ -30799,12 +30801,14 @@
         "name": "zoo.fun",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "revenue": true
     },
     "5685": {
         "name": "quill-finance",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "revenue": true
     },
     "5686": {
