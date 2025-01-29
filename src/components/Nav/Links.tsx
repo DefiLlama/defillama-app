@@ -39,14 +39,13 @@ export const defaultToolsAndFooterLinks = {
 			external: true
 		},
 		{
-			name: 'LlamaNodes',
-			path: 'https://llamanodes.com/',
-			external: true,
-			referrer: true
+			name: 'LlamaSearch',
+			path: 'https://chromewebstore.google.com/detail/llamasearch/iophmfgnjmfjdkodekdffgckoloooaci',
+			external: true
 		},
 		{
-			name: 'LlamaFolio',
-			path: 'https://llamafolio.com/',
+			name: 'LlamaNodes',
+			path: 'https://llamanodes.com/',
 			external: true,
 			referrer: true
 		},
@@ -75,11 +74,6 @@ export const defaultToolsAndFooterLinks = {
 			external: true
 		},
 		{ name: 'Correlation', path: '/correlation', newTag: true },
-		{
-			name: 'Wiki',
-			path: 'https://wiki.defillama.com/wiki/Main_Page',
-			external: true
-		},
 		{
 			name: 'Press / Media',
 			path: '/press'
