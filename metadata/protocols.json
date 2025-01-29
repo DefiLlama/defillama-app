@@ -30653,7 +30653,8 @@
     "5656": {
         "name": "liquity-v2",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "forks": true
     },
     "5657": {
         "name": "ztln-p",
