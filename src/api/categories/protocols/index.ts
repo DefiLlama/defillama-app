@@ -401,15 +401,17 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 // - used in /oracles and /oracles/[name]
 export async function getOraclePageData(oracle = null, chain = null) {
 	try {
-		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle }, { protocols }] = await Promise.all(
-			[ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
-		)
-
-		const { protocols: derivativeProtocols } = await fetchWithErrorLogging(
-			getAPIUrl(ADAPTOR_TYPES.PERPS, chain, true, true)
-		)
-			.then((r) => r.json())
-			.catch(() => ({ protocols: [] }))
+		const [
+			{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle },
+			{ protocols },
+			{ protocols: derivativeProtocols }
+		] = await Promise.all([
+			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
+			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
+			fetchWithErrorLogging(getAPIUrl(ADAPTOR_TYPES.PERPS, null, true, true))
+				.then((r) => r.json())
+				.catch(() => ({ protocols: [] }))
+		])
 
 		const oracleExists = oracle ? oracles[oracle] && (chain ? chainsByOracle[oracle].includes(chain) : true) : true
 
@@ -440,18 +442,27 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			.sort((a, b) => b[1].tvl - a[1].tvl)
 			.map((orc) => orc[0])
 
-		const monthlyVolByProtocol = derivativeProtocols.reduce((volume, protocol) => {
-			volume[protocol.name] = protocol.total30d
-			return volume
-		}, {})
+		const oracleMonthlyVolumes = derivativeProtocols.reduce((acc, protocol) => {
+			const p = protocols.find((p) => p.name === protocol.name)
 
-		const oracleMonthlyVolumes = {}
-		for (const oracle in oracles) {
-			oracleMonthlyVolumes[oracle] = oracles[oracle].reduce(
-				(total, protocol) => (total += monthlyVolByProtocol[protocol] ?? 0),
-				0
-			)
-		}
+			if (!p) return acc
+
+			if (p.oraclesByChain) {
+				for (const ch in p.oraclesByChain) {
+					if (chain ? chain === ch : true) {
+						for (const oracle of p.oraclesByChain[ch]) {
+							acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(ch)]?.[protocol.name] ?? 0)
+						}
+					}
+				}
+			} else {
+				for (const oracle of p.oracles ?? []) {
+					acc[oracle] = (acc[oracle] ?? 0) + (protocol.total30d ?? 0)
+				}
+			}
+
+			return acc
+		}, {})
 
 		if (oracle) {
 			let data = []
@@ -514,7 +525,8 @@ export async function getOraclePageData(oracle = null, chain = null) {
 				filteredProtocols,
 				chartData,
 				oraclesColors: colors,
-				oracleMonthlyVolumes
+				oracleMonthlyVolumes,
+				derivativeProtocols
 			}
 		}
 	} catch (e) {
@@ -527,15 +539,17 @@ export async function getOraclePageData(oracle = null, chain = null) {
 
 export async function getOraclePageDataByChain(chain: string) {
 	try {
-		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle }, { protocols }] = await Promise.all(
-			[ORACLE_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
-		)
-
-		const { protocols: derivativeProtocols } = await fetchWithErrorLogging(
-			getAPIUrl(ADAPTOR_TYPES.PERPS, chain, true, true)
-		)
-			.then((r) => r.json())
-			.catch(() => ({ protocols: [] }))
+		const [
+			{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle },
+			{ protocols },
+			{ protocols: derivativeProtocols }
+		] = await Promise.all([
+			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
+			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
+			fetchWithErrorLogging(getAPIUrl(ADAPTOR_TYPES.PERPS, null, true, true))
+				.then((r) => r.json())
+				.catch(() => ({ protocols: [] }))
+		])
 
 		const filteredProtocols = formatProtocolsData({ protocols, chain })
 
@@ -564,18 +578,27 @@ export async function getOraclePageDataByChain(chain: string) {
 			.map((orc) => orc[0])
 			.filter((orc) => chainsByOracle[orc]?.includes(chain))
 
-		const monthlyVolByProtocol = derivativeProtocols.reduce((volume, protocol) => {
-			volume[protocol.name] = protocol.total30d
-			return volume
-		}, {})
+		const oracleMonthlyVolumes = derivativeProtocols.reduce((acc, protocol) => {
+			const p = protocols.find((p) => p.name === protocol.name)
 
-		const oracleMonthlyVolumes = {}
-		for (const oracle in oracles) {
-			oracleMonthlyVolumes[oracle] = oracles[oracle].reduce(
-				(total, protocol) => (total += monthlyVolByProtocol[protocol] ?? 0),
-				0
-			)
-		}
+			if (!p) return acc
+
+			if (p.oraclesByChain) {
+				for (const ch in p.oraclesByChain) {
+					if (chain ? chain === ch : true) {
+						for (const oracle of p.oraclesByChain[ch]) {
+							acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(chain)]?.[protocol.name] ?? 0)
+						}
+					}
+				}
+			} else {
+				for (const oracle of p.oracles ?? []) {
+					acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(chain)]?.[protocol.name] ?? 0)
+				}
+			}
+
+			return acc
+		}, {})
 
 		const oraclesProtocols: IOracleProtocols = {}
 
