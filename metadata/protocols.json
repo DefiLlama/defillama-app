@@ -10156,7 +10156,6 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -21394,7 +21393,8 @@
     "3946": {
         "name": "kelp-rseth",
         "tvl": true,
-        "yields": true
+        "yields": true,
+        "raises": true
     },
     "3947": {
         "name": "desyn-safe",
@@ -30797,6 +30797,11 @@
         "tvl": true,
         "yields": false
     },
+    "5685": {
+        "name": "quill-finance",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -32433,8 +32438,7 @@
     "parent#kelp-dao": {
         "name": "kerneldao",
         "yields": true,
-        "tvl": true,
-        "raises": true
+        "tvl": true
     },
     "parent#kim-exchange": {
         "name": "kim-exchange",
