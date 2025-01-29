@@ -2832,6 +2832,7 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -3588,7 +3589,8 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "693": {
         "name": "superfluid",
@@ -4168,7 +4170,8 @@
     "817": {
         "name": "cashcow-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "818": {
         "name": "cashcow-protocol",
@@ -11387,6 +11390,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -14020,7 +14024,8 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -21389,8 +21394,7 @@
     "3946": {
         "name": "kelp-rseth",
         "tvl": true,
-        "yields": true,
-        "raises": true
+        "yields": true
     },
     "3947": {
         "name": "desyn-safe",
@@ -26434,8 +26438,7 @@
     "4875": {
         "name": "kernel-protocol",
         "tvl": true,
-        "yields": false,
-        "raises": true
+        "yields": false
     },
     "4876": {
         "name": "fixes-launchpad",
@@ -32429,7 +32432,8 @@
     "parent#kelp-dao": {
         "name": "kerneldao",
         "yields": true,
-        "tvl": true
+        "tvl": true,
+        "raises": true
     },
     "parent#kim-exchange": {
         "name": "kim-exchange",
