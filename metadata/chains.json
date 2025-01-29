@@ -1844,6 +1844,7 @@
         "aggregators": true,
         "options": true,
         "inflows": true,
+        "chainAssets": true,
         "gecko_id": "sonic-3",
         "tokenSymbol": "S"
     },
