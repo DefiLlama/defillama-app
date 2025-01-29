@@ -1566,6 +1566,11 @@
         "gecko_id": "planq",
         "tokenSymbol": "PLQ"
     },
+    "plume": {
+        "name": "Plume",
+        "gecko_id": "plume",
+        "tokenSymbol": "PLUME"
+    },
     "pokt": {
         "name": "Pokt",
         "gecko_id": "pocket-network",
