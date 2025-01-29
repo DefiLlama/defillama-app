@@ -1741,7 +1741,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											/>
 										</LazyChart>
 									)}
-									{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
+									{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
 										<LazyChart>
 											<AreaChart
 												chartData={tokenBreakdown}
@@ -1751,7 +1751,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											/>
 										</LazyChart>
 									)}
-									{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
+									{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
 										<>
 											{tokenBreakdownPieChart?.length > 0 && (
 												<LazyChart>
@@ -1775,7 +1775,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
 										</LazyChart>
 									)}
-									{tokenInflows?.length > 0 && (
+									{tokenInflows?.length > 0 && tokensUnique?.length > 0 && (
 										<LazyChart>
 											<BarChart
 												chartData={tokenInflows}
