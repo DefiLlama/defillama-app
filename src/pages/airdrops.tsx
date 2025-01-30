@@ -111,6 +111,7 @@ const exclude = [
 	'hBTC',
 	'Mantle Staked ETH',
 	'Jupiter Perpetual Exchange',
+	'Binance Staked SOL',
 	'Binance Bitcoin'
 ]
 
