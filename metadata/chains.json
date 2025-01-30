@@ -2,7 +2,8 @@
     "abstract": {
         "name": "Abstract",
         "fees": true,
-        "dexs": true
+        "dexs": true,
+        "chainAssets": true
     },
     "acala": {
         "name": "Acala",
@@ -56,7 +57,8 @@
         "tokenSymbol": "ALV"
     },
     "ancient8": {
-        "name": "Ancient8"
+        "name": "Ancient8",
+        "chainAssets": true
     },
     "apechain": {
         "name": "ApeChain",
@@ -519,7 +521,8 @@
         "tokenSymbol": "CUBE"
     },
     "cyber": {
-        "name": "Cyber"
+        "name": "Cyber",
+        "chainAssets": true
     },
     "darwinia": {
         "name": "Darwinia",
@@ -794,6 +797,7 @@
         "fees": true,
         "dexs": true,
         "aggregators": true,
+        "chainAssets": true,
         "gecko_id": "fraxtal",
         "tokenSymbol": "FXTL"
     },
@@ -871,6 +875,7 @@
         "dexs": true,
         "aggregators": true,
         "bridge-aggregators": true,
+        "chainAssets": true,
         "gecko_id": "g-token",
         "tokenSymbol": "G"
     },
@@ -1049,7 +1054,8 @@
         "tokenSymbol": "JUNO"
     },
     "k2": {
-        "name": "K2"
+        "name": "K2",
+        "chainAssets": true
     },
     "kadena": {
         "name": "Kadena",
@@ -1110,6 +1116,7 @@
     },
     "kroma": {
         "name": "Kroma",
+        "chainAssets": true,
         "gecko_id": "kroma",
         "tokenSymbol": "KRO"
     },
@@ -1659,7 +1666,8 @@
     "rari": {
         "name": "Rari",
         "fees": true,
-        "dexs": true
+        "dexs": true,
+        "chainAssets": true
     },
     "re.al": {
         "name": "re.al",
@@ -1676,7 +1684,8 @@
     "redstone": {
         "name": "Redstone",
         "fees": true,
-        "dexs": true
+        "dexs": true,
+        "chainAssets": true
     },
     "rei": {
         "name": "REI",
@@ -2161,6 +2170,7 @@
         "fees": true,
         "aggregators": true,
         "bridge-aggregators": true,
+        "chainAssets": true,
         "gecko_id": "worldcoin-wld",
         "tokenSymbol": "WLD"
     },
@@ -2204,7 +2214,8 @@
     "zero-network": {
         "name": "Zero Network",
         "fees": true,
-        "dexs": true
+        "dexs": true,
+        "chainAssets": true
     },
     "zetachain": {
         "name": "ZetaChain",
@@ -2234,7 +2245,8 @@
     "zkfair": {
         "name": "Zkfair",
         "aggregators": true,
-        "inflows": true
+        "inflows": true,
+        "chainAssets": true
     },
     "zklink-nova": {
         "name": "zkLink Nova",

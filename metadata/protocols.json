@@ -30970,6 +30970,16 @@
         "tvl": true,
         "yields": false
     },
+    "5706": {
+        "name": "sirio-finance",
+        "tvl": true,
+        "yields": false
+    },
+    "5707": {
+        "name": "bondlink-finance",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
