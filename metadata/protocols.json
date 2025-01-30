@@ -9110,7 +9110,7 @@
     },
     "1731": {
         "name": "honkswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "1732": {
@@ -30851,6 +30851,11 @@
     },
     "5707": {
         "name": "bondlink-finance",
+        "tvl": true,
+        "yields": false
+    },
+    "5708": {
+        "name": "enclabs",
         "tvl": true,
         "yields": false
     },
