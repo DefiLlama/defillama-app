@@ -10423,7 +10423,7 @@
     },
     "1967": {
         "name": "pembrock-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "1968": {
