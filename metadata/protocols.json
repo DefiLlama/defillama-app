@@ -1471,8 +1471,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "339": {
         "name": "lien",
@@ -6579,7 +6578,7 @@
     },
     "1264": {
         "name": "smartdexbch",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "1265": {
@@ -11154,7 +11153,6 @@
         "name": "titano-swych",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "2103": {
