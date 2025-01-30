@@ -231,7 +231,6 @@
         "name": "Bitcoincash",
         "fees": true,
         "dexs": true,
-        "derivatives": true,
         "aggregators": true,
         "gecko_id": "bitcoin-cash",
         "tokenSymbol": "BCH"
@@ -516,7 +515,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1008,7 +1006,6 @@
     "ink": {
         "name": "Ink",
         "fees": true,
-        "dexs": true,
         "aggregators": true,
         "inflows": true,
         "chainAssets": true
@@ -1568,6 +1565,7 @@
     },
     "plume": {
         "name": "Plume",
+        "dexs": true,
         "gecko_id": "plume",
         "tokenSymbol": "PLUME"
     },

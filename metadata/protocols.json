@@ -1176,7 +1176,8 @@
     "289": {
         "name": "yetiswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "290": {
         "name": "penguin-finance",
@@ -6582,7 +6583,7 @@
     },
     "1264": {
         "name": "smartdexbch",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1265": {
@@ -34481,6 +34482,7 @@
         "governance": true,
         "treasury": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
