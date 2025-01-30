@@ -29764,7 +29764,7 @@
     "5460": {
         "name": "upshift",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "5461": {
         "name": "apechain-bridge",
