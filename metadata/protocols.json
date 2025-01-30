@@ -2834,7 +2834,6 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -3591,8 +3590,7 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "693": {
         "name": "superfluid",
@@ -10160,6 +10158,7 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -20377,7 +20376,7 @@
     },
     "3748": {
         "name": "marginly",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "3749": {
@@ -25788,6 +25787,7 @@
         "name": "maverick-v2",
         "tvl": true,
         "yields": false,
+        "forks": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30836,6 +30836,16 @@
         "tvl": true,
         "yields": false,
         "forks": true
+    },
+    "5704": {
+        "name": "rooster-protocol",
+        "tvl": true,
+        "yields": false
+    },
+    "5705": {
+        "name": "ethos-markets",
+        "tvl": true,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
