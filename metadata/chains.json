@@ -1942,11 +1942,9 @@
         "name": "Swellchain",
         "chainAssets": true
     },
-    "sxnetwork": {
-        "name": "SXnetwork",
-        "dexs": true,
-        "gecko_id": "sx-network",
-        "tokenSymbol": "SX"
+    "sx-network": {
+        "name": "SX Network",
+        "dexs": true
     },
     "syscoin": {
         "name": "Syscoin",
