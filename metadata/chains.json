@@ -2235,7 +2235,6 @@
     },
     "zkfair": {
         "name": "Zkfair",
-        "aggregators": true,
         "inflows": true,
         "chainAssets": true
     },
