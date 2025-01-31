@@ -30977,6 +30977,16 @@
         "tvl": true,
         "yields": false
     },
+    "5711": {
+        "name": "perena",
+        "tvl": true,
+        "yields": false
+    },
+    "5712": {
+        "name": "ether-strategy",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
