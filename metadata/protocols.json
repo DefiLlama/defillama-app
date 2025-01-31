@@ -6575,7 +6575,7 @@
     },
     "1264": {
         "name": "smartdexbch",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1265": {
@@ -15418,7 +15418,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
@@ -26576,7 +26576,7 @@
     },
     "4903": {
         "name": "bmx-freestyle",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -30865,6 +30865,11 @@
     },
     "5712": {
         "name": "ether-strategy",
+        "tvl": true,
+        "yields": false
+    },
+    "5713": {
+        "name": "createmytoken",
         "tvl": true,
         "yields": false
     },
