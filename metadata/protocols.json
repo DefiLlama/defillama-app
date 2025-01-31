@@ -5320,11 +5320,6 @@
         "yields": false,
         "liquidity": true
     },
-    "1023": {
-        "name": "overnight-usd+",
-        "tvl": true,
-        "yields": false
-    },
     "1024": {
         "name": "defyswap",
         "tvl": true,
@@ -14557,11 +14552,6 @@
         "dexs": true,
         "emissions": true
     },
-    "2696": {
-        "name": "overnight-dai+",
-        "tvl": true,
-        "yields": false
-    },
     "2697": {
         "name": "bond-protocol",
         "tvl": true,
@@ -15186,11 +15176,6 @@
         "fees": true,
         "revenue": true,
         "dexs": true
-    },
-    "2810": {
-        "name": "overnight-usdt+",
-        "tvl": true,
-        "yields": false
     },
     "2811": {
         "name": "forge-sx-ovens",
@@ -19842,11 +19827,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true
-    },
-    "3631": {
-        "name": "overnight-eth+",
-        "tvl": true,
-        "yields": false
     },
     "3632": {
         "name": "quillswap",
@@ -29645,7 +29625,7 @@
     },
     "5437": {
         "name": "taraswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -30989,6 +30969,11 @@
     },
     "5709": {
         "name": "angles",
+        "tvl": true,
+        "yields": false
+    },
+    "5710": {
+        "name": "overnight-finance",
         "tvl": true,
         "yields": false
     },
@@ -33317,12 +33302,6 @@
         "yields": true,
         "tvl": true,
         "dexs": true
-    },
-    "parent#overnight-finance": {
-        "name": "overnight-finance",
-        "yields": false,
-        "tvl": true,
-        "emissions": true
     },
     "parent#pacificswap": {
         "name": "pacificswap",
