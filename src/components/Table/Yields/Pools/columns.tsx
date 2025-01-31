@@ -66,7 +66,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Note for lending pools: TVL = Available Liquidity = (Supplied - Borrowed)'
 		}
 	},
 	{
