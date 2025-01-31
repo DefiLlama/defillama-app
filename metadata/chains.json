@@ -1155,7 +1155,8 @@
     },
     "lightlink": {
         "name": "LightLink",
-        "dexs": true
+        "dexs": true,
+        "derivatives": true
     },
     "linea": {
         "name": "Linea",
@@ -1381,6 +1382,7 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
