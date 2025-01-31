@@ -1683,7 +1683,6 @@
     },
     "redstone": {
         "name": "Redstone",
-        "fees": true,
         "dexs": true,
         "chainAssets": true
     },
@@ -1770,7 +1769,6 @@
     },
     "shape": {
         "name": "Shape",
-        "fees": true,
         "dexs": true,
         "chainAssets": true
     },
@@ -2211,7 +2209,6 @@
     },
     "zero-network": {
         "name": "Zero Network",
-        "fees": true,
         "dexs": true,
         "chainAssets": true
     },
