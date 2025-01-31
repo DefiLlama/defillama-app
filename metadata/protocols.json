@@ -1554,6 +1554,7 @@
         "name": "gravity-finance",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "352": {
@@ -1920,7 +1921,8 @@
     "409": {
         "name": "cafeswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "410": {
         "name": "swamp-finance",
@@ -2832,6 +2834,7 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -7094,7 +7097,8 @@
     "1363": {
         "name": "oni-exchange",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1364": {
         "name": "narwhalswap",
@@ -12389,7 +12393,8 @@
     "2331": {
         "name": "swapfish",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2332": {
         "name": "equalizer-exchange",
@@ -12685,7 +12690,8 @@
     "2384": {
         "name": "oreoswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2385": {
         "name": "exactly",
@@ -13791,7 +13797,8 @@
     "2577": {
         "name": "sharky-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2578": {
         "name": "beamer-bridge",
