@@ -25529,7 +25529,7 @@
     },
     "4708": {
         "name": "icpex",
-        "tvl": true,
+        "tvl": false,
         "yields": true
     },
     "4709": {
@@ -29521,7 +29521,7 @@
     },
     "5437": {
         "name": "taraswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,

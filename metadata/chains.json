@@ -516,7 +516,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1683,7 +1682,6 @@
     },
     "redstone": {
         "name": "Redstone",
-        "dexs": true,
         "chainAssets": true
     },
     "rei": {
@@ -1769,7 +1767,6 @@
     },
     "shape": {
         "name": "Shape",
-        "dexs": true,
         "chainAssets": true
     },
     "shibarium": {
@@ -2209,7 +2206,6 @@
     },
     "zero-network": {
         "name": "Zero Network",
-        "dexs": true,
         "chainAssets": true
     },
     "zetachain": {
