@@ -9109,7 +9109,7 @@
     },
     "1731": {
         "name": "honkswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1732": {
