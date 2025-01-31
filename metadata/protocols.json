@@ -15324,7 +15324,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -15334,7 +15334,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -15348,7 +15348,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -26446,7 +26446,7 @@
     },
     "4879": {
         "name": "clearpool-tpool",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "liquidity": true
     },
