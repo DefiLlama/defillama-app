@@ -1947,6 +1947,9 @@
         "name": "SX Network",
         "dexs": true
     },
+    "sx-rollup": {
+        "name": "SX Rollup"
+    },
     "syscoin": {
         "name": "Syscoin",
         "dexs": true,
@@ -2076,6 +2079,7 @@
     "unit0": {
         "name": "UNIT0",
         "dexs": true,
+        "aggregators": true,
         "gecko_id": "unit0",
         "tokenSymbol": "UNIT0"
     },
