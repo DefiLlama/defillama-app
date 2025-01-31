@@ -144,7 +144,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 			'APY Borrow',
 			'Total Supply USD',
 			'Total Borrow USD',
-			'Total Available USD'
+			'Total Available USD',
+			'Pool Meta'
 		]
 		const csvData = poolsData.map((row) => {
 			return {
@@ -174,7 +175,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				'APY Borrow': row.apyBorrow,
 				'Total Supply USD': row.totalSupplyUsd,
 				'Total Borrow USD': row.totalBorrowUsd,
-				'Total Available USD': row.totalAvailableUsd
+				'Total Available USD': row.totalAvailableUsd,
+				'Pool Meta': row.poolMeta
 			}
 		})
 		const csv = [headers].concat(csvData.map((row) => headers.map((header) => row[header]))).join('\n')
