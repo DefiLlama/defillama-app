@@ -9160,7 +9160,7 @@
     },
     "1731": {
         "name": "honkswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "1732": {
@@ -15540,7 +15540,7 @@
     },
     "2874": {
         "name": "tealswap-v2",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "dexs": true
     },
