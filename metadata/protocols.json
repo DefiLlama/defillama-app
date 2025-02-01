@@ -935,7 +935,7 @@
     },
     "251": {
         "name": "parallel-protocol",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "governance": true,
         "treasury": true,
@@ -2317,8 +2317,7 @@
         "name": "baguette",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "474": {
         "name": "canary",
@@ -27981,8 +27980,7 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "5158": {
         "name": "enosys-amm-v3",
