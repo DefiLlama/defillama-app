@@ -15328,7 +15328,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -15412,7 +15412,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
