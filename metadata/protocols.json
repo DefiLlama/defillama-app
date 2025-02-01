@@ -6730,7 +6730,8 @@
         "name": "burgerswap",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "1296": {
         "name": "zipswap",
@@ -27974,7 +27975,8 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "5158": {
         "name": "enosys-amm-v3",
