@@ -30865,6 +30865,11 @@
         "tvl": true,
         "yields": false
     },
+    "5714": {
+        "name": "rabby-wallet",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
