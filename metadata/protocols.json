@@ -6618,7 +6618,7 @@
     },
     "1264": {
         "name": "smartdexbch",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "1265": {
