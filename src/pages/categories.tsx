@@ -50,21 +50,30 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 		}
 	})
 
-	const formattedCategories = Object.entries(categories).map(
-		([name, details]: [
-			string,
-			{ tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number; revenue: number; protocols: number }
-		]) => ({
-			name,
-			protocols: details.protocols > 0 ? details.protocols : '',
-			tvl: details.tvl,
-			change_1d: getPercentChange(details.tvl, details.tvlPrevDay),
-			change_7d: getPercentChange(details.tvl, details.tvlPrevWeek),
-			change_1m: getPercentChange(details.tvl, details.tvlPrevMonth),
-			revenue: details.revenue,
-			description: descriptions[name] || ''
-		})
-	)
+	const formattedCategories = Object.entries(categories)
+		.filter((c) => c[0] !== 'Chain')
+		.map(
+			([name, details]: [
+				string,
+				{
+					tvl: number
+					tvlPrevDay: number
+					tvlPrevWeek: number
+					tvlPrevMonth: number
+					revenue: number
+					protocols: number
+				}
+			]) => ({
+				name,
+				protocols: details.protocols > 0 ? details.protocols : '',
+				tvl: details.tvl,
+				change_1d: getPercentChange(details.tvl, details.tvlPrevDay),
+				change_7d: getPercentChange(details.tvl, details.tvlPrevWeek),
+				change_1m: getPercentChange(details.tvl, details.tvlPrevMonth),
+				revenue: details.revenue,
+				description: descriptions[name] || ''
+			})
+		)
 
 	return {
 		props: {
