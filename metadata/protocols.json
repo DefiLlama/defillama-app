@@ -19695,7 +19695,7 @@
     },
     "3629": {
         "name": "metalend",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "3630": {
