@@ -15328,7 +15328,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -15412,7 +15412,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
@@ -19695,7 +19695,7 @@
     },
     "3629": {
         "name": "metalend",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "3630": {
@@ -30870,7 +30870,9 @@
     "5714": {
         "name": "rabby-wallet",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "chain#1": {
         "fees": true,
