@@ -1951,7 +1951,6 @@
     },
     "syscoin": {
         "name": "Syscoin",
-        "dexs": true,
         "gecko_id": "syscoin",
         "tokenSymbol": "SYS"
     },
