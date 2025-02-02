@@ -3031,8 +3031,7 @@
     "595": {
         "name": "convergence",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "596": {
         "name": "flux-protocol",
@@ -15319,7 +15318,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -15343,7 +15342,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -28515,7 +28514,7 @@
     },
     "5257": {
         "name": "capybara-perps",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "perps": true
     },
