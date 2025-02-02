@@ -31001,6 +31001,11 @@
         "fees": true,
         "revenue": true
     },
+    "5715": {
+        "name": "ƒlaunch",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
