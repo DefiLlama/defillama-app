@@ -14770,8 +14770,7 @@
         "name": "antfarm-finance",
         "tvl": true,
         "yields": false,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2750": {
         "name": "nuon-finance",
