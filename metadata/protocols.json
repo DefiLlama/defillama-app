@@ -3189,7 +3189,6 @@
         "yields": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -14425,8 +14424,7 @@
         "tvl": true,
         "yields": false,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2688": {
         "name": "palma-swap",
