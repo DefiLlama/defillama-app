@@ -31006,6 +31006,26 @@
         "tvl": true,
         "yields": false
     },
+    "5716": {
+        "name": "suprafi",
+        "tvl": true,
+        "yields": false
+    },
+    "5717": {
+        "name": "vinufinance",
+        "tvl": true,
+        "yields": false
+    },
+    "5718": {
+        "name": "sonic-market-liquidity-vault",
+        "tvl": true,
+        "yields": false
+    },
+    "5719": {
+        "name": "wink-finance",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
