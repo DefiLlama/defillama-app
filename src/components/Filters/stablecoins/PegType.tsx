@@ -75,6 +75,12 @@ export const stablecoinPegTypeOptions = [
 		key: STABLECOINS_SETTINGS.PEGGEDAUD,
 		filterFn: (item) => item.pegType === 'peggedAUD',
 		help: 'Show stablecoins pegged to AUD'
+	},
+	{
+		name: 'CHF',
+		key: STABLECOINS_SETTINGS.PEGGEDCHF,
+		filterFn: (item) => item.pegType === 'peggedCHF',
+		help: 'Show stablecoins pegged to CHF'
 	}
 ]
 
