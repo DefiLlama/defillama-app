@@ -5140,7 +5140,7 @@
     "995": {
         "name": "drops",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "governance": true,
         "raises": true
     },
