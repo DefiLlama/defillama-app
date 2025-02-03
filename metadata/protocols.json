@@ -1655,7 +1655,6 @@
         "name": "pinkswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "368": {
@@ -13563,8 +13562,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -17923,8 +17921,7 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "3315": {
         "name": "crescentswap",
@@ -21385,7 +21382,7 @@
     "3946": {
         "name": "kelp",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "raises": true
     },
     "3947": {
@@ -32527,7 +32524,7 @@
     },
     "parent#kelp-dao": {
         "name": "kerneldao",
-        "yields": false,
+        "yields": true,
         "tvl": true
     },
     "parent#kim-exchange": {
