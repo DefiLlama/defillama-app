@@ -27976,8 +27976,7 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "5158": {
         "name": "enosys-amm-v3",
