@@ -3705,7 +3705,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "dexs": true
     },
@@ -10146,7 +10146,8 @@
     "1916": {
         "name": "hedge",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "forks": true
     },
     "1917": {
         "name": "sudoswap-v1",
@@ -12687,8 +12688,7 @@
     "2384": {
         "name": "oreoswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2385": {
         "name": "exactly",
@@ -30903,6 +30903,31 @@
     },
     "5719": {
         "name": "wink",
+        "tvl": true,
+        "yields": false
+    },
+    "5720": {
+        "name": "club-musangking",
+        "tvl": true,
+        "yields": false
+    },
+    "5721": {
+        "name": "noon",
+        "tvl": true,
+        "yields": false
+    },
+    "5722": {
+        "name": "exponent",
+        "tvl": true,
+        "yields": false
+    },
+    "5723": {
+        "name": "neptune-protocol",
+        "tvl": true,
+        "yields": false
+    },
+    "5724": {
+        "name": "sx-bet",
         "tvl": true,
         "yields": false
     },

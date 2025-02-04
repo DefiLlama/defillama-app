@@ -518,7 +518,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1947,7 +1946,9 @@
         "dexs": true
     },
     "sx-rollup": {
-        "name": "SX Rollup"
+        "name": "SX Rollup",
+        "gecko_id": "sx-network-2",
+        "tokenSymbol": "SX"
     },
     "syscoin": {
         "name": "Syscoin",
