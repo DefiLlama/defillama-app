@@ -12402,8 +12402,7 @@
         "name": "julswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2334": {
         "name": "defiedge",
