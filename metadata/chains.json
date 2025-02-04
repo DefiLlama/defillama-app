@@ -1834,6 +1834,7 @@
     "soneium": {
         "name": "Soneium",
         "fees": true,
+        "dexs": true,
         "aggregators": true,
         "chainAssets": true
     },
