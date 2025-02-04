@@ -25335,6 +25335,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30843,7 +30844,7 @@
         "yields": false
     },
     "5709": {
-        "name": "angles",
+        "name": "angles-stake",
         "tvl": true,
         "yields": false
     },
@@ -30875,7 +30876,7 @@
         "revenue": true
     },
     "5715": {
-        "name": "ƒlaunch",
+        "name": "flaunch",
         "tvl": true,
         "yields": false
     },
@@ -30947,6 +30948,11 @@
     "5729": {
         "name": "raydium-perps",
         "tvl": false,
+        "yields": false
+    },
+    "5730": {
+        "name": "angles-liquid",
+        "tvl": true,
         "yields": false
     },
     "chain#1": {
@@ -31226,6 +31232,11 @@
     },
     "parent#amulet": {
         "name": "amulet",
+        "yields": false,
+        "tvl": true
+    },
+    "parent#angles": {
+        "name": "angles",
         "yields": false,
         "tvl": true
     },
@@ -33541,6 +33552,8 @@
         "name": "raydium",
         "yields": true,
         "tvl": true,
+        "fees": true,
+        "revenue": true,
         "dexs": true,
         "emissions": true
     },
