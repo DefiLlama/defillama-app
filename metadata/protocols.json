@@ -15425,7 +15425,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -15449,7 +15449,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -31052,6 +31052,21 @@
         "tvl": true,
         "yields": false
     },
+    "5725": {
+        "name": "passdex",
+        "tvl": true,
+        "yields": false
+    },
+    "5726": {
+        "name": "factorial",
+        "tvl": true,
+        "yields": false
+    },
+    "5727": {
+        "name": "elys-earn",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -32143,6 +32158,11 @@
     },
     "parent#electroswap": {
         "name": "electroswap",
+        "yields": false,
+        "tvl": true
+    },
+    "parent#elys-protocol": {
+        "name": "elys-protocol",
         "yields": false,
         "tvl": true
     },
