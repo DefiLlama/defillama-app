@@ -709,15 +709,14 @@
         "liquidity": true
     },
     "214": {
-        "name": "raydium",
+        "name": "raydium-amm",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true,
         "hacks": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "215": {
         "name": "strudel-finance",
@@ -13124,7 +13123,7 @@
     },
     "2464": {
         "name": "omax-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -30940,6 +30939,16 @@
         "tvl": true,
         "yields": false
     },
+    "5728": {
+        "name": "looter",
+        "tvl": false,
+        "yields": false
+    },
+    "5729": {
+        "name": "raydium-perps",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -33527,6 +33536,13 @@
         "fees": true,
         "revenue": true,
         "dexs": true
+    },
+    "parent#raydium": {
+        "name": "raydium",
+        "yields": true,
+        "tvl": true,
+        "dexs": true,
+        "emissions": true
     },
     "parent#realt": {
         "name": "realt",
