@@ -22064,7 +22064,8 @@
         "name": "ionic-protocol",
         "tvl": true,
         "yields": true,
-        "liquidity": true
+        "liquidity": true,
+        "hacks": true
     },
     "4071": {
         "name": "fringe-v2",
