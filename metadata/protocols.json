@@ -14179,7 +14179,8 @@
     "2621": {
         "name": "sterling-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2622": {
         "name": "mare-finance-v1",
@@ -31206,6 +31207,17 @@
         "name": "angles-liquid",
         "tvl": true,
         "yields": false
+    },
+    "5733": {
+        "name": "solera",
+        "tvl": true,
+        "yields": false
+    },
+    "5734": {
+        "name": "bunni-v2",
+        "tvl": true,
+        "yields": false,
+        "liquidity": true
     },
     "chain#1": {
         "fees": true,
