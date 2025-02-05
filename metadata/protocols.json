@@ -3698,7 +3698,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "dexs": true
     },
@@ -30877,6 +30877,7 @@
         "name": "flaunch",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "revenue": true
     },
     "5716": {
