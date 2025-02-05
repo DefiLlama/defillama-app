@@ -949,6 +949,553 @@ export const chainCoingeckoIds = {
 		geckoId: 'flow',
 		symbol: 'FLOW',
 		cmcId: '4558'
+	},
+	Kujira: {
+		geckoId: 'kujira',
+		symbol: 'KUJI',
+		cmcId: '15185'
+	},
+	Canto: {
+		geckoId: 'canto',
+		symbol: 'CANTO',
+		cmcId: '21516'
+	},
+	XRPL: {
+		geckoId: 'ripple',
+		symbol: 'XRP',
+		cmcId: '52'
+	},
+	Cube: {
+		geckoId: 'cube-network',
+		symbol: 'CUBE',
+		cmcId: '20519'
+	},
+	FunctionX: {
+		geckoId: 'fx-coin',
+		symbol: 'FX',
+		cmcId: '3884'
+	},
+	Kekchain: {
+		geckoId: 'kekchain',
+		symbol: 'KEK',
+		cmcId: '21606'
+	},
+	Injective: {
+		geckoId: 'injective-protocol',
+		symbol: 'INJ',
+		cmcId: null
+	},
+	Step: {
+		geckoId: 'stepex',
+		symbol: 'SPEX',
+		cmcId: '21725'
+	},
+	Dexit: {
+		geckoId: 'dexit-finance',
+		symbol: 'DXT',
+		cmcId: null
+	},
+	Empire: {
+		geckoId: null,
+		symbol: 'EMPIRE',
+		cmcId: null
+	},
+	'MAP Protocol': {
+		geckoId: 'marcopolo',
+		symbol: 'MAP',
+		cmcId: '4956'
+	},
+	UX: {
+		geckoId: 'umee',
+		symbol: 'UX',
+		cmcId: '16389'
+	},
+	'WEMIX3.0': {
+		geckoId: 'wemix-token',
+		symbol: 'WEMIX',
+		cmcId: '7548'
+	},
+	'Persistence One': {
+		geckoId: 'persistence',
+		symbol: 'XPRT',
+		cmcId: '7281'
+	},
+	Goerli: {
+		geckoId: 'goerli-eth',
+		symbol: 'GETH',
+		cmcId: '23669'
+	},
+	Migaloo: {
+		geckoId: 'white-whale',
+		symbol: 'WHALE',
+		cmcId: null
+	},
+	Grove: {
+		geckoId: 'grove',
+		symbol: 'GRV',
+		cmcId: null
+	},
+	Hydration: {
+		geckoId: 'hydradx',
+		symbol: 'HDX',
+		cmcId: '6753'
+	},
+	Manta: {
+		geckoId: 'manta-network',
+		symbol: 'MANTA',
+		cmcId: '13631'
+	},
+	Beam: {
+		geckoId: null,
+		symbol: 'MC',
+		cmcId: null
+	},
+	RENEC: {
+		geckoId: 'renec',
+		symbol: 'RENEC',
+		cmcId: '24143'
+	},
+	'Bifrost Network': {
+		geckoId: 'bifrost',
+		symbol: 'BFC',
+		cmcId: '7817'
+	},
+	Radix: {
+		geckoId: 'radix',
+		symbol: 'XRD',
+		cmcId: '11948'
+	},
+	Nolus: {
+		geckoId: 'nolus',
+		symbol: 'NLS',
+		cmcId: null
+	},
+	ETHF: {
+		geckoId: 'ethereumfair',
+		symbol: 'ETHF',
+		cmcId: '21842'
+	},
+	MEER: {
+		geckoId: 'qitmeer-network',
+		symbol: 'MEER',
+		cmcId: '15658'
+	},
+	'Horizen EON': {
+		geckoId: 'zencash',
+		symbol: 'ZEN',
+		cmcId: null
+	},
+	Chiliz: {
+		geckoId: 'chiliz',
+		symbol: 'CHZ',
+		cmcId: '4066'
+	},
+	Mayachain: {
+		geckoId: 'cacao',
+		symbol: 'CACAO',
+		cmcId: null
+	},
+	Dash: {
+		geckoId: 'dash',
+		symbol: 'DASH',
+		cmcId: '131'
+	},
+	Bostrom: {
+		geckoId: 'bostrom',
+		symbol: 'BOOT',
+		cmcId: '19111'
+	},
+	Alephium: {
+		geckoId: 'alephium',
+		symbol: 'ALPH',
+		cmcId: '14878'
+	},
+	Mode: {
+		geckoId: 'mode',
+		symbol: 'MODE',
+		cmcId: null
+	},
+	FSC: {
+		geckoId: 'fonsmartchain',
+		symbol: 'FON',
+		cmcId: '22607'
+	},
+	Newton: {
+		geckoId: 'newton-project',
+		symbol: 'NEW',
+		cmcId: '3871'
+	},
+	JBC: {
+		geckoId: null,
+		symbol: 'JBC',
+		cmcId: null
+	},
+	Sommelier: {
+		geckoId: 'sommelier',
+		symbol: 'SOMM',
+		cmcId: '18248'
+	},
+	Bahamut: {
+		geckoId: 'fasttoken',
+		symbol: 'FTN',
+		cmcId: '22615'
+	},
+	CMP: {
+		geckoId: 'caduceus',
+		symbol: 'CMP',
+		cmcId: '20056'
+	},
+	Firechain: {
+		geckoId: null,
+		symbol: 'FIRE',
+		cmcId: null,
+		categories: ['EVM'],
+		chainId: 529
+	},
+	AirDAO: {
+		geckoId: 'amber',
+		symbol: 'AMB',
+		cmcId: '2081'
+	},
+	dYdX: {
+		geckoId: 'dydx-chain',
+		symbol: 'dYdX',
+		cmcId: '28324'
+	},
+	Bitnet: {
+		geckoId: 'bitnet',
+		symbol: 'BTN',
+		cmcId: null
+	},
+	ZetaChain: {
+		geckoId: 'zetachain',
+		symbol: 'ZETA',
+		cmcId: '21259'
+	},
+	Celestia: {
+		geckoId: 'celestia',
+		symbol: 'TIA',
+		cmcId: '22861'
+	},
+	Fraxtal: {
+		geckoId: 'fraxtal',
+		symbol: 'FXTL',
+		cmcId: null
+	},
+	'Areon Network': {
+		geckoId: 'areon-network',
+		symbol: 'AREA',
+		cmcId: '23262'
+	},
+	'Manta Atlantic': {
+		geckoId: null,
+		symbol: 'MANTA',
+		cmcId: null
+	},
+	Xai: {
+		geckoId: 'xai-blockchain',
+		symbol: 'XAI',
+		cmcId: '28374'
+	},
+	Bitrock: {
+		geckoId: 'bitrock',
+		symbol: 'BROCK',
+		cmcId: '27606'
+	},
+	'Oasis Sapphire': {
+		geckoId: null,
+		symbol: 'ROSE',
+		cmcId: null
+	},
+	Dymension: {
+		geckoId: 'dymension',
+		symbol: 'DYM',
+		cmcId: '28932'
+	},
+	'Q Protocol': {
+		geckoId: null,
+		symbol: 'QGOV',
+		cmcId: null
+	},
+	'zkLink Nova': {
+		geckoId: 'zklink',
+		symbol: 'ZKL',
+		cmcId: null
+	},
+	'Immutable zkEVM': {
+		geckoId: 'immutable-x',
+		symbol: 'IMX',
+		cmcId: '10603'
+	},
+	RSS3: {
+		geckoId: 'rss3',
+		symbol: 'RSS3',
+		cmcId: null
+	},
+	Bittensor: {
+		geckoId: 'bittensor',
+		symbol: 'TAO',
+		cmcId: '22974'
+	},
+	Degen: {
+		geckoId: 'degen-base',
+		symbol: 'DEGEN',
+		cmcId: null
+	},
+	HAQQ: {
+		geckoId: 'islamic-coin',
+		symbol: 'ISLM',
+		cmcId: '26220'
+	},
+	Venom: {
+		geckoId: 'venom',
+		symbol: 'VENOM',
+		cmcId: '22059'
+	},
+	'Bitkub Chain': {
+		geckoId: 'bitkub-coin',
+		symbol: 'KUB',
+		cmcId: '16093'
+	},
+	Nibiru: {
+		geckoId: 'nibiru',
+		symbol: 'NIBI',
+		cmcId: '28508'
+	},
+	Planq: {
+		geckoId: 'planq',
+		symbol: 'PLQ',
+		cmcId: '28804'
+	},
+	'LaChain Network': {
+		geckoId: 'la-coin',
+		symbol: 'LAC',
+		cmcId: null
+	},
+	Endurance: {
+		geckoId: 'endurance',
+		symbol: 'ACE',
+		cmcId: '28674'
+	},
+	BounceBit: {
+		geckoId: 'bouncebit',
+		symbol: 'BB',
+		cmcId: '30746'
+	},
+	're.al': {
+		geckoId: 're-al',
+		symbol: 'RWA',
+		cmcId: null
+	},
+	Genesys: {
+		geckoId: 'genesys',
+		symbol: 'GSYS',
+		cmcId: '27940'
+	},
+	Polkadex: {
+		geckoId: 'polkadex',
+		symbol: 'PDEX',
+		cmcId: '9017'
+	},
+	aelf: {
+		geckoId: 'aelf',
+		symbol: 'ELF',
+		cmcId: '2299'
+	},
+	Lukso: {
+		geckoId: 'lukso-token-2',
+		symbol: 'LYX',
+		cmcId: '27622'
+	},
+	Joltify: {
+		geckoId: 'joltify',
+		symbol: 'JOLT',
+		cmcId: '19855'
+	},
+	Sanko: {
+		geckoId: 'dream-machine-token',
+		symbol: 'DMT',
+		cmcId: '25653'
+	},
+	OXFUN: {
+		geckoId: 'ox-fun',
+		symbol: 'OX',
+		cmcId: '29530'
+	},
+	Aeternity: {
+		geckoId: 'aeternity',
+		symbol: 'AE',
+		cmcId: '1700'
+	},
+	Dexalot: {
+		geckoId: 'dexalot',
+		symbol: 'ALOT',
+		cmcId: '18732'
+	},
+	BandChain: {
+		geckoId: 'band-protocol',
+		symbol: 'BAND',
+		cmcId: '4679'
+	},
+	Gravity: {
+		geckoId: 'g-token',
+		symbol: 'G',
+		cmcId: null
+	},
+	Chainflip: {
+		geckoId: 'chainflip',
+		symbol: 'FLIP',
+		cmcId: '13268'
+	},
+	IDEX: {
+		geckoId: 'aurora-dao',
+		symbol: 'IDEX',
+		cmcId: null
+	},
+	Zircuit: {
+		geckoId: 'zircuit',
+		symbol: 'ZRC',
+		cmcId: '29711'
+	},
+	Electroneum: {
+		geckoId: 'electroneum',
+		symbol: 'ETN',
+		cmcId: '2137'
+	},
+	Lisk: {
+		geckoId: 'lisk',
+		symbol: 'LSK',
+		cmcId: null
+	},
+	HeLa: {
+		geckoId: 'hela',
+		symbol: 'HELA',
+		cmcId: '2137'
+	},
+	'World Chain': {
+		geckoId: 'worldcoin-wld',
+		symbol: 'WLD',
+		cmcId: null
+	},
+	ApeChain: {
+		geckoId: 'apecoin',
+		symbol: 'APE',
+		cmcId: '18876'
+	},
+	'Asset Chain': {
+		geckoId: 'xend-finance',
+		symbol: 'RWA',
+		cmcId: '8519'
+	},
+	UNIT0: {
+		geckoId: 'unit0',
+		symbol: 'UNIT0',
+		cmcId: '33785'
+	},
+	Shido: {
+		geckoId: 'shido-2',
+		symbol: 'SHIDO',
+		cmcId: '28211'
+	},
+	Redbelly: {
+		geckoId: 'redbelly-network-token',
+		symbol: 'RBNT',
+		cmcId: null
+	},
+	Taraxa: {
+		geckoId: 'taraxa',
+		symbol: 'TARA',
+		cmcId: '8715'
+	},
+	Sonic: {
+		geckoId: 'sonic-3',
+		symbol: 'S',
+		cmcId: null
+	},
+	Sophon: {
+		geckoId: 'sophon',
+		symbol: 'SOPH',
+		cmcId: null
+	},
+	Vana: {
+		geckoId: 'vana',
+		symbol: 'VANA',
+		cmcId: null
+	},
+	Agoric: {
+		geckoId: 'agoric',
+		symbol: 'BLD',
+		cmcId: null
+	},
+	Elys: {
+		geckoId: 'elys-network',
+		symbol: 'ELYS',
+		cmcId: '32959'
+	},
+	Odyssey: {
+		geckoId: 'dione',
+		symbol: 'DIONE',
+		cmcId: '21473'
+	},
+	Pryzm: {
+		geckoId: 'pryzm',
+		symbol: 'PRYZM',
+		cmcId: null
+	},
+	CrossFi: {
+		geckoId: 'crossfi-2',
+		symbol: 'XFI',
+		cmcId: '26202'
+	},
+	Waterfall: {
+		geckoId: 'water-3',
+		symbol: 'WATER',
+		cmcId: '32282'
+	},
+	Mantra: {
+		geckoId: 'mantra-dao',
+		symbol: 'OM',
+		cmcId: '6536'
+	},
+	Verus: {
+		geckoId: 'verus-coin',
+		symbol: 'VRSC',
+		cmcId: '5049'
+	},
+	Plume: {
+		geckoId: 'plume',
+		symbol: 'PLUME',
+		cmcId: null
+	},
+	'EDU Chain': {
+		geckoId: 'edu-coin',
+		symbol: 'EDU',
+		cmcId: '24613'
+	},
+	Fluence: {
+		geckoId: 'fluence-2',
+		symbol: 'FLT',
+		cmcId: '30097'
+	},
+	Swan: {
+		geckoId: 'swan-chain',
+		symbol: 'SWAN',
+		cmcId: null
+	},
+	Artela: {
+		geckoId: 'artela-network',
+		symbol: 'ART',
+		cmcId: null
+	},
+	Parex: {
+		geckoId: 'parex',
+		symbol: 'PRX',
+		cmcId: '18094'
+	},
+	'SX Rollup': {
+		geckoId: 'sx-network-2',
+		symbol: 'SX',
+		cmcId: null
 	}
 }
 
