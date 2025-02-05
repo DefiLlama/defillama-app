@@ -3367,7 +3367,8 @@
     "647": {
         "name": "jet-v1",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "648": {
         "name": "alkemi",
@@ -12905,8 +12906,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "raises": true,
-        "activeUsers": true
+        "raises": true
     },
     "2398": {
         "name": "opyn-convexity",
@@ -17346,12 +17346,14 @@
     "3184": {
         "name": "jet-margin",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3185": {
         "name": "jet-fixed-term",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3186": {
         "name": "soarpls",
@@ -25552,7 +25554,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -32819,7 +32820,8 @@
     "parent#jet": {
         "name": "jet",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "parent#jewelswap": {
         "name": "jewelswap",
