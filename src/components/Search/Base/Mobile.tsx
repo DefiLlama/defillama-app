@@ -245,9 +245,10 @@ const Row = ({ data, onItemClick }: { data: any; onItemClick?: (data: any) => vo
 					window.open(data.route)
 				} else {
 					setLoading(true)
-					router.push(data.route).then(() => {
-						setLoading(false)
-					})
+					// router.push(data.route).then(() => {
+					// 	setLoading(false)
+					// })
+					window.open(data.route)
 				}
 			}}
 			disabled={loading}
