@@ -3586,7 +3586,8 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "693": {
         "name": "superfluid",
@@ -10148,7 +10149,6 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -14018,7 +14018,8 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -17911,8 +17912,7 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "3315": {
         "name": "crescentswap",
@@ -27976,8 +27976,7 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "5158": {
         "name": "enosys-amm-v3",
@@ -30943,12 +30942,15 @@
     "5728": {
         "name": "looter",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "5729": {
         "name": "raydium-perps",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "perps": true
     },
     "5730": {
         "name": "angles-liquid",
@@ -33555,6 +33557,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
+        "perps": true,
         "emissions": true
     },
     "parent#realt": {
