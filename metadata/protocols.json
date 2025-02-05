@@ -2377,8 +2377,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "484": {
         "name": "marinade-liquid-staking",
@@ -9477,7 +9476,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -18145,8 +18143,7 @@
     "3348": {
         "name": "soswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "3349": {
         "name": "echodex-v3",
@@ -27647,7 +27644,7 @@
     },
     "5097": {
         "name": "lombard",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "raises": true
     },
@@ -28516,7 +28513,7 @@
     },
     "5257": {
         "name": "capybara-perps",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "perps": true
     },
@@ -30879,7 +30876,8 @@
     "5715": {
         "name": "flaunch",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5716": {
         "name": "suprafi",
