@@ -518,7 +518,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1013,6 +1012,7 @@
     "ink": {
         "name": "Ink",
         "fees": true,
+        "dexs": true,
         "aggregators": true,
         "inflows": true,
         "chainAssets": true
@@ -1383,7 +1383,6 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
-        "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
@@ -1688,6 +1687,8 @@
     },
     "redstone": {
         "name": "Redstone",
+        "fees": true,
+        "dexs": true,
         "chainAssets": true
     },
     "rei": {
@@ -1773,6 +1774,8 @@
     },
     "shape": {
         "name": "Shape",
+        "fees": true,
+        "dexs": true,
         "chainAssets": true
     },
     "shibarium": {
@@ -2219,6 +2222,8 @@
     },
     "zero-network": {
         "name": "Zero Network",
+        "fees": true,
+        "dexs": true,
         "chainAssets": true
     },
     "zetachain": {
