@@ -18742,7 +18742,8 @@
     "3423": {
         "name": "zena-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3424": {
         "name": "raccoon-finance",
