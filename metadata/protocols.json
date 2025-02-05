@@ -711,7 +711,7 @@
     "214": {
         "name": "raydium-amm",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true,
         "hacks": true,
         "fees": true,
@@ -19139,6 +19139,8 @@
         "name": "jumper-exchange",
         "tvl": false,
         "yields": false,
+        "fees": true,
+        "revenue": true,
         "aggregator": true,
         "bridgeAggregators": true
     },
