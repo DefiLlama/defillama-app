@@ -1575,6 +1575,7 @@
     },
     "plume": {
         "name": "Plume",
+        "fees": true,
         "dexs": true,
         "gecko_id": "plume",
         "tokenSymbol": "PLUME"

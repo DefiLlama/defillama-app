@@ -3586,8 +3586,7 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "693": {
         "name": "superfluid",
@@ -10149,6 +10148,7 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -14018,8 +14018,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -17912,7 +17911,8 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "3315": {
         "name": "crescentswap",
@@ -27976,7 +27976,8 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "5158": {
         "name": "enosys-amm-v3",
