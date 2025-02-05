@@ -407,6 +407,13 @@ export const cexData: Array<ICex> = [
 		cgId: 'nonkyc_io'
 	},
 	{
+		name: 'Bitrue',
+        slug: 'coinex',
+		coin: 'BTR',
+		cgId: 'bitrue',
+		cgDeriv: 'bitrue_futures'
+	},
+	{
 		name: 'Latoken',
 		slug: 'latoken',
 		coin: null,
@@ -626,11 +633,6 @@ export const cexData: Array<ICex> = [
 		name: 'BTCEX',
 		cgId: 'btcex',
 		cgDeriv: 'btcex_futures'
-	},
-	{
-		name: 'Bitrue',
-		cgId: 'bitrue',
-		cgDeriv: 'bitrue_futures'
 	},
 	{
 		name: 'BTCC',
