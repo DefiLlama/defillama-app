@@ -3911,7 +3911,8 @@
     "743": {
         "name": "neku",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "744": {
         "name": "tranquil-finance",
@@ -7649,8 +7650,7 @@
     "1448": {
         "name": "white-whale-vaults",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1449": {
         "name": "impactmarket",
@@ -13215,7 +13215,7 @@
     "2456": {
         "name": "bunni",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true
     },
     "2457": {
@@ -14922,7 +14922,8 @@
     "2751": {
         "name": "lfgswap-arbitrum",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2752": {
         "name": "onchain-trade",
@@ -17313,8 +17314,7 @@
     "3177": {
         "name": "white-whale-dex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3178": {
         "name": "pegasys-v3",
@@ -31283,7 +31283,15 @@
         "yields": false
     },
     "5745": {
+        "name": "burrbear",
+        "tvl": true,
+        "yields": false,
         "liquidity": true
+    },
+    "5746": {
+        "name": "beraborrow",
+        "tvl": true,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
@@ -34578,7 +34586,7 @@
     },
     "parent#timeless": {
         "name": "timeless",
-        "yields": true,
+        "yields": false,
         "tvl": true,
         "governance": true,
         "liquidity": true,
@@ -34868,8 +34876,7 @@
     "parent#white-whale": {
         "name": "white-whale",
         "yields": false,
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "parent#wise-lending": {
         "name": "wise-lending",
