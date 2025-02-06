@@ -11332,7 +11332,8 @@
         "yields": true,
         "treasury": true,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "emissions": true
     },
     "2112": {
         "name": "stake.ly",
@@ -13627,6 +13628,7 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30680,7 +30682,7 @@
         "aggregator": true
     },
     "5619": {
-        "name": "ssi",
+        "name": "sosovalue-indexes",
         "tvl": true,
         "yields": false
     },
@@ -33883,6 +33885,7 @@
         "name": "reservoir-tools",
         "yields": false,
         "tvl": true,
+        "raises": true,
         "fees": true,
         "revenue": true,
         "dexs": true
