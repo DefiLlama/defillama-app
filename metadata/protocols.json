@@ -26796,7 +26796,7 @@
     },
     "4879": {
         "name": "clearpool-tpool",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "liquidity": true
     },
