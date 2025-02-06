@@ -31273,7 +31273,8 @@
     "5717": {
         "name": "vinufinance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5718": {
         "name": "sonic-market-liquidity-vault",
