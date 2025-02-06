@@ -1496,6 +1496,16 @@ export const chainCoingeckoIds = {
 		geckoId: 'sx-network-2',
 		symbol: 'SX',
 		cmcId: null
+	},
+	Penumbra: {
+		geckoId: 'penumbra',
+		symbol: 'UM',
+		cmcId: null
+	},
+	Berachain: {
+		geckoId: 'berachain-bera',
+		symbol: 'BERA',
+		cmcId: '24647'
 	}
 }
 
