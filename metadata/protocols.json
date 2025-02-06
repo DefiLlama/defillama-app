@@ -31263,6 +31263,14 @@
         "tvl": false,
         "yields": false
     },
+    "5741": {
+        "aggregator": true
+    },
+    "5742": {
+        "name": "beraswap",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
