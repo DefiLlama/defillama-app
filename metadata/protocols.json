@@ -5315,7 +5315,8 @@
         "name": "opendao",
         "tvl": true,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "1020": {
         "name": "arkadiko",
@@ -7661,7 +7662,8 @@
         "name": "solidex",
         "tvl": true,
         "yields": false,
-        "forks": true
+        "forks": true,
+        "liquidity": true
     },
     "1451": {
         "raises": true
@@ -11312,7 +11314,8 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2109": {
         "name": "pyeswap",
@@ -16773,7 +16776,8 @@
         "name": "olympulsex",
         "tvl": false,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "3083": {
         "name": "penpie",
@@ -18819,8 +18823,7 @@
     "3436": {
         "name": "fedex-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3437": {
         "name": "pyswap",
