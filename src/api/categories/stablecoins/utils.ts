@@ -94,9 +94,9 @@ export const formatPeggedAssetsData = ({
 				? formattedNum(String(parseFloat(pegged.mcap as string) - parseFloat(mcapPrevMonth as string)), true)
 				: null
 
-		pegged.change_1d_nol = !change_1d_nol ? null : change_1d_nol.startsWith('-') ? change_1d_nol : `$${change_1d_nol}`
-		pegged.change_7d_nol = !change_7d_nol ? null : change_7d_nol.startsWith('-') ? change_7d_nol : `$${change_7d_nol}`
-		pegged.change_1m_nol = !change_1m_nol ? null : change_1m_nol.startsWith('-') ? change_1m_nol : `$${change_1m_nol}`
+		pegged.change_1d_nol = !change_1d_nol ? null : change_1d_nol.startsWith('-') ? change_1d_nol : `+${change_1d_nol}`
+		pegged.change_7d_nol = !change_7d_nol ? null : change_7d_nol.startsWith('-') ? change_7d_nol : `+${change_7d_nol}`
+		pegged.change_1m_nol = !change_1m_nol ? null : change_1m_nol.startsWith('-') ? change_1m_nol : `+${change_1m_nol}`
 
 		if (pegType !== 'peggedVAR' && price) {
 			let targetPrice = getTargetPrice(pegType, rateData, 0)

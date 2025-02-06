@@ -104,10 +104,10 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 		cell: (info) => (
 			<span className="flex items-center justify-end gap-1 flex-nowrap">
 				{formattedPercent(info.getValue())}
-				<span>{info.row.original.change_1d_nol}</span>
+				<span>{info.row.original.change_1d_nol ? `(${info.row.original.change_1d_nol})` : null}</span>
 			</span>
 		),
-		size: 110,
+		size: 160,
 		meta: {
 			align: 'end'
 		}
@@ -118,10 +118,10 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 		cell: (info) => (
 			<span className="flex items-center justify-end gap-1 flex-nowrap">
 				{formattedPercent(info.getValue())}
-				<span>{info.row.original.change_7d_nol}</span>
+				<span>{info.row.original.change_7d_nol ? `(${info.row.original.change_7d_nol})` : null}</span>
 			</span>
 		),
-		size: 110,
+		size: 160,
 		meta: {
 			align: 'end'
 		}
@@ -132,10 +132,10 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 		cell: (info) => (
 			<span className="flex items-center justify-end gap-1 flex-nowrap">
 				{formattedPercent(info.getValue())}
-				<span>{info.row.original.change_1m_nol}</span>
+				<span>{info.row.original.change_1m_nol ? `(${info.row.original.change_1m_nol})` : null}</span>
 			</span>
 		),
-		size: 110,
+		size: 160,
 		meta: {
 			align: 'end'
 		}
