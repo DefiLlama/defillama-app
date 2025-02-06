@@ -1953,6 +1953,7 @@
     },
     "sx-rollup": {
         "name": "SX Rollup",
+        "chainAssets": true,
         "gecko_id": "sx-network-2",
         "tokenSymbol": "SX"
     },
