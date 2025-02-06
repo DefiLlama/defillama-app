@@ -126,7 +126,8 @@ const blockExplorers = {
 	redstone: ['https://explorer.redstone.xyz/address/', 'Redstone Explorer'],
 	ink: ['https://explorer.inkonchain.com/address/', 'Ink Explorer'],
 	sophon: ['https://explorer.sophon.xyz/address/', 'Sophon Explorer'],
-	soneium: ['https://soneium.blockscout.com/address/', 'Soneium Blockscout']
+	soneium: ['https://soneium.blockscout.com/address/', 'Soneium Blockscout'],
+	berachain: ['https://berascan.com/address/', 'Berascan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
