@@ -197,6 +197,11 @@ const nextConfig = {
 				source: '/protocols/Dexes',
 				destination: '/protocols/Dexs',
 				permanent: true
+			},
+			{
+				source: '/chain/Optimism',
+				destination: '/chain/OP%20Mainnet',
+				permanent: true
 			}
 		]
 	},
