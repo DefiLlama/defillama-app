@@ -22441,6 +22441,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "revenue": true,
         "perps": true
     },
     "4078": {
@@ -26694,7 +26695,7 @@
     },
     "4861": {
         "name": "aurus",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4862": {
@@ -31360,6 +31361,16 @@
     },
     "5736": {
         "name": "diesel-dex",
+        "tvl": true,
+        "yields": false
+    },
+    "5737": {
+        "name": "wavex",
+        "tvl": true,
+        "yields": false
+    },
+    "5738": {
+        "name": "magsinio",
         "tvl": true,
         "yields": false
     },

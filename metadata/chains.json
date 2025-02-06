@@ -2131,6 +2131,7 @@
     },
     "vinuchain": {
         "name": "VinuChain",
+        "fees": true,
         "dexs": true
     },
     "vision": {
