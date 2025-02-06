@@ -5431,7 +5431,6 @@
         "name": "numbers-protocol",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "raises": true
     },
     "1042": {
@@ -6957,8 +6956,7 @@
     "1323": {
         "name": "poopsicle",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1324": {
         "name": "furylabs-finance",
@@ -31264,12 +31262,28 @@
         "yields": false
     },
     "5741": {
+        "name": "enso-finance",
+        "tvl": true,
+        "yields": false,
         "aggregator": true
     },
     "5742": {
         "name": "beraswap",
         "tvl": true,
         "yields": false
+    },
+    "5743": {
+        "name": "kodiak-v2",
+        "tvl": true,
+        "yields": false
+    },
+    "5744": {
+        "name": "kodiak-v3",
+        "tvl": true,
+        "yields": false
+    },
+    "5745": {
+        "liquidity": true
     },
     "chain#1": {
         "fees": true,
@@ -32960,6 +32974,11 @@
         "tvl": true,
         "liquidity": true,
         "dexs": true
+    },
+    "parent#kodiak": {
+        "name": "kodiak",
+        "yields": false,
+        "raises": true
     },
     "parent#koi-finance": {
         "name": "koi-finance",
