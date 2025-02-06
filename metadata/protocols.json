@@ -4192,7 +4192,8 @@
     "814": {
         "name": "loop-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "815": {
         "name": "pureswap",
@@ -14631,7 +14632,8 @@
     "2700": {
         "name": "zukeswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2701": {
         "name": "fairyswap-v2",
@@ -17222,7 +17224,9 @@
     "3163": {
         "name": "levvy-for-nfts",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "3164": {
         "name": "pacman",
@@ -19826,7 +19830,9 @@
     "3618": {
         "name": "levvy-for-tokens",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "3619": {
         "name": "skydrome",
@@ -31216,7 +31222,10 @@
         "name": "bunni-v2",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5736": {
         "name": "diesel-dex",
@@ -32974,7 +32983,9 @@
     "parent#levvy-finance": {
         "name": "levvy-finance",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "fees": true,
+        "revenue": true
     },
     "parent#lfgswap": {
         "name": "lfgswap",
@@ -34515,7 +34526,10 @@
         "yields": true,
         "tvl": true,
         "governance": true,
-        "liquidity": true
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#timeswap": {
         "name": "timeswap",
