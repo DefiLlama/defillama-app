@@ -3671,8 +3671,7 @@
     "701": {
         "name": "behodler",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "702": {
         "name": "coffin-finance",
@@ -9591,6 +9590,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -11278,6 +11278,7 @@
         "name": "titano-swych",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "2103": {
@@ -22871,7 +22872,8 @@
     "4170": {
         "name": "deltafi",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4171": {
         "name": "poseidollar",
