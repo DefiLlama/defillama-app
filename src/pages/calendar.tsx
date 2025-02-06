@@ -22,7 +22,9 @@ import { Icon } from '~/components/Icon'
 import { fetchWithErrorLogging } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging('calendar', async () => {
-	const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
+	const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`)
+		.then((res) => res.json())
+		.catch(() => [])
 
 	const emissions = res.map((protocol) => {
 		const unlocksByDate = {}
