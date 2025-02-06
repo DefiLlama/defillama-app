@@ -80,20 +80,23 @@ export const formatPeggedAssetsData = ({
 		pegged.change_1d = getPercentChange(pegged.mcap, mcapPrevDay)
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
-		pegged.change_1d_nol = formattedNum(
-			String(pegged.mcap && mcapPrevDay ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevDay as string) : 0),
-			true
-		)
-		pegged.change_7d_nol = formattedNum(
-			String(pegged.mcap && mcapPrevWeek ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevWeek as string) : 0),
-			true
-		)
-		pegged.change_1m_nol = formattedNum(
-			String(
-				pegged.mcap && mcapPrevMonth ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevMonth as string) : 0
-			),
-			true
-		)
+
+		const change_1d_nol =
+			pegged.mcap && mcapPrevDay
+				? formattedNum(String(parseFloat(pegged.mcap as string) - parseFloat(mcapPrevDay as string)), true)
+				: null
+		const change_7d_nol =
+			pegged.mcap && mcapPrevWeek
+				? formattedNum(String(parseFloat(pegged.mcap as string) - parseFloat(mcapPrevWeek as string)), true)
+				: null
+		const change_1m_nol =
+			pegged.mcap && mcapPrevMonth
+				? formattedNum(String(parseFloat(pegged.mcap as string) - parseFloat(mcapPrevMonth as string)), true)
+				: null
+
+		pegged.change_1d_nol = !change_1d_nol ? null : change_1d_nol.startsWith('-') ? change_1d_nol : `$${change_1d_nol}`
+		pegged.change_7d_nol = !change_7d_nol ? null : change_7d_nol.startsWith('-') ? change_7d_nol : `$${change_7d_nol}`
+		pegged.change_1m_nol = !change_1m_nol ? null : change_1m_nol.startsWith('-') ? change_1m_nol : `$${change_1m_nol}`
 
 		if (pegType !== 'peggedVAR' && price) {
 			let targetPrice = getTargetPrice(pegType, rateData, 0)

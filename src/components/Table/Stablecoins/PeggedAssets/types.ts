@@ -3,9 +3,9 @@ interface IAsset {
 	change_1d: number
 	change_7d: number
 	change_1m: number
-	change_1d_nol: string
-	change_7d_nol: string
-	change_1m_nol: string
+	change_1d_nol: string | null
+	change_7d_nol: string | null
+	change_1m_nol: string | null
 	circulating: number
 	circulatingPrevDay: number
 	circulatingPrevMonth: number
