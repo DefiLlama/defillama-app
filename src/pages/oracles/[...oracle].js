@@ -83,7 +83,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 				Total Value Secured by {token} {chain ? `on ${chain}` : null}
 			</h1>
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Secured (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(totalValue, true)}</span>

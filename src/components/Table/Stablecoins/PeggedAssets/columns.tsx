@@ -101,7 +101,12 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => (
+			<span className="flex items-center justify-end gap-1 flex-nowrap">
+				{formattedPercent(info.getValue())}
+				<span>(${info.row.original.change_1d_nol})</span>
+			</span>
+		),
 		size: 110,
 		meta: {
 			align: 'end'
@@ -110,7 +115,12 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => (
+			<span className="flex items-center justify-end gap-1 flex-nowrap">
+				{formattedPercent(info.getValue())}
+				<span>(${info.row.original.change_7d_nol})</span>
+			</span>
+		),
 		size: 110,
 		meta: {
 			align: 'end'
@@ -119,7 +129,12 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 	{
 		header: '1m Change',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => (
+			<span className="flex items-center justify-end gap-1 flex-nowrap">
+				{formattedPercent(info.getValue())}
+				<span>(${info.row.original.change_1m_nol})</span>
+			</span>
+		),
 		size: 110,
 		meta: {
 			align: 'end'
@@ -150,9 +165,9 @@ export const columnSizes = {
 		pegDeviation: 120,
 		pegDeviation_1m: 150,
 		price: 110,
-		change_1d: 110,
-		change_7d: 110,
-		change_1m: 110,
+		change_1d: 160,
+		change_7d: 160,
+		change_1m: 160,
 		mcap: 120
 	},
 	480: {
@@ -161,9 +176,9 @@ export const columnSizes = {
 		pegDeviation: 120,
 		pegDeviation_1m: 150,
 		price: 110,
-		change_1d: 110,
-		change_7d: 110,
-		change_1m: 110,
+		change_1d: 160,
+		change_7d: 160,
+		change_1m: 160,
 		mcap: 120
 	},
 	1024: {
@@ -172,9 +187,9 @@ export const columnSizes = {
 		pegDeviation: 120,
 		pegDeviation_1m: 150,
 		price: 110,
-		change_1d: 110,
-		change_7d: 110,
-		change_1m: 110,
+		change_1d: 160,
+		change_7d: 160,
+		change_1m: 160,
 		mcap: 120
 	}
 }

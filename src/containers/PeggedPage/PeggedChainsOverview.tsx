@@ -17,6 +17,7 @@ import {
 } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Icon } from '~/components/Icon'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -65,14 +66,38 @@ function PeggedChainsOverview({
 		download('stablecoinsChainTotals.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
-	const title = `Stablecoins Market Cap`
-
-	const { percentChange, totalMcapCurrent } = React.useMemo(() => {
-		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD')
-		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, 'totalCirculatingUSD')
-		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
-		return { percentChange, totalMcapCurrent }
-	}, [chartData])
+	const { change1d, change7d, change30d, totalMcapCurrent, change1d_nol, change7d_nol, change30d_nol } =
+		React.useMemo(() => {
+			const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD')
+			const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 1, 'totalCirculatingUSD')
+			const totalMcapPrevWeek = getPrevPeggedTotalFromChart(chartData, 7, 'totalCirculatingUSD')
+			const totalMcapPrevMonth = getPrevPeggedTotalFromChart(chartData, 30, 'totalCirculatingUSD')
+			const change1d = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2) ?? '0'
+			const change7d = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2) ?? '0'
+			const change30d = getPercentChange(totalMcapCurrent, totalMcapPrevMonth)?.toFixed(2) ?? '0'
+			const change1d_nol = formattedNum(
+				String(
+					totalMcapCurrent && totalMcapPrevDay
+						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevDay as string)
+						: 0
+				)
+			)
+			const change7d_nol = formattedNum(
+				String(
+					totalMcapCurrent && totalMcapPrevDay
+						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevWeek as string)
+						: 0
+				)
+			)
+			const change30d_nol = formattedNum(
+				String(
+					totalMcapCurrent && totalMcapPrevDay
+						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevMonth as string)
+						: 0
+				)
+			)
+			return { change1d, change7d, change30d, totalMcapCurrent, change1d_nol, change7d_nol, change30d_nol }
+		}, [chartData])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
@@ -107,15 +132,52 @@ function PeggedChainsOverview({
 			<PeggedSearch />
 			<CSVDownloadButton onClick={downloadCsv} style={{ width: '150px', alignSelf: 'flex-end' }} />
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total {title}</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Total Stablecoins Market Cap</span>
 						<span className="font-semibold text-2xl font-jetbrains">{mcapToDisplay}</span>
 					</p>
-					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">Change (7d)</span>
-						<span className="font-semibold text-2xl font-jetbrains">{percentChange || 0}%</span>
-					</p>
+
+					<details className="group text-base">
+						<summary className="flex items-center">
+							<Icon
+								name="chevron-right"
+								height={20}
+								width={20}
+								className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+							/>
+							<span className="flex flex-col">
+								<span className="text-[#545757] dark:text-[#cccccc]">Change (7d)</span>
+
+								<span className="flex items-end flex-nowrap gap-1 font-semibold text-2xl font-jetbrains">
+									<span>{`$${change7d_nol}`}</span>
+									<span
+										className={`${change7d.startsWith('-') ? 'text-[#f85149]' : 'text-[#3fb950]'} font-inter text-base`}
+									>{`(${change7d}%)`}</span>
+								</span>
+							</span>
+						</summary>
+
+						<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
+							<span className="text-[#545757] dark:text-[#cccccc]">Change (1d)</span>
+							<span className="flex items-center flex-nowrap gap-1 font-jetbrains">
+								<span>{`$${change1d_nol}`}</span>
+								<span
+									className={`${change1d.startsWith('-') ? 'text-[#f85149]' : 'text-[#3fb950]'} font-inter text-base`}
+								>{`(${change1d}%)`}</span>
+							</span>
+						</p>
+						<p className="flex items-center flex-wrap justify-between gap-2 mt-3 mb-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">Change (30d)</span>
+							<span className="flex items-center flex-nowrap gap-1 font-jetbrains">
+								<span>{`$${change30d_nol}`}</span>
+								<span
+									className={`${change30d.startsWith('-') ? 'text-[#f85149]' : 'text-[#3fb950]'} font-inter text-base`}
+								>{`(${change30d}%)`}</span>
+							</span>
+						</p>
+					</details>
+
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">{topChain.name} Dominance</span>
 						<span className="font-semibold text-2xl font-jetbrains">{dominance}%</span>

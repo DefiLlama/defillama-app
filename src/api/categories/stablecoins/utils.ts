@@ -1,4 +1,4 @@
-import { getPeggedDominance, getPercentChange, getPrevPeggedTotalFromChart } from '~/utils'
+import { formattedNum, getPeggedDominance, getPercentChange, getPrevPeggedTotalFromChart } from '~/utils'
 import { keepNeededProperties } from '../../shared'
 
 export const peggedPropertiesToKeep = [
@@ -16,6 +16,9 @@ export const peggedPropertiesToKeep = [
 	'change_1d',
 	'change_7d',
 	'change_1m',
+	'change_1d_nol',
+	'change_7d_nol',
+	'change_1m_nol',
 	'pegDeviation',
 	'pegDeviation_1m',
 	'pegDeviationInfo',
@@ -77,6 +80,15 @@ export const formatPeggedAssetsData = ({
 		pegged.change_1d = getPercentChange(pegged.mcap, mcapPrevDay)
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
+		pegged.change_1d_nol = formattedNum(
+			String(pegged.mcap && mcapPrevDay ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevDay as string) : 0)
+		)
+		pegged.change_7d_nol = formattedNum(
+			String(pegged.mcap && mcapPrevWeek ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevWeek as string) : 0)
+		)
+		pegged.change_1m_nol = formattedNum(
+			String(pegged.mcap && mcapPrevMonth ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevMonth as string) : 0)
+		)
 
 		if (pegType !== 'peggedVAR' && price) {
 			let targetPrice = getTargetPrice(pegType, rateData, 0)
