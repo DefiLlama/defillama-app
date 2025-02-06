@@ -25,6 +25,7 @@ import { sluggify } from '~/utils/cache-client'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'
+import { chainsNamesMap } from './constants'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -730,7 +731,9 @@ export function ChainContainer({
 							style={{ width: '100px', marginTop: 'auto', marginLeft: '-12px' }}
 							onClick={() => {
 								window.open(
-									`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
+									`https://api.llama.fi/simpleChainDataset/${
+										chainsNamesMap[selectedChain] || selectedChain
+									}?${Object.entries(extraTvlsEnabled)
 										.filter((t) => t[1] === true)
 										.map((t) => `${t[0]}=true`)
 										.join('&')}`.replaceAll(' ', '%20')
