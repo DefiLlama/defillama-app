@@ -3832,8 +3832,7 @@
     "724": {
         "name": "handle.fi",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "725": {
         "name": "bishares",
@@ -11838,8 +11837,7 @@
     "2184": {
         "name": "handle.fi-perps",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2185": {
         "name": "stabledoin",
@@ -21022,8 +21020,7 @@
     "3820": {
         "name": "handle.fi-hsp",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3821": {
         "name": "particles-money",
@@ -31274,6 +31271,7 @@
         "name": "vinufinance",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "revenue": true
     },
     "5718": {
@@ -32788,8 +32786,7 @@
         "yields": false,
         "tvl": true,
         "governance": true,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "parent#hatom-protocol": {
         "name": "hatom-protocol",
