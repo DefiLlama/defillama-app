@@ -216,12 +216,12 @@ const Row = ({ data, onItemClick, state }) => {
 				} else if (e.ctrlKey || e.metaKey) {
 					window.open(data.route)
 				} else {
-					// setLoading(true)
+					setLoading(true)
 					// router.push(data.route).then(() => {
 					// 	setLoading(false)
 					// 	state.hide()
 					// })
-					window.open(data.route)
+					window.open(data.route, '_self')
 				}
 			}}
 			focusOnHover

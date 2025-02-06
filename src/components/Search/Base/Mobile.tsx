@@ -248,7 +248,7 @@ const Row = ({ data, onItemClick }: { data: any; onItemClick?: (data: any) => vo
 					// router.push(data.route).then(() => {
 					// 	setLoading(false)
 					// })
-					window.open(data.route)
+					window.open(data.route, '_self')
 				}
 			}}
 			disabled={loading}
