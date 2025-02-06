@@ -408,7 +408,7 @@ export const cexData: Array<ICex> = [
 	},
 	{
 		name: 'Bitrue',
-        slug: 'coinex',
+        slug: 'bitrue',
 		coin: 'BTR',
 		cgId: 'bitrue',
 		cgDeriv: 'bitrue_futures'
