@@ -3738,7 +3738,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "dexs": true
     },
@@ -4816,8 +4816,7 @@
     "926": {
         "name": "metaversepro",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "927": {
         "name": "pidao-finance",
@@ -9757,7 +9756,6 @@
         "name": "sharkswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "1829": {
@@ -10627,8 +10625,7 @@
     "1983": {
         "name": "cometa",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1984": {
         "name": "wanlend",
@@ -11334,8 +11331,7 @@
         "yields": true,
         "treasury": true,
         "liquidity": true,
-        "hacks": true,
-        "emissions": true
+        "hacks": true
     },
     "2112": {
         "name": "stake.ly",
@@ -31221,6 +31217,11 @@
         "tvl": true,
         "yields": false,
         "liquidity": true
+    },
+    "5736": {
+        "name": "diesel-dex",
+        "tvl": true,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
