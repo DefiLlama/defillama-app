@@ -5027,7 +5027,8 @@
     "957": {
         "name": "flame-defi",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "958": {
         "name": "ester-finance",
@@ -28005,7 +28006,7 @@
     },
     "5097": {
         "name": "lombard",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "raises": true
     },
