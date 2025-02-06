@@ -1556,6 +1556,11 @@
         "gecko_id": "pego-network-2",
         "tokenSymbol": "PG"
     },
+    "penumbra": {
+        "name": "Penumbra",
+        "gecko_id": "penumbra",
+        "tokenSymbol": "UM"
+    },
     "persistence-one": {
         "name": "Persistence One",
         "fees": true,
