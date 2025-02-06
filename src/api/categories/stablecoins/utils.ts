@@ -81,13 +81,18 @@ export const formatPeggedAssetsData = ({
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
 		pegged.change_1d_nol = formattedNum(
-			String(pegged.mcap && mcapPrevDay ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevDay as string) : 0)
+			String(pegged.mcap && mcapPrevDay ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevDay as string) : 0),
+			true
 		)
 		pegged.change_7d_nol = formattedNum(
-			String(pegged.mcap && mcapPrevWeek ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevWeek as string) : 0)
+			String(pegged.mcap && mcapPrevWeek ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevWeek as string) : 0),
+			true
 		)
 		pegged.change_1m_nol = formattedNum(
-			String(pegged.mcap && mcapPrevMonth ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevMonth as string) : 0)
+			String(
+				pegged.mcap && mcapPrevMonth ? parseFloat(pegged.mcap as string) - parseFloat(mcapPrevMonth as string) : 0
+			),
+			true
 		)
 
 		if (pegType !== 'peggedVAR' && price) {

@@ -80,23 +80,34 @@ function PeggedChainsOverview({
 					totalMcapCurrent && totalMcapPrevDay
 						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevDay as string)
 						: 0
-				)
+				),
+				true
 			)
 			const change7d_nol = formattedNum(
 				String(
 					totalMcapCurrent && totalMcapPrevDay
 						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevWeek as string)
 						: 0
-				)
+				),
+				true
 			)
 			const change30d_nol = formattedNum(
 				String(
 					totalMcapCurrent && totalMcapPrevDay
 						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevMonth as string)
 						: 0
-				)
+				),
+				true
 			)
-			return { change1d, change7d, change30d, totalMcapCurrent, change1d_nol, change7d_nol, change30d_nol }
+			return {
+				change1d: change1d.startsWith('-') ? change1d : `+${change1d}`,
+				change7d: change7d.startsWith('-') ? change7d : `+${change7d}`,
+				change30d: change30d.startsWith('-') ? change30d : `+${change30d}`,
+				totalMcapCurrent,
+				change1d_nol: change1d_nol.startsWith('-') ? change1d_nol : `+${change1d_nol}`,
+				change7d_nol: change7d_nol.startsWith('-') ? change7d_nol : `+${change7d_nol}`,
+				change30d_nol: change30d_nol.startsWith('-') ? change30d_nol : `+${change30d_nol}`
+			}
 		}, [chartData])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)

@@ -179,21 +179,24 @@ function PeggedAssetsOverview({
 					totalMcapCurrent && totalMcapPrevDay
 						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevDay as string)
 						: 0
-				)
+				),
+				true
 			)
 			const change7d_nol = formattedNum(
 				String(
 					totalMcapCurrent && totalMcapPrevDay
 						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevWeek as string)
 						: 0
-				)
+				),
+				true
 			)
 			const change30d_nol = formattedNum(
 				String(
 					totalMcapCurrent && totalMcapPrevDay
 						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevMonth as string)
 						: 0
-				)
+				),
+				true
 			)
 
 			return {
@@ -201,9 +204,9 @@ function PeggedAssetsOverview({
 				change7d: change7d.startsWith('-') ? change7d : `+${change7d}`,
 				change30d: change30d.startsWith('-') ? change30d : `+${change30d}`,
 				totalMcapCurrent,
-				change1d_nol,
-				change7d_nol,
-				change30d_nol
+				change1d_nol: change1d_nol.startsWith('-') ? change1d_nol : `+${change1d_nol}`,
+				change7d_nol: change7d_nol.startsWith('-') ? change7d_nol : `+${change7d_nol}`,
+				change30d_nol: change30d_nol.startsWith('-') ? change30d_nol : `+${change30d_nol}`
 			}
 		}, [peggedAreaTotalData])
 
@@ -244,7 +247,7 @@ function PeggedAssetsOverview({
 								<span className="text-[#545757] dark:text-[#cccccc]">Change (7d)</span>
 
 								<span className="flex items-end flex-nowrap gap-1 font-semibold text-2xl font-jetbrains">
-									<span>{`$${change7d_nol}`}</span>
+									<span>{change7d_nol}</span>
 									<span
 										className={`${change7d.startsWith('-') ? 'text-[#f85149]' : 'text-[#3fb950]'} font-inter text-base`}
 									>{`(${change7d}%)`}</span>
@@ -255,7 +258,7 @@ function PeggedAssetsOverview({
 						<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
 							<span className="text-[#545757] dark:text-[#cccccc]">Change (1d)</span>
 							<span className="flex items-center flex-nowrap gap-1 font-jetbrains">
-								<span>{`$${change1d_nol}`}</span>
+								<span>{change1d_nol}</span>
 								<span
 									className={`${change1d.startsWith('-') ? 'text-[#f85149]' : 'text-[#3fb950]'} font-inter text-base`}
 								>{`(${change1d}%)`}</span>
@@ -264,7 +267,7 @@ function PeggedAssetsOverview({
 						<p className="flex items-center flex-wrap justify-between gap-2 mt-3 mb-1">
 							<span className="text-[#545757] dark:text-[#cccccc]">Change (30d)</span>
 							<span className="flex items-center flex-nowrap gap-1 font-jetbrains">
-								<span>{`$${change30d_nol}`}</span>
+								<span>{change30d_nol}</span>
 								<span
 									className={`${change30d.startsWith('-') ? 'text-[#f85149]' : 'text-[#3fb950]'} font-inter text-base`}
 								>{`(${change30d}%)`}</span>
