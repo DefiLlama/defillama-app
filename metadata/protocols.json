@@ -22161,8 +22161,7 @@
     "4051": {
         "name": "applepie",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4052": {
         "name": "minterest",
