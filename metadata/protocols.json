@@ -3734,7 +3734,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "dexs": true
     },
@@ -9035,7 +9035,6 @@
         "yields": true,
         "forks": true,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -11301,8 +11300,7 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2109": {
         "name": "pyeswap",
@@ -13617,7 +13615,6 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -18504,8 +18501,7 @@
     "3380": {
         "name": "baso-finance",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "3381": {
         "name": "thegoblins",
@@ -31271,7 +31267,10 @@
     "5744": {
         "name": "kodiak-v3",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5745": {
         "name": "burrbear",
@@ -32986,7 +32985,10 @@
         "name": "kodiak",
         "yields": false,
         "tvl": true,
-        "raises": true
+        "raises": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#koi-finance": {
         "name": "koi-finance",
