@@ -1178,7 +1178,8 @@
     "289": {
         "name": "yetiswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "290": {
         "name": "penguin-finance",
@@ -1405,8 +1406,7 @@
     "328": {
         "name": "steakbank-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "329": {
         "name": "sovryn-dex",
@@ -1476,8 +1476,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "339": {
         "name": "lien",
@@ -1710,8 +1709,7 @@
     "376": {
         "name": "tomb",
         "tvl": true,
-        "yields": false,
-        "forks": true
+        "yields": false
     },
     "377": {
         "name": "ethernity-chain",
@@ -1817,7 +1815,8 @@
     "391": {
         "name": "pantherswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "392": {
         "name": "wardenswap",
@@ -2855,6 +2854,7 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -3207,7 +3207,6 @@
         "yields": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -4068,7 +4067,6 @@
         "name": "cashio",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "hacks": true
     },
     "794": {
@@ -11498,6 +11496,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -18072,7 +18071,8 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "3315": {
         "name": "crescentswap",
@@ -20154,8 +20154,7 @@
     "3679": {
         "name": "phase",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3680": {
         "name": "statix-farm",
@@ -24531,10 +24530,6 @@
         "liquidity": true
     },
     "4482": {
-        "name": "hyperliquid-spot",
-        "tvl": true,
-        "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -26612,8 +26607,7 @@
     "4874": {
         "name": "re.al-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4875": {
         "name": "kernel-protocol",
@@ -31317,6 +31311,9 @@
         "tvl": true,
         "yields": false
     },
+    "5761": {
+        "liquidity": true
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -31848,6 +31845,10 @@
         "fees": true,
         "revenue": true,
         "emissions": true
+    },
+    "parent#beralis": {
+        "name": "beralis-dex",
+        "yields": false
     },
     "parent#beta-finance": {
         "name": "beta-finance",
