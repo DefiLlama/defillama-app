@@ -3063,7 +3063,6 @@
         "name": "flux-protocol",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "raises": true
     },
     "597": {
@@ -3308,8 +3307,7 @@
     "637": {
         "name": "sync-network",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "638": {
         "name": "meso-finance-fantom-farm",
@@ -21491,8 +21489,7 @@
         "name": "syncus",
         "tvl": true,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "3930": {
         "name": "butterfly-finance",
@@ -25726,7 +25723,7 @@
     },
     "4708": {
         "name": "icpex",
-        "tvl": false,
+        "tvl": true,
         "yields": true
     },
     "4709": {
