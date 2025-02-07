@@ -9925,8 +9925,7 @@
     "1849": {
         "name": "acala-liquid-staking",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1850": {
         "name": "union-protocol",
@@ -10097,8 +10096,7 @@
     "1879": {
         "name": "acala-lcdot",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1880": {
         "name": "minto",
@@ -20704,8 +20702,7 @@
     "3754": {
         "name": "acala-euphrates",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3755": {
         "name": "hot-takes",
@@ -31371,7 +31368,8 @@
     "5740": {
         "name": "1delta",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "aggregator": true
     },
     "5741": {
         "name": "enso",
