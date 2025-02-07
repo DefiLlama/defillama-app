@@ -2327,7 +2327,6 @@
         "name": "complus-network",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "472": {
