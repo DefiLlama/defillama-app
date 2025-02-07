@@ -5185,8 +5185,7 @@
     "987": {
         "name": "honeyfarm",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "988": {
         "name": "vaporwave",
@@ -6538,7 +6537,8 @@
     "1235": {
         "name": "ultra-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1236": {
         "name": "waterfall-finance-yield",
@@ -27905,8 +27905,7 @@
     "5083": {
         "name": "beebase",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5084": {
         "name": "lucidly-finance",
@@ -31353,7 +31352,11 @@
     "5737": {
         "name": "wavex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true,
+        "perps": true
     },
     "5738": {
         "name": "magsinio",
@@ -31363,7 +31366,8 @@
     "5739": {
         "name": "penumbra-dex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5740": {
         "name": "1delta",
