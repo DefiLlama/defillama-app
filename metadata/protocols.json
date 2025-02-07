@@ -5392,8 +5392,7 @@
     "1034": {
         "name": "base-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1035": {
         "name": "bitpif",
@@ -11514,6 +11513,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
