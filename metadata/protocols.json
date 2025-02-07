@@ -9291,7 +9291,8 @@
     "1747": {
         "name": "game-theory",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1748": {
         "name": "murica",
@@ -9985,7 +9986,8 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1872": {
         "name": "rift-finance",
@@ -13678,7 +13680,8 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -25569,8 +25572,7 @@
     "4679": {
         "name": "dragon-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4680": {
         "name": "iswap-tech",
@@ -28184,7 +28186,8 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "5158": {
         "name": "enosys-amm-v3",
@@ -29714,7 +29717,7 @@
     },
     "5437": {
         "name": "taraswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
