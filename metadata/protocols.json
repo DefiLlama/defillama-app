@@ -773,7 +773,6 @@
         "tvl": true,
         "yields": false,
         "governance": true,
-        "liquidity": true,
         "raises": true
     },
     "223": {
@@ -7167,7 +7166,8 @@
     "1354": {
         "name": "dogs-of-elon",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1355": {
         "name": "knights-of-fantom",
@@ -9845,8 +9845,7 @@
     "1834": {
         "name": "optimus",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1835": {
         "name": "tangent",
@@ -21435,8 +21434,7 @@
     "3899": {
         "name": "poolshark",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3900": {
         "treasury": true
