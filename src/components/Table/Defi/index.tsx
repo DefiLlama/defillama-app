@@ -6,7 +6,9 @@ import {
 	getSortedRowModel,
 	ExpandedState,
 	getExpandedRowModel,
-	ColumnOrderState
+	ColumnOrderState,
+	ColumnFiltersState,
+	getFilteredRowModel
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import { chainsColumn, chainsTableColumnOrders } from './columns'
@@ -15,6 +17,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { DEFI_CHAINS_SETTINGS, useDefiChainsManager } from '~/contexts/LocalStorage'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
+import { Icon } from '~/components/Icon'
 
 export function DefiProtocolsTable({ data, columns }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
@@ -26,6 +29,7 @@ export function DefiProtocolsTable({ data, columns }) {
 			sorting
 		},
 		onSortingChange: setSorting,
+
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
@@ -39,6 +43,7 @@ const chainsOverviewTableColumns = [
 ]
 
 export function DefiChainsTable({ data }) {
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -51,16 +56,31 @@ export function DefiChainsTable({ data }) {
 		state: {
 			sorting,
 			expanded,
-			columnOrder
+			columnOrder,
+			columnFilters
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IChainsRow) => row.subRows,
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
+		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
+		getExpandedRowModel: getExpandedRowModel(),
+		getFilteredRowModel: getFilteredRowModel()
 	})
+
+	const [projectName, setProjectName] = React.useState('')
+
+	React.useEffect(() => {
+		const columns = instance.getColumn('name')
+
+		const id = setTimeout(() => {
+			columns.setFilterValue(projectName)
+		}, 200)
+
+		return () => clearTimeout(id)
+	}, [projectName, instance])
 
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
@@ -132,6 +152,22 @@ export function DefiChainsTable({ data }) {
 	return (
 		<>
 			<div className="flex items-center justify-end flex-wrap gap-3 -mb-3">
+				<div className="relative w-full sm:max-w-[280px] mr-auto">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={projectName}
+						onChange={(e) => {
+							setProjectName(e.target.value)
+						}}
+						placeholder="Search..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+					/>
+				</div>
 				<ColumnFilters2
 					label={'Group Chains'}
 					options={DEFI_CHAINS_SETTINGS}

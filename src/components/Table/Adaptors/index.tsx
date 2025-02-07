@@ -7,7 +7,9 @@ import {
 	ExpandedState,
 	getExpandedRowModel,
 	ColumnOrderState,
-	ColumnSizingState
+	ColumnSizingState,
+	getFilteredRowModel,
+	ColumnFiltersState
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from './columns'
@@ -17,6 +19,7 @@ import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
 import { RowFilter } from '~/components/Filters/common/RowFilter'
 import { useRouter } from 'next/router'
+import { Icon } from '~/components/Icon'
 
 export const PERIODS = ['24h', '7d', '30d', '1y']
 const columnSizesKeys = Object.keys(volumesColumnSizes)
@@ -46,21 +49,23 @@ function normalizeUndefinedToNull(arr) {
 export function OverviewTable({ data, type, allChains, categories, selectedCategories, isSimpleFees }) {
 	const optionsKey = 'table-columns-' + type
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'total24h' }])
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [period, setPeriod] = React.useState(null)
 	const windowSize = useWindowSize()
-
+	const columns = React.useMemo(() => getColumnsByType(type, allChains, isSimpleFees), [type, isSimpleFees, allChains])
 	const normalizedData = React.useMemo(() => normalizeUndefinedToNull(data), [data])
 	const instance = useReactTable({
 		data: normalizedData,
-		columns: getColumnsByType(type, allChains, isSimpleFees),
+		columns,
 		state: {
 			sorting,
 			expanded,
 			columnOrder,
-			columnSizing
+			columnSizing,
+			columnFilters
 		},
 		sortingFns: {
 			alphanumericFalsyLast: (rowA, rowB, columnId) => {
@@ -92,9 +97,11 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
+		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
 		enableSortingRemoval: false
 	})
 
@@ -152,11 +159,41 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 		instance.setColumnOrder(order)
 	}, [windowSize, instance, type])
 
+	const [projectName, setProjectName] = React.useState('')
+
+	React.useEffect(() => {
+		const columns = instance.getColumn('displayName')
+
+		const id = setTimeout(() => {
+			if (columns) {
+				columns.setFilterValue(projectName)
+			}
+		}, 200)
+
+		return () => clearTimeout(id)
+	}, [projectName, instance])
+
 	const router = useRouter()
 
 	return (
 		<>
 			<div className="flex items-center justify-end flex-wrap gap-5 -mb-5">
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={projectName}
+						onChange={(e) => {
+							setProjectName(e.target.value)
+						}}
+						placeholder="Search..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+					/>
+				</div>
 				{isSimpleFees ? null : (
 					<ColumnFilters2
 						label={'Columns'}
