@@ -815,6 +815,7 @@
     "fuel-ignition": {
         "name": "Fuel Ignition",
         "dexs": true,
+        "aggregators": true,
         "chainAssets": true
     },
     "functionx": {
@@ -1389,7 +1390,6 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
-        "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
