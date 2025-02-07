@@ -988,8 +988,7 @@
     "259": {
         "name": "snowball",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "260": {
         "name": "mirror",
@@ -4386,8 +4385,7 @@
     "850": {
         "name": "polyroll",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "851": {
         "name": "nest-protocol-staking",
@@ -5910,8 +5908,7 @@
     "1126": {
         "name": "lemonswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1127": {
         "name": "zeus-finance",
@@ -7190,7 +7187,6 @@
         "name": "astroswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "1369": {
@@ -16960,7 +16956,6 @@
         "name": "astroport",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "dexs": true
     },
     "3118": {
@@ -22326,8 +22321,7 @@
     "4083": {
         "name": "ninjaroll",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4084": {
         "name": "hydro-protocol",
@@ -23160,8 +23154,7 @@
     "4226": {
         "name": "lemonblast",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4227": {
         "name": "bonkbot",
@@ -30940,7 +30933,7 @@
         "revenue": true
     },
     "5672": {
-        "name": "vicuna-finance",
+        "name": "vicuna-leveraged-farming",
         "tvl": true,
         "yields": false
     },
@@ -31296,6 +31289,31 @@
     },
     "5751": {
         "name": "concrete",
+        "tvl": true,
+        "yields": false
+    },
+    "5752": {
+        "name": "goldilocks",
+        "tvl": true,
+        "yields": false
+    },
+    "5753": {
+        "name": "moveflow",
+        "tvl": true,
+        "yields": false
+    },
+    "5754": {
+        "name": "voltage-v4",
+        "tvl": true,
+        "yields": false
+    },
+    "5755": {
+        "name": "vicuna-lending",
+        "tvl": true,
+        "yields": false
+    },
+    "5756": {
+        "name": "krystal",
         "tvl": true,
         "yields": false
     },
@@ -34822,6 +34840,11 @@
     },
     "parent#verylongswap": {
         "name": "verylongswap",
+        "yields": false,
+        "tvl": true
+    },
+    "parent#vicuna": {
+        "name": "vicuna-finance",
         "yields": false,
         "tvl": true
     },
