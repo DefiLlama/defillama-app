@@ -4875,8 +4875,7 @@
     "939": {
         "name": "r-u-generous",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "940": {
         "name": "soda-protocol",
@@ -9584,7 +9583,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -14153,8 +14151,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -25544,7 +25541,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
