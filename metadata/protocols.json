@@ -20927,7 +20927,8 @@
     "3805": {
         "name": "shekelswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3806": {
         "name": "rollup-finance-stake",
@@ -24418,7 +24419,7 @@
     },
     "4433": {
         "name": "kriya-strats",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4434": {
@@ -31404,6 +31405,11 @@
     },
     "5746": {
         "name": "beraborrow",
+        "tvl": true,
+        "yields": false
+    },
+    "5747": {
+        "name": "straxswap",
         "tvl": true,
         "yields": false
     },

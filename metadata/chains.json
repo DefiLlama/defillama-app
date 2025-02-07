@@ -1930,6 +1930,11 @@
         "gecko_id": "stepex",
         "tokenSymbol": "SPEX"
     },
+    "stratis": {
+        "name": "Stratis",
+        "gecko_id": "stratis",
+        "tokenSymbol": "STRAX"
+    },
     "stride": {
         "name": "Stride",
         "inflows": true,
