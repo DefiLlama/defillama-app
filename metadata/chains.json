@@ -1822,6 +1822,9 @@
         "gecko_id": "sifchain",
         "tokenSymbol": "EROWAN"
     },
+    "silicon-zkevm": {
+        "name": "Silicon zkEVM"
+    },
     "skale-europa": {
         "name": "SKALE Europa"
     },

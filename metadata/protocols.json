@@ -11301,8 +11301,7 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2109": {
         "name": "pyeswap",
@@ -13617,7 +13616,6 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -18504,8 +18502,7 @@
     "3380": {
         "name": "baso-finance",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "3381": {
         "name": "thegoblins",
@@ -21671,8 +21668,7 @@
     "3965": {
         "name": "dojoswap-amm",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3966": {
         "name": "baptswap-v2",
@@ -22180,8 +22176,7 @@
     "4056": {
         "name": "dojoswap-lsd",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4057": {
         "name": "swapr-v3",
@@ -23218,7 +23213,8 @@
         "name": "baseline-protocol",
         "tvl": true,
         "yields": false,
-        "forks": true
+        "forks": true,
+        "liquidity": true
     },
     "4235": {
         "name": "lens-protocol",
@@ -31292,6 +31288,16 @@
         "tvl": true,
         "yields": false
     },
+    "5748": {
+        "name": "fizzswap-v2",
+        "tvl": true,
+        "yields": false
+    },
+    "5749": {
+        "name": "fizzswap-v3",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -32289,8 +32295,7 @@
     "parent#dojoswap": {
         "name": "dojoswap",
         "yields": false,
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "parent#dopex": {
         "name": "stryke",
@@ -32516,7 +32521,8 @@
     },
     "parent#fizzswap": {
         "name": "fizzswap",
-        "yields": false
+        "yields": false,
+        "tvl": true
     },
     "parent#fjord-foundry": {
         "name": "fjord-foundry",
