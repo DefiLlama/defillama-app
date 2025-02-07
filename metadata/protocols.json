@@ -6267,8 +6267,7 @@
     "1195": {
         "name": "instrumental-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1196": {
         "name": "chikn-farm",
@@ -31250,7 +31249,7 @@
         "aggregator": true
     },
     "5742": {
-        "name": "beraswap",
+        "name": "bex",
         "tvl": true,
         "yields": false
     },
@@ -31299,7 +31298,7 @@
         "yields": false
     },
     "5751": {
-        "name": "concrete-ethena",
+        "name": "concrete",
         "tvl": true,
         "yields": false
     },
