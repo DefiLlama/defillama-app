@@ -808,8 +808,7 @@
         "name": "futureswap",
         "tvl": true,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "229": {
         "name": "gnosis-protocol-v1",
@@ -1039,8 +1038,7 @@
     "267": {
         "name": "s-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "269": {
         "name": "yfii",
@@ -3705,6 +3703,7 @@
         "name": "luaswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "709": {
@@ -9583,6 +9582,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -31291,6 +31291,16 @@
     },
     "5749": {
         "name": "fizzswap-v3",
+        "tvl": true,
+        "yields": false
+    },
+    "5750": {
+        "name": "laika-ai",
+        "tvl": false,
+        "yields": false
+    },
+    "5751": {
+        "name": "concrete-ethena",
         "tvl": true,
         "yields": false
     },
