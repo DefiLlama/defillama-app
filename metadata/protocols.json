@@ -9035,6 +9035,7 @@
         "yields": true,
         "forks": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -11300,7 +11301,8 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2109": {
         "name": "pyeswap",
@@ -13615,6 +13617,7 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -18501,7 +18504,8 @@
     "3380": {
         "name": "baso-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "3381": {
         "name": "thegoblins",
@@ -32509,6 +32513,10 @@
         "name": "fixes-world",
         "yields": false,
         "tvl": true
+    },
+    "parent#fizzswap": {
+        "name": "fizzswap",
+        "yields": false
     },
     "parent#fjord-foundry": {
         "name": "fjord-foundry",
