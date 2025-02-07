@@ -1304,8 +1304,7 @@
     "312": {
         "name": "stacker-ventures",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "313": {
         "name": "viperswap",
@@ -6041,8 +6040,7 @@
     "1148": {
         "name": "amogus-dao",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1149": {
         "name": "koala-defi",
@@ -11516,7 +11514,6 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -24304,7 +24301,7 @@
     },
     "4433": {
         "name": "kriya-strats",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4434": {
@@ -29736,7 +29733,7 @@
     },
     "5437": {
         "name": "taraswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -31257,7 +31254,7 @@
         "yields": false
     },
     "5741": {
-        "name": "enso-finance",
+        "name": "enso",
         "tvl": true,
         "yields": false,
         "aggregator": true
@@ -31974,6 +31971,9 @@
         "revenue": true,
         "dexs": true,
         "emissions": true
+    },
+    "parent#canary": {
+        "activeUsers": true
     },
     "parent#cap-finance": {
         "name": "cap-finance",
@@ -32981,6 +32981,7 @@
     "parent#kodiak": {
         "name": "kodiak",
         "yields": false,
+        "tvl": true,
         "raises": true
     },
     "parent#koi-finance": {
