@@ -193,6 +193,7 @@ export const scams = [
 	'AbstraDEX',
 	'Honeyswap',
 	'YFII',
+	'BeraSwap',
 	'Sboom'
 ]
 
