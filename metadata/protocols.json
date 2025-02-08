@@ -15150,8 +15150,7 @@
     "2801": {
         "name": "spoon-exchange",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2802": {
         "name": "hashdao-finance",
@@ -31314,7 +31313,10 @@
         "name": "hyperliquid-spot-orderbook",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "chain#1": {
         "fees": true,
@@ -32835,6 +32837,9 @@
         "yields": false,
         "tvl": true,
         "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true,
         "perps": true
     },
     "parent#icecreamswap": {
