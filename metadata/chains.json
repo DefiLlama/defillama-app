@@ -524,7 +524,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -965,7 +964,6 @@
     "hyperliquid": {
         "name": "Hyperliquid",
         "fees": true,
-        "dexs": true,
         "derivatives": true,
         "chainAssets": true
     },
@@ -1568,6 +1566,7 @@
     },
     "penumbra": {
         "name": "Penumbra",
+        "dexs": true,
         "gecko_id": "penumbra",
         "tokenSymbol": "UM"
     },

@@ -15702,8 +15702,7 @@
     "2897": {
         "name": "superlauncher",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2898": {
         "name": "liondex",
@@ -18692,8 +18691,7 @@
     "3417": {
         "name": "unclesam-protocol",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3418": {
         "name": "meowl",
@@ -24528,11 +24526,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true
-    },
-    "4482": {
-        "fees": true,
-        "revenue": true,
-        "dexs": true
     },
     "4483": {
         "name": "volcano",
@@ -31311,7 +31304,30 @@
         "tvl": true,
         "yields": false
     },
+    "5757": {
+        "name": "stratis-liquid-staking",
+        "tvl": true,
+        "yields": false
+    },
+    "5758": {
+        "name": "beralis-v2",
+        "tvl": true,
+        "yields": false
+    },
+    "5759": {
+        "name": "beralis-v3",
+        "tvl": true,
+        "yields": false
+    },
+    "5760": {
+        "name": "snake-finance",
+        "tvl": true,
+        "yields": false
+    },
     "5761": {
+        "name": "hyperliquid-spot-orderbook",
+        "tvl": true,
+        "yields": false,
         "liquidity": true
     },
     "chain#1": {
@@ -31848,7 +31864,8 @@
     },
     "parent#beralis": {
         "name": "beralis-dex",
-        "yields": false
+        "yields": false,
+        "tvl": true
     },
     "parent#beta-finance": {
         "name": "beta-finance",
@@ -32836,9 +32853,6 @@
         "yields": false,
         "tvl": true,
         "liquidity": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true,
         "perps": true
     },
     "parent#icecreamswap": {
