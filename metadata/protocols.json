@@ -1178,8 +1178,7 @@
     "289": {
         "name": "yetiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "290": {
         "name": "penguin-finance",
@@ -1476,7 +1475,8 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "339": {
         "name": "lien",
@@ -1815,8 +1815,7 @@
     "391": {
         "name": "pantherswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "392": {
         "name": "wardenswap",
@@ -2047,7 +2046,8 @@
         "name": "bamboodefi",
         "tvl": true,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "430": {
         "name": "acumen",
@@ -2854,7 +2854,6 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -3207,6 +3206,7 @@
         "yields": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -3700,7 +3700,6 @@
         "name": "luaswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "709": {
@@ -5255,8 +5254,7 @@
     "1010": {
         "name": "ice-dao",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1011": {
         "name": "papa-dao",
@@ -5943,8 +5941,7 @@
     "1133": {
         "name": "ice-colony",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1134": {
         "name": "duckydefi",
@@ -8968,8 +8965,7 @@
     "1690": {
         "name": "zombie-network",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1691": {
         "name": "halofi",
@@ -9025,7 +9021,6 @@
         "yields": true,
         "forks": true,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -10139,7 +10134,8 @@
     "1897": {
         "name": "uplift-dao",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1898": {
         "name": "waterfall-wtf",
@@ -10646,7 +10642,6 @@
         "name": "icecreamswap-v2",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "1991": {
@@ -11496,7 +11491,6 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -12801,6 +12795,7 @@
         "name": "oreoswap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "activeUsers": true
     },
     "2385": {
@@ -13070,7 +13065,8 @@
     "2429": {
         "name": "paraluni-dex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2430": {
         "name": "waterfall-dex",
@@ -13674,8 +13670,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -14146,7 +14141,8 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -25518,6 +25514,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -26217,8 +26214,7 @@
     "4803": {
         "name": "icecreamswap-v3",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4804": {
         "name": "soroswap",
@@ -32859,7 +32855,6 @@
         "name": "icecreamswap",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "dexs": true
     },
     "parent#idex": {
@@ -33733,6 +33728,9 @@
         "name": "paraluni",
         "yields": false,
         "tvl": true
+    },
+    "parent#paraspace": {
+        "activeUsers": true
     },
     "parent#parax": {
         "name": "parallel-super-app",
