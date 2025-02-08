@@ -11530,7 +11530,7 @@
     "2139": {
         "name": "sommelier",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true,
         "raises": true
     },
