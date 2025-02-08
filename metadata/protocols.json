@@ -13561,8 +13561,7 @@
     "2509": {
         "name": "businessbuildersnfts",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2510": {
         "name": "dam-finance",
@@ -26738,7 +26737,7 @@
     },
     "4879": {
         "name": "clearpool-tpool",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "liquidity": true
     },
