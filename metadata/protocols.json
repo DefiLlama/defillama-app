@@ -244,7 +244,8 @@
     "139": {
         "name": "snowswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "140": {
         "name": "kava-lend",
@@ -2390,8 +2391,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "484": {
         "name": "marinade-liquid-staking",
@@ -3956,7 +3956,8 @@
     "754": {
         "name": "bossswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "755": {
         "name": "arrow",
@@ -6722,7 +6723,8 @@
     "1284": {
         "name": "paladin-dao",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1285": {
         "name": "alphadex",
@@ -12193,7 +12195,8 @@
     "2263": {
         "name": "snowflake-exchange",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2264": {
         "name": "orderly-perps",
@@ -28142,8 +28145,7 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "5158": {
         "name": "enosys-amm-v3",
