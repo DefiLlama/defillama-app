@@ -519,8 +519,7 @@
         "liquidity": true,
         "raises": true,
         "fees": true,
-        "revenue": true,
-        "emissions": true
+        "revenue": true
     },
     "183": {
         "name": "wing-finance",
@@ -1318,8 +1317,7 @@
     "315": {
         "name": "tulip-protocol",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "316": {
         "name": "secretswap",
@@ -6696,8 +6694,7 @@
     "1279": {
         "name": "tulip",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1280": {
         "name": "tornado-finance",
@@ -7541,8 +7538,7 @@
         "tvl": true,
         "yields": true,
         "treasury": true,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "1434": {
         "name": "newspace-finance",
@@ -13258,7 +13254,7 @@
     "2467": {
         "name": "zyberswap-amm",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true,
         "fees": true,
         "revenue": true,
@@ -32069,8 +32065,7 @@
         "forks": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true,
-        "emissions": true
+        "revenue": true
     },
     "parent#charm-finance": {
         "name": "charm-finance",
@@ -35023,7 +35018,7 @@
     },
     "parent#zyberswap": {
         "name": "zyberswap",
-        "yields": true,
+        "yields": false,
         "tvl": true,
         "governance": true,
         "treasury": true,
