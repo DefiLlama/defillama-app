@@ -21949,7 +21949,8 @@
     "4021": {
         "name": "creampan-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4022": {
         "name": "pyth-network",
@@ -32003,6 +32004,9 @@
         "revenue": true,
         "dexs": true,
         "emissions": true
+    },
+    "parent#canary": {
+        "activeUsers": true
     },
     "parent#cap-finance": {
         "name": "cap-finance",
