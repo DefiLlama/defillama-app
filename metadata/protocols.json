@@ -1857,7 +1857,6 @@
         "name": "apeswap-amm",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -7748,8 +7747,7 @@
     "1471": {
         "name": "bethash",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1472": {
         "name": "electrik-finance",
@@ -10373,8 +10371,7 @@
     "1940": {
         "name": "apeswap-lending",
         "tvl": true,
-        "yields": true,
-        "liquidity": true
+        "yields": true
     },
     "1941": {
         "name": "lago-bridge",
@@ -17641,8 +17638,7 @@
     "3244": {
         "name": "one-dex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3245": {
         "name": "venus-isolated-pools",
@@ -22743,8 +22739,7 @@
     "4155": {
         "name": "apebond-staking",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4156": {
         "name": "pythagorean",
@@ -31625,7 +31620,6 @@
         "yields": true,
         "tvl": true,
         "governance": true,
-        "liquidity": true,
         "activeUsers": true,
         "fees": true,
         "revenue": true,
