@@ -13065,7 +13065,8 @@
     "2429": {
         "name": "paraluni-dex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2430": {
         "name": "waterfall-dex",
