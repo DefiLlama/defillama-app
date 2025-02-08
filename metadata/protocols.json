@@ -13255,7 +13255,6 @@
         "name": "zyberswap-amm",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -13617,7 +13616,6 @@
         "name": "zyberswap-stableswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -14021,7 +14019,6 @@
         "name": "zyberswap-v3",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -32011,9 +32008,6 @@
         "dexs": true,
         "emissions": true
     },
-    "parent#canary": {
-        "activeUsers": true
-    },
     "parent#cap-finance": {
         "name": "cap-finance",
         "yields": false,
@@ -35022,7 +35016,6 @@
         "tvl": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
         "activeUsers": true,
         "fees": true,
         "revenue": true,
