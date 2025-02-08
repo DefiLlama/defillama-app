@@ -3106,8 +3106,7 @@
     "605": {
         "name": "telos-swap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "606": {
         "name": "rocketswap",
@@ -10649,7 +10648,6 @@
         "name": "sphynx",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "1993": {
