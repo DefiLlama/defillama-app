@@ -427,8 +427,7 @@
     "168": {
         "name": "dev-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "169": {
         "name": "basis-cash",
@@ -11282,7 +11281,8 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2109": {
         "name": "pyeswap",
