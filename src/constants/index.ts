@@ -193,7 +193,10 @@ export const scams = [
 	'AbstraDEX',
 	'Honeyswap',
 	'YFII',
-	'Sboom'
+	'Sboom',
+	'Beralis Dex',
+	'Beralis V2',
+	'Beralis V3'
 ]
 
 export const removedCategories = ['Basis Trading', 'RWA', 'Infrastructure', 'Staking Pool']
