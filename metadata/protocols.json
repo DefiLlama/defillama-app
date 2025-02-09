@@ -428,7 +428,8 @@
     "168": {
         "name": "dev-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "169": {
         "name": "basis-cash",
