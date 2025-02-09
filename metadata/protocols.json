@@ -3049,6 +3049,7 @@
         "name": "flux-protocol",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "raises": true
     },
     "597": {
@@ -5581,8 +5582,7 @@
     "1070": {
         "name": "nacho-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1071": {
         "name": "polkamarkets",
@@ -7064,7 +7064,8 @@
     "1349": {
         "name": "degen-haus",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1350": {
         "name": "treasure",
@@ -7704,8 +7705,7 @@
     "1465": {
         "name": "prism-protocol",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1466": {
         "name": "alex",
@@ -10238,7 +10238,6 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
