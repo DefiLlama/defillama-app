@@ -12580,8 +12580,7 @@
     "2347": {
         "name": "rbx",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2348": {
         "name": "infinitorr",
@@ -13658,8 +13657,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -25699,8 +25697,7 @@
     "4713": {
         "name": "earlyfans",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4714": {
         "name": "blastup",
