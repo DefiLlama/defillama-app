@@ -3122,7 +3122,8 @@
         "yields": false,
         "governance": true,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "608": {
         "name": "cap",
@@ -6934,7 +6935,8 @@
     "1323": {
         "name": "poopsicle",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1324": {
         "name": "furylabs-finance",
@@ -9568,8 +9570,7 @@
     "1800": {
         "name": "argo-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1801": {
         "name": "metavault.trade",
@@ -18050,7 +18051,8 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "3315": {
         "name": "crescentswap",
@@ -30597,7 +30599,7 @@
     },
     "5616": {
         "name": "republic-note",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "5617": {
