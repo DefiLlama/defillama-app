@@ -1178,7 +1178,8 @@
     "289": {
         "name": "yetiswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "290": {
         "name": "penguin-finance",
@@ -4034,8 +4035,7 @@
     "785": {
         "name": "lootswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "786": {
         "name": "bagels-finance",
@@ -6991,8 +6991,7 @@
     "1334": {
         "name": "pearzap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1335": {
         "name": "shiroswap",
@@ -9294,8 +9293,7 @@
     "1751": {
         "name": "solily-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1752": {
         "name": "yelay-v1",
@@ -9730,6 +9728,7 @@
         "name": "sharkswap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "1829": {
@@ -12665,7 +12664,6 @@
         "tvl": true,
         "yields": false,
         "governance": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -14421,6 +14419,7 @@
         "name": "wefi",
         "tvl": true,
         "yields": true,
+        "activeUsers": true,
         "perps": true
     },
     "2667": {
@@ -18822,8 +18821,7 @@
         "name": "loot--dao",
         "tvl": false,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "3444": {
         "name": "liquid-finance-protocol",
@@ -23002,7 +23000,8 @@
     "4204": {
         "name": "rockswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4205": {
         "name": "cygnus-finance",
@@ -31209,7 +31208,10 @@
     "5742": {
         "name": "bex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5743": {
         "name": "kodiak-v2",
