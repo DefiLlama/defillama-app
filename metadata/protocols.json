@@ -7170,8 +7170,7 @@
     "1367": {
         "name": "wowswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1368": {
         "name": "astroswap",
@@ -7971,7 +7970,6 @@
         "tvl": true,
         "yields": true,
         "governance": true,
-        "liquidity": true,
         "raises": true
     },
     "1515": {
@@ -13870,8 +13868,7 @@
     "2572": {
         "name": "nucleon",
         "tvl": true,
-        "yields": true,
-        "liquidity": true
+        "yields": true
     },
     "2573": {
         "name": "quantumx-network",
@@ -16059,8 +16056,7 @@
     "2963": {
         "name": "memedex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2964": {
         "name": "cozy-v2",
