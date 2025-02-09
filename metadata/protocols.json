@@ -2382,8 +2382,7 @@
     "482": {
         "name": "shibance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "483": {
         "name": "nftx",
@@ -5614,8 +5613,7 @@
     "1075": {
         "name": "spiritdao",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1076": {
         "name": "arbicheems",
@@ -6857,7 +6855,8 @@
     "1308": {
         "name": "frog-nation-farm",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1309": {
         "name": "gaia-dao",
@@ -7377,8 +7376,7 @@
     "1403": {
         "name": "scranton-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1404": {
         "name": "gotchivault",
@@ -11923,7 +11921,8 @@
     "2215": {
         "name": "frog-swap",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2216": {
         "name": "kekswap",
@@ -16846,7 +16845,8 @@
     "3099": {
         "name": "froggy-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3100": {
         "name": "coindrip",
@@ -19373,8 +19373,7 @@
     "3536": {
         "name": "punkswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3537": {
         "name": "thena-alpha",
