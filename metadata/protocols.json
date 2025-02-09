@@ -2752,6 +2752,7 @@
         "name": "soulswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "545": {
@@ -3607,7 +3608,8 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "693": {
         "name": "superfluid",
@@ -17634,7 +17636,8 @@
     "3244": {
         "name": "one-dex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3245": {
         "name": "venus-isolated-pools",
@@ -24152,8 +24155,7 @@
     "4417": {
         "name": "core-markets",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4418": {
         "name": "ithaca-protocol",
