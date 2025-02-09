@@ -8377,7 +8377,8 @@
     "1588": {
         "name": "diamond-coin",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1589": {
         "name": "puzzle-swap",
