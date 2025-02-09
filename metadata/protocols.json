@@ -4937,7 +4937,6 @@
         "tvl": true,
         "yields": false,
         "forks": true,
-        "liquidity": true,
         "hacks": true,
         "raises": true,
         "activeUsers": true,
@@ -5637,8 +5636,7 @@
     "1071": {
         "name": "polkamarkets",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1072": {
         "name": "ifswap",
@@ -6414,7 +6412,8 @@
     "1214": {
         "name": "karma-dao",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1215": {
         "name": "ovr",
@@ -23128,8 +23127,7 @@
     "4204": {
         "name": "rockswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4205": {
         "name": "cygnus-finance",
