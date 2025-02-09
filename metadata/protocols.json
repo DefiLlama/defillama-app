@@ -9821,8 +9821,7 @@
     "1845": {
         "name": "orbitalswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1846": {
         "name": "kefirswap",
@@ -16949,8 +16948,7 @@
     "3120": {
         "name": "orbiter-one",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3121": {
         "name": "pearl-v1",
@@ -23053,8 +23051,7 @@
     "4213": {
         "name": "orbit-protocol",
         "tvl": true,
-        "yields": true,
-        "liquidity": true
+        "yields": true
     },
     "4214": {
         "name": "blitz-perps",
@@ -31292,7 +31289,8 @@
     "5759": {
         "name": "beralis-v3",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5760": {
         "name": "snake-finance",
@@ -31842,7 +31840,8 @@
     "parent#beralis": {
         "name": "beralis-dex",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "revenue": true
     },
     "parent#beta-finance": {
         "name": "beta-finance",
