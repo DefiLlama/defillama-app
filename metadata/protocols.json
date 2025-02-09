@@ -3086,6 +3086,7 @@
         "tvl": true,
         "yields": false,
         "forks": true,
+        "liquidity": true,
         "activeUsers": true,
         "dexs": true
     },
