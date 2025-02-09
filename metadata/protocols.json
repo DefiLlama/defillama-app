@@ -3894,6 +3894,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
+        "liquidity": true,
         "hacks": true,
         "fees": true,
         "revenue": true
@@ -5511,8 +5512,7 @@
     "1056": {
         "name": "redacted-protocol",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1057": {
         "name": "linear-finance",
@@ -12278,7 +12278,7 @@
     "2285": {
         "name": "sentiment",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "hacks": true,
         "raises": true
     },
@@ -12541,7 +12541,7 @@
     "2339": {
         "name": "lodestar-v0",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true,
         "hacks": true
     },
