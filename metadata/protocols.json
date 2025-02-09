@@ -1176,8 +1176,7 @@
     "289": {
         "name": "yetiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "290": {
         "name": "penguin-finance",
@@ -1812,8 +1811,7 @@
     "391": {
         "name": "pantherswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "392": {
         "name": "wardenswap",
@@ -2847,7 +2845,6 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -6377,8 +6374,7 @@
     "1216": {
         "name": "farm-hero",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1217": {
         "name": "parallel-polkadot-crowdloan",
@@ -18051,8 +18047,7 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "3315": {
         "name": "crescentswap",
@@ -28493,8 +28488,7 @@
     "5220": {
         "name": "metahub-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5221": {
         "name": "raindex",
