@@ -1929,7 +1929,8 @@
     "409": {
         "name": "cafeswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "410": {
         "name": "swamp-finance",
@@ -2330,8 +2331,7 @@
     "473": {
         "name": "baguette",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "474": {
         "name": "canary",
@@ -7565,8 +7565,7 @@
     "1437": {
         "name": "nightmare-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1438": {
         "name": "treehouse-finance",
@@ -18678,7 +18677,8 @@
     "3417": {
         "name": "unclesam-protocol",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3418": {
         "name": "meowl",
@@ -19520,7 +19520,8 @@
     "3565": {
         "name": "ball-exchange",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3566": {
         "name": "friend3",
@@ -31332,6 +31333,16 @@
         "tvl": true,
         "yields": false,
         "treasury": true
+    },
+    "5763": {
+        "name": "multichainz",
+        "tvl": true,
+        "yields": false
+    },
+    "5764": {
+        "name": "beracaine",
+        "tvl": true,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
