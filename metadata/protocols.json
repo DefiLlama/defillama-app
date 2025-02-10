@@ -497,8 +497,7 @@
         "name": "varen",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "liquidity": true
+        "governance": true
     },
     "181": {
         "name": "mantra-dao",
@@ -2416,8 +2415,7 @@
     "487": {
         "name": "sunny",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "488": {
         "name": "ubeswap-v2",
@@ -6788,7 +6786,8 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "1296": {
         "name": "zipswap",
@@ -7543,8 +7542,7 @@
     "1434": {
         "name": "newspace-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1435": {
         "name": "cemetery-finance",
@@ -11746,7 +11744,8 @@
     "2186": {
         "name": "usdfi-lending",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2187": {
         "name": "dolomite",
@@ -11768,7 +11767,8 @@
         "name": "sushi-bentobox",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2191": {
         "name": "omnidex-lend",
@@ -13657,7 +13657,8 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -28036,7 +28037,8 @@
     "5139": {
         "name": "cybro",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5140": {
         "name": "elixir",
