@@ -2103,7 +2103,8 @@
         "yields": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "439": {
         "name": "the-grand-banks",
@@ -3265,6 +3266,7 @@
         "tvl": false,
         "yields": false,
         "governance": true,
+        "forks": true,
         "liquidity": true,
         "hacks": true
     },
@@ -4035,7 +4037,8 @@
     "785": {
         "name": "lootswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "786": {
         "name": "bagels-finance",
@@ -15013,7 +15016,6 @@
         "name": "auragi-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -15234,7 +15236,6 @@
         "tvl": true,
         "yields": false,
         "forks": true,
-        "liquidity": true,
         "emissions": true
     },
     "2818": {
@@ -18826,7 +18827,8 @@
         "name": "loot--dao",
         "tvl": false,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "3444": {
         "name": "liquid-finance-protocol",
@@ -24658,7 +24660,7 @@
     },
     "4511": {
         "name": "pay-protocol",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4512": {
@@ -30606,7 +30608,7 @@
     },
     "5616": {
         "name": "republic-note",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5617": {
@@ -31328,7 +31330,8 @@
     "5762": {
         "name": "zoo-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "treasury": true
     },
     "chain#1": {
         "fees": true,
@@ -34140,6 +34143,7 @@
         "name": "smbswap",
         "yields": false,
         "tvl": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
