@@ -2844,8 +2844,7 @@
     "559": {
         "name": "dapp-account-dao",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "561": {
         "name": "alita-finance",
@@ -18631,7 +18630,7 @@
     "3408": {
         "name": "lynex-v2",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -33209,7 +33208,7 @@
     },
     "parent#lynex": {
         "name": "lynex",
-        "yields": false,
+        "yields": true,
         "tvl": true,
         "fees": true,
         "revenue": true,
