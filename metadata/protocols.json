@@ -6514,7 +6514,8 @@
     "1242": {
         "name": "sleepearn-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1243": {
         "name": "stackswap",
