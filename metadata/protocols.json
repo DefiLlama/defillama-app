@@ -13909,8 +13909,7 @@
         "name": "king-finance",
         "tvl": false,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "2580": {
         "name": "nuls-pocm",
