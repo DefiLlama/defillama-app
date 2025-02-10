@@ -520,7 +520,8 @@
         "liquidity": true,
         "raises": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "183": {
         "name": "wing-finance",
@@ -7588,7 +7589,8 @@
         "tvl": true,
         "yields": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "emissions": true
     },
     "1434": {
         "name": "newspace-finance",
@@ -15549,7 +15551,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -27533,6 +27535,7 @@
         "name": "meridian-swap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "5027": {
@@ -32193,7 +32196,8 @@
         "forks": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "parent#charm-finance": {
         "name": "charm-finance",
