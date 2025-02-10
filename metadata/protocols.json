@@ -17636,6 +17636,7 @@
         "tvl": true,
         "yields": true,
         "treasury": true,
+        "liquidity": true,
         "raises": true
     },
     "3244": {
@@ -18631,6 +18632,7 @@
         "name": "lynex-v2",
         "tvl": true,
         "yields": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -18701,7 +18703,8 @@
     "3421": {
         "name": "mendi-finance",
         "tvl": true,
-        "yields": true
+        "yields": true,
+        "liquidity": true
     },
     "3422": {
         "name": "orange-finance",
@@ -21322,6 +21325,7 @@
         "name": "lynex-v1",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -33210,6 +33214,7 @@
         "name": "lynex",
         "yields": true,
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
