@@ -9964,8 +9964,7 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1872": {
         "name": "rift-finance",

@@ -206,6 +206,7 @@
         "name": "Berachain",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "gecko_id": "berachain-bera",
         "tokenSymbol": "BERA"
     },
