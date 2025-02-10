@@ -2075,8 +2075,7 @@
     "432": {
         "name": "longdrink",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "433": {
         "name": "daoventures",
@@ -5005,7 +5004,8 @@
     "955": {
         "name": "houses-of-rome",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "956": {
         "name": "swarm-markets",
@@ -7791,7 +7791,8 @@
     "1469": {
         "name": "btngroup",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1470": {
         "name": "nereus-finance",
@@ -8179,7 +8180,8 @@
         "name": "drip",
         "tvl": false,
         "yields": false,
-        "forks": true
+        "forks": true,
+        "liquidity": true
     },
     "1544": {
         "name": "concentrator",
@@ -21887,7 +21889,8 @@
     "3986": {
         "name": "dropcopy",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3987": {
         "name": "bracketx",
@@ -28515,7 +28518,7 @@
     "5199": {
         "name": "folks-finance-xchain",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "5200": {
         "name": "amulet-finance",
@@ -31221,7 +31224,7 @@
     "5719": {
         "name": "wink",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "5720": {
         "name": "club-musangking",
