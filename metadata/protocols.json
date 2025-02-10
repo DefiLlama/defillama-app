@@ -16468,7 +16468,8 @@
     "3034": {
         "name": "eazyswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3035": {
         "name": "dexilla",
@@ -17513,7 +17514,8 @@
     "3222": {
         "name": "tenx",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3223": {
         "name": "tendie-swap",
@@ -19800,7 +19802,8 @@
     "3619": {
         "name": "skydrome",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3620": {
         "name": "xena-finance",
