@@ -2427,6 +2427,7 @@
         "name": "moola-market",
         "tvl": true,
         "yields": true,
+        "liquidity": true,
         "hacks": true,
         "raises": true
     },
@@ -19828,8 +19829,7 @@
     "3625": {
         "name": "nano-swap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3626": {
         "name": "spacefi-scroll",
