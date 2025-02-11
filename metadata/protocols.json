@@ -2056,8 +2056,7 @@
     "431": {
         "name": "sun.io",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "432": {
         "name": "longdrink",
@@ -3601,7 +3600,6 @@
         "name": "sunswap-v1",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -15271,7 +15269,8 @@
     "2824": {
         "name": "abc-pool",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2825": {
         "name": "nostra-money-market",
@@ -16306,7 +16305,6 @@
         "name": "sunswap-v2",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -22014,7 +22012,6 @@
         "name": "sunswap-v3",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -34403,7 +34400,6 @@
         "name": "sun",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
