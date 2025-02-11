@@ -4425,7 +4425,8 @@
     "857": {
         "name": "aliensfarm",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "858": {
         "name": "piggybank-dao",
@@ -11154,7 +11155,8 @@
     "2086": {
         "name": "rage-trade-v1-(deprecated)",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2087": {
         "name": "chee-finance",
