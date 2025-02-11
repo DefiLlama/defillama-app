@@ -15224,7 +15224,8 @@
     "2799": {
         "name": "monopoly-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2800": {
         "name": "beekava",
@@ -16166,7 +16167,8 @@
     "2963": {
         "name": "memedex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2964": {
         "name": "cozy-v2",
@@ -21166,7 +21168,8 @@
     "3856": {
         "name": "peerme",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3857": {
         "name": "deri-v4",
@@ -25647,7 +25650,8 @@
     "4679": {
         "name": "dragon-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4680": {
         "name": "iswap-tech",
