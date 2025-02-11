@@ -1451,8 +1451,7 @@
     "335": {
         "name": "flashstake-old",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "336": {
         "name": "sifchain",
@@ -3614,8 +3613,7 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "693": {
         "name": "superfluid",
@@ -4192,8 +4190,7 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "816": {
         "name": "xsigma",
@@ -6792,7 +6789,6 @@
         "name": "burgerswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "hacks": true,
         "activeUsers": true
     },
@@ -11324,7 +11320,6 @@
         "name": "flashstake",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "emissions": true
     },
     "2116": {
@@ -15692,7 +15687,6 @@
         "tvl": true,
         "yields": false,
         "treasury": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -24645,8 +24639,7 @@
     "4509": {
         "name": "enki-protocol",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4510": {
         "name": "revoswap",
@@ -28233,7 +28226,8 @@
     "5174": {
         "name": "four.meme",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "hacks": true
     },
     "5175": {
         "name": "hedgehog-markets",
@@ -30871,7 +30865,10 @@
     "5665": {
         "name": "artexswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5666": {
         "name": "babypie",
@@ -31344,10 +31341,23 @@
     "5765": {
         "name": "mondrian-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5766": {
         "name": "bulla-exchange",
+        "tvl": true,
+        "yields": false
+    },
+    "5767": {
+        "name": "ucs-finance",
+        "tvl": true,
+        "yields": false
+    },
+    "5768": {
+        "name": "arkis",
         "tvl": true,
         "yields": false
     },
