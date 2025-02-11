@@ -2756,7 +2756,6 @@
         "name": "soulswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "545": {
@@ -3120,8 +3119,7 @@
         "yields": false,
         "governance": true,
         "liquidity": true,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "608": {
         "name": "cap",
@@ -11696,6 +11694,7 @@
         "name": "fortress-loans",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "hacks": true
     },
     "2178": {
@@ -11918,7 +11917,7 @@
     },
     "2214": {
         "name": "bridgekek",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2215": {
@@ -16026,7 +16025,6 @@
         "name": "holdstation-defutures",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -19576,7 +19574,6 @@
         "tvl": true,
         "yields": true,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -29975,7 +29972,6 @@
         "name": "holdstation-swap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -31146,7 +31142,6 @@
         "name": "looter",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true
     },
@@ -32824,7 +32819,6 @@
         "name": "holdstation",
         "yields": true,
         "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
