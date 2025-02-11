@@ -31339,6 +31339,16 @@
         "tvl": true,
         "yields": false
     },
+    "5765": {
+        "name": "mondrian-swap",
+        "tvl": true,
+        "yields": false
+    },
+    "5766": {
+        "name": "bulla-exchange",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
