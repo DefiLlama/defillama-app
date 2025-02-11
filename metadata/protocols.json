@@ -23986,8 +23986,7 @@
     "4383": {
         "name": "blastname",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4385": {
         "name": "poolz-network",
