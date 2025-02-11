@@ -9969,8 +9969,7 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1872": {
         "name": "rift-finance",
@@ -16964,8 +16963,7 @@
     "3122": {
         "name": "monolend",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3123": {
         "name": "stealcam",
@@ -19575,6 +19573,7 @@
         "tvl": true,
         "yields": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
