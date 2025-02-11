@@ -638,6 +638,8 @@
     },
     "edu-chain": {
         "name": "EDU Chain",
+        "fees": true,
+        "dexs": true,
         "gecko_id": "edu-coin",
         "tokenSymbol": "EDU"
     },
