@@ -957,6 +957,7 @@
         "yields": false,
         "governance": true,
         "forks": true,
+        "liquidity": true,
         "hacks": true,
         "raises": true
     },
