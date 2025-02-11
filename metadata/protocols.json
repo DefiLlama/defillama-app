@@ -9608,8 +9608,7 @@
     "1805": {
         "name": "mole",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1806": {
         "name": "phuture",
@@ -11770,8 +11769,7 @@
         "name": "sushi-bentobox",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2191": {
         "name": "omnidex-lend",
@@ -19326,8 +19324,7 @@
     "3529": {
         "name": "dip-exchange",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3530": {
         "name": "bmx-classic-perps",
@@ -27361,7 +27358,6 @@
         "name": "cyberperp",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "perps": true
     },
     "5017": {
