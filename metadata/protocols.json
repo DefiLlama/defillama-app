@@ -6074,7 +6074,8 @@
     "1160": {
         "name": "baker-guild",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1161": {
         "name": "niifi",
@@ -10869,7 +10870,8 @@
     "2035": {
         "name": "bitgert-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2036": {
         "name": "ssap",
@@ -23727,7 +23729,8 @@
     "4339": {
         "name": "velar-protocol",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "4340": {
         "name": "degendex",
