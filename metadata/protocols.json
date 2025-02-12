@@ -6973,8 +6973,7 @@
     "1331": {
         "name": "deeplock",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1332": {
         "name": "dna-dollar",
