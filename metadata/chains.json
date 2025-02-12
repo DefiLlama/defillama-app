@@ -2217,6 +2217,7 @@
     "world-chain": {
         "name": "World Chain",
         "fees": true,
+        "dexs": true,
         "aggregators": true,
         "bridge-aggregators": true,
         "chainAssets": true,

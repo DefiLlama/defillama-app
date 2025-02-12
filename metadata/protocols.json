@@ -1237,6 +1237,7 @@
         "tvl": false,
         "yields": false,
         "governance": true,
+        "liquidity": true,
         "raises": true
     },
     "301": {
@@ -1633,8 +1634,7 @@
     "363": {
         "name": "xdollar",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "364": {
         "name": "volmex",
@@ -1881,7 +1881,6 @@
         "name": "aperocket",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "hacks": true
     },
     "402": {
@@ -2330,7 +2329,8 @@
     "473": {
         "name": "baguette",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "474": {
         "name": "canary",
@@ -3699,6 +3699,7 @@
         "name": "luaswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "709": {
@@ -5481,8 +5482,7 @@
     "1051": {
         "name": "vortex-dao",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1052": {
         "name": "astroport-classic",
@@ -6567,8 +6567,7 @@
     "1252": {
         "name": "luminous-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1253": {
         "name": "hakuswap",
@@ -6816,8 +6815,7 @@
     "1301": {
         "name": "apedao",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1302": {
         "name": "sundaeswap-v2",
@@ -7241,8 +7239,7 @@
         "name": "based-v1",
         "tvl": true,
         "yields": false,
-        "forks": true,
-        "liquidity": true
+        "forks": true
     },
     "1380": {
         "name": "minimax",
@@ -9334,8 +9331,7 @@
     "1759": {
         "name": "spacefi-evmos",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1760": {
         "name": "coti-treasury",
@@ -18769,8 +18765,7 @@
     "3434": {
         "name": "spacefi-zksync",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3435": {
         "name": "astrovault",
@@ -19025,8 +19020,7 @@
     "3480": {
         "name": "based-farm",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3481": {
         "name": "solidly-v3",
@@ -19738,7 +19732,6 @@
         "name": "basedmarkets",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -19837,8 +19830,7 @@
     "3626": {
         "name": "spacefi-scroll",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3627": {
         "name": "tomo",
@@ -31835,8 +31827,7 @@
     "parent#based-finance": {
         "name": "based-finance",
         "yields": false,
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "parent#baseswap": {
         "name": "baseswap",
@@ -34242,7 +34233,6 @@
         "name": "spacefi",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "emissions": true
     },
     "parent#sparkdex": {
