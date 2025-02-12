@@ -9840,7 +9840,8 @@
     "1849": {
         "name": "acala-liquid-staking",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1850": {
         "name": "union-protocol",
@@ -10008,7 +10009,8 @@
     "1879": {
         "name": "acala-lcdot",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1880": {
         "name": "minto",
@@ -16712,6 +16714,7 @@
         "name": "zklend",
         "tvl": true,
         "yields": true,
+        "hacks": true,
         "raises": true
     },
     "3080": {
@@ -18296,8 +18299,7 @@
     "3351": {
         "name": "boobs.finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3352": {
         "name": "paladin-dullahan",
@@ -20536,7 +20538,8 @@
     "3754": {
         "name": "acala-euphrates",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3755": {
         "name": "hot-takes",
@@ -24984,7 +24987,6 @@
         "name": "rivus-dao",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "hacks": true
     },
     "4575": {
