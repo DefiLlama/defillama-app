@@ -2213,8 +2213,7 @@
     "454": {
         "name": "back-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "455": {
         "name": "zoocoin",
