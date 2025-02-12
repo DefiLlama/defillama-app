@@ -30343,7 +30343,6 @@
         "name": "shadow-exchange-clmm",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30953,8 +30952,7 @@
     "5682": {
         "name": "shadow-exchange-legacy",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5684": {
         "name": "zoo.fun",
@@ -32882,7 +32880,8 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "perps": true
+        "perps": true,
+        "emissions": true
     },
     "parent#icecreamswap": {
         "name": "icecreamswap",
@@ -34121,7 +34120,6 @@
         "name": "shadow-exchange",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
