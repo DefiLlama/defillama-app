@@ -1207,7 +1207,8 @@
         "name": "lydia",
         "tvl": true,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "294": {
         "name": "anchor",
@@ -11274,8 +11275,7 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2109": {
         "name": "pyeswap",
@@ -18269,8 +18269,7 @@
     "3346": {
         "name": "cookiebase-dex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3347": {
         "name": "meridian-finance",
@@ -18524,8 +18523,7 @@
     "3390": {
         "name": "cookiebase-farm",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3391": {
         "name": "liquid-collective",
@@ -32188,8 +32186,7 @@
     "parent#cookiebase": {
         "name": "cookiebase",
         "yields": false,
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "parent#covo-finance": {
         "name": "covo-finance",
