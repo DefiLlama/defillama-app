@@ -1985,8 +1985,7 @@
     "416": {
         "name": "westarter",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "417": {
         "name": "solyard",
@@ -8029,7 +8028,7 @@
     },
     "1515": {
         "name": "echidna-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1516": {
@@ -9351,7 +9350,8 @@
     "1751": {
         "name": "solily-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1752": {
         "name": "yelay-v1",
@@ -23977,8 +23977,7 @@
     "4363": {
         "name": "yield-wars",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4364": {
         "name": "ix-swap-rwa",
@@ -28252,11 +28251,6 @@
     },
     "5155": {
         "name": "oraclefreedollar",
-        "tvl": true,
-        "yields": false
-    },
-    "5156": {
-        "name": "cygnus-restake",
         "tvl": true,
         "yields": false
     },
