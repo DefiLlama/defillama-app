@@ -1061,6 +1061,7 @@
         "name": "honeyswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -2103,7 +2104,8 @@
         "yields": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "439": {
         "name": "the-grand-banks",
@@ -6789,7 +6791,8 @@
         "name": "burgerswap",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "1296": {
         "name": "zipswap",
@@ -12782,7 +12785,8 @@
         "name": "oreoswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2385": {
         "name": "exactly",
@@ -15443,7 +15447,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -20740,7 +20744,7 @@
         "raises": true
     },
     "3801": {
-        "name": "uniiotx",
+        "name": "bedrock-uniiotx",
         "tvl": true,
         "yields": false
     },
@@ -28873,7 +28877,7 @@
         "yields": false
     },
     "5295": {
-        "name": "unibtc-restaked",
+        "name": "bedrock-unibtc",
         "tvl": true,
         "yields": false
     },
