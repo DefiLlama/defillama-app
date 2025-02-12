@@ -6974,7 +6974,8 @@
     "1331": {
         "name": "deeplock",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1332": {
         "name": "dna-dollar",
@@ -29774,7 +29775,7 @@
     "5458": {
         "name": "pinto",
         "tvl": false,
-        "yields": false,
+        "yields": true,
         "dexs": true
     },
     "5459": {
