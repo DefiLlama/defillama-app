@@ -7977,7 +7977,7 @@
     },
     "1515": {
         "name": "echidna-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "1516": {
@@ -22631,7 +22631,8 @@
     "4136": {
         "name": "bitflow",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "4137": {
         "name": "seneca",
@@ -23730,7 +23731,9 @@
         "name": "velar-protocol",
         "tvl": true,
         "yields": false,
-        "revenue": true
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "4340": {
         "name": "degendex",
@@ -31000,7 +31003,8 @@
         "tvl": true,
         "yields": false,
         "forks": true,
-        "liquidity": true
+        "liquidity": true,
+        "dexs": true
     },
     "5695": {
         "liquidity": true
