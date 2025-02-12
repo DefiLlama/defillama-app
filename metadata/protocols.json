@@ -8206,7 +8206,8 @@
         "name": "single-finance",
         "tvl": true,
         "yields": true,
-        "governance": true
+        "governance": true,
+        "liquidity": true
     },
     "1558": {
         "name": "gogocoin",
