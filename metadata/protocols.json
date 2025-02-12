@@ -2859,7 +2859,8 @@
     "563": {
         "name": "timewarp",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "564": {
         "name": "fabric",
@@ -2920,7 +2921,8 @@
     "574": {
         "name": "fuzz-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "575": {
         "name": "coinswap-space",
@@ -4833,7 +4835,8 @@
     "931": {
         "name": "genesis-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "932": {
         "name": "xensa",
@@ -5916,8 +5919,7 @@
     "1129": {
         "name": "blackbird-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1130": {
         "name": "buffaloswap",
@@ -5932,8 +5934,7 @@
     "1132": {
         "name": "genesys",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1133": {
         "name": "ice-colony",
@@ -6980,8 +6981,7 @@
         "name": "dna-dollar",
         "tvl": false,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "1333": {
         "name": "oceanus",
