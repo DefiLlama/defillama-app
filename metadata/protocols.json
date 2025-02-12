@@ -203,7 +203,6 @@
         "yields": false,
         "governance": true,
         "forks": true,
-        "liquidity": true,
         "dexs": true
     },
     "134": {
@@ -1406,8 +1405,7 @@
     "327": {
         "name": "youswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "328": {
         "name": "steakbank-finance",
@@ -2578,7 +2576,8 @@
     "510": {
         "name": "gaj-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "511": {
         "name": "frost-finance",
@@ -2627,8 +2626,7 @@
     "520": {
         "name": "youves",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "521": {
         "name": "pizza",
@@ -4466,6 +4464,7 @@
         "name": "snowdog",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "hacks": true
     },
     "860": {
@@ -5157,7 +5156,8 @@
     "982": {
         "name": "vikingsfinance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "984": {
         "name": "galaxygoogle-dao",
@@ -6239,8 +6239,7 @@
     "1184": {
         "name": "cybertime",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1185": {
         "name": "marginswap",
@@ -6908,8 +6907,7 @@
     "1309": {
         "name": "gaia-dao",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1310": {
         "name": "zeroshift",
@@ -9283,7 +9281,8 @@
     "1739": {
         "name": "valerian",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1740": {
         "name": "linear-protocol",
@@ -21868,6 +21867,7 @@
         "name": "cleopatra-cl",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -23563,6 +23563,7 @@
         "name": "cleopatra-legacy",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -24194,8 +24195,7 @@
     "4402": {
         "name": "savmdex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4403": {
         "name": "hatom-tao-bridge",
@@ -32281,6 +32281,7 @@
         "name": "cleopatra-exchange",
         "yields": false,
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
