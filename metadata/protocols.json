@@ -4791,6 +4791,7 @@
         "name": "pika",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "activeUsers": true,
         "fees": true,
         "revenue": true,
@@ -8125,7 +8126,8 @@
     "1534": {
         "name": "strikex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1535": {
         "name": "cubo",
@@ -17967,6 +17969,7 @@
         "name": "pika-v4",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -33956,6 +33959,7 @@
         "name": "pika-protocol",
         "yields": false,
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
