@@ -1476,7 +1476,8 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "339": {
         "name": "lien",
