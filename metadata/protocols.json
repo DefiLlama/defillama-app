@@ -7836,8 +7836,7 @@
     "1479": {
         "name": "phantom-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1480": {
         "name": "xray-swap",
@@ -29943,7 +29942,7 @@
     },
     "5465": {
         "name": "vectis-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "5466": {
