@@ -2141,7 +2141,8 @@
     "445": {
         "name": "cobraswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "446": {
         "name": "miningtycoon",
@@ -26995,7 +26996,8 @@
     "4954": {
         "name": "edgex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "perps": true
     },
     "4955": {
         "name": "waxfusion",
@@ -31371,6 +31373,16 @@
         "tvl": true,
         "yields": false
     },
+    "5774": {
+        "name": "magma",
+        "tvl": true,
+        "yields": false
+    },
+    "5775": {
+        "name": "infrared-finance",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -34229,6 +34241,11 @@
     },
     "parent#sonus": {
         "name": "sonus-exchange",
+        "yields": false,
+        "tvl": true
+    },
+    "parent#sosovalue": {
+        "name": "sosovalue",
         "yields": false,
         "tvl": true
     },
