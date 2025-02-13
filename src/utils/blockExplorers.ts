@@ -127,7 +127,8 @@ const blockExplorers = {
 	ink: ['https://explorer.inkonchain.com/address/', 'Ink Explorer'],
 	sophon: ['https://explorer.sophon.xyz/address/', 'Sophon Explorer'],
 	soneium: ['https://soneium.blockscout.com/address/', 'Soneium Blockscout'],
-	berachain: ['https://beratrail.io/address/', 'Beratrail']
+	berachain: ['https://beratrail.io/address/', 'Beratrail'],
+	sty: ['https://www.storyscan.xyz/token/', 'Storyscan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
