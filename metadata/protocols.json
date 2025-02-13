@@ -4466,8 +4466,7 @@
     "865": {
         "name": "seeder-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "866": {
         "name": "reverse",
@@ -6382,7 +6381,8 @@
     "1216": {
         "name": "farm-hero",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1217": {
         "name": "parallel-polkadot-crowdloan",
@@ -7561,8 +7561,7 @@
     "1438": {
         "name": "treehouse-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1439": {
         "name": "the-don-finance",
@@ -11148,8 +11147,7 @@
     "2086": {
         "name": "rage-trade-v1-(deprecated)",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2087": {
         "name": "chee-finance",
@@ -17370,6 +17368,7 @@
         "name": "flowx-v2",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "3197": {
@@ -25013,7 +25012,8 @@
     "4582": {
         "name": "flowx-v3",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4583": {
         "name": "keller-finance-v3",
@@ -26301,6 +26301,7 @@
         "name": "flowx-aggregator",
         "tvl": false,
         "yields": false,
+        "liquidity": true,
         "aggregator": true
     },
     "4826": {
@@ -32605,6 +32606,7 @@
         "name": "flowx-finance",
         "yields": false,
         "tvl": true,
+        "liquidity": true,
         "dexs": true,
         "aggregator": true
     },
@@ -33474,7 +33476,6 @@
         "yields": true,
         "tvl": true,
         "governance": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -33770,9 +33771,6 @@
         "yields": false,
         "tvl": true
     },
-    "parent#paraspace": {
-        "activeUsers": true
-    },
     "parent#parax": {
         "name": "parallel-super-app",
         "yields": false,
@@ -33864,7 +33862,6 @@
         "tvl": true,
         "governance": true,
         "liquidity": true,
-        "activeUsers": true,
         "dexs": true
     },
     "parent#polynomial-protocol": {
