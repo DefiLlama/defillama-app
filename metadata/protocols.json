@@ -4186,8 +4186,7 @@
     "814": {
         "name": "loop-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "815": {
         "name": "pureswap",
@@ -24647,7 +24646,7 @@
     },
     "4511": {
         "name": "pay-protocol",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4512": {
