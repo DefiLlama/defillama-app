@@ -8538,8 +8538,7 @@
     "1607": {
         "name": "milko-farm",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1608": {
         "name": "kagla-finance",
@@ -14676,8 +14675,7 @@
     "2700": {
         "name": "zukeswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2701": {
         "name": "fairyswap-v2",
