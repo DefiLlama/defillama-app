@@ -18773,7 +18773,8 @@
     "3436": {
         "name": "fedex-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3437": {
         "name": "pyswap",

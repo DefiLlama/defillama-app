@@ -3,6 +3,7 @@
         "name": "Abstract",
         "fees": true,
         "dexs": true,
+        "derivatives": true,
         "chainAssets": true
     },
     "acala": {
