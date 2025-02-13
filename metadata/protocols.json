@@ -204,6 +204,7 @@
         "yields": false,
         "governance": true,
         "forks": true,
+        "liquidity": true,
         "dexs": true
     },
     "134": {
@@ -2119,7 +2120,8 @@
     "441": {
         "name": "pylon-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "442": {
         "name": "universe-xyz",
@@ -4893,7 +4895,6 @@
         "name": "knightswap-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "activeUsers": true,
         "dexs": true
     },
@@ -6132,8 +6133,7 @@
     "1170": {
         "name": "metareserve",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1172": {
         "name": "psyoptions",
@@ -11596,8 +11596,7 @@
     "2161": {
         "name": "powerswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2162": {
         "name": "ease.org",
@@ -13326,8 +13325,7 @@
     "2482": {
         "name": "citadao",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2483": {
         "name": "perennial-v1",
@@ -16703,7 +16701,8 @@
     "3076": {
         "name": "minerva",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3077": {
         "name": "fathom-amm",
@@ -17045,8 +17044,7 @@
     "3138": {
         "name": "step-app",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3139": {
         "name": "immutablex",
@@ -18804,8 +18802,7 @@
     "3440": {
         "name": "knightswap-lending",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3441": {
         "name": "autotronic",
@@ -28615,8 +28612,7 @@
     "5241": {
         "name": "m0",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5242": {
         "name": "synstation",
@@ -33105,7 +33101,6 @@
         "name": "knightswap",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "dexs": true
     },
     "parent#kodiak": {
