@@ -1952,7 +1952,8 @@
     "411": {
         "name": "pippi",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "412": {
         "name": "thorchain",
@@ -5814,8 +5815,7 @@
     "1103": {
         "name": "snowcatdao",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1104": {
         "name": "agarthadao",
@@ -7814,7 +7814,8 @@
     "1475": {
         "name": "mahadao-arth",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1476": {
         "name": "wrapped-ilcoin",
@@ -30510,7 +30511,7 @@
         "revenue": true
     },
     "5576": {
-        "name": "crossfi-xswap",
+        "name": "xswap-dex",
         "tvl": true,
         "yields": false
     },
@@ -33499,7 +33500,8 @@
         "yields": false,
         "tvl": true,
         "governance": true,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "parent#maia-dao-ecosystem": {
         "name": "maia-dao-ecosystem",
