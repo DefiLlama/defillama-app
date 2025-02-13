@@ -3729,7 +3729,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "dexs": true
     },
@@ -7318,8 +7318,7 @@
     "1393": {
         "name": "basis-markets",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1394": {
         "name": "mymine",
