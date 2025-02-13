@@ -3636,7 +3636,6 @@
         "name": "dinosaur-eggs",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "696": {
@@ -10245,6 +10244,7 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -12661,6 +12661,7 @@
         "tvl": true,
         "yields": false,
         "governance": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -13591,6 +13592,7 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -19248,7 +19250,8 @@
     "3517": {
         "name": "ace-of-base",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3518": {
         "name": "messina-liquid-staking",
@@ -33901,6 +33904,7 @@
         "tvl": true,
         "governance": true,
         "liquidity": true,
+        "activeUsers": true,
         "dexs": true
     },
     "parent#polynomial-protocol": {
