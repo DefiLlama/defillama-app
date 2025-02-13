@@ -2118,7 +2118,8 @@
     "unichain": {
         "name": "Unichain",
         "fees": true,
-        "dexs": true
+        "dexs": true,
+        "chainAssets": true
     },
     "unit0": {
         "name": "UNIT0",

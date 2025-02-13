@@ -2793,8 +2793,7 @@
     "550": {
         "name": "freeriver",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "551": {
         "name": "solarbeam",
@@ -3736,7 +3735,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "dexs": true
     },
@@ -5312,7 +5311,8 @@
         "name": "opendao",
         "tvl": true,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "1020": {
         "name": "arkadiko",
@@ -10155,7 +10155,8 @@
     "1902": {
         "name": "starswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1903": {
         "name": "vovo-finance",
@@ -10738,7 +10739,8 @@
     "2010": {
         "name": "starswap-starcoin",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2011": {
         "name": "sudo-inu",
@@ -13589,7 +13591,6 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -16068,7 +16069,8 @@
     "2966": {
         "name": "starmaker",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2967": {
         "name": "optimism-foundation",
@@ -20749,7 +20751,7 @@
     },
     "3802": {
         "name": "krunch-defi",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "3803": {
@@ -31373,6 +31375,11 @@
         "tvl": true,
         "yields": false
     },
+    "5773": {
+        "name": "aarna-protocol",
+        "tvl": true,
+        "yields": false
+    },
     "5774": {
         "name": "magma",
         "tvl": true,
@@ -31380,6 +31387,16 @@
     },
     "5775": {
         "name": "infrared-finance",
+        "tvl": true,
+        "yields": false
+    },
+    "5776": {
+        "name": "dopin-protocol",
+        "tvl": true,
+        "yields": false
+    },
+    "5777": {
+        "name": "sosovalue-basis",
         "tvl": true,
         "yields": false
     },
@@ -31723,7 +31740,8 @@
     "parent#arbswap": {
         "name": "arbswap",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "activeUsers": true
     },
     "parent#arcadia-finance": {
         "name": "arcadia-finance",
