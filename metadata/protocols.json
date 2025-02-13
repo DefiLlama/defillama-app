@@ -22822,8 +22822,7 @@
     "4170": {
         "name": "deltafi",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4171": {
         "name": "poseidollar",
