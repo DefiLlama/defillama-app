@@ -6125,7 +6125,8 @@
     "1164": {
         "name": "deepseadao",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1165": {
         "name": "swing-dao",
@@ -6969,8 +6970,7 @@
     "1324": {
         "name": "furylabs-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1325": {
         "name": "magik-finance-algostable",
@@ -7014,7 +7014,8 @@
         "name": "oceanus",
         "tvl": false,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "1334": {
         "name": "pearzap",
@@ -11412,7 +11413,8 @@
     "2124": {
         "name": "powsea",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2125": {
         "name": "powswap",
@@ -19146,7 +19148,8 @@
     "3488": {
         "name": "sparkswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3489": {
         "name": "haedal-protocol",
@@ -31476,6 +31479,31 @@
         "tvl": true,
         "yields": false
     },
+    "5779": {
+        "name": "piperx-v2",
+        "tvl": true,
+        "yields": false
+    },
+    "5780": {
+        "name": "piperx-v3",
+        "tvl": true,
+        "yields": false
+    },
+    "5781": {
+        "name": "story-hunt",
+        "tvl": true,
+        "yields": false
+    },
+    "5782": {
+        "name": "verio",
+        "tvl": true,
+        "yields": false
+    },
+    "5783": {
+        "name": "takara-lend",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -32901,6 +32929,11 @@
         "tvl": true,
         "dexs": true
     },
+    "parent#haedal": {
+        "name": "haedal",
+        "yields": false,
+        "tvl": true
+    },
     "parent#halotrade": {
         "name": "halotrade",
         "yields": false,
@@ -33952,6 +33985,11 @@
         "fees": true,
         "revenue": true,
         "perps": true
+    },
+    "parent#piperx": {
+        "name": "piperx",
+        "yields": false,
+        "tvl": true
     },
     "parent#planet": {
         "name": "planet",

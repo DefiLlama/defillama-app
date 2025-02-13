@@ -1943,6 +1943,11 @@
         "gecko_id": "stepex",
         "tokenSymbol": "SPEX"
     },
+    "story": {
+        "name": "Story",
+        "gecko_id": "story-2",
+        "tokenSymbol": "IP"
+    },
     "stratis": {
         "name": "Stratis",
         "gecko_id": "stratis",
