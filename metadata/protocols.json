@@ -6002,7 +6002,8 @@
     "1145": {
         "name": "ftm-frens",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1146": {
         "name": "cyberfantasyfembots",
@@ -14153,7 +14154,8 @@
     "2624": {
         "name": "mymetatrader",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2625": {
         "name": "bluefin-perps",
