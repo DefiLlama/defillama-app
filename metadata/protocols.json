@@ -820,6 +820,7 @@
         "name": "idex-classic",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "raises": true
     },
     "231": {
@@ -2685,6 +2686,7 @@
         "tvl": true,
         "yields": false,
         "treasury": true,
+        "liquidity": true,
         "raises": true
     },
     "534": {
@@ -3049,7 +3051,8 @@
     "595": {
         "name": "convergence",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "596": {
         "name": "flux-protocol",
@@ -3614,7 +3617,8 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "693": {
         "name": "superfluid",
@@ -3700,7 +3704,6 @@
         "name": "luaswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "709": {
@@ -21818,7 +21821,8 @@
     "3998": {
         "name": "idex-v1",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3999": {
         "name": "cega-v2",
@@ -27376,7 +27380,8 @@
         "name": "genesis-dao",
         "tvl": false,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "5021": {
         "name": "velvet-v3",
@@ -27702,6 +27707,7 @@
         "name": "idex-v4",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "perps": true
     },
     "5080": {
@@ -32906,6 +32912,7 @@
         "name": "idex",
         "yields": false,
         "tvl": true,
+        "liquidity": true,
         "perps": true
     },
     "parent#iguanadex": {
