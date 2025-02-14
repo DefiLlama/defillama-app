@@ -26462,8 +26462,7 @@
     "4853": {
         "name": "blackrock-buidl",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4854": {
         "name": "arca-labs-arcoin",
