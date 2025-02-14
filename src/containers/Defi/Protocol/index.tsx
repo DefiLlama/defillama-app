@@ -1297,7 +1297,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 									</table>
 
 									<Flag protocol={protocolData.name} isLending={category === 'Lending'} />
-									{!isParentProtocol ? (
+									{!isParentProtocol && (totalValue || hasTvl) ? (
 										<CSVDownloadButton
 											onClick={() => {
 												window.open(`https://api.llama.fi/dataset/${protocol}.csv`)
