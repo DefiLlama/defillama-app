@@ -6482,8 +6482,7 @@
     "1235": {
         "name": "ultra-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1236": {
         "name": "waterfall-finance-yield",
@@ -13664,7 +13663,8 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -14977,7 +14977,8 @@
     "2767": {
         "name": "jbc.finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2768": {
         "name": "lsdx-farm",
