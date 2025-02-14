@@ -4755,6 +4755,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -8514,8 +8515,7 @@
     "1612": {
         "name": "concave",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1613": {
         "name": "nested",
@@ -24666,7 +24666,8 @@
     "4514": {
         "name": "snail-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4515": {
         "name": "glowswap",
