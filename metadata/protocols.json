@@ -5144,7 +5144,8 @@
     "987": {
         "name": "honeyfarm",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "988": {
         "name": "vaporwave",
@@ -26811,7 +26812,7 @@
         "yields": false
     },
     "4917": {
-        "name": "bitfi",
+        "name": "bitfi-btc",
         "tvl": true,
         "yields": false
     },
@@ -27734,7 +27735,8 @@
     "5083": {
         "name": "beebase",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5084": {
         "name": "lucidly-finance",
@@ -30968,7 +30970,10 @@
     "5682": {
         "name": "shadow-exchange-legacy",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5684": {
         "name": "zoo.fun",
@@ -31429,6 +31434,11 @@
     "5784": {
         "name": "haedal-amm-protocol",
         "tvl": true,
+        "yields": false
+    },
+    "5785": {
+        "name": "bitfi-basis",
+        "tvl": false,
         "yields": false
     },
     "chain#1": {
@@ -31984,6 +31994,11 @@
         "fees": true,
         "revenue": true,
         "dexs": true
+    },
+    "parent#bitfi": {
+        "name": "bitfi",
+        "yields": false,
+        "tvl": true
     },
     "parent#bitgenie": {
         "name": "bitgenie",
