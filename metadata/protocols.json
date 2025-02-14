@@ -15452,7 +15452,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -15536,7 +15536,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
@@ -31059,7 +31059,7 @@
     "5710": {
         "name": "overnight-finance",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true
     },
     "5711": {
