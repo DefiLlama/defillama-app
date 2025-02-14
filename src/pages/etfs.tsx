@@ -201,7 +201,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							stacks={{ Bitcoin: 'A', Ethereum: 'A' }}
 							stackColors={{ Bitcoin: '#F7931A', Ethereum: '#6B7280' }}
 							valueSymbol="$"
-							title="Flows"
+							title="Flows (Source: Farside)"
 						/>
 					</div>
 				</div>
