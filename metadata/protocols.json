@@ -15442,7 +15442,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -18057,8 +18057,7 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "3315": {
         "name": "crescentswap",
@@ -19314,6 +19313,7 @@
         "name": "blazebot",
         "tvl": false,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true
     },
