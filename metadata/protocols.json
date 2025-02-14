@@ -1841,8 +1841,7 @@
     "396": {
         "name": "polydex",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "397": {
         "name": "shibaswap",
@@ -6539,8 +6538,7 @@
     "1245": {
         "name": "proxy",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1246": {
         "name": "spartan",
@@ -14891,8 +14889,7 @@
     "2751": {
         "name": "lfgswap-arbitrum",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2752": {
         "name": "onchain-trade",
