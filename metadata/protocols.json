@@ -5542,8 +5542,7 @@
     "1060": {
         "name": "entropyfi",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1061": {
         "name": "cakedao",
@@ -5778,7 +5777,8 @@
     "1103": {
         "name": "snowcatdao",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1104": {
         "name": "agarthadao",
@@ -8216,7 +8216,8 @@
     "1558": {
         "name": "gogocoin",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1559": {
         "name": "kdlaunch",
@@ -15306,8 +15307,7 @@
     "2830": {
         "name": "brokkr-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2831": {
         "name": "cortexdao",
@@ -18794,8 +18794,7 @@
     "3438": {
         "name": "baklava-space",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3439": {
         "name": "hydration",
@@ -19119,8 +19118,7 @@
     "3495": {
         "name": "broswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3496": {
         "name": "esper-finance",
@@ -29831,7 +29829,7 @@
     },
     "5465": {
         "name": "vectis-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5466": {
