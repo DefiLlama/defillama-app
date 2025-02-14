@@ -9317,8 +9317,7 @@
     "1747": {
         "name": "game-theory",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1748": {
         "name": "murica",
@@ -31556,6 +31555,16 @@
         "tvl": true,
         "yields": false
     },
+    "5788": {
+        "name": "unit",
+        "tvl": true,
+        "yields": false
+    },
+    "5789": {
+        "name": "eggs-finance",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -35266,7 +35275,7 @@
     },
     "parent#zklend-finance": {
         "name": "zklend-finance",
-        "yields": false,
+        "yields": true,
         "tvl": true
     },
     "parent#zkswap-finance": {
