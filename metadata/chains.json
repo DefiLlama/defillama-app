@@ -639,6 +639,7 @@
         "name": "Eclipse",
         "fees": true,
         "dexs": true,
+        "inflows": true,
         "chainAssets": true
     },
     "edu-chain": {

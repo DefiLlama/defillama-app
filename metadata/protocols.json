@@ -3050,8 +3050,7 @@
     "595": {
         "name": "convergence",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "596": {
         "name": "flux-protocol",
@@ -3360,8 +3359,7 @@
     "647": {
         "name": "jet-v1",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "648": {
         "name": "alkemi",
@@ -4314,8 +4312,7 @@
     "837": {
         "name": "arenaswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "838": {
         "name": "component",
@@ -8617,8 +8614,7 @@
         "name": "singularitydao",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "liquidity": true
+        "governance": true
     },
     "1629": {
         "name": "humble-defi",
@@ -11917,7 +11913,7 @@
     },
     "2214": {
         "name": "bridgekek",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2215": {
@@ -12628,7 +12624,8 @@
     "2355": {
         "name": "athos-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2356": {
         "name": "el-dorado-exchange",
@@ -17312,14 +17309,12 @@
     "3184": {
         "name": "jet-margin",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3185": {
         "name": "jet-fixed-term",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3186": {
         "name": "soarpls",
@@ -28150,8 +28145,7 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "5158": {
         "name": "enosys-amm-v3",
@@ -31438,7 +31432,7 @@
     },
     "5785": {
         "name": "bitfi-basis",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "chain#1": {
@@ -33062,8 +33056,7 @@
     "parent#jet": {
         "name": "jet",
         "yields": false,
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "parent#jewelswap": {
         "name": "jewelswap",
