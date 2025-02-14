@@ -34824,8 +34824,7 @@
         "tvl": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "parent#tropykus-finance": {
         "name": "tropykus-finance",
