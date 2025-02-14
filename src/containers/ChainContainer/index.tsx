@@ -103,7 +103,7 @@ export function ChainContainer({
 	if (selectedChain !== 'All') {
 		if (!chainGeckoId) {
 			chainGeckoId =
-				chainCoingeckoIds[selectedChain]?.gecko_id ?? chainCoingeckoIdsForGasNotMcap[selectedChain]?.gecko_id ?? null
+				chainCoingeckoIds[selectedChain]?.geckoId ?? chainCoingeckoIdsForGasNotMcap[selectedChain]?.geckoId ?? null
 		}
 
 		if (!CHAIN_SYMBOL) {
