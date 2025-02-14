@@ -6615,7 +6615,8 @@
     "1261": {
         "name": "darkcrypto",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1262": {
         "name": "saros",
@@ -12339,7 +12340,8 @@
     "2302": {
         "name": "goober",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2303": {
         "name": "revert-v3-staker",
@@ -12754,7 +12756,8 @@
     "2379": {
         "name": "camel-farm",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2380": {
         "name": "optim-finance",
@@ -18706,8 +18709,7 @@
     "3423": {
         "name": "zena-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3424": {
         "name": "raccoon-finance",
