@@ -2220,7 +2220,8 @@
     "454": {
         "name": "back-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "455": {
         "name": "zoocoin",
@@ -29790,7 +29791,7 @@
     },
     "5437": {
         "name": "taraswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -31506,7 +31507,7 @@
     },
     "5776": {
         "name": "dopin-protocol",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "5777": {
