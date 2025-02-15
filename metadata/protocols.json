@@ -9947,6 +9947,7 @@
         "name": "auraswap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "activeUsers": true,
         "dexs": true
     },
@@ -17061,7 +17062,6 @@
         "name": "pearl-v1",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -25575,7 +25575,6 @@
         "name": "pearl-v2",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "dexs": true
     },
     "4669": {
@@ -29094,7 +29093,6 @@
         "name": "pearl-v1.5",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "5309": {
@@ -31587,6 +31585,16 @@
         "tvl": true,
         "yields": false
     },
+    "5793": {
+        "name": "unleash-protocol",
+        "tvl": true,
+        "yields": false
+    },
+    "5794": {
+        "name": "azex",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -34042,7 +34050,6 @@
         "name": "pearlfi",
         "yields": true,
         "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
