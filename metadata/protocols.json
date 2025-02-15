@@ -3170,8 +3170,7 @@
     "617": {
         "name": "bogged-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "618": {
         "name": "kava-swap",
@@ -15517,7 +15516,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
@@ -23786,7 +23785,8 @@
     "4352": {
         "name": "satoshi-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4353": {
         "name": "pyreswap",
