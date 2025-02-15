@@ -7793,7 +7793,8 @@
     "1471": {
         "name": "bethash",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1472": {
         "name": "electrik-finance",
