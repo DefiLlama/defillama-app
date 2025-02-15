@@ -1087,7 +1087,6 @@
         "fees": true,
         "dexs": true,
         "derivatives": true,
-        "aggregators": true,
         "bridge-aggregators": true
     },
     "kardia": {
