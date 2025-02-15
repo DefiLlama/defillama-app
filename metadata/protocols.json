@@ -1694,7 +1694,8 @@
     "372": {
         "name": "rabbit-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "373": {
         "name": "biswap-v2",
@@ -4099,6 +4100,7 @@
         "name": "cashio",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "hacks": true
     },
     "794": {
@@ -4475,8 +4477,7 @@
     "861": {
         "name": "bear-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "862": {
         "name": "quarry",
@@ -8157,8 +8158,7 @@
     "1540": {
         "name": "polar-bear-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1541": {
         "name": "portal",
@@ -20236,7 +20236,8 @@
     "3679": {
         "name": "phase",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3680": {
         "name": "statix-farm",
