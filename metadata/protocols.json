@@ -13876,7 +13876,8 @@
     "2576": {
         "name": "goledo",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2577": {
         "name": "sharky-swap",
