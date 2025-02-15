@@ -2754,7 +2754,6 @@
         "name": "soulswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "545": {
@@ -15447,7 +15446,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
