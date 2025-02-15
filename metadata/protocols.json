@@ -9647,8 +9647,7 @@
     "1816": {
         "name": "ruby-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1817": {
         "name": "jupiter-swap",
@@ -14237,14 +14236,12 @@
     "2639": {
         "name": "ruby.exchange-yield",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2640": {
         "name": "ruby.exchange-stable",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2641": {
         "name": "fulcrom-perps",
@@ -20393,7 +20390,8 @@
     "3729": {
         "name": "b2b",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3730": {
         "name": "hi.market",
@@ -34185,8 +34183,7 @@
     "parent#ruby.exchange": {
         "name": "ruby.exchange",
         "yields": false,
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "parent#sablier-finance": {
         "name": "sablier",
