@@ -9691,8 +9691,7 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1824": {
         "name": "swapsicle-v1",
@@ -28411,7 +28410,8 @@
     "5203": {
         "name": "kittypunch-punchswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5204": {
         "name": "coffin.meme",
@@ -31408,7 +31408,8 @@
     "5781": {
         "name": "story-hunt",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5782": {
         "name": "verio",
