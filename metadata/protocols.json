@@ -9683,7 +9683,8 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1824": {
         "name": "swapsicle-v1",
@@ -10227,7 +10228,6 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -24061,7 +24061,8 @@
     "4402": {
         "name": "savmdex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4403": {
         "name": "hatom-tao-bridge",
@@ -32154,6 +32155,9 @@
         "revenue": true,
         "dexs": true,
         "emissions": true
+    },
+    "parent#canary": {
+        "activeUsers": true
     },
     "parent#cap-finance": {
         "name": "cap-finance",
