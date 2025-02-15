@@ -9950,7 +9950,8 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1872": {
         "name": "rift-finance",
@@ -15432,7 +15433,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -21454,7 +21455,6 @@
         "name": "renzo",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "raises": true,
         "emissions": true
     },
