@@ -28229,7 +28229,9 @@
         "name": "four.meme",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "fees": true,
+        "revenue": true
     },
     "5175": {
         "name": "hedgehog-markets",
@@ -28407,7 +28409,7 @@
         "liquidity": true
     },
     "5203": {
-        "name": "kittypunch",
+        "name": "kittypunch-punchswap",
         "tvl": true,
         "yields": false
     },
@@ -31448,6 +31450,16 @@
         "tvl": true,
         "yields": false
     },
+    "5791": {
+        "name": "king-protocol",
+        "tvl": true,
+        "yields": false
+    },
+    "5792": {
+        "name": "nome-protocol",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -33140,6 +33152,11 @@
         "revenue": true,
         "dexs": true,
         "perps": true
+    },
+    "parent#kittypunch": {
+        "name": "kittypunch",
+        "yields": false,
+        "tvl": true
     },
     "parent#klayswap": {
         "name": "klayswap",
