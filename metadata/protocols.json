@@ -3369,6 +3369,7 @@
         "name": "padswap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "645": {
@@ -29397,8 +29398,7 @@
     "5364": {
         "name": "ora-protocol",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5365": {
         "name": "suidollar",
