@@ -48,34 +48,33 @@ function PressPage() {
 				<h2 className="font-semibold text-lg">About DefiLlama</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
-					DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
-					<a
-						className="text-[var(--blue)] hover:underline"
-						target="_blank"
-						rel="noopener noreferrer"
-						href="https://github.com/DefiLlama/DefiLlama-Adapters"
-					>
-						open-source
-					</a>{' '}
-					and maintained by a team of passionate individuals and{' '}
-					<a
-						className="text-[var(--blue)] hover:underline"
-						target="_blank"
-						rel="noopener noreferrer"
-						href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors"
-					>
-						contributors
-					</a>{' '}
-					from hundreds of protocols.
+					DefiLlama is the largest data aggregator for DeFi (Decentralized Finance). Our data is fully open-source and
+					maintained by a team of passionate individuals and contributors from thousands of protocols.
 				</p>
-				<p>Our focus is on accurate data and transparent methodology.</p>
+				<p>
+					As a comprehensive DeFi data analysis platform, DefiLlama provides data across a wide variety of fundamentals,
+					including TVL, Fees, Revenue, Volume, Stablecoins, Governance, Unlocks, and Yields.
+				</p>
+				<p>
+					DefiLlama’s vision is to aggregate the most accurate, transparent, and neutral data for all blockhains and
+					cryptocurrency applications.
+				</p>
 			</div>
 
 			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
 				<h2 className="font-semibold text-lg">Contact</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
-					Contact us on{' '}
+					The best way to contact us and the one in which you'll get a reply the fastest is through our{' '}
+					<a
+						className="text-[var(--blue)] hover:underline"
+						target="_blank"
+						rel="noopener noreferrer"
+						href="https://discord.defillama.com"
+					>
+						Discord
+					</a>
+					. If you want communication to be private you can use{' '}
 					<a
 						className="text-[var(--blue)] hover:underline"
 						target="_blank"
@@ -84,23 +83,14 @@ function PressPage() {
 					>
 						Twitter
 					</a>{' '}
-					or{' '}
+					as a slower alternative, or, as an even slower option, you can also contact us by email at{' '}
 					<a
 						className="text-[var(--blue)] hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="https://discord.defillama.com"
+						href="mailto:0xngmi@llama.fi"
 					>
-						Discord
-					</a>{' '}
-					or by email{' '}
-					<a
-						className="text-[var(--blue)] hover:underline"
-						target="_blank"
-						rel="noopener noreferrer"
-						href="mailto:contact@llama-corp.com"
-					>
-						contact@llama-corp.com
+						0xngmi@llama.fi
 					</a>
 				</p>
 				<p>
@@ -125,9 +115,9 @@ function PressPage() {
 				<h2 className="font-semibold text-lg">Press</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 
-				<p>DL Data is free to use by anyone. Attribution is always appreciated.</p>
+				<p>DefiLlama Data is free to use by anyone for press usage. Attribution is always appreciated.</p>
 				<hr className="border-black/20 dark:border-white/20" />
-				<p>DefiLlama is used across a large number of media organisations and financial institutions.</p>
+				<p>DefiLlama is used across a large number of media organisations, governments, and financial institutions.</p>
 				<div className="grid grid-cols-[repeat(auto-fit,minmax(100px,200px))] place-content-center w-full gap-2 mt-4">
 					{pressList.map((imageFilename) => (
 						<a
@@ -147,17 +137,25 @@ function PressPage() {
 				<h2 className="font-semibold text-lg">Branding Assets</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
-					You can download all our branding assets from{' '}
+					We have a few guidelines for using our brand resources. These ensure that our brand is always recognizable and
+					consistent.
+				</p>
+				<p>
 					<a
 						className="text-[var(--blue)] hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="/defillama-press-kit.zip"
 					>
-						here
+						Download branding assets
 					</a>
-					.
 				</p>
+				<p>“DefiLlama” is one word, with a capital D and capital L The F is not capitalized.</p>
+				<p>
+					We always pair our name with the llama icon. We prefer to use the full DefiLlama name and icon when possible,
+					but in situations where the association with DefiLlama is clear, the icon may be used on its own.
+				</p>
+				<p>The primary color used on DefiLlama is #2172E5.</p>
 			</div>
 		</Layout>
 	)
