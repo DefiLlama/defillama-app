@@ -171,6 +171,7 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
+        "aggregator-derivatives": true,
         "bridge-aggregators": true,
         "inflows": true,
         "chainAssets": true,
@@ -349,6 +350,7 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
+        "aggregator-derivatives": true,
         "bridge-aggregators": true,
         "inflows": true,
         "chainAssets": true
@@ -529,6 +531,7 @@
     },
     "cube": {
         "name": "Cube",
+        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1470,6 +1473,7 @@
     },
     "oasys": {
         "name": "Oasys",
+        "dexs": true,
         "gecko_id": "oasys",
         "tokenSymbol": "OAS"
     },
@@ -2300,6 +2304,7 @@
     },
     "zkfair": {
         "name": "Zkfair",
+        "aggregators": true,
         "inflows": true,
         "chainAssets": true
     },

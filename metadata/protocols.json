@@ -1825,8 +1825,7 @@
     "393": {
         "name": "apy-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "394": {
         "name": "reaper-farm",
@@ -11306,7 +11305,8 @@
     "2114": {
         "name": "nudes",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2115": {
         "name": "flashstake",
@@ -31451,6 +31451,11 @@
         "tvl": true,
         "yields": false
     },
+    "5790": {
+        "name": "kittypunch-stablekitty",
+        "tvl": true,
+        "yields": false
+    },
     "5791": {
         "name": "king-protocol",
         "tvl": true,
@@ -33157,7 +33162,8 @@
     "parent#kittypunch": {
         "name": "kittypunch",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "dexs": true
     },
     "parent#klayswap": {
         "name": "klayswap",
