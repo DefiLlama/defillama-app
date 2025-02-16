@@ -3053,7 +3053,6 @@
         "name": "flux-protocol",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "raises": true
     },
     "597": {
@@ -11473,6 +11472,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -14116,7 +14116,8 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -30588,7 +30589,7 @@
     },
     "5616": {
         "name": "republic-note",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "5617": {
