@@ -5133,6 +5133,7 @@
         "name": "chickenswap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "activeUsers": true
     },
     "979": {
@@ -12416,7 +12417,8 @@
     "2306": {
         "name": "bored-candy-city",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2307": {
         "name": "camelot-v2",
@@ -21584,6 +21586,7 @@
         "name": "renzo",
         "tvl": true,
         "yields": true,
+        "liquidity": true,
         "raises": true,
         "emissions": true
     },
