@@ -11471,7 +11471,6 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -14115,8 +14114,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -16673,7 +16671,8 @@
     "3072": {
         "name": "dubble-exchange",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3073": {
         "name": "predy-v2",
