@@ -654,8 +654,7 @@
         "name": "goose-finance",
         "tvl": true,
         "yields": true,
-        "forks": true,
-        "liquidity": true
+        "forks": true
     },
     "206": {
         "name": "xtoken",
@@ -1475,8 +1474,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "339": {
         "name": "lien",
@@ -2392,8 +2390,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "484": {
         "name": "marinade-liquid-staking",
@@ -6815,7 +6812,8 @@
     "1301": {
         "name": "apedao",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1302": {
         "name": "sundaeswap-v2",
@@ -11562,7 +11560,7 @@
     },
     "2156": {
         "name": "ethwswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2157": {
@@ -14118,8 +14116,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
