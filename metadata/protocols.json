@@ -2391,7 +2391,8 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "484": {
         "name": "marinade-liquid-staking",
@@ -12770,8 +12771,7 @@
     "2384": {
         "name": "oreoswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2385": {
         "name": "exactly",
@@ -15444,7 +15444,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -22801,7 +22801,8 @@
     "4170": {
         "name": "deltafi",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4171": {
         "name": "poseidollar",
