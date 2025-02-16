@@ -350,7 +350,6 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
-        "aggregator-derivatives": true,
         "bridge-aggregators": true,
         "inflows": true,
         "chainAssets": true
@@ -531,6 +530,7 @@
     },
     "cube": {
         "name": "Cube",
+        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -768,7 +768,6 @@
         "name": "Fantom",
         "fees": true,
         "dexs": true,
-        "derivatives": true,
         "aggregators": true,
         "options": true,
         "bridge-aggregators": true,
@@ -1401,6 +1400,7 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
@@ -2303,7 +2303,6 @@
     },
     "zkfair": {
         "name": "Zkfair",
-        "aggregators": true,
         "inflows": true,
         "chainAssets": true
     },
