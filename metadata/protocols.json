@@ -3924,7 +3924,6 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
         "hacks": true,
         "fees": true,
         "revenue": true
@@ -9306,7 +9305,8 @@
     "1745": {
         "name": "joystick-club",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1746": {
         "name": "mapledefi",
@@ -15526,7 +15526,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -15536,7 +15536,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -15623,7 +15623,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
@@ -16358,6 +16358,7 @@
         "name": "pulsex-v1",
         "tvl": true,
         "yields": false,
+        "revenue": true,
         "dexs": true
     },
     "2996": {
@@ -16727,6 +16728,7 @@
         "name": "pulsex-v2",
         "tvl": true,
         "yields": false,
+        "revenue": true,
         "dexs": true
     },
     "3061": {
@@ -22322,8 +22324,7 @@
     "4069": {
         "name": "possum-labs",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4070": {
         "name": "ionic-protocol",
@@ -27019,7 +27020,7 @@
     "4939": {
         "name": "maha.xyz",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "governance": true,
         "treasury": true,
         "liquidity": true,
@@ -34187,6 +34188,7 @@
         "name": "pulsex",
         "yields": false,
         "tvl": true,
+        "revenue": true,
         "dexs": true
     },
     "parent#puzzleswaporg": {
