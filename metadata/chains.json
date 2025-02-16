@@ -1663,6 +1663,7 @@
     },
     "pulsechain": {
         "name": "PulseChain",
+        "fees": true,
         "dexs": true,
         "aggregators": true,
         "chainAssets": true

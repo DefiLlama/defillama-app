@@ -3992,7 +3992,8 @@
     "754": {
         "name": "bossswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "755": {
         "name": "arrow",
@@ -16358,6 +16359,7 @@
         "name": "pulsex-v1",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "revenue": true,
         "dexs": true
     },
@@ -16728,6 +16730,7 @@
         "name": "pulsex-v2",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "revenue": true,
         "dexs": true
     },
@@ -31593,6 +31596,11 @@
         "tvl": true,
         "yields": false
     },
+    "5795": {
+        "name": "pulsex-stableswap",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -34188,6 +34196,7 @@
         "name": "pulsex",
         "yields": false,
         "tvl": true,
+        "fees": true,
         "revenue": true,
         "dexs": true
     },
