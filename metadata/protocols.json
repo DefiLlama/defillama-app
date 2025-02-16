@@ -4645,8 +4645,7 @@
     "897": {
         "name": "mesher",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "898": {
         "name": "beglobal-finance",
@@ -5333,7 +5332,8 @@
     "1026": {
         "name": "starterra",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1027": {
         "name": "xmas-past",
