@@ -11371,7 +11371,8 @@
     "2125": {
         "name": "powswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2126": {
         "name": "redemption",
@@ -11471,6 +11472,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -11558,7 +11560,7 @@
     },
     "2156": {
         "name": "ethwswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2157": {
@@ -14114,7 +14116,8 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -24633,7 +24636,7 @@
     },
     "4511": {
         "name": "pay-protocol",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4512": {
@@ -33888,6 +33891,9 @@
         "name": "paraluni",
         "yields": false,
         "tvl": true
+    },
+    "parent#paraspace": {
+        "activeUsers": true
     },
     "parent#parax": {
         "name": "parallel-super-app",
