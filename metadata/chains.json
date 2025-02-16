@@ -531,7 +531,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1087,6 +1086,7 @@
         "fees": true,
         "dexs": true,
         "derivatives": true,
+        "aggregators": true,
         "bridge-aggregators": true
     },
     "kardia": {

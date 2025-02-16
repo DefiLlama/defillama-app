@@ -245,8 +245,7 @@
     "139": {
         "name": "snowswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "140": {
         "name": "kava-lend",
@@ -3995,8 +3994,7 @@
     "754": {
         "name": "bossswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "755": {
         "name": "arrow",
@@ -4250,7 +4248,8 @@
     "820": {
         "name": "doki-doki-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "821": {
         "name": "undead-finance",
@@ -6771,8 +6770,7 @@
     "1284": {
         "name": "paladin-dao",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1285": {
         "name": "alphadex",
@@ -10462,7 +10460,8 @@
     "1949": {
         "name": "civfund",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1950": {
         "name": "baryon-network",
@@ -12253,8 +12252,7 @@
     "2263": {
         "name": "snowflake-exchange",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2264": {
         "name": "orderly-perps",
@@ -26576,7 +26574,8 @@
     "4853": {
         "name": "blackrock-buidl",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4854": {
         "name": "arca-labs-arcoin",
