@@ -5919,7 +5919,8 @@
     "1129": {
         "name": "blackbird-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1130": {
         "name": "buffaloswap",
@@ -6857,8 +6858,7 @@
     "1308": {
         "name": "frog-nation-farm",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1309": {
         "name": "gaia-dao",
@@ -9082,7 +9082,8 @@
     "1714": {
         "name": "0x-nodes",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1715": {
         "name": "hummus-amm",
@@ -11910,8 +11911,7 @@
     "2215": {
         "name": "frog-swap",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2216": {
         "name": "kekswap",
@@ -13164,7 +13164,8 @@
     "2453": {
         "name": "doglands-swap",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2454": {
         "name": "geth",
@@ -16832,8 +16833,7 @@
     "3099": {
         "name": "froggy-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3100": {
         "name": "coindrip",
@@ -20752,8 +20752,7 @@
     "3805": {
         "name": "shekelswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3806": {
         "name": "rollup-finance-stake",
@@ -21584,8 +21583,7 @@
     "3959": {
         "name": "poor-exchange",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3960": {
         "name": "landx-finance",
@@ -23157,8 +23155,7 @@
         "name": "baseline-protocol",
         "tvl": true,
         "yields": false,
-        "forks": true,
-        "liquidity": true
+        "forks": true
     },
     "4235": {
         "name": "lens-protocol",
