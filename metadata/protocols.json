@@ -2382,7 +2382,8 @@
     "482": {
         "name": "shibance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "483": {
         "name": "nftx",
@@ -31221,8 +31222,7 @@
     "5745": {
         "name": "burrbear",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5746": {
         "name": "beraborrow",
