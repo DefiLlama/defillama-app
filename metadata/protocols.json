@@ -9323,7 +9323,8 @@
     "1748": {
         "name": "murica",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1749": {
         "name": "pandaland",
@@ -28159,8 +28160,7 @@
     "5139": {
         "name": "cybro",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5140": {
         "name": "elixir",
