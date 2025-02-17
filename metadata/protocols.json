@@ -2102,8 +2102,7 @@
         "yields": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "439": {
         "name": "the-grand-banks",
@@ -3613,7 +3612,8 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "693": {
         "name": "superfluid",
@@ -5182,7 +5182,8 @@
         "tvl": true,
         "yields": false,
         "governance": true,
-        "raises": true
+        "raises": true,
+        "activeUsers": true
     },
     "996": {
         "name": "ocp-finance",
@@ -6639,8 +6640,7 @@
     "1266": {
         "name": "fees.wtf",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1267": {
         "name": "the-open-dao-sos",
@@ -6829,8 +6829,7 @@
         "name": "iron-bank",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "1304": {
         "name": "buffer-finance",
@@ -8716,8 +8715,7 @@
     "1647": {
         "name": "waterfall-defi",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1648": {
         "name": "cgx-finance",
@@ -10118,8 +10116,7 @@
     "1898": {
         "name": "waterfall-wtf",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1899": {
         "name": "taiga-karura",
@@ -11471,6 +11468,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -17497,8 +17495,7 @@
     "3222": {
         "name": "tenx",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3223": {
         "name": "tendie-swap",
@@ -19500,8 +19497,7 @@
     "3565": {
         "name": "ball-exchange",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3566": {
         "name": "friend3",
@@ -31494,7 +31490,8 @@
     "5798": {
         "name": "beradrome",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "treasury": true
     },
     "5799": {
         "name": "liquidity-house",
