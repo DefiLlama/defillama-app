@@ -26695,7 +26695,8 @@
     "4874": {
         "name": "re.al-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4875": {
         "name": "kernel-protocol",
