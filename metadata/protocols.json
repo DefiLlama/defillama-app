@@ -2394,8 +2394,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "484": {
         "name": "marinade-liquid-staking",
@@ -14644,7 +14643,8 @@
         "name": "void",
         "tvl": false,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "2712": {
         "name": "prepo",
@@ -22677,7 +22677,8 @@
     "4147": {
         "name": "0xscans",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4148": {
         "name": "meteora-dlmm",
@@ -35226,7 +35227,6 @@
         "tvl": true,
         "governance": true,
         "treasury": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
