@@ -2292,8 +2292,7 @@
         "name": "lixir-finance",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "liquidity": true
+        "governance": true
     },
     "466": {
         "name": "vanilla",
