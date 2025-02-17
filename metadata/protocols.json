@@ -30597,7 +30597,7 @@
     },
     "5616": {
         "name": "republic-note",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5617": {
