@@ -10178,8 +10178,7 @@
     "1897": {
         "name": "uplift-dao",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1898": {
         "name": "waterfall-wtf",
