@@ -7734,8 +7734,7 @@
     "1469": {
         "name": "btngroup",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1470": {
         "name": "nereus-finance",
@@ -8124,8 +8123,7 @@
         "name": "drip",
         "tvl": false,
         "yields": false,
-        "forks": true,
-        "liquidity": true
+        "forks": true
     },
     "1544": {
         "name": "concentrator",
@@ -18155,7 +18153,7 @@
     },
     "3331": {
         "name": "tetu-pawnshop",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "liquidity": true
     },
@@ -31478,7 +31476,10 @@
     "5795": {
         "name": "pulsex-stableswap",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5796": {
         "name": "lazy-summer-protocol",
