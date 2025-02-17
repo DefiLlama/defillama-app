@@ -2428,7 +2428,6 @@
         "name": "moola-market",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "hacks": true,
         "raises": true
     },
@@ -7068,8 +7067,7 @@
     "1349": {
         "name": "degen-haus",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1350": {
         "name": "treasure",
@@ -9690,7 +9688,8 @@
     "1824": {
         "name": "swapsicle-v1",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1825": {
         "name": "nirvana-v1",
@@ -9713,7 +9712,6 @@
         "name": "sharkswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "1829": {
@@ -16012,6 +16010,7 @@
         "name": "holdstation-defutures",
         "tvl": true,
         "yields": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -29962,6 +29961,7 @@
         "name": "holdstation-swap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -33002,6 +33002,7 @@
         "name": "holdstation",
         "yields": true,
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
