@@ -8502,8 +8502,7 @@
     "1600": {
         "name": "greenhouse",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1601": {
         "name": "wingriders",
@@ -13983,7 +13982,8 @@
         "name": "king-finance",
         "tvl": false,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "2580": {
         "name": "nuls-pocm",
