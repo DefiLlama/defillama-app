@@ -2720,7 +2720,8 @@
         "name": "teddy-cash",
         "tvl": true,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "536": {
         "name": "larix",
@@ -4863,7 +4864,8 @@
     "930": {
         "name": "maximizer",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "931": {
         "name": "genesis-finance",
@@ -22066,8 +22068,7 @@
     "4021": {
         "name": "creampan-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4022": {
         "name": "pyth-network",
