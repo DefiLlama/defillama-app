@@ -10884,8 +10884,7 @@
     "2039": {
         "name": "phission-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2040": {
         "name": "lif3-swap",
@@ -13388,7 +13387,8 @@
     "2496": {
         "name": "fundex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2497": {
         "name": "dinosaur.finance",
@@ -21749,8 +21749,7 @@
     "3986": {
         "name": "dropcopy",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3987": {
         "name": "bracketx",
