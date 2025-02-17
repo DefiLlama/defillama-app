@@ -6574,6 +6574,7 @@
         "name": "hakuswap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "1255": {
@@ -18636,7 +18637,8 @@
     "3412": {
         "name": "denet-file-token",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3413": {
         "name": "fourdex",
@@ -25850,7 +25852,7 @@
         "yields": false
     },
     "4741": {
-        "name": "summer.fi",
+        "name": "summer.fi-pro",
         "tvl": true,
         "yields": false,
         "fees": true,
@@ -34551,6 +34553,12 @@
         "yields": false,
         "tvl": true,
         "fees": true,
+        "revenue": true
+    },
+    "parent#summer.fi": {
+        "name": "summer.fi",
+        "yields": false,
+        "tvl": true,
         "revenue": true
     },
     "parent#sun": {
