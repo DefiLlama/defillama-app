@@ -171,7 +171,6 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
-        "aggregator-derivatives": true,
         "bridge-aggregators": true,
         "inflows": true,
         "chainAssets": true,
@@ -350,6 +349,7 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
+        "aggregator-derivatives": true,
         "bridge-aggregators": true,
         "inflows": true,
         "chainAssets": true
@@ -530,6 +530,7 @@
     },
     "cube": {
         "name": "Cube",
+        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -767,6 +768,7 @@
         "name": "Fantom",
         "fees": true,
         "dexs": true,
+        "derivatives": true,
         "aggregators": true,
         "options": true,
         "bridge-aggregators": true,
