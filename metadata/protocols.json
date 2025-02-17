@@ -31312,7 +31312,7 @@
     },
     "5760": {
         "name": "snake-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "5761": {
@@ -31477,6 +31477,11 @@
     "5795": {
         "name": "pulsex-stableswap",
         "tvl": false,
+        "yields": false
+    },
+    "5796": {
+        "name": "lazy-summer-protocol",
+        "tvl": true,
         "yields": false
     },
     "chain#1": {
@@ -34559,6 +34564,7 @@
         "name": "summer.fi",
         "yields": false,
         "tvl": true,
+        "fees": true,
         "revenue": true
     },
     "parent#sun": {
