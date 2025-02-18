@@ -4452,8 +4452,7 @@
     "857": {
         "name": "aliensfarm",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "858": {
         "name": "piggybank-dao",
@@ -22635,7 +22634,6 @@
         "name": "omnidrome",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -23113,8 +23111,7 @@
     "4204": {
         "name": "rockswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4205": {
         "name": "cygnus-finance",
