@@ -7305,7 +7305,8 @@
     "1383": {
         "name": "platinum-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1384": {
         "name": "hermes-protocol",
@@ -15389,7 +15390,8 @@
     "2830": {
         "name": "brokkr-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2831": {
         "name": "cortexdao",
@@ -19220,7 +19222,8 @@
     "3495": {
         "name": "broswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3496": {
         "name": "esper-finance",
