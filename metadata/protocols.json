@@ -31586,7 +31586,7 @@
     },
     "5792": {
         "name": "nome-protocol",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5793": {
