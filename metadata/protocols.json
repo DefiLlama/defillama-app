@@ -1657,7 +1657,6 @@
         "name": "pinkswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "368": {
@@ -28137,8 +28136,7 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "5158": {
         "name": "enosys-amm-v3",
@@ -31521,7 +31519,25 @@
         "liquidity": true
     },
     "5802": {
+        "name": "stellaswap-v4",
+        "tvl": true,
+        "yields": false,
         "liquidity": true
+    },
+    "5803": {
+        "name": "ginseng-swap",
+        "tvl": true,
+        "yields": false
+    },
+    "5804": {
+        "name": "fan-token-staking",
+        "tvl": false,
+        "yields": false
+    },
+    "5805": {
+        "name": "r-planet",
+        "tvl": true,
+        "yields": false
     },
     "chain#1": {
         "fees": true,
@@ -32220,9 +32236,6 @@
         "revenue": true,
         "dexs": true,
         "emissions": true
-    },
-    "parent#canary": {
-        "activeUsers": true
     },
     "parent#cap-finance": {
         "name": "cap-finance",
