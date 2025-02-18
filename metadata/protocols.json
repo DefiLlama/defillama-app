@@ -3526,7 +3526,8 @@
     "677": {
         "name": "borgswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "678": {
         "name": "jswap",
@@ -9262,7 +9263,8 @@
     "1747": {
         "name": "game-theory",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1748": {
         "name": "murica",
@@ -16456,8 +16458,7 @@
     "3034": {
         "name": "eazyswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3035": {
         "name": "dexilla",
@@ -22206,7 +22207,8 @@
     "4069": {
         "name": "possum-labs",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4070": {
         "name": "ionic-protocol",
@@ -25912,7 +25914,8 @@
     "4750": {
         "name": "bbqswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4751": {
         "name": "the-vault",
@@ -30350,6 +30353,7 @@
         "name": "shadow-exchange-clmm",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30961,6 +30965,7 @@
         "name": "shadow-exchange-legacy",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -31544,7 +31549,9 @@
     "5806": {
         "name": "bloom-trading-bot",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "5807": {
         "name": "goplus-locker",
@@ -34341,6 +34348,7 @@
         "name": "shadow-exchange",
         "yields": false,
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
