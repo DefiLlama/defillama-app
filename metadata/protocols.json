@@ -761,6 +761,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -27118,7 +27119,7 @@
         "yields": false
     },
     "4977": {
-        "name": "goplus-security",
+        "name": "goplus-security-app",
         "tvl": false,
         "yields": false,
         "raises": true,
@@ -31540,6 +31541,16 @@
         "tvl": true,
         "yields": false
     },
+    "5806": {
+        "name": "bloom-trading-bot",
+        "tvl": false,
+        "yields": false
+    },
+    "5807": {
+        "name": "goplus-locker",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -32928,6 +32939,12 @@
         "yields": false,
         "tvl": true,
         "raises": true
+    },
+    "parent#goplus-security": {
+        "name": "goplus-security",
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "parent#grizzlyfi": {
         "name": "grizzlyfi",
