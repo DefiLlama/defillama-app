@@ -246,7 +246,6 @@
         "fees": true,
         "dexs": true,
         "derivatives": true,
-        "aggregators": true,
         "gecko_id": "bitcoin-cash",
         "tokenSymbol": "BCH"
     },
@@ -603,7 +602,6 @@
     "dogechain": {
         "name": "Dogechain",
         "fees": true,
-        "aggregators": true,
         "inflows": true,
         "gecko_id": "dogechain",
         "tokenSymbol": "DG"
@@ -1086,7 +1084,6 @@
         "fees": true,
         "dexs": true,
         "derivatives": true,
-        "aggregators": true,
         "bridge-aggregators": true
     },
     "kardia": {
@@ -1198,7 +1195,6 @@
         "name": "Litecoin",
         "activeUsers": true,
         "fees": true,
-        "aggregators": true,
         "bridge-aggregators": true,
         "gecko_id": "litecoin",
         "tokenSymbol": "LTC"
