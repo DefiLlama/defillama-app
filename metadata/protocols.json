@@ -31558,6 +31558,16 @@
         "tvl": false,
         "yields": false
     },
+    "5808": {
+        "name": "meta-pool-mpsol",
+        "tvl": true,
+        "yields": false
+    },
+    "5809": {
+        "name": "flashbots",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
