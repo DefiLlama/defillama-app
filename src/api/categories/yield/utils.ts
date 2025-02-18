@@ -100,10 +100,24 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	const symbols = [...new Set(_pools.map((p) => p.symbol.split(' ')[0].split('-')).flat())]
 
-	const tokens = []
-	const tokenSymbolsList = []
+	const tokens = [
+		{
+			name: 'All Bitcoins',
+			symbol: 'ALL_BITCOINS',
+			logo: null,
+			fallbackLogo: null
+		},
+		{
+			name: 'All USD Stablecoins',
+			symbol: 'ALL_USD_STABLES',
+			logo: null,
+			fallbackLogo: null
+		}
+	]
 
-	symbols.forEach((token) => {
+	const tokenSymbolsList = ['ALL_BITCOINS', 'ALL_USD_STABLES']
+
+	symbols.forEach((token: string) => {
 		if (token) {
 			tokens.push({
 				name: token,

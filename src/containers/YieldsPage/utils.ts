@@ -56,7 +56,11 @@ export function toFilterPool({
 				? includeTokens
 						.map((t) => t.toLowerCase())
 						.find((token) => {
-							if (tokensInPool.some((x) => x.includes(token.toLowerCase()))) {
+							if (token === 'all_bitcoins') {
+								return tokensInPool.some((x) => x.includes('btc'))
+							} else if (token === 'all_usd_stables') {
+								return tokensInPool.some((x) => x.includes('usd'))
+							} else if (tokensInPool.some((x) => x.includes(token.toLowerCase()))) {
 								return true
 							} else if (token === 'eth') {
 								return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
