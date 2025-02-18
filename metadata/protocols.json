@@ -9700,7 +9700,6 @@
         "name": "nirvana-v1",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "hacks": true
     },
     "1826": {
@@ -11769,7 +11768,8 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2193": {
         "name": "amulet-liquidity-staking",
@@ -30329,8 +30329,7 @@
     "5563": {
         "name": "nirvana-v2",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5567": {
         "name": "bedrock-brbtc",
@@ -31519,6 +31518,9 @@
         "name": "cadabra-finance",
         "tvl": true,
         "yields": false,
+        "liquidity": true
+    },
+    "5802": {
         "liquidity": true
     },
     "chain#1": {
@@ -33782,8 +33784,7 @@
     "parent#nirvana": {
         "name": "nirvana",
         "yields": false,
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "parent#nostra": {
         "name": "nostra",

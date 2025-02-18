@@ -4,6 +4,7 @@
         "fees": true,
         "dexs": true,
         "derivatives": true,
+        "aggregators": true,
         "chainAssets": true
     },
     "acala": {
