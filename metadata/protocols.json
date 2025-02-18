@@ -4267,8 +4267,7 @@
     "824": {
         "name": "euphoria",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "825": {
         "name": "nft20",
@@ -4618,8 +4617,7 @@
     "887": {
         "name": "swapperchan",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "888": {
         "name": "revault",
@@ -15091,6 +15089,7 @@
         "name": "auragi-finance",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "activeUsers": true,
         "fees": true,
         "revenue": true,
@@ -15317,6 +15316,7 @@
         "tvl": true,
         "yields": false,
         "forks": true,
+        "liquidity": true,
         "emissions": true
     },
     "2818": {
@@ -15428,7 +15428,6 @@
         "name": "wagmi",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
