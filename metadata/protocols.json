@@ -1207,7 +1207,8 @@
         "name": "lydia",
         "tvl": true,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "294": {
         "name": "anchor",
@@ -9551,6 +9552,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30768,7 +30770,8 @@
     "5647": {
         "name": "sailor",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5648": {
         "name": "o.lab",
@@ -31223,7 +31226,10 @@
     "5743": {
         "name": "kodiak-v2",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5744": {
         "name": "kodiak-v3",
@@ -34040,7 +34046,6 @@
         "tvl": true,
         "governance": true,
         "liquidity": true,
-        "activeUsers": true,
         "dexs": true
     },
     "parent#polynomial-protocol": {
