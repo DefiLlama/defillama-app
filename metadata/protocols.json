@@ -3727,7 +3727,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "dexs": true
     },
@@ -9437,7 +9437,8 @@
     "1779": {
         "name": "cake-monster",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1780": {
         "name": "coslend",
@@ -30592,7 +30593,7 @@
     },
     "5615": {
         "name": "zoth-zeusd",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5616": {
