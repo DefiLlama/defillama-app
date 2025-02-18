@@ -19781,8 +19781,7 @@
     "3619": {
         "name": "skydrome",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3620": {
         "name": "xena-finance",
