@@ -5987,7 +5987,8 @@
     "1134": {
         "name": "duckydefi",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1135": {
         "name": "meowswap",
