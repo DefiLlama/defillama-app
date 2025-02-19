@@ -457,6 +457,7 @@
     "conflux": {
         "name": "Conflux",
         "aggregators": true,
+        "inflows": true,
         "gecko_id": "conflux-token",
         "tokenSymbol": "CFX"
     },
@@ -916,6 +917,7 @@
         "fees": true,
         "dexs": true,
         "aggregators": true,
+        "inflows": true,
         "gecko_id": "harmony",
         "tokenSymbol": "ONE"
     },
@@ -1286,6 +1288,7 @@
     "meter": {
         "name": "Meter",
         "dexs": true,
+        "inflows": true,
         "chainAssets": true,
         "gecko_id": "meter",
         "tokenSymbol": "MTRG"

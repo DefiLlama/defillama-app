@@ -18785,7 +18785,8 @@
     "3438": {
         "name": "baklava-space",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3439": {
         "name": "hydration",
@@ -19566,6 +19567,7 @@
         "tvl": true,
         "yields": true,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
