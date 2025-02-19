@@ -115,16 +115,19 @@ export default function AreaChart({
 		const series = []
 		datasets.forEach((chartData, i) => {
 			let data = chartData
-			if (groupBy) {
+			if (groupBy && groupBy !== 'daily') {
 				const groupedData = {}
 				Object.entries(chartData).forEach(([key, val]: [string, Array<[number, number]>]) => {
-					if (Array.isArray(val?.[0])) {
-						const periodData = period ? val?.slice(-period) : val
-						groupedData[key] = groupableCharts.includes(key)
-							? groupBy === 'cumulative'
-								? cumulativeSum(periodData)
-								: groupByTimeFrame(periodData, groupBy)
-							: val
+					if (val) {
+						if (groupableCharts.includes(key)) {
+							if (Array.isArray(val?.[0])) {
+								const periodData = period ? val?.slice(-period) : val
+								groupedData[key] =
+									groupBy === 'cumulative' ? cumulativeSum(periodData) : groupByTimeFrame(periodData, groupBy)
+							}
+						} else {
+							groupedData[key] = val
+						}
 					}
 				})
 				data = groupedData
