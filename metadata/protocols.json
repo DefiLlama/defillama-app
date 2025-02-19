@@ -3665,8 +3665,7 @@
     "702": {
         "name": "coffin-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "703": {
         "name": "goldfinch",
@@ -5181,8 +5180,7 @@
         "tvl": true,
         "yields": false,
         "governance": true,
-        "raises": true,
-        "activeUsers": true
+        "raises": true
     },
     "996": {
         "name": "ocp-finance",
