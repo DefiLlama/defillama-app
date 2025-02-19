@@ -2332,7 +2332,8 @@
         "name": "baguette",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "474": {
         "name": "canary",
@@ -6789,7 +6790,8 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "1296": {
         "name": "zipswap",
@@ -9557,6 +9559,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -11471,6 +11474,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -15452,7 +15456,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
@@ -24639,7 +24643,7 @@
     },
     "4511": {
         "name": "pay-protocol",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4512": {
@@ -31314,7 +31318,7 @@
     },
     "5760": {
         "name": "snake-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5761": {
@@ -32523,6 +32527,10 @@
         "tvl": true,
         "treasury": true,
         "liquidity": true
+    },
+    "parent#desk": {
+        "revenue": true,
+        "perps": true
     },
     "parent#desyn-protocol": {
         "name": "desyn-protocol",
