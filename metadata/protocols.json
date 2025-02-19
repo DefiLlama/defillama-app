@@ -428,7 +428,8 @@
     "168": {
         "name": "dev-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "169": {
         "name": "basis-cash",
@@ -1812,7 +1813,8 @@
     "391": {
         "name": "pantherswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "392": {
         "name": "wardenswap",
@@ -3047,7 +3049,8 @@
     "595": {
         "name": "convergence",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "596": {
         "name": "flux-protocol",
@@ -8154,7 +8157,8 @@
     "1548": {
         "name": "chaotic-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1549": {
         "name": "babena",
@@ -10254,7 +10258,8 @@
     "1920": {
         "name": "ordernchaos",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1921": {
         "name": "dogeclaw",
@@ -11559,7 +11564,7 @@
     },
     "2156": {
         "name": "ethwswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2157": {
@@ -12504,7 +12509,8 @@
     "2335": {
         "name": "abel-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2336": {
         "name": "esdtmarket",
@@ -14379,7 +14385,6 @@
         "name": "morphex-v2",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -14878,7 +14883,8 @@
     "2751": {
         "name": "lfgswap-arbitrum",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2752": {
         "name": "onchain-trade",
@@ -19035,7 +19041,6 @@
         "name": "morphex-v1-perps",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -27616,6 +27621,7 @@
         "name": "apex-defi",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -27904,7 +27910,6 @@
         "name": "morphex-v2-amm",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "5117": {
@@ -27959,7 +27964,6 @@
         "name": "morphex-v1-amm",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "5126": {
@@ -32269,6 +32273,9 @@
         "dexs": true,
         "emissions": true
     },
+    "parent#canary": {
+        "activeUsers": true
+    },
     "parent#cap-finance": {
         "name": "cap-finance",
         "yields": false,
@@ -33731,7 +33738,6 @@
         "name": "morphex",
         "yields": true,
         "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
