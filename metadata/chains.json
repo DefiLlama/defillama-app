@@ -5,6 +5,7 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
+        "inflows": true,
         "chainAssets": true
     },
     "acala": {
@@ -1798,6 +1799,7 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
+        "inflows": true,
         "gecko_id": "sei-network",
         "tokenSymbol": "SEI"
     },

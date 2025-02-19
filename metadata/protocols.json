@@ -1400,7 +1400,8 @@
     "327": {
         "name": "youswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "328": {
         "name": "steakbank-finance",
@@ -2612,7 +2613,8 @@
     "520": {
         "name": "youves",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "521": {
         "name": "pizza",
@@ -7167,8 +7169,7 @@
     "1366": {
         "name": "hotfriescoin",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1367": {
         "name": "wowswap",
