@@ -6119,8 +6119,7 @@
     "1160": {
         "name": "baker-guild",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1161": {
         "name": "niifi",
@@ -12734,7 +12733,8 @@
     "2362": {
         "name": "hedgehog",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2364": {
         "name": "butter-network",
@@ -17695,8 +17695,7 @@
     "3236": {
         "name": "colafactory",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3237": {
         "name": "skydex",
@@ -31590,7 +31589,7 @@
     },
     "5792": {
         "name": "nome-protocol",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "5793": {
