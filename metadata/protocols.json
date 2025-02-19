@@ -15442,7 +15442,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -32529,6 +32529,7 @@
         "liquidity": true
     },
     "parent#desk": {
+        "fees": true,
         "revenue": true,
         "perps": true
     },
