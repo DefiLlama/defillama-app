@@ -2880,8 +2880,7 @@
     "563": {
         "name": "timewarp",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "564": {
         "name": "fabric",
@@ -10772,7 +10771,7 @@
     "2007": {
         "name": "grizzlyfi-hives",
         "tvl": true,
-        "yields": true,
+        "yields": false,
         "liquidity": true
     },
     "2008": {
@@ -11626,7 +11625,7 @@
     },
     "2156": {
         "name": "ethwswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2157": {
@@ -21310,7 +21309,7 @@
     },
     "3884": {
         "name": "newswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "3885": {
@@ -33095,7 +33094,7 @@
     },
     "parent#grizzlyfi": {
         "name": "grizzlyfi",
-        "yields": true,
+        "yields": false,
         "tvl": true,
         "liquidity": true,
         "fees": true,
