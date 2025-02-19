@@ -7072,7 +7072,8 @@
     "1349": {
         "name": "degen-haus",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1350": {
         "name": "treasure",
@@ -9958,8 +9959,7 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1872": {
         "name": "rift-finance",
@@ -11235,7 +11235,6 @@
         "name": "titano-swych",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "2103": {
@@ -15268,8 +15267,7 @@
     "2824": {
         "name": "abc-pool",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2825": {
         "name": "nostra-money-market",
@@ -21191,7 +21189,7 @@
     },
     "3884": {
         "name": "newswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "3885": {
@@ -26957,7 +26955,7 @@
         "dexs": true
     },
     "4947": {
-        "name": "ignition-fbtc",
+        "name": "function",
         "tvl": true,
         "yields": false
     },
@@ -34003,9 +34001,6 @@
         "name": "paraluni",
         "yields": false,
         "tvl": true
-    },
-    "parent#paraspace": {
-        "activeUsers": true
     },
     "parent#parax": {
         "name": "parallel-super-app",
