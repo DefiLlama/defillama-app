@@ -2852,6 +2852,7 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "562": {
@@ -4750,7 +4751,6 @@
         "name": "pika",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "activeUsers": true,
         "fees": true,
         "revenue": true,
@@ -17847,7 +17847,6 @@
         "name": "pika-v4",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -25516,8 +25515,7 @@
     "4679": {
         "name": "dragon-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4680": {
         "name": "iswap-tech",
@@ -34059,7 +34057,6 @@
         "name": "pika-protocol",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
