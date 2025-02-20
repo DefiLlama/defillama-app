@@ -33508,8 +33508,7 @@
         "tvl": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true,
-        "emissions": true
+        "revenue": true
     },
     "parent#lynex": {
         "name": "lynex",
