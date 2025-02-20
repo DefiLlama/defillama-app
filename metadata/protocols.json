@@ -8116,8 +8116,7 @@
     "1533": {
         "name": "life",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1534": {
         "name": "strikex",
@@ -9224,7 +9223,7 @@
     },
     "1731": {
         "name": "honkswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1732": {
@@ -32657,7 +32656,8 @@
         "yields": false,
         "tvl": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "dexs": true
     },
     "parent#degenhive": {
         "name": "degenhive",
