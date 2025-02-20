@@ -1811,8 +1811,7 @@
     "391": {
         "name": "pantherswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "392": {
         "name": "wardenswap",
@@ -9559,7 +9558,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -31624,6 +31622,11 @@
         "treasury": true,
         "liquidity": true
     },
+    "5819": {
+        "name": "defiapp",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -33546,7 +33549,8 @@
         "tvl": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "parent#lynex": {
         "name": "lynex",
