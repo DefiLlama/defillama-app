@@ -1778,6 +1778,7 @@
         "tvl": true,
         "yields": false,
         "governance": true,
+        "liquidity": true,
         "activeUsers": true,
         "fees": true,
         "revenue": true
@@ -4616,7 +4617,8 @@
     "887": {
         "name": "swapperchan",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "888": {
         "name": "revault",
@@ -6555,8 +6557,7 @@
     "1242": {
         "name": "sleepearn-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1243": {
         "name": "stackswap",
