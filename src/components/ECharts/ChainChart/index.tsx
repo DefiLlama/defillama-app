@@ -663,7 +663,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Volume',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -672,7 +671,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Fees',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -681,7 +679,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Revenue',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -690,7 +687,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'App Revenue',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -699,7 +695,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Price',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -712,12 +707,10 @@ export default function AreaChart({
 						formatter: (value) => toK(value) + ' ' + 'Users',
 						color: () => (isCompare ? '#fff' : colors.returningUsers)
 					},
-					scale: true,
 					id: 'Users'
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Raises',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -726,7 +719,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Stablecoins Mcap',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -739,12 +731,10 @@ export default function AreaChart({
 						formatter: (value) => toK(value) + ' ' + 'TXs',
 						color: () => (isCompare ? '#fff' : colors.transactions)
 					},
-					scale: true,
 					id: 'Transactions'
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Inflows',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -753,7 +743,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Developers',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -763,7 +752,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Commits',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -773,7 +761,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Token Price',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -782,7 +769,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Token Mcap',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -791,7 +777,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Aggregators',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -800,7 +785,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Perps',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -810,7 +794,6 @@ export default function AreaChart({
 				{
 					...yAxis,
 					min: 0,
-					scale: true,
 					id: 'Chain Assets',
 					axisLabel: {
 						...yAxis.axisLabel,
@@ -819,7 +802,6 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					scale: true,
 					id: 'Token Volume',
 					axisLabel: {
 						...yAxis.axisLabel,
