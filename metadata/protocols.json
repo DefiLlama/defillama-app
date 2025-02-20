@@ -4865,8 +4865,7 @@
     "931": {
         "name": "genesis-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "932": {
         "name": "xensa",
@@ -9338,8 +9337,7 @@
     "1751": {
         "name": "solily-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1752": {
         "name": "yelay-v1",
@@ -14231,8 +14229,7 @@
     "2624": {
         "name": "mymetatrader",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2625": {
         "name": "bluefin-perps",
@@ -19441,8 +19438,7 @@
     "3531": {
         "name": "mozaic",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3532": {
         "name": "manga-fi",

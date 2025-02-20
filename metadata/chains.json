@@ -1,4 +1,7 @@
 {
+    "ab": {
+        "name": "AB"
+    },
     "abstract": {
         "name": "Abstract",
         "fees": true,
@@ -1433,11 +1436,6 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true
-    },
-    "newton": {
-        "name": "Newton",
-        "gecko_id": "newton-project",
-        "tokenSymbol": "NEW"
     },
     "nibiru": {
         "name": "Nibiru",
