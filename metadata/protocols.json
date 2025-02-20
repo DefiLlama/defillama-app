@@ -5546,7 +5546,10 @@
     "1063": {
         "name": "embr-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "1064": {
         "name": "ideamarket",
@@ -7571,7 +7574,10 @@
         "name": "polaris-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "1441": {
         "name": "peel-defi",
@@ -12485,8 +12491,7 @@
     "2333": {
         "name": "julswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2334": {
         "name": "defiedge",
@@ -17403,7 +17408,10 @@
     "3205": {
         "name": "phux",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "3206": {
         "name": "bucket-cdp",
@@ -23297,7 +23305,10 @@
     "4263": {
         "name": "gaming-dex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "4264": {
         "name": "muito-finance",
@@ -26682,7 +26693,10 @@
     "4896": {
         "name": "ducata",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "4897": {
         "name": "superhero-dex",
@@ -27451,7 +27465,10 @@
     "5038": {
         "name": "tanukix",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5039": {
         "name": "taolie",
@@ -31516,7 +31533,10 @@
     "5803": {
         "name": "ginseng-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5804": {
         "name": "fan-token-staking",
@@ -31596,7 +31616,8 @@
         "name": "foom",
         "tvl": false,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "chain#1": {
         "fees": true,
@@ -33517,7 +33538,8 @@
         "tvl": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "parent#lynex": {
         "name": "lynex",
