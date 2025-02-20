@@ -7619,7 +7619,8 @@
     "1440": {
         "name": "polaris-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1441": {
         "name": "peel-defi",
@@ -21152,8 +21153,7 @@
     "3856": {
         "name": "peerme",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3857": {
         "name": "deri-v4",
