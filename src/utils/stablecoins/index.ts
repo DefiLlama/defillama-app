@@ -7,7 +7,8 @@ export const useBuildPeggedChartData = ({
 	filteredIndexes,
 	issuanceType,
 	selectedChain,
-	totalChartTooltipLabel
+	totalChartTooltipLabel,
+	aggregatedChartData
 }: {
 	chartDataByAssetOrChain: Array<any>
 	assetsOrChainsList: Array<string>
@@ -15,6 +16,7 @@ export const useBuildPeggedChartData = ({
 	issuanceType?: string
 	selectedChain?: string | null
 	totalChartTooltipLabel?: string
+	aggregatedChartData?: Array<any>
 }) => {
 	const data = useMemo(
 		() =>
@@ -24,9 +26,18 @@ export const useBuildPeggedChartData = ({
 				filteredIndexes,
 				issuanceType: issuanceType ?? 'mcap',
 				selectedChain,
-				totalChartTooltipLabel: totalChartTooltipLabel ?? 'Mcap'
+				totalChartTooltipLabel: totalChartTooltipLabel ?? 'Mcap',
+				aggregatedChartData
 			}),
-		[chartDataByAssetOrChain, assetsOrChainsList, filteredIndexes, issuanceType, selectedChain, totalChartTooltipLabel]
+		[
+			chartDataByAssetOrChain,
+			assetsOrChainsList,
+			filteredIndexes,
+			issuanceType,
+			selectedChain,
+			totalChartTooltipLabel,
+			aggregatedChartData
+		]
 	)
 	return data
 }
@@ -37,7 +48,8 @@ export const buildPeggedChartData = ({
 	filteredIndexes,
 	issuanceType,
 	selectedChain,
-	totalChartTooltipLabel
+	totalChartTooltipLabel,
+	aggregatedChartData
 }: {
 	chartDataByAssetOrChain: Array<any>
 	assetsOrChainsList: Array<string>
@@ -45,6 +57,7 @@ export const buildPeggedChartData = ({
 	issuanceType?: string
 	selectedChain?: string | null
 	totalChartTooltipLabel?: string
+	aggregatedChartData?: Array<any>
 }) => {
 	if (selectedChain === null) return {}
 	const backfilledChains = [
@@ -124,12 +137,19 @@ export const buildPeggedChartData = ({
 		}
 	})
 
-	const peggedAreaTotalData = Object.entries(unformattedTotalData).map(([date, mcap]) => {
-		return {
-			date: date,
-			[totalChartTooltipLabel]: mcap
-		}
-	})
+	const peggedAreaTotalData = aggregatedChartData
+		? aggregatedChartData.map(({ date, mcap }) => {
+				return {
+					date: date,
+					[totalChartTooltipLabel]: mcap
+				}
+		  })
+		: Object.entries(unformattedTotalData).map(([date, mcap]) => {
+				return {
+					date: date,
+					[totalChartTooltipLabel]: mcap
+				}
+		  })
 
 	const stackedDataset = Object.entries(stackedDatasetObject)
 

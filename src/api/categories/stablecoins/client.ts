@@ -25,7 +25,8 @@ export const useGetStabelcoinsChartDataByChain = (chain?: string) => {
 								assetsOrChainsList: data?.peggedAssetNames,
 								filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
 								issuanceType: 'mcap',
-								selectedChain: chain
+								selectedChain: chain,
+								aggregatedChartData: data?.aggregatedChartData
 							})
 
 							return peggedAreaTotalData

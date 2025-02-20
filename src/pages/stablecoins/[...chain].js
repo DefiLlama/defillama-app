@@ -52,6 +52,7 @@ export default function PeggedAssets({
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
+	aggregatedChartData,
 	chain,
 	backgroundColor
 }) {
@@ -64,6 +65,7 @@ export default function PeggedAssets({
 				peggedAssetNames={peggedAssetNames}
 				peggedNameToChartDataIndex={peggedNameToChartDataIndex}
 				chartDataByPeggedAsset={chartDataByPeggedAsset}
+				aggregatedChartData={aggregatedChartData}
 				backgroundColor={backgroundColor}
 			/>
 		</Layout>
