@@ -37,12 +37,12 @@ function PeggedChainsOverview({
 	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
 
-	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = useBuildPeggedChartData(
-		peggedChartDataByChain,
-		chainList,
-		[...Array(chainList.length).keys()],
-		'mcap'
-	)
+	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = useBuildPeggedChartData({
+		chartDataByAssetOrChain: peggedChartDataByChain,
+		assetsOrChainsList: chainList,
+		filteredIndexes: [...Array(chainList.length).keys()],
+		issuanceType: 'mcap'
+	})
 
 	const filteredPeggedAssets = chainCirculatings
 	const chainTotals = useCalcCirculating(filteredPeggedAssets)

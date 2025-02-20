@@ -1,37 +1,51 @@
 import { getPrevPeggedTotalFromChart } from '~/utils'
 import { useMemo } from 'react'
 
-export const useBuildPeggedChartData = (
+export const useBuildPeggedChartData = ({
 	chartDataByAssetOrChain,
 	assetsOrChainsList,
-	filteredIndexes?,
-	issuanceType = 'mcap',
-	selectedChain?,
-	totalChartTooltipLabel = 'Mcap'
-) => {
+	filteredIndexes,
+	issuanceType,
+	selectedChain,
+	totalChartTooltipLabel
+}: {
+	chartDataByAssetOrChain: Array<any>
+	assetsOrChainsList: Array<string>
+	filteredIndexes?: Array<number>
+	issuanceType?: string
+	selectedChain?: string | null
+	totalChartTooltipLabel?: string
+}) => {
 	const data = useMemo(
 		() =>
-			buildPeggedChartData(
+			buildPeggedChartData({
 				chartDataByAssetOrChain,
 				assetsOrChainsList,
 				filteredIndexes,
-				issuanceType,
+				issuanceType: issuanceType ?? 'mcap',
 				selectedChain,
-				totalChartTooltipLabel
-			),
+				totalChartTooltipLabel: totalChartTooltipLabel ?? 'Mcap'
+			}),
 		[chartDataByAssetOrChain, assetsOrChainsList, filteredIndexes, issuanceType, selectedChain, totalChartTooltipLabel]
 	)
 	return data
 }
 
-export const buildPeggedChartData = (
+export const buildPeggedChartData = ({
 	chartDataByAssetOrChain,
 	assetsOrChainsList,
-	filteredIndexes?,
-	issuanceType = 'mcap',
-	selectedChain?,
-	totalChartTooltipLabel = 'Mcap'
-) => {
+	filteredIndexes,
+	issuanceType,
+	selectedChain,
+	totalChartTooltipLabel
+}: {
+	chartDataByAssetOrChain: Array<any>
+	assetsOrChainsList: Array<string>
+	filteredIndexes: Array<number>
+	issuanceType: string
+	selectedChain: string
+	totalChartTooltipLabel: string
+}) => {
 	if (selectedChain === null) return {}
 	const backfilledChains = [
 		'All',

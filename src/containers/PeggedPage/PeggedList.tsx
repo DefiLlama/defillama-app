@@ -121,7 +121,13 @@ function PeggedAssetsOverview({
 	])
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
-		useBuildPeggedChartData(chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, 'mcap', selectedChain)
+		useBuildPeggedChartData({
+			chartDataByAssetOrChain: chartDataByPeggedAsset,
+			assetsOrChainsList: peggedAssetNames,
+			filteredIndexes,
+			issuanceType: 'mcap',
+			selectedChain
+		})
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, query) }))
 

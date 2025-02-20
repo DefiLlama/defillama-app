@@ -118,14 +118,14 @@ export const PeggedAssetInfo = ({
 
 	const totalChartTooltipLabel = ['Circulating']
 
-	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = useBuildPeggedChartData(
-		chainsData,
-		chainsUnique,
-		[...Array(chainsUnique.length).keys()],
-		'circulating',
-		undefined,
-		totalChartTooltipLabel[0]
-	)
+	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = useBuildPeggedChartData({
+		chartDataByAssetOrChain: chainsData,
+		assetsOrChainsList: chainsUnique,
+		filteredIndexes: [...Array(chainsUnique.length).keys()],
+		issuanceType: 'circulating',
+		selectedChain: undefined,
+		totalChartTooltipLabel: totalChartTooltipLabel[0]
+	})
 
 	const extraPeggeds = [UNRELEASED]
 	const [extraPeggedsEnabled, updater] = useStablecoinsManager()
