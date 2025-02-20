@@ -31635,6 +31635,11 @@
         "tvl": true,
         "yields": false
     },
+    "5824": {
+        "name": "steamm",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
