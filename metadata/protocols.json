@@ -5719,7 +5719,8 @@
     "1094": {
         "name": "one-cash",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1095": {
         "name": "stand-cash",
@@ -11233,6 +11234,7 @@
         "name": "titano-swych",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "2103": {
@@ -11770,7 +11772,8 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2193": {
         "name": "amulet-liquidity-staking",
@@ -31404,12 +31407,14 @@
     "5779": {
         "name": "piperx-v2",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5780": {
         "name": "piperx-v3",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5781": {
         "name": "story-hunt",
@@ -32316,6 +32321,9 @@
         "revenue": true,
         "dexs": true,
         "emissions": true
+    },
+    "parent#canary": {
+        "activeUsers": true
     },
     "parent#cap-finance": {
         "name": "cap-finance",
@@ -33538,8 +33546,7 @@
         "tvl": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true,
-        "emissions": true
+        "revenue": true
     },
     "parent#lynex": {
         "name": "lynex",
@@ -34129,7 +34136,8 @@
     "parent#piperx": {
         "name": "piperx",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "dexs": true
     },
     "parent#planet": {
         "name": "planet",
