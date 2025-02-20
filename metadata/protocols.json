@@ -30545,7 +30545,8 @@
     "5608": {
         "name": "navigator",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5610": {
         "name": "crypto-valley-exchange",
@@ -31439,7 +31440,8 @@
     "5789": {
         "name": "eggs-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5790": {
         "name": "kittypunch-stablekitty",
