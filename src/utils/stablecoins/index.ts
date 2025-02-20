@@ -8,7 +8,7 @@ export const useBuildPeggedChartData = ({
 	issuanceType,
 	selectedChain,
 	totalChartTooltipLabel,
-	aggregatedChartData
+	doublecountedIds
 }: {
 	chartDataByAssetOrChain: Array<any>
 	assetsOrChainsList: Array<string>
@@ -16,7 +16,7 @@ export const useBuildPeggedChartData = ({
 	issuanceType?: string
 	selectedChain?: string | null
 	totalChartTooltipLabel?: string
-	aggregatedChartData?: Array<any>
+	doublecountedIds?: Array<number>
 }) => {
 	const data = useMemo(
 		() =>
@@ -27,7 +27,7 @@ export const useBuildPeggedChartData = ({
 				issuanceType: issuanceType ?? 'mcap',
 				selectedChain,
 				totalChartTooltipLabel: totalChartTooltipLabel ?? 'Mcap',
-				aggregatedChartData
+				doublecountedIds
 			}),
 		[
 			chartDataByAssetOrChain,
@@ -36,7 +36,7 @@ export const useBuildPeggedChartData = ({
 			issuanceType,
 			selectedChain,
 			totalChartTooltipLabel,
-			aggregatedChartData
+			doublecountedIds
 		]
 	)
 	return data
@@ -49,7 +49,7 @@ export const buildPeggedChartData = ({
 	issuanceType = 'mcap',
 	selectedChain,
 	totalChartTooltipLabel = 'Mcap',
-	aggregatedChartData
+	doublecountedIds = []
 }: {
 	chartDataByAssetOrChain: Array<any>
 	assetsOrChainsList: Array<string>
@@ -57,7 +57,7 @@ export const buildPeggedChartData = ({
 	issuanceType?: string
 	selectedChain?: string | null
 	totalChartTooltipLabel?: string
-	aggregatedChartData?: Array<any>
+	doublecountedIds?: Array<number>
 }) => {
 	if (selectedChain === null) return {}
 	const backfilledChains = [
@@ -92,7 +92,7 @@ export const buildPeggedChartData = ({
 	let assetAddedToInflows = assetsOrChainsList?.reduce((acc, curr) => ({ ...acc, [curr]: false }), {}) ?? {}
 
 	chartDataByAssetOrChain?.forEach((charts, i) => {
-		if (!charts || !charts.length || !filteredIndexes.includes(i)) return
+		if (!charts || !charts.length || !filteredIndexes.includes(i) || doublecountedIds.includes(i)) return
 		charts.forEach((chart, j) => {
 			const mcap = getPrevPeggedTotalFromChart([chart], 0, issuanceType) // 'issuanceType' and 'mcap' here are 'circulating' values on /stablecoin pages, and 'mcap' otherwise
 			const prevDayMcap = getPrevPeggedTotalFromChart([charts[j - 1]], 0, issuanceType)

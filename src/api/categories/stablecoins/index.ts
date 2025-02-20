@@ -138,10 +138,7 @@ export async function getPeggedOverviewPageData(chain) {
 		peggedAssetNames: [...peggedAssetNamesSet],
 		peggedNameToChartDataIndex,
 		chartDataByPeggedAsset,
-		aggregatedChartData: chainData?.aggregated?.map((chart) => ({
-			date: chart.date,
-			mcap: chart.totalCirculatingUSD?.peggedUSD ?? 0
-		})),
+		doublecountedIds: chainData?.doublecountedIds ?? [],
 		chain: chain ?? 'All'
 	}
 }

@@ -40,7 +40,7 @@ function PeggedAssetsOverview({
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
 	backgroundColor,
-	aggregatedChartData
+	doublecountedIds
 }) {
 	const [chartType, setChartType] = React.useState('Total Market Cap')
 
@@ -128,7 +128,7 @@ function PeggedAssetsOverview({
 			filteredIndexes,
 			issuanceType: 'mcap',
 			selectedChain,
-			aggregatedChartData
+			doublecountedIds
 		})
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, query) }))

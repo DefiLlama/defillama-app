@@ -112,7 +112,7 @@ export async function getChainPageData(chain?: string) {
 					filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
 					issuanceType: 'mcap',
 					selectedChain: !chain || chain === 'All' ? 'All' : chainMetadata?.name,
-					aggregatedChartData: data?.aggregatedChartData
+					doublecountedIds: data?.doublecountedIds
 				})
 				let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
 				let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
