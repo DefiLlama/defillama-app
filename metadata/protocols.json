@@ -6668,7 +6668,7 @@
     },
     "1264": {
         "name": "smartdexbch",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1265": {
@@ -17481,7 +17481,6 @@
         "name": "flowx-v2",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "3197": {
@@ -25125,8 +25124,7 @@
     "4582": {
         "name": "flowx-v3",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4583": {
         "name": "keller-finance-v3",
@@ -26413,7 +26411,6 @@
         "name": "flowx-aggregator",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "aggregator": true
     },
     "4826": {
@@ -32987,7 +32984,6 @@
         "name": "flowx-finance",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "dexs": true,
         "aggregator": true
     },
@@ -34563,7 +34559,8 @@
         "treasury": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "parent#skullswap": {
         "name": "skullswap",
@@ -35228,7 +35225,8 @@
         "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "dexs": true
+        "dexs": true,
+        "emissions": true
     },
     "parent#uniwswap": {
         "name": "uniwswap",
