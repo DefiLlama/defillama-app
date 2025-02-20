@@ -2114,8 +2114,7 @@
     "441": {
         "name": "pylon-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "442": {
         "name": "universe-xyz",
@@ -5034,7 +5033,8 @@
     "968": {
         "name": "zai-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "969": {
         "name": "dehive",
@@ -11726,8 +11726,7 @@
     "2186": {
         "name": "usdfi-lending",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2187": {
         "name": "dolomite",
@@ -11762,8 +11761,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2193": {
         "name": "amulet-liquidity-staking",
@@ -14857,8 +14855,7 @@
         "name": "antfarm-finance",
         "tvl": true,
         "yields": false,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2750": {
         "name": "nuon-finance",
@@ -16691,8 +16688,7 @@
     "3076": {
         "name": "minerva",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3077": {
         "name": "fathom-amm",
@@ -32290,9 +32286,6 @@
         "revenue": true,
         "dexs": true,
         "emissions": true
-    },
-    "parent#canary": {
-        "activeUsers": true
     },
     "parent#cap-finance": {
         "name": "cap-finance",
