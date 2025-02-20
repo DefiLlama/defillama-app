@@ -137,6 +137,18 @@ export const useFetchChainChartData = ({
 	const chartDatasets = useMemo(() => {
 		const isNonUSDDenomination = denomination !== 'USD' && denominationPriceHistory && chainGeckoId
 
+		const deduplicateTimestamps = (data) => {
+			const seenTimestamps = new Set()
+			return data?.reduce((acc, [date, value]) => {
+				const timestamp = dayjs(Math.floor(date)).utc().startOf('day').unix()
+				if (!seenTimestamps.has(timestamp)) {
+					seenTimestamps.add(timestamp)
+					acc.push([timestamp, value])
+				}
+				return acc
+			}, [])
+		}
+
 		const normalizedDenomination = isNonUSDDenomination
 			? Object.fromEntries(
 					denominationPriceHistory.prices.map(([timestamp, price]) => [getUtcDateObject(timestamp / 1000), price])
@@ -151,31 +163,11 @@ export const useFetchChainChartData = ({
 			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
 			: volumeChart
 
-		const seenTimestamps = new Set()
-		const finalPriceChart = isNonUSDDenomination
-			? null
-			: denominationPriceHistory?.prices?.reduce((acc, [date, price]) => {
-					const timestamp = dayjs(Math.floor(date)).utc().startOf('day').unix()
-					if (!seenTimestamps.has(timestamp)) {
-						seenTimestamps.add(timestamp)
-						acc.push([timestamp, price])
-					}
-					return acc
-			  }, [])
+		const finalPriceChart = isNonUSDDenomination ? null : deduplicateTimestamps(denominationPriceHistory?.prices)
 
-		const finalMcapChart = isNonUSDDenomination
-			? null
-			: denominationPriceHistory?.mcaps?.map(([date, price]) => [
-					dayjs(Math.floor(date)).utc().startOf('day').unix(),
-					price
-			  ])
+		const finalMcapChart = isNonUSDDenomination ? null : deduplicateTimestamps(denominationPriceHistory?.mcaps)
 
-		const finalTokenVolumeChart = isNonUSDDenomination
-			? null
-			: denominationPriceHistory?.volumes?.map(([date, price]) => [
-					dayjs(Math.floor(date)).utc().startOf('day').unix(),
-					price
-			  ])
+		const finalTokenVolumeChart = isNonUSDDenomination ? null : deduplicateTimestamps(denominationPriceHistory?.volumes)
 
 		const finalPerpsChart = isNonUSDDenomination ? null : perpsChart?.totalDataChart
 
@@ -215,6 +207,8 @@ export const useFetchChainChartData = ({
 			}
 			return [ts, data.total + data.ownTokens]
 		})
+
+		console.log({ finalPriceChart, finalMcapChart, finalTokenVolumeChart })
 
 		const chartDatasets = [
 			{
