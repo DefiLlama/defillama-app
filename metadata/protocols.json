@@ -1233,7 +1233,6 @@
         "tvl": false,
         "yields": false,
         "governance": true,
-        "liquidity": true,
         "raises": true
     },
     "301": {
@@ -2329,7 +2328,6 @@
         "name": "baguette",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "activeUsers": true
     },
     "474": {
@@ -13644,8 +13642,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -28119,8 +28116,7 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "5158": {
         "name": "enosys-amm-v3",
