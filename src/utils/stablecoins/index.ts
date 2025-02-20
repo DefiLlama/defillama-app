@@ -137,19 +137,25 @@ export const buildPeggedChartData = ({
 		}
 	})
 
-	const peggedAreaTotalData = aggregatedChartData
-		? aggregatedChartData.map(({ date, mcap }) => {
-				return {
-					date: date,
-					[totalChartTooltipLabel]: mcap
-				}
-		  })
-		: Object.entries(unformattedTotalData).map(([date, mcap]) => {
-				return {
-					date: date,
-					[totalChartTooltipLabel]: mcap
-				}
-		  })
+	// const peggedAreaTotalData = aggregatedChartData
+	// 	? aggregatedChartData.map(({ date, mcap }) => {
+	// 			return {
+	// 				date: date,
+	// 				[totalChartTooltipLabel]: mcap
+	// 			}
+	// 	  })
+	// 	: Object.entries(unformattedTotalData).map(([date, mcap]) => {
+	// 			return {
+	// 				date: date,
+	// 				[totalChartTooltipLabel]: mcap
+	// 			}
+	// 	  })
+	const peggedAreaTotalData = Object.entries(unformattedTotalData).map(([date, mcap]) => {
+		return {
+			date: date,
+			[totalChartTooltipLabel]: mcap
+		}
+	})
 
 	const stackedDataset = Object.entries(stackedDatasetObject)
 
