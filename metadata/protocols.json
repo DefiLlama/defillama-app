@@ -1175,7 +1175,8 @@
     "289": {
         "name": "yetiswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "290": {
         "name": "penguin-finance",
@@ -1327,6 +1328,7 @@
         "tvl": true,
         "yields": false,
         "governance": true,
+        "activeUsers": true,
         "dexs": true
     },
     "318": {
@@ -11726,7 +11728,8 @@
     "2186": {
         "name": "usdfi-lending",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2187": {
         "name": "dolomite",
@@ -13642,7 +13645,8 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -31588,6 +31592,12 @@
         "tvl": true,
         "yields": false
     },
+    "5818": {
+        "name": "foom",
+        "tvl": false,
+        "yields": false,
+        "treasury": true
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -32021,7 +32031,6 @@
         "yields": true,
         "tvl": true,
         "governance": true,
-        "forks": true,
         "treasury": true,
         "liquidity": true,
         "activeUsers": true,
