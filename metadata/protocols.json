@@ -2326,8 +2326,7 @@
     "473": {
         "name": "baguette",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "474": {
         "name": "canary",
@@ -3046,8 +3045,7 @@
     "595": {
         "name": "convergence",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "596": {
         "name": "flux-protocol",
@@ -4230,7 +4228,8 @@
     "824": {
         "name": "euphoria",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "825": {
         "name": "nft20",
@@ -6785,8 +6784,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "1296": {
         "name": "zipswap",
@@ -15331,6 +15329,7 @@
         "name": "wagmi",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -28134,7 +28133,8 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "5158": {
         "name": "enosys-amm-v3",
@@ -34180,7 +34180,6 @@
         "tvl": true,
         "governance": true,
         "liquidity": true,
-        "activeUsers": true,
         "dexs": true
     },
     "parent#polynomial-protocol": {
