@@ -1934,8 +1934,7 @@
     "411": {
         "name": "pippi",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "412": {
         "name": "thorchain",
@@ -2920,8 +2919,7 @@
     "574": {
         "name": "fuzz-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "575": {
         "name": "coinswap-space",
@@ -31428,7 +31426,7 @@
     "5783": {
         "name": "takara-lend",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "5784": {
         "name": "haedal-amm-protocol",
@@ -31625,6 +31623,16 @@
     "5819": {
         "name": "defiapp",
         "tvl": false,
+        "yields": false
+    },
+    "5820": {
+        "name": "memeswap",
+        "tvl": true,
+        "yields": false
+    },
+    "5821": {
+        "name": "chickendefi",
+        "tvl": true,
         "yields": false
     },
     "chain#1": {
