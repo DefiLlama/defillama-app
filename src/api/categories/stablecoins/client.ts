@@ -20,13 +20,13 @@ export const useGetStabelcoinsChartDataByChain = (chain?: string) => {
 			? () =>
 					getPeggedOverviewPageData(chain === 'All' ? null : chain)
 						.then((data) => {
-							const { peggedAreaTotalData } = buildPeggedChartData(
-								data?.chartDataByPeggedAsset,
-								data?.peggedAssetNames,
-								Object.values(data?.peggedNameToChartDataIndex || {}),
-								'mcap',
-								chain
-							)
+							const { peggedAreaTotalData } = buildPeggedChartData({
+								chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
+								assetsOrChainsList: data?.peggedAssetNames,
+								filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
+								issuanceType: 'mcap',
+								selectedChain: chain
+							})
 
 							return peggedAreaTotalData
 						})

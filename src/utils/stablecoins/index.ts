@@ -41,10 +41,10 @@ export const buildPeggedChartData = ({
 }: {
 	chartDataByAssetOrChain: Array<any>
 	assetsOrChainsList: Array<string>
-	filteredIndexes: Array<number>
-	issuanceType: string
-	selectedChain: string
-	totalChartTooltipLabel: string
+	filteredIndexes?: Array<number>
+	issuanceType?: string
+	selectedChain?: string | null
+	totalChartTooltipLabel?: string
 }) => {
 	if (selectedChain === null) return {}
 	const backfilledChains = [

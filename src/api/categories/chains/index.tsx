@@ -106,13 +106,13 @@ export async function getChainPageData(chain?: string) {
 			: { fees: null, revenue: null },
 		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chainMetadata?.name)
 			.then((data) => {
-				const { peggedAreaChartData, peggedAreaTotalData } = buildPeggedChartData(
-					data?.chartDataByPeggedAsset,
-					data?.peggedAssetNames,
-					Object.values(data?.peggedNameToChartDataIndex || {}),
-					'mcap',
-					!chain || chain === 'All' ? 'All' : chainMetadata?.name
-				)
+				const { peggedAreaChartData, peggedAreaTotalData } = buildPeggedChartData({
+					chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
+					assetsOrChainsList: data?.peggedAssetNames,
+					filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
+					issuanceType: 'mcap',
+					selectedChain: !chain || chain === 'All' ? 'All' : chainMetadata?.name
+				})
 				let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
 				let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
 				const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
