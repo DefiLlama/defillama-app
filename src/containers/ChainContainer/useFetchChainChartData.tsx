@@ -151,12 +151,18 @@ export const useFetchChainChartData = ({
 			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
 			: volumeChart
 
+		const seenTimestamps = new Set()
 		const finalPriceChart = isNonUSDDenomination
 			? null
-			: denominationPriceHistory?.prices?.map(([date, price]) => [
-					dayjs(Math.floor(date)).utc().startOf('day').unix(),
-					price
-			  ])
+			: denominationPriceHistory?.prices?.reduce((acc, [date, price]) => {
+					const timestamp = dayjs(Math.floor(date)).utc().startOf('day').unix()
+					if (!seenTimestamps.has(timestamp)) {
+						seenTimestamps.add(timestamp)
+						acc.push([timestamp, price])
+					}
+					return acc
+			  }, [])
+
 		const finalMcapChart = isNonUSDDenomination
 			? null
 			: denominationPriceHistory?.mcaps?.map(([date, price]) => [
