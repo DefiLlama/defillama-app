@@ -6664,8 +6664,7 @@
     "1273": {
         "name": "cleopatra-dao",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1274": {
         "name": "stellaswap-v2",
@@ -31655,6 +31654,11 @@
         "tvl": true,
         "yields": false
     },
+    "5828": {
+        "name": "canary-protocol",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -31995,8 +31999,7 @@
     "parent#arbswap": {
         "name": "arbswap",
         "yields": false,
-        "tvl": true,
-        "activeUsers": true
+        "tvl": true
     },
     "parent#arcadia-finance": {
         "name": "arcadia-finance",
