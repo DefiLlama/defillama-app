@@ -2857,7 +2857,8 @@
     "563": {
         "name": "timewarp",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "564": {
         "name": "fabric",
