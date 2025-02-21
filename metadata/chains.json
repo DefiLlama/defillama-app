@@ -461,6 +461,7 @@
     "conflux": {
         "name": "Conflux",
         "fees": true,
+        "dexs": true,
         "aggregators": true,
         "inflows": true,
         "gecko_id": "conflux-token",
@@ -537,7 +538,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -568,7 +568,8 @@
     },
     "defiverse": {
         "name": "DeFiVerse",
-        "fees": true
+        "fees": true,
+        "dexs": true
     },
     "degen": {
         "name": "Degen",
