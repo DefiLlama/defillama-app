@@ -7144,8 +7144,7 @@
     "1354": {
         "name": "dogs-of-elon",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1355": {
         "name": "knights-of-fantom",
@@ -15054,8 +15053,7 @@
     "2767": {
         "name": "jbc.finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2768": {
         "name": "lsdx-farm",
@@ -25102,6 +25100,7 @@
         "name": "rivus-dao",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "hacks": true
     },
     "4575": {
@@ -32797,8 +32796,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "aggregator": true,
-        "emissions": true
+        "aggregator": true
     },
     "parent#dojoswap": {
         "name": "dojoswap",
