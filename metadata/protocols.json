@@ -244,7 +244,8 @@
     "139": {
         "name": "snowswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "140": {
         "name": "kava-lend",
@@ -6367,8 +6368,7 @@
     "1214": {
         "name": "karma-dao",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1215": {
         "name": "ovr",
@@ -7153,7 +7153,8 @@
     "1364": {
         "name": "narwhalswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1365": {
         "name": "etha-lend",
@@ -12177,7 +12178,8 @@
     "2263": {
         "name": "snowflake-exchange",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2264": {
         "name": "orderly-perps",
@@ -17712,6 +17714,7 @@
         "name": "narwhal-finance",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "raises": true
     },
     "3259": {
@@ -27346,6 +27349,7 @@
         "name": "cyberperp",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "perps": true
     },
     "5017": {
@@ -31637,6 +31641,11 @@
     },
     "5824": {
         "name": "steamm",
+        "tvl": true,
+        "yields": false
+    },
+    "5825": {
+        "name": "veda",
         "tvl": true,
         "yields": false
     },

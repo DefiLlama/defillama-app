@@ -460,6 +460,7 @@
     },
     "conflux": {
         "name": "Conflux",
+        "fees": true,
         "aggregators": true,
         "inflows": true,
         "gecko_id": "conflux-token",
@@ -566,7 +567,8 @@
         "dexs": true
     },
     "defiverse": {
-        "name": "DeFiVerse"
+        "name": "DeFiVerse",
+        "fees": true
     },
     "degen": {
         "name": "Degen",
@@ -1475,6 +1477,7 @@
     },
     "oasys": {
         "name": "Oasys",
+        "fees": true,
         "dexs": true,
         "gecko_id": "oasys",
         "tokenSymbol": "OAS"
