@@ -2700,7 +2700,6 @@
         "tvl": true,
         "yields": false,
         "treasury": true,
-        "liquidity": true,
         "raises": true
     },
     "534": {
@@ -6131,8 +6130,7 @@
     "1163": {
         "name": "trick-or-treat-farm",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1164": {
         "name": "deepseadao",
@@ -11970,7 +11968,7 @@
     },
     "2214": {
         "name": "bridgekek",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2215": {
@@ -12817,8 +12815,7 @@
     "2379": {
         "name": "camel-farm",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2380": {
         "name": "optim-finance",
