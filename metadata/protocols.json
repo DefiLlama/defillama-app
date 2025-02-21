@@ -3556,8 +3556,7 @@
     "683": {
         "name": "goswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "684": {
         "name": "hpdex",
@@ -7343,8 +7342,7 @@
     "1399": {
         "name": "fastyield-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1400": {
         "name": "lizard",
@@ -11897,7 +11895,7 @@
     },
     "2214": {
         "name": "bridgekek",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2215": {
