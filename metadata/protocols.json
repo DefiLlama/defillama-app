@@ -31775,6 +31775,11 @@
         "tvl": true,
         "yields": false
     },
+    "5826": {
+        "name": "bamm",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
