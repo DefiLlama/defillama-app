@@ -1176,8 +1176,7 @@
     "289": {
         "name": "yetiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "290": {
         "name": "penguin-finance",
@@ -1811,7 +1810,8 @@
     "391": {
         "name": "pantherswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "392": {
         "name": "wardenswap",
@@ -4744,7 +4744,6 @@
         "name": "pika",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -31622,7 +31621,8 @@
     "5819": {
         "name": "defiapp",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "aggregator": true
     },
     "5820": {
         "name": "memeswap",
