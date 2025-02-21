@@ -629,7 +629,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 						<div>
 							<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)]">
 								<div className="flex flex-col p-5 col-span-1 w-full xl:w-[380px] text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-									<h1 className="flex items-center gap-2 text-xl">
+									<h1 className="flex items-center flex-wrap gap-2 text-xl">
 										<TokenLogo logo={tokenIconUrl(name)} size={24} />
 										<span className="font-bold">
 											{name ? name + `${deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
