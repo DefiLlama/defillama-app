@@ -4915,7 +4915,6 @@
         "name": "knightswap-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "activeUsers": true,
         "dexs": true
     },
@@ -5012,8 +5011,7 @@
     "958": {
         "name": "ester-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "959": {
         "name": "alpaca-city",
@@ -13396,8 +13394,7 @@
     "2482": {
         "name": "citadao",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2483": {
         "name": "perennial-v1",
@@ -18914,8 +18911,7 @@
     "3440": {
         "name": "knightswap-lending",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3441": {
         "name": "autotronic",
@@ -19221,7 +19217,8 @@
     "3494": {
         "name": "chewyswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3495": {
         "name": "broswap",
@@ -23784,8 +23781,7 @@
     "4326": {
         "name": "cadence-protocol",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4327": {
         "name": "tensorplex",
@@ -33520,7 +33516,6 @@
         "name": "knightswap",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "dexs": true
     },
     "parent#kodiak": {
