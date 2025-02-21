@@ -2425,6 +2425,7 @@
         "name": "moola-market",
         "tvl": true,
         "yields": true,
+        "liquidity": true,
         "hacks": true,
         "raises": true
     },
@@ -32671,7 +32672,8 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "aggregator": true
+        "aggregator": true,
+        "emissions": true
     },
     "parent#dojoswap": {
         "name": "dojoswap",
