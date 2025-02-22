@@ -1678,8 +1678,7 @@
     "372": {
         "name": "rabbit-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "373": {
         "name": "biswap-v2",
@@ -30773,7 +30772,8 @@
         "name": "o.lab",
         "tvl": true,
         "yields": false,
-        "dexs": true
+        "dexs": true,
+        "options": true
     },
     "5649": {
         "name": "yoko",
