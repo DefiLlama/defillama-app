@@ -7066,7 +7066,8 @@
     "1340": {
         "name": "icecream-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1342": {
         "name": "croblanc",
@@ -8113,7 +8114,8 @@
     "1533": {
         "name": "life",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1534": {
         "name": "strikex",
@@ -23906,8 +23908,7 @@
     "4352": {
         "name": "satoshi-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4353": {
         "name": "pyreswap",
