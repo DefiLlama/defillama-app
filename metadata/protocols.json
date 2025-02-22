@@ -11358,8 +11358,7 @@
     "2114": {
         "name": "nudes",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2115": {
         "name": "flashstake",
@@ -24759,7 +24758,7 @@
     },
     "4511": {
         "name": "pay-protocol",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4512": {
@@ -27019,7 +27018,7 @@
     },
     "4939": {
         "name": "maha.xyz",
-        "tvl": true,
+        "tvl": false,
         "yields": true,
         "governance": true,
         "treasury": true,
