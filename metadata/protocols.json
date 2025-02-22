@@ -13879,8 +13879,7 @@
     "2576": {
         "name": "goledo",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2577": {
         "name": "sharky-swap",
@@ -18904,7 +18903,8 @@
     "3461": {
         "name": "basin-dao",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3462": {
         "name": "mvcswap",
