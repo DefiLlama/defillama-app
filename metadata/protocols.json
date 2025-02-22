@@ -4182,8 +4182,7 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "816": {
         "name": "xsigma",
@@ -11462,7 +11461,6 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -11723,8 +11721,7 @@
     "2186": {
         "name": "usdfi-lending",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2187": {
         "name": "dolomite",
@@ -31636,6 +31633,11 @@
     },
     "5821": {
         "name": "chickendefi",
+        "tvl": true,
+        "yields": false
+    },
+    "5822": {
+        "name": "meme-wallet",
         "tvl": true,
         "yields": false
     },
