@@ -3693,6 +3693,7 @@
         "name": "luaswap",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "709": {
@@ -20403,8 +20404,7 @@
     "3729": {
         "name": "b2b",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3730": {
         "name": "hi.market",
