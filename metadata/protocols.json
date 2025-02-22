@@ -1924,7 +1924,8 @@
         "name": "cafeswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "410": {
         "name": "swamp-finance",
@@ -11759,7 +11760,8 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2193": {
         "name": "amulet-liquidity-staking",
@@ -20475,8 +20477,7 @@
     "3745": {
         "name": "lendora-protocol",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3746": {
         "name": "davincigraph",
