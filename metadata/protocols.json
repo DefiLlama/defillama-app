@@ -7760,8 +7760,7 @@
     "1475": {
         "name": "mahadao-arth",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1476": {
         "name": "wrapped-ilcoin",
@@ -19582,8 +19581,7 @@
     "3582": {
         "name": "chaingpt",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3583": {
         "name": "ancora-finance",
@@ -32603,10 +32601,7 @@
     "parent#defive": {
         "name": "defive",
         "yields": false,
-        "tvl": true,
-        "fees": true,
-        "revenue": true,
-        "dexs": true
+        "tvl": true
     },
     "parent#degenhive": {
         "name": "degenhive",
@@ -33653,8 +33648,7 @@
         "yields": false,
         "tvl": true,
         "governance": true,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "parent#maia-dao-ecosystem": {
         "name": "maia-dao-ecosystem",

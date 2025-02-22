@@ -538,7 +538,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1439,6 +1438,7 @@
     },
     "neutron": {
         "name": "Neutron",
+        "fees": true,
         "dexs": true,
         "derivatives": true,
         "aggregators": true
