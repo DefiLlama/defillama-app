@@ -1174,6 +1174,7 @@
         "name": "0.exchange",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "activeUsers": true
     },
     "289": {
@@ -4831,7 +4832,8 @@
     "926": {
         "name": "metaversepro",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "927": {
         "name": "pidao-finance",
@@ -10632,7 +10634,8 @@
     "1983": {
         "name": "cometa",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1984": {
         "name": "wanlend",
@@ -10911,8 +10914,7 @@
     "2035": {
         "name": "bitgert-swap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2036": {
         "name": "ssap",
@@ -15529,7 +15531,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -19774,7 +19776,8 @@
     "3597": {
         "name": "zeroliquid",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3598": {
         "name": "mountain-protocol",
@@ -27868,7 +27871,8 @@
         "name": "orderly-amm",
         "tvl": false,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "dexs": true
     },
     "5089": {
         "name": "level-amm",
@@ -34169,6 +34173,7 @@
         "liquidity": true,
         "fees": true,
         "revenue": true,
+        "dexs": true,
         "perps": true
     },
     "parent#origin-defi": {
