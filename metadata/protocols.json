@@ -7741,8 +7741,7 @@
     "1471": {
         "name": "bethash",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1472": {
         "name": "electrik-finance",
@@ -9915,7 +9914,8 @@
     "1865": {
         "name": "oracle-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1866": {
         "name": "dexpad",
@@ -18036,8 +18036,7 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "3315": {
         "name": "crescentswap",
@@ -30835,7 +30834,8 @@
     "5659": {
         "name": "treble",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5660": {
         "name": "ethos-network",
