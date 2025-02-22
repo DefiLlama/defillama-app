@@ -8201,8 +8201,7 @@
     "1558": {
         "name": "gogocoin",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1559": {
         "name": "kdlaunch",
