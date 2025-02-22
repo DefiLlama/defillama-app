@@ -31501,7 +31501,10 @@
     "5774": {
         "name": "magma",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5775": {
         "name": "infrared-finance",
@@ -31782,6 +31785,11 @@
     },
     "5829": {
         "name": "onedollardcae",
+        "tvl": true,
+        "yields": false
+    },
+    "5830": {
+        "name": "astake",
         "tvl": true,
         "yields": false
     },
