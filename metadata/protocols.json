@@ -18381,7 +18381,8 @@
     "3347": {
         "name": "meridian-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3348": {
         "name": "soswap",
@@ -18605,7 +18606,8 @@
     "3386": {
         "name": "meridian-trade",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3387": {
         "name": "bryan-on-base",
@@ -20703,8 +20705,7 @@
     "3764": {
         "name": "boom",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3765": {
         "name": "cryptoo-tech",
@@ -27825,8 +27826,7 @@
     "5080": {
         "name": "boomswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5081": {
         "name": "kujata",
@@ -33868,6 +33868,7 @@
         "name": "meridian",
         "yields": false,
         "tvl": true,
+        "liquidity": true,
         "dexs": true,
         "emissions": true
     },
