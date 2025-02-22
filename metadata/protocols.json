@@ -2786,8 +2786,7 @@
     "550": {
         "name": "freeriver",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "551": {
         "name": "solarbeam",
@@ -6093,8 +6092,7 @@
     "1164": {
         "name": "deepseadao",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1165": {
         "name": "swing-dao",
@@ -6980,8 +6978,7 @@
         "name": "oceanus",
         "tvl": false,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "1334": {
         "name": "pearzap",
@@ -11359,8 +11356,7 @@
     "2124": {
         "name": "powsea",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2125": {
         "name": "powswap",
@@ -24262,7 +24258,8 @@
         "name": "puff-penthouse",
         "tvl": true,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "4440": {
         "hacks": true
