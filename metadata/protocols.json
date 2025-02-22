@@ -15521,7 +15521,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2854": {
@@ -30852,7 +30852,8 @@
     "5641": {
         "name": "citrex-markets",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "perps": true
     },
     "5642": {
         "name": "edbank",
