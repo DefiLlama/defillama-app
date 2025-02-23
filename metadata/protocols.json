@@ -3883,6 +3883,7 @@
         "yields": false,
         "governance": true,
         "treasury": true,
+        "liquidity": true,
         "hacks": true,
         "fees": true,
         "revenue": true
@@ -9676,7 +9677,8 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1824": {
         "name": "swapsicle-v1",
@@ -11455,6 +11457,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -14471,7 +14474,7 @@
     "2683": {
         "name": "davos-protocol",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "2684": {
         "name": "arc-swap",
