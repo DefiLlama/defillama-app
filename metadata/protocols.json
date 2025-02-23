@@ -2377,8 +2377,7 @@
     "482": {
         "name": "shibance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "483": {
         "name": "nftx",
