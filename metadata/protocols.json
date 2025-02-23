@@ -4177,7 +4177,8 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "816": {
         "name": "xsigma",
@@ -7224,7 +7225,8 @@
         "name": "based-v1",
         "tvl": true,
         "yields": false,
-        "forks": true
+        "forks": true,
+        "liquidity": true
     },
     "1380": {
         "name": "minimax",
@@ -13568,6 +13570,7 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -18995,7 +18998,8 @@
     "3480": {
         "name": "based-farm",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3481": {
         "name": "solidly-v3",
@@ -19710,6 +19714,7 @@
         "name": "basedmarkets",
         "tvl": false,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -32134,7 +32139,8 @@
     "parent#based-finance": {
         "name": "based-finance",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "parent#baseswap": {
         "name": "baseswap",
