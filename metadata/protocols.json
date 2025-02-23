@@ -8562,7 +8562,8 @@
     "1623": {
         "name": "troydefi",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1624": {
         "name": "ambire-wallet",
@@ -23199,8 +23200,7 @@
     "4246": {
         "name": "blastoff",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4247": {
         "name": "lazyotter-finance",
