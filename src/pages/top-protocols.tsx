@@ -121,7 +121,7 @@ export default function Chains({ data, columns }) {
 	return (
 		<Layout title="TVL Rankings - DefiLlama" defaultSEO>
 			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
-				<span>Top Protocols</span>
+				<span>Top Protocols by Chain</span>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</h1>
 			<VirtualTable instance={instance} style={{ height: '85vh' }} skipVirtualization />
