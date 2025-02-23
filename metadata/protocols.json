@@ -1050,7 +1050,6 @@
         "forks": true,
         "liquidity": true,
         "raises": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -2806,7 +2805,8 @@
     "554": {
         "name": "stormswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "555": {
         "name": "genshiro",
@@ -2842,6 +2842,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -3601,8 +3602,7 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "693": {
         "name": "superfluid",
@@ -7958,7 +7958,7 @@
     },
     "1515": {
         "name": "echidna-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1516": {
@@ -11209,8 +11209,7 @@
         "name": "fstswap",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2102": {
         "name": "titano-swych",
@@ -12761,7 +12760,8 @@
         "name": "oreoswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2385": {
         "name": "exactly",
@@ -13634,8 +13634,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -16030,8 +16029,7 @@
     "2963": {
         "name": "memedex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2964": {
         "name": "cozy-v2",
@@ -18008,7 +18006,6 @@
         "name": "retro",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -26885,7 +26882,7 @@
     "4939": {
         "name": "maha.xyz",
         "tvl": false,
-        "yields": true,
+        "yields": false,
         "governance": true,
         "treasury": true,
         "liquidity": true,
