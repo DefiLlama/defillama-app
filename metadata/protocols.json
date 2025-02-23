@@ -1921,8 +1921,7 @@
         "name": "cafeswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "410": {
         "name": "swamp-finance",
@@ -3369,7 +3368,8 @@
     "651": {
         "name": "chfry-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "652": {
         "name": "emiswap",
@@ -14848,8 +14848,7 @@
         "name": "antfarm-finance",
         "tvl": true,
         "yields": false,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2750": {
         "name": "nuon-finance",
@@ -31666,6 +31665,21 @@
     },
     "5830": {
         "name": "astake",
+        "tvl": true,
+        "yields": false
+    },
+    "5831": {
+        "name": "curves-protocol",
+        "tvl": true,
+        "yields": false
+    },
+    "5832": {
+        "name": "fibonacci-dex",
+        "tvl": true,
+        "yields": false
+    },
+    "5834": {
+        "name": "ethereal",
         "tvl": true,
         "yields": false
     },

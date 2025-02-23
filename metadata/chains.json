@@ -820,6 +820,9 @@
         "gecko_id": "fluence-2",
         "tokenSymbol": "FLT"
     },
+    "form-network": {
+        "name": "Form Network"
+    },
     "fraxtal": {
         "name": "Fraxtal",
         "fees": true,
