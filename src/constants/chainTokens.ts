@@ -1506,6 +1506,11 @@ export const chainCoingeckoIds = {
 		geckoId: 'berachain-bera',
 		symbol: 'BERA',
 		cmcId: '24647'
+	},
+	Story: {
+		geckoId: 'story-2',
+		symbol: 'IP',
+		cmcId: '35626'
 	}
 }
 
