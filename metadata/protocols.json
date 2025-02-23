@@ -8164,7 +8164,8 @@
         "name": "drip",
         "tvl": false,
         "yields": false,
-        "forks": true
+        "forks": true,
+        "liquidity": true
     },
     "1544": {
         "name": "concentrator",
@@ -16502,7 +16503,8 @@
     "3024": {
         "name": "etherberry-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3025": {
         "name": "ktx-perps",
