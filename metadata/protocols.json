@@ -9239,8 +9239,7 @@
     "1745": {
         "name": "joystick-club",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1746": {
         "name": "mapledefi",
