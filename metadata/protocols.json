@@ -7999,7 +7999,7 @@
     },
     "1523": {
         "name": "klaystation",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "1524": {
@@ -32367,6 +32367,9 @@
         "dexs": true,
         "emissions": true
     },
+    "parent#canary": {
+        "activeUsers": true
+    },
     "parent#cap-finance": {
         "name": "cap-finance",
         "yields": false,
@@ -34508,6 +34511,7 @@
         "name": "smbswap",
         "yields": false,
         "tvl": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
