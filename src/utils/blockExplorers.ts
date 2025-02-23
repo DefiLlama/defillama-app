@@ -128,7 +128,8 @@ const blockExplorers = {
 	sophon: ['https://explorer.sophon.xyz/address/', 'Sophon Explorer'],
 	soneium: ['https://soneium.blockscout.com/address/', 'Soneium Blockscout'],
 	berachain: ['https://beratrail.io/address/', 'Beratrail'],
-	sty: ['https://www.storyscan.xyz/token/', 'Storyscan']
+	sty: ['https://www.storyscan.xyz/token/', 'Storyscan'],
+	formnetwork: ['https://explorer.form.network/', 'Form Network Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
