@@ -4023,8 +4023,7 @@
     "785": {
         "name": "lootswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "786": {
         "name": "bagels-finance",
@@ -13571,7 +13570,6 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -18798,8 +18796,7 @@
         "name": "loot--dao",
         "tvl": false,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "3444": {
         "name": "liquid-finance-protocol",
