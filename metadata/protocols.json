@@ -6660,7 +6660,8 @@
     "1273": {
         "name": "cleopatra-dao",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1274": {
         "name": "stellaswap-v2",
@@ -8192,8 +8193,7 @@
         "name": "single-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "liquidity": true
+        "governance": true
     },
     "1558": {
         "name": "gogocoin",
@@ -16384,7 +16384,8 @@
     "3024": {
         "name": "etherberry-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3025": {
         "name": "ktx-perps",
@@ -19287,7 +19288,6 @@
         "name": "blazebot",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true
     },
