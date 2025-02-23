@@ -2198,8 +2198,7 @@
     "454": {
         "name": "back-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "455": {
         "name": "zoocoin",
@@ -3331,7 +3330,6 @@
         "name": "padswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "645": {
@@ -5203,6 +5201,7 @@
         "name": "yokaiswap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "1003": {
@@ -24055,8 +24054,7 @@
     "4402": {
         "name": "savmdex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4403": {
         "name": "hatom-tao-bridge",
@@ -26333,7 +26331,8 @@
     "4833": {
         "name": "influpia",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4834": {
         "name": "napier-finance",
