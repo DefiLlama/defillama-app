@@ -5164,8 +5164,7 @@
     "987": {
         "name": "honeyfarm",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "988": {
         "name": "vaporwave",
@@ -5953,8 +5952,7 @@
     "1129": {
         "name": "blackbird-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1130": {
         "name": "buffaloswap",
@@ -26564,8 +26562,7 @@
     "4853": {
         "name": "blackrock-buidl",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4854": {
         "name": "arca-labs-arcoin",
@@ -27837,8 +27834,7 @@
     "5083": {
         "name": "beebase",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5084": {
         "name": "lucidly-finance",
