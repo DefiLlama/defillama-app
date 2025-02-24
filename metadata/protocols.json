@@ -7518,7 +7518,8 @@
         "tvl": true,
         "yields": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "emissions": true
     },
     "1434": {
         "name": "newspace-finance",
@@ -32457,7 +32458,8 @@
         "forks": true,
         "liquidity": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "parent#charm-finance": {
         "name": "charm-finance",
@@ -35139,7 +35141,8 @@
         "tvl": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "emissions": true
     },
     "parent#tropykus-finance": {
         "name": "tropykus-finance",
