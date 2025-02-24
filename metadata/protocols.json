@@ -11418,8 +11418,7 @@
     "2125": {
         "name": "powswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2126": {
         "name": "redemption",
@@ -24812,7 +24811,7 @@
     "4524": {
         "name": "aerodrome-slipstream",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true,
         "fees": true,
         "revenue": true,
