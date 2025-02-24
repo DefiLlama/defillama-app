@@ -5350,8 +5350,7 @@
     "1031": {
         "name": "pandaswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1032": {
         "name": "percent-finance",
@@ -5760,8 +5759,7 @@
     "1103": {
         "name": "snowcatdao",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1104": {
         "name": "agarthadao",
@@ -11453,7 +11451,6 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -12915,8 +12912,7 @@
     "2409": {
         "name": "panda-chef",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2410": {
         "name": "bao-markets",
@@ -31700,6 +31696,11 @@
     },
     "5838": {
         "name": "hypurrfi",
+        "tvl": true,
+        "yields": false
+    },
+    "5839": {
+        "name": "vingt.io",
         "tvl": true,
         "yields": false
     },
