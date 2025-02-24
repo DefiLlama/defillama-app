@@ -916,7 +916,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													dataType="Volume"
 													rowHeader="Volume 24h"
 													rowValue={formatPrice(dailyVolume)}
-													helperText={null}
+													helperText="Yesterday's volume, updated daily at 00:00UTC"
 													subRows={
 														<>
 															{allTimeVolume ? (
@@ -932,6 +932,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 														<span>Volume 24h</span>
+														<QuestionHelper text="Yesterday's volume, updated daily at 00:00UTC" />
 														<Flag
 															protocol={protocolData.name}
 															dataType={'Volume'}
@@ -947,7 +948,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													dataType="Perps Volume"
 													rowHeader="Perps Volume 24h"
 													rowValue={formatPrice(dailyPerpsVolume)}
-													helperText={null}
+													helperText="Yesterday's volume, updated daily at 00:00UTC"
 													subRows={
 														<>
 															{allTimePerpsVolume ? (
@@ -963,6 +964,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 														<span>Perps Volume 24h</span>
+														<QuestionHelper text="Yesterday's volume, updated daily at 00:00UTC" />
 														<Flag
 															protocol={protocolData.name}
 															dataType={'Perps Volume'}
@@ -978,7 +980,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													dataType="Aggregators Volume"
 													rowHeader="Aggregators Volume 24h"
 													rowValue={formatPrice(dailyAggregatorsVolume)}
-													helperText={null}
+													helperText="Yesterday's volume, updated daily at 00:00UTC"
 													subRows={
 														<>
 															{allTimeAggregatorsVolume ? (
@@ -994,6 +996,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 														<span>Aggregators Volume 24h</span>
+														<QuestionHelper text="Yesterday's volume, updated daily at 00:00UTC" />
 														<Flag
 															protocol={protocolData.name}
 															dataType={'Aggregators Volume'}
@@ -1009,7 +1012,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													dataType="Perps Aggregators Volume"
 													rowHeader="Perps Aggs Volume 24h"
 													rowValue={formatPrice(dailyPerpsAggregatorVolume)}
-													helperText={null}
+													helperText="Yesterday's volume, updated daily at 00:00UTC"
 													subRows={
 														<>
 															{allTimePerpsAggregatorVolume ? (
@@ -1025,6 +1028,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 														<span>Perps Aggs Volume 24h</span>
+														<QuestionHelper text="Yesterday's volume, updated daily at 00:00UTC" />
 														<Flag
 															protocol={protocolData.name}
 															dataType={'Perps Aggregators Volume'}
@@ -1039,6 +1043,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 														<span>Options Premium Volume 24h</span>
+														<QuestionHelper text="Yesterday's volume, updated daily at 00:00UTC" />
 														<Flag
 															protocol={protocolData.name}
 															dataType={'Options Premium Volume 24h'}
@@ -1059,13 +1064,23 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													subRows={
 														<>
 															<tr>
-																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Fees 30d`}</th>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	<span className="flex items-center gap-1">
+																		<span>Fees 30d</span>
+																		<QuestionHelper text="Cumulative fees over the last 30 days" />
+																	</span>
+																</th>
 																<td className="text-sm text-right">{formatPrice(fees30d)}</td>
 															</tr>
 
 															{dailyFees ? (
 																<tr>
-																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Fees 24h`}</th>
+																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		<span className="flex items-center gap-1">
+																			<span>Fees 24h</span>
+																			<QuestionHelper text="Yesterday's fees, updated daily at 00:00UTC" />
+																		</span>
+																	</th>
 																	<td className="text-sm text-right">{formatPrice(dailyFees)}</td>
 																</tr>
 															) : null}
@@ -1090,13 +1105,23 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													subRows={
 														<>
 															<tr>
-																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Revenue 30d`}</th>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																	<span className="flex items-center gap-1">
+																		<span>Revenue 30d</span>
+																		<QuestionHelper text="Cumulative revenue over the last 30 days" />
+																	</span>
+																</th>
 																<td className="text-sm text-right">{formatPrice(revenue30d)}</td>
 															</tr>
 
 															{dailyRevenueFinal ? (
 																<tr>
-																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Revenue 24h`}</th>
+																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																		<span className="flex items-center gap-1">
+																			<span>Revenue 24h</span>
+																			<QuestionHelper text="Yesterday's revenue, updated daily at 00:00UTC" />
+																		</span>
+																	</th>
 																	<td className="text-sm text-right">{formatPrice(dailyRevenueFinal)}</td>
 																</tr>
 															) : null}
