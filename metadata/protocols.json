@@ -12457,8 +12457,7 @@
     "2331": {
         "name": "swapfish",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2332": {
         "name": "equalizer-exchange",
@@ -15455,7 +15454,8 @@
         "liquidity": true
     },
     "2862": {
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "2863": {
         "name": "saitaswap",
@@ -20265,7 +20265,7 @@
     "3708": {
         "name": "mev-protocol",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "3709": {
         "name": "frensly",
@@ -31702,6 +31702,11 @@
     },
     "5839": {
         "name": "vingt.io",
+        "tvl": true,
+        "yields": false
+    },
+    "5840": {
+        "name": "roll-fun",
         "tvl": true,
         "yields": false
     },
