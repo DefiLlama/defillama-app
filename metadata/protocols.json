@@ -2709,8 +2709,7 @@
         "name": "teddy-cash",
         "tvl": true,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "536": {
         "name": "larix",
