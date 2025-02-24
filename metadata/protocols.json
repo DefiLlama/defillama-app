@@ -5321,8 +5321,7 @@
     "1026": {
         "name": "starterra",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1027": {
         "name": "xmas-past",
@@ -15454,8 +15453,7 @@
         "liquidity": true
     },
     "2862": {
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "2863": {
         "name": "saitaswap",
@@ -31505,8 +31503,7 @@
     "5800": {
         "name": "peppercoin",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5801": {
         "name": "cadabra-finance",
