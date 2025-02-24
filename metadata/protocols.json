@@ -18255,7 +18255,7 @@
     },
     "3331": {
         "name": "tetu-pawnshop",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "liquidity": true
     },
@@ -18626,6 +18626,7 @@
         "name": "liquid-collective",
         "tvl": true,
         "yields": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true
     },
