@@ -1352,7 +1352,8 @@
     "320": {
         "name": "depth",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "321": {
         "name": "ram-protocol",
