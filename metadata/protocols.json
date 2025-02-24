@@ -1808,7 +1808,8 @@
     "391": {
         "name": "pantherswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "392": {
         "name": "wardenswap",
@@ -11491,7 +11492,8 @@
     "2149": {
         "name": "based-next-generation",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2150": {
         "name": "ribbon-earn",
@@ -15425,7 +15427,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -15496,7 +15498,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
