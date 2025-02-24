@@ -517,7 +517,8 @@
         "liquidity": true,
         "raises": true,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "emissions": true
     },
     "183": {
         "name": "wing-finance",
@@ -13962,8 +13963,7 @@
         "name": "king-finance",
         "tvl": false,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "2580": {
         "name": "nuls-pocm",
@@ -31433,7 +31433,8 @@
     "5760": {
         "name": "snake-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5761": {
         "name": "hyperliquid-spot-orderbook",
