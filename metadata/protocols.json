@@ -611,6 +611,7 @@
         "name": "sablier-legacy",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "revenue": true
     },
     "200": {
@@ -652,7 +653,8 @@
         "name": "goose-finance",
         "tvl": true,
         "yields": true,
-        "forks": true
+        "forks": true,
+        "liquidity": true
     },
     "206": {
         "name": "xtoken",
@@ -27594,7 +27596,9 @@
         "name": "caviarnine-agg",
         "tvl": false,
         "yields": false,
+        "fees": true,
         "revenue": true,
+        "dexs": true,
         "aggregator": true
     },
     "5065": {
@@ -31555,6 +31559,7 @@
         "name": "goplus-locker",
         "tvl": false,
         "yields": false,
+        "fees": true,
         "revenue": true
     },
     "5808": {
@@ -34509,6 +34514,7 @@
         "yields": false,
         "tvl": true,
         "raises": true,
+        "fees": true,
         "revenue": true
     },
     "parent#sanctum": {
