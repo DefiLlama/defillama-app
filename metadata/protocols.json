@@ -2968,7 +2968,8 @@
     "579": {
         "name": "itrust-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "580": {
         "name": "sashimiswap",
@@ -31844,6 +31845,16 @@
     },
     "5842": {
         "name": "sir-trading",
+        "tvl": true,
+        "yields": false
+    },
+    "5843": {
+        "name": "flex-perpetuals",
+        "tvl": true,
+        "yields": false
+    },
+    "5845": {
+        "name": "wasabee",
         "tvl": true,
         "yields": false
     },
