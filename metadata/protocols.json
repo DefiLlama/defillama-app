@@ -951,6 +951,7 @@
         "yields": false,
         "governance": true,
         "forks": true,
+        "liquidity": true,
         "hacks": true,
         "raises": true
     },
@@ -12320,8 +12321,7 @@
     "2306": {
         "name": "bored-candy-city",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2307": {
         "name": "camelot-v2",
