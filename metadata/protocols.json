@@ -16139,7 +16139,8 @@
     "2963": {
         "name": "memedex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2964": {
         "name": "cozy-v2",
@@ -16611,7 +16612,7 @@
     },
     "3044": {
         "name": "marginx-perp",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "3045": {
