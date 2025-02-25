@@ -9211,7 +9211,8 @@
     "1731": {
         "name": "honkswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1732": {
         "name": "verse",
