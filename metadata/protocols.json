@@ -1402,7 +1402,8 @@
     "328": {
         "name": "steakbank-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "329": {
         "name": "sovryn-dex",
@@ -2113,7 +2114,8 @@
     "441": {
         "name": "pylon-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "442": {
         "name": "universe-xyz",
@@ -10118,8 +10120,7 @@
     "1902": {
         "name": "starswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1903": {
         "name": "vovo-finance",
@@ -10704,8 +10705,7 @@
     "2010": {
         "name": "starswap-starcoin",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2011": {
         "name": "sudo-inu",
@@ -16032,8 +16032,7 @@
     "2966": {
         "name": "starmaker",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2967": {
         "name": "optimism-foundation",
@@ -16669,7 +16668,8 @@
     "3076": {
         "name": "minerva",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3077": {
         "name": "fathom-amm",
