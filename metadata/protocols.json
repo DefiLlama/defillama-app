@@ -4145,8 +4145,7 @@
     "808": {
         "name": "swift-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "809": {
         "name": "polyyeld-finance",
