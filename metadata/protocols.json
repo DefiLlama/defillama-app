@@ -610,7 +610,8 @@
     "199": {
         "name": "sablier-legacy",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "200": {
         "name": "bella-protocol",
@@ -12757,8 +12758,7 @@
         "name": "oreoswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "2385": {
         "name": "exactly",
@@ -27594,6 +27594,7 @@
         "name": "caviarnine-agg",
         "tvl": false,
         "yields": false,
+        "revenue": true,
         "aggregator": true
     },
     "5065": {
@@ -31553,7 +31554,8 @@
     "5807": {
         "name": "goplus-locker",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5808": {
         "name": "meta-pool-mpsol",
@@ -31632,6 +31634,11 @@
     },
     "5822": {
         "name": "meme-wallet",
+        "tvl": true,
+        "yields": false
+    },
+    "5823": {
+        "name": "hermetica-usdh",
         "tvl": true,
         "yields": false
     },
@@ -34501,7 +34508,8 @@
         "name": "sablier",
         "yields": false,
         "tvl": true,
-        "raises": true
+        "raises": true,
+        "revenue": true
     },
     "parent#sanctum": {
         "name": "sanctum",
