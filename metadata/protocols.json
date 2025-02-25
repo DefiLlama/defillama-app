@@ -31842,6 +31842,11 @@
         "fees": true,
         "revenue": true
     },
+    "5842": {
+        "name": "sir-trading",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
