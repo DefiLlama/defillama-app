@@ -19795,8 +19795,7 @@
     "3625": {
         "name": "nano-swap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3626": {
         "name": "spacefi-scroll",
@@ -20564,7 +20563,8 @@
     "3764": {
         "name": "boom",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3765": {
         "name": "cryptoo-tech",
@@ -26464,7 +26464,7 @@
     },
     "4861": {
         "name": "aurus",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "4862": {
@@ -27681,7 +27681,8 @@
     "5080": {
         "name": "boomswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5081": {
         "name": "kujata",
@@ -31706,7 +31707,9 @@
     "5841": {
         "name": "jupiter-dca",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true,
+        "fees": true
     },
     "chain#1": {
         "fees": true,
