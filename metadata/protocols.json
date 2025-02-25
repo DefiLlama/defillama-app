@@ -2058,7 +2058,8 @@
     "432": {
         "name": "longdrink",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "433": {
         "name": "daoventures",
@@ -14102,7 +14103,8 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -31753,6 +31755,11 @@
     "5845": {
         "name": "wasabee",
         "tvl": true,
+        "yields": false
+    },
+    "5846": {
+        "name": "hedgey",
+        "tvl": false,
         "yields": false
     },
     "chain#1": {
