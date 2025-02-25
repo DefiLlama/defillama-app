@@ -819,7 +819,8 @@
         "tokenSymbol": "FLT"
     },
     "form-network": {
-        "name": "Form Network"
+        "name": "Form Network",
+        "chainAssets": true
     },
     "fraxtal": {
         "name": "Fraxtal",

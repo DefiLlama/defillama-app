@@ -1056,7 +1056,6 @@
         "name": "honeyswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -3423,7 +3422,6 @@
         "name": "jetswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "660": {
@@ -6592,8 +6590,7 @@
     "1261": {
         "name": "darkcrypto",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1262": {
         "name": "saros",
