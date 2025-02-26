@@ -10450,7 +10450,8 @@
     "1949": {
         "name": "civfund",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1950": {
         "name": "baryon-network",
@@ -15536,7 +15537,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
@@ -26599,7 +26600,7 @@
     },
     "4861": {
         "name": "aurus",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4862": {
