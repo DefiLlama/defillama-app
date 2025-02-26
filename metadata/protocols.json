@@ -2210,8 +2210,7 @@
     "455": {
         "name": "zoocoin",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "456": {
         "name": "telcoin",
@@ -8755,8 +8754,7 @@
     "1656": {
         "name": "funbeast",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1657": {
         "name": "predy-v3.2",
@@ -9819,7 +9817,8 @@
     "1848": {
         "name": "acala-dollar",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1849": {
         "name": "acala-liquid-staking",
@@ -15840,8 +15839,7 @@
     "2927": {
         "name": "zoodao",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2928": {
         "name": "veax",
