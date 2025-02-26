@@ -16,7 +16,6 @@ import {
 import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
 import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
 import { useMemo } from 'react'
-import { getUtcDateObject } from '~/components/ECharts/utils'
 import { getPercentChange, getPrevTvlFromChart, nearestUtc } from '~/utils'
 
 export const useFetchChainChartData = ({
@@ -149,18 +148,20 @@ export const useFetchChainChartData = ({
 			}, [])
 		}
 
-		const normalizedDenomination = isNonUSDDenomination
-			? Object.fromEntries(
-					denominationPriceHistory.prices.map(([timestamp, price]) => [getUtcDateObject(timestamp / 1000), price])
-			  )
-			: []
+		const normalizedDenomination = []
+		if (isNonUSDDenomination) {
+			for (const [timestamp, price] of denominationPriceHistory.prices) {
+				const date = dayjs(timestamp).utc().startOf('day').unix()
+				normalizedDenomination[date] = price
+			}
+		}
 
 		const finalTvlChart = isNonUSDDenomination
-			? globalChart.map(([date, tvl]) => [date, tvl / normalizedDenomination[getUtcDateObject(date)]])
+			? globalChart.map(([date, tvl]) => [date, tvl / normalizedDenomination[date]])
 			: globalChart
 
 		const finalVolumeChart = isNonUSDDenomination
-			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
+			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[date]])
 			: volumeChart
 
 		const finalPriceChart = isNonUSDDenomination ? null : deduplicateTimestamps(denominationPriceHistory?.prices)
@@ -174,13 +175,13 @@ export const useFetchChainChartData = ({
 		const finalFeesAndRevenueChart = isNonUSDDenomination
 			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
 					date,
-					fees / normalizedDenomination[getUtcDateObject(date)],
-					revenue / normalizedDenomination[getUtcDateObject(date)]
+					fees / normalizedDenomination[date],
+					revenue / normalizedDenomination[date]
 			  ])
 			: feesAndRevenueChart
 
 		const finalAppRevenueChart = isNonUSDDenomination
-			? appRevenueChart?.map(([date, revenue]) => [date, revenue / normalizedDenomination[getUtcDateObject(date)]])
+			? appRevenueChart?.map(([date, revenue]) => [date, revenue / normalizedDenomination[date]])
 			: appRevenueChart
 
 		const finalDevsChart = devMetricsData?.report?.monthly_devs?.map(({ k, v }) => [
@@ -207,8 +208,6 @@ export const useFetchChainChartData = ({
 			}
 			return [ts, data.total + data.ownTokens]
 		})
-
-		console.log({ finalPriceChart, finalMcapChart, finalTokenVolumeChart })
 
 		const chartDatasets = [
 			{
