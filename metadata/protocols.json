@@ -25894,8 +25894,7 @@
     "4750": {
         "name": "bbqswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4751": {
         "name": "the-vault",
