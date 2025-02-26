@@ -457,7 +457,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 			{otherProtocols?.length > 1 && (
 				<nav
 					className="flex overflow-x-auto rounded-xl bg-[var(--bg7)] w-full max-w-fit -mb-1"
-					style={{ '--active-bg': transparentize(0.9, backgroundColor) } as any}
+					style={{ '--active-bg': transparentize(0.4, backgroundColor) } as any}
 				>
 					{otherProtocols.map((p) => (
 						<Link
@@ -480,7 +480,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 				<div className="flex flex-col rounded-xl bg-[var(--bg7)] border border-black/5 dark:border-white/5">
 					<div
 						className="flex overflow-x-auto border-b border-black/10 dark:border-white/10"
-						style={{ '--tab-border': backgroundColor, '--tab-bg': transparentize(0.9, backgroundColor) } as any}
+						style={{ '--tab-border': backgroundColor, '--tab-bg': transparentize(0.7, backgroundColor) } as any}
 					>
 						<button
 							data-active={tab === 'information'}
