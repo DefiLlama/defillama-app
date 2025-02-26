@@ -4173,7 +4173,6 @@
         "tvl": true,
         "yields": false,
         "governance": true,
-        "liquidity": true,
         "dexs": true
     },
     "807": {
@@ -6781,8 +6780,7 @@
     "1288": {
         "name": "mover",
         "tvl": true,
-        "yields": true,
-        "liquidity": true
+        "yields": true
     },
     "1289": {
         "name": "beamswap-classic",
@@ -12919,7 +12917,6 @@
         "name": "bluemove-staking",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true
     },
@@ -13453,8 +13450,7 @@
     "2496": {
         "name": "fundex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2497": {
         "name": "dinosaur.finance",
@@ -31884,6 +31880,22 @@
         "tvl": false,
         "yields": false
     },
+    "5848": {
+        "name": "shield-protocol",
+        "tvl": true,
+        "yields": false
+    },
+    "5849": {
+        "name": "hand-of-god",
+        "tvl": true,
+        "yields": false
+    },
+    "5850": {
+        "name": "heroes-of-mavia",
+        "tvl": false,
+        "yields": false,
+        "liquidity": true
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -32488,7 +32500,6 @@
         "name": "bluemove",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
