@@ -14687,8 +14687,7 @@
         "name": "flair-dex",
         "tvl": true,
         "yields": false,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2722": {
         "name": "metavisor",
