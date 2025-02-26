@@ -2251,7 +2251,8 @@
     "461": {
         "name": "planet-farm",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "462": {
         "name": "augury-finance",
@@ -2837,7 +2838,8 @@
     "558": {
         "name": "magic-land",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "559": {
         "name": "dapp-account-dao",
@@ -10698,7 +10700,7 @@
     "2007": {
         "name": "grizzlyfi-hives",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true
     },
     "2008": {
@@ -11557,6 +11559,7 @@
         "name": "blue-planet",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "2159": {
@@ -27435,6 +27438,7 @@
         "name": "aquarius-stellar",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "5036": {
@@ -29039,7 +29043,8 @@
     "5321": {
         "name": "aqualoan",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5322": {
         "name": "mon-protocol",
@@ -33171,7 +33176,7 @@
     },
     "parent#grizzlyfi": {
         "name": "grizzlyfi",
-        "yields": false,
+        "yields": true,
         "tvl": true,
         "liquidity": true,
         "fees": true,
@@ -34282,6 +34287,7 @@
         "yields": true,
         "tvl": true,
         "governance": true,
+        "liquidity": true,
         "dexs": true
     },
     "parent#plunderswap": {
