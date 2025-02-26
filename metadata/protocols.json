@@ -3236,7 +3236,7 @@
     "627": {
         "name": "balmy",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "628": {
         "name": "float",
@@ -19136,7 +19136,7 @@
     "3503": {
         "name": "the-standard",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "treasury": true,
         "liquidity": true
     },
