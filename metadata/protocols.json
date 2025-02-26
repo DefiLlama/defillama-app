@@ -1060,7 +1060,6 @@
         "name": "honeyswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -3434,7 +3433,6 @@
         "name": "jetswap",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "660": {
@@ -12647,8 +12645,7 @@
     "2362": {
         "name": "hedgehog",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2364": {
         "name": "butter-network",
