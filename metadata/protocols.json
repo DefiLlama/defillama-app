@@ -2066,8 +2066,7 @@
     "433": {
         "name": "daoventures",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "434": {
         "name": "tarot",
@@ -6268,6 +6267,7 @@
         "name": "chronicle",
         "tvl": false,
         "yields": false,
+        "liquidity": true,
         "raises": true
     },
     "1199": {
@@ -10886,7 +10886,8 @@
     "2042": {
         "name": "cantoswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2043": {
         "name": "crescent-dex",
@@ -14857,8 +14858,7 @@
     "2751": {
         "name": "lfgswap-arbitrum",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2752": {
         "name": "onchain-trade",
@@ -31756,7 +31756,9 @@
     "5846": {
         "name": "hedgey",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "5847": {
         "name": "webera-finance",
