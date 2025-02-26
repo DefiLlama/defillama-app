@@ -3611,8 +3611,7 @@
     "692": {
         "name": "hurricaneswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "693": {
         "name": "superfluid",
@@ -11211,8 +11210,7 @@
         "name": "fstswap",
         "tvl": true,
         "yields": false,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2102": {
         "name": "titano-swych",
@@ -13372,7 +13370,8 @@
     "2496": {
         "name": "fundex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2497": {
         "name": "dinosaur.finance",
@@ -13567,7 +13566,6 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
