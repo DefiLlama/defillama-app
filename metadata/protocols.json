@@ -10341,7 +10341,8 @@
     "1939": {
         "name": "emp-money",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1940": {
         "name": "apeswap-lending",
@@ -32201,8 +32202,7 @@
         "activeUsers": true,
         "fees": true,
         "revenue": true,
-        "dexs": true,
-        "emissions": true
+        "dexs": true
     },
     "parent#bancor": {
         "name": "bancor",
@@ -32777,8 +32777,7 @@
         "fees": true,
         "revenue": true,
         "dexs": true,
-        "aggregator": true,
-        "emissions": true
+        "aggregator": true
     },
     "parent#dojoswap": {
         "name": "dojoswap",
@@ -32898,7 +32897,8 @@
     "parent#empmoney": {
         "name": "empmoney",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "parent#enosys": {
         "name": "enosys",
