@@ -1450,7 +1450,8 @@
     "335": {
         "name": "flashstake-old",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "336": {
         "name": "sifchain",
@@ -4489,7 +4490,8 @@
     "871": {
         "name": "mintswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "872": {
         "name": "skeleton-finance",
@@ -7541,8 +7543,7 @@
     "1437": {
         "name": "nightmare-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1438": {
         "name": "treehouse-finance",
@@ -11295,6 +11296,7 @@
         "name": "flashstake",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "emissions": true
     },
     "2116": {
