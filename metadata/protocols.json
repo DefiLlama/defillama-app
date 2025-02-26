@@ -15533,7 +15533,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -31878,6 +31878,11 @@
     "5846": {
         "name": "hedgey",
         "tvl": false,
+        "yields": false
+    },
+    "5847": {
+        "name": "webera-finance",
+        "tvl": true,
         "yields": false
     },
     "5848": {
