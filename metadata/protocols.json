@@ -1444,6 +1444,7 @@
         "tvl": true,
         "yields": true,
         "liquidity": true,
+        "activeUsers": true,
         "dexs": true
     },
     "335": {
@@ -2395,7 +2396,7 @@
     "484": {
         "name": "marinade-liquid-staking",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true,
         "fees": true,
         "revenue": true
@@ -11251,7 +11252,8 @@
     "2108": {
         "name": "w3swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2109": {
         "name": "pyeswap",
@@ -15993,7 +15995,6 @@
         "name": "holdstation-defutures",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -18019,7 +18020,8 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "3315": {
         "name": "crescentswap",
@@ -21016,7 +21018,8 @@
     "3856": {
         "name": "peerme",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3857": {
         "name": "deri-v4",
@@ -23769,7 +23772,8 @@
     "4352": {
         "name": "satoshi-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4353": {
         "name": "pyreswap",
@@ -27200,12 +27204,12 @@
     "4995": {
         "name": "helius-staked-sol",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "4996": {
         "name": "jupiter-staked-sol",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true
     },
     "4997": {
@@ -27992,7 +27996,7 @@
     "5135": {
         "name": "binance-staked-sol",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "5136": {
         "name": "microswap",
@@ -28116,7 +28120,8 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "5158": {
         "name": "enosys-amm-v3",
@@ -29947,7 +29952,6 @@
         "name": "holdstation-swap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -33280,7 +33284,6 @@
         "name": "holdstation",
         "yields": true,
         "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
@@ -33434,7 +33437,7 @@
     },
     "parent#jupiter": {
         "name": "jupiter",
-        "yields": false,
+        "yields": true,
         "tvl": true,
         "liquidity": true,
         "fees": true,
@@ -33813,7 +33816,7 @@
     },
     "parent#marinade-finance": {
         "name": "marinade",
-        "yields": false,
+        "yields": true,
         "tvl": true,
         "expenses": true,
         "treasury": true,
