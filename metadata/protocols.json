@@ -3958,7 +3958,8 @@
     "754": {
         "name": "bossswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "755": {
         "name": "arrow",
@@ -4745,7 +4746,6 @@
         "name": "pika",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -9675,8 +9675,7 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1824": {
         "name": "swapsicle-v1",
@@ -13633,8 +13632,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -14101,8 +14099,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -23532,6 +23529,7 @@
         "tvl": false,
         "yields": false,
         "liquidity": true,
+        "raises": true,
         "fees": true,
         "revenue": true
     },
@@ -27788,6 +27786,7 @@
         "name": "torch-stable-swap",
         "tvl": true,
         "yields": false,
+        "raises": true,
         "fees": true,
         "revenue": true,
         "dexs": true
