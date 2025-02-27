@@ -1579,7 +1579,8 @@
         "name": "armor",
         "tvl": false,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "liquidity": true
     },
     "354": {
         "name": "insurace",
@@ -15517,7 +15518,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -20387,7 +20388,7 @@
     "3708": {
         "name": "mev-protocol",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "3709": {
         "name": "frensly",
