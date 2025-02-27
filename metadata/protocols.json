@@ -4820,8 +4820,7 @@
     "930": {
         "name": "maximizer",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "931": {
         "name": "genesis-finance",
@@ -14847,7 +14846,8 @@
         "name": "antfarm-finance",
         "tvl": true,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2750": {
         "name": "nuon-finance",
@@ -25643,7 +25643,7 @@
     },
     "4708": {
         "name": "icpex",
-        "tvl": true,
+        "tvl": false,
         "yields": true
     },
     "4709": {
@@ -31514,7 +31514,8 @@
     "5800": {
         "name": "peppercoin",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "5801": {
         "name": "cadabra-finance",
