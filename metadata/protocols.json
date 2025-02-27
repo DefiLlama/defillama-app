@@ -3759,7 +3759,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "dexs": true
     },
@@ -15608,7 +15608,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
