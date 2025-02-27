@@ -290,8 +290,6 @@
         "yields": false,
         "liquidity": true,
         "hacks": true,
-        "fees": true,
-        "revenue": true,
         "dexs": true
     },
     "148": {
@@ -10829,9 +10827,7 @@
         "name": "silo-v1",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
-        "fees": true,
-        "revenue": true
+        "liquidity": true
     },
     "2021": {
         "name": "router-protocol",
@@ -31929,6 +31925,10 @@
         "fees": true,
         "revenue": true
     },
+    "chain#1088": {
+        "fees": true,
+        "revenue": true
+    },
     "chain#1274": {
         "fees": true,
         "revenue": true
@@ -31941,11 +31941,19 @@
         "fees": true,
         "revenue": true
     },
+    "chain#130": {
+        "fees": true,
+        "revenue": true
+    },
     "chain#1313161554": {
         "fees": true,
         "revenue": true
     },
     "chain#137": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#146": {
         "fees": true,
         "revenue": true
     },
@@ -31973,6 +31981,10 @@
         "fees": true,
         "revenue": true
     },
+    "chain#2020": {
+        "fees": true,
+        "revenue": true
+    },
     "chain#204": {
         "fees": true,
         "revenue": true
@@ -31985,6 +31997,10 @@
         "fees": true,
         "revenue": true
     },
+    "chain#23149": {
+        "fees": true,
+        "revenue": true
+    },
     "chain#25": {
         "fees": true,
         "revenue": true
@@ -31993,7 +32009,15 @@
         "fees": true,
         "revenue": true
     },
+    "chain#252": {
+        "fees": true,
+        "revenue": true
+    },
     "chain#324": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#34443": {
         "fees": true,
         "revenue": true
     },
@@ -32021,6 +32045,14 @@
         "fees": true,
         "revenue": true
     },
+    "chain#5000": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#534352": {
+        "fees": true,
+        "revenue": true
+    },
     "chain#5426": {
         "fees": true,
         "revenue": true
@@ -32033,11 +32065,23 @@
         "fees": true,
         "revenue": true
     },
+    "chain#59144": {
+        "fees": true,
+        "revenue": true
+    },
     "chain#6535": {
         "fees": true,
         "revenue": true
     },
     "chain#74": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#80094": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#81457": {
         "fees": true,
         "revenue": true
     },
@@ -32922,8 +32966,6 @@
         "governance": true,
         "treasury": true,
         "liquidity": true,
-        "fees": true,
-        "revenue": true,
         "dexs": true,
         "aggregator": true
     },
@@ -34753,8 +34795,6 @@
         "governance": true,
         "treasury": true,
         "liquidity": true,
-        "fees": true,
-        "revenue": true,
         "emissions": true
     },
     "parent#skullswap": {
