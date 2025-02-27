@@ -5108,8 +5108,7 @@
     "982": {
         "name": "vikingsfinance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "984": {
         "name": "galaxygoogle-dao",
@@ -9207,8 +9206,7 @@
     "1739": {
         "name": "valerian",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1740": {
         "name": "linear-protocol",
@@ -12489,8 +12487,7 @@
     "2335": {
         "name": "abel-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2336": {
         "name": "esdtmarket",
