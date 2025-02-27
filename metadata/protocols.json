@@ -31786,6 +31786,16 @@
         "yields": false,
         "liquidity": true
     },
+    "5851": {
+        "name": "caviarnine-simple-pools",
+        "tvl": true,
+        "yields": false
+    },
+    "5852": {
+        "name": "pholend",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
