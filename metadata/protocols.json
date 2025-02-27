@@ -15511,7 +15511,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2854": {
@@ -15535,7 +15535,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
@@ -31102,7 +31102,8 @@
     "5686": {
         "name": "xpress-protocol",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5687": {
         "name": "moose",
@@ -31775,6 +31776,7 @@
         "name": "steamm",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "revenue": true
     },
     "5825": {
@@ -31869,6 +31871,7 @@
         "name": "flex-perpetuals",
         "tvl": true,
         "yields": false,
+        "fees": true,
         "revenue": true,
         "perps": true
     },
