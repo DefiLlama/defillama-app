@@ -1970,8 +1970,7 @@
     "416": {
         "name": "westarter",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "417": {
         "name": "solyard",
@@ -4747,7 +4746,6 @@
         "name": "pika",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -7560,7 +7558,6 @@
         "name": "polaris-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -9257,8 +9254,7 @@
     "1748": {
         "name": "murica",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1749": {
         "name": "pandaland",
@@ -9677,8 +9673,7 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1824": {
         "name": "swapsicle-v1",
@@ -13635,8 +13630,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -14103,8 +14097,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -14848,7 +14841,8 @@
         "name": "antfarm-finance",
         "tvl": true,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2750": {
         "name": "nuon-finance",
@@ -23832,8 +23826,7 @@
     "4363": {
         "name": "yield-wars",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4364": {
         "name": "ix-swap-rwa",
