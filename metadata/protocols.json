@@ -3727,7 +3727,7 @@
     },
     "713": {
         "name": "polkaswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "dexs": true
     },
@@ -4307,7 +4307,8 @@
     "837": {
         "name": "arenaswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "838": {
         "name": "component",
@@ -11208,7 +11209,8 @@
         "name": "fstswap",
         "tvl": true,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "2102": {
         "name": "titano-swych",
@@ -12327,7 +12329,8 @@
     "2306": {
         "name": "bored-candy-city",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2307": {
         "name": "camelot-v2",
@@ -25638,7 +25641,7 @@
     },
     "4708": {
         "name": "icpex",
-        "tvl": false,
+        "tvl": true,
         "yields": true
     },
     "4709": {
