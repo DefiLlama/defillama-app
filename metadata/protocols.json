@@ -10876,7 +10876,8 @@
     "2041": {
         "name": "dawn-star-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2042": {
         "name": "cantoswap",
@@ -11214,7 +11215,6 @@
         "name": "titano-swych",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "dexs": true
     },
     "2103": {
@@ -15895,6 +15895,7 @@
         "name": "turbos",
         "tvl": true,
         "yields": true,
+        "liquidity": true,
         "dexs": true
     },
     "2941": {
@@ -18019,8 +18020,7 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true,
-        "activeUsers": true
+        "hacks": true
     },
     "3315": {
         "name": "crescentswap",
