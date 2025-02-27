@@ -4864,8 +4864,7 @@
     "939": {
         "name": "r-u-generous",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "940": {
         "name": "soda-protocol",
