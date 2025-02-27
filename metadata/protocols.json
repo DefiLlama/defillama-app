@@ -6563,7 +6563,6 @@
         "name": "hakuswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "1255": {
@@ -18700,7 +18699,8 @@
     "3427": {
         "name": "balloonswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3428": {
         "name": "intswap",
