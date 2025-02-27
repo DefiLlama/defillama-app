@@ -986,16 +986,11 @@
         "name": "Hydration",
         "dexs": true
     },
-    "hyperliquid": {
-        "name": "Hyperliquid",
-        "fees": true,
-        "derivatives": true,
-        "gecko_id": "hyperliquid",
-        "tokenSymbol": "HYPE"
-    },
     "hyperliquid-l1": {
         "name": "Hyperliquid L1",
+        "fees": true,
         "dexs": true,
+        "derivatives": true,
         "chainAssets": true
     },
     "icon": {
