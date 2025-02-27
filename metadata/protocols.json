@@ -9148,7 +9148,8 @@
     "1729": {
         "name": "blockng",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1730": {
         "name": "goblins-cash-reserve",
@@ -22903,7 +22904,7 @@
     },
     "4193": {
         "name": "crunchy-liquid-staking",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "4194": {

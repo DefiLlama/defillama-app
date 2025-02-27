@@ -958,6 +958,9 @@
         "gecko_id": "hela",
         "tokenSymbol": "HELA"
     },
+    "hemi": {
+        "name": "Hemi"
+    },
     "hoo": {
         "name": "Hoo",
         "gecko_id": "hoo-token",
