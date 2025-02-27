@@ -989,8 +989,13 @@
     "hyperliquid": {
         "name": "Hyperliquid",
         "fees": true,
-        "dexs": true,
         "derivatives": true,
+        "gecko_id": "hyperliquid",
+        "tokenSymbol": "HYPE"
+    },
+    "hyperliquid-l1": {
+        "name": "Hyperliquid L1",
+        "dexs": true,
         "chainAssets": true
     },
     "icon": {

@@ -1593,7 +1593,6 @@
         "name": "gamma",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "hacks": true,
         "fees": true,
         "revenue": true
@@ -32067,8 +32066,7 @@
         "revenue": true
     },
     "chain#59144": {
-        "fees": true,
-        "revenue": true
+        "fees": true
     },
     "chain#6535": {
         "fees": true,
