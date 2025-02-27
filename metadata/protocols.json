@@ -3063,6 +3063,7 @@
         "tvl": true,
         "yields": false,
         "forks": true,
+        "liquidity": true,
         "activeUsers": true,
         "dexs": true
     },
@@ -4746,6 +4747,7 @@
         "name": "pika",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -9675,7 +9677,8 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1824": {
         "name": "swapsicle-v1",
@@ -13632,7 +13635,8 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "2538": {
         "name": "parcl-v2",
@@ -14099,7 +14103,8 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true
+        "treasury": true,
+        "activeUsers": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -14843,8 +14848,7 @@
         "name": "antfarm-finance",
         "tvl": true,
         "yields": false,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2750": {
         "name": "nuon-finance",
