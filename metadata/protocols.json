@@ -31239,7 +31239,9 @@
         "name": "burrbear",
         "tvl": true,
         "yields": false,
-        "revenue": true
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5746": {
         "name": "beraborrow",
@@ -31696,7 +31698,9 @@
         "name": "fibonacci-dex",
         "tvl": true,
         "yields": false,
-        "revenue": true
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5834": {
         "name": "ethereal",
