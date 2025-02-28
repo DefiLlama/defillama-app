@@ -12283,6 +12283,7 @@
         "name": "hmx",
         "tvl": true,
         "yields": true,
+        "forks": true,
         "liquidity": true,
         "fees": true,
         "revenue": true,
@@ -24952,7 +24953,6 @@
         "name": "rivus-dao",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "hacks": true
     },
     "4575": {
@@ -29142,7 +29142,8 @@
     "5344": {
         "name": "bitflux",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "dexs": true
     },
     "5345": {
         "name": "bagel-finance",
@@ -30749,6 +30750,8 @@
         "name": "sailor",
         "tvl": true,
         "yields": false,
+        "fees": true,
+        "revenue": true,
         "dexs": true
     },
     "5648": {
@@ -31702,12 +31705,18 @@
     "5836": {
         "name": "hyperswap-v2",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5837": {
         "name": "hyperswap-v3",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5838": {
         "name": "hypurrfi",
@@ -31753,7 +31762,10 @@
     "5845": {
         "name": "wasabee",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5846": {
         "name": "hedgey",
@@ -33397,7 +33409,10 @@
     "parent#hyperswap": {
         "name": "hyperswap",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "parent#icecreamswap": {
         "name": "icecreamswap",
@@ -34277,9 +34292,6 @@
         "name": "paraluni",
         "yields": false,
         "tvl": true
-    },
-    "parent#paraspace": {
-        "activeUsers": true
     },
     "parent#parax": {
         "name": "parallel-super-app",
