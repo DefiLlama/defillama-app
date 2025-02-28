@@ -16779,8 +16779,7 @@
     "3072": {
         "name": "dubble-exchange",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3073": {
         "name": "predy-v2",
@@ -19309,8 +19308,7 @@
         "name": "abachi",
         "tvl": false,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "3511": {
         "name": "leech-protocol",
