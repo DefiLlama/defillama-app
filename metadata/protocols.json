@@ -2098,7 +2098,8 @@
         "yields": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "439": {
         "name": "the-grand-banks",
@@ -2843,7 +2844,6 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "562": {
@@ -3895,7 +3895,8 @@
     "743": {
         "name": "neku",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "744": {
         "name": "tranquil-finance",
@@ -4227,7 +4228,8 @@
     "824": {
         "name": "euphoria",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "825": {
         "name": "nft20",
@@ -15310,6 +15312,7 @@
         "name": "wagmi",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -18438,8 +18441,7 @@
     "3380": {
         "name": "baso-finance",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "3381": {
         "name": "thegoblins",
@@ -22556,8 +22558,7 @@
     "4130": {
         "name": "blueprint",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4131": {
         "name": "harbor-market",
@@ -34292,6 +34293,9 @@
         "name": "paraluni",
         "yields": false,
         "tvl": true
+    },
+    "parent#paraspace": {
+        "activeUsers": true
     },
     "parent#parax": {
         "name": "parallel-super-app",
