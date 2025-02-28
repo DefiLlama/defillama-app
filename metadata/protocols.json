@@ -21837,7 +21837,6 @@
         "name": "merchant-moe-dex",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -24185,7 +24184,6 @@
         "name": "merchant-moe-liquidity-book",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -33917,7 +33915,6 @@
         "name": "merchant-moe",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
