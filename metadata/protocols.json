@@ -15604,7 +15604,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
@@ -32001,6 +32001,10 @@
         "revenue": true
     },
     "chain#21516": {
+        "fees": true,
+        "revenue": true
+    },
+    "chain#22691": {
         "fees": true,
         "revenue": true
     },
