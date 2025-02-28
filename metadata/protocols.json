@@ -1398,8 +1398,7 @@
     "327": {
         "name": "youswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "328": {
         "name": "steakbank-finance",
@@ -2490,7 +2489,6 @@
         "name": "polycat",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "500": {
@@ -2606,8 +2604,7 @@
     "520": {
         "name": "youves",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "521": {
         "name": "pizza",
@@ -4230,8 +4227,7 @@
     "824": {
         "name": "euphoria",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "825": {
         "name": "nft20",
@@ -7098,7 +7094,6 @@
         "name": "hubble",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "raises": true
     },
     "1357": {
@@ -9197,8 +9192,7 @@
     "1737": {
         "name": "emberswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1738": {
         "name": "bifrost-liquid-staking",
@@ -12526,8 +12520,7 @@
     "2341": {
         "name": "polycat-dex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2342": {
         "name": "vapordex-v1",
@@ -15316,7 +15309,6 @@
         "name": "wagmi",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -17561,8 +17553,7 @@
     "3236": {
         "name": "colafactory",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3237": {
         "name": "skydex",
@@ -34385,7 +34376,6 @@
         "yields": false,
         "tvl": true,
         "governance": true,
-        "liquidity": true,
         "activeUsers": true,
         "dexs": true
     },
