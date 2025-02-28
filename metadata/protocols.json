@@ -15435,7 +15435,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -30440,7 +30440,7 @@
     "5588": {
         "name": "yieldfi",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "5589": {
         "name": "dtrinity-dusd",
