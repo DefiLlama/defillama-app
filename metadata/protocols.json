@@ -1381,7 +1381,8 @@
     "325": {
         "name": "mochiswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "326": {
         "name": "beefy",
