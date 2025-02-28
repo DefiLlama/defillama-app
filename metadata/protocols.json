@@ -13146,8 +13146,7 @@
     "2453": {
         "name": "doglands-swap",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2454": {
         "name": "geth",
