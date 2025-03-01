@@ -23,7 +23,7 @@ export const getStaticProps = withPerformanceLogging('chains', async () => {
 
 export default function Chains(props) {
 	return (
-		<Layout title={`All Chains TVL - DefiLlama`} defaultSEO>
+		<Layout title={`All Chains DeFi TVL - DefiLlama`} defaultSEO>
 			<ChainsContainer {...props} />
 		</Layout>
 	)

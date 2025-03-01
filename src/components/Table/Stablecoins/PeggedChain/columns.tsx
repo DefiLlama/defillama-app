@@ -123,7 +123,7 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 		}
 	},
 	{
-		header: 'Stables Mcap/TVL',
+		header: 'Stables Mcap / DeFi Tvl',
 		accessorKey: 'mcaptvl',
 		cell: ({ getValue }) => <>{getValue() && formattedNum(getValue(), false)}</>,
 		size: 160,

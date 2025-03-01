@@ -302,7 +302,7 @@ function ComparePage() {
 											/>
 
 											<span className="flex flex-col">
-												<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+												<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked (DeFi)</span>
 												<span className="font-semibold text-2xl font-jetbrains min-h-8">
 													{formattedNum(last(chainData.globalChart)?.[1], true)}
 												</span>

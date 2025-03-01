@@ -112,7 +112,7 @@ export default function ChainsContainer({
 				</nav>
 
 				<div className="flex items-center justify-between gap-3 flex-wrap">
-					<h1 className="text-2xl font-medium">Total Value Locked All Chains</h1>
+					<h1 className="text-2xl font-medium">Total Value Locked (DeFi) All Chains</h1>
 					<CSVDownloadButton onClick={downloadCsv} />
 				</div>
 

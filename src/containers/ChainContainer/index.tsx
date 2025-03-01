@@ -333,7 +333,7 @@ export function ChainContainer({
 									className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
 								/>
 								<span className="flex flex-col">
-									<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+									<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked (DeFi)</span>
 									<span className="font-semibold text-2xl font-jetbrains min-h-8">{tvl}</span>
 								</span>
 							</summary>

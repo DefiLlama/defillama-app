@@ -874,7 +874,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
-		header: 'TVL',
+		header: 'DeFi TVL',
 		accessorKey: 'tvl',
 		cell: (info) => {
 			return <>{'$' + formattedNum(info.getValue())}</>
@@ -985,12 +985,12 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
-		header: 'Mcap/TVL',
+		header: 'Mcap / DeFi TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
 			return <>{(info.getValue() ?? null) as string | null}</>
 		},
-		size: 120,
+		size: 148,
 		meta: {
 			align: 'end'
 		}
