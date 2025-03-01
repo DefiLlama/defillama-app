@@ -7011,8 +7011,7 @@
     "1340": {
         "name": "icecream-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1342": {
         "name": "croblanc",
@@ -8767,7 +8766,8 @@
     "1659": {
         "name": "sirius-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1660": {
         "name": "swappi",
@@ -14853,7 +14853,8 @@
     "2751": {
         "name": "lfgswap-arbitrum",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2752": {
         "name": "onchain-trade",
