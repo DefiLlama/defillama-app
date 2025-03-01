@@ -1735,7 +1735,8 @@
     "379": {
         "name": "cardstarter",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "380": {
         "name": "lendhub",
@@ -2796,7 +2797,8 @@
     "548": {
         "name": "dfs-network",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "549": {
         "name": "vigor",
@@ -15511,7 +15513,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2854": {
@@ -15521,7 +15523,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -15535,7 +15537,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
