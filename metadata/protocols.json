@@ -4747,7 +4747,6 @@
         "name": "pika",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
