@@ -6894,7 +6894,8 @@
     "1308": {
         "name": "frog-nation-farm",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1309": {
         "name": "gaia-dao",
@@ -11967,7 +11968,8 @@
     "2215": {
         "name": "frog-swap",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2216": {
         "name": "kekswap",
@@ -16942,7 +16944,8 @@
     "3099": {
         "name": "froggy-protocol",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3100": {
         "name": "coindrip",
