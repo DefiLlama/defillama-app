@@ -2215,7 +2215,6 @@
     },
     "wanchain": {
         "name": "Wanchain",
-        "dexs": true,
         "aggregators": true,
         "inflows": true,
         "gecko_id": "wanchain",
