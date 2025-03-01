@@ -5713,8 +5713,7 @@
     "1094": {
         "name": "one-cash",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1095": {
         "name": "stand-cash",
@@ -32556,6 +32555,9 @@
         "revenue": true,
         "dexs": true,
         "emissions": true
+    },
+    "parent#canary": {
+        "activeUsers": true
     },
     "parent#cap-finance": {
         "name": "cap-finance",
