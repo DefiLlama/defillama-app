@@ -7612,7 +7612,8 @@
     "1448": {
         "name": "white-whale-vaults",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1449": {
         "name": "impactmarket",
@@ -15536,7 +15537,8 @@
     "2876": {
         "name": "sft-protocol",
         "tvl": true,
-        "yields": true
+        "yields": true,
+        "liquidity": true
     },
     "2877": {
         "name": "catsapes",
@@ -17247,7 +17249,8 @@
     "3177": {
         "name": "white-whale-dex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3178": {
         "name": "pegasys-v3",
@@ -35514,7 +35517,8 @@
     "parent#white-whale": {
         "name": "white-whale",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "parent#wise-lending": {
         "name": "wise-lending",
