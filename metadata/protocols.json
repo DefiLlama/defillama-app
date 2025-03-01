@@ -9908,8 +9908,7 @@
     "1865": {
         "name": "oracle-swap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1866": {
         "name": "dexpad",
@@ -15433,7 +15432,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
