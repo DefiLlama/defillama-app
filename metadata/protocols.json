@@ -4718,7 +4718,8 @@
     "911": {
         "name": "sumswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "912": {
         "name": "flrloans",
@@ -4862,7 +4863,8 @@
     "939": {
         "name": "r-u-generous",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "940": {
         "name": "soda-protocol",
@@ -18248,8 +18250,7 @@
     "3347": {
         "name": "meridian-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3348": {
         "name": "soswap",
@@ -18472,8 +18473,7 @@
     "3386": {
         "name": "meridian-trade",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3387": {
         "name": "bryan-on-base",
@@ -33940,7 +33940,6 @@
         "name": "meridian",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "dexs": true,
         "emissions": true
     },
