@@ -2423,7 +2423,6 @@
         "name": "moola-market",
         "tvl": true,
         "yields": true,
-        "liquidity": true,
         "hacks": true,
         "raises": true
     },
@@ -11713,8 +11712,7 @@
     "2186": {
         "name": "usdfi-lending",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2187": {
         "name": "dolomite",
@@ -28115,8 +28113,7 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "5158": {
         "name": "enosys-amm-v3",
