@@ -538,7 +538,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -1761,6 +1760,7 @@
     },
     "ronin": {
         "name": "Ronin",
+        "fees": true,
         "dexs": true,
         "chainAssets": true
     },
