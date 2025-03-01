@@ -5909,7 +5909,8 @@
     "1129": {
         "name": "blackbird-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1130": {
         "name": "buffaloswap",
@@ -8127,6 +8128,7 @@
         "name": "burrow",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "raises": true
     },
     "1547": {
@@ -20767,7 +20769,8 @@
     "3811": {
         "name": "stellaris-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3812": {
         "name": "coupon-finance",
@@ -23818,7 +23821,8 @@
     "4362": {
         "name": "blastbrrr",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4363": {
         "name": "yield-wars",

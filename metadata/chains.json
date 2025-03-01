@@ -82,6 +82,7 @@
         "dexs": true,
         "derivatives": true,
         "aggregators": true,
+        "bridge-aggregators": true,
         "chainAssets": true,
         "gecko_id": "aptos",
         "tokenSymbol": "APT"
@@ -1012,7 +1013,6 @@
     },
     "idex": {
         "name": "IDEX",
-        "derivatives": true,
         "gecko_id": "aurora-dao",
         "tokenSymbol": "IDEX"
     },
