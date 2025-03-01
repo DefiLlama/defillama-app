@@ -15515,7 +15515,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -23483,8 +23483,7 @@
     "4275": {
         "name": "illuminex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4276": {
         "name": "cian-vaults",
