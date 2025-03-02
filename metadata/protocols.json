@@ -6630,7 +6630,8 @@
     "1266": {
         "name": "fees.wtf",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1267": {
         "name": "the-open-dao-sos",
@@ -8565,8 +8566,7 @@
     "1623": {
         "name": "troydefi",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1624": {
         "name": "ambire-wallet",
@@ -8707,7 +8707,8 @@
     "1647": {
         "name": "waterfall-defi",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1648": {
         "name": "cgx-finance",
@@ -10107,7 +10108,8 @@
     "1898": {
         "name": "waterfall-wtf",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1899": {
         "name": "taiga-karura",
@@ -14474,7 +14476,7 @@
     "2683": {
         "name": "davos-protocol",
         "tvl": true,
-        "yields": true
+        "yields": false
     },
     "2684": {
         "name": "arc-swap",
