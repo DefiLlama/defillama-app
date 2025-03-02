@@ -1419,6 +1419,7 @@
         "name": "Near",
         "fees": true,
         "dexs": true,
+        "aggregators": true,
         "bridge-aggregators": true,
         "inflows": true,
         "gecko_id": "near",
