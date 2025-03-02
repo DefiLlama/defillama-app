@@ -208,7 +208,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				size: 125
 			}),
 			columnHelper.accessor('fees_1y', {
-				header: 'Monthly Avg 1Y',
+				header: 'Monthly Avg 1Y Fees',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
@@ -225,16 +225,15 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 120
 			}),
-			columnHelper.accessor('average_revenue_1y', {
-				header: 'Monthly Avg 1Y Rev',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				meta: {
-					align: 'end'
-				},
-				size: 180
-			}),
-
+			// columnHelper.accessor('average_revenue_1y', {
+			// 	header: 'Monthly Avg 1Y Rev',
+			// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+			// 	sortUndefined: 'last',
+			// 	meta: {
+			// 		align: 'end'
+			// 	},
+			// 	size: 180
+			// }),
 			columnHelper.accessor('holdersRevenue30d', {
 				header: 'Holders Revenue 30d',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
@@ -272,24 +271,24 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				size: 180
 			}),
 			,
-			columnHelper.accessor('treasuryRevenue_24h', {
-				header: 'Treasury Revenue 24h',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				meta: {
-					align: 'end'
-				},
-				size: 190
-			}),
-			columnHelper.accessor('supplySideRevenue_24h', {
-				header: 'Supply Side Revenue 24h',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				meta: {
-					align: 'end'
-				},
-				size: 210
-			}),
+			// columnHelper.accessor('treasuryRevenue_24h', {
+			// 	header: 'Treasury Revenue 24h',
+			// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+			// 	sortUndefined: 'last',
+			// 	meta: {
+			// 		align: 'end'
+			// 	},
+			// 	size: 190
+			// }),
+			// columnHelper.accessor('supplySideRevenue_24h', {
+			// 	header: 'Supply Side Revenue 24h',
+			// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+			// 	sortUndefined: 'last',
+			// 	meta: {
+			// 		align: 'end'
+			// 	},
+			// 	size: 210
+			// }),
 			columnHelper.accessor('pf', {
 				header: 'P/F',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? info.getValue() + 'x' : null}</>,

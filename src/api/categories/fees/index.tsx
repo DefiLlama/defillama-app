@@ -1,4 +1,4 @@
-import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
+import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API, EMISSION_BREAKDOWN_API } from '~/constants'
 import { fetchWithErrorLogging } from '~/utils/async'
 
 interface Protocol {
@@ -96,7 +96,7 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 		chain && chain !== 'All' ? '/' + chain : ''
 	}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
 
-	const [fees, revenue] = await Promise.all([
+	const [fees, revenue, emissionBreakdown, bribesRevenue, holdersRevenue] = await Promise.all([
 		fetchWithErrorLogging(apiUrl)
 			.then((res) => {
 				if (res.status === 200) {
@@ -117,19 +117,77 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 					return null
 				}
 			})
+			.then((res) => {
+				return (
+					res?.protocols?.reduce((acc, protocol) => {
+						if (protocol.category !== 'Chain') {
+							acc = { ...acc, [protocol.name]: protocol }
+						}
+						return acc
+					}, {}) ?? {}
+				)
+			})
 			.catch((err) => {
 				console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
 				return null
+			}),
+		fetch(EMISSION_BREAKDOWN_API)
+			.then((res) => {
+				if (res.status === 200) {
+					return res.json()
+				} else {
+					return null
+				}
+			})
+			.catch((err) => {
+				console.log('Error at ', EMISSION_BREAKDOWN_API, err)
+				return null
+			}),
+		fetchWithErrorLogging(`${apiUrl}&dataType=dailyBribesRevenue`)
+			.then((res) => {
+				if (res.status === 200) {
+					return res.json()
+				} else {
+					return null
+				}
+			})
+			.then((res) => {
+				return (
+					res?.protocols?.reduce((acc, protocol) => {
+						if (protocol.category !== 'Chain') {
+							acc = { ...acc, [protocol.name]: protocol }
+						}
+						return acc
+					}, {}) ?? {}
+				)
+			})
+			.catch((err) => {
+				console.log('Error at ', apiUrl + '&dataType=dailyBribesRevenue', err)
+				return null
+			}),
+		fetchWithErrorLogging(`${apiUrl}&dataType=dailyHoldersRevenue`)
+			.then((res) => {
+				if (res.status === 200) {
+					return res.json()
+				} else {
+					return null
+				}
+			})
+			.then((res) => {
+				return (
+					res?.protocols?.reduce((acc, protocol) => {
+						if (protocol.category !== 'Chain') {
+							acc = { ...acc, [protocol.name]: protocol }
+						}
+						return acc
+					}, {}) ?? {}
+				)
+			})
+			.catch((err) => {
+				console.log('Error at ', apiUrl + '&dataType=dailyHoldersRevenue', err)
+				return null
 			})
 	])
-
-	const revenueProtocols =
-		revenue?.protocols?.reduce((acc, protocol) => {
-			if (protocol.category !== 'Chain') {
-				acc = { ...acc, [protocol.name]: protocol }
-			}
-			return acc
-		}, {}) ?? {}
 
 	// TODO: fix missing parent protocols fees and revenue
 	return (
@@ -141,9 +199,13 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 						...protocol,
 						category: protocol.category,
 						displayName: protocol.displayName ?? protocol.name,
-						revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
-						revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
-						revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null
+						revenue24h: revenue?.[protocol.name]?.total24h ?? null,
+						revenue7d: revenue?.[protocol.name]?.total7d ?? null,
+						revenue30d: revenue?.[protocol.name]?.total30d ?? null,
+						revenue1y: revenue?.[protocol.name]?.total1y ?? null,
+						averageRevenue1y: revenue?.[protocol.name]?.average1y ?? null,
+						holdersRevenue24h: holdersRevenue?.[protocol.name]?.total24h ?? null,
+						holdersRevenue30d: holdersRevenue?.[protocol.name]?.total30d ?? null
 					}
 				]
 			}

@@ -330,7 +330,6 @@ export const formatProtocolsList = ({
 			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
 			fees_24h: protocol.total24h ?? undefined,
 			revenue_24h: protocol.revenue24h ?? undefined,
-			holderRevenue_24h: protocol.dailyHoldersRevenue ?? undefined,
 			fees_7d: protocol.total7d ?? undefined,
 			revenue_7d: protocol.revenue7d ?? undefined,
 			fees_30d: protocol.total30d ?? undefined,
@@ -338,12 +337,13 @@ export const formatProtocolsList = ({
 			revenue_30d: protocol.revenue30d ?? undefined,
 			revenue_1y: protocol.revenue1y ?? undefined,
 			average_1y: protocol.average1y ?? undefined,
-			average_revenue_1y: protocol.averageRevenue1y ?? undefined,
-			holdersRevenue30d: protocol.holdersRevenue30d ?? undefined,
-			treasuryRevenue_24h: protocol.dailyProtocolRevenue ?? undefined,
-			supplySideRevenue_24h: protocol.dailySupplySideRevenue ?? undefined,
-			userFees_24h: protocol.dailyUserFees ?? undefined,
-			cumulativeFees: protocol.totalAllTime ?? undefined
+			average_revenue_1y: protocol.averageRevenue1y || undefined,
+			holdersRevenue30d: protocol.holdersRevenue30d || undefined,
+			holderRevenue_24h: protocol.holdersRevenue24h || undefined,
+			treasuryRevenue_24h: protocol.dailyProtocolRevenue || undefined,
+			supplySideRevenue_24h: protocol.dailySupplySideRevenue || undefined,
+			userFees_24h: protocol.dailyUserFees || undefined,
+			cumulativeFees: protocol.totalAllTime || undefined
 		}
 	}
 
