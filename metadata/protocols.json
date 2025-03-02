@@ -7299,8 +7299,7 @@
     "1383": {
         "name": "platinum-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1384": {
         "name": "hermes-protocol",
@@ -15522,7 +15521,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2854": {
@@ -24378,8 +24377,7 @@
         "name": "puff-penthouse",
         "tvl": true,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "4440": {
         "hacks": true
@@ -30467,7 +30465,6 @@
         "name": "shadow-exchange-clmm",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -31086,7 +31083,6 @@
         "name": "shadow-exchange-legacy",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -34809,7 +34805,6 @@
         "name": "shadow-exchange",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
