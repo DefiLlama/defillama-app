@@ -283,6 +283,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			bribes7d: protocolBribes?.total7d ?? null,
 			bribes30d: protocolBribes?.total30d ?? null,
 			dailyHoldersRevenue: holdersRev?.total24h ?? null,
+			holdersRevenue7d: holdersRev?.total7d ?? null,
+			holdersRevenue30d: holdersRev?.total30d ?? null,
 			netEarnings24h:
 				emission24h !== 0 && emission24h ? revenueProtocols?.[protocol.name]?.total24h - emission24h : null,
 			netEarnings7d: emission7d !== 0 && emission7d ? revenueProtocols?.[protocol.name]?.total7d - emission7d : null,
@@ -432,6 +434,8 @@ export const groupProtocolsByParent = ({
 			let revenue30d = mainRow.revenue30d
 
 			let dailyHoldersRevenue = mainRow.dailyHoldersRevenue
+			let holdersRevenue7d = mainRow.holdersRevenue7d
+			let holdersRevenue30d = mainRow.holdersRevenue30d
 
 			if (revenue24h && !Number.isNaN(Number(revenue24h))) {
 				revenue24h =
@@ -443,12 +447,16 @@ export const groupProtocolsByParent = ({
 			}
 			if (dailyHoldersRevenue && !Number.isNaN(Number(dailyHoldersRevenue))) {
 				dailyHoldersRevenue = +dailyHoldersRevenue + (enabledSettings.bribes ? mainRow.bribes24h ?? 0 : 0)
+				holdersRevenue7d = +holdersRevenue7d + (enabledSettings.bribes ? mainRow.bribes7d ?? 0 : 0)
+				holdersRevenue30d = +holdersRevenue30d + (enabledSettings.bribes ? mainRow.bribes30d ?? 0 : 0)
 			}
 
 			mainRow.revenue24h = revenue24h
 			mainRow.revenue30d = revenue30d
 			mainRow.revenue7d = revenue7d
 			mainRow.dailyHoldersRevenue = dailyHoldersRevenue
+			mainRow.holdersRevenue7d = holdersRevenue7d
+			mainRow.holdersRevenue30d = holdersRevenue30d
 		}
 
 		acc[protocol.parentProtocol ?? protocol.module] = mainRow

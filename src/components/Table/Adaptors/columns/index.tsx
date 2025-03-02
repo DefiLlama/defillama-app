@@ -193,6 +193,22 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		allChains
 			? undefined
 			: Total24hColumn('Revenue', 'revenue30d', `Cumulative last 30d revenue`, 160, 'Revenue (30d)'),
+		Total24hColumn(
+			'Holders revenue',
+			'holdersRevenue7d',
+			`Cumulative last 7d holders revenue`,
+			150,
+			'Holders Revenue (7d)'
+		),
+		allChains
+			? undefined
+			: Total24hColumn(
+					'Holders revenue',
+					'holdersRevenue30d',
+					`Cumulative last 30d holders revenue`,
+					160,
+					'Holders Revenue (30d)'
+			  ),
 		Total24hColumn('Revenue', 'revenue1y', `Cumulative last 1y revenue`, 160, 'Revenue (1y)', true),
 		Total24hColumn('Avg Revenue', 'averageRevenue1y', `Monthly Average 1y revenue`, 180, 'Avg Revenue (1y)', true),
 		// TotalAllTimeColumn('fees') tmp
@@ -311,6 +327,8 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'revenue7d',
 		'revenue30d',
 		'revenue1y',
+		'holdersRevenue7d',
+		'holdersRevenue30d',
 		'averageRevenue1y',
 		'dailyRevenue',
 		'dailyProtocolRevenue',
@@ -334,10 +352,12 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'mcap',
 		'total7d',
 		'revenue7d',
+		'holdersRevenue7d',
 		'change_7dover7d',
 		'total30d',
 		'change_30dover30d',
 		'revenue30d',
+		'holdersRevenue30d',
 		'average1y',
 		'total1y',
 		'averageRevenue1y',
@@ -360,7 +380,9 @@ export const feesColumnSizes = {
 		change_1m: 140,
 		total24h: 140,
 		volumetvl: 140,
-		dominance: 140
+		dominance: 140,
+		holdersRevenue7d: 200,
+		holdersRevenue30d: 210
 	},
 	600: {
 		name: 200,
@@ -370,7 +392,9 @@ export const feesColumnSizes = {
 		change_1m: 140,
 		total24h: 140,
 		volumetvl: 140,
-		dominance: 140
+		dominance: 140,
+		holdersRevenue7d: 200,
+		holdersRevenue30d: 210
 	},
 	900: {
 		name: 240,
@@ -380,6 +404,8 @@ export const feesColumnSizes = {
 		change_1m: 140,
 		total24h: 140,
 		volumetvl: 140,
-		dominance: 140
+		dominance: 140,
+		holdersRevenue7d: 200,
+		holdersRevenue30d: 210
 	}
 }
