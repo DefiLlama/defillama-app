@@ -1234,6 +1234,7 @@
         "tvl": false,
         "yields": false,
         "governance": true,
+        "liquidity": true,
         "raises": true
     },
     "301": {
@@ -2326,7 +2327,8 @@
     "473": {
         "name": "baguette",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "474": {
         "name": "canary",
@@ -3044,7 +3046,8 @@
     "595": {
         "name": "convergence",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "596": {
         "name": "flux-protocol",
@@ -9394,7 +9397,8 @@
     "1774": {
         "name": "blitz-labs",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1775": {
         "name": "ecodefi",
@@ -14375,7 +14379,8 @@
         "yields": false,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "emissions": true
     },
     "2666": {
         "name": "wefi",
