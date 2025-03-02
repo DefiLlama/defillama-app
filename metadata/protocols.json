@@ -2750,7 +2750,7 @@
         "yields": false
     },
     "541": {
-        "name": "ref-finance",
+        "name": "rhea-dex",
         "tvl": true,
         "yields": false,
         "raises": true,
@@ -8185,7 +8185,7 @@
         "yields": false
     },
     "1546": {
-        "name": "burrow",
+        "name": "rhea-lend",
         "tvl": true,
         "yields": false,
         "liquidity": true,
@@ -26456,8 +26456,7 @@
     "4833": {
         "name": "influpia",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4834": {
         "name": "napier-finance",
@@ -34715,6 +34714,10 @@
         "tvl": true
     },
     "parent#rhea-finance": {
+        "name": "rhea-finance",
+        "yields": false,
+        "tvl": true,
+        "fees": true,
         "revenue": true,
         "dexs": true
     },
