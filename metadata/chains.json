@@ -1286,6 +1286,7 @@
     },
     "meer": {
         "name": "MEER",
+        "dexs": true,
         "gecko_id": "qitmeer-network",
         "tokenSymbol": "MEER"
     },
