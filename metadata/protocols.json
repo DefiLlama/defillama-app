@@ -15509,7 +15509,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
@@ -18494,7 +18494,6 @@
         "name": "sanctum-reserve",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "dexs": true
     },
     "3389": {
@@ -23870,8 +23869,7 @@
     "4368": {
         "name": "sanctum-infinity",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4369": {
         "name": "munchables",
@@ -23888,8 +23886,7 @@
     "4371": {
         "name": "sanctum-validator-lsts",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4372": {
         "name": "hercules-v2",
@@ -34632,7 +34629,6 @@
         "name": "sanctum",
         "yields": false,
         "tvl": true,
-        "liquidity": true,
         "raises": true,
         "dexs": true
     },
