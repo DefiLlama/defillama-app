@@ -1304,9 +1304,9 @@ const firstDayOfMonth = (dateString) => {
 
 function lastDayOfWeek(dateString) {
 	const date = new Date(dateString)
-	const weekDay = date.getUTCDay() === 0 ? 7 : date.getUTCDay()
-	const monthDay = date.getUTCDate() - weekDay
-	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), monthDay) / 1000)
+	const weekDay = date.getDay() === 0 ? 7 : date.getDay()
+	const monthDay = date.getDate() - weekDay
+	return Math.trunc(new Date(date.getFullYear(), date.getMonth(), monthDay).getTime() / 1000)
 }
 export const lastDayOfMonth = (dateString) => {
 	let date = new Date(dateString)
