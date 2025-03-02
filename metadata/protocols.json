@@ -5090,7 +5090,8 @@
     "978": {
         "name": "chickenswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "979": {
         "name": "partyswap",
