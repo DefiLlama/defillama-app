@@ -12849,7 +12849,6 @@
         "name": "oreoswap",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "activeUsers": true
     },
     "2385": {
@@ -34714,6 +34713,10 @@
         "name": "revert",
         "yields": false,
         "tvl": true
+    },
+    "parent#rhea-finance": {
+        "revenue": true,
+        "dexs": true
     },
     "parent#ribbon-finance": {
         "name": "ribbon-finance",
