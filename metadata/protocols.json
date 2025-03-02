@@ -5063,7 +5063,8 @@
     "974": {
         "name": "taichi",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "975": {
         "name": "omicron",
@@ -15509,7 +15510,8 @@
     "2872": {
         "name": "printyfinance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "2873": {
         "name": "neutroswap",
@@ -19040,8 +19042,7 @@
     "3488": {
         "name": "sparkswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3489": {
         "name": "haedal-protocol",
