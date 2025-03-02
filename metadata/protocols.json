@@ -3778,7 +3778,8 @@
     "722": {
         "name": "summit-defi",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "723": {
         "name": "potluck-protocol",
@@ -7885,7 +7886,8 @@
     "1502": {
         "name": "the-parallel",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1503": {
         "name": "snowyowl",
@@ -19933,7 +19935,8 @@
     "3649": {
         "name": "sui-pearl",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3650": {
         "name": "dx25",
