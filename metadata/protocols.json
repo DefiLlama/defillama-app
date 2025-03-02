@@ -10859,7 +10859,8 @@
     "2039": {
         "name": "phission-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2040": {
         "name": "lif3-swap",
@@ -16370,8 +16371,7 @@
     "3024": {
         "name": "etherberry-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3025": {
         "name": "ktx-perps",
