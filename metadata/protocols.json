@@ -31796,6 +31796,11 @@
         "tvl": false,
         "yields": false
     },
+    "5853": {
+        "name": "maple-rwa",
+        "tvl": true,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
