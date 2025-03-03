@@ -13474,7 +13474,6 @@
         "name": "umee",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "raises": true
     },
     "2499": {
@@ -19310,7 +19309,6 @@
         "name": "nether.fi",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true,
