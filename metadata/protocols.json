@@ -14869,8 +14869,7 @@
     "2751": {
         "name": "lfgswap-arbitrum",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2752": {
         "name": "onchain-trade",
@@ -22971,12 +22970,14 @@
     "4202": {
         "name": "cyberblast-v2",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4203": {
         "name": "cyberblast-v3",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4204": {
         "name": "rockswap",
@@ -32767,7 +32768,8 @@
     "parent#cyberblast": {
         "name": "cyberblast",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "parent#cygnus-finance": {
         "name": "cygnus",
