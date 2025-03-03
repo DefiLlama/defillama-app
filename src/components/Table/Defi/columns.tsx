@@ -259,10 +259,10 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		size: 180
 	},
 	{
-		cell: ({ getValue }) => <>{toNiceDayMonthAndYear(getValue())}</>,
 		size: 120,
 		header: 'Date',
-		accessorKey: 'date'
+		accessorKey: 'date',
+		cell: ({ getValue }) => <>{toNiceDayMonthYear(getValue())}</>
 	},
 	{
 		header: 'Amount Raised',
