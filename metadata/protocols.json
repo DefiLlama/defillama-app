@@ -9670,7 +9670,8 @@
     "1809": {
         "name": "penrose",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1810": {
         "name": "zinax-dao",
@@ -16969,12 +16970,6 @@
         "name": "kannagi-finance",
         "tvl": true,
         "yields": false
-    },
-    "3103": {
-        "name": "maple-rwa",
-        "tvl": true,
-        "yields": false,
-        "liquidity": true
     },
     "3104": {
         "name": "ambient",
