@@ -804,7 +804,8 @@
         "name": "futureswap",
         "tvl": true,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "229": {
         "name": "gnosis-protocol-v1",
@@ -2203,7 +2204,8 @@
     "454": {
         "name": "back-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "455": {
         "name": "zoocoin",
@@ -5929,8 +5931,7 @@
     "1132": {
         "name": "genesys",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1133": {
         "name": "ice-colony",
@@ -6967,8 +6968,7 @@
         "name": "dna-dollar",
         "tvl": false,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "1333": {
         "name": "oceanus",
@@ -23842,7 +23842,7 @@
         "yields": false
     },
     "4364": {
-        "name": "ix-swap-rwa",
+        "name": "ixs",
         "tvl": true,
         "yields": false,
         "liquidity": true
