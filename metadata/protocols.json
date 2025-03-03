@@ -4754,7 +4754,6 @@
         "name": "pika",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -12771,8 +12770,7 @@
     "2384": {
         "name": "oreoswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2385": {
         "name": "exactly",
@@ -15525,8 +15523,7 @@
     "2872": {
         "name": "printyfinance",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2873": {
         "name": "neutroswap",
