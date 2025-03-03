@@ -22,7 +22,7 @@ export const getFeesAndRevenueByChain = async ({
 	excludeTotalDataChart: boolean
 	excludeTotalDataChartBreakdown: boolean
 }) => {
-	const apiUrl = `${DIMENISIONS_SUMMARY_BASE_API}/fees${
+	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${
 		chain && chain !== 'All' ? '/' + chain : ''
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
