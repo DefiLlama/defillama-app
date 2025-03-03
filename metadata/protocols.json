@@ -9548,7 +9548,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -9684,8 +9683,7 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1824": {
         "name": "swapsicle-v1",
