@@ -537,7 +537,6 @@
     },
     "cube": {
         "name": "Cube",
-        "dexs": true,
         "gecko_id": "cube-network",
         "tokenSymbol": "CUBE"
     },
@@ -660,7 +659,6 @@
     },
     "elastos": {
         "name": "Elastos",
-        "dexs": true,
         "gecko_id": "elastos",
         "tokenSymbol": "ELA"
     },

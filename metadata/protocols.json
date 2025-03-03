@@ -3202,6 +3202,7 @@
         "yields": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -8879,7 +8880,8 @@
     "1679": {
         "name": "dot-dot-finance",
         "tvl": true,
-        "yields": true
+        "yields": true,
+        "liquidity": true
     },
     "1680": {
         "name": "orcus-finance",
@@ -10220,6 +10222,7 @@
         "yields": false,
         "liquidity": true,
         "raises": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -24124,7 +24127,8 @@
     "4415": {
         "name": "dengendex",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4416": {
         "name": "frogswap-farm",
