@@ -16825,7 +16825,7 @@
     "3079": {
         "name": "zklend",
         "tvl": false,
-        "yields": true,
+        "yields": false,
         "hacks": true,
         "raises": true
     },
@@ -18754,8 +18754,7 @@
     "3412": {
         "name": "denet-file-token",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3413": {
         "name": "fourdex",
@@ -25922,12 +25921,6 @@
         "fees": true,
         "revenue": true,
         "dexs": true
-    },
-    "4735": {
-        "name": "syrup.fi",
-        "tvl": true,
-        "yields": false,
-        "liquidity": true
     },
     "4736": {
         "name": "doubleup",
@@ -35747,7 +35740,7 @@
     },
     "parent#zklend-finance": {
         "name": "zklend-finance",
-        "yields": true,
+        "yields": false,
         "tvl": true
     },
     "parent#zkswap-finance": {
