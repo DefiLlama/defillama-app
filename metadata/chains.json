@@ -659,6 +659,7 @@
     },
     "elastos": {
         "name": "Elastos",
+        "dexs": true,
         "gecko_id": "elastos",
         "tokenSymbol": "ELA"
     },
