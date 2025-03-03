@@ -3266,7 +3266,6 @@
         "yields": false,
         "governance": true,
         "forks": true,
-        "liquidity": true,
         "hacks": true
     },
     "632": {
@@ -4753,6 +4752,7 @@
         "name": "pika",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -5265,7 +5265,8 @@
     "1012": {
         "name": "pumpkin-dao",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1014": {
         "name": "tempodao",
@@ -9311,7 +9312,8 @@
     "1758": {
         "name": "toxicdeer-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1759": {
         "name": "spacefi-evmos",
@@ -19294,8 +19296,7 @@
     "3529": {
         "name": "dip-exchange",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3530": {
         "name": "bmx-classic-perps",
@@ -31798,6 +31799,23 @@
     },
     "5853": {
         "name": "maple-rwa",
+        "tvl": true,
+        "yields": false,
+        "liquidity": true
+    },
+    "5855": {
+        "name": "origyn",
+        "tvl": true,
+        "yields": false,
+        "liquidity": true
+    },
+    "5856": {
+        "name": "jpow-ai",
+        "tvl": true,
+        "yields": false
+    },
+    "5857": {
+        "name": "degen-express",
         "tvl": true,
         "yields": false
     },
