@@ -1363,8 +1363,7 @@
     "320": {
         "name": "depth",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "321": {
         "name": "ram-protocol",
@@ -6060,7 +6059,8 @@
     "1147": {
         "name": "emerald-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1148": {
         "name": "amogus-dao",
