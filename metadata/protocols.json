@@ -16570,6 +16570,7 @@
         "name": "unlimited-network",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true
     },
@@ -30337,6 +30338,7 @@
         "name": "shadow-exchange-clmm",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -30955,6 +30957,7 @@
         "name": "shadow-exchange-legacy",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -34672,6 +34675,7 @@
         "name": "shadow-exchange",
         "yields": false,
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
