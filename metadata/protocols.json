@@ -2410,7 +2410,8 @@
     "486": {
         "name": "unfederalreserve",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "487": {
         "name": "sunny",
@@ -7225,8 +7226,7 @@
         "name": "based-v1",
         "tvl": true,
         "yields": false,
-        "forks": true,
-        "liquidity": true
+        "forks": true
     },
     "1380": {
         "name": "minimax",
@@ -10175,8 +10175,7 @@
     "1910": {
         "name": "shiftdollar",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1911": {
         "name": "betswirl",
@@ -16574,7 +16573,6 @@
         "name": "unlimited-network",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true
     },
@@ -19009,8 +19007,7 @@
     "3480": {
         "name": "based-farm",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3481": {
         "name": "solidly-v3",
@@ -19723,7 +19720,6 @@
         "name": "basedmarkets",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -32340,8 +32336,7 @@
     "parent#based-finance": {
         "name": "based-finance",
         "yields": false,
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "parent#baseswap": {
         "name": "baseswap",
