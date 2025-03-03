@@ -7164,6 +7164,7 @@
         "name": "astroswap",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "1369": {
@@ -16922,6 +16923,7 @@
         "name": "astroport",
         "tvl": true,
         "yields": true,
+        "liquidity": true,
         "dexs": true
     },
     "3118": {
