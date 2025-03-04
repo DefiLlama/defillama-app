@@ -4181,7 +4181,8 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "816": {
         "name": "xsigma",
@@ -9946,7 +9947,8 @@
     "1871": {
         "name": "hunnyswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1872": {
         "name": "rift-finance",
@@ -31825,6 +31827,11 @@
     },
     "5860": {
         "name": "synnax-protocol",
+        "tvl": true,
+        "yields": false
+    },
+    "5862": {
+        "name": "hyperyield",
         "tvl": true,
         "yields": false
     },
