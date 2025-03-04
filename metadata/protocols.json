@@ -241,8 +241,7 @@
     "139": {
         "name": "snowswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "140": {
         "name": "kava-lend",
@@ -2946,8 +2945,7 @@
     "579": {
         "name": "itrust-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "580": {
         "name": "sashimiswap",
@@ -12174,8 +12172,7 @@
     "2263": {
         "name": "snowflake-exchange",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2264": {
         "name": "orderly-perps",
