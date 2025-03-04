@@ -5300,7 +5300,8 @@
         "name": "opendao",
         "tvl": true,
         "yields": false,
-        "governance": true
+        "governance": true,
+        "activeUsers": true
     },
     "1020": {
         "name": "arkadiko",
@@ -6800,8 +6801,7 @@
     "1299": {
         "name": "guru-network-classic",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1301": {
         "name": "apedao",
@@ -9260,7 +9260,8 @@
     "1748": {
         "name": "murica",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1749": {
         "name": "pandaland",
@@ -11748,7 +11749,8 @@
         "name": "sushi-bentobox",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "2191": {
         "name": "omnidex-lend",
@@ -26724,8 +26726,7 @@
     "4910": {
         "name": "elocks",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4911": {
         "name": "akronswap",
@@ -29190,8 +29191,7 @@
     "5354": {
         "name": "elma",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5355": {
         "name": "based-ai",
@@ -33291,7 +33291,6 @@
         "yields": false,
         "tvl": true,
         "treasury": true,
-        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
