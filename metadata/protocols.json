@@ -28927,7 +28927,7 @@
     "5307": {
         "name": "morfi",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "fees": true,
         "revenue": true,
         "dexs": true
