@@ -5376,8 +5376,7 @@
     "1026": {
         "name": "starterra",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1027": {
         "name": "xmas-past",
@@ -28163,7 +28162,7 @@
     "5146": {
         "name": "crosscurve-(by-eywa)",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "5147": {
         "name": "electroswap-v2",
@@ -31942,6 +31941,11 @@
     "5859": {
         "name": "erc-burner",
         "tvl": false,
+        "yields": false
+    },
+    "5860": {
+        "name": "synnax-protocol",
+        "tvl": true,
         "yields": false
     },
     "chain#1": {
