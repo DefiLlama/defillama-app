@@ -11608,7 +11608,8 @@
     "2166": {
         "name": "lfgswap-ethereumpow",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2167": {
         "name": "dao-swap",
@@ -14290,7 +14291,8 @@
     "2647": {
         "name": "lfgswap-core",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "2648": {
         "name": "archerswap",
@@ -14868,6 +14870,7 @@
         "name": "lfgswap-arbitrum",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "activeUsers": true
     },
     "2752": {
@@ -29059,7 +29062,10 @@
     "5329": {
         "name": "thalaswap-v2",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true,
+        "dexs": true
     },
     "5330": {
         "name": "bitget-sol",
@@ -33685,7 +33691,8 @@
     "parent#lfgswap": {
         "name": "lfgswap",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "parent#lif3.com": {
         "name": "lif3.com",
