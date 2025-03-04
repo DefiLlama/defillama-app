@@ -5769,7 +5769,8 @@
     "1103": {
         "name": "snowcatdao",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1104": {
         "name": "agarthadao",
@@ -20568,8 +20569,7 @@
     "3764": {
         "name": "boom",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3765": {
         "name": "cryptoo-tech",
@@ -27672,8 +27672,7 @@
     "5080": {
         "name": "boomswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "5081": {
         "name": "kujata",
