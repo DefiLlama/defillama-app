@@ -952,7 +952,6 @@
         "yields": false,
         "governance": true,
         "forks": true,
-        "liquidity": true,
         "hacks": true,
         "raises": true
     },
@@ -2100,7 +2099,8 @@
         "yields": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true
+        "liquidity": true,
+        "activeUsers": true
     },
     "439": {
         "name": "the-grand-banks",
@@ -9547,6 +9547,7 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -19041,7 +19042,8 @@
     "3488": {
         "name": "sparkswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3489": {
         "name": "haedal-protocol",
@@ -19077,8 +19079,7 @@
     "3494": {
         "name": "chewyswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3495": {
         "name": "broswap",
