@@ -2054,8 +2054,7 @@
     "432": {
         "name": "longdrink",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "433": {
         "name": "daoventures",
