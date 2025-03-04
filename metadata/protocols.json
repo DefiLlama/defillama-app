@@ -13877,8 +13877,7 @@
     "2577": {
         "name": "sharky-swap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "2578": {
         "name": "beamer-bridge",
@@ -14109,8 +14108,7 @@
         "tvl": true,
         "yields": false,
         "expenses": true,
-        "treasury": true,
-        "activeUsers": true
+        "treasury": true
     },
     "2619": {
         "name": "metalx-dex",
@@ -18317,8 +18315,7 @@
     "3358": {
         "name": "krav",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3359": {
         "name": "phoenix-ergo",
