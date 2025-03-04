@@ -1234,6 +1234,10 @@
         "gecko_id": "lukso-token-2",
         "tokenSymbol": "LYX"
     },
+    "lumia": {
+        "name": "Lumia",
+        "derivatives": true
+    },
     "lung": {
         "name": "Lung"
     },

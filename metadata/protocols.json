@@ -5013,7 +5013,8 @@
     "957": {
         "name": "flame-defi",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "958": {
         "name": "ester-finance",
@@ -31717,7 +31718,8 @@
     "5817": {
         "name": "electra",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "perps": true
     },
     "5818": {
         "name": "foom",
