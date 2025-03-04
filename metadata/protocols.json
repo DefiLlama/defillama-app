@@ -31939,6 +31939,11 @@
         "tvl": true,
         "yields": false
     },
+    "5859": {
+        "name": "erc-burner",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
