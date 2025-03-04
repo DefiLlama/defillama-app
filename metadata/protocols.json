@@ -21359,6 +21359,7 @@
         "name": "pharaoh-cl",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -23415,6 +23416,7 @@
         "name": "pharaoh-legacy",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -34373,6 +34375,7 @@
         "name": "pharaoh-exchange",
         "yields": false,
         "tvl": true,
+        "liquidity": true,
         "fees": true,
         "revenue": true,
         "dexs": true
