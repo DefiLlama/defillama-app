@@ -53,7 +53,7 @@ export const useFetchChainChartData = ({
 
 	const { data: feesAndRevenueChart, isLoading: fetchingFeesAndRevenueChartDataByChain } =
 		useGetFeesAndRevenueChartDataByChain(
-			feesAndRevenueData?.totalFees24h && (router.query.fees === 'true' || router.query.revenue === 'true')
+			feesAndRevenueData?.totalFees24h && (router.query.chainFees === 'true' || router.query.chainRevenue === 'true')
 				? selectedChain
 				: null
 		)

@@ -20,8 +20,8 @@ const groupableCharts = [
 const colors = {
 	tvl: '#335cd7',
 	volume: '#19ab17',
-	fees: '#f150f4',
-	revenue: '#b4b625',
+	chainFees: '#f150f4',
+	chainRevenue: '#b4b625',
 	price: '#da1f73',
 	returningUsers: '#fa4646',
 	newUsers: '#46faf2',
@@ -182,12 +182,12 @@ export default function AreaChart({
 				})
 			}
 
-			if (route.fees === 'true' && data?.feesChart) {
-				const color = getColor(isCompare) || colors.fees
+			if (route.chainFees === 'true' && data?.feesChart) {
+				const color = getColor(isCompare) || colors.chainFees
 				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Fees',
-					chartId: 'Fees',
+					chartId: 'Chain Fees',
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
@@ -202,12 +202,12 @@ export default function AreaChart({
 				})
 			}
 
-			if (route.revenue === 'true' && data?.feesChart) {
-				const color = getColor(isCompare) || colors.revenue
+			if (route.chainRevenue === 'true' && data?.feesChart) {
+				const color = getColor(isCompare) || colors.chainRevenue
 				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Revenue',
-					chartId: 'Revenue',
+					chartId: 'Chain Revenue',
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
@@ -559,8 +559,8 @@ export default function AreaChart({
 		isCompare,
 		route.tvl,
 		route.volume,
-		route.fees,
-		route.revenue,
+		route.chainFees,
+		route.chainRevenue,
 		route.price,
 		route.users,
 		route.raises,
@@ -601,8 +601,8 @@ export default function AreaChart({
 		const offsets = {
 			TVL: 60,
 			Volume: 60,
-			Fees: 55,
-			Revenue: 65,
+			'Chain Fees': 55,
+			'Chain Revenue': 65,
 			'App Revenue': 65,
 			Price: 65,
 			Raises: 65,
@@ -671,18 +671,18 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					id: 'Fees',
+					id: 'Chain Fees',
 					axisLabel: {
 						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : colors.fees)
+						color: () => (isCompare ? '#fff' : colors.chainFees)
 					}
 				},
 				{
 					...yAxis,
-					id: 'Revenue',
+					id: 'Chain Revenue',
 					axisLabel: {
 						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : colors.revenue)
+						color: () => (isCompare ? '#fff' : colors.chainRevenue)
 					}
 				},
 				{

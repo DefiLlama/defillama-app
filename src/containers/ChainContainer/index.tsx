@@ -150,13 +150,13 @@ export function ChainContainer({
 			isVisible: volumeData?.totalVolume24h ? true : false
 		},
 		{
-			id: 'fees',
-			name: 'Fees',
+			id: 'chainFees',
+			name: 'Chain Fees',
 			isVisible: feesAndRevenueData?.totalFees24h ? true : false
 		},
 		{
-			id: 'revenue',
-			name: 'Revenue',
+			id: 'chainRevenue',
+			name: 'Chain Revenue',
 			isVisible: feesAndRevenueData?.totalRevenue24h ? true : false
 		},
 		{
@@ -378,7 +378,7 @@ export function ChainContainer({
 
 								{feesAndRevenueData?.totalFees24h ? (
 									<tr>
-										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Fees (24h)</th>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Chain Fees (24h)</th>
 										<td className="font-jetbrains text-right">
 											{formattedNum(feesAndRevenueData?.totalFees24h, true)}
 										</td>
@@ -387,7 +387,9 @@ export function ChainContainer({
 
 								{feesAndRevenueData?.totalRevenue24h ? (
 									<tr>
-										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Revenue (24h)</th>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+											Chain Revenue (24h)
+										</th>
 										<td className="font-jetbrains text-right">
 											{formattedNum(feesAndRevenueData?.totalRevenue24h, true)}
 										</td>

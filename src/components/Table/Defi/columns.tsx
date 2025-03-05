@@ -954,7 +954,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
-		header: `24h Fees`,
+		header: `24h Chain Fees`,
 		accessorKey: 'totalFees24h',
 		enableSorting: true,
 		cell: (info) => {
