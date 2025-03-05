@@ -220,7 +220,7 @@ function ComparePage() {
 							},
 							{
 								id: 'volume',
-								name: 'Volume',
+								name: 'DEXs Volume',
 								key: 'volumeChart'
 							},
 							{

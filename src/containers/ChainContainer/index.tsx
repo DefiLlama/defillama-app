@@ -26,6 +26,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'
 import { chainsNamesMap } from './constants'
+import { Tooltip } from '~/components/Tooltip'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -77,7 +78,7 @@ export function ChainContainer({
 	const router = useRouter()
 
 	const denomination = router.query?.currency ?? 'USD'
-	const groupBy = router.query?.groupBy ?? 'cumulative'
+	const groupBy = router.query?.groupBy ?? 'daily'
 
 	const { minTvl, maxTvl } = router.query
 
@@ -146,7 +147,7 @@ export function ChainContainer({
 		},
 		{
 			id: 'volume',
-			name: 'Volume',
+			name: 'DEXs Volume',
 			isVisible: volumeData?.totalVolume24h ? true : false
 		},
 		{
@@ -333,7 +334,12 @@ export function ChainContainer({
 									className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
 								/>
 								<span className="flex flex-col">
-									<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked (DeFi)</span>
+									<Tooltip
+										content="Sum of TVL of the protocols in that chain"
+										className="underline decoration-dotted text-[#545757] dark:text-[#cccccc]"
+									>
+										<span>Total Value Locked (DeFi)</span>
+									</Tooltip>
 									<span className="font-semibold text-2xl font-jetbrains min-h-8">{tvl}</span>
 								</span>
 							</summary>
@@ -348,7 +354,14 @@ export function ChainContainer({
 							<tbody>
 								{stablecoinsData?.totalMcapCurrent ? (
 									<RowWithSubRows
-										rowHeader={'Stablecoins Mcap'}
+										rowHeader={
+											<Tooltip
+												content="Sum of market cap of all stablecoins circulating on the chain"
+												className="underline decoration-dotted"
+											>
+												Stablecoins Mcap
+											</Tooltip>
+										}
 										rowValue={formattedNum(stablecoinsData.totalMcapCurrent, true)}
 										helperText={null}
 										protocolName={null}
@@ -378,7 +391,14 @@ export function ChainContainer({
 
 								{feesAndRevenueData?.totalFees24h ? (
 									<tr>
-										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Chain Fees (24h)</th>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+											<Tooltip
+												content="Total fees paid by users when using the chain"
+												className="underline decoration-dotted"
+											>
+												Chain Fees (24h)
+											</Tooltip>
+										</th>
 										<td className="font-jetbrains text-right">
 											{formattedNum(feesAndRevenueData?.totalFees24h, true)}
 										</td>
@@ -388,7 +408,12 @@ export function ChainContainer({
 								{feesAndRevenueData?.totalRevenue24h ? (
 									<tr>
 										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
-											Chain Revenue (24h)
+											<Tooltip
+												content="Subset of fees that the chain collects for itself"
+												className="underline decoration-dotted"
+											>
+												Chain Revenue (24h)
+											</Tooltip>
 										</th>
 										<td className="font-jetbrains text-right">
 											{formattedNum(feesAndRevenueData?.totalRevenue24h, true)}
@@ -398,7 +423,14 @@ export function ChainContainer({
 
 								{feesAndRevenueData?.totalAppRevenue24h ? (
 									<tr>
-										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">App Revenue (24h)</th>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+											<Tooltip
+												content="Total revenue earned by the apps on the chain"
+												className="underline decoration-dotted"
+											>
+												App Revenue (24h)
+											</Tooltip>
+										</th>
 										<td className="font-jetbrains text-right">
 											{formattedNum(feesAndRevenueData?.totalAppRevenue24h, true)}
 										</td>
@@ -407,7 +439,11 @@ export function ChainContainer({
 
 								{volumeData?.totalVolume24h ? (
 									<RowWithSubRows
-										rowHeader={'Volume (24h)'}
+										rowHeader={
+											<Tooltip content="Sum of volume on all DEXs on the chain" className="underline decoration-dotted">
+												DEXs Volume (24h)
+											</Tooltip>
+										}
 										rowValue={formattedNum(volumeData.totalVolume24h, true)}
 										helperText={null}
 										protocolName={null}
@@ -443,7 +479,14 @@ export function ChainContainer({
 
 								{perpsData?.totalVolume24h ? (
 									<RowWithSubRows
-										rowHeader={'Perps Volume (24h)'}
+										rowHeader={
+											<Tooltip
+												content="Sum of volume on all perpetual exchanges on the chain"
+												className="underline decoration-dotted"
+											>
+												Perps Volume (24h)
+											</Tooltip>
+										}
 										rowValue={formattedNum(perpsData.totalVolume24h, true)}
 										helperText={null}
 										protocolName={null}
@@ -487,7 +530,26 @@ export function ChainContainer({
 
 								{userData.activeUsers ? (
 									<RowWithSubRows
-										rowHeader={'Active Addresses (24h)'}
+										rowHeader={
+											<Tooltip
+												content={
+													<p>
+														Number of unique addresses that have interacted with the protocol directly in the last 24
+														hours. Interactions are counted as transactions sent directly against the protocol, thus
+														transactions that go through an aggregator or some other middleman contract are not counted
+														here.
+														<br />
+														<br />
+														The reasoning for this is that this is meant to help measure stickiness/loyalty of users,
+														and users that are interacting with the protocol through another product aren't likely to be
+														sticky.
+													</p>
+												}
+												className="underline decoration-dotted"
+											>
+												Active Addresses (24h)
+											</Tooltip>
+										}
 										rowValue={formattedNum(userData.activeUsers, false)}
 										helperText={null}
 										protocolName={null}
@@ -572,7 +634,14 @@ export function ChainContainer({
 										protocolName={null}
 										dataType={'Raises'}
 										helperText={null}
-										rowHeader={'Total Raised'}
+										rowHeader={
+											<Tooltip
+												content="Sum of all money raised by the chain, including VC funding rounds, public sales and ICOs."
+												className="underline decoration-dotted"
+											>
+												Total Raised
+											</Tooltip>
+										}
 										rowValue={formatRaisedAmount(chainRaises.reduce((sum, r) => sum + Number(r.amount), 0))}
 										subRows={
 											<>
@@ -631,8 +700,12 @@ export function ChainContainer({
 															<tr>
 																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	<span className="flex items-center gap-1">
-																		<span>Native</span>
-																		<QuestionHelper text="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)" />
+																		<Tooltip
+																			content="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)"
+																			className="underline decoration-dotted"
+																		>
+																			Native
+																		</Tooltip>
 																	</span>
 																</th>
 																<td className="text-right font-jetbrains">
@@ -644,8 +717,12 @@ export function ChainContainer({
 															<tr>
 																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	<span className="flex items-center gap-1">
-																		<span>Own Tokens</span>
-																		<QuestionHelper text="Marketcap of the governance token of the chain" />
+																		<Tooltip
+																			content="Marketcap of the governance token of the chain"
+																			className="underline decoration-dotted"
+																		>
+																			Own Tokens
+																		</Tooltip>
 																	</span>
 																</th>
 																<td className="text-right font-jetbrains">
@@ -658,8 +735,12 @@ export function ChainContainer({
 															<tr>
 																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	<span className="flex items-center gap-1">
-																		<span>Canonical</span>
-																		<QuestionHelper text="Tokens that were bridged to the chain through the canonical bridge" />
+																		<Tooltip
+																			content="Tokens that were bridged to the chain through the canonical bridge"
+																			className="underline decoration-dotted"
+																		>
+																			Canonical
+																		</Tooltip>
 																	</span>
 																</th>
 																<td className="text-right font-jetbrains">
@@ -672,8 +753,12 @@ export function ChainContainer({
 															<tr>
 																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	<span className="flex items-center gap-1">
-																		<span>Third Party</span>
-																		<QuestionHelper text="Tokens that were bridged to the chain through third party bridges" />
+																		<Tooltip
+																			content="Tokens that were bridged to the chain through third party bridges"
+																			className="underline decoration-dotted"
+																		>
+																			Third Party
+																		</Tooltip>
 																	</span>
 																</th>
 																<td className="text-right font-jetbrains">

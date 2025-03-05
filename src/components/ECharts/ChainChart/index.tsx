@@ -165,8 +165,8 @@ export default function AreaChart({
 				const color = getColor(isCompare) || colors.volume
 				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
-					name: namePrefix + 'Volume',
-					chartId: 'Volume',
+					name: namePrefix + 'DEXs Volume',
+					chartId: 'DEXs Volume',
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
@@ -186,7 +186,7 @@ export default function AreaChart({
 				const color = getColor(isCompare) || colors.chainFees
 				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
-					name: namePrefix + 'Fees',
+					name: namePrefix + 'Chain Fees',
 					chartId: 'Chain Fees',
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
@@ -206,7 +206,7 @@ export default function AreaChart({
 				const color = getColor(isCompare) || colors.chainRevenue
 				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
-					name: namePrefix + 'Revenue',
+					name: namePrefix + 'Chain Revenue',
 					chartId: 'Chain Revenue',
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
@@ -600,7 +600,7 @@ export default function AreaChart({
 
 		const offsets = {
 			TVL: 60,
-			Volume: 60,
+			'DEs Volume': 60,
 			'Chain Fees': 55,
 			'Chain Revenue': 65,
 			'App Revenue': 65,
@@ -663,7 +663,7 @@ export default function AreaChart({
 				},
 				{
 					...yAxis,
-					id: 'Volume',
+					id: 'DEXs Volume',
 					axisLabel: {
 						...yAxis.axisLabel,
 						color: () => (isCompare ? '#fff' : colors.volume)

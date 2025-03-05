@@ -142,7 +142,7 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 			{airdrop && project !== 'Fraxlend' ? (
 				<Tooltip
 					content="This project has no token and might airdrop one to depositors in the future"
-					anchorStyles={{ margin: '0 16px 0 -32px' }}
+					className="m-[0_16px_0_-32px]"
 				>
 					🪂
 				</Tooltip>

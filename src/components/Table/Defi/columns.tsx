@@ -89,7 +89,7 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 		}
 	},
 	{
-		header: 'Perp DEX Volume (30d)',
+		header: 'Perp DEXs Volume (30d)',
 		accessorKey: 'monthlyVolume',
 		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
 		meta: {
@@ -922,7 +922,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			)
 
 			return (
-				<Tooltip content={chainAssetsBreakdown} anchorStyles={{ justifyContent: 'flex-end' }}>
+				<Tooltip content={chainAssetsBreakdown} className="flex-end">
 					{formattedNum(+chainAssets.total, true)}
 				</Tooltip>
 			)
@@ -943,7 +943,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
-		header: '24h Volume',
+		header: '24h DEXs Volume',
 		accessorKey: 'totalVolume24h',
 		enableSorting: true,
 		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
@@ -1693,7 +1693,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 				)
 			}
 			return (
-				<Tooltip content={<TooltipContent />} anchorStyles={{ justifyContent: 'flex-end' }}>
+				<Tooltip content={<TooltipContent />} className="flex-end">
 					{getValue() ? formattedPercent(getValue()) : null}
 				</Tooltip>
 			)
@@ -1713,7 +1713,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 				return <>{row.original.mcap ? <span>{`Market Cap: $${toK(row.original.mcap)}`}</span> : null}</>
 			}
 			return (
-				<Tooltip content={<TooltipContent />} anchorStyles={{ justifyContent: 'flex-end' }}>
+				<Tooltip content={<TooltipContent />} className="flex-end">
 					{(getValue() ?? null) as string | null}
 				</Tooltip>
 			)
