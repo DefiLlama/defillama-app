@@ -523,7 +523,14 @@ export function ChainContainer({
 
 								{inflowsData?.netInflows ? (
 									<tr>
-										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Inflows (24h)</th>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+											<Tooltip
+												content="Net money bridged to the chain within the last 24h"
+												className="underline decoration-dotted"
+											>
+												Inflows (24h)
+											</Tooltip>
+										</th>
 										<td className="font-jetbrains text-right">{formattedNum(inflowsData.netInflows, true)}</td>
 									</tr>
 								) : null}
@@ -775,7 +782,11 @@ export function ChainContainer({
 
 								{nftVolumesData ? (
 									<tr>
-										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">NFT Volume (24h)</th>
+										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+											<Tooltip content="Volume of NFTs traded on the chain" className="underline decoration-dotted">
+												NFT Volume (24h)
+											</Tooltip>
+										</th>
 										<td className="font-jetbrains text-right">{formattedNum(nftVolumesData, true)}</td>
 									</tr>
 								) : null}
