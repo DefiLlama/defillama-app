@@ -335,7 +335,7 @@ export function ChainContainer({
 								/>
 								<span className="flex flex-col">
 									<Tooltip
-										content="Sum of TVL of the protocols in that chain"
+										content="Sum of TVL of the protocols on the chain"
 										className="underline decoration-dotted text-[#545757] dark:text-[#cccccc]"
 									>
 										<span>Total Value Locked (DeFi)</span>
@@ -845,7 +845,7 @@ export function ChainContainer({
 							<Game />
 						) : (
 							<>
-								<div className="flex flex-wrap gap-4 mx-4">
+								<div className="flex flex-wrap gap-4 mx-4 last:*:ml-auto">
 									<div className="flex gap-2 flex-wrap">
 										{chartOptions
 											.filter((o) => o.isVisible)
@@ -880,7 +880,7 @@ export function ChainContainer({
 									</div>
 
 									{DENOMINATIONS.length > 1 && (
-										<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
+										<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)]">
 											{DENOMINATIONS.map((D) => (
 												<button
 													data-active={denomination === D}
@@ -895,7 +895,7 @@ export function ChainContainer({
 									)}
 									{hasAtleasOneBarChart ? (
 										<>
-											<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
+											<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)]">
 												<button
 													className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
 													data-active={groupBy === 'daily' || !groupBy}
