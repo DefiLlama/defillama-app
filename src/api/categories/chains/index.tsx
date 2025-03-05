@@ -4,7 +4,6 @@ import sumBy from 'lodash/sumBy'
 
 import {
 	CHAINS_ASSETS,
-	CHAINS_METADATA,
 	CHART_API,
 	DEV_METRICS_API,
 	PROTOCOLS_API,
@@ -23,6 +22,7 @@ import { getPeggedDominance, getPercentChange, slug } from '~/utils'
 import { buildPeggedChartData } from '~/utils/stablecoins'
 import { getPeggedOverviewPageData } from '../stablecoins'
 import { getBridgeOverviewPageData } from '../bridges'
+import chainsMetadata from '../../../../metadata/chains.json'
 import { getOverview } from '../adaptors'
 import { getAppRevenueByChain, getFeesAndRevenueByChain } from '../fees'
 import { getDexVolumeByChain } from '../dexs'
@@ -61,7 +61,6 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const chainsMetadata = await fetch(CHAINS_METADATA).then((res) => res.json())
 	const chainMetadata = chain && chain !== 'All' ? chainsMetadata[slug(chain)] ?? null : null
 
 	if (chain && chain !== 'All' && !chainMetadata) {

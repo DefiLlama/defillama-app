@@ -23,8 +23,7 @@ import {
 	CATEGORY_PERFORMANCE_API,
 	CATEGORY_COIN_PRICES_API,
 	CATEGORY_INFO_API,
-	COINS_INFO_API,
-	CHAINS_METADATA
+	COINS_INFO_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -39,6 +38,7 @@ import { sluggify } from '~/utils/cache-client'
 import { getAPIUrl } from '../adaptors/client'
 import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import chainsMetadata from '../../../../metadata/chains.json'
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -810,6 +810,7 @@ interface IExtraPropPerChain {
 }
 
 export const getNewChainsPageData = async (category: string) => {
+	const appRevenueChains = Object.values(chainsMetadata).filter((chain: any) => (chain.fees ? true : false))
 	const [
 		{ categories, chainTvls, ...rest },
 		{ protocols: dexsProtocols },
@@ -818,7 +819,7 @@ export const getNewChainsPageData = async (category: string) => {
 		activeUsers,
 		chainsAssets,
 		chainNftsVolume,
-		chainsMetadata
+		...appRevenue
 	] = await Promise.all([
 		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
 		getChainsPageDataByType('dexs'),
@@ -830,14 +831,8 @@ export const getNewChainsPageData = async (category: string) => {
 		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json()),
 		fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json()),
 		getAppRevenueByChain({ excludeTotalDataChart: false, excludeTotalDataChartBreakdown: false }),
-		fetch(CHAINS_METADATA).then((res) => res.json())
+		...appRevenueChains.map((chain: any) => getAppRevenueByChain({ chain: chain.name }))
 	])
-
-	const appRevenueChains = Object.values(chainsMetadata).filter((chain: any) => (chain?.fees ? true : false))
-
-	const appRevenue = await Promise.all(
-		appRevenueChains.map((chain: any) => getAppRevenueByChain({ chain: chain.name }))
-	)
 
 	const categoryLinks = [
 		{ label: 'All', to: '/chains' },

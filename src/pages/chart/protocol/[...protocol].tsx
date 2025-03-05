@@ -5,7 +5,6 @@ import { useFetchProtocolInfows } from '~/api/categories/protocols/client'
 import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
 import { ProtocolChartOnly } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { useFetchAndFormatChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
-import { PROTOCOLS_METADATA } from '~/constants'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -16,12 +15,9 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const [protocolData, protocolsMetadata] = await Promise.all([
-			getProtocol(protocol),
-			fetch(PROTOCOLS_METADATA).then((res) => res.json())
-		])
+		const protocolData = await getProtocol(protocol)
 
-		const data = await getProtocolData(protocol, protocolData, true, protocolsMetadata)
+		const data = await getProtocolData(protocol, protocolData, true)
 		data.props.noContext = true
 		return data
 	}

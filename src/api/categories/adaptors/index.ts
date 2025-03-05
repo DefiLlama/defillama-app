@@ -1,11 +1,5 @@
 import type { LiteProtocol, IParentProtocol } from '~/api/types'
-import {
-	PROTOCOLS_API,
-	DIMENISIONS_SUMMARY_BASE_API,
-	MCAPS_API,
-	EMISSION_BREAKDOWN_API,
-	CHAINS_METADATA
-} from '~/constants'
+import { PROTOCOLS_API, DIMENISIONS_SUMMARY_BASE_API, MCAPS_API, EMISSION_BREAKDOWN_API } from '~/constants'
 import { getUniqueArray } from '~/containers/DexsAndFees/utils'
 import { capitalizeFirstLetter, chainIconUrl, getPercentChange, slug } from '~/utils'
 import { getAPIUrl } from './client'
@@ -16,6 +10,7 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
 import { ISettings } from '~/contexts/types'
+import chainMetadata from '../../../../metadata/chains.json'
 
 const fetch = fetchWithErrorLogging
 
@@ -151,9 +146,7 @@ function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string
 
 // - used in /[type] and /[type]/chains/[chain]
 export const getChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
-	const chainsMetadata = await fetch(CHAINS_METADATA).then((res) => res.json())
-
-	if (chain && !chainsMetadata[slug(chain)][type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type]) {
+	if (chain && !chainMetadata[slug(chain)][type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type]) {
 		return null
 	}
 
