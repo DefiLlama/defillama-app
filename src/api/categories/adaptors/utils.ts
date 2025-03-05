@@ -14,6 +14,7 @@ export const formatChain = (chain: string) => {
 	if (c === 'bsc') return c.toUpperCase()
 	if (c === 'xdai') return 'xDai'
 	if (c === 'terra' || c === 'terra classic') return 'Terra Classic'
+	if (c === 'lightlink_phoenix') return 'Lightlink'
 	else
 		return c
 			.split('_')
