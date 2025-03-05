@@ -75,6 +75,30 @@ export const stablecoinPegTypeOptions = [
 		key: STABLECOINS_SETTINGS.PEGGEDAUD,
 		filterFn: (item) => item.pegType === 'peggedAUD',
 		help: 'Show stablecoins pegged to AUD'
+	},
+	{
+		name: 'TRY',
+		key: STABLECOINS_SETTINGS.PEGGEDTRY,
+		filterFn: (item) => item.pegType === 'peggedTRY',
+		help: 'Show stablecoins pegged to Turkish Lira'
+	},
+	{
+		name: 'CHF',
+		key: STABLECOINS_SETTINGS.PEGGEDCHF,
+		filterFn: (item) => item.pegType === 'peggedCHF',
+		help: 'Show stablecoins pegged to Swiss Franc'
+	},
+	{
+		name: 'COP',
+		key: STABLECOINS_SETTINGS.PEGGEDCOP,
+		filterFn: (item) => item.pegType === 'peggedCOP',
+		help: 'Show stablecoins pegged to Colombian Peso'
+	},
+	{
+		name: 'REAL',
+		key: STABLECOINS_SETTINGS.PEGGEDREAL,
+		filterFn: (item) => item.pegType === 'peggedREAL',
+		help: 'Show stablecoins pegged to Brazilian Real'
 	}
 ]
 
