@@ -5,7 +5,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
 import { isCpusHot } from '~/utils/cache-client'
 import { useQuery } from '@tanstack/react-query'
-import protocolMetadata from '../../../metadata/protocols.json'
+import protocolMetadata from '../../../.cache/protocols.json'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/[...protocol]',
