@@ -1,3 +1,7 @@
+// to change metadata info, update this file in server repo: 
+// https://github.com/DefiLlama/defillama-server/blob/master/defi/src/api2/cron-task/appMetadata.ts
+
+
 import fs from 'fs';
 import path from 'path';
 
