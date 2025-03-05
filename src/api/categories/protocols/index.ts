@@ -833,7 +833,7 @@ export const getNewChainsPageData = async (category: string) => {
 		fetch(CHAINS_METADATA).then((res) => res.json())
 	])
 
-	const appRevenueChains = Object.values(chainsMetadata).filter((chain: any) => (chain.fees ? true : false))
+	const appRevenueChains = Object.values(chainsMetadata).filter((chain: any) => (chain?.fees ? true : false))
 
 	const appRevenue = await Promise.all(
 		appRevenueChains.map((chain: any) => getAppRevenueByChain({ chain: chain.name }))
