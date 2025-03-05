@@ -2095,8 +2095,7 @@
         "yields": true,
         "governance": true,
         "treasury": true,
-        "liquidity": true,
-        "activeUsers": true
+        "liquidity": true
     },
     "439": {
         "name": "the-grand-banks",
@@ -6071,7 +6070,8 @@
     "1160": {
         "name": "baker-guild",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1161": {
         "name": "niifi",
@@ -12779,7 +12779,8 @@
         "treasury": true,
         "liquidity": true,
         "hacks": true,
-        "raises": true
+        "raises": true,
+        "emissions": true
     },
     "2386": {
         "name": "sandclock",
@@ -16775,7 +16776,8 @@
         "name": "equilibria",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "emissions": true
     },
     "3092": {
         "name": "beamswap-v3",
@@ -17056,7 +17058,8 @@
         "tvl": false,
         "yields": false,
         "liquidity": true,
-        "nfts": true
+        "nfts": true,
+        "emissions": true
     },
     "3145": {
         "name": "pinjam-labs",
@@ -31741,7 +31744,7 @@
     "5843": {
         "name": "flex-perpetuals",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "fees": true,
         "revenue": true,
         "perps": true
