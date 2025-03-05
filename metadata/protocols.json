@@ -6270,7 +6270,6 @@
         "name": "chronicle",
         "tvl": false,
         "yields": false,
-        "liquidity": true,
         "raises": true
     },
     "1199": {
@@ -11461,6 +11460,7 @@
         "governance": true,
         "liquidity": true,
         "hacks": true,
+        "activeUsers": true,
         "fees": true,
         "revenue": true
     },
@@ -17612,8 +17612,7 @@
     "3244": {
         "name": "one-dex",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3245": {
         "name": "venus-isolated-pools",
