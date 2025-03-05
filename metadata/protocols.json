@@ -2843,6 +2843,7 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
+        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -7354,8 +7355,7 @@
         "tvl": true,
         "yields": false,
         "governance": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "1403": {
         "name": "scranton-finance",
@@ -28099,8 +28099,7 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "5158": {
         "name": "enosys-amm-v3",
