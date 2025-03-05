@@ -8426,7 +8426,8 @@
     "1589": {
         "name": "puzzle-swap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1590": {
         "name": "milkyswap",
@@ -15520,7 +15521,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2854": {
@@ -15544,7 +15545,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2858": {
@@ -31967,6 +31968,11 @@
         "tvl": true,
         "yields": false
     },
+    "5864": {
+        "name": "tronsave",
+        "tvl": false,
+        "yields": false
+    },
     "chain#1": {
         "fees": true,
         "revenue": true
@@ -34636,7 +34642,8 @@
     "parent#puzzleswaporg": {
         "name": "puzzleswaporg",
         "yields": false,
-        "tvl": true
+        "tvl": true,
+        "liquidity": true
     },
     "parent#quickswap": {
         "name": "quickswap",
