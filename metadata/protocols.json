@@ -31633,7 +31633,7 @@
     "5801": {
         "name": "cadabra-finance",
         "tvl": true,
-        "yields": false,
+        "yields": true,
         "liquidity": true
     },
     "5802": {
@@ -31956,7 +31956,9 @@
     "5859": {
         "name": "erc-burner",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "5860": {
         "name": "synnax-protocol",
@@ -31971,7 +31973,9 @@
     "5864": {
         "name": "tronsave",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "fees": true,
+        "revenue": true
     },
     "chain#1": {
         "fees": true,
