@@ -220,17 +220,17 @@ function ComparePage() {
 							},
 							{
 								id: 'volume',
-								name: 'Volume',
+								name: 'DEXs Volume',
 								key: 'volumeChart'
 							},
 							{
-								id: 'fees',
-								name: 'Fees',
+								id: 'chainFees',
+								name: 'Chain Fees',
 								key: 'feesChart'
 							},
 							{
-								id: 'revenue',
-								name: 'Revenue',
+								id: 'chainRevenue',
+								name: 'Chain Revenue',
 								key: 'feesChart'
 							},
 							{

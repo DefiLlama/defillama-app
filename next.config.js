@@ -202,6 +202,11 @@ const nextConfig = {
 				source: '/chain/Optimism',
 				destination: '/chain/OP%20Mainnet',
 				permanent: true
+			},
+			{
+				source: '/pro',
+				destination: '/subscribe',
+				permanent: true
 			}
 		]
 	},

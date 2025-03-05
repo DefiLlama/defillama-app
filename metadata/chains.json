@@ -961,7 +961,9 @@
         "tokenSymbol": "HELA"
     },
     "hemi": {
-        "name": "Hemi"
+        "name": "Hemi",
+        "fees": true,
+        "dexs": true
     },
     "hoo": {
         "name": "Hoo",
@@ -1234,6 +1236,10 @@
         "name": "Lukso",
         "gecko_id": "lukso-token-2",
         "tokenSymbol": "LYX"
+    },
+    "lumia": {
+        "name": "Lumia",
+        "derivatives": true
     },
     "lung": {
         "name": "Lung"
@@ -2146,6 +2152,10 @@
         "dexs": true,
         "gecko_id": "ultron",
         "tokenSymbol": "ULX"
+    },
+    "undefined": {
+        "name": "Undefined",
+        "fees": true
     },
     "unichain": {
         "name": "Unichain",

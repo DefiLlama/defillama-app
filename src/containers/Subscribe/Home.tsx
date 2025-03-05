@@ -81,7 +81,7 @@ export function SubscribeHome() {
 							<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center">Open</h2>
 							<p className="text-center text-2xl font-medium mt-3">Free</p>
 							<span className="h-5"></span>
-							<ul className="flex flex-col mx-auto gap-4 mt-11 mb-auto">
+							<ul className="flex flex-col mx-auto gap-4 py-11 mb-auto">
 								<li className="flex flex-nowrap gap-[10px]">
 									<Icon name="check" height={16} width={16} className="relative top-1" />
 									<span>Access to TVL, revenue/fees and prices</span>
@@ -122,7 +122,7 @@ export function SubscribeHome() {
 								300 USD <span className="text-[#8a8c90]">/month</span>
 							</p>
 							<p className="text-center font-medium text-[#8a8c90]">Multiple payment options</p>
-							<ul className="flex flex-col mx-auto gap-4 mt-11 mb-auto">
+							<ul className="flex flex-col mx-auto gap-4 py-11 mb-auto">
 								<li className="flex flex-nowrap gap-[10px]">
 									<Icon name="check" height={16} width={16} className="relative top-1" />
 									<span>Access to TVL, revenue/fees and prices</span>
@@ -161,7 +161,7 @@ export function SubscribeHome() {
 								</li>
 							</ul>
 
-							<div className="w-full max-w-[408px] mx-auto mt-0 flex flex-col gap-2">
+							<div className="w-full max-w-[408px] mx-auto flex flex-col gap-2">
 								<SignIn text="Already a subscriber? Sign In" />
 								<div className="flex flex-nowrap gap-2 relative max-sm:flex-col max-sm:*:w-full">
 									<PayWithCrypto pro={true} />
@@ -213,7 +213,7 @@ export function SubscribeHome() {
 									))}
 								</Tooltip>
 							</p>
-							<ul className="flex flex-col mx-auto gap-4 mt-11 mb-auto">
+							<ul className="flex flex-col mx-auto gap-4 py-11 mb-auto">
 								<li className="flex flex-nowrap gap-[10px]">
 									<Icon name="check" height={16} width={16} className="relative top-1" />
 									<span>Access to TVL, revenue/fees and prices</span>
@@ -252,11 +252,11 @@ export function SubscribeHome() {
 								</li>
 							</ul>
 
-							<div className="w-full max-w-[408px] mx-auto mt-0 flex flex-col gap-2">
+							<div className="w-full max-w-[408px] mx-auto flex flex-col gap-2">
 								<SignInWithGithub />
-								<div className="flex flex-nowrap gap-2 relative max-sm:flex-col max-sm:*:w-full">
-									{/* <PayWithCrypto pro={false} /> */}
-									{/* <a
+								{/* <div className="flex flex-nowrap gap-2 relative max-sm:flex-col max-sm:*:w-full">
+									<PayWithCrypto pro={false} />
+									<a
 										href="https://defillama.com/docs/api"
 										target="_blank"
 										rel="noreferrer noopener"
@@ -264,8 +264,8 @@ export function SubscribeHome() {
 									>
 										<Icon name="card" height={16} width={16} />
 										<span>Pay with Stripe</span>
-									</a> */}
-								</div>
+									</a>
+								</div> */}
 							</div>
 						</div>
 					</div>

@@ -20,6 +20,9 @@ export function SubscribeLayout({ children }) {
 				</header>
 				{children}
 				<footer className="mt-auto py-3 px-5 flex flex-wrap items-center justify-center gap-4 text-[#8a8c90]">
+					<a href="https://discord.defillama.com" className="underline">
+						Discord
+					</a>
 					<a href="mailto:support@llama.fi" className="underline">
 						Contact Us
 					</a>

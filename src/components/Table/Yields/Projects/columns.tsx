@@ -23,7 +23,7 @@ export const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 			return (
 				<Tooltip
 					content="This project has no token and might airdrop one to depositors in the future"
-					anchorStyles={{ marginLeft: 'auto' }}
+					className="ml-auto"
 				>
 					🪂
 				</Tooltip>

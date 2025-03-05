@@ -146,7 +146,7 @@ interface IProtocolContainerProps {
 
 function explainAnnualized(text: string | undefined) {
 	return `${
-		text === undefined ? '' : text + '.\n'
+		!text ? '' : text + '.\n'
 	}This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it`
 }
 

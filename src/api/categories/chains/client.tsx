@@ -70,7 +70,7 @@ export function useGetFeesAndRevenueChartDataByChain(chain?: string) {
 
 export function useGetAppRevenueChartDataByChain(chain?: string) {
 	return useQuery({
-		queryKey: [`feesAndRevenueChartDataByChain/${chain}`],
+		queryKey: [`appRevenueByChain/${chain}`],
 		queryFn:
 			chain && chain !== 'All'
 				? () =>

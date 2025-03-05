@@ -6,16 +6,15 @@ interface ITooltip {
 	href?: string
 	shallow?: boolean
 	onClick?: (e: any) => any
-	style?: {}
 	children: React.ReactNode
 	as?: any
 	color?: string
 	fontSize?: string
-	anchorStyles?: React.CSSProperties
+	className?: string
 	placement?: 'top' | 'bottom' | 'left' | 'right'
 }
 
-export function Tooltip({ content, children, color, fontSize, anchorStyles, placement, ...props }: ITooltip) {
+export function Tooltip({ content, children, color, fontSize, placement, className, as, ...props }: ITooltip) {
 	const tooltip = useTooltipState({ placement })
 
 	if (!content || content === '') return <>{children}</>
@@ -24,9 +23,8 @@ export function Tooltip({ content, children, color, fontSize, anchorStyles, plac
 		<>
 			<TooltipAnchor
 				state={tooltip}
-				style={{ ...anchorStyles, color, fontSize: fontSize ?? 'inherit' } as any}
-				className="cursor-pointer flex items-center overflow-hidden text-ellipsis whitespace-nowrap flex-shrink-0"
-				as="span"
+				className={`cursor-pointer flex items-center overflow-hidden text-ellipsis whitespace-nowrap flex-shrink-0 ${className}`}
+				as={as ?? 'span'}
 			>
 				{children}
 			</TooltipAnchor>
