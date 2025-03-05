@@ -335,7 +335,11 @@ export function ChainContainer({
 								/>
 								<span className="flex flex-col">
 									<Tooltip
-										content="Sum of TVL of the protocols on the chain"
+										content={
+											selectedChain === 'All'
+												? 'Sum of TVL of the protocols on all chains'
+												: 'Sum of TVL of the protocols on the chain'
+										}
 										className="underline decoration-dotted text-[#545757] dark:text-[#cccccc]"
 									>
 										<span>Total Value Locked (DeFi)</span>
@@ -356,7 +360,11 @@ export function ChainContainer({
 									<RowWithSubRows
 										rowHeader={
 											<Tooltip
-												content="Sum of market cap of all stablecoins circulating on the chain"
+												content={
+													selectedChain === 'All'
+														? 'Sum of market cap of all stablecoins circulating on all chains'
+														: 'Sum of market cap of all stablecoins circulating on the chain'
+												}
 												className="underline decoration-dotted"
 											>
 												Stablecoins Mcap
@@ -425,7 +433,7 @@ export function ChainContainer({
 									<tr>
 										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 											<Tooltip
-												content="Total revenue earned by the apps on the chain"
+												content={'Total revenue earned by the apps on the chain'}
 												className="underline decoration-dotted"
 											>
 												App Revenue (24h)
@@ -440,7 +448,14 @@ export function ChainContainer({
 								{volumeData?.totalVolume24h ? (
 									<RowWithSubRows
 										rowHeader={
-											<Tooltip content="Sum of volume on all DEXs on the chain" className="underline decoration-dotted">
+											<Tooltip
+												content={
+													selectedChain === 'All'
+														? 'Sum of volume on all DEXs on all chains'
+														: 'Sum of volume on all DEXs on the chain'
+												}
+												className="underline decoration-dotted"
+											>
 												DEXs Volume (24h)
 											</Tooltip>
 										}
