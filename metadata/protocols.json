@@ -12778,8 +12778,7 @@
         "treasury": true,
         "liquidity": true,
         "hacks": true,
-        "raises": true,
-        "emissions": true
+        "raises": true
     },
     "2386": {
         "name": "sandclock",
@@ -15427,7 +15426,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": true,
+        "tvl": false,
         "yields": false,
         "fees": true,
         "revenue": true,
@@ -16775,8 +16774,7 @@
         "name": "equilibria",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
-        "emissions": true
+        "liquidity": true
     },
     "3092": {
         "name": "beamswap-v3",
@@ -17057,8 +17055,7 @@
         "tvl": false,
         "yields": false,
         "liquidity": true,
-        "nfts": true,
-        "emissions": true
+        "nfts": true
     },
     "3145": {
         "name": "pinjam-labs",
