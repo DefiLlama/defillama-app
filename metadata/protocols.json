@@ -13638,8 +13638,7 @@
         "name": "flux-finance",
         "tvl": true,
         "yields": true,
-        "governance": true,
-        "activeUsers": true
+        "governance": true
     },
     "2538": {
         "name": "parcl-v2",
