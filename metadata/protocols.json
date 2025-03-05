@@ -1034,8 +1034,7 @@
     "267": {
         "name": "s-finance",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "269": {
         "name": "yfii",
@@ -7058,8 +7057,7 @@
     "1349": {
         "name": "degen-haus",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1350": {
         "name": "treasure",
@@ -10346,8 +10344,7 @@
     "1939": {
         "name": "emp-money",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1940": {
         "name": "apeswap-lending",
@@ -13577,7 +13574,6 @@
         "name": "solidlizard-dex",
         "tvl": true,
         "yields": false,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -15421,7 +15417,7 @@
     },
     "2853": {
         "name": "eoswap-finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2854": {
@@ -15445,7 +15441,7 @@
     },
     "2857": {
         "name": "frogge.finance",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2858": {
@@ -33016,8 +33012,7 @@
     "parent#empmoney": {
         "name": "empmoney",
         "yields": false,
-        "tvl": true,
-        "liquidity": true
+        "tvl": true
     },
     "parent#enosys": {
         "name": "enosys",
