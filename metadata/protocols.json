@@ -8142,8 +8142,7 @@
     "1548": {
         "name": "chaotic-finance",
         "tvl": false,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1549": {
         "name": "babena",
@@ -10247,8 +10246,7 @@
     "1920": {
         "name": "ordernchaos",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1921": {
         "name": "dogeclaw",
@@ -12779,7 +12777,8 @@
         "treasury": true,
         "liquidity": true,
         "hacks": true,
-        "raises": true
+        "raises": true,
+        "emissions": true
     },
     "2386": {
         "name": "sandclock",
@@ -16775,7 +16774,8 @@
         "name": "equilibria",
         "tvl": true,
         "yields": false,
-        "liquidity": true
+        "liquidity": true,
+        "emissions": true
     },
     "3092": {
         "name": "beamswap-v3",
@@ -17056,7 +17056,8 @@
         "tvl": false,
         "yields": false,
         "liquidity": true,
-        "nfts": true
+        "nfts": true,
+        "emissions": true
     },
     "3145": {
         "name": "pinjam-labs",
@@ -22172,8 +22173,7 @@
     "4069": {
         "name": "possum-labs",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "4070": {
         "name": "ionic-protocol",
