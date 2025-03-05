@@ -2783,7 +2783,8 @@
     "550": {
         "name": "freeriver",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "551": {
         "name": "solarbeam",
@@ -7355,7 +7356,8 @@
         "tvl": true,
         "yields": false,
         "governance": true,
-        "raises": true
+        "raises": true,
+        "emissions": true
     },
     "1403": {
         "name": "scranton-finance",
@@ -15511,7 +15513,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
@@ -28099,7 +28101,8 @@
     "5157": {
         "name": "yellow",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "5158": {
         "name": "enosys-amm-v3",
