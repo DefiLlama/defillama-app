@@ -3821,7 +3821,8 @@
     "725": {
         "name": "bishares",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "726": {
         "name": "solo-top",
@@ -7103,7 +7104,8 @@
     "1349": {
         "name": "degen-haus",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1350": {
         "name": "treasure",
