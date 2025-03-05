@@ -31498,7 +31498,8 @@
     "5775": {
         "name": "infrared-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "revenue": true
     },
     "5776": {
         "name": "dopin-protocol",
@@ -31958,7 +31959,8 @@
         "tvl": false,
         "yields": false,
         "fees": true,
-        "revenue": true
+        "revenue": true,
+        "aggregator": true
     },
     "5860": {
         "name": "synnax-protocol",
@@ -31967,6 +31969,11 @@
     },
     "5862": {
         "name": "hyperyield",
+        "tvl": true,
+        "yields": false
+    },
+    "5863": {
+        "name": "zino-finance",
         "tvl": true,
         "yields": false
     },
