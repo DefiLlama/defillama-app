@@ -38,7 +38,8 @@ import { sluggify } from '~/utils/cache-client'
 import { getAPIUrl } from '../adaptors/client'
 import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import chainsMetadata from '../../../../.cache/chains.json'
+import metadata from '~/utils/metadata'
+const chainsMetadata = metadata.chainMetadata
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 

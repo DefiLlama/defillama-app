@@ -10,7 +10,8 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
 import { ISettings } from '~/contexts/types'
-import chainMetadata from '../../../../.cache/chains.json'
+import metadataCache from '~/utils/metadata'
+const { chainMetadata } = metadataCache
 
 const fetch = fetchWithErrorLogging
 
