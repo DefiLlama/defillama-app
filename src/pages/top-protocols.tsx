@@ -5,12 +5,12 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, download, slug } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import { VirtualTable } from '~/components/Table/Table'
 import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { IFormattedProtocol } from '~/api/types'
 import { descriptions } from './categories'
 import { withPerformanceLogging } from '~/utils/perf'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { QuestionHelper } from '~/components/QuestionHelper'
 
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
@@ -48,55 +48,16 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 		data.push({ chain, ...values })
 	})
 
-	const columns = Array.from(uniqueCategories).map((item) => ({
-		header: item,
-		accessorKey: item,
-		enableSorting: false,
-		size: 200,
-		meta: {
-			headerHelperText: descriptions[item as string] ?? null
-		}
-	}))
-
 	return {
 		props: {
 			data,
-			columns
+			uniqueCategories: Array.from(uniqueCategories)
 		},
 		revalidate: maxAgeForNext([22])
 	}
 })
 
-export default function Chains({ data, columns }) {
-	const allColumns: ColumnDef<IFormattedProtocol>[] = useMemo(
-		() => [
-			{
-				header: 'Chain',
-				accessorKey: 'chain',
-				enableSorting: false,
-				cell: ({ getValue, row }) => {
-					return (
-						<span className="flex items-center gap-2">
-							<span className="flex-shrink-0">{row.index + 1}</span>
-							<TokenLogo logo={chainIconUrl(getValue())} />
-							<CustomLink
-								href={`/chain/${getValue()}`}
-								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-							>
-								{getValue()}
-							</CustomLink>
-						</span>
-					)
-				},
-				size: 200
-			},
-			...columns.map((column) => ({
-				...column,
-				cell: ({ getValue }) => <CustomLink href={`/protocol/${slug(getValue())}`}>{getValue()}</CustomLink>
-			}))
-		],
-		[columns]
-	)
+export default function Chains({ data, columns, uniqueCategories }) {
 	const downloadCSV = () => {
 		const headers = ['Chain', ...columns.map((column) => column.header)]
 		const csvData = data.map((row) => {
@@ -112,19 +73,64 @@ export default function Chains({ data, columns }) {
 		download('top-protocols.csv', csv)
 	}
 
-	const instance = useReactTable({
-		data,
-		columns: allColumns,
-		getCoreRowModel: getCoreRowModel()
-	})
-
 	return (
 		<Layout title="TVL Rankings - DefiLlama" defaultSEO>
 			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
 				<span>Top Protocols by Chain</span>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</h1>
-			<VirtualTable instance={instance} style={{ height: '85vh' }} skipVirtualization />
+			<div className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)] h-[85vh]">
+				<div className="grid" style={{ gridTemplateColumns: `repeat(${uniqueCategories.length + 1}, 200px)` }}>
+					<div
+						className="col-span-full grid sticky top-0 z-[1]"
+						style={{ gridTemplateColumns: `repeat(${uniqueCategories.length + 1}, 200px)` }}
+					>
+						<div className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] sticky left-0 z-[1]">
+							Chain
+						</div>
+						{uniqueCategories.map((cat) => (
+							<div
+								className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)]"
+								key={`uniq-cat-${cat}`}
+							>
+								<span className="flex items-center gap-1">
+									{cat}
+									<QuestionHelper text={descriptions[cat as string]} />
+								</span>
+							</div>
+						))}
+					</div>
+
+					{data.map((item, index) => (
+						<div
+							className="col-span-full grid"
+							style={{ gridTemplateColumns: `repeat(${uniqueCategories.length + 1}, 200px)` }}
+							key={`top-protocols-of${item.chain}`}
+						>
+							<div className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] sticky left-0">
+								<span className="flex items-center gap-2">
+									<span className="flex-shrink-0">{index + 1}</span>
+									<TokenLogo logo={chainIconUrl(item.chain)} />
+									<CustomLink
+										href={`/chain/${slug(item.chain)}`}
+										className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+									>
+										{item.chain}
+									</CustomLink>
+								</span>
+							</div>
+							{uniqueCategories.map((cat) => (
+								<div
+									className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)]"
+									key={`uniq-cat-${cat}-${item.chain}`}
+								>
+									{item[cat] ? <CustomLink href={`/protocol/${slug(item[cat])}`}>{item[cat]}</CustomLink> : null}
+								</div>
+							))}
+						</div>
+					))}
+				</div>
+			</div>
 		</Layout>
 	)
 }
