@@ -2865,6 +2865,7 @@
         "name": "alita-finance",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "activeUsers": true,
         "dexs": true
     },
@@ -15616,7 +15617,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": false,
+        "tvl": true,
         "yields": false
     },
     "2871": {
@@ -21684,8 +21685,7 @@
     "3959": {
         "name": "poor-exchange",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "3960": {
         "name": "landx-finance",
@@ -31946,6 +31946,11 @@
         "fees": true,
         "revenue": true,
         "dexs": true
+    },
+    "5858": {
+        "name": "spice",
+        "tvl": true,
+        "yields": false
     },
     "5859": {
         "name": "erc-burner",
