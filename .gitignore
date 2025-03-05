@@ -33,3 +33,4 @@ yarn-error.log*
 
 # Sentry
 next.config.original.js
+.cache
