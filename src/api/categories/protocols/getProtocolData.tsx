@@ -26,7 +26,6 @@ import {
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { sluggify } from '~/utils/cache-client'
-import protocolMetadata from '../../../../metadata/protocols.json'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 
 const fetchGovernanceData = async (apis: Array<string>) => {
@@ -50,7 +49,12 @@ const fetchGovernanceData = async (apis: Array<string>) => {
 
 	return governanceData
 }
-export const getProtocolData = async (protocol: string, protocolRes: IProtocolResponse, isCpusHot: boolean) => {
+export const getProtocolData = async (
+	protocol: string,
+	protocolRes: IProtocolResponse,
+	isCpusHot: boolean,
+	protocolsMetadata
+) => {
 	if (!protocolRes) {
 		return { notFound: true, props: null }
 	}
@@ -128,7 +132,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					return []
 			  })
 			: [],
-		protocolMetadata[protocolData.id]?.expenses && !isCpusHot
+		protocolsMetadata[protocolData.id]?.expenses && !isCpusHot
 			? fetchWithErrorLogging(PROTOCOLS_EXPENSES_API)
 					.then((res) => res.json())
 					.catch((err) => {
@@ -136,7 +140,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		protocolMetadata[protocolData.id]?.treasury && !isCpusHot
+		protocolsMetadata[protocolData.id]?.treasury && !isCpusHot
 			? fetchWithErrorLogging(PROTOCOLS_TREASURY)
 					.then((res) => res.json())
 					.catch((err) => {
@@ -144,7 +148,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		protocolMetadata[protocolData.id]?.yields && !isCpusHot
+		protocolsMetadata[protocolData.id]?.yields && !isCpusHot
 			? fetchWithErrorLogging(YIELD_POOLS_API)
 					.then((res) => res.json())
 					.catch((err) => {
@@ -160,7 +164,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return null
 					})
 			: null,
-		protocolMetadata[protocolData.id]?.liquidity && !isCpusHot
+		protocolsMetadata[protocolData.id]?.liquidity && !isCpusHot
 			? fetchWithErrorLogging(LIQUIDITY_API)
 					.then((res) => res.json())
 					.catch((err) => {
@@ -168,7 +172,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		protocolMetadata[protocolData.id]?.hacks && !isCpusHot
+		protocolsMetadata[protocolData.id]?.hacks && !isCpusHot
 			? fetchWithErrorLogging(HACKS_API)
 					.then((res) => res.json())
 					.catch((err) => {
@@ -176,7 +180,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		protocolMetadata[protocolData.id]?.raises && !isCpusHot
+		protocolsMetadata[protocolData.id]?.raises && !isCpusHot
 			? fetchWithErrorLogging(RAISES_API)
 					.then((res) => res.json())
 					.then((r) => r.raises)
@@ -187,13 +191,13 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			: [],
 		getColor(tokenIconPaletteUrl(protocolData.name)),
 		getProtocolsRaw(),
-		protocolMetadata[protocolData.id]?.activeUsers && !isCpusHot
+		protocolsMetadata[protocolData.id]?.activeUsers && !isCpusHot
 			? fetchWithTimeout(ACTIVE_USERS_API, 10_000)
 					.then((res) => res.json())
 					.then((data) => data?.[protocolData.id] ?? null)
 					.catch(() => null)
 			: null,
-		protocolMetadata[protocolData.id]?.fees && !isCpusHot
+		protocolsMetadata[protocolData.id]?.fees && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -203,7 +207,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: [],
-		protocolMetadata[protocolData.id]?.revenue && !isCpusHot
+		protocolsMetadata[protocolData.id]?.revenue && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
 			  )
@@ -213,7 +217,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.dexs && !isCpusHot
+		protocolsMetadata[protocolData.id]?.dexs && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -223,7 +227,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.perps && !isCpusHot
+		protocolsMetadata[protocolData.id]?.perps && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -233,7 +237,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.yields && !isCpusHot
+		protocolsMetadata[protocolData.id]?.yields && !isCpusHot
 			? fetchWithErrorLogging(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
 					.then((res) => res.json())
 					.catch(() => {
@@ -246,7 +250,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					.then(({ data }) => data)
 					.catch(() => null as any)
 			: null,
-		protocolMetadata[protocolData.id]?.emissions && !isCpusHot
+		protocolsMetadata[protocolData.id]?.emissions && !isCpusHot
 			? getProtocolEmissons(protocol)
 			: { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } },
 		protocolData.github && !isCpusHot
@@ -256,7 +260,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return null
 					})
 			: null,
-		protocolMetadata[protocolData.id]?.aggregator && !isCpusHot
+		protocolsMetadata[protocolData.id]?.aggregator && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -266,7 +270,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.options && !isCpusHot
+		protocolsMetadata[protocolData.id]?.options && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyPremiumVolume`
 			  )
@@ -276,7 +280,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.perpsAggregators && !isCpusHot
+		protocolsMetadata[protocolData.id]?.perpsAggregators && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  )
@@ -291,7 +295,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 
 	let inflowsExist = false
 
-	let nftDataExist = protocolMetadata[protocolData.id]?.nfts ? true : false
+	let nftDataExist = protocolsMetadata[protocolData.id]?.nfts ? true : false
 	let nftVolumeData = []
 
 	if (nftDataExist && !isCpusHot) {
@@ -537,28 +541,28 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 				symbol: protocolData.symbol ?? null,
 				metrics: {
 					...metrics,
-					tvl: protocolMetadata[protocolData.id]?.tvl ? true : false,
+					tvl: protocolsMetadata[protocolData.id]?.tvl ? true : false,
 					devMetrics: !!devMetrics,
-					fees: protocolMetadata[protocolData.id]?.fees ? true : false,
-					revenue: protocolMetadata[protocolData.id]?.revenue ? true : false,
-					dexs: protocolMetadata[protocolData.id]?.dexs ? true : false,
-					perps: protocolMetadata[protocolData.id]?.perps ? true : false,
-					aggregators: protocolMetadata[protocolData.id]?.aggregator ? true : false,
-					perpsAggregators: protocolMetadata[protocolData.id]?.perpsAggregators ? true : false,
-					bridgeAggregators: protocolMetadata[protocolData.id]?.bridgeAggregators ? true : false,
-					options: protocolMetadata[protocolData.id]?.options ? true : false,
+					fees: protocolsMetadata[protocolData.id]?.fees ? true : false,
+					revenue: protocolsMetadata[protocolData.id]?.revenue ? true : false,
+					dexs: protocolsMetadata[protocolData.id]?.dexs ? true : false,
+					perps: protocolsMetadata[protocolData.id]?.perps ? true : false,
+					aggregators: protocolsMetadata[protocolData.id]?.aggregator ? true : false,
+					perpsAggregators: protocolsMetadata[protocolData.id]?.perpsAggregators ? true : false,
+					bridgeAggregators: protocolsMetadata[protocolData.id]?.bridgeAggregators ? true : false,
+					options: protocolsMetadata[protocolData.id]?.options ? true : false,
 					medianApy: medianApy.data.length > 0,
 					inflows: inflowsExist,
-					unlocks: protocolMetadata[protocolData.id]?.unlocks ? true : false,
+					unlocks: protocolsMetadata[protocolData.id]?.unlocks ? true : false,
 					bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
-					treasury: protocolMetadata[protocolData.id]?.treasury ? true : false,
-					tokenLiquidity: protocolMetadata[protocolData.id]?.liquidity ? true : false,
+					treasury: protocolsMetadata[protocolData.id]?.treasury ? true : false,
+					tokenLiquidity: protocolsMetadata[protocolData.id]?.liquidity ? true : false,
 					nftVolume: nftDataExist,
 					yields:
-						protocolMetadata[protocolData.id]?.yields && yields && yields.data && projectYields.length > 0
+						protocolsMetadata[protocolData.id]?.yields && yields && yields.data && projectYields.length > 0
 							? true
 							: false,
-					forks: protocolMetadata[protocolData.id]?.forks ? true : false
+					forks: protocolsMetadata[protocolData.id]?.forks ? true : false
 				}
 			},
 			backgroundColor,
