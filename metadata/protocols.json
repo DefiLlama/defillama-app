@@ -2844,7 +2844,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "dexs": true
     },
     "562": {
@@ -9681,8 +9680,7 @@
     "1823": {
         "name": "nomiswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "1824": {
         "name": "swapsicle-v1",
@@ -18684,7 +18682,8 @@
     "3424": {
         "name": "raccoon-finance",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "3425": {
         "name": "scallop-pool",
