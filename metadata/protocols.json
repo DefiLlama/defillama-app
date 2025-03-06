@@ -1036,7 +1036,8 @@
     "267": {
         "name": "s-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "269": {
         "name": "yfii",
@@ -15084,7 +15085,6 @@
         "name": "auragi-finance",
         "tvl": true,
         "yields": false,
-        "liquidity": true,
         "activeUsers": true,
         "fees": true,
         "revenue": true,
@@ -15311,7 +15311,6 @@
         "tvl": true,
         "yields": false,
         "forks": true,
-        "liquidity": true,
         "emissions": true
     },
     "2818": {
