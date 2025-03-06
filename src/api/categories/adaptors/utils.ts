@@ -3,6 +3,7 @@ import { IJoin2ReturnType } from '.'
 import { IJSON, ProtocolAdaptorSummaryResponse } from './types'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { capitalizeFirstLetter } from '~/utils'
 
 const fetch = fetchWithErrorLogging
 
@@ -13,7 +14,12 @@ export const formatChain = (chain: string) => {
 	if (c === 'bsc') return c.toUpperCase()
 	if (c === 'xdai') return 'xDai'
 	if (c === 'terra' || c === 'terra classic') return 'Terra Classic'
-	else return c[0].toUpperCase() + c.slice(1)
+	if (c === 'lightlink_phoenix') return 'Lightlink'
+	else
+		return c
+			.split('_')
+			.map((x) => capitalizeFirstLetter(x))
+			.join(' ')
 }
 
 function pad(s: number) {
