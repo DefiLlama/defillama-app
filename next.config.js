@@ -207,6 +207,26 @@ const nextConfig = {
 				source: '/pro',
 				destination: '/subscribe',
 				permanent: true
+			},
+			{
+				source: '/chain/hyperliquid',
+				destination: '/chain/hyperliquid-l1',
+				permanent: true
+			},
+			{
+				source: '/fees/chains/hyperliquid',
+				destination: '/fees/chains/hyperliquid-l1',
+				permanent: true
+			},
+			{
+				source: '/dexs/chains/hyperliquid',
+				destination: '/dexs/chains/hyperliquid-l1',
+				permanent: true
+			},
+			{
+				source: '/perps/chains/hyperliquid',
+				destination: '/perps/chains/hyperliquid-l1',
+				permanent: true
 			}
 		]
 	},
