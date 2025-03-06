@@ -40,6 +40,6 @@ setInterval(async () => {
 
 
 
-}, 30  * 60 * 1000)
+}, 60  * 60 * 1000)
 
 export default metadataCache
