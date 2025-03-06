@@ -659,6 +659,7 @@
         "tvl": true,
         "yields": false,
         "governance": true,
+        "liquidity": true,
         "hacks": true,
         "raises": true
     },
@@ -8807,8 +8808,7 @@
     "1656": {
         "name": "funbeast",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1657": {
         "name": "predy-v3.2",
@@ -15530,7 +15530,7 @@
     },
     "2855": {
         "name": "noah-swap",
-        "tvl": false,
+        "tvl": true,
         "yields": false,
         "fees": true,
         "revenue": true,
