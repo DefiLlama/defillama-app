@@ -30779,7 +30779,7 @@
     "5654": {
         "name": "umoja-ybtc",
         "tvl": true,
-        "yields": false
+        "yields": true
     },
     "5655": {
         "name": "resolv",
@@ -35383,7 +35383,7 @@
     },
     "parent#umoja-protocol": {
         "name": "umoja-protocol",
-        "yields": false,
+        "yields": true,
         "tvl": true,
         "fees": true,
         "revenue": true,
