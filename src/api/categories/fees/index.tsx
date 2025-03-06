@@ -22,35 +22,40 @@ export const getFeesAndRevenueByChain = async ({
 	excludeTotalDataChart: boolean
 	excludeTotalDataChartBreakdown: boolean
 }) => {
-	const apiUrl = `${DIMENISIONS_SUMMARY_BASE_API}/fees${
-		chain && chain !== 'All' ? '/' + chain : ''
-	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+	const apiUrl =
+		chain && chain !== 'All'
+			? `${DIMENISIONS_SUMMARY_BASE_API}/fees/${chain}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+			: null
 
 	const [fees, revenue] = await Promise.all([
-		fetchWithErrorLogging(apiUrl)
-			.then((res) => {
-				if (res.status === 200) {
-					return res.json()
-				} else {
-					return null
-				}
-			})
-			.catch((err) => {
-				console.log('Error at ', apiUrl, err)
-				return null
-			}),
-		fetchWithErrorLogging(`${apiUrl}&dataType=dailyRevenue`)
-			.then((res) => {
-				if (res.status === 200) {
-					return res.json()
-				} else {
-					return null
-				}
-			})
-			.catch((err) => {
-				console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
-				return null
-			})
+		apiUrl
+			? fetchWithErrorLogging(apiUrl)
+					.then((res) => {
+						if (res.status === 200) {
+							return res.json()
+						} else {
+							return null
+						}
+					})
+					.catch((err) => {
+						console.log('Error at ', apiUrl, err)
+						return null
+					})
+			: null,
+		apiUrl
+			? fetchWithErrorLogging(`${apiUrl}&dataType=dailyRevenue`)
+					.then((res) => {
+						if (res.status === 200) {
+							return res.json()
+						} else {
+							return null
+						}
+					})
+					.catch((err) => {
+						console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
+						return null
+					})
+			: null
 	])
 
 	return { fees, revenue }
