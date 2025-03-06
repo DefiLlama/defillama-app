@@ -757,7 +757,6 @@
         "tvl": true,
         "yields": false,
         "liquidity": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "dexs": true
@@ -4028,7 +4027,8 @@
     "785": {
         "name": "lootswap",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "786": {
         "name": "bagels-finance",
@@ -4579,8 +4579,7 @@
     "887": {
         "name": "swapperchan",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "888": {
         "name": "revault",
@@ -5251,7 +5250,8 @@
     "1010": {
         "name": "ice-dao",
         "tvl": false,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1011": {
         "name": "papa-dao",
@@ -5932,7 +5932,8 @@
     "1133": {
         "name": "ice-colony",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "1134": {
         "name": "duckydefi",
@@ -8259,7 +8260,8 @@
     "1570": {
         "name": "rikkei-finance",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "activeUsers": true
     },
     "1571": {
         "name": "stargate-v1",
@@ -10607,6 +10609,7 @@
         "name": "icecreamswap-v2",
         "tvl": true,
         "yields": false,
+        "liquidity": true,
         "dexs": true
     },
     "1991": {
@@ -14627,8 +14630,7 @@
         "name": "void",
         "tvl": false,
         "yields": false,
-        "treasury": true,
-        "liquidity": true
+        "treasury": true
     },
     "2712": {
         "name": "prepo",
@@ -18787,7 +18789,8 @@
         "name": "loot--dao",
         "tvl": false,
         "yields": false,
-        "treasury": true
+        "treasury": true,
+        "liquidity": true
     },
     "3444": {
         "name": "liquid-finance-protocol",
@@ -26141,7 +26144,8 @@
     "4803": {
         "name": "icecreamswap-v3",
         "tvl": true,
-        "yields": false
+        "yields": false,
+        "liquidity": true
     },
     "4804": {
         "name": "soroswap",
@@ -33473,6 +33477,7 @@
         "name": "icecreamswap",
         "yields": false,
         "tvl": true,
+        "liquidity": true,
         "dexs": true
     },
     "parent#idex": {
