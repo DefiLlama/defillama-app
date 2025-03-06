@@ -4183,8 +4183,7 @@
     "815": {
         "name": "pureswap",
         "tvl": true,
-        "yields": false,
-        "activeUsers": true
+        "yields": false
     },
     "816": {
         "name": "xsigma",
@@ -12839,7 +12838,6 @@
         "tvl": true,
         "yields": false,
         "hacks": true,
-        "activeUsers": true,
         "fees": true,
         "revenue": true,
         "perps": true
@@ -18025,7 +18023,8 @@
         "name": "rocketswap-base",
         "tvl": true,
         "yields": false,
-        "hacks": true
+        "hacks": true,
+        "activeUsers": true
     },
     "3315": {
         "name": "crescentswap",
