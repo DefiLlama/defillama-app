@@ -2133,8 +2133,7 @@
     "445": {
         "name": "cobraswap",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "446": {
         "name": "miningtycoon",
@@ -15507,7 +15506,7 @@
     },
     "2870": {
         "name": "jlswap",
-        "tvl": true,
+        "tvl": false,
         "yields": false
     },
     "2871": {
