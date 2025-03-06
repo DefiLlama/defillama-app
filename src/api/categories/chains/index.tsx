@@ -22,10 +22,12 @@ import { getPeggedDominance, getPercentChange, slug } from '~/utils'
 import { buildPeggedChartData } from '~/utils/stablecoins'
 import { getPeggedOverviewPageData } from '../stablecoins'
 import { getBridgeOverviewPageData } from '../bridges'
-import chainsMetadata from '../../../../metadata/chains.json'
+import metadataCache from '~/utils/metadata'
 import { getOverview } from '../adaptors'
 import { getAppRevenueByChain, getFeesAndRevenueByChain } from '../fees'
 import { getDexVolumeByChain } from '../dexs'
+
+const  chainsMetadata = metadataCache.chainMetadata
 
 const getExtraTvlCharts = (data) => {
 	const {

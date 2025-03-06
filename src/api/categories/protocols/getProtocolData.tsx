@@ -26,8 +26,9 @@ import {
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { sluggify } from '~/utils/cache-client'
-import protocolMetadata from '../../../../metadata/protocols.json'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
+import metadata from '~/utils/metadata'
+const { protocolMetadata } = metadata
 
 const fetchGovernanceData = async (apis: Array<string>) => {
 	const governanceData = await Promise.all(
