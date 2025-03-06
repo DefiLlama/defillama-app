@@ -8054,8 +8054,7 @@
     "1533": {
         "name": "life",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "1534": {
         "name": "strikex",
@@ -12334,8 +12333,7 @@
     "2306": {
         "name": "bored-candy-city",
         "tvl": true,
-        "yields": false,
-        "liquidity": true
+        "yields": false
     },
     "2307": {
         "name": "camelot-v2",
