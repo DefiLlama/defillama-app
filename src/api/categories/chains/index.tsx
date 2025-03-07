@@ -27,7 +27,7 @@ import { getOverview } from '../adaptors'
 import { getAppRevenueByChain, getFeesAndRevenueByChain } from '../fees'
 import { getDexVolumeByChain } from '../dexs'
 
-const  chainsMetadata = metadataCache.chainMetadata
+const chainsMetadata = metadataCache.chainMetadata
 
 const getExtraTvlCharts = (data) => {
 	const {
@@ -99,7 +99,7 @@ export async function getChainPageData(chain?: string) {
 			  })
 			: null,
 		getCexVolume(),
-		!chain || (chain !== 'All' && chainMetadata?.fees)
+		!chain || (chain !== 'All' && chainMetadata?.chainFees)
 			? getFeesAndRevenueByChain({
 					chain: chainMetadata?.name,
 					excludeTotalDataChart: true,
