@@ -97,6 +97,8 @@ export function VirtualTable({
 				tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
 				tableHeaderRef.current.style['overflow-x'] = 'overlay'
 				tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
+
+				tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
 			} else {
 				tableHeaderRef.current.style.position = 'relative'
 				tableHeaderRef.current.style['overflow-x'] = 'initial'
