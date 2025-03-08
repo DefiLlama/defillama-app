@@ -129,7 +129,8 @@ const blockExplorers = {
 	soneium: ['https://soneium.blockscout.com/address/', 'Soneium Blockscout'],
 	berachain: ['https://beratrail.io/address/', 'Beratrail'],
 	sty: ['https://www.storyscan.xyz/token/', 'Storyscan'],
-	formnetwork: ['https://explorer.form.network/', 'Form Network Explorer']
+	formnetwork: ['https://explorer.form.network/', 'Form Network Explorer'],
+	hemi: ['https://explorer.hemi.xyz/', 'Hemi Block Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
