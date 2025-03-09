@@ -6,7 +6,6 @@ Check it out live at [https://defillama.com](https://defillama.com)
 ###### Installing dependencies
 
 ```bash
-
 yarn
 ```
 
