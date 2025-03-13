@@ -2,10 +2,10 @@ import * as React from 'react'
 import { Table, flexRender, RowData } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { SortIcon } from '~/components/Table/SortIcon'
-import { QuestionHelper } from '~/components/QuestionHelper'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '../Tooltip'
 
 interface ITableProps {
 	instance: Table<any>
@@ -167,14 +167,14 @@ export function VirtualTable({
 									>
 										{header.isPlaceholder ? null : (
 											<>
-												{header.column.getCanSort() ? (
-													<button onClick={() => header.column.toggleSorting()}>{value}</button>
-												) : (
-													value
-												)}
+												<HeaderWithTooltip
+													content={meta?.headerHelperText}
+													onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : null}
+												>
+													{value}
+												</HeaderWithTooltip>
 											</>
 										)}
-										{meta?.headerHelperText && <QuestionHelper text={meta?.headerHelperText} />}
 										{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
 									</span>
 								</div>
@@ -243,5 +243,25 @@ export function VirtualTable({
 				})}
 			</div>
 		</div>
+	)
+}
+
+const HeaderWithTooltip = ({ children, content, onClick }) => {
+	if (onClick) {
+		if (!content) return <button onClick={onClick}>{children}</button>
+
+		return (
+			<Tooltip content={content} className="underline decoration-dotted" as="button" onClick={onClick}>
+				{children}
+			</Tooltip>
+		)
+	}
+
+	if (!content) return children
+
+	return (
+		<Tooltip content={content} className="underline decoration-dotted">
+			{children}
+		</Tooltip>
 	)
 }

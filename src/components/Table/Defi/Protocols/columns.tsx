@@ -105,7 +105,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Value of all coins held in smart contracts of the protocol'
 				},
 				size: 120
 			}),
@@ -114,7 +115,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Change in TVL in the last 24 hours'
 				},
 				size: 110
 			}),
@@ -123,7 +125,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Change in TVL in the last 7 days'
 				},
 				size: 110
 			}),
@@ -132,7 +135,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Change in TVL in the last 30 days'
 				},
 				size: 110
 			}),
@@ -144,10 +148,12 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				size: 110,
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Market cap / TVL ratio'
 				}
 			})
-		]
+		],
+		meta: { headerHelperText: 'Value of all coins held in smart contracts of the protocol' }
 	}),
 	columnHelper.group({
 		id: 'fees',
@@ -158,7 +164,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Fees paid by users in the last 24 hours'
 				},
 				size: 100
 			}),
@@ -167,7 +174,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
 				},
 				size: 125
 			}),
@@ -176,7 +184,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Fees paid by users in the last 7 days'
 				},
 				size: 100
 			}),
@@ -185,7 +194,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Revenue earned by the protocol in the last 7 days'
 				},
 				size: 120
 			}),
@@ -194,7 +204,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Fees paid by users in the last 30 days'
 				},
 				size: 100
 			}),
@@ -203,7 +214,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Revenue earned by the protocol in the last 30 days'
 				},
 				size: 125
 			}),
@@ -212,16 +224,18 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Average monthly fees paid by users in the last 12 months'
 				},
-				size: 140
+				size: 170
 			}),
 			columnHelper.accessor('revenue_1y', {
 				header: 'Revenue 1Y',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
 				},
 				size: 120
 			}),
@@ -239,7 +253,9 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText:
+						'Subset of 30 days revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers.'
 				},
 				size: 180
 			}),
@@ -248,7 +264,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Fees paid by users in the last 24 hours'
 				},
 				size: 140
 			}),
@@ -257,7 +274,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Total fees paid by users since the protocol was launched'
 				},
 				size: 150
 			}),
@@ -266,7 +284,9 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText:
+						'Subset of 24 hour revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers.'
 				},
 				size: 180
 			}),
@@ -309,18 +329,23 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 180
 			})
-		]
+		],
+		meta: {
+			headerHelperText:
+				"Total fees paid by users when using the protocol\n\nRevenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers."
+		}
 	}),
 	columnHelper.group({
 		id: 'volume',
-		header: 'Volume',
+		header: 'DEX Volume',
 		columns: [
 			columnHelper.accessor('volume_24h', {
 				header: 'Spot Volume 24h',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Volume of spot trades in the last 24 hours'
 				},
 				size: 150
 			}),
@@ -329,7 +354,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Volume of spot trades in the last 7 days'
 				},
 				size: 150
 			}),
@@ -348,11 +374,15 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end'
+					align: 'end',
+					headerHelperText: 'Total volume traded on the protocol since it was launched'
 				},
 				size: 170
 			})
-		]
+		],
+		meta: {
+			headerHelperText: 'Volume traded on the protocol'
+		}
 	})
 ]
 

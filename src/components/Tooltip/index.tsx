@@ -25,12 +25,12 @@ export function Tooltip({ content, children, color, fontSize, placement, classNa
 				state={tooltip}
 				className={`cursor-pointer flex items-center overflow-hidden text-ellipsis whitespace-nowrap flex-shrink-0 ${className}`}
 				as={as ?? 'span'}
+				{...props}
 			>
 				{children}
 			</TooltipAnchor>
 			{tooltip.mounted ? (
 				<AriaTooltip
-					{...props}
 					state={tooltip}
 					className="text-sm p-2 max-w-56 whitespace-pre-wrap rounded-md bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)]"
 				>
