@@ -2,6 +2,7 @@ import { Icon } from '~/components/Icon'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Flag } from './Flag'
 import { useState } from 'react'
+import { Tooltip } from '~/components/Tooltip'
 
 export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, helperText }) => {
 	const [open, setOpen] = useState(false)
@@ -17,8 +18,13 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 							data-open={open}
 							className="data-[open=true]:rotate-90 transition-transform duration-100 flex-shrink-0"
 						/>
-						<span className="whitespace-nowrap">{rowHeader}</span>
-						{helperText && <QuestionHelper text={helperText} />}
+						{helperText ? (
+							<Tooltip content={helperText} className="underline decoration-dotted whitespace-nowrap">
+								{rowHeader}
+							</Tooltip>
+						) : (
+							<span className="whitespace-nowrap">{rowHeader}</span>
+						)}
 					</button>
 					{protocolName && dataType ? (
 						<Flag

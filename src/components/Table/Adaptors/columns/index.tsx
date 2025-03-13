@@ -161,9 +161,19 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		NameColumn('fees', allChains),
 		ChainsColumn('fees'),
 		CategoryColumn,
-		Total24hColumn('Fees', undefined, undefined, 140),
-		Total24hColumn('Revenue', 'revenue24h', undefined, 160),
-		Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
+		Total24hColumn('Fees', undefined, 'Fees paid by users in the last 24 hours', 140),
+		Total24hColumn(
+			'Revenue',
+			'revenue24h',
+			"Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers.",
+			160
+		),
+		Total24hColumn(
+			'Holders revenue',
+			'dailyHoldersRevenue',
+			'Subset of fees paid by users that are distributed to token holders in the last 24 hours',
+			190
+		),
 		Total24hColumn('Market Cap', 'mcap', undefined, undefined, 'Market Cap'),
 		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, undefined, 'Fees (7d)'),
 		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, undefined, 'Fees (30d)'),
@@ -228,7 +238,7 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 export const simpleFeesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
 		NameColumn('fees', allChains, 140),
-		Total24hColumn('Fees', undefined, undefined, 120),
+		Total24hColumn('Fees', undefined, 'Fees paid by users in the last 24 hours', 120),
 		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, 120, 'Fees (7d)'),
 		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, 120, 'Fees (30d)'),
 		Total24hColumn('Fees', 'total1y', `Cumulative last 1y fees`, 120, 'Fees (1y)')

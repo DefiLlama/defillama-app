@@ -32,7 +32,7 @@ export function Tooltip({ content, children, color, fontSize, placement, classNa
 			{tooltip.mounted ? (
 				<AriaTooltip
 					state={tooltip}
-					className="text-sm p-2 max-w-56 whitespace-pre-wrap rounded-md bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)]"
+					className="text-sm p-2 max-w-56 whitespace-pre-wrap rounded-md bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] overflow-auto max-h-[80vh]"
 				>
 					{content}
 				</AriaTooltip>

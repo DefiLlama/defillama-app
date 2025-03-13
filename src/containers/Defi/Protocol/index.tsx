@@ -53,6 +53,7 @@ import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { RowWithSubRows } from './RowWithSubRows'
 import { useIsClient } from '~/hooks'
+import { Tooltip } from '~/components/Tooltip'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -649,9 +650,21 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												/>
 												<span className="flex flex-col">
 													<span className="flex items-center flex-nowrap gap-2">
-														<span className="text-base text-[#545757] dark:text-[#cccccc]">
-															{isCEX ? 'Total Assets' : 'Total Value Locked'}
-														</span>
+														{isCEX ? (
+															<Tooltip
+																content={'Value of all assets held on chain'}
+																className="underline decoration-dotted text-[#545757] dark:text-[#cccccc]"
+															>
+																<span>Total Assets</span>
+															</Tooltip>
+														) : (
+															<Tooltip
+																content={'Value of all coins held in smart contracts of the protocol'}
+																className="underline decoration-dotted text-[#545757] dark:text-[#cccccc]"
+															>
+																<span>Total Value Locked</span>
+															</Tooltip>
+														)}
 														<Flag
 															protocol={protocolData.name}
 															dataType={'TVL'}
@@ -798,7 +811,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{tokenCGData?.fdv?.current ? (
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
-														<span>Fully Diluted Valuation</span>
+														<Tooltip
+															content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
+															className="underline decoration-dotted"
+														>
+															Fully Diluted Valuation
+														</Tooltip>
 														<Flag
 															protocol={protocolData.name}
 															dataType={'FDV'}
@@ -814,7 +832,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													rowHeader={`24h ${symbol ? `$${symbol}` : 'Token'} Volume`}
 													dataType={'Token Volume'}
 													rowValue={formatPrice(tokenCGData.volume24h.total)}
-													helperText={null}
+													helperText={`Sum of value in all swaps to or from that token across all Centralized and Decentralized exchanges tracked by coingecko.\n\nData for this metric is imported directly from coingecko.`}
 													subRows={
 														<>
 															{tokenCGData?.volume24h?.cex ? (
@@ -897,7 +915,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													dataType="Token Liquidity"
 													rowHeader={`${symbol ? `$${symbol}` : 'Token'} Liquidity`}
 													rowValue={formatPrice(tokenLiquidity.reduce((acc, curr) => (acc += curr[2]), 0))}
-													helperText={null}
+													helperText={
+														'Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data.'
+													}
 													subRows={
 														<>
 															{tokenLiquidity.map((item) => (
@@ -916,7 +936,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													dataType="Volume"
 													rowHeader="Volume 24h"
 													rowValue={formatPrice(dailyVolume)}
-													helperText="Yesterday's volume, updated daily at 00:00UTC"
+													helperText="Sum of value of all spot trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
 													subRows={
 														<>
 															{allTimeVolume ? (
@@ -932,7 +952,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 														<span>Volume 24h</span>
-														<QuestionHelper text="Yesterday's volume, updated daily at 00:00UTC" />
+														<Tooltip
+															content="Sum of value of all spot trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
+															className="underline decoration-dotted"
+														>
+															Volume 24h
+														</Tooltip>
 														<Flag
 															protocol={protocolData.name}
 															dataType={'Volume'}
@@ -948,7 +973,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													dataType="Perps Volume"
 													rowHeader="Perps Volume 24h"
 													rowValue={formatPrice(dailyPerpsVolume)}
-													helperText="Yesterday's volume, updated daily at 00:00UTC"
+													helperText="Sum of value of all perps trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
 													subRows={
 														<>
 															{allTimePerpsVolume ? (
@@ -963,8 +988,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											) : dailyPerpsVolume ? (
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
-														<span>Perps Volume 24h</span>
-														<QuestionHelper text="Yesterday's volume, updated daily at 00:00UTC" />
+														<Tooltip
+															content="Sum of value of all perps trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
+															className="underline decoration-dotted"
+														>
+															Perps Volume 24h
+														</Tooltip>
 														<Flag
 															protocol={protocolData.name}
 															dataType={'Perps Volume'}
@@ -980,7 +1009,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													dataType="Aggregators Volume"
 													rowHeader="Aggregators Volume 24h"
 													rowValue={formatPrice(dailyAggregatorsVolume)}
-													helperText="Yesterday's volume, updated daily at 00:00UTC"
+													helperText="Sum of value of all spot trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
 													subRows={
 														<>
 															{allTimeAggregatorsVolume ? (
@@ -995,8 +1024,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											) : dailyAggregatorsVolume ? (
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
-														<span>Aggregators Volume 24h</span>
-														<QuestionHelper text="Yesterday's volume, updated daily at 00:00UTC" />
+														<Tooltip
+															content="Sum of value of all spot trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
+															className="underline decoration-dotted"
+														>
+															Aggregators Volume 24h
+														</Tooltip>
 														<Flag
 															protocol={protocolData.name}
 															dataType={'Aggregators Volume'}
@@ -1012,7 +1045,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													dataType="Perps Aggregators Volume"
 													rowHeader="Perps Aggs Volume 24h"
 													rowValue={formatPrice(dailyPerpsAggregatorVolume)}
-													helperText="Yesterday's volume, updated daily at 00:00UTC"
+													helperText="Sum of value of all perps trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
 													subRows={
 														<>
 															{allTimePerpsAggregatorVolume ? (
@@ -1027,8 +1060,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											) : dailyPerpsAggregatorVolume ? (
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
-														<span>Perps Aggs Volume 24h</span>
-														<QuestionHelper text="Yesterday's volume, updated daily at 00:00UTC" />
+														<Tooltip
+															content="Sum of value of all perps trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
+															className="underline decoration-dotted"
+														>
+															Perps Aggs Volume 24h
+														</Tooltip>
 														<Flag
 															protocol={protocolData.name}
 															dataType={'Perps Aggregators Volume'}
@@ -1042,8 +1079,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{dailyOptionsVolume ? (
 												<tr className="group">
 													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
-														<span>Options Premium Volume 24h</span>
-														<QuestionHelper text="Yesterday's volume, updated daily at 00:00UTC" />
+														<Tooltip
+															content="Sum of value of all options trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
+															className="underline decoration-dotted"
+														>
+															Options Premium Volume 24h
+														</Tooltip>
 														<Flag
 															protocol={protocolData.name}
 															dataType={'Options Premium Volume 24h'}
@@ -1065,10 +1106,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														<>
 															<tr>
 																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																	<span className="flex items-center gap-1">
-																		<span>Fees 30d</span>
-																		<QuestionHelper text="Cumulative fees over the last 30 days" />
-																	</span>
+																	<Tooltip
+																		content="Total fees paid by users in the last 30 days, updated daily at 00:00UTC"
+																		className="underline decoration-dotted"
+																	>
+																		Fees 30d
+																	</Tooltip>
 																</th>
 																<td className="text-sm text-right">{formatPrice(fees30d)}</td>
 															</tr>
@@ -1076,10 +1119,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 															{dailyFees ? (
 																<tr>
 																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																		<span className="flex items-center gap-1">
-																			<span>Fees 24h</span>
-																			<QuestionHelper text="Yesterday's fees, updated daily at 00:00UTC" />
-																		</span>
+																		<Tooltip
+																			content="Total fees paid by users in the last 24 hours, updated daily at 00:00UTC"
+																			className="underline decoration-dotted"
+																		>
+																			Fees 24h
+																		</Tooltip>
 																	</th>
 																	<td className="text-sm text-right">{formatPrice(dailyFees)}</td>
 																</tr>
@@ -1106,21 +1151,24 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														<>
 															<tr>
 																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																	<span className="flex items-center gap-1">
-																		<span>Revenue 30d</span>
-																		<QuestionHelper text="Cumulative revenue over the last 30 days" />
-																	</span>
+																	<Tooltip
+																		content="Total revenue earned by the protocol in the last 30 days, updated daily at 00:00UTC"
+																		className="underline decoration-dotted"
+																	>
+																		Revenue 30d
+																	</Tooltip>
 																</th>
 																<td className="text-sm text-right">{formatPrice(revenue30d)}</td>
 															</tr>
-
 															{dailyRevenueFinal ? (
 																<tr>
 																	<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																		<span className="flex items-center gap-1">
-																			<span>Revenue 24h</span>
-																			<QuestionHelper text="Yesterday's revenue, updated daily at 00:00UTC" />
-																		</span>
+																		<Tooltip
+																			content="Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC"
+																			className="underline decoration-dotted"
+																		>
+																			Revenue 24h
+																		</Tooltip>
 																	</th>
 																	<td className="text-sm text-right">{formatPrice(dailyRevenueFinal)}</td>
 																</tr>
@@ -1169,7 +1217,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{treasury && (
 												<RowWithSubRows
 													protocolName={protocolData.name}
-													helperText={null}
+													helperText={
+														'Value of coins held in ownership by the protocol. By default this excludes coins created by the protocol itself.'
+													}
 													rowHeader={'Treasury'}
 													rowValue={formatPrice(
 														Object.entries(treasury).reduce(

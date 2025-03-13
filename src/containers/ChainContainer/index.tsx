@@ -337,8 +337,8 @@ export function ChainContainer({
 									<Tooltip
 										content={
 											selectedChain === 'All'
-												? 'Sum of TVL of the protocols on all chains'
-												: 'Sum of TVL of the protocols on the chain'
+												? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
+												: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 										}
 										className="underline decoration-dotted text-[#545757] dark:text-[#cccccc]"
 									>
@@ -798,7 +798,10 @@ export function ChainContainer({
 								{nftVolumesData ? (
 									<tr>
 										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
-											<Tooltip content="Volume of NFTs traded on the chain" className="underline decoration-dotted">
+											<Tooltip
+												content="Volume of Non Fungible Tokens traded in the last 24 hours"
+												className="underline decoration-dotted"
+											>
 												NFT Volume (24h)
 											</Tooltip>
 										</th>

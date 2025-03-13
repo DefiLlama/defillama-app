@@ -259,16 +259,16 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor('userFees_24h', {
-				header: 'User Fees 24h',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				meta: {
-					align: 'end',
-					headerHelperText: 'Fees paid by users in the last 24 hours'
-				},
-				size: 140
-			}),
+			// columnHelper.accessor('userFees_24h', {
+			// 	header: 'User Fees 24h',
+			// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+			// 	sortUndefined: 'last',
+			// 	meta: {
+			// 		align: 'end',
+			// 		headerHelperText: 'Fees paid by users in the last 24 hours'
+			// 	},
+			// 	size: 140
+			// }),
 			columnHelper.accessor('cumulativeFees', {
 				header: 'Cumulative Fees',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
@@ -337,7 +337,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	}),
 	columnHelper.group({
 		id: 'volume',
-		header: 'DEX Volume',
+		header: 'Volume',
 		columns: [
 			columnHelper.accessor('volume_24h', {
 				header: 'Spot Volume 24h',
