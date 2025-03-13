@@ -342,7 +342,7 @@ export function ChainContainer({
 										}
 										className="underline decoration-dotted text-[#545757] dark:text-[#cccccc]"
 									>
-										<span>Total Value Locked (DeFi)</span>
+										<span>Total Value Locked in DeFi</span>
 									</Tooltip>
 									<span className="font-semibold text-2xl font-jetbrains min-h-8">{tvl}</span>
 								</span>
@@ -429,7 +429,7 @@ export function ChainContainer({
 									</tr>
 								) : null}
 
-								{feesAndRevenueData?.totalAppRevenue24h ? (
+								{feesAndRevenueData?.totalAppRevenue24h && feesAndRevenueData?.totalAppRevenue24h > 1e3 ? (
 									<tr>
 										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 											<Tooltip
