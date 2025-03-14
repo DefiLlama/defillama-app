@@ -433,7 +433,7 @@ export function ChainContainer({
 									<tr>
 										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 											<Tooltip
-												content={'Total revenue earned by the apps on the chain'}
+												content={'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'}
 												className="underline decoration-dotted"
 											>
 												App Revenue (24h)
