@@ -144,6 +144,73 @@ function BridgesOverview({
 		download('bridge-volumes.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
+	const downloadChartCsv = () => {
+		let rows = []
+		let fileName = 'bridge-chart-data.csv'
+
+		if (selectedChain === 'All' && chartView === 'volume') {
+			fileName = 'bridge-volume-data.csv'
+			// For volume chart
+			rows = [['Timestamp', 'Date', 'Volume']]
+			chainVolumeData.forEach(entry => {
+				rows.push([
+					entry.date,
+					toNiceCsvDate(entry.date),
+					entry.volume
+				])
+			})
+		} else if (chartType === 'Bridge Volume') {
+			fileName = `${selectedChain}-bridge-volume.csv`
+			rows = [['Timestamp', 'Date', 'Volume']]
+			chainVolumeData.forEach(entry => {
+				rows.push([
+					entry.date,
+					toNiceCsvDate(entry.date),
+					entry.volume
+				])
+			})
+		} else if (chartType === 'Net Flow') {
+			fileName = `${selectedChain}-netflow.csv`
+			rows = [['Timestamp', 'Date', 'Net Flow']]
+			chainNetFlowData.forEach(entry => {
+				rows.push([
+					entry.date,
+					toNiceCsvDate(entry.date),
+					entry['Net Flow']
+				])
+			})
+		} else if (chartType === 'Net Flow (%)') {
+			fileName = `${selectedChain}-netflow-percentage.csv`
+			rows = [['Timestamp', 'Date', 'Inflows (%)', 'Outflows (%)']]
+			chainPercentageNet.forEach(entry => {
+				rows.push([
+					entry.date,
+					toNiceCsvDate(entry.date),
+					entry.Inflows,
+					entry.Outflows
+				])
+			})
+		} else if (chartType === '24h Tokens Deposited') {
+			fileName = `${selectedChain}-tokens-deposited.csv`
+			rows = [['Token', 'Amount']]
+			tokenDeposits.forEach(entry => {
+				rows.push([entry.name, entry.value])
+			})
+		} else if (chartType === '24h Tokens Withdrawn') {
+			fileName = `${selectedChain}-tokens-withdrawn.csv`
+			rows = [['Token', 'Amount']]
+			tokenWithdrawals.forEach(entry => {
+				rows.push([entry.name, entry.value])
+			})
+		}
+
+		if (rows.length === 0) {
+			alert('Not supported for this chart type')
+		} else {
+			download(fileName, rows.map((r) => r.join(',')).join('\n'))
+		}
+	}
+
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = React.useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
 		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
@@ -221,12 +288,18 @@ function BridgesOverview({
 							{chartView === 'netflow' ? (
 								<div className="relative shadow rounded-xl">
 									<div className="p-4">
+										<div className="flex justify-end mb-2">
+											<CSVDownloadButton onClick={downloadChartCsv} customText="Download chart .csv" />
+										</div>
 										<NetflowChart height="600px" />
 									</div>
 								</div>
 							) : (
 								<div className="relative shadow rounded-xl">
 									<div className="p-4">
+										<div className="flex justify-end mb-2">
+											<CSVDownloadButton onClick={downloadChartCsv} customText="Download chart .csv" />
+										</div>
 										<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="600px" />
 									</div>
 								</div>
@@ -234,18 +307,21 @@ function BridgesOverview({
 						</>
 					) : (
 						<>
-							<ChartSelector
-								options={[
-									'Bridge Volume',
-									'Net Flow',
-									'Net Flow (%)',
-									'Inflows',
-									'24h Tokens Deposited',
-									'24h Tokens Withdrawn'
-								]}
-								selectedChart={chartType}
-								onClick={setChartType}
-							/>
+							<div className="flex items-center justify-between">
+								<ChartSelector
+									options={[
+										'Bridge Volume',
+										'Net Flow',
+										'Net Flow (%)',
+										'Inflows',
+										'24h Tokens Deposited',
+										'24h Tokens Withdrawn'
+									]}
+									selectedChart={chartType}
+									onClick={setChartType}
+								/>
+								<CSVDownloadButton onClick={downloadChartCsv} customText="Download chart .csv" />
+							</div>
 
 							{chartType === 'Bridge Volume' && (
 								<div className="relative shadow rounded-xl">
