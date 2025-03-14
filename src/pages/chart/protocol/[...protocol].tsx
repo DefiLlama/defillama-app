@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useMemo } from 'react'
 import { getProtocol } from '~/api/categories/protocols'
 import { useFetchProtocolInfows } from '~/api/categories/protocols/client'
-import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
+import { getProtocolDataV2 } from '~/api/categories/protocols/getProtocolData'
 import { ProtocolChartOnly } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { useFetchAndFormatChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging(
 	}) => {
 		const protocolData = await getProtocol(protocol)
 
-		const data = await getProtocolData(protocol, protocolData, true)
+		const data = await getProtocolDataV2(protocol, protocolData, true)
 		data.props.noContext = true
 		return data
 	}
