@@ -21,7 +21,8 @@ import {
 	NFT_MARKETPLACES_VOLUME_API,
 	RAISES_API,
 	DIMENISIONS_OVERVIEW_API,
-	LIQUIDITY_API
+	LIQUIDITY_API,
+	getProtocolFEConfig
 } from '~/constants'
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
@@ -234,22 +235,24 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		protocolMetadata[protocolData.id]?.yields && !isCpusHot
-			? fetchWithErrorLogging(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
-					.then((res) => res.json())
-					.catch(() => {
-						return { data: [] }
-					})
-			: { data: [] },
+		/* protocolMetadata[protocolData.id]?.yields && !isCpusHot
+				? fetchWithErrorLogging(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
+						.then((res) => res.json())
+						.catch(() => {
+							return { data: [] }
+						})
+				: { data: [] }, */
+		{ data: [] },
 		protocolData.gecko_id && !isCpusHot
 			? fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
 					.then((res) => res.json())
 					.then(({ data }) => data)
 					.catch(() => null as any)
 			: null,
-		protocolMetadata[protocolData.id]?.emissions && !isCpusHot
-			? getProtocolEmissons(protocol)
-			: { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } },
+		/* protocolMetadata[protocolData.id]?.emissions && !isCpusHot
+				? getProtocolEmissons(protocol)
+				: { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }, */
+		{ chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } },
 		protocolData.github && !isCpusHot
 			? fetchWithTimeout(devMetricsProtocolUrl, 10_000)
 					.then((r) => r.json())
@@ -287,7 +290,8 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return {}
 					})
 			: {},
-		fetchGovernanceData(!isCpusHot ? governanceApis : [])
+		// fetchGovernanceData(!isCpusHot ? governanceApis : [])
+		fetchGovernanceData([])
 	])
 
 	let inflowsExist = false
@@ -615,39 +619,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			},
 			expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null,
 			tokenLiquidity,
-			tokenCGData: {
-				price: {
-					current: tokenPrice ?? null,
-					ath: tokenInfo?.['market_data']?.['ath']?.['usd'] ?? null,
-					athDate: tokenInfo?.['market_data']?.['ath_date']?.['usd'] ?? null,
-					atl: tokenInfo?.['market_data']?.['atl']?.['usd'] ?? null,
-					atlDate: tokenInfo?.['market_data']?.['atl_date']?.['usd'] ?? null
-				},
-				marketCap: { current: tokenInfo?.['market_data']?.['market_cap']?.['usd'] ?? null },
-				totalSupply: tokenInfo?.['market_data']?.['total_supply'] ?? null,
-				fdv: { current: tokenInfo?.['market_data']?.['fully_diluted_valuation']?.['usd'] ?? null },
-				volume24h: {
-					total: tokenInfo?.['market_data']?.['total_volume']?.['usd'] ?? null,
-					cex:
-						tokenInfo?.['tickers']?.reduce(
-							(acc, curr) =>
-								(acc +=
-									curr['trust_score'] !== 'red' && cg_volume_cexs.includes(curr.market.identifier)
-										? curr.converted_volume.usd ?? 0
-										: 0),
-							0
-						) ?? null,
-					dex:
-						tokenInfo?.['tickers']?.reduce(
-							(acc, curr) =>
-								(acc +=
-									curr['trust_score'] === 'red' || cg_volume_cexs.includes(curr.market.identifier)
-										? 0
-										: curr.converted_volume.usd ?? 0),
-							0
-						) ?? null
-				}
-			},
+			tokenCGData: getTokenCGData(tokenCGData),
 			nextEventDescription:
 				upcomingEvent[0]?.timestamp && nextEventDescription
 					? `${nextEventDescription} will be unlocked ${timeFromNow(upcomingEvent[0].timestamp)}`
@@ -680,6 +652,109 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			dailyTokenTaxes,
 			bribesRevenue30d,
 			tokenTaxesRevenue30d,
+			clientSide: isCpusHot
+		},
+		revalidate: maxAgeForNext([22])
+	}
+}
+
+function getTokenCGData(tokenCGData: any) {
+	const tokenPrice = tokenCGData?.prices ? last(tokenCGData.prices)[1] : null
+	const tokenInfo = tokenCGData?.coinData
+	return {
+		price: {
+			current: tokenPrice ?? null,
+			ath: tokenInfo?.['market_data']?.['ath']?.['usd'] ?? null,
+			athDate: tokenInfo?.['market_data']?.['ath_date']?.['usd'] ?? null,
+			atl: tokenInfo?.['market_data']?.['atl']?.['usd'] ?? null,
+			atlDate: tokenInfo?.['market_data']?.['atl_date']?.['usd'] ?? null
+		},
+		marketCap: { current: tokenInfo?.['market_data']?.['market_cap']?.['usd'] ?? null },
+		totalSupply: tokenInfo?.['market_data']?.['total_supply'] ?? null,
+		fdv: { current: tokenInfo?.['market_data']?.['fully_diluted_valuation']?.['usd'] ?? null },
+		volume24h: {
+			total: tokenInfo?.['market_data']?.['total_volume']?.['usd'] ?? null,
+			cex:
+				tokenInfo?.['tickers']?.reduce(
+					(acc, curr) =>
+						(acc +=
+							curr['trust_score'] !== 'red' && cg_volume_cexs.includes(curr.market.identifier)
+								? curr.converted_volume.usd ?? 0
+								: 0),
+					0
+				) ?? null,
+			dex:
+				tokenInfo?.['tickers']?.reduce(
+					(acc, curr) =>
+						(acc +=
+							curr['trust_score'] === 'red' || cg_volume_cexs.includes(curr.market.identifier)
+								? 0
+								: curr.converted_volume.usd ?? 0),
+					0
+				) ?? null
+		}
+	}
+}
+
+export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocolResponse, isCpusHot: boolean) => {
+	if (!protocolRes) {
+		return { notFound: true, props: null }
+	}
+
+	const protocolData = fuseProtocolData(protocolRes)
+
+	let protocolConfigData: any, pregenMetrics: any, props: any
+
+	try {
+		protocolConfigData = await fetchWithErrorLogging(
+			getProtocolFEConfig((protocolData.defillamaId ?? protocolData.id) as any)
+		).then((res) => res.json())
+		const {
+			protocolData: { metrics },
+			...rest
+		} = protocolConfigData
+
+		pregenMetrics = { ...(protocolData.metrics || {}), ...metrics }
+		props = rest
+	} catch (e) {
+		console.log('Error fetching protocol config data', (e as Error)?.message)
+		return getProtocolData(protocol, protocolRes, isCpusHot)
+	}
+
+	const tokenCGData: any =
+		protocolData.gecko_id && !isCpusHot
+			? await fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
+					.then((res) => res.json())
+					.then(({ data }) => data)
+					.catch(() => null as any)
+			: null
+
+	let inflowsExist = false
+
+	if (protocolRes.chainTvls) {
+		Object.keys(protocolRes.chainTvls).forEach((chain) => {
+			if (protocolRes.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
+				inflowsExist = true
+			}
+			delete protocolRes.chainTvls[chain].tokensInUsd
+			delete protocolRes.chainTvls[chain].tokens
+		})
+	}
+
+	pregenMetrics.inflows = inflowsExist
+
+	return {
+		props: {
+			...props,
+			protocol,
+			protocolData: {
+				...protocolData,
+				symbol: protocolData.symbol ?? null,
+				metrics: pregenMetrics
+			},
+			governanceApis: [],
+			tokenCGData: getTokenCGData(tokenCGData),
+			nextEventDescription: null,
 			clientSide: isCpusHot
 		},
 		revalidate: maxAgeForNext([22])

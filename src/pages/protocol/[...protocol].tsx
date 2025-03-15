@@ -2,7 +2,7 @@ import ProtocolContainer from '~/containers/Defi/Protocol'
 import { standardizeProtocolName } from '~/utils'
 import { getProtocol, getProtocols } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
+import { getProtocolDataV2 } from '~/api/categories/protocols/getProtocolData'
 import { isCpusHot } from '~/utils/cache-client'
 import { useQuery } from '@tanstack/react-query'
 import metadata from '~/utils/metadata'
@@ -29,7 +29,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const protocolData = await getProtocol(protocol)
-		const data = await getProtocolData(protocol, protocolData, isHot)
+		const data = await getProtocolDataV2(protocol, protocolData, isHot)
 		return data
 	}
 )
@@ -48,7 +48,7 @@ const fetchProtocolData = async (protocol: string | null, colors) => {
 	if (!protocol) return null
 	try {
 		const protocolData = await getProtocol(protocol)
-		const finalData = await getProtocolData(protocol, protocolData, false)
+		const finalData = await getProtocolDataV2(protocol, protocolData, false)
 		if (finalData.props) {
 			finalData.props.backgroundColor = colors.backgroundColor
 			finalData.props.chartColors = colors.chartColors
