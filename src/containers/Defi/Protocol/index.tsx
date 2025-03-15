@@ -202,6 +202,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 		symbol,
 		assetToken,
 		url,
+		referralUrl,
 		description,
 		audits,
 		category,
@@ -1460,8 +1461,8 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 									)}
 
 									<div className="flex items-center gap-4 flex-wrap">
-										{url && (
-											<Link href={url} passHref>
+										{referralUrl || url ? (
+											<Link href={referralUrl || url} passHref>
 												<ButtonLight
 													className="flex items-center gap-1"
 													as="a"
@@ -1473,7 +1474,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 													<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 												</ButtonLight>
 											</Link>
-										)}
+										) : null}
 
 										{twitter && (
 											<Link href={`https://twitter.com/${twitter}`} passHref>
