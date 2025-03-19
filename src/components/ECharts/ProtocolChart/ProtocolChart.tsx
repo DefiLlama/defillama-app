@@ -157,6 +157,8 @@ const ProtocolChart = React.memo(function ProtocolChart({
 				? { bridgeVolume: router.query.bridgeVolume ?? 'true' }
 				: metrics.unlocks
 				? { unlocks: router.query.unlocks ?? 'true' }
+				: metrics.treasury
+				? { treasury: router.query.treasury ?? 'true' }
 				: {}
 			: {}) as Record<string, string>)
 	}
