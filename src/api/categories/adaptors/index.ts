@@ -409,7 +409,7 @@ export const groupProtocolsByParent = ({
 			mainRow.dailySupplySideRevenue = subRows.reduce(reduceSumByAttribute('dailySupplySideRevenue'), null)
 			mainRow.bribes24h = subRows.reduce(reduceSumByAttribute('bribes24h'), null)
 
-			mainRow.mcap = subRows.reduce(reduceSumByAttribute('mcap'), null)
+			// mainRow.mcap = subRows.reduce(reduceSumByAttribute('mcap'), null)
 			mainRow.chains = getUniqueArray(subRows.map((d) => d.chains).flat())
 			mainRow.methodology = getParentProtocolMethodology(
 				mainRow.displayName,
