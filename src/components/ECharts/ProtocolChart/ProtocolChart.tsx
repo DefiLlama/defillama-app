@@ -894,7 +894,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 							</span>
 						</label>
 					)}
-					{twitterHandle && (
+					{/* {twitterHandle && (
 						<label className="text-sm font-medium cursor-pointer rounded-xl hover:bg-[var(--bg)]">
 							<input
 								type="checkbox"
@@ -917,7 +917,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 								Tweets
 							</span>
 						</label>
-					)}
+					)} */}
 
 					{metrics.devMetrics && (
 						<label className="text-sm font-medium cursor-pointer rounded-xl hover:bg-[var(--bg)]">
