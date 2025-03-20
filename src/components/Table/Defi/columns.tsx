@@ -947,7 +947,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		accessorKey: 'totalVolume24h',
 		enableSorting: true,
 		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
-		size: 140,
+		size: 152,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of volume of all DEXs on the chain. Updated daily at 00:00UTC'

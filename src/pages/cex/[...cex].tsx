@@ -17,7 +17,10 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		// if cex is not string, return 404
-		if (typeof exchangeName !== 'string') {
+		if (
+			typeof exchangeName !== 'string' ||
+			!cexData.find((cex) => cex.slug.toLowerCase() === exchangeName.toLowerCase())
+		) {
 			return {
 				notFound: true
 			}

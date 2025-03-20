@@ -21,7 +21,8 @@ export function withErrorLogging<T extends any[], R>(
 
 export async function fetchWithErrorLogging(
 	url: RequestInfo | URL,
-	options?: FetchOverCacheOptions
+	options?: FetchOverCacheOptions,
+	retry: boolean = false
 ): Promise<Response> {
 	const start = Date.now()
 	try {
@@ -32,32 +33,33 @@ export async function fetchWithErrorLogging(
 		}
 		return res
 	} catch (error) {
-		// try {
-		// 	const res = await fetchOverCache(url, options)
-		// 	if (res.status >= 400) {
-		// 		const end = Date.now()
-		// 		postRuntimeLogs(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] <${url}>`)
-		// 	}
-		// 	return res
-		// } catch (error) {
-		// 	try {
-		// 		const res = await fetchOverCache(url, options)
-		// 		if (res.status >= 400) {
-		// 			const end = Date.now()
-		// 			postRuntimeLogs(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] <${url}>`)
-		// 		}
-		// 		return res
-		// 	} catch (error) {
-		// 		const end = Date.now()
-		// 		postRuntimeLogs(
-		// 			`[HTTP] [3] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${
-		// 				end - start
-		// 			}ms] <${url}>`
-		// 		)
-		// 		return null
-		// 	}
-		// }
-
+		if (retry) {
+			try {
+				const res = await fetchOverCache(url, options)
+				if (res.status >= 400) {
+					const end = Date.now()
+					postRuntimeLogs(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] <${url}>`)
+				}
+				return res
+			} catch (error) {
+				try {
+					const res = await fetchOverCache(url, options)
+					if (res.status >= 400) {
+						const end = Date.now()
+						postRuntimeLogs(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] <${url}>`)
+					}
+					return res
+				} catch (error) {
+					const end = Date.now()
+					postRuntimeLogs(
+						`[HTTP] [3] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${
+							end - start
+						}ms] <${url}>`
+					)
+					return null
+				}
+			}
+		}
 		throw error
 	}
 }

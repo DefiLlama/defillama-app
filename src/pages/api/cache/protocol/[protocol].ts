@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { getProtocolDataV2 } from '~/api/categories/protocols/getProtocolData'
 import { getProtocol } from '~/api/categories/protocols'
 import { getObjectCache, setObjectCache } from '~/utils/cache-client'
+import metadata from '~/utils/metadata'
+const { protocolMetadata } = metadata
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	const { protocol } = req.query
@@ -11,6 +13,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	if (cachedData) {
 		console.log('Cache hit')
 		return res.json(cachedData)
+	}
+
+	const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
+
+	if (!metadata) {
+		return res.status(404).json({ error: 'Protocol not found' })
 	}
 
 	const protocolRes = await getProtocol(protocol as string)

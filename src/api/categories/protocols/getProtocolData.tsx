@@ -3,7 +3,7 @@ import { last } from 'lodash'
 import { formatPercentage, selectColor, slug, timeFromNow, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
-import { fuseProtocolData, getProtocolsRaw, getProtocolEmissons } from '~/api/categories/protocols'
+import { fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import {
@@ -14,7 +14,6 @@ import {
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	YIELD_CONFIG_API,
 	YIELD_POOLS_API,
-	YIELD_PROJECT_MEDIAN_API,
 	PROTOCOL_GOVERNANCE_TALLY_API,
 	HACKS_API,
 	DEV_METRICS_API,

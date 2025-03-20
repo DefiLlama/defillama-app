@@ -7,6 +7,8 @@ import { ProtocolChartOnly } from '~/components/ECharts/ProtocolChart/ProtocolCh
 import { useFetchAndFormatChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
+import metadata from '~/utils/metadata'
+const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
 	'chart/protocol/[...protocol]',
@@ -15,6 +17,12 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
+		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
+
+		if (!metadata) {
+			return { notFound: true, props: null }
+		}
+
 		const protocolData = await getProtocol(protocol)
 
 		const data = await getProtocolDataV2(protocol, protocolData, true)
