@@ -59,11 +59,9 @@ export const getProtocols = () =>
 export const getProtocol = async (protocolName: string) => {
 	const start = Date.now()
 	try {
-		const data: IProtocolResponse = await fetchWithErrorLogging(
-			`${PROTOCOL_API}/${protocolName}`,
-			undefined,
-			true
-		).then((res) => res.json())
+		const data: IProtocolResponse = await fetchWithErrorLogging(`${PROTOCOL_API}/${protocolName}`).then((res) =>
+			res.json()
+		)
 
 		if (!data || (data as any).statusCode === 400) {
 			throw new Error((data as any).body)

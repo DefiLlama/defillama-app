@@ -61,7 +61,7 @@ export const getStaticProps = withPerformanceLogging(
 						: null
 				}
 			},
-			revalidate: maxAgeForNext([22])
+			revalidate: !protocolRes ? 0 : maxAgeForNext([22])
 		}
 	}
 )
