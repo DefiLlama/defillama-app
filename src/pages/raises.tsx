@@ -17,7 +17,6 @@ export const getStaticProps = withPerformanceLogging('raises', async () => {
 	return {
 		props: {
 			raises: data.raises,
-
 			...filters
 		},
 		revalidate: maxAgeForNext([22])

@@ -233,7 +233,7 @@ export const cexData: Array<ICex> = [
 		slug: 'bitkub',
 		coin: 'KUB',
 		coinSymbol: 'KUB',
-		cgId: 'bitkub',
+		cgId: 'bitkub'
 	},
 	{
 		name: 'Gate.io',
@@ -408,7 +408,7 @@ export const cexData: Array<ICex> = [
 	},
 	{
 		name: 'Bitrue',
-        slug: 'bitrue',
+		slug: 'bitrue',
 		coin: 'BTR',
 		cgId: 'bitrue',
 		cgDeriv: 'bitrue_futures'
@@ -702,7 +702,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 					}
 
 					if (item.tokensInUsd) {
-						ownToken += item.tokensInUsd[item.tokensInUsd.length - 1]?.tokens[c.coin] ?? 0 ?? 0
+						ownToken += item.tokensInUsd[item.tokensInUsd.length - 1]?.tokens[c.coin] ?? 0
 					}
 				})
 
