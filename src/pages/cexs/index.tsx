@@ -258,7 +258,8 @@ export const cexData: Array<ICex> = [
 		slug: 'mexc',
 		coin: 'MX',
 		coinSymbol: 'MX',
-		cgId: 'mxc'
+		cgId: 'mxc',
+		cgDeriv: 'mxc_futures'
 	},
 	{
 		name: 'Bitmex',
@@ -619,11 +620,6 @@ export const cexData: Array<ICex> = [
 	{
 		name: 'LBank',
 		cgId: 'lbank'
-	},
-	{
-		name: 'MEXC',
-		cgId: 'mxc',
-		cgDeriv: 'mxc_futures'
 	},
 	{
 		name: 'BKEX',
