@@ -15,6 +15,7 @@ export const formatChain = (chain: string) => {
 	if (c === 'xdai') return 'xDai'
 	if (c === 'terra' || c === 'terra classic') return 'Terra Classic'
 	if (c === 'lightlink_phoenix') return 'Lightlink'
+	if (c === 'tomochain') return 'Viction'
 	else
 		return c
 			.split('_')
