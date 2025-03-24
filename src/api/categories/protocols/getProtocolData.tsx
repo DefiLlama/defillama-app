@@ -26,7 +26,7 @@ import {
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { sluggify } from '~/utils/cache-client'
-import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
+import { fetchWithErrorLogging, fetchWithTimeout, postRuntimeLogs } from '~/utils/async'
 import metadata from '~/utils/metadata'
 const { protocolMetadata } = metadata
 
@@ -706,7 +706,8 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 
 	try {
 		protocolConfigData = await fetchWithErrorLogging(
-			getProtocolFEConfig((protocolData.defillamaId ?? protocolData.id) as any)
+			getProtocolFEConfig((protocolData.defillamaId ?? protocolData.id) as any),
+			{ timeout: 10_000 }
 		).then((res) => res.json())
 		const {
 			protocolData: { metrics },
@@ -716,7 +717,7 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 		pregenMetrics = { ...(protocolData.metrics || {}), ...metrics }
 		props = rest
 	} catch (e) {
-		console.log('Error fetching protocol config data', (e as Error)?.message)
+		postRuntimeLogs(`[HTTP][error] protocol:config:smol ${protocol} ${protocolRes.id} ${(e as Error)?.message}`)
 		return getProtocolData(protocol, protocolRes, isCpusHot)
 	}
 
