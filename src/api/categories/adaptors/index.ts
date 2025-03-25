@@ -19,6 +19,16 @@ import { ISettings } from '~/contexts/types'
 import metadataCache from '~/utils/metadata'
 const { chainMetadata } = metadataCache
 
+export enum ADAPTOR_TYPES {
+	DEXS = 'dexs',
+	FEES = 'fees',
+	AGGREGATORS = 'aggregators',
+	PERPS = 'derivatives',
+	PERPS_AGGREGATOR = 'derivatives-aggregator',
+	OPTIONS = 'options',
+	BRIDGE_AGGREGATORS = 'bridge-aggregators'
+}
+
 const fetch = fetchWithErrorLogging
 
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>
@@ -563,7 +573,7 @@ export interface IOverviewProps {
 }
 
 // - used in /[type]/chains
-export const getChainsPageData = async (type: string, dataType?: string): Promise<IOverviewProps> => {
+export const getDimensionsAdaptersChainsPageData = async (type: string, dataType?: string): Promise<IOverviewProps> => {
 	const { allChains, total24h: allChainsTotal24h } = await getOverview(type)
 
 	const [protocolsData, ...dataByChain] = await Promise.all([

@@ -1,10 +1,10 @@
 import { maxAgeForNext } from '~/api'
-import { getChainsPageData } from '~/api/categories/adaptors'
+import { getDimensionsAdaptersChainsPageData } from '~/api/categories/adaptors'
 
 async function getStaticProps({ params }) {
-	const data = await getChainsPageData(params.type)
+	const data = await getDimensionsAdaptersChainsPageData(params.type)
 	if (params.type === 'options') {
-		const premiumData = await getChainsPageData(params.type, 'dailyPremiumVolume')
+		const premiumData = await getDimensionsAdaptersChainsPageData(params.type, 'dailyPremiumVolume')
 		data.premium = premiumData
 	}
 	return {

@@ -1,4 +1,4 @@
-import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
+import { ADAPTOR_TYPES } from '~/api/categories/adaptors'
 import { getStaticPropsByType } from '~/utils/adaptorsPages/[type]'
 export const type = ADAPTOR_TYPES.PERPS
 import { withPerformanceLogging } from '~/utils/perf'

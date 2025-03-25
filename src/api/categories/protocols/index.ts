@@ -27,16 +27,16 @@ import {
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
-	getChainPageData as getChainPageDataByType,
-	getChainsPageData as getChainsPageDataByType,
-	getFeesAndRevenueProtocolsByChain
+	getDimensionAdapterChainPageData as getChainPageDataByType,
+	getDimensionsAdaptersChainsPageData as getChainsPageDataByType,
+	getFeesAndRevenueProtocolsByChain,
+	ADAPTOR_TYPES
 } from '~/api/categories/adaptors'
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { getDexVolumeByChain, getAppRevenueByChain } from '../adaptors'
 import { sluggify } from '~/utils/cache-client'
 import { getAPIUrl } from '../adaptors/client'
-import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import metadata from '~/utils/metadata'
 const chainsMetadata = metadata.chainMetadata

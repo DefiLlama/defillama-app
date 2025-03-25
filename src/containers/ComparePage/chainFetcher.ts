@@ -1,6 +1,10 @@
 import { getChainPageData } from '~/api/categories/chains'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
-import { getChainsPageData, getOverviewItemPageData, getDimensionAdapterChainPageData } from '~/api/categories/adaptors'
+import {
+	getDimensionsAdaptersChainsPageData,
+	getOverviewItemPageData,
+	getDimensionAdapterChainPageData
+} from '~/api/categories/adaptors'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 
@@ -9,7 +13,7 @@ const fetch = fetchWithErrorLogging
 export const fetchChain = async ({ chain }) => {
 	const [data, volumeData, feesData, usersData, txsData, bridgeData, stablecoinsData] = await Promise.all([
 		getChainPageData(chain).catch(() => null),
-		getChainsPageData('dexs').catch(() => null),
+		getDimensionsAdaptersChainsPageData('dexs').catch(() => null),
 		getDimensionAdapterChainPageData('dexs', chain).catch(() => null),
 		getOverviewItemPageData('fees', chain).catch(() => null),
 		fetch(`https://api.llama.fi/userData/users/chain$${chain}`)
