@@ -28,12 +28,12 @@ import {
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
 	getChainPageData as getChainPageDataByType,
-	getChainsPageData as getChainsPageDataByType
+	getChainsPageData as getChainsPageDataByType,
+	getFeesAndRevenueProtocolsByChain
 } from '~/api/categories/adaptors'
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { getAppRevenueByChain, getFeesAndRevenueProtocolsByChain } from '../fees'
-import { getDexVolumeByChain } from '../dexs'
+import { getDexVolumeByChain, getAppRevenueByChain } from '../adaptors'
 import { sluggify } from '~/utils/cache-client'
 import { getAPIUrl } from '../adaptors/client'
 import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'

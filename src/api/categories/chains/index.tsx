@@ -23,9 +23,7 @@ import { buildPeggedChartData } from '~/utils/stablecoins'
 import { getPeggedOverviewPageData } from '../stablecoins'
 import { getBridgeOverviewPageData } from '../bridges'
 import metadataCache from '~/utils/metadata'
-import { getOverview } from '../adaptors'
-import { getAppRevenueByChain, getFeesAndRevenueByChain } from '../fees'
-import { getDexVolumeByChain } from '../dexs'
+import { getOverview, getDexVolumeByChain, getAppRevenueByChain, getFeesAndRevenueByChain } from '../adaptors'
 
 const chainsMetadata = metadataCache.chainMetadata
 

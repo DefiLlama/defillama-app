@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getRevenuesByCategories } from '~/api/categories/fees'
+import { getRevenuesByCategories } from '~/api/categories/adaptors'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
 import type { IChartProps } from '~/components/ECharts/types'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'

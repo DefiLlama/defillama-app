@@ -2,7 +2,7 @@ import { GetStaticProps, GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getChainPageData } from '~/api/categories/adaptors'
+import { getDimensionAdapterChainPageData } from '~/api/categories/adaptors'
 import { SEO } from '~/components/SEO'
 import OverviewContainer, { IOverviewContainerProps } from '~/containers/DexsAndFees'
 import Layout from '~/layout'
@@ -11,7 +11,7 @@ import { capitalizeFirstLetter } from '~/utils'
 export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 	params
 }: GetStaticPropsContext<{ type: string; chain: string }>) => {
-	const data = await getChainPageData(params.type, params.chain).catch((e) =>
+	const data = await getDimensionAdapterChainPageData(params.type, params.chain).catch((e) =>
 		console.info(`Chain page data not found ${params.type} ${params.chain}`, e)
 	)
 
@@ -24,6 +24,7 @@ export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 			categories.add(p.category)
 		}
 	})
+
 	return {
 		props: {
 			...data,
