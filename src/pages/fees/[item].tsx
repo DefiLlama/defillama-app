@@ -7,7 +7,7 @@ import metadataCache from '~/utils/metadata'
 import { maxAgeForNext } from '~/api'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
-const protocolMetadata = metadataCache.protocolMetadata
+const { chainMetadata, protocolMetadata } = metadataCache
 
 const ADAPTOR_TYPE = ADAPTOR_TYPES.FEES
 
@@ -46,7 +46,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
 
-		if (!metadata[1]?.[ADAPTOR_TYPE]) {
+		if (!metadata?.[1]?.[ADAPTOR_TYPE] && !chainMetadata[protocol]?.chainFees) {
 			return { notFound: true, props: null }
 		}
 

@@ -46,7 +46,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
 
-		if (!metadata[1]?.[ADAPTOR_TYPE]) {
+		if (!metadata?.[1]?.[ADAPTOR_TYPE]) {
 			return { notFound: true, props: null }
 		}
 
