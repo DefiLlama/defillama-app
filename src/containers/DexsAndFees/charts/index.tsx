@@ -1,10 +1,9 @@
 import * as React from 'react'
-import { IJoin2ReturnType } from '~/api/categories/adaptors'
+import { IJoin2ReturnType, VOLUME_TYPE_ADAPTORS } from '~/api/categories/adaptors'
 import { useFetchChartsSummary } from '~/api/categories/adaptors/client'
 import { chartBreakdownByChain } from '~/api/categories/adaptors/utils'
 import { LazyChart } from '~/components/LazyChart'
 import { capitalizeFirstLetter } from '~/utils'
-import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import type { IProtocolContainerProps } from '../types'
 import { ChartOnly, ProtocolChart } from './ProtocolChart'
 import { CHART_TYPES } from './types'
@@ -89,7 +88,7 @@ export const useGetDexsAndFeesChartData = (props) => {
 
 	const enableBreakdownChart = props.type === 'options' ? false : props.breakdownChart ?? true
 	const fullChart = props.fullChart ?? true
-	const typeSimple = volumeTypes.includes(props.type) ? 'volume' : props.type
+	const typeSimple = VOLUME_TYPE_ADAPTORS.includes(props.type) ? 'volume' : props.type
 
 	const mainChart = React.useMemo(() => {
 		if (!protocolSummary)

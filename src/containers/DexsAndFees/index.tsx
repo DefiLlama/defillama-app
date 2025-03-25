@@ -2,14 +2,18 @@ import * as React from 'react'
 import { OverviewTable } from '~/components/Table/Adaptors'
 import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
-import { groupProtocolsByParent, IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
+import {
+	groupProtocolsByParent,
+	IJoin2ReturnType,
+	IOverviewProps,
+	VOLUME_TYPE_ADAPTORS
+} from '~/api/categories/adaptors'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
 import type { IDexChartsProps } from './types'
 import { useRouter } from 'next/router'
 import { capitalizeFirstLetter, download } from '~/utils'
-import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { Announcement } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -323,7 +327,7 @@ interface ITitleProps {
 }
 const TitleByType: React.FC<ITitleProps> = (props) => {
 	let title = capitalizeFirstLetter(props.type)
-	if (volumeTypes.includes(props.type)) {
+	if (VOLUME_TYPE_ADAPTORS.includes(props.type)) {
 		title = `${
 			title === 'Derivatives'
 				? 'Perps'

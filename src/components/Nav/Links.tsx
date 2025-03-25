@@ -259,8 +259,8 @@ export const navLinks: ILinks = {
 	Volumes: {
 		main: [
 			{ name: 'DEXs', path: '/dexs' },
-			{ name: 'Chains', path: '/dexs/chains' },
-			{ name: 'Aggregators', path: '/aggregators', newTag: true },
+			{ name: 'DEXs (chains)', path: '/dexs/chains' },
+			{ name: 'DEX Aggregators', path: '/aggregators', newTag: true },
 			{ name: 'Perps', path: '/perps' },
 			{ name: 'Perps (Chains)', path: '/perps/chains' },
 			{ name: 'Perp Aggregators', path: '/perps-aggregators', newTag: true },

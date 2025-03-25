@@ -29,6 +29,15 @@ export enum ADAPTOR_TYPES {
 	BRIDGE_AGGREGATORS = 'bridge-aggregators'
 }
 
+export const VOLUME_TYPE_ADAPTORS = [
+	'dexs',
+	'derivatives',
+	'options',
+	'aggregators',
+	'derivatives-aggregator',
+	'bridge-aggregators'
+]
+
 const fetch = fetchWithErrorLogging
 
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>

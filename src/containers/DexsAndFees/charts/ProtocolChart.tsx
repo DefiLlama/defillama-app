@@ -5,9 +5,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { capitalizeFirstLetter, formattedNum, standardizeProtocolName } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/adaptors/utils'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import { IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
+import { IJoin2ReturnType, IOverviewProps, VOLUME_TYPE_ADAPTORS } from '~/api/categories/adaptors'
 import { aggregateDataByInterval, DataIntervalType, GROUP_INTERVALS_LIST } from '../common'
-import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import type { IProtocolContainerProps } from '../types'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
@@ -75,8 +74,8 @@ export const ProtocolChart = ({
 }: IDexChartsProps) => {
 	const router = useRouter()
 
-	const typeString = volumeTypes.includes(type) ? 'Volume' : capitalizeFirstLetter(type)
-	const typeSimple = volumeTypes.includes(type) ? 'volume' : type
+	const typeString = VOLUME_TYPE_ADAPTORS.includes(type) ? 'Volume' : capitalizeFirstLetter(type)
+	const typeSimple = VOLUME_TYPE_ADAPTORS.includes(type) ? 'volume' : type
 
 	const tabs = linkedProtocols
 
