@@ -6,7 +6,7 @@ import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { SEO } from '~/components/SEO'
-import { standardizeProtocolName, tokenIconUrl } from '~/utils'
+import { slug, tokenIconUrl } from '~/utils'
 import { Treasury } from './Treasury'
 import { ProtocolFeesRevenueVolumeCharts } from './Fees'
 import { useRouter } from 'next/router'
@@ -29,9 +29,9 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 						style={{ '--active-bg': transparentize(0.9, backgroundColor) } as any}
 					>
 						{data.otherProtocols.map((p) => (
-							<Link href={`/protocol/${standardizeProtocolName(p)}`} key={p} passHref>
+							<Link href={`/protocol/${slug(p)}`} key={p} passHref>
 								<a
-									data-active={router.asPath.split('#')[0].split('?')[0] === `/protocol/${standardizeProtocolName(p)}`}
+									data-active={router.asPath.split('#')[0].split('?')[0] === `/protocol/${slug(p)}`}
 									className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-xl last:rounded-r-xl data-[active=true]:bg-[var(--active-bg)] hover:bg-[var(--active-bg)] focus-visible:bg-[var(--active-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
 								>
 									{p}

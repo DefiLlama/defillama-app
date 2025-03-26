@@ -1,6 +1,6 @@
 import * as React from 'react'
 import PeggedContainer from '~/containers/PeggedContainer'
-import { peggedAssetIconPalleteUrl, standardizeProtocolName } from '~/utils'
+import { peggedAssetIconPalleteUrl, slug } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getPeggedAssetPageData, getPeggedAssets } from '~/api/categories/stablecoins'
@@ -43,7 +43,7 @@ export async function getStaticPaths() {
 	const res = await getPeggedAssets()
 
 	const paths = res.peggedAssets.map(({ name }) => ({
-		params: { peggedasset: [standardizeProtocolName(name)] }
+		params: { peggedasset: [slug(name)] }
 	}))
 
 	return { paths: paths.slice(0, 1), fallback: 'blocking' }

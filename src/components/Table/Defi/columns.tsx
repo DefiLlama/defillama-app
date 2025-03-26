@@ -14,7 +14,6 @@ import {
 	formattedPercent,
 	getDominancePercent,
 	slug,
-	standardizeProtocolName,
 	toK,
 	tokenIconUrl,
 	toNiceDayMonthAndYear,
@@ -348,7 +347,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 				<span className="flex items-center gap-2 relative">
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<CustomLink
-						href={`/unlocks/${standardizeProtocolName(getValue() as string)}`}
+						href={`/unlocks/${slug(getValue() as string)}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
@@ -476,7 +475,7 @@ export const calendarColumns: ColumnDef<any>[] = [
 					<span className="flex-shrink-0">{index + 1}</span>
 					{row.original.type === 'Unlock' ? (
 						<CustomLink
-							href={`/unlocks/${standardizeProtocolName(row.original.link)}`}
+							href={`/unlocks/${slug(row.original.link)}`}
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string}
@@ -518,7 +517,7 @@ export const expensesColumns: ColumnDef<any>[] = [
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<CustomLink
-						href={`/protocol/${standardizeProtocolName(getValue() as string)}`}
+						href={`/protocol/${slug(getValue() as string)}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
@@ -598,7 +597,7 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<CustomLink
-						href={`/governance/${standardizeProtocolName(getValue() as string)}`}
+						href={`/governance/${slug(getValue() as string)}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
@@ -648,7 +647,7 @@ export const activeInvestorsColumns: ColumnDef<{
 				<Tooltip content={'Looking for investors? Send your pitch to selected ones through us'}>
 					<div className="flex gap-2" onClick={() => window.open('/pitch', '_blank')}>
 						<CustomLink
-							href={`/raises/${standardizeProtocolName(getValue() as string)}`}
+							href={`/raises/${slug(getValue() as string)}`}
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string}

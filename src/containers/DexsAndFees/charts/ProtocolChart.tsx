@@ -2,7 +2,7 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
-import { capitalizeFirstLetter, formattedNum, standardizeProtocolName } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/adaptors/utils'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, IOverviewProps, VOLUME_TYPE_ADAPTORS } from '~/api/categories/adaptors'
@@ -96,9 +96,9 @@ export const ProtocolChart = ({
 			{linkedProtocols && linkedProtocols.length > 0 && (
 				<nav className="col-span-1 xl:col-span-2 flex overflow-x-auto rounded-t-xl bg-[var(--bg7)] border-b border-black/10 dark:border-white/10">
 					{tabs.map((p) => (
-						<Link href={`/${type}/${standardizeProtocolName(p)}`} key={p} passHref>
+						<Link href={`/${type}/${slug(p)}`} key={p} passHref>
 							<a
-								data-active={router.asPath.split('#')[0].split('?')[0] === `/${type}/${standardizeProtocolName(p)}`}
+								data-active={router.asPath.split('#')[0].split('?')[0] === `/${type}/${slug(p)}`}
 								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-tl-xl data-[active=true]:bg-[var(--link-hover-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
 							>
 								{p}

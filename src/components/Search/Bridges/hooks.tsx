@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useFetchBridgeList } from '~/api/categories/bridges/client'
-import { standardizeProtocolName } from '~/utils'
+import { slug } from '~/utils'
 import type { IBaseSearchProps, IGetSearchList } from '../types'
 
 // TODO add bridges chains list
@@ -10,7 +10,7 @@ export function useGetBridgesSearchList(): IGetSearchList {
 	const searchData: IBaseSearchProps['data'] = React.useMemo(
 		() =>
 			data?.bridges?.map((bridge) => ({
-				route: `/bridge/${standardizeProtocolName(bridge.displayName)}`,
+				route: `/bridge/${slug(bridge.displayName)}`,
 				name: `${bridge.displayName}`
 			})) ?? [],
 		[data]

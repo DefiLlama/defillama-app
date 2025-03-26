@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useFetchAdaptorsList } from '~/api/categories/adaptors/client'
-import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from '~/utils'
+import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import type { IBaseSearchProps, IGetSearchList } from '../types'
 
 export function useGetAdaptorsSearchList(type: string, onlyChains?: boolean, disabled?: boolean): IGetSearchList {
@@ -13,7 +13,7 @@ export function useGetAdaptorsSearchList(type: string, onlyChains?: boolean, dis
 
 		return list.map((asset) => ({
 			logo: iconUrl(asset.name),
-			route: `${urlPrefix}/${standardizeProtocolName(asset.name)}`,
+			route: `${urlPrefix}/${slug(asset.name)}`,
 			name: asset.name
 		}))
 	}, [data, onlyChains, type])

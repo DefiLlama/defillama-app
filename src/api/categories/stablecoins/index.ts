@@ -1,4 +1,4 @@
-import { getPercentChange, getPrevPeggedTotalFromChart, standardizeProtocolName } from '~/utils'
+import { getPercentChange, getPrevPeggedTotalFromChart, slug } from '~/utils'
 import {
 	CONFIG_API,
 	PEGGEDCHART_API,
@@ -18,7 +18,7 @@ export const getPeggedAssets = () =>
 		.then((res) => res.json())
 		.then(({ peggedAssets, chains }) => ({
 			protocolsDict: peggedAssets.reduce((acc, curr) => {
-				acc[standardizeProtocolName(curr.name)] = curr
+				acc[slug(curr.name)] = curr
 				return acc
 			}, {}),
 			peggedAssets,

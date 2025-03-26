@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useWatchlist } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
-import { standardizeProtocolName } from '~/utils'
+import { slug } from '~/utils'
 import { Icon } from '~/components/Icon'
 
 // readableProtocolName has proper caps and spaces
@@ -13,7 +13,7 @@ export function Bookmark({ readableProtocolName, ...props }) {
 
 	const portfolio = Object.keys(savedProtocols) || []
 
-	const protocolName = standardizeProtocolName(readableProtocolName)
+	const protocolName = slug(readableProtocolName)
 
 	const isSaved: boolean = portfolio?.includes(protocolName) && isClient
 

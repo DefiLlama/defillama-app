@@ -18,15 +18,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols/options'
 import { DEFI_SETTINGS_KEYS, FEES_SETTINGS, useTvlAndFeesManager } from '~/contexts/LocalStorage'
-import {
-	capitalizeFirstLetter,
-	formatPercentage,
-	formattedNum,
-	getBlockExplorer,
-	slug,
-	standardizeProtocolName,
-	tokenIconUrl
-} from '~/utils'
+import { capitalizeFirstLetter, formatPercentage, formattedNum, getBlockExplorer, slug, tokenIconUrl } from '~/utils'
 import { useFetchProtocolTwitter, useGetTokenPrice } from '~/api/categories/protocols/client'
 import type { IFusedProtocolData, IProtocolDevActivity, NftVolumeData } from '~/api/types'
 import boboLogo from '~/assets/boboSmug.png'
@@ -462,13 +454,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 					style={{ '--active-bg': transparentize(0.4, backgroundColor) } as any}
 				>
 					{otherProtocols.map((p) => (
-						<Link
-							href={`/protocol/${standardizeProtocolName(p)}` + '#information'}
-							key={'navigate to ' + `/protocol/${standardizeProtocolName(p)}`}
-							passHref
-						>
+						<Link href={`/protocol/${slug(p)}` + '#information'} key={'navigate to ' + `/protocol/${slug(p)}`} passHref>
 							<a
-								data-active={router.asPath.split('#')[0].split('?')[0] === `/protocol/${standardizeProtocolName(p)}`}
+								data-active={router.asPath.split('#')[0].split('?')[0] === `/protocol/${slug(p)}`}
 								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-xl last:rounded-r-xl data-[active=true]:bg-[var(--active-bg)] hover:bg-[var(--active-bg)] focus-visible:bg-[var(--active-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
 							>
 								{p}

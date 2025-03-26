@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter, getColorFromNumber, slug, standardizeProtocolName } from '~/utils'
+import { capitalizeFirstLetter, getColorFromNumber, slug } from '~/utils'
 import type { IFusedProtocolData, IOracleProtocols, IProtocolResponse } from '~/api/types'
 import {
 	ACTIVE_USERS_API,
@@ -48,7 +48,7 @@ export const getProtocols = () =>
 		.then((r) => r.json())
 		.then(({ protocols, chains, parentProtocols }) => ({
 			protocolsDict: protocols.reduce((acc, curr) => {
-				acc[standardizeProtocolName(curr.name)] = curr
+				acc[slug(curr.name)] = curr
 				return acc
 			}, {}),
 			protocols,
