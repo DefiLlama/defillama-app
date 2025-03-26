@@ -174,7 +174,7 @@ export async function getChainPageData(chain?: string) {
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
 		fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
-		!chain || chain === 'All'
+		!chain || chain === 'All' || !chainMetadata?.github
 			? null
 			: fetchWithErrorLogging(`${DEV_METRICS_API}/chain/${chainMetadata?.name?.toLowerCase()}.json`)
 					.then((r) => r.json())
