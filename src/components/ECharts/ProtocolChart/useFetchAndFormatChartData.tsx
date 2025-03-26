@@ -266,125 +266,6 @@ export function useFetchAndFormatChartData({
 
 		const tvlData = tvl !== 'false' ? formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled }) : []
 
-		if (tvlData.length > 0 && tvl !== 'false') {
-			chartsUnique.push('TVL')
-
-			let prevDate = null
-
-			for (const [dateS, TVL] of tvlData) {
-				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
-
-				if (prevDate && +date - prevDate > 86400) {
-					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
-
-					for (let i = 1; i < noOfDatesMissing + 1; i++) {
-						const missingDate = prevDate + 86400 * i
-
-						if (!chartData[missingDate]) {
-							chartData[missingDate] = { date: missingDate }
-						}
-
-						const missingTvl =
-							((chartData[prevDate]?.['TVL'] ?? 0) +
-								(showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL)) /
-							2
-
-						chartData[missingDate]['TVL'] = missingTvl
-					}
-				}
-
-				prevDate = +date
-
-				if (!chartData[date]) {
-					chartData[date] = { date }
-				}
-
-				chartData[date]['TVL'] = showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL
-			}
-		}
-
-		if (staking === 'true' && historicalChainTvls['staking']?.tvl?.length > 0) {
-			chartsUnique.push('Staking')
-
-			let prevDate = null
-
-			for (const { date: dateS, totalLiquidityUSD } of historicalChainTvls['staking'].tvl) {
-				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
-
-				if (prevDate && +date - prevDate > 86400) {
-					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
-
-					for (let i = 1; i < noOfDatesMissing + 1; i++) {
-						const missingDate = prevDate + 86400 * i
-
-						if (!chartData[missingDate]) {
-							chartData[missingDate] = {}
-						}
-
-						const missingStakedTvl =
-							((chartData[prevDate]?.['Staking'] ?? 0) +
-								(showNonUsdDenomination
-									? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
-									: totalLiquidityUSD)) /
-							2
-
-						chartData[missingDate]['Staking'] = missingStakedTvl
-					}
-				}
-
-				prevDate = date
-
-				if (!chartData[date]) {
-					chartData[date] = { date }
-				}
-
-				chartData[date]['Staking'] = showNonUsdDenomination
-					? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
-					: totalLiquidityUSD
-			}
-		}
-
-		if (borrowed === 'true' && historicalChainTvls['borrowed']?.tvl?.length > 0) {
-			chartsUnique.push('Borrowed')
-
-			let prevDate = null
-
-			for (const { date: dateS, totalLiquidityUSD } of historicalChainTvls['borrowed'].tvl) {
-				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
-
-				if (prevDate && +date - prevDate > 86400) {
-					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
-
-					for (let i = 1; i < noOfDatesMissing + 1; i++) {
-						const missingDate = prevDate + 86400 * i
-
-						if (!chartData[missingDate]) {
-							chartData[missingDate] = {}
-						}
-
-						const missingBorrowedTvl =
-							((chartData[prevDate]?.['Borrowed'] ?? 0) +
-								(showNonUsdDenomination
-									? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
-									: totalLiquidityUSD)) /
-							2
-
-						chartData[missingDate]['Borrowed'] = missingBorrowedTvl
-					}
-				}
-
-				prevDate = date
-
-				if (!chartData[date]) {
-					chartData[date] = { date }
-				}
-
-				chartData[date]['Borrowed'] = showNonUsdDenomination
-					? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
-					: totalLiquidityUSD
-			}
-		}
-
 		if (geckoId && protocolCGData) {
 			if (mcap === 'true' && protocolCGData['mcaps'] && protocolCGData['mcaps'].length > 0) {
 				chartsUnique.push('Mcap')
@@ -958,6 +839,127 @@ export function useFetchAndFormatChartData({
 				chartData[date]['Treasury'] = showNonUsdDenomination
 					? treasuryValue / getPriceAtDate(dateS, denominationHistory.prices)
 					: treasuryValue
+			}
+		}
+
+		const useDailyChart = chartsUnique.length === 0
+
+		if (tvlData.length > 0 && tvl !== 'false') {
+			chartsUnique.push('TVL')
+
+			let prevDate = null
+
+			for (const [dateS, TVL] of tvlData) {
+				const date = isHourlyChart && useDailyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
+				if (prevDate && +date - prevDate > 86400) {
+					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
+
+					for (let i = 1; i < noOfDatesMissing + 1; i++) {
+						const missingDate = prevDate + 86400 * i
+
+						if (!chartData[missingDate]) {
+							chartData[missingDate] = { date: missingDate }
+						}
+
+						const missingTvl =
+							((chartData[prevDate]?.['TVL'] ?? 0) +
+								(showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL)) /
+							2
+
+						chartData[missingDate]['TVL'] = missingTvl
+					}
+				}
+
+				prevDate = +date
+
+				if (!chartData[date]) {
+					chartData[date] = { date }
+				}
+
+				chartData[date]['TVL'] = showNonUsdDenomination ? TVL / getPriceAtDate(dateS, denominationHistory.prices) : TVL
+			}
+		}
+
+		if (staking === 'true' && historicalChainTvls['staking']?.tvl?.length > 0) {
+			chartsUnique.push('Staking')
+
+			let prevDate = null
+
+			for (const { date: dateS, totalLiquidityUSD } of historicalChainTvls['staking'].tvl) {
+				const date = isHourlyChart && useDailyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
+				if (prevDate && +date - prevDate > 86400) {
+					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
+
+					for (let i = 1; i < noOfDatesMissing + 1; i++) {
+						const missingDate = prevDate + 86400 * i
+
+						if (!chartData[missingDate]) {
+							chartData[missingDate] = {}
+						}
+
+						const missingStakedTvl =
+							((chartData[prevDate]?.['Staking'] ?? 0) +
+								(showNonUsdDenomination
+									? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
+									: totalLiquidityUSD)) /
+							2
+
+						chartData[missingDate]['Staking'] = missingStakedTvl
+					}
+				}
+
+				prevDate = date
+
+				if (!chartData[date]) {
+					chartData[date] = { date }
+				}
+
+				chartData[date]['Staking'] = showNonUsdDenomination
+					? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
+					: totalLiquidityUSD
+			}
+		}
+
+		if (borrowed === 'true' && historicalChainTvls['borrowed']?.tvl?.length > 0) {
+			chartsUnique.push('Borrowed')
+
+			let prevDate = null
+
+			for (const { date: dateS, totalLiquidityUSD } of historicalChainTvls['borrowed'].tvl) {
+				const date = isHourlyChart && useDailyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+
+				if (prevDate && +date - prevDate > 86400) {
+					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
+
+					for (let i = 1; i < noOfDatesMissing + 1; i++) {
+						const missingDate = prevDate + 86400 * i
+
+						if (!chartData[missingDate]) {
+							chartData[missingDate] = {}
+						}
+
+						const missingBorrowedTvl =
+							((chartData[prevDate]?.['Borrowed'] ?? 0) +
+								(showNonUsdDenomination
+									? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
+									: totalLiquidityUSD)) /
+							2
+
+						chartData[missingDate]['Borrowed'] = missingBorrowedTvl
+					}
+				}
+
+				prevDate = date
+
+				if (!chartData[date]) {
+					chartData[date] = { date }
+				}
+
+				chartData[date]['Borrowed'] = showNonUsdDenomination
+					? totalLiquidityUSD / getPriceAtDate(dateS, denominationHistory.prices)
+					: totalLiquidityUSD
 			}
 		}
 
