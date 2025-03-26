@@ -148,11 +148,11 @@ export function RecentProtocols({
 
 	const protocolsData = useCalcStakePool2Tvl(data)
 	const downloadCSV = () => {
-		const headers = ['Name', 'Chain', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At']
+		const headers = ['Name', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At', 'Chains']
 		const csvData = protocolsData.map((row) => {
 			return {
 				Name: row.name,
-				Chain: row.chains.join(', '),
+				Chains: row.chains.join(', '),
 				TVL: row.tvl,
 				'Change 1d': row.change_1d,
 				'Change 7d': row.change_7d,
