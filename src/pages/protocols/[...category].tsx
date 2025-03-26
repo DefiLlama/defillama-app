@@ -44,7 +44,7 @@ export async function getStaticPaths() {
 	const res = await fetch(PROTOCOLS_API)
 
 	const paths = (await res.json()).protocolCategories.slice(0, 10).map((category) => ({
-		params: { category: [category.toLowerCase()] }
+		params: { category: [slug(category)] }
 	}))
 
 	return { paths, fallback: 'blocking' }
