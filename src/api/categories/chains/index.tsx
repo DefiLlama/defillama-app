@@ -299,4 +299,4 @@ export async function getChainPageData(chain?: string) {
 	}
 }
 
-const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
+const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${slug(newSelectedChain)}`)

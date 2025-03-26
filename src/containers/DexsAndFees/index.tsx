@@ -13,7 +13,7 @@ import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
 import type { IDexChartsProps } from './types'
 import { useRouter } from 'next/router'
-import { capitalizeFirstLetter, download } from '~/utils'
+import { capitalizeFirstLetter, download, slug } from '~/utils'
 import { Announcement } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -56,7 +56,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 						to:
 							chain === 'All'
 								? `/${props.type}/${isSimpleFees ? 'simple' : ''}`
-								: `/${props.type}${isSimpleFees ? '/simple' : ''}/chains/${chain.toLowerCase()}`
+								: `/${props.type}${isSimpleFees ? '/simple' : ''}/chains/${slug(chain)}`
 				  }))
 				: null
 
