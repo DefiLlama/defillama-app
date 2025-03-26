@@ -61,7 +61,8 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
-	const chainMetadata = chain && chain !== 'All' ? chainsMetadata[slug(chain)] ?? null : null
+	const chainName = slug(chain)
+	const chainMetadata = chain && chain !== 'All' ? chainsMetadata[chainName] ?? null : null
 
 	if (chain && chain !== 'All' && !chainMetadata) {
 		return { notFound: true, props: null }
@@ -87,11 +88,11 @@ export async function getChainPageData(chain?: string) {
 		chainAssets,
 		{ totalAppRevenue24h }
 	] = await Promise.all([
-		fetchWithErrorLogging(CHART_API + (chainMetadata ? `/${chainMetadata.name}` : '')).then((r) => r.json()),
+		fetchWithErrorLogging(CHART_API + (chainMetadata ? `/${chainName}` : '')).then((r) => r.json()),
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
 		!chain || (chain !== 'All' && chainMetadata?.dexs)
 			? getDexVolumeByChain({
-					chain: chainMetadata?.name,
+					chain: chainName,
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 			  })
@@ -99,19 +100,19 @@ export async function getChainPageData(chain?: string) {
 		getCexVolume(),
 		!chain || (chain !== 'All' && chainMetadata?.chainFees)
 			? getFeesAndRevenueByChain({
-					chain: chainMetadata?.name,
+					chain: chainName,
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 			  })
 			: { fees: null, revenue: null },
-		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chainMetadata?.name)
+		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chainName)
 			.then((data) => {
 				const { peggedAreaChartData, peggedAreaTotalData } = buildPeggedChartData({
 					chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
 					assetsOrChainsList: data?.peggedAssetNames,
 					filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
 					issuanceType: 'mcap',
-					selectedChain: !chain || chain === 'All' ? 'All' : chainMetadata?.name,
+					selectedChain: !chain || chain === 'All' ? 'All' : chainName,
 					doublecountedIds: data?.doublecountedIds
 				})
 				let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
@@ -140,12 +141,12 @@ export async function getChainPageData(chain?: string) {
 				}
 			})
 			.catch((err) => {
-				console.log('ERROR fetching stablecoins data of chain', chainMetadata?.name, err)
+				console.log('ERROR fetching stablecoins data of chain', chainName, err)
 				return {}
 			}),
 		!chain || chain === 'All' || !chainMetadata?.inflows
 			? null
-			: getBridgeOverviewPageData(chainMetadata?.name)
+			: getBridgeOverviewPageData(chainName)
 					.then((data) => {
 						return {
 							netInflows: data?.chainVolumeData?.length
@@ -156,27 +157,27 @@ export async function getChainPageData(chain?: string) {
 					.catch(() => null),
 		!chain || chain === 'All' || !chainMetadata?.activeUsers
 			? null
-			: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chainMetadata?.name}`)
+			: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chainName}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
 		!chain || chain === 'All' || !chainMetadata?.activeUsers
 			? null
-			: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${chainMetadata?.name}`)
+			: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${chainName}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
 
 		!chain || chain === 'All' || !chainMetadata?.activeUsers
 			? null
-			: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${chainMetadata?.name}`)
+			: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${chainName}`)
 					.then((res) => res.json())
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
 		fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
 		!chain || chain === 'All' || !chainMetadata?.github
 			? null
-			: fetchWithErrorLogging(`${DEV_METRICS_API}/chain/${chainMetadata?.name?.toLowerCase()}.json`)
+			: fetchWithErrorLogging(`${DEV_METRICS_API}/chain/${chainName?.toLowerCase()}.json`)
 					.then((r) => r.json())
 					.catch(() => null),
 		!chain || chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
@@ -186,7 +187,7 @@ export async function getChainPageData(chain?: string) {
 			  ).then((res) => res.json())
 			: {},
 		chain && chain !== 'All' && chainMetadata?.derivatives
-			? getOverview('derivatives', chainMetadata?.name?.toLowerCase(), undefined, false, false)
+			? getOverview('derivatives', chainName?.toLowerCase(), undefined, false, false)
 			: null,
 		chain && chain !== 'All'
 			? fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
@@ -195,21 +196,18 @@ export async function getChainPageData(chain?: string) {
 			.then((res) => res.json())
 			.catch(() => ({})),
 		chain && chain !== 'All' && chainMetadata?.fees
-			? getAppRevenueByChain({ chain: chainMetadata?.name, excludeTotalDataChart: true })
+			? getAppRevenueByChain({ chain: chainName, excludeTotalDataChart: true })
 			: { totalAppRevenue24h: null }
 	])
 
 	const chainTreasury = treasuriesData?.find(
 		(t) =>
-			t?.name?.toLowerCase().startsWith(`${chainMetadata?.name?.toLowerCase()}`) &&
-			['Services', 'Chain'].includes(t?.category)
+			t?.name?.toLowerCase().startsWith(`${chainName?.toLowerCase()}`) && ['Services', 'Chain'].includes(t?.category)
 	)
-	const chainRaises = raisesData?.raises?.filter(
-		(r) => r?.defillamaId === `chain#${chainMetadata?.name?.toLowerCase()}`
-	)
+	const chainRaises = raisesData?.raises?.filter((r) => r?.defillamaId === `chain#${chainName?.toLowerCase()}`)
 
 	const filteredProtocols = formatProtocolsData({
-		chain: chainMetadata?.name,
+		chain: chainName,
 		protocols,
 		removeBridges: true
 	})
