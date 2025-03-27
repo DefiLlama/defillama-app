@@ -89,6 +89,7 @@ export async function getPeggedOverviewPageData(chain) {
 
 	let peggedNameToChartDataIndex: object = {}
 	let lastTimestamp = 0
+	const doublecountedIds = []
 	chartDataByPeggedAsset = peggedAssets.map((elem, i) => {
 		if (peggedAssetNamesSet.has(elem.symbol)) peggedAssetNamesSet.add(`${elem.name}`)
 		else peggedAssetNamesSet.add(elem.symbol)
@@ -105,6 +106,10 @@ export async function getPeggedOverviewPageData(chain) {
 			.filter((i) => i.mcap !== undefined)
 		if (formattedCharts.length > 0) {
 			lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
+		}
+
+		if (chainData?.doublecountedIds?.includes(elem.id)) {
+			doublecountedIds.push(i)
 		}
 		return formattedCharts
 	})
@@ -138,7 +143,7 @@ export async function getPeggedOverviewPageData(chain) {
 		peggedAssetNames: [...peggedAssetNamesSet],
 		peggedNameToChartDataIndex,
 		chartDataByPeggedAsset,
-		doublecountedIds: chainData?.doublecountedIds ?? [],
+		doublecountedIds,
 		chain: chain ?? 'All'
 	}
 }
