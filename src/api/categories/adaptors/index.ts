@@ -61,9 +61,9 @@ export const getOverviewItem = (
 	excludeTotalDataChartBreakdown?: boolean
 ): Promise<ProtocolAdaptorSummaryResponse> => {
 	return fetch(
-		`${DIMENISIONS_SUMMARY_BASE_API}/${
-			type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type
-		}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`
+		`${DIMENISIONS_SUMMARY_BASE_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type}/${slug(
+			protocolName
+		)}${dataType ? `?dataType=${dataType}` : ''}`
 	).then(handleFetchResponse)
 }
 export const getOverview = (
@@ -731,7 +731,9 @@ export const getFeesAndRevenueByChain = async ({
 }) => {
 	const apiUrl =
 		chain && chain !== 'All'
-			? `${DIMENISIONS_SUMMARY_BASE_API}/fees/${chain}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+			? `${DIMENISIONS_SUMMARY_BASE_API}/fees/${slug(
+					chain
+			  )}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 			: null
 
 	const [fees, revenue] = await Promise.all([
@@ -778,7 +780,7 @@ export const getAppRevenueByChain = async ({
 	excludeTotalDataChartBreakdown?: boolean
 }) => {
 	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${
-		chain && chain !== 'All' ? '/' + chain : ''
+		chain && chain !== 'All' ? '/' + slug(chain) : ''
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}&dataType=dailyAppRevenue`
 
 	const revenue = await fetchWithErrorLogging(apiUrl)
@@ -805,10 +807,10 @@ export const getAppRevenueByChain = async ({
 // - used in /fees and /fees/chain/[chain]
 export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: string }) => {
 	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${
-		chain && chain !== 'All' ? '/' + chain : ''
+		chain && chain !== 'All' ? '/' + slug(chain) : ''
 	}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
 
-	const [fees, revenue, emissionBreakdown, bribesRevenue, holdersRevenue] = await Promise.all([
+	const [fees, revenue, holdersRevenue] = await Promise.all([
 		fetchWithErrorLogging(apiUrl)
 			.then((res) => {
 				if (res.status === 200) {
@@ -841,40 +843,6 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 			})
 			.catch((err) => {
 				console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
-				return null
-			}),
-		fetch(EMISSION_BREAKDOWN_API)
-			.then((res) => {
-				if (res.status === 200) {
-					return res.json()
-				} else {
-					return null
-				}
-			})
-			.catch((err) => {
-				console.log('Error at ', EMISSION_BREAKDOWN_API, err)
-				return null
-			}),
-		fetchWithErrorLogging(`${apiUrl}&dataType=dailyBribesRevenue`)
-			.then((res) => {
-				if (res.status === 200) {
-					return res.json()
-				} else {
-					return null
-				}
-			})
-			.then((res) => {
-				return (
-					res?.protocols?.reduce((acc, protocol) => {
-						if (protocol.category !== 'Chain') {
-							acc = { ...acc, [protocol.name]: protocol }
-						}
-						return acc
-					}, {}) ?? {}
-				)
-			})
-			.catch((err) => {
-				console.log('Error at ', apiUrl + '&dataType=dailyBribesRevenue', err)
 				return null
 			}),
 		fetchWithErrorLogging(`${apiUrl}&dataType=dailyHoldersRevenue`)
@@ -981,7 +949,7 @@ export const getDexVolumeByChain = async ({
 }) => {
 	const data = await fetchWithErrorLogging(
 		`${DIMENISIONS_OVERVIEW_API}/dexs${
-			chain && chain !== 'All' ? '/' + chain : ''
+			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 	)
 		.then((res) => {

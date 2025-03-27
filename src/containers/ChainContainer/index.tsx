@@ -113,11 +113,12 @@ export function ChainContainer({
 		}
 	}
 
-	const { data: chainProtocolsVolumes, isLoading: fetchingProtocolsVolumeByChain } =
-		useGetProtocolsVolumeByChain(selectedChain)
+	const { data: chainProtocolsVolumes, isLoading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain(
+		volumeData?.totalVolume24h ? selectedChain : undefined
+	)
 
 	const { data: chainProtocolsFees, isLoading: fetchingProtocolsFeesAndRevenueByChain } =
-		useGetProtocolsFeesAndRevenueByChain(selectedChain)
+		useGetProtocolsFeesAndRevenueByChain(feesAndRevenueData?.totalFees24h ? selectedChain : undefined)
 
 	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
@@ -433,7 +434,9 @@ export function ChainContainer({
 									<tr>
 										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 											<Tooltip
-												content={'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'}
+												content={
+													'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
+												}
 												className="underline decoration-dotted"
 											>
 												App Revenue (24h)
