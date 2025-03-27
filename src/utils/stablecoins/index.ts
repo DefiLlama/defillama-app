@@ -93,7 +93,6 @@ export const buildPeggedChartData = ({
 
 	chartDataByAssetOrChain?.forEach((charts, i) => {
 		if (!charts || !charts.length || !filteredIndexes.includes(i)) return
-		console.log(charts, i)
 		charts.forEach((chart, j) => {
 			const mcap = getPrevPeggedTotalFromChart([chart], 0, issuanceType) // 'issuanceType' and 'mcap' here are 'circulating' values on /stablecoin pages, and 'mcap' otherwise
 			const prevDayMcap = getPrevPeggedTotalFromChart([charts[j - 1]], 0, issuanceType)
