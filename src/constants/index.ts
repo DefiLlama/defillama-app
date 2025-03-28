@@ -112,7 +112,8 @@ if (!process.env.API2_ROUTE) process.env.API2_ROUTE = 'https://api.llama.fi'
 export const DIMENISIONS_OVERVIEW_API = process.env.API2_ROUTE + '/overview'
 export const BASE_API = 'https://api.llama.fi/'
 export const DIMENISIONS_SUMMARY_BASE_API = process.env.API2_ROUTE + '/summary'
-export const getProtocolFEConfig = (id: string) => `${process.env.API2_ROUTE}/config/smol/protocol-${id}.json`.replace('#', '-')
+export const getProtocolFEConfig = (id: string) =>
+	`${process.env.API2_ROUTE}/config/smol/protocol-${id}.json`.replace('#', '-')
 
 export const FEES_BASE_API = 'https://fees.llama.fi/fees'
 
@@ -154,7 +155,7 @@ export const COINS_INFO_API = 'https://fdv-server.llama.fi/coinInfo'
 
 export const LIQUIDITY_API = 'https://defillama-datasets.llama.fi/liquidity.json'
 
-export const AUTH_SERVER = 'https://7zlw4f9i3e.execute-api.eu-central-1.amazonaws.com/prod'
+export const AUTH_SERVER = 'http://localhost:3001/prod'
 
 export const scams = [
 	'SyncDEX Finance',
