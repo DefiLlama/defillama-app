@@ -102,7 +102,14 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 				onClick={dialogState.toggle}
 				suppressHydrationWarning
 			>
-				{text ?? 'Sign In'}
+				{text && text.includes("GitHub") ? (
+					<>
+						<Icon name="github" height={18} width={18} className="inline-block mr-2" />
+						{text}
+					</>
+				) : (
+					text ?? 'Sign In'
+				)}
 			</button>
 
 			<Dialog

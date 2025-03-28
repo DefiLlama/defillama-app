@@ -264,7 +264,10 @@ export function SubscribeHome() {
 								</ul>
 
 								<div className="w-full max-w-[408px] mx-auto flex flex-col gap-2">
-									<SignIn text="Already a subscriber? Sign In" />
+									<SignIn
+										text="Connect GitHub"
+										className="font-medium rounded-lg border border-[#39393E] py-[14px] flex-1 text-center mx-auto w-full transition-all duration-300 flex items-center justify-center gap-2 bg-[#24292e] hover:bg-[#2c3136] text-white shadow-md hover:shadow-xl hover:border-gray-500 hover:scale-[1.02]"
+									/>
 								</div>
 								{hasGithubUsername && (
 									<div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1 max-sm:w-full">

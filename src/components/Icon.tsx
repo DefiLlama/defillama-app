@@ -66,7 +66,6 @@ type Name =
 	| 'credit-card'
 	| 'star'
 	| 'ethereum'
-
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
 }
