@@ -258,7 +258,7 @@ export default function AreaChart({
 					areaStyle: areaColor
 				})
 				data?.priceData.forEach(([date, value]) => {
-					if (Number(date) > Number(data?.globalChart[0][0]))
+					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
@@ -439,7 +439,7 @@ export default function AreaChart({
 					areaStyle: areaColor
 				})
 				data?.chainTokenPriceData.forEach(([date, value]) => {
-					if (Number(date) > Number(data?.globalChart[0][0]))
+					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
@@ -461,7 +461,7 @@ export default function AreaChart({
 					areaStyle: areaColor
 				})
 				data?.chainTokenMcapData.forEach(([date, value]) => {
-					if (Number(date) > Number(data?.globalChart[0][0]))
+					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
@@ -482,7 +482,7 @@ export default function AreaChart({
 					areaStyle: areaColor
 				})
 				data?.aggregatorsData.forEach(([date, value]) => {
-					if (Number(date) > Number(data?.globalChart[0][0]))
+					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
@@ -502,7 +502,7 @@ export default function AreaChart({
 					areaStyle: areaColor
 				})
 				data?.perpsChart.forEach(([date, value]) => {
-					if (Number(date) > Number(data?.globalChart[0][0]))
+					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
@@ -541,7 +541,7 @@ export default function AreaChart({
 					areaStyle: areaColor
 				})
 				data?.chainTokenVolumeData.forEach(([date, value]) => {
-					if (Number(date) > Number(data?.globalChart[0][0]))
+					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
 						series[series.length - 1].data.push([getUtcDateObject(date), value])
 				})
 			}
