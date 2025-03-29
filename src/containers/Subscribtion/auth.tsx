@@ -26,7 +26,7 @@ interface AuthContextType {
 	login: (email: string, password: string, onSuccess?: () => void) => Promise<void>
 	signup: (email: string, password: string, passwordConfirm: string, onSuccess?: () => void) => Promise<void>
 	logout: () => void
-	authorizedFetch: (url: string, options?: FetchOptions, skipSubscriptionCheck?: boolean) => Promise<Response>
+	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response>
 	signInWithEthereum: (address: string, onSuccess?: () => void) => Promise<void>
 	signInWithGithub: (onSuccess?: () => void) => Promise<void>
 	resetPassword: (email: string) => void
@@ -208,7 +208,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	}, [logoutMutation])
 
 	const authorizedFetch = useCallback(
-		async (url: string, options: FetchOptions = {}, skipSubscriptionCheck = false) => {
+		async (url: string, options: FetchOptions = {}, onlyToken = false) => {
 			const { skipAuth = false, headers = {}, ...rest } = options
 
 			if (skipAuth) {
@@ -222,7 +222,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 			const authHeaders = {
 				...headers,
-				Authorization: `Bearer ${pb.authStore.token}`
+				Authorization: onlyToken ? pb.authStore.token : `Bearer ${pb.authStore.token}`
 			}
 
 			try {

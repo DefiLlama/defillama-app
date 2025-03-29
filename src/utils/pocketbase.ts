@@ -1,6 +1,8 @@
 import PocketBase from 'pocketbase'
 import { RecordModel } from 'pocketbase'
-export const pb = new PocketBase('https://pb.llama.fi')
+import { POCKETBASE_URL } from '~/constants'
+
+export const pb = new PocketBase(POCKETBASE_URL)
 
 export interface AuthModel extends RecordModel {
 	id: string

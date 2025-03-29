@@ -54,6 +54,7 @@ export function SubscribeHome() {
 					/>
 				</div>
 				<h1 className="text-[2rem] font-[800] text-center">DefiLlama</h1>
+				<h2 className="text-center text-sm text-[#919296]">ONLY FOR TESTING PURPOSES</h2>
 				{isSubscribed ? null : (
 					<p className="text-[#919296] text-center">
 						Upgrade now for access to LlamaFeed, increased api limits and premium api endpoints.

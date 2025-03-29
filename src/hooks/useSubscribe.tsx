@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AUTH_SERVER } from '../constants'
+import { AUTH_SERVER, POCKETBASE_URL } from '../constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import toast from 'react-hot-toast'
 import pb from '~/utils/pocketbase'
@@ -240,9 +240,13 @@ export const useSubscribe = () => {
 				throw new Error('Not authenticated')
 			}
 
-			const response = await authorizedFetch(`${AUTH_SERVER}/user/credits`, {
-				method: 'GET'
-			})
+			const response = await authorizedFetch(
+				`${POCKETBASE_URL}/api/credits`,
+				{
+					method: 'GET'
+				},
+				true
+			)
 
 			if (!response.ok) {
 				throw new Error('Failed to fetch credits')
