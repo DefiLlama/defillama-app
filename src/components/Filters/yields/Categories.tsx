@@ -69,6 +69,7 @@ export function FiltersByCategory({
 				pathname,
 				query: {
 					...queries,
+					...(!pathname.includes('/chains/') && chain ? { chain } : {}),
 					category: 'All'
 				}
 			},
@@ -83,6 +84,7 @@ export function FiltersByCategory({
 				pathname,
 				query: {
 					...queries,
+					...(!pathname.includes('/chains/') && chain ? { chain } : {}),
 					category: 'None'
 				}
 			},
@@ -97,6 +99,7 @@ export function FiltersByCategory({
 				pathname,
 				query: {
 					...queries,
+					...(!pathname.includes('/chains/') && chain ? { chain } : {}),
 					category: option
 				}
 			},
