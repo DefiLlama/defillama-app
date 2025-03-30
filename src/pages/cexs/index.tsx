@@ -537,6 +537,11 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'LBank',
+        slug: 'lbank',
+		cgId: 'lbank'
+	},
+	{
 		name: 'Hotbit',
 		slug: 'hotbit',
 		coin: 'HTB',
@@ -616,10 +621,6 @@ export const cexData: Array<ICex> = [
 		name: 'bitFlyer',
 		cgId: 'bitflyer',
 		cgDeriv: 'bitflyer_futures'
-	},
-	{
-		name: 'LBank',
-		cgId: 'lbank'
 	},
 	{
 		name: 'BKEX',
