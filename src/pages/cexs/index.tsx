@@ -303,7 +303,7 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
-		name: 'ProBIt Global',
+		name: 'ProBit Global',
 		slug: 'probit-global',
 		coin: 'PROB',
 		coinSymbol: 'PROB',
