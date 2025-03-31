@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Icon } from '~/components/Icon'
+import { LocalLoader } from '~/components/LocalLoader'
 
 export const SignIn = ({ text, className }: { text?: string; className?: string }) => {
 	const dialogState = useDialogState()
@@ -88,6 +89,14 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 		}
 	}
 
+	if (loaders.userLoading || loaders.userFetching) {
+		return (
+			<div className="flex justify-center items-center py-3">
+				<LocalLoader />
+			</div>
+		)
+	}
+
 	if (isAuthenticated) {
 		return null
 	}
@@ -102,7 +111,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 				onClick={dialogState.toggle}
 				suppressHydrationWarning
 			>
-				{text && text.includes("GitHub") ? (
+				{text && text.includes('GitHub') ? (
 					<>
 						<Icon name="github" height={18} width={18} className="inline-block mr-2" />
 						{text}

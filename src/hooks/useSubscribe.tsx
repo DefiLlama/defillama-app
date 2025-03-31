@@ -240,13 +240,9 @@ export const useSubscribe = () => {
 				throw new Error('Not authenticated')
 			}
 
-			const response = await authorizedFetch(
-				`${POCKETBASE_URL}/api/credits`,
-				{
-					method: 'GET'
-				},
-				true
-			)
+			const response = await authorizedFetch(`${AUTH_SERVER}/user/credits`, {
+				method: 'GET'
+			})
 
 			if (!response.ok) {
 				throw new Error('Failed to fetch credits')

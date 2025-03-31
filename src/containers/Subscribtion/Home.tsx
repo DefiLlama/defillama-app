@@ -6,9 +6,10 @@ import { useSubscribe } from '~/hooks/useSubscribe'
 import { SignIn } from './SignIn'
 import { PaymentButton } from './Crypto'
 import { AccountInfo } from './AccountInfo'
+import { LocalLoader } from '~/components/LocalLoader'
 
 export function SubscribeHome() {
-	const { isAuthenticated, user } = useAuthContext()
+	const { isAuthenticated, user, loaders } = useAuthContext()
 	const { subscription } = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
 
@@ -33,6 +34,14 @@ export function SubscribeHome() {
 	const hasGithubUsername = user?.github_username
 
 	const tooltip = useTooltipState({ timeout: 0 })
+
+	if (loaders.userLoading || loaders.userFetching) {
+		return (
+			<div className="flex justify-center items-center h-[60vh]">
+				<LocalLoader />
+			</div>
+		)
+	}
 
 	return (
 		<>
@@ -328,13 +337,13 @@ export function SubscribeHome() {
 
 const ProgressBar = ({ pct }: { pct: number }) => {
 	return (
-		<div className="h-2 rounded-full w-full bg-[#2a2c32] overflow-hidden shadow-inner">
+		<div className="h-2 rounded-full w-full bg-[#2a2c32] overflow-hidden shadow-inner backdrop-blur-sm relative">
 			<div
 				className="h-full rounded-full transition-all duration-1000 ease-out"
 				style={{
 					width: `${pct}%`,
 					background: `linear-gradient(90deg, #5c5cf9, #7b7bff)`,
-					boxShadow: '0 0 8px rgba(92, 92, 249, 0.5)'
+					boxShadow: '0 0 8px rgba(92, 92, 249, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.3)'
 				}}
 			/>
 		</div>

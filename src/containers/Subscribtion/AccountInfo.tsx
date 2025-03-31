@@ -5,9 +5,9 @@ import { Icon } from '~/components/Icon'
 import { AccountHeader } from './components/AccountHeader'
 import { AccountStatus } from './components/AccountStatus'
 import { EmailVerificationWarning } from './components/EmailVerificationWarning'
-import { SubscriptionUpgrade } from './components/SubscriptionUpgrade'
 import { SubscriberContent } from './components/SubscriberContent'
 import { EmailChangeModal } from './components/EmailChangeModal'
+import { LocalLoader } from '~/components/LocalLoader'
 
 export const AccountInfo = () => {
 	const [newEmail, setNewEmail] = useState('')
@@ -48,6 +48,14 @@ export const AccountInfo = () => {
 		} catch (error) {
 			console.error('Error logging out:', error)
 		}
+	}
+
+	if (loaders.userLoading || loaders.userFetching) {
+		return (
+			<div className="flex justify-center items-center h-[40vh]">
+				<LocalLoader />
+			</div>
+		)
 	}
 
 	if (!isAuthenticated || !user) {
