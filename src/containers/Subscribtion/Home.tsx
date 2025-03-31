@@ -87,10 +87,12 @@ export function SubscribeHome() {
 				) : (
 					<div className="relative">
 						<div
-							className="pricing-container bg-[#222429] border border-[#39393E] rounded-2xl flex flex-row relative z-10 overflow-x-auto scroll-smooth snap-x snap-mandatory max-lg:-mx-2 shadow-lg"
+							className="pricing-container flex flex-row relative z-10 overflow-x-auto sm:overflow-hidden scroll-smooth snap-x snap-mandatory max-lg:-mx-2 gap-4 py-4"
 							ref={pricingContainer}
 						>
-							<div className="price-card py-6 px-4 lg:flex-1 flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:bg-[#2a2c32] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]">
+							<div className="price-card py-8 px-5 lg:flex-1 flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:transform hover:scale-[1.02] bg-gradient-to-br from-[#222429] to-[#222429] rounded-xl border border-[#39393E] shadow-md relative overflow-hidden">
+								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent opacity-30"></div>
+								<div className="absolute top-[-50px] right-[-50px] w-[100px] h-[100px] rounded-full bg-gray-500 opacity-5 blur-3xl"></div>
 								<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center">Open</h2>
 								<div className="flex items-center justify-center mt-1">
 									<span className="text-center text-2xl font-medium bg-gradient-to-r from-gray-200 to-gray-100 bg-clip-text text-transparent">
@@ -135,15 +137,40 @@ export function SubscribeHome() {
 									</li>
 								</ul>
 							</div>
-							<div className="price-card py-6 px-4 lg:flex-1 flex flex-col border-l border-[#39393E] max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 relative transition-all duration-300 hover:bg-[#2a2c32] bg-gradient-to-b from-[#222429] to-[#262830] shadow-[0_0_20px_rgba(92,92,249,0.1)] hover:shadow-[0_0_30px_rgba(92,92,249,0.15),inset_0_0_0_1px_rgba(92,92,249,0.2)]">
-								<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center text-[#5C5CF9]">Pro</h2>
-								<div className="flex items-center justify-center mt-1">
+							<div className="price-card py-8 px-5 lg:flex-1 flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 relative transition-all duration-300 hover:transform hover:scale-[1.02] bg-[#22242930] backdrop-blur-md rounded-xl border border-[#5c5cf950] shadow-md overflow-hidden">
+								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#5c5cf9] to-transparent opacity-30"></div>
+								<div className="absolute top-[-50px] right-[-50px] w-[100px] h-[100px] rounded-full bg-[#5c5cf9] opacity-10 blur-3xl"></div>
+
+								<div className="absolute inset-0 overflow-hidden">
+									<div
+										className="absolute top-[-15%] left-[-5%] w-[25%] h-[25%] rounded-full bg-[#5c5cf9] opacity-[0.003] blur-3xl animate-pulse"
+										style={{ animationDuration: '6s' }}
+									></div>
+									<div
+										className="absolute bottom-[-15%] right-[-5%] w-[20%] h-[20%] rounded-full bg-[#7B7BFF] opacity-[0.002] blur-3xl animate-pulse"
+										style={{ animationDelay: '3s', animationDuration: '7s' }}
+									></div>
+									<div
+										className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[15%] h-[15%] rounded-full bg-[#462A92] opacity-[0.0025] blur-3xl animate-ping"
+										style={{ animationDuration: '10s' }}
+									></div>
+								</div>
+
+								<div
+									className="absolute inset-0 rounded-xl border border-[#5c5cf908] animate-pulse"
+									style={{ animationDuration: '6s' }}
+								></div>
+
+								<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center text-[#5C5CF9] relative z-10">
+									Pro
+								</h2>
+								<div className="flex items-center justify-center mt-1 relative z-10">
 									<span className="text-center text-2xl font-medium bg-gradient-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-transparent">
 										300 USD
 									</span>
 									<span className="text-[#8a8c90] ml-1">/month</span>
 								</div>
-								<p className="text-center font-medium text-[#8a8c90] mt-1">Multiple payment options</p>
+								<p className="text-center font-medium text-[#8a8c90] mt-1 relative z-10">Multiple payment options</p>
 								<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
 									<li className="flex flex-nowrap gap-[10px] items-start">
 										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400" />
@@ -185,7 +212,7 @@ export function SubscribeHome() {
 									</li>
 								</ul>
 
-								<div className="w-full max-w-[408px] mx-auto flex flex-col gap-3">
+								<div className="w-full max-w-[408px] mx-auto flex flex-col gap-3 relative z-10">
 									<SignIn text="Already a subscriber? Sign In" />
 									<div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1 max-sm:w-full">
 										<PaymentButton paymentMethod="llamapay" type="api" />
@@ -193,7 +220,9 @@ export function SubscribeHome() {
 									</div>
 								</div>
 							</div>
-							<div className="price-card py-6 px-4 lg:flex-1 flex flex-col border-l border-[#39393E] max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:bg-[#2a2c32]">
+							<div className="price-card py-8 px-5 lg:flex-1 flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:transform hover:scale-[1.02] bg-gradient-to-br from-[#222429] to-[#222429] rounded-xl border border-[#39393E] shadow-md relative overflow-hidden">
+								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-200 to-transparent opacity-30"></div>
+								<div className="absolute top-[-50px] right-[-50px] w-[100px] h-[100px] rounded-full bg-amber-200 opacity-5 blur-3xl"></div>
 								<h2 className="text-[2rem] font-[800] text-center">Supporter</h2>
 								<div className="flex items-center justify-center mt-1">
 									<span className="text-center text-2xl font-medium bg-gradient-to-r from-amber-200 to-amber-100 bg-clip-text text-transparent">
@@ -343,7 +372,7 @@ const ProgressBar = ({ pct }: { pct: number }) => {
 				style={{
 					width: `${pct}%`,
 					background: `linear-gradient(90deg, #5c5cf9, #7b7bff)`,
-					boxShadow: '0 0 8px rgba(92, 92, 249, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.3)'
+					boxShadow: '0 0 12px rgba(92, 92, 249, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.3)'
 				}}
 			/>
 		</div>
