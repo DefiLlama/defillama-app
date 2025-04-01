@@ -10,8 +10,13 @@ import { LocalLoader } from '~/components/LocalLoader'
 
 export function SubscribeHome() {
 	const { isAuthenticated, user, loaders } = useAuthContext()
-	const { subscription } = useSubscribe()
+	const { subscription, isSubscriptionFetching } = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
+	const [isClient, setIsClient] = useState(false)
+
+	useEffect(() => {
+		setIsClient(true)
+	}, [])
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
 	const [activePriceCard, setActivePriceCard] = useState(1)
@@ -34,8 +39,9 @@ export function SubscribeHome() {
 	const hasGithubUsername = user?.github_username
 
 	const tooltip = useTooltipState({ timeout: 0 })
+	console.log(isSubscriptionFetching)
 
-	if (loaders.userLoading || loaders.userFetching) {
+	if (loaders.userLoading || loaders.userFetching || (isClient && (isSubscriptionFetching || !subscription))) {
 		return (
 			<div className="flex justify-center items-center h-[60vh]">
 				<LocalLoader />

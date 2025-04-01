@@ -170,7 +170,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 				{flow === 'signin' ? (
 					<form className="flex flex-col gap-4" onSubmit={handleEmailSignIn}>
 						<div className="space-y-1.5">
-							<label htmlFor="signin-email" className="text-sm font-medium text-[#b4b7bc]">
+							<label htmlFor={`${text || 'default'}-signin-email`} className="text-sm font-medium text-[#b4b7bc]">
 								Email
 							</label>
 							<div className="relative">
@@ -178,11 +178,10 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 									<Icon name="mail" height={16} width={16} />
 								</div>
 								<input
-									id="signin-email"
+									id={`${text || 'default'}-signin-email`}
 									type="email"
 									required
 									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
-									placeholder="satoshi@llama.fi"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
@@ -198,7 +197,6 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								type="password"
 								required
 								className="w-full p-3 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
-								placeholder="••••••••"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 							/>
@@ -261,7 +259,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 				) : flow === 'signup' ? (
 					<form className="flex flex-col gap-4" onSubmit={handleEmailSignUp}>
 						<div className="space-y-1.5">
-							<label htmlFor="signup-email" className="text-sm font-medium text-[#b4b7bc]">
+							<label htmlFor={`${text || 'default'}-signup-email`} className="text-sm font-medium text-[#b4b7bc]">
 								Email
 							</label>
 							<div className="relative">
@@ -269,11 +267,10 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 									<Icon name="mail" height={16} width={16} />
 								</div>
 								<input
-									id="signup-email"
+									id={`${text || 'default'}-signup-email`}
 									type="email"
 									required
 									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
-									placeholder="satoshi@llama.fi"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
@@ -291,7 +288,6 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								className={`w-full p-3 rounded-lg bg-[#222429] border ${
 									passwordError ? 'border-red-500' : 'border-[#39393E]'
 								} text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200`}
-								placeholder="••••••••"
 								value={password}
 								onChange={(e) => {
 									setPassword(e.target.value)
@@ -315,7 +311,6 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								className={`w-full p-3 rounded-lg bg-[#222429] border ${
 									confirmPasswordError ? 'border-red-500' : 'border-[#39393E]'
 								} text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200`}
-								placeholder="••••••••"
 								value={confirmPassword}
 								onChange={(e) => {
 									setConfirmPassword(e.target.value)
@@ -378,7 +373,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						</div>
 
 						<div className="space-y-1.5">
-							<label htmlFor="forgot-email" className="text-sm font-medium text-[#b4b7bc]">
+							<label htmlFor={`${text || 'default'}-forgot-email`} className="text-sm font-medium text-[#b4b7bc]">
 								Email
 							</label>
 							<div className="relative">
@@ -386,11 +381,10 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 									<Icon name="mail" height={16} width={16} />
 								</div>
 								<input
-									id="forgot-email"
+									id={`${text || 'default'}-forgot-email`}
 									type="email"
 									required
 									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
-									placeholder="satoshi@llama.fi"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
