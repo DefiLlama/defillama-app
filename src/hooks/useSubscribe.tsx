@@ -148,7 +148,7 @@ export const useSubscribe = () => {
 						'Content-Type': 'application/json',
 						Authorization: `Bearer ${pb.authStore.token}`
 					},
-					body: JSON.stringify({ subscriptionType: 'pro' })
+					body: JSON.stringify({ subscriptionType: pb.authStore.record?.github_username ? 'contributor' : 'api' })
 				})
 
 				if (!response.ok) {
@@ -182,6 +182,37 @@ export const useSubscribe = () => {
 		refetchOnWindowFocus: false,
 		enabled: isAuthenticated,
 		staleTime: 1000 * 60 * 15
+	})
+
+	const { data: isLlamafeedSubscriptionActive } = useQuery({
+		queryKey: ['isLlamafeedSubscribed', pb.authStore.record?.id],
+		queryFn: async () => {
+			if (!isAuthenticated) {
+				return false
+			}
+
+			try {
+				const response = await fetch(`${AUTH_SERVER}/subscription/status`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${pb.authStore.token}`
+					},
+					body: JSON.stringify({ subscriptionType: 'llamafeed' })
+				})
+
+				if (!response.ok) {
+					return false
+				}
+
+				const data = await response.json()
+				console.log({ data })
+				return data.subscription.status === 'active'
+			} catch (error) {
+				console.error('Error fetching subscription:', error)
+				return false
+			}
+		}
 	})
 
 	useEffect(() => {
@@ -351,6 +382,7 @@ export const useSubscribe = () => {
 		isPortalSessionLoading: createPortalSessionMutation.isPending,
 		isContributor,
 		isContributorLoading,
-		isContributorError
+		isContributorError,
+		isLlamafeedSubscriptionActive
 	}
 }

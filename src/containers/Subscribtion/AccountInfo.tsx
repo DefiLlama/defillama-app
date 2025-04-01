@@ -25,7 +25,8 @@ export const AccountInfo = () => {
 		credits,
 		isCreditsLoading,
 		createPortalSession,
-		isPortalSessionLoading
+		isPortalSessionLoading,
+		isLlamafeedSubscriptionActive
 	} = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
 	const isVerified = user?.verified
@@ -103,6 +104,27 @@ export const AccountInfo = () => {
 			/>
 
 			<div className="space-y-6">
+				{isLlamafeedSubscriptionActive && (
+					<div
+						className="bg-[#332B15] border border-[#AA9051] text-[#EED484] px-4 py-3 rounded-lg relative"
+						role="alert"
+					>
+						<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+							<div>
+								<strong className="font-bold">Llamafeed Subscription Active </strong>
+								<span className="block sm:inline">
+									You can cancel your Llamafeed subscription as it's already included in your Pro plan.
+								</span>
+							</div>
+							<button
+								onClick={() => window.open('https://llamafeed.io', '_blank')}
+								className="px-4 py-2 bg-[#AA9051] hover:bg-[#C4A969] text-[#1A1B1F] rounded-lg transition-all duration-300 text-sm font-medium whitespace-nowrap"
+							>
+								Cancel on Llamafeed.io
+							</button>
+						</div>
+					</div>
+				)}
 				<AccountStatus
 					user={user}
 					isVerified={isVerified}
