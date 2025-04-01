@@ -22,7 +22,6 @@ import { useFetchChainChartData } from './useFetchChainChartData'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatRaise, formatRaisedAmount } from '~/containers/Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
-import { QuestionHelper } from '~/components/QuestionHelper'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'
 import { chainsNamesMap } from './constants'
@@ -114,11 +113,13 @@ export function ChainContainer({
 	}
 
 	const { data: chainProtocolsVolumes, isLoading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain(
-		volumeData?.totalVolume24h ? selectedChain : undefined
+		volumeData?.totalVolume24h || selectedChain === 'All' ? selectedChain : undefined
 	)
 
 	const { data: chainProtocolsFees, isLoading: fetchingProtocolsFeesAndRevenueByChain } =
-		useGetProtocolsFeesAndRevenueByChain(feesAndRevenueData?.totalFees24h ? selectedChain : undefined)
+		useGetProtocolsFeesAndRevenueByChain(
+			feesAndRevenueData?.totalFees24h || selectedChain === 'All' ? selectedChain : undefined
+		)
 
 	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 

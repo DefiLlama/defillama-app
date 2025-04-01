@@ -102,15 +102,15 @@ export const protocolsByChainTableColumns = [
 	},
 	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
 	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Spot Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Spot Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
 	{
-		name: 'Volume Change 7d',
+		name: 'Spot Volume Change 7d',
 		key: 'volumeChange_7d',
 		category: TABLE_CATEGORIES.VOLUME,
 		period: TABLE_PERIODS.SEVEN_DAYS
 	},
-	{ name: 'Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
+	{ name: 'Spot Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
 ]
 
 export const defaultColumns = JSON.stringify({
