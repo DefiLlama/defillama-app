@@ -187,7 +187,7 @@ export function DefiChainsTable({ data }) {
 					nestedMenu={false}
 				/>
 
-				<TVLRange />
+				<TVLRange variant="secondary" />
 			</div>
 			<VirtualTable instance={instance} />
 		</>

@@ -48,7 +48,7 @@ export function TVLRange({
 								<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
 							</>
 						) : (
-							<span>TVL</span>
+							<span>TVL Range</span>
 						)}
 					</>
 				) : (

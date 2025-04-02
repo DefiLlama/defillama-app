@@ -200,11 +200,12 @@ interface IAllOptionsProps {
 
 function AddlOptions({ options }: IAllOptionsProps) {
 	const { selectedValues, setSelectedValues } = useProtocolsFilterState()
-	const finalSelecteValues = selectedValues.filter((val) => options.find((opt) => opt.key === val))
+	const finalSelectedValues = selectedValues.filter((val) => options.find((opt) => opt.key === val))
+
 	return (
 		<Select
 			allValues={options}
-			selectedValues={finalSelecteValues}
+			selectedValues={finalSelectedValues}
 			setSelectedValues={setSelectedValues}
 			label="Others"
 			smolLabel

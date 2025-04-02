@@ -39,7 +39,7 @@ export function RaisedRange({
 	return (
 		<FilterBetweenRange
 			name="Amount Raised"
-			header={
+			trigger={
 				<>
 					{min || max ? (
 						<>
@@ -54,6 +54,8 @@ export function RaisedRange({
 			onSubmit={handleSubmit}
 			variant={variant}
 			nestedMenu={nestedMenu}
+			min={min}
+			max={max}
 		/>
 	)
 }

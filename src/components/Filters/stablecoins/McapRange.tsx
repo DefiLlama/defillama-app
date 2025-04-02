@@ -33,7 +33,7 @@ export function McapRange({ nestedMenu }: { nestedMenu?: boolean }) {
 	return (
 		<FilterBetweenRange
 			name="Mcap"
-			header={
+			trigger={
 				<>
 					{min || max ? (
 						<>
@@ -48,6 +48,8 @@ export function McapRange({ nestedMenu }: { nestedMenu?: boolean }) {
 			onSubmit={handleSubmit}
 			variant={'secondary'}
 			nestedMenu={nestedMenu}
+			min={min}
+			max={max}
 		/>
 	)
 }

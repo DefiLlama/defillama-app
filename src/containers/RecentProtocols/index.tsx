@@ -5,7 +5,7 @@ import { RecentlyListedProtocolsTable } from '~/components/Table/Defi/Protocols'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { HideForkedProtocols } from '~/components/Filters/protocols/HideForkedProtocols'
-import { FiltersByChain } from '~/components/Filters/common/FilterByChains'
+import { FilterByChain } from '~/components/Filters/common/FilterByChain'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { download, getPercentChange } from '~/utils'
 import { ButtonLight } from '~/components/ButtonStyled'
@@ -341,7 +341,7 @@ export function RecentProtocols({
 			<div className="flex items-center flex-wrap gap-2 -mb-5">
 				<h1 className="text-2xl font-medium mr-auto">{header}</h1>
 
-				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+				<FilterByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 				<TVLRange />
 				<CSVDownloadButton onClick={downloadCSV} isLight style={{ color: 'inherit', fontWeight: 'normal' }} />
 
