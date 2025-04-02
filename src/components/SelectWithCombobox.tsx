@@ -143,10 +143,14 @@ export function SelectWithCombobox({
 					) : selectedValues.length > 0 ? (
 						<>
 							<span>{label}: </span>
-							<span className="text-[var(--link)]">{selectedValues.length}</span>
+							<span className="text-[var(--link)]">
+								{selectedValues.length > 2
+									? `${selectedValues[0]} + ${selectedValues.length - 1} others`
+									: selectedValues.join(', ')}
+							</span>
 						</>
 					) : (
-						'Attribute'
+						<span>{label}</span>
 					)}
 					<Ariakit.SelectArrow />
 				</Ariakit.Select>

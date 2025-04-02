@@ -14,6 +14,7 @@ interface ISelect {
 	selectOnlyOne?: (value: string) => void
 	nestedMenu?: boolean
 	smolLabel?: boolean
+	className?: string
 }
 
 export function Select({
@@ -25,7 +26,8 @@ export function Select({
 	toggleAll,
 	selectOnlyOne,
 	nestedMenu,
-	smolLabel
+	smolLabel,
+	className
 }: ISelect) {
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
@@ -94,7 +96,9 @@ export function Select({
 				setSelectedValues(values)
 			}}
 		>
-			<Ariakit.Select className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap">
+			<Ariakit.Select
+				className={`bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap ${className}`}
+			>
 				{smolLabel ? (
 					<span className="flex items-center gap-1">
 						<span className="text-[10px] rounded-full min-w-4 flex items-center justify-center bg-[var(--bg4)] px-[1px]">
@@ -105,10 +109,14 @@ export function Select({
 				) : selectedValues.length > 0 ? (
 					<>
 						<span>{label}: </span>
-						<span className="text-[var(--link)]">{selectedValues.length}</span>
+						<span className="text-[var(--link)]">
+							{selectedValues.length > 2
+								? `${selectedValues[0]} + ${selectedValues.length - 1} others`
+								: selectedValues.join(', ')}
+						</span>
 					</>
 				) : (
-					'Attribute'
+					<span>{label}</span>
 				)}
 				<Ariakit.SelectArrow />
 			</Ariakit.Select>

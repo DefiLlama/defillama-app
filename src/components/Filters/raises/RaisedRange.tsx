@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange2 } from '~/components/Filters/common/FilterBetweenRange'
+import { FilterBetweenRange } from '~/components/Filters/common/FilterBetweenRange'
 
 export function RaisedRange({
 	variant = 'primary',
@@ -37,7 +37,7 @@ export function RaisedRange({
 	const max = typeof maxRaised === 'string' && maxRaised !== '' ? Number(maxRaised).toLocaleString() : null
 
 	return (
-		<FilterBetweenRange2
+		<FilterBetweenRange
 			name="Amount Raised"
 			header={
 				<>
