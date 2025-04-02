@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { getUtcDateObject, stringToColour } from '../utils'
 import type { IBarChartProps } from '../types'
-import { SelectLegendMultiple } from '../shared'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 export default function BarChart({
 	chartData,
@@ -187,11 +187,14 @@ export default function BarChart({
 	return (
 		<div className="relative">
 			{customLegendName && customLegendOptions?.length > 1 && (
-				<SelectLegendMultiple
-					allOptions={customLegendOptions}
-					options={legendOptions}
-					setOptions={setLegendOptions}
-					title={legendOptions.length === 1 ? customLegendName : customLegendName + 's'}
+				<SelectWithCombobox
+					allValues={customLegendOptions}
+					selectedValues={legendOptions}
+					setSelectedValues={setLegendOptions}
+					label={customLegendName}
+					clearAll={() => setLegendOptions([])}
+					toggleAll={() => setLegendOptions(customLegendOptions)}
+					smolLabel
 				/>
 			)}
 			<div id={id} style={{ height, margin: 'auto 0' }}></div>

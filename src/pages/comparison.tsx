@@ -7,7 +7,6 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { IChartProps } from '~/components/ECharts/types'
 import { PROTOCOL_API } from '~/constants'
 import { slug, tokenIconPaletteUrl } from '~/utils'
-import { SelectLegendMultiple } from '~/components/ECharts/shared'
 import { getColor } from '~/utils/getColor'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { useDefiManager } from '~/contexts/LocalStorage'
@@ -15,6 +14,7 @@ import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/
 import { fuseProtocolData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { useQuery } from '@tanstack/react-query'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -145,11 +145,14 @@ export default function CompareProtocolsTvls({
 			<ProtocolsChainsSearch />
 
 			<div className="relative flex flex-col">
-				<SelectLegendMultiple
-					title={'Selected Protocols'}
-					allOptions={protocols}
-					options={selectedProtocols ?? []}
-					setOptions={setSelectedProtocols}
+				<SelectWithCombobox
+					allValues={protocols}
+					selectedValues={selectedProtocols ?? []}
+					setSelectedValues={setSelectedProtocols}
+					label="Selected Protocols"
+					clearAll={() => setSelectedProtocols([])}
+					toggleAll={() => setSelectedProtocols(protocols)}
+					smolLabel
 				/>
 				<div className="relative col-span-2 p-4 shadow rounded-xl">
 					<AreaChart

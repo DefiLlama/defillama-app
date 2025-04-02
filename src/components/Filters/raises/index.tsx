@@ -1,8 +1,8 @@
 import { useMedia } from '~/hooks/useMedia'
-import { SlidingMenu } from '~/components/SlidingMenu'
 import { RaisesFilterDropdowns } from './Dropdowns'
 import { IDropdownMenusProps } from './types'
 import { RaisesSearch } from '~/components/Search/Raises'
+import { NestedMenu } from '~/components/NestedMenu'
 
 export function RaisesFilters(props: IDropdownMenusProps) {
 	const isSmall = useMedia(`(max-width: 30rem)`)
@@ -14,9 +14,9 @@ export function RaisesFilters(props: IDropdownMenusProps) {
 
 			<div className="flex flex-wrap gap-2 only:*:flex-1">
 				{isSmall ? (
-					<SlidingMenu label="Filters" variant="secondary">
-						<RaisesFilterDropdowns {...props} isMobile />
-					</SlidingMenu>
+					<NestedMenu label="Filters" className="w-full">
+						<RaisesFilterDropdowns {...props} nestedMenu />
+					</NestedMenu>
 				) : (
 					<RaisesFilterDropdowns {...props} />
 				)}

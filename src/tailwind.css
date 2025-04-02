@@ -208,6 +208,21 @@
 		transition: 0.1s ease-out;
 	}
 
+	.drawer-to-left {
+		opacity: 0;
+		transform: translateX(100%);
+		transition: 0.2s ease-out;
+	}
+
+	.drawer-to-left[data-enter] {
+		opacity: 1;
+		transform: translateX(0%);
+	}
+
+	.drawer-to-left[data-leave] {
+		transition: 0.1s ease-out;
+	}
+
 	.section-in-grid {
 		@apply flex flex-col gap-4 col-span-full xl:col-span-1 py-6 first-of-type:pt-0 last-of-type:pb-0 border-[var(--text5)] xl:even:pl-6 xl:odd:pr-6 xl:only:p-0 xl:odd:border-r;
 	}

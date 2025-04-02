@@ -1,31 +1,19 @@
-import { useRef } from 'react'
 import { useRouter } from 'next/router'
-import { Select, SelectArrow, SelectPopover, useSelectState } from 'ariakit/select'
-import { useComboboxState } from 'ariakit/combobox'
-import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { SlidingMenu } from '~/components/SlidingMenu'
-import { ComboboxSelectContent } from '../common/ComboboxSelectContent'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 interface IFiltersBySectorsProps {
 	sectors: string[]
 	selectedSectors: string[]
 	pathname: string
-	variant?: 'primary' | 'secondary'
-	subMenu?: boolean
+	nestedMenu?: boolean
 }
 
-export function Sectors({
-	sectors = [],
-	selectedSectors,
-	pathname,
-	variant = 'primary',
-	subMenu
-}: IFiltersBySectorsProps) {
+export function Sectors({ sectors = [], selectedSectors, pathname, nestedMenu }: IFiltersBySectorsProps) {
 	const router = useRouter()
 
 	const { sector, ...queries } = router.query
 
-	const addSector = (newSector) => {
+	const setSelectedValues = (newSector) => {
 		router.push(
 			{
 				pathname,
@@ -39,23 +27,7 @@ export function Sectors({
 		)
 	}
 
-	const combobox = useComboboxState({ list: sectors })
-	// value and setValue shouldn't be passed to the select state because the
-	// select value and the combobox value are different things.
-	const { value, setValue, ...selectProps } = combobox
-
-	const [isLarge, renderCallback] = useSetPopoverStyles()
-
-	const selectState = useSelectState({
-		...selectProps,
-		value: selectedSectors,
-		setValue: addSector,
-		gutter: 8,
-		animated: isLarge ? false : true,
-		renderCallback
-	})
-
-	const toggleAllOptions = () => {
+	const toggleAll = () => {
 		if (!sector || sector === 'All') {
 			router.push(
 				{
@@ -83,8 +55,7 @@ export function Sectors({
 		}
 	}
 
-	const clearAllOptions = () => {
-		selectState.up(1)
+	const clearAll = () => {
 		router.push(
 			{
 				pathname,
@@ -112,81 +83,16 @@ export function Sectors({
 		)
 	}
 
-	// Resets combobox value when popover is collapsed
-	if (!selectState.mounted && combobox.value) {
-		combobox.setValue('')
-	}
-
-	const focusItemRef = useRef(null)
-
-	const isSelected = selectedSectors.length > 0 && selectedSectors.length !== sectors.length
-
-	const isOptionToggled = (option) =>
-		(selectState.value.includes(option) ? true : false) || (sector || []).includes('All')
-
-	if (subMenu) {
-		return (
-			<SlidingMenu label="Sectors" selectState={selectState}>
-				<ComboboxSelectContent
-					options={sectors}
-					selectedOptions={selectedSectors}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectOnlyOne={selectOnlyOne}
-					focusItemRef={focusItemRef}
-					variant={variant}
-					pathname={pathname}
-					isOptionToggled={isOptionToggled}
-					contentElementId={selectState.contentElement?.id}
-				/>
-			</SlidingMenu>
-		)
-	}
-
 	return (
-		<>
-			<Select
-				state={selectState}
-				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
-			>
-				{isSelected ? (
-					<>
-						<span>Sector: </span>
-						<span className="text-[var(--link)]">
-							{selectedSectors.length > 2
-								? `${selectedSectors[0]} + ${selectedSectors.length - 1} others`
-								: selectedSectors.join(', ')}
-						</span>
-					</>
-				) : (
-					'Sector'
-				)}
-
-				<SelectArrow />
-			</Select>
-
-			{selectState.mounted ? (
-				<SelectPopover
-					state={selectState}
-					composite={false}
-					initialFocusRef={focusItemRef}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
-				>
-					<ComboboxSelectContent
-						options={sectors}
-						selectedOptions={selectedSectors}
-						clearAllOptions={clearAllOptions}
-						toggleAllOptions={toggleAllOptions}
-						selectOnlyOne={selectOnlyOne}
-						focusItemRef={focusItemRef}
-						variant={variant}
-						pathname={pathname}
-						autoFocus
-						isOptionToggled={isOptionToggled}
-						contentElementId={selectState.contentElement?.id}
-					/>
-				</SelectPopover>
-			) : null}
-		</>
+		<SelectWithCombobox
+			label="Sectors"
+			allValues={sectors}
+			selectedValues={selectedSectors}
+			setSelectedValues={setSelectedValues}
+			toggleAll={toggleAll}
+			clearAll={clearAll}
+			selectOnlyOne={selectOnlyOne}
+			nestedMenu={nestedMenu}
+		/>
 	)
 }
