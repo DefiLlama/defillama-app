@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange } from '~/components/Filters/common/FilterBetweenRange'
+import { FilterBetweenRange2 } from '~/components/Filters/common/FilterBetweenRange'
 
-export function McapRange({ subMenu }: { subMenu?: boolean }) {
+export function McapRange({ nestedMenu }: { nestedMenu?: boolean }) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -31,7 +31,7 @@ export function McapRange({ subMenu }: { subMenu?: boolean }) {
 	const max = typeof maxMcap === 'string' && maxMcap !== '' ? Number(maxMcap).toLocaleString() : null
 
 	return (
-		<FilterBetweenRange
+		<FilterBetweenRange2
 			name="Mcap"
 			header={
 				<>
@@ -47,7 +47,7 @@ export function McapRange({ subMenu }: { subMenu?: boolean }) {
 			}
 			onSubmit={handleSubmit}
 			variant={'secondary'}
-			subMenu={subMenu}
+			nestedMenu={nestedMenu}
 		/>
 	)
 }
