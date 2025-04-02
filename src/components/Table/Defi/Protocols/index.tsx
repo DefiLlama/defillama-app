@@ -299,7 +299,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					toggleAllOptions={toggleAllOptions}
 					selectedOptions={selectedOptions}
 					addOption={addOption}
-					subMenu={false}
+					nestedMenu={false}
 				/>
 				<TVLRange />
 			</div>

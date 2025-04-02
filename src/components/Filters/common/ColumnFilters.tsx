@@ -1,12 +1,9 @@
 import { useRouter } from 'next/router'
-import { SelectArrow, SelectPopover, Select, useSelectState } from 'ariakit/select'
-import { SelectContent } from './SelectContent'
-import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { SlidingMenu } from '~/components/SlidingMenu'
+import { useMemo } from 'react'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 interface IColumnFiltersProps {
-	variant?: 'primary' | 'secondary'
-	subMenu?: boolean
+	nestedMenu?: boolean
 	show7dBaseApy?: boolean
 	show7dIL?: boolean
 	show1dVolume?: boolean
@@ -36,7 +33,7 @@ const optionalFilters = [
 	{ name: 'Available', key: 'showAvailable' }
 ]
 
-export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColumnFiltersProps) {
+export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 	const router = useRouter()
 
 	const {
@@ -55,9 +52,13 @@ export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColum
 		...queries
 	} = router.query
 
-	const options = optionalFilters.filter((op) => props[op.key])
+	const { options, selectedOptions } = useMemo(() => {
+		const options = optionalFilters.filter((op) => props[op.key])
 
-	const selectedOptions = options.filter((option) => router.query[option.key] === 'true').map((op) => op.key)
+		const selectedOptions = options.filter((option) => router.query[option.key] === 'true').map((op) => op.key)
+
+		return { options, selectedOptions }
+	}, [router.query])
 
 	const addOption = (newOptions) => {
 		router.push(
@@ -72,17 +73,7 @@ export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColum
 		)
 	}
 
-	const [isLarge, renderCallback] = useSetPopoverStyles()
-
-	const selectState = useSelectState({
-		value: selectedOptions,
-		setValue: addOption,
-		gutter: 8,
-		renderCallback,
-		...(!subMenu && { animated: isLarge ? false : true })
-	})
-
-	const toggleAllOptions = () => {
+	const toggleAll = () => {
 		router.push(
 			{
 				pathname: router.pathname,
@@ -96,7 +87,7 @@ export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColum
 		)
 	}
 
-	const clearAllOptions = () => {
+	const clearAll = () => {
 		router.push(
 			{
 				pathname: router.pathname,
@@ -109,132 +100,40 @@ export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColum
 		)
 	}
 
-	const isSelected = selectedOptions.length > 0
-
-	if (subMenu) {
-		return (
-			<SlidingMenu label="Columns" selectState={selectState}>
-				<SelectContent
-					options={options}
-					selectedOptions={selectedOptions}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					pathname={router.pathname}
-					variant={variant}
-				/>
-			</SlidingMenu>
-		)
-	}
-
-	const selectedOptionNames = selectedOptions.map((op) => optionalFilters.find((x) => x.key === op)?.name ?? op)
+	console.log({ options, selectedOptions })
 
 	return (
-		<>
-			<Select
-				state={selectState}
-				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
-			>
-				{isSelected ? (
-					<>
-						<span>Columns: </span>
-						<span className="text-[var(--link)]">
-							{selectedOptionNames.length > 2
-								? `${selectedOptionNames[0]} + ${selectedOptionNames.length - 1} others`
-								: selectedOptionNames.join(', ')}
-						</span>
-					</>
-				) : (
-					<span>Columns</span>
-				)}
-
-				<SelectArrow />
-			</Select>
-
-			{selectState.mounted ? (
-				<SelectPopover
-					state={selectState}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
-				>
-					<SelectContent
-						options={options}
-						selectedOptions={selectedOptions}
-						clearAllOptions={clearAllOptions}
-						toggleAllOptions={toggleAllOptions}
-						pathname={router.pathname}
-						variant={variant}
-					/>
-				</SelectPopover>
-			) : null}
-		</>
+		<SelectWithCombobox
+			allValues={options}
+			selectedValues={selectedOptions}
+			setSelectedValues={addOption}
+			toggleAll={toggleAll}
+			clearAll={clearAll}
+			nestedMenu={nestedMenu}
+			label="Columns"
+		/>
 	)
 }
 
 export function ColumnFilters2({
 	label,
-	variant = 'primary',
-	subMenu,
+	nestedMenu,
 	clearAllOptions,
 	toggleAllOptions,
 	selectedOptions,
 	options,
 	addOption
 }) {
-	const [isLarge, renderCallback] = useSetPopoverStyles()
-
-	const selectState = useSelectState({
-		value: selectedOptions,
-		setValue: addOption,
-		gutter: 8,
-		renderCallback,
-		...(!subMenu && { animated: isLarge ? false : true })
-	})
-
-	if (subMenu) {
-		return (
-			<SlidingMenu label="Columns" selectState={selectState}>
-				<SelectContent
-					options={options}
-					selectedOptions={selectedOptions}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					pathname={null}
-					variant={variant}
-				/>
-			</SlidingMenu>
-		)
-	}
-
 	return (
-		<>
-			<Select
-				state={selectState}
-				className="bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative"
-			>
-				<span>{label}</span>
-				<span
-					className="absolute -top-1 -right-1 text-[10px] rounded-full min-w-4 bg-[var(--bg4)]"
-					suppressHydrationWarning
-				>
-					{selectedOptions.length}
-				</span>
-				<SelectArrow />
-			</Select>
-
-			{selectState.mounted ? (
-				<SelectPopover
-					state={selectState}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
-				>
-					<SelectContent
-						options={options}
-						selectedOptions={selectedOptions}
-						clearAllOptions={clearAllOptions}
-						toggleAllOptions={toggleAllOptions}
-						pathname={null}
-						variant={variant}
-					/>
-				</SelectPopover>
-			) : null}
-		</>
+		<SelectWithCombobox
+			allValues={options}
+			selectedValues={selectedOptions}
+			setSelectedValues={addOption}
+			toggleAll={toggleAllOptions}
+			clearAll={clearAllOptions}
+			nestedMenu={nestedMenu}
+			label={label}
+			smolLabel
+		/>
 	)
 }

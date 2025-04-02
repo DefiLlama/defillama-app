@@ -214,7 +214,7 @@ const TokensSelect = ({
 									value={value}
 									key={value + i}
 									focusOnHover
-									className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
+									className="flex items-center justify-between gap-4 p-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md"
 								>
 									{value === 'USD_STABLES' ? searchData[value].name : `${value}`}
 								</SelectItem>

@@ -1,5 +1,3 @@
-import { capitalize } from 'lodash'
-
 interface IProps {
 	selectedValue: string
 	setValue: (period: string) => void
@@ -18,7 +16,7 @@ export const RowFilter = ({ selectedValue, setValue, values, style }: IProps) =>
 						key={value}
 						onClick={() => setValue(value)}
 					>
-						{capitalize(value)}
+						{`${value.slice(0, 1).toUpperCase()}${value.slice(1)}`}
 					</button>
 				)
 			})}

@@ -4,10 +4,10 @@ import { YieldsSearch } from '~/components/Search/Yields/Optimizer'
 import { useMedia } from '~/hooks/useMedia'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { LTV } from './LTV'
-import { SlidingMenu } from '~/components/SlidingMenu'
 import { YieldFilterDropdowns } from './Dropdowns'
 import type { IYieldFiltersProps } from './types'
 import { InputFilter } from './Amount'
+import { NestedMenu } from '~/components/NestedMenu'
 
 export function YieldFiltersV2({
 	header,
@@ -54,9 +54,9 @@ export function YieldFiltersV2({
 
 				<div className="flex flex-wrap gap-2 max-sm:only:*:flex-1">
 					{isSmall ? (
-						<SlidingMenu label="Filters" variant="secondary">
-							<YieldFilterDropdowns {...props} isMobile />
-						</SlidingMenu>
+						<NestedMenu label="Filters">
+							<YieldFilterDropdowns {...props} nestedMenu />
+						</NestedMenu>
 					) : (
 						<YieldFilterDropdowns {...props} />
 					)}

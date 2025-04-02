@@ -102,7 +102,7 @@ const AssetButtonLink = (props: { options: ISearchItem[]; value: string }) => {
 				focusOnHover
 				setValueOnClick={false}
 				role="link"
-				className="flex items-center gap-1 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+				className="flex items-center gap-1 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
 			>
 				<TokenLogo logo={matchingOption.logo} size={20} />
 				{matchingOption.name} ({matchingOption.symbol})

@@ -175,7 +175,7 @@ export function DefiChainsTable({ data }) {
 					toggleAllOptions={toggleAllAggrOptions}
 					selectedOptions={selectedAggregateTypes}
 					addOption={addAggrOption}
-					subMenu={false}
+					nestedMenu={false}
 				/>
 				<ColumnFilters2
 					label={'Columns'}
@@ -184,7 +184,7 @@ export function DefiChainsTable({ data }) {
 					toggleAllOptions={toggleAllColumns}
 					selectedOptions={selectedColumns}
 					addOption={addColumn}
-					subMenu={false}
+					nestedMenu={false}
 				/>
 
 				<TVLRange />

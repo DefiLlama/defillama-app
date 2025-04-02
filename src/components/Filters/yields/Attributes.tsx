@@ -1,10 +1,8 @@
-import { SelectArrow, Select, SelectPopover, useSelectState } from 'ariakit/select'
 import { useRouter } from 'next/router'
-import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { lockupsCollateral, badDebt } from '~/containers/YieldsPage/utils'
-import { SlidingMenu } from '~/components/SlidingMenu'
-import { SelectContent } from '../common/SelectContent'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { useMemo } from 'react'
 
 export const attributeOptions = [
 	{
@@ -150,48 +148,49 @@ export const attributeOptions = [
 	}
 ]
 
-export function YieldAttributes({
-	pathname,
-	variant = 'primary',
-	subMenu
-}: {
-	pathname: string
-	variant?: 'primary' | 'secondary'
-	subMenu?: boolean
-}) {
+export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; nestedMenu?: boolean }) {
 	const router = useRouter()
 
 	const { attribute = [], ...queries } = router.query
 
-	const attributeOptionsFiltered = attributeOptions.filter((option) =>
-		pathname === '/borrow'
-			? !option.disabledOnPages.includes('/borrow')
-			: pathname === '/yields/strategy'
-			? !option.disabledOnPages.includes('/yields/strategy')
-			: pathname === '/yields/strategyFR'
-			? !option.disabledOnPages.includes('/yields/strategyFR')
-			: pathname === '/yields'
-			? !option.disabledOnPages.includes('/yields')
-			: pathname === '/yields/stablecoins'
-			? !option.disabledOnPages.includes('/yields/stablecoins')
-			: pathname === '/yields/loop'
-			? !option.disabledOnPages.includes('/yields/loop')
-			: true
-	)
+	const { attributeOptionsFiltered, selectedAttributes } = useMemo(() => {
+		const attributeOptionsFiltered = attributeOptions.filter((option) =>
+			pathname === '/borrow'
+				? !option.disabledOnPages.includes('/borrow')
+				: pathname === '/yields/strategy'
+				? !option.disabledOnPages.includes('/yields/strategy')
+				: pathname === '/yields/strategyFR'
+				? !option.disabledOnPages.includes('/yields/strategyFR')
+				: pathname === '/yields'
+				? !option.disabledOnPages.includes('/yields')
+				: pathname === '/yields/stablecoins'
+				? !option.disabledOnPages.includes('/yields/stablecoins')
+				: pathname === '/yields/loop'
+				? !option.disabledOnPages.includes('/yields/loop')
+				: true
+		)
 
-	const values = attributeOptionsFiltered
-		.filter((o) => {
-			if (attribute) {
-				if (typeof attribute === 'string') {
-					return o.key === attribute
-				} else {
-					return attribute.includes(o.key)
+		const values = attributeOptionsFiltered
+			.filter((o) => {
+				if (attribute) {
+					if (typeof attribute === 'string') {
+						return o.key === attribute
+					} else {
+						return attribute.includes(o.key)
+					}
 				}
-			}
-		})
-		.map((o) => o.key)
+			})
+			.map((o) => o.key)
 
-	const updateAttributes = (newFilters) => {
+		const selectedAttributes = attributeOptionsFiltered
+			.filter((option) => option.defaultFilterFnOnPage[router.pathname])
+			.map((x) => x.name)
+			.concat(values)
+
+		return { attributeOptionsFiltered, values, selectedAttributes }
+	}, [router.query])
+
+	const setSelectedValues = (newFilters) => {
 		router.push(
 			{
 				pathname,
@@ -205,17 +204,7 @@ export function YieldAttributes({
 		)
 	}
 
-	const [isLarge, renderCallback] = useSetPopoverStyles()
-
-	const selectState = useSelectState({
-		value: values,
-		setValue: updateAttributes,
-		gutter: 8,
-		renderCallback,
-		animated: isLarge ? false : true
-	})
-
-	const toggleAllOptions = () => {
+	const toggleAll = () => {
 		router.push(
 			{
 				pathname,
@@ -229,7 +218,7 @@ export function YieldAttributes({
 		)
 	}
 
-	const clearAllOptions = () => {
+	const clearAll = () => {
 		router.push(
 			{
 				pathname,
@@ -243,71 +232,16 @@ export function YieldAttributes({
 		)
 	}
 
-	const selectedAttributes = attributeOptionsFiltered
-		.filter((option) => option.defaultFilterFnOnPage[router.pathname])
-		.map((x) => x.name)
-		.concat(values)
-
-	const isSelected = selectedAttributes.length > 0
-
-	let selectedAttributeNames = isSelected
-		? selectedAttributes.map(
-				(attribute) => attributeOptionsFiltered.find((p) => p.key === attribute)?.name ?? attribute
-		  )
-		: []
-
-	if (subMenu) {
-		return (
-			<SlidingMenu label="Attributes" selectState={selectState}>
-				<SelectContent
-					options={attributeOptionsFiltered}
-					selectedOptions={values}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					pathname={router.pathname}
-					variant={variant}
-				/>
-			</SlidingMenu>
-		)
-	}
-
 	return (
-		<>
-			<Select
-				state={selectState}
-				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap"
-			>
-				{isSelected ? (
-					<>
-						<span>Attribute: </span>
-						<span className="text-[var(--link)]">
-							{selectedAttributeNames.length > 2
-								? `${selectedAttributeNames[0]} + ${selectedAttributeNames.length - 1} others`
-								: selectedAttributeNames.join(', ')}
-						</span>
-					</>
-				) : (
-					<span>Attribute</span>
-				)}
-
-				<SelectArrow />
-			</Select>
-
-			{selectState.mounted ? (
-				<SelectPopover
-					state={selectState}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
-				>
-					<SelectContent
-						options={attributeOptionsFiltered}
-						selectedOptions={values}
-						clearAllOptions={clearAllOptions}
-						toggleAllOptions={toggleAllOptions}
-						pathname={router.pathname}
-						variant={variant}
-					/>
-				</SelectPopover>
-			) : null}
-		</>
+		<SelectWithCombobox
+			allValues={attributeOptionsFiltered}
+			selectedValues={selectedAttributes}
+			setSelectedValues={setSelectedValues}
+			toggleAll={toggleAll}
+			clearAll={clearAll}
+			selectOnlyOne={setSelectedValues}
+			label="Attributes"
+			nestedMenu={nestedMenu}
+		/>
 	)
 }

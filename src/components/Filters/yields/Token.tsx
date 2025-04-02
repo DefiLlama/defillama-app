@@ -1,33 +1,26 @@
 import { useRouter } from 'next/router'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
-interface IFiltersByCategoryProps {
-	categoryList: Array<string>
-	selectedCategories: Array<string>
+interface IFiltersByTokensProps {
+	tokensList: Array<string>
+	selectedTokens: Array<string>
 	pathname: string
+	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
-	smolLabel?: boolean
 }
 
-export function FiltersByCategory({
-	categoryList = [],
-	selectedCategories,
-	pathname,
-	nestedMenu,
-	smolLabel
-}: IFiltersByCategoryProps) {
+export function FilterByToken({ tokensList = [], selectedTokens, pathname, nestedMenu }: IFiltersByTokensProps) {
 	const router = useRouter()
 
-	const { category, chain, ...queries } = router.query
+	const { token, ...queries } = router.query
 
-	const addCategory = (newCategory) => {
+	const setSelectedValue = (newToken) => {
 		router.push(
 			{
 				pathname,
 				query: {
 					...queries,
-					...(!pathname.includes('/chains/') && chain ? { chain } : {}),
-					category: newCategory
+					token: newToken
 				}
 			},
 			undefined,
@@ -41,7 +34,7 @@ export function FiltersByCategory({
 				pathname,
 				query: {
 					...queries,
-					category: 'All'
+					token: 'All'
 				}
 			},
 			undefined,
@@ -54,8 +47,7 @@ export function FiltersByCategory({
 			{
 				pathname,
 				query: {
-					...queries,
-					category: 'None'
+					...queries
 				}
 			},
 			undefined,
@@ -69,7 +61,7 @@ export function FiltersByCategory({
 				pathname,
 				query: {
 					...queries,
-					category: option
+					token: option
 				}
 			},
 			undefined,
@@ -79,15 +71,14 @@ export function FiltersByCategory({
 
 	return (
 		<SelectWithCombobox
-			label="Category"
-			allValues={categoryList}
-			selectedValues={selectedCategories}
-			setSelectedValues={addCategory}
-			toggleAll={toggleAll}
+			label="Tokens"
+			allValues={tokensList}
 			clearAll={clearAll}
+			toggleAll={toggleAll}
 			selectOnlyOne={selectOnlyOne}
+			selectedValues={selectedTokens}
+			setSelectedValues={setSelectedValue}
 			nestedMenu={nestedMenu}
-			smolLabel={smolLabel}
 		/>
 	)
 }

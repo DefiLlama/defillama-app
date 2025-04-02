@@ -202,7 +202,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 						toggleAllOptions={toggleAllOptions}
 						selectedOptions={selectedOptions}
 						addOption={addOption}
-						subMenu={false}
+						nestedMenu={false}
 					/>
 				)}
 
@@ -211,7 +211,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 						categoryList={categories}
 						selectedCategories={selectedCategories}
 						pathname={router.basePath}
-						hideSelectedCount
+						smolLabel
 					/>
 				)}
 				{type === 'fees' ? <RowFilter selectedValue={period} setValue={setNewPeriod} values={PERIODS} /> : null}
