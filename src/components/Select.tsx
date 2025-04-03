@@ -14,7 +14,7 @@ interface ISelect {
 	selectOnlyOne?: (value: string) => void
 	nestedMenu?: boolean
 	labelType?: 'regular' | 'smol' | 'none'
-	className?: string
+	triggerProps?: Ariakit.SelectProps
 }
 
 export function Select({
@@ -27,7 +27,7 @@ export function Select({
 	selectOnlyOne,
 	nestedMenu,
 	labelType = 'regular',
-	className
+	triggerProps
 }: ISelect) {
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
@@ -97,7 +97,8 @@ export function Select({
 			}}
 		>
 			<Ariakit.Select
-				className={`bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap ${className}`}
+				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap"
+				{...triggerProps}
 			>
 				{labelType === 'smol' ? (
 					<span className="flex items-center gap-1">

@@ -17,7 +17,10 @@ export function TabletProtocolsFilters({ options }: IProps) {
 			selectedValues={selectedValues}
 			setSelectedValues={setSelectedValues}
 			label="Include in TVL"
-			className="2xl:hidden"
+			triggerProps={{
+				className:
+					'bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap -my-[10px] -mr-[2px] 2xl:hidden'
+			}}
 		/>
 	)
 }
@@ -31,7 +34,10 @@ export function TabletFeesFilters({ options }: IProps) {
 			selectedValues={selectedValues}
 			setSelectedValues={setSelectedValues}
 			label="Include in Fees"
-			className="2xl:hidden"
+			triggerProps={{
+				className:
+					'bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap -my-[10px] -mr-[2px] 2xl:hidden'
+			}}
 		/>
 	)
 }
@@ -45,7 +51,10 @@ export function TabletTvlAndFeesFilters({ options }: IProps) {
 			selectedValues={selectedValues}
 			setSelectedValues={setSelectedValues}
 			label="Include in Stats"
-			className="2xl:hidden"
+			triggerProps={{
+				className:
+					'bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap -my-[10px] -mr-[2px] 2xl:hidden'
+			}}
 		/>
 	)
 }
