@@ -23,8 +23,8 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	const [searchValue, setSearchValue] = React.useState('')
 
 	const matches = React.useMemo(() => {
-		if (skipSearching) return data
-		return matchSorter(data, searchValue, {
+		if (skipSearching) return data || []
+		return matchSorter(data || [], searchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name']
 		})
