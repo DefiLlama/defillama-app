@@ -1,5 +1,4 @@
-import { Tooltip, TooltipAnchor, useTooltipState } from 'ariakit'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
@@ -38,7 +37,6 @@ export function SubscribeHome() {
 
 	const hasGithubUsername = user?.github_username
 
-	const tooltip = useTooltipState({ timeout: 0 })
 	console.log(isSubscriptionFetching)
 
 	if (loaders.userLoading || loaders.userFetching || (isClient && (isSubscriptionFetching || !subscription))) {

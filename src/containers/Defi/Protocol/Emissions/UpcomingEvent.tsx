@@ -1,9 +1,9 @@
-import { Hovercard, HovercardAnchor, HovercardDisclosure, useHovercardState } from 'ariakit/hovercard'
 import dayjs from 'dayjs'
 import { sum } from 'lodash'
 import { useEffect, useState } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
+import * as Ariakit from '@ariakit/react'
 
 export const UpcomingEvent = ({
 	noOfTokens = [],
@@ -50,8 +50,6 @@ export const UpcomingEvent = ({
 		return () => clearInterval(id)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
-
-	const hovercard = useHovercardState({ gutter: 8, timeout: 0 })
 
 	if (isProtocolPage) {
 		return (
@@ -125,9 +123,8 @@ export const UpcomingEvent = ({
 	}
 
 	return (
-		<>
-			<HovercardAnchor
-				state={hovercard}
+		<Ariakit.HovercardProvider timeout={0}>
+			<Ariakit.HovercardAnchor
 				className={'bg-[var(--bg1)] dark:bg-[#121316] p-2 rounded-md flex items-center justify-between'}
 			>
 				<span className="flex flex-col px-2">
@@ -166,47 +163,45 @@ export const UpcomingEvent = ({
 						</span>
 					)}
 				</span>
-			</HovercardAnchor>
-			<HovercardDisclosure state={hovercard} />
-			{hovercard.mounted ? (
-				<Hovercard
-					state={hovercard}
-					className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
-				>
-					<span className="flex items-center justify-between">
-						<span className="flex items-center gap-2">
-							<TokenLogo logo={tokenIconUrl(name)} size={30} />
-							{tokenSymbol}
-						</span>
-						<span>{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
+			</Ariakit.HovercardAnchor>
+			<Ariakit.HovercardDisclosure />
+			<Ariakit.Hovercard
+				className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
+				unmountOnHide
+			>
+				<span className="flex items-center justify-between">
+					<span className="flex items-center gap-2">
+						<TokenLogo logo={tokenIconUrl(name)} size={30} />
+						{tokenSymbol}
 					</span>
-					<hr className="border-[var(--bg4)]" />
-					<span className="flex flex-col gap-4">
-						{currentUnlockBreakdown.map(({ name, amount }) => {
-							const percentage = (amount / maxSupply) * 100
-							const percentageFloat = tokenValue && mcap ? (amount / mcap) * 100 : null
-							const usdValue = price ? amount * price : null
-							return (
-								<span className="flex flex-col gap-1" key={name + amount}>
-									<span className="flex items-center justify-between gap-2">
-										<span>{name}</span>
-										<span>{usdValue ? formattedNum(usdValue, true) : '-'}</span>
+					<span>{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
+				</span>
+				<hr className="border-[var(--bg4)]" />
+				<span className="flex flex-col gap-4">
+					{currentUnlockBreakdown.map(({ name, amount }) => {
+						const percentage = (amount / maxSupply) * 100
+						const percentageFloat = tokenValue && mcap ? (amount / mcap) * 100 : null
+						const usdValue = price ? amount * price : null
+						return (
+							<span className="flex flex-col gap-1" key={name + amount}>
+								<span className="flex items-center justify-between gap-2">
+									<span>{name}</span>
+									<span>{usdValue ? formattedNum(usdValue, true) : '-'}</span>
+								</span>
+								<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
+									<span>
+										{formattedNum(percentage)}%{' '}
+										{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
 									</span>
-									<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
-										<span>
-											{formattedNum(percentage)}%{' '}
-											{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
-										</span>
-										<span>
-											{formattedNum(amount)} {tokenSymbol}
-										</span>
+									<span>
+										{formattedNum(amount)} {tokenSymbol}
 									</span>
 								</span>
-							)
-						})}
-					</span>
-				</Hovercard>
-			) : null}
-		</>
+							</span>
+						)
+					})}
+				</span>
+			</Ariakit.Hovercard>
+		</Ariakit.HovercardProvider>
 	)
 }

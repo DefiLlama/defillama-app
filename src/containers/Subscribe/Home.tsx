@@ -1,8 +1,7 @@
-import { Tooltip, TooltipAnchor, useTooltipState } from 'ariakit'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useGithubAuth, useIsSubscribed } from '~/containers/Subscribe/queries'
-import { GithubApiKey, SignInWithGithub } from './Github'
+import { GithubApiKey } from './Github'
 import { ProApiKey, PayWithCrypto } from './Crypto'
 import { SignIn } from './SignIn'
 
@@ -27,8 +26,6 @@ export function SubscribeHome() {
 			ref?.removeEventListener('scrollend', onScroll)
 		}
 	}, [])
-
-	const tooltip = useTooltipState({ timeout: 0 })
 
 	return (
 		<>

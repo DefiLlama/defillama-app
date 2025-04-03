@@ -1,5 +1,4 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
-import { Checkbox } from 'ariakit'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
@@ -559,7 +558,8 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		cell: ({ row }) => {
 			return (
 				<div style={{ display: 'flex', justifyContent: 'center' }}>
-					<Checkbox
+					<input
+						type="checkbox"
 						onChange={() => row.original?.compare?.(row.original.name)}
 						checked={row.original?.isCompared}
 						id={`compare-${row.original.name}`}

@@ -1,5 +1,5 @@
 import { Icon } from '~/components/Icon'
-import { Tooltip, TooltipAnchor, useTooltipState } from 'ariakit'
+import * as Ariakit from '@ariakit/react'
 import toast from 'react-hot-toast'
 import { Subscription } from '~/hooks/useSubscribe'
 
@@ -24,7 +24,6 @@ export const SubscriberContent = ({
 	createPortalSession,
 	isPortalSessionLoading
 }: SubscriberContentProps) => {
-	const tooltip = useTooltipState({ timeout: 0 })
 	const isContributor = subscription?.type === 'contributor'
 	const creditsLimit = isContributor ? 200_000 : 1_000_000
 
@@ -137,15 +136,14 @@ export const SubscriberContent = ({
 											<div className="flex items-center gap-1.5">
 												<Icon name="pie-chart" height={14} width={14} className="text-[#5C5CF9]" />
 												<span className="text-sm">API Calls</span>
-												<TooltipAnchor state={tooltip}>
-													<Icon name="circle-help" height={12} width={12} className="text-[#8a8c90]" />
-													<Tooltip
-														state={tooltip}
-														className="bg-black border border-[#39393E] rounded-lg p-3 max-w-xs text-xs shadow-xl"
-													>
+												<Ariakit.TooltipProvider timeout={0}>
+													<Ariakit.TooltipAnchor>
+														<Icon name="circle-help" height={12} width={12} className="text-[#8a8c90]" />
+													</Ariakit.TooltipAnchor>
+													<Ariakit.Tooltip className="bg-black border border-[#39393E] rounded-lg p-3 max-w-xs text-xs shadow-xl">
 														Number of API calls remaining in the current billing cycle.
-													</Tooltip>
-												</TooltipAnchor>
+													</Ariakit.Tooltip>
+												</Ariakit.TooltipProvider>
 											</div>
 											<div className="flex items-baseline gap-1">
 												{isCreditsLoading ? (

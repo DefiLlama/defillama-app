@@ -9,11 +9,11 @@ import { FilterByChain } from '~/components/Filters/common/FilterByChain'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { download, getPercentChange } from '~/utils'
 import { ButtonLight } from '~/components/ButtonStyled'
-import { useDialogState, Dialog } from 'ariakit/dialog'
 import { useMutation } from '@tanstack/react-query'
 import { airdropsEligibilityCheck } from './airdrops'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import * as Ariakit from '@ariakit/react'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -168,8 +168,6 @@ export function RecentProtocols({
 
 	const { pathname } = useRouter()
 
-	const airdropCheckerDialog = useDialogState()
-
 	const {
 		data: eligibleAirdrops,
 		mutate: checkEligibleAirdrops,
@@ -177,6 +175,8 @@ export function RecentProtocols({
 		error: errorFetchingEligibleAirdrops,
 		reset: resetEligibilityCheck
 	} = useMutation({ mutationFn: airdropsEligibilityCheck })
+
+	const airdropCheckerDialog = Ariakit.useDialogStore()
 
 	return (
 		<Layout title={title} defaultSEO>
@@ -206,135 +206,134 @@ export function RecentProtocols({
 					>
 						Check airdrops for address
 					</ButtonLight>
-					{airdropCheckerDialog.mounted ? (
-						<Dialog state={airdropCheckerDialog} className="dialog">
-							<button
-								onClick={() => {
-									resetEligibilityCheck()
-									airdropCheckerDialog.toggle()
-								}}
-								className="-mb-6 ml-auto"
-							>
-								<Icon name="x" height={20} width={20} />
-							</button>
-							{eligibleAirdrops ? (
-								eligibleAirdrops.length === 0 ? (
-									<p className="text-red-500 text-center">No airdrops detected for this address</p>
-								) : (
-									<div className="isolate relative w-full overflow-auto">
-										{eligibleAirdrops.map((address) => (
-											<table key={`airdrop of ${address[0]}`} className="border-collapse w-full mt-4 first:mt-0">
-												<thead>
+
+					<Ariakit.Dialog store={airdropCheckerDialog} className="dialog">
+						<button
+							onClick={() => {
+								resetEligibilityCheck()
+								airdropCheckerDialog.toggle()
+							}}
+							className="-mb-6 ml-auto"
+						>
+							<Icon name="x" height={20} width={20} />
+						</button>
+						{eligibleAirdrops ? (
+							eligibleAirdrops.length === 0 ? (
+								<p className="text-red-500 text-center">No airdrops detected for this address</p>
+							) : (
+								<div className="isolate relative w-full overflow-auto">
+									{eligibleAirdrops.map((address) => (
+										<table key={`airdrop of ${address[0]}`} className="border-collapse w-full mt-4 first:mt-0">
+											<thead>
+												<tr>
+													<th
+														colSpan={2}
+														className="p-2 font-semibold text-center whitespace-nowrap border border-black/10 dark:border-white/10"
+													>
+														{address[0]}
+													</th>
+												</tr>
+												<tr>
+													<th className="p-2 font-semibold text-center whitespace-nowrap border border-black/10 dark:border-white/10">
+														Protocol Name
+													</th>
+													<th className="p-2 font-semibold text-center whitespace-nowrap border border-black/10 dark:border-white/10">
+														Token Amount
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												{address[1].length === 0 ? (
 													<tr>
-														<th
+														<td
 															colSpan={2}
-															className="p-2 font-semibold text-center whitespace-nowrap border border-black/10 dark:border-white/10"
+															className="p-2 font-normal text-center whitespace-nowrap border border-black/10 dark:border-white/10"
 														>
-															{address[0]}
-														</th>
+															<p className="text-red-500 text-center">No airdrops detected for this address</p>
+														</td>
 													</tr>
-													<tr>
-														<th className="p-2 font-semibold text-center whitespace-nowrap border border-black/10 dark:border-white/10">
-															Protocol Name
-														</th>
-														<th className="p-2 font-semibold text-center whitespace-nowrap border border-black/10 dark:border-white/10">
-															Token Amount
-														</th>
-													</tr>
-												</thead>
-												<tbody>
-													{address[1].length === 0 ? (
-														<tr>
-															<td
-																colSpan={2}
-																className="p-2 font-normal text-center whitespace-nowrap border border-black/10 dark:border-white/10"
-															>
-																<p className="text-red-500 text-center">No airdrops detected for this address</p>
+												) : (
+													address[1].map((airdrop) => (
+														<tr key={`${airdrop.name}:${airdrop.claimableAmount}`}>
+															<th className="p-2 font-normal text-center whitespace-nowrap border border-black/10 dark:border-white/10">
+																{airdrop.name}
+															</th>
+															<td className="p-2 font-normal text-center whitespace-nowrap border border-black/10 dark:border-white/10">
+																{airdrop.isActive ? (
+																	<span className="flex items-center justify-center gap-2">
+																		<span>{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`}</span>
+																		{airdrop.page ? (
+																			<ButtonLight
+																				as="a"
+																				href={airdrop.page}
+																				target="_blank"
+																				rel="noreferrer noopener"
+																				key={`can-claim-${airdrop.name}`}
+																				className="flex items-center justify-center"
+																				color="#008000"
+																				style={{ padding: '2px 6px', fontSize: '12px', '--btn2-text': '#00ab00' }}
+																			>
+																				<span>Claim</span>
+																				<Icon name="arrow-up-right" height={14} width={14} />
+																			</ButtonLight>
+																		) : null}
+																	</span>
+																) : (
+																	<span className="opacity-70">
+																		{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`} - Claim Ended
+																	</span>
+																)}
 															</td>
 														</tr>
-													) : (
-														address[1].map((airdrop) => (
-															<tr key={`${airdrop.name}:${airdrop.claimableAmount}`}>
-																<th className="p-2 font-normal text-center whitespace-nowrap border border-black/10 dark:border-white/10">
-																	{airdrop.name}
-																</th>
-																<td className="p-2 font-normal text-center whitespace-nowrap border border-black/10 dark:border-white/10">
-																	{airdrop.isActive ? (
-																		<span className="flex items-center justify-center gap-2">
-																			<span>{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`}</span>
-																			{airdrop.page ? (
-																				<ButtonLight
-																					as="a"
-																					href={airdrop.page}
-																					target="_blank"
-																					rel="noreferrer noopener"
-																					key={`can-claim-${airdrop.name}`}
-																					className="flex items-center justify-center"
-																					color="#008000"
-																					style={{ padding: '2px 6px', fontSize: '12px', '--btn2-text': '#00ab00' }}
-																				>
-																					<span>Claim</span>
-																					<Icon name="arrow-up-right" height={14} width={14} />
-																				</ButtonLight>
-																			) : null}
-																		</span>
-																	) : (
-																		<span className="opacity-70">
-																			{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`} - Claim Ended
-																		</span>
-																	)}
-																</td>
-															</tr>
-														))
-													)}
-												</tbody>
-											</table>
-										))}
-									</div>
-								)
-							) : (
-								<form
-									onSubmit={(e) => {
-										e.preventDefault()
-										const form = e.target as HTMLFormElement
-										checkEligibleAirdrops({
-											addresses: form.address.value
-												.split('\n')
-												.join(',')
-												.split(',')
-												.map((x) => x.trim())
-												.filter((x) => x.length > 0)
-										})
-									}}
-									className="flex flex-col gap-2 p-3 sm:p-0"
-								>
-									<label className="flex flex-col gap-1">
-										<span>Provide EVM / SOL address(s) to check airdrops for:</span>
-										<textarea
-											name="address"
-											required
-											disabled={fetchingEligibleAirdrops}
-											placeholder="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045, 0x71a15Ac12ee91BF7c83D08506f3a3588143898B5"
-											className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
-										/>
-									</label>
-
-									<button
-										name="submit-btn"
+													))
+												)}
+											</tbody>
+										</table>
+									))}
+								</div>
+							)
+						) : (
+							<form
+								onSubmit={(e) => {
+									e.preventDefault()
+									const form = e.target as HTMLFormElement
+									checkEligibleAirdrops({
+										addresses: form.address.value
+											.split('\n')
+											.join(',')
+											.split(',')
+											.map((x) => x.trim())
+											.filter((x) => x.length > 0)
+									})
+								}}
+								className="flex flex-col gap-2 p-3 sm:p-0"
+							>
+								<label className="flex flex-col gap-1">
+									<span>Provide EVM / SOL address(s) to check airdrops for:</span>
+									<textarea
+										name="address"
+										required
 										disabled={fetchingEligibleAirdrops}
-										className="p-3 mt-3 bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
-									>
-										{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
-									</button>
-									{errorFetchingEligibleAirdrops ? (
-										<p className="text-red-500 text-center">
-											{(errorFetchingEligibleAirdrops as any)?.message ?? 'Failed to fetch'}
-										</p>
-									) : null}
-								</form>
-							)}
-						</Dialog>
-					) : null}
+										placeholder="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045, 0x71a15Ac12ee91BF7c83D08506f3a3588143898B5"
+										className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
+									/>
+								</label>
+
+								<button
+									name="submit-btn"
+									disabled={fetchingEligibleAirdrops}
+									className="p-3 mt-3 bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+								>
+									{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
+								</button>
+								{errorFetchingEligibleAirdrops ? (
+									<p className="text-red-500 text-center">
+										{(errorFetchingEligibleAirdrops as any)?.message ?? 'Failed to fetch'}
+									</p>
+								) : null}
+							</form>
+						)}
+					</Ariakit.Dialog>
 				</span>
 			) : null}
 
