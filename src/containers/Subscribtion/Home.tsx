@@ -19,7 +19,7 @@ export function SubscribeHome() {
 	}, [])
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
-	const [activePriceCard, setActivePriceCard] = useState(1)
+	const [activePriceCard, setActivePriceCard] = useState(2)
 
 	useEffect(() => {
 		const ref = pricingContainer.current
@@ -31,15 +31,14 @@ export function SubscribeHome() {
 
 		ref?.addEventListener('scrollend', onScroll)
 
+		if (ref && window.innerWidth < 768) {
+			ref.scrollTo({ left: ref.clientWidth, behavior: 'smooth' })
+		}
+
 		return () => {
 			ref?.removeEventListener('scrollend', onScroll)
 		}
 	}, [])
-
-	const hasGithubUsername = user?.github_username
-
-	const tooltip = useTooltipState({ timeout: 0 })
-	console.log(isSubscriptionFetching)
 
 	if (loaders.userLoading || loaders.userFetching || (isClient && (isSubscriptionFetching || !subscription))) {
 		return (
@@ -93,10 +92,10 @@ export function SubscribeHome() {
 				) : (
 					<div className="relative">
 						<div
-							className="pricing-container flex flex-row relative z-10 overflow-x-auto sm:overflow-hidden scroll-smooth snap-x snap-mandatory max-lg:-mx-2 gap-4 py-4 justify-center"
+							className="pricing-container flex flex-row relative z-10 overflow-x-auto sm:overflow-hidden scroll-smooth snap-x snap-mandatory max-md:-mx-2 gap-4 py-4 justify-center"
 							ref={pricingContainer}
 						>
-							<div className="price-card py-8 px-5 lg:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:transform hover:scale-[1.02] bg-gradient-to-br from-[#222429] to-[#222429] rounded-xl border border-[#39393E] shadow-md relative overflow-hidden">
+							<div className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:transform hover:scale-[1.02] bg-gradient-to-br from-[#222429] to-[#222429] rounded-xl border border-[#39393E] shadow-md relative overflow-hidden">
 								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent opacity-30"></div>
 								<div className="absolute top-[-50px] right-[-50px] w-[100px] h-[100px] rounded-full bg-gray-500 opacity-5 blur-3xl"></div>
 								<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center">Open</h2>
@@ -143,7 +142,7 @@ export function SubscribeHome() {
 									</li>
 								</ul>
 							</div>
-							<div className="price-card py-8 px-5 lg:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 relative transition-all duration-300 hover:transform hover:scale-[1.02] bg-[#22242930] backdrop-blur-md rounded-xl border border-[#5c5cf950] shadow-md overflow-hidden">
+							<div className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 relative transition-all duration-300 hover:transform hover:scale-[1.02] bg-[#22242930] backdrop-blur-md rounded-xl border border-[#5c5cf950] shadow-md overflow-hidden">
 								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#5c5cf9] to-transparent opacity-30"></div>
 								<div className="absolute top-[-50px] right-[-50px] w-[100px] h-[100px] rounded-full bg-[#5c5cf9] opacity-10 blur-3xl"></div>
 
@@ -324,7 +323,7 @@ export function SubscribeHome() {
 						</div>
 					</div>
 				)}
-				<div className="flex items-center justify-center flex-nowrap gap-2 lg:hidden mb-3">
+				<div className="flex items-center justify-center flex-nowrap gap-2 md:hidden mb-3">
 					<button
 						className="h-3 w-3 bg-[#39393E] data-[active=true]:bg-[#5c5cf9] rounded-full flex-shrink-0"
 						data-active={activePriceCard === 1}
@@ -350,19 +349,6 @@ export function SubscribeHome() {
 						}}
 					>
 						<span className="sr-only">go to pricing type 2</span>
-					</button>
-					<button
-						className="h-3 w-3 bg-[#39393E] data-[active=true]:bg-[#5c5cf9] rounded-full flex-shrink-0"
-						data-active={activePriceCard === 3}
-						onClick={() => {
-							const container = pricingContainer.current
-							if (container) {
-								container.scrollTo({ left: container.clientWidth * 2, behavior: 'smooth' })
-								setActivePriceCard(3)
-							}
-						}}
-					>
-						<span className="sr-only">go to pricing type 3</span>
 					</button>
 				</div>
 			</div>

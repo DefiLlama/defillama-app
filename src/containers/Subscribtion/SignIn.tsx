@@ -80,12 +80,15 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 	const handleWalletSignIn = async () => {
 		if (address) {
 			try {
-				await signInWithEthereum(address, () => dialogState.hide())
+				await signInWithEthereum(address)
 			} catch (error) {
 				console.error('Error signing in with wallet:', error)
 			}
 		} else {
 			openConnectModal?.()
+			setTimeout(() => {
+				dialogState.show()
+			}, 100)
 		}
 	}
 
@@ -141,27 +144,27 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 					</button>
 				</div>
 
-				<div className="flex gap-3 w-full">
+				<div className="flex flex-col gap-3 w-full">
 					<button
-						className="flex-1 py-3 rounded-lg bg-gradient-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white relative disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 font-medium"
+						className="w-full py-3 rounded-lg bg-gradient-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white relative disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 font-medium"
 						onClick={handleWalletSignIn}
 						disabled={loaders.signInWithEthereum}
 					>
 						<Icon name="wallet" height={18} width={18} />
-						{loaders.signInWithEthereum ? 'Connecting...' : 'Wallet'}
+						{loaders.signInWithEthereum ? 'Connecting...' : 'Sign in with Wallet'}
 					</button>
 
 					<button
-						className="flex-1 py-3 rounded-lg bg-[#222429] hover:bg-[#2a2b30] text-white relative disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 transition-all duration-200 border border-[#39393E] font-medium"
+						className="w-full py-3 rounded-lg bg-[#222429] hover:bg-[#2a2b30] text-white relative disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 transition-all duration-200 border border-[#39393E] font-medium"
 						onClick={() => signInWithGithub(() => dialogState.hide())}
 						disabled={loaders.signInWithGithub}
 					>
 						<Icon name="github" height={18} width={18} />
-						{loaders.signInWithGithub ? 'Connecting...' : 'GitHub'}
+						{loaders.signInWithGithub ? 'Connecting...' : 'Sign in with GitHub'}
 					</button>
 				</div>
 
-				<div className="relative flex items-center my-5">
+				<div className="relative flex items-center my-2">
 					<div className="flex-grow border-t border-[#39393E]"></div>
 					<span className="flex-shrink mx-4 text-sm text-[#9a9da1]">or continue with email</span>
 					<div className="flex-grow border-t border-[#39393E]"></div>
