@@ -279,7 +279,7 @@ export default function AreaChart({
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
 
 	return (
-		<div className="relative aria-[haspopup=listbox]:*:ml-auto aria-[haspopup=listbox]:*:mr-4" {...props}>
+		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-4" {...props}>
 			{customLegendName && customLegendOptions?.length > 1 && (
 				<SelectWithCombobox
 					allValues={customLegendOptions}

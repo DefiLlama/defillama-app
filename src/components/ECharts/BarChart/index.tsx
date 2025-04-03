@@ -185,7 +185,7 @@ export default function BarChart({
 	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions])
 
 	return (
-		<div className="relative aria-[haspopup=listbox]:*:ml-auto aria-[haspopup=listbox]:*:mr-4">
+		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-4">
 			{customLegendName && customLegendOptions?.length > 1 && (
 				<SelectWithCombobox
 					allValues={customLegendOptions}
