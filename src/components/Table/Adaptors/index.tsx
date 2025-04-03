@@ -15,11 +15,11 @@ import { VirtualTable } from '~/components/Table/Table'
 import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from './columns'
 import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
-import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
 import { RowFilter } from '~/components/Filters/common/RowFilter'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 export const PERIODS = ['24h', '7d', '30d', '1y']
 const columnSizesKeys = Object.keys(volumesColumnSizes)
@@ -195,14 +195,15 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 					/>
 				</div>
 				{isSimpleFees ? null : (
-					<ColumnFilters2
-						label={'Columns'}
-						options={columnsOptions(type, allChains)}
-						clearAllOptions={clearAllOptions}
-						toggleAllOptions={toggleAllOptions}
-						selectedOptions={selectedOptions}
-						addOption={addOption}
+					<SelectWithCombobox
+						allValues={columnsOptions(type, allChains)}
+						selectedValues={selectedOptions}
+						setSelectedValues={addOption}
+						toggleAll={toggleAllOptions}
+						clearAll={clearAllOptions}
 						nestedMenu={false}
+						label={'Columns'}
+						smolLabel
 					/>
 				)}
 

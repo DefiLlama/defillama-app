@@ -14,10 +14,10 @@ import { VirtualTable } from '~/components/Table/Table'
 import { chainsColumn, chainsTableColumnOrders } from './columns'
 import type { IChainsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
-import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
 import { DEFI_CHAINS_SETTINGS, useDefiChainsManager } from '~/contexts/LocalStorage'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { Icon } from '~/components/Icon'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 export function DefiProtocolsTable({ data, columns }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
@@ -168,23 +168,25 @@ export function DefiChainsTable({ data }) {
 						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
-				<ColumnFilters2
+				<SelectWithCombobox
+					allValues={DEFI_CHAINS_SETTINGS}
+					selectedValues={selectedAggregateTypes}
+					setSelectedValues={addAggrOption}
+					toggleAll={toggleAllAggrOptions}
+					clearAll={clearAllAggrOptions}
+					nestedMenu={false}
 					label={'Group Chains'}
-					options={DEFI_CHAINS_SETTINGS}
-					clearAllOptions={clearAllAggrOptions}
-					toggleAllOptions={toggleAllAggrOptions}
-					selectedOptions={selectedAggregateTypes}
-					addOption={addAggrOption}
-					nestedMenu={false}
+					smolLabel
 				/>
-				<ColumnFilters2
-					label={'Columns'}
-					options={chainsOverviewTableColumns}
-					clearAllOptions={clearAllColumns}
-					toggleAllOptions={toggleAllColumns}
-					selectedOptions={selectedColumns}
-					addOption={addColumn}
+				<SelectWithCombobox
+					allValues={chainsOverviewTableColumns}
+					selectedValues={selectedColumns}
+					setSelectedValues={addColumn}
+					toggleAll={toggleAllColumns}
+					clearAll={clearAllColumns}
 					nestedMenu={false}
+					label={'Columns'}
+					smolLabel
 				/>
 
 				<TVLRange variant="secondary" />

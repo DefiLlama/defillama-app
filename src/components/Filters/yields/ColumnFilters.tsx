@@ -112,26 +112,3 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		/>
 	)
 }
-
-export function ColumnFilters2({
-	label,
-	nestedMenu,
-	clearAllOptions,
-	toggleAllOptions,
-	selectedOptions,
-	options,
-	addOption
-}) {
-	return (
-		<SelectWithCombobox
-			allValues={options}
-			selectedValues={selectedOptions}
-			setSelectedValues={addOption}
-			toggleAll={toggleAllOptions}
-			clearAll={clearAllOptions}
-			nestedMenu={nestedMenu}
-			label={label}
-			smolLabel
-		/>
-	)
-}
