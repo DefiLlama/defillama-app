@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
-import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { ChartSelector } from '~/containers/PeggedPage/.'
 import { stablecoinAttributeOptions } from '~/components/Filters/stablecoins/Attribute'

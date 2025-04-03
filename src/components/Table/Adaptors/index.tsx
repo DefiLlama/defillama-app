@@ -16,7 +16,7 @@ import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from
 import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
-import { RowFilter } from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/RowFilter'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'

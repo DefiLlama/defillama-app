@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table'
 import { protocolsByChainColumns } from './columns'
 import { IProtocolRow } from './types'
-import { RowFilter } from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/RowFilter'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'

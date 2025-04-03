@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'

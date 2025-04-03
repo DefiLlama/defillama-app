@@ -28,7 +28,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
-import { RowFilter } from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/RowFilter'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 

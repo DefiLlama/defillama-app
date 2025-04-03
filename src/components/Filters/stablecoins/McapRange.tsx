@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange } from '~/components/Filters/common/FilterBetweenRange'
+import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function McapRange({ nestedMenu }: { nestedMenu?: boolean }) {
 	const router = useRouter()

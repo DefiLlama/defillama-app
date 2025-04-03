@@ -5,7 +5,6 @@ import { RecentlyListedProtocolsTable } from '~/components/Table/Defi/Protocols'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { HideForkedProtocols } from '~/components/Filters/protocols/HideForkedProtocols'
-import { FilterByChain } from '~/components/Filters/common/FilterByChain'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { download, getPercentChange } from '~/utils'
 import { ButtonLight } from '~/components/ButtonStyled'
@@ -14,6 +13,7 @@ import { airdropsEligibilityCheck } from './airdrops'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -44,8 +44,8 @@ export function RecentProtocols({
 	forkedList,
 	claimableAirdrops
 }: IRecentProtocolProps) {
-	const { query } = useRouter()
-	const { chain, hideForks, minTvl, maxTvl } = query
+	const router = useRouter()
+	const { chain, hideForks, minTvl, maxTvl, ...queries } = router.query
 
 	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
 
@@ -166,7 +166,61 @@ export function RecentProtocols({
 		)
 	}
 
-	const { pathname } = useRouter()
+	const selectChain = (newChain) => {
+		router.push(
+			{
+				pathname: router.pathname,
+				query: {
+					...queries,
+					chain: newChain
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const clearAllChains = () => {
+		router.push(
+			{
+				pathname: router.pathname,
+				query: {
+					...queries,
+					chain: 'None'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const toggleAllChains = () => {
+		router.push(
+			{
+				pathname: router.pathname,
+				query: {
+					...queries,
+					chain: 'All'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const selectOnlyOneChain = (option: string) => {
+		router.push(
+			{
+				pathname: router.pathname,
+				query: {
+					...queries,
+					chain: option
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
 
 	const {
 		data: eligibleAirdrops,
@@ -340,7 +394,20 @@ export function RecentProtocols({
 			<div className="flex items-center flex-wrap gap-2 -mb-5">
 				<h1 className="text-2xl font-medium mr-auto">{header}</h1>
 
-				<FilterByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+				<SelectWithCombobox
+					label="Chains"
+					allValues={chainList}
+					clearAll={clearAllChains}
+					toggleAll={toggleAllChains}
+					selectOnlyOne={selectOnlyOneChain}
+					selectedValues={selectedChains}
+					setSelectedValues={selectChain}
+					smolLabel
+					triggerProps={{
+						className:
+							'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'
+					}}
+				/>
 				<TVLRange />
 				<CSVDownloadButton onClick={downloadCSV} isLight style={{ color: 'inherit', fontWeight: 'normal' }} />
 

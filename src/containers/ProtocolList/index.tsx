@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'

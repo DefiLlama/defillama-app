@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange } from '~/components/Filters/common/FilterBetweenRange'
+import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 interface IAPYRange {
 	nestedMenu?: boolean

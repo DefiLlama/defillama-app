@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { OverviewTable } from '~/components/Table/Adaptors'
-import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import {
 	groupProtocolsByParent,
