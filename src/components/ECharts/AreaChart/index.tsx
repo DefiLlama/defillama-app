@@ -276,7 +276,7 @@ export default function AreaChart({
 		}
 	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, hideLegend])
 
-	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
+	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
 	return (
 		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-4" {...props}>

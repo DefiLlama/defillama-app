@@ -144,7 +144,7 @@ export default function CompareProtocolsTvls({
 		<Layout title={`Compare Protocols TVLs - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
 
-			<div className="relative flex flex-col">
+			<div className="relative flex flex-col min-h-screen">
 				<SelectWithCombobox
 					allValues={protocols}
 					selectedValues={selectedProtocols ?? []}
@@ -153,6 +153,10 @@ export default function CompareProtocolsTvls({
 					clearAll={() => setSelectedProtocols([])}
 					toggleAll={() => setSelectedProtocols(protocols)}
 					smolLabel
+					triggerProps={{
+						className:
+							'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative max-w-fit'
+					}}
 				/>
 				<div className="relative col-span-2 p-4 shadow rounded-xl">
 					<AreaChart
