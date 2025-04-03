@@ -5,7 +5,7 @@ import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDr
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/types'
 import { BridgesSearchWithBreakdown } from '~/components/Search/Bridges'
-import { ChartSelector } from '~/containers/BridgesPage'
+import { ChartSelector } from '~/containers/BridgesPage/ChartSelector'
 import { BridgesTable } from '~/components/Table/Bridges'
 import { LargeTxsTable } from './LargeTxsTable'
 import { TxsTableSwitch } from '~/containers/BridgesPage/TableSwitch'
@@ -152,54 +152,37 @@ function BridgesOverview({
 			fileName = 'bridge-volume-data.csv'
 			// For volume chart
 			rows = [['Timestamp', 'Date', 'Volume']]
-			chainVolumeData.forEach(entry => {
-				rows.push([
-					entry.date,
-					toNiceCsvDate(entry.date),
-					entry.volume
-				])
+			chainVolumeData.forEach((entry) => {
+				rows.push([entry.date, toNiceCsvDate(entry.date), entry.volume])
 			})
 		} else if (chartType === 'Bridge Volume') {
 			fileName = `${selectedChain}-bridge-volume.csv`
 			rows = [['Timestamp', 'Date', 'Volume']]
-			chainVolumeData.forEach(entry => {
-				rows.push([
-					entry.date,
-					toNiceCsvDate(entry.date),
-					entry.volume
-				])
+			chainVolumeData.forEach((entry) => {
+				rows.push([entry.date, toNiceCsvDate(entry.date), entry.volume])
 			})
 		} else if (chartType === 'Net Flow') {
 			fileName = `${selectedChain}-netflow.csv`
 			rows = [['Timestamp', 'Date', 'Net Flow']]
-			chainNetFlowData.forEach(entry => {
-				rows.push([
-					entry.date,
-					toNiceCsvDate(entry.date),
-					entry['Net Flow']
-				])
+			chainNetFlowData.forEach((entry) => {
+				rows.push([entry.date, toNiceCsvDate(entry.date), entry['Net Flow']])
 			})
 		} else if (chartType === 'Net Flow (%)') {
 			fileName = `${selectedChain}-netflow-percentage.csv`
 			rows = [['Timestamp', 'Date', 'Inflows (%)', 'Outflows (%)']]
-			chainPercentageNet.forEach(entry => {
-				rows.push([
-					entry.date,
-					toNiceCsvDate(entry.date),
-					entry.Inflows,
-					entry.Outflows
-				])
+			chainPercentageNet.forEach((entry) => {
+				rows.push([entry.date, toNiceCsvDate(entry.date), entry.Inflows, entry.Outflows])
 			})
 		} else if (chartType === '24h Tokens Deposited') {
 			fileName = `${selectedChain}-tokens-deposited.csv`
 			rows = [['Token', 'Amount']]
-			tokenDeposits.forEach(entry => {
+			tokenDeposits.forEach((entry) => {
 				rows.push([entry.name, entry.value])
 			})
 		} else if (chartType === '24h Tokens Withdrawn') {
 			fileName = `${selectedChain}-tokens-withdrawn.csv`
 			rows = [['Token', 'Amount']]
-			tokenWithdrawals.forEach(entry => {
+			tokenWithdrawals.forEach((entry) => {
 				rows.push([entry.name, entry.value])
 			})
 		}

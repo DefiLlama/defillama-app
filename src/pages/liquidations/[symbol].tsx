@@ -114,7 +114,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 			</LiquidationsProvider>
 			<p className="flex items-center justify-end gap-1 flex-nowrap italic -mt-4 opacity-60">
 				<Icon name="clock" height={12} width={13} />
-				<span>Last updated {minutesAgo}min ago</span>
+				<span suppressHydrationWarning>Last updated {minutesAgo}min ago</span>
 			</p>
 			<TableSwitch />
 			{isLiqsShowingInspector && <PositionsTable data={data} prevData={prevData} />}

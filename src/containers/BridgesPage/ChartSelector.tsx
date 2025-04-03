@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Ariakit from '@ariakit/react'
 import { FormattedName } from '~/components/FormattedName'
+import * as Ariakit from '@ariakit/react'
 
 interface IProps {
 	options: string[]
@@ -15,10 +15,13 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 
 	return (
 		<Ariakit.SelectProvider value={selectedChart} setValue={onClick}>
-			<Ariakit.Select className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap max-w-fit">
+			<Ariakit.Select
+				className={`bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap`}
+			>
 				<FormattedName text={selectedChart} maxCharacters={20} fontSize={'16px'} fontWeight={600} />
 				<Ariakit.SelectArrow />
 			</Ariakit.Select>
+
 			<Ariakit.SelectPopover
 				unmountOnHide
 				hideOnInteractOutside

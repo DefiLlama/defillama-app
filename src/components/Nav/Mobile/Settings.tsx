@@ -1,4 +1,3 @@
-import { Select, SelectItem, SelectItemCheck, SelectPopover, useSelectState } from 'ariakit/select'
 import {
 	DARK_MODE,
 	useDarkModeManager,
@@ -11,7 +10,7 @@ import { nftOptions } from '~/components/Filters/nfts/options'
 import { useRouter } from 'next/router'
 import { feesOptions } from '~/components/Filters/protocols/options'
 import { Icon } from '~/components/Icon'
-import { useSetPopoverStyles } from '~/components/Popover/utils'
+import * as Ariakit from '@ariakit/react'
 
 export function Settings() {
 	const [darkMode] = useDarkModeManager()
@@ -34,40 +33,40 @@ export function Settings() {
 			updater(on)?.()
 		}
 	}
-	const [isLarge, renderCallback] = useSetPopoverStyles()
-
-	const select = useSelectState({
-		value: selectedOptions,
-		setValue: onChange,
-		renderCallback
-	})
 
 	return (
-		<>
-			<Select className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px]" state={select}>
+		<Ariakit.SelectProvider value={selectedOptions} setValue={onChange}>
+			<Ariakit.Select className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px]">
 				<span className="sr-only">Open Settings Menu</span>
 				<Icon name="settings" height={16} width={16} />
-			</Select>
-
-			<SelectPopover
-				state={select}
-				modal={!isLarge}
-				className="flex flex-col w-full max-w-[none] min-h-[30vh] max-h-[calc(100vh-200px)] text-sm font-medium bg-[var(--bg1)] rounded-t-md z-10 overflow-auto overscroll-contain sm:hidden"
+			</Ariakit.Select>
+			<Ariakit.SelectPopover
+				unmountOnHide
+				hideOnInteractOutside
+				gutter={6}
+				wrapperProps={{
+					className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+				}}
+				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 			>
 				<h1 className="text-[var(--text2)] my-2 mx-3">Settings</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				{options.map((option) => (
-					<SelectItem value={option.key} key={option.key} className="flex items-center justify-between gap-3 py-2 px-3">
+					<Ariakit.SelectItem
+						value={option.key}
+						key={option.key}
+						className="flex items-center justify-between gap-3 py-2 px-3"
+					>
 						{option.name}
-						<SelectItemCheck />
-					</SelectItem>
+						<Ariakit.SelectItemCheck />
+					</Ariakit.SelectItem>
 				))}
-				<SelectItem value={DARK_MODE} className="flex items-center justify-between gap-3 py-2 px-3">
+				<Ariakit.SelectItem value={DARK_MODE} className="flex items-center justify-between gap-3 py-2 px-3">
 					Dark Mode
-					<SelectItemCheck />
-				</SelectItem>
-			</SelectPopover>
-		</>
+					<Ariakit.SelectItemCheck />
+				</Ariakit.SelectItem>
+			</Ariakit.SelectPopover>
+		</Ariakit.SelectProvider>
 	)
 }
 
