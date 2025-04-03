@@ -1,5 +1,5 @@
 import { Tooltip, TooltipAnchor, useTooltipState } from 'ariakit'
-import { IGithubAuthData, useGetCreditsUsage, useGithubAuth } from './queries'
+import { IGithubAuthData, useGetCreditsUsage, useGithubAuth } from '../Subscribe/queries'
 import { Icon } from '~/components/Icon'
 import { GH_CLIENT_ID } from '../ProApi/lib/constants'
 
