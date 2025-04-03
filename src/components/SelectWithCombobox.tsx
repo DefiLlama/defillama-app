@@ -15,7 +15,7 @@ interface ISelectWithCombobox {
 	selectOnlyOne?: (value: string) => void
 	nestedMenu?: boolean
 	smolLabel?: boolean
-	triggerProps: Ariakit.SelectProps
+	triggerProps?: Ariakit.SelectProps
 }
 
 export function SelectWithCombobox({
