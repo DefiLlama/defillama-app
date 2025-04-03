@@ -65,7 +65,7 @@ export default function Protocols({ protocols }) {
 				>
 					{matches.length ? (
 						<>
-							{matches.slice(0, viewableMatches).map((option) => (
+							{matches.slice(0, viewableMatches + 1).map((option) => (
 								<Ariakit.ComboboxItem
 									key={option.name}
 									value={option.name}

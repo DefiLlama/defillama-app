@@ -10,7 +10,7 @@ export function RaisesFilters(props: IDropdownMenusProps) {
 	return (
 		<div className="flex flex-col gap-4 p-4 rounded-md bg-[var(--bg7)] shadow">
 			<h1>{props.header}</h1>
-			<RaisesSearch list={props.investors || []} />
+			<RaisesSearch list={props.investors} />
 
 			<div className="flex flex-wrap gap-2 only:*:flex-1">
 				{isSmall ? (

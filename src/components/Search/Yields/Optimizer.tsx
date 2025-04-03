@@ -1,52 +1,68 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Combobox, ComboboxItem, ComboboxPopover, ComboboxState, useComboboxState } from 'ariakit/combobox'
-import { findActiveItem } from '../Base/utils'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
+import { matchSorter } from 'match-sorter'
+import * as Ariakit from '@ariakit/react'
 
 export function YieldsSearch({ lend = false, searchData, value }) {
-	const combobox = useComboboxState({
-		gutter: 6,
-		sameWidth: true,
-		...(value && { defaultValue: value }),
-		list: Object.keys(searchData)
-	})
+	const [searchValue, setSearchValue] = React.useState('')
 
-	// select first item on open
-	const item = findActiveItem(combobox)
-	const firstId = combobox.first()
+	const matches = React.useMemo(() => {
+		return matchSorter(
+			Object.values(searchData) as Array<{ name: string; symbol: string; logo?: string; fallbackLogo?: string }>,
+			searchValue,
+			{
+				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+				keys: ['name', 'symbol']
+			}
+		)
+	}, [searchData, searchValue])
 
-	if (combobox.open && !item && firstId) {
-		combobox.setActiveId(firstId)
-	}
+	const [viewableMatches, setViewableMatches] = React.useState(20)
 
-	const [resultsLength, setResultsLength] = React.useState(10)
-
-	const showMoreResults = () => {
-		setResultsLength((prev) => prev + 10)
-	}
+	const [open, setOpen] = React.useState(false)
 
 	return (
 		<div className="relative flex flex-col rounded-md">
-			<Input state={combobox} placeholder={lend ? 'Collateral Token' : 'Token to Borrow'} withValue />
-			{combobox.mounted ? (
-				<ComboboxPopover
-					className="h-full max-h-[320px] overflow-y-auto bg-[var(--bg6)] rounded-b-md shadow z-10"
-					state={combobox}
+			<Ariakit.ComboboxProvider
+				defaultValue={value ?? ''}
+				setValue={(value) => {
+					React.startTransition(() => {
+						setSearchValue(value)
+					})
+				}}
+				open={open}
+				setOpen={setOpen}
+			>
+				<Input placeholder={lend ? 'Collateral Token' : 'Token to Borrow'} open={open} setOpen={setOpen} />
+				<Ariakit.ComboboxPopover
+					unmountOnHide
+					hideOnInteractOutside
+					gutter={6}
+					sameWidth
+					wrapperProps={{
+						className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+					}}
+					className="flex flex-col bg-[var(--bg1)] rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] max-sm:h-[70vh] sm:max-h-[60vh]"
 				>
-					{!combobox.mounted ? (
-						<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
-					) : combobox.matches.length ? (
+					<input
+						placeholder={lend ? 'Collateral Token' : 'Token to Borrow'}
+						onChange={(e) => {
+							setSearchValue?.(e.target.value)
+						}}
+						className="p-4 mb-4 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white border border-black/10 dark:border-white/10 sm:hidden"
+					/>
+					{matches.length ? (
 						<>
-							{combobox.matches.slice(0, resultsLength + 1).map((pool) => (
-								<Row key={pool} name={pool} data={searchData[pool]} state={combobox} lend={lend} />
+							{matches.slice(0, viewableMatches + 1).map((option) => (
+								<Row key={option.name} data={option} lend={lend} setOpen={setOpen} />
 							))}
 
-							{resultsLength < combobox.matches.length ? (
+							{matches.length > viewableMatches ? (
 								<button
 									className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
-									onClick={showMoreResults}
+									onClick={() => setViewableMatches((prev) => prev + 20)}
 								>
 									See more...
 								</button>
@@ -55,55 +71,41 @@ export function YieldsSearch({ lend = false, searchData, value }) {
 					) : (
 						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
 					)}
-				</ComboboxPopover>
-			) : null}
+				</Ariakit.ComboboxPopover>
+			</Ariakit.ComboboxProvider>
 		</div>
 	)
 }
 
 interface IInputProps {
-	state: ComboboxState
+	open: boolean
+	setOpen?: React.Dispatch<React.SetStateAction<boolean>>
 	placeholder: string
 	autoFocus?: boolean
 	withValue?: boolean
-	hideIcon?: boolean
 	onSearchTermChange?: (value: string) => void
 }
 
-function Input({ state, placeholder, withValue, hideIcon, onSearchTermChange }: IInputProps) {
-	const inputField = React.useRef<HTMLInputElement>()
-
-	const onClick = React.useCallback(() => {
-		if (state.mounted && withValue) {
-			state.setValue('')
-		}
-
-		state.toggle()
-	}, [withValue, state])
-
+function Input({ placeholder, onSearchTermChange, open, setOpen }: IInputProps) {
 	return (
 		<>
-			{!hideIcon && (
-				<button onClick={onClick} className="absolute top-[10px] left-[6px] opacity-50">
-					{state.mounted ? (
-						<>
-							<span className="sr-only">Close Search</span>
-							<Icon name="x" height={18} width={18} />
-						</>
-					) : (
-						<>
-							<span className="sr-only">Open Search</span>
-							<Icon name="search" height={16} width={16} />
-						</>
-					)}
-				</button>
-			)}
+			<button onClick={(prev) => setOpen(!prev)} className="absolute top-[10px] left-[6px] opacity-50">
+				{open ? (
+					<>
+						<span className="sr-only">Close Search</span>
+						<Icon name="x" height={20} width={20} />
+					</>
+				) : (
+					<>
+						<span className="sr-only">Open Search</span>
+						<Icon name="search" height={18} width={18} />
+					</>
+				)}
+			</button>
 
-			<Combobox
-				state={state}
+			<Ariakit.Combobox
 				placeholder={placeholder}
 				autoSelect
-				ref={inputField}
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
@@ -113,7 +115,7 @@ function Input({ state, placeholder, withValue, hideIcon, onSearchTermChange }: 
 	)
 }
 
-const Row = ({ name, data, state, lend }) => {
+const Row = ({ data, lend, setOpen }) => {
 	const [loading, setLoading] = React.useState(false)
 	const router = useRouter()
 
@@ -122,8 +124,8 @@ const Row = ({ name, data, state, lend }) => {
 	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
 
 	return (
-		<ComboboxItem
-			value={name}
+		<Ariakit.ComboboxItem
+			value={data.name}
 			onClick={() => {
 				setLoading(true)
 				router
@@ -141,15 +143,15 @@ const Row = ({ name, data, state, lend }) => {
 					)
 					.then(() => {
 						setLoading(false)
-						state.hide()
+						setOpen(false)
 					})
 			}}
 			focusOnHover
 			disabled={loading}
-			className="p-3 flex items-center gap-4 text-[var(--text1)] cursor-pointer aria-selected:bg-[var(--bg2)] aria-disabled:opacity-50 aria-disabled:bg-[var(--bg2)]"
+			className="p-3 flex items-center gap-4 text-[var(--text1)] cursor-pointer hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] aria-disabled:opacity-50 outline-none"
 		>
 			{data?.logo || data?.fallbackLogo ? <TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} /> : null}
-			<span>{name}</span>
+			<span>{data.symbol === 'USD_Stables' ? 'All USD Stablecoins' : `${data.name}`}</span>
 			{loading ? (
 				<svg
 					className="animate-spin -ml-1 mr-3 h-4 w-4"
@@ -165,6 +167,6 @@ const Row = ({ name, data, state, lend }) => {
 					></path>
 				</svg>
 			) : null}
-		</ComboboxItem>
+		</Ariakit.ComboboxItem>
 	)
 }

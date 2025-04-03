@@ -56,7 +56,7 @@ export function Select({
 							) : null}
 						</span>
 					) : null}
-					{allValues.slice(0, viewableMatches).map((option) => (
+					{allValues.slice(0, viewableMatches + 1).map((option) => (
 						<NestedMenuItem
 							key={valuesAreAnArrayOfStrings ? option : option.key}
 							render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
@@ -146,7 +146,7 @@ export function Select({
 							</span>
 						) : null}
 
-						{allValues.slice(0, viewableMatches).map((option) => (
+						{allValues.slice(0, viewableMatches + 1).map((option) => (
 							<Ariakit.SelectItem
 								key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 								value={valuesAreAnArrayOfStrings ? option : option.key}

@@ -58,7 +58,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 					{matches.length > 0 ? (
 						<>
 							<Ariakit.ComboboxList>
-								{matches.slice(0, viewableMatches).map((option) => (
+								{matches.slice(0, viewableMatches + 1).map((option) => (
 									<Ariakit.SelectItem
 										key={`bridge-chain-${option.name}`}
 										value={option.name}

@@ -68,7 +68,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 						<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
 					) : matches.length ? (
 						<>
-							{matches.slice(0, viewableMatches).map((option) => (
+							{matches.slice(0, viewableMatches + 1).map((option) => (
 								<Row key={option.name} onItemClick={props.onItemClick} data={option} />
 							))}
 
