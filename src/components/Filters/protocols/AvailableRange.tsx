@@ -56,10 +56,10 @@ export function AvailableRange({
 				)
 			}
 			onSubmit={handleSubmit}
-			variant={variant}
 			nestedMenu={nestedMenu}
 			min={min}
 			max={max}
+			variant="secondary"
 		/>
 	)
 }

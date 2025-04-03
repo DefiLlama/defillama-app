@@ -176,7 +176,7 @@ export function DefiChainsTable({ data }) {
 					clearAll={clearAllAggrOptions}
 					nestedMenu={false}
 					label={'Group Chains'}
-					smolLabel
+					labelType="smol"
 				/>
 				<SelectWithCombobox
 					allValues={chainsOverviewTableColumns}
@@ -186,7 +186,7 @@ export function DefiChainsTable({ data }) {
 					clearAll={clearAllColumns}
 					nestedMenu={false}
 					label={'Columns'}
-					smolLabel
+					labelType="smol"
 				/>
 
 				<TVLRange variant="secondary" />

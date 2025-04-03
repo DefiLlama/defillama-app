@@ -14,7 +14,7 @@ interface ISelectWithCombobox {
 	toggleAll?: () => void
 	selectOnlyOne?: (value: string) => void
 	nestedMenu?: boolean
-	smolLabel?: boolean
+	labelType?: 'regular' | 'smol' | 'none'
 	triggerProps?: Ariakit.SelectProps
 }
 
@@ -27,7 +27,7 @@ export function SelectWithCombobox({
 	toggleAll,
 	selectOnlyOne,
 	nestedMenu,
-	smolLabel,
+	labelType,
 	triggerProps
 }: ISelectWithCombobox) {
 	const [searchValue, setSearchValue] = React.useState('')
@@ -138,14 +138,14 @@ export function SelectWithCombobox({
 					className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap"
 					{...triggerProps}
 				>
-					{smolLabel ? (
+					{labelType === 'smol' ? (
 						<span className="flex items-center gap-1">
 							<span className="text-[10px] rounded-full min-w-4 flex items-center justify-center bg-[var(--bg4)] px-[1px]">
 								{selectedValues.length}
 							</span>
 							<span>{label}</span>
 						</span>
-					) : selectedValues.length > 0 ? (
+					) : labelType === 'regular' && selectedValues.length > 0 ? (
 						<>
 							<span>{label}: </span>
 							<span className="text-[var(--link)]">

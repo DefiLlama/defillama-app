@@ -79,6 +79,7 @@ export function FilterByToken({ tokensList = [], selectedTokens, pathname, neste
 			selectedValues={selectedTokens}
 			setSelectedValues={setSelectedValue}
 			nestedMenu={nestedMenu}
+			labelType={!token || token === 'All' ? 'none' : 'regular'}
 		/>
 	)
 }

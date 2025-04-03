@@ -6,7 +6,7 @@ interface IFiltersByCategoryProps {
 	selectedCategories: Array<string>
 	pathname: string
 	nestedMenu?: boolean
-	smolLabel?: boolean
+	labelType?: 'smol' | 'none'
 }
 
 export function FiltersByCategory({
@@ -14,7 +14,7 @@ export function FiltersByCategory({
 	selectedCategories,
 	pathname,
 	nestedMenu,
-	smolLabel
+	labelType
 }: IFiltersByCategoryProps) {
 	const router = useRouter()
 
@@ -87,7 +87,7 @@ export function FiltersByCategory({
 			clearAll={clearAll}
 			selectOnlyOne={selectOnlyOne}
 			nestedMenu={nestedMenu}
-			smolLabel={smolLabel}
+			labelType={labelType ? labelType : !category || category === 'All' ? 'none' : 'regular'}
 		/>
 	)
 }

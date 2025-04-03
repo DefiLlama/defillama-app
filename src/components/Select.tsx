@@ -13,7 +13,7 @@ interface ISelect {
 	toggleAll?: () => void
 	selectOnlyOne?: (value: string) => void
 	nestedMenu?: boolean
-	smolLabel?: boolean
+	labelType?: 'regular' | 'smol' | 'none'
 	className?: string
 }
 
@@ -26,7 +26,7 @@ export function Select({
 	toggleAll,
 	selectOnlyOne,
 	nestedMenu,
-	smolLabel,
+	labelType = 'regular',
 	className
 }: ISelect) {
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
@@ -99,14 +99,14 @@ export function Select({
 			<Ariakit.Select
 				className={`bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap ${className}`}
 			>
-				{smolLabel ? (
+				{labelType === 'smol' ? (
 					<span className="flex items-center gap-1">
 						<span className="text-[10px] rounded-full min-w-4 flex items-center justify-center bg-[var(--bg4)] px-[1px]">
 							{selectedValues.length}
 						</span>
 						<span>{label}</span>
 					</span>
-				) : selectedValues.length > 0 ? (
+				) : labelType === 'regular' && selectedValues.length > 0 ? (
 					<>
 						<span>{label}: </span>
 						<span className="text-[var(--link)]">

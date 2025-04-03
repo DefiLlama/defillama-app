@@ -182,6 +182,7 @@ export function PegType({ pathname, nestedMenu }: { pathname: string; nestedMenu
 			clearAll={clearAll}
 			toggleAll={toggleAll}
 			nestedMenu={nestedMenu}
+			labelType="smol"
 		/>
 	)
 }

@@ -93,6 +93,7 @@ export function Sectors({ sectors = [], selectedSectors, pathname, nestedMenu }:
 			clearAll={clearAll}
 			selectOnlyOne={selectOnlyOne}
 			nestedMenu={nestedMenu}
+			labelType={!sector || sector === 'All' ? 'none' : 'regular'}
 		/>
 	)
 }

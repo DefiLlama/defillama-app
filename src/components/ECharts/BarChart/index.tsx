@@ -194,7 +194,7 @@ export default function BarChart({
 					label={customLegendName}
 					clearAll={() => setLegendOptions([])}
 					toggleAll={() => setLegendOptions(customLegendOptions)}
-					smolLabel
+					labelType="smol"
 				/>
 			)}
 			<div id={id} style={{ height, margin: 'auto 0' }}></div>

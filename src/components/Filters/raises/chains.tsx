@@ -93,6 +93,7 @@ export function Chains({ chains = [], selectedChains, pathname, nestedMenu }: IF
 			clearAll={clearAll}
 			selectOnlyOne={selectOnlyOne}
 			nestedMenu={nestedMenu}
+			labelType={!chain || chain === 'All' ? 'none' : 'regular'}
 		/>
 	)
 }

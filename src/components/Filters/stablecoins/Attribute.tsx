@@ -100,6 +100,7 @@ export function Attribute({ pathname, nestedMenu }: { pathname: string; nestedMe
 			clearAll={clearAll}
 			toggleAll={toggleAll}
 			nestedMenu={nestedMenu}
+			labelType="smol"
 		/>
 	)
 }

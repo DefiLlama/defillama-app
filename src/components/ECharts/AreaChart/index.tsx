@@ -288,7 +288,7 @@ export default function AreaChart({
 					label={legendTitle}
 					clearAll={() => setLegendOptions([])}
 					toggleAll={() => setLegendOptions(customLegendOptions)}
-					smolLabel
+					labelType="smol"
 				/>
 			)}
 			<div id={id} style={{ height }} className="my-auto" />

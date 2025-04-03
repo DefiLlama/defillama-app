@@ -208,7 +208,7 @@ function AddlOptions({ options }: IAllOptionsProps) {
 			selectedValues={finalSelectedValues}
 			setSelectedValues={setSelectedValues}
 			label="Others"
-			smolLabel
+			labelType="smol"
 		/>
 	)
 }

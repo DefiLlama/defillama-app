@@ -93,6 +93,7 @@ export function Rounds({ rounds = [], selectedRounds, pathname, nestedMenu }: IF
 			clearAll={clearAll}
 			selectOnlyOne={selectOnlyOne}
 			nestedMenu={nestedMenu}
+			labelType={!round || round === 'All' ? 'none' : 'regular'}
 		/>
 	)
 }

@@ -300,7 +300,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					clearAll={clearAllOptions}
 					nestedMenu={false}
 					label={'Columns'}
-					smolLabel
+					labelType="smol"
 					triggerProps={{
 						className:
 							'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'

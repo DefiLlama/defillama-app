@@ -79,6 +79,7 @@ export function FilterByChain({ chainList = [], selectedChains, pathname, nested
 			selectedValues={selectedChains}
 			setSelectedValues={setSelectedValue}
 			nestedMenu={nestedMenu}
+			labelType={!chain || chain === 'All' ? 'none' : 'regular'}
 		/>
 	)
 }

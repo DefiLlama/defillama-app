@@ -95,6 +95,7 @@ export function YieldProjects({
 			selectOnlyOne={selectOnlyOne}
 			label={label}
 			nestedMenu={nestedMenu}
+			labelType={!project || project === 'All' ? 'none' : 'regular'}
 		/>
 	)
 }

@@ -110,6 +110,7 @@ export function BackingType({ pathname, nestedMenu }: { pathname: string; nested
 			clearAll={clearAll}
 			toggleAll={toggleAll}
 			nestedMenu={nestedMenu}
+			labelType="smol"
 		/>
 	)
 }

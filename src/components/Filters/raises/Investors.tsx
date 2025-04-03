@@ -93,6 +93,7 @@ export function Investors({ investors = [], selectedInvestors, pathname, nestedM
 			clearAll={clearAll}
 			selectOnlyOne={selectOnlyOne}
 			nestedMenu={nestedMenu}
+			labelType={!investor || investor === 'All' ? 'none' : 'regular'}
 		/>
 	)
 }
