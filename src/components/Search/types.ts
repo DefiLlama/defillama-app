@@ -27,6 +27,7 @@ export interface IBaseSearchProps {
 	value?: string | null
 	className?: string
 	variant?: 'primary' | 'secondary'
+	skipSearching?: boolean
 }
 
 export interface ICommonSearchProps {

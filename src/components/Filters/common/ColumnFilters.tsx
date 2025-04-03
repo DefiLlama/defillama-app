@@ -100,8 +100,6 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		)
 	}
 
-	console.log({ options, selectedOptions })
-
 	return (
 		<SelectWithCombobox
 			allValues={options}

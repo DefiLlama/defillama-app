@@ -6,7 +6,7 @@ import { LocalLoader } from '~/components/LocalLoader'
 import { CoinsPicker } from '~/containers/Correlations'
 import { formattedNum } from '~/utils'
 import { Icon } from '~/components/Icon'
-import { useDialogState } from 'ariakit'
+import * as Ariakit from '@ariakit/react'
 
 const unixToDateString = (unixTimestamp) => {
 	if (!unixTimestamp) return ''
@@ -111,7 +111,7 @@ export default function TokenPnl({ coinsData }) {
 		}
 	}
 
-	const dialogState = useDialogState()
+	const dialogStore = Ariakit.useDialogStore()
 
 	return (
 		<div className="flex flex-col gap-2 items-center w-full max-w-sm mx-auto">
@@ -158,7 +158,7 @@ export default function TokenPnl({ coinsData }) {
 						<button
 							onClick={() => {
 								setModalOpen(1)
-								dialogState.toggle()
+								dialogStore.toggle()
 							}}
 							className="flex items-center gap-1 p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
 						>
@@ -176,7 +176,7 @@ export default function TokenPnl({ coinsData }) {
 							<button
 								onClick={() => {
 									setModalOpen(1)
-									dialogState.toggle()
+									dialogStore.toggle()
 								}}
 								className="flex items-center gap-1 p-[6px] rounded-md text-base bg-white text-black/60 dark:bg-black dark:text-white/60 border border-black/10 dark:border-white/10"
 							>
@@ -259,7 +259,7 @@ export default function TokenPnl({ coinsData }) {
 
 				<CoinsPicker
 					coinsData={coinsData}
-					dialogState={dialogState}
+					dialogStore={dialogStore}
 					selectedCoins={{}}
 					queryCoins={coins}
 					selectCoin={(coin) => {
@@ -278,7 +278,7 @@ export default function TokenPnl({ coinsData }) {
 						)
 						refetch()
 						setModalOpen(0)
-						dialogState.toggle()
+						dialogStore.toggle()
 					}}
 				/>
 			</div>
