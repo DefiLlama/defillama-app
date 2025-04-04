@@ -13,6 +13,16 @@ export default function ApiDocs({ spec = yamlApiSpec }: { spec: any }) {
 	const isClient = useIsClient()
 	if (!isClient) return null
 
+	const downloadSpec = () => {
+		const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(spec, null, 2));
+		const downloadAnchorNode = document.createElement('a');
+		downloadAnchorNode.setAttribute("href", dataStr);
+		downloadAnchorNode.setAttribute("download", "defillama-api-spec.json");
+		document.body.appendChild(downloadAnchorNode);
+		downloadAnchorNode.click();
+		downloadAnchorNode.remove();
+	}
+
 	return (
 		<>
 			<Head>
@@ -59,6 +69,14 @@ export default function ApiDocs({ spec = yamlApiSpec }: { spec: any }) {
 						</p>
 					</div>
 				)}
+				<div className="flex justify-end mb-4">
+					<button 
+						onClick={downloadSpec}
+						className="px-4 py-2 bg-[#2172E5] hover:bg-[#4285f4] text-white rounded-md transition-colors"
+					>
+						Download API Spec
+					</button>
+				</div>
 				<Swagger spec={spec} />
 			</Layout>
 		</>
