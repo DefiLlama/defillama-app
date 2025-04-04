@@ -148,7 +148,7 @@ export const useSubscribe = () => {
 						'Content-Type': 'application/json',
 						Authorization: `Bearer ${pb.authStore.token}`
 					},
-					body: JSON.stringify({ subscriptionType: pb.authStore.record?.github_username ? 'contributor' : 'api' })
+					body: JSON.stringify({ subscriptionType: 'api' })
 				})
 
 				if (!response.ok) {
@@ -348,19 +348,6 @@ export const useSubscribe = () => {
 		}
 	}
 
-	const {
-		data: isContributor,
-		isLoading: isContributorLoading,
-		isError: isContributorError
-	} = useQuery<boolean>({
-		queryKey: ['isContributor', pb.authStore.record?.id],
-		queryFn: async () => {
-			const response = await authorizedFetch(`${AUTH_SERVER}/is-contributor/${pb.authStore.record?.github_username}`)
-			return response.json()
-		},
-		enabled: isAuthenticated && !!pb.authStore?.record?.github_username
-	})
-
 	return {
 		createSubscription,
 		handleSubscribe,
@@ -380,9 +367,7 @@ export const useSubscribe = () => {
 		refetchCredits,
 		createPortalSession,
 		isPortalSessionLoading: createPortalSessionMutation.isPending,
-		isContributor,
-		isContributorLoading,
-		isContributorError,
-		isLlamafeedSubscriptionActive
+		isLlamafeedSubscriptionActive,
+		isContributor: false
 	}
 }

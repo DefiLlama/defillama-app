@@ -152,7 +152,7 @@ export const descriptions = {
 	'Bug Bounty': 'Protocols that incentivize security researchers to find and report vulnerabilities in smart contracts',
 	'DCA Tools':
 		'Protocols that automate dollar-cost averaging, allowing users to make regular crypto investments automatically',
-	'Managed Token Pools':
+	'Onchain Capital Allocator':
 		'Protocols where token pools are actively controlled and managed by a designated operator or governance',
 	'Developer Tools':
 		'Platforms and services providing APIs, integrations, or other resources to facilitate the development and management of blockchain applications',

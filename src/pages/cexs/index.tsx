@@ -481,6 +481,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://dune.com/21co/backpack-exchange'
 	},
 	{
+		name: 'Hotcoin',
+		slug: 'hotcoin',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Ourbit',
 		slug: 'ourbit',
 		coin: null,
