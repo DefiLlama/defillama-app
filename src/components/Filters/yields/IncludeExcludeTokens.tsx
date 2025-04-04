@@ -11,7 +11,7 @@ export function IncludeExcludeTokens({
 }: {
 	tokens: Array<{ name: string; symbol: string; logo?: string | null; fallbackLogo?: string | null }>
 }) {
-	const searchWrapperRef = useRef()
+	const searchWrapperRef = useRef(null)
 
 	const router = useRouter()
 

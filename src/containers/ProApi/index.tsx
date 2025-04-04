@@ -33,7 +33,7 @@ const PriceComponent: React.FC<Props> = ({ price }) => {
 
 const ProApi = () => {
 	const wallet = useAccount()
-	const intervalRef = useRef<NodeJS.Timeout>()
+	const intervalRef = useRef<NodeJS.Timeout>(null)
 
 	const { data: ghAuth } = useGithubAuth()
 	const { openConnectModal } = useConnectModal()

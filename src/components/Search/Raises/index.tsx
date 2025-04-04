@@ -76,7 +76,7 @@ interface IInputProps {
 }
 
 function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IInputProps) {
-	const inputField = useRef<HTMLInputElement>()
+	const inputField = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {

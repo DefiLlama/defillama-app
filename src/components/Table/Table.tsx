@@ -78,7 +78,7 @@ export function VirtualTable({
 		}
 	}
 
-	const tableHeaderRef = React.useRef<HTMLDivElement>()
+	const tableHeaderRef = React.useRef<HTMLDivElement>(null)
 
 	React.useEffect(() => {
 		const onScroll = () => {
