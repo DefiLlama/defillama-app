@@ -367,6 +367,7 @@ export const useSubscribe = () => {
 		refetchCredits,
 		createPortalSession,
 		isPortalSessionLoading: createPortalSessionMutation.isPending,
-		isLlamafeedSubscriptionActive
+		isLlamafeedSubscriptionActive,
+		isContributor: false
 	}
 }
