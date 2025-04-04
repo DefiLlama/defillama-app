@@ -1,12 +1,11 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange } from '~/components/Filters/common/FilterBetweenRange'
+import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 interface IAPYRange {
-	variant?: 'primary' | 'secondary'
-	subMenu?: boolean
+	nestedMenu?: boolean
 }
 
-export function APYRange({ variant = 'primary', subMenu }: IAPYRange) {
+export function APYRange({ nestedMenu }: IAPYRange) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -38,25 +37,23 @@ export function APYRange({ variant = 'primary', subMenu }: IAPYRange) {
 	return (
 		<FilterBetweenRange
 			name="APY Range"
-			header={
-				variant === 'secondary' ? (
-					<>
-						{min || max ? (
-							<>
-								<span>APY: </span>
-								<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
-							</>
-						) : (
-							'APY'
-						)}
-					</>
-				) : (
-					'Filter by APY'
-				)
+			trigger={
+				<>
+					{min || max ? (
+						<>
+							<span>APY: </span>
+							<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
+						</>
+					) : (
+						<span>APY</span>
+					)}
+				</>
 			}
+			variant="secondary"
 			onSubmit={handleSubmit}
-			variant={variant}
-			subMenu={subMenu}
+			nestedMenu={nestedMenu}
+			min={min}
+			max={max}
 		/>
 	)
 }

@@ -1,7 +1,13 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange } from '~/components/Filters/common/FilterBetweenRange'
+import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
-export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary' | 'secondary'; subMenu?: boolean }) {
+export function TVLRange({
+	variant = 'primary',
+	nestedMenu
+}: {
+	variant?: 'primary' | 'secondary'
+	nestedMenu?: boolean
+}) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -33,7 +39,7 @@ export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary'
 	return (
 		<FilterBetweenRange
 			name="TVL Range"
-			header={
+			trigger={
 				variant === 'secondary' ? (
 					<>
 						{min || max ? (
@@ -42,7 +48,7 @@ export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary'
 								<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
 							</>
 						) : (
-							<span>TVL</span>
+							<span>TVL Range</span>
 						)}
 					</>
 				) : (
@@ -51,7 +57,9 @@ export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary'
 			}
 			onSubmit={handleSubmit}
 			variant={variant}
-			subMenu={subMenu}
+			nestedMenu={nestedMenu}
+			min={min}
+			max={max}
 		/>
 	)
 }

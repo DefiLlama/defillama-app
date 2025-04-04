@@ -7,7 +7,7 @@ import { useDebounce } from '~/hooks/useDebounce'
 import { formattedPercent } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
-import { RowFilter } from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/RowFilter'
 import { useQuery } from '@tanstack/react-query'
 
 const fetch = fetchWithErrorLogging

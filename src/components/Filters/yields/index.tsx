@@ -4,10 +4,11 @@ import { YieldsSearch } from '~/components/Search/Yields/Optimizer'
 import { useMedia } from '~/hooks/useMedia'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { LTV } from './LTV'
-import { SlidingMenu } from '~/components/SlidingMenu'
 import { YieldFilterDropdowns } from './Dropdowns'
 import type { IYieldFiltersProps } from './types'
 import { InputFilter } from './Amount'
+import { NestedMenu } from '~/components/NestedMenu'
+import { useIsClient } from '~/hooks'
 
 export function YieldFiltersV2({
 	header,
@@ -30,7 +31,8 @@ export function YieldFiltersV2({
 			? `: ${noOfStrategies} Strategies`
 			: null
 
-	const isSmall = useMedia(`(max-width: 30rem)`)
+	const isSmall = useMedia(`(max-width: 639px)`)
+	const isClient = useIsClient()
 
 	const { query } = useRouter()
 
@@ -52,14 +54,21 @@ export function YieldFiltersV2({
 					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile ? true : false} />
 				) : null}
 
-				<div className="flex flex-wrap gap-2 max-sm:only:*:flex-1">
-					{isSmall ? (
-						<SlidingMenu label="Filters" variant="secondary">
-							<YieldFilterDropdowns {...props} isMobile />
-						</SlidingMenu>
-					) : (
-						<YieldFilterDropdowns {...props} />
-					)}
+				<div className="flex flex-wrap gap-2 min-h-9 *:flex-1 sm:hidden">
+					{isSmall && isClient ? (
+						<React.Suspense fallback={<></>}>
+							<NestedMenu label="Filters">
+								<YieldFilterDropdowns {...props} nestedMenu />
+							</NestedMenu>
+						</React.Suspense>
+					) : null}
+				</div>
+				<div className="hidden flex-wrap gap-2 min-h-[72px] xl:min-h-8 sm:flex">
+					{!isSmall && isClient ? (
+						<React.Suspense fallback={<></>}>
+							<YieldFilterDropdowns {...props} />
+						</React.Suspense>
+					) : null}
 				</div>
 			</div>
 		</div>

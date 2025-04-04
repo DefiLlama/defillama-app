@@ -8,7 +8,7 @@ import type { IChartProps } from '../types'
 import { LazyChart } from '~/components/LazyChart'
 import { BAR_CHARTS } from './utils'
 import { useFetchAndFormatChartData } from './useFetchAndFormatChartData'
-import { EmbedChart } from '~/components/Popover'
+import { EmbedChart } from '~/components/EmbedChart'
 import { IFusedProtocolData, NftVolumeData } from '~/api/types'
 import { transparentize } from 'polished'
 

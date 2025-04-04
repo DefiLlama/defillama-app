@@ -1,19 +1,19 @@
 import { useRouter } from 'next/router'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '../../SelectWithCombobox'
 
-interface IFiltersByChainsProps {
-	chains: string[]
+interface IFiltersByChainProps {
+	chainList: string[]
 	selectedChains: string[]
 	pathname: string
 	nestedMenu?: boolean
 }
 
-export function Chains({ chains = [], selectedChains, pathname, nestedMenu }: IFiltersByChainsProps) {
+export function FilterByChain({ chainList = [], selectedChains, pathname, nestedMenu }: IFiltersByChainProps) {
 	const router = useRouter()
 
 	const { chain, ...queries } = router.query
 
-	const setSelectedValues = (newChain) => {
+	const setSelectedValue = (newChain) => {
 		router.push(
 			{
 				pathname,
@@ -27,34 +27,6 @@ export function Chains({ chains = [], selectedChains, pathname, nestedMenu }: IF
 		)
 	}
 
-	const toggleAll = () => {
-		if (!chain || chain === 'All') {
-			router.push(
-				{
-					pathname,
-					query: {
-						...queries,
-						chain: 'None'
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		} else {
-			router.push(
-				{
-					pathname,
-					query: {
-						...queries,
-						chain: 'All'
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		}
-	}
-
 	const clearAll = () => {
 		router.push(
 			{
@@ -62,6 +34,20 @@ export function Chains({ chains = [], selectedChains, pathname, nestedMenu }: IF
 				query: {
 					...queries,
 					chain: 'None'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const toggleAll = () => {
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					chain: 'All'
 				}
 			},
 			undefined,
@@ -86,12 +72,12 @@ export function Chains({ chains = [], selectedChains, pathname, nestedMenu }: IF
 	return (
 		<SelectWithCombobox
 			label="Chains"
-			allValues={chains}
-			selectedValues={selectedChains}
-			setSelectedValues={setSelectedValues}
-			toggleAll={toggleAll}
+			allValues={chainList}
 			clearAll={clearAll}
+			toggleAll={toggleAll}
 			selectOnlyOne={selectOnlyOne}
+			selectedValues={selectedChains}
+			setSelectedValues={setSelectedValue}
 			nestedMenu={nestedMenu}
 			labelType={!chain || chain === 'All' ? 'none' : 'regular'}
 		/>

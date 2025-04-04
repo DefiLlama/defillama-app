@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -13,10 +13,15 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
 import { categoryProtocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IOverviewProps } from '~/api/categories/adaptors'
-import { CompareProtocols } from '~/containers/CompareProtocols'
 import { ButtonDark } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
-import { Dialog, DialogDismiss, DialogHeading, useDialogState } from 'ariakit'
+import * as Ariakit from '@ariakit/react'
+import { useQuery } from '@tanstack/react-query'
+import { fuseProtocolData } from '~/api/categories/protocols'
+import { PROTOCOL_API } from '~/constants'
+import { fetchApi } from '~/utils/async'
+import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
+import { LocalLoader } from '~/components/LocalLoader'
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -153,7 +158,7 @@ function Container({
 		return [{ globalChart: categoryChart }]
 	}, [categoryChart])
 
-	const dialogState = useDialogState()
+	const dialogStore = Ariakit.useDialogStore()
 
 	return (
 		<>
@@ -312,24 +317,76 @@ function Container({
 				/>
 			</div>
 			{compareProtocols.length > 0 && (
-				<ButtonDark className="fixed bottom-4 right-4" onClick={dialogState.toggle}>
-					Compare Protocols ({compareProtocols.length})
-				</ButtonDark>
+				<Ariakit.DialogProvider store={dialogStore}>
+					<ButtonDark className="fixed bottom-4 right-4" onClick={dialogStore.toggle}>
+						Compare Protocols ({compareProtocols.length})
+					</ButtonDark>
+					<Ariakit.Dialog className="dialog sm:max-w-[70vw]" unmountOnHide>
+						<span className="flex items-center justify-center gap-1 w-full relative">
+							<Ariakit.DialogHeading className="font-medium text-xl">Compare Protocols</Ariakit.DialogHeading>
+							<Ariakit.DialogDismiss className="absolute right-0 top-0">
+								<Icon name="x" height={16} width={16} />
+								<span className="sr-only">Close dialog</span>
+							</Ariakit.DialogDismiss>
+						</span>
+						<CompareProtocols protocols={compareProtocols.map(slug)} chain={chain} />
+					</Ariakit.Dialog>
+				</Ariakit.DialogProvider>
 			)}
-
-			<Dialog state={dialogState} className="dialog sm:max-w-[70vw]">
-				<span className="flex items-center justify-center gap-1 w-full relative">
-					<DialogHeading className="font-medium text-xl">Compare Protocols</DialogHeading>
-					<DialogDismiss className="absolute right-0 top-0">
-						<Icon name="x" height={16} width={16} />
-						<span className="sr-only">Close dialog</span>
-					</DialogDismiss>
-				</span>
-				<CompareProtocols protocols={compareProtocols.map(slug)} chain={chain} dialogState={dialogState} />
-			</Dialog>
 		</>
 	)
 }
+
+const useProtocols = (protocols: string[], chain?: string) => {
+	const { data, isLoading } = useQuery({
+		queryKey: ['compare-protocols' + protocols?.join('')],
+		queryFn: () => fetchApi(protocols?.map((p) => `${PROTOCOL_API}/${slug(p)}`)),
+		staleTime: 60 * 60 * 1000
+	})
+
+	const [extraTvlEnabled] = useDefiManager()
+	const chartData = React.useMemo(() => {
+		try {
+			const formattedData =
+				data?.map((x) => {
+					const { historicalChainTvls } = fuseProtocolData(x)
+					return {
+						chain: x.name,
+						globalChart: formatProtocolsTvlChartData({
+							historicalChainTvls:
+								chain && chain !== 'All' ? { [chain]: historicalChainTvls[chain] || {} } : historicalChainTvls,
+							extraTvlEnabled
+						}).filter((x) => +x[0] % 86400 === 0)
+					}
+				}) ?? []
+
+			return formattedData
+		} catch (e) {
+			console.error(e)
+			return []
+		}
+	}, [data, extraTvlEnabled])
+
+	return { data, isLoading, chartData }
+}
+
+const CompareProtocols = ({ protocols, chain }: { protocols: string[]; chain: string }) => {
+	const { isLoading, chartData } = useProtocols(protocols, chain)
+	const [isDark] = useDarkModeManager()
+
+	return (
+		<>
+			{chartData.length > 0 && !isLoading ? (
+				<ChainChart datasets={chartData} title="" compareMode isThemeDark={isDark} showLegend />
+			) : (
+				<div className="flex items-center justify-center m-auto min-h-[360px]">
+					<LocalLoader />
+				</div>
+			)}
+		</>
+	)
+}
+
 export function ProtocolList(props: IAllTokensPageProps) {
 	return <Container {...props} />
 }

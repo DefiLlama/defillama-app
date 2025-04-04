@@ -5,10 +5,10 @@ import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
 import { Icon } from '~/components/Icon'
-import { Dialog, DialogDismiss, useDialogState } from 'ariakit'
 import { useIsClient } from '~/hooks'
+import * as Ariakit from '@ariakit/react'
 
-export function CoinsPicker({ coinsData, dialogState, selectCoin, selectedCoins, queryCoins }: any) {
+export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins, queryCoins }: any) {
 	const [search, setSearch] = useState('')
 	const filteredCoins = useMemo(() => {
 		if (search === '') {
@@ -29,59 +29,61 @@ export function CoinsPicker({ coinsData, dialogState, selectCoin, selectedCoins,
 	}
 
 	return (
-		<Dialog state={dialogState} className="dialog flex flex-col items-center sm:max-w-[340px]">
-			<span className="flex items-center gap-1 w-full">
-				<input
-					value={search}
-					onChange={(e) => {
-						setSearch(e.target?.value)
-					}}
-					placeholder="Search token..."
-					className="bg-white dark:bg-black rounded-md py-2 px-3 flex-1"
-					autoFocus
-				/>
-				<DialogDismiss>
-					<Icon name="x" height={24} width={24} />
-					<span className="sr-only">Close dialog</span>
-				</DialogDismiss>
-			</span>
+		<Ariakit.DialogProvider store={dialogStore}>
+			<Ariakit.Dialog className="dialog flex flex-col items-center sm:max-w-[340px]">
+				<span className="flex items-center gap-1 w-full">
+					<input
+						value={search}
+						onChange={(e) => {
+							setSearch(e.target?.value)
+						}}
+						placeholder="Search token..."
+						className="bg-white dark:bg-black rounded-md py-2 px-3 flex-1"
+						autoFocus
+					/>
+					<Ariakit.DialogDismiss>
+						<Icon name="x" height={24} width={24} />
+						<span className="sr-only">Close dialog</span>
+					</Ariakit.DialogDismiss>
+				</span>
 
-			<div className="flex flex-col overflow-y-auto w-full max-h-[400px]">
-				{filteredCoins.slice(0, resultsLength + 1).map((coin) => {
-					return (
+				<div className="flex flex-col overflow-y-auto w-full max-h-[400px]">
+					{filteredCoins.slice(0, resultsLength + 1).map((coin) => {
+						return (
+							<button
+								key={coin.name}
+								onClick={() => selectCoin(coin)}
+								className="w-full flex items-center gap-2 py-2 border-b border-black/40 dark:border-white/40"
+							>
+								<img
+									alt={''}
+									src={coin.image}
+									height={'24px'}
+									width={'24px'}
+									loading="lazy"
+									onError={(e) => {
+										e.currentTarget.src = '/placeholder.png'
+									}}
+									className="inline-block object-cover aspect-square rounded-full bg-[var(--bg3)] flex-shrink-0"
+								/>
+								<span>
+									{coin.name} ({coin.symbol.toUpperCase()})
+								</span>
+							</button>
+						)
+					})}
+
+					{resultsLength < filteredCoins.length ? (
 						<button
-							key={coin.name}
-							onClick={() => selectCoin(coin)}
-							className="w-full flex items-center gap-2 py-2 border-b border-black/40 dark:border-white/40"
+							className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+							onClick={showMoreResults}
 						>
-							<img
-								alt={''}
-								src={coin.image}
-								height={'24px'}
-								width={'24px'}
-								loading="lazy"
-								onError={(e) => {
-									e.currentTarget.src = '/placeholder.png'
-								}}
-								className="inline-block object-cover aspect-square rounded-full bg-[var(--bg3)] flex-shrink-0"
-							/>
-							<span>
-								{coin.name} ({coin.symbol.toUpperCase()})
-							</span>
+							See more...
 						</button>
-					)
-				})}
-
-				{resultsLength < filteredCoins.length ? (
-					<button
-						className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
-						onClick={showMoreResults}
-					>
-						See more...
-					</button>
-				) : null}
-			</div>
-		</Dialog>
+					) : null}
+				</div>
+			</Ariakit.Dialog>
+		</Ariakit.DialogProvider>
 	)
 }
 
@@ -142,7 +144,7 @@ export default function Correlations({ coinsData }) {
 			)
 	}, [queryCoins, router])
 
-	const dialogState = useDialogState()
+	const dialogStore = Ariakit.useDialogStore()
 
 	const isClient = useIsClient()
 
@@ -216,7 +218,7 @@ export default function Correlations({ coinsData }) {
 							</button>
 						) : null
 					)}
-					<button onClick={dialogState.toggle} className="w-full text-xl py-2">
+					<button onClick={dialogStore.toggle} className="w-full text-xl py-2">
 						+
 					</button>
 				</div>
@@ -226,7 +228,7 @@ export default function Correlations({ coinsData }) {
 							<th />
 							{coins.map((coin) => (
 								<td
-									key={coin.id}
+									key={`1-${coin.id}-${period}`}
 									className="w-12 h-12 relative hover:after:absolute hover:after:left-0 hover:after:bg-[rgba(0,153,255,0.5)] hover:after:top-[-5000px] hover:after:h-[10000px] hover:after:w-full hover:after:z-[-1] hover:after:content-[''] font-bold"
 								>
 									{coin?.symbol?.toUpperCase()}
@@ -234,7 +236,7 @@ export default function Correlations({ coinsData }) {
 							))}
 							<td>
 								<button
-									onClick={dialogState.toggle}
+									onClick={dialogStore.toggle}
 									className="w-12 h-12 text-2xl hover:bg-[rgba(0,153,255,0.5)] focus-visible:hover:bg-[rgba(0,153,255,0.5)]"
 								>
 									+
@@ -243,12 +245,12 @@ export default function Correlations({ coinsData }) {
 						</tr>
 					</thead>
 					<tbody>
-						{coins.map((coin, i) => (
-							<tr key={coin.id + i + period} className="hover:bg-[rgba(0,153,255,0.5)]">
+						{coins.map((coin) => (
+							<tr key={`2-${coin.id}-${period}`} className="hover:bg-[rgba(0,153,255,0.5)]">
 								<td className="w-12 h-12 relative hover:after:absolute hover:after:left-0 hover:after:bg-[rgba(0,153,255,0.5)] hover:after:top-[-5000px] hover:after:h-[10000px] hover:after:w-full hover:after:z-[-1] hover:after:content-[''] font-bold">
 									{coin?.symbol?.toUpperCase()}
 								</td>
-								{correlations[coin.id]?.map((corr) =>
+								{correlations[coin.id]?.map((corr, i) =>
 									corr === null ? (
 										<td key={coin.image}>
 											<img
@@ -265,7 +267,7 @@ export default function Correlations({ coinsData }) {
 										</td>
 									) : (
 										<td
-											key={corr + coin.id + period}
+											key={`3-${corr}-${coin.id}-${period}-${i}`}
 											style={{
 												backgroundColor:
 													+corr > 0 ? `rgba(53, 222, 59, ${Number(corr)})` : `rgb(255,0,0, ${-Number(corr)})`
@@ -281,7 +283,7 @@ export default function Correlations({ coinsData }) {
 						<tr>
 							<td>
 								<button
-									onClick={dialogState.toggle}
+									onClick={dialogStore.toggle}
 									className="w-12 h-12 text-2xl hover:bg-[rgba(0,153,255,0.5)] focus-visible:hover:bg-[rgba(0,153,255,0.5)]"
 								>
 									+
@@ -292,7 +294,7 @@ export default function Correlations({ coinsData }) {
 				</table>
 				<CoinsPicker
 					coinsData={coinsData}
-					dialogState={dialogState}
+					dialogStore={dialogStore}
 					selectedCoins={selectedCoins}
 					queryCoins={queryCoins}
 					selectCoin={(coin) => {

@@ -1,6 +1,6 @@
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Dialog, DialogHeading, useDialogState } from 'ariakit'
+import * as Ariakit from '@ariakit/react'
 import { FormEvent, useState, useSyncExternalStore } from 'react'
 import { useAccount, useDisconnect } from 'wagmi'
 import { AUTH_SERVER } from '~/constants'
@@ -120,7 +120,7 @@ function getEmailRefreshToken() {
 }
 
 export const SignIn = ({ text, className }: { text?: string; className?: string }) => {
-	const dialogState = useDialogState()
+	const dialogState = Ariakit.useDialogStore()
 	const { openConnectModal } = useConnectModal()
 	const { address } = useAccount()
 	const { disconnectAsync } = useDisconnect()
@@ -173,10 +173,10 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 			>
 				{address || signedInData || userEmailData ? 'Account' : text ?? 'Sign In'}
 			</button>
-			<Dialog state={dialogState} className="dialog flex flex-col sm:max-w-md">
+			<Ariakit.Dialog store={dialogState} className="dialog flex flex-col sm:max-w-md">
 				{address ? (
 					<>
-						<DialogHeading className="text-2xl font-bold">Account</DialogHeading>
+						<Ariakit.DialogHeading className="text-2xl font-bold">Account</Ariakit.DialogHeading>
 						<p className="break-all">{`${address}`}</p>
 						<button
 							className="w-full p-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 text-white relative disabled:cursor-not-allowed disabled:opacity-50"
@@ -187,7 +187,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 					</>
 				) : signedInData || userEmailData ? (
 					<>
-						<DialogHeading className="text-2xl font-bold">Account</DialogHeading>
+						<Ariakit.DialogHeading className="text-2xl font-bold">Account</Ariakit.DialogHeading>
 						<p className="break-all">
 							<span className="font-bold">Email: </span>
 							{`${signedInData?.email ?? userEmailData?.email}`}
@@ -207,7 +207,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 					</>
 				) : (
 					<>
-						<DialogHeading className="text-2xl font-bold">Sign In</DialogHeading>
+						<Ariakit.DialogHeading className="text-2xl font-bold">Sign In</Ariakit.DialogHeading>
 						<button
 							className="w-full p-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 text-white relative disabled:cursor-not-allowed disabled:opacity-50"
 							onClick={openConnectModal}
@@ -251,7 +251,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						</form> */}
 					</>
 				)}
-			</Dialog>
+			</Ariakit.Dialog>
 		</>
 	)
 }

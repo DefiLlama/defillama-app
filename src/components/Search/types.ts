@@ -23,10 +23,10 @@ export interface IBaseSearchProps {
 	onItemClick?: (item: ISearchItem) => void
 	filters?: ReactNode
 	placeholder?: string
-	withValue?: boolean
 	value?: string | null
 	className?: string
 	variant?: 'primary' | 'secondary'
+	skipSearching?: boolean
 }
 
 export interface ICommonSearchProps {

@@ -28,9 +28,9 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
-import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
-import { RowFilter } from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/RowFilter'
 import { Icon } from '~/components/Icon'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -292,14 +292,19 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					selectedValue={filterState}
 					values={Object.values(TABLE_PERIODS) as Array<string>}
 				/>
-				<ColumnFilters2
+				<SelectWithCombobox
+					allValues={protocolsByChainTableColumns}
+					selectedValues={selectedOptions}
+					setSelectedValues={addOption}
+					toggleAll={toggleAllOptions}
+					clearAll={clearAllOptions}
+					nestedMenu={false}
 					label={'Columns'}
-					options={protocolsByChainTableColumns}
-					clearAllOptions={clearAllOptions}
-					toggleAllOptions={toggleAllOptions}
-					selectedOptions={selectedOptions}
-					addOption={addOption}
-					subMenu={false}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'
+					}}
 				/>
 				<TVLRange />
 			</div>

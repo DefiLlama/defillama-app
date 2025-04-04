@@ -9,5 +9,5 @@ export interface IDropdownMenusProps {
 	selectedSectors?: Array<string>
 	rounds?: Array<string>
 	selectedRounds?: Array<string>
-	isMobile?: boolean
+	nestedMenu?: boolean
 }

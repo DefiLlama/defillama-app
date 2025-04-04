@@ -15,11 +15,10 @@ import { VirtualTable } from '~/components/Table/Table'
 import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from './columns'
 import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
-import { ColumnFilters2 } from '~/components/Filters/common/ColumnFilters'
-import { FiltersByCategory } from '~/components/Filters/yields/Categories'
-import { RowFilter } from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/RowFilter'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 export const PERIODS = ['24h', '7d', '30d', '1y']
 const columnSizesKeys = Object.keys(volumesColumnSizes)
@@ -175,6 +174,51 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 
 	const router = useRouter()
 
+	const { category, chain, ...queries } = router.query
+
+	const addCategory = (newCategory) => {
+		router.push(
+			{
+				pathname: router.basePath,
+				query: {
+					...queries,
+					...(!router.basePath.includes('/chains/') && chain ? { chain } : {}),
+					category: newCategory
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const toggleAllCategories = () => {
+		router.push(
+			{
+				pathname: router.basePath,
+				query: {
+					...queries,
+					category: 'All'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const clearAllCategories = () => {
+		router.push(
+			{
+				pathname: router.basePath,
+				query: {
+					...queries,
+					category: 'None'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	return (
 		<>
 			<div className="flex items-center justify-end flex-wrap gap-5 -mb-5">
@@ -195,23 +239,36 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 					/>
 				</div>
 				{isSimpleFees ? null : (
-					<ColumnFilters2
+					<SelectWithCombobox
+						allValues={columnsOptions(type, allChains)}
+						selectedValues={selectedOptions}
+						setSelectedValues={addOption}
+						toggleAll={toggleAllOptions}
+						clearAll={clearAllOptions}
+						nestedMenu={false}
 						label={'Columns'}
-						options={columnsOptions(type, allChains)}
-						clearAllOptions={clearAllOptions}
-						toggleAllOptions={toggleAllOptions}
-						selectedOptions={selectedOptions}
-						addOption={addOption}
-						subMenu={false}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'
+						}}
 					/>
 				)}
 
 				{categories?.length > 0 && type !== 'dexs' && (
-					<FiltersByCategory
-						categoryList={categories}
-						selectedCategories={selectedCategories}
-						pathname={router.basePath}
-						hideSelectedCount
+					<SelectWithCombobox
+						allValues={categories}
+						selectedValues={selectedCategories}
+						setSelectedValues={addCategory}
+						toggleAll={toggleAllCategories}
+						clearAll={clearAllCategories}
+						nestedMenu={false}
+						label={'Category'}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'
+						}}
 					/>
 				)}
 				{type === 'fees' ? <RowFilter selectedValue={period} setValue={setNewPeriod} values={PERIODS} /> : null}

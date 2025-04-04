@@ -1,14 +1,13 @@
 import { useRouter } from 'next/router'
-import { MenuItem } from '~/components/SlidingMenu'
 
 export function ResetAllYieldFilters({
 	pathname,
-	subMenu,
-	resetContext
+	resetContext,
+	nestedMenu
 }: {
 	pathname: string
-	subMenu?: boolean
 	resetContext?: () => void
+	nestedMenu: boolean
 }) {
 	const router = useRouter()
 
@@ -17,14 +16,12 @@ export function ResetAllYieldFilters({
 		resetContext?.()
 	}
 
-	if (subMenu) {
-		return <MenuItem label="Reset all filters" onClick={handleClick} />
-	}
-
 	return (
 		<button
 			onClick={handleClick}
-			className="rounded-md py-2 px-3 md:text-xs bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+			className={`rounded-md py-2 px-3 md:text-xs bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] ${
+				nestedMenu ? 'text-left' : ''
+			}`}
 		>
 			Reset all filters
 		</button>

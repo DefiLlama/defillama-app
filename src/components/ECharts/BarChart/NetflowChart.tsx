@@ -7,7 +7,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
 import { capitalize } from 'lodash'
 import { useQuery } from '@tanstack/react-query'
-import { RowFilter } from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/RowFilter'
 import { NETFLOWS_API } from '~/constants'
 import llamaLogo from '~/assets/logo_white_long.svg'
 

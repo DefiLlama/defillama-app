@@ -1,5 +1,5 @@
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { Dialog, DialogHeading, useDialogState } from 'ariakit'
+import * as Ariakit from '@ariakit/react'
 import { FormEvent, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -7,7 +7,7 @@ import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/LocalLoader'
 
 export const SignIn = ({ text, className }: { text?: string; className?: string }) => {
-	const dialogState = useDialogState()
+	const dialogState = Ariakit.useDialogStore()
 	const { openConnectModal } = useConnectModal()
 	const { address } = useAccount()
 
@@ -124,17 +124,17 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 				)}
 			</button>
 
-			<Dialog
-				state={dialogState}
+			<Ariakit.Dialog
+				store={dialogState}
 				className="dialog flex flex-col rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 max-w-md shadow-2xl backdrop-blur-md animate-fadeIn"
 				style={{
 					backgroundImage: 'radial-gradient(circle at center, rgba(92, 92, 249, 0.05), transparent 80%)'
 				}}
 			>
 				<div className="flex items-center justify-between mb-5">
-					<DialogHeading className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#5C5CF9] to-[#8A8AFF]">
+					<Ariakit.DialogHeading className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#5C5CF9] to-[#8A8AFF]">
 						{flow === 'signin' ? 'Sign In' : flow === 'signup' ? 'Create Account' : 'Reset Password'}
-					</DialogHeading>
+					</Ariakit.DialogHeading>
 					<button
 						onClick={dialogState.hide}
 						className="text-[#8a8c90] hover:text-white transition-colors p-1.5 hover:bg-[#39393E] rounded-full"
@@ -436,7 +436,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						</button>
 					</form>
 				)}
-			</Dialog>
+			</Ariakit.Dialog>
 		</>
 	)
 }

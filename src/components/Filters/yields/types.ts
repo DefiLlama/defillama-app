@@ -23,7 +23,7 @@ export interface IDropdownMenusProps {
 	selectedAttributes?: Array<string>
 	excludeRewardApy?: boolean
 	includeLsdApy?: boolean
-	isMobile?: boolean
+	nestedMenu?: boolean
 	ltvPlaceholder?: string
 	show1dVolume?: boolean
 	show7dVolume?: boolean

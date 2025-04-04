@@ -1,4 +1,4 @@
-import { Tooltip, TooltipAnchor, useTooltipState } from 'ariakit'
+import * as Ariakit from '@ariakit/react'
 import { useState, useEffect } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -55,7 +55,6 @@ export const ProApiKey = () => {
 	const { isAuthenticated, loaders, authorizedFetch } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
-	const tooltip = useTooltipState({ timeout: 0 })
 
 	const [apiKey, setApiKey] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
@@ -117,17 +116,16 @@ export const ProApiKey = () => {
 								</tr>
 								<tr>
 									<th className="p-2 border border-[#39393E] font-normal whitespace-nowrap min-w-[88px]">
-										<TooltipAnchor state={tooltip} className="flex flex-nowrap items-center justify-center gap-1">
-											<span className="whitespace-nowrap">Calls Left</span>{' '}
-											<Icon name="circle-help" height={16} width={16} />
-										</TooltipAnchor>
-										<Tooltip
-											state={tooltip}
-											className="bg-black border border-[#39393E] rounded-2xl relative z-10 p-4 max-w-sm text-sm"
-										>
-											Amount of calls that you can make before this api key runs out of credits. This limit will be
-											reset at the end of each natural month.
-										</Tooltip>
+										<Ariakit.TooltipProvider timeout={0}>
+											<Ariakit.TooltipAnchor className="flex flex-nowrap items-center justify-center gap-1">
+												<span className="whitespace-nowrap">Calls Left</span>{' '}
+												<Icon name="circle-help" height={16} width={16} />
+											</Ariakit.TooltipAnchor>
+											<Ariakit.Tooltip className="bg-black border border-[#39393E] rounded-2xl relative z-10 p-4 max-w-sm text-sm">
+												Amount of calls that you can make before this api key runs out of credits. This limit will be
+												reset at the end of each natural month.
+											</Ariakit.Tooltip>
+										</Ariakit.TooltipProvider>
 									</th>
 									<td className="p-2 border border-[#39393E]">{creditsLeft}</td>
 								</tr>
