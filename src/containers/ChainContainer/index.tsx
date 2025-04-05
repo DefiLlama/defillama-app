@@ -26,6 +26,8 @@ import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'
 import { chainsNamesMap } from './constants'
 import { Tooltip } from '~/components/Tooltip'
+import metadata from '~/utils/metadata'
+const { protocolMetadata } = metadata
 
 const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
 	ssr: false
@@ -67,6 +69,7 @@ export function ChainContainer({
 	chainAssets,
 	nftVolumesData
 }) {
+	console.log({ protocolMetadata })
 	const {
 		fullProtocolsList,
 		parentProtocols,
