@@ -8,6 +8,7 @@ import {
 	PROTOCOL_TRANSACTIONS_API,
 	RAISES_API
 } from '~/constants'
+import { slug } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import metadataCache, { type IChainMetadata, type IProtocolMetadata } from '~/utils/metadata'
 
@@ -17,14 +18,10 @@ export interface IChainOverviewData {
 	protocols: Array<IProtocolMetadata2>
 }
 
-export async function getChainOverviewData({
-	chain,
-	metadata
-}: {
-	chain: string
-	metadata: IChainMetadata
-}): Promise<IChainOverviewData> {
-	getProtocolsMetadataByChain({ chainDisplayName: metadata.name })
+export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
+	const metadata = metadataCache.chainMetadata[slug(chain)]
+
+	if (!metadata) return null
 
 	try {
 		// const [
@@ -153,7 +150,7 @@ export async function getChainOverviewData({
 		// 		: { totalAppRevenue24h: null }
 		// ])
 
-		return { chain, metadata, protocols: [] }
+		return { chain, metadata, protocols: getProtocolsMetadataByChain({ chainDisplayName: metadata.name }) }
 	} catch (error) {
 		const msg = `Error fetching ${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
 		console.log(msg)
@@ -167,11 +164,11 @@ interface IProtocolMetadata2 extends Omit<IProtocolMetadata, 'name' | 'displayNa
 	chains: Array<string>
 }
 
-export const getProtocolsMetadataByChain = async ({
+export const getProtocolsMetadataByChain = ({
 	chainDisplayName
 }: {
 	chainDisplayName: string
-}): Promise<Array<IProtocolMetadata2>> => {
+}): Array<IProtocolMetadata2> => {
 	if (chainDisplayName === 'All Chains') {
 		return Object.values(metadataCache.protocolMetadata).filter((protocol) =>
 			protocol.name && !protocol.name.startsWith('chain#') && protocol.displayName && protocol.chains ? true : false

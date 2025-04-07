@@ -3,21 +3,24 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { slug } from '~/utils'
-import { getChainOverviewData } from '~/ChainOverview/queries'
+import { getChainOverviewData } from '~/ChainOverview/queries.server'
 import { maxAgeForNext } from '~/api'
 import { ChainOverview } from '~/ChainOverview'
-import metadataCache from '~/utils/metadata'
 
 const fetch = fetchWithErrorLogging
 
 export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params }) => {
 	const chain = params.chain
 
-	if (typeof chain !== 'string' || !metadataCache.chainMetadata[slug(chain)]) {
+	if (typeof chain !== 'string') {
 		return { notFound: true }
 	}
 
-	const data = await getChainOverviewData({ chain, metadata: metadataCache.chainMetadata[slug(chain)] })
+	const data = await getChainOverviewData({ chain })
+
+	if (!data) {
+		return { notFound: true }
+	}
 
 	return {
 		props: data,
