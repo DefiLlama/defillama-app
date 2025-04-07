@@ -7,7 +7,7 @@ import {
 } from '~/api/categories/protocols/client'
 import { useGetFeesAndRevenueChartDataByChain, useGetVolumeChartDataByChain } from '~/api/categories/chains/client'
 import { useGetStabelcoinsChartDataByChain } from '~/Stablecoins/queries.client'
-import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
+import { useGetBridgeChartDataByChain } from '~/Bridges/queries.client'
 import { useMemo } from 'react'
 import { getUtcDateObject } from '~/components/ECharts/utils'
 import { getPercentChange, getPrevTvlFromChart, nearestUtc } from '~/utils'

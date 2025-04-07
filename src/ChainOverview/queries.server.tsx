@@ -1,7 +1,7 @@
+import { getBridgeOverviewPageData } from '~/Bridges/queries.server'
 import {
 	CHAINS_ASSETS,
 	CHART_API,
-	DIMENISIONS_OVERVIEW_API,
 	PROTOCOLS_API,
 	PROTOCOLS_TREASURY,
 	PROTOCOL_ACTIVE_USERS_API,
@@ -9,7 +9,7 @@ import {
 	PROTOCOL_TRANSACTIONS_API,
 	RAISES_API
 } from '~/constants'
-import { getCexVolume } from '~/DimensionAdapters/queries'
+import { getAdapterOverview, getCexVolume } from '~/DimensionAdapters/queries'
 import { getPeggedOverviewPageData } from '~/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/Stablecoins/utils'
 import { getPercentChange, slug } from '~/utils'
@@ -25,176 +25,180 @@ export interface IChainOverviewData {
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
 	const metadata =
 		chain === 'All'
-			? { name: 'All Chains', tvl: true, stablecoins: true, dexs: true }
+			? { name: 'All', tvl: true, stablecoins: true, dexs: true }
 			: metadataCache.chainMetadata[slug(chain)]
 
 	if (!metadata) return null
 
 	try {
-		// const [
-		// 	chartData,
-		// 	{ protocols, chains, parentProtocols },
-		// 	dexVolume,
-		// 	cexVolume,
-		// 	fees,
-		// 	revenue,
-		// 	stablecoinsData,
-		// 	inflowsData,
-		// 	activeUsers,
-		// 	transactions,
-		// 	newUsers,
-		// 	raisesData,
-		// 	treasuriesData,
-		// 	cgData,
-		// 	perpsData,
-		// 	nftVolumesData,
-		// 	chainAssets,
-		// 	{ totalAppRevenue24h }
-		// ] = await Promise.all([
-		// 	fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((r) => r.json()),
-		// 	fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
-		// 	chain !== 'All' && metadata?.dexs
-		// 		? fetchWithErrorLogging(
-		// 				`${DIMENISIONS_OVERVIEW_API}/dexs${
-		// 					chain && chain !== 'All' ? `/${slug(metadata.name)}` : ''
-		// 				}?excludeTotalDataChart=truw&excludeTotalDataChartBreakdown=true`
-		// 		  )
-		// 				.then((res) => {
-		// 					if (res.status === 200) {
-		// 						return res.json()
-		// 					} else {
-		// 						return null
-		// 					}
-		// 				})
-		// 				.catch((err) => {
-		// 					console.log(err)
-		// 					return null
-		// 				})
-		// 		: null,
-		// 	getCexVolume(),
-		// 	chain !== 'All' && metadata?.chainFees
-		// 		? fetchWithErrorLogging(
-		// 				`${DIMENISIONS_OVERVIEW_API}/fees${
-		// 					chain && chain !== 'All' ? `/${slug(metadata.name)}` : ''
-		// 				}?excludeTotalDataChart=truw&excludeTotalDataChartBreakdown=true`
-		// 		  )
-		// 				.then((res) => {
-		// 					if (res.status === 200) {
-		// 						return res.json()
-		// 					} else {
-		// 						return null
-		// 					}
-		// 				})
-		// 				.catch(() => {
-		// 					return null
-		// 				})
-		// 		: null,
-		// 	chain !== 'All' && metadata?.chainFees
-		// 		? fetchWithErrorLogging(
-		// 				`${DIMENISIONS_OVERVIEW_API}/fees${
-		// 					chain && chain !== 'All' ? `/${slug(metadata.name)}` : ''
-		// 				}?excludeTotalDataChart=truw&excludeTotalDataChartBreakdown=true&dataType=dailyRevenue`
-		// 		  )
-		// 				.then((res) => {
-		// 					if (res.status === 200) {
-		// 						return res.json()
-		// 					} else {
-		// 						return null
-		// 					}
-		// 				})
-		// 				.catch(() => {
-		// 					return null
-		// 				})
-		// 		: null,
-		// 	getPeggedOverviewPageData(chain === 'All' ? null : metadata.name)
-		// 		.then((data) => {
-		// 			const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
-		// 				chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
-		// 				assetsOrChainsList: data?.peggedAssetNames,
-		// 				filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
-		// 				issuanceType: 'mcap',
-		// 				selectedChain: chain === 'All' ? 'All' : metadata.name,
-		// 				doublecountedIds: data?.doublecountedIds
-		// 			})
-		// 			let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
-		// 			let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
-		// 			const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
+		const [
+			chartData,
+			{ protocols, chains, parentProtocols },
+			dexVolume,
+			cexVolume,
+			fees,
+			revenue,
+			stablecoinsData,
+			inflowsData,
+			activeUsers,
+			transactions,
+			newUsers,
+			raisesData,
+			treasuriesData,
+			cgData,
+			perpsData,
+			nftVolumesData,
+			chainAssets,
+			{ totalAppRevenue24h }
+		] = await Promise.all([
+			fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((r) => r.json()),
+			fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
+			chain !== 'All' && metadata?.dexs
+				? getAdapterOverview({
+						type: 'dexs',
+						chain: metadata.name,
+						excludeTotalDataChart: true,
+						excludeTotalDataChartBreakdown: true
+				  }).catch((err) => {
+						console.log(err)
+						return null
+				  })
+				: null,
+			,
+			getCexVolume(),
+			chain !== 'All' && metadata?.chainFees
+				? getAdapterOverview({
+						type: 'fees',
+						chain: metadata.name,
+						excludeTotalDataChart: true,
+						excludeTotalDataChartBreakdown: true
+				  }).catch((err) => {
+						console.log(err)
+						return null
+				  })
+				: null,
+			chain !== 'All' && metadata?.chainFees
+				? getAdapterOverview({
+						type: 'dexs',
+						chain: metadata.name,
+						excludeTotalDataChart: true,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyRevenue'
+				  }).catch((err) => {
+						console.log(err)
+						return null
+				  })
+				: null,
+			getPeggedOverviewPageData(chain === 'All' ? null : metadata.name)
+				.then((data) => {
+					const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
+						chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
+						assetsOrChainsList: data?.peggedAssetNames,
+						filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
+						issuanceType: 'mcap',
+						selectedChain: chain === 'All' ? 'All' : metadata.name,
+						doublecountedIds: data?.doublecountedIds
+					})
+					let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
+					let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
+					const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
 
-		// 			let topToken = { symbol: 'USDT', mcap: 0 }
+					let topToken = { symbol: 'USDT', mcap: 0 }
 
-		// 			if (peggedAreaChartData && peggedAreaChartData.length > 0) {
-		// 				const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
+					if (peggedAreaChartData && peggedAreaChartData.length > 0) {
+						const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
 
-		// 				for (const token in recentMcaps) {
-		// 					if (token !== 'date' && recentMcaps[token] > topToken.mcap) {
-		// 						topToken = { symbol: token, mcap: recentMcaps[token] }
-		// 					}
-		// 				}
-		// 			}
+						for (const token in recentMcaps) {
+							if (token !== 'date' && recentMcaps[token] > topToken.mcap) {
+								topToken = { symbol: token, mcap: recentMcaps[token] }
+							}
+						}
+					}
 
-		// 			const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
+					const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
 
-		// 			return {
-		// 				mcap: totalMcapCurrent ?? null,
-		// 				change7d: percentChange ?? null,
-		// 				topToken,
-		// 				dominance: dominance ?? null
-		// 			}
-		// 		})
-		// 		.catch((err) => {
-		// 			console.log('ERROR fetching stablecoins data of chain', metadata.name, err)
-		// 			return {}
-		// 		}),
-		// 	chain === 'All' || !metadata?.inflows
-		// 		? null
-		// 		: getBridgeOverviewPageData(metadata.name)
-		// 				.then((data) => {
-		// 					return {
-		// 						netInflows: data?.chainVolumeData?.length
-		// 							? data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits']
-		// 							: null
-		// 					}
-		// 				})
-		// 				.catch(() => null),
-		// 	chain === 'All' || !metadata?.activeUsers
-		// 		? null
-		// 		: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${metadata.name}`)
-		// 				.then((res) => res.json())
-		// 				.then((data) => data?.[data?.length - 1]?.[1] ?? null)
-		// 				.catch(() => null),
-		// 	chain === 'All' || !metadata?.activeUsers
-		// 		? null
-		// 		: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${metadata.name}`)
-		// 				.then((res) => res.json())
-		// 				.then((data) => data?.[data?.length - 1]?.[1] ?? null)
-		// 				.catch(() => null),
+					return {
+						mcap: totalMcapCurrent ?? null,
+						change7d: percentChange ?? null,
+						topToken,
+						dominance: dominance ?? null
+					}
+				})
+				.catch((err) => {
+					console.log('ERROR fetching stablecoins data of chain', metadata.name, err)
+					return {}
+				}),
+			chain === 'All' || !metadata?.inflows
+				? null
+				: getBridgeOverviewPageData(metadata.name)
+						.then((data) => {
+							return {
+								netInflows: data?.chainVolumeData?.length
+									? data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits']
+									: null
+							}
+						})
+						.catch(() => null),
+			chain === 'All' || !metadata?.activeUsers
+				? null
+				: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${metadata.name}`)
+						.then((res) => res.json())
+						.then((data) => data?.[data?.length - 1]?.[1] ?? null)
+						.catch(() => null),
+			chain === 'All' || !metadata?.activeUsers
+				? null
+				: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${metadata.name}`)
+						.then((res) => res.json())
+						.then((data) => data?.[data?.length - 1]?.[1] ?? null)
+						.catch(() => null),
 
-		// 	chain === 'All' || !metadata?.activeUsers
-		// 		? null
-		// 		: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${metadata.name}`)
-		// 				.then((res) => res.json())
-		// 				.then((data) => data?.[data?.length - 1]?.[1] ?? null)
-		// 				.catch(() => null),
-		// 	fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
-		// 	chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
-		// 	metadata?.gecko_id
-		// 		? fetchWithErrorLogging(
-		// 				`https://pro-api.coingecko.com/api/v3/coins/${metadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
-		// 		  ).then((res) => res.json())
-		// 		: {},
-		// 	chain && chain !== 'All' && metadata?.derivatives
-		// 		? getOverview('derivatives', metadata.name.toLowerCase(), undefined, false, false)
-		// 		: null,
-		// 	chain && chain !== 'All'
-		// 		? fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
-		// 		: null,
-		// 	fetchWithErrorLogging(CHAINS_ASSETS)
-		// 		.then((res) => res.json())
-		// 		.catch(() => ({})),
-		// 	chain && chain !== 'All' && metadata?.fees
-		// 		? getAppRevenueByChain({ chain: metadata.name, excludeTotalDataChart: true })
-		// 		: { totalAppRevenue24h: null }
-		// ])
+			chain === 'All' || !metadata?.activeUsers
+				? null
+				: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${metadata.name}`)
+						.then((res) => res.json())
+						.then((data) => data?.[data?.length - 1]?.[1] ?? null)
+						.catch(() => null),
+			fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
+			chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
+			metadata?.gecko_id
+				? fetchWithErrorLogging(
+						`https://pro-api.coingecko.com/api/v3/coins/${metadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+				  ).then((res) => res.json())
+				: {},
+			chain && chain !== 'All' && metadata?.derivatives
+				? getAdapterOverview({
+						type: 'derivatives',
+						chain: metadata.name,
+						excludeTotalDataChart: true,
+						excludeTotalDataChartBreakdown: true
+				  }).catch((err) => {
+						console.log(err)
+						return null
+				  })
+				: null,
+			chain && chain !== 'All'
+				? fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
+				: null,
+			fetchWithErrorLogging(CHAINS_ASSETS)
+				.then((res) => res.json())
+				.catch(() => ({})),
+			chain && chain !== 'All' && metadata?.fees
+				? getAdapterOverview({
+						type: 'fees',
+						chain: metadata.name,
+						excludeTotalDataChart: true,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyAppRevenue'
+				  })
+						.then((data) => {
+							return data?.total24h ?? null
+						})
+						.catch((err) => {
+							console.log(err)
+							return null
+						})
+				: null
+		])
 
 		return { chain, metadata, protocols: getProtocolsMetadataByChain({ chainDisplayName: metadata.name }) }
 	} catch (error) {

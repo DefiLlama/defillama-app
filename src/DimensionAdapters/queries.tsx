@@ -1,7 +1,35 @@
-import { BASE_API } from '~/constants'
+import { BASE_API, DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
+import { slug } from '~/utils'
+import { ADAPTOR_TYPES } from './constants'
 
 const fetch = fetchWithErrorLogging
+
+export async function getAdapterOverview({
+	type,
+	chain,
+	excludeTotalDataChart,
+	excludeTotalDataChartBreakdown,
+	dataType
+}: {
+	type: `${ADAPTOR_TYPES}`
+	chain: string
+	excludeTotalDataChart: boolean
+	excludeTotalDataChartBreakdown: boolean
+	dataType?: string
+}) {
+	let url = `${DIMENISIONS_OVERVIEW_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type}${
+		chain && chain !== 'All' ? `/${slug(chain)}` : ''
+	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+
+	if (dataType) {
+		url += `?dataType=${dataType}`
+	}
+
+	const data = await fetchWithErrorLogging(url).then(handleFetchResponse)
+
+	return data
+}
 
 export async function getCexVolume() {
 	const [cexs, btcPriceRes] = await Promise.all([

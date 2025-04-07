@@ -1,5 +1,5 @@
 import { getChainPageData } from '~/api/categories/chains'
-import { getBridgeOverviewPageData } from '~/api/categories/bridges'
+import { getBridgeOverviewPageData } from '~/Bridges/queries.server'
 import {
 	getDimensionsAdaptersChainsPageData,
 	getOverviewItemPageData,

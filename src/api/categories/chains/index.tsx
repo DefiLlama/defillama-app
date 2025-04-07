@@ -20,10 +20,10 @@ import { maxAgeForNext } from '~/api'
 import { getPercentChange, slug } from '~/utils'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/Stablecoins/utils'
 import { getPeggedOverviewPageData } from '~/Stablecoins/queries.server'
-import { getBridgeOverviewPageData } from '../bridges'
 import metadataCache from '~/utils/metadata'
 import { getOverview, getDexVolumeByChain, getAppRevenueByChain, getFeesAndRevenueByChain } from '../adaptors'
 import { getCexVolume } from '~/DimensionAdapters/queries'
+import { getBridgeOverviewPageData } from '~/Bridges/queries.server'
 
 const chainsMetadata = metadataCache.chainMetadata
 

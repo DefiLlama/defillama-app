@@ -1,6 +1,6 @@
 import { BRIDGES_API, BRIDGEVOLUME_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
-import { getBridgeOverviewPageData } from '.'
+import { getBridgeOverviewPageData } from './queries.server'
 import { useQuery } from '@tanstack/react-query'
 
 export const useFetchBridgeList = () => {
