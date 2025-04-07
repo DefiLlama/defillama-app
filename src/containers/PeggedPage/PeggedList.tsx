@@ -14,8 +14,8 @@ import {
 	useCalcGroupExtraPeggedByDay,
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
-import { useBuildPeggedChartData } from '~/utils/stablecoins'
-import { formattedNum, getPercentChange, getPeggedDominance, toNiceCsvDate, download } from '~/utils'
+import { buildStablecoinChartData, getStablecoinDominance } from '~/Stablecoins/utils'
+import { formattedNum, getPercentChange, toNiceCsvDate, download } from '~/utils'
 import { PeggedFilters } from '~/components/Filters/stablecoins'
 import { Icon } from '~/components/Icon'
 
@@ -122,14 +122,16 @@ function PeggedAssetsOverview({
 	])
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
-		useBuildPeggedChartData({
-			chartDataByAssetOrChain: chartDataByPeggedAsset,
-			assetsOrChainsList: peggedAssetNames,
-			filteredIndexes,
-			issuanceType: 'mcap',
-			selectedChain,
-			doublecountedIds
-		})
+		React.useMemo(() => {
+			return buildStablecoinChartData({
+				chartDataByAssetOrChain: chartDataByPeggedAsset,
+				assetsOrChainsList: peggedAssetNames,
+				filteredIndexes,
+				issuanceType: 'mcap',
+				selectedChain,
+				doublecountedIds
+			})
+		}, [chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, selectedChain, doublecountedIds])
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, query) }))
 
@@ -227,7 +229,7 @@ function PeggedAssetsOverview({
 		topToken.mcap = topTokenData.mcap
 	}
 
-	const dominance = getPeggedDominance(topToken, totalMcapCurrent)
+	const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
 
 	const totalMcapLabel = ['Mcap']
 

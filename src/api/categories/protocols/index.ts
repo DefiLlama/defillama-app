@@ -32,7 +32,7 @@ import {
 	getFeesAndRevenueProtocolsByChain,
 	ADAPTOR_TYPES
 } from '~/api/categories/adaptors'
-import { getPeggedAssets } from '../stablecoins'
+import { getPeggedAssets } from '~/Stablecoins/queries.server'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { getDexVolumeByChain, getAppRevenueByChain } from '../adaptors'
 import { sluggify } from '~/utils/cache-client'

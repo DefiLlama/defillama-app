@@ -544,7 +544,7 @@ export const cexData: Array<ICex> = [
 	},
 	{
 		name: 'LBank',
-        slug: 'lbank',
+		slug: 'lbank',
 		cgId: 'lbank'
 	},
 	{

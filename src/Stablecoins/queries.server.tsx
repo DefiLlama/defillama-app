@@ -1,4 +1,4 @@
-import { getPercentChange, getPrevPeggedTotalFromChart, slug } from '~/utils'
+import { getPercentChange, slug } from '~/utils'
 import {
 	CONFIG_API,
 	PEGGEDCHART_API,
@@ -10,11 +10,13 @@ import {
 	PEGGEDCHART_DOMINANCE_ALL_API,
 	PEGGEDCHART_COINS_RECENT_DATA_API
 } from '~/constants'
-import { formatPeggedAssetsData, formatPeggedChainsData } from './utils'
 import { fetchWithErrorLogging } from '~/utils/async'
+import { getPrevStablecoinTotalFromChart, formatPeggedAssetsData, formatPeggedChainsData } from '~/Stablecoins/utils'
+
+const fetch = fetchWithErrorLogging
 
 export const getPeggedAssets = () =>
-	fetchWithErrorLogging(PEGGEDS_API)
+	fetch(PEGGEDS_API)
 		.then((res) => res.json())
 		.then(({ peggedAssets, chains }) => ({
 			protocolsDict: peggedAssets.reduce((acc, curr) => {
@@ -25,14 +27,12 @@ export const getPeggedAssets = () =>
 			chains
 		}))
 
-export const getPeggedPrices = () => fetchWithErrorLogging(PEGGEDPRICES_API).then((res) => res.json())
-export const getPeggedRates = () => fetchWithErrorLogging(PEGGEDRATES_API).then((res) => res.json())
-export const getConfigData = () => fetchWithErrorLogging(CONFIG_API).then((res) => res.json())
+export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((res) => res.json())
+export const getPeggedRates = () => fetch(PEGGEDRATES_API).then((res) => res.json())
+export const getConfigData = () => fetch(CONFIG_API).then((res) => res.json())
 
 export const getPeggedBridgeInfo = () =>
-	fetchWithErrorLogging('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((res) =>
-		res.json()
-	)
+	fetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((res) => res.json())
 
 let globalData: any
 
@@ -75,7 +75,7 @@ function fetchGlobalData({ peggedAssets, chains }: any) {
 export async function getPeggedOverviewPageData(chain) {
 	const { peggedAssets, chains } = await getPeggedAssets()
 	const chainLabel = chain ?? 'all-llama-app' // custom key to fetch limited data to reduce page size
-	const chainData = await fetchWithErrorLogging(`${PEGGEDCHART_API}/${chainLabel}`).then((res) => res.json())
+	const chainData = await fetch(`${PEGGEDCHART_API}/${chainLabel}`).then((res) => res.json())
 	const breakdown = chainData?.breakdown
 	if (!breakdown) {
 		return { notFound: true }
@@ -152,10 +152,8 @@ export async function getPeggedChainsPageData() {
 	const { peggedAssets, chains } = await getPeggedAssets()
 	const { chainCoingeckoIds } = await getConfigData()
 
-	const { aggregated: chartData } = await fetchWithErrorLogging(`${PEGGEDCHART_API}/all`).then((res) => res.json())
-	const { dominanceMap, chainChartMap } = await fetchWithErrorLogging(PEGGEDCHART_DOMINANCE_ALL_API).then((res) =>
-		res.json()
-	)
+	const { aggregated: chartData } = await fetch(`${PEGGEDCHART_API}/all`).then((res) => res.json())
+	const { dominanceMap, chainChartMap } = await fetch(PEGGEDCHART_DOMINANCE_ALL_API).then((res) => res.json())
 	const { chainList, chainsTVLData } = fetchGlobalData({ peggedAssets, chains })
 
 	let chainsGroupbyParent = {}
@@ -216,17 +214,17 @@ export async function getPeggedChainsPageData() {
 }
 
 export const getPeggedAssetPageData = async (peggedasset: string) => {
-	const peggedNameToPeggedIDMapping = await fetchWithErrorLogging(PEGGEDCONFIG_API).then((res) => res.json())
+	const peggedNameToPeggedIDMapping = await fetch(PEGGEDCONFIG_API).then((res) => res.json())
 	const peggedID = peggedNameToPeggedIDMapping[peggedasset]
 	const [res, { chainCoingeckoIds }, recentCoinsData] = await Promise.all([
-		fetchWithErrorLogging(`${PEGGED_API}/${peggedID}`)
+		fetch(`${PEGGED_API}/${peggedID}`)
 			.then((res) => res.json())
 			.catch((e) => {
 				console.error(`Failed to fetch ${PEGGED_API}/${peggedID}: ${e}`)
 				return null
 			}),
 		getConfigData(),
-		fetchWithErrorLogging(PEGGEDCHART_COINS_RECENT_DATA_API).then((res) => res.json())
+		fetch(PEGGEDCHART_COINS_RECENT_DATA_API).then((res) => res.json())
 	])
 
 	const peggedChart = recentCoinsData[peggedID]
@@ -234,9 +232,9 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 
 	const pegType = res.pegType
 
-	const totalCirculating = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalCirculating', pegType)
-	const unreleased = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalUnreleased', pegType)
-	const mcap = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalCirculatingUSD', pegType)
+	const totalCirculating = getPrevStablecoinTotalFromChart(peggedChart, 0, 'totalCirculating', pegType)
+	const unreleased = getPrevStablecoinTotalFromChart(peggedChart, 0, 'totalUnreleased', pegType)
+	const mcap = getPrevStablecoinTotalFromChart(peggedChart, 0, 'totalCirculatingUSD', pegType)
 
 	const chainsUnique: string[] = Object.keys(res.chainBalances)
 
@@ -248,13 +246,13 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 
 	const chainCirculatings = chainsUnique
 		.map((chainName, i) => {
-			const circulating: number = getPrevPeggedTotalFromChart(chainsData[i], 0, 'circulating', pegType)
-			const unreleased: number = getPrevPeggedTotalFromChart(chainsData[i], 0, 'unreleased', pegType)
-			let bridgedTo: number = getPrevPeggedTotalFromChart(chainsData[i], 0, 'bridgedTo', pegType)
-			const bridges: any = getPrevPeggedTotalFromChart(chainsData[i], 0, 'bridgedTo', 'bridges')
-			const circulatingPrevDay: number = getPrevPeggedTotalFromChart(chainsData[i], 1, 'circulating', pegType)
-			const circulatingPrevWeek: number = getPrevPeggedTotalFromChart(chainsData[i], 7, 'circulating', pegType)
-			const circulatingPrevMonth: number = getPrevPeggedTotalFromChart(chainsData[i], 30, 'circulating', pegType)
+			const circulating: number = getPrevStablecoinTotalFromChart(chainsData[i], 0, 'circulating', pegType)
+			const unreleased: number = getPrevStablecoinTotalFromChart(chainsData[i], 0, 'unreleased', pegType)
+			let bridgedTo: number = getPrevStablecoinTotalFromChart(chainsData[i], 0, 'bridgedTo', pegType)
+			const bridges: any = getPrevStablecoinTotalFromChart(chainsData[i], 0, 'bridgedTo', 'bridges')
+			const circulatingPrevDay: number = getPrevStablecoinTotalFromChart(chainsData[i], 1, 'circulating', pegType)
+			const circulatingPrevWeek: number = getPrevStablecoinTotalFromChart(chainsData[i], 7, 'circulating', pegType)
+			const circulatingPrevMonth: number = getPrevStablecoinTotalFromChart(chainsData[i], 30, 'circulating', pegType)
 			const change_1d = getPercentChange(circulating, circulatingPrevDay)
 			const change_7d = getPercentChange(circulating, circulatingPrevWeek)
 			const change_1m = getPercentChange(circulating, circulatingPrevMonth)

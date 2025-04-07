@@ -6,15 +6,8 @@ import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ChartSelector } from '~/containers/PeggedPage/.'
 import { PeggedChainsTable } from '~/components/Table/Stablecoins/PeggedChain'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
-import { useBuildPeggedChartData } from '~/utils/stablecoins'
-import {
-	formattedNum,
-	getPercentChange,
-	getPeggedDominance,
-	getPrevPeggedTotalFromChart,
-	toNiceCsvDate,
-	download
-} from '~/utils'
+import { buildStablecoinChartData, getStablecoinDominance, getPrevStablecoinTotalFromChart } from '~/Stablecoins/utils'
+import { formattedNum, getPercentChange, toNiceCsvDate, download } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -37,12 +30,16 @@ function PeggedChainsOverview({
 	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
 
-	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = useBuildPeggedChartData({
-		chartDataByAssetOrChain: peggedChartDataByChain,
-		assetsOrChainsList: chainList,
-		filteredIndexes: [...Array(chainList.length).keys()],
-		issuanceType: 'mcap'
-	})
+	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = React.useMemo(
+		() =>
+			buildStablecoinChartData({
+				chartDataByAssetOrChain: peggedChartDataByChain,
+				assetsOrChainsList: chainList,
+				filteredIndexes: [...Array(chainList.length).keys()],
+				issuanceType: 'mcap'
+			}),
+		[peggedChartDataByChain, chainList]
+	)
 
 	const filteredPeggedAssets = chainCirculatings
 	const chainTotals = useCalcCirculating(filteredPeggedAssets)
@@ -68,10 +65,10 @@ function PeggedChainsOverview({
 
 	const { change1d, change7d, change30d, totalMcapCurrent, change1d_nol, change7d_nol, change30d_nol } =
 		React.useMemo(() => {
-			const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD')
-			const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 1, 'totalCirculatingUSD')
-			const totalMcapPrevWeek = getPrevPeggedTotalFromChart(chartData, 7, 'totalCirculatingUSD')
-			const totalMcapPrevMonth = getPrevPeggedTotalFromChart(chartData, 30, 'totalCirculatingUSD')
+			const totalMcapCurrent = getPrevStablecoinTotalFromChart(chartData, 0, 'totalCirculatingUSD')
+			const totalMcapPrevDay = getPrevStablecoinTotalFromChart(chartData, 1, 'totalCirculatingUSD')
+			const totalMcapPrevWeek = getPrevStablecoinTotalFromChart(chartData, 7, 'totalCirculatingUSD')
+			const totalMcapPrevMonth = getPrevStablecoinTotalFromChart(chartData, 30, 'totalCirculatingUSD')
 			const change1d = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2) ?? '0'
 			const change7d = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2) ?? '0'
 			const change30d = getPercentChange(totalMcapCurrent, totalMcapPrevMonth)?.toFixed(2) ?? '0'
@@ -119,7 +116,7 @@ function PeggedChainsOverview({
 		topChain.mcap = topChainData.mcap
 	}
 
-	const dominance = getPeggedDominance(topChain, totalMcapCurrent)
+	const dominance = getStablecoinDominance(topChain, totalMcapCurrent)
 
 	const totalMcapLabel = ['Mcap', 'TVL']
 

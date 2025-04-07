@@ -7,16 +7,16 @@ import {
 	DIMENISIONS_OVERVIEW_API
 } from '~/constants'
 import { getUniqueArray } from '~/containers/DexsAndFees/utils'
-import { capitalizeFirstLetter, chainIconUrl, getPercentChange, slug } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, getPercentChange, iterateAndRemoveUndefined, slug } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
-import { getCexVolume, handleFetchResponse, iterateAndRemoveUndefined } from './utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
 import { ISettings } from '~/contexts/types'
 import metadataCache from '~/utils/metadata'
+import { getCexVolume } from '~/DimensionAdapters/queries'
 const { chainMetadata } = metadataCache
 
 export enum ADAPTOR_TYPES {
@@ -965,4 +965,16 @@ export const getDexVolumeByChain = async ({
 		})
 
 	return data
+}
+
+async function handleFetchResponse(res: Response) {
+	try {
+		const response = await res.json()
+		return iterateAndRemoveUndefined(response)
+	} catch (e) {
+		postRuntimeLogs(
+			`Failed to parse response from ${res.url}, with status ${res.status} and error message ${e.message}`
+		)
+		return {}
+	}
 }

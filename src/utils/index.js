@@ -369,16 +369,6 @@ export const getTokenDominance = (topToken, totalVolume) => {
 	} else return 100
 }
 
-export const getPeggedDominance = (topToken, totalMcap) => {
-	if (topToken && totalMcap) {
-		const dominance = topToken.mcap && totalMcap && (topToken.mcap / totalMcap) * 100.0
-		if (!dominance) return null
-		if (dominance < 100) {
-			return dominance.toFixed(2)
-		} else return 100
-	} else return null
-}
-
 /**
  * get tvl of specified day before last day using chart data
  * @param {*} chartData
@@ -390,14 +380,6 @@ export const getPrevTvlFromChart = (chart, daysBefore) => {
 
 export const getPrevTvlFromChart2 = (chart, daysBefore, key) => {
 	return chart[chart.length - 1 - daysBefore]?.[key] ?? null
-}
-
-export const getPrevPeggedTotalFromChart = (chart, daysBefore, issuanceType, pegType = '') => {
-	if (!chart) return null
-	const prevChart = chart[chart.length - 1 - daysBefore]
-	if (!prevChart) return null
-	if (!pegType) return Object.values(prevChart?.[issuanceType] ?? {}).reduce((a, b) => a + b, 0)
-	return prevChart?.[issuanceType]?.[pegType] ?? null
 }
 
 export const getPrevVolumeFromChart = (chart, daysBefore, txs = false, inflows = false) => {
@@ -453,4 +435,14 @@ export const formatPercentage = (value) => {
 		})
 
 	return value.toLocaleString(undefined, { maximumFractionDigits: zeroes + 1 })
+}
+
+export function iterateAndRemoveUndefined(obj) {
+	if (typeof obj !== 'object') return obj
+	if (Array.isArray(obj)) return obj
+	Object.entries(obj).forEach((key, value) => {
+		if (value === undefined) delete obj[key]
+		else iterateAndRemoveUndefined(value)
+	})
+	return obj
 }

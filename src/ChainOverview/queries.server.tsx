@@ -1,6 +1,7 @@
 import {
 	CHAINS_ASSETS,
 	CHART_API,
+	DIMENISIONS_OVERVIEW_API,
 	PROTOCOLS_API,
 	PROTOCOLS_TREASURY,
 	PROTOCOL_ACTIVE_USERS_API,
@@ -8,7 +9,10 @@ import {
 	PROTOCOL_TRANSACTIONS_API,
 	RAISES_API
 } from '~/constants'
-import { slug } from '~/utils'
+import { getCexVolume } from '~/DimensionAdapters/queries'
+import { getPeggedOverviewPageData } from '~/Stablecoins/queries.server'
+import { buildStablecoinChartData, getStablecoinDominance } from '~/Stablecoins/utils'
+import { getPercentChange, slug } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import metadataCache, { type IChainMetadata, type IProtocolMetadata } from '~/utils/metadata'
 
@@ -30,9 +34,10 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		// const [
 		// 	chartData,
 		// 	{ protocols, chains, parentProtocols },
-		// 	volume,
+		// 	dexVolume,
 		// 	cexVolume,
-		// 	{ fees, revenue },
+		// 	fees,
+		// 	revenue,
 		// 	stablecoinsData,
 		// 	inflowsData,
 		// 	activeUsers,
@@ -49,23 +54,61 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		// 	fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((r) => r.json()),
 		// 	fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
 		// 	chain !== 'All' && metadata?.dexs
-		// 		? getDexVolumeByChain({
-		// 				chain: metadata.name,
-		// 				excludeTotalDataChart: true,
-		// 				excludeTotalDataChartBreakdown: true
-		// 		  })
+		// 		? fetchWithErrorLogging(
+		// 				`${DIMENISIONS_OVERVIEW_API}/dexs${
+		// 					chain && chain !== 'All' ? `/${slug(metadata.name)}` : ''
+		// 				}?excludeTotalDataChart=truw&excludeTotalDataChartBreakdown=true`
+		// 		  )
+		// 				.then((res) => {
+		// 					if (res.status === 200) {
+		// 						return res.json()
+		// 					} else {
+		// 						return null
+		// 					}
+		// 				})
+		// 				.catch((err) => {
+		// 					console.log(err)
+		// 					return null
+		// 				})
 		// 		: null,
 		// 	getCexVolume(),
 		// 	chain !== 'All' && metadata?.chainFees
-		// 		? getFeesAndRevenueByChain({
-		// 				chain: metadata.name,
-		// 				excludeTotalDataChart: true,
-		// 				excludeTotalDataChartBreakdown: true
-		// 		  })
-		// 		: { fees: null, revenue: null },
+		// 		? fetchWithErrorLogging(
+		// 				`${DIMENISIONS_OVERVIEW_API}/fees${
+		// 					chain && chain !== 'All' ? `/${slug(metadata.name)}` : ''
+		// 				}?excludeTotalDataChart=truw&excludeTotalDataChartBreakdown=true`
+		// 		  )
+		// 				.then((res) => {
+		// 					if (res.status === 200) {
+		// 						return res.json()
+		// 					} else {
+		// 						return null
+		// 					}
+		// 				})
+		// 				.catch(() => {
+		// 					return null
+		// 				})
+		// 		: null,
+		// 	chain !== 'All' && metadata?.chainFees
+		// 		? fetchWithErrorLogging(
+		// 				`${DIMENISIONS_OVERVIEW_API}/fees${
+		// 					chain && chain !== 'All' ? `/${slug(metadata.name)}` : ''
+		// 				}?excludeTotalDataChart=truw&excludeTotalDataChartBreakdown=true&dataType=dailyRevenue`
+		// 		  )
+		// 				.then((res) => {
+		// 					if (res.status === 200) {
+		// 						return res.json()
+		// 					} else {
+		// 						return null
+		// 					}
+		// 				})
+		// 				.catch(() => {
+		// 					return null
+		// 				})
+		// 		: null,
 		// 	getPeggedOverviewPageData(chain === 'All' ? null : metadata.name)
 		// 		.then((data) => {
-		// 			const { peggedAreaChartData, peggedAreaTotalData } = buildPeggedChartData({
+		// 			const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
 		// 				chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
 		// 				assetsOrChainsList: data?.peggedAssetNames,
 		// 				filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
@@ -89,10 +132,10 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		// 				}
 		// 			}
 
-		// 			const dominance = getPeggedDominance(topToken, totalMcapCurrent)
+		// 			const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
 
 		// 			return {
-		// 				totalMcapCurrent: totalMcapCurrent ?? null,
+		// 				mcap: totalMcapCurrent ?? null,
 		// 				change7d: percentChange ?? null,
 		// 				topToken,
 		// 				dominance: dominance ?? null

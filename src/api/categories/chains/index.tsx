@@ -17,13 +17,13 @@ import { formatProtocolsData } from '../protocols/utils'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { maxAgeForNext } from '~/api'
-import { getCexVolume } from '../adaptors/utils'
-import { getPeggedDominance, getPercentChange, slug } from '~/utils'
-import { buildPeggedChartData } from '~/utils/stablecoins'
-import { getPeggedOverviewPageData } from '../stablecoins'
+import { getPercentChange, slug } from '~/utils'
+import { buildStablecoinChartData, getStablecoinDominance } from '~/Stablecoins/utils'
+import { getPeggedOverviewPageData } from '~/Stablecoins/queries.server'
 import { getBridgeOverviewPageData } from '../bridges'
 import metadataCache from '~/utils/metadata'
 import { getOverview, getDexVolumeByChain, getAppRevenueByChain, getFeesAndRevenueByChain } from '../adaptors'
+import { getCexVolume } from '~/DimensionAdapters/queries'
 
 const chainsMetadata = metadataCache.chainMetadata
 
@@ -107,7 +107,7 @@ export async function getChainPageData(chain?: string) {
 			: { fees: null, revenue: null },
 		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chainName)
 			.then((data) => {
-				const { peggedAreaChartData, peggedAreaTotalData } = buildPeggedChartData({
+				const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
 					chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
 					assetsOrChainsList: data?.peggedAssetNames,
 					filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
@@ -131,7 +131,7 @@ export async function getChainPageData(chain?: string) {
 					}
 				}
 
-				const dominance = getPeggedDominance(topToken, totalMcapCurrent)
+				const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
 
 				return {
 					totalMcapCurrent: totalMcapCurrent ?? null,

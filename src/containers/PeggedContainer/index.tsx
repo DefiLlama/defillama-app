@@ -13,7 +13,6 @@ import { SEO } from '~/components/SEO'
 import { QuestionHelper } from '~/components/QuestionHelper'
 
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
-import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { UNRELEASED, useStablecoinsManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
@@ -29,6 +28,7 @@ import { PeggedAssetByChainTable } from '~/components/Table/Stablecoins/PeggedAs
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
+import { buildStablecoinChartData } from '~/Stablecoins/utils'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -113,14 +113,18 @@ export const PeggedAssetInfo = ({
 
 	const totalChartTooltipLabel = ['Circulating']
 
-	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = useBuildPeggedChartData({
-		chartDataByAssetOrChain: chainsData,
-		assetsOrChainsList: chainsUnique,
-		filteredIndexes: [...Array(chainsUnique.length).keys()],
-		issuanceType: 'circulating',
-		selectedChain: undefined,
-		totalChartTooltipLabel: totalChartTooltipLabel[0]
-	})
+	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = React.useMemo(
+		() =>
+			buildStablecoinChartData({
+				chartDataByAssetOrChain: chainsData,
+				assetsOrChainsList: chainsUnique,
+				filteredIndexes: [...Array(chainsUnique.length).keys()],
+				issuanceType: 'circulating',
+				selectedChain: undefined,
+				totalChartTooltipLabel: totalChartTooltipLabel[0]
+			}),
+		[chainsData, chainsUnique, totalChartTooltipLabel]
+	)
 
 	const extraPeggeds = [UNRELEASED]
 	const [extraPeggedsEnabled, updater] = useStablecoinsManager()

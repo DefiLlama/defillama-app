@@ -13,7 +13,7 @@ import {
 	useGetItemOverviewByChain,
 	useGetVolumeChartDataByChain
 } from '~/api/categories/chains/client'
-import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
+import { useGetStabelcoinsChartDataByChain } from '~/Stablecoins/queries.client'
 import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
 import { useMemo } from 'react'
 import { getPercentChange, getPrevTvlFromChart, nearestUtc } from '~/utils'
