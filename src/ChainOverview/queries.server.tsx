@@ -19,7 +19,10 @@ export interface IChainOverviewData {
 }
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
-	const metadata = metadataCache.chainMetadata[slug(chain)]
+	const metadata =
+		chain === 'All'
+			? { name: 'All Chains', tvl: true, stablecoins: true, dexs: true }
+			: metadataCache.chainMetadata[slug(chain)]
 
 	if (!metadata) return null
 

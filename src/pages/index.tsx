@@ -6,8 +6,7 @@ import { getChainOverviewData } from '~/ChainOverview/queries.server'
 
 export const getStaticProps = withPerformanceLogging('index', async () => {
 	const data = await getChainOverviewData({
-		chain: 'All',
-		metadata: { name: 'All Chains', tvl: true, stablecoins: true, dexs: true }
+		chain: 'All'
 	})
 
 	return {
