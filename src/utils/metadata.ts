@@ -21,6 +21,7 @@ export interface IChainMetadata {
 	chainAssets?: boolean
 	gecko_id?: string
 	tokenSymbol?: string
+	github?: boolean
 }
 
 export interface IProtocolMetadata {

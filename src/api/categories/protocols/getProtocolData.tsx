@@ -553,7 +553,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					options: protocolMetadata[protocolData.id]?.options ? true : false,
 					medianApy: medianApy.data.length > 0,
 					inflows: inflowsExist,
-					unlocks: protocolMetadata[protocolData.id]?.unlocks ? true : false,
+					unlocks: protocolMetadata[protocolData.id]?.emissions ? true : false,
 					bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
 					treasury: protocolMetadata[protocolData.id]?.treasury ? true : false,
 					tokenLiquidity: protocolMetadata[protocolData.id]?.liquidity ? true : false,
