@@ -1,6 +1,6 @@
-import { getProtocolsMetadataByChain } from './queries'
+import { IChainOverviewData } from './queries'
 
-export function ChainOverview() {
-	console.log({ protocols: getProtocolsMetadataByChain({ chainDisplayName: 'Ethereum' }) })
+export function ChainOverview(props: IChainOverviewData) {
+	console.log({ protocols: props.protocols })
 	return <></>
 }

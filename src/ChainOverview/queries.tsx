@@ -11,9 +11,10 @@ import {
 import { fetchWithErrorLogging } from '~/utils/async'
 import metadataCache, { type IChainMetadata, type IProtocolMetadata } from '~/utils/metadata'
 
-interface IChainOverviewData {
+export interface IChainOverviewData {
 	chain: string
 	metadata: IChainMetadata
+	protocols: Array<IProtocolMetadata2>
 }
 
 export async function getChainOverviewData({
@@ -152,7 +153,7 @@ export async function getChainOverviewData({
 		// 		: { totalAppRevenue24h: null }
 		// ])
 
-		return { chain, metadata }
+		return { chain, metadata, protocols: getProtocolsMetadataByChain({ chainDisplayName: metadata.name }) }
 	} catch (error) {
 		const msg = `Error fetching ${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
 		console.log(msg)
