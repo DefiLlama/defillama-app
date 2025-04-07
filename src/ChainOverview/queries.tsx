@@ -153,7 +153,7 @@ export async function getChainOverviewData({
 		// 		: { totalAppRevenue24h: null }
 		// ])
 
-		return { chain, metadata, protocols: getProtocolsMetadataByChain({ chainDisplayName: metadata.name }) }
+		return { chain, metadata, protocols: [] }
 	} catch (error) {
 		const msg = `Error fetching ${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
 		console.log(msg)
@@ -167,19 +167,18 @@ interface IProtocolMetadata2 extends Omit<IProtocolMetadata, 'name' | 'displayNa
 	chains: Array<string>
 }
 
-export const getProtocolsMetadataByChain = ({
+export const getProtocolsMetadataByChain = async ({
 	chainDisplayName
 }: {
 	chainDisplayName: string
-}): Array<IProtocolMetadata2> => {
-	const start = Date.now()
-	if (chainDisplayName === 'All') {
+}): Promise<Array<IProtocolMetadata2>> => {
+	if (chainDisplayName === 'All Chains') {
 		return Object.values(metadataCache.protocolMetadata).filter((protocol) =>
 			protocol.name && !protocol.name.startsWith('chain#') && protocol.displayName && protocol.chains ? true : false
 		) as Array<IProtocolMetadata2>
 	}
 
-	const final = Object.values(metadataCache.protocolMetadata).filter(
+	return Object.values(metadataCache.protocolMetadata).filter(
 		(protocol) =>
 			protocol.name &&
 			!protocol.name.startsWith('chain#') &&
@@ -187,7 +186,4 @@ export const getProtocolsMetadataByChain = ({
 			protocol.chains &&
 			protocol.chains.includes(chainDisplayName)
 	) as Array<IProtocolMetadata2>
-
-	console.log('time taken: ', start, Date.now(), Date.now() - start)
-	return final
 }
