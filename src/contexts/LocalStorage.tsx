@@ -80,7 +80,7 @@ const DIMENSIONS_CHART_INTERVAL_KEY = 'DIMENSIONS:CHART_INTERVAL'
 
 export const BAR_MIN_WIDTH_IN_CHART = 'BAR_MIN_WIDTH_IN_CHART'
 
-export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS }
+export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS } as const
 
 const BRIBES = 'bribes'
 const TOKENTAX = 'tokentax'
@@ -157,7 +157,7 @@ export const LIQS_SETTINGS = { LIQS_USING_USD, LIQS_SHOWING_INSPECTOR, LIQS_CUMU
 export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES }
 
 const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
-export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS)
+export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS) as Array<string>
 export const FEES_SETTINGS_KEYS = Object.values(FEES_SETTINGS)
 export const STABLECOINS_SETTINGS_KEYS = Object.values(STABLECOINS_SETTINGS)
 export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
@@ -358,7 +358,7 @@ export function useSettingsManager(settings: Array<string>): [ISettings, TUpdate
 
 	const updateStateFromRouter = (setting: string, router?: NextRouter) => {
 		// Per product needs, only defi settings are updated from the router
-		if (!DEFI_SETTINGS_KEYS.includes(setting)) return
+		if (!DEFI_SETTINGS_KEYS.includes(setting as any)) return
 
 		let routerValue = router.query[setting]
 		if (typeof routerValue === 'string' && ['true', 'false'].includes(routerValue)) {

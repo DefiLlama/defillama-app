@@ -9,8 +9,8 @@ import {
 	PROTOCOL_TRANSACTIONS_API,
 	RAISES_API
 } from '~/constants'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getAdapterOverview, getCexVolume } from '~/DimensionAdapters/queries'
+import { DEFI_SETTINGS, DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { getAdapterOverview, IAdapterOverview } from '~/DimensionAdapters/queries'
 import { getPeggedOverviewPageData } from '~/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/Stablecoins/utils'
 import { getPercentChange, slug } from '~/utils'
@@ -20,7 +20,7 @@ import metadataCache, { type IChainMetadata, type IProtocolMetadata } from '~/ut
 export interface IChainOverviewData {
 	chain: string
 	metadata: IChainMetadata
-	protocols: Record<string, IProtocol>
+	protocols: Array<IProtocol>
 }
 
 interface ILiteProtocol {
@@ -37,7 +37,7 @@ interface ILiteProtocol {
 	tvlPrevWeek: number
 	tvlPrevMonth: number
 	chainTvls: Record<
-		string,
+		typeof DEFI_SETTINGS[keyof typeof DEFI_SETTINGS],
 		{
 			tvl: number
 			tvlPrevDay: number
@@ -68,12 +68,17 @@ interface ILiteParentProtocol {
 	mcap: number
 }
 
+type TVL_TYPES = typeof DEFI_SETTINGS[keyof typeof DEFI_SETTINGS] | 'default'
+
 interface IChildProtocol {
 	name: string
 	slug: string
 	category: string | null
-	tvl: Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> | null
+	tvl: Record<TVL_TYPES, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> | null
+	tvlChange: { change1d: number | null; change7d: number | null; change1m: number | null } | null
 	chains: Array<string>
+	mcap: number | null
+	mcaptvl: number | null
 }
 
 interface IProtocol extends IChildProtocol {
@@ -93,7 +98,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chartData,
 			{ protocols, chains, parentProtocols },
 			dexVolume,
-			cexVolume,
 			fees,
 			revenue,
 			stablecoinsData,
@@ -107,10 +111,13 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			perpsData,
 			nftVolumesData,
 			chainAssets,
-			{ totalAppRevenue24h }
+			appRevenue
 		]: [
 			any,
 			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
+			IAdapterOverview | null,
+			IAdapterOverview | null,
+			IAdapterOverview | null,
 			any,
 			any,
 			any,
@@ -120,14 +127,10 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			any,
 			any,
 			any,
+			IAdapterOverview | null,
 			any,
 			any,
-			any,
-			any,
-			any,
-			any,
-			any,
-			any
+			number | null
 		] = await Promise.all([
 			fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((r) => r.json()),
 			fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
@@ -143,7 +146,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				  })
 				: null,
 			,
-			getCexVolume(),
+			// getCexVolume(),
 			chain !== 'All' && metadata?.chainFees
 				? getAdapterOverview({
 						type: 'fees',
@@ -157,7 +160,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				: null,
 			chain !== 'All' && metadata?.chainFees
 				? getAdapterOverview({
-						type: 'dexs',
+						type: 'fees',
 						chain: metadata.name,
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true,
@@ -284,11 +287,15 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			if (
 				metadataCache.protocolMetadata[protocol.defillamaId] &&
 				toFilterProtocol({
-					protocol: metadataCache.protocolMetadata[protocol.defillamaId],
+					protocolMetadata: metadataCache.protocolMetadata[protocol.defillamaId],
+					protocolData: protocol,
 					chainDisplayName: metadata.name
 				})
 			) {
-				const tvls: Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> = {}
+				const tvls = {} as Record<
+					TVL_TYPES,
+					{ tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
+				>
 
 				if (chain === 'All') {
 					tvls.default = {
@@ -306,9 +313,17 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 					}
 				}
 
+				const tvlChange = tvls.default.tvl
+					? {
+							change1d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevDay),
+							change7d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevWeek),
+							change1m: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevMonth)
+					  }
+					: null
+
 				for (const chainKey in protocol.chainTvls ?? {}) {
 					if (chain === 'All') {
-						if (DEFI_SETTINGS_KEYS.includes(chainKey) || chainKey === 'excludeParent') {
+						if (DEFI_SETTINGS_KEYS.includes(chainKey as any) || chainKey === 'excludeParent') {
 							tvls[chainKey] = {
 								tvl: protocol?.chainTvls?.[chainKey]?.tvl ?? null,
 								tvlPrevDay: protocol?.chainTvls?.[chainKey]?.tvlPrevDay ?? null,
@@ -330,6 +345,18 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				}
 
 				if (protocol.parentProtocol && metadataCache.protocolMetadata[protocol.parentProtocol]) {
+					const parentTvl =
+						protocol.tvl !== null
+							? sumTvl(tvls, finalProtocols?.[protocol.parentProtocol]?.tvl ?? {})
+							: finalProtocols?.[protocol.parentProtocol]?.tvl ?? null
+					const parentTvlChange = parentTvl?.default?.tvl
+						? {
+								change1d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevDay),
+								change7d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevWeek),
+								change1m: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevMonth)
+						  }
+						: null
+
 					finalProtocols[protocol.parentProtocol] = {
 						name: metadataCache.protocolMetadata[protocol.parentProtocol].displayName,
 						slug: metadataCache.protocolMetadata[protocol.parentProtocol].name,
@@ -340,10 +367,10 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 							])
 						),
 						category: null,
-						tvl:
-							protocol.tvl !== null
-								? sumTvl(tvls, finalProtocols?.[protocol.parentProtocol]?.tvl ?? {})
-								: finalProtocols?.[protocol.parentProtocol]?.tvl ?? null,
+						tvl: parentTvl,
+						tvlChange: parentTvlChange,
+						mcap: null,
+						mcaptvl: null,
 						childProtocols: [
 							...(finalProtocols?.[protocol.parentProtocol]?.childProtocols ?? []),
 							{
@@ -351,7 +378,10 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 								slug: metadataCache.protocolMetadata[protocol.defillamaId].name,
 								chains: metadataCache.protocolMetadata[protocol.defillamaId].chains,
 								category: protocol.category ?? null,
-								tvl: protocol.tvl != null ? tvls : null
+								tvl: protocol.tvl != null ? tvls : null,
+								tvlChange: protocol.tvl != null ? tvlChange : null,
+								mcap: protocol.mcap ?? null,
+								mcaptvl: protocol.mcap && tvls?.default?.tvl ? +(protocol.mcap / tvls.default.tvl).toFixed(2) : null
 							}
 						]
 					}
@@ -361,13 +391,30 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						slug: metadataCache.protocolMetadata[protocol.defillamaId].name,
 						chains: metadataCache.protocolMetadata[protocol.defillamaId].chains,
 						category: protocol.category ?? null,
-						tvl: protocol.tvl != null ? tvls : null
+						tvl: protocol.tvl != null ? tvls : null,
+						tvlChange: protocol.tvl != null ? tvlChange : null,
+						mcap: protocol.mcap ?? null,
+						mcaptvl: protocol.mcap && tvls?.default?.tvl ? +(protocol.mcap / tvls.default.tvl).toFixed(2) : null
 					}
 				}
 			}
 		}
 
-		return { chain, metadata, protocols: finalProtocols }
+		for (const parentProtocol of parentProtocols) {
+			if (finalProtocols[parentProtocol.id]) {
+				finalProtocols[parentProtocol.id].mcap = parentProtocol.mcap ?? null
+				finalProtocols[parentProtocol.id].mcaptvl =
+					parentProtocol.mcap && finalProtocols[parentProtocol.id].tvl?.default?.tvl
+						? +(parentProtocol.mcap / finalProtocols[parentProtocol.id].tvl.default.tvl).toFixed(2)
+						: null
+			}
+		}
+
+		return {
+			chain,
+			metadata,
+			protocols: Object.values(finalProtocols).sort((a, b) => (b.tvl?.default?.tvl ?? 0) - (a.tvl?.default?.tvl ?? 0))
+		}
 	} catch (error) {
 		const msg = `Error fetching ${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
 		console.log(msg)
@@ -376,17 +423,20 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 }
 
 const toFilterProtocol = ({
-	protocol,
+	protocolMetadata,
+	protocolData,
 	chainDisplayName
 }: {
-	protocol: IProtocolMetadata
+	protocolMetadata: IProtocolMetadata
+	protocolData: ILiteProtocol
 	chainDisplayName: string | null
 }): boolean => {
-	return protocol.name &&
-		!protocol.name.startsWith('chain#') &&
-		protocol.displayName &&
-		protocol.chains &&
-		(chainDisplayName !== 'All' ? protocol.chains.includes(chainDisplayName) : true)
+	return protocolMetadata.name &&
+		!protocolMetadata.name.startsWith('chain#') &&
+		protocolMetadata.displayName &&
+		protocolMetadata.chains &&
+		(chainDisplayName !== 'All' ? protocolMetadata.chains.includes(chainDisplayName) : true) &&
+		protocolData.category !== 'Bridge'
 		? true
 		: false
 }

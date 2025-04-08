@@ -5,6 +5,63 @@ import { ADAPTOR_TYPES } from './constants'
 
 const fetch = fetchWithErrorLogging
 
+export interface IAdapterOverview {
+	totalDataChart: Array<[number, number]> // date, value
+	totalDataChartBreakdown: Array<[number, Record<string, number>]> // date , {chain: value}
+	breakdown24h: number | null
+	chain: string | null
+	allChains: Array<string>
+	total24h: number
+	total48hto24h: number
+	total7d: number
+	total14dto7d: number
+	total60dto30d: number
+	total30d: number
+	total1y: number
+	change_1d: number
+	change_7d: number
+	change_1m: number
+	change_7dover7d: number
+	change_30dover30d: number
+	total7DaysAgo: number
+	total30DaysAgo: number
+	protocols: Array<{
+		total24h: number
+		total48hto24h: number
+		total7d: number
+		total14dto7d: number
+		total60dto30d: number
+		total30d: number
+		total1y: number
+		totalAllTime: number
+		average1y: number
+		change_1d: number
+		change_7d: number
+		change_1m: number
+		change_7dover7d: number
+		change_30dover30d: number
+		breakdown24h: Record<string, Record<string, number>>
+		breakdown30d: Record<string, Record<string, number>>
+		total7DaysAgo: number
+		total30DaysAgo: number
+		defillamaId: string
+		name: string
+		displayName: string
+		module: string
+		category: string
+		logo: string
+		chains: Array<string>
+		protocolType: string
+		methodologyURL: string
+		methodology: Record<string, string>
+		latestFetchIsOk: boolean
+		parentProtocol: string
+		slug: string
+		linkedProtocols: Array<string>
+		id: string
+	}>
+}
+
 export async function getAdapterOverview({
 	type,
 	chain,
@@ -28,7 +85,7 @@ export async function getAdapterOverview({
 
 	const data = await fetchWithErrorLogging(url).then(handleFetchResponse)
 
-	return data
+	return data as IAdapterOverview
 }
 
 export async function getCexVolume() {
