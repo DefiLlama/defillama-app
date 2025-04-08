@@ -69,7 +69,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>{`${value}`}</CustomLink>
 
-						<Tooltip content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
+						<Tooltip content={<Chains />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
@@ -439,7 +439,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>{`${value}`}</CustomLink>
 
-						<Tooltip content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
+						<Tooltip content={<Chains />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
@@ -618,7 +618,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>{`${value}`}</CustomLink>
 
-						<Tooltip content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
+						<Tooltip content={<Chains />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>

@@ -4,7 +4,7 @@ import protocolMetadata from '../../.cache/protocols.json'
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
 
-export interface IChainMetadata {
+interface IChainMetadata {
 	tvl?: boolean
 	stablecoins?: boolean
 	dexs?: boolean
@@ -24,7 +24,7 @@ export interface IChainMetadata {
 	github?: boolean
 }
 
-export interface IProtocolMetadata {
+interface IProtocolMetadata {
 	name?: string
 	tvl?: boolean
 	yields?: boolean

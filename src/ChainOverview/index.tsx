@@ -1,6 +1,11 @@
-import { IChainOverviewData } from './queries.server'
+import Layout from '~/layout'
+import { ChainProtocolsTable } from './Table'
+import type { IChainOverviewData } from './types'
 
 export function ChainOverview(props: IChainOverviewData) {
-	console.log(props)
-	return <></>
+	return (
+		<Layout title={`${props.metadata.name} - DefiLlama`}>
+			<ChainProtocolsTable protocols={props.protocols} />
+		</Layout>
+	)
 }
