@@ -166,11 +166,6 @@ function ComparePage() {
 	const router = useRouter()
 
 	const data = useCompare({ extraTvlsEnabled, chains: router.query?.chains ? [router.query?.chains].flat() : [] })
-	const onChainSelect = (chains: Array<Record<string, string>>) => {
-		const selectedChains = chains.map((val) => val.value)
-
-		updateRoute('chains', selectedChains, router)
-	}
 
 	const components = useMemo(
 		() => ({
@@ -179,12 +174,19 @@ function ComparePage() {
 		[]
 	)
 
-	const selectedChains = [router?.query?.chains]
-		.flat()
-		.filter(Boolean)
-		.map((chain) => ({ value: chain, label: chain }))
+	const selectedChains = useMemo(() => {
+		return [router?.query?.chains]
+			.flat()
+			.filter(Boolean)
+			.map((chain) => ({ value: chain, label: chain }))
+	}, [router.query])
 
-	console.log(data)
+	const onChainSelect = (chains: Array<Record<string, string>>) => {
+		const selectedChains = chains.map((val) => val.value)
+
+		updateRoute('chains', selectedChains, router)
+	}
+
 	return (
 		<>
 			<ProtocolsChainsSearch />

@@ -6,10 +6,10 @@ import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
 import type { IDexChartsProps } from './types'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
-import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { useChartInterval } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
+import { VOLUME_TYPE_ADAPTORS } from '~/api/categories/adaptors'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -97,7 +97,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const router = useRouter()
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
 	const [chartInterval, changeChartInterval] = useChartInterval()
-	const dataType = volumeTypes.includes(props.type) ? 'volume' : props.type
+	const dataType = VOLUME_TYPE_ADAPTORS.includes(props.type) ? 'volume' : props.type
 	const simpleStack =
 		props.chartData[1].includes('Fees') || props.chartData[1].includes('Premium volume')
 			? props.chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})

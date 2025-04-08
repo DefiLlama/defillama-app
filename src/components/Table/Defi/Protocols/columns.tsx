@@ -1,5 +1,4 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
-import { Checkbox } from 'ariakit'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
@@ -360,24 +359,24 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				size: 150
 			}),
 			columnHelper.accessor('volumeChange_7d', {
-				header: 'Change 7d',
+				header: 'Spot Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change of last 7d volume over the previous 7d volume'
 				},
-				size: 130
+				size: 140
 			}),
 			columnHelper.accessor('cumulativeVolume', {
-				header: 'Cumulative Volume',
+				header: 'Spot Cumulative Volume',
 				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: 'Total volume traded on the protocol since it was launched'
 				},
-				size: 170
+				size: 200
 			})
 		],
 		meta: {
@@ -559,7 +558,8 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		cell: ({ row }) => {
 			return (
 				<div style={{ display: 'flex', justifyContent: 'center' }}>
-					<Checkbox
+					<input
+						type="checkbox"
 						onChange={() => row.original?.compare?.(row.original.name)}
 						checked={row.original?.isCompared}
 						id={`compare-${row.original.name}`}

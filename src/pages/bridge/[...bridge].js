@@ -1,8 +1,7 @@
 import * as React from 'react'
 import BridgeContainer from '~/containers/BridgeContainer'
-import { standardizeProtocolName } from '~/utils'
 import { maxAgeForNext } from '~/api'
-import { getBridgePageDatanew, getBridges } from '~/api/categories/bridges'
+import { getBridgePageDatanew } from '~/api/categories/bridges'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(

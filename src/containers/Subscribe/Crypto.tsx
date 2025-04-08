@@ -2,7 +2,7 @@ import { useAccount } from 'wagmi'
 import { useGetCreditsUsage, useGetCurrentKey, useIsSubscribed, useSignInWithEthereum } from './queries'
 import { useEffect, useRef } from 'react'
 import { llamaAddress, proSubscriptionAmount, supporterSubscriptionAmount } from '../ProApi/lib/constants'
-import { Tooltip, TooltipAnchor, useTooltipState } from 'ariakit'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 
 // TODO handle sub top ups
@@ -74,7 +74,7 @@ export const ProApiKey = () => {
 	const { mutate, isPending, error } = useSignInWithEthereum()
 	const { data, isLoading, error: errorFetchingCurrentKey } = useGetCurrentKey()
 	const { data: creditUsage } = useGetCreditsUsage({ apiKey: data?.apiKey })
-	const tooltip = useTooltipState({ timeout: 0 })
+
 	return (
 		<>
 			{data ? (
@@ -87,17 +87,16 @@ export const ProApiKey = () => {
 							</tr>
 							<tr>
 								<th className="p-2 border border-[#39393E] font-normal whitespace-nowrap min-w-[88px]">
-									<TooltipAnchor state={tooltip} className="flex flex-nowrap items-center justify-center gap-1">
-										<span className="whitespace-nowrap">Calls Left</span>{' '}
-										<Icon name="circle-help" height={16} width={16} />
-									</TooltipAnchor>
-									<Tooltip
-										state={tooltip}
-										className="bg-black border border-[#39393E] rounded-2xl relative z-10 p-4 max-w-sm text-sm"
-									>
-										Amount of calls that you can make before this api key runs out of credits. This limit will be reset
-										at the end of each natural month.
-									</Tooltip>
+									<Ariakit.TooltipProvider timeout={0}>
+										<Ariakit.TooltipAnchor className="flex flex-nowrap items-center justify-center gap-1">
+											<span className="whitespace-nowrap">Calls Left</span>{' '}
+											<Icon name="circle-help" height={16} width={16} />
+										</Ariakit.TooltipAnchor>
+										<Ariakit.Tooltip className="bg-black border border-[#39393E] rounded-2xl relative z-10 p-4 max-w-sm text-sm">
+											Amount of calls that you can make before this api key runs out of credits. This limit will be
+											reset at the end of each natural month.
+										</Ariakit.Tooltip>
+									</Ariakit.TooltipProvider>
 								</th>
 								<td className="p-2 border border-[#39393E]">{creditUsage?.creditsLeft}</td>
 							</tr>

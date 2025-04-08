@@ -6,6 +6,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { ChainContainer } from '~/containers/ChainContainer'
+import { slug } from '~/utils'
 
 const fetch = fetchWithErrorLogging
 
@@ -21,7 +22,7 @@ export async function getStaticPaths() {
 	const res = await fetch(PROTOCOLS_API).then((res) => res.json())
 
 	const paths = res.chains.map((chain) => ({
-		params: { chain }
+		params: { chain: slug(chain) }
 	}))
 
 	return { paths, fallback: 'blocking' }

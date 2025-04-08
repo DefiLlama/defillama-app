@@ -1,11 +1,10 @@
-import { Select, SelectArrow, SelectItem, SelectPopover } from 'ariakit/select'
-import { Checkbox } from '~/components/Checkbox'
 import { useDefiManager, useFeesManager, useTvlAndFeesManager } from '~/contexts/LocalStorage'
 import { feesOptions, protocolsAndChainsOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
 import ReactSwitch from 'react-switch'
+import { Select } from '~/components/Select'
 
 export const DesktopProtocolFilters = ({ options, ...props }) => {
 	const [extraTvlEnabled, updater] = useDefiManager()
@@ -200,52 +199,20 @@ interface IAllOptionsProps {
 }
 
 function AddlOptions({ options }: IAllOptionsProps) {
-	const select = useProtocolsFilterState()
-
-	let totalSelected = 0
-
-	options.forEach((option) => {
-		if (select.value.includes(option.key)) {
-			totalSelected += 1
-		}
-	})
+	const { selectedValues, setSelectedValues } = useProtocolsFilterState()
+	const finalSelectedValues = selectedValues.filter((val) => options.find((opt) => opt.key === val))
 
 	return (
-		<>
-			<Select
-				state={select}
-				className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] flex-nowrap"
-			>
-				{totalSelected > 0 ? (
-					<span className="rounded-full p-[2px] min-w-4 text-xs bg-[var(--bg4)]">{totalSelected}</span>
-				) : null}
-				<span>Others</span>
-				<SelectArrow />
-			</Select>
-			{select.mounted ? (
-				<SelectPopover
-					state={select}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
-				>
-					{options.map(({ key, name, help }) => (
-						<SelectItem
-							key={key}
-							value={key}
-							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
-						>
-							{help ? (
-								<Tooltip content={help}>
-									<span className="mr-1">{name}</span>
-									<Icon name="help-circle" height={15} width={15} />
-								</Tooltip>
-							) : (
-								name
-							)}
-							<Checkbox checked={select.value.includes(key)} />
-						</SelectItem>
-					))}
-				</SelectPopover>
-			) : null}
-		</>
+		<Select
+			allValues={options}
+			selectedValues={finalSelectedValues}
+			setSelectedValues={setSelectedValues}
+			label="Others"
+			labelType="smol"
+			triggerProps={{
+				className:
+					'bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap -my-[10px] -mr-[2px]'
+			}}
+		/>
 	)
 }

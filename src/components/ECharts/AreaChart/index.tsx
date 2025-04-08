@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject, stringToColour } from '../utils'
-import { SelectLegendMultiple } from '../shared'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 // TODO remove color prop and use stackColors by default
 export default function AreaChart({
@@ -276,16 +276,19 @@ export default function AreaChart({
 		}
 	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, hideLegend])
 
-	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
+	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
 	return (
-		<div style={{ position: 'relative' }} {...props}>
+		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-4" {...props}>
 			{customLegendName && customLegendOptions?.length > 1 && (
-				<SelectLegendMultiple
-					allOptions={customLegendOptions}
-					options={legendOptions}
-					setOptions={setLegendOptions}
-					title={legendOptions.length === 1 ? legendTitle : legendTitle + 's'}
+				<SelectWithCombobox
+					allValues={customLegendOptions}
+					selectedValues={legendOptions}
+					setSelectedValues={setLegendOptions}
+					label={legendTitle}
+					clearAll={() => setLegendOptions([])}
+					toggleAll={() => setLegendOptions(customLegendOptions)}
+					labelType="smol"
 				/>
 			)}
 			<div id={id} style={{ height }} className="my-auto" />

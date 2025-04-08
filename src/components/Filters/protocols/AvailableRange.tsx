@@ -1,12 +1,12 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange } from '~/components/Filters/common/FilterBetweenRange'
+import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function AvailableRange({
 	variant = 'primary',
-	subMenu
+	nestedMenu
 }: {
 	variant?: 'primary' | 'secondary'
-	subMenu?: boolean
+	nestedMenu?: boolean
 }) {
 	const router = useRouter()
 
@@ -39,7 +39,7 @@ export function AvailableRange({
 	return (
 		<FilterBetweenRange
 			name="Available"
-			header={
+			trigger={
 				variant === 'secondary' ? (
 					<>
 						{min || max ? (
@@ -56,8 +56,10 @@ export function AvailableRange({
 				)
 			}
 			onSubmit={handleSubmit}
-			variant={variant}
-			subMenu={subMenu}
+			nestedMenu={nestedMenu}
+			min={min}
+			max={max}
+			variant="secondary"
 		/>
 	)
 }

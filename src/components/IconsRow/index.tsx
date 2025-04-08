@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Hovercard, HovercardAnchor, useHovercardState } from 'ariakit/hovercard'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useResize } from '~/hooks/useResize'
@@ -33,27 +33,30 @@ export const ChainLogo = ({
 		)
 	} else {
 		return (
-			<Tooltip content={chain}>
-				<Link
-					key={chain}
-					href={
-						url.includes('/yields?chain')
-							? `${url}=${chain}`
-							: url.includes('/yields?project')
-							? `${url}=${chain.toLowerCase().split(' ').join('-')}`
-							: `${url}/${chain}`
-					}
-					shallow={shallowRoute}
-					passHref
-					prefetch={false}
-				>
-					<a>
-						<TokenLogo
-							onClick={(e) => e.stopPropagation()}
-							logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)}
-						/>
-					</a>
-				</Link>
+			<Tooltip
+				content={chain}
+				as={
+					<Link
+						key={chain}
+						href={
+							url.includes('/yields?chain')
+								? `${url}=${chain}`
+								: url.includes('/yields?project')
+								? `${url}=${chain.toLowerCase().split(' ').join('-')}`
+								: `${url}/${chain}`
+						}
+						shallow={shallowRoute}
+						passHref
+						prefetch={false}
+					/>
+				}
+			>
+				<a>
+					<TokenLogo
+						onClick={(e) => e.stopPropagation()}
+						logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)}
+					/>
+				</a>
 			</Tooltip>
 		)
 	}
@@ -98,13 +101,15 @@ export const IconsRow = ({
 		setVisibileChainIndex(links.length > 2 ? lastIndexOfFilters : links.length)
 	}, [mainWrapWidth, links])
 
-	const tooManyChainsIndex = visibleChainIndex < links.length ? visibleChainIndex - 1 : visibleChainIndex
+	const { visibleChains, hoverChains } = useMemo(() => {
+		const tooManyChainsIndex = visibleChainIndex < links.length ? visibleChainIndex - 1 : visibleChainIndex
 
-	const visibleChains = links.length > 2 ? links.slice(0, tooManyChainsIndex) : links
+		const visibleChains = links.length > 2 ? links.slice(0, tooManyChainsIndex) : links
 
-	const hoverChains = tooManyChainsIndex !== visibleChainIndex ? links.slice(tooManyChainsIndex, links.length) : []
+		const hoverChains = tooManyChainsIndex !== visibleChainIndex ? links.slice(tooManyChainsIndex, links.length) : []
 
-	const hovercard = useHovercardState()
+		return { visibleChains, hoverChains }
+	}, [links, visibleChainIndex])
 
 	return (
 		<div className="flex items-center justify-end bg-none overflow-hidden" ref={mainWrapEl}>
@@ -119,31 +124,28 @@ export const IconsRow = ({
 				/>
 			))}
 			{!!hoverChains.length && links.length > 2 && (
-				<>
-					<HovercardAnchor
-						as="button"
-						className="h-6 w-6 rounded-full flex items-center justify-center text-[var(--text1)] bg-[var(--bg3)]"
-						state={hovercard}
+				<Ariakit.HovercardProvider>
+					<Ariakit.HovercardAnchor
+						render={<button />}
+						className="h-6 w-6 rounded-full flex items-center justify-center text-[var(--text1)] bg-[var(--bg3)] flex-shrink-0"
 					>
 						{`+${hoverChains.length}`}
-					</HovercardAnchor>
-					<Hovercard
-						state={hovercard}
-						className="max-w-xl z-10 p-1 shadow rounded-md bg-[var(--bg2)] border border-[var(--bg3)] text-[var(--text1)]"
+					</Ariakit.HovercardAnchor>
+					<Ariakit.Hovercard
+						className="max-w-xl z-10 p-1 shadow rounded-md bg-[var(--bg2)] border border-[var(--bg3)] text-[var(--text1)] flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden"
+						unmountOnHide
 					>
-						<div className="flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden">
-							{hoverChains.map((chain, i) => (
-								<ChainLogo
-									key={chain}
-									chain={chain}
-									url={url}
-									iconType={iconType}
-									yieldRewardsSymbol={yieldRewardsSymbols[i]}
-								/>
-							))}
-						</div>
-					</Hovercard>
-				</>
+						{hoverChains.map((chain, i) => (
+							<ChainLogo
+								key={chain}
+								chain={chain}
+								url={url}
+								iconType={iconType}
+								yieldRewardsSymbol={yieldRewardsSymbols[i]}
+							/>
+						))}
+					</Ariakit.Hovercard>
+				</Ariakit.HovercardProvider>
 			)}
 		</div>
 	)

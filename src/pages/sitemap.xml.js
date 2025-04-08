@@ -1,5 +1,5 @@
 import { PROTOCOLS_API } from '~/constants/index'
-import { standardizeProtocolName } from '~/utils'
+import { slug } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 
@@ -41,7 +41,7 @@ function SiteMap() {
 export async function getServerSideProps({ res }) {
 	const { protocols, chains, protocolCategories } = await fetch(PROTOCOLS_API).then((r) => r.json())
 	const sitemap = generateSiteMap(
-		protocols.map(({ name }) => standardizeProtocolName(name)),
+		protocols.map(({ name }) => slug(name)),
 		chains,
 		protocolCategories
 	)

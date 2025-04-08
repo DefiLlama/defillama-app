@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter, getColorFromNumber, slug, standardizeProtocolName } from '~/utils'
+import { capitalizeFirstLetter, getColorFromNumber, slug } from '~/utils'
 import type { IFusedProtocolData, IOracleProtocols, IProtocolResponse } from '~/api/types'
 import {
 	ACTIVE_USERS_API,
@@ -27,16 +27,16 @@ import {
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
-	getChainPageData as getChainPageDataByType,
-	getChainsPageData as getChainsPageDataByType
+	getDimensionAdapterChainPageData as getChainPageDataByType,
+	getDimensionsAdaptersChainsPageData as getChainsPageDataByType,
+	getFeesAndRevenueProtocolsByChain,
+	ADAPTOR_TYPES
 } from '~/api/categories/adaptors'
 import { getPeggedAssets } from '../stablecoins'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { getAppRevenueByChain, getFeesAndRevenueProtocolsByChain } from '../fees'
-import { getDexVolumeByChain } from '../dexs'
+import { getDexVolumeByChain, getAppRevenueByChain } from '../adaptors'
 import { sluggify } from '~/utils/cache-client'
 import { getAPIUrl } from '../adaptors/client'
-import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import metadata from '~/utils/metadata'
 const chainsMetadata = metadata.chainMetadata
@@ -48,7 +48,7 @@ export const getProtocols = () =>
 		.then((r) => r.json())
 		.then(({ protocols, chains, parentProtocols }) => ({
 			protocolsDict: protocols.reduce((acc, curr) => {
-				acc[standardizeProtocolName(curr.name)] = curr
+				acc[slug(curr.name)] = curr
 				return acc
 			}, {}),
 			protocols,

@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
-import { FiltersByToken } from '../common/FilterByToken'
-import { FiltersByChain } from '../common/FiltersByChain'
+import { FilterByToken } from './Tokens'
+import { FilterByChain } from './Chains'
 import { AvailableRange } from '~/components/Filters/protocols/AvailableRange'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { YieldAttributes } from './Attributes'
@@ -10,7 +10,7 @@ import { APYRange } from './APYRange'
 import { ResetAllYieldFilters } from './ResetAll'
 import type { IDropdownMenusProps } from './types'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { ColumnFilters } from '../common/ColumnFilters'
+import { ColumnFilters } from './ColumnFilters'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
@@ -39,7 +39,7 @@ export function YieldFilterDropdowns({
 	excludeBadDebt,
 	selectedAttributes,
 	excludeRewardApy,
-	isMobile,
+	nestedMenu,
 	show1dVolume,
 	show7dVolume,
 	showInceptionApy,
@@ -64,22 +64,20 @@ export function YieldFilterDropdowns({
 	return (
 		<>
 			{tokensList && tokensList.length > 0 && (
-				<FiltersByToken
+				<FilterByToken
 					tokensList={tokensList}
 					selectedTokens={selectedTokens || []}
 					pathname={pathname || router.pathname}
-					variant="secondary"
-					subMenu={isMobile}
+					nestedMenu={nestedMenu}
 				/>
 			)}
 
 			{chainList && chainList.length > 0 && (
-				<FiltersByChain
+				<FilterByChain
 					chainList={chainList}
 					selectedChains={selectedChains || []}
 					pathname={pathname || router.pathname}
-					variant="secondary"
-					subMenu={isMobile}
+					nestedMenu={nestedMenu}
 				/>
 			)}
 
@@ -88,8 +86,8 @@ export function YieldFilterDropdowns({
 					projectList={projectList}
 					selectedProjects={selectedProjects || []}
 					pathname={pathname || router.pathname}
-					variant="secondary"
-					subMenu={isMobile}
+					label="Projects"
+					nestedMenu={nestedMenu}
 				/>
 			)}
 
@@ -98,10 +96,9 @@ export function YieldFilterDropdowns({
 					projectList={lendingProtocols}
 					selectedProjects={selectedLendingProtocols || []}
 					pathname={pathname || router.pathname}
-					label="Lending Protocol"
+					label="Lending Protocols"
 					query="lendingProtocol"
-					variant="secondary"
-					subMenu={isMobile}
+					nestedMenu={nestedMenu}
 				/>
 			)}
 
@@ -112,8 +109,7 @@ export function YieldFilterDropdowns({
 					pathname={pathname || router.pathname}
 					label="Farm Protocol"
 					query="farmProtocol"
-					variant="secondary"
-					subMenu={isMobile}
+					nestedMenu={nestedMenu}
 				/>
 			)}
 
@@ -122,18 +118,17 @@ export function YieldFilterDropdowns({
 					categoryList={categoryList}
 					selectedCategories={selectedCategories || []}
 					pathname={pathname || router.pathname}
-					variant="secondary"
-					subMenu={isMobile}
+					nestedMenu={nestedMenu}
 				/>
 			)}
 
-			{attributes && <YieldAttributes pathname={pathname || router.pathname} variant="secondary" subMenu={isMobile} />}
+			{attributes && <YieldAttributes pathname={pathname || router.pathname} nestedMenu={nestedMenu} />}
 
-			{tvlRange && <TVLRange variant="secondary" subMenu={isMobile} />}
+			{tvlRange && <TVLRange nestedMenu={nestedMenu} variant="secondary" />}
 
-			{apyRange && <APYRange variant="secondary" subMenu={isMobile} />}
+			{apyRange && <APYRange nestedMenu={nestedMenu} />}
 
-			{availableRange && <AvailableRange variant="secondary" subMenu={isMobile} />}
+			{availableRange && <AvailableRange nestedMenu={nestedMenu} />}
 
 			{(show7dBaseApy ||
 				show7dIL ||
@@ -160,15 +155,14 @@ export function YieldFilterDropdowns({
 					showTotalBorrowed={showTotalBorrowed}
 					showAvailable={showAvailable}
 					showLTV={showLTV}
-					variant="secondary"
-					subMenu={isMobile}
+					nestedMenu={nestedMenu}
 				/>
 			)}
 
 			{excludeBadDebt && selectedAttributes && (
 				<label
 					className={
-						isMobile
+						nestedMenu
 							? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
 							: 'flex items-center gap-1 flex-nowrap'
 					}
@@ -200,7 +194,7 @@ export function YieldFilterDropdowns({
 			{excludeRewardApy && (
 				<label
 					className={
-						isMobile
+						nestedMenu
 							? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
 							: 'flex items-center gap-1 flex-nowrap'
 					}
@@ -230,7 +224,7 @@ export function YieldFilterDropdowns({
 			{includeLsdApy && (
 				<label
 					className={
-						isMobile
+						nestedMenu
 							? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
 							: 'flex items-center gap-1 flex-nowrap'
 					}
@@ -257,17 +251,17 @@ export function YieldFilterDropdowns({
 				</label>
 			)}
 
-			{resetFilters ? <ResetAllYieldFilters pathname={pathname || router.pathname} subMenu={isMobile} /> : null}
+			{resetFilters ? <ResetAllYieldFilters pathname={pathname || router.pathname} nestedMenu={nestedMenu} /> : null}
 
-			{!isMobile ? (
-				<>
-					{onCSVDownload ? (
-						<CSVDownloadButton
-							className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap ml-auto"
-							onClick={onCSVDownload}
-						/>
-					) : null}
-				</>
+			{onCSVDownload ? (
+				<CSVDownloadButton
+					className={
+						nestedMenu
+							? 'rounded-md py-2 px-3 text-xs whitespace-nowrap sm:ml-auto bg-[var(--link-active-bg)] text-white max-sm:mx-3 max-sm:my-6'
+							: 'bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap ml-auto'
+					}
+					onClick={onCSVDownload}
+				/>
 			) : null}
 		</>
 	)

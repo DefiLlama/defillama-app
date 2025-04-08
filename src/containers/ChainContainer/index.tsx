@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
@@ -16,13 +16,12 @@ import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
 import { SEO } from '~/components/SEO'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { TokenLogo } from '~/components/TokenLogo'
-import { EmbedChart } from '~/components/Popover'
+import { EmbedChart } from '~/components/EmbedChart'
 import { primaryColor } from '~/constants/colors'
 import { useFetchChainChartData } from './useFetchChainChartData'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatRaise, formatRaisedAmount } from '~/containers/Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
-import { QuestionHelper } from '~/components/QuestionHelper'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'
 import { chainsNamesMap } from './constants'
@@ -113,11 +112,14 @@ export function ChainContainer({
 		}
 	}
 
-	const { data: chainProtocolsVolumes, isLoading: fetchingProtocolsVolumeByChain } =
-		useGetProtocolsVolumeByChain(selectedChain)
+	const { data: chainProtocolsVolumes, isLoading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain(
+		volumeData?.totalVolume24h || selectedChain === 'All' ? selectedChain : undefined
+	)
 
 	const { data: chainProtocolsFees, isLoading: fetchingProtocolsFeesAndRevenueByChain } =
-		useGetProtocolsFeesAndRevenueByChain(selectedChain)
+		useGetProtocolsFeesAndRevenueByChain(
+			feesAndRevenueData?.totalFees24h || selectedChain === 'All' ? selectedChain : undefined
+		)
 
 	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
@@ -378,7 +380,7 @@ export function ChainContainer({
 											<>
 												{stablecoinsData.change7d ? (
 													<tr>
-														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 															Change (7d)
 														</th>
 														<td className="text-right font-jetbrains">{stablecoinsData.change7d}%</td>
@@ -386,7 +388,7 @@ export function ChainContainer({
 												) : null}
 												{stablecoinsData.dominance ? (
 													<tr>
-														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 															{stablecoinsData.topToken.symbol} Dominance
 														</th>
 														<td className="text-right font-jetbrains">{stablecoinsData.dominance}%</td>
@@ -433,7 +435,9 @@ export function ChainContainer({
 									<tr>
 										<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 											<Tooltip
-												content={'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'}
+												content={
+													'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
+												}
 												className="underline decoration-dotted"
 											>
 												App Revenue (24h)
@@ -467,7 +471,7 @@ export function ChainContainer({
 											<>
 												{volumeData.totalVolume7d ? (
 													<tr>
-														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 															Volume (7d)
 														</th>
 														<td className="text-right font-jetbrains">
@@ -476,13 +480,13 @@ export function ChainContainer({
 													</tr>
 												) : null}
 												<tr>
-													<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+													<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 														Weekly Change
 													</th>
 													<td className="text-right font-jetbrains">{volumeData.weeklyChange}%</td>
 												</tr>
 												<tr>
-													<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+													<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 														DEX vs CEX dominance
 													</th>
 													<td className="text-right font-jetbrains">{volumeData.dexsDominance}%</td>
@@ -510,14 +514,14 @@ export function ChainContainer({
 											<>
 												{perpsData.totalVolume7d ? (
 													<tr>
-														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 															Perps Volume (7d)
 														</th>
 														<td className="text-right font-jetbrains">{formattedNum(perpsData.totalVolume7d, true)}</td>
 													</tr>
 												) : null}
 												<tr>
-													<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+													<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 														Weekly Change
 													</th>
 													<td className="text-right font-jetbrains">{perpsData.weeklyChange}%</td>
@@ -580,7 +584,7 @@ export function ChainContainer({
 											<>
 												{userData.newUsers ? (
 													<tr>
-														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 															New Addresses (24h)
 														</th>
 														<td className="text-right font-jetbrains">{formattedNum(userData.newUsers, false)}</td>
@@ -588,7 +592,7 @@ export function ChainContainer({
 												) : null}
 												{userData.transactions ? (
 													<tr>
-														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 															Transactions (24h)
 														</th>
 														<td className="text-right font-jetbrains">{formattedNum(userData.transactions, false)}</td>
@@ -609,7 +613,7 @@ export function ChainContainer({
 											<>
 												{chainTreasury.tokenBreakdowns?.stablecoins ? (
 													<tr>
-														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 															Stablecoins
 														</th>
 														<td className="text-right font-jetbrains">
@@ -619,7 +623,7 @@ export function ChainContainer({
 												) : null}
 												{chainTreasury.tokenBreakdowns?.majors ? (
 													<tr>
-														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 															Major Tokens (ETH, BTC)
 														</th>
 														<td className="text-right font-jetbrains">
@@ -629,7 +633,7 @@ export function ChainContainer({
 												) : null}
 												{chainTreasury.tokenBreakdowns?.others ? (
 													<tr>
-														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 															Other Tokens
 														</th>
 														<td className="text-right font-jetbrains">
@@ -639,7 +643,7 @@ export function ChainContainer({
 												) : null}
 												{chainTreasury.tokenBreakdowns?.ownTokens ? (
 													<tr>
-														<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+														<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 															Own Tokens
 														</th>
 														<td className="text-right font-jetbrains">
@@ -672,7 +676,7 @@ export function ChainContainer({
 													.map((raise) => (
 														<React.Fragment key={raise.date + raise.amount}>
 															<tr>
-																<th className="text-left mb-auto font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																<th className="text-left mb-auto font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	{new Date(raise.date * 1000).toISOString().split('T')[0]}
 																</th>
 																<td className="text-right">
@@ -720,7 +724,7 @@ export function ChainContainer({
 													<>
 														{chainAssets.native?.total ? (
 															<tr>
-																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	<span className="flex items-center gap-1">
 																		<Tooltip
 																			content="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)"
@@ -737,7 +741,7 @@ export function ChainContainer({
 														) : null}
 														{chainAssets.ownTokens?.total ? (
 															<tr>
-																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	<span className="flex items-center gap-1">
 																		<Tooltip
 																			content="Marketcap of the governance token of the chain"
@@ -755,7 +759,7 @@ export function ChainContainer({
 
 														{chainAssets.canonical?.total ? (
 															<tr>
-																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	<span className="flex items-center gap-1">
 																		<Tooltip
 																			content="Tokens that were bridged to the chain through the canonical bridge"
@@ -773,7 +777,7 @@ export function ChainContainer({
 
 														{chainAssets.thirdParty?.total ? (
 															<tr>
-																<th className="text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																<th className="text-left font-normal pl-2 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	<span className="flex items-center gap-1">
 																		<Tooltip
 																			content="Tokens that were bridged to the chain through third party bridges"

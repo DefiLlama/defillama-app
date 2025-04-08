@@ -16,7 +16,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
-import { RowFilter } from '~/components/Filters/common/RowFilter'
+import { RowFilter } from '~/components/Filters/RowFilter'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 

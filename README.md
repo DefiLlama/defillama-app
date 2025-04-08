@@ -1,4 +1,5 @@
 # DefiLlama
+
 Check it out live at [https://defillama.com](https://defillama.com)
 
 ### To Start Development
@@ -8,7 +9,6 @@ Check it out live at [https://defillama.com](https://defillama.com)
 ```bash
 yarn
 ```
-
 
 ###### Running locally
 

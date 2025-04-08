@@ -7,7 +7,7 @@ import {
 	chainIconUrl,
 	toNiceDayAndHour,
 	getBlockExplorer,
-	standardizeProtocolName,
+	slug,
 	tokenIconUrl
 } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -23,7 +23,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const linkValue = standardizeProtocolName(value)
+			const linkValue = slug(value)
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const rowValues = row.original
 			const icon = rowValues.icon
@@ -230,7 +230,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 		accessorKey: 'bridge',
 		cell: ({ getValue }) => {
 			const value = getValue() as string
-			const linkValue = standardizeProtocolName(value)
+			const linkValue = slug(value)
 			return (
 				<CustomLink href={`/bridge/${linkValue}`} className="overflow-hidden text-ellipsis whitespace-nowrap">
 					{value}

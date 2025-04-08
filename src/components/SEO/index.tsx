@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import Head from 'next/head'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import { useIsClient } from '~/hooks'
-import { ADAPTOR_TYPES } from '~/utils/adaptorsPages/types'
+import { ADAPTOR_TYPES } from '~/api/categories/adaptors'
 
 interface SEOProps {
 	cardName?: string

@@ -2,7 +2,6 @@ import * as React from 'react'
 import Link from 'next/link'
 
 import dynamic from 'next/dynamic'
-import { useTabState, Tab, TabList, TabPanel } from 'ariakit/tab'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
@@ -29,6 +28,7 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedAssetByChainTable } from '~/components/Table/Stablecoins/PeggedAssetByChain'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import * as Ariakit from '@ariakit/react'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -45,10 +45,6 @@ const risksHelperTexts = {
 		'Fiat-backed assets are backed 1:1 by a reserve of fiat assets controlled by the issuer. Risks of fiat-backed assets include counterparty risk against the issuer, asset freezing and regulations, and risk of insufficient backing.',
 	'crypto-backed':
 		'Crypto-backed assets are backed by cryptoassets locked in a smart contract as collateral. Risks of crypto-backed assets include smart contract risk, collateral volatility and liquidation, and de-pegging.'
-}
-
-const Capitalize = (str) => {
-	return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
 export default function PeggedContainer(props) {
@@ -110,7 +106,6 @@ export const PeggedAssetInfo = ({
 
 	const [chartType, setChartType] = React.useState('Pie')
 	const defaultSelectedId = 'default-selected-tab'
-	const tab = useTabState({ defaultSelectedId })
 
 	const chainsData: any[] = chainsUnique.map((elem: string) => {
 		return peggedAssetData.chainBalances[elem].tokens
@@ -169,30 +164,29 @@ export const PeggedAssetInfo = ({
 	}
 
 	return (
-		<>
+		<Ariakit.TabProvider defaultSelectedId={defaultSelectedId}>
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
 				<div className="flex flex-col col-span-1 w-full xl:w-[380px] text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-					<TabList
-						state={tab}
+					<Ariakit.TabList
 						aria-label="Pegged Tabs"
 						className="flex"
 						style={{ '--bg-color': backgroundColor, '--bg-hover': transparentize(0.9, backgroundColor) } as any}
 					>
-						<Tab
-							className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-xl hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]"
+						<Ariakit.Tab
+							className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-xl border-black/10 dark:border-white/10 hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]"
 							id={defaultSelectedId}
 						>
 							Stats
-						</Tab>
-						<Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]">
+						</Ariakit.Tab>
+						<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]">
 							Info
-						</Tab>
-						<Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tr-xl xl:rounded-none border-l border-black/10 dark:border-white/10 hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]">
+						</Ariakit.Tab>
+						<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tr-xl xl:rounded-none border-l border-black/10 dark:border-white/10 hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]">
 							Links
-						</Tab>
-					</TabList>
+						</Ariakit.Tab>
+					</Ariakit.TabList>
 
-					<TabPanel state={tab} tabId={defaultSelectedId}>
+					<Ariakit.TabPanel tabId={defaultSelectedId}>
 						<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
 							<h1 className="flex items-center gap-2 text-xl">
 								<TokenLogo logo={logo} size={24} />
@@ -254,9 +248,9 @@ export const PeggedAssetInfo = ({
 							)}
 							<CSVDownloadButton onClick={downloadCsv} isLight style={{ maxWidth: 'fit-content' }} />
 						</div>
-					</TabPanel>
+					</Ariakit.TabPanel>
 
-					<TabPanel state={tab}>
+					<Ariakit.TabPanel>
 						<div className="flex flex-col gap-9 p-6 pb-[calc(24px_+_0.4375rem)] overflow-auto text-[var(--text1)]">
 							{description && (
 								<p className="flex flex-col gap-2">
@@ -285,9 +279,9 @@ export const PeggedAssetInfo = ({
 								<AuditInfo audits={auditLinks.length > 0 ? 2 : 0} auditLinks={auditLinks} color={backgroundColor} />
 							)}
 						</div>
-					</TabPanel>
+					</Ariakit.TabPanel>
 
-					<TabPanel state={tab}>
+					<Ariakit.TabPanel>
 						<div className="flex items-center gap-4 flex-wrap p-6">
 							{blockExplorerLink !== undefined && (
 								<span>
@@ -386,7 +380,7 @@ export const PeggedAssetInfo = ({
 								<Icon name="arrow-up-right" height={14} width={14} />
 							</ButtonLight>
 						</div>
-					</TabPanel>
+					</Ariakit.TabPanel>
 				</div>
 
 				<div className="flex-1 flex flex-col gap-2 p-4 pb-0 min-h-[416px]">
@@ -456,6 +450,6 @@ export const PeggedAssetInfo = ({
 			</div>
 
 			<PeggedAssetByChainTable data={groupedChains} />
-		</>
+		</Ariakit.TabProvider>
 	)
 }

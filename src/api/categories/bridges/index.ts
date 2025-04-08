@@ -1,4 +1,4 @@
-import { standardizeProtocolName, chainIconUrl, tokenIconUrl, getRandomColor } from '~/utils'
+import { slug, chainIconUrl, tokenIconUrl, getRandomColor } from '~/utils'
 import { formatBridgesData, formatChainsData } from './utils'
 import type { IChainData } from '~/api/types'
 import { CONFIG_API, BRIDGEDAYSTATS_API, BRIDGES_API, BRIDGEVOLUME_API, BRIDGELARGETX_API } from '~/constants'
@@ -275,9 +275,7 @@ export async function getBridgeChainsPageData() {
 
 export async function getBridgePageData(bridge: string) {
 	const { bridges } = await getBridges()
-	const bridgeData = bridges.filter(
-		(obj) => standardizeProtocolName(obj.displayName) === standardizeProtocolName(bridge)
-	)[0]
+	const bridgeData = bridges.filter((obj) => slug(obj.displayName) === slug(bridge))[0]
 
 	const { id, chains, icon, displayName } = bridgeData
 	const defaultChain = chains[0]
@@ -334,9 +332,7 @@ export async function getBridgePageDatanew(bridge: string) {
 	const { bridges } = await getBridges()
 
 	// find datqa of bridge
-	const bridgeData = bridges.filter(
-		(obj) => standardizeProtocolName(obj.displayName) === standardizeProtocolName(bridge)
-	)[0]
+	const bridgeData = bridges.filter((obj) => slug(obj.displayName) === slug(bridge))[0]
 
 	const { id, chains, icon, displayName, destinationChain } = bridgeData
 

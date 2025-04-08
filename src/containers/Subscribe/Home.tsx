@@ -1,8 +1,7 @@
-import { Tooltip, TooltipAnchor, useTooltipState } from 'ariakit'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useGithubAuth, useIsSubscribed } from '~/containers/Subscribe/queries'
-import { GithubApiKey, SignInWithGithub } from './Github'
+import { GithubApiKey } from './Github'
 import { ProApiKey, PayWithCrypto } from './Crypto'
 import { SignIn } from './SignIn'
 
@@ -27,8 +26,6 @@ export function SubscribeHome() {
 			ref?.removeEventListener('scrollend', onScroll)
 		}
 	}, [])
-
-	const tooltip = useTooltipState({ timeout: 0 })
 
 	return (
 		<>
@@ -177,97 +174,6 @@ export function SubscribeHome() {
 								</div>
 							</div>
 						</div>
-						<div className="price-card py-10 px-5 lg:flex-1 flex flex-col border-l border-[#39393E] max-lg:w-[85vw] flex-shrink-0">
-							<h2 className="text-[2rem] font-[800] text-center">Supporter</h2>
-							<p className="text-center text-2xl font-medium mt-3">
-								15 USD <span className="text-[#8a8c90]">/month</span>
-							</p>
-							<p className="text-center font-medium text-[#8a8c90] flex flex-nowrap items-center justify-center gap-1">
-								<span>Free for all Github contributors</span>
-								<TooltipAnchor
-									state={tooltip}
-									className="flex flex-nowrap items-center justify-center gap-1"
-									as="button"
-								>
-									<span className="sr-only">Availability</span>
-									<Icon name="circle-help" height={16} width={16} />
-								</TooltipAnchor>
-								<Tooltip
-									state={tooltip}
-									className="bg-black border border-[#39393E] rounded-2xl relative z-10 p-4 max-w-sm text-sm"
-								>
-									Only available for 3 months to users who have contributed 5 commits or more over at least 2 months on
-									the following repos:{' '}
-									{eligibleRepos.map((repo, index) => (
-										<Fragment key={repo}>
-											<a
-												href={`https://github.com/DefiLlama/${repo}`}
-												target="_blank"
-												rel="noreferrer noopener"
-												className="p-1 bg-[#222429] rounded"
-											>
-												{repo}
-											</a>
-											{index + 1 !== eligibleRepos.length ? `, ` : ''}
-										</Fragment>
-									))}
-								</Tooltip>
-							</p>
-							<ul className="flex flex-col mx-auto gap-4 py-11 mb-auto">
-								<li className="flex flex-nowrap gap-[10px]">
-									<Icon name="check" height={16} width={16} className="relative top-1" />
-									<span>Access to TVL, revenue/fees and prices</span>
-								</li>
-								<li className="flex flex-nowrap gap-[10px]">
-									<Icon name="check" height={16} width={16} className="relative top-1" />
-									<span>Access to all data (unlocks, active users, token liq...)</span>
-								</li>
-								<li className="flex flex-nowrap gap-[10px]">
-									<Icon name="check" height={16} width={16} className="relative top-1" />
-									<span>Access to LlamaFeed</span>
-								</li>
-								<li className="flex flex-nowrap gap-[10px]">
-									<Icon name="check" height={16} width={16} className="relative top-1" />
-									<span>Download CSV data</span>
-								</li>
-								<li className="px-[26px] flex flex-col gap-1">Priority support</li>
-								<p className="px-[26px]">
-									<a
-										href="https://defillama.com/pro-api/docs"
-										target="_blank"
-										rel="noreferrer noopener"
-										className="underline"
-									>
-										Pro API
-									</a>{' '}
-									limits:
-								</p>
-								<li className="px-[26px] flex flex-col gap-1">
-									<span>1000 requests/minute</span>
-									<ProgressBar pct={100} />
-								</li>
-								<li className="px-[26px] flex flex-col gap-1">
-									<span>200k calls/month</span>
-									<ProgressBar pct={20} />
-								</li>
-							</ul>
-
-							<div className="w-full max-w-[408px] mx-auto flex flex-col gap-2">
-								<SignInWithGithub />
-								{/* <div className="flex flex-nowrap gap-2 relative max-sm:flex-col max-sm:*:w-full">
-									<PayWithCrypto pro={false} />
-									<a
-										href="https://defillama.com/docs/api"
-										target="_blank"
-										rel="noreferrer noopener"
-										className="font-medium rounded-lg border border-[#5C5CF9] py-[14px] flex-1 text-center mx-auto disabled:cursor-not-allowed flex items-center gap-1 justify-center flex-nowrap"
-									>
-										<Icon name="card" height={16} width={16} />
-										<span>Pay with Stripe</span>
-									</a>
-								</div> */}
-							</div>
-						</div>
 					</div>
 				)}
 				<div className="flex items-center justify-center flex-nowrap gap-2 lg:hidden mb-3">
@@ -285,13 +191,6 @@ export function SubscribeHome() {
 					>
 						<span className="sr-only">go to pricing type 2</span>
 					</button>
-					<button
-						className="h-3 w-3 bg-[#39393E] data-[active=true]:bg-[#5c5cf9] rounded-full flex-shrink-0"
-						data-active={activePriceCard === 3}
-						disabled
-					>
-						<span className="sr-only">go to pricing type 3</span>
-					</button>
 				</div>
 			</div>
 		</>
@@ -308,14 +207,3 @@ const ProgressBar = ({ pct }: { pct: number }) => {
 		/>
 	)
 }
-
-const eligibleRepos = [
-	'defillama-app',
-	'defillama-server',
-	'dimension-adapters',
-	'yield-server',
-	'bridges-server',
-	'peggedassets-server',
-	'emissions-adapters',
-	'DefiLlama-Adapters'
-]

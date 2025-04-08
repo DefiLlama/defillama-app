@@ -1,15 +1,19 @@
 import * as React from 'react'
 import { OverviewTable } from '~/components/Table/Adaptors'
-import { RowLinksWithDropdown } from '~/components/Filters/common/RowLinksWithDropdown'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
-import { groupProtocolsByParent, IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
+import {
+	groupProtocolsByParent,
+	IJoin2ReturnType,
+	IOverviewProps,
+	VOLUME_TYPE_ADAPTORS
+} from '~/api/categories/adaptors'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
 import type { IDexChartsProps } from './types'
 import { useRouter } from 'next/router'
-import { capitalizeFirstLetter, download } from '~/utils'
-import { volumeTypes } from '~/utils/adaptorsPages/utils'
+import { capitalizeFirstLetter, download, slug } from '~/utils'
 import { Announcement } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -52,7 +56,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 						to:
 							chain === 'All'
 								? `/${props.type}/${isSimpleFees ? 'simple' : ''}`
-								: `/${props.type}${isSimpleFees ? '/simple' : ''}/chains/${chain.toLowerCase()}`
+								: `/${props.type}${isSimpleFees ? '/simple' : ''}/chains/${slug(chain)}`
 				  }))
 				: null
 
@@ -279,12 +283,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			})}
 			{rowLinks ? (
 				<nav className="flex items-center gap-5 overflow-hidden -mb-5">
-					<RowLinksWithDropdown
-						links={rowLinks}
-						activeLink={chain}
-						alternativeOthersText="More chains"
-						key={'row links wrapper of ' + props.type}
-					/>
+					<RowLinksWithDropdown links={rowLinks} activeLink={chain} key={'row links wrapper of ' + props.type} />
 				</nav>
 			) : (
 				<></>
@@ -323,7 +322,7 @@ interface ITitleProps {
 }
 const TitleByType: React.FC<ITitleProps> = (props) => {
 	let title = capitalizeFirstLetter(props.type)
-	if (volumeTypes.includes(props.type)) {
+	if (VOLUME_TYPE_ADAPTORS.includes(props.type)) {
 		title = `${
 			title === 'Derivatives'
 				? 'Perps'

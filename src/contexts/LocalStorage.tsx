@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars*/
 import { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useSyncExternalStore } from 'react'
 import { trackGoal } from 'fathom-client'
-import { standardizeProtocolName } from '~/utils'
+import { slug } from '~/utils'
 import { useIsClient } from '~/hooks'
 import { NextRouter, useRouter } from 'next/router'
 import { ISettings, IWatchlist, TUpdater } from './types'
@@ -266,7 +266,7 @@ export default function Provider({ children }) {
 
 	if (!newSavedDefiProtocols?.main) {
 		const oldAddresses = Object.entries(savedDefiProtocols)
-			.map(([, value]) => (value?.protocol ? [standardizeProtocolName(value?.protocol), value?.protocol] : []))
+			.map(([, value]) => (value?.protocol ? [slug(value?.protocol), value?.protocol] : []))
 			.filter((validPairs) => validPairs.length)
 
 		newSavedDefiProtocols = oldAddresses.length ? { main: Object.fromEntries(oldAddresses) } : { main: {} }
@@ -274,7 +274,7 @@ export default function Provider({ children }) {
 
 	if (!newSavedYieldsProtocols?.main) {
 		const oldAddresses = Object.entries(savedYieldsProtocols)
-			.map(([, value]) => (value?.protocol ? [standardizeProtocolName(value?.protocol), value?.protocol] : []))
+			.map(([, value]) => (value?.protocol ? [slug(value?.protocol), value?.protocol] : []))
 			.filter((validPairs) => validPairs.length)
 
 		newSavedYieldsProtocols = oldAddresses.length ? { main: Object.fromEntries(oldAddresses) } : { main: {} }
@@ -498,7 +498,7 @@ export function useWatchlist() {
 
 	function addProtocol(readableProtocolName) {
 		let newList = state?.[WATCHLIST]
-		const standardProtocol: any = standardizeProtocolName(readableProtocolName)
+		const standardProtocol: any = slug(readableProtocolName)
 		newList[selectedPortfolio] = {
 			...(newList[selectedPortfolio] || {}),
 			[standardProtocol]: readableProtocolName
@@ -509,7 +509,7 @@ export function useWatchlist() {
 
 	function removeProtocol(protocol) {
 		let newList = state?.[WATCHLIST]
-		const standardProtocol: any = standardizeProtocolName(protocol)
+		const standardProtocol: any = slug(protocol)
 		delete newList?.[selectedPortfolio]?.[standardProtocol]
 		trackGoal('6SL0NZYJ', standardProtocol)
 		updateKey(WATCHLIST, newList)

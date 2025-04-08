@@ -1,7 +1,7 @@
-import type { PageParams } from '~/utils/adaptorsPages/[type]/[item]'
-import type { IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
+import type { IJoin2ReturnType, IOverviewProps, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 
-export interface IProtocolContainerProps extends PageParams {
+export interface IProtocolContainerProps {
+	protocolSummary: ProtocolAdaptorSummaryProps
 	title: string
 }
 

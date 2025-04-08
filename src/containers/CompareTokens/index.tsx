@@ -4,10 +4,9 @@ import { useRouter } from 'next/router'
 import { CACHE_SERVER } from '~/constants'
 import { LocalLoader } from '~/components/LocalLoader'
 import { CoinsPicker } from '~/containers/Correlations'
-import { useSelectState, Select, SelectItem, SelectPopover, SelectArrow } from 'ariakit/select'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
-import { useDialogState } from 'ariakit'
+import * as Ariakit from '@ariakit/react'
 
 export default function CompareFdv({ coinsData, protocols }) {
 	const router = useRouter()
@@ -115,9 +114,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 		}
 	}
 
-	const selectState = useSelectState({ gutter: 8 })
-
-	const dialogState = useDialogState()
+	const dialogStore = Ariakit.useDialogStore()
 
 	return (
 		<>
@@ -151,7 +148,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 							value={selectedCoins[0]?.name}
 							onClick={() => {
 								setModalOpen(1)
-								dialogState.toggle()
+								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
 							className="border border-black/10 dark:border-white/10 w-full py-[6px] px-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
@@ -276,50 +273,48 @@ export default function CompareFdv({ coinsData, protocols }) {
 							value={selectedCoins[1]?.name}
 							onClick={() => {
 								setModalOpen(2)
-								dialogState.toggle()
+								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
 							className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
 						/>
 					</div>
 				</div>
-				<Select
-					state={selectState}
-					className="bg-[var(--btn2-bg)] hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] flex-nowrap relative w-full"
-				>
-					<span>{compareType?.label}</span>
-					<SelectArrow />
-				</Select>
-				<SelectPopover
-					state={selectState}
-					composite={false}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
-				>
-					{compareTypes.map((item) => {
-						return (
-							<SelectItem
-								as="button"
-								key={item.value}
-								onClick={() => {
-									router.push(
-										{
-											pathname: router.pathname,
-											query: {
-												...router.query,
-												type: item.value
-											}
-										},
-										undefined,
-										{ shallow: true }
-									)
-								}}
-								className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
-							>
-								{item.label}
-							</SelectItem>
-						)
-					})}
-				</SelectPopover>
+				<Ariakit.MenuProvider>
+					<Ariakit.MenuButton className="bg-[var(--btn2-bg)] hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] flex-nowrap relative w-full">
+						<span>{compareType?.label}</span>
+						<Ariakit.MenuButtonArrow />
+					</Ariakit.MenuButton>
+					<Ariakit.Menu
+						unmountOnHide
+						sameWidth
+						className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+					>
+						{compareTypes.map((item) => {
+							return (
+								<Ariakit.MenuItem
+									key={item.value}
+									onClick={() => {
+										router.push(
+											{
+												pathname: router.pathname,
+												query: {
+													...router.query,
+													type: item.value
+												}
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
+									className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+								>
+									{item.label}
+								</Ariakit.MenuItem>
+							)
+						})}
+					</Ariakit.Menu>
+				</Ariakit.MenuProvider>
 				{coins.length === 2 ? (
 					fdvData === null ? (
 						<div className="flex items-center justify-center m-auto min-h-[360px]">
@@ -376,7 +371,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 
 				<CoinsPicker
 					coinsData={coinsData}
-					dialogState={dialogState}
+					dialogStore={dialogStore}
 					selectedCoins={{}}
 					queryCoins={coins}
 					selectCoin={(coin) => {
@@ -394,7 +389,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 							{ shallow: true }
 						)
 						setModalOpen(0)
-						dialogState.toggle()
+						dialogStore.toggle()
 					}}
 				/>
 			</div>

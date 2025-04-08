@@ -2,7 +2,7 @@ import { maxAgeForNext } from '~/api'
 import * as React from 'react'
 import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
-import { standardizeProtocolName, tokenIconUrl, chainIconUrl, toK } from '~/utils'
+import { slug, tokenIconUrl, chainIconUrl, toK } from '~/utils'
 import {
 	GOVERNANCE_SNAPSHOT_API,
 	GOVERNANCE_COMPOUND_API,
@@ -46,9 +46,9 @@ export const getStaticProps = withPerformanceLogging(
 			fetch(GOVERNANCE_TALLY_API).then((res) => res.json())
 		])
 
-		const snapshotProjectId = Object.values(snapshot).find((p) => standardizeProtocolName(p.name) === project)?.id
-		const compoundProjectId = Object.values(compound).find((p) => standardizeProtocolName(p.name) === project)?.id
-		const tallyProjectId = Object.values(tally).find((p) => standardizeProtocolName(p.name) === project)?.id
+		const snapshotProjectId = Object.values(snapshot).find((p) => slug(p.name) === project)?.id
+		const compoundProjectId = Object.values(compound).find((p) => slug(p.name) === project)?.id
+		const tallyProjectId = Object.values(tally).find((p) => slug(p.name) === project)?.id
 
 		if (!snapshotProjectId && !compoundProjectId && !tallyProjectId) {
 			return { notFound: true }

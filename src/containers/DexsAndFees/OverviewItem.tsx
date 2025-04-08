@@ -7,12 +7,11 @@ import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { AuditInfo } from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
-import { IJoin2ReturnType } from '~/api/categories/adaptors'
+import { IJoin2ReturnType, VOLUME_TYPE_ADAPTORS } from '~/api/categories/adaptors'
 import { ChartByType } from './charts'
 
 import { chartBreakdownByChain } from '~/api/categories/adaptors/utils'
 import { Announcement } from '~/components/Announcement'
-import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { SEO } from '~/components/SEO'
 import type { IProtocolContainerProps } from './types'
 import { ProtocolChart } from './charts/ProtocolChart'
@@ -43,7 +42,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 	const enableVersionsChart = props.protocolSummary.linkedProtocols?.length > 0
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
 	const enableChainsChart = props.protocolSummary.type !== 'dexs'
-	const typeSimple = volumeTypes.includes(props.protocolSummary.type) ? 'volume' : props.protocolSummary.type
+	const typeSimple = VOLUME_TYPE_ADAPTORS.includes(props.protocolSummary.type) ? 'volume' : props.protocolSummary.type
 	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'options'
 	const mainChart = React.useMemo(() => {
 		let chartData: IJoin2ReturnType

@@ -1,5 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { standardizeProtocolName } from '~/utils'
+import { slug } from '~/utils'
 import { getProtocol, getProtocols } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocolDataV2 } from '~/api/categories/protocols/getProtocolData'
@@ -38,7 +38,7 @@ export async function getStaticPaths() {
 	const res = await getProtocols()
 
 	const paths: string[] = res.protocols.slice(0, 30).map(({ name }) => ({
-		params: { protocol: [standardizeProtocolName(name)] }
+		params: { protocol: [slug(name)] }
 	}))
 
 	return { paths, fallback: 'blocking' }

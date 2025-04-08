@@ -56,9 +56,10 @@ const Search = memo(function Search({ hideFilters = false, options, ...props }: 
 			<DesktopSearch
 				{...props}
 				data={results.hits}
-				loading={status === 'loading'}
+				loading={status !== 'idle'}
 				filters={memoizedFilters}
 				onSearchTermChange={onSearchTermChange}
+				skipSearching
 			/>
 		</>
 	)

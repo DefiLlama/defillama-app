@@ -1,4 +1,4 @@
-import { Tooltip, TooltipAnchor, useTooltipState } from 'ariakit'
+import * as Ariakit from '@ariakit/react'
 import { IGithubAuthData, useGetCreditsUsage, useGithubAuth } from './queries'
 import { Icon } from '~/components/Icon'
 import { GH_CLIENT_ID } from '../ProApi/lib/constants'
@@ -34,7 +34,6 @@ export const SignInWithGithub = () => {
 
 export const GithubApiKey = ({ data }: { data: IGithubAuthData }) => {
 	const { data: creditUsage } = useGetCreditsUsage({ apiKey: data.apiKey })
-	const tooltip = useTooltipState({ timeout: 0 })
 
 	if (data?.login && !data?.isContributor) {
 		return (
@@ -67,17 +66,16 @@ export const GithubApiKey = ({ data }: { data: IGithubAuthData }) => {
 						</tr>
 						<tr>
 							<th className="p-2 border border-[#39393E] font-normal whitespace-nowrap min-w-[88px]">
-								<TooltipAnchor state={tooltip} className="flex flex-nowrap items-center justify-center gap-1">
-									<span className="whitespace-nowrap">Calls Left</span>{' '}
-									<Icon name="circle-help" height={16} width={16} />
-								</TooltipAnchor>
-								<Tooltip
-									state={tooltip}
-									className="bg-black border border-[#39393E] rounded-2xl relative z-10 p-4 max-w-sm text-sm"
-								>
-									Amount of calls that you can make before this api key runs out of credits. This limit will be reset at
-									the end of each natural month.
-								</Tooltip>
+								<Ariakit.TooltipProvider>
+									<Ariakit.TooltipAnchor className="flex flex-nowrap items-center justify-center gap-1">
+										<span className="whitespace-nowrap">Calls Left</span>{' '}
+										<Icon name="circle-help" height={16} width={16} />
+									</Ariakit.TooltipAnchor>
+									<Ariakit.Tooltip className="bg-black border border-[#39393E] rounded-2xl relative z-10 p-4 max-w-sm text-sm">
+										Amount of calls that you can make before this api key runs out of credits. This limit will be reset
+										at the end of each natural month.
+									</Ariakit.Tooltip>
+								</Ariakit.TooltipProvider>
 							</th>
 							<td className="p-2 border border-[#39393E]">{creditUsage?.creditsLeft}</td>
 						</tr>

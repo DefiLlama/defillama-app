@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getRevenuesByCategories } from '~/api/categories/fees'
+import { getRevenuesByCategories } from '~/api/categories/adaptors'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
 import type { IChartProps } from '~/components/ECharts/types'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
@@ -152,7 +152,7 @@ export const descriptions = {
 	'Bug Bounty': 'Protocols that incentivize security researchers to find and report vulnerabilities in smart contracts',
 	'DCA Tools':
 		'Protocols that automate dollar-cost averaging, allowing users to make regular crypto investments automatically',
-	'Managed Token Pools':
+	'Onchain Capital Allocator':
 		'Protocols where token pools are actively controlled and managed by a designated operator or governance',
 	'Developer Tools':
 		'Platforms and services providing APIs, integrations, or other resources to facilitate the development and management of blockchain applications',
@@ -180,7 +180,8 @@ export const descriptions = {
 	'Charity Fundraising': 'Projects that raise capital for DeFi projects through grants, or community contributions',
 	'Volume Boosting':
 		'Protocols that artificially increase trading volume and liquidity for tokens, boosting market perception',
-	DOR: 'Decentralized Offered Rates - The DOR mechanism provides a decentralized benchmark rate for crypto assets'
+	DOR: 'Decentralized Offered Rates - The DOR mechanism provides a decentralized benchmark rate for crypto assets',
+	'Collateral Management': 'Protocols that manage or leverage onchain collateral for financial applications'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {

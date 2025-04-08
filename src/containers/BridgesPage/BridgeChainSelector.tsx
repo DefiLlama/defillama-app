@@ -1,8 +1,7 @@
 import * as React from 'react'
-import { Combobox, ComboboxItem, ComboboxList, useComboboxState } from 'ariakit/combobox'
-import { Menu, MenuButton, MenuButtonArrow, useMenuState } from 'ariakit/menu'
-import { useSetPopoverStyles } from '~/components/Popover/utils'
+import * as Ariakit from '@ariakit/react'
 import type { ISearchItem } from '~/components/Search/types'
+import { matchSorter } from 'match-sorter'
 
 interface IProps {
 	options: ISearchItem[]
@@ -11,77 +10,79 @@ interface IProps {
 }
 
 export function BridgeChainSelector({ options, currentChain, handleClick }: IProps) {
-	const defaultList = options.map(({ name }) => `${name.toLowerCase()}`)
+	const [searchValue, setSearchValue] = React.useState('')
 
-	const [isLarge, renderCallback] = useSetPopoverStyles()
+	const matches = React.useMemo(() => {
+		return matchSorter(options, searchValue, {
+			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+			keys: ['name']
+		})
+	}, [options, searchValue])
 
-	const combobox = useComboboxState({ defaultList, gutter: 8, animated: isLarge ? false : true, renderCallback })
-
-	const menu = useMenuState(combobox)
-
-	// Resets combobox value when menu is closed
-	if (!menu.mounted && combobox.value) {
-		combobox.setValue('')
-	}
-
-	const selectedAsset = React.useMemo(
-		() => options.find((x) => x.name.toLowerCase() === currentChain.toLowerCase()),
-		[currentChain, options]
-	)
+	const [viewableMatches, setViewableMatches] = React.useState(20)
 
 	return (
-		<>
-			<MenuButton
-				state={menu}
-				className="bg-[var(--btn2-bg)] hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative md:min-w-[120px] md:max-w-fit"
+		<Ariakit.ComboboxProvider
+			resetValueOnHide
+			setValue={(value) => {
+				React.startTransition(() => {
+					setSearchValue(value)
+				})
+			}}
+		>
+			<Ariakit.SelectProvider
+				value={currentChain}
+				setValue={(values) => {
+					handleClick(values)
+				}}
 			>
-				{selectedAsset.name}
-				<MenuButtonArrow />
-			</MenuButton>
-			{menu.mounted ? (
-				<Menu
-					state={menu}
-					composite={false}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				<Ariakit.Select className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] flex-nowrap md:min-w-[120px] md:max-w-fit">
+					{currentChain}
+					<Ariakit.SelectArrow className="ml-auto" />
+				</Ariakit.Select>
+				<Ariakit.SelectPopover
+					unmountOnHide
+					hideOnInteractOutside
+					gutter={6}
+					wrapperProps={{
+						className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+					}}
+					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 				>
-					<Combobox
-						state={combobox}
+					<Ariakit.Combobox
 						placeholder="Search..."
 						autoFocus
 						className="bg-white dark:bg-black rounded-md py-2 px-3 m-3 mb-0"
 					/>
-					{combobox.matches.length > 0 ? (
-						<ComboboxList state={combobox} className="flex flex-col overflow-auto overscroll-contain">
-							{combobox.matches.map((value, i) => (
-								<ChainButtonLink options={options} value={value} key={value + i} handleClick={handleClick} />
-							))}
-						</ComboboxList>
+
+					{matches.length > 0 ? (
+						<>
+							<Ariakit.ComboboxList>
+								{matches.slice(0, viewableMatches + 1).map((option) => (
+									<Ariakit.SelectItem
+										key={`bridge-chain-${option.name}`}
+										value={option.name}
+										className="group flex items-center gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+										render={<Ariakit.ComboboxItem />}
+									>
+										<span>{option.name}</span>
+									</Ariakit.SelectItem>
+								))}
+							</Ariakit.ComboboxList>
+							{matches.length > viewableMatches ? (
+								<button
+									className="w-full py-4 px-3 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+									onClick={() => setViewableMatches((prev) => prev + 20)}
+								>
+									See more...
+								</button>
+							) : null}
+						</>
 					) : (
 						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
 					)}
-				</Menu>
-			) : null}
-		</>
-	)
-}
-
-const getMatchingOption = (options: ISearchItem[], value: string): ISearchItem => {
-	return options.find(({ name }) => `${name.toLowerCase()}` === value)
-}
-
-const ChainButtonLink = (props: { options: ISearchItem[]; value: string; handleClick: React.Dispatch<any> }) => {
-	const { options, value, handleClick } = props
-	const matchingOption = getMatchingOption(options, value)
-
-	return (
-		<ComboboxItem
-			value={value}
-			focusOnHover
-			setValueOnClick={false}
-			onClick={() => handleClick(matchingOption.name)}
-			className="flex items-center gap-1 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
-		>
-			{matchingOption.name}
-		</ComboboxItem>
+				</Ariakit.SelectPopover>
+			</Ariakit.SelectProvider>
+		</Ariakit.ComboboxProvider>
 	)
 }

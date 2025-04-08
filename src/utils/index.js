@@ -319,10 +319,7 @@ export const getPercentChange = (valueNow, value24HoursAgo) => {
 
 export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)
 
-export const standardizeProtocolName = (tokenName = '') =>
-	tokenName?.toLowerCase().split(' ').join('-').split("'").join('')
-
-export const slug = standardizeProtocolName
+export const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
 
 export function getRandomColor() {
 	var letters = '0123456789ABCDEF'

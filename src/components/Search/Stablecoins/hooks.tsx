@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useFetchPeggedList } from '~/api/categories/stablecoins/client'
-import { peggedAssetIconUrl, standardizeProtocolName } from '~/utils'
+import { peggedAssetIconUrl, slug } from '~/utils'
 import type { IBaseSearchProps, IGetSearchList } from '../types'
 
 // TODO add pegged chains list
@@ -11,7 +11,7 @@ export function useGetStablecoinsSearchList({ disabled }: { disabled?: boolean }
 		() =>
 			data?.peggedAssets?.map((asset) => ({
 				logo: peggedAssetIconUrl(asset.name),
-				route: `/stablecoin/${standardizeProtocolName(asset.name)}`,
+				route: `/stablecoin/${slug(asset.name)}`,
 				name: `${asset.name} (${asset.symbol})`
 			})) ?? [],
 		[data]

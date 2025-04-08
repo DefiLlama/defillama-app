@@ -7,23 +7,23 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 export function PeggedFiltersDropdowns({
 	pathname,
-	isMobile,
+	nestedMenu,
 	downloadCsv
 }: {
 	pathname: string
-	isMobile?: boolean
+	nestedMenu?: boolean
 	downloadCsv: () => void
 }) {
 	return (
 		<>
-			<Attribute pathname={pathname} subMenu={isMobile} />
-			<BackingType pathname={pathname} subMenu={isMobile} />
-			<PegType pathname={pathname} subMenu={isMobile} />
-			<McapRange subMenu={isMobile} />
-			<ResetAllStablecoinFilters pathname={pathname} subMenu={isMobile} />
+			<Attribute pathname={pathname} nestedMenu={nestedMenu} />
+			<BackingType pathname={pathname} nestedMenu={nestedMenu} />
+			<PegType pathname={pathname} nestedMenu={nestedMenu} />
+			<McapRange nestedMenu={nestedMenu} />
+			<ResetAllStablecoinFilters pathname={pathname} nestedMenu={nestedMenu} />
 			<CSVDownloadButton
 				onClick={downloadCsv}
-				className="rounded-md py-2 px-3 text-xs whitespace-nowrap ml-auto bg-[var(--link-active-bg)] text-white"
+				className="rounded-md py-2 px-3 text-xs whitespace-nowrap sm:ml-auto bg-[var(--link-active-bg)] text-white max-sm:mx-3 max-sm:mt-6"
 			/>
 		</>
 	)

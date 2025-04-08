@@ -1,6 +1,10 @@
-import { getDexVolumeByChain } from '../dexs'
-import { getAppRevenueByChain, getFeesAndRevenueByChain, getFeesAndRevenueProtocolsByChain } from '../fees'
-import { getOverview } from '../adaptors'
+import {
+	getOverview,
+	getDexVolumeByChain,
+	getAppRevenueByChain,
+	getFeesAndRevenueByChain,
+	getFeesAndRevenueProtocolsByChain
+} from '../adaptors'
 import { CHAINS_ASSETS_CHART } from '~/constants'
 import { useQuery } from '@tanstack/react-query'
 

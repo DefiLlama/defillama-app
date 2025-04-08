@@ -303,7 +303,7 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
-		name: 'ProBIt Global',
+		name: 'ProBit Global',
 		slug: 'probit-global',
 		coin: 'PROB',
 		coinSymbol: 'PROB',
@@ -481,6 +481,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://dune.com/21co/backpack-exchange'
 	},
 	{
+		name: 'Hotcoin',
+		slug: 'hotcoin',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Ourbit',
 		slug: 'ourbit',
 		coin: null,
@@ -502,6 +508,12 @@ export const cexData: Array<ICex> = [
 	{
 		name: 'Tapbit',
 		slug: 'tapbit',
+		coin: null,
+		walletsLink: null
+	},
+	{
+		name: 'OrangeX',
+		slug: 'orangex',
 		coin: null,
 		walletsLink: null
 	},
@@ -535,6 +547,11 @@ export const cexData: Array<ICex> = [
 		slug: 'hibt',
 		coin: null,
 		walletsLink: null
+	},
+	{
+		name: 'LBank',
+        slug: 'lbank',
+		cgId: 'lbank'
 	},
 	{
 		name: 'Hotbit',
@@ -616,10 +633,6 @@ export const cexData: Array<ICex> = [
 		name: 'bitFlyer',
 		cgId: 'bitflyer',
 		cgDeriv: 'bitflyer_futures'
-	},
-	{
-		name: 'LBank',
-		cgId: 'lbank'
 	},
 	{
 		name: 'BKEX',
@@ -762,4 +775,4 @@ export default function Protocols({ cexs }) {
 	)
 }
 
-//trigger server gogogogogogogogog
+//trigger server gogogogogoog
