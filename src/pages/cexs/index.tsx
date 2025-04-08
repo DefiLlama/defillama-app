@@ -512,6 +512,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'OrangeX',
+		slug: 'orangex',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Bitcointry',
 		slug: 'bitcointry',
 		coin: 'BTTY',
