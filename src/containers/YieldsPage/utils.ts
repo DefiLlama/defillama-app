@@ -1,6 +1,7 @@
 import { YieldsData } from '~/api/categories/yield'
 import { attributeOptions } from '~/components/Filters/yields/Attributes'
 import { calculateLoopAPY } from '~/api/categories/yield/index'
+import { slug } from '~/utils'
 
 export function toFilterPool({
 	curr,
@@ -40,9 +41,9 @@ export function toFilterPool({
 		}
 	})
 
-	toFilter = toFilter && selectedProjects?.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
+	toFilter = toFilter && selectedProjects?.map((p) => slug(p)).includes(slug(curr.project))
 
-	toFilter = toFilter && selectedCategories?.map((p) => p.toLowerCase()).includes(curr.category.toLowerCase())
+	toFilter = toFilter && selectedCategories?.map((p) => slug(p)).includes(slug(curr.category))
 
 	const tokensInPool: Array<string> = curr.symbol
 		.split('(')[0]
