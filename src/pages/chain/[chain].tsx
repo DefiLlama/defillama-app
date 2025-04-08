@@ -1,5 +1,4 @@
 import { PROTOCOLS_API } from '~/constants/index'
-import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { slug } from '~/utils'
@@ -39,9 +38,5 @@ export async function getStaticPaths() {
 }
 
 export default function Chain(props) {
-	return (
-		<Layout title={`${props.metadata.name} - DefiLlama`}>
-			<ChainOverview {...props} />
-		</Layout>
-	)
+	return <ChainOverview {...props} />
 }

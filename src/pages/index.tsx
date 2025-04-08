@@ -1,4 +1,3 @@
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ChainOverview } from '~/ChainOverview'
@@ -16,9 +15,5 @@ export const getStaticProps = withPerformanceLogging('index', async () => {
 })
 
 export default function HomePage(props) {
-	return (
-		<Layout title="DefiLlama - DeFi Dashboard">
-			<ChainOverview {...props} />
-		</Layout>
-	)
+	return <ChainOverview {...props} />
 }

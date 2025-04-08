@@ -9,6 +9,7 @@ import {
 	PROTOCOL_TRANSACTIONS_API,
 	RAISES_API
 } from '~/constants'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getAdapterOverview, getCexVolume } from '~/DimensionAdapters/queries'
 import { getPeggedOverviewPageData } from '~/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/Stablecoins/utils'
@@ -19,7 +20,64 @@ import metadataCache, { type IChainMetadata, type IProtocolMetadata } from '~/ut
 export interface IChainOverviewData {
 	chain: string
 	metadata: IChainMetadata
-	protocols: Array<IProtocolMetadata2>
+	protocols: Record<string, IProtocol>
+}
+
+interface ILiteProtocol {
+	category: string
+	chains: Array<string>
+	mcap: number
+	name: string
+	symbol: string
+	logo: string
+	url: string
+	referralUrl: string
+	tvl: number
+	tvlPrevDay: number
+	tvlPrevWeek: number
+	tvlPrevMonth: number
+	chainTvls: Record<
+		string,
+		{
+			tvl: number
+			tvlPrevDay: number
+			tvlPrevWeek: number
+			tvlPrevMonth: number
+		}
+	>
+	defillamaId: string
+	governanceID: Array<string>
+	geckoId: string
+	parentProtocol?: string
+}
+
+interface ILiteParentProtocol {
+	id: string
+	name: string
+	url: string
+	description: string
+	logo: string
+	chains: Array<string>
+	gecko_id: string
+	cmcId: string
+	treasury: string
+	twitter: string
+	governanceID: Array<string>
+	wrongLiquidity: boolean
+	github: Array<string>
+	mcap: number
+}
+
+interface IChildProtocol {
+	name: string
+	slug: string
+	category: string | null
+	tvl: Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> | null
+	chains: Array<string>
+}
+
+interface IProtocol extends IChildProtocol {
+	childProtocols?: Array<IChildProtocol>
 }
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
@@ -50,6 +108,26 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			nftVolumesData,
 			chainAssets,
 			{ totalAppRevenue24h }
+		]: [
+			any,
+			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any,
+			any
 		] = await Promise.all([
 			fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((r) => r.json()),
 			fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
@@ -200,7 +278,96 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				: null
 		])
 
-		return { chain, metadata, protocols: getProtocolsMetadataByChain({ chainDisplayName: metadata.name }) }
+		const finalProtocols: Record<string, IProtocol> = {}
+
+		for (const protocol of protocols) {
+			if (
+				metadataCache.protocolMetadata[protocol.defillamaId] &&
+				toFilterProtocol({
+					protocol: metadataCache.protocolMetadata[protocol.defillamaId],
+					chainDisplayName: metadata.name
+				})
+			) {
+				const tvls: Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> = {}
+
+				if (chain === 'All') {
+					tvls.default = {
+						tvl: protocol.tvl ?? null,
+						tvlPrevDay: protocol.tvlPrevDay ?? null,
+						tvlPrevWeek: protocol.tvlPrevWeek ?? null,
+						tvlPrevMonth: protocol.tvlPrevMonth ?? null
+					}
+				} else {
+					tvls.default = {
+						tvl: protocol?.chainTvls?.[metadata.name]?.tvl ?? null,
+						tvlPrevDay: protocol?.chainTvls?.[metadata.name]?.tvlPrevDay ?? null,
+						tvlPrevWeek: protocol?.chainTvls?.[metadata.name]?.tvlPrevWeek ?? null,
+						tvlPrevMonth: protocol?.chainTvls?.[metadata.name]?.tvlPrevMonth ?? null
+					}
+				}
+
+				for (const chainKey in protocol.chainTvls ?? {}) {
+					if (chain === 'All') {
+						if (DEFI_SETTINGS_KEYS.includes(chainKey) || chainKey === 'excludeParent') {
+							tvls[chainKey] = {
+								tvl: protocol?.chainTvls?.[chainKey]?.tvl ?? null,
+								tvlPrevDay: protocol?.chainTvls?.[chainKey]?.tvlPrevDay ?? null,
+								tvlPrevWeek: protocol?.chainTvls?.[chainKey]?.tvlPrevWeek ?? null,
+								tvlPrevMonth: protocol?.chainTvls?.[chainKey]?.tvlPrevMonth ?? null
+							}
+						}
+					} else {
+						if (chainKey.startsWith(`${metadata.name}-`)) {
+							const tvlKey = chainKey.split('-')[1]
+							tvls[tvlKey] = {
+								tvl: protocol?.chainTvls?.[chainKey]?.tvl ?? null,
+								tvlPrevDay: protocol?.chainTvls?.[chainKey]?.tvlPrevDay ?? null,
+								tvlPrevWeek: protocol?.chainTvls?.[chainKey]?.tvlPrevWeek ?? null,
+								tvlPrevMonth: protocol?.chainTvls?.[chainKey]?.tvlPrevMonth ?? null
+							}
+						}
+					}
+				}
+
+				if (protocol.parentProtocol && metadataCache.protocolMetadata[protocol.parentProtocol]) {
+					finalProtocols[protocol.parentProtocol] = {
+						name: metadataCache.protocolMetadata[protocol.parentProtocol].displayName,
+						slug: metadataCache.protocolMetadata[protocol.parentProtocol].name,
+						chains: Array.from(
+							new Set([
+								...(finalProtocols?.[protocol.parentProtocol]?.chains ?? []),
+								...metadataCache.protocolMetadata[protocol.defillamaId].chains
+							])
+						),
+						category: null,
+						tvl:
+							protocol.tvl !== null
+								? sumTvl(tvls, finalProtocols?.[protocol.parentProtocol]?.tvl ?? {})
+								: finalProtocols?.[protocol.parentProtocol]?.tvl ?? null,
+						childProtocols: [
+							...(finalProtocols?.[protocol.parentProtocol]?.childProtocols ?? []),
+							{
+								name: metadataCache.protocolMetadata[protocol.defillamaId].displayName,
+								slug: metadataCache.protocolMetadata[protocol.defillamaId].name,
+								chains: metadataCache.protocolMetadata[protocol.defillamaId].chains,
+								category: protocol.category ?? null,
+								tvl: protocol.tvl != null ? tvls : null
+							}
+						]
+					}
+				} else {
+					finalProtocols[protocol.defillamaId] = {
+						name: metadataCache.protocolMetadata[protocol.defillamaId].displayName,
+						slug: metadataCache.protocolMetadata[protocol.defillamaId].name,
+						chains: metadataCache.protocolMetadata[protocol.defillamaId].chains,
+						category: protocol.category ?? null,
+						tvl: protocol.tvl != null ? tvls : null
+					}
+				}
+			}
+		}
+
+		return { chain, metadata, protocols: finalProtocols }
 	} catch (error) {
 		const msg = `Error fetching ${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
 		console.log(msg)
@@ -208,29 +375,31 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 	}
 }
 
-interface IProtocolMetadata2 extends Omit<IProtocolMetadata, 'name' | 'displayName' | 'chains'> {
-	name: string
-	displayName: string
-	chains: Array<string>
-}
-
-export const getProtocolsMetadataByChain = ({
+const toFilterProtocol = ({
+	protocol,
 	chainDisplayName
 }: {
-	chainDisplayName: string
-}): Array<IProtocolMetadata2> => {
-	if (chainDisplayName === 'All Chains') {
-		return Object.values(metadataCache.protocolMetadata).filter((protocol) =>
-			protocol.name && !protocol.name.startsWith('chain#') && protocol.displayName && protocol.chains ? true : false
-		) as Array<IProtocolMetadata2>
-	}
+	protocol: IProtocolMetadata
+	chainDisplayName: string | null
+}): boolean => {
+	return protocol.name &&
+		!protocol.name.startsWith('chain#') &&
+		protocol.displayName &&
+		protocol.chains &&
+		(chainDisplayName !== 'All' ? protocol.chains.includes(chainDisplayName) : true)
+		? true
+		: false
+}
 
-	return Object.values(metadataCache.protocolMetadata).filter(
-		(protocol) =>
-			protocol.name &&
-			!protocol.name.startsWith('chain#') &&
-			protocol.displayName &&
-			protocol.chains &&
-			protocol.chains.includes(chainDisplayName)
-	) as Array<IProtocolMetadata2>
+const sumTvl = (childTvl, parentTvl) => {
+	const final = { ...parentTvl }
+	for (const tvlKey in childTvl) {
+		final[tvlKey] = {
+			tvl: (parentTvl?.[tvlKey]?.tvl ?? 0) + (childTvl?.[tvlKey]?.tvl ?? 0),
+			tvlPrevDay: (parentTvl?.[tvlKey]?.tvlPrevDay ?? 0) + (childTvl?.[tvlKey]?.tvlPrevDay ?? 0),
+			tvlPrevWeek: (parentTvl?.[tvlKey]?.tvlPrevWeek ?? 0) + (childTvl?.[tvlKey]?.tvlPrevWeek ?? 0),
+			tvlPrevMonth: (parentTvl?.[tvlKey]?.tvlPrevMonth ?? 0) + (childTvl?.[tvlKey]?.tvlPrevMonth ?? 0)
+		}
+	}
+	return final
 }
