@@ -13,26 +13,19 @@ export const PaymentButton = ({
 	paymentMethod: 'stripe' | 'llamapay'
 	type?: 'api' | 'contributor'
 }) => {
-	const { handleSubscribe, loading, isContributor } = useSubscribe()
+	const { handleSubscribe, loading } = useSubscribe()
 	const { isAuthenticated, user } = useAuthContext()
 
 	const isStripe = paymentMethod === 'stripe'
 	const icon = isStripe ? 'card' : 'wallet'
 	const text = isStripe ? 'Pay with Card' : 'Pay with Crypto'
 	const shadowClass = type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''
-	const isContributorButton = type === 'contributor'
 
-	const disabled =
-		(isContributorButton && isContributor) ||
-		loading === paymentMethod ||
-		!isAuthenticated ||
-		(!user?.verified && !user?.address)
+	const disabled = loading === paymentMethod || !isAuthenticated || (!user?.verified && !user?.address)
 	return (
 		<CustomTooltip
 			content={
-				isContributorButton && !isContributor
-					? 'You have not contributed to the DefiLlama project yet. Please contribute to the project first to subscribe.'
-					: !isAuthenticated
+				!isAuthenticated
 					? 'Please sign in first to subscribe'
 					: !user?.verified && !user?.address
 					? 'Please verify your email first to subscribe'

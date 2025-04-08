@@ -17,6 +17,8 @@ export function IncludeExcludeTokens({
 
 	const { token, excludeToken, exactToken } = router.query
 
+	const [open, setOpen] = useState(false)
+
 	const tokensToInclude = token ? (typeof token === 'string' ? [token] : [...token]) : []
 	const tokensToExclude = excludeToken ? (typeof excludeToken === 'string' ? [excludeToken] : [...excludeToken]) : []
 	const tokensThatMatchExactly = exactToken ? (typeof exactToken === 'string' ? [exactToken] : [...exactToken]) : []
@@ -25,27 +27,39 @@ export function IncludeExcludeTokens({
 		const tokenQueryParams =
 			action === 'delete' ? tokensToInclude.filter((x) => x !== token) : [...tokensToInclude, token]
 
-		router.push({ pathname: router.pathname, query: { ...router.query, token: tokenQueryParams } }, undefined, {
-			shallow: true
-		})
+		router
+			.push({ pathname: router.pathname, query: { ...router.query, token: tokenQueryParams } }, undefined, {
+				shallow: true
+			})
+			.then(() => {
+				setOpen(false)
+			})
 	}
 
 	const handleTokenExclude = (token: string, action?: 'delete') => {
 		const tokenQueryParams =
 			action === 'delete' ? tokensToExclude.filter((x) => x !== token) : [...tokensToExclude, token]
 
-		router.push({ pathname: router.pathname, query: { ...router.query, excludeToken: tokenQueryParams } }, undefined, {
-			shallow: true
-		})
+		router
+			.push({ pathname: router.pathname, query: { ...router.query, excludeToken: tokenQueryParams } }, undefined, {
+				shallow: true
+			})
+			.then(() => {
+				setOpen(false)
+			})
 	}
 
 	const handleTokenExact = (token: string, action?: 'delete') => {
 		const tokenQueryParams =
 			action === 'delete' ? tokensThatMatchExactly.filter((x) => x !== token) : [...tokensThatMatchExactly, token]
 
-		router.push({ pathname: router.pathname, query: { ...router.query, exactToken: tokenQueryParams } }, undefined, {
-			shallow: true
-		})
+		router
+			.push({ pathname: router.pathname, query: { ...router.query, exactToken: tokenQueryParams } }, undefined, {
+				shallow: true
+			})
+			.then(() => {
+				setOpen(false)
+			})
 	}
 
 	const [searchValue, setSearchValue] = useState('')
@@ -62,8 +76,6 @@ export function IncludeExcludeTokens({
 	}, [tokens, searchValue])
 
 	const [viewableMatches, setViewableMatches] = useState(20)
-
-	const [open, setOpen] = useState(false)
 
 	return (
 		<Ariakit.ComboboxProvider

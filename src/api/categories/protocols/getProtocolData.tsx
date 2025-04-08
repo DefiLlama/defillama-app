@@ -702,6 +702,8 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 
 	const protocolData = fuseProtocolData(protocolRes)
 
+	// return getProtocolData(protocol, protocolRes, isCpusHot)
+
 	let protocolConfigData: any, pregenMetrics: any, props: any
 
 	try {

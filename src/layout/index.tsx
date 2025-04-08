@@ -31,7 +31,7 @@ export default function Layout({ title, children, defaultSEO = false, background
 			<Nav />
 			<main
 				{...props}
-				className="flex flex-col gap-7 w-full min-h-full text-[var(--text1)] isolate p-4 lg:p-7 lg:pl-[248px]"
+				className="flex flex-col gap-7 w-full text-[var(--text1)] isolate p-4 lg:p-7 lg:pl-[248px] min-h-screen"
 			>
 				{children}
 			</main>

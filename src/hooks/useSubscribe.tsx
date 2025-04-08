@@ -108,7 +108,7 @@ export const useSubscribe = () => {
 				redirectUrl: `${window.location.origin}/subscribtion?subscription=success`,
 				cancelUrl: `${window.location.origin}/subscribtion?subscription=cancelled`,
 				provider: paymentMethod,
-				subscriptionType: type
+				subscriptionType: type || 'api'
 			}
 
 			queryClient.setQueryData(['subscription', pb.authStore.record?.id], defaultInactiveSubscription)
