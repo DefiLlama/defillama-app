@@ -135,6 +135,41 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					) : null}
 				</div>
 			</div>
+
+			{data?.tokenPrice?.price || data?.meta?.circSupply || data?.meta?.maxSupply ? (
+				<div className="flex flex-col items-center p-4 w-full rounded-xl border border-black/10 dark:border-white/10 bg-[var(--bg7)] mb-4">
+					<h1 className="text-center text-xl font-medium mb-4">Token Overview</h1>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-center w-full place-content-center">
+						{data?.tokenPrice?.price ? (
+							<div className="flex flex-col items-center">
+								<span className="text-[var(--text3)]">Price</span>
+								<div className="flex items-center">
+									<span className="text-lg font-medium">${formattedNum(data.tokenPrice.price)}</span>
+								</div>
+							</div>
+						) : null}
+
+						{data?.meta?.circSupply ? (
+							<div className="flex flex-col items-center">
+								<span className="text-[var(--text3)]">Circulating Supply</span>
+								<span className="text-lg font-medium">
+									{formattedNum(data.meta.circSupply)} {data.tokenPrice.symbol}
+								</span>
+							</div>
+						) : null}
+
+						{data?.meta?.maxSupply ? (
+							<div className="flex flex-col items-center">
+								<span className="text-[var(--text3)]">Max Supply</span>
+								<span className="text-lg font-medium">
+									{formattedNum(data.meta.maxSupply)} {data.tokenPrice.symbol}
+								</span>
+							</div>
+						) : null}
+					</div>
+				</div>
+			) : null}
+
 			{data.chartData?.realtime?.length > 0 && (
 				<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
 					<button
