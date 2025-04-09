@@ -241,7 +241,58 @@ export default function AreaChart({
 		chartInstance.setOption({
 			graphic: { ...graphic },
 			tooltip: {
-				...tooltip
+				...tooltip,
+				formatter: function (params) {
+					const paramsArray = Array.isArray(params) ? params : [params]
+
+					if (paramsArray.length === 0) return ''
+
+					const date = paramsArray[0].axisValueLabel || ''
+					let result = `<div style="margin-bottom:4px;font-weight:600;">${date}</div>`
+
+					let total = 0
+
+					paramsArray.forEach((param) => {
+						if (param.value[1] !== undefined) {
+							const value = parseFloat(param.value[1])
+							if (value === 0) return
+							total += value
+
+							const color = param.color || '#666'
+							const name = param.seriesName || ''
+							const formattedValue =
+								valueSymbol +
+								value.toLocaleString(undefined, {
+									minimumFractionDigits: 0,
+									maximumFractionDigits: 2
+								})
+
+							result += `<div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0;">
+								<span style="display:flex;align-items:center;">
+									<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:6px;"></span>
+									<span>${name}</span>
+								</span>
+								<span style="font-weight:500;margin-left:24px;">${formattedValue}</span>
+							</div>`
+						}
+					})
+
+					if (total > 0) {
+						const formattedTotal =
+							valueSymbol +
+							total.toLocaleString(undefined, {
+								minimumFractionDigits: 0,
+								maximumFractionDigits: 2
+							})
+
+						result += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(128,128,128,0.2);display:flex;justify-content:space-between;">
+							<span style="font-weight:600;">Total</span>
+							<span style="font-weight:600;margin-left:24px;">${formattedTotal}</span>
+						</div>`
+					}
+
+					return result
+				}
 			},
 			title: {
 				...titleDefaults
