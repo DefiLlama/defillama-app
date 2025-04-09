@@ -1,13 +1,9 @@
 import * as React from 'react'
 import Head from 'next/head'
-import dynamic from 'next/dynamic'
 import { SEO } from '~/components/SEO'
 import Nav from '~/components/Nav'
-import { useIsClient } from '~/hooks'
 
-const Toaster = dynamic(() => import('~/components/Toast').then((m) => m.Toast), {
-	ssr: false
-})
+const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
 
 interface ILayoutProps {
 	title: string
@@ -18,7 +14,6 @@ interface ILayoutProps {
 }
 
 export default function Layout({ title, children, defaultSEO = false, backgroundColor, ...props }: ILayoutProps) {
-	const isClient = useIsClient()
 	return (
 		<>
 			<Head>
@@ -35,7 +30,9 @@ export default function Layout({ title, children, defaultSEO = false, background
 			>
 				{children}
 			</main>
-			{isClient ? <Toaster /> : null}
+			<React.Suspense>
+				<Toaster />
+			</React.Suspense>
 		</>
 	)
 }
