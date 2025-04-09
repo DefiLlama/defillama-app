@@ -37,13 +37,15 @@ export function SelectWithCombobox({
 	const matches = React.useMemo(() => {
 		if (valuesAreAnArrayOfStrings) {
 			return matchSorter(allValues as Array<string>, searchValue, {
-				baseSort: (a, b) => (a.index < b.index ? -1 : 1)
+				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+				threshold: matchSorter.rankings.CONTAINS
 			})
 		}
 
 		return matchSorter(allValues as Array<{ name: string }>, searchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			keys: ['name']
+			keys: ['name'],
+			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [valuesAreAnArrayOfStrings, allValues, searchValue])
 

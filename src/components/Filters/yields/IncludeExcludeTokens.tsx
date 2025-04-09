@@ -70,7 +70,8 @@ export function IncludeExcludeTokens({
 			searchValue,
 			{
 				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-				keys: ['name', 'symbol']
+				keys: ['name', 'symbol'],
+				threshold: matchSorter.rankings.CONTAINS
 			}
 		)
 	}, [tokens, searchValue])
