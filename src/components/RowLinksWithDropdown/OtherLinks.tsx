@@ -15,7 +15,8 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 	const matches = useMemo(() => {
 		return matchSorter(options, searchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			keys: ['label']
+			keys: ['label'],
+			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [options, searchValue])
 

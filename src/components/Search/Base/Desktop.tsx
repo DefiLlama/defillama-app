@@ -26,7 +26,8 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		if (skipSearching) return data || []
 		return matchSorter(data || [], searchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			keys: ['name']
+			keys: ['name'],
+			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [data, searchValue, skipSearching])
 

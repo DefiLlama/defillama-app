@@ -10,7 +10,8 @@ export function RaisesSearch({ list }) {
 
 	const matches = useMemo(() => {
 		return matchSorter(list || [], searchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1)
+			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [list, searchValue])
 

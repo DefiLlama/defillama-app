@@ -41,7 +41,8 @@ export function AssetSelector({ options, symbol }: IProps) {
 	const matches = React.useMemo(() => {
 		return matchSorter(options, searchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			keys: ['name', 'symbol']
+			keys: ['name', 'symbol'],
+			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [options, searchValue])
 

@@ -30,7 +30,8 @@ export default function Protocols({ protocols }) {
 	const matches = useMemo(() => {
 		return matchSorter(protocols as Array<{ name: string; logo: string; route: string }>, searchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			keys: ['name']
+			keys: ['name'],
+			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [protocols, searchValue])
 

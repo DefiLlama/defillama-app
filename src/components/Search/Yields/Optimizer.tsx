@@ -14,7 +14,8 @@ export function YieldsSearch({ lend = false, searchData, value }) {
 			searchValue,
 			{
 				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-				keys: ['name', 'symbol']
+				keys: ['name', 'symbol'],
+				threshold: matchSorter.rankings.CONTAINS
 			}
 		)
 	}, [searchData, searchValue])
