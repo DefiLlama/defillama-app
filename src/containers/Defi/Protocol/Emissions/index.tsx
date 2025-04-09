@@ -37,13 +37,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	const priceChart = usePriceChart(data.geckoId ?? geckoId)
 
-	const tokenPrice = priceChart.data?.prices?.[priceChart.data?.prices?.length - 1]?.[1]
-	const tokenMcap = priceChart.data?.mcaps?.[priceChart.data?.mcaps?.length - 1]?.[1]
-	const tokenVolume = priceChart.data?.volumes?.[priceChart.data?.volumes?.length - 1]?.[1]
-	const ystdPrice = priceChart.data?.prices?.[priceChart.data?.prices?.length - 2]?.[1]
+	const tokenPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
+	const tokenMcap = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
+	const tokenVolume = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
+	const ystdPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
 	const percentChange = tokenPrice && ystdPrice ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
 	const normilizePriceChart = Object.fromEntries(
-		Object.entries(priceChart.data || {})
+		Object.entries(priceChart.data?.data || {})
 			.map(([name, chart]: [string, Array<[number, number]>]) =>
 				Array.isArray(chart)
 					? [name, Object.fromEntries(chart.map(([date, price]) => [Math.floor(date / 1e3), price]))]
@@ -112,14 +112,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	return (
 		<>
-			<div style={{ display: 'flex', justifyContent: isEmissionsPage ? 'space-between' : 'flex-end' }}>
+			<div className="flex flex-col sm:flex-row gap-4 sm:justify-between items-center w-full mb-4">
 				{isEmissionsPage ? (
 					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={tokenIconUrl(data.name)} />
 						<span>{data.name}</span>
 					</h1>
 				) : null}
-				<div style={{ gap: '8px', display: 'flex', justifyContent: 'flex-end', padding: '8px' }}>
+				<div className="flex flex-wrap gap-2 justify-center sm:justify-end w-full sm:w-auto">
 					<OptionToggle
 						name="Include Treasury"
 						toggle={() => setIsTreasuryIncluded((prev) => !prev)}
@@ -136,15 +136,26 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</div>
 			</div>
 
-			{data?.tokenPrice?.price || data?.meta?.circSupply || data?.meta?.maxSupply ? (
+			{data?.tokenPrice?.price || data?.meta?.circSupply || data?.meta?.maxSupply || tokenMcap || tokenVolume ? (
 				<div className="flex flex-col items-center p-4 w-full rounded-xl border border-black/10 dark:border-white/10 bg-[var(--bg7)] mb-4">
 					<h1 className="text-center text-xl font-medium mb-4">Token Overview</h1>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-center w-full place-content-center">
 						{data?.tokenPrice?.price ? (
 							<div className="flex flex-col items-center">
 								<span className="text-[var(--text3)]">Price</span>
-								<div className="flex items-center">
+								<div className="flex items-center gap-2">
 									<span className="text-lg font-medium">${formattedNum(data.tokenPrice.price)}</span>
+									{percentChange !== null && (
+										<span
+											className="text-sm"
+											style={{
+												color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)'
+											}}
+										>
+											{percentChange > 0 && '+'}
+											{percentChange}%
+										</span>
+									)}
 								</div>
 							</div>
 						) : null}
@@ -164,6 +175,20 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								<span className="text-lg font-medium">
 									{formattedNum(data.meta.maxSupply)} {data.tokenPrice.symbol}
 								</span>
+							</div>
+						) : null}
+
+						{tokenMcap ? (
+							<div className="flex flex-col items-center">
+								<span className="text-[var(--text3)]">Market Cap</span>
+								<span className="text-lg font-medium">${formattedNum(tokenMcap)}</span>
+							</div>
+						) : null}
+
+						{tokenVolume ? (
+							<div className="flex flex-col items-center">
+								<span className="text-[var(--text3)]">Volume (24h)</span>
+								<span className="text-lg font-medium">${formattedNum(tokenVolume)}</span>
 							</div>
 						) : null}
 					</div>
@@ -246,51 +271,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			</div>
 
 			<div>
-				{tokenPrice ? (
-					<div
-						className="flex flex-col items-center justify-start p-4 w-full rounded-md border border-black/10 dark:border-white/10 bg-[var(--bg7)] h-full"
-						style={!isEmissionsPage ? { background: 'none', border: 'none', marginTop: '8px' } : {}}
-					>
-						<h1 className="text-base text-[var(--text3)] mr-auto">Price</h1>
-						<div style={{ alignSelf: 'start', display: 'flex', gap: '6px', textAlign: 'center' }}>
-							<h2 className="text-center text-xl font-medium">{tokenPrice ? `$${formattedNum(tokenPrice)}` : 'N/A'}</h2>
-							<p
-								style={{
-									color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)'
-								}}
-								className="text-sm mt-1"
-							>
-								{percentChange > 0 && '+'}
-								{percentChange}%
-							</p>
-						</div>
-						<div className="flex flex-col text-base gap-2 mt-2 w-full">
-							<p className="flex justify-between flex-wrap">
-								<span>Market Cap</span>
-								<span className="text-base text-[var(--text3)]">
-									{tokenMcap ? `$${formattedNum(tokenMcap)}` : 'N/A'}
-								</span>
-							</p>
-							<hr className="border-black/10 dark:border-white/10" />
-							<p className="flex justify-between flex-wrap">
-								<span>Volume (24h)</span>
-								<span className="text-base text-[var(--text3)]">
-									{tokenVolume ? `$${formattedNum(tokenVolume)}` : 'N/A'}
-								</span>
-							</p>
-							{data?.meta?.circSupply ? (
-								<>
-									<hr className="border-black/10 dark:border-white/10" />
-									<p className="flex justify-between flex-wrap">
-										<span>Circulating Supply</span>
-										<span className="text-base text-[var(--text3)]">{formattedNum(data.meta.circSupply)}</span>
-									</p>
-								</>
-							) : null}
-						</div>
-					</div>
-				) : null}
-
 				{data.token &&
 				Object.entries(data.tokenAllocation?.[dataType]?.current || {}).length &&
 				Object.entries(data.tokenAllocation?.[dataType]?.final || {}).length ? (

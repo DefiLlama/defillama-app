@@ -56,6 +56,7 @@ export const UpcomingEvent = ({
 			<span className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2">
 				<span className="flex items-center gap-2 justify-between">
 					<span className="flex flex-col px-2">
+						<span className="font-semibold">Unlock Value:</span>
 						{tokenValue ? formattedNum(tokenValue, true) : <span>{formattedNum(unlockPercent)}%</span>}
 						{unlockPercent ? (
 							<span className="text-[var(--text3)]">
@@ -65,20 +66,25 @@ export const UpcomingEvent = ({
 						) : null}
 					</span>
 					<span className="flex flex-col px-2">
+						<span className="text-right font-medium text-[var(--text2)] flex flex-col">
+							{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}
+							<span className="text-[var(--text2)]">
+								{timestamp ? `${dayjs(timestamp * 1e3).format('h:mm A')} ` : null}
+								<span className="text-[var(--text3)] text-sm">
+									{timestamp
+										? `GMT${dayjs(timestamp * 1e3)
+												.format('Z')
+												.slice(0, 3)}`
+										: ''}
+								</span>
+							</span>
+						</span>
 						{timeLeft > 0 ? (
-							<span className="flex items-center gap-1">
-								<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
-									{days}D
-								</span>
-								<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
-									{hours}H
-								</span>
-								<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
-									{minutes}M
-								</span>
-								<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
-									{seconds}S
-								</span>
+							<span
+								className="bg-[var(--bg4)] rounded-md text-sm px-3 py-1.5 flex items-center justify-center"
+								suppressHydrationWarning
+							>
+								{days}D {hours}H {minutes}M {seconds}S
 							</span>
 						) : (
 							<span className="flex items-center justify-end gap-1">
