@@ -112,14 +112,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	return (
 		<>
-			<div style={{ display: 'flex', justifyContent: isEmissionsPage ? 'space-between' : 'flex-end' }}>
+			<div className="flex flex-col sm:flex-row gap-4 sm:justify-between items-center w-full mb-4">
 				{isEmissionsPage ? (
 					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={tokenIconUrl(data.name)} />
 						<span>{data.name}</span>
 					</h1>
 				) : null}
-				<div style={{ gap: '8px', display: 'flex', justifyContent: 'flex-end', padding: '8px' }}>
+				<div className="flex flex-wrap gap-2 justify-center sm:justify-end w-full sm:w-auto">
 					<OptionToggle
 						name="Include Treasury"
 						toggle={() => setIsTreasuryIncluded((prev) => !prev)}

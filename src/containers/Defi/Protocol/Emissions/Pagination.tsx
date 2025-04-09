@@ -136,16 +136,26 @@ const Pagination = ({ items, startIndex = 0 }) => {
 			</div>
 
 			{totalPages > 1 && (
-				<div className="flex items-center justify-center flex-nowrap gap-2 mt-3">
-					{Array.from({ length: totalPages }).map((_, index) => (
-						<button
-							key={index}
-							className="h-3 w-3 bg-[var(--bg4)] data-[active=true]:bg-[#5c5cf9] rounded-full flex-shrink-0"
-							data-active={currentPage === index}
-							onClick={() => handlePageChange(index)}
-							aria-label={`Go to page ${index + 1}`}
-						/>
-					))}
+				<div className="flex items-center justify-center gap-3 mt-3">
+					<button
+						onClick={handlePrevPage}
+						className="text-[var(--text1)] text-sm font-medium hover:text-[#5c5cf9] transition-colors"
+						aria-label="Previous page"
+					>
+						<Icon name="arrow-left" height={16} width={16} />
+					</button>
+
+					<span className="text-[var(--text1)] text-sm font-medium">
+						{currentPage + 1} / {totalPages}
+					</span>
+
+					<button
+						onClick={handleNextPage}
+						className="text-[var(--text1)] text-sm font-medium hover:text-[#5c5cf9] transition-colors"
+						aria-label="Next page"
+					>
+						<Icon name="arrow-right" height={16} width={16} />
+					</button>
 				</div>
 			)}
 		</>
