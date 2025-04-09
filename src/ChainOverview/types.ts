@@ -127,6 +127,12 @@ export interface IChildProtocol {
 		totalAllTime: number | null
 		ps: number | null
 	}
+	dexs?: {
+		total24h: number | null
+		total7d: number | null
+		totalAllTime: number | null
+		change_7dover7d: number | null
+	}
 }
 
 export interface IProtocol extends IChildProtocol {

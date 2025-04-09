@@ -343,10 +343,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvl?.default?.tvl, {
 				header: 'TVL',
 				cell: ({ row }) =>
-					row.original.strikeTvl || row.original.tvl.excludeParent ? (
+					row.original.strikeTvl || row.original.tvl?.excludeParent ? (
 						<Tvl rowValues={row.original} />
 					) : (
-						`${row.original.tvl != null ? `$${formattedNum(row.original.tvl.default.tvl || 0)}` : null}`
+						`${row.original.tvl != null ? `$${formattedNum(row.original.tvl?.default?.tvl || 0)}` : null}`
 					),
 				sortUndefined: 'last',
 				meta: {
@@ -539,56 +539,56 @@ const columns: ColumnDef<IProtocol>[] = [
 			headerHelperText:
 				"Total fees paid by users when using the protocol\n\nRevenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers."
 		}
+	}),
+	columnHelper.group({
+		id: 'volume',
+		header: 'Volume',
+		columns: [
+			columnHelper.accessor((row) => row.dexs?.total24h, {
+				header: 'Spot Volume 24h',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Volume of spot trades in the last 24 hours'
+				},
+				size: 150
+			}),
+			columnHelper.accessor((row) => row.dexs?.total7d, {
+				header: 'Spot Volume 7d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Volume of spot trades in the last 7 days'
+				},
+				size: 150
+			}),
+			columnHelper.accessor((row) => row.dexs?.change_7dover7d, {
+				header: 'Spot Change 7d',
+				cell: ({ getValue }) => <>{getValue() != 0 ? formattedPercent(getValue()) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Change of last 7d volume over the previous 7d volume'
+				},
+				size: 140
+			}),
+			columnHelper.accessor((row) => row.dexs?.totalAllTime, {
+				header: 'Spot Cumulative Volume',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Total volume traded on the protocol since it was launched'
+				},
+				size: 200
+			})
+		],
+		meta: {
+			headerHelperText: 'Volume traded on the protocol'
+		}
 	})
-	// columnHelper.group({
-	// 	id: 'volume',
-	// 	header: 'Volume',
-	// 	columns: [
-	// 		columnHelper.accessor('volume_24h', {
-	// 			header: 'Spot Volume 24h',
-	// 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Volume of spot trades in the last 24 hours'
-	// 			},
-	// 			size: 150
-	// 		}),
-	// 		columnHelper.accessor('volume_7d', {
-	// 			header: 'Spot Volume 7d',
-	// 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Volume of spot trades in the last 7 days'
-	// 			},
-	// 			size: 150
-	// 		}),
-	// 		columnHelper.accessor('volumeChange_7d', {
-	// 			header: 'Spot Change 7d',
-	// 			cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Change of last 7d volume over the previous 7d volume'
-	// 			},
-	// 			size: 140
-	// 		}),
-	// 		columnHelper.accessor('cumulativeVolume', {
-	// 			header: 'Spot Cumulative Volume',
-	// 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Total volume traded on the protocol since it was launched'
-	// 			},
-	// 			size: 200
-	// 		})
-	// 	],
-	// 	meta: {
-	// 		headerHelperText: 'Volume traded on the protocol'
-	// 	}
-	// })
 ]
 const defaultColumns = JSON.stringify({
 	name: true,

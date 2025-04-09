@@ -270,6 +270,20 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 		}
 	}
 
+	for (const protocol of dexs?.protocols ?? []) {
+		if (protocol.total24h != null) {
+			dimensionProtocols[protocol.defillamaId] = {
+				...(dimensionProtocols[protocol.defillamaId] ?? {}),
+				dexs: {
+					total24h: protocol.total24h ?? null,
+					total7d: protocol.total7d ?? null,
+					change_7dover7d: protocol.change_7dover7d ?? null,
+					totalAllTime: protocol.totalAllTime ?? null
+				}
+			}
+		}
+	}
+
 	const finalProtocols: Record<string, IProtocol> = {}
 
 	const parentStore: Record<string, Array<IChildProtocol>> = {}
@@ -354,11 +368,15 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					: null
 			}
 
-			if (dimensionProtocols[protocol.defillamaId]?.fees) {
+			if (dimensionProtocols[protocol.defillamaId]?.revenue) {
 				childStore.revenue = dimensionProtocols[protocol.defillamaId].revenue
 				childStore.revenue.ps = protocol.mcap
 					? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].revenue.total30d)
 					: null
+			}
+
+			if (dimensionProtocols[protocol.defillamaId]?.dexs) {
+				childStore.dexs = dimensionProtocols[protocol.defillamaId].dexs
 			}
 
 			if (protocol.parentProtocol && metadataCache.protocolMetadata[protocol.parentProtocol]) {
@@ -411,6 +429,15 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				parentRevenue.ps = getAnnualizedRatio(parentProtocol.mcap, parentRevenue.total30d)
 			}
 
+			const parentDexs = parentStore[parentProtocol.id].some((child) => child.dexs !== null)
+				? parentStore[parentProtocol.id].reduce((acc, curr) => {
+						for (const key1 in curr.dexs ?? {}) {
+							acc[key1] = (acc[key1] ?? 0) + curr.dexs[key1]
+						}
+						return acc
+				  }, {} as IChildProtocol['dexs'])
+				: null
+
 			if (parentTvl?.excludeParent) {
 				parentTvl.default.tvl -= parentTvl.excludeParent.tvl ?? 0
 				parentTvl.default.tvlPrevDay -= parentTvl.excludeParent.tvlPrevDay ?? 0
@@ -447,6 +474,9 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			}
 			if (parentRevenue) {
 				finalProtocols[parentProtocol.id].revenue = parentRevenue
+			}
+			if (parentDexs) {
+				finalProtocols[parentProtocol.id].dexs = parentDexs
 			}
 		}
 	}
