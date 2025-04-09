@@ -13,16 +13,25 @@ import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getAdapterOverview, IAdapterOverview } from '~/DimensionAdapters/queries'
 import { getPeggedOverviewPageData } from '~/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/Stablecoins/utils'
-import { formattedNum, getPercentChange, slug } from '~/utils'
+import { getPercentChange, slug } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import metadataCache from '~/utils/metadata'
-import type { IChainOverviewData, ILiteParentProtocol, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
-import { sumTvl, toFilterProtocol, toStrikeTvl } from './utils'
+import type {
+	IChainMetadata,
+	IChainOverviewData,
+	IChildProtocol,
+	ILiteParentProtocol,
+	ILiteProtocol,
+	IProtocol,
+	TVL_TYPES
+} from './types'
+import { toFilterProtocol, toStrikeTvl } from './utils'
+import { getAnnualizedRatio } from '~/api/categories/adaptors'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
 	const metadata =
 		chain === 'All'
-			? { name: 'All', tvl: true, stablecoins: true, dexs: true }
+			? { name: 'All', tvl: true, stablecoins: true, fees: true, dexs: true }
 			: metadataCache.chainMetadata[slug(chain)]
 
 	if (!metadata) return null
@@ -31,9 +40,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		const [
 			chartData,
 			protocols,
-			dexVolume,
-			fees,
-			revenue,
 			stablecoinsData,
 			inflowsData,
 			activeUsers,
@@ -49,9 +55,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		]: [
 			any,
 			Array<IProtocol>,
-			IAdapterOverview | null,
-			IAdapterOverview | null,
-			IAdapterOverview | null,
 			any,
 			any,
 			any,
@@ -67,40 +70,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		] = await Promise.all([
 			fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((r) => r.json()),
 			getProtocolsByChain({ chain, metadata }),
-			chain !== 'All' && metadata?.dexs
-				? getAdapterOverview({
-						type: 'dexs',
-						chain: metadata.name,
-						excludeTotalDataChart: true,
-						excludeTotalDataChartBreakdown: true
-				  }).catch((err) => {
-						console.log(err)
-						return null
-				  })
-				: Promise.resolve(null),
-			chain !== 'All' && metadata?.chainFees
-				? getAdapterOverview({
-						type: 'fees',
-						chain: metadata.name,
-						excludeTotalDataChart: true,
-						excludeTotalDataChartBreakdown: true
-				  }).catch((err) => {
-						console.log(err)
-						return null
-				  })
-				: Promise.resolve(null),
-			chain !== 'All' && metadata?.chainFees
-				? getAdapterOverview({
-						type: 'fees',
-						chain: metadata.name,
-						excludeTotalDataChart: true,
-						excludeTotalDataChartBreakdown: true,
-						dataType: 'dailyRevenue'
-				  }).catch((err) => {
-						console.log(err)
-						return null
-				  })
-				: Promise.resolve(null),
 			getPeggedOverviewPageData(chain === 'All' ? null : metadata.name)
 				.then((data) => {
 					const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
@@ -223,11 +192,87 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 	}
 }
 
-export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; metadata: { name: string } }) => {
-	const [{ protocols, chains, parentProtocols }]: [
-		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> }
-	] = await Promise.all([fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json())])
+export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; metadata: IChainMetadata }) => {
+	const [{ protocols, parentProtocols }, fees, revenue, dexs]: [
+		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null
+	] = await Promise.all([
+		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
+		metadata?.fees
+			? getAdapterOverview({
+					type: 'fees',
+					chain: metadata.name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  }).catch((err) => {
+					console.log(err)
+					return null
+			  })
+			: Promise.resolve(null),
+		metadata?.fees
+			? getAdapterOverview({
+					type: 'fees',
+					chain: metadata.name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true,
+					dataType: 'dailyRevenue'
+			  }).catch((err) => {
+					console.log(err)
+					return null
+			  })
+			: Promise.resolve(null),
+		metadata?.dexs
+			? getAdapterOverview({
+					type: 'dexs',
+					chain: metadata.name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  }).catch((err) => {
+					console.log(err)
+					return null
+			  })
+			: Promise.resolve(null)
+	])
+
+	const dimensionProtocols = {}
+
+	for (const protocol of fees?.protocols ?? []) {
+		if (protocol.total24h != null) {
+			dimensionProtocols[protocol.defillamaId] = {
+				...(dimensionProtocols[protocol.defillamaId] ?? {}),
+				fees: {
+					total24h: protocol.total24h ?? null,
+					total7d: protocol.total7d ?? null,
+					total30d: protocol.total30d ?? null,
+					total1y: protocol.total1y ?? null,
+					average1y: protocol.average1y ?? null,
+					totalAllTime: protocol.totalAllTime ?? null
+				}
+			}
+		}
+	}
+
+	for (const protocol of revenue?.protocols ?? []) {
+		if (protocol.total24h != null) {
+			dimensionProtocols[protocol.defillamaId] = {
+				...(dimensionProtocols[protocol.defillamaId] ?? {}),
+				revenue: {
+					total24h: protocol.total24h ?? null,
+					total7d: protocol.total7d ?? null,
+					total30d: protocol.total30d ?? null,
+					total1y: protocol.total1y ?? null,
+					average1y: protocol.average1y ?? null,
+					totalAllTime: protocol.totalAllTime ?? null
+				}
+			}
+		}
+	}
+
 	const finalProtocols: Record<string, IProtocol> = {}
+
+	const parentStore: Record<string, Array<IChildProtocol>> = {}
 
 	for (const protocol of protocols) {
 		if (
@@ -290,83 +335,119 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				}
 			}
 
-			if (protocol.parentProtocol && metadataCache.protocolMetadata[protocol.parentProtocol]) {
-				const parentTvl =
-					protocol.tvl !== null
-						? sumTvl(tvls, finalProtocols?.[protocol.parentProtocol]?.tvl ?? {})
-						: finalProtocols?.[protocol.parentProtocol]?.tvl ?? null
+			const childStore: IChildProtocol = {
+				name: metadataCache.protocolMetadata[protocol.defillamaId].displayName,
+				slug: metadataCache.protocolMetadata[protocol.defillamaId].name,
+				chains: metadataCache.protocolMetadata[protocol.defillamaId].chains,
+				category: protocol.category ?? null,
+				tvl: protocol.tvl != null ? tvls : null,
+				tvlChange: protocol.tvl != null ? tvlChange : null,
+				mcap: protocol.mcap ?? null,
+				mcaptvl: protocol.mcap && tvls?.default?.tvl ? +(protocol.mcap / tvls.default.tvl).toFixed(2) : null,
+				strikeTvl: toStrikeTvl(protocol, {})
+			}
 
-				if (parentTvl && tvls.excludeParent) {
-					parentTvl.default.tvl -= tvls.excludeParent.tvl ?? 0
-					parentTvl.default.tvlPrevDay -= tvls.excludeParent.tvlPrevDay ?? 0
-					parentTvl.default.tvlPrevWeek -= tvls.excludeParent.tvlPrevWeek ?? 0
-					parentTvl.default.tvlPrevMonth -= tvls.excludeParent.tvlPrevMonth ?? 0
-				}
-
-				const parentTvlChange = parentTvl?.default?.tvl
-					? {
-							change1d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevDay),
-							change7d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevWeek),
-							change1m: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevMonth)
-					  }
+			if (dimensionProtocols[protocol.defillamaId]?.fees) {
+				childStore.fees = dimensionProtocols[protocol.defillamaId].fees
+				childStore.fees.pf = protocol.mcap
+					? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].fees.total30d)
 					: null
+			}
 
-				finalProtocols[protocol.parentProtocol] = {
-					name: metadataCache.protocolMetadata[protocol.parentProtocol].displayName,
-					slug: metadataCache.protocolMetadata[protocol.parentProtocol].name,
-					chains: Array.from(
-						new Set([
-							...(finalProtocols?.[protocol.parentProtocol]?.chains ?? []),
-							...metadataCache.protocolMetadata[protocol.defillamaId].chains
-						])
-					),
-					category: null,
-					tvl: parentTvl,
-					tvlFormatted: parentTvl ? `$${formattedNum(parentTvl.default.tvl || 0)}` : null,
-					tvlChange: parentTvlChange,
-					mcap: null,
-					mcaptvl: null,
-					strikeTvl: finalProtocols?.[protocol.parentProtocol]?.strikeTvl ? true : toStrikeTvl(protocol, {}),
-					childProtocols: [
-						...(finalProtocols?.[protocol.parentProtocol]?.childProtocols ?? []),
-						{
-							name: metadataCache.protocolMetadata[protocol.defillamaId].displayName,
-							slug: metadataCache.protocolMetadata[protocol.defillamaId].name,
-							chains: metadataCache.protocolMetadata[protocol.defillamaId].chains,
-							category: protocol.category ?? null,
-							tvl: protocol.tvl != null ? tvls : null,
-							tvlFormatted: protocol.tvl != null ? `$${formattedNum(tvls.default.tvl || 0)}` : null,
-							tvlChange: protocol.tvl != null ? tvlChange : null,
-							mcap: protocol.mcap ?? null,
-							mcaptvl: protocol.mcap && tvls?.default?.tvl ? +(protocol.mcap / tvls.default.tvl).toFixed(2) : null,
-							strikeTvl: toStrikeTvl(protocol, {})
-						}
-					]
-				}
+			if (dimensionProtocols[protocol.defillamaId]?.fees) {
+				childStore.revenue = dimensionProtocols[protocol.defillamaId].revenue
+				childStore.revenue.ps = protocol.mcap
+					? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].revenue.total30d)
+					: null
+			}
+
+			if (protocol.parentProtocol && metadataCache.protocolMetadata[protocol.parentProtocol]) {
+				parentStore[protocol.parentProtocol] = [...(parentStore?.[protocol.parentProtocol] ?? []), childStore]
 			} else {
-				finalProtocols[protocol.defillamaId] = {
-					name: metadataCache.protocolMetadata[protocol.defillamaId].displayName,
-					slug: metadataCache.protocolMetadata[protocol.defillamaId].name,
-					chains: metadataCache.protocolMetadata[protocol.defillamaId].chains,
-					category: protocol.category ?? null,
-					tvl: protocol.tvl != null ? tvls : null,
-					tvlFormatted: protocol.tvl != null ? `$${formattedNum(tvls.default.tvl || 0)}` : null,
-					tvlChange: protocol.tvl != null ? tvlChange : null,
-					mcap: protocol.mcap ?? null,
-					mcaptvl: protocol.mcap && tvls?.default?.tvl ? +(protocol.mcap / tvls.default.tvl).toFixed(2) : null,
-					strikeTvl: toStrikeTvl(protocol, {})
-				}
+				finalProtocols[protocol.defillamaId] = childStore
 			}
 		}
 	}
 
 	for (const parentProtocol of parentProtocols) {
-		if (finalProtocols[parentProtocol.id]) {
-			finalProtocols[parentProtocol.id].mcap = parentProtocol.mcap ?? null
-			finalProtocols[parentProtocol.id].mcaptvl =
-				parentProtocol.mcap && finalProtocols[parentProtocol.id].tvl?.default?.tvl
-					? +(parentProtocol.mcap / finalProtocols[parentProtocol.id].tvl.default.tvl).toFixed(2)
-					: null
+		if (parentStore[parentProtocol.id]) {
+			const parentTvl = parentStore[parentProtocol.id].some((child) => child.tvl !== null)
+				? parentStore[parentProtocol.id].reduce((acc, curr) => {
+						for (const key1 in curr.tvl ?? {}) {
+							if (!acc[key1]) {
+								acc[key1] = {}
+							}
+							for (const key2 in curr.tvl[key1]) {
+								acc[key1][key2] = (acc[key1][key2] ?? 0) + curr.tvl[key1][key2]
+							}
+						}
+						return acc
+				  }, {} as IChildProtocol['tvl'])
+				: null
+
+			const parentFees = parentStore[parentProtocol.id].some((child) => child.fees !== null)
+				? parentStore[parentProtocol.id].reduce((acc, curr) => {
+						for (const key1 in curr.fees ?? {}) {
+							acc[key1] = (acc[key1] ?? 0) + curr.fees[key1]
+						}
+						return acc
+				  }, {} as IChildProtocol['fees'])
+				: null
+
+			if (parentFees) {
+				parentFees.pf = getAnnualizedRatio(parentProtocol.mcap, parentFees.total30d)
+			}
+
+			const parentRevenue = parentStore[parentProtocol.id].some((child) => child.fees !== null)
+				? parentStore[parentProtocol.id].reduce((acc, curr) => {
+						for (const key1 in curr.fees ?? {}) {
+							acc[key1] = (acc[key1] ?? 0) + curr.fees[key1]
+						}
+						return acc
+				  }, {} as IChildProtocol['revenue'])
+				: null
+
+			if (parentRevenue) {
+				parentRevenue.ps = getAnnualizedRatio(parentProtocol.mcap, parentRevenue.total30d)
+			}
+
+			if (parentTvl?.excludeParent) {
+				parentTvl.default.tvl -= parentTvl.excludeParent.tvl ?? 0
+				parentTvl.default.tvlPrevDay -= parentTvl.excludeParent.tvlPrevDay ?? 0
+				parentTvl.default.tvlPrevWeek -= parentTvl.excludeParent.tvlPrevWeek ?? 0
+				parentTvl.default.tvlPrevMonth -= parentTvl.excludeParent.tvlPrevMonth ?? 0
+			}
+
+			const parentTvlChange = parentTvl?.default?.tvl
+				? {
+						change1d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevDay),
+						change7d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevWeek),
+						change1m: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevMonth)
+				  }
+				: null
+
+			finalProtocols[parentProtocol.id] = {
+				name: metadataCache.protocolMetadata[parentProtocol.id].displayName,
+				slug: metadataCache.protocolMetadata[parentProtocol.id].name,
+				category: null,
+				childProtocols: parentStore[parentProtocol.id],
+				chains: Array.from(new Set(...parentStore[parentProtocol.id].map((p) => p.chains ?? []))),
+				tvl: parentTvl,
+				tvlChange: parentTvlChange,
+				strikeTvl: parentStore[parentProtocol.id].some((child) => child.strikeTvl),
+				mcap: parentProtocol.mcap ?? null,
+				mcaptvl:
+					parentProtocol.mcap && parentTvl?.default?.tvl
+						? +(parentProtocol.mcap / parentTvl.default.tvl).toFixed(2)
+						: null
+			}
+
+			if (parentFees) {
+				finalProtocols[parentProtocol.id].fees = parentFees
+			}
+			if (parentRevenue) {
+				finalProtocols[parentProtocol.id].revenue = parentRevenue
+			}
 		}
 	}
 

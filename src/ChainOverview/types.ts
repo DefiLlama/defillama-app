@@ -99,17 +99,34 @@ export interface ILiteParentProtocol {
 
 export type TVL_TYPES = typeof DEFI_SETTINGS[keyof typeof DEFI_SETTINGS] | 'default' | 'excludeParent'
 
-interface IChildProtocol {
+export interface IChildProtocol {
 	name: string
 	slug: string
 	category: string | null
 	tvl: Record<TVL_TYPES, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> | null
 	tvlChange: { change1d: number | null; change7d: number | null; change1m: number | null } | null
-	tvlFormatted: string | null
 	chains: Array<string>
 	mcap: number | null
 	mcaptvl: number | null
 	strikeTvl: boolean
+	fees?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		average1y: number | null
+		totalAllTime: number | null
+		pf: number | null
+	}
+	revenue?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		average1y: number | null
+		totalAllTime: number | null
+		ps: number | null
+	}
 }
 
 export interface IProtocol extends IChildProtocol {

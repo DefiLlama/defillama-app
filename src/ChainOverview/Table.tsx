@@ -21,7 +21,7 @@ import { Icon } from '~/components/Icon'
 import { CustomLink } from '~/components/Link'
 import { ICONS_CDN, removedCategories } from '~/constants'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedPercent } from '~/utils'
+import { formattedNum, formattedPercent } from '~/utils'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 
@@ -346,7 +346,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					row.original.strikeTvl || row.original.tvl.excludeParent ? (
 						<Tvl rowValues={row.original} />
 					) : (
-						row.original.tvlFormatted
+						`${row.original.tvl != null ? `$${formattedNum(row.original.tvl.default.tvl || 0)}` : null}`
 					),
 				sortUndefined: 'last',
 				meta: {
@@ -399,194 +399,154 @@ const columns: ColumnDef<IProtocol>[] = [
 			})
 		],
 		meta: { headerHelperText: 'Value of all coins held in smart contracts of the protocol' }
+	}),
+	columnHelper.group({
+		id: 'fees',
+		header: 'Fees & Revenue',
+		columns: [
+			columnHelper.accessor((row) => row.fees?.total24h, {
+				header: 'Fees 24h',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Fees paid by users in the last 24 hours'
+				},
+				size: 100
+			}),
+			columnHelper.accessor((row) => row.revenue?.total24h, {
+				header: 'Revenue 24h',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
+				},
+				size: 125
+			}),
+			columnHelper.accessor((row) => row.fees?.total7d, {
+				header: 'Fees 7d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Fees paid by users in the last 7 days'
+				},
+				size: 100
+			}),
+			columnHelper.accessor((row) => row.revenue?.total7d, {
+				header: 'Revenue 7d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Revenue earned by the protocol in the last 7 days'
+				},
+				size: 120
+			}),
+			columnHelper.accessor((row) => row.fees?.total30d, {
+				header: 'Fees 30d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Fees paid by users in the last 30 days'
+				},
+				size: 100
+			}),
+			columnHelper.accessor((row) => row.revenue?.total30d, {
+				header: 'Revenue 30d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Revenue earned by the protocol in the last 30 days'
+				},
+				size: 125
+			}),
+			columnHelper.accessor((row) => row.fees?.total1y, {
+				header: 'Fees 1Y',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Fees paid by users in the last 1 year'
+				},
+				size: 170
+			}),
+			columnHelper.accessor((row) => row.fees?.average1y, {
+				header: 'Monthly Avg 1Y Fees',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Average monthly fees paid by users in the last 12 months'
+				},
+				size: 170
+			}),
+			columnHelper.accessor((row) => row.revenue?.total1y, {
+				header: 'Revenue 1Y',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
+				},
+				size: 120
+			}),
+			columnHelper.accessor((row) => row.revenue?.average1y, {
+				header: 'Monthly Avg 1Y Rev',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
+				},
+				size: 180
+			}),
+			columnHelper.accessor((row) => row.fees?.totalAllTime, {
+				header: 'Cumulative Fees',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Total fees paid by users since the protocol was launched'
+				},
+				size: 150
+			}),
+			columnHelper.accessor((row) => row.fees?.pf, {
+				header: 'P/F',
+				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Market cap / annualized fees'
+				},
+				size: 180
+			}),
+			columnHelper.accessor((row) => row.revenue?.ps, {
+				header: 'P/S',
+				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Market cap / annualized revenue'
+				},
+				size: 180
+			})
+		],
+		meta: {
+			headerHelperText:
+				"Total fees paid by users when using the protocol\n\nRevenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers."
+		}
 	})
-	// columnHelper.group({
-	// 	id: 'fees',
-	// 	header: 'Fees & Revenue',
-	// 	columns: [
-	// 		columnHelper.accessor('fees_24h', {
-	// 			header: 'Fees 24h',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Fees paid by users in the last 24 hours'
-	// 			},
-	// 			size: 100
-	// 		}),
-	// 		columnHelper.accessor('revenue_24h', {
-	// 			header: 'Revenue 24h',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
-	// 			},
-	// 			size: 125
-	// 		}),
-	// 		columnHelper.accessor('fees_7d', {
-	// 			header: 'Fees 7d',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Fees paid by users in the last 7 days'
-	// 			},
-	// 			size: 100
-	// 		}),
-	// 		columnHelper.accessor('revenue_7d', {
-	// 			header: 'Revenue 7d',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Revenue earned by the protocol in the last 7 days'
-	// 			},
-	// 			size: 120
-	// 		}),
-	// 		columnHelper.accessor('fees_30d', {
-	// 			header: 'Fees 30d',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Fees paid by users in the last 30 days'
-	// 			},
-	// 			size: 100
-	// 		}),
-	// 		columnHelper.accessor('revenue_30d', {
-	// 			header: 'Revenue 30d',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Revenue earned by the protocol in the last 30 days'
-	// 			},
-	// 			size: 125
-	// 		}),
-	// 		columnHelper.accessor('fees_1y', {
-	// 			header: 'Monthly Avg 1Y Fees',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Average monthly fees paid by users in the last 12 months'
-	// 			},
-	// 			size: 170
-	// 		}),
-	// 		columnHelper.accessor('revenue_1y', {
-	// 			header: 'Revenue 1Y',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
-	// 			},
-	// 			size: 120
-	// 		}),
-	// 		// columnHelper.accessor('average_revenue_1y', {
-	// 		// 	header: 'Monthly Avg 1Y Rev',
-	// 		// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 		// 	sortUndefined: 'last',
-	// 		// 	meta: {
-	// 		// 		align: 'end'
-	// 		// 	},
-	// 		// 	size: 180
-	// 		// }),
-	// 		columnHelper.accessor('holdersRevenue30d', {
-	// 			header: 'Holders Revenue 30d',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText:
-	// 					'Subset of 30 days revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers.'
-	// 			},
-	// 			size: 180
-	// 		}),
-	// 		// columnHelper.accessor('userFees_24h', {
-	// 		// 	header: 'User Fees 24h',
-	// 		// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 		// 	sortUndefined: 'last',
-	// 		// 	meta: {
-	// 		// 		align: 'end',
-	// 		// 		headerHelperText: 'Fees paid by users in the last 24 hours'
-	// 		// 	},
-	// 		// 	size: 140
-	// 		// }),
-	// 		columnHelper.accessor('cumulativeFees', {
-	// 			header: 'Cumulative Fees',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Total fees paid by users since the protocol was launched'
-	// 			},
-	// 			size: 150
-	// 		}),
-	// 		columnHelper.accessor('holderRevenue_24h', {
-	// 			header: 'Holders Revenue 24h',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText:
-	// 					'Subset of 24 hour revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers.'
-	// 			},
-	// 			size: 180
-	// 		}),
-	// 		,
-	// 		// columnHelper.accessor('treasuryRevenue_24h', {
-	// 		// 	header: 'Treasury Revenue 24h',
-	// 		// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 		// 	sortUndefined: 'last',
-	// 		// 	meta: {
-	// 		// 		align: 'end'
-	// 		// 	},
-	// 		// 	size: 190
-	// 		// }),
-	// 		// columnHelper.accessor('supplySideRevenue_24h', {
-	// 		// 	header: 'Supply Side Revenue 24h',
-	// 		// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
-	// 		// 	sortUndefined: 'last',
-	// 		// 	meta: {
-	// 		// 		align: 'end'
-	// 		// 	},
-	// 		// 	size: 210
-	// 		// }),
-	// 		columnHelper.accessor('pf', {
-	// 			header: 'P/F',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? info.getValue() + 'x' : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Market cap / annualized fees'
-	// 			},
-	// 			size: 180
-	// 		}),
-	// 		columnHelper.accessor('ps', {
-	// 			header: 'P/S',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? info.getValue() + 'x' : null}</>,
-	// 			sortUndefined: 'last',
-	// 			meta: {
-	// 				align: 'end',
-	// 				headerHelperText: 'Market cap / annualized revenue'
-	// 			},
-	// 			size: 180
-	// 		})
-	// 	],
-	// 	meta: {
-	// 		headerHelperText:
-	// 			"Total fees paid by users when using the protocol\n\nRevenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers."
-	// 	}
-	// }),
 	// columnHelper.group({
 	// 	id: 'volume',
 	// 	header: 'Volume',
 	// 	columns: [
 	// 		columnHelper.accessor('volume_24h', {
 	// 			header: 'Spot Volume 24h',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+	// 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 	// 			sortUndefined: 'last',
 	// 			meta: {
 	// 				align: 'end',
@@ -596,7 +556,7 @@ const columns: ColumnDef<IProtocol>[] = [
 	// 		}),
 	// 		columnHelper.accessor('volume_7d', {
 	// 			header: 'Spot Volume 7d',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+	// 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 	// 			sortUndefined: 'last',
 	// 			meta: {
 	// 				align: 'end',
@@ -616,7 +576,7 @@ const columns: ColumnDef<IProtocol>[] = [
 	// 		}),
 	// 		columnHelper.accessor('cumulativeVolume', {
 	// 			header: 'Spot Cumulative Volume',
-	// 			cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+	// 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 	// 			sortUndefined: 'last',
 	// 			meta: {
 	// 				align: 'end',
@@ -714,7 +674,7 @@ const Tvl = ({ rowValues }) => {
 					color: rowValues.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 				}}
 			>
-				{rowValues.tvlFormatted}
+				{formattedNum(rowValues.tvl.default.tvl, true)}
 			</span>
 		</span>
 	)

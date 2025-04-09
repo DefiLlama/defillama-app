@@ -1,5 +1,6 @@
 import { removedCategories } from '~/constants'
 import type { ILiteProtocol, IProtocolMetadata } from './types'
+import { formattedNum } from '~/utils'
 
 export const toFilterProtocol = ({
 	protocolMetadata,
@@ -18,19 +19,6 @@ export const toFilterProtocol = ({
 		protocolData.category !== 'Bridge'
 		? true
 		: false
-}
-
-export const sumTvl = (childTvl, parentTvl) => {
-	const final = { ...parentTvl }
-	for (const tvlKey in childTvl) {
-		final[tvlKey] = {
-			tvl: (parentTvl?.[tvlKey]?.tvl ?? 0) + (childTvl?.[tvlKey]?.tvl ?? 0),
-			tvlPrevDay: (parentTvl?.[tvlKey]?.tvlPrevDay ?? 0) + (childTvl?.[tvlKey]?.tvlPrevDay ?? 0),
-			tvlPrevWeek: (parentTvl?.[tvlKey]?.tvlPrevWeek ?? 0) + (childTvl?.[tvlKey]?.tvlPrevWeek ?? 0),
-			tvlPrevMonth: (parentTvl?.[tvlKey]?.tvlPrevMonth ?? 0) + (childTvl?.[tvlKey]?.tvlPrevMonth ?? 0)
-		}
-	}
-	return final
 }
 
 export const toStrikeTvl = (protocol, toggledSettings) => {
