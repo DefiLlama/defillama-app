@@ -181,7 +181,8 @@ export const descriptions = {
 	'Volume Boosting':
 		'Protocols that artificially increase trading volume and liquidity for tokens, boosting market perception',
 	DOR: 'Decentralized Offered Rates - The DOR mechanism provides a decentralized benchmark rate for crypto assets',
-	'Collateral Management': 'Protocols that manage or leverage onchain collateral for financial applications'
+	'Collateral Management': 'Protocols that manage or leverage onchain collateral for financial applications',
+	'Meme': 'Tokens inspired by internet culture, trends, or public figures. Typically community-driven and speculative in nature.'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
