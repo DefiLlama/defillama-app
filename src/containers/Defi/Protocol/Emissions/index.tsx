@@ -43,7 +43,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const ystdPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
 	const percentChange = tokenPrice && ystdPrice ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
 	const normilizePriceChart = Object.fromEntries(
-		Object.entries(priceChart.data || {})
+		Object.entries(priceChart.data?.data || {})
 			.map(([name, chart]: [string, Array<[number, number]>]) =>
 				Array.isArray(chart)
 					? [name, Object.fromEntries(chart.map(([date, price]) => [Math.floor(date / 1e3), price]))]
