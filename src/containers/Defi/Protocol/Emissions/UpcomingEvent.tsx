@@ -67,16 +67,28 @@ export const UpcomingEvent = ({
 					<span className="flex flex-col px-2">
 						{timeLeft > 0 ? (
 							<span className="flex items-center gap-1">
-								<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
+								<span
+									className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center"
+									suppressHydrationWarning
+								>
 									{days}D
 								</span>
-								<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
+								<span
+									className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center"
+									suppressHydrationWarning
+								>
 									{hours}H
 								</span>
-								<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
+								<span
+									className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center"
+									suppressHydrationWarning
+								>
 									{minutes}M
 								</span>
-								<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
+								<span
+									className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center"
+									suppressHydrationWarning
+								>
 									{seconds}S
 								</span>
 							</span>

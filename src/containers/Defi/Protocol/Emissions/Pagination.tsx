@@ -96,13 +96,13 @@ const Pagination = ({ items, startIndex = 0 }) => {
 		}
 	}
 
-	const startI = currentPage * visibleItems
-	const endIndex = startI + visibleItems
-	const currentItems = items.slice(startI, endIndex)
-
 	const contentStyle = {
-		transform: isSwiping ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-		transition: isSwiping ? 'none' : 'transform 0.3s ease-out'
+		transform: isSwiping
+			? `translateX(calc(${swipeOffset}px - ${currentPage * 100}%))`
+			: `translateX(-${currentPage * 100}%)`,
+		transition: isSwiping ? 'none' : 'transform 300ms ease-out',
+		display: 'flex',
+		width: `${100 * Math.ceil(items.length / visibleItems)}%`
 	}
 
 	return (
@@ -118,9 +118,13 @@ const Pagination = ({ items, startIndex = 0 }) => {
 					<Icon name="arrow-left" height={24} width={24} />
 				</button>
 				<div className="flex items-start justify-start overflow-hidden flex-1">
-					<div style={contentStyle} className="flex w-full">
-						{currentItems.map((item, index) => (
-							<div key={startI + index} className="flex-1 p-4 text-center relative w-full">
+					<div style={contentStyle}>
+						{items.map((item, index) => (
+							<div
+								key={index}
+								className="w-[100%] p-4 text-center relative shrink-0"
+								style={{ flex: `0 0 ${100 / visibleItems}%` }}
+							>
 								{item}
 							</div>
 						))}
