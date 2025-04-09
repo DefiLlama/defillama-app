@@ -263,6 +263,7 @@ const columns: ColumnDef<IProtocol>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
+			return null
 			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const Chains = () => (
