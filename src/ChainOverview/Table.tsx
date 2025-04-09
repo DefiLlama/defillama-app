@@ -1,6 +1,6 @@
 import { RowFilter } from '~/components/Filters/RowFilter'
 import type { IProtocol } from './types'
-import { useMemo, useState, useSyncExternalStore } from 'react'
+import { Suspense, useMemo, useState, useSyncExternalStore } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { VirtualTable } from '~/components/Table/Table'
@@ -358,7 +358,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.tvlChange?.change1d, {
 				header: '1d Change',
-				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				cell: ({ getValue }) => <Suspense fallback={<></>}>{formattedPercent(getValue())}</Suspense>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -368,7 +368,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.tvlChange?.change7d, {
 				header: '7d Change',
-				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				cell: ({ getValue }) => <Suspense fallback={<></>}>{formattedPercent(getValue())}</Suspense>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -378,7 +378,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.tvlChange?.change1m, {
 				header: '1m Change',
-				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				cell: ({ getValue }) => <Suspense fallback={<></>}>{formattedPercent(getValue())}</Suspense>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -407,7 +407,9 @@ const columns: ColumnDef<IProtocol>[] = [
 		columns: [
 			columnHelper.accessor((row) => row.fees?.total24h, {
 				header: 'Fees 24h',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -417,7 +419,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.revenue?.total24h, {
 				header: 'Revenue 24h',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -427,7 +432,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.fees?.total7d, {
 				header: 'Fees 7d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -437,7 +445,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.revenue?.total7d, {
 				header: 'Revenue 7d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -447,7 +458,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.fees?.total30d, {
 				header: 'Fees 30d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -457,7 +471,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.revenue?.total30d, {
 				header: 'Revenue 30d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -467,7 +484,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.fees?.total1y, {
 				header: 'Fees 1Y',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -477,7 +497,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.fees?.average1y, {
 				header: 'Monthly Avg 1Y Fees',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -487,7 +510,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.revenue?.total1y, {
 				header: 'Revenue 1Y',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -497,7 +523,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.revenue?.average1y, {
 				header: 'Monthly Avg 1Y Rev',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -507,7 +536,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.fees?.totalAllTime, {
 				header: 'Cumulative Fees',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -547,7 +579,10 @@ const columns: ColumnDef<IProtocol>[] = [
 		columns: [
 			columnHelper.accessor((row) => row.dexs?.total24h, {
 				header: 'Spot Volume 24h',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -557,7 +592,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.dexs?.total7d, {
 				header: 'Spot Volume 7d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -577,7 +615,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			}),
 			columnHelper.accessor((row) => row.dexs?.totalAllTime, {
 				header: 'Spot Cumulative Volume',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (
+					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
+				),
+
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
