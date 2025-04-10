@@ -898,6 +898,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 		const chartInstance = createInstance()
 
 		chartInstance.setOption({
+			animation: false,
 			grid: {
 				left: 0,
 				containLabel: true,
@@ -1010,6 +1011,7 @@ export function StablecoinMcapChart({ series, color }: { series: Array<[string, 
 		const chartInstance = createInstance()
 
 		chartInstance.setOption({
+			animation: false,
 			grid: {
 				left: 0,
 				containLabel: true,
@@ -1121,6 +1123,7 @@ export function SmolBarChart({
 		const chartInstance = createInstance()
 
 		chartInstance.setOption({
+			animation: false,
 			grid: {
 				left: 0,
 				containLabel: true,

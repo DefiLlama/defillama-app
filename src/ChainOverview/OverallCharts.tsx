@@ -31,8 +31,9 @@ export const OverallCharts = (props: IChainOverviewData) => {
 							<div className="flex flex-col gap-1">
 								<h3 className="text-sm font-semibold">DEX Volumes</h3>
 								{props.dexs.chart?.length > 0 ? (
-									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`$${formattedNum(
-										props.dexs.chart[props.dexs.chart.length - 1][1]
+									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+										props.dexs.chart[props.dexs.chart.length - 1][1],
+										true
 									)} (24h)`}</p>
 								) : null}
 							</div>
@@ -49,8 +50,9 @@ export const OverallCharts = (props: IChainOverviewData) => {
 						<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 							<h3 className="text-sm font-semibold">ETF Inflows</h3>
 							{props.etfs.length > 0 ? (
-								<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`$${formattedNum(
-									props.etfs[props.etfs.length - 1][1]
+								<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+									props.etfs[props.etfs.length - 1][1],
+									true
 								)} (24h)`}</p>
 							) : null}
 							<Suspense fallback={<></>}>
@@ -63,8 +65,9 @@ export const OverallCharts = (props: IChainOverviewData) => {
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 					<h3 className="text-sm font-semibold">DEX Volumes</h3>
 					{props.dexs.chart?.length > 0 ? (
-						<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`$${formattedNum(
-							props.dexs.chart[props.dexs.chart.length - 1][1]
+						<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+							props.dexs.chart[props.dexs.chart.length - 1][1],
+							true
 						)} (24h)`}</p>
 					) : null}
 					<Suspense fallback={<></>}>
@@ -76,8 +79,9 @@ export const OverallCharts = (props: IChainOverviewData) => {
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 					<h3 className="text-sm font-semibold">Fees Generated</h3>
 					{props.chainFees.feesGenerated24h != null ? (
-						<p className="text-[#666] dark:text-[#919296]">{`$${formattedNum(
-							props.chainFees.feesGenerated24h ?? 0
+						<p className="text-[#666] dark:text-[#919296]">{`${formattedNum(
+							props.chainFees.feesGenerated24h ?? 0,
+							true
 						)} (24h)`}</p>
 					) : null}
 					<Suspense fallback={<></>}>
@@ -90,8 +94,9 @@ export const OverallCharts = (props: IChainOverviewData) => {
 					<h3 className="text-sm font-semibold">Stablecoins Market Cap</h3>
 					{props.stablecoins.mcap != null ? (
 						<>
-							<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`$${formattedNum(
-								props.stablecoins.mcap
+							<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+								props.stablecoins.mcap,
+								true
 							)}`}</p>
 							<p className="text-xs flex items-center gap-1">
 								<span

@@ -9,7 +9,7 @@ import { useFetchChainChartData } from './useFetchChainChartData'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
 import { formatRaise, formatRaisedAmount } from '~/containers/Defi/Protocol/utils'
-import { Fragment, Suspense, useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import { Switch } from '~/components/Switch'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 
@@ -204,7 +204,7 @@ export const OverviewStats = (props: IChainOverviewData) => {
 						</span>
 					</h2>
 					<Tooltip
-						content={`${valueChange24hUSD >= 0 ? '+' : ''}$${formattedNum(valueChange24hUSD)}`}
+						content={`${formattedNum(valueChange24hUSD, true)}`}
 						as="p"
 						className="flex items-center flex-nowrap gap-2 relative bottom-[2px]"
 					>
@@ -247,9 +247,7 @@ export const OverviewStats = (props: IChainOverviewData) => {
 												</th>
 												<td className="text-right">
 													<Tooltip
-														content={`${props.stablecoins.change7dUsd >= 0 ? '+' : ''}$${formattedNum(
-															props.stablecoins.change7dUsd
-														)}`}
+														content={`${formattedNum(props.stablecoins.change7dUsd, true)}`}
 														as="span"
 														className={`justify-end font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
 															+props.stablecoins.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'

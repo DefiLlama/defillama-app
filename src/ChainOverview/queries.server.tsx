@@ -39,7 +39,7 @@ import { getETFData } from '~/api/categories/protocols'
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
 	const metadata =
 		chain === 'All'
-			? { name: 'All', tvl: true, stablecoins: true, dexs: true, derivatives: true }
+			? { name: 'All', tvl: true, stablecoins: true, fees: true, dexs: true, derivatives: true }
 			: metadataCache.chainMetadata[slug(chain)]
 
 	if (!metadata) return null
@@ -145,7 +145,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 					console.log('ERROR fetching stablecoins data of chain', metadata.name, err)
 					return null
 				}),
-			!metadata?.inflows
+			!metadata.inflows
 				? Promise.resolve(null)
 				: getBridgeOverviewPageData(metadata.name)
 						.then((data) => {
@@ -156,19 +156,19 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 							}
 						})
 						.catch(() => null),
-			!metadata?.activeUsers
+			!metadata.activeUsers
 				? Promise.resolve(null)
 				: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${metadata.name}`)
 						.then((res) => res.json())
 						.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
-			!metadata?.activeUsers
+			!metadata.activeUsers
 				? Promise.resolve(null)
 				: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${metadata.name}`)
 						.then((res) => res.json())
 						.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
-			!metadata?.activeUsers
+			!metadata.activeUsers
 				? Promise.resolve(null)
 				: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${metadata.name}`)
 						.then((res) => res.json())
@@ -176,9 +176,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						.catch(() => null),
 			fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
 			chain === 'All' ? Promise.resolve(null) : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
-			metadata?.gecko_id
+			metadata.gecko_id
 				? fetchWithErrorLogging(
-						`https://pro-api.coingecko.com/api/v3/coins/${metadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+						`https://pro-api.coingecko.com/api/v3/coins/${metadata.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
 				  ).then((res) => res.json())
 				: Promise.resolve({}),
 			chain && chain !== 'All'
@@ -187,7 +187,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			fetchWithErrorLogging(CHAINS_ASSETS)
 				.then((res) => res.json())
 				.catch(() => ({})),
-			metadata?.fees
+			metadata.fees && chain !== 'All'
 				? getAdapterOverview({
 						type: 'fees',
 						chain: metadata.name,
@@ -199,7 +199,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						return null
 				  })
 				: Promise.resolve(null),
-			metadata?.chainFees
+			metadata.chainFees
 				? getAdapterSummary({
 						type: 'fees',
 						chain: metadata.name,
@@ -210,7 +210,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						return null
 				  })
 				: Promise.resolve(null),
-			metadata?.chainFees
+			metadata.chainFees
 				? getAdapterSummary({
 						type: 'fees',
 						chain: metadata.name,
@@ -222,7 +222,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						return null
 				  })
 				: Promise.resolve(null),
-			metadata?.dexs
+			metadata.dexs
 				? getAdapterOverview({
 						type: 'dexs',
 						chain: metadata.name,
@@ -233,7 +233,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						return null
 				  })
 				: Promise.resolve(null),
-			metadata?.derivatives
+			metadata.derivatives
 				? getAdapterOverview({
 						type: 'derivatives',
 						chain: metadata.name,
@@ -245,7 +245,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				  })
 				: Promise.resolve(null),
 			getCexVolume(),
-			metadata.fees || chain === 'All'
+			metadata.fees
 				? getAdapterOverview({
 						type: 'fees',
 						chain: metadata.name,
@@ -416,7 +416,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 		IAdapterOverview | null
 	] = await Promise.all([
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
-		metadata?.fees
+		metadata.fees
 			? getAdapterOverview({
 					type: 'fees',
 					chain: metadata.name,
@@ -427,7 +427,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					return null
 			  })
 			: Promise.resolve(null),
-		metadata?.fees
+		metadata.fees
 			? getAdapterOverview({
 					type: 'fees',
 					chain: metadata.name,
@@ -439,7 +439,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					return null
 			  })
 			: Promise.resolve(null),
-		metadata?.dexs
+		metadata.dexs
 			? getAdapterOverview({
 					type: 'dexs',
 					chain: metadata.name,
