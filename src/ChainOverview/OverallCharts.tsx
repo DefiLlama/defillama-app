@@ -18,7 +18,7 @@ const SmolBarChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m)
 export const OverallCharts = (props: IChainOverviewData) => {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1 isolate">
-			{props.chain === 'All' ? (
+			{props.chain === 'All' && props.globalmcap?.chart?.length > 0 && props.defimcap?.chart?.length > 0 ? (
 				<>
 					{props.globalmcap?.chart?.length > 0 ? (
 						<div className="col-span-1 min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">

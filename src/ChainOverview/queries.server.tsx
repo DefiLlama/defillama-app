@@ -284,6 +284,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				  )
 						.then((res) => res.json())
 						.then((data) => data?.market_cap_chart?.market_cap?.slice(0, 14) ?? null)
+						.catch(() => null)
 				: null,
 			chain === 'All'
 				? fetchWithErrorLogging(`https://www.coingecko.com/en/defi_market_cap_data?duration=14`)
@@ -292,6 +293,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 							const defi = data.find((x) => x.name === 'DeFi')
 							return defi?.data?.slice(0, 14) ?? null
 						})
+						.catch(() => null)
 				: null
 		])
 
