@@ -997,7 +997,17 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 	)
 }
 
-export function StablecoinMcapChart({ series, color }: { series: Array<[string, number]>; color: 'green' | 'red' }) {
+export function SmolLineChart({
+	series,
+	name,
+	color,
+	className
+}: {
+	series: Array<[string, number]>
+	name: string
+	color: 'green' | 'red'
+	className?: string
+}) {
 	const id = useMemo(() => crypto.randomUUID(), [])
 	const [isThemeDark] = useDarkModeManager()
 	const createInstance = useCallback(() => {
@@ -1066,14 +1076,14 @@ export function StablecoinMcapChart({ series, color }: { series: Array<[string, 
 				}
 			},
 			series: {
-				name: 'Mcap',
+				name,
 				type: 'line',
 				smooth: true,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
 				},
-				data: series.map((s) => [new Date(+s[0] * 1000), s[1]]),
+				data: series.map((s) => [new Date(s[0]), s[1]]),
 				symbol: 'none',
 				lineStyle: {
 					color: isThemeDark ? (color === 'green' ? '#3fb84f' : '#e24a42') : color === 'green' ? '#008a13' : '#e60d02'
@@ -1096,7 +1106,7 @@ export function StablecoinMcapChart({ series, color }: { series: Array<[string, 
 
 	return (
 		<div className="relative">
-			<div id={id} className="my-auto h-[112px]" />
+			<div id={id} className={className ?? 'my-auto h-[112px]'} />
 		</div>
 	)
 }

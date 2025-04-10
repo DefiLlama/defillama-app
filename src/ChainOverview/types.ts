@@ -75,7 +75,7 @@ export interface IChainOverviewData {
 		change7d: string | null
 		topToken: { symbol: string; mcap: number }
 		dominance: string | null
-		mcapChartData: Array<[string, number]> | null
+		mcapChartData: Array<[number, number]> | null
 	} | null
 	chainFees: {
 		total24h: number | null
@@ -102,6 +102,14 @@ export interface IChainOverviewData {
 	devMetrics: null
 	nfts: { total24h: number | null }
 	etfs: Array<[string, number]> | null
+	globalmcap: {
+		chart: Array<[number, number]> | null
+		change7d: string | null
+	} | null
+	defimcap: {
+		chart: Array<[number, number]> | null
+		change7d: string | null
+	} | null
 }
 
 export interface ILiteProtocol {

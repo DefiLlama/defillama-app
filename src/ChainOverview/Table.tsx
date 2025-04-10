@@ -495,7 +495,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					align: 'end',
 					headerHelperText: 'Fees paid by users in the last 1 year'
 				},
-				size: 170
+				size: 100
 			}),
 			columnHelper.accessor((row) => row.fees?.average1y, {
 				id: 'average_fees_1y',
@@ -550,7 +550,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					align: 'end',
 					headerHelperText: 'Market cap / annualized fees'
 				},
-				size: 180
+				size: 80
 			}),
 			columnHelper.accessor((row) => row.revenue?.ps, {
 				id: 'ps',
@@ -561,7 +561,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					align: 'end',
 					headerHelperText: 'Market cap / annualized revenue'
 				},
-				size: 180
+				size: 80
 			})
 		],
 		meta: {

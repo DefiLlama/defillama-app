@@ -62,45 +62,9 @@ const AssetSection = ({ name, iconUrl, flows, aum }: AssetSectionProps) => (
 export const getStaticProps = withPerformanceLogging('etfs', async () => {
 	const data = await getETFData()
 
-	const maxDate = Math.max(...data.props.flows.map((item) => new Date(item.day).getTime()))
-
-	const formattedDate = new Date(maxDate).toLocaleDateString('en-US', {
-		month: 'long',
-		day: 'numeric',
-		year: 'numeric'
-	})
-
-	const processedSnapshot = data.props.snapshot
-		.map((i) => ({
-			...i,
-			chain: [i.asset.charAt(0).toUpperCase() + i.asset.slice(1)]
-		}))
-		.sort((a, b) => b.flows - a.flows)
-
-	const processedFlows = data.props.flows.reduce((acc, { gecko_id, day, total_flow_usd }) => {
-		const timestamp = (new Date(day).getTime() / 86400 / 1000) * 86400
-		acc[timestamp] = {
-			date: timestamp,
-			...acc[timestamp],
-			[gecko_id.charAt(0).toUpperCase() + gecko_id.slice(1)]: total_flow_usd
-		}
-		return acc
-	}, {})
-
-	const totalsByAsset = processedSnapshot.reduce((acc: AssetTotals, item) => {
-		acc[item.asset.toLowerCase()] = {
-			aum: (acc[item.asset.toLowerCase()]?.aum || 0) + item.aum,
-			flows: (acc[item.asset.toLowerCase()]?.flows || 0) + item.flows
-		}
-		return acc
-	}, {})
-
 	return {
 		props: {
-			snapshot: processedSnapshot,
-			flows: processedFlows,
-			totalsByAsset,
-			lastUpdated: formattedDate
+			...data
 		},
 		revalidate: 5 * 60
 	}

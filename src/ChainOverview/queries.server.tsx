@@ -65,7 +65,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			perps,
 			cexVolume,
 			fees,
-			etfData
+			etfData,
+			globalMcapChartData,
+			defiMcapChartData
 		]: [
 			any,
 			Array<IProtocol>,
@@ -75,7 +77,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				change7d: string | null
 				topToken: { symbol: string; mcap: number }
 				dominance: string | null
-				mcapChartData: Array<[string, number]> | null
+				mcapChartData: Array<[number, number]> | null
 			} | null,
 			any,
 			any,
@@ -93,7 +95,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			IAdapterOverview | null,
 			number | null,
 			IAdapterOverview | null,
-			Array<[string, number]> | null
+			Array<[string, number]> | null,
+			Array<[number, number]> | null,
+			Array<[number, number]> | null
 		] = await Promise.all([
 			fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((r) => r.json()),
 			getProtocolsByChain({ chain, metadata }),
@@ -137,7 +141,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						dominance: dominance ?? null,
 						mcapChartData:
 							peggedAreaTotalData && peggedAreaTotalData.length >= 14
-								? peggedAreaTotalData.slice(-14).map((p) => [p.date, p.Mcap ?? 0] as [string, number])
+								? peggedAreaTotalData.slice(-14).map((p) => [+p.date * 1000, p.Mcap ?? 0] as [number, number])
 								: null
 					}
 				})
@@ -259,16 +263,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chain === 'All'
 				? getETFData()
 						.then((data) => {
-							const processedFlows = data.props.flows.reduce((acc, { gecko_id, day, total_flow_usd }) => {
-								const timestamp = (new Date(day).getTime() / 86400 / 1000) * 86400
-								acc[timestamp] = {
-									date: timestamp,
-									...acc[timestamp],
-									[gecko_id.charAt(0).toUpperCase() + gecko_id.slice(1)]: total_flow_usd
-								}
-								return acc
-							}, {})
-							const recentFlows = Object.entries(processedFlows)
+							const recentFlows = Object.entries(data.flows)
 								.slice(-14)
 								.map((item) => [
 									`${item[0]}000`,
@@ -282,6 +277,21 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 							return recentFlows
 						})
 						.catch(() => null)
+				: null,
+			chain === 'All'
+				? fetchWithErrorLogging(
+						`https://pro-api.coingecko.com/api/v3/global/market_cap_chart?days=14&x_cg_pro_api_key=${process.env.CG_KEY}`
+				  )
+						.then((res) => res.json())
+						.then((data) => data?.market_cap_chart?.market_cap?.slice(0, 14) ?? null)
+				: null,
+			chain === 'All'
+				? fetchWithErrorLogging(`https://www.coingecko.com/en/defi_market_cap_data?duration=14`)
+						.then((res) => res.json())
+						.then((data) => {
+							const defi = data.find((x) => x.name === 'DeFi')
+							return defi?.data?.slice(0, 14) ?? null
+						})
 				: null
 		])
 
@@ -399,7 +409,27 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				nftVolumesData && chain !== 'All' && nftVolumesData[metadata.name.toLowerCase()]
 					? { total24h: nftVolumesData[metadata.name.toLowerCase()] }
 					: null,
-			etfs: etfData
+			etfs: etfData,
+			globalmcap:
+				globalMcapChartData?.length > 0
+					? {
+							chart: globalMcapChartData,
+							change7d: getPercentChange(
+								globalMcapChartData[globalMcapChartData.length - 1][1],
+								globalMcapChartData[globalMcapChartData.length - 7][1]
+							)?.toFixed(2)
+					  }
+					: null,
+			defimcap:
+				defiMcapChartData?.length > 0
+					? {
+							chart: defiMcapChartData,
+							change7d: getPercentChange(
+								defiMcapChartData[defiMcapChartData.length - 1][1],
+								defiMcapChartData[defiMcapChartData.length - 7][1]
+							)?.toFixed(2)
+					  }
+					: null
 		}
 	} catch (error) {
 		const msg = `Error fetching ${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
