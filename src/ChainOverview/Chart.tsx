@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import uniq from 'lodash/uniq'
 import * as echarts from 'echarts/core'
 import { getUtcDateObject } from '~/components/ECharts/utils'
@@ -92,7 +92,7 @@ export function ChainChart({
 	showLegend = false,
 	...props
 }) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 	const { query: routerRoute, pathname } = useRouter()
 	const period = Number((routerRoute.period as string)?.replace('d', ''))
 	const { groupBy } = routerRoute
@@ -885,7 +885,7 @@ export function ChainChart({
 }
 
 export function FeesGeneratedChart({ series }: { series: Array<[string, number, string]> }) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -1008,7 +1008,7 @@ export function SmolLineChart({
 	color: 'green' | 'red'
 	className?: string
 }) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -1120,7 +1120,7 @@ export function SmolBarChart({
 	name: string
 	className?: string
 }) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

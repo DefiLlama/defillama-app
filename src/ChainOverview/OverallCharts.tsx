@@ -78,7 +78,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 							</Suspense>
 						</div>
 					) : null}
-					{props.dexs.chart.length > 0 ? (
+					{props.dexs?.chart?.length > 0 ? (
 						<div className="col-span-1 min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
 								<h3 className="text-sm font-semibold">DEX Volumes</h3>
@@ -113,7 +113,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 						</div>
 					) : null}
 				</>
-			) : props.dexs.chart.length > 0 ? (
+			) : props.dexs?.chart?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 					<h3 className="text-sm font-semibold">DEX Volumes</h3>
 					{props.dexs.chart?.length > 0 ? (
@@ -127,7 +127,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 					</Suspense>
 				</div>
 			) : null}
-			{props.chainFees.topProtocolsChart?.length > 0 ? (
+			{props.chainFees?.topProtocolsChart?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 					<h3 className="text-sm font-semibold">Fees Generated</h3>
 					{props.chainFees.feesGenerated24h != null ? (
@@ -141,7 +141,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 					</Suspense>
 				</div>
 			) : null}
-			{props.stablecoins.mcapChartData?.length > 0 ? (
+			{props.stablecoins?.mcapChartData?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 					<h3 className="text-sm font-semibold">Stablecoins Market Cap</h3>
 					{props.stablecoins.mcap != null ? (
