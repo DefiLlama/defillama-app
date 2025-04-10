@@ -69,7 +69,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 								</p>
 							</div>
 							<Suspense fallback={<></>}>
-								<SmolLineChart2
+								<SmolLineChart
 									series={props.defimcap.chart}
 									color={+props.defimcap.change7d >= 0 ? 'green' : 'red'}
 									name="Global Mcap"
