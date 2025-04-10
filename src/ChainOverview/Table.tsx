@@ -149,7 +149,7 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 	})
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md">
+		<div className="bg-[var(--cards-bg)] rounded-md isolate">
 			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 				<h3 className="text-lg font-semibold mr-auto">Protocol Rankings</h3>
 				<RowFilter

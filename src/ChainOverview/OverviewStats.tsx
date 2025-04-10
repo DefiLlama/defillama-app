@@ -752,7 +752,7 @@ export const OverviewStats = (props: IChainOverviewData) => {
 							<Tooltip
 								content="Daily"
 								as="button"
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--old-blue)]"
+								className="flex-shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
 								data-active={groupBy === 'daily' || !groupBy}
 								onClick={() => updateGroupBy('daily')}
 							>
@@ -761,7 +761,7 @@ export const OverviewStats = (props: IChainOverviewData) => {
 							<Tooltip
 								content="Weekly"
 								as="button"
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--old-blue)]"
+								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
 								data-active={groupBy === 'weekly'}
 								onClick={() => updateGroupBy('weekly')}
 							>
@@ -770,14 +770,14 @@ export const OverviewStats = (props: IChainOverviewData) => {
 							<Tooltip
 								content="Monthly"
 								as="button"
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--old-blue)]"
+								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
 								data-active={groupBy === 'monthly'}
 								onClick={() => updateGroupBy('monthly')}
 							>
 								M
 							</Tooltip>
 							<button
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--old-blue)]"
+								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
 								data-active={groupBy === 'cumulative'}
 								onClick={() => updateGroupBy('cumulative')}
 							>

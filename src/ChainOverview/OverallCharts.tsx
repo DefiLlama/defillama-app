@@ -17,7 +17,7 @@ const SmolBarChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m)
 
 export const OverallCharts = (props: IChainOverviewData) => {
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1">
+		<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1 isolate">
 			<div className="col-span-1 min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2">
 				<h3 className="text-sm font-semibold">Crypto Mcap</h3>
 			</div>
@@ -37,7 +37,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 					<SmolBarChart
 						series={props.dexs.chart}
 						name="DEX Volume"
-						className="my-auto h-[69px] md:h-[132px] xl:h-[69px]"
+						className="my-auto h-[53px] md:h-[132px] xl:h-[53px]"
 					/>
 				</Suspense>
 			</div>
