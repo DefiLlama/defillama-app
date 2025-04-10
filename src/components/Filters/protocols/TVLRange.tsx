@@ -5,7 +5,7 @@ export function TVLRange({
 	variant = 'primary',
 	nestedMenu
 }: {
-	variant?: 'primary' | 'secondary'
+	variant?: 'primary' | 'secondary' | 'third'
 	nestedMenu?: boolean
 }) {
 	const router = useRouter()

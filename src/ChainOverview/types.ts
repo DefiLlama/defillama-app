@@ -1,4 +1,5 @@
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { IAdapterOverview } from '~/DimensionAdapters/queries'
 
 export interface IChainMetadata {
 	tvl?: boolean
@@ -50,6 +51,57 @@ export interface IChainOverviewData {
 	chain: string
 	metadata: IChainMetadata
 	protocols: Array<IProtocol>
+	tvlChart: Array<[string, number]>
+	extraTvlChart: {
+		staking: Array<[string, number]>
+		borrowed: Array<[string, number]>
+		pool2: Array<[string, number]>
+		vesting: Array<[string, number]>
+		offers: Array<[string, number]>
+		doublecounted: Array<[string, number]>
+		liquidstaking: Array<[string, number]>
+		dcAndLsOverlap: Array<[string, number]>
+	}
+	chainTokenInfo: {
+		gecko_id: string | null
+		token_symbol: string | null
+		current_price: string | null
+		market_cap: string | null
+		fully_diluted_valuation: null
+	} | null
+	stablecoins: {
+		mcap: number | null
+		change7dUsd: number | null
+		change7d: string | null
+		topToken: { symbol: string; mcap: number }
+		dominance: string | null
+		mcapChartData: Array<[string, number]> | null
+	} | null
+	chainFees: {
+		total24h: number | null
+		feesGenerated24h: number | null
+		topProtocolsChart: Array<[string, number, string]> | null
+	}
+	chainRevenue: { total24h: number | null }
+	appRevenue: { total24h: number | null }
+	dexs: {
+		total24h: number | null
+		total7d: number | null
+		change_7dover7d: number | null
+		dexsDominance: number | null
+		chart: Array<[number, number]> | null
+	}
+	perps: { total24h: number | null; total7d: number | null; change_7dover7d: number | null }
+	users: { activeUsers: number | null; newUsers: number | null; transactions: number | null }
+	totalFundingAmount: number | null
+	inflows: { netInflows: number | null } | null
+	raises: Record<string, number> | null
+	treasury: { tvl: number | null; tokenBreakdowns: Record<string, number> | null } | null
+	chainRaises: Array<IRaises> | null
+	chainAssets: Record<string, { total: string; breakdown: Record<string, string> }> | null
+	devMetrics: null
+	nfts: { total24h: number | null }
+	etfs: Array<[string, number]> | null
 }
 
 export interface ILiteProtocol {
@@ -137,4 +189,20 @@ export interface IChildProtocol {
 
 export interface IProtocol extends IChildProtocol {
 	childProtocols?: Array<IChildProtocol>
+}
+
+export interface IRaises {
+	date: number
+	name: string
+	round: string
+	amount: number
+	chains: Array<string>
+	sector: string
+	category: string
+	categoryGroup: string
+	source: string
+	leadInvestors: []
+	otherInvestors: Array<string>
+	valuation: string | null
+	defillamaId?: string
 }

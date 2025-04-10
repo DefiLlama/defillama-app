@@ -187,11 +187,7 @@ const BridgeInfo = ({
 
 export default function BridgeContainer(props) {
 	return (
-		<Layout
-			title={`${props.displayName}: Bridge Volume - DefiLlama`}
-			// backgroundColor={transparentize(0.6, backgroundColor)}
-			style={{ gap: '48px' }}
-		>
+		<Layout title={`${props.displayName}: Bridge Volume - DefiLlama`} className="gap-12">
 			<SEO cardName={props.displayName} token={props.displayName} />
 
 			<BridgesSearch />

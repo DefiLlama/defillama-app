@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import uniq from 'lodash/uniq'
 import * as echarts from 'echarts/core'
-import { getUtcDateObject } from '../utils'
-import { useDefaults } from '../useDefaults'
+import { getUtcDateObject } from '~/components/ECharts/utils'
+import { useDefaults } from '~/components/ECharts/useDefaults'
 import { useRouter } from 'next/router'
 import { primaryColor } from '~/constants/colors'
-import { toK } from '~/utils'
+import { formattedNum, toK } from '~/utils'
 import { cumulativeSum, groupByTimeFrame } from './utils'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 const groupableCharts = [
 	'feesChart',
@@ -18,7 +19,7 @@ const groupableCharts = [
 ]
 
 const colors = {
-	tvl: '#335cd7',
+	tvl: '#1F67D2',
 	volume: '#19ab17',
 	chainFees: '#f150f4',
 	chainRevenue: '#b4b625',
@@ -75,7 +76,7 @@ const initGetColor = () => {
 	return (isCompare) => (isCompare ? colorsArray[colorOffset++] : null)
 }
 
-export default function AreaChart({
+export function ChainChart({
 	title,
 	tooltipSort = true,
 	height = '360px',
@@ -879,6 +880,327 @@ export default function AreaChart({
 	return (
 		<div style={{ position: 'relative', minHeight: height }} {...props}>
 			<div id={id} style={{ minHeight: height }} className="my-auto" />
+		</div>
+	)
+}
+
+export function FeesGeneratedChart({ series }: { series: Array<[string, number, string]> }) {
+	const id = useMemo(() => crypto.randomUUID(), [])
+
+	const createInstance = useCallback(() => {
+		const instance = echarts.getInstanceByDom(document.getElementById(id))
+
+		return instance || echarts.init(document.getElementById(id))
+	}, [id])
+
+	useEffect(() => {
+		// create instance
+		const chartInstance = createInstance()
+
+		chartInstance.setOption({
+			grid: {
+				left: 0,
+				containLabel: true,
+				bottom: 0,
+				top: 0,
+				right: 0
+			},
+			xAxis: [
+				{
+					type: 'category',
+					nameTextStyle: {
+						fontFamily: 'sans-serif',
+						fontSize: 14,
+						fontWeight: 400
+					},
+					splitLine: false,
+					data: series.map((s) => s[0]),
+					axisLine: {
+						show: false
+					},
+					axisTick: {
+						show: false
+					},
+					axisLabel: {
+						interval: 0,
+						formatter: function (value, index) {
+							return `{${index}|}`
+						},
+						rich: Object.fromEntries(
+							series.map((s, index) => [
+								index,
+								{
+									height: 18,
+									width: 18,
+									backgroundColor: {
+										image: `${s[2]}?w=48&h=48`
+									}
+								}
+							])
+						)
+					}
+				}
+			],
+			yAxis: [
+				{
+					type: 'value',
+					splitLine: false,
+					axisLabel: false
+				}
+			],
+			tooltip: {
+				trigger: 'axis',
+				confine: false,
+				formatter: function (params) {
+					return params.reduce((prev, curr) => {
+						return (
+							(prev +=
+								'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
+								`<img src="${curr.value[2]}?w=48&h=48" style="border-radius:1000px;flex-shrink:0;height:16px;width:16px;" />` +
+								curr.name +
+								'&nbsp;&nbsp;' +
+								'$' +
+								formattedNum(curr.value[1])) + '</li>'
+						)
+					}, '')
+				}
+			},
+			series: {
+				name: '24h Fees',
+				type: 'bar',
+				emphasis: {
+					focus: 'series',
+					shadowBlur: 10
+				},
+				data: series,
+				color: '#1F67D2'
+			}
+		})
+
+		function resize() {
+			chartInstance.resize()
+		}
+
+		window.addEventListener('resize', resize)
+
+		return () => {
+			window.removeEventListener('resize', resize)
+			chartInstance.dispose()
+		}
+	}, [createInstance, series])
+
+	return (
+		<div className="relative">
+			<div id={id} className="my-auto h-[132px]" />
+		</div>
+	)
+}
+
+export function StablecoinMcapChart({ series, color }: { series: Array<[string, number]>; color: 'green' | 'red' }) {
+	const id = useMemo(() => crypto.randomUUID(), [])
+	const [isThemeDark] = useDarkModeManager()
+	const createInstance = useCallback(() => {
+		const instance = echarts.getInstanceByDom(document.getElementById(id))
+
+		return instance || echarts.init(document.getElementById(id))
+	}, [id])
+
+	useEffect(() => {
+		// create instance
+		const chartInstance = createInstance()
+
+		chartInstance.setOption({
+			grid: {
+				left: 0,
+				containLabel: true,
+				bottom: 0,
+				top: 0,
+				right: 0
+			},
+			xAxis: [
+				{
+					type: 'time',
+					nameTextStyle: {
+						fontFamily: 'sans-serif',
+						fontSize: 14,
+						fontWeight: 400
+					},
+					splitLine: false,
+					axisLabel: false,
+					boundaryGap: false
+				}
+			],
+			yAxis: [
+				{
+					type: 'value',
+					splitLine: false,
+					axisLabel: false,
+					boundaryGap: false,
+					scale: true
+				}
+			],
+			tooltip: {
+				trigger: 'axis',
+				confine: false,
+				formatter: function (params) {
+					let chartdate = new Date(params[0].value[0]).toLocaleDateString('en-US', {
+						year: 'numeric',
+						month: 'short',
+						day: 'numeric'
+					})
+
+					return (
+						chartdate +
+						params.reduce((prev, curr) => {
+							return (
+								(prev +=
+									'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
+									curr.marker +
+									'$' +
+									formattedNum(curr.value[1])) + '</li>'
+							)
+						}, '')
+					)
+				}
+			},
+			series: {
+				name: 'Mcap',
+				type: 'line',
+				smooth: true,
+				emphasis: {
+					focus: 'series',
+					shadowBlur: 10
+				},
+				data: series.map((s) => [new Date(+s[0] * 1000), s[1]]),
+				symbol: 'none',
+				lineStyle: {
+					color: isThemeDark ? (color === 'green' ? '#3fb84f' : '#e24a42') : color === 'green' ? '#008a13' : '#e60d02'
+				},
+				color: isThemeDark ? (color === 'green' ? '#3fb84f' : '#e24a42') : color === 'green' ? '#008a13' : '#e60d02'
+			}
+		})
+
+		function resize() {
+			chartInstance.resize()
+		}
+
+		window.addEventListener('resize', resize)
+
+		return () => {
+			window.removeEventListener('resize', resize)
+			chartInstance.dispose()
+		}
+	}, [createInstance, series])
+
+	return (
+		<div className="relative">
+			<div id={id} className="my-auto h-[112px]" />
+		</div>
+	)
+}
+
+export function SmolBarChart({
+	series,
+	name,
+	className
+}: {
+	series: Array<[string, number]>
+	name: string
+	className?: string
+}) {
+	const id = useMemo(() => crypto.randomUUID(), [])
+
+	const createInstance = useCallback(() => {
+		const instance = echarts.getInstanceByDom(document.getElementById(id))
+
+		return instance || echarts.init(document.getElementById(id))
+	}, [id])
+
+	useEffect(() => {
+		// create instance
+		const chartInstance = createInstance()
+
+		chartInstance.setOption({
+			grid: {
+				left: 0,
+				containLabel: true,
+				bottom: 0,
+				top: 0,
+				right: 0
+			},
+			xAxis: [
+				{
+					type: 'category',
+					axisLine: {
+						show: false
+					},
+					axisTick: {
+						show: false
+					},
+					splitLine: false,
+					axisLabel: false
+				}
+			],
+			yAxis: [
+				{
+					type: 'value',
+					splitLine: false,
+					axisLabel: false,
+					boundaryGap: false
+				}
+			],
+			tooltip: {
+				trigger: 'axis',
+				confine: false,
+				formatter: function (params) {
+					let chartdate = new Date(+params[0].value[0]).toLocaleDateString('en-US', {
+						year: 'numeric',
+						month: 'short',
+						day: 'numeric'
+					})
+
+					return (
+						chartdate +
+						params.reduce((prev, curr) => {
+							return (
+								(prev +=
+									'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
+									curr.marker +
+									'$' +
+									formattedNum(curr.value[1])) + '</li>'
+							)
+						}, '')
+					)
+				}
+			},
+			series: {
+				name,
+				type: 'bar',
+				emphasis: {
+					focus: 'series',
+					shadowBlur: 10
+				},
+				data: series,
+				symbol: 'none',
+				color: '#1F67D2'
+			}
+		})
+
+		function resize() {
+			chartInstance.resize()
+		}
+
+		window.addEventListener('resize', resize)
+
+		return () => {
+			window.removeEventListener('resize', resize)
+			chartInstance.dispose()
+		}
+	}, [createInstance, series, name])
+
+	return (
+		<div className="relative flex-1">
+			<div id={id} className={className ?? 'my-auto h-[132px]'} />
 		</div>
 	)
 }

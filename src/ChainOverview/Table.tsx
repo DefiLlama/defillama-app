@@ -1,6 +1,6 @@
 import { RowFilter } from '~/components/Filters/RowFilter'
 import type { IProtocol } from './types'
-import { Suspense, useMemo, useState, useSyncExternalStore } from 'react'
+import { useMemo, useState, useSyncExternalStore } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { VirtualTable } from '~/components/Table/Table'
@@ -25,7 +25,8 @@ import { formattedNum, formattedPercent } from '~/utils'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 
-const optionsKey = 'protocolsTableColumns'
+const optionsKey = 'ptc'
+const filterStatekey = 'ptcfs'
 
 export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol> }) => {
 	const columnsInStorage = useSyncExternalStore(
@@ -34,7 +35,11 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 		() => defaultColumns
 	)
 
-	const [filterState, setFilterState] = useState(null)
+	const filterState = useSyncExternalStore(
+		subscribe,
+		() => localStorage.getItem(filterStatekey) ?? null,
+		() => null
+	)
 
 	const clearAllOptions = () => {
 		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
@@ -63,11 +68,12 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 
 		if (columnsInStorage === JSON.stringify(newOptions)) {
 			toggleAllOptions()
-			setFilterState(null)
+			window.localStorage.setItem(filterStatekey, null)
+			window.dispatchEvent(new Event('storage'))
 		} else {
 			window.localStorage.setItem(optionsKey, JSON.stringify(newOptions))
+			window.localStorage.setItem(filterStatekey, newState)
 			window.dispatchEvent(new Event('storage'))
-			setFilterState(newState)
 		}
 	}
 
@@ -143,9 +149,9 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 	})
 
 	return (
-		<>
-			<div className="flex items-center justify-between flex-wrap gap-2">
-				<h3 className="text-lg font-medium mr-auto">Protocol Rankings</h3>
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
+				<h3 className="text-lg font-semibold mr-auto">Protocol Rankings</h3>
 				<RowFilter
 					setValue={setFilter('category')}
 					selectedValue={filterState}
@@ -167,13 +173,13 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 					labelType="smol"
 					triggerProps={{
 						className:
-							'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'
+							'flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 					}}
 				/>
-				<TVLRange />
+				<TVLRange variant="third" />
 			</div>
 			<VirtualTable instance={instance} />
-		</>
+		</div>
 	)
 }
 
@@ -202,8 +208,13 @@ const columnOptions = [
 	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
 	{
-		name: 'Monthly Avg 1Y Fees',
+		name: 'Fees 1Y',
 		key: 'fees_1y',
+		category: TABLE_CATEGORIES.FEES
+	},
+	{
+		name: 'Monthly Avg 1Y Fees',
+		key: 'average_fees_1y',
 		category: TABLE_CATEGORIES.FEES
 	},
 	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
@@ -300,7 +311,7 @@ const columns: ColumnDef<IProtocol>[] = [
 
 					<span className="flex-shrink-0">{index + 1}</span>
 
-					<TokenLogo logo={`${ICONS_CDN}/protocols/${row.original.slug}`} data-lgonly />
+					<TokenLogo logo={`${ICONS_CDN}/protocols/${row.original.slug}?w=48&h=48`} data-lgonly />
 
 					<span className="flex flex-col -my-2">
 						<CustomLink
@@ -310,7 +321,7 @@ const columns: ColumnDef<IProtocol>[] = [
 							{value}
 						</CustomLink>
 
-						<Tooltip content={<Chains />} className="text-[0.7rem]">
+						<Tooltip content={<Chains />} className="text-[0.7rem] text-[var(--text-disabled)]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
@@ -341,6 +352,7 @@ const columns: ColumnDef<IProtocol>[] = [
 		header: 'TVL',
 		columns: [
 			columnHelper.accessor((row) => row.tvl?.default?.tvl, {
+				id: 'tvl',
 				header: 'TVL',
 				cell: ({ row }) =>
 					row.original.strikeTvl || row.original.tvl?.excludeParent ? (
@@ -356,8 +368,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 120
 			}),
 			columnHelper.accessor((row) => row.tvlChange?.change1d, {
+				id: 'change_1d',
 				header: '1d Change',
-				cell: ({ getValue }) => <Suspense fallback={<></>}>{formattedPercent(getValue())}</Suspense>,
+				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -366,8 +379,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 110
 			}),
 			columnHelper.accessor((row) => row.tvlChange?.change7d, {
+				id: 'change_7d',
 				header: '7d Change',
-				cell: ({ getValue }) => <Suspense fallback={<></>}>{formattedPercent(getValue())}</Suspense>,
+				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -376,8 +390,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 110
 			}),
 			columnHelper.accessor((row) => row.tvlChange?.change1m, {
+				id: 'change_1m',
 				header: '1m Change',
-				cell: ({ getValue }) => <Suspense fallback={<></>}>{formattedPercent(getValue())}</Suspense>,
+				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -386,6 +401,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 110
 			}),
 			columnHelper.accessor('mcaptvl', {
+				id: 'mcaptvl',
 				header: 'Mcap/TVL',
 				cell: (info) => {
 					return <>{info.getValue() ?? null}</>
@@ -405,10 +421,9 @@ const columns: ColumnDef<IProtocol>[] = [
 		header: 'Fees & Revenue',
 		columns: [
 			columnHelper.accessor((row) => row.fees?.total24h, {
+				id: 'fees_24h',
 				header: 'Fees 24h',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -417,11 +432,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 100
 			}),
 			columnHelper.accessor((row) => row.revenue?.total24h, {
+				id: 'revenue_24h',
 				header: 'Revenue 24h',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -430,11 +443,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 125
 			}),
 			columnHelper.accessor((row) => row.fees?.total7d, {
+				id: 'fees_7d',
 				header: 'Fees 7d',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -443,11 +454,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 100
 			}),
 			columnHelper.accessor((row) => row.revenue?.total7d, {
+				id: 'revenue_7d',
 				header: 'Revenue 7d',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -456,11 +465,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 120
 			}),
 			columnHelper.accessor((row) => row.fees?.total30d, {
+				id: 'fees_30d',
 				header: 'Fees 30d',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -469,11 +476,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 100
 			}),
 			columnHelper.accessor((row) => row.revenue?.total30d, {
+				id: 'revenue_30d',
 				header: 'Revenue 30d',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -482,11 +487,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 125
 			}),
 			columnHelper.accessor((row) => row.fees?.total1y, {
+				id: 'fees_1y',
 				header: 'Fees 1Y',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -495,11 +498,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 170
 			}),
 			columnHelper.accessor((row) => row.fees?.average1y, {
+				id: 'average_fees_1y',
 				header: 'Monthly Avg 1Y Fees',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -508,11 +509,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 170
 			}),
 			columnHelper.accessor((row) => row.revenue?.total1y, {
+				id: 'revenue_1y',
 				header: 'Revenue 1Y',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -521,11 +520,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 120
 			}),
 			columnHelper.accessor((row) => row.revenue?.average1y, {
+				id: 'average_revenue_1y',
 				header: 'Monthly Avg 1Y Rev',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -534,11 +531,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 180
 			}),
 			columnHelper.accessor((row) => row.fees?.totalAllTime, {
+				id: 'cumulativeFees',
 				header: 'Cumulative Fees',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -547,6 +542,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 150
 			}),
 			columnHelper.accessor((row) => row.fees?.pf, {
+				id: 'pf',
 				header: 'P/F',
 				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
 				sortUndefined: 'last',
@@ -557,6 +553,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 180
 			}),
 			columnHelper.accessor((row) => row.revenue?.ps, {
+				id: 'ps',
 				header: 'P/S',
 				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
 				sortUndefined: 'last',
@@ -577,11 +574,9 @@ const columns: ColumnDef<IProtocol>[] = [
 		header: 'Volume',
 		columns: [
 			columnHelper.accessor((row) => row.dexs?.total24h, {
+				id: 'volume_24h',
 				header: 'Spot Volume 24h',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -590,11 +585,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 150
 			}),
 			columnHelper.accessor((row) => row.dexs?.total7d, {
+				id: 'volume_7d',
 				header: 'Spot Volume 7d',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -603,6 +596,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 150
 			}),
 			columnHelper.accessor((row) => row.dexs?.change_7dover7d, {
+				id: 'volumeChange_7d',
 				header: 'Spot Change 7d',
 				cell: ({ getValue }) => <>{getValue() != 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
@@ -613,11 +607,9 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 140
 			}),
 			columnHelper.accessor((row) => row.dexs?.totalAllTime, {
+				id: 'cumulativeVolume',
 				header: 'Spot Cumulative Volume',
-				cell: (info) => (
-					<Suspense fallback={<></>}>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</Suspense>
-				),
-
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -647,6 +639,7 @@ const defaultColumns = JSON.stringify({
 	revenue_30d: false,
 	holdersRevenue30d: false,
 	fees_1y: false,
+	average_fees_1y: false,
 	revenue_1y: false,
 	average_revenue_1y: false,
 	userFees_24h: false,
@@ -710,11 +703,7 @@ const Tvl = ({ rowValues }) => {
 					text={"There's some internal doublecounting that is excluded from parent TVL, so sum won't match"}
 				/>
 			) : null}
-			<span
-				style={{
-					color: rowValues.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-				}}
-			>
+			<span className={rowValues.strikeTvl ? 'text-[var(--text-disabled)]' : ''}>
 				{formattedNum(rowValues.tvl.default.tvl, true)}
 			</span>
 		</span>

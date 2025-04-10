@@ -61,6 +61,12 @@
 
 		--primary1-hover: rgba(68, 94, 208, 0.2);
 		--form-control-border: rgba(0, 0, 0, 0.1);
+
+		--app-bg: #f7f7f7;
+		--cards-bg: #fffffe;
+		--old-blue: #1f67d2;
+		--pct-green: #008a13;
+		--pct-red: #e60d02;
 	}
 
 	* {
@@ -112,10 +118,14 @@
 
 		--primary1-hover: rgba(33, 114, 229, 0.2);
 		--form-control-border: rgba(255, 255, 255, 0.1);
+		--app-bg: #090b0c;
+		--cards-bg: #131516;
+		--pct-green: #3fb84f;
+		--pct-red: #e24a42;
 	}
 
 	body {
-		@apply text-black bg-white dark:text-white dark:bg-[#17181c] text-sm;
+		@apply text-black dark:text-white bg-[var(--app-bg)] text-sm;
 	}
 
 	#__next,

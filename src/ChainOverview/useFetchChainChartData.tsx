@@ -22,7 +22,9 @@ export const useFetchChainChartData = ({
 	denomination,
 	selectedChain,
 	volumeData,
-	feesAndRevenueData,
+	feesData,
+	revenueData,
+	appRevenueData,
 	stablecoinsData,
 	inflowsData,
 	userData,
@@ -48,18 +50,18 @@ export const useFetchChainChartData = ({
 	)
 
 	const { data: volumeChart, isLoading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
-		volumeData?.totalVolume24h && router.query.volume === 'true' ? selectedChain : null
+		volumeData?.total24h && router.query.volume === 'true' ? selectedChain : null
 	)
 
 	const { data: feesAndRevenueChart, isLoading: fetchingFeesAndRevenueChartDataByChain } =
 		useGetFeesAndRevenueChartDataByChain(
-			feesAndRevenueData?.totalFees24h && (router.query.chainFees === 'true' || router.query.chainRevenue === 'true')
+			feesData?.total24h && (router.query.chainFees === 'true' || router.query.chainRevenue === 'true')
 				? selectedChain
 				: null
 		)
 
 	const { data: appRevenueChart, isLoading: fetchingAppRevenue } = useGetAppRevenueChartDataByChain(
-		feesAndRevenueData?.totalAppRevenue24h && router.query.appRevenue === 'true' ? selectedChain : null
+		appRevenueData?.total24h && router.query.appRevenue === 'true' ? selectedChain : null
 	)
 
 	const { data: stablecoinsChartData, isLoading: fetchingStablecoinsChartDataByChain } =
@@ -72,15 +74,15 @@ export const useFetchChainChartData = ({
 	)
 
 	const { data: usersData, isLoading: fetchingUsersChartData } = useFetchProtocolUsers(
-		userData.activeUsers && router.query.addresses === 'true' ? 'chain$' + selectedChain : null
+		userData?.activeUsers && router.query.addresses === 'true' ? 'chain$' + selectedChain : null
 	)
 
 	const { data: txsData, isLoading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
-		userData.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
+		userData?.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
 	)
 
 	const { data: perpsChart, isLoading: fetchingPerpsChartData } = useGetItemOverviewByChain(
-		perpsData?.totalVolume24h && router.query.perps === 'true' ? selectedChain : null,
+		perpsData?.total24h && router.query.perps === 'true' ? selectedChain : null,
 		'derivatives'
 	)
 
@@ -101,7 +103,7 @@ export const useFetchChainChartData = ({
 		fetchingChainAssetsChart
 
 	const globalChart = useMemo(() => {
-		const globalChart = chart.map((data) => {
+		const globalChart = (chart ?? []).map((data) => {
 			let sum = data[1]
 			Object.entries(extraTvlCharts).forEach(([prop, propCharts]: [string, Array<[number, number]>]) => {
 				const stakedData = propCharts.find((x) => x[0] === data[0])
@@ -252,12 +254,13 @@ export const useFetchChainChartData = ({
 
 	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)
 	const tvlPrevDay = getPrevTvlFromChart(globalChart, 1)
-	const valueChangeUSD = getPercentChange(totalValueUSD, tvlPrevDay)
+	const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
 
 	return {
 		isFetchingChartData,
 		chartDatasets,
 		totalValueUSD,
-		valueChangeUSD
+		valueChange24hUSD: totalValueUSD - tvlPrevDay,
+		change24h
 	}
 }

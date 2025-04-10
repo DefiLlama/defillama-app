@@ -18,7 +18,7 @@ import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { TokenLogo } from '~/components/TokenLogo'
 import { EmbedChart } from '~/components/EmbedChart'
 import { primaryColor } from '~/constants/colors'
-import { useFetchChainChartData } from './useFetchChainChartData'
+import { useFetchChainChartData } from '../../ChainOverview/useFetchChainChartData'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatRaise, formatRaisedAmount } from '~/containers/Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
@@ -26,10 +26,8 @@ import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'
 import { chainsNamesMap } from './constants'
 import { Tooltip } from '~/components/Tooltip'
-import metadata from '~/utils/metadata'
-const { protocolMetadata } = metadata
 
-const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
+const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false
 })
 
@@ -69,7 +67,6 @@ export function ChainContainer({
 	chainAssets,
 	nftVolumesData
 }) {
-	console.log({ protocolMetadata })
 	const {
 		fullProtocolsList,
 		parentProtocols,
@@ -129,8 +126,10 @@ export function ChainContainer({
 	const { totalValueUSD, valueChangeUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
 		denomination,
 		selectedChain,
-		volumeData,
-		feesAndRevenueData,
+		volumeData: { total24h: volumeData.totalVolume24h },
+		feesData: { total24h: feesAndRevenueData.totalFees24h },
+		revenueData: { total24h: feesAndRevenueData.totalRevenue24h },
+		appRevenueData: { total24h: feesAndRevenueData.totalAppRevenue24h },
 		stablecoinsData,
 		inflowsData,
 		userData,
@@ -140,7 +139,7 @@ export function ChainContainer({
 		extraTvlsEnabled,
 		devMetricsData,
 		chainGeckoId,
-		perpsData,
+		perpsData: { total24h: perpsData.totalVolume24h },
 		chainAssets
 	})
 

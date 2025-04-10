@@ -23,7 +23,7 @@ import { useVerified } from './hooks/useVerified'
 import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import Subscribe from './Subscribe'
 
-const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart/index'), {
+const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false
 })
 

@@ -2,6 +2,7 @@ import * as React from 'react'
 import Head from 'next/head'
 import { SEO } from '~/components/SEO'
 import Nav from '~/components/Nav'
+import { useIsClient } from '~/hooks'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
 
@@ -10,10 +11,18 @@ interface ILayoutProps {
 	children: React.ReactNode
 	defaultSEO?: boolean
 	backgroundColor?: string
-	style?: React.CSSProperties
+	className?: string
 }
 
-export default function Layout({ title, children, defaultSEO = false, backgroundColor, ...props }: ILayoutProps) {
+export default function Layout({
+	title,
+	children,
+	defaultSEO = false,
+	backgroundColor,
+	className,
+	...props
+}: ILayoutProps) {
+	const isClient = useIsClient()
 	return (
 		<>
 			<Head>
@@ -26,13 +35,15 @@ export default function Layout({ title, children, defaultSEO = false, background
 			<Nav />
 			<main
 				{...props}
-				className="flex flex-col gap-7 w-full text-[var(--text1)] isolate p-4 lg:p-7 lg:pl-[248px] min-h-screen"
+				className={`flex flex-col gap-1 w-full text-[var(--text1)] isolate p-1 lg:p-7 lg:pl-[248px] min-h-screen ${className}`}
 			>
 				{children}
 			</main>
-			<React.Suspense>
-				<Toaster />
-			</React.Suspense>
+			{isClient ? (
+				<React.Suspense>
+					<Toaster />
+				</React.Suspense>
+			) : null}
 		</>
 	)
 }

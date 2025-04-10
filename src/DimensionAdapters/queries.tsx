@@ -1,4 +1,4 @@
-import { BASE_API, DIMENISIONS_OVERVIEW_API } from '~/constants'
+import { BASE_API, DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
 import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
 import { slug } from '~/utils'
 import { ADAPTOR_TYPES } from './constants'
@@ -62,6 +62,45 @@ export interface IAdapterOverview {
 	}>
 }
 
+export interface IAdapterSummary {
+	name: string
+	defillamaId: string
+	disabled: boolean
+	displayName: string
+	module: string
+	category?: string | null
+	logo: string | null
+	chains: Array<string>
+	methodologyURL: string
+	methodology: Record<string, string>
+	gecko_id: string | null
+	forkedFrom?: Array<string> | null
+	twitter?: string | null
+	audits?: string | null
+	description: string | null
+	address?: string | null
+	url: string
+	audit_links?: Array<string> | null
+	versionKey: string | null
+	cmcId: string | null
+	id: string
+	github: Array<string>
+	governanceID: null
+	treasury: null
+	parentProtocol?: string | null
+	previousNames?: string | null
+	latestFetchIsOk: boolean
+	slug: string
+	protocolType?: string | null
+	total24h: number | null
+	total48hto24h: number | null
+	total7d: number | null
+	totalAllTime: number | null
+	totalDataChartBreakdown: Array<[number, Record<string, Record<string, number>>]>
+	totalDataChart: Array<[number, number]>
+	linkedProtocols?: string[]
+}
+
 export async function getAdapterOverview({
 	type,
 	chain,
@@ -80,12 +119,38 @@ export async function getAdapterOverview({
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 	if (dataType) {
-		url += `?dataType=${dataType}`
+		url += `&dataType=${dataType}`
 	}
 
 	const data = await fetchWithErrorLogging(url).then(handleFetchResponse)
 
 	return data as IAdapterOverview
+}
+
+export async function getAdapterSummary({
+	type,
+	chain,
+	excludeTotalDataChart,
+	excludeTotalDataChartBreakdown,
+	dataType
+}: {
+	type: `${ADAPTOR_TYPES}`
+	chain: string
+	excludeTotalDataChart: boolean
+	excludeTotalDataChartBreakdown: boolean
+	dataType?: string
+}) {
+	let url = `${DIMENISIONS_SUMMARY_BASE_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type}${
+		chain && chain !== 'All' ? `/${slug(chain)}` : ''
+	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+
+	if (dataType) {
+		url += `&dataType=${dataType}`
+	}
+
+	const data = await fetchWithErrorLogging(url).then(handleFetchResponse)
+
+	return data as IAdapterSummary
 }
 
 export async function getCexVolume() {

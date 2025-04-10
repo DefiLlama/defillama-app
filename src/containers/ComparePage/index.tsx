@@ -23,7 +23,7 @@ import { transparentize } from 'polished'
 
 const fetch = fetchWithErrorLogging
 
-const ChainChart = dynamic(() => import('~/components/ECharts/ChainChart'), {
+const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false
 }) as React.FC<any>
 

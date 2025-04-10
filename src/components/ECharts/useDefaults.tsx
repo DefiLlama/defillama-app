@@ -270,8 +270,8 @@ export function useDefaults({
 			},
 			splitLine: {
 				lineStyle: {
-					color: '#a1a1aa',
-					opacity: 0.1
+					color: isThemeDark ? '#ffffff' : '#000000',
+					opacity: isThemeDark ? 0.02 : 0.03
 				}
 			}
 		}
@@ -299,8 +299,8 @@ export function useDefaults({
 			},
 			splitLine: {
 				lineStyle: {
-					color: '#a1a1aa',
-					opacity: 0.1
+					color: isThemeDark ? '#ffffff' : '#000000',
+					opacity: isThemeDark ? 0.02 : 0.03
 				}
 			}
 		}
