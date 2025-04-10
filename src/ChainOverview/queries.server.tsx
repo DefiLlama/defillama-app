@@ -245,7 +245,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				  })
 				: Promise.resolve(null),
 			getCexVolume(),
-			chain === 'All'
+			metadata.fees || chain === 'All'
 				? getAdapterOverview({
 						type: 'fees',
 						chain: metadata.name,

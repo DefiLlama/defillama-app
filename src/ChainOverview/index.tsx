@@ -12,11 +12,9 @@ export function ChainOverview(props: IChainOverviewData) {
 			defaultSEO
 		>
 			<OverviewStats {...props} />
-			{props.metadata.name === 'All' ? (
-				<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
-					<OverallCharts {...props} />{' '}
-				</Suspense>
-			) : null}
+			<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
+				<OverallCharts {...props} />{' '}
+			</Suspense>
 			<ChainProtocolsTable protocols={props.protocols} />
 		</Layout>
 	)
