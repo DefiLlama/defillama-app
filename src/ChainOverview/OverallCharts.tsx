@@ -21,7 +21,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 			{props.chain === 'All' && props.globalmcap?.chart?.length > 0 && props.defimcap?.chart?.length > 0 ? (
 				<>
 					{props.globalmcap?.chart?.length > 0 ? (
-						<div className="col-span-1 min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
+						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
 								<h3 className="text-sm font-semibold">Crypto Mcap</h3>
 								<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
@@ -50,7 +50,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 						</div>
 					) : null}
 					{props.defimcap?.chart?.length > 0 ? (
-						<div className="col-span-1 min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
+						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
 								<h3 className="text-sm font-semibold">DeFi Mcap</h3>
 								<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
@@ -69,7 +69,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 								</p>
 							</div>
 							<Suspense fallback={<></>}>
-								<SmolLineChart
+								<SmolLineChart2
 									series={props.defimcap.chart}
 									color={+props.defimcap.change7d >= 0 ? 'green' : 'red'}
 									name="Global Mcap"
@@ -79,9 +79,9 @@ export const OverallCharts = (props: IChainOverviewData) => {
 						</div>
 					) : null}
 					{props.dexs?.chart?.length > 0 ? (
-						<div className="col-span-1 min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
+						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
-								<h3 className="text-sm font-semibold">DEX Volumes</h3>
+								<h3 className="text-sm font-semibold">DEXs Volume</h3>
 								{props.dexs.chart?.length > 0 ? (
 									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 										props.dexs.chart[props.dexs.chart.length - 1][1],
@@ -92,7 +92,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 							<Suspense fallback={<></>}>
 								<SmolBarChart
 									series={props.dexs.chart}
-									name="DEX Volume"
+									name="DEXs Volume"
 									className={'my-auto h-[53px] md:h-[132px] xl:h-[53px]'}
 								/>
 							</Suspense>
@@ -115,7 +115,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 				</>
 			) : props.dexs?.chart?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
-					<h3 className="text-sm font-semibold">DEX Volumes</h3>
+					<h3 className="text-sm font-semibold">DEXs Volume</h3>
 					{props.dexs.chart?.length > 0 ? (
 						<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 							props.dexs.chart[props.dexs.chart.length - 1][1],
@@ -123,7 +123,7 @@ export const OverallCharts = (props: IChainOverviewData) => {
 						)} (24h)`}</p>
 					) : null}
 					<Suspense fallback={<></>}>
-						<SmolBarChart series={props.dexs.chart} name="DEX Volume" />
+						<SmolBarChart series={props.dexs.chart} name="DEXs Volume" />
 					</Suspense>
 				</div>
 			) : null}

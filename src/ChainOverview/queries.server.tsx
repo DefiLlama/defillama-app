@@ -95,7 +95,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			IAdapterOverview | null,
 			number | null,
 			IAdapterOverview | null,
-			Array<[string, number]> | null,
+			Array<[number, number]> | null,
 			Array<[number, number]> | null,
 			Array<[number, number]> | null
 		] = await Promise.all([
@@ -266,7 +266,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 							const recentFlows = Object.entries(data.flows)
 								.slice(-14)
 								.map((item) => [
-									`${item[0]}000`,
+									+item[0] * 1000,
 									Object.entries(item[1]).reduce((acc, curr) => {
 										if (curr[0] !== 'date') {
 											acc += curr[1]

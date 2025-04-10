@@ -21,7 +21,7 @@ import { Icon } from '~/components/Icon'
 import { CustomLink } from '~/components/Link'
 import { ICONS_CDN, removedCategories } from '~/constants'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, formattedPercent } from '~/utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 
@@ -279,7 +279,10 @@ const columns: ColumnDef<IProtocol>[] = [
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
-						<span key={`/protocol/${row.original.slug}` + chain}>{chain}</span>
+						<span key={`/protocol/${row.original.slug}` + chain} className="flex items-center gap-1">
+							<TokenLogo logo={chainIconUrl(chain)} size={12} />
+							<span>{chain}</span>
+						</span>
 					))}
 				</span>
 			)
@@ -341,7 +344,11 @@ const columns: ColumnDef<IProtocol>[] = [
 		accessorKey: 'category',
 		enableSorting: false,
 		cell: ({ getValue }) =>
-			getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue() as string | null}</CustomLink> : '',
+			getValue() ? (
+				<CustomLink href={`/protocols/${slug(getValue() as string)}`}>{getValue() as string}</CustomLink>
+			) : (
+				''
+			),
 		size: 140,
 		meta: {
 			align: 'end'

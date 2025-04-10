@@ -101,7 +101,7 @@ export interface IChainOverviewData {
 	chainAssets: Record<string, { total: string; breakdown: Record<string, string> }> | null
 	devMetrics: null
 	nfts: { total24h: number | null }
-	etfs: Array<[string, number]> | null
+	etfs: Array<[number, number]> | null
 	globalmcap: {
 		chart: Array<[number, number]> | null
 		change7d: string | null
