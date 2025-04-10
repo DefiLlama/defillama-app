@@ -257,7 +257,7 @@ export const useFetchChainChartData = ({
 	const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
 
 	return {
-		isFetchingChartData,
+		isFetchingChartData: Object.values(router.query ?? {}).some((q) => q === 'true') && isFetchingChartData,
 		chartDatasets,
 		totalValueUSD,
 		valueChange24hUSD: totalValueUSD - tvlPrevDay,

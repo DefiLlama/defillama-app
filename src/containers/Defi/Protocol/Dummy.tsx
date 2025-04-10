@@ -17,7 +17,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 	const router = useRouter()
 
 	return (
-		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
+		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} className="gap-9">
 			<SEO cardName={data.name} token={data.name} logo={tokenIconUrl(data.name)} />
 
 			<ProtocolsChainsSearch />

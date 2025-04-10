@@ -28,7 +28,8 @@ import { chainsNamesMap } from './constants'
 import { Tooltip } from '~/components/Tooltip'
 
 const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
-	ssr: false
+	ssr: false,
+	loading: () => <div className="flex items-center justify-center m-auto h-[360px]"></div>
 })
 
 const Game: any = dynamic(() => import('~/game'))
@@ -123,7 +124,7 @@ export function ChainContainer({
 
 	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
-	const { totalValueUSD, valueChangeUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
+	const { totalValueUSD, change24h, chartDatasets, isFetchingChartData } = useFetchChainChartData({
 		denomination,
 		selectedChain,
 		volumeData: { total24h: volumeData.totalVolume24h },
@@ -277,7 +278,7 @@ export function ChainContainer({
 	}
 
 	const tvl = formattedNum(totalValueUSD, true)
-	const percentChange = valueChangeUSD?.toFixed(2)
+	const percentChange = change24h?.toFixed(2)
 
 	const updateGroupBy = (newGroupBy) => {
 		router.push(

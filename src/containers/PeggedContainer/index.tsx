@@ -58,7 +58,7 @@ export default function PeggedContainer(props) {
 		<Layout
 			title={`${name}: Circulating and stats - DefiLlama`}
 			backgroundColor={transparentize(0.6, props.backgroundColor)}
-			style={{ gap: '48px' }}
+			className="gap-12"
 		>
 			<SEO
 				stablePage={true}

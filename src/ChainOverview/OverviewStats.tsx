@@ -9,12 +9,13 @@ import { useFetchChainChartData } from './useFetchChainChartData'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
 import { formatRaise, formatRaisedAmount } from '~/containers/Defi/Protocol/utils'
-import { Fragment, useMemo } from 'react'
+import { Fragment, Suspense, useMemo } from 'react'
 import { Switch } from '~/components/Switch'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 
 const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
-	ssr: false
+	ssr: false,
+	loading: () => <div className="flex items-center justify-center m-auto h-[360px]"></div>
 })
 
 export const OverviewStats = (props: IChainOverviewData) => {
@@ -704,7 +705,7 @@ export const OverviewStats = (props: IChainOverviewData) => {
 					</tbody>
 				</table>
 			</div>
-			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-7 col-span-1 min-h-[502px]">
+			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-7 col-span-1">
 				<div className="flex flex-wrap items-center gap-2 [&:nth-child(2)]:*:ml-auto p-3">
 					<div className="flex items-center flex-wrap gap-2">
 						{chartOptions
@@ -789,7 +790,7 @@ export const OverviewStats = (props: IChainOverviewData) => {
 
 				{isFetchingChartData ? (
 					<div className="flex items-center justify-center m-auto h-[360px]">
-						<p>Loading...</p>{' '}
+						<p>Loading...</p>
 					</div>
 				) : (
 					<ChainChart datasets={chartDatasets} title="" denomination={denomination} isThemeDark={darkMode} />

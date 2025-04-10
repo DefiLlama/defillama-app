@@ -44,8 +44,6 @@ export default function Tokens({ searchData }) {
 		router.push(item.route, undefined, { shallow: true })
 	}
 
-	const layoutStyles = isLoading ? { overflow: 'hidden' } : {}
-
 	const filteredProtocols = useMemo(() => {
 		return (
 			protocols
@@ -72,7 +70,7 @@ export default function Tokens({ searchData }) {
 	}
 
 	return (
-		<Layout title="Token Usage - DefiLlama" defaultSEO style={layoutStyles}>
+		<Layout title="Token Usage - DefiLlama" defaultSEO className={isLoading ? 'overflow-hidden' : ''}>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 			<DesktopSearch data={searchData} placeholder="Search tokens..." data-alwaysdisplay onItemClick={onItemClick} />
 			<>

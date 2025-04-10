@@ -141,7 +141,7 @@ const ActiveInvestors = ({ data }) => {
 	}, [investorName, instance])
 
 	return (
-		<Layout title={`Investors - DefiLlama`} defaultSEO style={{ gap: '16px' }}>
+		<Layout title={`Investors - DefiLlama`} defaultSEO className="gap-4">
 			<Announcement notCancellable>
 				<span>Looking for investors?</span>{' '}
 				<a href="/pitch" className="text-[var(--blue)] underline font-medium" target="_blank" rel="noopener noreferrer">

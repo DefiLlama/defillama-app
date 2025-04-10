@@ -398,7 +398,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 	}
 
 	return (
-		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '16px' }}>
+		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} className="gap-4">
 			<SEO
 				cardName={name}
 				token={name}

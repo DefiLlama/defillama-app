@@ -55,7 +55,7 @@ export default function ChainBridged({ chainData, chain, inflows, tokenInflowNam
 
 	return (
 		<>
-			<Layout title={`${chainName}: Bridged TVL - DefiLlama`} style={{ gap: '24px' }}>
+			<Layout title={`${chainName}: Bridged TVL - DefiLlama`} className="gap-6">
 				<ProtocolsChainsSearch hideFilters />
 				<SEO cardName={chainName} token={chain} />
 				<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">

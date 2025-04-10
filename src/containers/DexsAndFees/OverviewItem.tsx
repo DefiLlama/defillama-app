@@ -85,7 +85,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 	])
 
 	return (
-		<Layout title={props.title} style={{ gap: '36px' }}>
+		<Layout title={props.title} className="gap-9">
 			<SEO
 				cardName={props.protocolSummary.displayName}
 				tvl={formattedNum(props.protocolSummary.total24h)?.toString()}
