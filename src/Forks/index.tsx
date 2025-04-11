@@ -7,6 +7,7 @@ import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import type { IChartProps } from '~/components/ECharts/types'
+import Layout from '~/layout'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -19,7 +20,7 @@ const chartColors = {
 	TVL: '#4f8fea'
 }
 
-export const ForkContainer = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
+export const ForksByProtocol = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
 	const [extraTvlsEnabled] = useDefiManager()
 
 	const { protocolsData, parentForks, finalChartData, totalVolume, volumeChangeUSD } = useMemo(() => {
@@ -55,36 +56,38 @@ export const ForkContainer = ({ chartData, tokenLinks, token, filteredProtocols,
 	const percentChange = volumeChangeUSD?.toFixed(2)
 
 	return (
-		<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
-			{tokenLinks?.length > 0 && (
-				<nav className="flex">
-					<RowLinksWithDropdown links={tokenLinks} activeLink={token} alternativeOthersText="Others" />
-				</nav>
-			)}
+		<Layout title={`Forks - DefiLlama`} defaultSEO>
+			<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
+				{tokenLinks?.length > 0 && (
+					<nav className="flex">
+						<RowLinksWithDropdown links={tokenLinks} activeLink={token} alternativeOthersText="Others" />
+					</nav>
+				)}
 
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col gap-8 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
-						<span className="font-jetbrains font-semibold text-2xl">{tvl}</span>
-					</p>
+				<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+					<div className="flex flex-col gap-8 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+						<p className="flex flex-col gap-1 text-base">
+							<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+							<span className="font-jetbrains font-semibold text-2xl">{tvl}</span>
+						</p>
 
-					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
-						<span className="font-jetbrains font-semibold text-2xl">{percentChange || 0}%</span>
-					</p>
+						<p className="flex flex-col gap-1 text-base">
+							<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
+							<span className="font-jetbrains font-semibold text-2xl">{percentChange || 0}%</span>
+						</p>
 
-					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">{topToken.name} Dominance</span>
-						<span className="font-jetbrains font-semibold text-2xl">{dominance}%</span>
-					</p>
+						<p className="flex flex-col gap-1 text-base">
+							<span className="text-[#545757] dark:text-[#cccccc]">{topToken.name} Dominance</span>
+							<span className="font-jetbrains font-semibold text-2xl">{dominance}%</span>
+						</p>
+					</div>
+					<div className="col-span-1 py-4 min-h-[392px]">
+						<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
+					</div>
 				</div>
-				<div className="col-span-1 py-4 min-h-[392px]">
-					<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
-				</div>
+
+				<ProtocolsTableWithSearch data={protocolsData as any} />
 			</div>
-
-			<ProtocolsTableWithSearch data={protocolsData as any} />
-		</div>
+		</Layout>
 	)
 }

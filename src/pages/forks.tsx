@@ -1,11 +1,10 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { maxAgeForNext } from '~/api'
-import { getForkPageData } from '~/api/categories/protocols'
+import { getForkPageData } from '~/Forks/queries'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -22,17 +21,16 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-// @ts-ignore TODO: getForkPageData shouldn't be concerned with 'notFound' param, should be just about data
 export const getStaticProps = withPerformanceLogging('forks', async () => {
 	const data = await getForkPageData()
 
 	return {
-		...data,
+		props: { ...data },
 		revalidate: maxAgeForNext([22])
 	}
 })
 
-const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens, forkColors }) => {
+export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens, forkColors }) {
 	const forkedTokensData = useCalcStakePool2Tvl(parentTokens)
 
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
@@ -79,46 +77,47 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 	}
 
 	return (
-		<>
-			<ProtocolsChainsSearch />
-
-			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap">
-				Total Value Locked All Forks <CSVDownloadButton onClick={downloadCSV} />
-			</h1>
-
-			<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 bg-[var(--bg6)] min-h-[424px] shadow rounded-xl p-4">
-				<PieChart chartData={tokenTvls} stackColors={forkColors} />
-				<AreaChart
-					chartData={chainsWithExtraTvlsAndDominanceByDay}
-					stacks={tokens}
-					stackColors={forkColors}
-					customLegendName="Fork"
-					customLegendOptions={tokens}
-					hideDefaultLegend
-					valueSymbol="%"
-					title=""
-					expandTo100Percent={true}
-				/>
+		<Layout title={`Forks - DefiLlama`} defaultSEO>
+			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
+			<div className="flex flex-col gap-1 xl:flex-row">
+				<div className="isolate relative rounded-md p-3 bg-[var(--cards-bg)] flex-1 h-[360px] flex flex-col">
+					<CSVDownloadButton onClick={downloadCSV} className="ml-auto absolute right-3 top-3 z-10" />
+					<React.Suspense fallback={<></>}>
+						<PieChart chartData={tokenTvls} stackColors={forkColors} />
+					</React.Suspense>
+				</div>
+				<div className="rounded-md p-3 bg-[var(--cards-bg)] flex-1 h-[360px]">
+					<React.Suspense fallback={<></>}>
+						<AreaChart
+							chartData={chainsWithExtraTvlsAndDominanceByDay}
+							stacks={tokens}
+							stackColors={forkColors}
+							hideDefaultLegend
+							valueSymbol="%"
+							title=""
+							expandTo100Percent={true}
+							chartOptions={chartOptions}
+						/>
+					</React.Suspense>
+				</div>
 			</div>
-
-			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
-				<RowLinksWithDropdown links={tokenLinks} activeLink="All" />
-			</nav>
-
 			<TableWithSearch
 				data={tokensList}
 				columns={forksColumn}
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
+				header={'Protocol Rankings'}
 			/>
-		</>
-	)
-}
-
-export default function Forks(props) {
-	return (
-		<Layout title={`Forks - DefiLlama`} defaultSEO>
-			<PageView {...props} />
 		</Layout>
 	)
 }
+
+const chartOptions = {
+	grid: {
+		top: 10,
+		bottom: 60,
+		left: 0,
+		right: 0
+	},
+	dataZoom: [{}, { bottom: 32, right: 6 }]
+} as any
