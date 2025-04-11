@@ -1,10 +1,6 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import { RecentlyListedProtocolsTable } from '~/components/Table/Defi/Protocols'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { TVLRange } from '~/components/Filters/protocols/TVLRange'
-import { HideForkedProtocols } from '~/components/Filters/protocols/HideForkedProtocols'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { download, getPercentChange } from '~/utils'
 import { ButtonLight } from '~/components/ButtonStyled'
@@ -13,7 +9,7 @@ import { airdropsEligibilityCheck } from './airdrops'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { RecentlyListedProtocolsTable } from './Table'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -37,7 +33,6 @@ interface IRecentProtocolProps {
 
 export function RecentProtocols({
 	title,
-	name,
 	header,
 	protocols,
 	chainList,
@@ -166,62 +161,6 @@ export function RecentProtocols({
 		)
 	}
 
-	const selectChain = (newChain) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: newChain
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAllChains = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: 'None'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggleAllChains = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: 'All'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const selectOnlyOneChain = (option: string) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: option
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
 	const {
 		data: eligibleAirdrops,
 		mutate: checkEligibleAirdrops,
@@ -234,32 +173,30 @@ export function RecentProtocols({
 
 	return (
 		<Layout title={title} defaultSEO>
-			<ProtocolsChainsSearch />
-
 			{claimableAirdrops ? (
 				<span className="flex items-center gap-2 flex-wrap">
 					{claimableAirdrops.map((protocol) => (
-						<ButtonLight
-							as="a"
+						<a
 							href={protocol.page}
 							target="_blank"
 							rel="noreferrer noopener"
 							key={`claim-${protocol.name}`}
 							color="#008000"
-							style={{ '--btn2-text': '#00ab00' }}
+							className="flex items-center gap-1 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-sm text-[#007c00] bg-[#e4efe2]"
 						>
 							<span>{protocol.name}</span>
 							<Icon name="arrow-up-right" height={14} width={14} />
-						</ButtonLight>
+						</a>
 					))}
-					<ButtonLight
+					<button
 						onClick={() => {
 							resetEligibilityCheck()
 							airdropCheckerDialog.toggle()
 						}}
+						className="flex items-center gap-1 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-sm text-[#007c00] bg-[#e4efe2]"
 					>
 						Check airdrops for address
-					</ButtonLight>
+					</button>
 
 					<Ariakit.Dialog store={airdropCheckerDialog} className="dialog">
 						<button
@@ -372,7 +309,6 @@ export function RecentProtocols({
 										className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
 									/>
 								</label>
-
 								<button
 									name="submit-btn"
 									disabled={fetchingEligibleAirdrops}
@@ -391,36 +327,18 @@ export function RecentProtocols({
 				</span>
 			) : null}
 
-			<div className="flex items-center flex-wrap gap-2 -mb-5">
-				<h1 className="text-2xl font-medium mr-auto">{header}</h1>
-
-				<SelectWithCombobox
-					label="Chains"
-					allValues={chainList}
-					clearAll={clearAllChains}
-					toggleAll={toggleAllChains}
-					selectOnlyOne={selectOnlyOneChain}
-					selectedValues={selectedChains}
-					setSelectedValues={selectChain}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'
-					}}
-				/>
-				<TVLRange />
+			<div className="bg-[var(--cards-bg)] rounded-md p-3 flex items-center gap-4 justify-between">
+				<h1 className="text-xl font-semibold mr-auto">{header}</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
-
-				{forkedList && <HideForkedProtocols />}
 			</div>
 
-			{protocolsData.length > 0 ? (
-				<RecentlyListedProtocolsTable data={protocolsData} />
-			) : (
-				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
-					Couldn't find any protocols for these filters
-				</p>
-			)}
+			<RecentlyListedProtocolsTable
+				data={protocolsData}
+				queries={queries}
+				selectedChains={selectedChains}
+				chainList={chainList}
+				forkedList={forkedList}
+			/>
 		</Layout>
 	)
 }

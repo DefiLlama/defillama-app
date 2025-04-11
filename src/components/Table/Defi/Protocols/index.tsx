@@ -18,15 +18,12 @@ import {
 	columnSizes,
 	protocolAddlColumns,
 	protocolsColumns,
-	recentlyListedProtocolsColumns,
 	topGainersAndLosersColumns,
 	protocolsByTokenColumns,
-	airdropsColumns,
 	protocolsByChainColumns
 } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
-import { useRouter } from 'next/router'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
 import { TagGroup } from '~/components/TagGroup'
 import { Icon } from '~/components/Icon'
@@ -398,77 +395,6 @@ export function ProtocolsTableWithSearch({
 	return (
 		<>
 			<div className="relative w-full sm:max-w-[280px] ml-auto -mb-4">
-				<Icon
-					name="search"
-					height={16}
-					width={16}
-					className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-				/>
-				<input
-					value={projectName}
-					onChange={(e) => {
-						setProjectName(e.target.value)
-					}}
-					placeholder="Search protocols..."
-					className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
-				/>
-			</div>
-			<VirtualTable instance={instance} />
-		</>
-	)
-}
-
-export function RecentlyListedProtocolsTable({ data }: { data: Array<IProtocolRow> }) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'listedAt' }])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
-	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-
-	const router = useRouter()
-
-	const instance = useReactTable({
-		data,
-		columns: router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns,
-		state: {
-			sorting,
-			expanded,
-			columnSizing,
-			columnFilters
-		},
-		onExpandedChange: setExpanded,
-		getSubRows: (row: IProtocolRow) => row.subRows,
-		onSortingChange: setSorting,
-		onColumnSizingChange: setColumnSizing,
-		onColumnFiltersChange: setColumnFilters,
-		getFilteredRowModel: getFilteredRowModel(),
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
-	})
-
-	React.useEffect(() => {
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
-
-		instance.setColumnSizing(columnSizes[cSize])
-	}, [windowSize, instance])
-	const [projectName, setProjectName] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			columns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
-
-	return (
-		<>
-			<div className="relative w-full sm:max-w-[280px] ml-auto -mb-6">
 				<Icon
 					name="search"
 					height={16}

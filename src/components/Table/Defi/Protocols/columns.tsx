@@ -705,28 +705,6 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	}
 ]
 
-export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
-	...protocolsColumns.slice(0, 3),
-	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
-]
-
-export const airdropsColumns: ColumnDef<IProtocolRow>[] = [
-	...protocolsColumns.slice(0, 3),
-	{
-		header: 'Total Money Raised',
-		accessorKey: 'totalRaised',
-		cell: ({ getValue }) => <>{getValue() ? `$${toK(getValue())}` : ''}</>,
-		sortUndefined: 'last',
-		size: 180,
-		meta: {
-			align: 'end' as const
-		}
-	},
-	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
-]
-
 export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Name',

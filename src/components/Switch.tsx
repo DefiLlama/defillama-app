@@ -2,15 +2,17 @@ export const Switch = ({
 	label,
 	checked,
 	onChange,
-	value
+	value,
+	className
 }: {
 	label: string
 	checked: boolean
 	onChange: () => void
 	value: string
+	className?: string
 }) => {
 	return (
-		<label className="text-sm cursor-pointer flex items-center gap-1 flex-nowrap">
+		<label className={`text-sm cursor-pointer flex items-center gap-1 flex-nowrap ${className}`}>
 			<input
 				type="checkbox"
 				value={value}
