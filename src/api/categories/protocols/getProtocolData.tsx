@@ -412,7 +412,8 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						if (p.category) {
 							return (
 								p.category.toLowerCase() === protocolData.category.toLowerCase() &&
-								p.name.toLowerCase() !== protocolData.name?.toLowerCase()
+								p.name.toLowerCase() !== protocolData.name?.toLowerCase() &&
+								p.chains.some((c) => protocolData.chains.includes(c))
 							)
 						} else return false
 					})
