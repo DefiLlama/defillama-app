@@ -79,7 +79,7 @@ export function ChainsByCategory({
 			chainsUniqueFiltered: chainsUnique.filter((chain) => (dataByChain.find((c) => c.name === chain) ? true : false))
 		}
 	}, [chains, chainAssets, extraTvlsEnabled, stackedDataset, tvlTypes, minTvl, maxTvl, chainsUnique])
-	console.log({ dataByChain })
+
 	const downloadCsv = async () => {
 		window.alert('Data download might take up to 1 minute, click OK to proceed')
 		const rows = [['Timestamp', 'Date', ...chainsUniqueFiltered]]
@@ -129,7 +129,16 @@ export function ChainsByCategory({
 				</div>
 			</div>
 
-			<ChainsByCategoryTable data={groupedChains} />
+			<Suspense
+				fallback={
+					<div
+						style={{ minHeight: `${groupedChains.length * 50 + 200}px` }}
+						className="bg-[var(--cards-bg)] rounded-md"
+					/>
+				}
+			>
+				<ChainsByCategoryTable data={groupedChains} />
+			</Suspense>
 		</Layout>
 	)
 }

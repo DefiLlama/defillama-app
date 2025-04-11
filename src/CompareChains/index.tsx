@@ -1,13 +1,10 @@
-import { useMemo } from 'react'
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
-
 import { ISettings } from '~/contexts/types'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { fetchWithErrorLogging } from '~/utils/async'
@@ -16,10 +13,9 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { last } from 'lodash'
 import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
-// import { ControlsWrapper, DataWrapper, Grid } from './styles'
 import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
 import { Icon } from '~/components/Icon'
-import { transparentize } from 'polished'
+import { Switch } from '~/components/Switch'
 
 const fetch = fetchWithErrorLogging
 
@@ -39,7 +35,7 @@ const CustomOption = ({ innerProps, label, data }) => (
 )
 
 export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
-	const data = await fetch(`https://defillama.com/api/cache/chain/${chain}`).then((r) => r.json())
+	const data = await fetch(`/api/cache/chain/${chain}`).then((r) => r.json())
 
 	const {
 		chart,
@@ -159,7 +155,7 @@ const updateRoute = (key, val, router: NextRouter) => {
 	)
 }
 
-function ComparePage() {
+export function CompareChains() {
 	const [isDark] = useDarkModeManager()
 	const [extraTvlsEnabled] = useDefiManager()
 
@@ -167,14 +163,14 @@ function ComparePage() {
 
 	const data = useCompare({ extraTvlsEnabled, chains: router.query?.chains ? [router.query?.chains].flat() : [] })
 
-	const components = useMemo(
+	const components = React.useMemo(
 		() => ({
 			Option: CustomOption
 		}),
 		[]
 	)
 
-	const selectedChains = useMemo(() => {
+	const selectedChains = React.useMemo(() => {
 		return [router?.query?.chains]
 			.flat()
 			.filter(Boolean)
@@ -189,9 +185,8 @@ function ComparePage() {
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
-			<div className="w-full max-w-fit flex items-center gap-2">
-				<h2>Compare chains: </h2>
+			<div className="bg-[var(--cards-bg)] rounded-md flex items-center gap-3 p-3 last:*:-my-3">
+				<h2 className="font-semibold text-base">Compare chains: </h2>
 
 				<ReactSelect
 					defaultValue={router?.query?.chains || data?.chains?.[0]}
@@ -207,85 +202,50 @@ function ComparePage() {
 				/>
 			</div>
 
-			<div className="flex flex-col gap-2 relative">
-				<div className="border border-[var(--divider)] shadow rounded-md p-4 min-h-[438px]">
-					<div
-						className="mb-auto flex items-center gap-2 ml-auto"
-						style={{ '--bg': transparentize(0.8, '#445ed0'), '--active-bg': transparentize(0.4, '#445ed0') } as any}
-					>
-						{[
-							{
-								id: 'tvl',
-								name: 'TVL',
-								isVisible: true,
-								key: 'globalChart'
-							},
-							{
-								id: 'volume',
-								name: 'DEXs Volume',
-								key: 'volumeChart'
-							},
-							{
-								id: 'chainFees',
-								name: 'Chain Fees',
-								key: 'feesChart'
-							},
-							{
-								id: 'chainRevenue',
-								name: 'Chain Revenue',
-								key: 'feesChart'
-							},
-							{
-								id: 'appRevenue',
-								name: 'App Revenue',
-								key: 'appRevenueChart'
-							},
-							{
-								id: 'addresses',
-								name: 'Active Addresses',
-								key: 'usersData'
-							},
-							{
-								id: 'txs',
-								name: 'Transactions',
-								key: 'txsData'
-							}
-						].map(({ id, name, key }) =>
+			<div className="flex flex-col gap-1 relative">
+				<div className="bg-[var(--cards-bg)] rounded-md min-h-[404px]">
+					<div className="flex items-center flex-wrap gap-2 p-3">
+						{supportedCharts.map(({ id, name, key }) =>
 							data?.data?.some((val) => val?.[key] && val?.[key]?.length > 0) ? (
-								<label key={id} className="text-sm font-medium cursor-pointer rounded-xl hover:bg-[var(--bg)]">
-									<input
-										key={id}
-										type="checkbox"
-										onChange={() => {
-											updateRoute(id, router.query[id] === 'true' ? 'false' : 'true', router)
-										}}
-										checked={router.query[id] === 'true'}
-										className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
-									/>
-
-									<span className="flex items-center relative z-[1] py-2 px-3 rounded-xl bg-[var(--bg)] peer-checked:bg-[var(--active-bg)] peer-focus-visible:outline">
-										{name}
-									</span>
-								</label>
+								<Switch
+									key={id + 'chart-option'}
+									label={name}
+									value={id}
+									onChange={() => {
+										updateRoute(
+											id,
+											id === 'tvl'
+												? router.query[id] !== 'false'
+													? 'false'
+													: 'true'
+												: router.query[id] === 'true'
+												? 'false'
+												: 'true',
+											router
+										)
+									}}
+									checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
+								/>
 							) : (
 								false
 							)
 						)}
 					</div>
-
 					{data.isLoading || !router.isReady ? (
 						<div className="flex items-center justify-center m-auto min-h-[360px]">
 							<LocalLoader />
 						</div>
 					) : (
-						<ChainChart title="" datasets={data?.data} isThemeDark={isDark} />
+						<React.Suspense fallback={<></>}>
+							<ChainChart title="" datasets={data?.data} isThemeDark={isDark} />
+						</React.Suspense>
 					)}
 				</div>
-				<div className="grid grid-cols-1 xl:grid-cols-2 grow gap-2">
+				<div className="grid grid-cols-1 xl:grid-cols-2 grow gap-1">
 					{data?.data.filter(Boolean)?.map((chainData, i) => {
 						return (
 							<div
-								className="flex flex-col justify-between relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl"
+								className="flex flex-col justify-between relative isolate xl:grid-cols-[auto_1fr] bg-[var(--cards-bg)] rounded-md"
 								key={`${chainData?.chain || i}`}
 							>
 								<div className="flex flex-col gap-8 p-5 col-span-1 w-full rounded-xl text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
@@ -543,4 +503,41 @@ function ComparePage() {
 	)
 }
 
-export default ComparePage
+const supportedCharts = [
+	{
+		id: 'tvl',
+		name: 'TVL',
+		isVisible: true,
+		key: 'globalChart'
+	},
+	{
+		id: 'volume',
+		name: 'DEXs Volume',
+		key: 'volumeChart'
+	},
+	{
+		id: 'chainFees',
+		name: 'Chain Fees',
+		key: 'feesChart'
+	},
+	{
+		id: 'chainRevenue',
+		name: 'Chain Revenue',
+		key: 'feesChart'
+	},
+	{
+		id: 'appRevenue',
+		name: 'App Revenue',
+		key: 'appRevenueChart'
+	},
+	{
+		id: 'addresses',
+		name: 'Active Addresses',
+		key: 'usersData'
+	},
+	{
+		id: 'txs',
+		name: 'Transactions',
+		key: 'txsData'
+	}
+]

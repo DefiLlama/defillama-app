@@ -4,7 +4,7 @@ import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { sluggify } from '~/utils/cache-client'
 import { Modal } from './Modal'
-import { getChainData } from '~/containers/ComparePage'
+import { getChainData } from '~/CompareChains'
 import { ChartTypes } from '~/containers/Defi/Protocol/ProtocolPro'
 import { useQuery } from '@tanstack/react-query'
 
