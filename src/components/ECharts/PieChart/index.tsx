@@ -18,7 +18,7 @@ echarts.use([
 ])
 
 export default function PieChart({
-	height = '360px',
+	height,
 	stackColors,
 	chartData,
 	title,
@@ -38,7 +38,7 @@ export default function PieChart({
 			type: 'pie',
 			left: 0,
 			right: 0,
-			top: title === '' ? 0 : 25,
+			top: title ? 25 : 0,
 			bottom: 0,
 			label: {
 				fontFamily: 'sans-serif',
@@ -140,8 +140,8 @@ export default function PieChart({
 	}, [createInstance, series, isDark, title, usdFormat, showLegend, chartData])
 
 	return (
-		<div style={{ position: 'relative' }} {...props}>
-			<div id={id} style={{ height, margin: 'auto 0' }}></div>
+		<div className="relative" {...props}>
+			<div id={id} className="h-[360px] my-auto mx-0" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

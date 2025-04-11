@@ -20,7 +20,7 @@ export default function AreaChart({
 	tooltipSort = true,
 	tooltipValuesRelative,
 	chartOptions,
-	height = '360px',
+	height,
 	expandTo100Percent = false,
 	isStackedChart,
 	hideGradient = false,
@@ -223,7 +223,18 @@ export default function AreaChart({
 		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
 		for (const option in chartOptions) {
-			if (defaultChartSettings[option]) {
+			if (option === 'dataZoom') {
+				if (Array.isArray(chartOptions[option])) {
+					if (defaultChartSettings[option]) {
+						defaultChartSettings[option] = [
+							{ ...defaultChartSettings[option][0], ...(chartOptions[option][0] ?? {}) },
+							{ ...defaultChartSettings[option][1], ...(chartOptions[option][1] ?? {}) }
+						]
+					} else {
+						defaultChartSettings[option] = chartOptions[option]
+					}
+				}
+			} else if (defaultChartSettings[option]) {
 				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
@@ -291,7 +302,7 @@ export default function AreaChart({
 					labelType="smol"
 				/>
 			)}
-			<div id={id} style={{ height }} className="my-auto" />
+			<div id={id} className="h-[360px] my-auto mx-0" style={height ? { height } : undefined} />
 		</div>
 	)
 }

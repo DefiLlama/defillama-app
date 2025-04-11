@@ -113,7 +113,7 @@ export function useDefaults({
 			left: 20,
 			containLabel: true,
 			bottom: 60,
-			top: title === '' ? gridTop + 20 : gridTop + 48,
+			top: title ? gridTop + 48 : gridTop + 20,
 			right: 20
 		}
 

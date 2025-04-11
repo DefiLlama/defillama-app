@@ -66,7 +66,7 @@ export interface IChainOverviewData {
 		token_symbol: string | null
 		current_price: string | null
 		market_cap: string | null
-		fully_diluted_valuation: null
+		fully_diluted_valuation: string | null
 	} | null
 	stablecoins: {
 		mcap: number | null
@@ -97,7 +97,7 @@ export interface IChainOverviewData {
 	raises: Record<string, number> | null
 	treasury: { tvl: number | null; tokenBreakdowns: Record<string, number> | null } | null
 	chainRaises: Array<IRaises> | null
-	chainAssets: Record<string, { total: string; breakdown: Record<string, string> }> | null
+	chainAssets: IChainAsset | null
 	devMetrics: null
 	nfts: { total24h: number | null }
 	etfs: Array<[number, number]> | null
@@ -110,6 +110,18 @@ export interface IChainOverviewData {
 		change7d: string | null
 	} | null
 	allChains: Array<{ label: string; to: string }>
+}
+
+export interface ILiteChart {
+	tvl: Array<[string, number]>
+	staking: Array<[string, number]>
+	borrowed: Array<[string, number]>
+	pool2: Array<[string, number]>
+	vesting: Array<[string, number]>
+	offers: Array<[string, number]>
+	doublecounted: Array<[string, number]>
+	liquidstaking: Array<[string, number]>
+	dcAndLsOverlap: Array<[string, number]>
 }
 
 export interface ILiteProtocol {
@@ -213,4 +225,68 @@ export interface IRaises {
 	otherInvestors: Array<string>
 	valuation: string | null
 	defillamaId?: string
+}
+
+export interface ITreasury {
+	id: string
+	name: string
+	address: string | null
+	symbol: string
+	url: string
+	description: string
+	chain: string
+	logo: string
+	audits: string
+	audit_note: string | null
+	gecko_id: string | number | null
+	cmcId: string | number | null
+	category: string
+	chains: Array<string>
+	module: string
+	treasury: string
+	twitter: string
+	oracles: Array<string>
+	forkedFrom: Array<string>
+	slug: string
+	tvl: number | null
+	chainTvls: {
+		Ethereum: number | null
+	}
+	change_1h: number | null
+	change_1d: number | null
+	change_7d: number | null
+	tokenBreakdowns: {
+		ownTokens: number | null
+		stablecoins: number | null
+		majors: number | null
+		others: number | null
+	}
+	mcap: number | null
+}
+
+interface IChainAsset {
+	canonical: {
+		total: string
+		breakdown: Record<string, string>
+	}
+	ownTokens?: {
+		total: string
+		breakdown: Record<string, string>
+	}
+	native?: {
+		total: string
+		breakdown: Record<string, string>
+	}
+	thirdParty?: {
+		total: string
+		breakdown: Record<string, string>
+	}
+	total: {
+		total: string
+		breakdown: Record<string, string>
+	}
+}
+
+export interface IChainAssets {
+	[chain: string]: IChainAsset
 }

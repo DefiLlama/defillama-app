@@ -1,14 +1,10 @@
 import { useMemo } from 'react'
-import { IChain, IFormattedProtocol } from '~/api/types'
+import { IFormattedProtocol } from '~/api/types'
 import { useDefiChainsManager, useDefiManager } from '~/contexts/LocalStorage'
-import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from './defi'
+import { formatDataWithExtraTvls, groupDataWithTvlsByDay, IFormattedDataWithExtraTvl } from './defi'
 import { getPercentChange } from '~/utils'
 
 type DataValue = number | null
-
-interface GroupChain extends IChain {
-	subChains: IChain[]
-}
 
 // PROTOCOLS
 export const useCalcStakePool2Tvl = (
@@ -32,10 +28,10 @@ export const useCalcStakePool2Tvl = (
 	return protocolTotals as unknown as Array<IFormattedProtocol>
 }
 
-export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
+export const useGroupChainsByParent = (chains, groupData): IFormattedDataWithExtraTvl[] => {
 	const [groupsEnabled] = useDefiChainsManager()
 
-	const data: GroupChain[] = useMemo(() => {
+	const data: IFormattedDataWithExtraTvl[] = useMemo(() => {
 		const finalData = {}
 		const addedChains = []
 		for (const parentName in groupData) {
@@ -175,7 +171,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 				finalData[item.name] = item
 			}
 		})
-		return (Object.values(finalData) as GroupChain[]).sort((a, b) => b.tvl - a.tvl)
+		return (Object.values(finalData) as IFormattedDataWithExtraTvl[]).sort((a, b) => b.tvl - a.tvl)
 	}, [chains, groupData, groupsEnabled])
 
 	return data

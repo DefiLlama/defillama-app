@@ -85,8 +85,8 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 	}, [links, lastIndexToRender, activeLink])
 
 	return (
-		<div className="flex flex-nowrap bg-[var(--cards-bg)] rounded-md last:*:mr-1">
-			{/* max-height: link height + wrapper padding top & bottom */}
+		<div className="flex flex-nowrap bg-[var(--cards-bg)] rounded-md">
+			{/* max-height: link height + wrapper padding top + padding bottom */}
 			{linksInRow ? (
 				<div
 					className="flex-1 overflow-hidden p-1 flex flex-wrap max-h-[calc(1.5rem_+_0.5rem)] gap-2"
@@ -104,7 +104,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 					name={isLinkInDropdown ? activeLink : alternativeOthersText ?? 'Others'}
 					isActive={isLinkInDropdown}
 					options={dropdownLinks}
-					className={!linksInRow ? 'w-full justify-between' : ''}
+					className={!linksInRow ? 'w-full justify-between' : 'mr-1'}
 				/>
 			) : null}
 		</div>

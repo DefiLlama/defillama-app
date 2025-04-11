@@ -30,7 +30,10 @@ import type {
 	ILiteProtocol,
 	IProtocol,
 	TVL_TYPES,
-	IRaises
+	IRaises,
+	ILiteChart,
+	ITreasury,
+	IChainAssets
 } from './types'
 import { toFilterProtocol, toStrikeTvl } from './utils'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
@@ -67,7 +70,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			globalMcapChartData,
 			defiMcapChartData
 		]: [
-			any,
+			ILiteChart,
 			{
 				protocols: Array<IProtocol>
 				chains: Array<string>
@@ -83,14 +86,20 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				mcapChartData: Array<[number, number]> | null
 			} | null,
 			any,
-			any,
-			any,
-			any,
+			number | null,
+			number | string,
+			number | null,
 			{ raises: Array<IRaises> },
-			any,
-			any,
+			Array<ITreasury> | null,
+			{
+				market_data?: {
+					current_price?: { usd?: string | null }
+					market_cap?: { usd?: string | null }
+					fully_diluted_valuation?: { usd?: string | null }
+				}
+			} | null,
 			Record<string, number>,
-			Record<string, Record<string, { total: string; breakdown: Record<string, string> }>> | null,
+			IChainAssets | null,
 			IAdapterSummary | null,
 			IAdapterSummary | null,
 			IAdapterSummary | null,
@@ -165,19 +174,19 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				? Promise.resolve(null)
 				: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${metadata.name}`)
 						.then((res) => res.json())
-						.then((data) => data?.[data?.length - 1]?.[1] ?? null)
+						.then((data: Array<[number, number]>) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
 			!metadata.activeUsers
 				? Promise.resolve(null)
 				: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${metadata.name}`)
 						.then((res) => res.json())
-						.then((data) => data?.[data?.length - 1]?.[1] ?? null)
+						.then((data: Array<[number, string]>) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
 			!metadata.activeUsers
 				? Promise.resolve(null)
 				: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${metadata.name}`)
 						.then((res) => res.json())
-						.then((data) => data?.[data?.length - 1]?.[1] ?? null)
+						.then((data: Array<[number, number]>) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
 			fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
 			chain === 'All' ? Promise.resolve(null) : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
@@ -288,17 +297,25 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			dcAndLsOverlap = []
 		} = chartData || {}
 
-		const tvlChart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
+		const tvlChart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]) as Array<
+			[string, number]
+		>
 
 		const extraTvlChart = {
-			staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-			borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-			pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-			vesting: vesting.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-			offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-			doublecounted: doublecounted.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-			liquidstaking: liquidstaking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-			dcAndLsOverlap: dcAndLsOverlap.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
+			staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]),
+			borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]),
+			pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]),
+			vesting: vesting.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]),
+			offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]),
+			doublecounted: doublecounted.map(
+				([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]
+			),
+			liquidstaking: liquidstaking.map(
+				([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]
+			),
+			dcAndLsOverlap: dcAndLsOverlap.map(
+				([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]
+			)
 		}
 
 		const raisesChart =
@@ -375,7 +392,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				total7d: perps?.total7d ?? null,
 				change_7dover7d: perps?.change_7dover7d ?? null
 			},
-			users: { activeUsers, newUsers, transactions },
+			users: { activeUsers, newUsers, transactions: transactions ? +transactions : null },
 			raises: raisesChart,
 			totalFundingAmount: raisesChart
 				? (Object.values(raisesChart).reduce((acc, curr) => ((acc as number) += (curr ?? 0) as number), 0) as number) *

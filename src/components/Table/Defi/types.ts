@@ -1,4 +1,4 @@
-import { ChainAssets } from '~/hooks/data/defi'
+import { IChainAssets } from '~/ChainOverview/types'
 
 export interface IOraclesRow {
 	name: string
@@ -36,7 +36,7 @@ export interface IChain {
 
 export interface IChainsRow extends IChain {
 	subRows?: Array<IChain>
-	chainAssets?: ChainAssets
+	chainAssets?: IChainAssets
 }
 
 export interface ILSDRow {

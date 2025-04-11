@@ -579,7 +579,7 @@ export const Stats = (props: IChainOverviewData) => {
 								rowHeader="Bridged TVL"
 								rowValue={formattedNum(
 									props.chainAssets.total.total +
-										(extraTvlsEnabled.govtokens ? props.chainAssets?.ownTokens?.total || 0 : 0),
+										(extraTvlsEnabled.govtokens ? +(props.chainAssets?.ownTokens?.total ?? 0) : 0),
 									true
 								)}
 								helperText={null}
