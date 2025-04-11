@@ -554,6 +554,12 @@ export const cexData: Array<ICex> = [
 		cgId: 'lbank'
 	},
 	{
+		name: 'TradeOgre',
+		slug: 'tradeogre',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Hotbit',
 		slug: 'hotbit',
 		coin: 'HTB',
