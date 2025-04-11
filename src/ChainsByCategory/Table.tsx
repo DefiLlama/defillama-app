@@ -6,9 +6,6 @@ import {
 	getSortedRowModel,
 	ExpandedState,
 	getExpandedRowModel,
-	ColumnOrderState,
-	ColumnFiltersState,
-	getFilteredRowModel,
 	ColumnDef
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
@@ -24,13 +21,26 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { CustomLink } from '~/components/Link'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 
+const optionsKey = 'chains-overview-table-columns'
+
+function subscribe(callback: () => void) {
+	window.addEventListener('storage', callback)
+
+	return () => {
+		window.removeEventListener('storage', callback)
+	}
+}
+
 export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWithExtraTvl> }) {
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+	const columnsInStorage = React.useSyncExternalStore(
+		subscribe,
+		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		() => defaultColumns
+	)
+
 	const [sorting, setSorting] = React.useState<SortingState>([])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const windowSize = useWindowSize()
-	const optionsKey = 'chains-overview-table-columns'
 
 	const instance = useReactTable({
 		data,
@@ -38,18 +48,14 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 		state: {
 			sorting,
 			expanded,
-			columnOrder,
-			columnFilters
+			columnVisibility: JSON.parse(columnsInStorage)
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IFormattedDataWithExtraTvl) => row.subRows,
 		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel(),
-		getFilteredRowModel: getFilteredRowModel()
+		getExpandedRowModel: getExpandedRowModel()
 	})
 
 	const [projectName, setProjectName] = React.useState('')
@@ -75,21 +81,20 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 	}, [windowSize, instance])
 
 	const clearAllColumns = () => {
-		window.localStorage.setItem(optionsKey, '{}')
-		instance.getToggleAllColumnsVisibilityHandler()({ checked: false } as any)
+		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
+		window.localStorage.setItem(optionsKey, ops)
+		window.dispatchEvent(new Event('storage'))
 	}
 	const toggleAllColumns = () => {
-		const ops = JSON.stringify(Object.fromEntries(chainsOverviewTableColumns.map((option) => [option.key, true])))
+		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
 		window.localStorage.setItem(optionsKey, ops)
-		instance.getToggleAllColumnsVisibilityHandler()({ checked: true } as any)
+		window.dispatchEvent(new Event('storage'))
 	}
 
 	const addColumn = (newOptions) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id) ? true : false])
-		)
+		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key) ? true : false]))
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		instance.setColumnVisibility(ops)
+		window.dispatchEvent(new Event('storage'))
 	}
 
 	const selectedColumns = instance
@@ -167,7 +172,7 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 					}}
 				/>
 				<SelectWithCombobox
-					allValues={chainsOverviewTableColumns}
+					allValues={columnOptions}
 					selectedValues={selectedColumns}
 					setSelectedValues={addColumn}
 					toggleAll={toggleAllColumns}
@@ -481,7 +486,6 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	}
 ]
 
-const chainsOverviewTableColumns = [
-	{ name: 'Name', key: 'name' },
-	...columns.filter((c: any) => c.accessorKey !== 'name').map((c: any) => ({ name: c.header, key: c.accessorKey }))
-]
+const columnOptions = columns.map((c: any) => ({ name: c.header, key: c.accessorKey }))
+
+const defaultColumns = JSON.stringify(Object.fromEntries(columnOptions.map((c) => [c.key, true])))

@@ -138,7 +138,8 @@ export const useCompare = ({ chains = [], extraTvlsEnabled }: { chains?: string[
 	return {
 		data: data.map((r) => r?.data),
 		chains: chainsData.data,
-		isLoading: data.every((r) => r.isLoading) || data.some((r) => r.isRefetching) || chainsData.isLoading
+		isLoading:
+			(chains.length > 0 && data.every((r) => r.isLoading)) || data.some((r) => r.isRefetching) || chainsData.isLoading
 	}
 }
 
