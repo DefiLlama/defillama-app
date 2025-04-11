@@ -1,5 +1,4 @@
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
-import { IAdapterOverview } from '~/DimensionAdapters/queries'
 
 export interface IChainMetadata {
 	tvl?: boolean
@@ -110,6 +109,7 @@ export interface IChainOverviewData {
 		chart: Array<[number, number]> | null
 		change7d: string | null
 	} | null
+	allChains: Array<{ label: string; to: string }>
 }
 
 export interface ILiteProtocol {

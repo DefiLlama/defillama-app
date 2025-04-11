@@ -15,7 +15,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from './columns'
 import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -271,7 +271,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 						}}
 					/>
 				)}
-				{type === 'fees' ? <RowFilter selectedValue={period} setValue={setNewPeriod} values={PERIODS} /> : null}
+				{type === 'fees' ? <TagGroup selectedValue={period} setValue={setNewPeriod} values={PERIODS} /> : null}
 			</div>
 
 			<VirtualTable instance={instance} />

@@ -16,7 +16,7 @@ import { useCompare } from '~/containers/ComparePage'
 import { SelectedItem } from './SelectedItem'
 import { LocalLoader } from '~/components/LocalLoader'
 import { sluggify } from '~/utils/cache-client'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
 import useIsSubscribed from './queries/useIsSubscribed'
 import { useVerified } from './hooks/useVerified'
@@ -180,7 +180,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 				<ItemsSelect chains={chainOptions} setItems={setItems} setProtocolProps={setProtocolProps} />
 			</div>
 			<div className="flex gap-2 mb-2">
-				<RowFilter
+				<TagGroup
 					style={{ width: 'fit-content', height: '100%' }}
 					selectedValue={period as string}
 					values={['7d', '30d', '90d', '180d', '365d']}
@@ -195,7 +195,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 						)
 					}
 				/>
-				<RowFilter
+				<TagGroup
 					style={{ width: 'fit-content', height: '100%' }}
 					selectedValue={groupBy as string}
 					values={['daily', 'weekly', 'monthly', 'cumulative']}

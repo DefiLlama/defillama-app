@@ -5,7 +5,7 @@ interface IProps {
 	style?: Record<string, string>
 }
 
-export const RowFilter = ({ selectedValue, setValue, values, style }: IProps) => {
+export const TagGroup = ({ selectedValue, setValue, values, style }: IProps) => {
 	return (
 		<div
 			className="flex items-center rounded-md h-full overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]"

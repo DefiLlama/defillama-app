@@ -1,4 +1,4 @@
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import type { IProtocol } from './types'
 import { useMemo, useState, useSyncExternalStore } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -152,12 +152,12 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 		<div className="bg-[var(--cards-bg)] rounded-md isolate">
 			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 				<h3 className="text-lg font-semibold mr-auto">Protocol Rankings</h3>
-				<RowFilter
+				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
 					values={Object.values(TABLE_CATEGORIES) as Array<string>}
 				/>
-				<RowFilter
+				<TagGroup
 					setValue={setFilter('period')}
 					selectedValue={filterState}
 					values={Object.values(TABLE_PERIODS) as Array<string>}

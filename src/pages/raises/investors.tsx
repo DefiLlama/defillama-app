@@ -16,7 +16,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 
@@ -169,7 +169,7 @@ const ActiveInvestors = ({ data }) => {
 					/>
 				</div>
 
-				<RowFilter
+				<TagGroup
 					setValue={(val) => onPeriodClick(val)}
 					values={['All', '30d', '180d', '1 year']}
 					selectedValue={period}

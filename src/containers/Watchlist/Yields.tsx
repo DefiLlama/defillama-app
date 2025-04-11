@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Menu } from '~/components/DropdownMenu'
+import { Menu } from '~/components/Menu'
 import { YieldsPoolsTable } from '~/components/Table/Yields/Pools'
 import { useIsClient } from '~/hooks'
 import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'

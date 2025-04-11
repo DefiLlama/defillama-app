@@ -18,7 +18,7 @@ const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) =
 	loading: () => <div className="flex items-center justify-center m-auto h-[360px]"></div>
 })
 
-export const OverviewStats = (props: IChainOverviewData) => {
+export const Stats = (props: IChainOverviewData) => {
 	const router = useRouter()
 
 	const denomination = router.query?.currency ?? 'USD'

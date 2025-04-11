@@ -47,7 +47,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 	try {
 		const [
 			chartData,
-			protocols,
+			{ protocols, chains, fees, dexs },
 			stablecoins,
 			inflowsData,
 			activeUsers,
@@ -61,16 +61,19 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			appRevenue,
 			chainFees,
 			chainRevenue,
-			dexs,
 			perps,
 			cexVolume,
-			fees,
 			etfData,
 			globalMcapChartData,
 			defiMcapChartData
 		]: [
 			any,
-			Array<IProtocol>,
+			{
+				protocols: Array<IProtocol>
+				chains: Array<string>
+				fees: IAdapterOverview | null
+				dexs: IAdapterOverview | null
+			},
 			{
 				mcap: number | null
 				change7dUsd: number | null
@@ -92,9 +95,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			IAdapterSummary | null,
 			IAdapterSummary | null,
 			IAdapterOverview | null,
-			IAdapterOverview | null,
 			number | null,
-			IAdapterOverview | null,
 			Array<[number, number]> | null,
 			Array<[number, number]> | null,
 			Array<[number, number]> | null
@@ -226,17 +227,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						return null
 				  })
 				: Promise.resolve(null),
-			metadata.dexs
-				? getAdapterOverview({
-						type: 'dexs',
-						chain: metadata.name,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true
-				  }).catch((err) => {
-						console.log(err)
-						return null
-				  })
-				: Promise.resolve(null),
 			metadata.derivatives
 				? getAdapterOverview({
 						type: 'derivatives',
@@ -249,17 +239,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				  })
 				: Promise.resolve(null),
 			getCexVolume(),
-			metadata.fees
-				? getAdapterOverview({
-						type: 'fees',
-						chain: metadata.name,
-						excludeTotalDataChart: true,
-						excludeTotalDataChartBreakdown: false
-				  }).catch((err) => {
-						console.log(err)
-						return null
-				  })
-				: Promise.resolve(null),
 			chain === 'All'
 				? getETFData()
 						.then((data) => {
@@ -431,7 +410,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 								defiMcapChartData[defiMcapChartData.length - 7][1]
 							)?.toFixed(2)
 					  }
-					: null
+					: null,
+			allChains: [{ label: 'All', to: '/' }].concat(chains.map((c) => ({ label: c, to: slug(c) })))
 		}
 	} catch (error) {
 		const msg = `Error fetching ${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
@@ -441,7 +421,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 }
 
 export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; metadata: IChainMetadata }) => {
-	const [{ protocols, parentProtocols }, fees, revenue, dexs]: [
+	const [{ protocols, chains, parentProtocols }, fees, revenue, dexs]: [
 		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
 		IAdapterOverview | null,
 		IAdapterOverview | null,
@@ -453,7 +433,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					type: 'fees',
 					chain: metadata.name,
 					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChartBreakdown: false
 			  }).catch((err) => {
 					console.log(err)
 					return null
@@ -475,7 +455,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			? getAdapterOverview({
 					type: 'dexs',
 					chain: metadata.name,
-					excludeTotalDataChart: true,
+					excludeTotalDataChart: false,
 					excludeTotalDataChartBreakdown: true
 			  }).catch((err) => {
 					console.log(err)
@@ -729,5 +709,10 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 		}
 	}
 
-	return Object.values(finalProtocols).sort((a, b) => (b.tvl?.default?.tvl ?? 0) - (a.tvl?.default?.tvl ?? 0))
+	return {
+		protocols: Object.values(finalProtocols).sort((a, b) => (b.tvl?.default?.tvl ?? 0) - (a.tvl?.default?.tvl ?? 0)),
+		chains,
+		fees,
+		dexs
+	}
 }

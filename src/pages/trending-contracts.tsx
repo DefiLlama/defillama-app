@@ -7,7 +7,7 @@ import { useDebounce } from '~/hooks/useDebounce'
 import { formattedPercent } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import { useQuery } from '@tanstack/react-query'
 
 const fetch = fetchWithErrorLogging
@@ -104,8 +104,8 @@ export default function TrendingContracts() {
 			<ProtocolsChainsSearch hideFilters />
 			<div className="flex items-center flex-wrap gap-5 -mb-5">
 				<h1 className="text-2xl font-medium mr-auto">Trending Contracts</h1>
-				<RowFilter selectedValue={value} setValue={(val: string) => setValue(val)} values={['1d', '7d', '30d']} />
-				<RowFilter
+				<TagGroup selectedValue={value} setValue={(val: string) => setValue(val)} values={['1d', '7d', '30d']} />
+				<TagGroup
 					selectedValue={chain}
 					setValue={(val: string) => setChain(val)}
 					values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}

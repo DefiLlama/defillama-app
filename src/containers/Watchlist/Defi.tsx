@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { Menu } from '~/components/DropdownMenu'
+import { Menu } from '~/components/Menu'
 import { useIsClient } from '~/hooks'
 import { DEFAULT_PORTFOLIO_NAME, useDefiManager, useWatchlist } from '~/contexts/LocalStorage'
 import { formatProtocolsList } from '~/hooks/data/defi'

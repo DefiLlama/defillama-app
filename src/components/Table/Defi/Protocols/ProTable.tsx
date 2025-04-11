@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table'
 import { protocolsByChainColumns } from './columns'
 import { IProtocolRow } from './types'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
@@ -108,12 +108,12 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 		<div className="flex flex-col items-center h-full p-4">
 			<div className="flex items-center justify-between flex-wrap gap-2 -mb-3">
 				<h3 className="text-lg font-medium mr-auto">{chain} Protocols</h3>
-				<RowFilter
+				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
 					values={Object.values(TABLE_CATEGORIES) as Array<string>}
 				/>
-				<RowFilter
+				<TagGroup
 					setValue={setFilter('period')}
 					selectedValue={filterState}
 					values={Object.values(TABLE_PERIODS) as Array<string>}
@@ -158,14 +158,14 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 				</table>
 			</div>
 			<div className="flex items-center justify-between w-full">
-				<RowFilter
+				<TagGroup
 					selectedValue={null}
 					setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}
 					values={['Previous', 'Next']}
 				/>
 				<div className="flex">
 					<div className="mr-2 mt-[6px]">Per page</div>
-					<RowFilter
+					<TagGroup
 						style={{ alignSelf: 'flex-end' }}
 						selectedValue={String(table.getState().pagination.pageSize)}
 						values={['10', '30', '50']}

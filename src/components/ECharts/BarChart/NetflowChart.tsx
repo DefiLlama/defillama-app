@@ -7,7 +7,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
 import { capitalize } from 'lodash'
 import { useQuery } from '@tanstack/react-query'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import { NETFLOWS_API } from '~/constants'
 import llamaLogo from '~/assets/logo_white_long.svg'
 
@@ -222,7 +222,7 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 					marginTop: '20px'
 				}}
 			>
-				<RowFilter values={flowTypes} selectedValue={period} setValue={setPeriod} />
+				<TagGroup values={flowTypes} selectedValue={period} setValue={setPeriod} />
 			</div>
 		</div>
 	)

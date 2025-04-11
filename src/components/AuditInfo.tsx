@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Menu } from '~/components/DropdownMenu'
+import { Menu } from '~/components/Menu'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 

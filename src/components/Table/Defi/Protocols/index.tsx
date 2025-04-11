@@ -28,7 +28,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
 import { useRouter } from 'next/router'
 import { TVLRange } from '~/components/Filters/protocols/TVLRange'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
@@ -282,12 +282,12 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		<>
 			<div className="flex items-center justify-between flex-wrap gap-2 -mb-3">
 				<h3 className="text-lg font-medium mr-auto">Protocol Rankings</h3>
-				<RowFilter
+				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
 					values={Object.values(TABLE_CATEGORIES) as Array<string>}
 				/>
-				<RowFilter
+				<TagGroup
 					setValue={setFilter('period')}
 					selectedValue={filterState}
 					values={Object.values(TABLE_PERIODS) as Array<string>}
