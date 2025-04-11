@@ -97,7 +97,7 @@ function RaisesTable({ raises, downloadCsv }) {
 						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
-				<CSVDownloadButton onClick={downloadCsv} style={{ marginLeft: 'auto' }} />
+				<CSVDownloadButton onClick={downloadCsv} className="ml-auto" />
 				<CSVDownloadButton customText="Download .json" onClick={() => window.open('https://api.llama.fi/raises')} />
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />

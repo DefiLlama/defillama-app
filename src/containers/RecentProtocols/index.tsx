@@ -409,7 +409,7 @@ export function RecentProtocols({
 					}}
 				/>
 				<TVLRange />
-				<CSVDownloadButton onClick={downloadCSV} isLight style={{ color: 'inherit', fontWeight: 'normal' }} />
+				<CSVDownloadButton onClick={downloadCSV} />
 
 				{forkedList && <HideForkedProtocols />}
 			</div>

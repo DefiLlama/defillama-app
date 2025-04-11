@@ -167,7 +167,7 @@ function Container({
 				<h1 className="text-2xl font-medium -mb-5">{title}</h1>
 				{csvDownload ? (
 					<CSVDownloadButton
-						style={{ marginLeft: 'auto' }}
+						className="ml-auto"
 						onClick={() => {
 							window.open(
 								`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)

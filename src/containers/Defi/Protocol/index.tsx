@@ -1366,8 +1366,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											onClick={() => {
 												window.open(`https://api.llama.fi/dataset/${protocol}.csv`)
 											}}
-											style={{ marginTop: '16px', width: '100px' }}
-											isLight
+											className="mt-4 mr-auto"
 										/>
 									) : null}
 								</div>

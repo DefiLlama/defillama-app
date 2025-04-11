@@ -68,11 +68,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Funding Amount</span>
 						<span className="font-jetbrains font-semibold text-2xl">${formattedNum(totalAmountRaised)}</span>
 					</p>
-					<CSVDownloadButton
-						onClick={() => downloadCsv({ raises })}
-						isLight
-						style={{ width: '100px', marginTop: 'auto' }}
-					/>
+					<CSVDownloadButton onClick={() => downloadCsv({ raises })} className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-1 py-4 min-h-[392px]">

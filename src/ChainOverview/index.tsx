@@ -14,7 +14,6 @@ export function ChainOverview(props: IChainOverviewData) {
 			defaultSEO
 		>
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
-
 			<Stats {...props} />
 			<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
 				<SmolStats {...props} />

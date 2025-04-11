@@ -250,7 +250,7 @@ export const PeggedAssetInfo = ({
 									</tbody>
 								</table>
 							)}
-							<CSVDownloadButton onClick={downloadCsv} isLight style={{ maxWidth: 'fit-content' }} />
+							<CSVDownloadButton onClick={downloadCsv} className="mr-auto" />
 						</div>
 					</Ariakit.TabPanel>
 

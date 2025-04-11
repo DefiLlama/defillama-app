@@ -24,7 +24,6 @@ import { formatRaise, formatRaisedAmount } from '~/containers/Defi/Protocol/util
 import { sluggify } from '~/utils/cache-client'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'
-import { chainsNamesMap } from './constants'
 import { Tooltip } from '~/components/Tooltip'
 
 const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
@@ -850,8 +849,7 @@ export function ChainContainer({
 							</tbody>
 						</table>
 						<CSVDownloadButton
-							isLight
-							style={{ width: '100px', marginTop: 'auto', marginLeft: '-12px' }}
+							className="mt-auto mr-auto"
 							onClick={() => {
 								window.open(
 									`https://api.llama.fi/simpleChainDataset/${
@@ -983,4 +981,8 @@ export function ChainContainer({
 			</div>
 		</>
 	)
+}
+
+const chainsNamesMap = {
+	'OP Mainnet': 'Optimism'
 }

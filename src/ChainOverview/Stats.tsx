@@ -12,6 +12,8 @@ import { formatRaise, formatRaisedAmount } from '~/containers/Defi/Protocol/util
 import { Fragment, useMemo } from 'react'
 import { Switch } from '~/components/Switch'
 import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Icon } from '~/components/Icon'
 
 const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false,
@@ -702,6 +704,19 @@ export const Stats = (props: IChainOverviewData) => {
 						) : null}
 					</tbody>
 				</table>
+				<CSVDownloadButton
+					onClick={() => {
+						window.open(
+							`https://api.llama.fi/simpleChainDataset/${
+								chainsNamesMap[props.metadata.name] || props.metadata.name
+							}?${Object.entries(extraTvlsEnabled)
+								.filter((t) => t[1] === true)
+								.map((t) => `${t[0]}=true`)
+								.join('&')}`.replaceAll(' ', '%20')
+						)
+					}}
+					className="mt-auto mr-auto"
+				/>
 			</div>
 			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-7 col-span-1">
 				<div className="flex flex-wrap items-center gap-2 [&:nth-child(2)]:*:ml-auto p-3">
@@ -809,4 +824,8 @@ const updateRoute = (key, val, router) => {
 		undefined,
 		{ shallow: true }
 	)
+}
+
+const chainsNamesMap = {
+	'OP Mainnet': 'Optimism'
 }

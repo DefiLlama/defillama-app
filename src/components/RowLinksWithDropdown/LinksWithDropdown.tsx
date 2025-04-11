@@ -85,7 +85,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 	}, [links, lastIndexToRender, activeLink])
 
 	return (
-		<div className="flex flex-nowrap bg-[var(--cards-bg)] rounded-md">
+		<div className="flex flex-nowrap bg-[var(--cards-bg)] rounded-md last:*:mr-1">
 			{/* max-height: link height + wrapper padding top & bottom */}
 			{linksInRow ? (
 				<div

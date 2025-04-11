@@ -109,7 +109,7 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 			<div className="flex items-center gap-4 flex-wrap last:*:ml-auto -mb-6">
 				<h1 className="text-2xl font-medium">Protocol Treasuries</h1>
 
-				<CSVDownloadButton onClick={downloadCSV} isLight />
+				<CSVDownloadButton onClick={downloadCSV} />
 
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
