@@ -54,3 +54,7 @@
 // 		</QueryClientProvider>
 // 	)
 // }
+
+export default function Skip() {
+	return <></>
+}

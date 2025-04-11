@@ -36,3 +36,7 @@
 // 		</WalletProvider>
 // 	)
 // }
+
+export default function Skip() {
+	return <></>
+}

@@ -64,3 +64,7 @@
 // 		</Layout>
 // 	)
 // }
+
+export default function Skip() {
+	return <></>
+}

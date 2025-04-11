@@ -31,3 +31,7 @@
 // 	}
 // 	return <ChainBridged {...props} />
 // }
+
+export default function Skip() {
+	return <></>
+}

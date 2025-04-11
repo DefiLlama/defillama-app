@@ -29,3 +29,7 @@
 // export default function Bridge(props) {
 // 	return <BridgeContainer {...props} />
 // }
+
+export default function Skip() {
+	return <></>
+}

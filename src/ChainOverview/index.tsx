@@ -15,7 +15,14 @@ export function ChainOverview(props: IChainOverviewData) {
 			<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
 				<OverallCharts {...props} />
 			</Suspense>
-			<Suspense fallback={<div style={{ minHeight: `${props.protocols.length * 50 + 200}px` }} />}>
+			<Suspense
+				fallback={
+					<div
+						style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
+						className="bg-[var(--cards-bg)] rounded-md"
+					/>
+				}
+			>
 				<ChainProtocolsTable protocols={props.protocols} />
 			</Suspense>
 		</Layout>
