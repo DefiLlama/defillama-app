@@ -1,9 +1,10 @@
 import Layout from '~/layout'
-import { ChainProtocolsTable } from './Table'
 import type { IChainOverviewData } from './types'
 import { OverviewStats } from './OverviewStats'
 import { OverallCharts } from './OverallCharts'
-import { Suspense } from 'react'
+import { Suspense, lazy } from 'react'
+
+const ChainProtocolsTable = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
 export function ChainOverview(props: IChainOverviewData) {
 	return (
