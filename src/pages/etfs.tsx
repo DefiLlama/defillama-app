@@ -83,7 +83,6 @@ interface PageViewProps {
 }
 
 const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
-	console.log({ snapshot, flows, totalsByAsset, lastUpdated })
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('weekly')
 	const tickers = ['Bitcoin', 'Ethereum']
 

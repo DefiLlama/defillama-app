@@ -65,9 +65,7 @@ export const useFetchChainChartData = ({
 	)
 
 	const { data: stablecoinsChartData, isLoading: fetchingStablecoinsChartDataByChain } =
-		useGetStabelcoinsChartDataByChain(
-			stablecoinsData?.totalMcapCurrent && router.query.stables === 'true' ? selectedChain : null
-		)
+		useGetStabelcoinsChartDataByChain(stablecoinsData?.mcap && router.query.stables === 'true' ? selectedChain : null)
 
 	const { data: inflowsChartData, isLoading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
 		inflowsData?.netInflows && router.query.inflows === 'true' ? selectedChain : null

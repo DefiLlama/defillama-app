@@ -15,7 +15,7 @@ const SmolBarChart: any = dynamic(() => import('~/ChainOverview/SmolCharts').the
 	ssr: false
 })
 
-export const OverallCharts = (props: IChainOverviewData) => {
+export const SmolStats = (props: IChainOverviewData) => {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1 isolate">
 			{props.chain === 'All' && props.globalmcap?.chart?.length > 0 && props.defimcap?.chart?.length > 0 ? (

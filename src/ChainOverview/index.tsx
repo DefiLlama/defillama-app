@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import type { IChainOverviewData } from './types'
 import { OverviewStats } from './OverviewStats'
-import { OverallCharts } from './OverallCharts'
+import { SmolStats } from './SmolStats'
 import { Suspense, lazy } from 'react'
 
 const ChainProtocolsTable = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
@@ -14,7 +14,7 @@ export function ChainOverview(props: IChainOverviewData) {
 		>
 			<OverviewStats {...props} />
 			<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
-				<OverallCharts {...props} />
+				<SmolStats {...props} />
 			</Suspense>
 			<Suspense
 				fallback={
