@@ -132,7 +132,7 @@ export interface ILiteProtocol {
 	symbol: string
 	logo: string
 	url: string
-	referralUrl: string
+	referralUrl?: string
 	tvl: number
 	tvlPrevDay: number
 	tvlPrevWeek: number
@@ -147,13 +147,13 @@ export interface ILiteProtocol {
 		}
 	>
 	defillamaId: string
-	governanceID: Array<string>
-	geckoId: string
+	governanceID?: Array<string>
+	geckoId?: string
 	parentProtocol?: string
 	oracles?: Array<string>
 	oraclesByChain?: Record<string, Array<string>>
 	forkedFrom?: string
-	listedAt: number
+	listedAt?: number
 }
 
 export interface ILiteParentProtocol {

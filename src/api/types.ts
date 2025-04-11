@@ -1,4 +1,3 @@
-import { ILiteProtocol } from '~/ChainOverview/types'
 import { IJSON } from './categories/adaptors/types'
 
 export interface IRaise {
@@ -38,7 +37,7 @@ export interface Protocol {
 	referralUrl?: string
 	isParentProtocol?: boolean
 	raises?: Array<IRaise>
-	defillamaId?: number
+	defillamaId: string | number
 	treasury?: string
 	governanceID?: Array<string>
 	stablecoins?: Array<string>
@@ -158,8 +157,27 @@ export interface IChainGeckoId {
 	cmcId: string
 	categories: string[]
 }
+export type LiteProtocol = Pick<
+	IProtocol,
+	| 'category'
+	| 'chains'
+	| 'oracles'
+	| 'oraclesByChain'
+	| 'forkedFrom'
+	| 'listedAt'
+	| 'mcap'
+	| 'name'
+	| 'symbol'
+	| 'logo'
+	| 'url'
+	| 'parentProtocol'
+	| 'chainTvls'
+	| 'referralUrl'
+	| 'defillamaId'
+> &
+	ProtocolTvls
 
-export interface IFormattedProtocol extends ILiteProtocol {
+export interface IFormattedProtocol extends LiteProtocol {
 	extraTvl?: {
 		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
 	}
