@@ -91,6 +91,10 @@ export const formatBridgesData = ({
 
 		bridge.change_1d = getPercentChange(bridge.lastDailyVolume, bridge.dayBeforeLastVolume)
 		bridge.txsPrevDay = getPrevVolumeFromChart(chart, 0, true) ?? null
+		// layerzero has 24h delay in the data
+		if (bridge.name === 'layerzero' && bridge.txsPrevDay < 1000) {
+			bridge.txsPrevDay = getPrevVolumeFromChart(chart, 1, true) ?? null
+		}
 		bridge.lastDailyVolume = bridge.last24hVolume
 
 		return keepNeededProperties(bridge, bridgeProps)
