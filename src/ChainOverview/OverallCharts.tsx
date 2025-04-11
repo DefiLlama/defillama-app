@@ -3,15 +3,15 @@ import { IChainOverviewData } from './types'
 import { Suspense } from 'react'
 import { formattedNum } from '~/utils'
 
-const FeesGeneratedChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.FeesGeneratedChart), {
+const FeesGeneratedChart: any = dynamic(() => import('~/ChainOverview/SmolCharts').then((m) => m.FeesGeneratedChart), {
 	ssr: false
 })
 
-const SmolLineChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.SmolLineChart), {
+const SmolLineChart: any = dynamic(() => import('~/ChainOverview/SmolCharts').then((m) => m.SmolLineChart), {
 	ssr: false
 })
 
-const SmolBarChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.SmolBarChart), {
+const SmolBarChart: any = dynamic(() => import('~/ChainOverview/SmolCharts').then((m) => m.SmolBarChart), {
 	ssr: false
 })
 
