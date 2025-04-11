@@ -13,9 +13,11 @@ export function ChainOverview(props: IChainOverviewData) {
 		>
 			<OverviewStats {...props} />
 			<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
-				<OverallCharts {...props} />{' '}
+				<OverallCharts {...props} />
 			</Suspense>
-			<ChainProtocolsTable protocols={props.protocols} />
+			<Suspense fallback={<div style={{ minHeight: `${props.protocols.length * 50 + 200}px` }} />}>
+				<ChainProtocolsTable protocols={props.protocols} />
+			</Suspense>
 		</Layout>
 	)
 }
