@@ -150,6 +150,10 @@ export interface ILiteProtocol {
 	governanceID: Array<string>
 	geckoId: string
 	parentProtocol?: string
+	oracles?: Array<string>
+	oraclesByChain?: Record<string, Array<string>>
+	forkedFrom?: string
+	listedAt: number
 }
 
 export interface ILiteParentProtocol {

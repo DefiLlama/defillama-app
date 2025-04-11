@@ -1,3 +1,4 @@
+import { ILiteProtocol } from '~/ChainOverview/types'
 import { IJSON } from './categories/adaptors/types'
 
 export interface IRaise {
@@ -124,26 +125,6 @@ export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChain
 	pool2?: number
 }
 
-export type LiteProtocol = Pick<
-	IProtocol,
-	| 'category'
-	| 'chains'
-	| 'oracles'
-	| 'oraclesByChain'
-	| 'forkedFrom'
-	| 'listedAt'
-	| 'mcap'
-	| 'name'
-	| 'symbol'
-	| 'logo'
-	| 'url'
-	| 'parentProtocol'
-	| 'chainTvls'
-	| 'referralUrl'
-	| 'defillamaId'
-> &
-	ProtocolTvls
-
 export interface IChain {
 	tvl: number
 	tvlPrevDay: number
@@ -157,10 +138,6 @@ export interface IChain {
 	tokenSymbol?: string | null
 	cmcId?: string | null
 	chainId: number | null
-}
-
-export interface IOracleProtocols {
-	[key: string]: number
 }
 
 export interface IStackedDataset {
@@ -182,7 +159,7 @@ export interface IChainGeckoId {
 	categories: string[]
 }
 
-export interface IFormattedProtocol extends LiteProtocol {
+export interface IFormattedProtocol extends ILiteProtocol {
 	extraTvl?: {
 		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
 	}

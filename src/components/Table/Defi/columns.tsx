@@ -28,75 +28,12 @@ import type {
 	CoinPerformanceRow,
 	IBridgedRow,
 	ICategoryRow,
-	IChainsRow,
 	IEmission,
 	IETFRow,
 	IForksRow,
 	IGovernance,
-	ILSDRow,
-	IOraclesRow
+	ILSDRow
 } from './types'
-
-export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
-					<CustomLink
-						href={`/oracles/${getValue()}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as string}
-					</CustomLink>
-				</span>
-			)
-		}
-	},
-	{
-		header: 'Chains',
-		accessorKey: 'chains',
-		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			return <IconsRow links={getValue() as Array<string>} url="/oracles/chain" iconType="chain" />
-		},
-		size: 200,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Chains secured by the oracle'
-		}
-	},
-	{
-		header: 'Protocols Secured',
-		accessorKey: 'protocolsSecured',
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'TVS',
-		accessorKey: 'tvs',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Excludes CeFi'
-		}
-	},
-	{
-		header: 'Perp DEXs Volume (30d)',
-		accessorKey: 'monthlyVolume',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Cumulative last 30d volume secured'
-		}
-	}
-]
 
 export const forksColumn: ColumnDef<IForksRow>[] = [
 	{

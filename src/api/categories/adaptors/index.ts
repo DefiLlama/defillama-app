@@ -1,4 +1,4 @@
-import type { LiteProtocol, IParentProtocol } from '~/api/types'
+import type { IParentProtocol } from '~/api/types'
 import {
 	PROTOCOLS_API,
 	DIMENISIONS_SUMMARY_BASE_API,
@@ -17,6 +17,7 @@ import { sluggify } from '~/utils/cache-client'
 import { ISettings } from '~/contexts/types'
 import metadataCache from '~/utils/metadata'
 import { getCexVolume } from '~/DimensionAdapters/queries'
+import { ILiteProtocol } from '~/ChainOverview/types'
 const { chainMetadata } = metadataCache
 
 export enum ADAPTOR_TYPES {
@@ -140,7 +141,7 @@ export const getOverviewItemPageData = async (
 }
 
 function getMCap(protocolsData: {
-	protocols: LiteProtocol[]
+	protocols: Array<ILiteProtocol>
 	parentProtocols: Array<{ name: string; mcap?: number }>
 }) {
 	return {
@@ -155,7 +156,7 @@ function getMCap(protocolsData: {
 	}
 }
 
-function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
+function getTVLData(protocolsData: { protocols: Array<ILiteProtocol> }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
 				...p,
@@ -178,7 +179,7 @@ export const getDimensionAdapterChainPageData = async (type: string, chain?: str
 
 	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData, holdersRevenueData]: [
 		IGetOverviewResponseBody,
-		{ protocols: LiteProtocol[]; parentProtocols: IParentProtocol[] },
+		{ protocols: Array<ILiteProtocol>; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
 		number,
 		Record<string, Record<string, number>>,

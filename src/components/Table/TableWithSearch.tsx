@@ -12,7 +12,7 @@ import {
 import { VirtualTable } from '~/components/Table/Table'
 import { Icon } from '~/components/Icon'
 
-export function TableWithSearch({ data, columns, placeholder, columnToSearch, customFilters = null }) {
+export function TableWithSearch({ data, columns, placeholder, columnToSearch, customFilters = null, header = null }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -49,8 +49,9 @@ export function TableWithSearch({ data, columns, placeholder, columnToSearch, cu
 	}, [projectName, instance, columnToSearch])
 
 	return (
-		<>
-			<div className="flex items-center last:*:ml-auto -mb-6">
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="flex items-center last:*:ml-auto p-3">
+				{header ? <h1 className="text-lg font-semibold mr-auto">{header}</h1> : null}
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
@@ -70,6 +71,6 @@ export function TableWithSearch({ data, columns, placeholder, columnToSearch, cu
 				{customFilters}
 			</div>
 			<VirtualTable instance={instance} />
-		</>
+		</div>
 	)
 }

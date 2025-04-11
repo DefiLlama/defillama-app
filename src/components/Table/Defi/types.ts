@@ -1,11 +1,5 @@
 import { IChainAssets } from '~/ChainOverview/types'
 
-export interface IOraclesRow {
-	name: string
-	protocolsSecured: number
-	tvs: number
-}
-
 export interface IForksRow {
 	name: string
 	forkedProtocols: number

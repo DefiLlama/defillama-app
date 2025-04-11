@@ -1,24 +1,26 @@
 import * as React from 'react'
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
-import { getOraclePageData, getOraclePageDataByChain } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import Oracles from '~/containers/Oracles'
+import { OraclesByChain } from '~/Oracles'
+import { getOraclePageData, getOraclePageDataByChain } from '~/Oracles/queries'
 
-// @ts-ignore TODO: same reason as in another file, getOraclePageData cares too much
-export const getStaticProps = withPerformanceLogging('oracles', async ({ params: { chain } }) => {
+export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params: { chain } }) => {
 	const data = await getOraclePageDataByChain(chain as string)
 
+	if (!data) {
+		return { notFound: true }
+	}
+
 	return {
-		...data,
+		props: { ...data },
 		revalidate: maxAgeForNext([22])
 	}
 })
 
 export async function getStaticPaths() {
-	const { props } = await getOraclePageData()
+	const data = await getOraclePageData()
 
-	const chainsByOracle = props ? props?.chainsByOracle : {}
+	const chainsByOracle = data?.chainsByOracle ?? {}
 
 	const chainsLits = [...new Set(Object.values(chainsByOracle).flat())]
 
@@ -32,9 +34,5 @@ export async function getStaticPaths() {
 }
 
 export default function OraclesPage(props) {
-	return (
-		<Layout title={`Oracles - DefiLlama`} defaultSEO>
-			<Oracles {...props} />
-		</Layout>
-	)
+	return <OraclesByChain {...props} />
 }

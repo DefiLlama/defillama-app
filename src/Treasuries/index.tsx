@@ -85,7 +85,7 @@ export function Treasuries({ data, entity }) {
 	return (
 		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} defaultSEO>
 			<div className="bg-[var(--cards-bg)] rounded-md p-3 flex items-center gap-4 justify-between">
-				<h1 className="text-xl font-semibold mr-auto">{entity ? 'Entities' : 'Protocol'} Treasuries</h1>
+				<h1 className="text-xl font-semibold mr-auto">Treasuries</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</div>
 			<div className="bg-[var(--cards-bg)] rounded-md p-3">

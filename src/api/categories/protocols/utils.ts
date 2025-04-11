@@ -1,7 +1,8 @@
-import type { IFormattedProtocol, LiteProtocol } from '~/api/types'
+import type { IFormattedProtocol } from '~/api/types'
 import { keepNeededProperties } from '~/api/shared'
 import { getPercentChange } from '~/utils'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { ILiteProtocol } from '~/ChainOverview/types'
 
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
 
@@ -10,7 +11,7 @@ interface IFormatProtocolsData {
 	oracle?: string
 	fork?: string
 	category?: string
-	protocols: LiteProtocol[]
+	protocols: Array<ILiteProtocol>
 	protocolProps?: BasicPropsToKeep
 	removeBridges?: boolean
 }
