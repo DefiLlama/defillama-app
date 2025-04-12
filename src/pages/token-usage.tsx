@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
@@ -15,15 +15,24 @@ import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTa
 import { TokenLogo } from '~/components/TokenLogo'
 import { CustomLink } from '~/components/Link'
 
-const fetchProtocols = async (tokenSymbol) => {
-	if (!tokenSymbol) return null
-	try {
-		const data = await fetch(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`).then((res) => res.json())
-		return data
-	} catch (error) {
-		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
+export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
+	const searchData = await getAllCGTokensList()
+
+	return {
+		props: {
+			searchData: searchData
+				.filter((token) => token.name && token.symbol && token.image)
+				.map((token) => ({
+					name: `${token.name}`,
+					route: `/token-usage?token=${token.symbol}`,
+					symbol: token.symbol,
+					logo: token.image2 || null,
+					fallbackLogo: token.image || null
+				}))
+		},
+		revalidate: maxAgeForNext([23])
 	}
-}
+})
 
 export default function Tokens({ searchData }) {
 	const router = useRouter()
@@ -105,7 +114,16 @@ export default function Tokens({ searchData }) {
 							</div> */}
 						</div>
 
-						<Table data={filteredProtocols} />
+						<Suspense
+							fallback={
+								<div
+									style={{ minHeight: `${filteredProtocols.length * 50 + 200}px` }}
+									className="bg-[var(--cards-bg)] rounded-md"
+								/>
+							}
+						>
+							<Table data={filteredProtocols} />
+						</Suspense>
 					</>
 				)}
 			</div>
@@ -113,24 +131,15 @@ export default function Tokens({ searchData }) {
 	)
 }
 
-export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
-	const searchData = await getAllCGTokensList()
-
-	return {
-		props: {
-			searchData: searchData
-				.filter((token) => token.name && token.symbol && token.image)
-				.map((token) => ({
-					name: `${token.name}`,
-					route: `/token-usage?token=${token.symbol}`,
-					symbol: token.symbol,
-					logo: token.image2 || null,
-					fallbackLogo: token.image || null
-				}))
-		},
-		revalidate: maxAgeForNext([23])
+const fetchProtocols = async (tokenSymbol) => {
+	if (!tokenSymbol) return null
+	try {
+		const data = await fetch(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`).then((res) => res.json())
+		return data
+	} catch (error) {
+		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
 	}
-})
+}
 
 function Table({ data }: { data: Array<{ name: string; amountUsd: number }> }) {
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])

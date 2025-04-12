@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { getColorFromNumber, getDominancePercent } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { LANGS_API } from '~/constants'
@@ -84,12 +83,9 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
 	return (
 		<Layout title={`Languages - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch hideFilters />
-
-			<h2 className="font-semibold text-xl -mb-6 ml-1">Breakdown by Smart Contract Languages</h2>
-
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
-				<LazyChart>
+			<div className="bg-[var(--cards-bg)] rounded-md [&[role='combobox']]:*:*:*:-mb-9">
+				<h2 className="col-span-full font-semibold text-xl p-3">Breakdown by Smart Contract Languages</h2>
+				<LazyChart className="p-0 min-h-[360px]">
 					<AreaChart
 						chartData={langs}
 						title="TVL"
@@ -100,7 +96,7 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 						stackColors={colors}
 					/>
 				</LazyChart>
-				<LazyChart>
+				<LazyChart className="p-0 min-h-[360px]">
 					<AreaChart
 						chartData={langsDominance}
 						title="TVL Dominance"
@@ -113,9 +109,10 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 				</LazyChart>
 			</div>
 
-			<h2 className="font-semibold text-xl -mb-6 ml-1">Open/Closed Source breakdown of solana protocols</h2>
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
-				<LazyChart>
+			<div className="bg-[var(--cards-bg)] rounded-md relative">
+				<h2 className="font-semibold text-xl p-3">Open/Closed Source breakdown of solana protocols</h2>
+
+				<LazyChart className="p-0 min-h-[360px]">
 					<AreaChart
 						chartData={osDominance}
 						title=""

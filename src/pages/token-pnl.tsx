@@ -1,5 +1,5 @@
 import React from 'react'
-import TokenPnl from '~/containers/TokenPnl'
+import TokenPnl from '~/TokenPnl'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'

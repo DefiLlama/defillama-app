@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
-import CompareTokens from '~/containers/CompareTokens'
+import CompareTokens from '~/CompareTokens'
 import { getProtocols } from '~/api/categories/protocols'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { fetchWithErrorLogging } from '~/utils/async'

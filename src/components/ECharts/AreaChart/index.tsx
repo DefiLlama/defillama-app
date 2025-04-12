@@ -290,7 +290,10 @@ export default function AreaChart({
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
 	return (
-		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-4" {...props}>
+		<div
+			className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-3 [&[role='combobox']]:*:mt-3"
+			{...props}
+		>
 			{customLegendName && customLegendOptions?.length > 1 && (
 				<SelectWithCombobox
 					allValues={customLegendOptions}
@@ -300,6 +303,10 @@ export default function AreaChart({
 					clearAll={() => setLegendOptions([])}
 					toggleAll={() => setLegendOptions(customLegendOptions)}
 					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+					}}
 				/>
 			)}
 			<div id={id} className="h-[360px] my-auto mx-0" style={height ? { height } : undefined} />

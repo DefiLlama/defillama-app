@@ -185,7 +185,7 @@ export default function BarChart({
 	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions])
 
 	return (
-		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-4">
+		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-3 [&[role='combobox']]:*:mt-3">
 			{customLegendName && customLegendOptions?.length > 1 && (
 				<SelectWithCombobox
 					allValues={customLegendOptions}
@@ -195,6 +195,10 @@ export default function BarChart({
 					clearAll={() => setLegendOptions([])}
 					toggleAll={() => setLegendOptions(customLegendOptions)}
 					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+					}}
 				/>
 			)}
 			<div id={id} style={{ height, margin: 'auto 0' }}></div>

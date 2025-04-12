@@ -3,7 +3,7 @@ import React, { useMemo, useState, useCallback } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
 import { LocalLoader } from '~/components/LocalLoader'
-import { CoinsPicker } from '~/containers/Correlations'
+import { CoinsPicker } from '~/Correlations'
 import { formattedNum } from '~/utils'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
@@ -114,9 +114,9 @@ export default function TokenPnl({ coinsData }) {
 	const dialogStore = Ariakit.useDialogStore()
 
 	return (
-		<div className="flex flex-col gap-2 items-center w-full max-w-sm mx-auto">
-			<h1 className="text-2xl font-medium text-center">Token Holder Profit and Loss</h1>
-			<div className="bg-[var(--bg1)] w-full p-4 rounded-md shadow flex flex-col gap-4">
+		<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md xl:fixed xl:left-0 xl:right-0 xl:top-[60px] bg-[var(--cards-bg)] p-3">
+			<h1 className="text-xl font-semibold text-center">Token Holder Profit and Loss</h1>
+			<div className="flex flex-col gap-3 w-full">
 				<label className="flex flex-col gap-1 text-sm">
 					<span>Start Date:</span>
 					<input

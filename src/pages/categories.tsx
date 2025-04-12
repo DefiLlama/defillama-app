@@ -4,7 +4,6 @@ import { maxAgeForNext } from '~/api'
 import { getRevenuesByCategories } from '~/api/categories/adaptors'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
 import type { IChartProps } from '~/components/ECharts/types'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { categoriesColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
@@ -182,7 +181,7 @@ export const descriptions = {
 		'Protocols that artificially increase trading volume and liquidity for tokens, boosting market perception',
 	DOR: 'Decentralized Offered Rates - The DOR mechanism provides a decentralized benchmark rate for crypto assets',
 	'Collateral Management': 'Protocols that manage or leverage onchain collateral for financial applications',
-	'Meme': 'Tokens inspired by internet culture, trends, or public figures. Typically community-driven and speculative in nature.'
+	Meme: 'Tokens inspired by internet culture, trends, or public figures. Typically community-driven and speculative in nature.'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
@@ -190,29 +189,36 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
-
-			<h1 className="text-2xl font-medium -mb-5">Protocol Categories</h1>
-
-			<div className="bg-[var(--bg6)] min-h-[424px] shadow rounded-xl p-4">
-				<AreaChart
-					chartData={categoriesWithExtraTvlsByDay}
-					stacks={uniqueCategories}
-					stackColors={categoryColors}
-					customLegendName="Category"
-					customLegendOptions={uniqueCategories}
-					hideDefaultLegend
-					valueSymbol="$"
-					title=""
-				/>
+			<div className="bg-[var(--cards-bg)] min-h-[412px] rounded-md relative">
+				<h1 className="text-xl font-semibold absolute top-0 left-0 z-10 p-3">Categories</h1>
+				<div className="bg-[var(--cards-bg)] rounded-md relative">
+					<React.Suspense fallback={<></>}>
+						<AreaChart
+							chartData={categoriesWithExtraTvlsByDay}
+							stacks={uniqueCategories}
+							stackColors={categoryColors}
+							hideDefaultLegend
+							valueSymbol="$"
+							title=""
+							customLegendName="Category"
+							customLegendOptions={uniqueCategories}
+						/>
+					</React.Suspense>
+				</div>
 			</div>
 
-			<TableWithSearch
-				data={categories}
-				columns={categoriesColumn}
-				columnToSearch={'name'}
-				placeholder={'Search category...'}
-			/>
+			<React.Suspense
+				fallback={
+					<div style={{ minHeight: `${categories.length * 50 + 200}px` }} className="bg-[var(--cards-bg)] rounded-md" />
+				}
+			>
+				<TableWithSearch
+					data={categories}
+					columns={categoriesColumn}
+					columnToSearch={'name'}
+					placeholder={'Search category...'}
+				/>
+			</React.Suspense>
 		</Layout>
 	)
 }
