@@ -6,7 +6,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useDefiManager } from '~/contexts/LocalStorage'
-import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDaysAgo } from '~/utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDaysAgo } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
 import { removedCategories } from '~/constants'
@@ -26,7 +26,10 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
-						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
+						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
+							<TokenLogo logo={chainIconUrl(chain)} size={14} />
+							<span>{chain}</span>
+						</span>
 					))}
 				</span>
 			)
@@ -396,7 +399,10 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
-						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
+						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
+							<TokenLogo logo={chainIconUrl(chain)} size={14} />
+							<span>{chain}</span>
+						</span>
 					))}
 				</span>
 			)
@@ -582,7 +588,10 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
-						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
+						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
+							<TokenLogo logo={chainIconUrl(chain)} size={14} />
+							<span>{chain}</span>
+						</span>
 					))}
 				</span>
 			)

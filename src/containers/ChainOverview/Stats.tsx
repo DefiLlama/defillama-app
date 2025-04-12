@@ -189,7 +189,7 @@ export const Stats = (props: IChainOverviewData) => {
 					</h1>
 				)}
 				<div className="flex items-end flex-nowrap justify-between gap-8">
-					<h2 className="lex flex-col">
+					<h2 className="flex flex-col">
 						<Tooltip
 							content={
 								props.metadata.name === 'All'

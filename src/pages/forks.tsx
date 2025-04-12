@@ -4,7 +4,7 @@ import Layout from '~/layout'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { maxAgeForNext } from '~/api'
-import { getForkPageData } from '~/Forks/queries'
+import { getForkPageData } from '~/containers/Forks/queries'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'

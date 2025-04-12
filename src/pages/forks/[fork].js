@@ -1,7 +1,7 @@
 import { maxAgeForNext } from '~/api'
-import { getForkPageData } from '~/Forks/queries'
+import { getForkPageData } from '~/containers/Forks/queries'
 import { withPerformanceLogging } from '~/utils/perf'
-import { ForksByProtocol } from '~/Forks'
+import { ForksByProtocol } from '~/containers/Forks'
 
 export const getStaticProps = withPerformanceLogging('forks', async ({ params: { fork } }) => {
 	const data = await getForkPageData(fork)

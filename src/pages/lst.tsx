@@ -51,25 +51,23 @@ const PageView = ({
 	const inflowsData = groupDataByDays(inflowsChartData, groupBy, tokens, true)
 
 	return (
-		<>
-			<ProtocolsChainsSearch hideFilters />
-
-			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between gap-4 flex-wrap">
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<h1 className="text-xl font-semibold flex items-center justify-between gap-4 flex-wrap p-3">
 				<span>Total Value Locked ETH LSTs</span>
 				<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
 			</h1>
 
 			<div className="rounded-xl shadow bg-[var(--bg6)] w-full flex flex-col">
-				<div className="flex flex-wrap overflow-x-auto border-b border-black/10 dark:border-white/10">
+				<div className="flex flex-wrap overflow-x-auto border-y border-black/10 dark:border-white/10">
 					<button
-						className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						className="py-2 px-6 whitespace-nowrap border-black/10 dark:border-white/10 data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
 						onClick={() => setTab('breakdown')}
 						data-selected={tab === 'breakdown'}
 					>
 						Breakdown
 					</button>
 					<button
-						className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						className="py-2 px-6 whitespace-nowrap border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
 						onClick={() => setTab('inflows')}
 						data-selected={tab === 'inflows'}
 					>
@@ -77,11 +75,10 @@ const PageView = ({
 					</button>
 				</div>
 
-				<div className="flex flex-col items-center gap-4 p-4 min-h-[360px] w-full">
+				<div className="flex flex-col items-center gap-4 min-h-[408px] w-full">
 					{tab === 'breakdown' ? (
-						<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 rounded-xl bg-[var(--bg6)] min-h-[360px]">
+						<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 pt-12 [&[role='combobox']]:*:*:-mt-9 [&[role='combobox']]:*:*:-mb-6">
 							<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
-
 							<AreaChart
 								chartData={areaChartData}
 								stacks={tokens}
@@ -151,7 +148,7 @@ const PageView = ({
 				columnToSearch={'name'}
 				placeholder={'Search protocols...'}
 			/>
-		</>
+		</div>
 	)
 }
 

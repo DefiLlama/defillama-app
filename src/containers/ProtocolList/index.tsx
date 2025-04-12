@@ -172,9 +172,9 @@ function Container({
 				<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1 min-h-[394px]">
 					<div className="flex flex-col gap-8 p-6 col-span-1 w-full xl:w-[380px] rounded-md bg-[var(--cards-bg)] overflow-x-auto">
 						{chain !== 'All' && chain && (
-							<h1 className="flex items-center gap-2 text-xl">
+							<h1 className="flex items-center gap-2">
 								<TokenLogo logo={chainIconUrl(chain)} size={24} />
-								<span>{chain}</span>
+								<span className="text-xl font-semibold">{chain}</span>
 							</h1>
 						)}
 						<details className="group text-base">
@@ -186,7 +186,7 @@ function Container({
 									className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
 								/>
 								<span className="flex flex-col">
-									<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+									<span className="text-[#545757] dark:text-[#cccccc] text-sm">Total Value Locked</span>
 									<span className="font-semibold text-2xl font-jetbrains min-h-8">{tvl}</span>
 								</span>
 							</summary>
@@ -199,7 +199,7 @@ function Container({
 								<span className="font-jetbrains">{dominance}%</span>
 							</p>
 						</details>
-						<table>
+						<table className="text-base w-full border-collapse">
 							<tbody>
 								{totals.volume_24h ? (
 									<RowWithSubRows

@@ -280,7 +280,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
 						<span key={`/protocol/${row.original.slug}` + chain} className="flex items-center gap-1">
-							<TokenLogo logo={chainIconUrl(chain)} size={12} />
+							<TokenLogo logo={chainIconUrl(chain)} size={14} />
 							<span>{chain}</span>
 						</span>
 					))}
