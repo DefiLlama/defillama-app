@@ -1,9 +1,9 @@
 import Layout from '~/layout'
-import YieldPageOptimizer from '~/Yields/indexOptimizer'
+import YieldPageOptimizer from '~/containers/Yields/indexOptimizer'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/Yields/utils'
+import { disclaimer } from '~/containers/Yields/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
-import { getLendBorrowData } from '~/Yields/queries/index'
+import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {

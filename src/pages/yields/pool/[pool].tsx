@@ -11,7 +11,7 @@ import {
 	useYieldConfigData,
 	useYieldPoolData,
 	useYieldChartLendBorrow
-} from '~/Yields/queries/client'
+} from '~/containers/Yields/queries/client'
 import { getColorFromNumber } from '~/utils'
 import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
 import exponentialLogo from '~/assets/exponential.avif'

@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
-import { OraclesByChain } from '~/Oracles'
-import { getOraclePageData, getOraclePageDataByChain } from '~/Oracles/queries'
+import { OraclesByChain } from '~/containers/Oracles'
+import { getOraclePageData, getOraclePageDataByChain } from '~/containers/Oracles/queries'
 
 export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params: { chain } }) => {
 	const data = await getOraclePageDataByChain(chain as string)

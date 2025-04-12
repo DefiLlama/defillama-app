@@ -1,4 +1,4 @@
-import { IChainAssets } from '~/ChainOverview/types'
+import { IChainAssets } from '~/containers/ChainOverview/types'
 
 export interface IForksRow {
 	name: string

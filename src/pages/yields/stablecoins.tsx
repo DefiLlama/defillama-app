@@ -1,9 +1,9 @@
 import Layout from '~/layout'
-import YieldPage from '~/Yields'
+import YieldPage from '~/containers/Yields'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/Yields/utils'
+import { disclaimer } from '~/containers/Yields/utils'
 import { maxAgeForNext } from '~/api'
-import { getYieldPageData } from '~/Yields/queries/index'
+import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/stablecoins', async () => {

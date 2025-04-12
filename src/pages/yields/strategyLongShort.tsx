@@ -1,9 +1,9 @@
 import Layout from '~/layout'
-import YieldsStrategyPageLongShort from '~/Yields/indexStrategyLongShort'
+import YieldsStrategyPageLongShort from '~/containers/Yields/indexStrategyLongShort'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/Yields/utils'
+import { disclaimer } from '~/containers/Yields/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
-import { getYieldPageData, getPerpData } from '~/Yields/queries/index'
+import { getYieldPageData, getPerpData } from '~/containers/Yields/queries/index'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/strategyLongShort', async () => {

@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import { BridgeTransactionsPage } from '~/containers/BridgesPage/Transactions'
 import { maxAgeForNext } from '~/api'
-import { getBridges } from '~/Bridges/queries.server'
+import { getBridges } from '~/containers/Bridges/queries.server'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridge-transactions', async () => {

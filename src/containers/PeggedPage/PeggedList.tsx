@@ -14,7 +14,7 @@ import {
 	useCalcGroupExtraPeggedByDay,
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
-import { buildStablecoinChartData, getStablecoinDominance } from '~/Stablecoins/utils'
+import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { formattedNum, getPercentChange, toNiceCsvDate, download } from '~/utils'
 import { PeggedFilters } from '~/components/Filters/stablecoins'
 import { Icon } from '~/components/Icon'

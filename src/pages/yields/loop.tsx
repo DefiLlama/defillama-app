@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import Layout from '~/layout'
-import YieldPageLoop from '~/Yields/indexLoop'
+import YieldPageLoop from '~/containers/Yields/indexLoop'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/Yields/utils'
+import { disclaimer } from '~/containers/Yields/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
-import { getLendBorrowData, calculateLoopAPY } from '~/Yields/queries/index'
+import { getLendBorrowData, calculateLoopAPY } from '~/containers/Yields/queries/index'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/loop', async () => {

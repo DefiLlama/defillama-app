@@ -18,12 +18,12 @@ import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { maxAgeForNext } from '~/api'
 import { getPercentChange, slug } from '~/utils'
-import { buildStablecoinChartData, getStablecoinDominance } from '~/Stablecoins/utils'
-import { getPeggedOverviewPageData } from '~/Stablecoins/queries.server'
+import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
+import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import metadataCache from '~/utils/metadata'
 import { getOverview, getDexVolumeByChain, getAppRevenueByChain, getFeesAndRevenueByChain } from '../adaptors'
-import { getCexVolume } from '~/DimensionAdapters/queries'
-import { getBridgeOverviewPageData } from '~/Bridges/queries.server'
+import { getCexVolume } from '~/containers/DimensionAdapters/queries'
+import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 
 const chainsMetadata = metadataCache.chainMetadata
 

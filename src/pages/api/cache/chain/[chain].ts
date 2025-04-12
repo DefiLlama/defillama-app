@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { fetchChain } from '~/CompareChains/chainFetcher'
+import { fetchChain } from '~/containers/CompareChains/chainFetcher'
 import { setObjectCache } from '~/utils/cache-client'
 import { getObjectCache } from '~/utils/cache-client'
 

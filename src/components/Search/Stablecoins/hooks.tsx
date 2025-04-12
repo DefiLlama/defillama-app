@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useFetchStablecoinsList } from '~/Stablecoins/queries.client'
+import { useFetchStablecoinsList } from '~/containers/Stablecoins/queries.client'
 import { peggedAssetIconUrl, slug } from '~/utils'
 import type { IBaseSearchProps, IGetSearchList } from '../types'
 

@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { useFetchBridgeVolume } from '~/Bridges/queries.client'
+import { useFetchBridgeVolume } from '~/containers/Bridges/queries.client'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import dayjs from 'dayjs'
 import { LocalLoader } from '../LocalLoader'

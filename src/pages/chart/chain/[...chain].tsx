@@ -4,11 +4,11 @@ import { useEffect } from 'react'
 import { getChainPageData } from '~/api/categories/chains'
 import { LocalLoader } from '~/components/LocalLoader'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { useFetchChainChartData } from '~/ChainOverview/useFetchChainChartData'
+import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
+const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false
 })
 

@@ -1,4 +1,4 @@
-import { CompareChains } from '~/CompareChains'
+import { CompareChains } from '~/containers/CompareChains'
 import Layout from '~/layout'
 
 export default function Compare() {

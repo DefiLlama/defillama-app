@@ -2,9 +2,9 @@ import { PROTOCOLS_API } from '~/constants/index'
 import { withPerformanceLogging } from '~/utils/perf'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { slug } from '~/utils'
-import { getChainOverviewData } from '~/ChainOverview/queries.server'
+import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { maxAgeForNext } from '~/api'
-import { ChainOverview } from '~/ChainOverview'
+import { ChainOverview } from '~/containers/ChainOverview'
 
 const fetch = fetchWithErrorLogging
 

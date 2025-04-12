@@ -18,7 +18,7 @@ import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { TokenLogo } from '~/components/TokenLogo'
 import { EmbedChart } from '~/components/EmbedChart'
 import { primaryColor } from '~/constants/colors'
-import { useFetchChainChartData } from '../../ChainOverview/useFetchChainChartData'
+import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatRaise, formatRaisedAmount } from '~/containers/Defi/Protocol/utils'
 import { sluggify } from '~/utils/cache-client'
@@ -26,7 +26,7 @@ import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 
-const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
+const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false,
 	loading: () => <div className="flex items-center justify-center m-auto h-[360px]"></div>
 })

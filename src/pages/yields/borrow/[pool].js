@@ -5,7 +5,7 @@ import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
 import { download, toK } from '~/utils'
-import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~/Yields/queries/client'
+import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~/containers/Yields/queries/client'
 import { getColorFromNumber } from '~/utils'
 import { useEffect } from 'react'
 

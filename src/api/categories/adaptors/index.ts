@@ -16,8 +16,8 @@ import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
 import { ISettings } from '~/contexts/types'
 import metadataCache from '~/utils/metadata'
-import { getCexVolume } from '~/DimensionAdapters/queries'
-import { ILiteProtocol } from '~/ChainOverview/types'
+import { getCexVolume } from '~/containers/DimensionAdapters/queries'
+import { ILiteProtocol } from '~/containers/ChainOverview/types'
 const { chainMetadata } = metadataCache
 
 export enum ADAPTOR_TYPES {

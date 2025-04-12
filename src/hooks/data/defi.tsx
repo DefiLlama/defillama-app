@@ -4,7 +4,7 @@ import { removedCategories } from '~/constants'
 import { ISettings } from '~/contexts/types'
 import { getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
-import { IChainAssets } from '~/ChainOverview/types'
+import { IChainAssets } from '~/containers/ChainOverview/types'
 
 interface IData {
 	tvl: number

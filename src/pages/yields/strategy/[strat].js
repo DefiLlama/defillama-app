@@ -3,8 +3,13 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { LazyChart } from '~/components/LazyChart'
-import { useYieldChartData, useYieldChartLendBorrow, useConfigPool, useYieldConfigData } from '~/Yields/queries/client'
-import { calculateLoopAPY } from '~/Yields/queries/index'
+import {
+	useYieldChartData,
+	useYieldChartLendBorrow,
+	useConfigPool,
+	useYieldConfigData
+} from '~/containers/Yields/queries/client'
+import { calculateLoopAPY } from '~/containers/Yields/queries/index'
 import { toK } from '~/utils'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {

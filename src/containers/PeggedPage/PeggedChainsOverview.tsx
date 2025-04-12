@@ -6,7 +6,11 @@ import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ChartSelector } from '~/containers/PeggedPage/.'
 import { PeggedChainsTable } from '~/components/Table/Stablecoins/PeggedChain'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
-import { buildStablecoinChartData, getStablecoinDominance, getPrevStablecoinTotalFromChart } from '~/Stablecoins/utils'
+import {
+	buildStablecoinChartData,
+	getStablecoinDominance,
+	getPrevStablecoinTotalFromChart
+} from '~/containers/Stablecoins/utils'
 import { formattedNum, getPercentChange, toNiceCsvDate, download } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'

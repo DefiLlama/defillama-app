@@ -23,7 +23,7 @@ import { fetchApi } from '~/utils/async'
 import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { LocalLoader } from '~/components/LocalLoader'
 
-const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
+const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false
 })
 

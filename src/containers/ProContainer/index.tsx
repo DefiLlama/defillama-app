@@ -12,7 +12,7 @@ import { useState } from 'react'
 import { ChartTypes, SortableItem } from '../Defi/Protocol/ProtocolPro'
 import { groupBy as lodahGroupBy, mapValues } from 'lodash'
 import { ItemsSelect, chainChartOptions } from './ItemsSelect'
-import { useCompare } from '~/CompareChains'
+import { useCompare } from '~/containers/CompareChains'
 import { SelectedItem } from './SelectedItem'
 import { LocalLoader } from '~/components/LocalLoader'
 import { sluggify } from '~/utils/cache-client'
@@ -23,7 +23,7 @@ import { useVerified } from './hooks/useVerified'
 import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import Subscribe from './Subscribe'
 
-const ChainChart: any = dynamic(() => import('~/ChainOverview/Chart').then((m) => m.ChainChart), {
+const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false
 })
 

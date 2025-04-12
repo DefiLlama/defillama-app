@@ -28,7 +28,7 @@ import { PeggedAssetByChainTable } from '~/components/Table/Stablecoins/PeggedAs
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
-import { buildStablecoinChartData } from '~/Stablecoins/utils'
+import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
