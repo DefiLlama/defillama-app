@@ -114,7 +114,7 @@ export default function TokenPnl({ coinsData }) {
 	const dialogStore = Ariakit.useDialogStore()
 
 	return (
-		<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md xl:fixed xl:left-0 xl:right-0 xl:top-[60px] bg-[var(--cards-bg)] p-3">
+		<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-[var(--cards-bg)] p-3">
 			<h1 className="text-xl font-semibold text-center">Token Holder Profit and Loss</h1>
 			<div className="flex flex-col gap-3 w-full">
 				<label className="flex flex-col gap-1 text-sm">

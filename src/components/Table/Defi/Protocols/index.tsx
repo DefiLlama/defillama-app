@@ -392,25 +392,28 @@ export function ProtocolsTableWithSearch({
 	}, [projectName, instance])
 
 	return (
-		<>
-			<div className="relative w-full sm:max-w-[280px] ml-auto -mb-4">
-				<Icon
-					name="search"
-					height={16}
-					width={16}
-					className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-				/>
-				<input
-					value={projectName}
-					onChange={(e) => {
-						setProjectName(e.target.value)
-					}}
-					placeholder="Search protocols..."
-					className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
-				/>
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="p-3 flex items-center justify-between gap-4">
+				<h1 className="text-lg font-semibold mr-auto">Protocol Rankings</h1>
+				<div className="relative w-full sm:max-w-[280px] ml-auto">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={projectName}
+						onChange={(e) => {
+							setProjectName(e.target.value)
+						}}
+						placeholder="Search protocols..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+					/>
+				</div>
 			</div>
 			<VirtualTable instance={instance} />
-		</>
+		</div>
 	)
 }
 

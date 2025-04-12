@@ -78,7 +78,7 @@ const initGetColor = () => {
 export function ChainChart({
 	title,
 	tooltipSort = true,
-	height = '360px',
+	height,
 	width = null,
 	expandTo100Percent = false,
 	denomination,
@@ -877,8 +877,8 @@ export function ChainChart({
 	])
 
 	return (
-		<div style={{ position: 'relative', minHeight: height }} {...props}>
-			<div id={id} style={{ minHeight: height }} className="my-auto" />
+		<div className="relative" {...props}>
+			<div id={id} className="my-auto min-h-[360px]" style={height ? { minHeight: height } : undefined} />
 		</div>
 	)
 }

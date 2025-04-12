@@ -775,8 +775,10 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 export default function Protocols({ cexs }) {
 	return (
 		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
-			<h1 className="text-2xl font-medium -mb-5">CEX Transparency</h1>
-			<Cexs cexs={cexs} />
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<h1 className="text-xl font-semibold p-3">CEX Transparency</h1>
+				<Cexs cexs={cexs} />
+			</div>
 		</Layout>
 	)
 }

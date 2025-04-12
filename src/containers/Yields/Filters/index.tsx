@@ -42,7 +42,7 @@ export function YieldFiltersV2({
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md">
 			<div className="relative flex items-center gap-2 flex-wrap p-3">
-				<h1>{header}</h1>
+				<h1 className="font-semibold">{header}</h1>
 				{trackingStats ? <p>{trackingStats}</p> : null}
 			</div>
 			<div className="flex flex-col gap-4 p-3 rounded-b-md">

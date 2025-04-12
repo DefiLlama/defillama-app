@@ -38,18 +38,20 @@ function BridgeChainsOverview({ chains, filteredChains, formattedVolumeChartData
 		<>
 			<BridgesSearch />
 
-			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
-				<span>Bridge Inflows by Chain</span>
-				<CSVDownloadButton onClick={downloadCsv} />
-			</h1>
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<div className="flex items-center justify-between flex-wrap gap-3 p-3">
+					<h1 className="text-xl font-semibold">Bridge Inflows by Chain</h1>
+					<CSVDownloadButton onClick={downloadCsv} />
+				</div>
 
-			<div className="border border-[var(--divider)] shadow rounded-md p-4 min-h-[394px]">
-				{formattedVolumeChartData && formattedVolumeChartData.length > 0 && (
-					<StackedBarChart chartData={formattedVolumeChartData as IStackedBarChartProps['chartData']} />
-				)}
+				<div className="min-h-[394px]">
+					{formattedVolumeChartData && formattedVolumeChartData.length > 0 && (
+						<StackedBarChart chartData={formattedVolumeChartData as IStackedBarChartProps['chartData']} />
+					)}
+				</div>
+
+				<BridgeChainsTable data={filteredChains} />
 			</div>
-
-			<BridgeChainsTable data={filteredChains} />
 		</>
 	)
 }

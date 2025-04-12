@@ -12,6 +12,7 @@ import type { IDropdownMenusProps } from './types'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { ColumnFilters } from './ColumnFilters'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Switch } from '~/components/Switch'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
 
@@ -159,17 +160,35 @@ export function YieldFilterDropdowns({
 				/>
 			)}
 
-			{excludeBadDebt && selectedAttributes && (
-				<label
-					className={
-						nestedMenu
-							? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
-							: 'flex items-center gap-1 flex-nowrap'
-					}
-				>
-					<input
-						type="checkbox"
+			{excludeBadDebt && selectedAttributes ? (
+				nestedMenu ? (
+					<label className="flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse">
+						<input
+							type="checkbox"
+							value="excludeBadDebt"
+							checked={isBadDebtToggled}
+							onChange={() => {
+								router.push(
+									{
+										pathname: pathname || router.pathname,
+										query: {
+											...router.query,
+											attribute: isBadDebtToggled
+												? selectedAttributes.filter((a) => a !== BAD_DEBT_KEY)
+												: [...selectedAttributes, BAD_DEBT_KEY]
+										}
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}}
+						/>
+						<span>Exclude bad debt</span>
+					</label>
+				) : (
+					<Switch
 						value="excludeBadDebt"
+						label="Exclude bad debt"
 						checked={isBadDebtToggled}
 						onChange={() => {
 							router.push(
@@ -187,20 +206,41 @@ export function YieldFilterDropdowns({
 							)
 						}}
 					/>
-					<span>Exclude bad debt</span>
-				</label>
-			)}
+				)
+			) : null}
 
-			{excludeRewardApy && (
-				<label
-					className={
-						nestedMenu
-							? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
-							: 'flex items-center gap-1 flex-nowrap'
-					}
-				>
-					<input
-						type="checkbox"
+			{excludeRewardApy ? (
+				nestedMenu ? (
+					<label
+						className={
+							nestedMenu
+								? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
+								: 'flex items-center gap-1 flex-nowrap'
+						}
+					>
+						<input
+							type="checkbox"
+							value="excludeRewardApy"
+							checked={shouldExlcudeRewardApy}
+							onChange={() => {
+								router.push(
+									{
+										pathname: pathname || router.pathname,
+										query: {
+											...router.query,
+											excludeRewardApy: !shouldExlcudeRewardApy
+										}
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}}
+						/>
+						<span>Exclude reward APY</span>
+					</label>
+				) : (
+					<Switch
+						label="Exclude reward APY"
 						value="excludeRewardApy"
 						checked={shouldExlcudeRewardApy}
 						onChange={() => {
@@ -217,20 +257,35 @@ export function YieldFilterDropdowns({
 							)
 						}}
 					/>
-					<span>Exclude reward APY</span>
-				</label>
-			)}
+				)
+			) : null}
 
-			{includeLsdApy && (
-				<label
-					className={
-						nestedMenu
-							? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
-							: 'flex items-center gap-1 flex-nowrap'
-					}
-				>
-					<input
-						type="checkbox"
+			{includeLsdApy ? (
+				nestedMenu ? (
+					<label className="flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse">
+						<input
+							type="checkbox"
+							value="includeLsdApy"
+							checked={shouldIncludeLsdApy}
+							onChange={() => {
+								router.push(
+									{
+										pathname: pathname || router.pathname,
+										query: {
+											...router.query,
+											includeLsdApy: !shouldIncludeLsdApy
+										}
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}}
+						/>
+						<span>Include LSD APY</span>
+					</label>
+				) : (
+					<Switch
+						label="LSD APY"
 						value="includeLsdApy"
 						checked={shouldIncludeLsdApy}
 						onChange={() => {
@@ -247,9 +302,8 @@ export function YieldFilterDropdowns({
 							)
 						}}
 					/>
-					<span>Include LSD APY</span>
-				</label>
-			)}
+				)
+			) : null}
 
 			{resetFilters ? <ResetAllYieldFilters pathname={pathname || router.pathname} nestedMenu={nestedMenu} /> : null}
 

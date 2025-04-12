@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { bridgedColumns } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 
@@ -42,10 +41,9 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 	}
 
 	return (
-		<>
-			<ProtocolsChainsSearch hideFilters />
-			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
-				<span>Bridged TVL for All chains</span>
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<h1 className="flex items-center justify-between flex-wrap gap-3 p-3">
+				<h1 className="text-xl font-semibold">Bridged TVL for All chains</h1>
 				<CSVDownloadButton onClick={onCSVDownload} />
 			</h1>
 			<TableWithSearch
@@ -54,6 +52,6 @@ export default function ChainsContainer({ assets, chains, flows1d }) {
 				placeholder={'Search chains...'}
 				columnToSearch={['name']}
 			/>
-		</>
+		</div>
 	)
 }
