@@ -6,7 +6,7 @@ import { Treasuries } from '~/Treasuries'
 
 export const getStaticProps = withPerformanceLogging('treasuries', async () => {
 	const data = await getTreasuryData()
-	console.log({ data })
+
 	return { props: { data, entity: false }, revalidate: maxAgeForNext([22]) }
 })
 
