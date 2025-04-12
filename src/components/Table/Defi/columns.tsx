@@ -441,65 +441,6 @@ export const calendarColumns: ColumnDef<any>[] = [
 	}
 ]
 
-export const expensesColumns: ColumnDef<any>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink
-						href={`/protocol/${slug(getValue() as string)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as string}
-					</CustomLink>
-				</span>
-			)
-		},
-		size: 220
-	},
-	{
-		header: 'Headcount',
-		accessorKey: 'headcount',
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Annual Expenses',
-		accessorKey: 'sumAnnualUsdExpenses',
-		cell: ({ getValue }) => {
-			return <>{getValue() ? '$' + formattedNum(getValue()) : ''}</>
-		},
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Source',
-		accessorKey: 'sources',
-		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<ButtonLight
-					className="flex items-center justify-center gap-4 !p-[6px]"
-					as="a"
-					href={getValue()[0] as string}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonLight>
-			) : null
-	}
-]
-
 export const governanceColumns: ColumnDef<IGovernance>[] = [
 	{
 		header: 'Name',

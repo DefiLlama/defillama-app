@@ -8,7 +8,6 @@ import { IChartProps } from '~/components/ECharts/types'
 import { PROTOCOL_API } from '~/constants'
 import { slug, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
 import { fuseProtocolData } from '~/api/categories/protocols'
@@ -54,16 +53,19 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 	const [extraTvlEnabled] = useDefiManager()
 
 	const { protocol } = router.query
-	const selectedProtocols = protocol ? (typeof protocol === 'string' ? [protocol] : [...protocol]) : null
+
+	const selectedProtocols = React.useMemo(() => {
+		return protocol ? (typeof protocol === 'string' ? [protocol] : [...protocol]) : []
+	}, [protocol])
 
 	const results = useQueries({
-		queries:
-			selectedProtocols?.map((protocol) => ({
-				queryKey: ['protocol-to-compare', protocol],
-				queryFn: () => fetchProtocol(protocol),
-				staleTime: 60 * 60 * 1000,
-				refetchOnWindowFocus: false
-			})) ?? []
+		queries: selectedProtocols.map((protocol) => ({
+			queryKey: ['protocol-to-compare', protocol],
+			queryFn: () => fetchProtocol(protocol),
+			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false,
+			retry: 0
+		}))
 	})
 
 	const isLoading = results.some((r) => r.isLoading)
@@ -116,7 +118,10 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 			})
 		})
 
-		return { chartData: Object.keys(chartData).map((date) => ({ date, ...chartData[date] })), stackColors }
+		return {
+			chartData: Object.keys(chartData).map((date) => ({ date, ...chartData[date] })),
+			stackColors: Object.values(stackColors).filter((c) => c === '#2172E5').length <= 1 ? stackColors : null
+		}
 	}, [results, extraTvlEnabled])
 
 	const setSelectedProtocols = (values) => {
@@ -135,37 +140,40 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 	}
 
 	return (
-		<Layout title={`Compare Protocols TVLs - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
-
-			<div className="relative flex flex-col min-h-screen">
-				<SelectWithCombobox
-					allValues={protocols}
-					selectedValues={selectedProtocols ?? []}
-					setSelectedValues={setSelectedProtocols}
-					label="Selected Protocols"
-					clearAll={() => setSelectedProtocols([])}
-					toggleAll={() => setSelectedProtocols(protocols)}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative max-w-fit'
-					}}
-				/>
-				<div className="relative col-span-2 p-4 shadow rounded-xl">
-					{isLoading ? (
-						<p className="text-[var(--text1)] text-center mt-[20vh]">Loading...</p>
-					) : (
+		<Layout title={`Compare Protocols - DefiLlama`} defaultSEO>
+			<div className="bg-[var(--cards-bg)] rounded-md isolate">
+				<div className="flex items-center justify-between flex-wrap gap-2 p-3">
+					<h1 className="text-lg font-semibold mr-auto">Compare Protocols</h1>
+					<SelectWithCombobox
+						allValues={protocols}
+						selectedValues={selectedProtocols}
+						setSelectedValues={setSelectedProtocols}
+						label="Selected Protocols"
+						clearAll={() => setSelectedProtocols([])}
+						toggleAll={() => setSelectedProtocols(protocols)}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+						}}
+					/>
+				</div>
+				{isLoading ? (
+					<div className="h-[360px] flex flex-col items-center justify-center">
+						<p>Loading...</p>
+					</div>
+				) : (
+					<React.Suspense fallback={<div className="min-h-[360px]" />}>
 						<AreaChart
 							chartData={chartData}
-							title="Protocols"
+							title=""
 							valueSymbol="$"
 							stacks={selectedProtocols}
 							stackColors={stackColors}
 							hideDefaultLegend
 						/>
-					)}
-				</div>
+					</React.Suspense>
+				)}
 			</div>
 		</Layout>
 	)

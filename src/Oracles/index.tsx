@@ -86,14 +86,19 @@ export const OraclesByChain = ({
 					</React.Suspense>
 				</div>
 			</div>
-
-			<TableWithSearch
-				data={tokensList}
-				columns={columns}
-				columnToSearch={'name'}
-				placeholder={'Search oracles...'}
-				header={'Oracle Rankings'}
-			/>
+			<React.Suspense
+				fallback={
+					<div style={{ minHeight: `${tokensList.length * 50 + 200}px` }} className="bg-[var(--cards-bg)] rounded-md" />
+				}
+			>
+				<TableWithSearch
+					data={tokensList}
+					columns={columns}
+					columnToSearch={'name'}
+					placeholder={'Search oracles...'}
+					header={'Oracle Rankings'}
+				/>
+			</React.Suspense>
 		</Layout>
 	)
 }

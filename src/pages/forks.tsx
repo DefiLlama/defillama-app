@@ -101,13 +101,19 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 					</React.Suspense>
 				</div>
 			</div>
-			<TableWithSearch
-				data={tokensList}
-				columns={forksColumn}
-				placeholder={'Search protocols...'}
-				columnToSearch={'name'}
-				header={'Protocol Rankings'}
-			/>
+			<React.Suspense
+				fallback={
+					<div style={{ minHeight: `${tokensList.length * 50 + 200}px` }} className="bg-[var(--cards-bg)] rounded-md" />
+				}
+			>
+				<TableWithSearch
+					data={tokensList}
+					columns={forksColumn}
+					placeholder={'Search protocols...'}
+					columnToSearch={'name'}
+					header={'Protocol Rankings'}
+				/>
+			</React.Suspense>
 		</Layout>
 	)
 }
