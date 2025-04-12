@@ -41,9 +41,9 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 	}, [collectionName, instance])
 
 	return (
-		<>
-			<div className="flex items-center gap-4 flex-wrap last:*:ml-auto -mb-6">
-				<h1 className="text-2xl font-medium">NFT Collections</h1>
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="flex items-center gap-4 flex-wrap last:*:ml-auto p-3">
+				<h1 className="text-xl font-semibold">NFT Collections</h1>
 
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
@@ -63,6 +63,6 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 				</div>
 			</div>
 			<VirtualTable instance={instance} />
-		</>
+		</div>
 	)
 }

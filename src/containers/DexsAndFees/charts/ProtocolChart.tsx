@@ -166,13 +166,13 @@ export const ProtocolChart = ({
 				{barsData && barsData.length > 0 && (
 					<div className="flex gap-2 flex-row items-center flex-wrap justify-between mx-4">
 						<>{title ?? ''}</>
-						<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto font-normal text-sm">
+						<div className="m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<button
 									key={dataInterval}
 									onClick={() => setBarInterval(dataInterval)}
 									data-active={dataInterval === barInterval}
-									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+									className="flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 								>
 									{dataInterval}
 								</button>
@@ -221,13 +221,13 @@ export const ChartOnly = ({ title, chartData }) => {
 				<div className="flex flex-col gap-2 m-5 mt-0">
 					<>{title ?? ''}</>
 
-					<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto font-normal text-sm">
+					<div className="m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 						{INTERVALS_LIST.map((dataInterval) => (
 							<button
 								key={dataInterval}
 								onClick={() => setBarInterval(dataInterval)}
 								data-active={dataInterval === barInterval}
-								className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 							>
 								{dataInterval}
 							</button>
