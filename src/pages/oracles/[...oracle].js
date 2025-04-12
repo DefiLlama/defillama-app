@@ -6,11 +6,11 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { formatChartTvlsByDay } from '~/hooks/data'
 import { formattedNum, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
 import { maxAgeForNext } from '~/api'
-import { getOraclePageData } from '~/api/categories/protocols'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
+import { getOraclePageData } from '~/Oracles/queries'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
