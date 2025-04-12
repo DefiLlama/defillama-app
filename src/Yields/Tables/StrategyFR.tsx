@@ -1,14 +1,18 @@
+import * as React from 'react'
+import { YieldsTableWrapper } from './shared'
+import { getColumnSizesKeys } from '~/components/Table/utils'
+
 import { ColumnDef } from '@tanstack/react-table'
 import { formattedNum, formattedPercent } from '~/utils'
-import { NameYieldPool, FRStrategyRoute } from '../Name'
-import { formatColumnOrder } from '../../utils'
-import type { IYieldsStrategyTableRow } from '../types'
+import { NameYieldPool, FRStrategyRoute } from './Name'
+import type { IYieldsStrategyTableRow } from './types'
 import { Tooltip } from '~/components/Tooltip'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { lockupsRewards, earlyExit } from '~/containers/YieldsPage/utils'
-import { ColoredAPY } from '../ColoredAPY'
+import { lockupsRewards, earlyExit } from '~/Yields/utils'
+import { ColoredAPY } from './ColoredAPY'
+import { formatColumnOrder } from '~/components/Table/utils'
 
-export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
+const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 	{
 		header: 'Strategy',
 		accessorKey: 'strategy',
@@ -195,7 +199,7 @@ const columnOrders = {
 	1280: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest']
 }
 
-export const columnSizes = {
+const columnSizes = {
 	0: {
 		strategy: 250,
 		strategyAPY: 145,
@@ -218,4 +222,19 @@ export const columnSizes = {
 	}
 }
 
-export const yieldsColumnOrders = formatColumnOrder(columnOrders)
+const yieldsColumnOrders = formatColumnOrder(columnOrders)
+
+const columnSizesKeys = getColumnSizesKeys(columnSizes)
+
+export function YieldsStrategyTableFR({ data }) {
+	return (
+		<YieldsTableWrapper
+			data={data}
+			columns={columns}
+			columnSizes={columnSizes}
+			columnSizesKeys={columnSizesKeys}
+			columnOrders={yieldsColumnOrders}
+			rowSize={80}
+		/>
+	)
+}

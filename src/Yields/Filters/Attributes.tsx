@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { lockupsCollateral, badDebt } from '~/containers/YieldsPage/utils'
+import { lockupsCollateral, badDebt } from '~/Yields/utils'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useMemo } from 'react'
 

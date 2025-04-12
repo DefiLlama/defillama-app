@@ -40,12 +40,12 @@ export function YieldFiltersV2({
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
 
 	return (
-		<div className="bg-white dark:bg-black shadow rounded-md">
-			<div className="relative flex items-center gap-2 flex-wrap p-4 rounded-t-md bg-white dark:bg-black">
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="relative flex items-center gap-2 flex-wrap p-3">
 				<h1>{header}</h1>
 				{trackingStats ? <p>{trackingStats}</p> : null}
 			</div>
-			<div className="flex flex-col gap-4 p-4 rounded-b-md bg-white dark:bg-black">
+			<div className="flex flex-col gap-4 p-3 rounded-b-md">
 				{strategyInputsData ? (
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}

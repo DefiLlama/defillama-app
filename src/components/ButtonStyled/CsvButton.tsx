@@ -10,12 +10,14 @@ const ProCSVDownload = dynamic(() => import('~/containers/ProApi/ProDownload').t
 export const CSVDownloadButton = ({
 	onClick,
 	customText = '',
-	className
+	className,
+	smol
 }: {
 	onClick: () => void
 	isLight?: boolean
 	customText?: ReactNode
 	className?: string
+	smol?: boolean
 }) => {
 	const [verifyAndDownload, setVerifyAndDownload] = useState(0)
 
@@ -30,7 +32,7 @@ export const CSVDownloadButton = ({
 				) : (
 					<>
 						<Icon name="download-paper" className="h-3 w-3" />
-						<span>Download .csv</span>
+						<span>{smol ? '' : 'Download'} .csv</span>
 					</>
 				)}
 				{IS_PRO_API_ENABLED ? (

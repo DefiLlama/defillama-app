@@ -1,6 +1,6 @@
-import { YieldsData } from '~/api/categories/yield'
-import { attributeOptions } from '~/components/Filters/yields/Attributes'
-import { calculateLoopAPY } from '~/api/categories/yield/index'
+import { YieldsData } from '~/Yields/queries/index'
+import { attributeOptions } from './Filters/Attributes'
+import { calculateLoopAPY } from '~/Yields/queries/index'
 import { slug } from '~/utils'
 
 export function toFilterPool({

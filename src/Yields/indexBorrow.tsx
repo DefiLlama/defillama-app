@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { YieldsLoopTable } from '~/components/Table/Yields/Loop'
-import { YieldFiltersV2 } from '~/components/Filters/yields'
+import { YieldsBorrowTable } from './Tables/Borrow'
+import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 
-const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens }) => {
+const YieldPageBorrow = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -56,10 +56,7 @@ const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens }) 
 					url: curr.url,
 					ltv: curr.ltv,
 					rewardTokensSymbols: curr.rewardTokensSymbols,
-					rewards: curr.rewardTokensNames,
-					loopApy: curr.loopApy,
-					boost: curr.boost,
-					netSupplyApy: curr.apyBase + curr.apyReward
+					rewards: curr.rewardTokensNames
 				})
 			} else return acc
 		}, [])
@@ -82,11 +79,13 @@ const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens }) 
 	return (
 		<>
 			<YieldFiltersV2
-				header="Leveraged Lending"
+				header="Yield Rankings"
 				poolsNumber={poolsData.length}
 				projectsNumber={selectedProjects.length}
 				chainsNumber={selectedChains.length}
 				tokens={tokens}
+				tokensList={tokenSymbolsList}
+				selectedTokens={includeTokens}
 				chainList={chainList}
 				selectedChains={selectedChains}
 				projectList={projectList}
@@ -96,7 +95,7 @@ const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens }) 
 			/>
 
 			{poolsData.length > 0 ? (
-				<YieldsLoopTable data={poolsData} />
+				<YieldsBorrowTable data={poolsData} />
 			) : (
 				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
 					Couldn't find any pools for these filters
@@ -106,4 +105,4 @@ const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens }) 
 	)
 }
 
-export default YieldPageLoop
+export default YieldPageBorrow

@@ -1,17 +1,21 @@
+import { useRouter } from 'next/router'
+import type { IYieldsTableProps } from './types'
+import { YieldsTableWrapper } from './shared'
+import { getColumnSizesKeys } from '~/components/Table/utils'
 import { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { formattedNum, formattedPercent } from '~/utils'
-import { NameYield, NameYieldPool } from '../Name'
-import { formatColumnOrder } from '../../utils'
-import type { IYieldTableRow } from '../types'
-import { lockupsRewards, earlyExit } from '~/containers/YieldsPage/utils'
+import { NameYield, NameYieldPool } from './Name'
+import type { IYieldTableRow } from './types'
+import { lockupsRewards, earlyExit } from '~/Yields/utils'
 import { CustomLink } from '~/components/Link'
 import { ImageWithFallback } from '~/components/ImageWithFallback'
+import { formatColumnOrder } from '~/components/Table/utils'
 
 const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
 
-export const columns: ColumnDef<IYieldTableRow>[] = [
+const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'Pool',
 		accessorKey: 'pool',
@@ -544,7 +548,7 @@ const columnOrders = {
 	]
 }
 
-export const columnSizes = {
+const columnSizes = {
 	0: {
 		pool: 120,
 		project: 200,
@@ -729,4 +733,75 @@ export const columnSizes = {
 	}
 }
 
-export const yieldsColumnOrders = formatColumnOrder(columnOrders)
+const yieldsColumnOrders = formatColumnOrder(columnOrders)
+
+const columnSizesKeys = getColumnSizesKeys(columnSizes)
+
+export function YieldsPoolsTable(props: IYieldsTableProps) {
+	const router = useRouter()
+	const {
+		show7dBaseApy,
+		show7dIL,
+		show1dVolume,
+		show7dVolume,
+		showInceptionApy,
+		includeLsdApy,
+		showNetBorrowApy,
+		showBorrowBaseApy,
+		showBorrowRewardApy,
+		showTotalSupplied,
+		showTotalBorrowed,
+		showAvailable,
+		showLTV
+	} = router.query
+
+	const columnVisibility =
+		includeLsdApy === 'true'
+			? {
+					apyBase7d: show7dBaseApy === 'true',
+					il7d: show7dIL === 'true',
+					volumeUsd1d: show1dVolume === 'true',
+					volumeUsd7d: show7dVolume === 'true',
+					apyBaseInception: showInceptionApy === 'true',
+					apy: false,
+					apyBase: false,
+					apyIncludingLsdApy: true,
+					apyBaseIncludingLsdApy: true,
+					apyBorrow: showNetBorrowApy === 'true',
+					apyBaseBorrow: showBorrowBaseApy === 'true',
+					apyRewardBorrow: showBorrowRewardApy === 'true',
+					totalSupplyUsd: showTotalSupplied === 'true',
+					totalBorrowUsd: showTotalBorrowed === 'true',
+					totalAvailableUsd: showAvailable === 'true',
+					ltv: showLTV === 'true'
+			  }
+			: {
+					apyBase7d: show7dBaseApy === 'true',
+					il7d: show7dIL === 'true',
+					volumeUsd1d: show1dVolume === 'true',
+					volumeUsd7d: show7dVolume === 'true',
+					apyBaseInception: showInceptionApy === 'true',
+					apy: true,
+					apyBase: true,
+					apyIncludingLsdApy: false,
+					apyBaseIncludingLsdApy: false,
+					apyBorrow: showNetBorrowApy === 'true',
+					apyBaseBorrow: showBorrowBaseApy === 'true',
+					apyRewardBorrow: showBorrowRewardApy === 'true',
+					totalSupplyUsd: showTotalSupplied === 'true',
+					totalBorrowUsd: showTotalBorrowed === 'true',
+					totalAvailableUsd: showAvailable === 'true',
+					ltv: showLTV === 'true'
+			  }
+
+	return (
+		<YieldsTableWrapper
+			{...props}
+			columns={columns}
+			columnSizes={columnSizes}
+			columnSizesKeys={columnSizesKeys}
+			columnOrders={yieldsColumnOrders}
+			columnVisibility={columnVisibility}
+		/>
+	)
+}

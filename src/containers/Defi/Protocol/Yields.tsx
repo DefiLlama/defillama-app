@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { YieldsPoolsTable } from '~/components/Table/Yields/Pools'
-import { getYieldPageData } from '~/api/categories/yield'
+import { YieldsPoolsTable } from '~/Yields/Tables/Pools'
+import { getYieldPageData } from '~/Yields/queries/index'
 import { sluggify } from '~/utils/cache-client'
 import { useQuery } from '@tanstack/react-query'
 

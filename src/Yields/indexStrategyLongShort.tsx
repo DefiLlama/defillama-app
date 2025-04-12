@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { YieldsStrategyTableFR } from '~/components/Table/Yields/StrategyFR'
-import { YieldFiltersV2 } from '~/components/Filters/yields'
+import { YieldsStrategyTableFR } from './Tables/StrategyFR'
+import { YieldFiltersV2 } from './Filters'
 import { filterPool, findStrategyPoolsFR } from './utils'
 import { useFormatYieldQueryParams } from './hooks'
 
@@ -54,7 +54,7 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 			{poolsData.length > 0 ? (
 				<YieldsStrategyTableFR data={poolsData} />
 			) : (
-				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
+				<p className="bg-[var(--cards-bg)] p-3 rounded-md text-center">
 					Given a token this finder will display delta neutral "long-short" strategies across all our tracked pools and
 					CEX perpetual swap markets.
 					<br />

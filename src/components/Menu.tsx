@@ -10,9 +10,19 @@ interface IMenuProps {
 	isExternal?: boolean
 	onItemClick?: (value: any) => void
 	variant?: 'primary' | 'secondary'
+	className?: string
 }
 
-export function Menu({ options, name, color, isExternal, onItemClick, variant = 'primary', ...props }: IMenuProps) {
+export function Menu({
+	options,
+	name,
+	color,
+	isExternal,
+	onItemClick,
+	variant = 'primary',
+	className,
+	...props
+}: IMenuProps) {
 	const { _options, style } = useMemo(() => {
 		return {
 			_options: typeof options === 'string' ? [options] : options,
@@ -27,7 +37,10 @@ export function Menu({ options, name, color, isExternal, onItemClick, variant = 
 			<Ariakit.MenuButton
 				{...props}
 				style={style}
-				className="bg-[var(--btn2-bg)] hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-xl cursor-pointer text-[var(--text1)] flex-nowrap relative max-w-fit"
+				className={
+					className ??
+					'bg-[var(--btn2-bg)] hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-xl cursor-pointer text-[var(--text1)] flex-nowrap relative max-w-fit'
+				}
 			>
 				{name}
 				<Ariakit.MenuButtonArrow />

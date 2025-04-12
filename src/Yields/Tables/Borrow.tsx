@@ -1,14 +1,18 @@
+import * as React from 'react'
+import type { IYieldsTableProps } from './types'
+import { YieldsTableWrapper } from './shared'
+import { getColumnSizesKeys } from '~/components/Table/utils'
 import { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
 import { formattedNum, formattedPercent } from '~/utils'
-import { NameYield, NameYieldPool } from '../Name'
-import { formatColumnOrder } from '../../utils'
-import type { IYieldTableRow } from '../types'
+import { NameYield, NameYieldPool } from './Name'
+import type { IYieldTableRow } from './types'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { lockupsRewards, earlyExit } from '~/containers/YieldsPage/utils'
-import { ColoredAPY } from '../ColoredAPY'
+import { lockupsRewards, earlyExit } from '~/Yields/utils'
+import { ColoredAPY } from './ColoredAPY'
+import { formatColumnOrder } from '~/components/Table/utils'
 
-export const columns: ColumnDef<IYieldTableRow>[] = [
+const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'Pool',
 		accessorKey: 'pool',
@@ -307,8 +311,7 @@ const columnOrders = {
 		'totalAvailableUsd'
 	]
 }
-
-export const columnSizes = {
+const columnSizes = {
 	0: {
 		pool: 200,
 		project: 200,
@@ -395,4 +398,18 @@ export const columnSizes = {
 	}
 }
 
-export const yieldsColumnOrders = formatColumnOrder(columnOrders)
+const yieldsColumnOrders = formatColumnOrder(columnOrders)
+
+const columnSizesKeys = getColumnSizesKeys(columnSizes)
+
+export function YieldsBorrowTable({ data }: IYieldsTableProps) {
+	return (
+		<YieldsTableWrapper
+			data={data}
+			columns={columns}
+			columnSizes={columnSizes}
+			columnSizesKeys={columnSizesKeys}
+			columnOrders={yieldsColumnOrders}
+		/>
+	)
+}

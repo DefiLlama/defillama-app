@@ -1,11 +1,28 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { YieldsBorrowTable } from '~/components/Table/Yields/Borrow'
-import { YieldFiltersV2 } from '~/components/Filters/yields'
+import { YieldFiltersV2 } from './Filters'
+import dynamic from 'next/dynamic'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 
-const YieldPageBorrow = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
+interface IChartProps {
+	chartData: any
+}
+
+const ScatterChart = dynamic(() => import('~/components/ECharts/ScatterChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
+const BoxplotChart = dynamic(() => import('~/components/ECharts/BoxplotChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
+const TreemapChart = dynamic(() => import('~/components/ECharts/TreemapChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
+const BarChartYields = dynamic(() => import('~/components/ECharts/BarChart/Yields'), {
+	ssr: false
+}) as React.FC<IChartProps>
+
+export const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens, tokenSymbolsList }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -38,26 +55,7 @@ const YieldPageBorrow = ({ pools, projectList, chainList, categoryList, tokens, 
 			})
 
 			if (toFilter) {
-				return acc.concat({
-					pool: curr.symbol,
-					configID: curr.pool,
-					projectslug: curr.project,
-					project: curr.projectName,
-					airdrop: curr.airdrop,
-					chains: [curr.chain],
-					apyBase: curr.apyBase,
-					apyReward: curr.apyReward,
-					apyBorrow: curr.apyBorrow,
-					apyBaseBorrow: curr.apyBaseBorrow,
-					apyRewardBorrow: curr.apyRewardBorrow,
-					totalSupplyUsd: curr.totalSupplyUsd,
-					totalBorrowUsd: curr.totalBorrowUsd,
-					totalAvailableUsd: curr.totalAvailableUsd,
-					url: curr.url,
-					ltv: curr.ltv,
-					rewardTokensSymbols: curr.rewardTokensSymbols,
-					rewards: curr.rewardTokensNames
-				})
+				return acc.concat(curr)
 			} else return acc
 		}, [])
 	}, [
@@ -67,22 +65,19 @@ const YieldPageBorrow = ({ pools, projectList, chainList, categoryList, tokens, 
 		maxApy,
 		pools,
 		selectedProjects,
-		selectedCategories,
 		selectedChains,
 		selectedAttributes,
 		includeTokens,
 		excludeTokens,
 		exactTokens,
+		selectedCategories,
 		pathname
 	])
 
 	return (
 		<>
 			<YieldFiltersV2
-				header="Yield Rankings"
-				poolsNumber={poolsData.length}
-				projectsNumber={selectedProjects.length}
-				chainsNumber={selectedChains.length}
+				header="Yields Overview"
 				tokens={tokens}
 				tokensList={tokenSymbolsList}
 				selectedTokens={includeTokens}
@@ -90,19 +85,18 @@ const YieldPageBorrow = ({ pools, projectList, chainList, categoryList, tokens, 
 				selectedChains={selectedChains}
 				projectList={projectList}
 				selectedProjects={selectedProjects}
+				categoryList={categoryList}
+				selectedCategories={selectedCategories}
 				attributes={true}
+				tvlRange={true}
+				apyRange={true}
 				resetFilters={true}
 			/>
 
-			{poolsData.length > 0 ? (
-				<YieldsBorrowTable data={poolsData} />
-			) : (
-				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
-					Couldn't find any pools for these filters
-				</p>
-			)}
+			<BarChartYields chartData={median} />
+			<TreemapChart chartData={poolsData} />
+			<ScatterChart chartData={poolsData.filter((p) => !p.outlier)} />
+			<BoxplotChart chartData={poolsData.filter((p) => !p.outlier)} />
 		</>
 	)
 }
-
-export default YieldPageBorrow

@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import Layout from '~/layout'
-import YieldPageLoop from '~/containers/YieldsPage/indexLoop'
+import YieldPageLoop from '~/Yields/indexLoop'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/containers/YieldsPage/utils'
+import { disclaimer } from '~/Yields/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
-import { getLendBorrowData, calculateLoopAPY } from '~/api/categories/yield'
+import { getLendBorrowData, calculateLoopAPY } from '~/Yields/queries/index'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/loop', async () => {
@@ -62,7 +62,7 @@ export default function YieldBorrow(data) {
 		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
 
-			<p className="border border-black/10 dark:border-white/10 p-5 rounded-md whitespace-pre-line text-center">
+			<p className="bg-[var(--cards-bg)] p-3 rounded-md whitespace-pre-line text-center">
 				This page displays leveraged lending APY values. The way this works:
 				<br />
 				1. deposit collateral amount N into pool X

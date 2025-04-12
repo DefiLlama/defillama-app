@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { SelectWithCombobox } from '../../SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 interface IFiltersByChainProps {
 	chainList: string[]

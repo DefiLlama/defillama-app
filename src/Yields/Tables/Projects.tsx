@@ -1,10 +1,14 @@
+import * as React from 'react'
+import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
+import { VirtualTable } from '~/components/Table/Table'
+import type { IYieldsProjectsTableRow } from './types'
+
 import { ColumnDef } from '@tanstack/react-table'
 import { formattedNum, formattedPercent, slug } from '~/utils'
-import { YieldsProject } from '../Name'
+import { YieldsProject } from './Name'
 import { Tooltip } from '~/components/Tooltip'
-import type { IYieldsProjectsTableRow } from '../types'
 
-export const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
+const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 	{
 		header: 'Project',
 		accessorKey: 'name',
@@ -78,3 +82,20 @@ export const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 		}
 	}
 ]
+
+export function YieldsProjectsTable({ data }: { data: Array<IYieldsProjectsTableRow> }) {
+	const [sorting, setSorting] = React.useState<SortingState>([])
+
+	const instance = useReactTable({
+		data,
+		columns,
+		state: {
+			sorting
+		},
+		onSortingChange: setSorting,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel()
+	})
+
+	return <VirtualTable instance={instance} />
+}

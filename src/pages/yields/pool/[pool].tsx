@@ -11,7 +11,7 @@ import {
 	useYieldConfigData,
 	useYieldPoolData,
 	useYieldChartLendBorrow
-} from '~/api/categories/yield/client'
+} from '~/Yields/queries/client'
 import { getColorFromNumber } from '~/utils'
 import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
 import exponentialLogo from '~/assets/exponential.avif'
@@ -20,6 +20,7 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '~/utils/async'
 import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -246,8 +247,8 @@ const PageView = (props) => {
 
 	return (
 		<>
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+			<div className="grid grid-cols-1 gap-1 relative isolate xl:grid-cols-[auto_1fr]">
+				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-md bg-[var(--cards-bg)] overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl flex-wrap">
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 							? `${poolData.symbol} (${poolData.poolMeta})`
@@ -267,10 +268,7 @@ const PageView = (props) => {
 							<span className="text-base text-[#545757] dark:text-[#cccccc]">30d Avg APY</span>
 							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#fd3c99]">{apyMean30d}%</span>
 						</p>
-						<ButtonLight onClick={downloadCsv} useTextColor={true}>
-							<Icon name="download-cloud" height={14} width={14} />
-							<span>&nbsp;&nbsp;.csv</span>
-						</ButtonLight>
+						<CSVDownloadButton onClick={downloadCsv} smol />
 					</div>
 
 					<p className="flex flex-col gap-1">
@@ -312,7 +310,7 @@ const PageView = (props) => {
 					</p>
 				</div>
 
-				<LazyChart style={{ padding: '20px 0' }}>
+				<LazyChart className="p-3 bg-[var(--cards-bg)] min-h-[460px]">
 					{!isLoading && (
 						<Chart
 							height="460px"
@@ -325,9 +323,9 @@ const PageView = (props) => {
 				</LazyChart>
 			</div>
 
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
+			<div className="grid grid-cols-2 gap-1 rounded-md bg-[var(--cards-bg)]">
 				{hasRiskData && (
-					<div className="flex flex-col col-span-2 xl:col-span-1 p-6">
+					<div className="flex flex-col col-span-2 xl:col-span-1 p-5">
 						<h2 className="mb-6 flex items-center gap-3 text-lg font-bold">
 							Risk Rating by exponential.fi{' '}
 							<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} alt="" />
@@ -448,7 +446,7 @@ const PageView = (props) => {
 				) : (
 					<>
 						{barChartData?.length ? (
-							<LazyChart>
+							<LazyChart className="min-h-[360px] px-0">
 								<StackedBarChart
 									title="Supply APY"
 									chartData={barChartData}
@@ -459,7 +457,7 @@ const PageView = (props) => {
 							</LazyChart>
 						) : null}
 						{areaChartData.length ? (
-							<LazyChart>
+							<LazyChart className="min-h-[360px] px-0">
 								<AreaChart
 									title="7 day moving average of Supply APY"
 									chartData={areaChartData}
@@ -472,13 +470,13 @@ const PageView = (props) => {
 				)}
 			</div>
 
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
+			<div className="grid grid-cols-2 gap-1 rounded-md bg-[var(--cards-bg)]">
 				{fetchingChartDataBorrow ? (
 					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 				) : (
 					<>
 						{areaChartDataBorrow?.length ? (
-							<LazyChart>
+							<LazyChart className="min-h-[360px] px-0">
 								<StackedBarChart
 									title="Borrow APY"
 									chartData={barChartDataBorrow}
@@ -489,7 +487,7 @@ const PageView = (props) => {
 							</LazyChart>
 						) : null}
 						{areaChartDataBorrow.length ? (
-							<LazyChart>
+							<LazyChart className="min-h-[360px] px-0">
 								<AreaChart
 									title="Net Borrow APY"
 									chartData={netBorrowChartData}
@@ -514,8 +512,7 @@ const PageView = (props) => {
 					</>
 				)}
 			</div>
-
-			<div className="flex flex-col gap-4 bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl p-6">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] rounded-md p-5">
 				<h3 className="font-semibold text-lg">Protocol Information</h3>
 				<p className="flex items-center gap-2">
 					<span>Category</span>

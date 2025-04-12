@@ -1,9 +1,9 @@
 import Layout from '~/layout'
-import { YieldsProjectsTable } from '~/components/Table/Yields/Projects'
+import { YieldsProjectsTable } from '~/Yields/Tables/Projects'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/containers/YieldsPage/utils'
+import { disclaimer } from '~/Yields/utils'
 import { maxAgeForNext } from '~/api'
-import { getYieldPageData } from '~/api/categories/yield'
+import { getYieldPageData } from '~/Yields/queries/index'
 import { withPerformanceLogging } from '~/utils/perf'
 
 function median(numbers) {
@@ -59,9 +59,10 @@ export default function Protocols({ projects }) {
 		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
 
-			<h1 className="text-2xl font-medium -mb-5">Projects</h1>
-
-			<YieldsProjectsTable data={projects} />
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<h1 className="text-xl font-semibold p-3">Projects</h1>
+				<YieldsProjectsTable data={projects} />
+			</div>
 		</Layout>
 	)
 }

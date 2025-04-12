@@ -1,14 +1,18 @@
+import * as React from 'react'
+import { useRouter } from 'next/router'
+import { YieldsTableWrapper } from './shared'
+import { getColumnSizesKeys } from '~/components/Table/utils'
 import { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
 import { formattedNum, formattedPercent } from '~/utils'
-import { NameYield, NameYieldPool } from '../Name'
-import { formatColumnOrder } from '../../utils'
-import type { IYieldsOptimizerTableRow } from '../types'
+import { NameYield, NameYieldPool } from './Name'
+import type { IYieldsOptimizerTableRow } from './types'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { lockupsRewards, earlyExit } from '~/containers/YieldsPage/utils'
-import { ColoredAPY } from '../ColoredAPY'
+import { lockupsRewards, earlyExit } from '~/Yields/utils'
+import { ColoredAPY } from './ColoredAPY'
+import { formatColumnOrder } from '~/components/Table/utils'
 
-export const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
+const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 	{
 		header: 'Pool',
 		accessorKey: 'pool',
@@ -372,7 +376,7 @@ const columnOrders = {
 	]
 }
 
-export const columnSizes = {
+const columnSizes = {
 	0: {
 		pool: 160,
 		project: 180,
@@ -465,4 +469,52 @@ export const columnSizes = {
 	}
 }
 
-export const yieldsColumnOrders = formatColumnOrder(columnOrders)
+const yieldsColumnOrders = formatColumnOrder(columnOrders)
+
+const columnSizesKeys = getColumnSizesKeys(columnSizes)
+
+const defaultSortingState = [{ id: 'borrowAvailableUsd', desc: true }]
+
+export function YieldsOptimizerTable({ data }) {
+	const router = useRouter()
+
+	const { excludeRewardApy } = router.query
+	const lendAmount = router.query.lendAmount ? parseInt(router.query.lendAmount as string) : 0
+	const borrowAmount = router.query.borrowAmount ? parseInt(router.query.borrowAmount as string) : 0
+	const withAmount = lendAmount > 0 || borrowAmount > 0
+
+	const columnVisibility =
+		excludeRewardApy === 'true'
+			? {
+					totalBase: true,
+					lendingBase: true,
+					borrowBase: true,
+					totalReward: false,
+					lendingReward: false,
+					borrowReward: false,
+					borrowUSDAmount: withAmount,
+					lendUSDAmount: withAmount
+			  }
+			: {
+					totalBase: false,
+					lendingBase: false,
+					borrowBase: false,
+					totalReward: true,
+					lendingReward: true,
+					borrowReward: true,
+					borrowUSDAmount: withAmount,
+					lendUSDAmount: withAmount
+			  }
+
+	return (
+		<YieldsTableWrapper
+			data={data}
+			columns={columns}
+			columnSizes={columnSizes}
+			columnSizesKeys={columnSizesKeys}
+			columnOrders={yieldsColumnOrders}
+			sortingState={defaultSortingState}
+			columnVisibility={columnVisibility}
+		/>
+	)
+}

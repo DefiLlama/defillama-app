@@ -275,8 +275,8 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	}, [columnsInStorage])
 
 	return (
-		<>
-			<div className="flex items-center justify-between flex-wrap gap-2 -mb-3">
+		<div className="rounded-md bg-[var(--cards-bg)]">
+			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 				<h3 className="text-lg font-medium mr-auto">Protocol Rankings</h3>
 				<TagGroup
 					setValue={setFilter('category')}
@@ -299,13 +299,13 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					labelType="smol"
 					triggerProps={{
 						className:
-							'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'
+							'flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 					}}
 				/>
-				<TVLRange />
+				<TVLRange variant="third" />
 			</div>
 			<ProtocolsTable data={data} columnsInStorage={columnsInStorage} />
-		</>
+		</div>
 	)
 }
 

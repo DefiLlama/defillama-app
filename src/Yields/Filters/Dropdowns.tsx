@@ -258,7 +258,7 @@ export function YieldFilterDropdowns({
 					className={
 						nestedMenu
 							? 'rounded-md py-2 px-3 text-xs whitespace-nowrap sm:ml-auto bg-[var(--link-active-bg)] text-white max-sm:mx-3 max-sm:my-6'
-							: 'bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] text-xs flex-nowrap ml-auto'
+							: 'ml-auto'
 					}
 					onClick={onCSVDownload}
 				/>
