@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars*/
 import * as React from 'react'
 import ReactSwitch from 'react-switch'
-import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
+import { ChartData, getLiquidationsCsvData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { TotalLiquidable } from './TotalLiquidable'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { LiquidationsContext } from '~/containers/LiquidationsPage/context'
@@ -11,6 +11,10 @@ import Image from 'next/future/image'
 import boboLogo from '~/assets/boboSmug.png'
 import dynamic from 'next/dynamic'
 import { StackBySwitch } from './StackBySwitch'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { download } from '~/utils'
+import { Switch } from '~/components/Switch'
+import { Icon } from '~/components/Icon'
 
 const LiquidationsChart = dynamic(() => import('./LiquidationsChart').then((module) => module.LiquidationsChart), {
 	ssr: false
@@ -20,8 +24,8 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 	const { data, prevData } = props
 	const [bobo, setBobo] = React.useState(false)
 	return (
-		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-			<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
+			<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 				<p className="flex flex-col">
 					<TotalLiquidable {...data} />
 				</p>
@@ -31,12 +35,19 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				<p className="hidden md:flex flex-col">
 					<DangerousPositionsAmount data={data} />
 				</p>
+				<CSVDownloadButton
+					onClick={async () => {
+						const csvString = await getLiquidationsCsvData(data.symbol)
+						download(`${data.symbol}-all-positions.csv`, csvString)
+					}}
+					className="mt-auto mr-auto"
+				/>
 			</div>
-			<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[438px]">
-				<div className="flex items-center gap-4 -mt-2 mb-auto mx-2 flex-wrap">
+			<div className="flex flex-col gap-4 p-3 col-span-1 min-h-[458px] bg-[var(--cards-bg)] rounded-md">
+				<div className="flex items-center gap-4 flex-wrap">
 					<StackBySwitch />
-					<CumulativeToggle />
 					<CurrencyToggle symbol={data.symbol} />
+					<CumulativeToggle />
 				</div>
 				<button
 					onClick={() => setBobo(!bobo)}
@@ -46,6 +57,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" className="h-[34px] w-[34px]" />
 				</button>
 				<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />
+				<LastUpdated data={data} />
 			</div>
 		</div>
 	)
@@ -57,20 +69,21 @@ const CurrencyToggle = (props: { symbol: string }) => {
 	const isLiqsUsingUsd = liqsSettings[LIQS_USING_USD]
 
 	return (
-		<div className="flex items-center gap-1 mr-2">
-			{props.symbol.toUpperCase()}
-			{/* @ts-ignore:next-line */}
-			<ReactSwitch
-				onChange={toggleLiqsSettings(LIQS_USING_USD)}
-				checked={isLiqsUsingUsd}
-				onColor="#0A71F1"
-				offColor="#0A71F1"
-				height={20}
-				width={40}
-				uncheckedIcon={false}
-				checkedIcon={false}
-			/>
-			<span>USD</span>
+		<div className="flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+			<button
+				data-active={!isLiqsUsingUsd}
+				onClick={toggleLiqsSettings(LIQS_USING_USD)}
+				className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+			>
+				{props.symbol.toUpperCase()}
+			</button>
+			<button
+				data-active={isLiqsUsingUsd}
+				onClick={toggleLiqsSettings(LIQS_USING_USD)}
+				className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+			>
+				USD
+			</button>
 		</div>
 	)
 }
@@ -81,19 +94,12 @@ const CumulativeToggle = () => {
 	const isLiqsCumulative = liqsSettings[LIQS_CUMULATIVE]
 
 	return (
-		<div className="flex items-center gap-1 ml-auto">
-			{/* @ts-ignore:next-line */}
-			<ReactSwitch
-				onChange={toggleLiqsSettings(LIQS_CUMULATIVE)}
-				checked={isLiqsCumulative}
-				onColor="#0A71F1"
-				height={20}
-				width={40}
-				uncheckedIcon={false}
-				checkedIcon={false}
-			/>
-			<span>Cumulative</span>
-		</div>
+		<Switch
+			label="Cumulative"
+			onChange={toggleLiqsSettings(LIQS_CUMULATIVE)}
+			checked={isLiqsCumulative}
+			value="Cumulative"
+		/>
 	)
 }
 
@@ -146,4 +152,24 @@ const getDangerousPositionsAmount = (
 			})
 	}
 	return dangerousPositionsAmount
+}
+
+const LastUpdated = ({ data }) => {
+	const [minutesAgo, setMinutesAgo] = React.useState(Math.round((Date.now() - data?.time * 1000) / 1000 / 60))
+
+	React.useEffect(() => {
+		const interval = setInterval(() => {
+			setMinutesAgo((x) => x + 1)
+		}, 1000 * 60)
+		return () => clearInterval(interval)
+	}, [])
+
+	return (
+		<>
+			<p className="flex items-center justify-end gap-1 flex-nowrap italic -mt-4 opacity-60">
+				<Icon name="clock" height={12} width={13} />
+				<span suppressHydrationWarning>Last updated {minutesAgo}min ago</span>
+			</p>
+		</>
+	)
 }

@@ -3,7 +3,7 @@ import * as React from 'react'
 import { useStackBy } from './utils'
 import { LiquidatableProtocolsTable } from '~/components/Table/Liquidations'
 
-export const ProtocolsTable = (props: { data: ChartData; prevData: ChartData }) => {
+export const LiqProtocolsTable = (props: { data: ChartData; prevData: ChartData }) => {
 	const stackBy = useStackBy()
 
 	const data = React.useMemo(() => {

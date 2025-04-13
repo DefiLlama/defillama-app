@@ -12,17 +12,7 @@ import { matchSorter } from 'match-sorter'
 
 export const LiquidationsHeader = (props: { data: ChartData; options: ISearchItem[] }) => {
 	const { data, options } = props
-	return (
-		<div className="flex items-center justify-between gap-2 flex-wrap -mb-5">
-			<AssetSelector symbol={data.symbol} options={options} />
-			<CSVDownloadButton
-				onClick={async () => {
-					const csvString = await getLiquidationsCsvData(data.symbol)
-					download(`${data.symbol}-all-positions.csv`, csvString)
-				}}
-			/>
-		</div>
-	)
+	return <AssetSelector symbol={data.symbol} options={options} />
 }
 
 interface IProps {
@@ -56,8 +46,8 @@ export function AssetSelector({ options, symbol }: IProps) {
 			}}
 		>
 			<Ariakit.MenuProvider>
-				<Ariakit.MenuButton className="bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative">
-					<TokenLogo logo={selectedAsset.logo} size={24} />
+				<Ariakit.MenuButton className="flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium">
+					<TokenLogo logo={selectedAsset.logo} size={20} />
 					<FormattedName text={selectedAsset.name} maxCharacters={20} fontWeight={700} />
 					<span className="font-normal mr-auto">({selectedAsset.symbol})</span>
 					<Ariakit.MenuButtonArrow className="ml-auto" />

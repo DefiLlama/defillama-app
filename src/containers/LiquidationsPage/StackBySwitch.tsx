@@ -8,7 +8,7 @@ export const StackBySwitch = () => {
 	const _stackBy = !!stackBy ? stackBy : 'protocols'
 
 	return (
-		<div className="flex items-center justify-between gap-2 rounded-md p-[6px] w-[220px] bg-[var(--bg6)]">
+		<div className="flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 			<button
 				data-active={_stackBy === 'protocols'}
 				onClick={() => {
@@ -19,7 +19,7 @@ export const StackBySwitch = () => {
 						}
 					})
 				}}
-				className="flex items-center justify-center gap-1 text-sm whitespace-nowrap flex-nowrap p-[6px] rounded-md flex-1 bg-[var(--bg6)] data-[active=true]:bg-[#445ed0] data-[active=true]:text-white"
+				className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 			>
 				<Icon name="map" height={14} width={14} />
 				<span>Protocols</span>
@@ -34,7 +34,7 @@ export const StackBySwitch = () => {
 						}
 					})
 				}}
-				className="flex items-center justify-center gap-1 text-sm whitespace-nowrap flex-nowrap p-[6px] rounded-md flex-1 bg-[var(--bg6)] data-[active=true]:bg-[#445ed0] data-[active=true]:text-white"
+				className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 			>
 				<Icon name="link" height={14} width={14} />
 				<span>Chains</span>

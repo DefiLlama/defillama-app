@@ -7,9 +7,9 @@ import { LiquidationsSearch } from '~/components/Search/Liquidations'
 import { SEO } from '~/components/SEO'
 import { LiquidationsHeader } from '~/containers/LiquidationsPage/LiquidationsHeader'
 import { LiquidationsContent } from '~/containers/LiquidationsPage/LiquidationsContent'
-import { ProtocolsTable } from '~/containers/LiquidationsPage/ProtocolsTable'
+import { LiqProtocolsTable } from '~/containers/LiquidationsPage/ProtocolsTable'
 import { TableSwitch } from '~/containers/LiquidationsPage/TableSwitch'
-import { PositionsTable } from '~/containers/LiquidationsPage/PositionsTable'
+import { LiqPositionsTable } from '~/containers/LiquidationsPage/PositionsTable'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import type { ISearchItem } from '~/components/Search/types'
 import { maxAgeForNext } from '~/api'
@@ -23,7 +23,6 @@ import {
 } from '~/utils/liquidations'
 import { LiquidationsContext } from '~/containers/LiquidationsPage/context'
 import { withPerformanceLogging } from '~/utils/perf'
-import { Icon } from '~/components/Icon'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = withPerformanceLogging(
 	'liquidations/[symbol]',
@@ -66,15 +65,6 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
 
-	const [minutesAgo, setMinutesAgo] = React.useState(Math.round((Date.now() - data?.time * 1000) / 1000 / 60))
-
-	React.useEffect(() => {
-		const interval = setInterval(() => {
-			setMinutesAgo((x) => x + 1)
-		}, 1000 * 60)
-		return () => clearInterval(interval)
-	}, [])
-
 	return (
 		<Layout title={`${data.name} (${data.symbol.toUpperCase()}) Liquidation Levels - DefiLlama`}>
 			<SEO
@@ -107,18 +97,21 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				</>
 			)} */}
 
-			<h1 className="text-2xl font-medium -mb-5">Liquidation levels in DeFi 💦</h1>
-			<LiquidationsHeader data={data} options={options} />
+			<div className="flex items-center justify-between gap-4 bg-[var(--cards-bg)] rounded-md p-3">
+				<h1 className="text-xl font-semibold">Liquidation levels in DeFi 💦</h1>
+				<LiquidationsHeader data={data} options={options} />
+			</div>
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />
 			</LiquidationsProvider>
-			<p className="flex items-center justify-end gap-1 flex-nowrap italic -mt-4 opacity-60">
-				<Icon name="clock" height={12} width={13} />
-				<span suppressHydrationWarning>Last updated {minutesAgo}min ago</span>
-			</p>
-			<TableSwitch />
-			{isLiqsShowingInspector && <PositionsTable data={data} prevData={prevData} />}
-			{!isLiqsShowingInspector && <ProtocolsTable data={data} prevData={prevData} />}
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<TableSwitch />
+				{isLiqsShowingInspector ? (
+					<LiqPositionsTable data={data} prevData={prevData} />
+				) : (
+					<LiqProtocolsTable data={data} prevData={prevData} />
+				)}
+			</div>
 		</Layout>
 	)
 }

@@ -2,7 +2,7 @@ import { ChartData } from '~/utils/liquidations'
 import * as React from 'react'
 import { LiquidatablePositionsTable } from '~/components/Table/Liquidations'
 
-export const PositionsTable = (props: { data: ChartData; prevData: ChartData }) => {
+export const LiqPositionsTable = (props: { data: ChartData; prevData: ChartData }) => {
 	const rows = React.useMemo(() => {
 		return props.data.topPositions.map((p) => ({
 			chainName: p.chain,
@@ -19,7 +19,7 @@ export const PositionsTable = (props: { data: ChartData; prevData: ChartData }) 
 
 	return (
 		<>
-			<p className="text-right italic opacity-60 -mb-5 md:-mt-6">
+			<p className="text-right italic opacity-60 mx-3">
 				Displaying the largest {rows.length} positions out of {props.data.totalPositions} in total
 			</p>
 			<LiquidatablePositionsTable data={rows} />
