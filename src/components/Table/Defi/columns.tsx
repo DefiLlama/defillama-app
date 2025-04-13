@@ -34,6 +34,7 @@ import type {
 	IGovernance,
 	ILSDRow
 } from './types'
+import * as Ariakit from '@ariakit/react'
 
 export const forksColumn: ColumnDef<IForksRow>[] = [
 	{
@@ -577,20 +578,35 @@ export const activeInvestorsColumns: ColumnDef<{
 		header: 'Top Project Category',
 		accessorKey: 'category',
 		enableSorting: false,
-		size: 160
+		size: 180
 	},
 	{
 		header: 'Top Round Type',
 		accessorKey: 'roundType',
 		enableSorting: false,
-		size: 120
+		size: 140
 	},
 	{
 		header: 'Projects',
 		accessorKey: 'projects',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Tooltip content={getValue() as string | null}>{getValue() as string | null}</Tooltip>
+			return (
+				<Ariakit.HovercardProvider>
+					<Ariakit.HovercardAnchor className="whitespace-nowrap text-ellipsis overflow-hidden">
+						{getValue() as string | null}
+					</Ariakit.HovercardAnchor>
+					<Ariakit.Hovercard
+						unmountOnHide
+						wrapperProps={{
+							className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+						}}
+						className="max-w-xl z-10 p-1 shadow rounded-md bg-[var(--bg2)] border border-[var(--bg3)] text-[var(--text1)] flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden max-sm-drawer"
+					>
+						{getValue() as string | null}
+					</Ariakit.Hovercard>
+				</Ariakit.HovercardProvider>
+			)
 		},
 		size: 240
 	}

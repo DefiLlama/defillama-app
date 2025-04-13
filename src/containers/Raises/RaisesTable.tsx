@@ -12,7 +12,6 @@ import { VirtualTable } from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ButtonDark } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 
 const columnResizeMode = 'onChange'
@@ -63,8 +62,8 @@ export function RaisesTable({ raises, downloadCsv }) {
 	}, [projectName, instance])
 
 	return (
-		<>
-			<div className="flex items-center gap-4 flex-wrap -mb-6">
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="flex items-center gap-4 flex-wrap p-3">
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
@@ -82,16 +81,15 @@ export function RaisesTable({ raises, downloadCsv }) {
 					/>
 				</div>
 
-				<ButtonDark
-					as="a"
+				<a
 					target="_blank"
 					rel="noreferrer noopener"
 					href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093"
-					className="ml-auto flex items-center gap-1"
+					className="ml-auto flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
 				>
 					<span>Methodology & biases</span>
 					<Icon name="external-link" height={14} width={14} />
-				</ButtonDark>
+				</a>
 
 				<CSVDownloadButton
 					customText="Download .json"
@@ -102,6 +100,6 @@ export function RaisesTable({ raises, downloadCsv }) {
 			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
-		</>
+		</div>
 	)
 }
