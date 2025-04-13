@@ -43,6 +43,10 @@ export const formatProtocolsData = ({
 	removeBridges = false
 }: IFormatProtocolsData) => {
 	const data = protocols.reduce((final, protocol) => {
+		if (protocol.name.includes('eprecated')) {
+			final = [...final, { name: protocol.name, chains: protocol.chains, extraTvl: {}, category: protocol.category }]
+			return final
+		}
 		let toFilter = true
 
 		if (removeBridges) {
@@ -127,7 +131,7 @@ export const formatProtocolsData = ({
 						protocol.oraclesByChain[chain].includes(oracle)
 					)
 				} else {
-					if (DEFI_SETTINGS_KEYS.includes(sectionName) || sectionName === "excludeParent") {
+					if (DEFI_SETTINGS_KEYS.includes(sectionName) || sectionName === 'excludeParent') {
 						p.extraTvl[sectionName] = protocol.chainTvls[sectionName]
 					}
 				}
