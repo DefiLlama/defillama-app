@@ -19,7 +19,7 @@ import {
 } from '~/containers/DimensionAdapters/queries'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { getPercentChange, slug } from '~/utils'
+import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import metadataCache from '~/utils/metadata'
 import type {
@@ -343,9 +343,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				? (Object.entries(fees.totalDataChartBreakdown[fees.totalDataChartBreakdown.length - 1][1] ?? {})
 						.sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
 						.slice(0, 14)
-						.map((x) => [x[0], x[1] ?? 0, fees.protocols.find((p) => p.name === x[0])?.logo ?? '']) as Array<
-						[string, number, string]
-				  >)
+						.map((x) => [x[0], x[1] ?? 0, tokenIconUrl(x[0])]) as Array<[string, number, string]>)
 				: null
 
 		const feesGenerated24h =

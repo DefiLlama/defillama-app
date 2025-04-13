@@ -2,11 +2,11 @@ import { useCallback, useEffect, useId } from 'react'
 import * as echarts from 'echarts/core'
 import { formattedNum } from '~/utils'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { CanvasRenderer } from 'echarts/renderers'
+import { SVGRenderer } from 'echarts/renderers'
 import { LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 
-echarts.use([CanvasRenderer, LineChart, BarChart, TooltipComponent, GridComponent])
+echarts.use([SVGRenderer, LineChart, BarChart, TooltipComponent, GridComponent])
 
 export function FeesGeneratedChart({ series }: { series: Array<[string, number, string]> }) {
 	const id = useId()
@@ -14,7 +14,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
 
-		return instance || echarts.init(document.getElementById(id))
+		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
 	}, [id])
 
 	useEffect(() => {
@@ -115,7 +115,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 	}, [createInstance, series])
 
 	return (
-		<div className="relative">
+		<div className="relative" id="fees-generated-chart">
 			<div id={id} className="my-auto h-[132px]" />
 		</div>
 	)
@@ -137,7 +137,7 @@ export function SmolLineChart({
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
 
-		return instance || echarts.init(document.getElementById(id))
+		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
 	}, [id])
 
 	useEffect(() => {
@@ -249,7 +249,7 @@ export function SmolBarChart({
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
 
-		return instance || echarts.init(document.getElementById(id))
+		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
 	}, [id])
 
 	useEffect(() => {

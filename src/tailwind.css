@@ -252,6 +252,10 @@
 	.swagger-ui .scheme-container {
 		@apply !hidden;
 	}
+
+	#fees-generated-chart > div > div > svg > g > image {
+		clip-path: inset(0% round 50%);
+	}
 }
 
 @layer utilities {
