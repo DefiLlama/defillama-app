@@ -99,7 +99,7 @@ export const getAllProtocolEmissionsWithHistory = async ({
 	endDate?: number
 } = {}) => {
 	try {
-		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
+		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
 		const coins = await fetchWithErrorLogging(
 			`https://coins.llama.fi/prices/current/${res
 				.filter((p) => p.gecko_id)
@@ -151,7 +151,7 @@ export const getAllProtocolEmissionsWithHistory = async ({
 
 export const getAllProtocolEmissions = async () => {
 	try {
-		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
+		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
 		const coins = await fetchWithErrorLogging(
 			`https://coins.llama.fi/prices/current/${res
 				.filter((p) => p.gecko_id)
@@ -217,7 +217,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		if (!list.includes(protocolName))
 			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
 
-		const allEmmisions = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((r) => r.json())
+		const allEmmisions = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((r) => r.json())
 
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
