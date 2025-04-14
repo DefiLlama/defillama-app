@@ -154,6 +154,7 @@ export interface ILiteProtocol {
 	oraclesByChain?: Record<string, Array<string>>
 	forkedFrom?: string
 	listedAt?: number
+	deprecated?: boolean
 }
 
 export interface ILiteParentProtocol {
