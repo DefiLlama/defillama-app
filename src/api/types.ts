@@ -174,6 +174,7 @@ export type LiteProtocol = Pick<
 	| 'chainTvls'
 	| 'referralUrl'
 	| 'defillamaId'
+	| 'deprecated'
 > &
 	ProtocolTvls
 

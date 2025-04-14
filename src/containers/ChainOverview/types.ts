@@ -210,6 +210,7 @@ export interface IChildProtocol {
 		totalAllTime: number | null
 		change_7dover7d: number | null
 	}
+	deprecared?: boolean
 }
 
 export interface IProtocol extends IChildProtocol {
