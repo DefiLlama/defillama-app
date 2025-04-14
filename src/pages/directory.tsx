@@ -14,11 +14,13 @@ export const getStaticProps = withPerformanceLogging('directory', async () => {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo', 'url'])
 	return {
 		props: {
-			protocols: protocols.map((protocol) => ({
-				name: protocol.name,
-				logo: tokenIconUrl(protocol.name),
-				route: protocol.url
-			}))
+			protocols: protocols
+				.map((protocol) => ({
+					name: protocol.name,
+					logo: tokenIconUrl(protocol.name),
+					route: protocol.url
+				}))
+				.filter((p) => (p.name && p.route ? true : false))
 		},
 		revalidate: maxAgeForNext([22])
 	}
