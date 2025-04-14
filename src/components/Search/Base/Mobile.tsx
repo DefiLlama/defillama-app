@@ -256,6 +256,7 @@ const Row = ({ data, onItemClick }: { data: any; onItemClick?: (data: any) => vo
 		>
 			{data?.logo || data?.fallbackLogo ? <TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} /> : null}
 			<span>{data.name}</span>
+			{data?.deprecated ? <span className="text-red-600 dark:text-red-400 text-xs font-medium">Deprecated</span> : null}
 			{loading ? (
 				<svg
 					className="animate-spin -ml-1 mr-3 h-4 w-4"

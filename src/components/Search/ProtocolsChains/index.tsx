@@ -55,7 +55,15 @@ const Search = memo(function Search({ hideFilters = false, options, ...props }: 
 		<>
 			<DesktopSearch
 				{...props}
-				data={results.hits}
+				data={results.hits.sort((a, b) => {
+					if (a.deprecated && !b.deprecated) {
+						return 1
+					}
+					if (b.deprecated && !a.deprecated) {
+						return -1
+					}
+					return 0
+				})}
 				loading={status !== 'idle'}
 				filters={memoizedFilters}
 				onSearchTermChange={onSearchTermChange}

@@ -64,10 +64,25 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
 					<span className="flex flex-col -my-2">
-						<CustomLink
-							href={`/protocol/${slug(value)}`}
-							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-						>{`${value}`}</CustomLink>
+						{row.original?.deprecated ? (
+							<CustomLink
+								href={`/protocol/${slug(value)}`}
+								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+							>
+								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
+								<Tooltip
+									content="Deprecated"
+									className="bg-red-600 dark:bg-red-400 text-white text-[10px] h-3 w-3 flex items-center justify-center rounded-full"
+								>
+									!
+								</Tooltip>
+							</CustomLink>
+						) : (
+							<CustomLink
+								href={`/protocol/${slug(value)}`}
+								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							>{`${value}`}</CustomLink>
+						)}
 
 						<Tooltip content={<Chains />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
@@ -434,10 +449,22 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
 					<span className="flex flex-col -my-2">
-						<CustomLink
-							href={`/protocol/${slug(value)}`}
-							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-						>{`${value}`}</CustomLink>
+						{row.original?.deprecated ? (
+							<CustomLink
+								href={`/protocol/${slug(value)}`}
+								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+							>
+								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
+								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
+									Deprecated
+								</span>
+							</CustomLink>
+						) : (
+							<CustomLink
+								href={`/protocol/${slug(value)}`}
+								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							>{`${value}`}</CustomLink>
+						)}
 
 						<Tooltip content={<Chains />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
@@ -613,10 +640,22 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
 					<span className="flex flex-col -my-2">
-						<CustomLink
-							href={`/protocol/${slug(value)}`}
-							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-						>{`${value}`}</CustomLink>
+						{row.original?.deprecated ? (
+							<CustomLink
+								href={`/protocol/${slug(value)}`}
+								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+							>
+								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
+								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
+									Deprecated
+								</span>
+							</CustomLink>
+						) : (
+							<CustomLink
+								href={`/protocol/${slug(value)}`}
+								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							>{`${value}`}</CustomLink>
+						)}
 
 						<Tooltip content={<Chains />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
