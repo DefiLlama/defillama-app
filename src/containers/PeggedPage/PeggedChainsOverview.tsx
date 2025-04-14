@@ -142,7 +142,7 @@ function PeggedChainsOverview({
 	return (
 		<>
 			<PeggedSearch />
-			<CSVDownloadButton onClick={downloadCsv} className="ml-auto" />
+
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
 				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					<p className="flex flex-col">
@@ -194,8 +194,10 @@ function PeggedChainsOverview({
 						<span className="text-[#545757] dark:text-[#cccccc]">{topChain.name} Dominance</span>
 						<span className="font-semibold text-2xl font-jetbrains">{dominance}%</span>
 					</p>
+
+					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
 				</div>
-				<div className="flex flex-col gap-4 py-4 col-span-1 *:ml-4 last:*:ml-0 min-h-[444px]">
+				<div className="flex flex-col col-span-1 min-h-[406px] bg-[var(--cards-bg)] rounded-md">
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 					{chartType === 'Total Market Cap' && (
 						<AreaChart
@@ -233,7 +235,7 @@ function PeggedChainsOverview({
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-1">
+			<div className="flex flex-col gap-1 bg-[var(--cards-bg)] rounded-md p-3">
 				<h2 className="font-semibold text-sm">Filters</h2>
 				<GroupStablecoins label="Filters" />
 			</div>

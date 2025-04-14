@@ -76,7 +76,7 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 		header: 'Stables Mcap',
 		accessorKey: 'mcap',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
-		size: 120,
+		size: 132,
 		meta: {
 			align: 'end'
 		}
@@ -126,7 +126,7 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 		header: 'Stables Mcap / DeFi Tvl',
 		accessorKey: 'mcaptvl',
 		cell: ({ getValue }) => <>{getValue() && formattedNum(getValue(), false)}</>,
-		size: 160,
+		size: 195,
 		meta: {
 			align: 'end'
 		}

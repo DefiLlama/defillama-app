@@ -50,9 +50,9 @@ export function PeggedChainsTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<>
-			<div className="flex items-center last:*:ml-auto -mb-6">
-				<div className="relative w-full sm:max-w-[280px]">
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="p-3 flex items-center justify-between">
+				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon
 						name="search"
 						height={16}
@@ -70,6 +70,6 @@ export function PeggedChainsTable({ data }) {
 				</div>
 			</div>
 			<VirtualTable instance={instance} />
-		</>
+		</div>
 	)
 }

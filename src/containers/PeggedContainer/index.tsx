@@ -58,7 +58,6 @@ export default function PeggedContainer(props) {
 		<Layout
 			title={`${name}: Circulating and stats - DefiLlama`}
 			backgroundColor={transparentize(0.6, props.backgroundColor)}
-			className="gap-12"
 		>
 			<SEO
 				stablePage={true}
@@ -167,31 +166,35 @@ export const PeggedAssetInfo = ({
 		download('stablecoinsChains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
+	const tagStyles = React.useMemo(() => {
+		return {
+			'--tag-border-color': transparentize(0.6, backgroundColor),
+			'--tag-bg': backgroundColor,
+			'--tag-hover-bg': transparentize(0.8, backgroundColor)
+		}
+	}, [backgroundColor])
+
 	return (
 		<Ariakit.TabProvider defaultSelectedId={defaultSelectedId}>
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col col-span-1 w-full xl:w-[380px] text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-					<Ariakit.TabList
-						aria-label="Pegged Tabs"
-						className="flex"
-						style={{ '--bg-color': backgroundColor, '--bg-hover': transparentize(0.9, backgroundColor) } as any}
-					>
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1" style={tagStyles as any}>
+				<div className="flex flex-col col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+					<Ariakit.TabList aria-label="Pegged Tabs" className="flex">
 						<Ariakit.Tab
-							className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-xl border-black/10 dark:border-white/10 hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]"
+							className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-md border-[var(--tag-border-color)] hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] aria-selected:border-b-[var(--tag-bg)]"
 							id={defaultSelectedId}
 						>
 							Stats
 						</Ariakit.Tab>
-						<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]">
+						<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b border-l border-[var(--tag-border-color)] hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] aria-selected:border-b-[var(--tag-bg)]">
 							Info
 						</Ariakit.Tab>
-						<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tr-xl xl:rounded-none border-l border-black/10 dark:border-white/10 hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] aria-selected:border-b-[var(--bg-color)]">
+						<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tr-xl xl:rounded-none border-l border-[var(--tag-border-color)] hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] aria-selected:border-b-[var(--tag-bg)]">
 							Links
 						</Ariakit.Tab>
 					</Ariakit.TabList>
 
 					<Ariakit.TabPanel tabId={defaultSelectedId}>
-						<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+						<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-md xl:rounded-l-md xl:rounded-r-none overflow-x-auto">
 							<h1 className="flex items-center gap-2 text-xl">
 								<TokenLogo logo={logo} size={24} />
 								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
@@ -387,35 +390,32 @@ export const PeggedAssetInfo = ({
 					</Ariakit.TabPanel>
 				</div>
 
-				<div className="flex-1 flex flex-col gap-2 p-4 pb-0 min-h-[416px]">
-					<div
-						className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit"
-						style={{ backgroundColor: transparentize(0.8, backgroundColor) }}
-					>
+				<div className="flex-1 flex flex-col bg-[var(--cards-bg)] rounded-md min-h-[416px]">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--tag-border-color)] m-3">
 						<button
 							data-active={chartType === 'Mcap'}
-							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] data-[active=true]:bg-[var(--tag-hover-bg)]"
 							onClick={() => setChartType('Mcap')}
 						>
 							Total Circ
 						</button>
 						<button
 							data-active={chartType === 'Pie'}
-							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] data-[active=true]:bg-[var(--tag-hover-bg)]"
 							onClick={() => setChartType('Pie')}
 						>
 							Pie
 						</button>
 						<button
 							data-active={chartType === 'Dominance'}
-							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] data-[active=true]:bg-[var(--tag-hover-bg)]"
 							onClick={() => setChartType('Dominance')}
 						>
 							Dominance
 						</button>
 						<button
 							data-active={chartType === 'Chain Mcaps'}
-							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] data-[active=true]:bg-[var(--tag-hover-bg)]"
 							onClick={() => setChartType('Chain Mcaps')}
 						>
 							Area

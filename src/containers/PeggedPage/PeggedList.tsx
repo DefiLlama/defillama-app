@@ -239,6 +239,8 @@ function PeggedAssetsOverview({
 		<>
 			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
 
+			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
+
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
 				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					<p className="flex flex-col">
@@ -289,7 +291,11 @@ function PeggedAssetsOverview({
 						<span className="font-semibold text-2xl font-jetbrains">{dominance}%</span>
 					</p>
 				</div>
-				<div className="flex flex-col gap-4 py-4 col-span-1 *:ml-4 last:*:ml-0 min-h-[444px]">
+				<div
+					className={`flex flex-col gap-4 col-span-1 min-h-[424px] bg-[var(--cards-bg)] rounded-md relative ${
+						chartType === 'Token Inflows' && tokenInflows ? 'first:*:-mb-6' : ''
+					}`}
+				>
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 
 					{chartType === 'Total Market Cap' && (
@@ -297,11 +303,10 @@ function PeggedAssetsOverview({
 							title=""
 							chartData={peggedAreaTotalData}
 							stacks={totalMcapLabel}
-							color={'lightcoral'}
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hallmarks={[]}
-							hideGradient={true}
+							color="#1F67D2"
 						/>
 					)}
 					{chartType === 'Token Market Caps' && (
@@ -342,10 +347,6 @@ function PeggedAssetsOverview({
 					)}
 				</div>
 			</div>
-
-			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
-				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
-			</nav>
 
 			<PeggedAssetsTable data={peggedTotals} />
 		</>

@@ -3,9 +3,9 @@ import Select, { Props } from 'react-select'
 const customStyles = {
 	control: (provided) => ({
 		...provided,
-		background: 'var(--bg6)',
+		background: 'var(--cards-bg)',
 		padding: '2px',
-		borderRadius: '8px',
+		borderRadius: '6px',
 		border: '1px solid var(--form-control-border)',
 		color: 'var(--text1)',
 		boxShadow: 'none',

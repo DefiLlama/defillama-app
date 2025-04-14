@@ -472,7 +472,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 						<button
 							data-active={tab === 'information'}
 							onClick={(e) => setTab('information', e)}
-							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 						>
 							Information
 						</button>
