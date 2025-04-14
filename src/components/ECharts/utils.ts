@@ -5,3 +5,9 @@ export function stringToColour() {
 export function getUtcDateObject(date: number): string {
 	return new Date(new Date(date * 1000).toString().slice(0, -4)) as unknown as string
 }
+
+export const lastDayOfMonth = (dateString) => {
+	let date = new Date(dateString)
+
+	return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+}

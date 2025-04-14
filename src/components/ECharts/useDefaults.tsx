@@ -15,7 +15,7 @@ import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neu
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { toK } from '~/utils'
 import { useMemo } from 'react'
-import { lastDayOfMonth } from './ProtocolChart/useFetchAndFormatChartData'
+import { lastDayOfMonth } from './utils'
 
 const CHART_SYMBOLS = {
 	'Active Users': '',

@@ -11,9 +11,8 @@ import { CopyHelper } from '~/components/Copy'
 
 import { TokenLogo } from '~/components/TokenLogo'
 import { SEO } from '~/components/SEO'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { AuditInfo } from '~/components/AuditInfo'
-import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
+import ProtocolChart from './Chart/ProtocolChart'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols/options'
@@ -398,7 +397,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 	}
 
 	return (
-		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} className="gap-4">
+		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
 			<SEO
 				cardName={name}
 				token={name}
@@ -406,8 +405,6 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 				tvl={formattedNum(totalValue, true)?.toString()}
 				isCEX={isCEX}
 			/>
-
-			<ProtocolsChainsSearch options={toggleOptions} />
 
 			{scams.includes(name) && (
 				<Announcement warning={true} notCancellable={true}>
@@ -450,7 +447,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 
 			{otherProtocols?.length > 1 && (
 				<nav
-					className="flex overflow-x-auto rounded-xl bg-[var(--bg7)] w-full max-w-fit -mb-1"
+					className="flex overflow-x-auto bg-[var(--cards-bg)] rounded-md w-full max-w-fit text-xs font-medium"
 					style={{ '--active-bg': transparentize(0.4, backgroundColor) } as any}
 				>
 					{otherProtocols.map((p) => (
@@ -467,15 +464,15 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 			)}
 
 			{isClient ? (
-				<div className="flex flex-col rounded-xl bg-[var(--bg7)] border border-black/5 dark:border-white/5">
+				<div className="flex flex-col gap-1">
 					<div
-						className="flex overflow-x-auto border-b border-black/10 dark:border-white/10"
+						className="flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium"
 						style={{ '--tab-border': backgroundColor, '--tab-bg': transparentize(0.7, backgroundColor) } as any}
 					>
 						<button
 							data-active={tab === 'information'}
 							onClick={(e) => setTab('information', e)}
-							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 						>
 							Information
 						</button>
@@ -483,7 +480,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'tvl-charts'}
 								onClick={(e) => setTab('tvl-charts', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								{isCEX ? 'Assets' : 'TVL'}
 							</button>
@@ -492,7 +489,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'stablecoin-info'}
 								onClick={(e) => setTab('stablecoin-info', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Stablecoin Info
 							</button>
@@ -501,7 +498,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'bridge'}
 								onClick={(e) => setTab('bridge', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Bridge Info
 							</button>
@@ -510,7 +507,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'treasury'}
 								onClick={(e) => setTab('treasury', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Treasury
 							</button>
@@ -519,7 +516,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'unlocks'}
 								onClick={(e) => setTab('unlocks', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Unlocks
 							</button>
@@ -528,7 +525,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'yields'}
 								onClick={(e) => setTab('yields', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Yields
 							</button>
@@ -537,7 +534,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'fees-revenue'}
 								onClick={(e) => setTab('fees-revenue', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Fees and Revenue
 							</button>
@@ -546,7 +543,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'volume'}
 								onClick={(e) => setTab('volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Volume
 							</button>
@@ -555,7 +552,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'perps-volume'}
 								onClick={(e) => setTab('perps-volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Perps Volume
 							</button>
@@ -564,7 +561,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'aggregators-volume'}
 								onClick={(e) => setTab('aggregators-volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Aggregators Volume
 							</button>
@@ -573,7 +570,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'perps-aggregator'}
 								onClick={(e) => setTab('perps-aggregator', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Perps Aggregators Volume
 							</button>
@@ -582,7 +579,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'bridge-aggregators'}
 								onClick={(e) => setTab('bridge-aggregators', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Bridge Aggregators Volume
 							</button>
@@ -591,7 +588,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'options-volume'}
 								onClick={(e) => setTab('options-volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Options Volume
 							</button>
@@ -600,7 +597,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'governance'}
 								onClick={(e) => setTab('governance', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Governance
 							</button>
@@ -609,16 +606,16 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'forks'}
 								onClick={(e) => setTab('forks', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
 							>
 								Forks
 							</button>
 						)}
 					</div>
 					{tab === 'information' ? (
-						<div>
-							<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)]">
-								<div className="flex flex-col p-5 col-span-1 w-full xl:w-[380px] text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+						<div className="flex flex-col gap-1">
+							<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
+								<div className="flex flex-col p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 									<h1 className="flex items-center flex-wrap gap-2 text-xl">
 										<TokenLogo logo={tokenIconUrl(name)} size={24} />
 										<span className="font-bold">
@@ -683,7 +680,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 																					<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
 																						{capitalizeFirstLetter(chainTvl[0])}
 																					</th>
-																					<td className="font-jetbrains text-right">
+																					<td className="font-jetbrains text-right whitespace-nowrap">
 																						{formatPrice((chainTvl[1] || 0) as number)}
 																					</td>
 																				</tr>
@@ -727,7 +724,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 																							</span>
 																						</label>
 																					</th>
-																					<td className="font-jetbrains text-right">{formatPrice(value)}</td>
+																					<td className="font-jetbrains text-right whitespace-nowrap">
+																						{formatPrice(value)}
+																					</td>
 																				</tr>
 																			))}
 																		</tbody>
@@ -754,7 +753,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 																className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 															/>
 														</th>
-														<td className="font-jetbrains text-right">{formatPrice(tokenCGData.marketCap.current)}</td>
+														<td className="font-jetbrains text-right whitespace-nowrap">
+															{formatPrice(tokenCGData.marketCap.current)}
+														</td>
 													</tr>
 
 													{nextEventDescription ? (
@@ -812,7 +813,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 														/>
 													</th>
-													<td className="font-jetbrains text-right">{formatPrice(tokenCGData.fdv.current)}</td>
+													<td className="font-jetbrains text-right whitespace-nowrap">
+														{formatPrice(tokenCGData.fdv.current)}
+													</td>
 												</tr>
 											) : null}
 											{tokenCGData?.volume24h?.total ? (
@@ -862,7 +865,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 																className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 															/>
 														</th>
-														<td className="font-jetbrains text-right">{formatPrice(stakedAmount)}</td>
+														<td className="font-jetbrains text-right whitespace-nowrap">{formatPrice(stakedAmount)}</td>
 													</tr>
 													{tokenCGData?.marketCap?.current ? (
 														<tr className="relative -top-[6px]">
@@ -953,7 +956,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 														/>
 													</th>
-													<td className="font-jetbrains text-right">{formatPrice(dailyVolume)}</td>
+													<td className="font-jetbrains text-right whitespace-nowrap">{formatPrice(dailyVolume)}</td>
 												</tr>
 											) : null}
 											{dailyPerpsVolume && allTimePerpsVolume ? (
@@ -989,7 +992,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 														/>
 													</th>
-													<td className="font-jetbrains text-right">{formatPrice(dailyPerpsVolume)}</td>
+													<td className="font-jetbrains text-right whitespace-nowrap">
+														{formatPrice(dailyPerpsVolume)}
+													</td>
 												</tr>
 											) : null}
 											{dailyAggregatorsVolume && allTimeAggregatorsVolume ? (
@@ -1025,7 +1030,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 														/>
 													</th>
-													<td className="font-jetbrains text-right">{formatPrice(dailyAggregatorsVolume)}</td>
+													<td className="font-jetbrains text-right whitespace-nowrap">
+														{formatPrice(dailyAggregatorsVolume)}
+													</td>
 												</tr>
 											) : null}
 											{dailyPerpsAggregatorVolume && allTimePerpsAggregatorVolume ? (
@@ -1061,7 +1068,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 														/>
 													</th>
-													<td className="font-jetbrains text-right">{formatPrice(dailyPerpsAggregatorVolume)}</td>
+													<td className="font-jetbrains text-right whitespace-nowrap">
+														{formatPrice(dailyPerpsAggregatorVolume)}
+													</td>
 												</tr>
 											) : null}
 
@@ -1080,7 +1089,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 															className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 														/>
 													</th>
-													<td className="font-jetbrains text-right">{formatPrice(dailyOptionsVolume)}</td>
+													<td className="font-jetbrains text-right whitespace-nowrap">
+														{formatPrice(dailyOptionsVolume)}
+													</td>
 												</tr>
 											) : null}
 
@@ -1788,7 +1799,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 						</div>
 					) : null}
 					{showCharts && tab === 'tvl-charts' ? (
-						<div className="grid grid-cols-2 rounded-xl">
+						<div className="grid grid-cols-2 bg-[var(--cards-bg)] rounded-md">
 							{isLoading ? (
 								<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 							) : (
@@ -1855,72 +1866,72 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 						</div>
 					) : null}
 					{stablecoins && stablecoins.length > 0 && tab === 'stablecoin-info' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<StablecoinInfo assetName={stablecoins[0]} />
 						</div>
 					) : null}
 					{metrics.bridge && tab === 'bridge' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<BridgeContainerOnClient protocol={protocol} />
 						</div>
 					) : null}
 					{treasury && tab === 'treasury' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<TreasuryChart protocolName={protocol} />
 						</div>
 					) : null}
 					{metrics.unlocks && tab === 'unlocks' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<UnlocksCharts protocolName={protocol} />
 						</div>
 					) : null}
 					{metrics.yields && tab === 'yields' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<ProtocolPools data={yields} protocol={protocol} protocolData={protocolData} />
 						</div>
 					) : null}
 					{metrics.fees && tab === 'fees-revenue' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<FeesAndRevenueCharts data={protocolData} />
 						</div>
 					) : null}
 					{metrics.dexs && tab === 'volume' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<VolumeCharts data={protocolData} />
 						</div>
 					) : null}
 					{metrics.perps && tab === 'perps-volume' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<VolumeCharts data={protocolData} type="derivatives" />
 						</div>
 					) : null}
 					{metrics.perpsAggregators && tab === 'perps-aggregator' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<VolumeCharts data={protocolData} type="aggregator-derivatives" />
 						</div>
 					) : null}
 					{metrics.bridgeAggregators && tab === 'bridge-aggregators' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<VolumeCharts data={protocolData} type="bridge-aggregators" />
 						</div>
 					) : null}
 					{metrics.aggregators && tab === 'aggregators-volume' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<VolumeCharts data={protocolData} type="aggregators" />
 						</div>
 					) : null}
 					{metrics.options && tab === 'options-volume' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<VolumeCharts data={protocolData} type="options" />
 						</div>
 					) : null}
 					{governanceApis?.length > 0 && tab === 'governance' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<GovernanceData apis={governanceApis} color={backgroundColor} />
 						</div>
 					) : null}
 					{metrics.forks && tab === 'forks' ? (
-						<div>
+						<div className="bg-[var(--cards-bg)] rounded-md">
 							<ForksData protocolName={name} />
 						</div>
 					) : null}

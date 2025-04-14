@@ -1,4 +1,4 @@
-import { ColumnDef, sortingFns } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table'
 import { useEffect, useState } from 'react'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
@@ -12,7 +12,6 @@ import {
 	chainIconUrl,
 	formattedNum,
 	formattedPercent,
-	getDominancePercent,
 	slug,
 	toK,
 	tokenIconUrl,
@@ -20,7 +19,7 @@ import {
 	toNiceDayMonthYear,
 	toNiceHour
 } from '~/utils'
-import { UpcomingEvent } from '../../../containers/Defi/Protocol/Emissions/UpcomingEvent'
+import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { formatColumnOrder } from '../utils'
 import type {
 	AirdropRow,

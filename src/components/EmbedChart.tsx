@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { transparentize } from 'polished'
 import { useRouter } from 'next/router'
-import { Tooltip } from './Tooltip'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 
@@ -35,15 +34,13 @@ export function EmbedChart({ color }) {
 
 	return (
 		<Ariakit.PopoverProvider>
-			<Tooltip content="Embed Chart">
-				<Ariakit.PopoverDisclosure
-					style={color ? ({ '--primary1': transparentize(0.8, color) } as any) : {}}
-					className="font-medium text-sm inline-block rounded-xl py-[10px] px-3 text-black/60 dark:text-white/60 bg-[var(--primary1)]"
-				>
-					<Icon name="code" height={14} width={14} />
-					<span className="sr-only">Embed Chart</span>
-				</Ariakit.PopoverDisclosure>
-			</Tooltip>
+			<Ariakit.PopoverDisclosure
+				style={color ? ({ '--primary1': transparentize(0.8, color) } as any) : {}}
+				className="font-medium text-sm inline-block rounded-md h-8 px-3 bg-[var(--primary1)]"
+			>
+				<Icon name="code" height={12} width={12} />
+				<span className="sr-only">Embed Chart</span>
+			</Ariakit.PopoverDisclosure>
 
 			<Ariakit.Popover
 				unmountOnHide

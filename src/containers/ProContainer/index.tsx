@@ -9,7 +9,7 @@ import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/c
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useState } from 'react'
-import { ChartTypes, SortableItem } from '../Defi/Protocol/ProtocolPro'
+import { ChartTypes, SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { groupBy as lodahGroupBy, mapValues } from 'lodash'
 import { ItemsSelect, chainChartOptions } from './ItemsSelect'
 import { useCompare } from '~/containers/CompareChains'
@@ -20,7 +20,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
 import useIsSubscribed from './queries/useIsSubscribed'
 import { useVerified } from './hooks/useVerified'
-import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
+import ProtocolChart from '~/containers/ProtocolOverview/Chart/ProtocolChart'
 import Subscribe from './Subscribe'
 
 const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {

@@ -20,7 +20,7 @@ import { stringToColour } from '../utils'
 import type { IStackedBarChartProps } from '../types'
 import 'echarts/lib/component/grid'
 import { UniversalTransition } from 'echarts/features'
-import { lastDayOfMonth } from '../ProtocolChart/useFetchAndFormatChartData'
+import { lastDayOfMonth } from '../utils'
 
 echarts.use([
 	EBarChart,

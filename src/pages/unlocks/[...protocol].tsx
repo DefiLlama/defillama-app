@@ -1,6 +1,6 @@
 import { maxAgeForNext } from '~/api'
 import { getProtocolEmissons } from '~/api/categories/protocols'
-import { Emissions } from '~/containers/Defi/Protocol/Emissions/index'
+import { Emissions } from '~/containers/ProtocolOverview/Emissions/index'
 import * as React from 'react'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'

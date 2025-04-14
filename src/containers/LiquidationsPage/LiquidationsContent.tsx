@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars*/
 import * as React from 'react'
-import ReactSwitch from 'react-switch'
 import { ChartData, getLiquidationsCsvData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { TotalLiquidable } from './TotalLiquidable'
 import { LiquidableChanges24H } from './LiquidableChanges24H'

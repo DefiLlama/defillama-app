@@ -1310,8 +1310,3 @@ function lastDayOfWeek(dateString) {
 	const monthDay = date.getUTCDate() - weekDay
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), monthDay) / 1000)
 }
-export const lastDayOfMonth = (dateString) => {
-	let date = new Date(dateString)
-
-	return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
-}

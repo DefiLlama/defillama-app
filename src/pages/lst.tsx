@@ -9,7 +9,7 @@ import { formattedNum, toK } from '~/utils'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
-import { groupDataByDays } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
+import { groupDataByDays } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false

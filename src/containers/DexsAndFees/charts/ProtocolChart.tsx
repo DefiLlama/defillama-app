@@ -97,7 +97,7 @@ export const ProtocolChart = ({
 	return (
 		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
 			{linkedProtocols && linkedProtocols.length > 0 && (
-				<nav className="col-span-1 xl:col-span-2 flex overflow-x-auto rounded-md bg-[var(--cards-bg)] border-b border-black/10 dark:border-white/10">
+				<nav className="col-span-1 text-xs font-medium xl:col-span-2 flex overflow-x-auto rounded-md bg-[var(--cards-bg)] border-b border-black/10 dark:border-white/10">
 					{tabs.map((p) => (
 						<Link href={`/${type}/${slug(p)}`} key={p} passHref>
 							<a

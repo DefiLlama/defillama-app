@@ -1,5 +1,4 @@
 import { Icon } from '~/components/Icon'
-import { QuestionHelper } from '~/components/QuestionHelper'
 import { Flag } from './Flag'
 import { useState } from 'react'
 import { Tooltip } from '~/components/Tooltip'

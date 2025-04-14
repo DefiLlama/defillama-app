@@ -15,7 +15,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { formatGovernanceData } from '~/api/categories/protocols'
-import { GovernanceTable } from '~/containers/Defi/Protocol/Governance'
+import { GovernanceTable } from '~/containers/ProtocolOverview/Governance'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'

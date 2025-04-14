@@ -7,7 +7,7 @@ import { ETFColumn } from '~/components/Table/Defi/columns'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getETFData } from '~/api/categories/protocols'
 import Layout from '~/layout'
-import { groupDataByDays } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
+import { groupDataByDays } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
