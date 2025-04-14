@@ -128,8 +128,8 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				protocolSummary={props.protocolSummary}
 			/> */}
 
-			<div className="grid grid-cols-2 xl:grid-rows-[repeat(2,auto)] gap-1">
-				<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
+			<div className="grid grid-cols-1 xl:grid-cols-2 gap-1 only:*:col-span-full odd:last:*:col-span-full">
+				<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
 					<h3 className="font-semibold text-lg">Protocol information</h3>
 					{props.protocolSummary.description && <p>{props.protocolSummary.description}</p>}
 
@@ -179,7 +179,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				</div>
 
 				{(blockExplorers.length > 0 || props.protocolSummary.gecko_id) && (
-					<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
+					<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
 						<h3 className="font-semibold text-lg">Token Information</h3>
 
 						{blockExplorers && (
@@ -214,7 +214,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					</div>
 				)}
 				{props.protocolSummary.methodologyURL && (
-					<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
+					<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
 						<h3 className="font-semibold text-lg">Methodology</h3>
 						{props.protocolSummary.methodology?.['Fees'] ? (
 							<p>{`Fees: ${props.protocolSummary.methodology['Fees']}`}</p>

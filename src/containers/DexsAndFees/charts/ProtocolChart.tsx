@@ -94,12 +94,12 @@ export const ProtocolChart = ({
 	return (
 		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
 			{linkedProtocols && linkedProtocols.length > 0 && (
-				<nav className="col-span-1 xl:col-span-2 flex overflow-x-auto rounded-t-md bg-[var(--bg7)] border-b border-black/10 dark:border-white/10">
+				<nav className="-mb-1 col-span-1 xl:col-span-2 flex overflow-x-auto rounded-t-md bg-[var(--cards-bg)] border-b border-black/10 dark:border-white/10">
 					{tabs.map((p) => (
 						<Link href={`/${type}/${slug(p)}`} key={p} passHref>
 							<a
 								data-active={router.asPath.split('#')[0].split('?')[0] === `/${type}/${slug(p)}`}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-tl-xl data-[active=true]:bg-[var(--link-hover-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-tl-md data-[active=true]:bg-[var(--link-hover-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
 							>
 								{p}
 							</a>
@@ -109,8 +109,9 @@ export const ProtocolChart = ({
 			)}
 			{!fullChart ? (
 				<div
-					className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto"
-					style={{ borderTopLeftRadius: tabs?.length > 1 ? 0 : '6px' }}
+					className={`flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] ${
+						linkedProtocols?.length > 1 ? 'rounded-b-md' : 'rounded-md'
+					} overflow-x-auto`}
 				>
 					<>
 						{name && (
@@ -158,25 +159,22 @@ export const ProtocolChart = ({
 						) : null}
 					</>
 				</div>
-			) : (
-				// TODO: Temporal work around to unlock feature
-				<>‎</>
-			)}
+			) : null}
 			<div
-				className={`flex flex-col gap-4 ${
-					!fullChart ? 'col-span-1' : 'col-span-2'
-				} bg-[var(--cards-bg)] rounded-md min-h-[438px]`}
+				className={`flex flex-col gap-4 ${!fullChart ? 'col-span-1' : 'col-span-2'} bg-[var(--cards-bg)] ${
+					linkedProtocols?.length > 1 ? 'rounded-md rounded-e-none' : 'rounded-md'
+				} min-h-[434px]`}
 			>
 				{barsData && barsData.length > 0 && (
 					<div className="flex gap-2 flex-row items-center flex-wrap justify-between m-3">
-						<h1 className="text-xl font-semibold">{title ?? ''}</h1>
-						<div className="ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						{title ? <h1 className="text-base font-semibold">{title}</h1> : null}
+						<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<button
 									key={dataInterval}
 									onClick={() => setBarInterval(dataInterval)}
 									data-active={dataInterval === barInterval}
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 								>
 									{dataInterval}
 								</button>
@@ -223,15 +221,14 @@ export const ChartOnly = ({ title, chartData }) => {
 		<>
 			{barsData && barsData.length > 0 && (
 				<div className="flex flex-col gap-2 m-5 mt-0">
-					<>{title ?? ''}</>
-
-					<div className="m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+					{title ? <h1 className="text-base font-semibold">{title}</h1> : null}
+					<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 						{INTERVALS_LIST.map((dataInterval) => (
 							<button
 								key={dataInterval}
 								onClick={() => setBarInterval(dataInterval)}
 								data-active={dataInterval === barInterval}
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 							>
 								{dataInterval}
 							</button>

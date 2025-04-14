@@ -194,40 +194,6 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 		selectedDataType
 	])
 
-	const downloadCsv = React.useCallback(() => {
-		const header = [
-			'Protocol',
-			'Category',
-			'Change 1d',
-			'Change 7d',
-			'Change 1m',
-			'Total 1d',
-			'Total 7d',
-			'Total 1m',
-			'Revenue 24h',
-			'Revenue 7d',
-			'Revenue 30d'
-		]
-		const data = protocolsList.map((protocol) => {
-			return [
-				protocol.displayName,
-				protocol.category,
-				protocol.change_1d,
-				protocol.change_7d,
-				protocol.change_1m,
-				protocol.total24h,
-				protocol.total7d,
-				protocol.total30d,
-				protocol.revenue24h,
-				protocol.revenue7d,
-				protocol.revenue30d
-			]
-		})
-		const csv = [header, ...data].map((row) => row.join(',')).join('\n')
-
-		download(`${props.type}-protocols.csv`, csv)
-	}, [protocolsList, props.type])
-
 	return (
 		<>
 			{props.type === 'fees' && (
@@ -256,13 +222,6 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				}
 			/>
 
-			<div className="flex items-center justify-between flex-wrap gap-1 p-3 bg-[var(--cards-bg)] rounded-md relative">
-				<h1 className="text-xl font-semibold">
-					<TitleByType type={props.type} chain={chain} />
-				</h1>
-				<CSVDownloadButton onClick={downloadCsv} />
-				{/* <p className="text-xs absolute bottom-0 right-1 ml-auto">Updated daily at 00:00UTC</p> */}
-			</div>
 			{getChartByType(props.type, {
 				type: props.type,
 				data: {

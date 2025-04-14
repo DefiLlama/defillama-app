@@ -19,6 +19,8 @@ import { TagGroup } from '~/components/TagGroup'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { download } from '~/utils'
 
 export const PERIODS = ['24h', '7d', '30d', '1y']
 const columnSizesKeys = Object.keys(volumesColumnSizes)
@@ -219,6 +221,40 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 		)
 	}
 
+	const downloadCsv = React.useCallback(() => {
+		const header = [
+			'Protocol',
+			'Category',
+			'Change 1d',
+			'Change 7d',
+			'Change 1m',
+			'Total 1d',
+			'Total 7d',
+			'Total 1m',
+			'Revenue 24h',
+			'Revenue 7d',
+			'Revenue 30d'
+		]
+		const csvdata = data.map((protocol) => {
+			return [
+				protocol.displayName,
+				protocol.category,
+				protocol.change_1d,
+				protocol.change_7d,
+				protocol.change_1m,
+				protocol.total24h,
+				protocol.total7d,
+				protocol.total30d,
+				protocol.revenue24h,
+				protocol.revenue7d,
+				protocol.revenue30d
+			]
+		})
+		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')
+
+		download(`${type}-protocols.csv`, csv)
+	}, [data, type])
+
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md">
 			<div className="flex items-center justify-end flex-wrap gap-4 p-3">
@@ -250,7 +286,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 						}}
 					/>
 				)}
@@ -267,11 +303,12 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 						}}
 					/>
 				)}
 				{type === 'fees' ? <TagGroup selectedValue={period} setValue={setNewPeriod} values={PERIODS} /> : null}
+				<CSVDownloadButton onClick={downloadCsv} className="min-h-8" />
 			</div>
 
 			<VirtualTable instance={instance} />

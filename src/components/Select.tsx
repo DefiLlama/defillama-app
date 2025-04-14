@@ -102,7 +102,7 @@ export function Select({
 			>
 				{labelType === 'smol' ? (
 					<span className="flex items-center gap-1">
-						<span className="text-[10px] rounded-full min-w-4 flex items-center justify-center bg-[var(--bg4)] px-[1px]">
+						<span className="text-[10px] -my-2 rounded-full min-w-4 flex items-center justify-center bg-[var(--bg4)] p-[1px]">
 							{selectedValues.length}
 						</span>
 						<span>{label}</span>

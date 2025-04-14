@@ -78,13 +78,13 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 
 	return (
 		<>
-			<div className="m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+			<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 				{TIME_PERIODS.map((period) => (
 					<button
 						key={period}
 						onClick={() => setTimePeriod(period)}
 						data-active={timePeriod === period}
-						className="flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						{period}
 					</button>

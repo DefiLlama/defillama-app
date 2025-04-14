@@ -83,7 +83,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 					name={selectedPortfolio}
 					options={portfolios}
 					onItemClick={(value) => setSelectedPortfolio(value)}
-					className="flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium"
+					className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium"
 				/>
 				<button onClick={addPortfolio}>
 					<Icon name="folder-plus" height={24} width={24} />

@@ -142,7 +142,7 @@ export function SelectWithCombobox({
 				>
 					{labelType === 'smol' ? (
 						<span className="flex items-center gap-1">
-							<span className="text-[10px] rounded-full min-w-4 flex items-center justify-center border border-[#E6E6E6] dark:border-[#2F3336] px-[1px]">
+							<span className="text-[10px] -my-2 rounded-full min-w-4 flex items-center justify-center border border-[#E6E6E6] dark:border-[#2F3336] p-[1px]">
 								{selectedValues.length}
 							</span>
 							<span>{label}</span>

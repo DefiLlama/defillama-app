@@ -153,11 +153,11 @@ export const CategoryPerformanceContainer = ({
 			</div>
 
 			<div className="flex items-center gap-3 p-3 justify-end">
-				<div className="flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 					{(['7D', '30D', 'YTD', '365D'] as const).map((period) => (
 						<button
 							key={period}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 							data-active={groupBy === period}
 							onClick={() => setGroupBy(period)}
 						>
@@ -165,12 +165,12 @@ export const CategoryPerformanceContainer = ({
 						</button>
 					))}
 				</div>
-				<div className="flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
-					<p className="pl-3 pr-1 text-xs">Show as:</p>
+				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+					<p className="pl-3 pr-1">Show as:</p>
 					{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
 						<button
 							key={denom}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 							data-active={groupByDenom === denom}
 							onClick={() => setGroupByDenom(denom)}
 						>

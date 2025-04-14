@@ -32,8 +32,8 @@ export function ProtocolPools({ protocol, data, protocolData }) {
 	})
 
 	return (
-		<div className="grid grid-cols-2 p-6 xl:grid-rows-[repeat(2,auto)]">
-			<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
+		<div className="flex flex-col xl:flex-row gap-1">
+			<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 flex-1">
 				<p className="flex items-center gap-2">
 					<span>Number of pools tracked</span>
 					<span>:</span>
