@@ -91,9 +91,67 @@ export const getProtocol = async (protocolName: string) => {
 	}
 }
 
+export const getAllProtocolEmissionsWithHistory = async ({
+	startDate,
+	endDate
+}: {
+	startDate?: number
+	endDate?: number
+} = {}) => {
+	try {
+		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
+		const coins = await fetchWithErrorLogging(
+			`https://coins.llama.fi/prices/current/${res
+				.filter((p) => p.gecko_id)
+				.map((p) => 'coingecko:' + p.gecko_id)
+				.join(',')}`
+		).then((res) => res.json())
+
+		return res
+			.map((protocol) => {
+				try {
+					let filteredEvents = protocol.events || []
+					if (startDate) {
+						filteredEvents = filteredEvents.filter((e) => e.timestamp >= startDate)
+					}
+					if (endDate) {
+						filteredEvents = filteredEvents.filter((e) => e.timestamp <= endDate)
+					}
+
+					filteredEvents.sort((a, b) => a.timestamp - b.timestamp)
+
+					const coin = coins.coins['coingecko:' + protocol.gecko_id]
+					const tSymbol = coin?.symbol ?? null
+
+					return {
+						...protocol,
+						events: filteredEvents,
+						tPrice: coin?.price ?? null,
+						tSymbol
+					}
+				} catch (e) {
+					console.log('error', protocol.name, e)
+					return null
+				}
+			})
+			.filter(Boolean)
+			.sort((a, b) => {
+				const x = a.events[0]?.timestamp
+				const y = b.events[0]?.timestamp
+				if (x === y) return 0
+				if (x === null) return 1
+				if (y === null) return -1
+				return x < y ? -1 : 1
+			})
+	} catch (e) {
+		console.log(e)
+		return []
+	}
+}
+
 export const getAllProtocolEmissions = async () => {
 	try {
-		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
+		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
 		const coins = await fetchWithErrorLogging(
 			`https://coins.llama.fi/prices/current/${res
 				.filter((p) => p.gecko_id)
@@ -119,6 +177,7 @@ export const getAllProtocolEmissions = async () => {
 					return {
 						...protocol,
 						upcomingEvent,
+						events: protocol.events || [],
 						tPrice: coin?.price ?? null,
 						tSymbol
 					}
@@ -158,7 +217,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		if (!list.includes(protocolName))
 			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
 
-		const allEmmisions = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`).then((r) => r.json())
+		const allEmmisions = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((r) => r.json())
 
 		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())

@@ -5,6 +5,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { Tooltip } from '~/components/Tooltip'
 
 export const DesktopSearch = (props: IBaseSearchProps) => {
 	const {
@@ -205,6 +206,17 @@ const Row = ({ data, onItemClick }) => {
 		>
 			{data?.logo || data?.fallbackLogo ? <TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} /> : null}
 			<span>{data.name}</span>
+			{data?.deprecated ? (
+				<span className="text-red-600 dark:text-red-400 text-xs font-medium flex items-center gap-1">
+					<Tooltip
+						content="Deprecated"
+						className="bg-red-600 dark:bg-red-400 text-white text-[10px] h-3 w-3 flex items-center justify-center rounded-full"
+					>
+						!
+					</Tooltip>
+					<span>Deprecated</span>
+				</span>
+			) : null}
 			{loading ? (
 				<svg
 					className="animate-spin -ml-1 mr-3 h-4 w-4"

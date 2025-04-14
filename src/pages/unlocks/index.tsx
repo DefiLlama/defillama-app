@@ -30,32 +30,36 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 })
 
 export default function Protocols({ data }) {
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
+	const [projectName, setProjectName] = React.useState('')
+	const [filteredData, setFilteredData] = React.useState(data)
+
+	React.useEffect(() => {
+		const id = setTimeout(() => {
+			const searchTerm = projectName.toLowerCase()
+			const filtered = projectName
+				? data.filter(
+						(protocol) =>
+							protocol.name.toLowerCase().includes(searchTerm) ||
+							(protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm))
+				  )
+				: data
+			setFilteredData(filtered)
+		}, 200)
+		return () => clearTimeout(id)
+	}, [projectName, data])
+
 	const instance = useReactTable({
-		data,
+		data: filteredData,
 		columns: emissionsColumns,
 		state: {
-			columnFilters,
 			sorting
 		},
 		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
-
-	const [projectName, setProjectName] = React.useState('')
-
-	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [projectName, instance])
 
 	const { upcomingUnlocks30dValue } = React.useMemo(() => {
 		let upcomingUnlocks30dValue = 0

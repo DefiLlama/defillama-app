@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import Link from 'next/link'
 import { defaultToolsAndFooterLinks, linksWithNoSubMenu, navLinks } from '../Links'
+import { isActiveCategory } from '../utils'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { NewTag } from '../NewTag'
@@ -61,90 +62,16 @@ export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function
 	)
 })
 
-const isYields = (pathname: string) =>
-	pathname === '/yields' || pathname.startsWith('/yields/') || pathname.startsWith('/yields?')
-const isStables = (pathname: string) =>
-	pathname === '/stablecoins' || pathname.startsWith('/stablecoin/') || pathname.startsWith('/stablecoins/')
-const isLiquidations = (pathname: string) => pathname === '/liquidations' || pathname.startsWith('/liquidations/')
-const isDexs = (pathname: string) =>
-	pathname === '/dexs' ||
-	pathname.startsWith('/dexs/') ||
-	pathname.startsWith('/dex/') ||
-	pathname.startsWith('/aggregator') ||
-	pathname.startsWith('/perps') ||
-	pathname.startsWith('/options') ||
-	pathname.startsWith('/bridge-aggregators')
-const isFees = (pathname: string) =>
-	pathname === '/fees' || pathname.startsWith('/fees/') || pathname.startsWith('/fee/')
-const isRaises = (pathname: string) => pathname.startsWith('/raises')
-const isHacks = (pathname: string) => pathname === '/hacks'
-const isBridges = (pathname: string) => pathname.startsWith('/bridge') && pathname !== '/bridged'
-const isBorrow = (pathname: string) => pathname.startsWith('/borrow')
-const isNFT = (pathname: string) => pathname.startsWith('/nfts')
-const isUnlocks = (pathname: string) => pathname.startsWith('/unlocks')
-const isCEX = (pathname: string) => pathname.startsWith('/cexs') || pathname.startsWith('/cex/')
-const isGovernance = (pathname: string) => pathname.startsWith('/governance')
-const isLSD = (pathname: string) => pathname.startsWith('/lsd')
-const isETF = (pathname: string) => pathname.startsWith('/crypto-etf') || pathname === '/etfs'
-const isNarrativeTracker = (pathname: string) => pathname.startsWith('/narrative-tracker')
-
 const isActive = ({ pathname, category }: { pathname: string; category: string }) => {
-	switch (category) {
-		case 'Yields':
-			return isYields(pathname)
-		case 'Stables':
-			return isStables(pathname)
-		case 'Liquidations':
-			return isLiquidations(pathname)
-		case 'Volumes':
-			return isDexs(pathname)
-		case 'Fees/Revenue':
-			return isFees(pathname)
-		case 'Raises':
-			return isRaises(pathname)
-		case 'Hacks':
-			return isHacks(pathname)
-		case 'Bridges':
-			return isBridges(pathname)
-		case 'Borrow Aggregator':
-			return isBorrow(pathname)
-		case 'NFT':
-			return isNFT(pathname)
-		case 'Unlocks':
-			return isUnlocks(pathname)
-		case 'CEX Transparency':
-			return isCEX(pathname)
-		case 'Governance':
-			return isGovernance(pathname)
-		case 'ETH Liquid Staking':
-			return isLSD(pathname)
-		case 'Crypto ETFs':
-			return isETF(pathname)
-		case 'Narrative Tracker':
-			return isNarrativeTracker(pathname)
-		case 'DeFi':
-			return (
-				!isYields(pathname) &&
-				!isStables(pathname) &&
-				!isLiquidations(pathname) &&
-				!isDexs(pathname) &&
-				!isFees(pathname) &&
-				!isRaises(pathname) &&
-				!isHacks(pathname) &&
-				!isBorrow(pathname) &&
-				!isNFT(pathname) &&
-				!isBridges(pathname) &&
-				!isUnlocks(pathname) &&
-				!isCEX(pathname) &&
-				!isGovernance(pathname) &&
-				!isLSD(pathname) &&
-				!isETF(pathname) &&
-				!isNarrativeTracker(pathname) &&
-				!isDefaultLink(pathname)
-			)
-		default:
-			return false
+	if (category === 'DeFi') {
+		return (
+			!isDefaultLink(pathname) &&
+			!Object.keys(navLinks)
+				.filter((cat) => cat !== 'DeFi')
+				.some((cat) => isActiveCategory(pathname, cat))
+		)
 	}
+	return isActiveCategory(pathname, category)
 }
 
 const isDefaultLink = (pathname) =>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, Fragment, forwardRef } from 'react'
 import Link from 'next/link'
-import { linksWithNoSubMenu, navLinks } from '../Links'
+import { linksWithNoSubMenu, navLinks, defaultToolsAndFooterLinks } from '../Links'
+import { isActiveCategory } from '../utils'
 import { useYieldApp } from '~/hooks'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
@@ -11,9 +12,7 @@ export function Menu() {
 	const navEl = useRef<HTMLDivElement>(null)
 
 	const router = useRouter()
-
 	const isYieldApp = useYieldApp()
-
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	useEffect(() => {
@@ -32,10 +31,7 @@ export function Menu() {
 		}
 
 		document.addEventListener('click', handleClick)
-
-		return () => {
-			document.removeEventListener('click', handleClick)
-		}
+		return () => document.removeEventListener('click', handleClick)
 	}, [])
 
 	return (
@@ -137,15 +133,32 @@ export function Menu() {
 	)
 }
 
+const isActive = ({ pathname, category }: { pathname: string; category: string }) => {
+	if (category === 'DeFi') {
+		return (
+			!isDefaultLink(pathname) &&
+			!Object.keys(navLinks)
+				.filter((cat) => cat !== 'DeFi')
+				.some((cat) => isActiveCategory(pathname, cat))
+		)
+	}
+	return isActiveCategory(pathname, category)
+}
+
+const isDefaultLink = (pathname) =>
+	[...defaultToolsAndFooterLinks.tools, ...defaultToolsAndFooterLinks.footer].map((x) => x.path).includes(pathname)
+
 const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
 	const noSubMenu = linksWithNoSubMenu.find((x) => x.name === name)
 	const router = useRouter()
+	const active = isActive({ category: name, pathname: router.pathname })
 
-	if (noSubMenu || (name === 'Yields' && !router.pathname.startsWith('/yields'))) {
+	if (noSubMenu || (name === 'Yields' && !active)) {
 		return (
 			<Link href={noSubMenu?.url ?? '/yields'} prefetch={false} passHref>
 				<a
 					target={noSubMenu?.external && '_blank'}
+					data-linkactive={(noSubMenu?.url ?? '/yields') === router.pathname}
 					className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
 				>
 					{name}
@@ -155,10 +168,11 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	}
 
 	return (
-		<details ref={ref} className="group select-none">
+		<details ref={ref} className={`group select-none ${active ? 'text-white' : ''}`}>
 			<summary
 				data-togglemenuoff={false}
-				className="group/summary rounded-md flex items-center gap-1 list-none p-3 relative left-[-22px]"
+				data-linkactive={active}
+				className="group/summary rounded-md flex items-center gap-1 list-none p-3 relative left-[-22px] data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white"
 			>
 				<Icon
 					name="chevron-right"
@@ -170,10 +184,10 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 				<span data-togglemenuoff={false}>{name}</span>
 			</summary>
 			<span className="my-1 flex flex-col">
-				{navLinks[name].main.map((subLink, i) => (
+				{navLinks[name].main.map((subLink) => (
 					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
 						<a
-							data-linkactive={i == 2}
+							data-linkactive={subLink.path === router.asPath.split('/?')[0].split('?')[0]}
 							className="py-3 pl-7 rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white"
 						>
 							<span>{subLink.name}</span>

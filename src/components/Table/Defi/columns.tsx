@@ -372,7 +372,12 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Next Event',
 		id: 'upcomingEvent',
-		accessorFn: (row) => row.upcomingEvent?.[0]?.timestamp,
+		accessorFn: (row) => {
+			let { timestamp } = row.upcomingEvent?.[0] || {}
+			if (!timestamp || timestamp < Date.now() / 1e3) return undefined
+			return timestamp
+		},
+		sortUndefined: 'last',
 		cell: ({ row }) => {
 			let { timestamp } = row.original.upcomingEvent[0]
 
