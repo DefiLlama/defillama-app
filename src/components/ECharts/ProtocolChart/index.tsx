@@ -26,7 +26,7 @@ export default function AreaBarChart({
 	customLegendOptions,
 	tooltipSort = true,
 	chartOptions,
-	height = '360px',
+	height,
 	unlockTokenSymbol = '',
 	isThemeDark,
 	...props
@@ -626,5 +626,7 @@ export default function AreaBarChart({
 		yAxisByIndex
 	])
 
-	return <div id={id} style={{ height, ...(props.style ?? {}) }} />
+	return (
+		<div id={id} className="h-[360px]" style={height || props.style ? { height, ...(props.style ?? {}) } : undefined} />
+	)
 }

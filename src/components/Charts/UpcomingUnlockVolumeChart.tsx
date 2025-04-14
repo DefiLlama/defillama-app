@@ -27,7 +27,7 @@ interface UpcomingUnlockVolumeChartProps {
 const TIME_PERIODS = ['Weekly', 'Monthly'] as const
 type TimePeriod = typeof TIME_PERIODS[number]
 
-export function UpcomingUnlockVolumeChart({ protocols, height = '300px' }: UpcomingUnlockVolumeChartProps) {
+export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Monthly')
 
 	const chartData = useMemo(() => {
@@ -112,7 +112,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height = '300px' }: Upcom
 					}}
 				/>
 			) : (
-				<p className="flex items-center justify-center text-[var(--text3)]" style={{ height }}>
+				<p className="flex items-center justify-center text-[var(--text3)]" style={{ height: height ?? '360px' }}>
 					No upcoming unlock data available for the selected period.
 				</p>
 			)}

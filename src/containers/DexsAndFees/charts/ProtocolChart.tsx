@@ -92,9 +92,9 @@ export const ProtocolChart = ({
 	const [enabledSettings] = useFeesManager()
 
 	return (
-		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
+		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
 			{linkedProtocols && linkedProtocols.length > 0 && (
-				<nav className="col-span-1 xl:col-span-2 flex overflow-x-auto rounded-t-xl bg-[var(--bg7)] border-b border-black/10 dark:border-white/10">
+				<nav className="col-span-1 xl:col-span-2 flex overflow-x-auto rounded-t-md bg-[var(--bg7)] border-b border-black/10 dark:border-white/10">
 					{tabs.map((p) => (
 						<Link href={`/${type}/${slug(p)}`} key={p} passHref>
 							<a
@@ -109,8 +109,8 @@ export const ProtocolChart = ({
 			)}
 			{!fullChart ? (
 				<div
-					className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto"
-					style={{ borderTopLeftRadius: tabs?.length > 1 ? 0 : '12px' }}
+					className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto"
+					style={{ borderTopLeftRadius: tabs?.length > 1 ? 0 : '6px' }}
 				>
 					<>
 						{name && (
@@ -162,11 +162,15 @@ export const ProtocolChart = ({
 				// TODO: Temporal work around to unlock feature
 				<>‎</>
 			)}
-			<div className={`flex flex-col gap-4 py-3 ${!fullChart ? 'col-span-1' : 'col-span-2'}`}>
+			<div
+				className={`flex flex-col gap-4 ${
+					!fullChart ? 'col-span-1' : 'col-span-2'
+				} bg-[var(--cards-bg)] rounded-md min-h-[438px]`}
+			>
 				{barsData && barsData.length > 0 && (
-					<div className="flex gap-2 flex-row items-center flex-wrap justify-between mx-4">
-						<>{title ?? ''}</>
-						<div className="m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+					<div className="flex gap-2 flex-row items-center flex-wrap justify-between m-3">
+						<h1 className="text-xl font-semibold">{title ?? ''}</h1>
+						<div className="ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<button
 									key={dataInterval}

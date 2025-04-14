@@ -16,7 +16,7 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 
 export function Treasury({ protocolName }) {
 	return (
-		<div className="section-in-grid" id="treasury">
+		<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1" id="treasury">
 			<h3>Treasury</h3>
 
 			<TreasuryChart protocolName={protocolName} />

@@ -10,7 +10,7 @@ export default function NonTimeSeriesBarChart({
 	title,
 	color,
 	chartOptions,
-	height = '360px',
+	height,
 	tooltipOrderBottomUp
 }: IBarChartProps) {
 	const id = useMemo(() => crypto.randomUUID(), [])
@@ -166,7 +166,7 @@ export default function NonTimeSeriesBarChart({
 
 	return (
 		<div className="relative">
-			<div id={id} style={{ height, margin: 'auto 0' }}></div>
+			<div id={id} className="my-auto h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

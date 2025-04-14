@@ -27,7 +27,7 @@ echarts.use([
 	DataZoomComponent
 ])
 
-export default function OrderBookChart({ height = '360px', chartData }: IOrderBookChartProps) {
+export default function OrderBookChart({ height, chartData }: IOrderBookChartProps) {
 	const id = React.useMemo(() => crypto.randomUUID(), [])
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -237,5 +237,5 @@ export default function OrderBookChart({ height = '360px', chartData }: IOrderBo
 		}
 	}, [id, chartData, createInstance, isDark, isSmall])
 
-	return <div id={id} style={{ height }} />
+	return <div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 }

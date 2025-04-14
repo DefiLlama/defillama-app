@@ -18,7 +18,7 @@ export default function AreaChart({
 	customLegendOptions,
 	tooltipSort = true,
 	chartOptions,
-	height = '360px',
+	height,
 	expandTo100Percent = false,
 	isStackedChart,
 	hideGradient = false,
@@ -205,8 +205,8 @@ export default function AreaChart({
 	}, [createInstance, defaultChartSettings, series, chartOptions, stackColors, isThemeDark, stacks.length])
 
 	return (
-		<div style={{ position: 'relative' }} {...props}>
-			<div id={id} style={{ height }} className="my-auto" />
+		<div className="relative" {...props}>
+			<div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 		</div>
 	)
 }

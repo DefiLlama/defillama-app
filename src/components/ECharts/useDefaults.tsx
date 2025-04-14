@@ -121,15 +121,21 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
-				let chartdate = new Date(params[0].value[0]).toLocaleDateString('en-US', {
-					year: isMonthly ? undefined : 'numeric',
-					month: 'short',
-					day: 'numeric'
-				})
-
-				chartdate += isMonthly
-					? ' - ' + lastDayOfMonth(params[0].value[0]) + ', ' + new Date(params[0].value[0]).getFullYear()
-					: ''
+				let chartdate = isMonthly
+					? new Date(params[0].value[0]).toLocaleDateString('en-US', {
+							year: undefined,
+							month: 'short',
+							day: undefined
+					  }) +
+					  '1 - ' +
+					  lastDayOfMonth(params[0].value[0]) +
+					  ', ' +
+					  new Date(params[0].value[0]).getFullYear()
+					: new Date(params[0].value[0]).toLocaleDateString('en-US', {
+							year: isMonthly ? undefined : 'numeric',
+							month: 'short',
+							day: 'numeric'
+					  })
 
 				let vals
 				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1] !== null)

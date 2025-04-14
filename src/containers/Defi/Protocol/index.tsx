@@ -1404,7 +1404,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 								</button>
 							</div>
 							<div className="grid grid-cols-2 p-6 xl:grid-rows-[repeat(2,auto)]">
-								<div className="section-in-grid">
+								<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
 									<h3 className="font-semibold text-lg">{isCEX ? 'Exchange Information' : 'Protocol Information'}</h3>
 									{description && <p>{description}</p>}
 
@@ -1487,7 +1487,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 								</div>
 
 								{articles && articles.length > 0 && (
-									<div className="section-in-grid">
+									<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
 										<div className="flex items-center justify-between">
 											<h3 className="font-semibold text-lg">Latest from DL News</h3>
 											<Link href="https://www.dlnews.com" passHref>
@@ -1503,7 +1503,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 									</div>
 								)}
 								{devMetrics && (
-									<div className="section-in-grid">
+									<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
 										<span className="flex items-center gap-2">
 											<h3 className="font-semibold text-lg">Development Activity</h3>{' '}
 											<p>(updated at {dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})</p>
@@ -1524,7 +1524,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 									</div>
 								)}
 								{(address || protocolData.gecko_id || explorers) && (
-									<div className="section-in-grid">
+									<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
 										<h3 className="font-semibold text-lg">Token Information</h3>
 
 										{address && (
@@ -1579,7 +1579,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 									helperTexts?.revenue ||
 									(helperTexts?.users && users?.activeUsers) ||
 									Object.values(methodologyUrls ?? {}).filter((x) => !!x).length > 0) && (
-									<div className="section-in-grid">
+									<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
 										<h3 className="font-semibold text-lg">Methodology</h3>
 										{methodology && (
 											<p>
@@ -1709,7 +1709,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 								)}
 
 								{hacksData && hacksData.length > 0 ? (
-									<div className="section-in-grid">
+									<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
 										<h3 className="font-semibold text-lg">Hacks</h3>
 
 										{hacksData.map((hack) => (
@@ -1766,7 +1766,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 								) : null}
 
 								{similarProtocols && similarProtocols.length > 0 ? (
-									<div className="section-in-grid">
+									<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
 										<h3 className="font-semibold text-lg">Competitors</h3>
 
 										<div className="flex items-center gap-4 flex-wrap">

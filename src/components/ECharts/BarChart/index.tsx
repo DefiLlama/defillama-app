@@ -17,7 +17,7 @@ export default function BarChart({
 	customLegendName,
 	customLegendOptions,
 	chartOptions,
-	height = '360px',
+	height,
 	barWidths,
 	stackColors,
 	tooltipOrderBottomUp,
@@ -201,7 +201,7 @@ export default function BarChart({
 					}}
 				/>
 			)}
-			<div id={id} style={{ height, margin: 'auto 0' }}></div>
+			<div id={id} className="my-auto h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

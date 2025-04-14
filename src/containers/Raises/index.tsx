@@ -71,8 +71,8 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					<CSVDownloadButton onClick={() => downloadCsv({ raises })} className="mt-auto mr-auto" />
 				</div>
 
-				<div className="col-span-1 pt-3 min-h-[360px] bg-[var(--cards-bg)] rounded-md">
-					<BarChart chartData={monthlyInvestment} title="Monthly sum" valueSymbol="$" />
+				<div className="col-span-1 min-h-[360px] bg-[var(--cards-bg)] rounded-md">
+					<BarChart chartData={monthlyInvestment} title="" valueSymbol="$" color="#1F67D2" isMonthly />
 				</div>
 			</div>
 

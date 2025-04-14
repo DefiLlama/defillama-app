@@ -310,7 +310,7 @@ const PageView = (props) => {
 					</p>
 				</div>
 
-				<LazyChart className="p-3 bg-[var(--cards-bg)] min-h-[460px]">
+				<LazyChart className="bg-[var(--cards-bg)] min-h-[460px]">
 					{!isLoading && (
 						<Chart
 							height="460px"

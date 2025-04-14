@@ -85,7 +85,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 	])
 
 	return (
-		<Layout title={props.title} className="gap-9">
+		<Layout title={props.title}>
 			<SEO
 				cardName={props.protocolSummary.displayName}
 				tvl={formattedNum(props.protocolSummary.total24h)?.toString()}
@@ -127,9 +127,9 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				chartType="chain"
 				protocolSummary={props.protocolSummary}
 			/> */}
-			<h2 className="font-semibold text-xl -mb-6 ml-1">Information</h2>
-			<div className="grid grid-cols-2 xl:grid-rows-[repeat(2,auto)] gap-4 bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl p-6">
-				<div className="section-in-grid">
+
+			<div className="grid grid-cols-2 xl:grid-rows-[repeat(2,auto)] gap-1">
+				<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
 					<h3 className="font-semibold text-lg">Protocol information</h3>
 					{props.protocolSummary.description && <p>{props.protocolSummary.description}</p>}
 
@@ -179,7 +179,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				</div>
 
 				{(blockExplorers.length > 0 || props.protocolSummary.gecko_id) && (
-					<div className="section-in-grid">
+					<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
 						<h3 className="font-semibold text-lg">Token Information</h3>
 
 						{blockExplorers && (
@@ -214,7 +214,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					</div>
 				)}
 				{props.protocolSummary.methodologyURL && (
-					<div className="section-in-grid">
+					<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1">
 						<h3 className="font-semibold text-lg">Methodology</h3>
 						{props.protocolSummary.methodology?.['Fees'] ? (
 							<p>{`Fees: ${props.protocolSummary.methodology['Fees']}`}</p>
@@ -237,8 +237,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 			</div>
 			{(enableVersionsChart || enableTokensChart || enableChainsChart) && (
 				<>
-					<h2 className="font-semibold text-xl -mb-6 ml-1">Charts</h2>
-					<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
+					<div className="grid grid-cols-2 gap-1">
 						{enableVersionsChart && (
 							<ChartByType
 								type={props.protocolSummary.type}

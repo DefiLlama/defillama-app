@@ -22,7 +22,11 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
 	return (
-		<div className="section-in-grid" id="emissions" style={{ paddingLeft: 0, gridColumn: '1 / -1' }}>
+		<div
+			className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1"
+			id="emissions"
+			style={{ paddingLeft: 0, gridColumn: '1 / -1' }}
+		>
 			{!isEmissionsPage && <h3>Emissions</h3>}
 			<ChartContainer data={data} isEmissionsPage={isEmissionsPage} />
 		</div>

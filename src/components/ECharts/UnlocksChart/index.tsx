@@ -19,7 +19,7 @@ export default function AreaChart({
 	customLegendOptions,
 	tooltipSort = true,
 	chartOptions,
-	height = '360px',
+	height,
 	expandTo100Percent = false,
 	isStackedChart,
 	hideGradient = false,
@@ -324,7 +324,7 @@ export default function AreaChart({
 					}}
 				/>
 			)}
-			<div id={id} style={{ height }} className="my-auto" />
+			<div id={id} className="h-[360px] my-auto" style={height ? { height } : undefined} />
 		</div>
 	)
 }

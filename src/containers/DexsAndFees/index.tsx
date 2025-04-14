@@ -256,12 +256,12 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				}
 			/>
 
-			<div className="flex items-center flex-wrap -mb-5 gap-3">
-				<h1 className="text-2xl font-medium">
+			<div className="flex items-center justify-between flex-wrap gap-1 p-3 bg-[var(--cards-bg)] rounded-md relative">
+				<h1 className="text-xl font-semibold">
 					<TitleByType type={props.type} chain={chain} />
 				</h1>
 				<CSVDownloadButton onClick={downloadCsv} />
-				<p className="text-sm ml-auto">Updated daily at 00:00UTC</p>
+				{/* <p className="text-xs absolute bottom-0 right-1 ml-auto">Updated daily at 00:00UTC</p> */}
 			</div>
 			{getChartByType(props.type, {
 				type: props.type,
@@ -282,9 +282,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				chartTypes: props.type === 'options' ? ['Premium Volume', 'Notional Volume'] : undefined
 			})}
 			{rowLinks ? (
-				<nav className="flex items-center gap-5 overflow-hidden -mb-5">
-					<RowLinksWithDropdown links={rowLinks} activeLink={chain} key={'row links wrapper of ' + props.type} />
-				</nav>
+				<RowLinksWithDropdown links={rowLinks} activeLink={chain} key={'row links wrapper of ' + props.type} />
 			) : (
 				<></>
 			)}

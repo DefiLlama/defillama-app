@@ -21,7 +21,7 @@ interface INetflowChartProps {
 	height?: string
 }
 
-export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
+export default function NetflowChart({ height }: INetflowChartProps) {
 	const id = useMemo(() => crypto.randomUUID(), [])
 	const [isThemeDark] = useDarkModeManager()
 	const [period, setPeriod] = useState('month')
@@ -214,14 +214,8 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 
 	return (
 		<div className="relative">
-			<div id={id} style={{ height, margin: 'auto 0' }}></div>
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'center',
-					marginTop: '20px'
-				}}
-			>
+			<div id={id} className="my-auto h-[800px]" style={height ? { height } : undefined}></div>
+			<div className="flex justify-center mt-5">
 				<TagGroup values={flowTypes} selectedValue={period} setValue={setPeriod} />
 			</div>
 		</div>

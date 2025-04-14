@@ -29,12 +29,7 @@ echarts.use([
 	DataZoomComponent
 ])
 
-export default function CollectionScatterChart({
-	height = '360px',
-	sales,
-	salesMedian1d,
-	volume
-}: ICollectionScatterChartProps) {
+export default function CollectionScatterChart({ height, sales, salesMedian1d, volume }: ICollectionScatterChartProps) {
 	const id = React.useMemo(() => crypto.randomUUID(), [])
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -248,7 +243,7 @@ export default function CollectionScatterChart({
 		}
 	}, [id, sales, volume, createInstance, isDark, isSmall, salesMedian1d])
 
-	return <div id={id} style={{ height }} />
+	return <div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 }
 
 const findClosest = (arr, n, target, isDateInSeconds) => {

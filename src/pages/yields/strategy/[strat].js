@@ -173,8 +173,8 @@ const PageView = () => {
 
 	return (
 		<>
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+			<div className="grid grid-cols-1 gap-1 relative isolate xl:grid-cols-[auto_1fr]">
+				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-md bg-[var(--cards-bg)] overflow-x-auto">
 					<h1 className="text-xl">APY Breakdown:</h1>
 					<table className="w-full text-base border-collapse">
 						<tbody>
@@ -218,12 +218,12 @@ const PageView = () => {
 					</table>
 				</div>
 
-				<LazyChart>
+				<LazyChart className="bg-[var(--cards-bg)] min-h-[360px]">
 					<AreaChart title="Strategy APY" chartData={finalChart} color={backgroundColor} valueSymbol={'%'} />
 				</LazyChart>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl p-6">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] rounded-md p-3">
 				<h3>Steps</h3>
 				<p className="flex items-center gap-2">
 					<span>1.</span>
@@ -278,7 +278,7 @@ const PageView = () => {
 				)}
 			</div>
 
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
+			<div className="grid grid-cols-2 gap-1 rounded-md bg-[var(--cards-bg)]">
 				{fetchingLendData ? (
 					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 				) : (

@@ -220,9 +220,9 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 	}
 
 	return (
-		<>
-			<div className="flex items-center justify-end flex-wrap gap-5 -mb-5">
-				<div className="relative w-full sm:max-w-[280px]">
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="flex items-center justify-end flex-wrap gap-4 p-3">
+				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon
 						name="search"
 						height={16}
@@ -250,7 +250,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 						labelType="smol"
 						triggerProps={{
 							className:
-								'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'
+								'flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 						}}
 					/>
 				)}
@@ -267,7 +267,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 						labelType="smol"
 						triggerProps={{
 							className:
-								'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'
+								'flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 						}}
 					/>
 				)}
@@ -275,6 +275,6 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 			</div>
 
 			<VirtualTable instance={instance} />
-		</>
+		</div>
 	)
 }

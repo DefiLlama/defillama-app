@@ -19,7 +19,7 @@ type TimePeriod = typeof TIME_PERIODS[number]
 type MetricType = 'Volume' | 'Transactions'
 type ViewType = 'Split' | 'Combined'
 
-export default function BridgeVolumeChart({ chain = 'all', height = '360px' }: BridgeVolumeChartProps) {
+export default function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
 	const [metricType, setMetricType] = useState<MetricType>('Volume')
 	const [viewType, setViewType] = useState<ViewType>('Split')
@@ -86,7 +86,7 @@ export default function BridgeVolumeChart({ chain = 'all', height = '360px' }: B
 
 	if (isLoading)
 		return (
-			<div className="flex items-center justify-center" style={{ height }}>
+			<div className="flex items-center justify-center" style={{ height: height ?? '360px' }}>
 				<LocalLoader />
 			</div>
 		)

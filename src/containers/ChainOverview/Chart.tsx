@@ -78,7 +78,7 @@ const initGetColor = () => {
 export function ChainChart({
 	title,
 	tooltipSort = true,
-	height,
+	height = '360px',
 	width = null,
 	expandTo100Percent = false,
 	denomination,

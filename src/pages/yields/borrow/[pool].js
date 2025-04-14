@@ -161,8 +161,8 @@ const PageView = () => {
 
 // 	return (
 // 		<>
-// 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-// 				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+// 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--cards-bg)] rounded-md">
+// 				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 // 					<Name style={{ flexWrap: 'wrap' }}>
 // 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 // 							? `${poolData.symbol} (${poolData.poolMeta})`
@@ -228,7 +228,7 @@ const PageView = () => {
 // 				</ButtonLight>
 // 			</div>
 
-// 			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
+// 			<div className="grid grid-cols-2 bg-[var(--cards-bg)] rounded-md">
 // 				{fetchingChartData ? (
 // 					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 // 				) : (
@@ -273,7 +273,7 @@ const PageView = () => {
 // 				)}
 // 			</div>
 
-// <div className="flex flex-col gap-4 bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl p-6">
+// <div className="flex flex-col gap-4 bg-[var(--cards-bg)] rounded-md p-6">
 
 // 					<h3 className="font-semibold text-lg">Protocol Information</h3>
 // 					<p className="flex items-center gap-2">
