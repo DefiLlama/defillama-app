@@ -348,9 +348,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 
 		const feesGenerated24h =
 			fees && fees.totalDataChartBreakdown.length > 0
-				? Object.entries(fees.totalDataChartBreakdown[fees.totalDataChartBreakdown.length - 1][1] ?? {})
-						.sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
-						.reduce((acc, curr) => (acc += curr[1]), 0)
+				? fees.protocols.reduce((acc, curr) => (acc += curr.total24h || 0), 0)
 				: null
 
 		return {
