@@ -17,6 +17,10 @@ interface ProtocolUnlockData {
 		timestamp: number | null
 		noOfTokens: number[]
 	}>
+	events: Array<{
+		timestamp: number | null
+		noOfTokens: number[]
+	}>
 }
 
 interface UpcomingUnlockVolumeChartProps {
@@ -36,11 +40,13 @@ export default function UpcomingUnlockVolumeChart({ protocols, height = '300px' 
 		const upcomingUnlocks: Array<{ timestamp: number; valueUSD: number }> = []
 
 		protocols.forEach((protocol) => {
-			if (!protocol.upcomingEvent || protocol.tPrice === null || protocol.tPrice === undefined) {
+			if (!protocol.events || protocol.tPrice === null || protocol.tPrice === undefined) {
 				return
 			}
 
-			protocol.upcomingEvent.forEach((event) => {
+			const futureEvents = protocol.events.filter((event) => event.timestamp >= Date.now() / 1000)
+
+			futureEvents.forEach((event) => {
 				if (event.timestamp === null || !event.noOfTokens || event.noOfTokens.length === 0) {
 					return
 				}
