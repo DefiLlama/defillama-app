@@ -22,7 +22,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import * as Ariakit from '@ariakit/react'
 
 export const getStaticProps = withPerformanceLogging('calendar', async () => {
-	const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSIONS_API}`)
+	const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API)
 		.then((res) => res.json())
 		.catch(() => [])
 

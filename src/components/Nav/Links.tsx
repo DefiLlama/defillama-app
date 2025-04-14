@@ -218,7 +218,10 @@ export const navLinks: ILinks = {
 		icon: <Icon name="image" height={16} width={16} />
 	},
 	Unlocks: {
-		main: [],
+		main: [
+			{ name: 'Overview', path: '/unlocks' },
+			{ name: 'Calendar', path: '/unlocks/calendar' }
+		],
 		...defaultToolsAndFooterLinks,
 		icon: <Icon name="unlock" height={16} width={16} />,
 		newTag: true
@@ -335,7 +338,6 @@ if (IS_PRO_API_ENABLED) {
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
 	{ name: 'Hacks', url: '/hacks' },
-	{ name: 'Unlocks', url: '/unlocks' },
 	{ name: 'Governance', url: '/governance' },
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
