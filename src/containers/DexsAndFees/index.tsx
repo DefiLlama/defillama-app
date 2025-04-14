@@ -11,12 +11,10 @@ import {
 import { IJSON } from '~/api/categories/adaptors/types'
 import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
-import type { IDexChartsProps } from './types'
 import { useRouter } from 'next/router'
-import { capitalizeFirstLetter, download, slug } from '~/utils'
+import { capitalizeFirstLetter, slug } from '~/utils'
 import { Announcement } from '~/components/Announcement'
 import { useFeesManager } from '~/contexts/LocalStorage'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 export type IOverviewContainerProps = IOverviewProps
 
@@ -177,11 +175,13 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			})
 			return [arr, [selectedDataType as string]]
 		}
+
 		if (props.type === 'options' && chain === 'all') {
 			const chart = selectedDataType === 'Notional Volume' ? props.totalDataChart : props.premium.totalDataChart
 
 			return chart
 		}
+
 		return props.totalDataChart
 	}, [
 		enableBreakdownChart,
@@ -193,6 +193,29 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 		charts,
 		selectedDataType
 	])
+
+	const chartDataProps = React.useMemo(() => {
+		const p = {
+			type: props.type,
+			data: {
+				change_1d: props.change_1d,
+				change_1m: props.change_1m,
+				change_7dover7d: props.change_7dover7d,
+				disabled: false,
+				total24h: props.total24h,
+				total7d: props.total7d,
+				dexsDominance: props.dexsDominance
+			},
+			chartData: chartData,
+			name: props.chain,
+			fullChart: isChainsPage,
+			disableDefaultLeged: isChainsPage ? true : enableBreakdownChart,
+			selectedType: (selectedDataType as string) ?? undefined,
+			chartTypes: props.type === 'options' ? ['Premium Volume', 'Notional Volume'] : undefined
+		}
+
+		return p
+	}, [props, chartData, isChainsPage, enableBreakdownChart, selectedDataType])
 
 	return (
 		<>
@@ -222,29 +245,13 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				}
 			/>
 
-			{getChartByType(props.type, {
-				type: props.type,
-				data: {
-					change_1d: props.change_1d,
-					change_1m: props.change_1m,
-					change_7dover7d: props.change_7dover7d,
-					disabled: false,
-					total24h: props.total24h,
-					total7d: props.total7d,
-					dexsDominance: props.dexsDominance
-				},
-				chartData: chartData,
-				name: props.chain,
-				fullChart: isChainsPage,
-				disableDefaultLeged: isChainsPage ? true : enableBreakdownChart,
-				selectedType: (selectedDataType as string) ?? undefined,
-				chartTypes: props.type === 'options' ? ['Premium Volume', 'Notional Volume'] : undefined
-			})}
 			{rowLinks ? (
 				<RowLinksWithDropdown links={rowLinks} activeLink={chain} key={'row links wrapper of ' + props.type} />
 			) : (
 				<></>
 			)}
+
+			{props.type === 'fees' ? null : <MainBarChart {...chartDataProps} />}
 
 			{protocolsList && protocolsList.length > 0 ? (
 				<OverviewTable
@@ -262,15 +269,6 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			)}
 		</>
 	)
-}
-
-const getChartByType = (type: string, props?: IDexChartsProps) => {
-	switch (type) {
-		case 'fees':
-			return <></>
-		default:
-			return <MainBarChart {...props} />
-	}
 }
 
 interface ITitleProps {

@@ -98,15 +98,28 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
 	const [chartInterval, changeChartInterval] = useChartInterval()
 	const dataType = VOLUME_TYPE_ADAPTORS.includes(props.type) ? 'volume' : props.type
-	const simpleStack =
-		props.chartData[1].includes('Fees') || props.chartData[1].includes('Premium volume')
-			? props.chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
-			: undefined
 
-	const barsData = React.useMemo(
-		() => aggregateDataByInterval(chartInterval, props.chartData)(),
-		[props.chartData, chartInterval]
-	)
+	const { barsData, simpleStack } = React.useMemo(() => {
+		const barsData = aggregateDataByInterval(chartInterval, props.chartData)()
+		return {
+			barsData: aggregateDataByInterval(chartInterval, props.chartData)(),
+			simpleStack:
+				barsData.length > 0
+					? Object.fromEntries(
+							Object.keys(barsData[barsData.length - 1])
+								.filter((x) => x !== 'date')
+								.map((x) => [x, `stack-${x}`])
+					  )
+					: null
+		}
+	}, [props.chartData, chartInterval])
+	const x = barsData[2848]
+	const y = barsData[2849]
+	for (const k in y) {
+		if (!x[k]) {
+			console.log(k, y[k], simpleStack[k])
+		}
+	}
 
 	const valuesExist =
 		typeof props.data.total24h === 'number' ||
@@ -119,13 +132,9 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			: false
 
 	return (
-		<div
-			className={`grid grid-cols-1 ${
-				valuesExist ? 'xl:grid-cols-[auto_1fr]' : ''
-			} relative isolate bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl`}
-		>
+		<div className={`grid grid-cols-1 ${valuesExist ? 'xl:grid-cols-[auto_1fr]' : ''} relative isolate gap-1`}>
 			{valuesExist ? (
-				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					{!Number.isNaN(props.data.total24h) ? (
 						<p className="flex flex-col">
 							<span className="text-[#545757] dark:text-[#cccccc]">Total {dataType} (24h)</span>
@@ -183,28 +192,28 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			) : (
 				<></>
 			)}
-			<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[418px]">
+			<div className="flex flex-col col-span-1 bg-[var(--cards-bg)] rounded-md">
 				<>
-					<div className="flex gap-2 flex-row items-center flex-wrap justify-between mx-4">
-						<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] font-normal text-sm">
+					<div className="flex gap-2 flex-row items-center flex-wrap justify-between p-3">
+						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							{GROUP_INTERVALS_LIST.map((dataInterval) => (
 								<a
 									key={dataInterval}
 									onClick={() => changeChartInterval(dataInterval)}
 									data-active={dataInterval === chartInterval}
-									className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10 cursor-pointer"
+									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 								>
 									{dataInterval}
 								</a>
 							))}
 						</div>
 						{props.chartTypes && (
-							<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] font-normal text-sm">
+							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 								{props.chartTypes.map((dataType) => (
 									<Link href={`${router.asPath.split('?')[0]}?dataType=${dataType}`} key={dataType} shallow passHref>
 										<a
 											data-active={dataType === props.selectedType}
-											className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10 cursor-pointer"
+											className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 										>
 											{dataType}
 										</a>
@@ -213,10 +222,10 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							</div>
 						)}
 						{props.chartData?.[1]?.length > 1 ? (
-							<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] font-normal text-sm">
+							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 								{GROUP_CHART_LIST.map((dataType) => (
 									<button
-										className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10 cursor-pointer"
+										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 										data-active={dataType === chartType}
 										key={dataType}
 										onClick={() => setChartType(dataType)}
@@ -237,7 +246,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						) : (
 							<BarChart
 								title=""
-								chartData={barsData}
+								chartData={barsData.slice(0, 2850)}
 								customLegendOptions={props.chartData[1]}
 								stacks={simpleStack}
 								hideDefaultLegend={props.disableDefaultLeged}
