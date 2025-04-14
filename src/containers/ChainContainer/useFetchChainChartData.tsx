@@ -130,7 +130,7 @@ export const useFetchChainChartData = ({
 			return [data[0], sum]
 		})
 
-		return globalChart
+		return globalChart.slice(0, globalChart.length - 1)
 	}, [chart, extraTvlsEnabled, extraTvlCharts])
 
 	const chartDatasets = useMemo(() => {
