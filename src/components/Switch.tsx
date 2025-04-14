@@ -1,15 +1,19 @@
+import { QuestionHelper } from './QuestionHelper'
+
 export const Switch = ({
 	label,
 	checked,
 	onChange,
 	value,
-	className
+	className,
+	help
 }: {
 	label: string
 	checked: boolean
 	onChange: () => void
 	value: string
 	className?: string
+	help?: string
 }) => {
 	return (
 		<label className={`text-sm cursor-pointer flex items-center gap-1 flex-nowrap ${className}`}>
@@ -33,7 +37,14 @@ export const Switch = ({
 					<span className="block h-3 w-3 bg-[var(--old-blue)] rounded-[3px] flex-shrink-0 ml-auto"></span>
 				)}
 			</span>
-			<span>{label}</span>
+			{help ? (
+				<span className="flex items-center gap-1">
+					<span>{label}</span>
+					<QuestionHelper text={help} />
+				</span>
+			) : (
+				<span>{label}</span>
+			)}
 		</label>
 	)
 }

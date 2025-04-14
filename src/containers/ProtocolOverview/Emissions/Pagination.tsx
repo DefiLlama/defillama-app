@@ -117,12 +117,12 @@ const Pagination = ({ items, startIndex = 0 }) => {
 				<button onClick={handlePrevPage} className="bg-[var(--bg2)] text-[var(--text1)] p-2 rounded-xl hidden md:block">
 					<Icon name="arrow-left" height={24} width={24} />
 				</button>
-				<div className="flex items-start justify-start overflow-hidden flex-1">
+				<div className="flex items-center justify-start overflow-hidden flex-1">
 					<div style={contentStyle}>
 						{items.map((item, index) => (
 							<div
 								key={index}
-								className="w-[100%] p-4 text-center relative shrink-0"
+								className="w-[100%] p-4 text-center relative"
 								style={{ flex: `0 0 ${100 / visibleItems}%` }}
 							>
 								{item}

@@ -53,7 +53,7 @@ export const UpcomingEvent = ({
 
 	if (isProtocolPage) {
 		return (
-			<span className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2">
+			<span className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-3 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2">
 				<span className="flex items-center gap-2 justify-between">
 					<span className="flex flex-col px-2">
 						<span className="font-semibold">Unlock Value:</span>
