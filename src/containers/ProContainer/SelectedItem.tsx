@@ -1,5 +1,5 @@
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import { ChartTypes } from '../Defi/Protocol/ProtocolPro'
+import { ChartTypes } from '~/containers/ProtocolOverview/ProtocolPro'
 import { chainChartOptions } from './ItemsSelect'
 
 const getName = (item, type) =>
