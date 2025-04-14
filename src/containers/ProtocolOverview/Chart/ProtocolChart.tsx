@@ -286,10 +286,10 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		return {
 			chartOptions: options,
 			tagStyles: {
-				'--tag-hover-bg': transparentize(0.8, color),
+				'--tag-hover-bg': transparentize(0.4, color),
 				'--tag-border-color': transparentize(0.6, color),
 				'--tag-bg': color,
-				'--tag-bg-1': transparentize(0.4, color)
+				'--tag-bg-1': transparentize(0.8, color)
 			}
 		}
 	}, [
@@ -357,7 +357,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 							<span
 								className={`border ${
 									toggledMetrics[coption.key] === 'true'
-										? 'border-[var(--tag-border-color)] bg-[var(--tag-hover-bg)]'
+										? 'border-[var(--tag-border-color)] bg-[var(--tag-bg-1)]'
 										: 'border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E]'
 								} rounded p-[2px] h-[18px] w-[34px]`}
 							>

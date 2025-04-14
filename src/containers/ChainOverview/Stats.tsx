@@ -11,9 +11,8 @@ import { RowWithSubRows } from '~/containers/ProtocolOverview/RowWithSubRows'
 import { formatRaise, formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { Fragment, useMemo } from 'react'
 import { Switch } from '~/components/Switch'
-import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
+import { BAR_CHARTS } from '~/containers/ProtocolOverview/Chart/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { Icon } from '~/components/Icon'
 
 const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false,

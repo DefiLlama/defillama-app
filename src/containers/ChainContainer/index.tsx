@@ -22,7 +22,7 @@ import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChain
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatRaise, formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { sluggify } from '~/utils/cache-client'
-import { BAR_CHARTS } from '~/components/ECharts/ProtocolChart/utils'
+import { BAR_CHARTS } from '~/containers/ProtocolOverview/Chart/utils'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 

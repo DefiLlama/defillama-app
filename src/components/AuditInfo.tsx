@@ -12,7 +12,7 @@ interface IProps {
 
 export const AuditInfo = ({ audits, auditLinks = [], color, isLoading, ...props }: IProps) => {
 	return (
-		<section className="flex items-center gap-2" {...props}>
+		<section className="flex items-center gap-2 last:*:text-xs last:*:font-medium" {...props}>
 			<Tooltip content={'Audits are not a guarantee of security.'}>
 				<span>Audits</span>
 				<Icon name="help-circle" height={15} width={15} />

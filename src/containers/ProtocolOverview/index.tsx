@@ -1426,15 +1426,14 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 
 											<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category}`} passHref>
 												<ButtonLight
-													className="flex items-center gap-1"
+													className="flex items-center gap-1 text-xs font-medium"
 													as="a"
 													target="_blank"
 													rel="noopener noreferrer"
 													useTextColor={true}
 													color={backgroundColor}
-													style={{ height: '33.5px' }}
 												>
-													<span>{category}</span> <Icon name="arrow-up-right" height={14} width={14} />
+													<span>{category}</span> <Icon name="arrow-up-right" height={12} width={12} />
 												</ButtonLight>
 											</Link>
 										</p>
@@ -1447,7 +1446,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												{forkedFrom.map((p, index) => (
 													<React.Fragment key={'forked from' + p}>
 														<Link href={`/protocol/${slug(p)}`}>{forkedFrom[index + 1] ? p + ', ' : p}</Link>
-														<Icon name="arrow-up-right" height={14} width={14} />
+														<Icon name="arrow-up-right" height={12} width={12} />
 													</React.Fragment>
 												))}
 											</>
@@ -1462,14 +1461,14 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 										{referralUrl || url ? (
 											<Link href={referralUrl || url} passHref>
 												<ButtonLight
-													className="flex items-center gap-1"
+													className="flex items-center gap-1 text-xs font-medium"
 													as="a"
 													target="_blank"
 													rel="noopener noreferrer"
 													useTextColor={true}
 													color={backgroundColor}
 												>
-													<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
+													<span>Website</span> <Icon name="arrow-up-right" height={12} width={12} />
 												</ButtonLight>
 											</Link>
 										) : null}
@@ -1477,14 +1476,14 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 										{twitter && (
 											<Link href={`https://twitter.com/${twitter}`} passHref>
 												<ButtonLight
-													className="flex items-center gap-1"
+													className="flex items-center gap-1 text-xs font-medium"
 													as="a"
 													target="_blank"
 													rel="noopener noreferrer"
 													useTextColor={true}
 													color={backgroundColor}
 												>
-													<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
+													<span>Twitter</span> <Icon name="arrow-up-right" height={12} width={12} />
 												</ButtonLight>
 											</Link>
 										)}
@@ -1553,14 +1552,14 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{protocolData.gecko_id && (
 												<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
 													<ButtonLight
-														className="flex items-center gap-1"
+														className="flex items-center gap-1 text-xs font-medium"
 														as="a"
 														target="_blank"
 														rel="noopener noreferrer"
 														useTextColor={true}
 														color={backgroundColor}
 													>
-														<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
+														<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={12} width={12} />
 													</ButtonLight>
 												</Link>
 											)}
@@ -1569,7 +1568,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												explorers.map(({ blockExplorerLink, blockExplorerName }) => (
 													<Link href={blockExplorerLink} passHref key={blockExplorerName}>
 														<ButtonLight
-															className="flex items-center gap-1"
+															className="flex items-center gap-1 text-xs font-medium"
 															as="a"
 															target="_blank"
 															rel="noopener noreferrer"
@@ -1577,7 +1576,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 															color={backgroundColor}
 														>
 															<span>View on {blockExplorerName}</span>{' '}
-															<Icon name="arrow-up-right" height={14} width={14} />
+															<Icon name="arrow-up-right" height={12} width={12} />
 														</ButtonLight>
 													</Link>
 												))}
@@ -1605,7 +1604,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{methodologyUrls?.tvl && !methodologyUrls.tvl.endsWith('dummy.js') && (
 												<Link href={methodologyUrls.tvl} passHref>
 													<ButtonLight
-														className="flex items-center gap-1"
+														className="flex items-center gap-1 text-xs font-medium"
 														as="a"
 														target="_blank"
 														rel="noopener noreferrer"
@@ -1613,7 +1612,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														color={backgroundColor}
 													>
 														<span>{isCEX ? 'Wallet Addresses' : 'TVL'}</span>
-														<Icon name="arrow-up-right" height={14} width={14} />
+														<Icon name="arrow-up-right" height={12} width={12} />
 													</ButtonLight>
 												</Link>
 											)}
@@ -1621,7 +1620,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{methodologyUrls?.fees && (
 												<Link href={methodologyUrls.fees} passHref>
 													<ButtonLight
-														className="flex items-center gap-1"
+														className="flex items-center gap-1 text-xs font-medium"
 														as="a"
 														target="_blank"
 														rel="noopener noreferrer"
@@ -1629,7 +1628,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														color={backgroundColor}
 													>
 														<span>Fees and Revenue</span>
-														<Icon name="arrow-up-right" height={14} width={14} />
+														<Icon name="arrow-up-right" height={12} width={12} />
 													</ButtonLight>
 												</Link>
 											)}
@@ -1637,7 +1636,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{methodologyUrls?.dexs && (
 												<Link href={methodologyUrls.dexs} passHref>
 													<ButtonLight
-														className="flex items-center gap-1"
+														className="flex items-center gap-1 text-xs font-medium"
 														as="a"
 														target="_blank"
 														rel="noopener noreferrer"
@@ -1645,7 +1644,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														color={backgroundColor}
 													>
 														<span>Volume</span>
-														<Icon name="arrow-up-right" height={14} width={14} />
+														<Icon name="arrow-up-right" height={12} width={12} />
 													</ButtonLight>
 												</Link>
 											)}
@@ -1653,7 +1652,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{methodologyUrls?.perps && (
 												<Link href={methodologyUrls.perps} passHref>
 													<ButtonLight
-														className="flex items-center gap-1"
+														className="flex items-center gap-1 text-xs font-medium"
 														as="a"
 														target="_blank"
 														rel="noopener noreferrer"
@@ -1661,7 +1660,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														color={backgroundColor}
 													>
 														<span>Perps Volume</span>
-														<Icon name="arrow-up-right" height={14} width={14} />
+														<Icon name="arrow-up-right" height={12} width={12} />
 													</ButtonLight>
 												</Link>
 											)}
@@ -1669,7 +1668,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{methodologyUrls?.bridgeAggregators && (
 												<Link href={methodologyUrls.bridgeAggregators} passHref>
 													<ButtonLight
-														className="flex items-center gap-1"
+														className="flex items-center gap-1 text-xs font-medium"
 														as="a"
 														target="_blank"
 														rel="noopener noreferrer"
@@ -1677,7 +1676,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														color={backgroundColor}
 													>
 														<span>Bridge Aggregators Volume</span>
-														<Icon name="arrow-up-right" height={14} width={14} />
+														<Icon name="arrow-up-right" height={12} width={12} />
 													</ButtonLight>
 												</Link>
 											)}
@@ -1685,7 +1684,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											{methodologyUrls?.treasury && (
 												<Link href={methodologyUrls.treasury} passHref>
 													<ButtonLight
-														className="flex items-center gap-1"
+														className="flex items-center gap-1 text-xs font-medium"
 														as="a"
 														target="_blank"
 														rel="noopener noreferrer"
@@ -1693,7 +1692,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														color={backgroundColor}
 													>
 														<span>Treasury</span>
-														<Icon name="arrow-up-right" height={14} width={14} />
+														<Icon name="arrow-up-right" height={12} width={12} />
 													</ButtonLight>
 												</Link>
 											)}
@@ -1702,7 +1701,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												? methodologyUrls.stablecoins.split(',').map((stablecoin) => (
 														<Link href={stablecoin.split('$')[1]} passHref key={`code-${stablecoin}`}>
 															<ButtonLight
-																className="flex items-center gap-1"
+																className="flex items-center gap-1 text-xs font-medium"
 																as="a"
 																target="_blank"
 																rel="noopener noreferrer"
@@ -1710,7 +1709,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 																color={backgroundColor}
 															>
 																<span>{stablecoin.split('$')[0]}</span>
-																<Icon name="arrow-up-right" height={14} width={14} />
+																<Icon name="arrow-up-right" height={12} width={12} />
 															</ButtonLight>
 														</Link>
 												  ))
@@ -1768,7 +1767,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 														useTextColor={true}
 														color={backgroundColor}
 													>
-														<span>Source</span> <Icon name="arrow-up-right" height={14} width={14} />
+														<span>Source</span> <Icon name="arrow-up-right" height={12} width={12} />
 													</ButtonLight>
 												</Link>
 											</div>
