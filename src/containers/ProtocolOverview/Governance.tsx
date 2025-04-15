@@ -16,6 +16,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { transparentize } from 'polished'
+import { Switch } from '~/components/Switch'
 
 const fetch = fetchWithErrorLogging
 
@@ -54,20 +55,15 @@ export function GovernanceTable({ data, governanceType }) {
 	}, [proposalname, instance])
 
 	return (
-		<>
-			<div className="flex items-center gap-4 flex-wrap -mb-6">
-				<h1 className="text-2xl font-medium">Proposals</h1>
-
-				<label className="flex items-center gap-1 flex-nowrap ml-auto cursor-pointer">
-					<input
-						type="checkbox"
-						value="controversial proposals"
-						checked={filterControversialProposals}
-						onChange={() => setFilterProposals(!filterControversialProposals)}
-					/>
-					<span>Filter Controversial Proposals</span>
-				</label>
-
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="flex items-center gap-2 flex-wrap justify-end p-3">
+				<h1 className="text-xl font-semibold mr-auto">Proposals</h1>
+				<Switch
+					label="Filter Controversial Proposals"
+					value="controversial proposals"
+					checked={filterControversialProposals}
+					onChange={() => setFilterProposals(!filterControversialProposals)}
+				/>
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
@@ -81,13 +77,12 @@ export function GovernanceTable({ data, governanceType }) {
 							setProposalName(e.target.value)
 						}}
 						placeholder="Search proposals..."
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 			</div>
-
 			<VirtualTable instance={instance} />
-		</>
+		</div>
 	)
 }
 
@@ -167,7 +162,7 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 	)
 
 	return data && data.length > 0 ? (
-		<div className="flex flex-col gap-7 max-w-[calc(100vw-32px)] lg:!max-w-[calc(100vw-276-32px)] p-4">
+		<div className="flex flex-col gap-7 max-w-[calc(100vw-8px)] lg:!max-w-[calc(100vw-276-32px)] p-4">
 			{apisByCategory.length > 1 ? (
 				<div
 					className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit ml-auto"

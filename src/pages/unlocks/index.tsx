@@ -2,14 +2,7 @@ import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissions } from '~/api/categories/protocols'
 import * as React from 'react'
 import Layout from '~/layout'
-import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
-	getFilteredRowModel,
-	ColumnFiltersState
-} from '@tanstack/react-table'
+import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -131,8 +124,8 @@ export default function Protocols({ data }) {
 			</div>
 
 			<div className="bg-[var(--cards-bg)] rounded-md">
-				<div className="flex items-center gap-4 flex-wrap last:*:ml-auto p-3">
-					<h1 className="text-xl font-semibold">Token Unlocks</h1>
+				<div className="flex items-cente justify-end gap-2 flex-wrap p-3">
+					<h1 className="text-xl font-semibold mr-auto">Token Unlocks</h1>
 					<div className="relative w-full sm:max-w-[280px]">
 						<Icon
 							name="search"
@@ -146,7 +139,7 @@ export default function Protocols({ data }) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search projects..."
-							className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
 				</div>

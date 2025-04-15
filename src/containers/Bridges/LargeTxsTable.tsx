@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { BridgesLargeTxsTable } from '~/components/Table/Bridges'
 import { LargeTxsData } from '~/components/Table/Bridges/Bridges/types'
-import { LargeTxDownloadButton } from './DownloadButton'
+import { LargeTxDownloadButton } from '../Bridges/DownloadButton'
 
 export const LargeTxsTable = (props: { data: LargeTxsData[]; chain: string }) => {
 	return (

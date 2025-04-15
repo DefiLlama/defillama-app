@@ -83,8 +83,8 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 	const { mutate, isPending, error } = useMutation({ mutationFn: downloadTxs })
 
 	return (
-		<>
-			<h1 className="text-2xl font-medium">Generate Bridge Transactions CSV</h1>
+		<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-[var(--cards-bg)] p-3">
+			<h1 className="text-xl font-semibold">Generate Bridge Transactions CSV</h1>
 
 			<form
 				className="mx-auto my-8 flex flex-col gap-4"
@@ -142,6 +142,6 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 
 				{error ? <p className="text-red-500 text-center">{(error as any).message}</p> : null}
 			</form>
-		</>
+		</div>
 	)
 }

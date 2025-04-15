@@ -3,7 +3,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
 import { getCoinPerformance, getCategoryInfo } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import { CategoryPerformanceContainer } from '~/containers/CategoryPerformanceContainer'
+import { CategoryPerformanceContainer } from '~/containers/NarrativeTracker'
 
 export const getStaticProps = withPerformanceLogging('category-performance', async ({ params }) => {
 	const data = await getCoinPerformance(params.category)

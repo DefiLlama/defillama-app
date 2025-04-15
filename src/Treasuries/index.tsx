@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
 	useReactTable,
 	SortingState,
@@ -8,19 +8,21 @@ import {
 	ColumnFiltersState,
 	ColumnDef
 } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download, formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
-import { Icon } from '~/components/Icon'
 import Layout from '~/layout'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
 
 export function Treasuries({ data, entity }) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = useState<SortingState>([])
-
+	const tableColumns = useMemo(
+		() => (entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl'].includes(c.accessorKey)) : columns),
+		[entity]
+	)
 	const instance = useReactTable({
 		data,
 		columns: entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl'].includes(c.accessorKey)) : columns,
@@ -84,29 +86,18 @@ export function Treasuries({ data, entity }) {
 
 	return (
 		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} defaultSEO>
-			<div className="bg-[var(--cards-bg)] rounded-md p-3 flex items-center gap-4 justify-between">
-				<h1 className="text-xl font-semibold mr-auto">Treasuries</h1>
-				<CSVDownloadButton onClick={downloadCSV} />
-			</div>
-			<div className="bg-[var(--cards-bg)] rounded-md p-3">
-				<div className="relative w-full sm:max-w-[280px]">
-					<Icon
-						name="search"
-						height={16}
-						width={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-					/>
-					<input
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
-						placeholder="Search projects..."
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
-					/>
-				</div>
-				<VirtualTable instance={instance} />
-			</div>
+			<TableWithSearch
+				data={data}
+				columns={tableColumns}
+				columnToSearch={'name'}
+				placeholder={'Search projects...'}
+				header={'Treasuries'}
+				customFilters={
+					<>
+						<CSVDownloadButton onClick={downloadCSV} className="min-h-[34px]" />
+					</>
+				}
+			/>
 		</Layout>
 	)
 }

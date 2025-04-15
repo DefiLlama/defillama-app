@@ -80,8 +80,8 @@ function RaisesTable({ raises, downloadCsv }) {
 
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md">
-			<div className="flex items-center gap-4 flex-wrap p-3">
-				<div className="relative w-full sm:max-w-[280px]">
+			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
+				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon
 						name="search"
 						height={16}
@@ -94,11 +94,15 @@ function RaisesTable({ raises, downloadCsv }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
-				<CSVDownloadButton onClick={downloadCsv} className="ml-auto" />
-				<CSVDownloadButton customText="Download .json" onClick={() => window.open('https://api.llama.fi/raises')} />
+				<CSVDownloadButton onClick={downloadCsv} className="min-h-[34px]" />
+				<CSVDownloadButton
+					customText="Download .json"
+					onClick={() => window.open('https://api.llama.fi/raises')}
+					className="min-h-[34px]"
+				/>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>

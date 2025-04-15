@@ -4,10 +4,7 @@ import Link from 'next/link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import type { ISearchItem } from '~/components/Search/types'
-import { ChartData } from '~/utils/liquidations'
-import { download } from '~/utils'
-import { getLiquidationsCsvData } from '~/utils/liquidations'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ChartData } from '~/containers/Liquidations/utils'
 import { matchSorter } from 'match-sorter'
 
 export const LiquidationsHeader = (props: { data: ChartData; options: ISearchItem[] }) => {

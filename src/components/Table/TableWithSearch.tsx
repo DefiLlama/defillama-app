@@ -12,7 +12,15 @@ import {
 import { VirtualTable } from '~/components/Table/Table'
 import { Icon } from '~/components/Icon'
 
-export function TableWithSearch({ data, columns, placeholder, columnToSearch, customFilters = null, header = null }) {
+export function TableWithSearch({
+	data,
+	columns,
+	placeholder,
+	columnToSearch,
+	customFilters = null,
+	header = null,
+	renderSubComponent = null
+}) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -50,7 +58,7 @@ export function TableWithSearch({ data, columns, placeholder, columnToSearch, cu
 
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md">
-			<div className="flex items-center last:*:ml-auto p-3">
+			<div className="flex items-center justify-end gap-2 p-3">
 				{header ? <h1 className="text-lg font-semibold mr-auto">{header}</h1> : null}
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
@@ -65,12 +73,12 @@ export function TableWithSearch({ data, columns, placeholder, columnToSearch, cu
 							setProjectName(e.target.value)
 						}}
 						placeholder={placeholder}
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 				{customFilters}
 			</div>
-			<VirtualTable instance={instance} />
+			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} />
 		</div>
 	)
 }

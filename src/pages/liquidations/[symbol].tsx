@@ -5,11 +5,11 @@ import * as React from 'react'
 import Layout from '~/layout'
 import { LiquidationsSearch } from '~/components/Search/Liquidations'
 import { SEO } from '~/components/SEO'
-import { LiquidationsHeader } from '~/containers/LiquidationsPage/LiquidationsHeader'
-import { LiquidationsContent } from '~/containers/LiquidationsPage/LiquidationsContent'
-import { LiqProtocolsTable } from '~/containers/LiquidationsPage/ProtocolsTable'
-import { TableSwitch } from '~/containers/LiquidationsPage/TableSwitch'
-import { LiqPositionsTable } from '~/containers/LiquidationsPage/PositionsTable'
+import { LiquidationsHeader } from '~/containers/Liquidations/LiquidationsHeader'
+import { LiquidationsContent } from '~/containers/Liquidations/LiquidationsContent'
+import { LiqProtocolsTable } from '~/containers/Liquidations/ProtocolsTable'
+import { TableSwitch } from '~/containers/Liquidations/TableSwitch'
+import { LiqPositionsTable } from '~/containers/Liquidations/PositionsTable'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import type { ISearchItem } from '~/components/Search/types'
 import { maxAgeForNext } from '~/api'
@@ -20,8 +20,8 @@ import {
 	getLatestChartData,
 	getPrevChartData,
 	getReadableValue
-} from '~/utils/liquidations'
-import { LiquidationsContext } from '~/containers/LiquidationsPage/context'
+} from '~/containers/Liquidations/utils'
+import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = withPerformanceLogging(

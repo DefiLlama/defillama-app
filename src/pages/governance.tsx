@@ -72,9 +72,8 @@ export default function Governance({ data }) {
 	return (
 		<Layout title={`Governance - DefiLlama`} defaultSEO>
 			<div className="bg-[var(--cards-bg)] rounded-md">
-				<div className="flex items-center gap-4 flex-wrap last:*:ml-auto p-3">
-					<h1 className="text-xl font-semibold">Governance</h1>
-
+				<div className="flex items-center gap-2 justify-end flex-wrap p-3">
+					<h1 className="text-xl font-semibold mr-auto">Governance</h1>
 					<div className="relative w-full sm:max-w-[280px]">
 						<Icon
 							name="search"
@@ -88,7 +87,7 @@ export default function Governance({ data }) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search projects..."
-							className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
 				</div>

@@ -5,10 +5,10 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/types'
 import { BridgesSearchWithBreakdown } from '~/components/Search/Bridges'
-import { ChartSelector } from '~/containers/BridgesPage/ChartSelector'
+import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { BridgesTable } from '~/components/Table/Bridges'
-import { LargeTxsTable } from './LargeTxsTable'
-import { TxsTableSwitch } from '~/containers/BridgesPage/TableSwitch'
+import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
+import { TxsTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
 import { formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -222,7 +222,7 @@ function BridgesOverview({
 	return (
 		<>
 			<BridgesSearchWithBreakdown onToggleClick={(enabled) => setEnableBreakdownChart(enabled)} />
-			<h1 className="text-2xl font-medium mb-2 flex items-center justify-between flex-wrap gap-4">
+			<h1 className="text-xl font-semibold mb-2 flex items-center justify-between flex-wrap gap-4">
 				<span>Bridge Volume in {selectedChain === 'All' ? 'all bridges' : selectedChain}</span>
 				<CSVDownloadButton onClick={downloadCsv} />
 			</h1>

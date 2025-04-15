@@ -80,12 +80,12 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 	const dominance = getTokenDominance(topToken, totalValue)
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md">
-			<h1 className="text-xl font-semibold">
-				Total Value Secured by {token} {chain ? `on ${chain}` : null}
-			</h1>
+		<>
+			<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
+
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
 				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] overflow-x-auto">
+					<h1 className="text-xl font-semibold">{token}</h1>
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Secured (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(totalValue, true)}</span>
@@ -102,15 +102,14 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 						<span className="font-semibold text-2xl font-jetbrains">{dominance}%</span>
 					</p>
 				</div>
-				<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[392px]">
+
+				<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[392px] bg-[var(--cards-bg)] rounded-md">
 					<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
 				</div>
 			</div>
 
-			<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
-
 			<ProtocolsTableWithSearch data={protocolsData} />
-		</div>
+		</>
 	)
 }
 

@@ -16,7 +16,7 @@ import {
 import { nearestUtc } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DimensionAdapters/charts/hooks'
 import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
-import { useFetchBridgeVolumeOnAllChains } from '~/containers/BridgeContainer'
+import { useFetchBridgeVolumeOnAllChains } from '~/containers/Bridges/BridgeProtocolOverview'
 import { fetchWithErrorLogging } from '~/utils/async'
 import dayjs from 'dayjs'
 import { CACHE_SERVER } from '~/constants'

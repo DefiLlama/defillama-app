@@ -119,7 +119,7 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 					values={Object.values(TABLE_PERIODS) as Array<string>}
 				/>
 			</div>
-			<div className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)]">
+			<div className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)]">
 				<table>
 					<thead>
 						{table.getHeaderGroups().map((headerGroup) => (

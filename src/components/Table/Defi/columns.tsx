@@ -9,7 +9,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import {
 	capitalizeFirstLetter,
-	chainIconUrl,
 	formattedNum,
 	formattedPercent,
 	slug,
@@ -25,7 +24,6 @@ import type {
 	AirdropRow,
 	CategoryPerformanceRow,
 	CoinPerformanceRow,
-	IBridgedRow,
 	ICategoryRow,
 	IEmission,
 	IETFRow,
@@ -676,126 +674,6 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 				<Icon name="arrow-up-right" height={14} width={14} />
 			</ButtonLight>
 		)
-	}
-]
-
-export const bridgedColumns: ColumnDef<IBridgedRow>[] = [
-	{
-		header: () => 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span
-					className="flex items-center gap-2 relative"
-					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
-				>
-					{row.subRows?.length > 0 && (
-						<button
-							className="absolute -left-[2px]"
-							{...{
-								onClick: row.getToggleExpandedHandler()
-							}}
-						>
-							{row.getIsExpanded() ? (
-								<>
-									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
-								</>
-							) : (
-								<>
-									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
-								</>
-							)}
-						</button>
-					)}
-					<span className="flex-shrink-0">{index + 1}</span>
-					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink
-						href={`/bridged/${getValue()}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as any}
-					</CustomLink>
-				</span>
-			)
-		},
-		size: 200
-	},
-	{
-		header: 'Total Bridged',
-		accessorKey: 'total',
-		accessorFn: (row) => row.total?.total ?? undefined,
-		cell: (info: any) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'Total value of assets on the chain, excluding own tokens' }
-	},
-	{
-		header: 'Change 24h',
-		accessorKey: 'change_24h',
-		accessorFn: (row) => row.change_24h ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <div style={{ color: Number(value) > 0 ? '#198600' : '#d92929' }}>{formattedPercent(value)}</div>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end' }
-	},
-	{
-		header: 'Native',
-		accessorKey: 'native',
-		accessorFn: (row) => row.native?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'Assets minted natively on the chain' }
-	},
-	{
-		header: 'Canonical',
-		accessorKey: 'canonical',
-		accessorFn: (row) => row.canonical?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'Assets bridged through the official canonical bridge' }
-	},
-	{
-		header: 'Own Tokens',
-		accessorKey: 'ownTokens',
-		accessorFn: (row) => row.ownTokens?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'The chains own token, either for gas or for governance ' }
-	},
-	{
-		header: 'Third Party',
-		accessorKey: 'thirdParty',
-		accessorFn: (row) => row.thirdParty?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'Assets bridged through bridges that aren’t the canonical bridge' }
 	}
 ]
 

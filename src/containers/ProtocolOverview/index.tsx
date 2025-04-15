@@ -27,7 +27,7 @@ import { NewsCard } from '~/components/News/Card'
 import { DLNewsLogo } from '~/components/News/Logo'
 import { Announcement } from '~/components/Announcement'
 import { FeesAndRevenueCharts, VolumeCharts } from './Fees'
-import { BridgeContainerOnClient } from '~/containers/BridgeContainer'
+import { BridgeContainerOnClient } from '~/containers/Bridges/BridgeProtocolOverview'
 import { Flag } from './Flag'
 import { sluggify } from '~/utils/cache-client'
 import dayjs from 'dayjs'
@@ -1411,7 +1411,13 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 									className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-[1]"
 								>
 									<span className="sr-only">Enable Goblin Mode</span>
-									<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" className="h-[34px] w-[34px]" />
+									<Image
+										src={boboLogo}
+										width="34px"
+										height="34px"
+										alt="bobo cheers"
+										className="min-h-[34px] w-[34px]"
+									/>
 								</button>
 							</div>
 							<div className="grid grid-cols-1 xl:grid-cols-2 gap-1 only:*:col-span-full odd:last:*:col-span-full">

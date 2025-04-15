@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { LiquidationsContext } from '~/containers/LiquidationsPage/context'
-import { ChartData, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
+import { LiquidationsContext } from '~/containers/Liquidations/context'
+import { ChartData, PROTOCOL_NAMES_MAP_REVERSE } from '~/containers/Liquidations/utils'
 import { useStackBy } from './utils'
 
 export const LiquidableChanges24H = (props: { data: ChartData; prevData: ChartData }) => {

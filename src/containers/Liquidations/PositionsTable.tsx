@@ -1,4 +1,4 @@
-import { ChartData } from '~/utils/liquidations'
+import { ChartData } from '~/containers/Liquidations/utils'
 import * as React from 'react'
 import { LiquidatablePositionsTable } from '~/components/Table/Liquidations'
 

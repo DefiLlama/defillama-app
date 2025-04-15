@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars*/
 import { useCallback, useContext, useEffect } from 'react'
 import * as echarts from 'echarts'
-import { LiquidationsContext } from '~/containers/LiquidationsPage/context'
+import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { useMedia } from '~/hooks/useMedia'
 import { useDarkModeManager, useLiqsManager } from '~/contexts/LocalStorage'
-import { ChartData } from '~/utils/liquidations'
+import { ChartData } from '~/containers/Liquidations/utils'
 import { getOption, useStackBy } from './utils'
 
 export const LiquidationsChart = ({ chartData, uid, bobo }: { chartData: ChartData; uid: string; bobo: boolean }) => {

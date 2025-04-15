@@ -122,6 +122,7 @@ export default function AreaChart({
 				backgroundColor: 'none',
 				borderWidth: '0',
 				padding: 0,
+				boxShadow: 'none',
 				textStyle: {
 					color: isThemeDark ? 'white' : 'black'
 				}

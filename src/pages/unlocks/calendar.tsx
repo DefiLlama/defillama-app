@@ -86,7 +86,7 @@ export default function UnlocksCalendar({ unlocksData }) {
 			</Announcement>
 
 			<div className="flex items-center gap-4 flex-wrap mb-4">
-				<h1 className="text-2xl font-medium">Token Unlocks Calendar</h1>
+				<h1 className="text-xl font-semibold text-center">Token Unlocks Calendar</h1>
 			</div>
 
 			<div className="bg-white dark:bg-[#090a0b] rounded-lg shadow p-4">

@@ -116,8 +116,8 @@ export async function getStaticPaths() {
 export default function Protocol({ data, governanceType }) {
 	return (
 		<Layout title={`${data.metadata.name} Governance - DefiLlama`} defaultSEO>
-			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg7)] border border-[var(--divider)] shadow rounded-xl">
-				<h1 className="flex items-center gap-2 text-xl">
+			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--cards-bg)] rounded-md">
+				<h1 className="flex items-center gap-2 text-xl font-semibold">
 					<TokenLogo logo={tokenIconUrl(data.metadata.name)} />
 					<span>{data.metadata.name}</span>
 				</h1>
@@ -126,7 +126,7 @@ export default function Protocol({ data, governanceType }) {
 					{data.stats.chainName ? (
 						<p className="flex flex-col gap-1">
 							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Chain</span>
-							<span className="flex items-center gap-1 font-jetbrains font-semibold text-2xl">
+							<span className="flex items-center gap-1 font-jetbrains font-semibold text-lg">
 								<TokenLogo logo={chainIconUrl(data.stats.chainName)} size={32} />
 								<span>{data.stats.chainName}</span>
 							</span>
@@ -135,44 +135,42 @@ export default function Protocol({ data, governanceType }) {
 
 					{data.stats.proposalsCount ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Total Proposals</span>
-							<span className="font-jetbrains font-semibold text-2xl">{data.stats.proposalsCount}</span>
+							<span className="text-[#737373] dark:text-[#a9a9a9]">Total Proposals</span>
+							<span className="font-jetbrains font-semibold text-lg">{data.stats.proposalsCount}</span>
 						</p>
 					) : null}
 
 					{data.stats.successfulProposal ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Successful Proposals</span>
-							<span className="font-jetbrains font-semibold text-2xl">{data.stats.successfulProposals}</span>
+							<span className="text-[#737373] dark:text-[#a9a9a9]">Successful Proposals</span>
+							<span className="font-jetbrains font-semibold text-lg">{data.stats.successfulProposals}</span>
 						</p>
 					) : null}
 
 					{data.stats.propsalsInLast30Days ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">
-								Successful Proposals in last 30 days
-							</span>
-							<span className="font-jetbrains font-semibold text-2xl">{data.stats.propsalsInLast30Days}</span>
+							<span className="text-[#737373] dark:text-[#a9a9a9]">Successful Proposals in last 30 days</span>
+							<span className="font-jetbrains font-semibold text-lg">{data.stats.propsalsInLast30Days}</span>
 						</p>
 					) : null}
 
 					{data.stats.highestTotalScore ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Max Total Votes</span>
-							<span className="font-jetbrains font-semibold text-2xl">{toK(data.stats.highestTotalScore)}</span>
+							<span className="text-[#737373] dark:text-[#a9a9a9]">Max Total Votes</span>
+							<span className="font-jetbrains font-semibold text-lg">{toK(data.stats.highestTotalScore)}</span>
 						</p>
 					) : null}
 
 					{data.metadata.followersCount ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Followers</span>
-							<span className="font-jetbrains font-semibold text-2xl">{toK(data.metadata.followersCount)}</span>
+							<span className="text-[#737373] dark:text-[#a9a9a9]">Followers</span>
+							<span className="font-jetbrains font-semibold text-lg">{toK(data.metadata.followersCount)}</span>
 						</p>
 					) : null}
 				</div>
 
-				<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)]">
-					<LazyChart>
+				<div className="grid grid-cols-2">
+					<LazyChart className="p-0">
 						<BarChart
 							title={'Activity'}
 							chartData={data.activity}
@@ -180,7 +178,7 @@ export default function Protocol({ data, governanceType }) {
 							stackColors={stackedBarChartColors}
 						/>
 					</LazyChart>
-					<LazyChart>
+					<LazyChart className="p-0">
 						<BarChart
 							title={'Max Votes'}
 							chartData={data.maxVotes}

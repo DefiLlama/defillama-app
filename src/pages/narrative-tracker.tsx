@@ -5,7 +5,7 @@ import { getCategoryPerformance } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
-import { CategoryPerformanceContainer } from '~/containers/CategoryPerformanceContainer'
+import { CategoryPerformanceContainer } from '~/containers/NarrativeTracker'
 
 export const getStaticProps = withPerformanceLogging('narrative-tracker', async () => {
 	const data = await getCategoryPerformance()

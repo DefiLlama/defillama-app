@@ -8,8 +8,8 @@ import { BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalSt
 import { formattedNum, getPercentChange } from '~/utils'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { BridgeTokensTable, BridgeAddressesTable } from '~/components/Table/Bridges'
-import { AddressesTableSwitch } from '~/containers/BridgesPage/TableSwitch'
-import { BridgeChainSelector } from '~/containers/BridgesPage/BridgeChainSelector'
+import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
+import { BridgeChainSelector } from '~/containers/Bridges/BridgeChainSelector'
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
@@ -66,8 +66,8 @@ const BridgeInfo = ({
 
 	return (
 		<>
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col gap-9 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
+				<div className="flex flex-col gap-9 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)]rounded-md overflow-x-auto">
 					<h1 className="flex flex-nowrap items-center gap-1 text-xl font-bold">
 						<TokenLogo logo={logo} size={24} />
 						<span>{displayName}</span>
@@ -118,33 +118,24 @@ const BridgeInfo = ({
 					) : null}
 				</div>
 
-				<div
-					style={{
-						flex: 1,
-						display: 'flex',
-						flexDirection: 'column',
-						gap: '16px',
-						padding: '0 0 20px 0',
-						minHeight: '460px'
-					}}
-				>
+				<div className="text-xs font-medium flex items-center flex-nowrap overflow-x-auto">
 					<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] m-4 mb-0">
 						<button
-							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 							data-active={chartType === 'Inflows'}
 							onClick={() => setChartType('Inflows')}
 						>
 							Inflows
 						</button>
 						<button
-							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 							data-active={chartType === 'Tokens To'}
 							onClick={() => setChartType('Tokens To')}
 						>
 							Tokens To
 						</button>
 						<button
-							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 							data-active={chartType === 'Tokens From'}
 							onClick={() => setChartType('Tokens From')}
 						>
@@ -185,7 +176,7 @@ const BridgeInfo = ({
 	)
 }
 
-export default function BridgeContainer(props) {
+export function BridgeProtocolOverview(props) {
 	return (
 		<Layout title={`${props.displayName}: Bridge Volume - DefiLlama`} className="gap-12">
 			<SEO cardName={props.displayName} token={props.displayName} />

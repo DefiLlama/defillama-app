@@ -1,4 +1,4 @@
-import { getAvailableAssetsList } from '~/utils/liquidations'
+import { getAvailableAssetsList } from '~/containers/Liquidations/utils'
 import { useQuery } from '@tanstack/react-query'
 import { IGetSearchList } from '../types'
 

@@ -715,9 +715,8 @@ export function formatGovernanceData(data: {
 }
 
 export async function getChainsBridged(chain?: string) {
-	const [assets, chains, flows1d, inflows] = await Promise.all([
+	const [assets, flows1d, inflows] = await Promise.all([
 		fetchWithErrorLogging(CHAINS_ASSETS).then((r) => r.json()),
-		fetchWithErrorLogging(`${CHAINS_API_V2}/All`).then((r) => r.json()),
 		fetchWithErrorLogging(CHAIN_ASSETS_FLOWS + '/24h').then((r) => r.json()),
 		chain
 			? fetchWithErrorLogging(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
@@ -726,7 +725,8 @@ export async function getChainsBridged(chain?: string) {
 					.catch(() => [])
 			: []
 	])
-	const chainData = assets[chain] ?? null
+	const chainData = chain ? Object.entries(assets ?? {}).find((a) => slug(a[0]) === slug(chain))?.[1] ?? null : null
+
 	const tokenInflowNames = new Set<string>()
 	for (const inflow of inflows) {
 		for (const token of Object.keys(inflow)) {
@@ -736,7 +736,22 @@ export async function getChainsBridged(chain?: string) {
 		}
 	}
 
-	return { chains, assets, flows1d, chainData, inflows, tokenInflowNames: Array.from(tokenInflowNames) }
+	return {
+		chains: [
+			{ label: 'All', to: '/bridged' },
+			...Object.entries(assets ?? {})
+				.sort(
+					(a: any, b: any) =>
+						Number(b[1].total?.total?.split('.')?.[0] ?? 0) - Number(a[1].total?.total?.split('.')?.[0] ?? 0)
+				)
+				.map((asset) => ({ label: asset[0], to: `/bridged/${slug(asset[0])}` }))
+		],
+		assets,
+		flows1d,
+		chainData,
+		inflows,
+		tokenInflowNames: Array.from(tokenInflowNames)
+	}
 }
 
 export async function getCategoryInfo() {

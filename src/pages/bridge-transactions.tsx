@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { BridgeTransactionsPage } from '~/containers/BridgesPage/Transactions'
+import { BridgeTransactionsPage } from '~/containers/Bridges/Transactions'
 import { maxAgeForNext } from '~/api'
 import { getBridges } from '~/containers/Bridges/queries.server'
 import { withPerformanceLogging } from '~/utils/perf'

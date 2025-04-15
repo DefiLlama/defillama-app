@@ -124,8 +124,8 @@ export function BridgeChainsTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<>
-			<div className="flex items-center last:*:ml-auto -mb-6">
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="flex items-center gap-2 justify-end p-3">
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
@@ -139,12 +139,12 @@ export function BridgeChainsTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 			</div>
 			<VirtualTable instance={instance} />
-		</>
+		</div>
 	)
 }
 
