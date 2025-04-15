@@ -13,7 +13,7 @@ import {
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from './columns'
-import type { IDexsRow } from './types'
+import type { IAdapterRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { TagGroup } from '~/components/TagGroup'
 import { useRouter } from 'next/router'
@@ -94,7 +94,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 			}
 		},
 		onExpandedChange: setExpanded,
-		getSubRows: (row: IDexsRow) => row.subRows,
+		getSubRows: (row: IAdapterRow) => row.subRows,
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,

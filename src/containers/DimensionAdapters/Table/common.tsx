@@ -4,10 +4,10 @@ import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug } from '~/utils'
-import { IDexsRow } from '../types'
 import { Icon } from '~/components/Icon'
+import { IAdapterRow } from './types'
 
-export const NameColumn = (type: string, allChains?: boolean, size = 240): ColumnDef<IDexsRow> => ({
+export const NameColumn = (type: string, allChains?: boolean, size = 240): ColumnDef<IAdapterRow> => ({
 	header: 'Name',
 	accessorKey: 'displayName',
 	enableSorting: false,
@@ -66,7 +66,7 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 	},
 	size
 })
-export const ChainsColumn = (type: string): ColumnDef<IDexsRow> => ({
+export const ChainsColumn = (type: string): ColumnDef<IAdapterRow> => ({
 	header: 'Chains',
 	accessorKey: 'chains',
 	enableSorting: false,
@@ -77,7 +77,7 @@ export const ChainsColumn = (type: string): ColumnDef<IDexsRow> => ({
 	size: 140
 })
 
-export const Change1dColumn: ColumnDef<IDexsRow> = {
+export const Change1dColumn: ColumnDef<IAdapterRow> = {
 	header: '1d Change',
 	accessorKey: 'change_1d',
 	cell: (info) => <>{formattedPercent(info.getValue())}</>,
@@ -86,7 +86,7 @@ export const Change1dColumn: ColumnDef<IDexsRow> = {
 		align: 'end'
 	}
 }
-export const Change7dColumn: ColumnDef<IDexsRow> = {
+export const Change7dColumn: ColumnDef<IAdapterRow> = {
 	header: '7d Change',
 	accessorKey: 'change_7d',
 	enableSorting: true,
@@ -96,7 +96,7 @@ export const Change7dColumn: ColumnDef<IDexsRow> = {
 		align: 'end'
 	}
 }
-export const Change1mColumn: ColumnDef<IDexsRow> = {
+export const Change1mColumn: ColumnDef<IAdapterRow> = {
 	header: '1m Change',
 	accessorKey: 'change_1m',
 	enableSorting: true,
@@ -111,7 +111,7 @@ export const ChangeColumn = (
 	accesor: string,
 	size?: number,
 	headerHelperText?: string
-): ColumnDef<IDexsRow> => ({
+): ColumnDef<IAdapterRow> => ({
 	header: header,
 	accessorKey: accesor,
 	enableSorting: true,
@@ -127,7 +127,7 @@ export const XColumn = (
 	accesor: string,
 	size?: number,
 	headerHelperText?: string
-): ColumnDef<IDexsRow> => ({
+): ColumnDef<IAdapterRow> => ({
 	header: header,
 	accessorKey: accesor,
 	enableSorting: true,
@@ -148,7 +148,7 @@ export const Total24hColumn = (
 	extraWidth?: number,
 	header?: string,
 	hideNull = true
-): ColumnDef<IDexsRow> => {
+): ColumnDef<IAdapterRow> => {
 	const accessor = alternativeAccessor ?? 'total24h'
 	return {
 		header: header ?? `${type} (24h)`,
@@ -192,7 +192,7 @@ export const TotalAllTimeColumn = (
 	type: string,
 	alternativeAccessor?: string,
 	helperText?: string
-): ColumnDef<IDexsRow> => {
+): ColumnDef<IAdapterRow> => {
 	const accessor = alternativeAccessor ?? 'totalAllTime'
 	return {
 		header: `Cumulative ${type}`,
@@ -221,7 +221,7 @@ export const TotalAllTimeColumn = (
 		}
 	}
 }
-export const VolumeTVLColumn: ColumnDef<IDexsRow> = {
+export const VolumeTVLColumn: ColumnDef<IAdapterRow> = {
 	header: 'Volume/TVL',
 	accessorKey: 'volumetvl',
 	enableSorting: true,
@@ -236,7 +236,7 @@ export const VolumeTVLColumn: ColumnDef<IDexsRow> = {
 		headerHelperText: 'This ratio can be interpreted as capital efficiency'
 	}
 }
-export const DominanceColumn: ColumnDef<IDexsRow> = {
+export const DominanceColumn: ColumnDef<IAdapterRow> = {
 	header: '% of total',
 	accessorKey: 'dominance',
 	enableSorting: true,
@@ -248,7 +248,7 @@ export const DominanceColumn: ColumnDef<IDexsRow> = {
 	}
 }
 
-export const CategoryColumn: ColumnDef<IDexsRow> = {
+export const CategoryColumn: ColumnDef<IAdapterRow> = {
 	header: 'Category',
 	accessorKey: 'category',
 	size: 140,
@@ -256,7 +256,7 @@ export const CategoryColumn: ColumnDef<IDexsRow> = {
 		align: 'end'
 	}
 }
-export const TVLColumn: ColumnDef<IDexsRow> = {
+export const TVLColumn: ColumnDef<IAdapterRow> = {
 	header: 'DEX TVL',
 	accessorKey: 'tvl',
 	enableSorting: true,

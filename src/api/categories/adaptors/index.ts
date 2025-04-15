@@ -6,7 +6,7 @@ import {
 	EMISSION_BREAKDOWN_API,
 	DIMENISIONS_OVERVIEW_API
 } from '~/constants'
-import { getUniqueArray } from '~/containers/DexsAndFees/utils'
+import { getUniqueArray } from '~/containers/DimensionAdapters/utils'
 import { capitalizeFirstLetter, chainIconUrl, getPercentChange, iterateAndRemoveUndefined, slug } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'

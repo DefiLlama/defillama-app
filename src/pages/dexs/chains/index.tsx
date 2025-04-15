@@ -1,7 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { ADAPTOR_TYPES, getDimensionsAdaptersChainsPageData } from '~/api/categories/adaptors'
 import { SEO } from '~/components/SEO'
-import OverviewContainer, { IOverviewContainerProps } from '~/containers/DexsAndFees'
+import OverviewContainer, { IOverviewContainerProps } from '~/containers/DimensionAdapters'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 

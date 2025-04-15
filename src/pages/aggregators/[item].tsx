@@ -1,6 +1,6 @@
 import { ADAPTOR_TYPES, getOverviewItemPageData } from '~/api/categories/adaptors'
 import { withPerformanceLogging } from '~/utils/perf'
-import OverviewItemContainer from '~/containers/DexsAndFees/OverviewItem'
+import OverviewItemContainer from '~/containers/DimensionAdapters/OverviewItem'
 import { GetStaticPropsContext } from 'next'
 import { slug } from '~/utils'
 import metadataCache from '~/utils/metadata'

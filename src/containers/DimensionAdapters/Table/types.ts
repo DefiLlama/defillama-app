@@ -1,6 +1,6 @@
 import { IJSON } from '~/api/categories/adaptors/types'
 
-interface IDexs {
+interface IAdapter {
 	name: string
 	displayName?: string
 	chains: Array<string>
@@ -16,15 +16,7 @@ interface IDexs {
 	category?: string
 }
 
-export interface IDexsRow extends IDexs {
-	subRows?: Array<IDexs>
+export interface IAdapterRow extends IAdapter {
+	subRows?: Array<IAdapter>
 	defillamaId?: string
-}
-
-export interface IVolumesByChain {
-	name: string
-	totalVolume: number
-	changeVolume1d: number
-	changeVolume30d: number
-	dominance: number
 }

@@ -14,7 +14,7 @@ import {
 	useFetchProtocolDevMetrics
 } from '~/api/categories/protocols/client'
 import { nearestUtc } from '~/utils'
-import { useGetOverviewChartData } from '~/containers/DexsAndFees/charts/hooks'
+import { useGetOverviewChartData } from '~/containers/DimensionAdapters/charts/hooks'
 import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/BridgeContainer'
 import { fetchWithErrorLogging } from '~/utils/async'

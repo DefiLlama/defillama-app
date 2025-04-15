@@ -1,6 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { formatColumnOrder } from '../../utils'
-import type { IDexsRow } from '../types'
+import type { IAdapterRow } from './types'
 import {
 	CategoryColumn,
 	ChainsColumn,
@@ -16,6 +15,7 @@ import {
 	VolumeTVLColumn,
 	XColumn
 } from './common'
+import { formatColumnOrder } from '~/components/Table/utils'
 
 export const getColumnsByType = (type: string, allChains?: boolean, isSimple?: boolean) => {
 	switch (type) {
@@ -60,7 +60,7 @@ export const getColumnsOrdernSizeByType = (type: string) => {
 	}
 }
 
-export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const volumesColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
 	[
 		NameColumn('dexs', allChains),
 		allChains ? undefined : ChainsColumn('dexs'),
@@ -77,7 +77,7 @@ export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Total24hColumn('Volume', 'total30d', `Cumulative last 30d volume`, undefined, 'Volume (30d)')
 	].filter((c) => c !== undefined)
 
-export const perpsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const perpsColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
 	[
 		NameColumn('perps', allChains),
 		allChains ? undefined : ChainsColumn('perps'),
@@ -92,7 +92,7 @@ export const perpsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		DominanceColumn
 	].filter((c) => c !== undefined)
 
-export const optionsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const optionsColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
 	[
 		NameColumn('options', allChains),
 		allChains ? undefined : ChainsColumn('options'),
@@ -105,7 +105,7 @@ export const optionsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		DominanceColumn
 	].filter((c) => c !== undefined)
 
-export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
 	[
 		NameColumn('aggregators', allChains),
 		allChains ? undefined : ChainsColumn('aggregators'),
@@ -118,7 +118,7 @@ export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 		DominanceColumn
 	].filter((c) => c !== undefined)
 
-export const perpsAggregatorColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const perpsAggregatorColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
 	[
 		NameColumn('perps-aggregators', allChains),
 		allChains ? undefined : ChainsColumn('perps-aggregators'),
@@ -132,7 +132,7 @@ export const perpsAggregatorColumns = (allChains?: boolean): ColumnDef<IDexsRow>
 		DominanceColumn
 	].filter((c) => c !== undefined)
 
-export const bridgeAggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const bridgeAggregatorsColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
 	[
 		NameColumn('bridge-aggregators', allChains),
 		allChains ? undefined : ChainsColumn('bridge-aggregators'),
@@ -146,7 +146,7 @@ export const bridgeAggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRo
 		DominanceColumn
 	].filter((c) => c !== undefined)
 
-export const incentivesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const incentivesColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
 	[
 		NameColumn('incentives', allChains),
 		allChains ? undefined : ChainsColumn('incentives'),
@@ -156,7 +156,7 @@ export const incentivesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Total24hColumn('Incentives', undefined, `Yesterday's volume, updated daily at 00:00UTC`)
 	].filter((c) => c !== undefined)
 
-export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const feesColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
 	[
 		NameColumn('fees', allChains),
 		ChainsColumn('fees'),
@@ -235,7 +235,7 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		XColumn('P/S', 'ps', undefined, `Market cap / annualized revenue`)
 	].filter((c) => c !== undefined)
 
-export const simpleFeesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+export const simpleFeesColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
 	[
 		NameColumn('fees', allChains, 140),
 		Total24hColumn('Fees', undefined, 'Fees paid by users in the last 24 hours', 120),

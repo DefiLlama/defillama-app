@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type { IFusedProtocolData } from '~/api/types'
 import { slug } from '~/utils'
-import { ChartByType2 } from '~/containers/DexsAndFees/charts'
+import { ChartByType2 } from '~/containers/DimensionAdapters/charts'
 
 export const ProtocolFeesRevenueVolumeCharts = ({ data }: { data: IFusedProtocolData }) => {
 	const metrics = Object.entries(data.metrics ?? {})
