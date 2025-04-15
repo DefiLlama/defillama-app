@@ -349,8 +349,8 @@ const nextConfig = {
 				permanent: true
 			},
 			{
-				source: 'hack',
-				destination: 'hacks',
+				source: '/hack',
+				destination: '/hacks',
 				permanent: true
 			}
 		]
