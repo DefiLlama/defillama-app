@@ -118,7 +118,9 @@ export function ChainContainer({
 
 	const { data: chainProtocolsFees, isLoading: fetchingProtocolsFeesAndRevenueByChain } =
 		useGetProtocolsFeesAndRevenueByChain(
-			feesAndRevenueData?.totalFees24h || selectedChain === 'All' ? selectedChain : undefined
+			feesAndRevenueData?.totalFees24h || feesAndRevenueData?.totalAppRevenue24h || selectedChain === 'All'
+				? selectedChain
+				: undefined
 		)
 
 	const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
