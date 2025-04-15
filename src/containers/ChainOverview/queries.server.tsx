@@ -602,6 +602,10 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				strikeTvl: toStrikeTvl(protocol, {})
 			}
 
+			if (protocol.deprecated) {
+				childStore.deprecated = true
+			}
+
 			if (dimensionProtocols[protocol.defillamaId]?.fees) {
 				childStore.fees = dimensionProtocols[protocol.defillamaId].fees
 				childStore.fees.pf = protocol.mcap
