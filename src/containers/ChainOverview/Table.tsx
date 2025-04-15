@@ -365,7 +365,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					row.original.strikeTvl || row.original.tvl?.excludeParent ? (
 						<Tvl rowValues={row.original} />
 					) : (
-						`${row.original.tvl != null ? `$${formattedNum(row.original.tvl?.default?.tvl || 0)}` : null}`
+						<>{row.original.tvl != null ? `$${formattedNum(row.original.tvl?.default?.tvl || 0)}` : null}</>
 					),
 				sortUndefined: 'last',
 				meta: {
