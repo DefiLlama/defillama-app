@@ -24,7 +24,7 @@ import {
 	peggedAssetIconUrl
 } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { PeggedAssetByChainTable } from '~/components/Table/Stablecoins/PeggedAssetByChain'
+import { PeggedAssetByChainTable } from './Table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'

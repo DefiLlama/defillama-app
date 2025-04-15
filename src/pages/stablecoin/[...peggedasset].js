@@ -1,5 +1,5 @@
 import * as React from 'react'
-import PeggedContainer from '~/containers/PeggedContainer'
+import PeggedContainer from '~/containers/Stablecoins/StablecoinOverview'
 import { peggedAssetIconPalleteUrl, slug } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'

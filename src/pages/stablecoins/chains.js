@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import PeggedChainsOverview from '~/containers/PeggedPage/PeggedChainsOverview'
+import PeggedChainsOverview from '~/containers/Stablecoins/ChainsWithStablecoins'
 import { maxAgeForNext } from '~/api'
 import { getPeggedChainsPageData } from '~/containers/Stablecoins/queries.server'
 import { withPerformanceLogging } from '~/utils/perf'

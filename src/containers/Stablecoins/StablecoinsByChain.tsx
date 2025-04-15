@@ -4,11 +4,11 @@ import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { ChartSelector } from '~/containers/PeggedPage/.'
+import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { stablecoinAttributeOptions } from '~/components/Filters/stablecoins/Attribute'
 import { stablecoinPegTypeOptions } from '~/components/Filters/stablecoins/PegType'
 import { stablecoinBackingOptions } from '~/components/Filters/stablecoins/BackingType'
-import { PeggedAssetsTable } from '~/components/Table/Stablecoins/PeggedAssets'
+import { PeggedAssetsTable } from './Table'
 import {
 	useCalcCirculating,
 	useCalcGroupExtraPeggedByDay,
@@ -18,6 +18,7 @@ import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/S
 import { formattedNum, getPercentChange, toNiceCsvDate, download } from '~/utils'
 import { PeggedFilters } from '~/components/Filters/stablecoins'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -255,35 +256,43 @@ function PeggedAssetsOverview({
 								width={20}
 								className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
 							/>
-							<span className="flex flex-col">
+							<span className="flex flex-col w-full">
 								<span className="text-[#545757] dark:text-[#cccccc]">Change (7d)</span>
 
-								<span className="flex items-end flex-nowrap gap-1 font-semibold text-2xl font-jetbrains">
-									<span>{change7d_nol}</span>
+								<span className="flex items-end justify-between flex-nowrap gap-1">
+									<span className="font-semibold text-2xl font-jetbrains">{change7d_nol}</span>
 									<span
-										className={`${change7d.startsWith('-') ? 'text-[#f85149]' : 'text-[#3fb950]'} font-inter text-base`}
-									>{`(${change7d}%)`}</span>
+										className={`${
+											change7d.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
+										} font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis`}
+									>{`${change7d}%`}</span>
 								</span>
 							</span>
 						</summary>
 
 						<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
 							<span className="text-[#545757] dark:text-[#cccccc]">Change (1d)</span>
-							<span className="flex items-center flex-nowrap gap-1 font-jetbrains">
-								<span>{change1d_nol}</span>
-								<span
-									className={`${change1d.startsWith('-') ? 'text-[#f85149]' : 'text-[#3fb950]'} font-inter text-base`}
-								>{`(${change1d}%)`}</span>
-							</span>
+							<Tooltip
+								content={change1d_nol}
+								as="span"
+								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
+									change1d.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
+								}`}
+							>
+								{`${change1d}%`}
+							</Tooltip>
 						</p>
-						<p className="flex items-center flex-wrap justify-between gap-2 mt-3 mb-1">
+						<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
 							<span className="text-[#545757] dark:text-[#cccccc]">Change (30d)</span>
-							<span className="flex items-center flex-nowrap gap-1 font-jetbrains">
-								<span>{change30d_nol}</span>
-								<span
-									className={`${change30d.startsWith('-') ? 'text-[#f85149]' : 'text-[#3fb950]'} font-inter text-base`}
-								>{`(${change30d}%)`}</span>
-							</span>
+							<Tooltip
+								content={change30d_nol}
+								as="span"
+								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
+									change30d.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
+								}`}
+							>
+								{`${change30d}%`}
+							</Tooltip>
 						</p>
 					</details>
 					<p className="flex flex-col">

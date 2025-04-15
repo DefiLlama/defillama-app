@@ -293,7 +293,7 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 		cell: (info) => (
 			<span
 				data-isactive={info.getValue() === 0 ? false : true}
-				className="text-[#f85149] data-[isactive=true]:text-[#3fb950]"
+				className="text-[var(--pct-red)] data-[isactive=true]:text-[var(--pct-green)]"
 			>
 				{info.getValue() === 0 ? 'Closed' : 'Active'}
 			</span>

@@ -21,7 +21,7 @@ const SmolBarChart: any = dynamic(() => import('~/containers/ChainOverview/SmolC
 export const SmolStats = (props: IChainOverviewData) => {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1 isolate">
-			{props.chain === 'All' && props.globalmcap?.chart?.length > 0 && props.defimcap?.chart?.length > 0 ? (
+			{props.chain === 'All' && props.globalmcap?.chart?.length > 0 ? (
 				<>
 					{props.globalmcap?.chart?.length > 0 ? (
 						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
@@ -52,25 +52,30 @@ export const SmolStats = (props: IChainOverviewData) => {
 							</Suspense>
 						</div>
 					) : null}
-					{props.defimcap?.chart?.length > 0 ? (
-						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
-							<div className="flex flex-col gap-1">
-								<h3 className="text-sm font-semibold">DeFi Mcap</h3>
-								<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
-									props.defimcap.chart[props.defimcap.chart.length - 1][1],
-									true
-								)}`}</p>
-								<p className="text-xs flex items-center gap-1">
-									<span
-										className={`whitespace-nowrap overflow-hidden text-ellipsis ${
-											+props.defimcap.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
-										}`}
-									>
-										{`${+props.defimcap.change7d >= 0 ? '+' : ''}${props.defimcap.change7d}%`}
-									</span>
-									<span className="text-[#666] dark:text-[#919296]">7d</span>
-								</p>
-							</div>
+
+					<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
+						<div className="flex flex-col gap-1">
+							<h3 className="text-sm font-semibold">DeFi Mcap</h3>
+							{props.defimcap.chart?.length > 0 ? (
+								<>
+									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+										props.defimcap.chart[props.defimcap.chart.length - 1][1],
+										true
+									)}`}</p>
+									<p className="text-xs flex items-center gap-1">
+										<span
+											className={`whitespace-nowrap overflow-hidden text-ellipsis ${
+												+props.defimcap.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+											}`}
+										>
+											{`${+props.defimcap.change7d >= 0 ? '+' : ''}${props.defimcap.change7d}%`}
+										</span>
+										<span className="text-[#666] dark:text-[#919296]">7d</span>
+									</p>
+								</>
+							) : null}
+						</div>
+						{props.defimcap.chart?.length > 0 ? (
 							<Suspense fallback={<></>}>
 								<SmolLineChart
 									series={props.defimcap.chart}
@@ -79,8 +84,9 @@ export const SmolStats = (props: IChainOverviewData) => {
 									className={'my-auto h-[53px]'}
 								/>
 							</Suspense>
-						</div>
-					) : null}
+						) : null}
+					</div>
+
 					{props.dexs?.chart?.length > 0 ? (
 						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">

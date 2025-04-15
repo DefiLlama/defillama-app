@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getPeggedAssetPageData } from '~/containers/Stablecoins/queries.server'
 import { primaryColor } from '~/constants/colors'
-import { PeggedAssetInfo } from '~/containers/PeggedContainer'
+import { PeggedAssetInfo } from '~/containers/Stablecoins/StablecoinOverview'
 
 export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
 	const { data, isLoading, error } = useQuery({

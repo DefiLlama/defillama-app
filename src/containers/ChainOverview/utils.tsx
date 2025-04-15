@@ -1,6 +1,5 @@
 import { removedCategories } from '~/constants'
 import type { ILiteProtocol, IProtocolMetadata } from './types'
-import { formattedNum } from '~/utils'
 
 export const toFilterProtocol = ({
 	protocolMetadata,

@@ -210,7 +210,7 @@ export const Stats = (props: IChainOverviewData) => {
 						className="flex items-center flex-nowrap gap-2 relative bottom-[2px]"
 					>
 						<span
-							className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted " ${
+							className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
 								change24h >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
 							}`}
 						>
