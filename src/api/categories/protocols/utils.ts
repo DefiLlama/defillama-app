@@ -43,13 +43,6 @@ export const formatProtocolsData = ({
 	removeBridges = false
 }: IFormatProtocolsData) => {
 	const data = protocols.reduce((final, protocol) => {
-		if (protocol.deprecated) {
-			final = [
-				...final,
-				{ name: protocol.name, chains: protocol.chains, extraTvl: {}, category: protocol.category, deprecated: true }
-			]
-			return final
-		}
 		let toFilter = true
 
 		if (removeBridges) {
@@ -81,6 +74,14 @@ export const formatProtocolsData = ({
 		}
 
 		if (toFilter) {
+			if (protocol.deprecated) {
+				final = [
+					...final,
+					{ name: protocol.name, chains: protocol.chains, extraTvl: {}, category: protocol.category, deprecated: true }
+				]
+				return final
+			}
+
 			const p = keepNeededProperties(protocol, protocolProps)
 
 			if (chain) {
