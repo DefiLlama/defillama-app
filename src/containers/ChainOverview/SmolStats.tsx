@@ -56,7 +56,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 					<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 						<div className="flex flex-col gap-1">
 							<h3 className="text-sm font-semibold">DeFi Mcap</h3>
-							{props.defimcap.chart?.length > 0 ? (
+							{props.defimcap?.chart?.length > 0 ? (
 								<>
 									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 										props.defimcap.chart[props.defimcap.chart.length - 1][1],
@@ -75,7 +75,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 								</>
 							) : null}
 						</div>
-						{props.defimcap.chart?.length > 0 ? (
+						{props.defimcap?.chart?.length > 0 ? (
 							<Suspense fallback={<></>}>
 								<SmolLineChart
 									series={props.defimcap.chart}
