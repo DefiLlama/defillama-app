@@ -28,7 +28,7 @@ echarts.use([
 ])
 
 export default function OrderBookChart({ height, chartData }: IOrderBookChartProps) {
-	const id = React.useMemo(() => crypto.randomUUID(), [])
+	const id = React.useId()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
 	const [isDark] = useDarkModeManager()

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart, BarChart as EBarChart, LineChart } from 'echarts/charts'
@@ -47,7 +47,7 @@ export default function StackedBarChart({
 	showLegend,
 	isMonthly
 }: IStackedBarChartProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 
 	const [isDark] = useDarkModeManager()
 	const series = useMemo(() => {

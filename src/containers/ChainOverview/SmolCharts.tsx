@@ -58,7 +58,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 									height: 18,
 									width: 18,
 									backgroundColor: {
-										image: `${s[2]}?w=48&h=48`
+										image: s[2]
 									}
 								}
 							])
@@ -81,7 +81,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 						return (
 							(prev +=
 								'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
-								`<img src="${curr.value[2]}?w=48&h=48" style="border-radius:1000px;flex-shrink:0;height:16px;width:16px;" />` +
+								`<img src="${curr.value[2]}" style="border-radius:1000px;flex-shrink:0;height:16px;width:16px;" />` +
 								curr.name +
 								'&nbsp;&nbsp;' +
 								'$' +

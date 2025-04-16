@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
@@ -52,7 +52,7 @@ function addColorGradientField(chartDataTree) {
 }
 
 export default function TreemapChart({ chartData }: IChartProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 
 	const [isDark] = useDarkModeManager()
 

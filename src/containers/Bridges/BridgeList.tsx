@@ -13,22 +13,26 @@ import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
 import { formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useEffect } from 'react'
-import BridgeVolumeChart from '~/components/Charts/BridgeVolumeChart'
+import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
+	ssr: false,
+	loading: () => <div className="h-[360px]" />
 }) as React.FC<IBarChartProps>
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
-	ssr: false
+	ssr: false,
+	loading: () => <div className="h-[360px]" />
 }) as React.FC<IStackedBarChartProps>
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
+	ssr: false,
+	loading: () => <div className="h-[360px]" />
 }) as React.FC<IPieChartProps>
 
 const NetflowChart = dynamic(() => import('~/components/ECharts/BarChart/NetflowChart'), {
-	ssr: false
+	ssr: false,
+	loading: () => <div className="h-[600px]" />
 }) as React.FC<any>
 
 function BridgesOverview({
@@ -222,10 +226,9 @@ function BridgesOverview({
 	return (
 		<>
 			<BridgesSearchWithBreakdown onToggleClick={(enabled) => setEnableBreakdownChart(enabled)} />
-			<h1 className="text-xl font-semibold mb-2 flex items-center justify-between flex-wrap gap-4">
-				<span>Bridge Volume in {selectedChain === 'All' ? 'all bridges' : selectedChain}</span>
-				<CSVDownloadButton onClick={downloadCsv} />
-			</h1>
+
+			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
+
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
 				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					<p className="flex flex-col">
@@ -240,57 +243,39 @@ function BridgesOverview({
 						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (1mo)</span>
 						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(monthTotalVolume, true)}</span>
 					</p>
+
+					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
 				</div>
-				<div className="flex flex-col gap-4 py-4 col-span-1 *:ml-4 last:*:ml-0 min-h-[444px]">
+				<div className="flex flex-col bg-[var(--cards-bg)] rounded-md">
 					{selectedChain === 'All' ? (
 						<>
-							<div className="flex items-center gap-2 p-2 rounded-lg">
+							<div className="flex items-center">
 								<button
-									className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
-										chartView === 'netflow'
-											? 'bg-blue-500 text-white shadow-lg hover:opacity-90 ring-blue-500 ring-offset-2 '
-											: 'bg-[var(--bg7)] text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)] border border-[var(--divider)]'
-									}`}
+									className="flex-1 flex items-center justify-center p-3 text-xs font-medium border-b-2 border-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-bg)] data-[active=true]:border-[var(--old-blue)]"
+									data-active={chartView === 'netflow'}
 									onClick={() => setChartView('netflow')}
 								>
 									Net Flows By Chain
 								</button>
 
 								<button
-									className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
-										chartView === 'volume'
-											? 'bg-blue-500 text-white shadow-lg hover:opacity-90 ring-blue-500 ring-offset-2 '
-											: 'bg-[var(--bg7)] text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)] border border-[var(--divider)]'
-									}`}
+									className="flex-1 flex items-center justify-center p-3 text-xs font-medium border-b-2 border-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-bg)] data-[active=true]:border-[var(--old-blue)]"
 									onClick={() => setChartView('volume')}
+									data-active={chartView === 'volume'}
 								>
 									Bridge Volume
 								</button>
 							</div>
 
 							{chartView === 'netflow' ? (
-								<div className="relative shadow rounded-xl">
-									<div className="p-4">
-										<div className="flex justify-end mb-2">
-											<CSVDownloadButton onClick={downloadChartCsv} customText="Download chart .csv" />
-										</div>
-										<NetflowChart height="600px" />
-									</div>
-								</div>
+								<NetflowChart height={600} />
 							) : (
-								<div className="relative shadow rounded-xl">
-									<div className="p-4">
-										<div className="flex justify-end mb-2">
-											<CSVDownloadButton onClick={downloadChartCsv} customText="Download chart .csv" />
-										</div>
-										<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="600px" />
-									</div>
-								</div>
+								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
 							)}
 						</>
 					) : (
 						<>
-							<div className="flex items-center justify-between">
+							<div className="flex items-center justify-between p-3 overflow-x-auto">
 								<ChartSelector
 									options={[
 										'Bridge Volume',
@@ -303,15 +288,10 @@ function BridgesOverview({
 									selectedChart={chartType}
 									onClick={setChartType}
 								/>
-								<CSVDownloadButton onClick={downloadChartCsv} customText="Download chart .csv" />
 							</div>
 
 							{chartType === 'Bridge Volume' && (
-								<div className="relative shadow rounded-xl">
-									<div className="p-4">
-										<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="600px" />
-									</div>
-								</div>
+								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
 							)}
 							{chartType === 'Net Flow' && chainNetFlowData && chainNetFlowData.length > 0 && (
 								<BarChart
@@ -334,15 +314,9 @@ function BridgesOverview({
 								/>
 							)}
 							{chartType === 'Inflows' && (
-								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="600px" />
+								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
 							)}
-							{chartType === 'Net Flow By Chain' && (
-								<div className="grid grid-cols-1 relative isolate shadow rounded-xl mb-4">
-									<div className="p-4">
-										<NetflowChart height="600px" />
-									</div>
-								</div>
-							)}
+							{chartType === 'Net Flow By Chain' && <NetflowChart height="600px" />}
 							{chartType === 'Volumes' && chartData && chartData.length > 0 && (
 								<StackedBarChart
 									chartData={
@@ -361,14 +335,23 @@ function BridgesOverview({
 							{chartType === '24h Tokens Withdrawn' && <PieChart chartData={tokenDeposits} />}
 						</>
 					)}
+					<div className="flex items-center justify-end p-3">
+						<CSVDownloadButton onClick={downloadChartCsv} customText="Download chart .csv" />
+					</div>
 				</div>
 			</div>
-			<TxsTableSwitch />
-			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
-				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
-			</nav>
-			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} chain={selectedChain} />}
-			{!isBridgesShowingTxs && <BridgesTable data={filteredBridges} />}
+
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<div className="p-3 w-full max-w-fit ml-auto">
+					<TxsTableSwitch />
+				</div>
+
+				{isBridgesShowingTxs ? (
+					<LargeTxsTable data={largeTxsData} chain={selectedChain} />
+				) : (
+					<BridgesTable data={filteredBridges} />
+				)}
+			</div>
 		</>
 	)
 }

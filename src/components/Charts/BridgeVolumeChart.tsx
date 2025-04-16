@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useFetchBridgeVolume } from '~/containers/Bridges/queries.client'
 import type { IBarChartProps } from '~/components/ECharts/types'
@@ -6,7 +6,8 @@ import dayjs from 'dayjs'
 import { LocalLoader } from '../LocalLoader'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
+	ssr: false,
+	loading: () => <div className="h-[360px]" />
 }) as React.FC<IBarChartProps>
 
 interface BridgeVolumeChartProps {
@@ -19,7 +20,7 @@ type TimePeriod = typeof TIME_PERIODS[number]
 type MetricType = 'Volume' | 'Transactions'
 type ViewType = 'Split' | 'Combined'
 
-export default function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartProps) {
+export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
 	const [metricType, setMetricType] = useState<MetricType>('Volume')
 	const [viewType, setViewType] = useState<ViewType>('Split')
@@ -86,26 +87,30 @@ export default function BridgeVolumeChart({ chain = 'all', height }: BridgeVolum
 
 	if (isLoading)
 		return (
-			<div className="flex items-center justify-center" style={{ height: height ?? '360px' }}>
+			<div className="flex items-center justify-center" style={{ height: `calc(${height ?? '360px'} + 82px)` }}>
 				<LocalLoader />
 			</div>
 		)
-	if (error) return <div>Error loading bridge volume data</div>
+
+	if (error)
+		return (
+			<div className="flex items-center justify-center" style={{ height: `calc(${height ?? '360px'} + 82px)` }}>
+				<p>Error loading bridge volume data</p>
+			</div>
+		)
+
 	return (
 		<>
-			<div className="flex flex-wrap gap-4 mb-4">
-				<div className="flex-1 min-w-[200px]">
-					<span className="text-sm font-medium text-[var(--text2)] block mb-2">Time Period:</span>
-					<div className="bg-[var(--bg7)] rounded-lg p-1 flex gap-1">
+			<div className="flex justify-end flex-wrap max-w-2xl w-full mx-auto gap-4 p-3 overflow-x-auto">
+				<div className="flex-1 flex flex-col gap-1 ml-auto">
+					<h2 className="text-sm font-medium text-[var(--text2)]">Time Period:</h2>
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 						{TIME_PERIODS.map((period) => (
 							<button
 								key={period}
 								onClick={() => setTimePeriod(period)}
-								className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-									timePeriod === period
-										? 'bg-blue-500 text-white shadow-sm'
-										: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
-								}`}
+								data-active={timePeriod === period}
+								className="flex-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 							>
 								{period}
 							</button>
@@ -113,52 +118,40 @@ export default function BridgeVolumeChart({ chain = 'all', height }: BridgeVolum
 					</div>
 				</div>
 
-				<div className="flex-1 min-w-[200px]">
-					<span className="text-sm font-medium text-[var(--text2)] block mb-2">View:</span>
-					<div className="bg-[var(--bg7)] rounded-lg p-1 flex gap-1">
+				<div className="flex-1 flex flex-col gap-1">
+					<h2 className="text-sm font-medium text-[var(--text2)]">View:</h2>
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 						<button
 							onClick={() => setViewType('Split')}
-							className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-								viewType === 'Split'
-									? 'bg-blue-500 text-white shadow-sm'
-									: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
-							}`}
+							data-active={viewType === 'Split'}
+							className="flex-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 						>
 							Split
 						</button>
 						<button
 							onClick={() => setViewType('Combined')}
-							className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-								viewType === 'Combined'
-									? 'bg-blue-500 text-white shadow-sm'
-									: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
-							}`}
+							data-active={viewType === 'Combined'}
+							className="flex-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 						>
 							Combined
 						</button>
 					</div>
 				</div>
 
-				<div className="flex-1 min-w-[200px]">
-					<span className="text-sm font-medium text-[var(--text2)] block mb-2">Metric:</span>
-					<div className="bg-[var(--bg7)] rounded-lg p-1 flex gap-1">
+				<div className="flex-1 flex flex-col gap-1">
+					<h2 className="text-sm font-medium text-[var(--text2)]">Metric:</h2>
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 						<button
 							onClick={() => setMetricType('Volume')}
-							className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-								metricType === 'Volume'
-									? 'bg-blue-500 text-white shadow-sm'
-									: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
-							}`}
+							data-active={metricType === 'Volume'}
+							className="flex-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 						>
 							Volume
 						</button>
 						<button
 							onClick={() => setMetricType('Transactions')}
-							className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-								metricType === 'Transactions'
-									? 'bg-blue-500 text-white shadow-sm'
-									: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
-							}`}
+							data-active={metricType === 'Transactions'}
+							className="flex-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 						>
 							Transactions
 						</button>
@@ -166,36 +159,38 @@ export default function BridgeVolumeChart({ chain = 'all', height }: BridgeVolum
 				</div>
 			</div>
 
-			<BarChart
-				chartData={chartData}
-				title=""
-				height={height}
-				hideDefaultLegend={false}
-				customLegendOptions={viewType === 'Split' ? ['Deposits', 'Withdrawals'] : ['Total']}
-				stacks={
-					viewType === 'Split'
-						? {
-								Deposits: 'metric',
-								Withdrawals: 'metric'
-						  }
-						: undefined
-				}
-				stackColors={
-					viewType === 'Split'
-						? {
-								Deposits: '#3b82f6',
-								Withdrawals: '#ef4444'
-						  }
-						: {
-								Total: '#22c55e'
-						  }
-				}
-				chartOptions={{
-					overrides: {
-						inflow: viewType === 'Split'
+			<Suspense fallback={<div style={{ height }} />}>
+				<BarChart
+					chartData={chartData}
+					title=""
+					height={height}
+					hideDefaultLegend={false}
+					customLegendOptions={viewType === 'Split' ? ['Deposits', 'Withdrawals'] : ['Total']}
+					stacks={
+						viewType === 'Split'
+							? {
+									Deposits: 'metric',
+									Withdrawals: 'metric'
+							  }
+							: undefined
 					}
-				}}
-			/>
+					stackColors={
+						viewType === 'Split'
+							? {
+									Deposits: '#3b82f6',
+									Withdrawals: '#ef4444'
+							  }
+							: {
+									Total: '#22c55e'
+							  }
+					}
+					chartOptions={{
+						overrides: {
+							inflow: viewType === 'Split'
+						}
+					}}
+				/>
+			</Suspense>
 		</>
 	)
 }

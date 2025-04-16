@@ -30,7 +30,7 @@ echarts.use([
 ])
 
 export default function CollectionScatterChart({ height, sales, salesMedian1d, volume }: ICollectionScatterChartProps) {
-	const id = React.useMemo(() => crypto.randomUUID(), [])
+	const id = React.useId()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
 	const [isDark] = useDarkModeManager()

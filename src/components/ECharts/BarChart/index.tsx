@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { getUtcDateObject, stringToColour } from '../utils'
 import type { IBarChartProps } from '../types'
@@ -23,7 +23,7 @@ export default function BarChart({
 	tooltipOrderBottomUp,
 	isMonthly
 }: IBarChartProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions ? [...customLegendOptions] : [])
 

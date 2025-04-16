@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { getUtcDateObject, stringToColour } from '~/components/ECharts/utils'
 import type { IChartProps } from '~/components/ECharts/types'
@@ -31,7 +31,7 @@ export default function AreaBarChart({
 	isThemeDark,
 	...props
 }: IChartProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 	const router = useRouter()
 	const { groupBy } = router.query
 	const isCumulative = router.isReady && groupBy === 'cumulative' ? true : false
