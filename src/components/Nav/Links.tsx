@@ -117,7 +117,7 @@ export const navLinks: ILinks = {
 			{ name: 'Overview', path: '/' },
 			{ name: 'Chains', path: '/chains' },
 			{ name: 'Bridged TVL', path: '/bridged' },
-			{ name: 'Compare Chains', path: '/compare?chains=Optimism&chains=Arbitrum' },
+			{ name: 'Compare Chains', path: '/compare?chains=OP+Mainnet&chains=Arbitrum' },
 			{ name: 'Airdrops', path: '/airdrops' },
 			{ name: 'Treasuries', path: '/treasuries', newTag: true },
 			{ name: 'Oracles', path: '/oracles' },
