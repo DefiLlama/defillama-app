@@ -18,9 +18,24 @@ export const UpcomingEvent = ({
 }) => {
 	const tokenPrice = price
 	const tokenSymbol = tokenPrice?.symbol?.toUpperCase() || symbol?.toUpperCase()
-	const tokens = noOfTokens.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
-	const tokenValue = price ? tokens * price : null
-	const unlockPercent = maxSupply ? (tokens / maxSupply) * 100 : null
+
+	const currentUnlockBreakdown = event.map(({ description, noOfTokens, timestamp }) => {
+		const regex =
+			/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
+		const matches = description.match(regex)
+		const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
+		const amount = sum(noOfTokens)
+
+		return {
+			name,
+			amount,
+			timestamp
+		}
+	})
+
+	const totalAmount = sum(currentUnlockBreakdown.map((item) => item.amount))
+	const tokenValue = price ? totalAmount * price : null
+	const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
 	const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
 
 	const timeLeft = timestamp - Date.now() / 1e3
@@ -29,19 +44,6 @@ export const UpcomingEvent = ({
 	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)
 	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
 	const [_, rerender] = useState(1)
-
-	const currentUnlockBreakdown = event.map(({ description, noOfTokens, timestamp }) => {
-		const regex =
-			/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
-		const matches = description.match(regex)
-		const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
-		const amount = sum(noOfTokens)
-		return {
-			name,
-			amount,
-			timestamp
-		}
-	})
 
 	useEffect(() => {
 		if (timeLeft <= 0) return
