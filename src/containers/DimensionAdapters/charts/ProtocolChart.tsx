@@ -213,20 +213,19 @@ export const ProtocolChart = ({
 export const ChartOnly = ({ title, chartData }) => {
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 
-	// const simpleStack =
-	// 	chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
-	// 		? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
-	// 		: undefined
-	const simpleStack = chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
-
 	const barsData = React.useMemo(() => aggregateDataByInterval(barInterval, chartData)(), [chartData, barInterval])
+
+	const { simpleStack, customLegendOptions } = React.useMemo(() => {
+		const simpleStack = chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
+		return { simpleStack, customLegendOptions: Object.keys(simpleStack) }
+	}, [chartData])
 
 	return (
 		<>
 			{barsData && barsData.length > 0 && (
-				<div className="flex flex-col gap-2 m-3 mt-0">
-					{title ? <h1 className="text-base font-semibold">{title}</h1> : null}
-					<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+				<div className="flex items-center justify-end flex-wrap gap-2 p-3 -mb-5">
+					{title ? <h1 className="text-base font-semibold mr-auto">{title}</h1> : null}
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 						{INTERVALS_LIST.map((dataInterval) => (
 							<button
 								key={dataInterval}
@@ -240,7 +239,6 @@ export const ChartOnly = ({ title, chartData }) => {
 					</div>
 				</div>
 			)}
-
 			{barInterval === 'Cumulative' ? (
 				<AreaChart
 					title={''}
@@ -248,7 +246,9 @@ export const ChartOnly = ({ title, chartData }) => {
 					stacks={chartData[1]}
 					stackColors={stackedBarChartColors}
 					valueSymbol="$"
-					hideLegend={false}
+					hideDefaultLegend
+					customLegendName="Chains"
+					customLegendOptions={chartData[1]}
 				/>
 			) : (
 				<BarChart
@@ -257,6 +257,9 @@ export const ChartOnly = ({ title, chartData }) => {
 					stacks={simpleStack}
 					stackColors={stackedBarChartColors}
 					isMonthly={barInterval === 'Monthly'}
+					hideDefaultLegend
+					customLegendName="Chains"
+					customLegendOptions={customLegendOptions}
 				/>
 			)}
 		</>

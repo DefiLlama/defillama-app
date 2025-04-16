@@ -8,7 +8,7 @@ export const ProtocolFeesRevenueVolumeCharts = ({ data }: { data: IFusedProtocol
 	const hasVersions = (data.otherProtocols ?? []).length > 0
 
 	return (
-		<div className="grid grid-cols-2 rounded-xl">
+		<div className="grid grid-cols-2 rounded-md">
 			{metrics.map(([key, enabled]) => {
 				return enabled && key !== 'medianApy' ? (
 					<React.Fragment key={key + 'fees-revenue-volume-charts'}>
@@ -28,7 +28,7 @@ export function FeesAndRevenueCharts({ data }: { data: IFusedProtocolData }) {
 	const hasVersions = (data.otherProtocols ?? []).length > 0
 
 	return (
-		<div className="grid grid-cols-2 rounded-xl">
+		<div className="grid grid-cols-2 rounded-md">
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} breakdownChart={false} />
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} />
 			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={'fees'} /> : null}
@@ -46,7 +46,7 @@ export function VolumeCharts({
 	const hasVersions = (data.otherProtocols ?? []).length > 0
 
 	return (
-		<div className="grid grid-cols-2 rounded-xl">
+		<div className="grid grid-cols-2 rounded-md">
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={type} breakdownChart={false} />
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={type} breakdownChart={true} />
 			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={type} /> : null}
