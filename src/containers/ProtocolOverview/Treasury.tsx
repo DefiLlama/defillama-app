@@ -72,9 +72,9 @@ export const TreasuryChart = ({ protocolName }: { protocolName: string }) => {
 			</label>
 
 			{!isLoading && (!data || top10Tokens.length === 0) ? (
-				<div className="grid grid-cols-2 rounded-xl min-h-[360px]"></div>
+				<div className="grid grid-cols-2 rounded-md min-h-[360px]"></div>
 			) : (
-				<div className="grid grid-cols-2 rounded-xl min-h-[384px] p-3">
+				<div className="grid grid-cols-2 rounded-md min-h-[384px] p-3">
 					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 						<PieChart chartData={top10Tokens} />
 					</LazyChart>

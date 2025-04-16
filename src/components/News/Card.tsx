@@ -21,7 +21,7 @@ export const NewsCard = ({ imgSrc, href, headline, date, color }: INewsCardProps
 			href={href}
 			target="_blank"
 			rel="noreferrer noopener"
-			className="p-2 flex flex-col gap-3 sm:flex-row rounded-xl text-[var(--text1)] hover:text-[var(--text-white)] hover:dark:text-[var(--text-dark)] focus-visible:text-[var(--text-white)] focus-visible:dark:text-[var(--text-dark)] bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] whitespace-nowrap hover:bg-[var(--bg-active-light)] dark:hover:bg-[var(--bg-active-dark)] focus-visible:bg-[var(--bg-active-light)] dark:focus-visible:bg-[var(--bg-active-dark)]"
+			className="p-2 flex flex-col gap-3 sm:flex-row rounded-md text-[var(--text1)] hover:text-[var(--text-white)] hover:dark:text-[var(--text-dark)] focus-visible:text-[var(--text-white)] focus-visible:dark:text-[var(--text-dark)] bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] whitespace-nowrap hover:bg-[var(--bg-active-light)] dark:hover:bg-[var(--bg-active-dark)] focus-visible:bg-[var(--bg-active-light)] dark:focus-visible:bg-[var(--bg-active-dark)]"
 		>
 			{imgSrc ? (
 				<img className="object-cover rounded h-[100px] sm:w-[200px] flex-shrink-0" src={imgSrc} alt={headline} />
@@ -30,7 +30,7 @@ export const NewsCard = ({ imgSrc, href, headline, date, color }: INewsCardProps
 				<p className="text-sm font-medium whitespace-pre-wrap break-keep">{headline}</p>
 				<div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
 					<p className="text-xs text-[var(--text1)]">{dayjs(date).format('MMMM D, YYYY')}</p>
-					<p className="flex items-center justify-between flex-nowrap py-2 px-3 text-sm font-semibold rounded-xl text-[var(--text-white)] dark:text-[var(--text-dark)] hover:text-[var(--text-white)] hover:dark:text-[var(--text-dark)] focus-visible:text-[var(--text-white)] focus-visible:dark:text-[var(--text-dark)] bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] whitespace-nowrap hover:bg-[var(--bg-active-light)] dark:hover:bg-[var(--bg-active-dark)] focus-visible:bg-[var(--bg-active-light)] dark:focus-visible:bg-[var(--bg-active-dark)]">
+					<p className="flex items-center justify-between flex-nowrap py-2 px-3 text-sm font-semibold rounded-md text-[var(--text-white)] dark:text-[var(--text-dark)] hover:text-[var(--text-white)] hover:dark:text-[var(--text-dark)] focus-visible:text-[var(--text-white)] focus-visible:dark:text-[var(--text-dark)] bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] whitespace-nowrap hover:bg-[var(--bg-active-light)] dark:hover:bg-[var(--bg-active-dark)] focus-visible:bg-[var(--bg-active-light)] dark:focus-visible:bg-[var(--bg-active-dark)]">
 						<span>Read on DL News</span> <Icon name="arrow-up-right" height={14} width={14} />
 					</p>
 				</div>

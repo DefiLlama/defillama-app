@@ -165,7 +165,7 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 		<div className="flex flex-col gap-7 max-w-[calc(100vw-8px)] lg:!max-w-[calc(100vw-276-32px)] p-4">
 			{apisByCategory.length > 1 ? (
 				<div
-					className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit ml-auto"
+					className="flex items-center gap-1 p-1 rounded-md overflow-x-auto w-full max-w-fit ml-auto"
 					style={{ backgroundColor: transparentize(0.8, color) }}
 				>
 					{apisByCategory.map((apiCat, index) => (
@@ -173,7 +173,7 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 							key={apiCat + 'governance-table-filter'}
 							onClick={() => setApiCategoryIndex(index)}
 							data-active={apiCategoryIndex === index}
-							className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
+							className="rounded-md flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
 						>
 							{apiCat}
 						</button>

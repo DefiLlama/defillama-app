@@ -246,11 +246,11 @@ export function CompareChains() {
 					{data?.data.filter(Boolean)?.map((chainData, i) => {
 						return (
 							<div
-								className="flex flex-col justify-between relative isolate xl:grid-cols-[auto_1fr] bg-[var(--cards-bg)] rounded-md"
+								className="flex flex-col justify-between relative isolate xl:grid-cols-[auto_1fr] gap-1"
 								key={`${chainData?.chain || i}`}
 							>
-								<div className="flex flex-col gap-8 p-5 col-span-1 w-full rounded-xl text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-									<h1 className="flex items-center gap-2 text-xl">
+								<div className="flex-1 flex flex-col gap-8 p-5 col-span-1 w-full bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+									<h1 className="flex items-center gap-2 text-xl font-semibold">
 										<TokenLogo logo={chainIconUrl(chainData?.chain)} size={24} />
 										<span>{chainData.chain}</span>
 									</h1>

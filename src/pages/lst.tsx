@@ -57,7 +57,7 @@ const PageView = ({
 				<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
 			</h1>
 
-			<div className="rounded-xl shadow bg-[var(--bg6)] w-full flex flex-col">
+			<div className="bg-[var(--cards-bg)] rounded-md w-full flex flex-col">
 				<div className="flex flex-wrap overflow-x-auto border-y border-black/10 dark:border-white/10">
 					<button
 						className="py-2 px-6 whitespace-nowrap border-black/10 dark:border-white/10 data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
@@ -77,7 +77,7 @@ const PageView = ({
 
 				<div className="flex flex-col items-center gap-4 min-h-[408px] w-full">
 					{tab === 'breakdown' ? (
-						<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 pt-12 [&[role='combobox']]:*:*:-mt-9 [&[role='combobox']]:*:*:-mb-6">
+						<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 pt-12 xl:[&[role='combobox']]:*:*:!-mt-9">
 							<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
 							<AreaChart
 								chartData={areaChartData}

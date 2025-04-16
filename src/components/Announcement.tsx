@@ -82,7 +82,7 @@ export function Announcement({
 			{children}
 			{!notCancellable ? (
 				<button
-					className="absolute top-0 bottom-0 my-auto right-0 h-10 w-10 flex items-center justify-center rounded-xl hover:bg-[var(--bg)]"
+					className="absolute top-0 bottom-0 my-auto right-0 h-10 w-10 flex items-center justify-center rounded-md hover:bg-[var(--bg)]"
 					onClick={closeAnnouncement}
 				>
 					<Icon name="x" height={16} width={16} />

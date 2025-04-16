@@ -22,10 +22,10 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 
 			<ProtocolsChainsSearch />
 
-			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg7)] border border-[var(--divider)] shadow rounded-xl">
+			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--cards-bg)] rounded-md">
 				{data?.otherProtocols?.length > 1 && (
 					<nav
-						className="flex overflow-x-auto rounded-xl bg-[var(--bg7)] w-full max-w-fit -m-6 -mb-3"
+						className="flex overflow-x-auto rounded-xl bg-[var(--bg7)] w-full max-w-fit"
 						style={{ '--active-bg': transparentize(0.9, backgroundColor) } as any}
 					>
 						{data.otherProtocols.map((p) => (
@@ -41,7 +41,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 					</nav>
 				)}
 
-				<h1 className="flex items-center gap-2 text-xl">
+				<h1 className="flex items-center gap-2 text-xl font-semibold">
 					<TokenLogo logo={data.logo} size={24} />
 					<FormattedName text={data.name} maxCharacters={16} fontWeight={700} />
 				</h1>
