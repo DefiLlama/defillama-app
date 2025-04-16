@@ -767,7 +767,7 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 	}
 }
 
-function getProtocolPageStyles(color) {
+export function getProtocolPageStyles(color) {
 	return {
 		'--primary-color': color,
 		'--bg-color': transparentize(0.6, color),

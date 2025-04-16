@@ -8,6 +8,7 @@ import { DummyProtocol } from '~/containers/ProtocolOverview/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import { cexData } from '../cexs'
 import { withPerformanceLogging } from '~/utils/perf'
+import { getProtocolPageStyles } from '~/api/categories/protocols/getProtocolData'
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/[...cex]',
@@ -59,7 +60,8 @@ export const getStaticProps = withPerformanceLogging(
 					tvl: protocolData.module
 						? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 						: null
-				}
+				},
+				pageStyles: getProtocolPageStyles(backgroundColor)
 			},
 			revalidate: !protocolRes ? 0 : maxAgeForNext([22])
 		}
