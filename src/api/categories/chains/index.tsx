@@ -183,7 +183,12 @@ export async function getChainPageData(chain?: string) {
 		!chain || chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
 		chainMetadata?.gecko_id
 			? fetchWithErrorLogging(
-					`https://pro-api.coingecko.com/api/v3/coins/${chainMetadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+					`https://pro-api.coingecko.com/api/v3/coins/${chainMetadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
+					{
+						headers: {
+							'x-cg-pro-api-key': process.env.CG_KEY
+						}
+					}
 			  ).then((res) => res.json())
 			: {},
 		chain && chain !== 'All' && chainMetadata?.derivatives

@@ -192,7 +192,12 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chain === 'All' ? Promise.resolve(null) : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
 			metadata.gecko_id
 				? fetchWithErrorLogging(
-						`https://pro-api.coingecko.com/api/v3/coins/${metadata.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+						`https://pro-api.coingecko.com/api/v3/coins/${metadata.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
+						{
+							headers: {
+								'x-cg-pro-api-key': process.env.CG_KEY
+							}
+						}
 				  ).then((res) => res.json())
 				: Promise.resolve({}),
 			chain && chain !== 'All'
@@ -267,9 +272,11 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						.catch(() => null)
 				: null,
 			chain === 'All'
-				? fetchWithErrorLogging(
-						`https://pro-api.coingecko.com/api/v3/global/market_cap_chart?days=14&x_cg_pro_api_key=${process.env.CG_KEY}`
-				  )
+				? fetchWithErrorLogging(`https://pro-api.coingecko.com/api/v3/global/market_cap_chart?days=14`, {
+						headers: {
+							'x-cg-pro-api-key': process.env.CG_KEY
+						}
+				  })
 						.then((res) => res.json())
 						.then((data) => data?.market_cap_chart?.market_cap?.slice(0, 14) ?? null)
 						.catch(() => null)
