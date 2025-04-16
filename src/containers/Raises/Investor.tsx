@@ -190,10 +190,10 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<LazyChart className="bg-[var(--cards-bg)] rounded-md">
+				<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
 				</LazyChart>
-				<LazyChart className="bg-[var(--cards-bg)] rounded-md">
+				<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
 				</LazyChart>
 			</div>

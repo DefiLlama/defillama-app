@@ -117,10 +117,10 @@ export function NFTCollectionContainer() {
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<LazyChart className="bg-[var(--cards-bg)] rounded-md">
+				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
 				</LazyChart>
-				<LazyChart className="bg-[var(--cards-bg)] rounded-md">
+				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<OrderbookChart chartData={orderbook} />
 				</LazyChart>
 			</div>

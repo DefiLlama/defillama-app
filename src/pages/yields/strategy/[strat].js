@@ -218,7 +218,7 @@ const PageView = () => {
 					</table>
 				</div>
 
-				<LazyChart className="bg-[var(--cards-bg)] min-h-[360px]">
+				<LazyChart className="col-span-1 bg-[var(--cards-bg)] min-h-[368px] pt-2">
 					<AreaChart title="Strategy APY" chartData={finalChart} color={backgroundColor} valueSymbol={'%'} />
 				</LazyChart>
 			</div>
@@ -285,7 +285,7 @@ const PageView = () => {
 					lendHistory?.data?.length && (
 						<>
 							{barChartDataSupply?.length ? (
-								<LazyChart>
+								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 									<StackedBarChart
 										title="Supply APY"
 										chartData={barChartDataSupply}
@@ -297,7 +297,7 @@ const PageView = () => {
 							) : null}
 
 							{barChartDataBorrow?.length ? (
-								<LazyChart>
+								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 									<StackedBarChart
 										title="Borrow APY"
 										chartData={barChartDataBorrow}
@@ -309,7 +309,7 @@ const PageView = () => {
 							) : null}
 
 							{barChartDataFarm?.length ? (
-								<LazyChart>
+								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 									<StackedBarChart
 										title="Farm APY"
 										chartData={barChartDataFarm}

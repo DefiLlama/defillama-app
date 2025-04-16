@@ -12,6 +12,7 @@ interface ILayoutProps {
 	defaultSEO?: boolean
 	backgroundColor?: string
 	className?: string
+	style?: React.CSSProperties
 }
 
 export default function Layout({

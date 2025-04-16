@@ -84,8 +84,8 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 	return (
 		<Layout title={`Languages - DefiLlama`} defaultSEO>
 			<div className="bg-[var(--cards-bg)] rounded-md [&[role='combobox']]:*:*:*:-mb-9">
-				<h2 className="col-span-full font-semibold text-xl p-3">Breakdown by Smart Contract Languages</h2>
-				<LazyChart className="p-0 min-h-[360px]">
+				<h2 className="font-semibold text-xl p-3">Breakdown by Smart Contract Languages</h2>
+				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<AreaChart
 						chartData={langs}
 						title="TVL"
@@ -96,7 +96,7 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 						stackColors={colors}
 					/>
 				</LazyChart>
-				<LazyChart className="p-0 min-h-[360px]">
+				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<AreaChart
 						chartData={langsDominance}
 						title="TVL Dominance"
@@ -112,7 +112,7 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 			<div className="bg-[var(--cards-bg)] rounded-md relative">
 				<h2 className="font-semibold text-xl p-3">Open/Closed Source breakdown of solana protocols</h2>
 
-				<LazyChart className="p-0 min-h-[360px]">
+				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<AreaChart
 						chartData={osDominance}
 						title=""

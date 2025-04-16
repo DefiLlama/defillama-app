@@ -43,7 +43,10 @@ export const ChartByType: React.FC<IChartByType> = (props) => {
 
 	return !error &&
 		(mainChart.dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (
-		<LazyChart enable={fullChart}>
+		<LazyChart
+			enable={fullChart}
+			className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full"
+		>
 			<ProtocolChart
 				logo={protocolSummary?.logo}
 				data={protocolSummary}
@@ -66,7 +69,10 @@ export const ChartByType2: React.FC<IChartByType> = (props) => {
 
 	return !error &&
 		(mainChart.dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (
-		<LazyChart enable={fullChart}>
+		<LazyChart
+			enable={fullChart}
+			className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full"
+		>
 			<ChartOnly
 				chartData={chartFormatterBy(props.chartType)(mainChart.dataChart, protocolSummary?.totalDataChartBreakdown)}
 				title={fullChart ? chartTitleBy(props.chartType, enableBreakdownChart)(mainChart.title, typeSimple) : undefined}

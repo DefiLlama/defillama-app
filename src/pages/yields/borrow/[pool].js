@@ -213,7 +213,7 @@ const PageView = () => {
 // 					</TableWrapper>
 // 				</div>
 
-// 				<LazyChart>
+// 				<LazyChart className="col-span-1 bg-[var(--cards-bg)] min-h-[468px] pt-2">
 // 					<AreaChart title="Net Borrow APY" chartData={netBorrowChartData} color={backgroundColor} valueSymbol={'%'} />
 
 // 					<ButtonLight as="button" onClick={downloadCsv} useTextColor={true}>

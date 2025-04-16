@@ -11,10 +11,8 @@ import { BridgeTokensTable, BridgeAddressesTable } from '~/components/Table/Brid
 import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { BridgeChainSelector } from '~/containers/Bridges/BridgeChainSelector'
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
-import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { LazyChart } from '~/components/LazyChart'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
@@ -66,15 +64,15 @@ const BridgeInfo = ({
 
 	return (
 		<>
+			<div className="bg-[var(--cards-bg)] rounded-md p-3 flex items-center justify-between gap-2">
+				<h1 className="flex flex-nowrap items-center gap-1 text-xl font-semibold">
+					<TokenLogo logo={logo} size={24} />
+					<span>{displayName}</span>
+				</h1>
+				<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
+			</div>
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
-				<div className="flex flex-col gap-9 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)]rounded-md overflow-x-auto">
-					<h1 className="flex flex-nowrap items-center gap-1 text-xl font-bold">
-						<TokenLogo logo={logo} size={24} />
-						<span>{displayName}</span>
-					</h1>
-
-					<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
-
+				<div className="flex flex-col gap-9 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-[#545757] dark:text-[#cccccc]">Deposited to {currentChain} (24h)</span>
 						<span className="font-jetbrains font-semibold text-2xl">
@@ -100,49 +98,44 @@ const BridgeInfo = ({
 						<span className="font-jetbrains font-semibold text-2xl">{volPercentChange + '%'}</span>
 					</p>
 					{config?.url ? (
-						<Link href={config.url} passHref>
-							<ButtonLight
-								as="a"
-								target="_blank"
-								rel="noopener noreferrer"
-								useTextColor={true}
-								style={{
-									width: '120px',
-									display: 'flex',
-									justifyContent: 'center'
-								}}
-							>
-								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] mt-auto mr-auto"
+							href={config.url}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					) : null}
 				</div>
 
-				<div className="text-xs font-medium flex items-center flex-nowrap overflow-x-auto">
-					<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] m-4 mb-0">
-						<button
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-							data-active={chartType === 'Inflows'}
-							onClick={() => setChartType('Inflows')}
-						>
-							Inflows
-						</button>
-						<button
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-							data-active={chartType === 'Tokens To'}
-							onClick={() => setChartType('Tokens To')}
-						>
-							Tokens To
-						</button>
-						<button
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-							data-active={chartType === 'Tokens From'}
-							onClick={() => setChartType('Tokens From')}
-						>
-							Tokens From
-						</button>
+				<div className="bg-[var(--cards-bg)] rounded-md">
+					<div className="w-full max-w-fit overflow-x-auto ml-auto p-3">
+						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+							<button
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								data-active={chartType === 'Inflows'}
+								onClick={() => setChartType('Inflows')}
+							>
+								Inflows
+							</button>
+							<button
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								data-active={chartType === 'Tokens To'}
+								onClick={() => setChartType('Tokens To')}
+							>
+								Tokens To
+							</button>
+							<button
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								data-active={chartType === 'Tokens From'}
+								onClick={() => setChartType('Tokens From')}
+							>
+								Tokens From
+							</button>
+						</div>
 					</div>
-					<LazyChart>
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 						{chartType === 'Inflows' && volumeChartDataByChain && volumeChartDataByChain.length > 0 && (
 							<BarChart
 								chartData={volumeChartDataByChain}
@@ -160,25 +153,24 @@ const BridgeInfo = ({
 					</LazyChart>
 				</div>
 			</div>
-
-			<div className="flex items-end justify-between flex-wrap -mb-8">
-				<AddressesTableSwitch />
-
-				<p className="opacity-60 text-sm italic">All stats in table are for the previous day.</p>
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<div className="flex items-end justify-between flex-wrap gap-2 p-3">
+					<AddressesTableSwitch />
+					<p className="opacity-60 text-sm italic">All stats in table are for the previous day.</p>
+				</div>
+				{isBridgesShowingAddresses ? (
+					<BridgeAddressesTable data={addressesTableData} />
+				) : (
+					<BridgeTokensTable data={tokensTableData} />
+				)}
 			</div>
-
-			{isBridgesShowingAddresses ? (
-				<BridgeAddressesTable data={addressesTableData} />
-			) : (
-				<BridgeTokensTable data={tokensTableData} />
-			)}
 		</>
 	)
 }
 
 export function BridgeProtocolOverview(props) {
 	return (
-		<Layout title={`${props.displayName}: Bridge Volume - DefiLlama`} className="gap-12">
+		<Layout title={`${props.displayName}: Bridge Volume - DefiLlama`}>
 			<SEO cardName={props.displayName} token={props.displayName} />
 
 			<BridgesSearch />

@@ -310,10 +310,10 @@ const PageView = (props) => {
 					</p>
 				</div>
 
-				<LazyChart className="bg-[var(--cards-bg)] min-h-[460px]">
+				<LazyChart className="col-span-1 bg-[var(--cards-bg)] min-h-[468px] pt-2">
 					{!isLoading && (
 						<Chart
-							height="460px"
+							height="468px"
 							chartData={finalChartData}
 							stackColors={mainChartStackColors}
 							stacks={mainChartStacks}
@@ -446,7 +446,7 @@ const PageView = (props) => {
 				) : (
 					<>
 						{barChartData?.length ? (
-							<LazyChart className="min-h-[360px] px-0">
+							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 								<StackedBarChart
 									title="Supply APY"
 									chartData={barChartData}
@@ -457,7 +457,7 @@ const PageView = (props) => {
 							</LazyChart>
 						) : null}
 						{areaChartData.length ? (
-							<LazyChart className="min-h-[360px] px-0">
+							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 								<AreaChart
 									title="7 day moving average of Supply APY"
 									chartData={areaChartData}
@@ -476,7 +476,7 @@ const PageView = (props) => {
 				) : (
 					<>
 						{areaChartDataBorrow?.length ? (
-							<LazyChart className="min-h-[360px] px-0">
+							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 								<StackedBarChart
 									title="Borrow APY"
 									chartData={barChartDataBorrow}
@@ -487,7 +487,7 @@ const PageView = (props) => {
 							</LazyChart>
 						) : null}
 						{areaChartDataBorrow.length ? (
-							<LazyChart className="min-h-[360px] px-0">
+							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 								<AreaChart
 									title="Net Borrow APY"
 									chartData={netBorrowChartData}
@@ -498,7 +498,7 @@ const PageView = (props) => {
 						) : null}
 
 						{areaChartDataBorrow?.length ? (
-							<LazyChart>
+							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 								<AreaChart
 									chartData={areaChartDataBorrow}
 									title="Pool Liquidity"

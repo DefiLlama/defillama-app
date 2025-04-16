@@ -3,7 +3,6 @@ import dynamic from 'next/dynamic'
 import Image from 'next/future/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { LazyChart } from '~/components/LazyChart'
 import { Bookmark } from '~/components/Bookmark'
@@ -41,7 +40,6 @@ import { GovernanceData } from './Governance'
 import { feesOptions } from '~/components/Filters/protocols/options'
 import { scams } from '~/constants'
 import { Icon } from '~/components/Icon'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { RowWithSubRows } from './RowWithSubRows'
 import { useIsClient } from '~/hooks'
 import { Tooltip } from '~/components/Tooltip'
@@ -134,6 +132,13 @@ interface IProtocolContainerProps {
 		returnedFunds: number | null
 		defillamaId: string
 	}>
+	pageStyles: {
+		'--primary-color': string
+		'--bg-color': string
+		'--btn-bg': string
+		'--btn-hover-bg': string
+		'--btn-text': string
+	}
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -185,7 +190,8 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 	methodologyUrls,
 	chartDenominations = [],
 	hacksData,
-	nftVolumeData
+	nftVolumeData,
+	pageStyles
 }: IProtocolContainerProps) {
 	const {
 		address = '',
@@ -397,7 +403,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 	}
 
 	return (
-		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
+		<Layout title={title} backgroundColor={pageStyles['--bg-color']} style={pageStyles as any}>
 			<SEO
 				cardName={name}
 				token={name}
@@ -446,15 +452,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 			)}
 
 			{otherProtocols?.length > 1 && (
-				<nav
-					className="flex overflow-x-auto bg-[var(--cards-bg)] rounded-md w-full max-w-fit text-xs font-medium"
-					style={{ '--active-bg': transparentize(0.4, backgroundColor) } as any}
-				>
+				<nav className="flex overflow-x-auto bg-[var(--cards-bg)] rounded-md w-full max-w-fit text-xs font-medium">
 					{otherProtocols.map((p) => (
 						<Link href={`/protocol/${slug(p)}` + '#information'} key={'navigate to ' + `/protocol/${slug(p)}`} passHref>
 							<a
 								data-active={router.asPath.split('#')[0].split('?')[0] === `/protocol/${slug(p)}`}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-xl last:rounded-r-xl data-[active=true]:bg-[var(--active-bg)] hover:bg-[var(--active-bg)] focus-visible:bg-[var(--active-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-md last:rounded-r-md data-[active=true]:bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
 							>
 								{p}
 							</a>
@@ -465,14 +468,11 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 
 			{isClient ? (
 				<div className="flex flex-col gap-1">
-					<div
-						className="flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium"
-						style={{ '--tab-border': backgroundColor, '--tab-bg': transparentize(0.7, backgroundColor) } as any}
-					>
+					<div className="flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium">
 						<button
 							data-active={tab === 'information'}
 							onClick={(e) => setTab('information', e)}
-							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Information
 						</button>
@@ -480,7 +480,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'tvl-charts'}
 								onClick={(e) => setTab('tvl-charts', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								{isCEX ? 'Assets' : 'TVL'}
 							</button>
@@ -489,7 +489,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'stablecoin-info'}
 								onClick={(e) => setTab('stablecoin-info', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Stablecoin Info
 							</button>
@@ -498,7 +498,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'bridge'}
 								onClick={(e) => setTab('bridge', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Bridge Info
 							</button>
@@ -507,7 +507,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'treasury'}
 								onClick={(e) => setTab('treasury', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Treasury
 							</button>
@@ -516,7 +516,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'unlocks'}
 								onClick={(e) => setTab('unlocks', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Unlocks
 							</button>
@@ -525,7 +525,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'yields'}
 								onClick={(e) => setTab('yields', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Yields
 							</button>
@@ -534,7 +534,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'fees-revenue'}
 								onClick={(e) => setTab('fees-revenue', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Fees and Revenue
 							</button>
@@ -543,7 +543,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'volume'}
 								onClick={(e) => setTab('volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Volume
 							</button>
@@ -552,7 +552,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'perps-volume'}
 								onClick={(e) => setTab('perps-volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Perps Volume
 							</button>
@@ -561,7 +561,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'aggregators-volume'}
 								onClick={(e) => setTab('aggregators-volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Aggregators Volume
 							</button>
@@ -570,7 +570,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'perps-aggregator'}
 								onClick={(e) => setTab('perps-aggregator', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Perps Aggregators Volume
 							</button>
@@ -579,7 +579,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'bridge-aggregators'}
 								onClick={(e) => setTab('bridge-aggregators', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Bridge Aggregators Volume
 							</button>
@@ -588,7 +588,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'options-volume'}
 								onClick={(e) => setTab('options-volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Options Volume
 							</button>
@@ -597,7 +597,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'governance'}
 								onClick={(e) => setTab('governance', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Governance
 							</button>
@@ -606,7 +606,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'forks'}
 								onClick={(e) => setTab('forks', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--tab-border)] hover:bg-[var(--tab-bg)] focus-visible:bg-[var(--tab-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Forks
 							</button>
@@ -1377,7 +1377,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											onClick={() => {
 												window.open(`https://api.llama.fi/dataset/${protocol}.csv`)
 											}}
-											className="mt-4 mr-auto"
+											className="mt-4 mr-auto !bg-[var(--btn-bg)] !text-inherit"
 										/>
 									) : null}
 								</div>
@@ -1431,16 +1431,13 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											<span>:</span>
 
 											<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category}`} passHref>
-												<ButtonLight
-													className="flex items-center gap-1 text-xs font-medium"
-													as="a"
+												<a
+													className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 													target="_blank"
 													rel="noopener noreferrer"
-													useTextColor={true}
-													color={backgroundColor}
 												>
 													<span>{category}</span> <Icon name="arrow-up-right" height={12} width={12} />
-												</ButtonLight>
+												</a>
 											</Link>
 										</p>
 									)}
@@ -1466,31 +1463,27 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 									<div className="flex items-center gap-4 flex-wrap">
 										{referralUrl || url ? (
 											<Link href={referralUrl || url} passHref>
-												<ButtonLight
-													className="flex items-center gap-1 text-xs font-medium"
-													as="a"
+												<a
+													className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 													target="_blank"
 													rel="noopener noreferrer"
-													useTextColor={true}
 													color={backgroundColor}
 												>
 													<span>Website</span> <Icon name="arrow-up-right" height={12} width={12} />
-												</ButtonLight>
+												</a>
 											</Link>
 										) : null}
 
 										{twitter && (
 											<Link href={`https://twitter.com/${twitter}`} passHref>
-												<ButtonLight
-													className="flex items-center gap-1 text-xs font-medium"
-													as="a"
+												<a
+													className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 													target="_blank"
 													rel="noopener noreferrer"
-													useTextColor={true}
 													color={backgroundColor}
 												>
 													<span>Twitter</span> <Icon name="arrow-up-right" height={12} width={12} />
-												</ButtonLight>
+												</a>
 											</Link>
 										)}
 									</div>
@@ -1557,33 +1550,27 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 										<div className="flex items-center gap-4 flex-wrap">
 											{protocolData.gecko_id && (
 												<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
-													<ButtonLight
-														className="flex items-center gap-1 text-xs font-medium"
-														as="a"
+													<a
+														className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 														target="_blank"
 														rel="noopener noreferrer"
-														useTextColor={true}
-														color={backgroundColor}
 													>
 														<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={12} width={12} />
-													</ButtonLight>
+													</a>
 												</Link>
 											)}
 
 											{explorers &&
 												explorers.map(({ blockExplorerLink, blockExplorerName }) => (
 													<Link href={blockExplorerLink} passHref key={blockExplorerName}>
-														<ButtonLight
-															className="flex items-center gap-1 text-xs font-medium"
-															as="a"
+														<a
+															className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 															target="_blank"
 															rel="noopener noreferrer"
-															useTextColor={true}
-															color={backgroundColor}
 														>
 															<span>View on {blockExplorerName}</span>{' '}
 															<Icon name="arrow-up-right" height={12} width={12} />
-														</ButtonLight>
+														</a>
 													</Link>
 												))}
 										</div>
@@ -1609,114 +1596,93 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 										<div className="flex items-center gap-4 flex-wrap">
 											{methodologyUrls?.tvl && !methodologyUrls.tvl.endsWith('dummy.js') && (
 												<Link href={methodologyUrls.tvl} passHref>
-													<ButtonLight
-														className="flex items-center gap-1 text-xs font-medium"
-														as="a"
+													<a
+														className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 														target="_blank"
 														rel="noopener noreferrer"
-														useTextColor={true}
-														color={backgroundColor}
 													>
 														<span>{isCEX ? 'Wallet Addresses' : 'TVL'}</span>
 														<Icon name="arrow-up-right" height={12} width={12} />
-													</ButtonLight>
+													</a>
 												</Link>
 											)}
 
 											{methodologyUrls?.fees && (
 												<Link href={methodologyUrls.fees} passHref>
-													<ButtonLight
-														className="flex items-center gap-1 text-xs font-medium"
-														as="a"
+													<a
+														className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 														target="_blank"
 														rel="noopener noreferrer"
-														useTextColor={true}
-														color={backgroundColor}
 													>
 														<span>Fees and Revenue</span>
 														<Icon name="arrow-up-right" height={12} width={12} />
-													</ButtonLight>
+													</a>
 												</Link>
 											)}
 
 											{methodologyUrls?.dexs && (
 												<Link href={methodologyUrls.dexs} passHref>
-													<ButtonLight
-														className="flex items-center gap-1 text-xs font-medium"
-														as="a"
+													<a
+														className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 														target="_blank"
 														rel="noopener noreferrer"
-														useTextColor={true}
-														color={backgroundColor}
 													>
 														<span>Volume</span>
 														<Icon name="arrow-up-right" height={12} width={12} />
-													</ButtonLight>
+													</a>
 												</Link>
 											)}
 
 											{methodologyUrls?.perps && (
 												<Link href={methodologyUrls.perps} passHref>
-													<ButtonLight
-														className="flex items-center gap-1 text-xs font-medium"
-														as="a"
+													<a
+														className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 														target="_blank"
 														rel="noopener noreferrer"
-														useTextColor={true}
-														color={backgroundColor}
 													>
 														<span>Perps Volume</span>
 														<Icon name="arrow-up-right" height={12} width={12} />
-													</ButtonLight>
+													</a>
 												</Link>
 											)}
 
 											{methodologyUrls?.bridgeAggregators && (
 												<Link href={methodologyUrls.bridgeAggregators} passHref>
-													<ButtonLight
-														className="flex items-center gap-1 text-xs font-medium"
-														as="a"
+													<a
+														className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 														target="_blank"
 														rel="noopener noreferrer"
-														useTextColor={true}
-														color={backgroundColor}
 													>
 														<span>Bridge Aggregators Volume</span>
 														<Icon name="arrow-up-right" height={12} width={12} />
-													</ButtonLight>
+													</a>
 												</Link>
 											)}
 
 											{methodologyUrls?.treasury && (
 												<Link href={methodologyUrls.treasury} passHref>
-													<ButtonLight
-														className="flex items-center gap-1 text-xs font-medium"
-														as="a"
+													<a
+														className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 														target="_blank"
 														rel="noopener noreferrer"
-														useTextColor={true}
-														color={backgroundColor}
 													>
 														<span>Treasury</span>
 														<Icon name="arrow-up-right" height={12} width={12} />
-													</ButtonLight>
+													</a>
 												</Link>
 											)}
 
 											{methodologyUrls?.stablecoins
 												? methodologyUrls.stablecoins.split(',').map((stablecoin) => (
 														<Link href={stablecoin.split('$')[1]} passHref key={`code-${stablecoin}`}>
-															<ButtonLight
-																className="flex items-center gap-1 text-xs font-medium"
-																as="a"
+															<a
+																className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 																target="_blank"
 																rel="noopener noreferrer"
-																useTextColor={true}
-																color={backgroundColor}
 															>
 																<span>{stablecoin.split('$')[0]}</span>
 																<Icon name="arrow-up-right" height={12} width={12} />
-															</ButtonLight>
+															</a>
 														</Link>
 												  ))
 												: null}
@@ -1765,16 +1731,14 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 												</p>
 
 												<Link href={hack.source} passHref>
-													<ButtonLight
+													<a
 														className="flex items-center gap-1 mt-1 max-w-fit"
-														as="a"
 														target="_blank"
 														rel="noopener noreferrer"
-														useTextColor={true}
 														color={backgroundColor}
 													>
 														<span>Source</span> <Icon name="arrow-up-right" height={12} width={12} />
-													</ButtonLight>
+													</a>
 												</Link>
 											</div>
 										))}
@@ -1810,7 +1774,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							) : (
 								<>
 									{chainsSplit && chainsUnique?.length > 1 && (
-										<LazyChart>
+										<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 											<AreaChart
 												chartData={chainsSplit}
 												title="Chains"
@@ -1821,7 +1785,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 										</LazyChart>
 									)}
 									{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
-										<LazyChart>
+										<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 											<AreaChart
 												chartData={tokenBreakdown}
 												title="Tokens"
@@ -1833,12 +1797,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 									{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
 										<>
 											{tokenBreakdownPieChart?.length > 0 && (
-												<LazyChart>
+												<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 													<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
 												</LazyChart>
 											)}
 
-											<LazyChart>
+											<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 												<AreaChart
 													chartData={tokenBreakdownUSD}
 													title="Tokens (USD)"
@@ -1850,12 +1814,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 										</>
 									)}
 									{usdInflows?.length > 0 && (
-										<LazyChart>
+										<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 											<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
 										</LazyChart>
 									)}
 									{tokenInflows?.length > 0 && tokensUnique?.length > 0 && (
-										<LazyChart>
+										<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 											<BarChart
 												chartData={tokenInflows}
 												title="Token Inflows"

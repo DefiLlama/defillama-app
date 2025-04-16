@@ -218,7 +218,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div className="flex flex-col gap-1">
 				{data.categories?.[dataType] && data.chartData?.[dataType] && data.stackColors?.[dataType] && (
-					<LazyChart className="bg-[var(--cards-bg)] p-3">
+					<LazyChart className="bg-[var(--cards-bg)] rounded-md min-h-[384px] p-3">
 						<AreaChart
 							customYAxis={isPriceEnabled ? ['Market Cap', 'Price'] : []}
 							title="Schedule"
@@ -234,7 +234,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 				<div className="grid grid-cols-2 gap-1">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
-						<LazyChart className="bg-[var(--cards-bg)] p-3">
+						<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 							<PieChart
 								showLegend
 								title="Allocation"
@@ -246,7 +246,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					)}
 
 					{unlockedPercent > 0 && (
-						<LazyChart className="bg-[var(--cards-bg)] p-3">
+						<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 							<PieChart
 								formatTooltip={({ value, data: { name } }) => `${name}: ${value?.toFixed(2)}%`}
 								showLegend

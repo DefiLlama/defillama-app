@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import type { ISearchItem } from '~/components/Search/types'
 import { matchSorter } from 'match-sorter'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 interface IProps {
 	options: ISearchItem[]
@@ -21,7 +22,8 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 	}, [options, searchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
-
+	console.log({ options })
+	// return <SelectWithCombobox allValues={options} selectedValues={currentChain} setSelectedValues={handleClick} />
 	return (
 		<Ariakit.ComboboxProvider
 			resetValueOnHide
@@ -37,7 +39,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 					handleClick(values)
 				}}
 			>
-				<Ariakit.Select className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 rounded-md cursor-pointer text-[var(--text1)] flex-nowrap md:min-w-[120px] md:max-w-fit">
+				<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10">
 					{currentChain}
 					<Ariakit.SelectArrow className="ml-auto" />
 				</Ariakit.Select>

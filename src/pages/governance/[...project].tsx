@@ -11,7 +11,6 @@ import {
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { formatGovernanceData } from '~/api/categories/protocols'
@@ -21,7 +20,6 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
-import { ButtonLight } from '~/components/ButtonStyled'
 
 const fetch = fetchWithErrorLogging
 
@@ -170,7 +168,7 @@ export default function Protocol({ data, governanceType }) {
 				</div>
 
 				<div className="grid grid-cols-2">
-					<LazyChart className="p-0">
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 						<BarChart
 							title={'Activity'}
 							chartData={data.activity}
@@ -178,7 +176,7 @@ export default function Protocol({ data, governanceType }) {
 							stackColors={stackedBarChartColors}
 						/>
 					</LazyChart>
-					<LazyChart className="p-0">
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 						<BarChart
 							title={'Max Votes'}
 							chartData={data.maxVotes}
@@ -190,36 +188,48 @@ export default function Protocol({ data, governanceType }) {
 
 				<div className="flex flex-wrap items-center gap-9">
 					{data.metadata.domain && (
-						<Link href={`https://${data.metadata.domain}`} passHref>
-							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							target="_blank"
+							rel="noopener noreferrer"
+							href={`https://${data.metadata.domain}`}
+						>
+							<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					)}
 
 					{data.metadata.twitter && (
-						<Link href={`https://twitter.com/${data.metadata.twitter}`} passHref>
-							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							target="_blank"
+							rel="noopener noreferrer"
+							href={`https://twitter.com/${data.metadata.twitter}`}
+						>
+							<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					)}
 
 					{data.metadata.github && (
-						<Link href={`https://github.com/${data.metadata.github}`} passHref>
-							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>Github</span>
-								<Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							target="_blank"
+							rel="noopener noreferrer"
+							href={`https://github.com/${data.metadata.github}`}
+						>
+							<span>Github</span>
+							<Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					)}
 
 					{data.metadata.coingecko && (
-						<Link href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`} passHref>
-							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							target="_blank"
+							rel="noopener noreferrer"
+							href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`}
+						>
+							<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					)}
 				</div>
 			</div>
