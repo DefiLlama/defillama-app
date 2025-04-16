@@ -243,6 +243,7 @@ const safeProjects = [
 	'AAVE V3',
 	'AAVE V1',
 	'MakerDAO',
+	'Sky',
 	'Spark',
 	'Compound',
 	'Compound V1',

@@ -352,6 +352,16 @@ const nextConfig = {
 				source: '/hack',
 				destination: '/hacks',
 				permanent: true
+			},
+			{
+				source: '/compare',
+				destination: '/comapre-chains',
+				permanent: true
+			},
+			{
+				source: '/comparison',
+				destination: '/compare-protocols',
+				permanent: true
 			}
 		]
 	},
