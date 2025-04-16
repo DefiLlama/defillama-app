@@ -16,7 +16,7 @@ import { Icon } from '~/components/Icon'
 
 const columnResizeMode = 'onChange'
 
-export function RaisesTable({ raises }) {
+export function RaisesTable({ raises, downloadCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -96,6 +96,7 @@ export function RaisesTable({ raises }) {
 					}}
 					className="min-h-[34px]"
 				/>
+				<CSVDownloadButton onClick={downloadCsv} className="min-h-[34px]" />
 			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
