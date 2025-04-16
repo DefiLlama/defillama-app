@@ -72,5 +72,9 @@
   <path d="M8 12V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M6 10L8 12L10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </symbol>
+<symbol id="arrow-up-right-2" viewBox="0 0 24 24" fill="none">
+  <path d="M7 7H17V17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M7 17L17 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+</symbol>
 </defs>
 </svg>

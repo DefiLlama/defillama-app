@@ -362,6 +362,21 @@ const nextConfig = {
 				source: '/comparison',
 				destination: '/compare-protocols',
 				permanent: true
+			},
+			{
+				source: '/compare-chain',
+				destination: '/comapre-chains',
+				permanent: true
+			},
+			{
+				source: '/compare-protocol',
+				destination: '/compare-protocols',
+				permanent: true
+			},
+			{
+				source: '/stables',
+				destination: '/stablecoins',
+				permanent: true
 			}
 		]
 	},
