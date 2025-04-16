@@ -225,6 +225,7 @@ export const useSubscribe = () => {
 					if (response?.ok) {
 						const data = await response.json()
 						setApiKey(data.apiKey.api_key || null)
+						window.localStorage.setItem('pro_apikey', data.apiKey.api_key)
 					}
 				} catch (error) {
 					console.error('Error fetching API key:', error)
@@ -248,6 +249,7 @@ export const useSubscribe = () => {
 				const data = await response.json()
 				console.log({ data })
 				setApiKey(data.apiKey || null)
+				window.localStorage.setItem('pro_apikey', data.apiKey)
 			}
 		} catch (error) {
 			console.error('Error generating API key:', error)
