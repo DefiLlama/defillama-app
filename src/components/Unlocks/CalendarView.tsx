@@ -6,23 +6,46 @@ import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, tokenIconUrl, slug } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CustomLink } from '~/components/Link'
+import dynamic from 'next/dynamic'
 
 dayjs.extend(isBetween)
 
-interface DailyUnlocks {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), { ssr: false })
+const UnlocksTreemapChart = dynamic(() => import('~/components/ECharts/UnlocksTreemapChart'), { ssr: false })
+
+export interface DailyUnlocks {
 	totalValue: number
 	events: Array<{
 		protocol: string
 		value: number
 		details: string
+		unlockType: string
 	}>
 }
 
-interface CalendarViewProps {
+export interface CalendarViewProps {
 	unlocksData: {
 		[date: string]: DailyUnlocks
 	}
 }
+
+const COLOR_PALETTE = [
+	'#e41a1c',
+	'#377eb8',
+	'#4daf4a',
+	'#984ea3',
+	'#ff7f00',
+	'#ffff33',
+	'#a65628',
+	'#f781bf',
+	'#999999',
+	'#66c2a5',
+	'#fc8d62',
+	'#8da0cb',
+	'#e78ac3',
+	'#a6d854',
+	'#ffd92f'
+]
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -77,10 +100,18 @@ const generateWeekDays = (date: Dayjs) => {
 	return days
 }
 
+const interpolateColor = (rgb1: number[], rgb2: number[], factor: number): number[] => {
+	const result = rgb1.slice()
+	for (let i = 0; i < 3; i++) {
+		result[i] = Math.round(result[i] + factor * 1.2 * (rgb2[i] - rgb1[i]))
+	}
+	return result
+}
+
 const renderDayCell = (
 	dayInfo: { date: Dayjs | null; isCurrentMonth: boolean },
 	unlocksData: CalendarViewProps['unlocksData'],
-	getCircleSize: (value: number) => number
+	maxUnlockValue: number
 ) => {
 	if (!dayInfo.date)
 		return <div className="h-24 w-full border border-[var(--divider)] bg-[var(--bg6)] opacity-40"></div>
@@ -90,37 +121,49 @@ const renderDayCell = (
 	const hasUnlocks = dayData && dayData.totalValue > 0
 	const isToday = dayInfo.date.isSame(dayjs(), 'day')
 
+	let intensityFactor = 0
+	if (hasUnlocks && maxUnlockValue > 0 && dayInfo.isCurrentMonth) {
+		const normalizedValue = Math.min(1, dayData.totalValue / maxUnlockValue)
+		intensityFactor = Math.log1p(normalizedValue * 9) / Math.log1p(10)
+		intensityFactor = Math.min(1, Math.max(0, intensityFactor))
+	}
+
+	const baseColorRgb = [30, 41, 59]
+	const highlightColorRgb = [59, 130, 246]
+
+	let interpolatedColorRgb = baseColorRgb
+	if (dayInfo.isCurrentMonth && intensityFactor > 0) {
+		interpolatedColorRgb = interpolateColor(baseColorRgb, highlightColorRgb, intensityFactor)
+	}
+
+	const textColorClass = 'text-[var(--text2)] opacity-80'
+
+	const textColorClassToday = 'text-[var(--blue)]'
+
 	const cellClasses = `h-24 w-full relative border transition-colors duration-150 ease-in-out ${
 		isToday ? 'border-[var(--blue)]' : 'border-[var(--divider)]'
-	} ${dayInfo.isCurrentMonth ? 'bg-[var(--bg7)] hover:bg-[var(--bg5)]' : 'bg-[var(--bg6)] opacity-60 hover:opacity-80'}`
+	} ${!dayInfo.isCurrentMonth ? 'bg-[var(--bg6)] opacity-60 hover:opacity-80' : 'hover:brightness-110'}` // Remove base bg-[var(--bg7)] if current month
+
+	const cellStyle: React.CSSProperties = {}
+	if (dayInfo.isCurrentMonth) {
+		cellStyle.backgroundColor = `rgb(${interpolatedColorRgb.join(', ')})`
+	}
 
 	const cellContent = (
-		<div className={cellClasses}>
-			<div className="h-full w-full p-2 flex flex-col justify-between">
+		<div className={cellClasses} style={cellStyle}>
+			<div className="h-full w-full p-2 flex flex-col justify-between relative z-10">
 				<span
 					className={`text-sm font-medium ${
 						isToday
-							? 'text-[var(--blue)] font-bold'
-							: dayInfo.isCurrentMonth
-							? 'text-[var(--text1)]'
-							: 'text-[var(--text2)] opacity-80'
+							? `${textColorClassToday} font-bold` // Use dynamic text color for today
+							: textColorClass // Use dynamic text color
 					}`}
 				>
 					{dayInfo.date.date()}
 				</span>
-				{hasUnlocks && (
+				{hasUnlocks && dayInfo.isCurrentMonth && (
 					<>
-						<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-							<div
-								className="rounded-full bg-[var(--blue)] shadow-sm"
-								style={{
-									width: `${getCircleSize(dayData.totalValue)}px`,
-									height: `${getCircleSize(dayData.totalValue)}px`,
-									opacity: dayInfo.isCurrentMonth ? 1 : 0.6
-								}}
-							/>
-						</div>
-						<div className="text-xs text-[var(--text2)] mt-auto hidden sm:block truncate">
+						<div className={`text-xs mt-auto hidden sm:block truncate ${textColorClass}`}>
 							Total: {formattedNum(dayData.totalValue, true)}
 						</div>
 					</>
@@ -167,62 +210,6 @@ const renderDayCell = (
 		>
 			{cellContent}
 		</Tooltip>
-	)
-}
-
-const renderWeekDayColumn = (
-	dayInfo: { date: Dayjs; isCurrentMonth: boolean },
-	unlocksData: CalendarViewProps['unlocksData']
-) => {
-	const dateStr = dayInfo.date.format('YYYY-MM-DD')
-	const dayData = unlocksData[dateStr]
-	const hasUnlocks = dayData && dayData.events && dayData.events.length > 0
-	const isToday = dayInfo.date.isSame(dayjs(), 'day')
-
-	return (
-		<div
-			key={dateStr}
-			className={`flex flex-col border border-[var(--divider)] bg-[var(--bg7)] p-3 min-h-[12rem] ${
-				isToday ? 'border-[var(--blue)]' : ''
-			}`}
-		>
-			<div className="text-sm font-medium mb-2 pb-2 border-b border-[var(--divider)] flex justify-between items-center">
-				<span>
-					<span className="text-[var(--text2)] mr-1.5">{dayInfo.date.format('ddd')}</span>
-					<span className={isToday ? 'text-[var(--blue)] font-bold' : 'text-[var(--text1)]'}>
-						{dayInfo.date.date()}
-					</span>
-				</span>
-				{isToday && <span className="text-xs font-normal text-[var(--blue)]">(Today)</span>}
-			</div>
-			<div
-				className="flex flex-col gap-1.5 overflow-y-auto flex-grow
-						 [&::-webkit-scrollbar]:w-1.5
-						 [&::-webkit-scrollbar-track]:bg-transparent
-						 [&::-webkit-scrollbar-thumb]:bg-[var(--blue)]/[.5]
-						 [&::-webkit-scrollbar-thumb]:rounded-full
-						 [&:hover::-webkit-scrollbar-thumb]:bg-[var(--blue)]
-						 pr-1 -mr-1"
-			>
-				{hasUnlocks ? (
-					dayData.events.map((event, i) => (
-						<CustomLink key={i} href={`/unlocks/${slug(event.protocol)}`} target="_blank">
-							<div className="text-xs p-2 rounded-md bg-[var(--bg6)] hover:bg-[var(--bg5)] cursor-pointer transition-colors duration-150 ease-in-out shadow-sm">
-								<div className="font-medium text-[var(--text1)] truncate flex items-center gap-1.5 mb-0.5">
-									<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />
-									{event.protocol}
-								</div>
-								<div className="text-[var(--text2)] pl-[calc(16px+0.375rem)]">{formattedNum(event.value, true)}</div>
-							</div>
-						</CustomLink>
-					))
-				) : (
-					<div className="flex-grow flex items-center justify-center text-center text-xs text-[var(--text2)] opacity-75">
-						No unlocks
-					</div>
-				)}
-			</div>
-		</div>
 	)
 }
 
@@ -277,9 +264,72 @@ const renderListView = (events: Array<{ date: Dayjs; event: DailyUnlocks['events
 	)
 }
 
+const renderWeekDayColumn = (
+	dayInfo: { date: Dayjs; isCurrentMonth: boolean },
+	unlocksData: CalendarViewProps['unlocksData']
+) => {
+	const dateStr = dayInfo.date.format('YYYY-MM-DD')
+	const dayData = unlocksData[dateStr]
+	const hasUnlocks = dayData && dayData.events && dayData.events.length > 0
+	const isToday = dayInfo.date.isSame(dayjs(), 'day')
+
+	return (
+		<div
+			key={dateStr}
+			className={`flex flex-col border border-[var(--divider)] bg-[var(--bg7)] p-3 min-h-[12rem] ${
+				isToday ? 'border-[var(--blue)]' : ''
+			}`}
+		>
+			<div className="text-sm font-medium mb-2 pb-2 border-b border-[var(--divider)] flex justify-between items-center">
+				<span>
+					<span className="text-[var(--text2)] mr-1.5">{dayInfo.date.format('ddd')}</span>
+					<span className={isToday ? 'text-[var(--blue)] font-bold' : 'text-[var(--text1)]'}>
+						{dayInfo.date.date()}
+					</span>
+				</span>
+				{isToday && <span className="text-xs font-normal text-[var(--blue)]">(Today)</span>}
+			</div>
+			<div
+				className="flex flex-col gap-1.5 overflow-y-auto flex-grow
+				 [&::-webkit-scrollbar]:w-1.5
+				 [&::-webkit-scrollbar-track]:bg-transparent
+				 [&::-webkit-scrollbar-thumb]:bg-[var(--blue)]/[.5]
+				 [&::-webkit-scrollbar-thumb]:rounded-full
+				 [&:hover::-webkit-scrollbar-thumb]:bg-[var(--blue)]
+				 pr-1 -mr-1"
+			>
+				{hasUnlocks && dayData ? (
+					dayData.events.map((event, i) => (
+						<CustomLink key={i} href={`/unlocks/${slug(event.protocol)}`} target="_blank">
+							<div className="text-xs p-2 rounded-md bg-[var(--bg6)] hover:bg-[var(--bg5)] cursor-pointer transition-colors duration-150 ease-in-out shadow-sm">
+								<div className="flex justify-between items-start gap-1 mb-0.5">
+									<div className="font-medium text-[var(--text1)] flex items-center gap-1.5 min-w-0 flex-shrink">
+										<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />
+										<span className="truncate">{event.protocol}</span>
+									</div>
+									{event.unlockType && (
+										<span className="px-1.5 py-0.5 rounded bg-[var(--bg5)] text-[var(--text2)] text-[0.6rem] sm:text-[0.65rem] font-medium whitespace-nowrap flex-shrink-0">
+											{event.unlockType}
+										</span>
+									)}
+								</div>
+								<div className="text-[var(--text2)] pl-[calc(16px+0.375rem)]">{formattedNum(event.value, true)}</div>
+							</div>
+						</CustomLink>
+					))
+				) : (
+					<div className="flex-grow flex items-center justify-center text-center text-xs text-[var(--text2)] opacity-75">
+						No unlocks
+					</div>
+				)}
+			</div>
+		</div>
+	)
+}
+
 export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 	const [currentDate, setCurrentDate] = React.useState(dayjs())
-	const [viewMode, setViewMode] = React.useState<'month' | 'week' | 'list'>('month')
+	const [viewMode, setViewMode] = React.useState<'month' | 'week' | 'list' | 'treemap'>('month')
 
 	const calendarDays = React.useMemo(() => {
 		if (viewMode === 'week') {
@@ -310,22 +360,154 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 		return events
 	}, [currentDate, viewMode, unlocksData])
 
+	const weeklyChartData = React.useMemo(() => {
+		if (viewMode !== 'week') return null
+
+		const startOfWeek = currentDate.startOf('week')
+		const weekData: Array<any> = []
+		const protocolTotals: { [key: string]: number } = {}
+		const protocolColorMap: { [key: string]: string } = {}
+
+		for (let i = 0; i < 7; i++) {
+			const day = startOfWeek.add(i, 'day')
+			const dateStr = day.format('YYYY-MM-DD')
+			const dayData = unlocksData[dateStr]
+			if (dayData?.events) {
+				dayData.events.forEach((event) => {
+					if (!protocolTotals[event.protocol]) {
+						protocolTotals[event.protocol] = 0
+					}
+					protocolTotals[event.protocol] += event.value
+				})
+			}
+		}
+
+		const sortedProtocols = Object.keys(protocolTotals).sort((a, b) => protocolTotals[b] - protocolTotals[a])
+
+		sortedProtocols.forEach((protocol, index) => {
+			protocolColorMap[protocol] = COLOR_PALETTE[index % COLOR_PALETTE.length]
+		})
+
+		for (let i = 0; i < 7; i++) {
+			const day = startOfWeek.add(i, 'day')
+			const dateStr = day.format('YYYY-MM-DD')
+			const dayData = unlocksData[dateStr]
+			const dataPoint: { date: number; [key: string]: number } = { date: day.unix() }
+
+			sortedProtocols.forEach((protocol) => {
+				dataPoint[protocol] = 0
+			})
+
+			if (dayData?.events) {
+				dayData.events.forEach((event) => {
+					if (dataPoint.hasOwnProperty(event.protocol)) {
+						dataPoint[event.protocol] = event.value
+					}
+				})
+			}
+			weekData.push(dataPoint)
+		}
+
+		const stacks = sortedProtocols.reduce((acc, protocol) => {
+			acc[protocol] = 'unlocks'
+			return acc
+		}, {})
+
+		return {
+			chartData: weekData,
+			stacks,
+			stackColors: protocolColorMap
+		}
+	}, [currentDate, viewMode, unlocksData])
+
+	const monthlyChartData = React.useMemo(() => {
+		if (viewMode !== 'month') return null
+
+		const startOfMonth = currentDate.startOf('month')
+		const endOfMonth = currentDate.endOf('month')
+		const daysInMonth = endOfMonth.date()
+		const monthData: Array<any> = []
+		const protocolTotals: { [key: string]: number } = {}
+		const protocolColorMap: { [key: string]: string } = {}
+
+		for (let i = 1; i <= daysInMonth; i++) {
+			const day = startOfMonth.date(i)
+			const dateStr = day.format('YYYY-MM-DD')
+			const dayData = unlocksData[dateStr]
+			if (dayData?.events) {
+				dayData.events.forEach((event) => {
+					if (!protocolTotals[event.protocol]) {
+						protocolTotals[event.protocol] = 0
+					}
+					protocolTotals[event.protocol] += event.value
+				})
+			}
+		}
+
+		const sortedProtocols = Object.keys(protocolTotals).sort((a, b) => protocolTotals[b] - protocolTotals[a])
+
+		sortedProtocols.forEach((protocol, index) => {
+			protocolColorMap[protocol] = COLOR_PALETTE[index % COLOR_PALETTE.length]
+		})
+
+		for (let i = 1; i <= daysInMonth; i++) {
+			const day = startOfMonth.date(i)
+			const dateStr = day.format('YYYY-MM-DD')
+			const dayData = unlocksData[dateStr]
+			const dataPoint: { date: number; [key: string]: number } = { date: day.unix() }
+
+			sortedProtocols.forEach((protocol) => {
+				dataPoint[protocol] = 0
+			})
+
+			if (dayData?.events) {
+				dayData.events.forEach((event) => {
+					if (dataPoint.hasOwnProperty(event.protocol)) {
+						dataPoint[event.protocol] = event.value
+					}
+				})
+			}
+			monthData.push(dataPoint)
+		}
+
+		const stacks = sortedProtocols.reduce((acc, protocol) => {
+			acc[protocol] = 'unlocks'
+			return acc
+		}, {})
+
+		return {
+			chartData: monthData,
+			stacks,
+			stackColors: protocolColorMap
+		}
+	}, [currentDate, viewMode, unlocksData])
+
+	const maxMonthlyValue = React.useMemo(() => {
+		if (viewMode !== 'month') return 0
+		const startOfMonth = currentDate.startOf('month')
+		const endOfMonth = currentDate.endOf('month')
+		let max = 0
+		Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+			const date = dayjs(dateStr)
+			if (date.isBetween(startOfMonth.subtract(1, 'day'), endOfMonth.add(1, 'day'))) {
+				if (dailyData.totalValue > max) {
+					max = dailyData.totalValue
+				}
+			}
+		})
+		return max
+	}, [currentDate, viewMode, unlocksData])
+
 	const next = () => {
 		const duration = viewMode === 'list' ? 30 : 1
-		const unit = viewMode === 'list' ? 'day' : viewMode
+		const unit = viewMode === 'list' ? 'day' : viewMode === 'treemap' ? 'year' : viewMode
 		setCurrentDate(currentDate.add(duration, unit))
 	}
 
 	const prev = () => {
 		const duration = viewMode === 'list' ? 30 : 1
-		const unit = viewMode === 'list' ? 'day' : viewMode
+		const unit = viewMode === 'list' ? 'day' : viewMode === 'treemap' ? 'year' : viewMode
 		setCurrentDate(currentDate.subtract(duration, unit))
-	}
-
-	const getCircleSize = (value: number) => {
-		if (!value) return 0
-		const size = Math.log2(1 + value / 25_000_000) * 12
-		return Math.max(8, Math.min(48, size))
 	}
 
 	return (
@@ -336,6 +518,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 						? currentDate.format('MMMM YYYY')
 						: viewMode === 'week'
 						? `${currentDate.startOf('week').format('MMM D')} - ${currentDate.endOf('week').format('MMM D, YYYY')}`
+						: viewMode === 'week'
+						? 'Tree Map'
 						: `Unlocks starting ${currentDate.format('MMM D, YYYY')} (Next 30 Days)`}
 				</h2>
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
@@ -352,6 +536,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						Week
+					</button>
+					<button
+						onClick={() => setViewMode('week')}
+						data-active={viewMode === 'treemap'}
+						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+					>
+						TreeMap
 					</button>
 					<button
 						onClick={() => setViewMode('list')}
@@ -385,8 +576,128 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 				</div>
 			</div>
 
-			{viewMode === 'month' ? (
+			{viewMode === 'week' && weeklyChartData && (
+				<div className="mb-4">
+					<BarChart
+						chartData={weeklyChartData.chartData}
+						stacks={weeklyChartData.stacks}
+						stackColors={weeklyChartData.stackColors}
+						valueSymbol="$"
+						height="300px"
+						chartOptions={{
+							tooltip: {
+								trigger: 'axis',
+								formatter: (params: any) => {
+									if (!params || params.length === 0) return ''
+
+									const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
+									let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
+									let totalValue = 0
+
+									const validParams = params
+										.filter((param) => param.value && param.value[1] > 0)
+										.sort((a, b) => b.value[1] - a.value[1])
+
+									if (validParams.length === 0) {
+										tooltipContent += 'No unlocks'
+									} else {
+										validParams.forEach((param) => {
+											const value = param.value[1]
+											totalValue += value
+											tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+												<span>${param.marker} ${param.seriesName}</span>
+												<span style="font-weight: 500;">${formattedNum(value, true)}</span>
+											</div>`
+										})
+										if (validParams.length > 1) {
+											tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+												<span><strong>Total</strong></span>
+												<span style="font-weight: 600;">${formattedNum(totalValue, true)}</span>
+											</div>`
+										}
+									}
+
+									return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
+								}
+							},
+							legend: {
+								type: 'scroll',
+								bottom: 0,
+								left: 'center',
+								itemGap: 15
+							},
+							grid: {
+								bottom: 40
+							}
+						}}
+					/>
+				</div>
+			)}
+
+			{viewMode === 'treemap' ? (
+				<UnlocksTreemapChart unlocksData={unlocksData} height="600px" filterYear={currentDate.year()} />
+			) : viewMode === 'month' ? (
 				<>
+					{monthlyChartData && (
+						<div className="mb-4">
+							<BarChart
+								chartData={monthlyChartData.chartData}
+								stacks={monthlyChartData.stacks}
+								stackColors={monthlyChartData.stackColors}
+								valueSymbol="$"
+								height="300px"
+								chartOptions={{
+									tooltip: {
+										trigger: 'axis',
+										formatter: (params: any) => {
+											if (!params || params.length === 0) return ''
+
+											const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
+											let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
+											let totalValue = 0
+
+											const validParams = params
+												.filter((param) => param.value && param.value[1] > 0)
+												.sort((a, b) => b.value[1] - a.value[1])
+
+											if (validParams.length === 0) {
+												tooltipContent += 'No unlocks'
+											} else {
+												validParams.forEach((param) => {
+													const value = param.value[1]
+													totalValue += value
+													tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+														<span>${param.marker} ${param.seriesName}</span>
+														<span style="font-weight: 500;">${formattedNum(value, true)}</span>
+													</div>`
+												})
+												if (validParams.length > 1) {
+													tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+														<span><strong>Total</strong></span>
+														<span style="font-weight: 600;">${formattedNum(totalValue, true)}</span>
+													</div>`
+												}
+											}
+
+											return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
+										}
+									},
+									legend: {
+										type: 'scroll',
+										bottom: 0,
+										left: 'center',
+										itemGap: 15
+									},
+									grid: {
+										bottom: 40
+									},
+									xAxis: {
+										type: 'time'
+									}
+								}}
+							/>
+						</div>
+					)}
 					<div className="grid grid-cols-7 text-center text-sm text-[var(--text2)] font-medium py-2">
 						{DAYS_OF_WEEK.map((day) => (
 							<div key={day}>{day}</div>
@@ -395,14 +706,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 					<div className="grid grid-cols-7 grid-rows-6 gap-px bg-[var(--divider)] border border-[var(--divider)]">
 						{calendarDays.map((day, i) => (
 							<React.Fragment key={day.date?.format('YYYY-MM-DD') ?? i}>
-								{renderDayCell(day as { date: Dayjs | null; isCurrentMonth: boolean }, unlocksData, getCircleSize)}
+								{renderDayCell(day as { date: Dayjs | null; isCurrentMonth: boolean }, unlocksData, maxMonthlyValue)}
 							</React.Fragment>
 						))}
 					</div>
 				</>
 			) : viewMode === 'week' ? (
 				<>
-					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-px bg-[var(--divider)] border border-[var(--divider)]">
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-px bg-[var(--divider)] border border-[var(--divider)]">
 						{calendarDays.map((day, i) => (
 							<React.Fragment key={day.date!.format('YYYY-MM-DD')}>
 								{renderWeekDayColumn(day as { date: Dayjs; isCurrentMonth: boolean }, unlocksData)}

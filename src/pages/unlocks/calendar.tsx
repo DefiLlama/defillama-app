@@ -5,23 +5,64 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 import { CalendarView } from '~/components/Unlocks/CalendarView'
 import { Announcement } from '~/components/Announcement'
+import dayjs from 'dayjs'
+
+const determineUnlockType = (
+	event: { timestamp: number; noOfTokens: number[]; description?: string },
+	allEventsForProtocol: Array<{ timestamp: number; noOfTokens: number[]; description?: string }>
+): string => {
+	const futureEvents = allEventsForProtocol
+		.filter((e) => e.timestamp && e.timestamp > dayjs().unix())
+		.sort((a, b) => a.timestamp - b.timestamp)
+
+	const diffsInDays: number[] = []
+	for (let i = 0; i < futureEvents.length - 1; i++) {
+		const diffSeconds = futureEvents[i + 1].timestamp - futureEvents[i].timestamp
+		diffsInDays.push(diffSeconds / (60 * 60 * 24))
+	}
+
+	const currentEventIndex = futureEvents.findIndex((e) => e.timestamp === event.timestamp)
+
+	if (currentEventIndex !== -1 && currentEventIndex < futureEvents.length - 1) {
+		const diffToNextEventDays = diffsInDays[currentEventIndex]
+
+		if (diffToNextEventDays > 6.5 && diffToNextEventDays < 7.5) {
+			return 'Weekly'
+		}
+
+		if (diffToNextEventDays > 28 && diffToNextEventDays < 32) {
+			return 'Monthly'
+		}
+
+		if (diffToNextEventDays > 88 && diffToNextEventDays < 92) {
+			return 'Quarterly'
+		}
+	}
+
+	return ''
+}
 
 export const getStaticProps = withPerformanceLogging('unlocks-calendar', async () => {
 	const data = await getAllProtocolEmissionsWithHistory()
-	const unlocksData: { [date: string]: { totalValue: number; events: any[] } } = {}
+	const unlocksData: { [date: string]: { totalValue: number; events: Array<any> } } = {}
 
 	data?.forEach((protocol) => {
 		if (!protocol.events || protocol.tPrice === null || protocol.tPrice === undefined) {
 			return
 		}
 
-		const protocolUnlocks: { [date: string]: { value: number; details: string[] } } = {}
+		const processedEvents: Array<{
+			dateStr: string
+			value: number
+			details: string
+			unlockType: string
+		}> = []
 
-		protocol.events.forEach((event) => {
-			if (event.timestamp === null || !event.noOfTokens || event.noOfTokens.length === 0) {
-				return
-			}
+		const validEvents = protocol.events.filter(
+			(event) => event.timestamp !== null && event.noOfTokens && event.noOfTokens.length > 0
+		)
 
+		validEvents.forEach((event) => {
 			const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
 			if (totalTokens === 0) {
 				return
@@ -29,31 +70,39 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 
 			const valueUSD = totalTokens * protocol.tPrice
 			const dateStr = new Date(event.timestamp * 1000).toISOString().split('T')[0]
+			const unlockType = determineUnlockType(event, validEvents)
 
-			if (!protocolUnlocks[dateStr]) {
-				protocolUnlocks[dateStr] = {
-					value: 0,
-					details: []
-				}
-			}
-
-			protocolUnlocks[dateStr].value += valueUSD
-			protocolUnlocks[dateStr].details.push(event.description || 'Token unlock')
+			processedEvents.push({
+				dateStr: dateStr,
+				value: valueUSD,
+				details: event.description || 'Token unlock',
+				unlockType: unlockType
+			})
 		})
 
-		Object.entries(protocolUnlocks).forEach(([dateStr, protocolData]) => {
+		const protocolUnlocksByDate: { [date: string]: { value: number; details: string[]; unlockTypes: string[] } } = {}
+		processedEvents.forEach((processedEvent) => {
+			if (!protocolUnlocksByDate[processedEvent.dateStr]) {
+				protocolUnlocksByDate[processedEvent.dateStr] = { value: 0, details: [], unlockTypes: [] }
+			}
+			protocolUnlocksByDate[processedEvent.dateStr].value += processedEvent.value
+			protocolUnlocksByDate[processedEvent.dateStr].details.push(processedEvent.details)
+			protocolUnlocksByDate[processedEvent.dateStr].unlockTypes.push(processedEvent.unlockType)
+		})
+
+		Object.entries(protocolUnlocksByDate).forEach(([dateStr, dailyData]) => {
 			if (!unlocksData[dateStr]) {
 				unlocksData[dateStr] = {
 					totalValue: 0,
 					events: []
 				}
 			}
-
-			unlocksData[dateStr].totalValue += protocolData.value
+			unlocksData[dateStr].totalValue += dailyData.value
 			unlocksData[dateStr].events.push({
 				protocol: protocol.name,
-				value: protocolData.value,
-				details: protocolData.details.join(', ')
+				value: dailyData.value,
+				details: dailyData.details.join(', '),
+				unlockType: dailyData.unlockTypes.find((type) => type !== '') || ''
 			})
 		})
 	})
