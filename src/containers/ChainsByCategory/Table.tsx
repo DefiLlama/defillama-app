@@ -6,7 +6,9 @@ import {
 	getSortedRowModel,
 	ExpandedState,
 	getExpandedRowModel,
-	ColumnDef
+	ColumnDef,
+	getFilteredRowModel,
+	ColumnFiltersState
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -38,6 +40,7 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 		() => defaultColumns
 	)
 
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const windowSize = useWindowSize()
@@ -48,14 +51,17 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 		state: {
 			sorting,
 			expanded,
+			columnFilters,
 			columnVisibility: JSON.parse(columnsInStorage)
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IFormattedDataWithExtraTvl) => row.subRows,
 		onSortingChange: setSorting,
+		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
+		getExpandedRowModel: getExpandedRowModel(),
+		getFilteredRowModel: getFilteredRowModel()
 	})
 
 	const [projectName, setProjectName] = React.useState('')
@@ -262,7 +268,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
-		enableSorting: false,
+		enableSorting: true,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
