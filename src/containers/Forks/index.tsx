@@ -8,6 +8,7 @@ import { useDefiManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import type { IChartProps } from '~/components/ECharts/types'
 import Layout from '~/layout'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -57,6 +58,8 @@ export const ForksByProtocol = ({ chartData, tokenLinks, token, filteredProtocol
 
 	return (
 		<Layout title={`Forks - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
+
 			{tokenLinks?.length > 0 && (
 				<RowLinksWithDropdown links={tokenLinks} activeLink={token} alternativeOthersText="Others" />
 			)}

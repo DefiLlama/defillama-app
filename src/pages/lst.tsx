@@ -51,104 +51,107 @@ const PageView = ({
 	const inflowsData = groupDataByDays(inflowsChartData, groupBy, tokens, true)
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md">
-			<h1 className="text-xl font-semibold flex items-center justify-between gap-4 flex-wrap p-3">
-				<span>Total Value Locked ETH LSTs</span>
-				<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
-			</h1>
+		<>
+			<ProtocolsChainsSearch />
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<h1 className="text-xl font-semibold flex items-center justify-between gap-4 flex-wrap p-3">
+					<span>Total Value Locked ETH LSTs</span>
+					<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
+				</h1>
 
-			<div className="bg-[var(--cards-bg)] rounded-md w-full flex flex-col">
-				<div className="flex flex-wrap overflow-x-auto border-y border-black/10 dark:border-white/10">
-					<button
-						className="py-2 px-6 whitespace-nowrap border-black/10 dark:border-white/10 data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
-						onClick={() => setTab('breakdown')}
-						data-selected={tab === 'breakdown'}
-					>
-						Breakdown
-					</button>
-					<button
-						className="py-2 px-6 whitespace-nowrap border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
-						onClick={() => setTab('inflows')}
-						data-selected={tab === 'inflows'}
-					>
-						Inflows
-					</button>
-				</div>
+				<div className="bg-[var(--cards-bg)] rounded-md w-full flex flex-col">
+					<div className="flex flex-wrap overflow-x-auto border-y border-black/10 dark:border-white/10">
+						<button
+							className="py-2 px-6 whitespace-nowrap border-black/10 dark:border-white/10 data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							onClick={() => setTab('breakdown')}
+							data-selected={tab === 'breakdown'}
+						>
+							Breakdown
+						</button>
+						<button
+							className="py-2 px-6 whitespace-nowrap border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							onClick={() => setTab('inflows')}
+							data-selected={tab === 'inflows'}
+						>
+							Inflows
+						</button>
+					</div>
 
-				<div className="flex flex-col items-center gap-4 min-h-[408px] w-full">
-					{tab === 'breakdown' ? (
-						<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 pt-12 xl:[&[role='combobox']]:*:*:!-mt-9">
-							<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
-							<AreaChart
-								chartData={areaChartData}
-								stacks={tokens}
-								stackColors={lsdColors}
-								customLegendName="LST"
-								customLegendOptions={tokens}
-								hideDefaultLegend
-								valueSymbol="%"
-								title=""
-								expandTo100Percent={true}
-							/>
-						</div>
-					) : (
-						<div className="flex flex-col w-full gap-1">
-							<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
-								<button
-									data-active={groupBy === 'daily'}
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-									onClick={() => setGroupBy('daily')}
-								>
-									Daily
-								</button>
-
-								<button
-									data-active={groupBy === 'weekly'}
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-									onClick={() => setGroupBy('weekly')}
-								>
-									Weekly
-								</button>
-
-								<button
-									data-active={groupBy === 'monthly'}
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-									onClick={() => setGroupBy('monthly')}
-								>
-									Monthly
-								</button>
-
-								<button
-									data-active={groupBy === 'cumulative'}
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-									onClick={() => setGroupBy('cumulative')}
-								>
-									Cumulative
-								</button>
+					<div className="flex flex-col items-center gap-4 min-h-[408px] w-full">
+						{tab === 'breakdown' ? (
+							<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 pt-12 xl:[&[role='combobox']]:*:*:!-mt-9">
+								<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
+								<AreaChart
+									chartData={areaChartData}
+									stacks={tokens}
+									stackColors={lsdColors}
+									customLegendName="LST"
+									customLegendOptions={tokens}
+									hideDefaultLegend
+									valueSymbol="%"
+									title=""
+									expandTo100Percent={true}
+								/>
 							</div>
+						) : (
+							<div className="flex flex-col w-full gap-1">
+								<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+									<button
+										data-active={groupBy === 'daily'}
+										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+										onClick={() => setGroupBy('daily')}
+									>
+										Daily
+									</button>
 
-							<BarChart
-								chartData={inflowsData}
-								hideDefaultLegend
-								customLegendName="Protocol"
-								customLegendOptions={tokens}
-								stacks={barChartStacks}
-								stackColors={lsdColors}
-								valueSymbol="ETH"
-								title=""
-							/>
-						</div>
-					)}
+									<button
+										data-active={groupBy === 'weekly'}
+										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+										onClick={() => setGroupBy('weekly')}
+									>
+										Weekly
+									</button>
+
+									<button
+										data-active={groupBy === 'monthly'}
+										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+										onClick={() => setGroupBy('monthly')}
+									>
+										Monthly
+									</button>
+
+									<button
+										data-active={groupBy === 'cumulative'}
+										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+										onClick={() => setGroupBy('cumulative')}
+									>
+										Cumulative
+									</button>
+								</div>
+
+								<BarChart
+									chartData={inflowsData}
+									hideDefaultLegend
+									customLegendName="Protocol"
+									customLegendOptions={tokens}
+									stacks={barChartStacks}
+									stackColors={lsdColors}
+									valueSymbol="ETH"
+									title=""
+								/>
+							</div>
+						)}
+					</div>
 				</div>
-			</div>
 
-			<TableWithSearch
-				data={tokensList}
-				columns={LSDColumn}
-				columnToSearch={'name'}
-				placeholder={'Search protocols...'}
-			/>
-		</div>
+				<TableWithSearch
+					data={tokensList}
+					columns={LSDColumn}
+					columnToSearch={'name'}
+					placeholder={'Search protocols...'}
+				/>
+			</div>
+		</>
 	)
 }
 

@@ -18,6 +18,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { Icon } from '~/components/Icon'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
@@ -71,6 +72,7 @@ export default function Governance({ data }) {
 
 	return (
 		<Layout title={`Governance - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
 			<div className="bg-[var(--cards-bg)] rounded-md">
 				<div className="flex items-center gap-2 justify-end flex-wrap p-3">
 					<h1 className="text-xl font-semibold mr-auto">Governance</h1>

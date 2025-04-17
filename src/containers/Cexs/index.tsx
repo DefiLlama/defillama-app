@@ -5,6 +5,7 @@ import { cexColumn } from '~/components/Table/Defi/columns'
 import { cexData } from '~/pages/cexs'
 import { DateFilter } from './DateFilter'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const getOutflowsByTimerange = async (startTime, endTime) => {
 	if (startTime && endTime) {
@@ -76,22 +77,25 @@ const Cexs = ({ cexs }) => {
 	}
 
 	return (
-		<TableWithSearch
-			data={cexsWithCustomRange}
-			columns={cexColumn}
-			columnToSearch={'name'}
-			placeholder={'Search exchange...'}
-			customFilters={
-				<DateFilter
-					startDate={startDate}
-					endDate={endDate}
-					onStartChange={onStartChange}
-					onEndChange={onEndChange}
-					hours={hours}
-					setHours={onHourChange}
-				/>
-			}
-		/>
+		<>
+			<ProtocolsChainsSearch />
+			<TableWithSearch
+				data={cexsWithCustomRange}
+				columns={cexColumn}
+				columnToSearch={'name'}
+				placeholder={'Search exchange...'}
+				customFilters={
+					<DateFilter
+						startDate={startDate}
+						endDate={endDate}
+						onStartChange={onStartChange}
+						onEndChange={onEndChange}
+						hours={hours}
+						setHours={onHourChange}
+					/>
+				}
+			/>
+		</>
 	)
 }
 

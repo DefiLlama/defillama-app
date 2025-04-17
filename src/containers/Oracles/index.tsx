@@ -10,6 +10,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { CustomLink } from '~/components/Link'
 import { IconsRow } from '~/components/IconsRow'
 import type { ColumnDef } from '@tanstack/react-table'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -62,6 +63,8 @@ export const OraclesByChain = ({
 
 	return (
 		<Layout title={`Oracles - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
+
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">

@@ -3,8 +3,6 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getCategoryPerformance } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-
 import { CategoryPerformanceContainer } from '~/containers/NarrativeTracker'
 
 export const getStaticProps = withPerformanceLogging('narrative-tracker', async () => {
@@ -21,7 +19,6 @@ export const getStaticProps = withPerformanceLogging('narrative-tracker', async 
 export default function CategoryPerformance(props) {
 	return (
 		<Layout title={`Narrative Tracker - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch hideFilters />
 			<CategoryPerformanceContainer {...props} />
 		</Layout>
 	)

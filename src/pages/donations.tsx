@@ -4,6 +4,7 @@ import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging('donations', async () => {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo', 'url', 'referralUrl'])
@@ -24,6 +25,7 @@ export const getStaticProps = withPerformanceLogging('donations', async () => {
 function PressPage({ protocols }) {
 	return (
 		<Layout title="Donations - DefiLlama" defaultSEO>
+			<ProtocolsChainsSearch />
 			<div className="bg-[var(--cards-bg)] p-3 rounded-md flex flex-col gap-4">
 				<h1 className="text-lg font-semibold">Why donate?</h1>
 				<hr className="border-black/20 dark:border-white/20" />

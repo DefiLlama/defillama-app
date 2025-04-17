@@ -21,6 +21,7 @@ import { PROTOCOL_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
 import { formatProtocolsTvlChartData } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
 import { LocalLoader } from '~/components/LocalLoader'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false
@@ -161,6 +162,8 @@ function Container({
 
 	return (
 		<>
+			<ProtocolsChainsSearch />
+
 			{showChainList && (
 				<div className="bg-[var(--cards-bg)] rounded-md">
 					<RowLinksWithDropdown links={chainOptions} activeLink={chain} />

@@ -8,6 +8,7 @@ import { descriptions } from './categories'
 import { withPerformanceLogging } from '~/utils/perf'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
@@ -72,6 +73,7 @@ export default function Chains({ data, columns, uniqueCategories }) {
 
 	return (
 		<Layout title="Top Protocols - DefiLlama" defaultSEO>
+			<ProtocolsChainsSearch />
 			<div className="bg-[var(--cards-bg)] rounded-md p-3 flex items-center gap-2 justify-between">
 				<h1 className="text-xl font-semibold mr-auto">Top Protocols by Chain</h1>
 				<CSVDownloadButton onClick={downloadCSV} />

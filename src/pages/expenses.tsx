@@ -9,6 +9,7 @@ import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CustomLink } from '~/components/Link'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
@@ -46,6 +47,7 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 export default function Protocols(props) {
 	return (
 		<Layout title={`Protocol Expenses - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
 			<TableWithSearch
 				data={props.expenses}
 				columns={columns}

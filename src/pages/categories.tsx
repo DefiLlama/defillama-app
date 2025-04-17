@@ -4,6 +4,7 @@ import { maxAgeForNext } from '~/api'
 import { getRevenuesByCategories } from '~/api/categories/adaptors'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
 import type { IChartProps } from '~/components/ECharts/types'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { categoriesColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
@@ -189,6 +190,7 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
 			<div className="bg-[var(--cards-bg)] min-h-[412px] rounded-md relative">
 				<h1 className="text-xl font-semibold absolute top-0 left-0 z-10 p-3">Categories</h1>
 				<div className="bg-[var(--cards-bg)] rounded-md relative">

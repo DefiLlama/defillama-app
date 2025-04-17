@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { Icon } from '~/components/Icon'
 import { CustomLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ColumnDef } from '@tanstack/react-table'
-import { chainIconUrl, download, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 	const data = Object.keys(assets)
@@ -45,6 +45,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 
 	return (
 		<>
+			<ProtocolsChainsSearch />
 			<RowLinksWithDropdown links={chains} activeLink="All" />
 			<div className="bg-[var(--cards-bg)] rounded-md">
 				<TableWithSearch

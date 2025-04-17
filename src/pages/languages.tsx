@@ -9,6 +9,7 @@ import type { IChartProps } from '~/components/ECharts/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
@@ -83,6 +84,7 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
 	return (
 		<Layout title={`Languages - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
 			<div className="bg-[var(--cards-bg)] rounded-md [&[role='combobox']]:*:*:*:-mb-9">
 				<h2 className="font-semibold text-xl p-3">Breakdown by Smart Contract Languages</h2>
 				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">

@@ -43,6 +43,7 @@ import { Icon } from '~/components/Icon'
 import { RowWithSubRows } from './RowWithSubRows'
 import { useIsClient } from '~/hooks'
 import { Tooltip } from '~/components/Tooltip'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -411,6 +412,8 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 				tvl={formattedNum(totalValue, true)?.toString()}
 				isCEX={isCEX}
 			/>
+
+			<ProtocolsChainsSearch />
 
 			{scams.includes(name) && (
 				<Announcement warning={true} notCancellable={true}>

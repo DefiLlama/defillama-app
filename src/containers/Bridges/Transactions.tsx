@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import * as React from 'react'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { BRIDGETX_API } from '~/constants'
 import { download, toNiceCsvDate } from '~/utils'
 
@@ -83,65 +84,68 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 	const { mutate, isPending, error } = useMutation({ mutationFn: downloadTxs })
 
 	return (
-		<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-[var(--cards-bg)] p-3">
-			<h1 className="text-xl font-semibold">Generate Bridge Transactions CSV</h1>
+		<>
+			<ProtocolsChainsSearch />
+			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-[var(--cards-bg)] p-3">
+				<h1 className="text-xl font-semibold">Generate Bridge Transactions CSV</h1>
 
-			<form
-				className="mx-auto my-8 flex flex-col gap-4"
-				onSubmit={(e) => {
-					e.preventDefault()
-					const formEl = e.target as HTMLFormElement
-					const formData = new FormData(formEl)
+				<form
+					className="mx-auto my-8 flex flex-col gap-4"
+					onSubmit={(e) => {
+						e.preventDefault()
+						const formEl = e.target as HTMLFormElement
+						const formData = new FormData(formEl)
 
-					mutate({
-						startDate: formData.get('startDate'),
-						endDate: formData.get('endDate'),
-						selectedBridge: formData.get('selectedBridge'),
-						bridges
-					})
-				}}
-			>
-				<span className="flex gap-4 flex-wrap">
-					<label className="flex flex-col">
-						<span className="text-base font-medium">Start Date</span>
-						<input
-							type="date"
-							name="startDate"
-							required
-							className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
-						/>
-					</label>
-					<label className="flex flex-col">
-						<span className="text-base font-medium">End Date</span>
-						<input
-							type="date"
-							name="endDate"
-							required
-							className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
-						/>
-					</label>
-				</span>
-				<select
-					name="selectedBridge"
-					className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
-					required
+						mutate({
+							startDate: formData.get('startDate'),
+							endDate: formData.get('endDate'),
+							selectedBridge: formData.get('selectedBridge'),
+							bridges
+						})
+					}}
 				>
-					<option value="">--Please choose a bridge--</option>
-					{bridges.map((bridge) => (
-						<option value={bridge.displayName} key={bridge.displayName}>
-							{bridge.displayName}
-						</option>
-					))}
-				</select>
-				<button
-					className="py-2 px-3 text-base font-semibold rounded-lg bg-[var(--link-bg)] text-[var(--link-text)] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-active-bg)] disabled:cursor-not-allowed disabled:opacity-60"
-					disabled={isPending}
-				>
-					{isPending ? 'Downloading...' : 'Download .CSV'}
-				</button>
+					<span className="flex gap-4 flex-wrap">
+						<label className="flex flex-col">
+							<span className="text-base font-medium">Start Date</span>
+							<input
+								type="date"
+								name="startDate"
+								required
+								className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
+							/>
+						</label>
+						<label className="flex flex-col">
+							<span className="text-base font-medium">End Date</span>
+							<input
+								type="date"
+								name="endDate"
+								required
+								className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
+							/>
+						</label>
+					</span>
+					<select
+						name="selectedBridge"
+						className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
+						required
+					>
+						<option value="">--Please choose a bridge--</option>
+						{bridges.map((bridge) => (
+							<option value={bridge.displayName} key={bridge.displayName}>
+								{bridge.displayName}
+							</option>
+						))}
+					</select>
+					<button
+						className="py-2 px-3 text-base font-semibold rounded-lg bg-[var(--link-bg)] text-[var(--link-text)] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-active-bg)] disabled:cursor-not-allowed disabled:opacity-60"
+						disabled={isPending}
+					>
+						{isPending ? 'Downloading...' : 'Download .CSV'}
+					</button>
 
-				{error ? <p className="text-red-500 text-center">{(error as any).message}</p> : null}
-			</form>
-		</div>
+					{error ? <p className="text-red-500 text-center">{(error as any).message}</p> : null}
+				</form>
+			</div>
+		</>
 	)
 }

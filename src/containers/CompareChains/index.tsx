@@ -16,6 +16,7 @@ import { RowWithSubRows } from '~/containers/ProtocolOverview/RowWithSubRows'
 import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
@@ -186,6 +187,8 @@ export function CompareChains() {
 
 	return (
 		<>
+			<ProtocolsChainsSearch />
+
 			<div className="bg-[var(--cards-bg)] rounded-md flex items-center gap-3 p-3 last:*:-my-3">
 				<h2 className="font-semibold text-base">Compare chains: </h2>
 

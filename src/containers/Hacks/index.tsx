@@ -17,6 +17,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { FormattedName } from '~/components/FormattedName'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -102,6 +103,7 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 	const [chartType, setChartType] = React.useState('Total Value Hacked')
 	return (
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
 				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					<p className="flex flex-col">

@@ -1,9 +1,11 @@
 import * as React from 'react'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import Layout from '~/layout'
 
 function PluginPage() {
 	return (
 		<Layout title="DefiLlama - ChatGPT Plugin" defaultSEO>
+			<ProtocolsChainsSearch />
 			<h1 className="text-xl font-semibold bg-[var(--cards-bg)] rounded-md p-3">DefiLlama ChatGPT Plugin</h1>
 
 			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">

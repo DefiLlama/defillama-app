@@ -5,6 +5,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
 import { useScrollToTop } from '~/hooks'
 import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 interface IChartProps {
 	chartData: any[]
@@ -123,93 +124,97 @@ export const CategoryPerformanceContainer = ({
 	}, [pctChanges, groupBy, performanceTimeSeries, groupByDenom, isCoinPage])
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md">
-			<h1 className="text-xl font-semibold p-3">
-				{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
-			</h1>
+		<>
+			<ProtocolsChainsSearch />
 
-			<div className="flex flex-wrap overflow-x-auto border-b border-black/10 dark:border-white/10">
-				<button
-					className="py-2 px-6 whitespace-nowrap border-b border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
-					onClick={() => setTab('linechart')}
-					data-selected={tab === 'linechart'}
-				>
-					Linechart
-				</button>
-				<button
-					className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
-					onClick={() => setTab('barchart')}
-					data-selected={tab === 'barchart'}
-				>
-					Barchart
-				</button>
-				<button
-					className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
-					onClick={() => setTab('heatmap')}
-					data-selected={tab === 'heatmap'}
-				>
-					Heatmap
-				</button>
-			</div>
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<h1 className="text-xl font-semibold p-3">
+					{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
+				</h1>
 
-			<div className="flex items-center gap-3 p-3 justify-end">
-				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
-					{(['7D', '30D', 'YTD', '365D'] as const).map((period) => (
-						<button
-							key={period}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-							data-active={groupBy === period}
-							onClick={() => setGroupBy(period)}
-						>
-							{period}
-						</button>
-					))}
+				<div className="flex flex-wrap overflow-x-auto border-b border-black/10 dark:border-white/10">
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('linechart')}
+						data-selected={tab === 'linechart'}
+					>
+						Linechart
+					</button>
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('barchart')}
+						data-selected={tab === 'barchart'}
+					>
+						Barchart
+					</button>
+					<button
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						onClick={() => setTab('heatmap')}
+						data-selected={tab === 'heatmap'}
+					>
+						Heatmap
+					</button>
 				</div>
-				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
-					<p className="pl-3 pr-1">Show as:</p>
-					{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
-						<button
-							key={denom}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-							data-active={groupByDenom === denom}
-							onClick={() => setGroupByDenom(denom)}
-						>
-							{denom}
-						</button>
-					))}
+
+				<div className="flex items-center gap-3 p-3 justify-end">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						{(['7D', '30D', 'YTD', '365D'] as const).map((period) => (
+							<button
+								key={period}
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								data-active={groupBy === period}
+								onClick={() => setGroupBy(period)}
+							>
+								{period}
+							</button>
+						))}
+					</div>
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<p className="pl-3 pr-1">Show as:</p>
+						{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
+							<button
+								key={denom}
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								data-active={groupByDenom === denom}
+								onClick={() => setGroupByDenom(denom)}
+							>
+								{denom}
+							</button>
+						))}
+					</div>
 				</div>
-			</div>
 
-			<div className="min-h-[360px]">
-				{tab === 'barchart' ? (
-					<BarChart title="" chartData={barChart} valueSymbol="%" height="533px" />
-				) : tab === 'linechart' ? (
-					<AreaChart
-						title=""
-						chartData={lineChart}
-						stacks={areaChartLegend}
-						valueSymbol="%"
-						hideDefaultLegend={true}
-						hideGradient={true}
-						customLegendName={isCoinPage ? 'Coin' : 'Category'}
-						customLegendOptions={areaChartLegend}
-						tooltipValuesRelative
-						hideOthersInTooltip
-						chartOptions={areaChartoptions}
-						height="533px"
-					/>
-				) : (
-					<TreemapChart chartData={treemapChart} />
-				)}
-			</div>
+				<div className="min-h-[360px]">
+					{tab === 'barchart' ? (
+						<BarChart title="" chartData={barChart} valueSymbol="%" height="533px" />
+					) : tab === 'linechart' ? (
+						<AreaChart
+							title=""
+							chartData={lineChart}
+							stacks={areaChartLegend}
+							valueSymbol="%"
+							hideDefaultLegend={true}
+							hideGradient={true}
+							customLegendName={isCoinPage ? 'Coin' : 'Category'}
+							customLegendOptions={areaChartLegend}
+							tooltipValuesRelative
+							hideOthersInTooltip
+							chartOptions={areaChartoptions}
+							height="533px"
+						/>
+					) : (
+						<TreemapChart chartData={treemapChart} />
+					)}
+				</div>
 
-			<TableWithSearch
-				data={sortedPctChanges}
-				columns={isCoinPage ? CoinPerformanceColumn : CategoryPerformanceColumn}
-				columnToSearch={'name'}
-				placeholder={'Search...'}
-			/>
-		</div>
+				<TableWithSearch
+					data={sortedPctChanges}
+					columns={isCoinPage ? CoinPerformanceColumn : CategoryPerformanceColumn}
+					columnToSearch={'name'}
+					placeholder={'Search...'}
+				/>
+			</div>
+		</>
 	)
 }
 

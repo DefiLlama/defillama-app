@@ -10,6 +10,7 @@ import { useDefiManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { getOraclePageData } from '~/containers/Oracles/queries'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -81,6 +82,8 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 	return (
 		<>
+			<ProtocolsChainsSearch />
+
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
 
 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">

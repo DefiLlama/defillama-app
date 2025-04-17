@@ -1,6 +1,7 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const PressPanel = ({ imageFilename }) => (
 	<div className="border border-black/10 dark:border-white/10 rounded-md text-center p-4">
@@ -42,6 +43,7 @@ const pressList = [
 function PressPage() {
 	return (
 		<Layout title="Press - DefiLlama" defaultSEO>
+			<ProtocolsChainsSearch />
 			<h1 className="text-xl font-semibold bg-[var(--cards-bg)] rounded-md p-3">Press & Media</h1>
 
 			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
