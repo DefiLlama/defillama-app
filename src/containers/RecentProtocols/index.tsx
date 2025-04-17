@@ -182,7 +182,7 @@ export function RecentProtocols({
 							rel="noreferrer noopener"
 							key={`claim-${protocol.name}`}
 							color="#008000"
-							className="flex items-center gap-1 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-sm text-[#007c00] bg-[#e4efe2]"
+							className="flex items-center gap-1 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-sm text-[#007c00] dark:text-[#00ab00] dark:bg-[#18221d] bg-[#e4efe2]"
 						>
 							<span>{protocol.name}</span>
 							<Icon name="arrow-up-right" height={14} width={14} />
@@ -193,7 +193,7 @@ export function RecentProtocols({
 							resetEligibilityCheck()
 							airdropCheckerDialog.toggle()
 						}}
-						className="flex items-center gap-1 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-sm text-[#007c00] bg-[#e4efe2]"
+						className="flex items-center gap-1 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-sm text-[#007c00] dark:text-[#00ab00] dark:bg-[#18221d] bg-[#e4efe2]"
 					>
 						Check airdrops for address
 					</button>

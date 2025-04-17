@@ -377,6 +377,11 @@ const nextConfig = {
 				source: '/stables',
 				destination: '/stablecoins',
 				permanent: true
+			},
+			{
+				source: '/docs',
+				destination: '/docs/api',
+				permanent: true
 			}
 		]
 	},
