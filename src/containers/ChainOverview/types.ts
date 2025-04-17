@@ -105,10 +105,7 @@ export interface IChainOverviewData {
 		chart: Array<[number, number]> | null
 		change7d: string | null
 	} | null
-	defimcap: {
-		chart: Array<[number, number]> | null
-		change7d: string | null
-	} | null
+	rwaTvlChartData: Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null
 	allChains: Array<{ label: string; to: string }>
 }
 

@@ -54,7 +54,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					<Ariakit.Combobox
 						placeholder="Search..."
 						autoFocus
-						className="bg-white dark:bg-black rounded-md py-2 px-3 m-3"
+						className="bg-white dark:bg-black rounded-md text-base py-1 px-3 m-3"
 					/>
 					{matches.length > 0 ? (
 						<Ariakit.ComboboxList>

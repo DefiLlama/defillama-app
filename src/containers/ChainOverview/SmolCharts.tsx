@@ -226,7 +226,7 @@ export function SmolLineChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, series])
+	}, [createInstance, series, color, isThemeDark, name])
 
 	return (
 		<div className="relative">

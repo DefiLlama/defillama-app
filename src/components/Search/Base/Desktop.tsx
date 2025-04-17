@@ -117,7 +117,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 	return (
 		<span className="relative isolate w-full">
 			{!hideIcon ? (
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[9px] left-[9px] opacity-50">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[7px] left-[9px] opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
@@ -139,7 +139,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="w-full text-xs rounded-md border border-[#e6e6e6] dark:border-[#222324] text-black dark:text-white bg-[var(--app-bg)] py-2 px-[10px] pl-8"
+				className="w-full text-sm rounded-md border border-[#e6e6e6] dark:border-[#222324] text-black dark:text-white bg-[var(--app-bg)] py-1 px-[10px] pl-8"
 			/>
 
 			{!hideIcon ? (

@@ -1,7 +1,8 @@
 import dynamic from 'next/dynamic'
 import { IChainOverviewData } from './types'
-import { Suspense } from 'react'
-import { formattedNum } from '~/utils'
+import { Suspense, useMemo } from 'react'
+import { formattedNum, getPercentChange } from '~/utils'
+import { Tooltip } from '~/components/Tooltip'
 
 const FeesGeneratedChart: any = dynamic(
 	() => import('~/containers/ChainOverview/SmolCharts').then((m) => m.FeesGeneratedChart),
@@ -19,6 +20,13 @@ const SmolBarChart: any = dynamic(() => import('~/containers/ChainOverview/SmolC
 })
 
 export const SmolStats = (props: IChainOverviewData) => {
+	const rwaTvl = useMemo(() => {
+		const chart = props.rwaTvlChartData.map((item) => [item[0], item[1].tvl])
+		return {
+			chart,
+			change7d: chart.length > 1 ? getPercentChange(chart[chart.length - 1][1], chart[0][1]).toFixed(2) : 0
+		}
+	}, [props.rwaTvlChartData])
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1 isolate">
 			{props.chain === 'All' && props.globalmcap?.chart?.length > 0 ? (
@@ -26,7 +34,14 @@ export const SmolStats = (props: IChainOverviewData) => {
 					{props.globalmcap?.chart?.length > 0 ? (
 						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
-								<h3 className="text-sm font-semibold">Crypto Mcap</h3>
+								<h3 className="text-sm font-semibold"></h3>
+								<Tooltip
+									as="h3"
+									className="text-sm font-semibold"
+									content="Total market cap of all cryptocurrencies across all chains"
+								>
+									Crypto Mcap
+								</Tooltip>
 								<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 									props.globalmcap.chart[props.globalmcap.chart.length - 1][1],
 									true
@@ -52,45 +67,16 @@ export const SmolStats = (props: IChainOverviewData) => {
 							</Suspense>
 						</div>
 					) : null}
-
-					<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
-						<div className="flex flex-col gap-1">
-							<h3 className="text-sm font-semibold">DeFi Mcap</h3>
-							{props.defimcap?.chart?.length > 0 ? (
-								<>
-									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
-										props.defimcap.chart[props.defimcap.chart.length - 1][1],
-										true
-									)}`}</p>
-									<p className="text-xs flex items-center gap-1">
-										<span
-											className={`whitespace-nowrap overflow-hidden text-ellipsis ${
-												+props.defimcap.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
-											}`}
-										>
-											{`${+props.defimcap.change7d >= 0 ? '+' : ''}${props.defimcap.change7d}%`}
-										</span>
-										<span className="text-[#666] dark:text-[#919296]">7d</span>
-									</p>
-								</>
-							) : null}
-						</div>
-						{props.defimcap?.chart?.length > 0 ? (
-							<Suspense fallback={<></>}>
-								<SmolLineChart
-									series={props.defimcap.chart}
-									color={+props.defimcap.change7d >= 0 ? 'green' : 'red'}
-									name="Global Mcap"
-									className={'my-auto h-[53px]'}
-								/>
-							</Suspense>
-						) : null}
-					</div>
-
 					{props.dexs?.chart?.length > 0 ? (
 						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
-								<h3 className="text-sm font-semibold">DEXs Volume</h3>
+								<Tooltip
+									as="h3"
+									className="text-sm font-semibold"
+									content="Total value of all spot trades executed on decentralized exchanges"
+								>
+									DEXs Volume
+								</Tooltip>
 								{props.dexs.chart?.length > 0 ? (
 									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 										props.dexs.chart[props.dexs.chart.length - 1][1],
@@ -108,23 +94,67 @@ export const SmolStats = (props: IChainOverviewData) => {
 						</div>
 					) : null}
 					{props.etfs?.length > 0 ? (
-						<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
-							<h3 className="text-sm font-semibold">ETF Inflows</h3>
-							{props.etfs.length > 0 ? (
-								<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
-									props.etfs[props.etfs.length - 1][1],
-									true
-								)} (24h)`}</p>
-							) : null}
+						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
+							<div className="flex flex-col gap-1">
+								<Tooltip
+									as="h3"
+									className="text-sm font-semibold"
+									content="Daily net inflows/outflows into Bitcoin, Ethereum ETFs, showing institutional investment trends"
+								>
+									ETF Inflows
+								</Tooltip>
+								{props.etfs?.length > 0 ? (
+									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+										props.etfs[props.etfs.length - 1][1],
+										true
+									)} (24h)`}</p>
+								) : null}
+							</div>
 							<Suspense fallback={<></>}>
-								<SmolBarChart series={props.etfs} name="ETF" />
+								<SmolBarChart series={props.etfs} name="ETF" className={'my-auto h-[53px] md:h-[132px] xl:h-[53px]'} />
 							</Suspense>
 						</div>
 					) : null}
+					<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
+						<Tooltip
+							as="h3"
+							className="text-sm font-semibold"
+							content="Total Value Locked in protocols that involve Real World Assets, such as house tokenization"
+						>
+							RWA TVL
+						</Tooltip>
+						<p className="text-xs flex items-center gap-1">
+							<span
+								className={`whitespace-nowrap overflow-hidden text-ellipsis ${
+									+rwaTvl.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+								}`}
+							>
+								{`${+rwaTvl.change7d >= 0 ? '+' : ''}${rwaTvl.change7d}%`}
+							</span>
+							<span className="text-[#666] dark:text-[#919296]">7d</span>
+						</p>
+						{rwaTvl.chart.length > 0 ? (
+							<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+								rwaTvl.chart[rwaTvl.chart.length - 1][1],
+								true
+							)}`}</p>
+						) : null}
+						<Suspense fallback={<></>}>
+							<SmolLineChart series={rwaTvl.chart} name="RWA TVL" color={+rwaTvl.change7d >= 0 ? 'green' : 'red'} />
+						</Suspense>
+					</div>
 				</>
 			) : props.dexs?.chart?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
-					<h3 className="text-sm font-semibold">DEXs Volume</h3>
+					<Tooltip
+						as="h3"
+						className="text-sm font-semibold"
+						content={`Total value of all spot trades executed on decentralized exchanges${
+							props.metadata.name === 'All' ? '' : ` deployed on ${props.metadata.name}`
+						}`}
+					>
+						DEXs Volume
+					</Tooltip>
 					{props.dexs.chart?.length > 0 ? (
 						<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 							props.dexs.chart[props.dexs.chart.length - 1][1],
@@ -138,7 +168,15 @@ export const SmolStats = (props: IChainOverviewData) => {
 			) : null}
 			{props.chainFees?.topProtocolsChart?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
-					<h3 className="text-sm font-semibold">Fees Generated</h3>
+					<Tooltip
+						as="h3"
+						className="text-sm font-semibold"
+						content={`Total fees generated by protocols on ${
+							props.metadata.name === 'All' ? 'all chains' : props.metadata.name
+						}`}
+					>
+						Fees Generated
+					</Tooltip>
 					{props.chainFees.feesGenerated24h != null ? (
 						<p className="text-[#666] dark:text-[#919296]">{`${formattedNum(
 							props.chainFees.feesGenerated24h ?? 0,
@@ -152,7 +190,15 @@ export const SmolStats = (props: IChainOverviewData) => {
 			) : null}
 			{props.stablecoins?.mcapChartData?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
-					<h3 className="text-sm font-semibold">Stablecoins Market Cap</h3>
+					<Tooltip
+						as="h3"
+						className="text-sm font-semibold"
+						content={`Total market cap of all stablecoins issued on ${
+							props.metadata.name === 'All' ? 'all chains' : props.metadata.name
+						}`}
+					>
+						Stablecoins Market Cap
+					</Tooltip>
 					{props.stablecoins.mcap != null ? (
 						<>
 							<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(

@@ -68,7 +68,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			cexVolume,
 			etfData,
 			globalMcapChartData,
-			defiMcapChartData
+			rwaTvlChartData
 		]: [
 			ILiteChart,
 			{
@@ -107,7 +107,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			number | null,
 			Array<[number, number]> | null,
 			Array<[number, number]> | null,
-			Array<[number, number]> | null
+			Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null
 		] = await Promise.all([
 			fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((r) => r.json()),
 			getProtocolsByChain({ chain, metadata }),
@@ -282,11 +282,14 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						.catch(() => null)
 				: null,
 			chain === 'All'
-				? fetchWithErrorLogging(`https://www.coingecko.com/en/defi_market_cap_data?duration=14`)
+				? fetchWithErrorLogging(`https://api.llama.fi/categories`)
 						.then((res) => res.json())
 						.then((data) => {
-							const defi = data.find((x) => x.name === 'DeFi')
-							return defi?.data?.slice(0, 14) ?? null
+							const chart = Object.entries(data.chart)
+								.slice(-14)
+								.map(([date, cat]) => [+date * 1000, cat['RWA'] ?? null])
+								.filter((x) => x[1] != null)
+							return chart
 						})
 						.catch(() => null)
 				: null
@@ -421,16 +424,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 							)?.toFixed(2)
 					  }
 					: null,
-			defimcap:
-				defiMcapChartData?.length > 0
-					? {
-							chart: defiMcapChartData,
-							change7d: getPercentChange(
-								defiMcapChartData[defiMcapChartData.length - 1][1],
-								defiMcapChartData[defiMcapChartData.length - 7][1]
-							)?.toFixed(2)
-					  }
-					: null,
+			rwaTvlChartData,
 			allChains: [{ label: 'All', to: '/' }].concat(chains.map((c) => ({ label: c, to: `/chain/${slug(c)}` })))
 		}
 	} catch (error) {

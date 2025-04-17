@@ -1,11 +1,8 @@
 import { capitalizeFirstLetter, getColorFromNumber, slug } from '~/utils'
 import type { IFusedProtocolData, IProtocolResponse } from '~/api/types'
 import {
-	ACTIVE_USERS_API,
 	CATEGORY_API,
-	FORK_API,
 	HOURLY_PROTOCOL_API,
-	ORACLE_API,
 	PROTOCOLS_API,
 	PROTOCOL_API,
 	PROTOCOL_EMISSIONS_API,
@@ -17,7 +14,6 @@ import {
 	CHART_API,
 	ETF_SNAPSHOT_API,
 	ETF_FLOWS_API,
-	CHAINS_API_V2,
 	CHAIN_ASSETS_FLOWS,
 	BRIDGEINFLOWS_API,
 	CATEGORY_PERFORMANCE_API,
@@ -26,20 +22,10 @@ import {
 	COINS_INFO_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
-import {
-	getDimensionAdapterChainPageData as getChainPageDataByType,
-	getDimensionsAdaptersChainsPageData as getChainsPageDataByType,
-	getFeesAndRevenueProtocolsByChain,
-	ADAPTOR_TYPES
-} from '~/api/categories/adaptors'
-import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
+import { getFeesAndRevenueProtocolsByChain } from '~/api/categories/adaptors'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { getDexVolumeByChain, getAppRevenueByChain } from '../adaptors'
+import { getDexVolumeByChain } from '../adaptors'
 import { sluggify } from '~/utils/cache-client'
-import { getAPIUrl } from '../adaptors/client'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import metadata from '~/utils/metadata'
-const chainsMetadata = metadata.chainMetadata
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
