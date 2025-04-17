@@ -73,7 +73,7 @@ const linksToOtherLlamaApps = [
 		description: 'Seamless crypto payments',
 		href: 'https://llamapay.io',
 		icon: (
-			<span className="block h-8 w-8 rotate-45 bg-[linear-gradient(183deg,#23BD8F_0.79%,#1BDBAD_99.21%)] rounded-md">
+			<span className="mx-[5px] block h-8 w-8 rotate-45 bg-[linear-gradient(183deg,#23BD8F_0.79%,#1BDBAD_99.21%)] rounded-md">
 				<img
 					src="/llama-apps/llamapay.svg"
 					loading="lazy"

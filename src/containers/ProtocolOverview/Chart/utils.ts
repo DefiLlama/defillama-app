@@ -1,4 +1,5 @@
 export const BAR_CHARTS = [
+	'DEXs Volume',
 	'Volume',
 	'Perps Volume',
 	'Fees',

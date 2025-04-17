@@ -132,7 +132,7 @@ export const Stats = (props: IChainOverviewData) => {
 		]
 
 		const hasAtleasOneBarChart = chartOptions.reduce((acc, curr) => {
-			if (BAR_CHARTS.includes(curr.name)) {
+			if (curr.isVisible && BAR_CHARTS.includes(curr.name) && router.query[curr.id] === 'true') {
 				acc = true
 			}
 
@@ -145,7 +145,7 @@ export const Stats = (props: IChainOverviewData) => {
 			chainGeckoId,
 			hasAtleasOneBarChart
 		}
-	}, [props])
+	}, [props, router.query])
 
 	const { totalValueUSD, change24h, valueChange24hUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
 		denomination,
@@ -746,7 +746,7 @@ export const Stats = (props: IChainOverviewData) => {
 					</div>
 
 					{DENOMINATIONS.length > 1 ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<div className="my-[5px] flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							{DENOMINATIONS.map((denom) => (
 								<button
 									key={`denom-${denom}`}
@@ -761,7 +761,7 @@ export const Stats = (props: IChainOverviewData) => {
 					) : null}
 
 					{hasAtleasOneBarChart ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<div className="-my-[5px] flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							<Tooltip
 								content="Daily"
 								as="button"
