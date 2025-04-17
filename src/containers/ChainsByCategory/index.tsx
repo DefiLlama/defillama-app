@@ -107,13 +107,13 @@ export function ChainsByCategory({
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="isolate relative rounded-md p-3 bg-[var(--cards-bg)] flex-1 h-[360px] flex flex-col">
+				<div className="isolate relative rounded-md p-3 bg-[var(--cards-bg)] flex-1 min-h-[360px] flex flex-col">
 					<CSVDownloadButton onClick={downloadCsv} className="ml-auto absolute right-3 top-3 z-10" />
 					<Suspense fallback={<></>}>
 						<PieChart chartData={pieChartData} stackColors={colorsByChain} />
 					</Suspense>
 				</div>
-				<div className="rounded-md p-3 bg-[var(--cards-bg)] flex-1 h-[360px]">
+				<div className="rounded-md p-3 bg-[var(--cards-bg)] flex-1 min-h-[360px]">
 					<Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}

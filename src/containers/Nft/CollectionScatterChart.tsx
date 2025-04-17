@@ -243,7 +243,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 		}
 	}, [id, sales, volume, createInstance, isDark, isSmall, salesMedian1d])
 
-	return <div id={id} className="h-[360px]" style={height ? { height } : undefined} />
+	return <div id={id} className="min-h-[360px]" style={height ? { height } : undefined} />
 }
 
 const findClosest = (arr, n, target, isDateInSeconds) => {

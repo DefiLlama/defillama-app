@@ -627,6 +627,10 @@ export default function AreaBarChart({
 	])
 
 	return (
-		<div id={id} className="h-[360px]" style={height || props.style ? { height, ...(props.style ?? {}) } : undefined} />
+		<div
+			id={id}
+			className="min-h-[360px]"
+			style={height || props.style ? { height, ...(props.style ?? {}) } : undefined}
+		/>
 	)
 }

@@ -28,7 +28,7 @@ import { Tooltip } from '~/components/Tooltip'
 
 const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto h-[360px]"></div>
+	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]"></div>
 })
 
 const Game: any = dynamic(() => import('~/game'))
@@ -956,7 +956,7 @@ export function ChainContainer({
 								</div>
 
 								{isFetchingChartData || !router.isReady ? (
-									<div className="flex items-center justify-center m-auto h-[360px]">
+									<div className="flex items-center justify-center m-auto min-h-[360px]">
 										<LocalLoader />
 									</div>
 								) : (

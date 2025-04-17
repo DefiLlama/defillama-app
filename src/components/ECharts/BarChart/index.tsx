@@ -201,7 +201,7 @@ export default function BarChart({
 					}}
 				/>
 			)}
-			<div id={id} className="my-auto h-[360px]" style={height ? { height } : undefined}></div>
+			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

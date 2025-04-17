@@ -7,7 +7,7 @@ import { LocalLoader } from '../LocalLoader'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
-	loading: () => <div className="h-[360px]" />
+	loading: () => <div className="min-h-[360px]" />
 }) as React.FC<IBarChartProps>
 
 interface BridgeVolumeChartProps {

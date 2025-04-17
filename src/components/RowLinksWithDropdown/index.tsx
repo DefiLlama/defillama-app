@@ -1,6 +1,7 @@
 import { useMedia } from '~/hooks/useMedia'
 import { LinksWithDropdown } from './LinksWithDropdown'
 import { OtherLinks } from './OtherLinks'
+import { useIsClient } from '~/hooks'
 
 interface ILink {
 	label: string
@@ -15,8 +16,9 @@ interface IRowLinksProps {
 
 export const RowLinksWithDropdown = (props: IRowLinksProps) => {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
+	const isClient = useIsClient()
 
-	if (isSmall) {
+	if (isSmall && isClient) {
 		return (
 			<OtherLinks
 				name={

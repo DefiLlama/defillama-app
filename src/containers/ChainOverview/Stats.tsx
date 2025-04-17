@@ -16,7 +16,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto h-[360px]"></div>
+	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]"></div>
 })
 
 export const Stats = (props: IChainOverviewData) => {
@@ -801,7 +801,7 @@ export const Stats = (props: IChainOverviewData) => {
 				</div>
 
 				{isFetchingChartData ? (
-					<div className="flex items-center justify-center m-auto h-[360px]">
+					<div className="flex items-center justify-center m-auto min-h-[360px]">
 						<p>Loading...</p>
 					</div>
 				) : (

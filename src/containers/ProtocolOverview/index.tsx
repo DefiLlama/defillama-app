@@ -468,7 +468,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 
 			{isClient ? (
 				<div className="flex flex-col gap-1">
-					<div className="flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium">
+					<div className="w-full flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium">
 						<button
 							data-active={tab === 'information'}
 							onClick={(e) => setTab('information', e)}

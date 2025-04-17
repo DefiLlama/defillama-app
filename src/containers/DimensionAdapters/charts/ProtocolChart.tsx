@@ -16,7 +16,7 @@ import { useFeesManager } from '~/contexts/LocalStorage'
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
 	loading: () => (
-		<div className="flex items-center justify-center m-auto h-[406px]">
+		<div className="flex items-center justify-center m-auto min-h-[406px]">
 			<LocalLoader />
 		</div>
 	)
@@ -25,7 +25,7 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false,
 	loading: () => (
-		<div className="flex items-center justify-center m-auto h-[406px]">
+		<div className="flex items-center justify-center m-auto min-h-[406px]">
 			<LocalLoader />
 		</div>
 	)

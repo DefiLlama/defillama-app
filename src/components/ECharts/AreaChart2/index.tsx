@@ -207,7 +207,7 @@ export default function AreaChart({
 
 	return (
 		<div className="relative" {...props}>
-			<div id={id} className="h-[360px]" style={height ? { height } : undefined} />
+			<div id={id} className="min-h-[360px]" style={height ? { height } : undefined} />
 		</div>
 	)
 }

@@ -233,7 +233,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 
 	return (
 		<div className="relative rounded-md p-5 bg-[var(--bg6)] flex flex-col items-end">
-			<div id={id} className="h-[800px] w-full" />
+			<div id={id} className="min-h-[800px] w-full" />
 		</div>
 	)
 }

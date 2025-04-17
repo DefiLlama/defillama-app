@@ -159,7 +159,7 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 					/>
 				</div>
 				{isLoading ? (
-					<div className="h-[360px] flex flex-col items-center justify-center">
+					<div className="min-h-[360px] flex flex-col items-center justify-center">
 						<p>Loading...</p>
 					</div>
 				) : (

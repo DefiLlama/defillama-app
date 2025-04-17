@@ -17,22 +17,22 @@ import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
-	loading: () => <div className="h-[360px]" />
+	loading: () => <div className="min-h-[360px]" />
 }) as React.FC<IBarChartProps>
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false,
-	loading: () => <div className="h-[360px]" />
+	loading: () => <div className="min-h-[360px]" />
 }) as React.FC<IStackedBarChartProps>
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false,
-	loading: () => <div className="h-[360px]" />
+	loading: () => <div className="min-h-[360px]" />
 }) as React.FC<IPieChartProps>
 
 const NetflowChart = dynamic(() => import('~/components/ECharts/BarChart/NetflowChart'), {
 	ssr: false,
-	loading: () => <div className="h-[600px]" />
+	loading: () => <div className="min-h-[600px]" />
 }) as React.FC<any>
 
 function BridgesOverview({

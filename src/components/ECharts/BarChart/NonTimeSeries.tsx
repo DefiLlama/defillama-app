@@ -166,7 +166,7 @@ export default function NonTimeSeriesBarChart({
 
 	return (
 		<div className="relative">
-			<div id={id} className="my-auto h-[360px]" style={height ? { height } : undefined}></div>
+			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }
