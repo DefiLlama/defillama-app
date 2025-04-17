@@ -6,7 +6,7 @@ export interface IChartProps {
 	chartData: any
 	stacks?: Array<string>
 	valueSymbol?: string
-	title: string
+	title?: string
 	color?: string
 	hallmarks?: [number, string][]
 	style?: React.CSSProperties
@@ -19,7 +19,7 @@ export interface IChartProps {
 	hideLegend?: boolean
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value>
+			[key: string]: Value | Array<Value> | ((params: any) => string)
 		}
 	}
 	height?: string
