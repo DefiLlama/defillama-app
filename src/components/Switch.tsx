@@ -16,7 +16,7 @@ export const Switch = ({
 	help?: string
 }) => {
 	return (
-		<label className={`text-sm cursor-pointer flex items-center gap-1 flex-nowrap ${className}`}>
+		<label className={`text-sm cursor-pointer flex items-center gap-1 flex-nowrap ${className ?? ''}`}>
 			<input
 				type="checkbox"
 				value={value}

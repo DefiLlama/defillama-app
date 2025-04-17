@@ -37,7 +37,10 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	const [open, setOpen] = React.useState(false)
 
 	return (
-		<div className="relative hidden lg:flex flex-col rounded-md shadow data-[alwaysdisplay=true]:flex" {...extra}>
+		<div
+			className="relative hidden lg:flex flex-col data-[alwaysdisplay=true]:flex pt-[6px] pb-4 w-full max-w-[50vw]"
+			{...extra}
+		>
 			<Ariakit.ComboboxProvider
 				resetValueOnHide
 				setValue={(value) => {
@@ -48,22 +51,13 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 				open={open}
 				setOpen={setOpen}
 			>
-				<Input
-					placeholder={placeholder}
-					onSearchTermChange={onSearchTermChange}
-					filtersExists={filters ? true : false}
-					variant={variant}
-					open={open}
-					setOpen={setOpen}
-				/>
+				<Input placeholder={placeholder} onSearchTermChange={onSearchTermChange} open={open} setOpen={setOpen} />
 
 				<Ariakit.ComboboxPopover
 					unmountOnHide
 					hideOnInteractOutside
 					gutter={6}
-					wrapperProps={{
-						className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none !w-full'
-					}}
+					sameWidth
 					className="flex flex-col bg-[var(--bg1)] rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 				>
 					{loading ? (
@@ -88,13 +82,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 					)}
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
-
-			{/* dark: #101010 */}
-			{filters ? (
-				<span className="flex items-center justify-end rounded-b-md bg-[#fafafa] dark:bg-[#090a0b] p-3 min-h-[48px]">
-					{filters}
-				</span>
-			) : null}
+			{/* {filters} */}
 		</div>
 	)
 }
@@ -107,10 +95,9 @@ interface IInputProps {
 	variant?: 'primary' | 'secondary'
 	hideIcon?: boolean
 	onSearchTermChange?: (value: string) => void
-	filtersExists?: boolean
 }
 
-function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange, filtersExists, variant }: IInputProps) {
+function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IInputProps) {
 	const inputField = React.useRef<HTMLInputElement>(null)
 
 	React.useEffect(() => {
@@ -128,21 +115,18 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange, filte
 	}, [setOpen])
 
 	return (
-		<>
+		<span className="relative isolate w-full">
 			{!hideIcon ? (
-				<button
-					onClick={(prev) => setOpen(!prev)}
-					className={variant === 'secondary' ? 'absolute top-2 left-[6px]' : 'absolute top-[14px] left-3 opacity-50'}
-				>
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[9px] left-[9px] opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
-							<Icon name="x" height={20} width={20} />
+							<Icon name="x" height={16} width={16} />
 						</>
 					) : (
 						<>
 							<span className="sr-only">Open Search</span>
-							<Icon name="search" height={18} width={18} />
+							<Icon name="search" height={14} width={14} />
 						</>
 					)}
 				</button>
@@ -155,25 +139,15 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange, filte
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className={
-					variant === 'secondary'
-						? 'p-[6px] pl-8 rounded-md text-base bg-[#eaeaea] text-black dark:bg-[#22242a] dark:text-white'
-						: `p-3 pl-9 ${
-								filtersExists ? 'rounded-t-md' : 'rounded-md'
-						  } text-base bg-white text-black dark:bg-black dark:text-white`
-				}
+				className="w-full text-xs rounded-md border border-[#e6e6e6] dark:border-[#222324] text-black dark:text-white bg-[var(--app-bg)] py-2 px-[10px] pl-8"
 			/>
 
 			{!hideIcon ? (
-				<span
-					className={`absolute ${
-						variant === 'secondary' ? 'top-1 right-1 p-1' : 'top-2 right-3 p-[6px]'
-					} bg-[#f5f5f5] dark:bg-[#151515] text-[var(--link)] font-medium rounded-md`}
-				>
+				<span className="rounded-md text-xs text-[var(--link-text)] bg-[var(--link-bg)] p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
 					⌘K
 				</span>
 			) : null}
-		</>
+		</span>
 	)
 }
 

@@ -18,6 +18,7 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 }
 
 const empty = []
+
 export const ProtocolsChainsSearch = memo(function ProtocolsChainsSearch({
 	hideFilters,
 	...props
@@ -29,11 +30,9 @@ export const ProtocolsChainsSearch = memo(function ProtocolsChainsSearch({
 	}
 
 	return (
-		<span style={{ minHeight: hideFilters ? '48px' : '96px' }} className="hidden lg:block">
-			<SearchV2 indexName="protocols">
-				<Search hideFilters={hideFilters} {...props} />
-			</SearchV2>
-		</span>
+		<SearchV2 indexName="protocols">
+			<Search {...props} />
+		</SearchV2>
 	)
 })
 

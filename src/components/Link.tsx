@@ -19,7 +19,7 @@ interface CustomLinkProps extends BasicLinkProps {
 export const CustomLink = ({ href, children, target, className, ...props }: CustomLinkProps) => {
 	return (
 		<RouterLink href={href} passHref prefetch={false}>
-			<a {...props} target={target} className={`text-sm font-medium text-[var(--link-text)] ${className}`}>
+			<a {...props} target={target} className={`text-sm font-medium text-[var(--link-text)] ${className ?? ''}`}>
 				{children}
 			</a>
 		</RouterLink>

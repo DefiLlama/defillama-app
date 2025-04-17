@@ -24,7 +24,9 @@ export const CSVDownloadButton = ({
 	return (
 		<>
 			<button
-				className={`flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] ${className}`}
+				className={`flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] ${
+					className ?? ''
+				}`}
 				onClick={() => (IS_PRO_API_ENABLED ? setVerifyAndDownload((prev) => prev + 1) : onClick())}
 			>
 				{customText ? (

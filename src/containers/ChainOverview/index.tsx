@@ -5,6 +5,7 @@ import { SmolStats } from './SmolStats'
 import { Suspense, lazy } from 'react'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Icon } from '~/components/Icon'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
@@ -14,6 +15,7 @@ export function ChainOverview(props: IChainOverviewData) {
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
 			defaultSEO
 		>
+			<ProtocolsChainsSearch />
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
 			<Stats {...props} />
 			<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
