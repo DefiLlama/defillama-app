@@ -518,8 +518,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 						? currentDate.format('MMMM YYYY')
 						: viewMode === 'week'
 						? `${currentDate.startOf('week').format('MMM D')} - ${currentDate.endOf('week').format('MMM D, YYYY')}`
-						: viewMode === 'week'
-						? 'Tree Map'
+						: viewMode === 'treemap'
+						? 'TreeMap Chart'
 						: `Unlocks starting ${currentDate.format('MMM D, YYYY')} (Next 30 Days)`}
 				</h2>
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
