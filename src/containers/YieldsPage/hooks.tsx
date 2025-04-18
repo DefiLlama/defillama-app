@@ -35,11 +35,17 @@ export const useFormatYieldQueryParams = ({
 		if (projectList) {
 			if (project) {
 				if (typeof project === 'string') {
-					selectedProjects = project === 'All' ? projectList.map((p) => slug(p)) : project === 'None' ? [] : [project]
+					selectedProjects =
+						project === 'All'
+							? [...projectList]
+							: project === 'None'
+							? []
+							: projectList.filter((p) => slug(p) === slug(project))
 				} else {
-					selectedProjects = [...project]
+					const pl = project.map((p) => slug(p))
+					selectedProjects = projectList.filter((p) => pl.includes(slug(p)))
 				}
-			} else selectedProjects = projectList.map((p) => slug(p))
+			} else selectedProjects = [...projectList]
 		}
 
 		if (lendingProtocols) {
@@ -47,33 +53,45 @@ export const useFormatYieldQueryParams = ({
 				if (typeof lendingProtocol === 'string') {
 					selectedLendingProtocols =
 						lendingProtocol === 'All'
-							? lendingProtocols.map((p) => slug(p))
+							? [...lendingProtocols]
 							: lendingProtocol === 'None'
 							? []
-							: [lendingProtocol]
+							: lendingProtocols.filter((p) => slug(p) === slug(lendingProtocol))
 				} else {
-					selectedLendingProtocols = [...lendingProtocol]
+					const lp = lendingProtocol.map((l) => slug(l))
+					selectedLendingProtocols = lendingProtocols.filter((p) => lp.includes(slug(p)))
 				}
-			} else selectedLendingProtocols = lendingProtocols.map((p) => slug(p))
+			} else selectedLendingProtocols = [...lendingProtocols]
 		}
 
 		if (farmProtocols) {
 			if (farmProtocol) {
 				if (typeof farmProtocol === 'string') {
 					selectedFarmProtocols =
-						farmProtocol === 'All' ? farmProtocols.map((p) => slug(p)) : farmProtocol === 'None' ? [] : [farmProtocol]
+						farmProtocol === 'All'
+							? [...farmProtocols]
+							: farmProtocol === 'None'
+							? []
+							: farmProtocols.filter((p) => slug(p) === slug(farmProtocol))
 				} else {
-					selectedFarmProtocols = [...farmProtocol]
+					const fp = farmProtocol.map((f) => slug(f))
+					selectedFarmProtocols = farmProtocols.filter((f) => fp.includes(slug(f)))
 				}
-			} else selectedFarmProtocols = farmProtocols.map((p) => slug(p))
+			} else selectedFarmProtocols = [...farmProtocols]
 		}
 
 		if (categoryList) {
 			if (category) {
 				if (typeof category === 'string') {
-					selectedCategories = category === 'All' ? [...categoryList] : category === 'None' ? [] : [category]
+					selectedCategories =
+						category === 'All'
+							? [...categoryList]
+							: category === 'None'
+							? []
+							: categoryList.filter((c) => slug(c) === slug(category))
 				} else {
-					selectedCategories = [...category]
+					const cc = category.map((c) => slug(c))
+					selectedCategories = categoryList.filter((c) => cc.includes(slug(c)))
 				}
 			} else selectedCategories = [...categoryList]
 		}
@@ -81,9 +99,11 @@ export const useFormatYieldQueryParams = ({
 		if (chainList) {
 			if (chain) {
 				if (typeof chain === 'string') {
-					selectedChains = chain === 'All' ? [...chainList] : chain === 'None' ? [] : [chain]
+					selectedChains =
+						chain === 'All' ? [...chainList] : chain === 'None' ? [] : chainList.filter((c) => slug(c) === slug(chain))
 				} else {
-					selectedChains = [...chain]
+					const cc = chain.map((c) => slug(c))
+					selectedChains = chainList.filter((c) => cc.includes(slug(c)))
 				}
 			} else selectedChains = [...chainList]
 		}

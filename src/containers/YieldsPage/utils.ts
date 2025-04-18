@@ -472,13 +472,13 @@ export const filterPool = ({
 }: FilterPools) => {
 	let toFilter = true
 
-	toFilter = toFilter && selectedChains.map((chain) => chain.toLowerCase()).includes(pool.chain.toLowerCase())
+	toFilter = toFilter && selectedChains.map((chain) => slug(chain)).includes(slug(pool.chain))
 	// stratey page filters
 	if (selectedLendingProtocols) {
-		toFilter = toFilter && selectedLendingProtocols.map((project) => project.toLowerCase()).includes(pool.project)
+		toFilter = toFilter && selectedLendingProtocols.map((project) => slug(project)).includes(slug(pool.project))
 	}
 	if (selectedFarmProtocols) {
-		toFilter = toFilter && selectedFarmProtocols.map((project) => project.toLowerCase()).includes(pool.farmProject)
+		toFilter = toFilter && selectedFarmProtocols.map((project) => slug(project)).includes(slug(pool.farmProject))
 	}
 	if (selectedAttributes) {
 		selectedAttributes.forEach((attribute) => {
