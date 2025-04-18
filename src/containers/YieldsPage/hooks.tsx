@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { slug } from '~/utils'
 
 interface IFormatYieldQueryParams {
 	projectList?: Array<string>
@@ -35,77 +34,52 @@ export const useFormatYieldQueryParams = ({
 		if (projectList) {
 			if (project) {
 				if (typeof project === 'string') {
-					selectedProjects =
-						project === 'All'
-							? [...projectList]
-							: project === 'None'
-							? []
-							: projectList.filter((p) => slug(p) === slug(project))
+					selectedProjects = project === 'All' ? projectList : project === 'None' ? [] : [project]
 				} else {
-					const pl = project.map((p) => slug(p))
-					selectedProjects = projectList.filter((p) => pl.includes(slug(p)))
+					selectedProjects = [...project]
 				}
-			} else selectedProjects = [...projectList]
+			} else selectedProjects = projectList
 		}
 
 		if (lendingProtocols) {
 			if (lendingProtocol) {
 				if (typeof lendingProtocol === 'string') {
 					selectedLendingProtocols =
-						lendingProtocol === 'All'
-							? [...lendingProtocols]
-							: lendingProtocol === 'None'
-							? []
-							: lendingProtocols.filter((p) => slug(p) === slug(lendingProtocol))
+						lendingProtocol === 'All' ? lendingProtocols : lendingProtocol === 'None' ? [] : [lendingProtocol]
 				} else {
-					const lp = lendingProtocol.map((l) => slug(l))
-					selectedLendingProtocols = lendingProtocols.filter((p) => lp.includes(slug(p)))
+					selectedLendingProtocols = [...lendingProtocol]
 				}
-			} else selectedLendingProtocols = [...lendingProtocols]
+			} else selectedLendingProtocols = lendingProtocols
 		}
 
 		if (farmProtocols) {
 			if (farmProtocol) {
 				if (typeof farmProtocol === 'string') {
-					selectedFarmProtocols =
-						farmProtocol === 'All'
-							? [...farmProtocols]
-							: farmProtocol === 'None'
-							? []
-							: farmProtocols.filter((p) => slug(p) === slug(farmProtocol))
+					selectedFarmProtocols = farmProtocol === 'All' ? farmProtocols : farmProtocol === 'None' ? [] : [farmProtocol]
 				} else {
-					const fp = farmProtocol.map((f) => slug(f))
-					selectedFarmProtocols = farmProtocols.filter((f) => fp.includes(slug(f)))
+					selectedFarmProtocols = [...farmProtocol]
 				}
-			} else selectedFarmProtocols = [...farmProtocols]
+			} else selectedFarmProtocols = farmProtocols
 		}
 
 		if (categoryList) {
 			if (category) {
 				if (typeof category === 'string') {
-					selectedCategories =
-						category === 'All'
-							? [...categoryList]
-							: category === 'None'
-							? []
-							: categoryList.filter((c) => slug(c) === slug(category))
+					selectedCategories = category === 'All' ? categoryList : category === 'None' ? [] : [category]
 				} else {
-					const cc = category.map((c) => slug(c))
-					selectedCategories = categoryList.filter((c) => cc.includes(slug(c)))
+					selectedCategories = [...category]
 				}
-			} else selectedCategories = [...categoryList]
+			} else selectedCategories = categoryList
 		}
 
 		if (chainList) {
 			if (chain) {
 				if (typeof chain === 'string') {
-					selectedChains =
-						chain === 'All' ? [...chainList] : chain === 'None' ? [] : chainList.filter((c) => slug(c) === slug(chain))
+					selectedChains = chain === 'All' ? chainList : chain === 'None' ? [] : [chain]
 				} else {
-					const cc = chain.map((c) => slug(c))
-					selectedChains = chainList.filter((c) => cc.includes(slug(c)))
+					selectedChains = [...chain]
 				}
-			} else selectedChains = [...chainList]
+			} else selectedChains = chainList
 		}
 
 		if (attribute) {

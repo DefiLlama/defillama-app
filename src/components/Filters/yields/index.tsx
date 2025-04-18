@@ -63,7 +63,7 @@ export function YieldFiltersV2({
 						</React.Suspense>
 					) : null}
 				</div>
-				<div className="hidden flex-wrap gap-2 min-h-[72px] xl:min-h-8 sm:flex">
+				<div className="hidden flex-wrap gap-2 min-h-8 sm:flex">
 					{!isSmall && isClient ? (
 						<React.Suspense fallback={<></>}>
 							<YieldFilterDropdowns {...props} />
