@@ -21,6 +21,7 @@ const SmolBarChart: any = dynamic(() => import('~/containers/ChainOverview/SmolC
 
 export const SmolStats = (props: IChainOverviewData) => {
 	const rwaTvl = useMemo(() => {
+		if (!props.rwaTvlChartData) return null
 		const chart = props.rwaTvlChartData.map((item) => [item[0], item[1].tvl])
 		return {
 			chart,
@@ -115,34 +116,36 @@ export const SmolStats = (props: IChainOverviewData) => {
 							</Suspense>
 						</div>
 					) : null}
-					<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
-						<Tooltip
-							as="h3"
-							className="text-sm font-semibold"
-							content="Total Value Locked in protocols that involve Real World Assets, such as house tokenization"
-						>
-							RWA TVL
-						</Tooltip>
-						<p className="text-xs flex items-center gap-1">
-							<span
-								className={`whitespace-nowrap overflow-hidden text-ellipsis ${
-									+rwaTvl.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
-								}`}
+					{rwaTvl ? (
+						<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
+							<Tooltip
+								as="h3"
+								className="text-sm font-semibold"
+								content="Total Value Locked in protocols that involve Real World Assets, such as house tokenization"
 							>
-								{`${+rwaTvl.change7d >= 0 ? '+' : ''}${rwaTvl.change7d}%`}
-							</span>
-							<span className="text-[#666] dark:text-[#919296]">7d</span>
-						</p>
-						{rwaTvl.chart.length > 0 ? (
-							<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
-								rwaTvl.chart[rwaTvl.chart.length - 1][1],
-								true
-							)}`}</p>
-						) : null}
-						<Suspense fallback={<></>}>
-							<SmolLineChart series={rwaTvl.chart} name="RWA TVL" color={+rwaTvl.change7d >= 0 ? 'green' : 'red'} />
-						</Suspense>
-					</div>
+								RWA TVL
+							</Tooltip>
+							<p className="text-xs flex items-center gap-1">
+								<span
+									className={`whitespace-nowrap overflow-hidden text-ellipsis ${
+										+rwaTvl.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+									}`}
+								>
+									{`${+rwaTvl.change7d >= 0 ? '+' : ''}${rwaTvl.change7d}%`}
+								</span>
+								<span className="text-[#666] dark:text-[#919296]">7d</span>
+							</p>
+							{rwaTvl.chart.length > 0 ? (
+								<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+									rwaTvl.chart[rwaTvl.chart.length - 1][1],
+									true
+								)}`}</p>
+							) : null}
+							<Suspense fallback={<></>}>
+								<SmolLineChart series={rwaTvl.chart} name="RWA TVL" color={+rwaTvl.change7d >= 0 ? 'green' : 'red'} />
+							</Suspense>
+						</div>
+					) : null}
 				</>
 			) : props.dexs?.chart?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
