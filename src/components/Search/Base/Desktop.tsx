@@ -37,7 +37,12 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	const [open, setOpen] = React.useState(false)
 
 	return (
-		<div className="relative hidden lg:flex flex-col data-[alwaysdisplay=true]:flex pt-2 pb-3" {...extra}>
+		<div
+			className={`relative hidden lg:flex flex-col data-[alwaysdisplay=true]:flex ${
+				variant === 'secondary' ? '' : 'pt-2 pb-3'
+			}`}
+			{...extra}
+		>
 			<Ariakit.ComboboxProvider
 				resetValueOnHide
 				setValue={(value) => {
@@ -48,7 +53,13 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 				open={open}
 				setOpen={setOpen}
 			>
-				<Input placeholder={placeholder} onSearchTermChange={onSearchTermChange} open={open} setOpen={setOpen} />
+				<Input
+					placeholder={placeholder}
+					onSearchTermChange={onSearchTermChange}
+					open={open}
+					setOpen={setOpen}
+					variant={variant}
+				/>
 
 				<Ariakit.ComboboxPopover
 					unmountOnHide
@@ -94,7 +105,7 @@ interface IInputProps {
 	onSearchTermChange?: (value: string) => void
 }
 
-function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IInputProps) {
+function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange, variant }: IInputProps) {
 	const inputField = React.useRef<HTMLInputElement>(null)
 
 	React.useEffect(() => {
@@ -112,7 +123,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 	}, [setOpen])
 
 	return (
-		<span className="relative isolate w-full max-w-[50vw]">
+		<span className={`relative isolate w-full ${variant === 'secondary' ? '' : 'max-w-[50vw]'}`}>
 			{!hideIcon ? (
 				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[7px] left-[9px] opacity-50">
 					{open ? (
