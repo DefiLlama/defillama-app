@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl, IRaise } from '~/api/types'
-import { useTvlAndFeesManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import type { ISettings } from '~/contexts/types'
 
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
@@ -370,7 +370,7 @@ export const formatRaisedAmount = (n: number) => {
 
 export const useFetchProtocolAddlChartsData = (protocolName) => {
 	const { data: addlProtocolData, isLoading } = useFetchProtocol(protocolName)
-	const [extraTvlsEnabled] = useTvlAndFeesManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl+fees')
 
 	const data = useQuery({
 		queryKey: [

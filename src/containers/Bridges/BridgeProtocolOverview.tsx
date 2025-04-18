@@ -4,7 +4,7 @@ import Layout from '~/layout'
 import { BridgesSearch } from '~/components/Search/Bridges'
 import { TokenLogo } from '~/components/TokenLogo'
 import { SEO } from '~/components/SEO'
-import { BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
+import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange } from '~/utils'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { BridgeTokensTable, BridgeAddressesTable } from '~/components/Table/Bridges'
@@ -35,7 +35,7 @@ const BridgeInfo = ({
 	const [chartType, setChartType] = React.useState('Inflows')
 	const [currentChain, setChain] = React.useState(defaultChain)
 
-	const [bridgesSettings] = useBridgesManager()
+	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
 
 	const { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals } = tableDataByChain[currentChain]

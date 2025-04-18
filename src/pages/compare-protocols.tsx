@@ -8,7 +8,7 @@ import { IChartProps } from '~/components/ECharts/types'
 import { PROTOCOL_API } from '~/constants'
 import { slug, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsTvlChartData } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
 import { fuseProtocolData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -50,7 +50,7 @@ const fetchProtocol = async (selectedProtocol: string | null) => {
 
 export default function CompareProtocolsTvls({ protocols }: { protocols: Array<string> }) {
 	const router = useRouter()
-	const [extraTvlEnabled] = useDefiManager()
+	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const { protocol } = router.query
 

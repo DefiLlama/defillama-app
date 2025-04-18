@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { IFormattedProtocol } from '~/api/types'
-import { useDefiChainsManager, useDefiManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay, IFormattedDataWithExtraTvl } from './defi'
 import { getPercentChange } from '~/utils'
 
@@ -13,7 +13,7 @@ export const useCalcStakePool2Tvl = (
 	dir?: 'asc',
 	applyLqAndDc = false
 ) => {
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const protocolTotals = useMemo(() => {
 		return formatDataWithExtraTvls({
@@ -29,7 +29,7 @@ export const useCalcStakePool2Tvl = (
 }
 
 export const useGroupChainsByParent = (chains, groupData): IFormattedDataWithExtraTvl[] => {
-	const [groupsEnabled] = useDefiChainsManager()
+	const [groupsEnabled] = useLocalStorageSettingsManager('tvl_chains')
 
 	const data: IFormattedDataWithExtraTvl[] = useMemo(() => {
 		const finalData = {}
@@ -179,7 +179,7 @@ export const useGroupChainsByParent = (chains, groupData): IFormattedDataWithExt
 
 // returns tvl by day for a group of tokens
 export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
-	const [extraTvls] = useDefiManager()
+	const [extraTvls] = useLocalStorageSettingsManager('tvl')
 
 	return useMemo(
 		() => groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled: extraTvls }),

@@ -14,7 +14,7 @@ import { MainBarChart } from './common'
 import { useRouter } from 'next/router'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { Announcement } from '~/components/Announcement'
-import { useFeesManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 
 export type IOverviewContainerProps = IOverviewProps
 
@@ -25,7 +25,7 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 
 	const { dataType: selectedDataType = 'Premium Volume' } = router.query
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
-	const [enabledSettings] = useFeesManager()
+	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
 	const { selectedCategories, protocolsList, rowLinks } = React.useMemo(() => {
 		const selectedCategories = router.query.category

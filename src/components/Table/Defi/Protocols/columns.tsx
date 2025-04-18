@@ -5,7 +5,7 @@ import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { chainIconUrl, formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDaysAgo } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
@@ -952,7 +952,7 @@ export const columnSizes = {
 }
 
 const Tvl = ({ value, rowValues }) => {
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	let text = null
 

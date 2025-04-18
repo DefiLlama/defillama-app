@@ -3,7 +3,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
@@ -81,7 +81,7 @@ function Container({
 		} else return filteredProtocols
 	}, [filteredProtocols, category])
 
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	React.useEffect(() => {
 		setCompareProtocols([])
@@ -343,7 +343,7 @@ const useProtocols = (protocols: string[], chain?: string) => {
 		staleTime: 60 * 60 * 1000
 	})
 
-	const [extraTvlEnabled] = useDefiManager()
+	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
 	const chartData = React.useMemo(() => {
 		try {
 			const formattedData =

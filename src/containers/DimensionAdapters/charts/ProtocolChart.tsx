@@ -11,7 +11,7 @@ import type { IProtocolContainerProps } from '../types'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { useFeesManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -92,7 +92,7 @@ export const ProtocolChart = ({
 
 	const barsData = React.useMemo(() => aggregateDataByInterval(barInterval, chartData)(), [chartData, barInterval])
 
-	const [enabledSettings] = useFeesManager()
+	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
 	return (
 		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">

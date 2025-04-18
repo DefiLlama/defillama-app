@@ -3,13 +3,13 @@ import { useCallback, useContext, useEffect } from 'react'
 import * as echarts from 'echarts'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { useMedia } from '~/hooks/useMedia'
-import { useDarkModeManager, useLiqsManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { ChartData } from '~/containers/Liquidations/utils'
 import { getOption, useStackBy } from './utils'
 
 export const LiquidationsChart = ({ chartData, uid, bobo }: { chartData: ChartData; uid: string; bobo: boolean }) => {
 	const { setSelectedSeries } = useContext(LiquidationsContext)
-	const [liqsSettings] = useLiqsManager()
+	const [liqsSettings] = useLocalStorageSettingsManager('liquidations')
 	const isLiqsUsingUsd = liqsSettings['LIQS_USING_USD']
 	const isLiqsCumulative = liqsSettings['LIQS_CUMULATIVE']
 

@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 
 import dynamic from 'next/dynamic'
-import { useDefiManager, useDarkModeManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager, useDarkModeManager } from '~/contexts/LocalStorage'
 import type { IChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { BAR_CHARTS } from './utils'
@@ -96,7 +96,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 }: IProps) {
 	const router = useRouter()
 
-	const [extraTvlEnabled] = useDefiManager()
+	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
 	const [isThemeDark] = useDarkModeManager()
 
 	const toggledMetrics = React.useMemo(() => {

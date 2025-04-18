@@ -1,8 +1,8 @@
-import { useDefiManager, useFeesManager, useTvlAndFeesManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { feesOptions, protocolsAndChainsOptions } from './options'
 
 export function useProtocolsFilterState() {
-	const [extraTvlsEnabled, updater] = useDefiManager()
+	const [extraTvlsEnabled, updater] = useLocalStorageSettingsManager('tvl')
 
 	const fitlers = protocolsAndChainsOptions.map((o) => o.key)
 
@@ -22,7 +22,7 @@ export function useProtocolsFilterState() {
 }
 
 export function useFeesFilterState(props?: { [key: string]: any }) {
-	const [extraTvlsEnabled, updater] = useFeesManager()
+	const [extraTvlsEnabled, updater] = useLocalStorageSettingsManager('fees')
 
 	const fitlers = feesOptions.map((o) => o.key)
 
@@ -50,7 +50,7 @@ export function useTvlAndFeesFilterState({
 		help?: string
 	}[]
 }) {
-	const [toggledKeys, updater] = useTvlAndFeesManager()
+	const [toggledKeys, updater] = useLocalStorageSettingsManager('tvl+fees')
 
 	const fitlers = options.map((o) => o.key)
 

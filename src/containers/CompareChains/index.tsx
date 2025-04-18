@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
-import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
 import { ISettings } from '~/contexts/types'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
@@ -159,7 +159,7 @@ const updateRoute = (key, val, router: NextRouter) => {
 
 export function CompareChains() {
 	const [isDark] = useDarkModeManager()
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const router = useRouter()
 

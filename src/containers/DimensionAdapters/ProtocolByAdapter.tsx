@@ -17,7 +17,7 @@ import type { IProtocolContainerProps } from './types'
 import { ProtocolChart } from './charts/ProtocolChart'
 import { useEmissions } from './hooks/useEmissions'
 import { sluggify } from '~/utils/cache-client'
-import { useFeesManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
 
@@ -36,7 +36,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 			address: splittedAddress.length > 1 ? splittedAddress[1] : splittedAddress[0]
 		}
 	})
-	const [enabledSettings] = useFeesManager()
+	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 	const emissionsChart = useEmissions(sluggify(props.protocolSummary.name))
 
 	const enableVersionsChart = props.protocolSummary.linkedProtocols?.length > 0

@@ -5,7 +5,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { toNiceCsvDate, download } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGroupChainsByParent } from '~/hooks/data'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useRouter } from 'next/router'
@@ -35,7 +35,7 @@ export function ChainsByCategory({
 }: IChainsByCategoryData) {
 	const { query } = useRouter()
 	const { minTvl, maxTvl } = query
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const { dataByChain, pieChartData, chainsWithExtraTvlsAndDominanceByDay, chainsUniqueFiltered } = useMemo(() => {
 		// add extra tvls like staking pool2 based on toggles selected

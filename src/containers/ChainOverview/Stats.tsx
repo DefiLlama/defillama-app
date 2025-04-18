@@ -4,7 +4,7 @@ import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useFetchChainChartData } from './useFetchChainChartData'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { RowWithSubRows } from '~/containers/ProtocolOverview/RowWithSubRows'
@@ -27,7 +27,7 @@ export const Stats = (props: IChainOverviewData) => {
 
 	const [darkMode] = useDarkModeManager()
 
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const { chartOptions, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart } = useMemo(() => {
 		let CHAIN_SYMBOL = props.chainTokenInfo?.token_symbol ?? null

@@ -10,7 +10,7 @@ import { LiquidationsContent } from '~/containers/Liquidations/LiquidationsConte
 import { LiqProtocolsTable } from '~/containers/Liquidations/ProtocolsTable'
 import { TableSwitch } from '~/containers/Liquidations/TableSwitch'
 import { LiqPositionsTable } from '~/containers/Liquidations/PositionsTable'
-import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
+import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import type { ISearchItem } from '~/components/Search/types'
 import { maxAgeForNext } from '~/api'
 import { liquidationsIconUrl } from '~/utils'
@@ -61,7 +61,7 @@ const LiquidationsProvider = ({ children }) => {
 
 const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; options: ISearchItem[] }> = (props) => {
 	const { data, prevData, options } = props
-	const [liqsSettings] = useLiqsManager()
+	const [liqsSettings] = useLocalStorageSettingsManager('liquidations')
 	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
 

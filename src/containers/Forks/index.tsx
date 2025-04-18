@@ -4,7 +4,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { formatChartTvlsByDay } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import type { IChartProps } from '~/components/ECharts/types'
 import Layout from '~/layout'
@@ -22,7 +22,7 @@ const chartColors = {
 }
 
 export const ForksByProtocol = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const { protocolsData, parentForks, finalChartData, totalVolume, volumeChangeUSD } = useMemo(() => {
 		const protocolsData = formatDataWithExtraTvls({

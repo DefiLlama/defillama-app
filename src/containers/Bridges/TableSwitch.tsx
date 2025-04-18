@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars*/
 import * as React from 'react'
-import { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
+import { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 
 export const TxsTableSwitch = () => {
-	const [bridgesSettings, toggleBridgesSettings] = useBridgesManager()
+	const [bridgesSettings, toggleBridgesSettings] = useLocalStorageSettingsManager('bridges')
 	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
 
 	return (
@@ -30,7 +30,7 @@ export const TxsTableSwitch = () => {
 }
 
 export const AddressesTableSwitch = () => {
-	const [bridgesSettings, toggleBridgesSettings] = useBridgesManager()
+	const [bridgesSettings, toggleBridgesSettings] = useLocalStorageSettingsManager('bridges')
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
 
 	return (

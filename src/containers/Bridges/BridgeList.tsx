@@ -1,6 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { BRIDGES_SHOWING_TXS, useBridgesManager } from '~/contexts/LocalStorage'
+import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/types'
@@ -54,7 +54,7 @@ function BridgesOverview({
 		setChartView('netflow')
 	}, [])
 
-	const [bridgesSettings] = useBridgesManager()
+	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
 	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
 
 	const handleRouting = (selectedChain) => {

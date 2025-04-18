@@ -22,7 +22,7 @@ import { CustomLink } from '~/components/Link'
 import { ICONS_CDN, removedCategories } from '~/constants'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
-import { subscribeToLocalStorage, useDefiManager } from '~/contexts/LocalStorage'
+import { subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 
@@ -30,7 +30,7 @@ const optionsKey = 'ptc'
 const filterStatekey = 'ptcfs'
 
 export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol> }) => {
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const finalProtocols = useMemo(() => {
 		return formatProtocolsList2({ protocols, extraTvlsEnabled })
@@ -670,7 +670,7 @@ const defaultColumns = JSON.stringify({
 })
 
 const Tvl = ({ rowValues }) => {
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	let text = null
 

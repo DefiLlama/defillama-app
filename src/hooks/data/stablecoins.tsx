@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { getDominancePercent } from '~/utils'
-import { useDefiChainsManager, useStablecoinsManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter } from '~/utils'
 
 interface IPegged {
@@ -71,7 +71,7 @@ interface IGroupData {
 type ChainTvlsByDay = [string, IChainTvl]
 
 export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
-	const [extraPeggedEnabled] = useStablecoinsManager()
+	const [extraPeggedEnabled] = useLocalStorageSettingsManager('stablecoins')
 
 	const peggedAssetTotals = useMemo(() => {
 		const updatedPeggedAssets = filteredPeggedAssets.map(
@@ -110,7 +110,7 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
 
 // returns circulating by day for a group of tokens
 export const useCalcGroupExtraPeggedByDay = (chains) => {
-	const [extraPeggedEnabled] = useStablecoinsManager()
+	const [extraPeggedEnabled] = useLocalStorageSettingsManager('stablecoins')
 
 	const { data, daySum } = useMemo(() => {
 		const daySum = {}
@@ -148,7 +148,7 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 }
 
 export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainPegged[] => {
-	const [groupsEnabled] = useDefiChainsManager()
+	const [groupsEnabled] = useLocalStorageSettingsManager('tvl_chains')
 	const data: GroupChainPegged[] = useMemo(() => {
 		const finalData = {}
 		const addedChains = []

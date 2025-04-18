@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
-import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useDefiChainsManager } from '~/contexts/LocalStorage'
+import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -100,7 +100,7 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 		.filter((col) => col.getIsVisible())
 		.map((col) => col.id)
 
-	const [groupTvls, updater] = useDefiChainsManager()
+	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const clearAllAggrOptions = () => {
 		DEFI_CHAINS_SETTINGS.forEach((item) => {

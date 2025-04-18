@@ -1,6 +1,6 @@
 import { ActionMeta, components, GroupProps } from 'react-select'
 import { ReactSelect } from './ReactSelect'
-import { useDefiChainsManager, DEFI_CHAINS_SETTINGS } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager, DEFI_CHAINS_SETTINGS } from '~/contexts/LocalStorage'
 
 const tvlOptions = [{ label: 'Unreleased', value: 'unreleased' }]
 
@@ -12,7 +12,7 @@ const tvlOptionsLabel = [
 ]
 
 export function PeggedAssetTvlOptions({ label }: { label?: string }) {
-	const [extraPeggedEnabled, updater] = useDefiChainsManager()
+	const [extraPeggedEnabled, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const filters = extraPeggedEnabled
 
@@ -58,7 +58,7 @@ const groupOptionsLabel = [
 ]
 
 export function GroupStablecoins({ label }: { label?: string }) {
-	const [groupTvls, updater] = useDefiChainsManager()
+	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const filters = { ...groupTvls }
 

@@ -10,7 +10,7 @@ import { TotalLiquidable } from './TotalLiquidable'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { useStackBy } from './utils'
-import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
+import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Image from 'next/future/image'
 import boboLogo from '~/assets/boboSmug.png'
 import dynamic from 'next/dynamic'
@@ -68,7 +68,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 }
 
 const CurrencyToggle = (props: { symbol: string }) => {
-	const [liqsSettings, toggleLiqsSettings] = useLiqsManager()
+	const [liqsSettings, toggleLiqsSettings] = useLocalStorageSettingsManager('liquidations')
 	const { LIQS_USING_USD } = LIQS_SETTINGS
 	const isLiqsUsingUsd = liqsSettings[LIQS_USING_USD]
 
@@ -93,7 +93,7 @@ const CurrencyToggle = (props: { symbol: string }) => {
 }
 
 const CumulativeToggle = () => {
-	const [liqsSettings, toggleLiqsSettings] = useLiqsManager()
+	const [liqsSettings, toggleLiqsSettings] = useLocalStorageSettingsManager('liquidations')
 	const { LIQS_CUMULATIVE } = LIQS_SETTINGS
 	const isLiqsCumulative = liqsSettings[LIQS_CUMULATIVE]
 

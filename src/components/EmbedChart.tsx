@@ -2,13 +2,13 @@ import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { transparentize } from 'polished'
 import { useRouter } from 'next/router'
-import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 
 export function EmbedChart({ color }) {
 	const router = useRouter()
 
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const [isDarkTheme] = useDarkModeManager()
 
 	let path = router.asPath === '/' ? '/chain/All' : router.asPath.split('#')[0].split('?')[0]

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Menu } from '~/components/Menu'
 import { useIsClient } from '~/hooks'
-import { DEFAULT_PORTFOLIO_NAME, useDefiManager, useWatchlist } from '~/contexts/LocalStorage'
+import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager, useWatchlist } from '~/contexts/LocalStorage'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
@@ -14,7 +14,7 @@ interface IFolder {
 }
 
 export function DefiWatchlistContainer() {
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const { fullProtocolsList, parentProtocols, isLoading: fetchingProtocolsList } = useGetProtocolsList({ chain: 'All' })
 	const { data: chainProtocolsVolumes, isLoading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain('All')

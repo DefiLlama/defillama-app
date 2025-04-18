@@ -6,7 +6,7 @@ import { formatChartTvlsByDay } from '~/hooks/data'
 import { formattedNum, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { getOraclePageData } from '~/containers/Oracles/queries'
@@ -57,7 +57,7 @@ export async function getStaticPaths() {
 }
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chainChartData, oracleMonthlyVolumes }) => {
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const { protocolsData, finalChartData, totalValue } = useMemo(() => {
 		const protocolsData = formatDataWithExtraTvls({
 			data: filteredProtocols,

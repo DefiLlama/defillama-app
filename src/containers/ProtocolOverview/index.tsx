@@ -15,7 +15,7 @@ import ProtocolChart from './Chart/ProtocolChart'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/options'
-import { DEFI_SETTINGS_KEYS, FEES_SETTINGS, useTvlAndFeesManager } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS, FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formatPercentage, formattedNum, getBlockExplorer, slug, tokenIconUrl } from '~/utils'
 import { useFetchProtocolTwitter, useGetTokenPrice } from '~/api/categories/protocols/client'
 import type { IFusedProtocolData, IProtocolDevActivity, NftVolumeData } from '~/api/types'
@@ -230,7 +230,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const [extraTvlsEnabled, updater] = useTvlAndFeesManager()
+	const [extraTvlsEnabled, updater] = useLocalStorageSettingsManager('tvl+fees')
 
 	const { data: twitterData } = useFetchProtocolTwitter(protocolData?.twitter ? protocolData?.twitter : null)
 	const weeksFromLastTweet = React.useMemo(() => {

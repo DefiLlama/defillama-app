@@ -13,7 +13,7 @@ import { SEO } from '~/components/SEO'
 import { QuestionHelper } from '~/components/QuestionHelper'
 
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
-import { UNRELEASED, useStablecoinsManager } from '~/contexts/LocalStorage'
+import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
 	toNiceCsvDate,
@@ -126,7 +126,7 @@ export const PeggedAssetInfo = ({
 	)
 
 	const extraPeggeds = [UNRELEASED]
-	const [extraPeggedsEnabled, updater] = useStablecoinsManager()
+	const [extraPeggedsEnabled, updater] = useLocalStorageSettingsManager('stablecoins')
 
 	const chainTotals = useCalcCirculating(chainCirculatings)
 

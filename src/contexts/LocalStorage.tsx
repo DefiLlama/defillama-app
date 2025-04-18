@@ -362,7 +362,40 @@ const updateSetting = (key) => {
 	window.dispatchEvent(new Event('storage'))
 }
 
-function useSettingsManager(settings: Array<string>): [Record<string, boolean>, (key) => void] {
+export type TSETTINGTYPE =
+	| 'tvl'
+	| 'fees'
+	| 'tvl+fees'
+	| 'tvl_chains'
+	| 'stablecoins'
+	| 'nfts'
+	| 'liquidations'
+	| 'bridges'
+
+function getSettingKeys(type: TSETTINGTYPE) {
+	switch (type) {
+		case 'tvl':
+			return DEFI_SETTINGS_KEYS
+		case 'fees':
+			return FEES_SETTINGS_KEYS
+		case 'tvl+fees':
+			return [...DEFI_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS]
+		case 'tvl_chains':
+			return DEFI_CHAINS_KEYS
+		case 'stablecoins':
+			return STABLECOINS_SETTINGS_KEYS
+		case 'nfts':
+			return NFT_SETTINGS_KEYS
+		case 'liquidations':
+			return LIQS_SETTINGS_KEYS
+		case 'bridges':
+			return BRIDGES_SETTINGS_KEYS
+		default:
+			return []
+	}
+}
+
+export function useLocalStorageSettingsManager(type: TSETTINGTYPE): [Record<string, boolean>, (key) => void] {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => localStorage.getItem(DEFILLAMA) ?? '{}',
@@ -374,9 +407,12 @@ function useSettingsManager(settings: Array<string>): [Record<string, boolean>, 
 	const toggledSettings = useMemo(() => {
 		const ps = JSON.parse(store)
 		return Object.fromEntries(
-			settings.map((s) => [s, (urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false])
+			getSettingKeys(type).map((s) => [
+				s,
+				(urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false
+			])
 		)
-	}, [store])
+	}, [store, type])
 
 	return [toggledSettings, updateSetting]
 }
@@ -406,42 +442,6 @@ export function useChartManager() {
 	}
 
 	return [state[BAR_MIN_WIDTH_IN_CHART], updater]
-}
-
-// DEFI
-export function useDefiManager() {
-	return useSettingsManager(DEFI_SETTINGS_KEYS)
-}
-export function useFeesManager() {
-	return useSettingsManager(FEES_SETTINGS_KEYS)
-}
-export function useTvlAndFeesManager() {
-	return useSettingsManager([...DEFI_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS])
-}
-
-// DEFI_CHAINS
-export function useDefiChainsManager() {
-	return useSettingsManager(DEFI_CHAINS_KEYS)
-}
-
-// STABLECOINS
-export function useStablecoinsManager() {
-	return useSettingsManager(STABLECOINS_SETTINGS_KEYS)
-}
-
-// NFTS
-export function useNftsManager() {
-	return useSettingsManager(NFT_SETTINGS_KEYS)
-}
-
-// LIQUIDATIONS
-export function useLiqsManager() {
-	return useSettingsManager(LIQS_SETTINGS_KEYS)
-}
-
-// BRIDGES
-export function useBridgesManager() {
-	return useSettingsManager(BRIDGES_SETTINGS_KEYS)
 }
 
 // DEFI AND YIELDS WATCHLIST
