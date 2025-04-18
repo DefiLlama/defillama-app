@@ -240,7 +240,7 @@ export const PeggedAssetInfo = ({
 															type="checkbox"
 															value={option}
 															checked={extraPeggedsEnabled[option]}
-															onChange={updater(option)}
+															onChange={() => updater(option)}
 														/>
 														<span style={{ opacity: extraPeggedsEnabled[option] ? 1 : 0.7 }}>
 															{capitalizeFirstLetter(option)}

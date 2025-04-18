@@ -12,7 +12,7 @@ export const TxsTableSwitch = () => {
 			<button
 				className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 				data-active={!isBridgesShowingTxs}
-				onClick={toggleBridgesSettings(BRIDGES_SHOWING_TXS)}
+				onClick={() => toggleBridgesSettings(BRIDGES_SHOWING_TXS)}
 			>
 				<Icon name="bar-chart-2" height={14} width={14} />
 				<span>Bridges</span>
@@ -20,7 +20,7 @@ export const TxsTableSwitch = () => {
 			<button
 				className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 				data-active={isBridgesShowingTxs}
-				onClick={toggleBridgesSettings(BRIDGES_SHOWING_TXS)}
+				onClick={() => toggleBridgesSettings(BRIDGES_SHOWING_TXS)}
 			>
 				<Icon name="activity" height={14} width={14} />
 				<span>Large Txs</span>
@@ -37,7 +37,7 @@ export const AddressesTableSwitch = () => {
 		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 			<button
 				data-active={!isBridgesShowingAddresses}
-				onClick={toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
+				onClick={() => toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
 				className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 			>
 				<Icon name="trending-up" height={14} width={14} />
@@ -45,7 +45,7 @@ export const AddressesTableSwitch = () => {
 			</button>
 			<button
 				data-active={isBridgesShowingAddresses}
-				onClick={toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
+				onClick={() => toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
 				className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 			>
 				<Icon name="users" height={14} width={14} />

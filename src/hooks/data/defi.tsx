@@ -4,7 +4,7 @@ import { removedCategories } from '~/constants'
 import { ISettings } from '~/contexts/types'
 import { getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
-import { IChainAssets } from '~/containers/ChainOverview/types'
+import { IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
 
 interface IData {
 	tvl: number
@@ -379,4 +379,32 @@ export const formatProtocolsList = ({
 	return (
 		parentProtocols ? groupProtocols(finalProtocols, parentProtocols, noSubrows) : finalProtocols
 	) as Array<IFormattedProtocol>
+}
+
+export const formatProtocolsList2 = ({
+	protocols,
+	extraTvlsEnabled
+}: {
+	protocols: IProtocol[]
+	extraTvlsEnabled: ISettings
+}): IProtocol[] => {
+	const tvlSettings = {
+		...extraTvlsEnabled,
+		doublecounted: !extraTvlsEnabled.doublecounted
+	}
+
+	const shouldModifyTvl = Object.values(tvlSettings).some((t) => t)
+
+	if (!shouldModifyTvl) return protocols
+
+	const final = []
+	for (const protocol of protocols) {
+		let strikeTvl = protocol.strikeTvl ?? false
+		if (strikeTvl && (tvlSettings['liquidstaking'] || tvlSettings['doublecounted'])) {
+			strikeTvl = false
+		}
+		final.push({ ...protocol, strikeTvl })
+	}
+
+	return final
 }

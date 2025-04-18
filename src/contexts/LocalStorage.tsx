@@ -3,8 +3,8 @@ import { createContext, useContext, useReducer, useMemo, useCallback, useEffect,
 import { trackGoal } from 'fathom-client'
 import { slug } from '~/utils'
 import { useIsClient } from '~/hooks'
-import { NextRouter, useRouter } from 'next/router'
-import { ISettings, IWatchlist, TUpdater } from './types'
+import { useRouter } from 'next/router'
+import { IWatchlist } from './types'
 
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
@@ -223,13 +223,6 @@ function reducer(state, { type, payload }) {
 
 function init() {
 	const defaultLocalStorage = {
-		[DARK_MODE]: true,
-		...DEFI_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...FEES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: prop === UNRELEASED ? false : true }), {}),
-		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...LIQS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...BRIDGES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME,
@@ -330,6 +323,7 @@ const toggleDarkMode = () => {
 	localStorage.setItem(DARK_MODE, localStorage.getItem(DARK_MODE) === 'true' ? 'false' : 'true')
 	window.dispatchEvent(new Event('storage'))
 }
+
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
 		subscribe,
@@ -352,71 +346,56 @@ export function useDarkModeManager() {
 	return [isDarkMode, toggleDarkMode] as [boolean, () => void]
 }
 
-// TODO fix unnecessary rerenders on all state managers
-export function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
-	const [state, { updateKey, updateKeyOptionallyPersist }] = useLocalStorageContext()
-	const isClient = useIsClient()
-	const router = useRouter()
+const updateSetting = (key) => {
+	const current = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
 
-	const updateStateFromRouter = (setting: string, router?: NextRouter) => {
-		// Per product needs, only defi settings are updated from the router
-		if (!DEFI_SETTINGS_KEYS.includes(setting as any)) return
+	const urlParams = new URLSearchParams(window.location.search)
 
-		let routerValue = router.query[setting]
-		if (typeof routerValue === 'string' && ['true', 'false'].includes(routerValue)) {
-			routerValue = JSON.parse(routerValue)
+	const newState = !((urlParams.get(key) ? urlParams.get(key) === 'true' : null) ?? current[key] ?? false)
 
-			if (routerValue !== state[setting]?.value) {
-				const persist = !!state[setting]?.persist
-				updateKeyOptionallyPersist(setting, routerValue, persist)
-			}
-		}
-	}
+	const url = new URL(window.location.href)
+	url.searchParams.set(key, newState.toString())
+	window.history.pushState({}, '', url)
 
-	const updateRouter = (key: string, newState: boolean) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: { ...router.query, [key]: newState }
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
+	localStorage.setItem(DEFILLAMA, JSON.stringify({ ...current, [key]: newState }))
 
-	const toggledSettings: ISettings = useMemo(
-		() =>
-			settings.reduce((acc, setting) => {
-				let toggled = false
-				if (isClient) {
-					updateStateFromRouter(setting, router)
+	window.dispatchEvent(new Event('storage'))
+}
 
-					toggled = state[setting]?.value ?? state[setting]
-					// prevent flash of these toggles when page loads initially
-				} else if (setting === 'emulator') {
-					toggled = true
-				} else toggled = false
-
-				acc[setting] = toggled
-				return acc
-			}, {}),
-		[state, isClient, settings]
+function useSettingsManager(settings: Array<string>): [Record<string, boolean>, (key) => void] {
+	const store = useSyncExternalStore(
+		subscribe,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
 	)
 
-	const updater = (key: string, shouldUpdateRouter?: boolean) => () => {
-		// Router values override local storage values
-		const oldState = state[key]?.value ?? state[key]
-		const newState = !oldState
+	const urlParams = typeof document !== 'undefined' ? new URLSearchParams(window.location.search) : null
 
-		if (shouldUpdateRouter) {
-			updateRouter(key, newState)
-			updateKeyOptionallyPersist(key, newState, true)
-		} else {
-			updateKey(key, newState)
-		}
-	}
+	const toggledSettings = useMemo(() => {
+		const ps = JSON.parse(store)
+		return Object.fromEntries(
+			settings.map((s) => [s, (urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false])
+		)
+	}, [store])
 
-	return [toggledSettings, updater]
+	return [toggledSettings, updateSetting]
+}
+
+const updateAllSettings = (keys: Record<string, boolean>) => {
+	const current = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+	localStorage.setItem(DEFILLAMA, JSON.stringify({ ...current, ...keys }))
+	window.dispatchEvent(new Event('storage'))
+}
+
+export function useManageAppSettings(): [Record<string, boolean>, (keys: Record<string, boolean>) => void] {
+	const store = useSyncExternalStore(
+		subscribe,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
+	)
+	const toggledSettings = useMemo(() => JSON.parse(store), [store])
+
+	return [toggledSettings, updateAllSettings]
 }
 
 export function useChartManager() {

@@ -720,7 +720,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 																								type="checkbox"
 																								value={option}
 																								checked={extraTvlsEnabled[option]}
-																								onChange={updater(option)}
+																								onChange={() => updater(option)}
 																							/>
 																							<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
 																								{capitalizeFirstLetter(option)}

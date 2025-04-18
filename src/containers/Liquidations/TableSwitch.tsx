@@ -14,7 +14,7 @@ export const TableSwitch = () => {
 				<button
 					className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					data-active={!isLiqsShowingInspector}
-					onClick={toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)}
+					onClick={() => toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)}
 				>
 					<Icon name="percent" height={14} width={14} />
 					<span>Distribution</span>
@@ -22,7 +22,7 @@ export const TableSwitch = () => {
 				<button
 					className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					data-active={isLiqsShowingInspector}
-					onClick={toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)}
+					onClick={() => toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)}
 				>
 					<Icon name="search" height={14} width={14} />
 					<span>Positions</span>

@@ -113,7 +113,7 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 	const clearAllAggrOptions = () => {
 		DEFI_CHAINS_SETTINGS.forEach((item) => {
 			if (selectedAggregateTypes.includes(item.key)) {
-				updater(item.key)()
+				updater(item.key)
 			}
 		})
 	}
@@ -121,7 +121,7 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 	const toggleAllAggrOptions = () => {
 		DEFI_CHAINS_SETTINGS.forEach((item) => {
 			if (!selectedAggregateTypes.includes(item.key)) {
-				updater(item.key)()
+				updater(item.key)
 			}
 		})
 	}
@@ -130,12 +130,12 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 		for (const item in groupTvls) {
 			// toggle on
 			if (!groupTvls[item] && selectedKeys.includes(item)) {
-				updater(item)()
+				updater(item)
 			}
 
 			// toggle off
 			if (groupTvls[item] && !selectedKeys.includes(item)) {
-				updater(item)()
+				updater(item)
 			}
 		}
 	}

@@ -22,10 +22,10 @@ export function PeggedAssetTvlOptions({ label }: { label?: string }) {
 
 	const toggle = (_, s: ActionMeta<any>) => {
 		if (s.removedValues) {
-			s.removedValues?.forEach((option) => updater(option.value)())
+			s.removedValues?.forEach((option) => updater(option.value))
 		} else if (s.removedValue) {
-			updater(s.removedValue.value)()
-		} else updater(s.option.value)()
+			updater(s.removedValue.value)
+		} else updater(s.option.value)
 	}
 
 	const Group = (props: GroupProps) => (
@@ -68,10 +68,10 @@ export function GroupStablecoins({ label }: { label?: string }) {
 
 	const toggle = (_, s: ActionMeta<any>) => {
 		if (s.removedValues) {
-			s.removedValues?.forEach((option) => updater(option.value)())
+			s.removedValues?.forEach((option) => updater(option.value))
 		} else if (s.removedValue) {
-			updater(s.removedValue.value)()
-		} else updater(s.option.value)()
+			updater(s.removedValue.value)
+		} else updater(s.option.value)
 	}
 
 	const Group = (props: GroupProps) => (

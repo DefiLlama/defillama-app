@@ -24,11 +24,18 @@ import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { formatProtocolsList2 } from '~/hooks/data/defi'
 
 const optionsKey = 'ptc'
 const filterStatekey = 'ptcfs'
 
 export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol> }) => {
+	const [extraTvlsEnabled] = useDefiManager()
+
+	const finalProtocols = useMemo(() => {
+		return formatProtocolsList2({ protocols, extraTvlsEnabled })
+	}, [protocols])
+
 	const columnsInStorage = useSyncExternalStore(
 		subscribe,
 		() => localStorage.getItem(optionsKey) ?? defaultColumns,
@@ -87,7 +94,7 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const instance = useReactTable({
-		data: protocols,
+		data: finalProtocols,
 		columns: columns,
 		state: {
 			sorting,

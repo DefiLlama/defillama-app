@@ -11,10 +11,10 @@ export function useProtocolsFilterState() {
 	const setSelectedValues = (values) => {
 		if (values.length < selectedValues.length) {
 			const off = selectedValues.find((o) => !values.includes(o))
-			updater(off, true)?.()
+			updater(off)
 		} else {
 			const on = values.find((o) => !selectedValues.includes(o))
-			updater(on, true)?.()
+			updater(on)
 		}
 	}
 
@@ -31,10 +31,10 @@ export function useFeesFilterState(props?: { [key: string]: any }) {
 	const setSelectedValues = (values) => {
 		if (values.length < selectedValues.length) {
 			const off = selectedValues.find((o) => !values.includes(o))
-			updater(off)()
+			updater(off)
 		} else {
 			const on = values.find((o) => !selectedValues.includes(o))
-			updater(on)()
+			updater(on)
 		}
 	}
 
@@ -59,10 +59,10 @@ export function useTvlAndFeesFilterState({
 	const setSelectedValues = (values) => {
 		if (values.length < selectedValues.length) {
 			const off = selectedValues.find((o) => !values.includes(o))
-			updater(off)()
+			updater(off)
 		} else {
 			const on = values.find((o) => !selectedValues.includes(o))
-			updater(on)()
+			updater(on)
 		}
 	}
 
