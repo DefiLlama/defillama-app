@@ -414,6 +414,14 @@ export const formatProtocolsList2 = ({
 				}
 			}
 
+			const tvlChange = {
+				change1d: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevDay),
+				change7d: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevWeek),
+				change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
+			}
+
+			const mcaptvl = protocol.mcap != null ? +(protocol.mcap / defaultTvl.tvl).toFixed(2) : null
+
 			if (protocol.childProtocols) {
 				const childProtocols = []
 				for (const child of protocol.childProtocols) {
@@ -433,11 +441,19 @@ export const formatProtocolsList2 = ({
 							defaultTvl.tvlPrevMonth = (defaultTvl.tvlPrevMonth || 0) + child.tvl[tvlKey].tvlPrevMonth
 						}
 					}
-					childProtocols.push({ ...child, strikeTvl, tvl: { default: defaultTvl } })
+					const tvlChange = {
+						change1d: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevDay),
+						change7d: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevWeek),
+						change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
+					}
+
+					const mcaptvl = child.mcap != null ? +(child.mcap / defaultTvl.tvl).toFixed(2) : null
+
+					childProtocols.push({ ...child, strikeTvl, tvl: { default: defaultTvl }, tvlChange, mcaptvl })
 				}
-				final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, childProtocols })
+				final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, childProtocols, tvlChange, mcaptvl })
 			} else {
-				final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl } })
+				final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, tvlChange, mcaptvl })
 			}
 		}
 	}
