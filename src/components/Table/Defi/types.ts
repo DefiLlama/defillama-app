@@ -1,10 +1,4 @@
-import { ChainAssets } from '~/hooks/data/defi'
-
-export interface IOraclesRow {
-	name: string
-	protocolsSecured: number
-	tvs: number
-}
+import { IChainAssets } from '~/containers/ChainOverview/types'
 
 export interface IForksRow {
 	name: string
@@ -36,7 +30,7 @@ export interface IChain {
 
 export interface IChainsRow extends IChain {
 	subRows?: Array<IChain>
-	chainAssets?: ChainAssets
+	chainAssets?: IChainAssets
 }
 
 export interface ILSDRow {
@@ -108,16 +102,6 @@ export interface AirdropRow {
 	twitter: string
 	explorer: string
 	tokens: string
-}
-
-export interface IBridgedRow {
-	name: string
-	total?: { total?: string }
-	thirdParty?: { total?: string }
-	canonical?: { total?: string }
-	ownTokens?: { total?: string }
-	native?: { total?: string }
-	change_24h: number
 }
 
 export interface CategoryPerformanceRow {

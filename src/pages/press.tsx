@@ -1,6 +1,7 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const PressPanel = ({ imageFilename }) => (
 	<div className="border border-black/10 dark:border-white/10 rounded-md text-center p-4">
@@ -42,9 +43,10 @@ const pressList = [
 function PressPage() {
 	return (
 		<Layout title="Press - DefiLlama" defaultSEO>
-			<h1 className="text-2xl font-medium -mb-5">Press & Media</h1>
+			<ProtocolsChainsSearch />
+			<h1 className="text-xl font-semibold bg-[var(--cards-bg)] rounded-md p-3">Press & Media</h1>
 
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
 				<h2 className="font-semibold text-lg">About DefiLlama</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
@@ -61,7 +63,7 @@ function PressPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Contact</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
@@ -111,7 +113,7 @@ function PressPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Press</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 
@@ -133,7 +135,7 @@ function PressPage() {
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Branding Assets</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>

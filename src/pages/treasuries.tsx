@@ -1,16 +1,15 @@
-import Layout from '~/layout'
-import { PROTOCOLS_TREASURY } from '~/constants'
 import * as React from 'react'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getTreasuryData, TreasuriesPage } from '~/containers/Treasuries'
-import { treasuriesColumns } from '~/components/Table/Defi/columns'
+import { maxAgeForNext } from '~/api'
+import { getTreasuryData } from '~/containers/Treasuries/queries'
+import { Treasuries } from '~/containers/Treasuries'
 
-export const getStaticProps = withPerformanceLogging('treasuries', getTreasuryData(PROTOCOLS_TREASURY))
+export const getStaticProps = withPerformanceLogging('treasuries', async () => {
+	const data = await getTreasuryData()
 
-export default function Treasuries({ treasuries }) {
-	return (
-		<Layout title={`Treasuries - DefiLlama`} defaultSEO>
-			<TreasuriesPage treasuries={treasuries} treasuriesColumns={treasuriesColumns} />
-		</Layout>
-	)
+	return { props: { data, entity: false }, revalidate: maxAgeForNext([22]) }
+})
+
+export default function TreasuriesPage(props) {
+	return <Treasuries {...props} />
 }

@@ -7,6 +7,7 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { TopGainersAndLosers } from '~/components/Table/Defi/Protocols'
 import { withPerformanceLogging } from '~/utils/perf'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging('top-gainers-and-losers', async () => {
 	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl'])
@@ -33,11 +34,16 @@ export default function TopGainersLosers({ protocols }) {
 
 	return (
 		<Layout title={`Top Gainers and Losers - DefiLlama`} defaultSEO>
-			<h1 className="text-2xl font-medium -mb-5">Top Gainers</h1>
-			<TopGainersAndLosers data={topGainers} />
+			<ProtocolsChainsSearch />
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<h1 className="text-xl font-semibold p-3">Top Gainers</h1>
+				<TopGainersAndLosers data={topGainers} />
+			</div>
 
-			<h1 className="text-2xl font-medium -mb-5">Top Losers</h1>
-			<TopGainersAndLosers data={topLosers} />
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<h1 className="text-xl font-semibold p-3">Top Losers</h1>
+				<TopGainersAndLosers data={topLosers} />
+			</div>
 		</Layout>
 	)
 }

@@ -1,4 +1,4 @@
-import ProtocolContainer from '~/containers/Defi/Protocol'
+import ProtocolContainer from '~/containers/ProtocolOverview'
 import { slug } from '~/utils'
 import { getProtocol, getProtocols } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'

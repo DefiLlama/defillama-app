@@ -1,15 +1,13 @@
-import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
-import { getForkPageData } from '~/api/categories/protocols'
+import { getForkPageData } from '~/containers/Forks/queries'
 import { withPerformanceLogging } from '~/utils/perf'
-import { ForkContainer } from '~/containers/Forks'
+import { ForksByProtocol } from '~/containers/Forks'
 
 export const getStaticProps = withPerformanceLogging('forks', async ({ params: { fork } }) => {
 	const data = await getForkPageData(fork)
 
 	return {
-		...data,
+		props: { ...data },
 		revalidate: maxAgeForNext([22])
 	}
 })
@@ -29,11 +27,5 @@ export async function getStaticPaths() {
 }
 
 export default function Forks(props) {
-	return (
-		<Layout title={`Forks - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
-
-			<ForkContainer {...props} />
-		</Layout>
-	)
+	return <ForksByProtocol {...props} />
 }

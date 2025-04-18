@@ -1,53 +1,32 @@
-import { maxAgeForNext } from '~/api'
-import * as React from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
 	useReactTable,
 	SortingState,
 	getCoreRowModel,
 	getSortedRowModel,
 	getFilteredRowModel,
-	ColumnFiltersState
+	ColumnFiltersState,
+	ColumnDef
 } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
-
-import { fetchWithErrorLogging } from '~/utils/async'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download } from '~/utils'
-import { Icon } from '~/components/Icon'
+import { download, formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
+import Layout from '~/layout'
+import { CustomLink } from '~/components/Link'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
-const fetch = fetchWithErrorLogging
-
-export const getTreasuryData = (url: string) => async () => {
-	const treasuries = await fetch(url).then((res) => res.json())
-	return {
-		props: {
-			treasuries: treasuries
-				.map((t) => ({
-					...t,
-					...['majors', 'others', 'ownTokens', 'stablecoins'].reduce(
-						(acc, v) => ({
-							...acc,
-							[v]: t.tokenBreakdowns[v]
-						}),
-						{}
-					),
-					coreTvl: t.tvl,
-					tvl: t.tvl + (t.chainTvls?.['OwnTokens'] ?? 0),
-					mcap: t.mcap === 0 ? null : t.mcap
-				}))
-				.sort((a, b) => b.coreTvl - a.coreTvl)
-		},
-		revalidate: maxAgeForNext([22])
-	}
-}
-
-export function TreasuriesPage({ treasuries, treasuriesColumns }) {
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([])
-
+export function Treasuries({ data, entity }) {
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+	const [sorting, setSorting] = useState<SortingState>([])
+	const tableColumns = useMemo(
+		() => (entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl'].includes(c.accessorKey)) : columns),
+		[entity]
+	)
 	const instance = useReactTable({
-		data: treasuries,
-		columns: treasuriesColumns,
+		data,
+		columns: entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl'].includes(c.accessorKey)) : columns,
 		state: {
 			columnFilters,
 			sorting
@@ -59,7 +38,7 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = React.useState('')
+	const [projectName, setProjectName] = useState('')
 
 	const downloadCSV = () => {
 		const headers = [
@@ -76,7 +55,7 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 			'Change 7d',
 			'Change 1m'
 		]
-		const data = treasuries.map((row) => {
+		const dataToDownload = data.map((row) => {
 			return {
 				Name: row.name,
 				Category: row.category,
@@ -92,11 +71,13 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 				'Change 1m': row.change_1m
 			}
 		})
-		const csv = [headers.join(',')].concat(data.map((row) => headers.map((header) => row[header]).join(','))).join('\n')
+		const csv = [headers.join(',')]
+			.concat(dataToDownload.map((row) => headers.map((header) => row[header]).join(',')))
+			.join('\n')
 		download('treasuries.csv', csv)
 	}
 
-	React.useEffect(() => {
+	useEffect(() => {
 		const projectsColumns = instance.getColumn('name')
 		const id = setTimeout(() => {
 			projectsColumns.setFilterValue(projectName)
@@ -105,31 +86,244 @@ export function TreasuriesPage({ treasuries, treasuriesColumns }) {
 	}, [projectName, instance])
 
 	return (
-		<>
-			<div className="flex items-center gap-4 flex-wrap last:*:ml-auto -mb-6">
-				<h1 className="text-2xl font-medium">Protocol Treasuries</h1>
+		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
+			<TableWithSearch
+				data={data}
+				columns={tableColumns}
+				columnToSearch={'name'}
+				placeholder={'Search projects...'}
+				header={'Treasuries'}
+				customFilters={
+					<>
+						<CSVDownloadButton onClick={downloadCSV} className="min-h-[34px]" />
+					</>
+				}
+			/>
+		</Layout>
+	)
+}
 
-				<CSVDownloadButton onClick={downloadCSV} isLight />
+export const columns: ColumnDef<any>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
-				<div className="relative w-full sm:max-w-[280px]">
-					<Icon
-						name="search"
-						height={16}
-						width={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-					/>
-					<input
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
-						placeholder="Search projects..."
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
-					/>
-				</div>
-			</div>
+			const name = (getValue() as string).split(' (treasury)')[0]
+			const slug = (row.original.slug as string).split('-(treasury)')[0]
 
-			<VirtualTable instance={instance} />
-		</>
+			return (
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>
+					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+					<CustomLink
+						href={`/protocol/${slug}#treasury`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{name}
+					</CustomLink>
+				</span>
+			)
+		},
+		size: 220
+	},
+	{
+		header: 'Breakdown',
+		accessorKey: 'tokenBreakdowns',
+		id: 'tokenBreakdowns0',
+		enableSorting: false,
+		cell: (info) => {
+			const breakdown = info.getValue() as { [type: string]: number }
+			let totalBreakdown = 0
+
+			for (const type in breakdown) {
+				totalBreakdown += breakdown[type]
+			}
+
+			const breakdownDominance = {}
+
+			for (const value in breakdown) {
+				breakdownDominance[value] = getDominancePercent(breakdown[value], totalBreakdown)
+			}
+
+			const dominance = Object.entries(breakdownDominance).sort(
+				(a: [string, number], b: [string, number]) => b[1] - a[1]
+			)
+
+			if (totalBreakdown < 1) {
+				return <></>
+			}
+
+			return (
+				<Tooltip content={<TooltipContent dominance={dominance} protocolName={info.row.original.name} />}>
+					<span className="h-5 !w-full ml-auto bg-white flex items-center flex-nowrap">
+						{dominance.map((dom) => {
+							const color = breakdownColor(dom[0])
+							const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
+
+							return (
+								<div
+									key={dom[0] + dom[1] + info.row.original.name}
+									style={{ width: `${dom[1]}%`, background: color }}
+									className="h-5"
+								/>
+							)
+						})}
+					</span>
+				</Tooltip>
+			)
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Stablecoins',
+		accessorKey: 'stablecoins',
+		id: 'stablecoins',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 115,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Majors (BTC, ETH)',
+		accessorKey: 'majors',
+		id: 'majors',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 160,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Own Tokens',
+		accessorKey: 'ownTokens',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Others',
+		accessorKey: 'others',
+		id: 'others',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Total excl. own tokens',
+		accessorKey: 'coreTvl',
+		id: 'coreTvl',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 185,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Total Treasury',
+		accessorKey: 'tvl',
+		id: 'total-treasury',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 135,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Mcap',
+		accessorKey: 'mcap',
+		id: 'mcap',
+		cell: (info) => {
+			return <>{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}</>
+		},
+		size: 128,
+		meta: {
+			align: 'end'
+		}
+	}
+]
+
+const breakdownColor = (type) => {
+	if (type === 'stablecoins') {
+		return '#16a34a'
+	}
+
+	if (type === 'majors') {
+		return '#2563eb'
+	}
+
+	if (type === 'ownTokens') {
+		return '#f97316'
+	}
+
+	if (type === 'others') {
+		return '#6d28d9'
+	}
+
+	return '#f85149'
+}
+
+const formatBreakdownType = (type) => {
+	if (type === 'stablecoins') {
+		return 'Stablecoins'
+	}
+
+	if (type === 'majors') {
+		return 'Majors'
+	}
+
+	if (type === 'ownTokens') {
+		return 'Own Tokens'
+	}
+
+	if (type === 'others') {
+		return 'Others'
+	}
+
+	return type
+}
+
+const Breakdown = ({ data }) => {
+	const color = breakdownColor(data[0])
+	const name = `${formatBreakdownType(data[0])} (${data[1]}%)`
+
+	return (
+		<span className="flex items-center flex-nowrap gap-1">
+			<span style={{ '--color': color } as any} className="h-4 w-4 bg-[var(--color)] rounded-sm"></span>
+			<span>{name}</span>
+		</span>
+	)
+}
+
+const TooltipContent = ({ dominance, protocolName }) => {
+	return (
+		<span className="flex flex-col gap-1">
+			{dominance.map((dom) => (
+				<Breakdown data={dom} key={dom[0] + dom[1] + protocolName + 'tooltip-content'} />
+			))}
+		</span>
 	)
 }

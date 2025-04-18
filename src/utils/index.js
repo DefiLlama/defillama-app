@@ -1,4 +1,3 @@
-import * as React from 'react'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { ICONS_CDN, ICONS_PALETTE_CDN, timeframeOptions } from '~/constants'
@@ -251,8 +250,8 @@ export function formattedPercent(percent, noSign = false, fontWeight = 400, retu
 		return null
 	}
 
-	let up = '#3fb950'
-	let down = '#f85149'
+	let up = 'green'
+	let down = 'red'
 
 	if (noSign) {
 		up = down = ''
@@ -296,8 +295,19 @@ export function formattedPercent(percent, noSign = false, fontWeight = 400, retu
 		return finalValue
 	}
 
+	if (fontWeight > 400) {
+		return (
+			<span
+				className={`${noSign ? '' : color === 'green' ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'}`}
+				style={{ fontWeight }}
+			>
+				{finalValue}
+			</span>
+		)
+	}
+
 	return (
-		<span className="font-[var(--weight)] text-[var(--color)]" style={{ '--weight': fontWeight, '--color': color }}>
+		<span className={`${noSign ? '' : color === 'green' ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'}`}>
 			{finalValue}
 		</span>
 	)
@@ -370,16 +380,6 @@ export const getTokenDominance = (topToken, totalVolume) => {
 	} else return 100
 }
 
-export const getPeggedDominance = (topToken, totalMcap) => {
-	if (topToken && totalMcap) {
-		const dominance = topToken.mcap && totalMcap && (topToken.mcap / totalMcap) * 100.0
-		if (!dominance) return null
-		if (dominance < 100) {
-			return dominance.toFixed(2)
-		} else return 100
-	} else return null
-}
-
 /**
  * get tvl of specified day before last day using chart data
  * @param {*} chartData
@@ -391,14 +391,6 @@ export const getPrevTvlFromChart = (chart, daysBefore) => {
 
 export const getPrevTvlFromChart2 = (chart, daysBefore, key) => {
 	return chart[chart.length - 1 - daysBefore]?.[key] ?? null
-}
-
-export const getPrevPeggedTotalFromChart = (chart, daysBefore, issuanceType, pegType = '') => {
-	if (!chart) return null
-	const prevChart = chart[chart.length - 1 - daysBefore]
-	if (!prevChart) return null
-	if (!pegType) return Object.values(prevChart?.[issuanceType] ?? {}).reduce((a, b) => a + b, 0)
-	return prevChart?.[issuanceType]?.[pegType] ?? null
 }
 
 export const getPrevVolumeFromChart = (chart, daysBefore, txs = false, inflows = false) => {
@@ -454,4 +446,14 @@ export const formatPercentage = (value) => {
 		})
 
 	return value.toLocaleString(undefined, { maximumFractionDigits: zeroes + 1 })
+}
+
+export function iterateAndRemoveUndefined(obj) {
+	if (typeof obj !== 'object') return obj
+	if (Array.isArray(obj)) return obj
+	Object.entries(obj).forEach((key, value) => {
+		if (value === undefined) delete obj[key]
+		else iterateAndRemoveUndefined(value)
+	})
+	return obj
 }

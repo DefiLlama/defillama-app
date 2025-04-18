@@ -3,7 +3,7 @@ import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import { formattedNum } from '~/utils'
-import { ProtocolChart } from '~/containers/DexsAndFees/charts/ProtocolChart'
+import { ProtocolChart } from '~/containers/DimensionAdapters/charts/ProtocolChart'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
@@ -33,8 +33,8 @@ export default function Collection() {
 
 	return (
 		<Layout title={props.name + ' Royalties - DefiLlama'}>
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
+				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={props.logo} size={48} />
 						<FormattedName text={props.name} fontWeight={700} />

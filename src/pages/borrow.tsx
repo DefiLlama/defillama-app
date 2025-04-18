@@ -1,9 +1,9 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer, findOptimizerPools } from '~/containers/YieldsPage/utils'
+import { disclaimer, findOptimizerPools } from '~/containers/Yields/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
-import { getLendBorrowData } from '~/api/categories/yield'
+import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { withPerformanceLogging } from '~/utils/perf'
 import { useRouter } from 'next/router'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -82,8 +82,8 @@ export default function YieldBorrow(data) {
 	return (
 		<Layout title={`Borrow Aggregator - DefiLlama`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<div className="flex flex-col mx-auto w-full max-w-md gap-4">
-				<div className="rounded-md bg-white/60 dark:bg-black/60 flex flex-col gap-5 p-4 overflow-y-auto">
+			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative lg:left-[-110px] lg:top-4 xl:top-11 bg-[var(--cards-bg)] p-3">
+				<div className="flex flex-col gap-5 p-3 overflow-y-auto w-full">
 					<label className="flex flex-col gap-1 w-full">
 						<span className="text-base">Borrow</span>
 						<TokensSelect searchData={data.searchData} query={'borrow'} placeholder="Select token to borrow" />
@@ -202,7 +202,7 @@ const TokensSelect = ({
 					<Ariakit.Combobox
 						placeholder="Search..."
 						autoFocus
-						className="bg-white dark:bg-black rounded-md py-2 px-3 m-3"
+						className="bg-white dark:bg-black rounded-md text-base py-1 px-3 m-3"
 					/>
 
 					{matches.length > 0 ? (

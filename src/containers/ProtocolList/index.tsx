@@ -1,16 +1,15 @@
 import * as React from 'react'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { chainIconUrl, formattedNum, getPercentChange, slug } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { RowWithSubRows } from '~/containers/Defi/Protocol/RowWithSubRows'
+import { RowWithSubRows } from '~/containers/ProtocolOverview/RowWithSubRows'
 import { categoryProtocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IOverviewProps } from '~/api/categories/adaptors'
 import { ButtonDark } from '~/components/ButtonStyled'
@@ -20,10 +19,11 @@ import { useQuery } from '@tanstack/react-query'
 import { fuseProtocolData } from '~/api/categories/protocols'
 import { PROTOCOL_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
-import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/useFetchAndFormatChartData'
+import { formatProtocolsTvlChartData } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
 import { LocalLoader } from '~/components/LocalLoader'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
-const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
+const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false
 })
 
@@ -81,7 +81,7 @@ function Container({
 		} else return filteredProtocols
 	}, [filteredProtocols, category])
 
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	React.useEffect(() => {
 		setCompareProtocols([])
@@ -163,159 +163,158 @@ function Container({
 	return (
 		<>
 			<ProtocolsChainsSearch />
-			<div className="flex gap-2">
-				<h1 className="text-2xl font-medium -mb-5">{title}</h1>
-				{csvDownload ? (
-					<CSVDownloadButton
-						style={{ marginLeft: 'auto' }}
-						onClick={() => {
-							window.open(
-								`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)
-									.filter((t) => t[1] === true)
-									.map((t) => `${t[0]}=true`)
-									.join('&')}${category === 'Liquid Staking' ? 'liquidstaking=true' : ''}`.replaceAll(' ', '_')
-							)
-						}}
-					/>
-				) : null}
-			</div>
 
-			<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
-				{showChainList && (
-					<nav className="flex items-center gap-5 overflow-hidden">
-						<RowLinksWithDropdown links={chainOptions} activeLink={chain} />
-					</nav>
-				)}
-				{category ? (
-					<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl py-4 px-2 min-h-[394px]">
-						<div className="flex flex-col gap-8 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
-							{chain !== 'All' && chain && (
-								<h1 className="flex items-center gap-2 text-xl">
-									<TokenLogo logo={chainIconUrl(chain)} size={24} />
-									<span>{chain}</span>
-								</h1>
-							)}
-							<details className="group text-base">
-								<summary className="flex items-center">
-									<Icon
-										name="chevron-right"
-										height={20}
-										width={20}
-										className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+			{showChainList && (
+				<div className="bg-[var(--cards-bg)] rounded-md">
+					<RowLinksWithDropdown links={chainOptions} activeLink={chain} />
+				</div>
+			)}
+
+			{category ? (
+				<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1 min-h-[394px]">
+					<div className="flex flex-col gap-8 p-6 col-span-1 w-full xl:w-[380px] rounded-md bg-[var(--cards-bg)] overflow-x-auto">
+						{chain !== 'All' && chain && (
+							<h1 className="flex items-center gap-2">
+								<TokenLogo logo={chainIconUrl(chain)} size={24} />
+								<span className="text-xl font-semibold">{chain}</span>
+							</h1>
+						)}
+						<details className="group text-base">
+							<summary className="flex items-center">
+								<Icon
+									name="chevron-right"
+									height={20}
+									width={20}
+									className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+								/>
+								<span className="flex flex-col">
+									<span className="text-[#545757] dark:text-[#cccccc] text-sm">Total Value Locked</span>
+									<span className="font-semibold text-2xl font-jetbrains min-h-8">{tvl}</span>
+								</span>
+							</summary>
+							<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
+								<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
+								<span className="font-jetbrains">{percentChange || 0}%</span>
+							</p>
+							<p className="flex items-center flex-wrap justify-between gap-2 my-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">{topToken.name} Dominance</span>
+								<span className="font-jetbrains">{dominance}%</span>
+							</p>
+						</details>
+						<table className="text-base w-full border-collapse">
+							<tbody>
+								{totals.volume_24h ? (
+									<RowWithSubRows
+										rowHeader={'Volume (24h)'}
+										rowValue={formattedNum(totals.volume_24h, true)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{totals.volume_7d ? (
+													<tr>
+														<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Volume (7d)
+														</th>
+														<td className="text-sm text-right">{formattedNum(totals.volume_7d, true)}</td>
+													</tr>
+												) : null}
+											</>
+										}
 									/>
-									<span className="flex flex-col">
-										<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
-										<span className="font-semibold text-2xl font-jetbrains min-h-8">{tvl}</span>
-									</span>
-								</summary>
-								<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
-									<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
-									<span className="font-jetbrains">{percentChange || 0}%</span>
-								</p>
-								<p className="flex items-center flex-wrap justify-between gap-2 my-1">
-									<span className="text-[#545757] dark:text-[#cccccc]">{topToken.name} Dominance</span>
-									<span className="font-jetbrains">{dominance}%</span>
-								</p>
-							</details>
-							<table>
-								<tbody>
-									{totals.volume_24h ? (
-										<RowWithSubRows
-											rowHeader={'Volume (24h)'}
-											rowValue={formattedNum(totals.volume_24h, true)}
-											helperText={null}
-											protocolName={null}
-											dataType={null}
-											subRows={
-												<>
-													{totals.volume_7d ? (
-														<tr>
-															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																Volume (7d)
-															</th>
-															<td className="text-sm text-right">{formattedNum(totals.volume_7d, true)}</td>
-														</tr>
-													) : null}
-												</>
-											}
-										/>
-									) : null}
-									{totals.fees_24h ? (
-										<RowWithSubRows
-											rowHeader={'Fees (24h)'}
-											rowValue={formattedNum(totals.fees_24h, true)}
-											helperText={null}
-											protocolName={null}
-											dataType={null}
-											subRows={
-												<>
-													{totals.fees_7d ? (
-														<tr>
-															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																Fees (7d)
-															</th>
-															<td className="text-sm text-right">{formattedNum(totals.fees_7d, true)}</td>
-														</tr>
-													) : null}
-													{totals.fees_30d ? (
-														<tr>
-															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																Fees (30d)
-															</th>
-															<td className="text-sm text-right">{formattedNum(totals.fees_30d, true)}</td>
-														</tr>
-													) : null}
-												</>
-											}
-										/>
-									) : null}
-									{totals.revenue_24h ? (
-										<RowWithSubRows
-											rowHeader={'Revenue (24h)'}
-											rowValue={formattedNum(totals.revenue_24h, true)}
-											helperText={null}
-											protocolName={null}
-											dataType={null}
-											subRows={
-												<>
-													{totals.revenue_7d ? (
-														<tr>
-															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																Revenue (7d)
-															</th>
-															<td className="text-sm text-right">{formattedNum(totals.revenue_7d, true)}</td>
-														</tr>
-													) : null}
-													{totals.revenue_30d ? (
-														<tr>
-															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
-																Revenue (30d)
-															</th>
-															<td className="text-sm text-right">{formattedNum(totals.revenue_30d, true)}</td>
-														</tr>
-													) : null}
-												</>
-											}
-										/>
-									) : null}
-								</tbody>
-							</table>
-						</div>
+								) : null}
+								{totals.fees_24h ? (
+									<RowWithSubRows
+										rowHeader={'Fees (24h)'}
+										rowValue={formattedNum(totals.fees_24h, true)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{totals.fees_7d ? (
+													<tr>
+														<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Fees (7d)
+														</th>
+														<td className="text-sm text-right">{formattedNum(totals.fees_7d, true)}</td>
+													</tr>
+												) : null}
+												{totals.fees_30d ? (
+													<tr>
+														<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Fees (30d)
+														</th>
+														<td className="text-sm text-right">{formattedNum(totals.fees_30d, true)}</td>
+													</tr>
+												) : null}
+											</>
+										}
+									/>
+								) : null}
+								{totals.revenue_24h ? (
+									<RowWithSubRows
+										rowHeader={'Revenue (24h)'}
+										rowValue={formattedNum(totals.revenue_24h, true)}
+										helperText={null}
+										protocolName={null}
+										dataType={null}
+										subRows={
+											<>
+												{totals.revenue_7d ? (
+													<tr>
+														<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Revenue (7d)
+														</th>
+														<td className="text-sm text-right">{formattedNum(totals.revenue_7d, true)}</td>
+													</tr>
+												) : null}
+												{totals.revenue_30d ? (
+													<tr>
+														<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															Revenue (30d)
+														</th>
+														<td className="text-sm text-right">{formattedNum(totals.revenue_30d, true)}</td>
+													</tr>
+												) : null}
+											</>
+										}
+									/>
+								) : null}
+							</tbody>
+						</table>
+						{csvDownload ? (
+							<CSVDownloadButton
+								className="mt-auto mr-auto"
+								onClick={() => {
+									window.open(
+										`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)
+											.filter((t) => t[1] === true)
+											.map((t) => `${t[0]}=true`)
+											.join('&')}${category === 'Liquid Staking' ? 'liquidstaking=true' : ''}`.replaceAll(' ', '_')
+									)
+								}}
+							/>
+						) : null}
+					</div>
+					<div className="bg-[var(--cards-bg)] rounded-md">
 						{router.isReady && categoryChart ? <ChainChart datasets={datasets} title="" isThemeDark={isDark} /> : null}
 					</div>
-				) : null}
+				</div>
+			) : null}
 
-				<ProtocolsTableWithSearch
-					data={protocolTotals}
-					columns={categoryProtocolsColumns}
-					addlColumns={
-						category === 'Lending' || category === 'Undercollateralized Lending'
-							? ['borrowed', 'supplied', 'suppliedTvl']
-							: null
-					}
-					removeColumns={columnsToRemove}
-				/>
-			</div>
+			<ProtocolsTableWithSearch
+				data={protocolTotals}
+				columns={categoryProtocolsColumns}
+				addlColumns={
+					category === 'Lending' || category === 'Undercollateralized Lending'
+						? ['borrowed', 'supplied', 'suppliedTvl']
+						: null
+				}
+				removeColumns={columnsToRemove}
+			/>
+
 			{compareProtocols.length > 0 && (
 				<Ariakit.DialogProvider store={dialogStore}>
 					<ButtonDark className="fixed bottom-4 right-4" onClick={dialogStore.toggle}>
@@ -344,7 +343,7 @@ const useProtocols = (protocols: string[], chain?: string) => {
 		staleTime: 60 * 60 * 1000
 	})
 
-	const [extraTvlEnabled] = useDefiManager()
+	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
 	const chartData = React.useMemo(() => {
 		try {
 			const formattedData =

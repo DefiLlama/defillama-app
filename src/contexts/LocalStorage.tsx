@@ -3,8 +3,8 @@ import { createContext, useContext, useReducer, useMemo, useCallback, useEffect,
 import { trackGoal } from 'fathom-client'
 import { slug } from '~/utils'
 import { useIsClient } from '~/hooks'
-import { NextRouter, useRouter } from 'next/router'
-import { ISettings, IWatchlist, TUpdater } from './types'
+import { useRouter } from 'next/router'
+import { IWatchlist } from './types'
 
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
@@ -81,7 +81,7 @@ const DIMENSIONS_CHART_INTERVAL_KEY = 'DIMENSIONS:CHART_INTERVAL'
 
 export const BAR_MIN_WIDTH_IN_CHART = 'BAR_MIN_WIDTH_IN_CHART'
 
-export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS }
+export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS } as const
 
 const BRIBES = 'bribes'
 const TOKENTAX = 'tokentax'
@@ -159,7 +159,7 @@ export const LIQS_SETTINGS = { LIQS_USING_USD, LIQS_SHOWING_INSPECTOR, LIQS_CUMU
 export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES }
 
 const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
-export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS)
+export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS) as Array<string>
 export const FEES_SETTINGS_KEYS = Object.values(FEES_SETTINGS)
 export const STABLECOINS_SETTINGS_KEYS = Object.values(STABLECOINS_SETTINGS)
 export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
@@ -223,13 +223,6 @@ function reducer(state, { type, payload }) {
 
 function init() {
 	const defaultLocalStorage = {
-		[DARK_MODE]: true,
-		...DEFI_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...FEES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: prop === UNRELEASED ? false : true }), {}),
-		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...LIQS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...BRIDGES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME,
@@ -318,7 +311,7 @@ export function Updater() {
 	return null
 }
 
-function subscribe(callback: () => void) {
+export function subscribeToLocalStorage(callback: () => void) {
 	window.addEventListener('storage', callback)
 
 	return () => {
@@ -330,9 +323,10 @@ const toggleDarkMode = () => {
 	localStorage.setItem(DARK_MODE, localStorage.getItem(DARK_MODE) === 'true' ? 'false' : 'true')
 	window.dispatchEvent(new Event('storage'))
 }
+
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(DARK_MODE) ?? 'true',
 		() => 'true'
 	)
@@ -352,71 +346,92 @@ export function useDarkModeManager() {
 	return [isDarkMode, toggleDarkMode] as [boolean, () => void]
 }
 
-// TODO fix unnecessary rerenders on all state managers
-export function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
-	const [state, { updateKey, updateKeyOptionallyPersist }] = useLocalStorageContext()
-	const isClient = useIsClient()
-	const router = useRouter()
+const updateSetting = (key) => {
+	const current = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
 
-	const updateStateFromRouter = (setting: string, router?: NextRouter) => {
-		// Per product needs, only defi settings are updated from the router
-		if (!DEFI_SETTINGS_KEYS.includes(setting)) return
+	const urlParams = new URLSearchParams(window.location.search)
 
-		let routerValue = router.query[setting]
-		if (typeof routerValue === 'string' && ['true', 'false'].includes(routerValue)) {
-			routerValue = JSON.parse(routerValue)
+	const newState = !((urlParams.get(key) ? urlParams.get(key) === 'true' : null) ?? current[key] ?? false)
 
-			if (routerValue !== state[setting]?.value) {
-				const persist = !!state[setting]?.persist
-				updateKeyOptionallyPersist(setting, routerValue, persist)
-			}
-		}
+	const url = new URL(window.location.href)
+	url.searchParams.set(key, newState.toString())
+	window.history.pushState({}, '', url)
+
+	localStorage.setItem(DEFILLAMA, JSON.stringify({ ...current, [key]: newState }))
+
+	window.dispatchEvent(new Event('storage'))
+}
+
+export type TSETTINGTYPE =
+	| 'tvl'
+	| 'fees'
+	| 'tvl+fees'
+	| 'tvl_chains'
+	| 'stablecoins'
+	| 'nfts'
+	| 'liquidations'
+	| 'bridges'
+
+function getSettingKeys(type: TSETTINGTYPE) {
+	switch (type) {
+		case 'tvl':
+			return DEFI_SETTINGS_KEYS
+		case 'fees':
+			return FEES_SETTINGS_KEYS
+		case 'tvl+fees':
+			return [...DEFI_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS]
+		case 'tvl_chains':
+			return DEFI_CHAINS_KEYS
+		case 'stablecoins':
+			return STABLECOINS_SETTINGS_KEYS
+		case 'nfts':
+			return NFT_SETTINGS_KEYS
+		case 'liquidations':
+			return LIQS_SETTINGS_KEYS
+		case 'bridges':
+			return BRIDGES_SETTINGS_KEYS
+		default:
+			return []
 	}
+}
 
-	const updateRouter = (key: string, newState: boolean) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: { ...router.query, [key]: newState }
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggledSettings: ISettings = useMemo(
-		() =>
-			settings.reduce((acc, setting) => {
-				let toggled = false
-				if (isClient) {
-					updateStateFromRouter(setting, router)
-
-					toggled = state[setting]?.value ?? state[setting]
-					// prevent flash of these toggles when page loads initially
-				} else if (setting === 'emulator') {
-					toggled = true
-				} else toggled = false
-
-				acc[setting] = toggled
-				return acc
-			}, {}),
-		[state, isClient, settings]
+export function useLocalStorageSettingsManager(type: TSETTINGTYPE): [Record<string, boolean>, (key) => void] {
+	const store = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
 	)
 
-	const updater = (key: string, shouldUpdateRouter?: boolean) => () => {
-		// Router values override local storage values
-		const oldState = state[key]?.value ?? state[key]
-		const newState = !oldState
+	const urlParams = typeof document !== 'undefined' ? new URLSearchParams(window.location.search) : null
 
-		if (shouldUpdateRouter) {
-			updateRouter(key, newState)
-			updateKeyOptionallyPersist(key, newState, true)
-		} else {
-			updateKey(key, newState)
-		}
-	}
+	const toggledSettings = useMemo(() => {
+		const ps = JSON.parse(store)
+		return Object.fromEntries(
+			getSettingKeys(type).map((s) => [
+				s,
+				(urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false
+			])
+		)
+	}, [store, type])
 
-	return [toggledSettings, updater]
+	return [toggledSettings, updateSetting]
+}
+
+const updateAllSettings = (keys: Record<string, boolean>) => {
+	const current = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+	localStorage.setItem(DEFILLAMA, JSON.stringify({ ...current, ...keys }))
+	window.dispatchEvent(new Event('storage'))
+}
+
+export function useManageAppSettings(): [Record<string, boolean>, (keys: Record<string, boolean>) => void] {
+	const store = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
+	)
+	const toggledSettings = useMemo(() => JSON.parse(store), [store])
+
+	return [toggledSettings, updateAllSettings]
 }
 
 export function useChartManager() {
@@ -427,42 +442,6 @@ export function useChartManager() {
 	}
 
 	return [state[BAR_MIN_WIDTH_IN_CHART], updater]
-}
-
-// DEFI
-export function useDefiManager() {
-	return useSettingsManager(DEFI_SETTINGS_KEYS)
-}
-export function useFeesManager() {
-	return useSettingsManager(FEES_SETTINGS_KEYS)
-}
-export function useTvlAndFeesManager() {
-	return useSettingsManager([...DEFI_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS])
-}
-
-// DEFI_CHAINS
-export function useDefiChainsManager() {
-	return useSettingsManager(DEFI_CHAINS_KEYS)
-}
-
-// STABLECOINS
-export function useStablecoinsManager() {
-	return useSettingsManager(STABLECOINS_SETTINGS_KEYS)
-}
-
-// NFTS
-export function useNftsManager() {
-	return useSettingsManager(NFT_SETTINGS_KEYS)
-}
-
-// LIQUIDATIONS
-export function useLiqsManager() {
-	return useSettingsManager(LIQS_SETTINGS_KEYS)
-}
-
-// BRIDGES
-export function useBridgesManager() {
-	return useSettingsManager(BRIDGES_SETTINGS_KEYS)
 }
 
 // DEFI AND YIELDS WATCHLIST

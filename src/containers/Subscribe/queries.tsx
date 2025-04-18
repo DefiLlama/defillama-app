@@ -6,6 +6,7 @@ import { signMessage, verifyMessage } from 'wagmi/actions'
 import { config } from '~/layout/WalletProvider'
 import { SERVER_API } from '../ProApi/lib/constants'
 import { useRouter } from 'next/router'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 
 export interface IGithubAuthData {
 	apiKey: string | null
@@ -45,14 +46,6 @@ async function exchangeCodeForAccessToken({ code, accessToken }: { code: string 
 	}
 }
 
-function subscribe(callback: () => void) {
-	window.addEventListener('storage', callback)
-
-	return () => {
-		window.removeEventListener('storage', callback)
-	}
-}
-
 function getGithubAuthToken() {
 	return localStorage.getItem('gh_authtoken') || null
 }
@@ -61,7 +54,7 @@ export const useGithubAuth = () => {
 	const router = useRouter()
 	const code = typeof router?.query?.code === 'string' ? router.query.code : null
 
-	const token = useSyncExternalStore(subscribe, getGithubAuthToken, () => null)
+	const token = useSyncExternalStore(subscribeToLocalStorage, getGithubAuthToken, () => null)
 
 	useEffect(() => {
 		if (token && code) {
@@ -288,7 +281,7 @@ export const useGetCurrentKey = () => {
 	const { address } = useAccount()
 
 	const authToken = useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => getProAuthToken(address),
 		() => null
 	)

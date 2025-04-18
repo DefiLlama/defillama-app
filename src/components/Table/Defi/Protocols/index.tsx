@@ -18,19 +18,16 @@ import {
 	columnSizes,
 	protocolAddlColumns,
 	protocolsColumns,
-	recentlyListedProtocolsColumns,
 	topGainersAndLosersColumns,
-	protocolsByTokenColumns,
-	airdropsColumns,
 	protocolsByChainColumns
 } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
-import { useRouter } from 'next/router'
-import { TVLRange } from '~/components/Filters/protocols/TVLRange'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TVLRange } from '~/components/Filters/TVLRange'
+import { TagGroup } from '~/components/TagGroup'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -144,14 +141,6 @@ export const defaultColumns = JSON.stringify({
 	cumulativeVolume: false
 })
 
-function subscribe(callback: () => void) {
-	window.addEventListener('storage', callback)
-
-	return () => {
-		window.removeEventListener('storage', callback)
-	}
-}
-
 const optionsKey = 'protocolsTableColumns'
 
 const ProtocolsTable = ({ data, columnsInStorage }: { data: Array<IProtocolRow>; columnsInStorage: string }) => {
@@ -230,7 +219,7 @@ const ProtocolsTable = ({ data, columnsInStorage }: { data: Array<IProtocolRow>;
 
 export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	const columnsInStorage = React.useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(optionsKey) ?? defaultColumns,
 		() => defaultColumns
 	)
@@ -279,15 +268,15 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	}, [columnsInStorage])
 
 	return (
-		<>
-			<div className="flex items-center justify-between flex-wrap gap-2 -mb-3">
+		<div className="rounded-md bg-[var(--cards-bg)]">
+			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 				<h3 className="text-lg font-medium mr-auto">Protocol Rankings</h3>
-				<RowFilter
+				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
 					values={Object.values(TABLE_CATEGORIES) as Array<string>}
 				/>
-				<RowFilter
+				<TagGroup
 					setValue={setFilter('period')}
 					selectedValue={filterState}
 					values={Object.values(TABLE_PERIODS) as Array<string>}
@@ -303,13 +292,13 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					labelType="smol"
 					triggerProps={{
 						className:
-							'bg-[var(--btn2-bg)]  hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-[var(--text1)] flex-nowrap relative'
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 					}}
 				/>
-				<TVLRange />
+				<TVLRange variant="third" />
 			</div>
 			<ProtocolsTable data={data} columnsInStorage={columnsInStorage} />
-		</>
+		</div>
 	)
 }
 
@@ -396,96 +385,28 @@ export function ProtocolsTableWithSearch({
 	}, [projectName, instance])
 
 	return (
-		<>
-			<div className="relative w-full sm:max-w-[280px] ml-auto -mb-4">
-				<Icon
-					name="search"
-					height={16}
-					width={16}
-					className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-				/>
-				<input
-					value={projectName}
-					onChange={(e) => {
-						setProjectName(e.target.value)
-					}}
-					placeholder="Search protocols..."
-					className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
-				/>
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="p-3 flex items-center justify-between gap-4">
+				<h1 className="text-lg font-semibold mr-auto">Protocol Rankings</h1>
+				<div className="relative w-full sm:max-w-[280px] ml-auto">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={projectName}
+						onChange={(e) => {
+							setProjectName(e.target.value)
+						}}
+						placeholder="Search protocols..."
+						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+					/>
+				</div>
 			</div>
 			<VirtualTable instance={instance} />
-		</>
-	)
-}
-
-export function RecentlyListedProtocolsTable({ data }: { data: Array<IProtocolRow> }) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'listedAt' }])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
-	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-
-	const router = useRouter()
-
-	const instance = useReactTable({
-		data,
-		columns: router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns,
-		state: {
-			sorting,
-			expanded,
-			columnSizing,
-			columnFilters
-		},
-		onExpandedChange: setExpanded,
-		getSubRows: (row: IProtocolRow) => row.subRows,
-		onSortingChange: setSorting,
-		onColumnSizingChange: setColumnSizing,
-		onColumnFiltersChange: setColumnFilters,
-		getFilteredRowModel: getFilteredRowModel(),
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
-	})
-
-	React.useEffect(() => {
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
-
-		instance.setColumnSizing(columnSizes[cSize])
-	}, [windowSize, instance])
-	const [projectName, setProjectName] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			columns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
-
-	return (
-		<>
-			<div className="relative w-full sm:max-w-[280px] ml-auto -mb-6">
-				<Icon
-					name="search"
-					height={16}
-					width={16}
-					className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-				/>
-				<input
-					value={projectName}
-					onChange={(e) => {
-						setProjectName(e.target.value)
-					}}
-					placeholder="Search protocols..."
-					className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
-				/>
-			</div>
-			<VirtualTable instance={instance} />
-		</>
+		</div>
 	)
 }
 
@@ -495,23 +416,6 @@ export function TopGainersAndLosers({ data }: { data: Array<IProtocolRow> }) {
 	const instance = useReactTable({
 		data,
 		columns: topGainersAndLosersColumns,
-		state: {
-			sorting
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
-	})
-
-	return <VirtualTable instance={instance} />
-}
-
-export function ProtocolsByToken({ data }: { data: Array<{ name: string; amountUsd: number }> }) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'amountUsd' }])
-
-	const instance = useReactTable({
-		data,
-		columns: protocolsByTokenColumns,
 		state: {
 			sorting
 		},

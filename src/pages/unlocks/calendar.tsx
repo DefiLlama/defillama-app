@@ -134,11 +134,11 @@ export default function UnlocksCalendar({ unlocksData }) {
 				</a>
 			</Announcement>
 
-			<div className="flex items-center gap-4 flex-wrap">
-				<h1 className="text-2xl font-medium">Token Unlocks Calendar</h1>
+			<div className="flex items-center p-3 bg-[var(--cards-bg)] rounded-md">
+				<h1 className="text-xl font-semibold text-center">Token Unlocks Calendar</h1>
 			</div>
 
-			<div className="bg-white dark:bg-[#090a0b] rounded-lg shadow p-4">
+			<div className="bg-[var(--cards-bg)] rounded-md p-3">
 				<CalendarView unlocksData={unlocksData} />
 			</div>
 		</Layout>

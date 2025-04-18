@@ -1,7 +1,7 @@
 import * as React from 'react'
-import BridgeContainer from '~/containers/BridgeContainer'
+import { BridgeProtocolOverview } from '~/containers/Bridges/BridgeProtocolOverview'
 import { maxAgeForNext } from '~/api'
-import { getBridgePageDatanew } from '~/api/categories/bridges'
+import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -27,5 +27,5 @@ export async function getStaticPaths() {
 }
 
 export default function Bridge(props) {
-	return <BridgeContainer {...props} />
+	return <BridgeProtocolOverview {...props} />
 }

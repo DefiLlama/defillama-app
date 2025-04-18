@@ -17,13 +17,13 @@ import { formatProtocolsData } from '../protocols/utils'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { maxAgeForNext } from '~/api'
-import { getCexVolume } from '../adaptors/utils'
-import { getPeggedDominance, getPercentChange, slug } from '~/utils'
-import { buildPeggedChartData } from '~/utils/stablecoins'
-import { getPeggedOverviewPageData } from '../stablecoins'
-import { getBridgeOverviewPageData } from '../bridges'
+import { getPercentChange, slug } from '~/utils'
+import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
+import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import metadataCache from '~/utils/metadata'
 import { getOverview, getDexVolumeByChain, getAppRevenueByChain, getFeesAndRevenueByChain } from '../adaptors'
+import { getCexVolume } from '~/containers/DimensionAdapters/queries'
+import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 
 const chainsMetadata = metadataCache.chainMetadata
 
@@ -107,7 +107,7 @@ export async function getChainPageData(chain?: string) {
 			: { fees: null, revenue: null },
 		getPeggedOverviewPageData(!chain || chain === 'All' ? null : chainName)
 			.then((data) => {
-				const { peggedAreaChartData, peggedAreaTotalData } = buildPeggedChartData({
+				const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
 					chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
 					assetsOrChainsList: data?.peggedAssetNames,
 					filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
@@ -131,7 +131,7 @@ export async function getChainPageData(chain?: string) {
 					}
 				}
 
-				const dominance = getPeggedDominance(topToken, totalMcapCurrent)
+				const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
 
 				return {
 					totalMcapCurrent: totalMcapCurrent ?? null,
@@ -183,7 +183,12 @@ export async function getChainPageData(chain?: string) {
 		!chain || chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
 		chainMetadata?.gecko_id
 			? fetchWithErrorLogging(
-					`https://pro-api.coingecko.com/api/v3/coins/${chainMetadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false&x_cg_pro_api_key=${process.env.CG_KEY}`
+					`https://pro-api.coingecko.com/api/v3/coins/${chainMetadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
+					{
+						headers: {
+							'x-cg-pro-api-key': process.env.CG_KEY
+						}
+					}
 			  ).then((res) => res.json())
 			: {},
 		chain && chain !== 'All' && chainMetadata?.derivatives

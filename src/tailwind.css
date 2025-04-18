@@ -45,7 +45,7 @@
 		--blue: #2f80ed;
 		--dlnews: #002237;
 
-		--link-bg: #e9effb;
+		--link-bg: #e9f0fa;
 		--link-hover-bg: #d5e0f7;
 		--link-text: #1e68d2;
 		--link-active-bg: #1e68d2;
@@ -61,6 +61,12 @@
 
 		--primary1-hover: rgba(68, 94, 208, 0.2);
 		--form-control-border: rgba(0, 0, 0, 0.1);
+
+		--app-bg: #f7f7f7;
+		--cards-bg: #fffffe;
+		--old-blue: #1f67d2;
+		--pct-green: #008a13;
+		--pct-red: #e60d02;
 	}
 
 	* {
@@ -97,7 +103,7 @@
 		--dlnews: #ffffff;
 		--link: #3689ff;
 
-		--link-bg: #111923;
+		--link-bg: #141d29;
 		--link-hover-bg: #1a2739;
 		--link-text: #629ff4;
 		--link-sec-bg: rgba(34, 36, 42, 0.1);
@@ -112,10 +118,14 @@
 
 		--primary1-hover: rgba(33, 114, 229, 0.2);
 		--form-control-border: rgba(255, 255, 255, 0.1);
+		--app-bg: #090b0c;
+		--cards-bg: #131516;
+		--pct-green: #3fb84f;
+		--pct-red: #e24a42;
 	}
 
 	body {
-		@apply text-black bg-white dark:text-white dark:bg-[#17181c] text-sm;
+		@apply text-black dark:text-white bg-[var(--app-bg)] text-sm;
 	}
 
 	#__next,
@@ -223,24 +233,8 @@
 		transition: 0.1s ease-out;
 	}
 
-	.section-in-grid {
-		@apply flex flex-col gap-4 col-span-full xl:col-span-1 py-6 first-of-type:pt-0 last-of-type:pb-0 border-[var(--text5)] xl:even:pl-6 xl:odd:pr-6 xl:only:p-0 xl:odd:border-r;
-	}
-
-	.section-in-grid:nth-child(n + 2) {
-		@apply border-t;
-	}
-
-	.section-in-grid:nth-child(2) {
-		@apply xl:border-t-0;
-	}
-
-	.section-in-grid:nth-child(odd):last-child {
-		@apply border-r-0 col-span-2;
-	}
-
-	.swagger-ui .scheme-container {
-		@apply !hidden;
+	#fees-generated-chart > div > div > svg > g > image {
+		clip-path: inset(0% round 50%);
 	}
 }
 

@@ -186,18 +186,18 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 
 	return (
 		<Layout title="VC Filter - DefiLlama" defaultSEO>
-			<div className="w-full max-w-4xl mx-auto rounded-md bg-[var(--bg1)] shadow p-5 flex flex-col gap-5">
-				<h1 className="text-2xl font-medium text-center">Connect with Investors</h1>
+			<div className="w-full max-w-4xl mx-auto rounded-md bg-[var(--cards-bg)] p-3 flex flex-col gap-5">
+				<h1 className="text-xl font-semibold text-center">Connect with Investors</h1>
 				<p className="text-base text-center text-[var(--text2)]">
 					Filter a list of VCs by their investments in DeFi projects to connect with the right investors for your
 					project.
 				</p>
 				<div className="flex flex-col lg:flex-row gap-10 relative">
 					<div className="flex-1 flex flex-col gap-4">
-						<h2 className="text-2xl">Filter Investors</h2>
+						<h2 className="text-lg font-semibold">Filter Investors</h2>
 
 						<label className="flex flex-col gap-1 text-sm">
-							<span className="font-medium">Categories:</span>
+							<span className="">Categories:</span>
 							<ReactSelect
 								isMulti
 								options={categoryOptions}
@@ -211,7 +211,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							/>
 						</label>
 						<label className="flex flex-col gap-1 text-sm">
-							<span className="font-medium">DeFi Categories:</span>
+							<span className="">DeFi Categories:</span>
 							<ReactSelect
 								isMulti
 								options={defiCategoryOptions}
@@ -225,7 +225,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							/>
 						</label>
 						<label className="flex flex-col gap-1 text-sm">
-							<span className="font-medium">Round Types:</span>
+							<span className="">Round Types:</span>
 							<ReactSelect
 								isMulti
 								options={roundTypeOptions}
@@ -239,7 +239,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							/>
 						</label>
 						<label className="flex flex-col gap-1 text-sm">
-							<span className="font-medium">Chains:</span>
+							<span className="">Chains:</span>
 							<ReactSelect
 								isMulti
 								options={chainOptions}
@@ -253,7 +253,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							/>
 						</label>
 						<label className="flex flex-col gap-1 text-sm">
-							<span className="font-medium">Minimum last investment time:</span>
+							<span className="">Minimum last investment time:</span>
 							<input
 								type="date"
 								className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-black/10 dark:border-white/10"
@@ -268,7 +268,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							/>
 						</label>
 						<label className="flex flex-col gap-1 text-sm">
-							<span className="font-medium">Minimum number of investments:</span>
+							<span className="">Minimum number of investments:</span>
 							<input
 								type="number"
 								value={filters.minimumInvestments}
@@ -277,11 +277,11 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							/>
 						</label>
 
-						<h2 className="text-2xl">Project Information</h2>
+						<h2 className="text-lg font-semibold">Project Information</h2>
 
 						<form onSubmit={handleSubmit} className="flex flex-col gap-4">
 							<label className="flex flex-col gap-1 text-sm">
-								<span className="font-medium">Project Name:</span>
+								<span className="">Project Name:</span>
 								<input
 									type="text"
 									name="projectName"
@@ -292,7 +292,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
-								<span className="font-medium">Link for further info:</span>
+								<span className="">Link for further info:</span>
 								<input
 									name="link"
 									value={projectInfo.link}
@@ -301,7 +301,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
-								<span className="font-medium">Short Pitch:</span>
+								<span className="">Short Pitch:</span>
 								<textarea
 									name="textPitch"
 									value={projectInfo.textPitch}
@@ -311,7 +311,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
-								<span className="font-medium">Founder Email:</span>
+								<span className="">Founder Email:</span>
 								<input
 									type="email"
 									name="founderEmail"

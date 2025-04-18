@@ -7,7 +7,7 @@ import { useDebounce } from '~/hooks/useDebounce'
 import { formattedPercent } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import { useQuery } from '@tanstack/react-query'
 
 const fetch = fetchWithErrorLogging
@@ -101,26 +101,25 @@ export default function TrendingContracts() {
 
 	return (
 		<Layout title={`Trending Contracts - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch hideFilters />
-			<div className="flex items-center flex-wrap gap-5 -mb-5">
-				<h1 className="text-2xl font-medium mr-auto">Trending Contracts</h1>
-				<RowFilter selectedValue={value} setValue={(val: string) => setValue(val)} values={['1d', '7d', '30d']} />
-				<RowFilter
-					selectedValue={chain}
-					setValue={(val: string) => setChain(val)}
-					values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}
-				/>
+			<ProtocolsChainsSearch />
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<div className="flex items-center flex-wrap gap-5 p-3">
+					<h1 className="text-xl font-semibold mr-auto">Trending Contracts</h1>
+					<TagGroup selectedValue={value} setValue={(val: string) => setValue(val)} values={['1d', '7d', '30d']} />
+					<TagGroup
+						selectedValue={chain}
+						setValue={(val: string) => setChain(val)}
+						values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}
+					/>
+				</div>
+				{isLoading ? (
+					<p className="text-center p-3">Loading...</p>
+				) : error ? (
+					<p className="text-center p-3">Sorry, couldn't fetch trending contracts.</p>
+				) : (
+					<VirtualTable instance={instance} />
+				)}
 			</div>
-
-			{isLoading ? (
-				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">Loading...</p>
-			) : error ? (
-				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
-					Sorry, couldn't fetch trending contracts.
-				</p>
-			) : (
-				<VirtualTable instance={instance} />
-			)}
 		</Layout>
 	)
 }

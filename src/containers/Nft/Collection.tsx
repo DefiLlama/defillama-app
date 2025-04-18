@@ -5,15 +5,14 @@ import { FormattedName } from '~/components/FormattedName'
 import dynamic from 'next/dynamic'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 import { IChartProps } from '~/components/ECharts/types'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { NFTsSearch } from '~/components/Search/NFTs'
 import { getNFTCollection } from '~/api/categories/nfts'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { LazyChart } from '~/components/LazyChart'
+import { Switch } from '~/components/Switch'
 
 const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
 	ssr: false
@@ -56,8 +55,8 @@ export function NFTCollectionContainer() {
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
 			<NFTsSearch />
 
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
+				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={data[0].image} fallbackLogo={data?.[0]?.image} size={48} />
 						<FormattedName text={name} fontWeight={700} />
@@ -82,23 +81,20 @@ export function NFTCollectionContainer() {
 						<span className="font-jetbrains font-semibold text-2xl">{data?.[0]?.totalSupply}</span>
 					</p>
 
-					<Link href={`https://etherscan.io/token/${address.split(':')[0]}`} passHref>
-						<ButtonLight
-							as="a"
-							target="_blank"
-							rel="noopener noreferrer"
-							useTextColor={true}
-							style={{ width: 'fit-content' }}
-						>
-							<span>View on Etherscan</span> <Icon name="arrow-up-right" height={14} width={14} />
-						</ButtonLight>
-					</Link>
+					<a
+						href={`https://etherscan.io/token/${address.split(':')[0]}`}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] mt-auto mr-auto"
+					>
+						<span>View on Etherscan</span> <Icon name="arrow-up-right" height={14} width={14} />
+					</a>
 				</div>
 
-				<div className="col-span-1 py-4 min-h-[412px]">
-					<div className="flex items-center gap-1 flex-nowrap ml-auto px-5">
-						<input
-							type="checkbox"
+				<div className="col-span-1 min-h-[392px] bg-[var(--cards-bg)] rounded-md">
+					<div className="flex items-center justify-end p-3 pb-0 w-full">
+						<Switch
+							label="Include Outliers"
 							value="showMcapChart"
 							checked={includeOutliers}
 							onChange={() =>
@@ -111,7 +107,6 @@ export function NFTCollectionContainer() {
 								)
 							}
 						/>
-						<span>Include Outliers</span>
 					</div>
 					<CollectionScatterChart
 						sales={includeOutliers ? sales : salesExOutliers}
@@ -121,11 +116,11 @@ export function NFTCollectionContainer() {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
-				<LazyChart>
+			<div className="grid grid-cols-2 gap-1">
+				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
 				</LazyChart>
-				<LazyChart>
+				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<OrderbookChart chartData={orderbook} />
 				</LazyChart>
 			</div>

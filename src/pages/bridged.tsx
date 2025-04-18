@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import ChainsContainer from '~/containers/BridgedContainer'
+import { BridgedTVLChainsList } from '~/containers/BridgedTVL/BridgedTVLChainsList'
 import { maxAgeForNext } from '~/api'
 import { getChainsBridged } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -16,8 +16,8 @@ export const getStaticProps = withPerformanceLogging('bridged', async () => {
 
 export default function Chains(props) {
 	return (
-		<Layout title={`All Chains Bridged TVL - DefiLlama`} defaultSEO>
-			<ChainsContainer {...props} />
+		<Layout title={`Bridged TVL - DefiLlama`} defaultSEO>
+			<BridgedTVLChainsList {...props} />
 		</Layout>
 	)
 }

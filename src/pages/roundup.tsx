@@ -20,25 +20,27 @@ export default function Roundup({ messages }: { messages: Array<string | Array<s
 				</Link>
 			</Announcement>
 
-			<h1 className="font-semibold text-3xl text-center -mb-10">Daily news roundup with the 🦙</h1>
+			<div className="flex flex-col gap-3 bg-[var(--cards-bg)] rounded-md p-3">
+				<h1 className="font-semibold text-xl text-center">Daily news roundup with the 🦙</h1>
 
-			<div className="flex flex-col gap-[2px] my-10 max-w-lg mx-auto text-base">
-				{messages.map((x) => {
-					if (typeof x === 'string') {
+				<div className="flex flex-col gap-[2px] max-w-lg mx-auto text-base">
+					{messages.map((x) => {
+						if (typeof x === 'string') {
+							return (
+								<h2 className="my-2 font-semibold" key={x}>
+									{x}
+								</h2>
+							)
+						}
+
 						return (
-							<h2 className="my-2 font-semibold" key={x}>
-								{x}
-							</h2>
+							<a href={x[1]} target="_blank" rel="noreferrer noopener" key={x[1]}>
+								<span>&gt; </span>
+								<span className="underline text-[var(--link)]">{x[0]}</span>
+							</a>
 						)
-					}
-
-					return (
-						<a href={x[1]} target="_blank" rel="noreferrer noopener" key={x[1]}>
-							<span>&gt; </span>
-							<span className="underline text-[var(--link)]">{x[0]}</span>
-						</a>
-					)
-				})}
+					})}
+				</div>
 			</div>
 		</Layout>
 	)

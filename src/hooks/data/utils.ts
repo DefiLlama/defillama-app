@@ -136,6 +136,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		logo: parent.logo,
 		url: parent.url,
 		chains: parent.chains,
+		defillamaId: parent.id,
 		tvl,
 		tvlPrevDay,
 		tvlPrevWeek,

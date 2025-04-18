@@ -5,8 +5,8 @@ import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { useDefiManager } from '~/contexts/LocalStorage'
-import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDaysAgo } from '~/utils'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { chainIconUrl, formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDaysAgo } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
 import { removedCategories } from '~/constants'
@@ -26,7 +26,10 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
-						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
+						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
+							<TokenLogo logo={chainIconUrl(chain)} size={14} />
+							<span>{chain}</span>
+						</span>
 					))}
 				</span>
 			)
@@ -411,7 +414,10 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
-						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
+						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
+							<TokenLogo logo={chainIconUrl(chain)} size={14} />
+							<span>{chain}</span>
+						</span>
 					))}
 				</span>
 			)
@@ -609,7 +615,10 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
-						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
+						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
+							<TokenLogo logo={chainIconUrl(chain)} size={14} />
+							<span>{chain}</span>
+						</span>
 					))}
 				</span>
 			)
@@ -742,28 +751,6 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		},
 		size: 120
 	}
-]
-
-export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
-	...protocolsColumns.slice(0, 3),
-	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
-]
-
-export const airdropsColumns: ColumnDef<IProtocolRow>[] = [
-	...protocolsColumns.slice(0, 3),
-	{
-		header: 'Total Money Raised',
-		accessorKey: 'totalRaised',
-		cell: ({ getValue }) => <>{getValue() ? `$${toK(getValue())}` : ''}</>,
-		sortUndefined: 'last',
-		size: 180,
-		meta: {
-			align: 'end' as const
-		}
-	},
-	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
 ]
 
 export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
@@ -965,7 +952,7 @@ export const columnSizes = {
 }
 
 const Tvl = ({ value, rowValues }) => {
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	let text = null
 
@@ -1014,42 +1001,3 @@ const Tvl = ({ value, rowValues }) => {
 		</span>
 	)
 }
-
-export const protocolsByTokenColumns: ColumnDef<{ name: string; amountUsd: number }>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span className="flex items-center gap-2">
-					<span className="flex-shrink-0">{index + 1}</span>
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
-					<CustomLink
-						href={`/protocol/${slug(value)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>{`${value}`}</CustomLink>
-				</span>
-			)
-		}
-	},
-	{
-		header: () => 'Category',
-		accessorKey: 'category',
-		enableSorting: false,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: () => 'Amount',
-		accessorKey: 'amountUsd',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
-		meta: {
-			align: 'end'
-		}
-	}
-]

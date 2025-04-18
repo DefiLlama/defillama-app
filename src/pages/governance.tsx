@@ -18,6 +18,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { Icon } from '~/components/Icon'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
@@ -71,27 +72,29 @@ export default function Governance({ data }) {
 
 	return (
 		<Layout title={`Governance - DefiLlama`} defaultSEO>
-			<div className="flex items-center gap-4 flex-wrap last:*:ml-auto -mb-6">
-				<h1 className="text-2xl font-medium">Governance</h1>
-
-				<div className="relative w-full sm:max-w-[280px]">
-					<Icon
-						name="search"
-						height={16}
-						width={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-					/>
-					<input
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
-						placeholder="Search projects..."
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
-					/>
+			<ProtocolsChainsSearch />
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<div className="flex items-center gap-2 justify-end flex-wrap p-3">
+					<h1 className="text-xl font-semibold mr-auto">Governance</h1>
+					<div className="relative w-full sm:max-w-[280px]">
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						/>
+						<input
+							value={projectName}
+							onChange={(e) => {
+								setProjectName(e.target.value)
+							}}
+							placeholder="Search projects..."
+							className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						/>
+					</div>
 				</div>
+				<VirtualTable instance={instance} renderSubComponent={renderSubComponent} />
 			</div>
-			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} />
 		</Layout>
 	)
 }

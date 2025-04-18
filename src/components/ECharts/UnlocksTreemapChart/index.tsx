@@ -466,34 +466,25 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					</div>
 				)}
 
-				<div className="flex items-center justify-end gap-2 p-1 rounded-lg bg-[var(--bg7)] max-w-fit order-2 md:order-none">
+				<div className="mt-4 text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 					<button
 						onClick={() => setTimeView('currentMonth')}
-						className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-							timeView === 'currentMonth'
-								? 'bg-blue-500 text-white shadow-sm'
-								: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
-						}`}
+						data-active={timeView === 'currentMonth'}
+						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						Month
 					</button>
 					<button
 						onClick={() => setTimeView('currentYear')}
-						className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-							timeView === 'currentYear'
-								? 'bg-blue-500 text-white shadow-sm'
-								: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
-						}`}
+						data-active={timeView === 'currentYear'}
+						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						Current Year
 					</button>
 					<button
 						onClick={() => setTimeView('allYears')}
-						className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-							timeView === 'allYears'
-								? 'bg-blue-500 text-white shadow-sm'
-								: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
-						}`}
+						data-active={timeView === 'allYears'}
+						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						All Years
 					</button>

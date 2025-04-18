@@ -31,7 +31,7 @@ interface UpcomingUnlockVolumeChartProps {
 const TIME_PERIODS = ['Weekly', 'Monthly'] as const
 type TimePeriod = typeof TIME_PERIODS[number]
 
-export default function UpcomingUnlockVolumeChart({ protocols, height = '300px' }: UpcomingUnlockVolumeChartProps) {
+export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Monthly')
 	const [isFullView, setIsFullView] = useState(false)
 
@@ -89,30 +89,25 @@ export default function UpcomingUnlockVolumeChart({ protocols, height = '300px' 
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center justify-between gap-4 mb-4 px-4">
-				<div className="flex-1 min-w-[150px] max-w-[200px]">
-					<div className="bg-[var(--bg7)] rounded-lg p-1 flex gap-1">
-						{TIME_PERIODS.map((period) => (
-							<button
-								key={period}
-								onClick={() => setTimePeriod(period)}
-								className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-									timePeriod === period
-										? 'bg-blue-500 text-white shadow-sm'
-										: 'text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
-								}`}
-							>
-								{period}
-							</button>
-						))}
-					</div>
+			<div className="flex items-center gap-2 p-3">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+					{TIME_PERIODS.map((period) => (
+						<button
+							key={period}
+							onClick={() => setTimePeriod(period)}
+							data-active={timePeriod === period}
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+						>
+							{period}
+						</button>
+					))}
 				</div>
 				<button
 					onClick={() => setIsFullView(!isFullView)}
-					className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+					className={`py-2 px-3 text-xs font-medium rounded-md border border-[#E6E6E6] dark:border-[#2F3336] transition-all ${
 						isFullView
-							? 'bg-blue-500 text-white shadow-sm'
-							: 'bg-[var(--bg7)] text-[var(--text1)] hover:text-blue-500 hover:bg-[var(--bg8)]'
+							? 'bg-[var(--old-blue)] text-white shadow-sm'
+							: 'bg-[var(--bg7)] text-[var(--text1)] hover:text-[var(--old-blue)] hover:bg-[var(--bg8)]'
 					}`}
 				>
 					{isFullView ? 'Show Until 2030' : 'Show Full History'}
@@ -140,9 +135,9 @@ export default function UpcomingUnlockVolumeChart({ protocols, height = '300px' 
 					}}
 				/>
 			) : (
-				<div className="flex items-center justify-center text-[var(--text3)]" style={{ height }}>
+				<p className="flex items-center justify-center text-[var(--text3)]" style={{ height: height ?? '360px' }}>
 					No upcoming unlock data available for the selected period.
-				</div>
+				</p>
 			)}
 		</>
 	)

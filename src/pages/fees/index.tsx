@@ -1,7 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { ADAPTOR_TYPES, getDimensionAdapterChainPageData } from '~/api/categories/adaptors'
 import { SEO } from '~/components/SEO'
-import OverviewContainer, { IOverviewContainerProps } from '~/containers/DexsAndFees'
+import { ChainByAdapter, type IOverviewContainerProps } from '~/containers/DimensionAdapters/ChainByAdapter'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -41,7 +41,7 @@ const FeesOnAllChains = ({ title, ...props }: IPageProps) => {
 	return (
 		<Layout title={title}>
 			<SEO pageType={props.type} />
-			<OverviewContainer {...props} />
+			<ChainByAdapter {...props} />
 		</Layout>
 	)
 }

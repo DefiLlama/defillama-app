@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
-import BridgeList from '~/containers/BridgesPage/BridgeList'
-import { getBridgeOverviewPageData } from '~/api/categories/bridges'
+import BridgeList from '~/containers/Bridges/BridgeList'
+import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import { withPerformanceLogging } from '~/utils/perf'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 

@@ -1,9 +1,9 @@
 import Layout from '~/layout'
-import { YieldsWatchlistContainer } from '~/containers/Watchlist/Yields'
+import { YieldsWatchlistContainer } from '~/containers/Yields/Watchlist'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/containers/YieldsPage/utils'
+import { disclaimer } from '~/containers/Yields/utils'
 import { maxAgeForNext } from '~/api'
-import { getYieldPageData } from '~/api/categories/yield'
+import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/watchlist', async () => {

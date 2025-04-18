@@ -1,15 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { BarChart } from 'echarts/charts'
 import { CanvasRenderer } from 'echarts/renderers'
 import { TooltipComponent, GridComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { toK } from '~/utils'
+import { slug, toK } from '~/utils'
 import { capitalize } from 'lodash'
 import { useQuery } from '@tanstack/react-query'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import { NETFLOWS_API } from '~/constants'
-import llamaLogo from '~/assets/logo_white_long.svg'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 
 echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
 
@@ -21,8 +22,8 @@ interface INetflowChartProps {
 	height?: string
 }
 
-export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+export default function NetflowChart({ height }: INetflowChartProps) {
+	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const [period, setPeriod] = useState('month')
 
@@ -85,10 +86,11 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 				}
 			},
 			grid: {
-				top: 100,
+				top: 20,
 				bottom: 20,
-				left: 140,
-				right: 80
+				left: 40,
+				right: 40,
+				containLabel: true
 			},
 			xAxis: {
 				type: 'value',
@@ -165,24 +167,22 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 					left: 'center',
 					top: 'center',
 					style: {
-						image: llamaLogo.src,
-						width: 150,
-						height: 50,
-						opacity: 0.15
+						image: isThemeDark ? logoLight.src : logoDark.src,
+						height: 40,
+						opacity: 0.3
 					},
 					z: -1
 				},
 				...chains.map((chain, index) => ({
 					type: 'image',
 					id: `icon-${chain}`,
-
 					style: {
-						image: `https://icons.llamao.fi/icons/chains/rsz_${chain.toLowerCase()}?w=48&h=48`,
+						image: `https://icons.llamao.fi/icons/chains/rsz_${slug(chain)}?w=48&h=48`,
 						width: 20,
 						height: 20
 					},
 					left: 10,
-					top: (chains.length - 1 - index) * ((parseInt(height) - 100) / chains.length) + 90,
+					top: (chains.length - 1 - index) * ((parseInt(height) - 62) / chains.length) + 48,
 					z: 100,
 					clipPath: {
 						type: 'rect',
@@ -210,19 +210,13 @@ export default function NetflowChart({ height = '800px' }: INetflowChartProps) {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, chains, positiveData, negativeData, isThemeDark])
+	}, [createInstance, chains, positiveData, negativeData, isThemeDark, height])
 
 	return (
-		<div className="relative">
-			<div id={id} style={{ height, margin: 'auto 0' }}></div>
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'center',
-					marginTop: '20px'
-				}}
-			>
-				<RowFilter values={flowTypes} selectedValue={period} setValue={setPeriod} />
+		<div className="relative min-h-[600px] pr-5">
+			<div id={id} className="my-auto min-h-[600px]" style={height ? { height: `${height}px` } : undefined}></div>
+			<div className="flex justify-center mt-4">
+				<TagGroup values={flowTypes} selectedValue={period} setValue={setPeriod} />
 			</div>
 		</div>
 	)

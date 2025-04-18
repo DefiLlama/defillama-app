@@ -85,60 +85,48 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 	}
 
 	return (
-		<div className="flex flex-col gap-6 rounded-lg bg-[var(--bg6)] p-4">
-			<h1 className="text-xl font-medium">
-				{viewMode === 'month'
-					? currentDate.format('MMMM YYYY')
-					: viewMode === 'week'
-					? `${currentDate.startOf('week').format('MMM D')} - ${currentDate.endOf('week').format('MMM D, YYYY')}`
-					: viewMode === 'treemap'
-					? `TreeMap Chart`
-					: `Unlocks starting ${currentDate.format('MMM D, YYYY')} (Next 30 Days)`}
-			</h1>
+		<div className="flex flex-col gap-6">
 			<div className="flex items-center justify-between flex-wrap gap-2">
-				<div className="flex items-center border-b border-[var(--divider)] w-full">
+				<h2 className="text-xl font-medium">
+					{viewMode === 'month'
+						? currentDate.format('MMMM YYYY')
+						: viewMode === 'week'
+						? `${currentDate.startOf('week').format('MMM D')} - ${currentDate.endOf('week').format('MMM D, YYYY')}`
+						: viewMode === 'treemap'
+						? 'TreeMap Chart'
+						: `Unlocks starting ${currentDate.format('MMM D, YYYY')} (Next 30 Days)`}
+				</h2>
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 					<button
 						onClick={() => setViewMode('month')}
-						className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors duration-150 ease-in-out ${
-							viewMode === 'month'
-								? 'border-[var(--blue)] text-[var(--blue)]'
-								: 'border-transparent text-[var(--text2)] hover:text-[var(--text1)]'
-						}`}
+						data-active={viewMode === 'month'}
+						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						Month
 					</button>
 					<button
 						onClick={() => setViewMode('week')}
-						className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors duration-150 ease-in-out ${
-							viewMode === 'week'
-								? 'border-[var(--blue)] text-[var(--blue)]'
-								: 'border-transparent text-[var(--text2)] hover:text-[var(--text1)]'
-						}`}
+						data-active={viewMode === 'week'}
+						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						Week
 					</button>
 					<button
 						onClick={() => setViewMode('treemap')}
-						className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors duration-150 ease-in-out ${
-							viewMode === 'treemap'
-								? 'border-[var(--blue)] text-[var(--blue)]'
-								: 'border-transparent text-[var(--text2)] hover:text-[var(--text1)]'
-						}`}
+						data-active={viewMode === 'treemap'}
+						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						TreeMap
 					</button>
 					<button
 						onClick={() => setViewMode('list')}
-						className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors duration-150 ease-in-out ${
-							viewMode === 'list'
-								? 'border-[var(--blue)] text-[var(--blue)]'
-								: 'border-transparent text-[var(--text2)] hover:text-[var(--text1)]'
-						}`}
+						data-active={viewMode === 'list'}
+						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						List
 					</button>
 				</div>
-				<div className={`flex gap-2 ml-auto pl-4 ${viewMode === 'treemap' ? 'opacity-0' : ''}`}>
+				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 					<button
 						onClick={prev}
 						className="p-2 rounded hover:bg-[var(--bg7)] text-[var(--text2)] hover:text-[var(--text1)]"

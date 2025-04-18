@@ -1,7 +1,6 @@
-import { useMemo } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import { ProtocolsByToken } from '~/components/Table/Defi/Protocols'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import { LocalLoader } from '~/components/LocalLoader'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
@@ -9,18 +8,31 @@ import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { withPerformanceLogging } from '~/utils/perf'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download } from '~/utils'
+import { download, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { useQuery } from '@tanstack/react-query'
+import { VirtualTable } from '~/components/Table/Table'
+import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import { TokenLogo } from '~/components/TokenLogo'
+import { CustomLink } from '~/components/Link'
 
-const fetchProtocols = async (tokenSymbol) => {
-	if (!tokenSymbol) return null
-	try {
-		const data = await fetch(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`).then((res) => res.json())
-		return data
-	} catch (error) {
-		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
+export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
+	const searchData = await getAllCGTokensList()
+
+	return {
+		props: {
+			searchData: searchData
+				.filter((token) => token.name && token.symbol && token.image)
+				.map((token) => ({
+					name: `${token.name}`,
+					route: `/token-usage?token=${token.symbol}`,
+					symbol: token.symbol,
+					logo: token.image2 || null,
+					fallbackLogo: token.image || null
+				}))
+		},
+		revalidate: maxAgeForNext([23])
 	}
-}
+})
 
 export default function Tokens({ searchData }) {
 	const router = useRouter()
@@ -43,8 +55,6 @@ export default function Tokens({ searchData }) {
 	const onItemClick = (item) => {
 		router.push(item.route, undefined, { shallow: true })
 	}
-
-	const layoutStyles = isLoading ? { overflow: 'hidden' } : {}
 
 	const filteredProtocols = useMemo(() => {
 		return (
@@ -72,10 +82,10 @@ export default function Tokens({ searchData }) {
 	}
 
 	return (
-		<Layout title="Token Usage - DefiLlama" defaultSEO style={layoutStyles}>
+		<Layout title="Token Usage - DefiLlama" defaultSEO className={isLoading ? 'overflow-hidden' : ''}>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 			<DesktopSearch data={searchData} placeholder="Search tokens..." data-alwaysdisplay onItemClick={onItemClick} />
-			<>
+			<div className="bg-[var(--cards-bg)] rounded-md">
 				{isLoading ? (
 					<div className="flex items-center justify-center mx-auto my-32">
 						<LocalLoader />
@@ -84,8 +94,8 @@ export default function Tokens({ searchData }) {
 					<></>
 				) : (
 					<>
-						<div className="flex items-center justify-between flex-wrap gap-5 -mb-5">
-							<h1 className="text-2xl font-medium">{`${tokenSymbol.toUpperCase()} usage in protocols`}</h1>
+						<div className="flex items-center gap-2 justify-between p-3">
+							<h1 className="text-xl font-medium">{`${tokenSymbol.toUpperCase()} usage in protocols`}</h1>
 							<CSVDownloadButton onClick={downloadCSV} />
 
 							{/* <div className="flex items-center gap-4">
@@ -104,29 +114,85 @@ export default function Tokens({ searchData }) {
 							</div> */}
 						</div>
 
-						<ProtocolsByToken data={filteredProtocols} />
+						<Suspense
+							fallback={
+								<div
+									style={{ minHeight: `${filteredProtocols.length * 50 + 200}px` }}
+									className="bg-[var(--cards-bg)] rounded-md"
+								/>
+							}
+						>
+							<Table data={filteredProtocols} />
+						</Suspense>
 					</>
 				)}
-			</>
+			</div>
 		</Layout>
 	)
 }
 
-export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
-	const searchData = await getAllCGTokensList()
-
-	return {
-		props: {
-			searchData: searchData
-				.filter((token) => token.name && token.symbol && token.image)
-				.map((token) => ({
-					name: `${token.name}`,
-					route: `/token-usage?token=${token.symbol}`,
-					symbol: token.symbol,
-					logo: token.image2 || null,
-					fallbackLogo: token.image || null
-				}))
-		},
-		revalidate: maxAgeForNext([23])
+const fetchProtocols = async (tokenSymbol) => {
+	if (!tokenSymbol) return null
+	try {
+		const data = await fetch(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`).then((res) => res.json())
+		return data
+	} catch (error) {
+		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
 	}
-})
+}
+
+function Table({ data }: { data: Array<{ name: string; amountUsd: number }> }) {
+	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
+
+	const instance = useReactTable({
+		data,
+		columns: columns,
+		state: {
+			sorting
+		},
+		onSortingChange: setSorting,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel()
+	})
+
+	return <VirtualTable instance={instance} />
+}
+
+const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const value = getValue() as string
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<span className="flex items-center gap-2">
+					<span className="flex-shrink-0">{index + 1}</span>
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<CustomLink
+						href={`/protocol/${slug(value)}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>{`${value}`}</CustomLink>
+				</span>
+			)
+		}
+	},
+	{
+		header: () => 'Category',
+		accessorKey: 'category',
+		enableSorting: false,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: () => 'Amount',
+		accessorKey: 'amountUsd',
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		meta: {
+			align: 'end'
+		}
+	}
+]

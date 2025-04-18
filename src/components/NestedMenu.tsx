@@ -4,7 +4,7 @@ import * as React from 'react'
 export interface NestedMenuItemProps extends Ariakit.MenuItemProps {}
 
 export const NestedMenuItem = React.forwardRef<HTMLDivElement, NestedMenuItemProps>(function MenuItem(props, ref) {
-	return <Ariakit.MenuItem ref={ref} {...props} className={`${props.className}`} />
+	return <Ariakit.MenuItem ref={ref} {...props} className={`${props.className ?? ''}`} />
 })
 
 export interface NestedMenuProps extends Ariakit.MenuButtonProps<'div'> {
@@ -26,7 +26,7 @@ export const NestedMenu = React.forwardRef<HTMLDivElement, NestedMenuProps>(func
 					!menu.parent
 						? 'flex items-center justify-between gap-3 py-2 px-3 bg-[var(--btn-bg)] rounded-md'
 						: 'flex items-center justify-between gap-3 py-2 px-3'
-				} ${props.className}`}
+				} ${props.className ?? ''}`}
 				render={menu.parent ? <NestedMenuItem render={props.render} /> : undefined}
 			>
 				<span className="label">{label}</span>

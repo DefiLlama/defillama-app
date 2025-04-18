@@ -132,7 +132,7 @@ export function VirtualTable({
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
-			className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)]"
+			className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto bg-[var(--cards-bg)]"
 		>
 			<div
 				ref={tableHeaderRef}
@@ -145,7 +145,7 @@ export function VirtualTable({
 				}}
 			>
 				{instance.getHeaderGroups().map((headerGroup) => (
-					<div key={headerGroup.id} style={{ display: 'flex', position: 'relative' }}>
+					<div key={headerGroup.id} className="flex relative">
 						{headerGroup.headers.map((header) => {
 							// get header text alignment
 							const meta = header.column.columnDef.meta
@@ -156,7 +156,7 @@ export function VirtualTable({
 									key={header.id}
 									data-chainpage={isChainPage}
 									style={{ minWidth: `${header.getSize() ?? 100}px` }}
-									className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
+									className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r last:border-r-0 border-[var(--divider)] first:sticky first:left-0 first:z-[1]"
 								>
 									<span
 										className="flex items-center justify-start data-[align=center]:justify-center data-[align=end]:justify-end flex-nowrap gap-1 relative font-medium *:whitespace-nowrap"
@@ -225,7 +225,7 @@ export function VirtualTable({
 											key={cell.id}
 											data-ligther={stripedBg && i % 2 === 0}
 											data-chainpage={isChainPage}
-											className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] data-[chainpage=true]:bg-[var(--bg6)] first:sticky first:left-0 first:z-[1]"
+											className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r border-[var(--divider)] first:sticky first:left-0 first:z-[1]"
 											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign }}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}

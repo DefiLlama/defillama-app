@@ -4,6 +4,7 @@ import { removedCategories } from '~/constants'
 import { ISettings } from '~/contexts/types'
 import { getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
+import { IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
 
 interface IData {
 	tvl: number
@@ -17,25 +18,40 @@ interface IData {
 	name: string
 }
 
-interface Breakdown {
-	[key: string]: string
-}
-
-export interface ChainAssets {
-	canonical: string
-	native: string
-	thirdParty: string
-	total: string
-	ownTokens: string
-}
-
 interface IFormattedDataWithExtraTvlProps {
 	data: Readonly<Array<IData>>
 	defaultSortingColumn?: string
 	dir?: string
 	applyLqAndDc?: boolean
 	extraTvlsEnabled: ISettings
-	chainAssets?: ChainAssets
+	chainAssets?: IChainAssets
+}
+
+export interface IFormattedDataWithExtraTvl {
+	chainAssets?: IChainAssets | null
+	tvl: number
+	tvlPrevDay: number
+	tvlPrevWeek: number
+	tvlPrevMonth: number
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	mcap: number | null
+	mcaptvl: number | null
+	name: string
+	subRows?: Array<{
+		chainAssets?: IChainAssets | null
+		tvl: number
+		tvlPrevDay: number
+		tvlPrevWeek: number
+		tvlPrevMonth: number
+		change_1d: number | null
+		change_7d: number | null
+		change_1m: number | null
+		mcap: number | null
+		mcaptvl: number | null
+		name: string
+	}>
 }
 
 export function formatDataWithExtraTvls({
@@ -45,7 +61,7 @@ export function formatDataWithExtraTvls({
 	applyLqAndDc,
 	extraTvlsEnabled,
 	chainAssets
-}: IFormattedDataWithExtraTvlProps) {
+}: IFormattedDataWithExtraTvlProps): Array<IFormattedDataWithExtraTvl> {
 	const updatedProtocols = data.map(({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
 		let finalTvl: number | null = tvl
 		let finalTvlPrevDay: number | null = tvlPrevDay
@@ -115,12 +131,8 @@ export function formatDataWithExtraTvls({
 			const native = chainAssets[props.name].native?.total.split('.')[0] ?? null
 			const thirdParty = chainAssets[props.name].thirdParty?.total.split('.')[0] ?? null
 
-			if (extraTvlsEnabled.govtokens && ownTokens) {
-				total = +(total ?? 0) + +ownTokens
-			}
-
 			assets = {
-				total: total == 0 ? null : total,
+				total: extraTvlsEnabled.govtokens && ownTokens ? +(total ?? 0) + +ownTokens : total,
 				ownTokens: ownTokens == '0' ? null : ownTokens,
 				canonical: canonical == '0' ? null : canonical,
 				native: native == '0' ? null : native,
@@ -367,4 +379,68 @@ export const formatProtocolsList = ({
 	return (
 		parentProtocols ? groupProtocols(finalProtocols, parentProtocols, noSubrows) : finalProtocols
 	) as Array<IFormattedProtocol>
+}
+
+export const formatProtocolsList2 = ({
+	protocols,
+	extraTvlsEnabled
+}: {
+	protocols: IProtocol[]
+	extraTvlsEnabled: ISettings
+}): IProtocol[] => {
+	const shouldModifyTvl = Object.values(extraTvlsEnabled).some((t) => t)
+
+	if (!shouldModifyTvl) return protocols
+
+	const final = []
+	for (const protocol of protocols) {
+		if (!protocol.tvl) {
+			final.push({ ...protocol })
+		} else {
+			let strikeTvl = protocol.strikeTvl ?? false
+
+			let defaultTvl = { ...(protocol.tvl?.default ?? ({} as any)) }
+
+			if (strikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
+				strikeTvl = false
+			}
+			for (const tvlKey in protocol.tvl) {
+				// if tvlKey is doublecounted or liquidstaking just strike tvl but do not add them
+				if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
+					defaultTvl.tvl = (defaultTvl.tvl || 0) + protocol.tvl[tvlKey].tvl
+					defaultTvl.tvlPrevDay = (defaultTvl.tvlPrevDay || 0) + protocol.tvl[tvlKey].tvlPrevDay
+					defaultTvl.tvlPrevWeek = (defaultTvl.tvlPrevWeek || 0) + protocol.tvl[tvlKey].tvlPrevWeek
+					defaultTvl.tvlPrevMonth = (defaultTvl.tvlPrevMonth || 0) + protocol.tvl[tvlKey].tvlPrevMonth
+				}
+			}
+
+			if (protocol.childProtocols) {
+				const childProtocols = []
+				for (const child of protocol.childProtocols) {
+					let strikeTvl = child.strikeTvl ?? false
+
+					let defaultTvl = { ...(child.tvl?.default ?? ({} as any)) }
+
+					if (strikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
+						strikeTvl = false
+					}
+					for (const tvlKey in child.tvl) {
+						// if tvlKey is doublecounted or liquidstaking just strike tvl but do not add them
+						if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
+							defaultTvl.tvl = (defaultTvl.tvl || 0) + child.tvl[tvlKey].tvl
+							defaultTvl.tvlPrevDay = (defaultTvl.tvlPrevDay || 0) + child.tvl[tvlKey].tvlPrevDay
+							defaultTvl.tvlPrevWeek = (defaultTvl.tvlPrevWeek || 0) + child.tvl[tvlKey].tvlPrevWeek
+							defaultTvl.tvlPrevMonth = (defaultTvl.tvlPrevMonth || 0) + child.tvl[tvlKey].tvlPrevMonth
+						}
+					}
+					childProtocols.push({ ...child, strikeTvl, tvl: { default: defaultTvl } })
+				}
+				final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, childProtocols })
+			} else {
+				final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl } })
+			}
+		}
+	}
+
+	return final
 }

@@ -2,14 +2,13 @@ import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { transparentize } from 'polished'
 import { useRouter } from 'next/router'
-import { Tooltip } from './Tooltip'
-import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 
-export function EmbedChart({ color }) {
+export function EmbedChart({ color }: { color?: string }) {
 	const router = useRouter()
 
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const [isDarkTheme] = useDarkModeManager()
 
 	let path = router.asPath === '/' ? '/chain/All' : router.asPath.split('#')[0].split('?')[0]
@@ -35,15 +34,15 @@ export function EmbedChart({ color }) {
 
 	return (
 		<Ariakit.PopoverProvider>
-			<Tooltip content="Embed Chart">
-				<Ariakit.PopoverDisclosure
-					style={color ? ({ '--primary1': transparentize(0.8, color) } as any) : {}}
-					className="font-medium text-sm inline-block rounded-xl py-[10px] px-3 text-black/60 dark:text-white/60 bg-[var(--primary1)]"
-				>
-					<Icon name="code" height={14} width={14} />
-					<span className="sr-only">Embed Chart</span>
-				</Ariakit.PopoverDisclosure>
-			</Tooltip>
+			<Ariakit.PopoverDisclosure
+				style={color ? ({ '--btn-bg': transparentize(0.8, color) } as any) : undefined}
+				className={`font-medium text-sm flex items-center justify-center rounded-md ${
+					color ? 'h-[34px] w-[34px]' : 'h-[30px] w-[30px]'
+				} bg-[var(--btn-bg,#E2E2E2)] dark:bg-[var(--btn-bg,#303032)]`}
+			>
+				<Icon name="code" height={12} width={12} />
+				<span className="sr-only">Embed Chart</span>
+			</Ariakit.PopoverDisclosure>
 
 			<Ariakit.Popover
 				unmountOnHide
