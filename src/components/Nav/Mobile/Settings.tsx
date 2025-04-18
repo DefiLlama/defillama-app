@@ -5,10 +5,10 @@ import {
 	useNftsManager,
 	useTvlAndFeesManager
 } from '~/contexts/LocalStorage'
-import { protocolsAndChainsOptions } from '~/components/Filters/protocols/options'
+import { protocolsAndChainsOptions } from '~/components/Filters/options'
 import { nftOptions } from '~/components/Filters/nfts/options'
 import { useRouter } from 'next/router'
-import { feesOptions } from '~/components/Filters/protocols/options'
+import { feesOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 

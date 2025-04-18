@@ -34,7 +34,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 			<Ariakit.MenuProvider>
 				<Ariakit.MenuButton
 					data-active={isActive}
-					className={`h-6 flex items-center gap-4 my-auto rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-black dark:text-white bg-[var(--link-bg)]  hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-active-bg)] data-[active=true]:text-white ${
+					className={`h-6 flex items-center gap-4 my-auto rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-black dark:text-white bg-[#E2E2E2] dark:bg-[#303032] ${
 						className ?? ''
 					}`}
 				>

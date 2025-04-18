@@ -13,7 +13,7 @@ import {
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
 import { DEFI_CHAINS_SETTINGS, useDefiChainsManager } from '~/contexts/LocalStorage'
-import { TVLRange } from '~/components/Filters/protocols/TVLRange'
+import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { formatColumnOrder } from '~/components/Table/utils'

@@ -23,7 +23,7 @@ import {
 } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
-import { TVLRange } from '~/components/Filters/protocols/TVLRange'
+import { TVLRange } from '~/components/Filters/TVLRange'
 import { TagGroup } from '~/components/TagGroup'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'

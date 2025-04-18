@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { DesktopFeesFilters } from '~/components/Filters/protocols/Desktop'
 import { OptionToggle } from '~/components/OptionToggle'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import type { ICommonSearchProps } from '../types'
 import { useGetAdaptorsSearchList } from './hooks'
-import { TabletFeesFilters } from '~/components/Filters/protocols/Tablet'
 import { useIsClient } from '~/hooks'
+import { Select } from '~/components/Select'
+import { useFeesFilterState } from '~/components/Filters/useProtocolFilterState'
+import { feesOptions } from '~/components/Filters/options'
 
 interface IAdaptorSearchProps extends ICommonSearchProps {
 	onlyChains?: boolean
@@ -65,10 +66,20 @@ const BreakdownToggle = (props) => {
 }
 
 const FeesToggles = () => {
+	const { selectedValues, setSelectedValues } = useFeesFilterState()
+
 	return (
 		<>
-			<DesktopFeesFilters options={null} />
-			<TabletFeesFilters options={null} />
+			<Select
+				allValues={feesOptions}
+				selectedValues={selectedValues}
+				setSelectedValues={setSelectedValues}
+				label="Include in Fees"
+				triggerProps={{
+					className:
+						'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C]'
+				}}
+			/>
 		</>
 	)
 }

@@ -2,7 +2,7 @@ import { TagGroup } from '~/components/TagGroup'
 import type { IProtocol } from './types'
 import { useMemo, useState, useSyncExternalStore } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { TVLRange } from '~/components/Filters/protocols/TVLRange'
+import { TVLRange } from '~/components/Filters/TVLRange'
 import { VirtualTable } from '~/components/Table/Table'
 import {
 	type ColumnDef,

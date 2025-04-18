@@ -20,7 +20,7 @@ import { listedAtColumn, protocolsColumns, columnSizes } from '~/components/Tabl
 import { formattedNum } from '~/utils'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
-import { TVLRange } from '~/components/Filters/protocols/TVLRange'
+import { TVLRange } from '~/components/Filters/TVLRange'
 
 export function RecentlyListedProtocolsTable({
 	data,

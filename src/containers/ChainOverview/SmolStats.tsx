@@ -125,25 +125,31 @@ export const SmolStats = (props: IChainOverviewData) => {
 							>
 								RWA TVL
 							</Tooltip>
-							<p className="text-xs flex items-center gap-1">
-								<span
-									className={`whitespace-nowrap overflow-hidden text-ellipsis ${
-										+rwaTvl.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
-									}`}
-								>
-									{`${+rwaTvl.change7d >= 0 ? '+' : ''}${rwaTvl.change7d}%`}
-								</span>
-								<span className="text-[#666] dark:text-[#919296]">7d</span>
-							</p>
 							{rwaTvl.chart.length > 0 ? (
-								<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
-									rwaTvl.chart[rwaTvl.chart.length - 1][1],
-									true
-								)}`}</p>
+								<>
+									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+										rwaTvl.chart[rwaTvl.chart.length - 1][1],
+										true
+									)}`}</p>
+									<p className="text-xs flex items-center gap-1">
+										<span
+											className={`whitespace-nowrap overflow-hidden text-ellipsis ${
+												+rwaTvl.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+											}`}
+										>
+											{`${+rwaTvl.change7d >= 0 ? '+' : ''}${rwaTvl.change7d}%`}
+										</span>
+										<span className="text-[#666] dark:text-[#919296]">7d</span>
+									</p>
+									<Suspense fallback={<></>}>
+										<SmolLineChart
+											series={rwaTvl.chart}
+											name="RWA TVL"
+											color={+rwaTvl.change7d >= 0 ? 'green' : 'red'}
+										/>
+									</Suspense>
+								</>
 							) : null}
-							<Suspense fallback={<></>}>
-								<SmolLineChart series={rwaTvl.chart} name="RWA TVL" color={+rwaTvl.change7d >= 0 ? 'green' : 'red'} />
-							</Suspense>
 						</div>
 					) : null}
 				</>

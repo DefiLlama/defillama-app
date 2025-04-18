@@ -38,7 +38,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 
 	return (
 		<div
-			className={`relative hidden lg:flex flex-col data-[alwaysdisplay=true]:flex ${
+			className={`relative hidden lg:flex items-center justify-between gap-4 data-[alwaysdisplay=true]:flex ${
 				variant === 'secondary' ? '' : 'pt-2 pb-3'
 			}`}
 			{...extra}
@@ -90,7 +90,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 					)}
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
-			{/* {filters} */}
+			<>{filters}</>
 		</div>
 	)
 }
