@@ -13,6 +13,7 @@ import { Fragment, useMemo } from 'react'
 import { Switch } from '~/components/Switch'
 import { BAR_CHARTS } from '~/containers/ProtocolOverview/Chart/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { EmbedChart } from '~/components/EmbedChart'
 
 const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false,
@@ -798,6 +799,7 @@ export const Stats = (props: IChainOverviewData) => {
 							</button>
 						</div>
 					) : null}
+					<EmbedChart />
 				</div>
 
 				{isFetchingChartData ? (

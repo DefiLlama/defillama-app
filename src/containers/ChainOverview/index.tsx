@@ -10,7 +10,6 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
 export function ChainOverview(props: IChainOverviewData) {
-	console.log(props.protocols)
 	return (
 		<Layout
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}

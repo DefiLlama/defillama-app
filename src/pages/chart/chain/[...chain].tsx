@@ -6,6 +6,7 @@ import { LocalLoader } from '~/components/LocalLoader'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
@@ -81,6 +82,7 @@ export default function ChainChartPage({
 		perpsData: { total24h: perpsData.totalVolume24h },
 		chainAssets
 	})
+	const isClient = useIsClient()
 
 	const isThemeDark = theme === 'dark' ? true : false
 
@@ -99,7 +101,7 @@ export default function ChainChartPage({
 
 	return (
 		<>
-			{isFetchingChartData || !router.isReady ? (
+			{isFetchingChartData || !router.isReady || !isClient ? (
 				<div className="flex items-center justify-center m-auto min-h-[360px]">
 					<LocalLoader />
 				</div>

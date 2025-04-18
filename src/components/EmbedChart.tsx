@@ -5,7 +5,7 @@ import { useRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 
-export function EmbedChart({ color }) {
+export function EmbedChart({ color }: { color?: string }) {
 	const router = useRouter()
 
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -35,8 +35,10 @@ export function EmbedChart({ color }) {
 	return (
 		<Ariakit.PopoverProvider>
 			<Ariakit.PopoverDisclosure
-				style={color ? ({ '--primary1': transparentize(0.8, color) } as any) : {}}
-				className="font-medium text-sm inline-block rounded-md h-8 px-3 bg-[var(--primary1)]"
+				style={color ? ({ '--btn-bg': transparentize(0.8, color) } as any) : undefined}
+				className={`font-medium text-sm flex items-center justify-center rounded-md ${
+					color ? 'h-[34px] w-[34px]' : 'h-[30px] w-[30px]'
+				} bg-[var(--btn-bg,#E2E2E2)] dark:bg-[var(--btn-bg,#303032)]`}
 			>
 				<Icon name="code" height={12} width={12} />
 				<span className="sr-only">Embed Chart</span>
