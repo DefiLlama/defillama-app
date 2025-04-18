@@ -263,7 +263,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					selectedCategories={selectedCategories}
 				/>
 			) : (
-				<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
+				<p className="p-5 bg-[var(--cards-bg)] rounded-md text-center">
 					{`Looks like we couldn't find any protocol👀. 🦙🦙🦙 are working on it.`}
 				</p>
 			)}

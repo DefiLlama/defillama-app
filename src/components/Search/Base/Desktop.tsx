@@ -37,10 +37,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	const [open, setOpen] = React.useState(false)
 
 	return (
-		<div
-			className="relative hidden lg:flex flex-col data-[alwaysdisplay=true]:flex pt-[6px] pb-4 w-full max-w-[50vw]"
-			{...extra}
-		>
+		<div className="relative hidden lg:flex flex-col data-[alwaysdisplay=true]:flex pt-2 pb-3" {...extra}>
 			<Ariakit.ComboboxProvider
 				resetValueOnHide
 				setValue={(value) => {
@@ -115,7 +112,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 	}, [setOpen])
 
 	return (
-		<span className="relative isolate w-full">
+		<span className="relative isolate w-full max-w-[50vw]">
 			{!hideIcon ? (
 				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[7px] left-[9px] opacity-50">
 					{open ? (
@@ -139,7 +136,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="w-full text-sm rounded-md border border-[#e6e6e6] dark:border-[#222324] text-black dark:text-white bg-[var(--app-bg)] py-1 px-[10px] pl-8"
+				className="w-full text-sm rounded-md border border-[#e6e6e6] dark:border-[#222324] text-black dark:text-white bg-[var(--app-bg)] py-[5px] px-[10px] pl-8"
 			/>
 
 			{!hideIcon ? (

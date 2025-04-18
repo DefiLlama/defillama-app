@@ -36,7 +36,7 @@ export default function Layout({
 			<Nav />
 			<main
 				{...props}
-				className={`flex flex-col gap-1 w-full text-[var(--text1)] isolate p-1 lg:p-7 lg:pl-[248px] min-h-screen ${
+				className={`flex flex-col gap-1 w-full text-[var(--text1)] isolate p-1 lg:py-4 lg:pr-7 lg:pl-[248px] min-h-screen ${
 					className ?? ''
 				}`}
 			>

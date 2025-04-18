@@ -6,6 +6,7 @@ import { cexData } from '~/pages/cexs'
 import { DateFilter } from './DateFilter'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import Layout from '~/layout'
 
 const getOutflowsByTimerange = async (startTime, endTime) => {
 	if (startTime && endTime) {
@@ -29,7 +30,7 @@ const getOutflowsByTimerange = async (startTime, endTime) => {
 
 const SECONDS_IN_HOUR = 3600
 
-const Cexs = ({ cexs }) => {
+export const Cexs = ({ cexs }) => {
 	const [startDate, setStartDate] = useState(() => {
 		const date = new Date()
 		date.setMonth(date.getMonth() - 1)
@@ -77,13 +78,14 @@ const Cexs = ({ cexs }) => {
 	}
 
 	return (
-		<>
+		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
 			<TableWithSearch
 				data={cexsWithCustomRange}
 				columns={cexColumn}
 				columnToSearch={'name'}
 				placeholder={'Search exchange...'}
+				header={'CEX Transparency'}
 				customFilters={
 					<DateFilter
 						startDate={startDate}
@@ -95,8 +97,6 @@ const Cexs = ({ cexs }) => {
 					/>
 				}
 			/>
-		</>
+		</Layout>
 	)
 }
-
-export default Cexs

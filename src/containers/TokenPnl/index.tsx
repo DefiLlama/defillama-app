@@ -7,7 +7,6 @@ import { CoinsPicker } from '~/containers/Correlations'
 import { formattedNum } from '~/utils'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const unixToDateString = (unixTimestamp) => {
 	if (!unixTimestamp) return ''
@@ -116,7 +115,6 @@ export default function TokenPnl({ coinsData }) {
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
 			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-[var(--cards-bg)] p-3">
 				<h1 className="text-xl font-semibold text-center">Token Holder Profit and Loss</h1>
 				<div className="flex flex-col gap-3 w-full">

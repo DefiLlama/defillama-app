@@ -1,10 +1,9 @@
 import { maxAgeForNext } from '~/api'
 import type { IChainTvl } from '~/api/types'
-import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import 'react-datepicker/dist/react-datepicker.css'
-import Cexs from '~/containers/Cexs'
+import { Cexs } from '~/containers/Cexs'
 import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
@@ -777,14 +776,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 })
 
 export default function Protocols({ cexs }) {
-	return (
-		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
-			<div className="bg-[var(--cards-bg)] rounded-md">
-				<h1 className="text-xl font-semibold p-3">CEX Transparency</h1>
-				<Cexs cexs={cexs} />
-			</div>
-		</Layout>
-	)
+	return <Cexs cexs={cexs} />
 }
 
 //trigger server gogogogogoog

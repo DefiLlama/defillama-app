@@ -85,7 +85,6 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
 			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-[var(--cards-bg)] p-3">
 				<h1 className="text-xl font-semibold">Generate Bridge Transactions CSV</h1>
 

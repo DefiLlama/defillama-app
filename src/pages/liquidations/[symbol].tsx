@@ -78,7 +78,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 
 			{/* {!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
 				<>
-					<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center">
+					<p className="p-5 bg-[var(--cards-bg)] rounded-md text-center">
 						We are now tracking
 						<Link href={`/liquidations/bnb`} className="flex items-center gap-1">
 								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
@@ -86,7 +86,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 						</Link>
 						ecosystem assets! Choose one from the asset picker dropdown menu!
 					</p>
-					<p className="border border-black/10 dark:border-white/10 p-5 rounded-md text-center xl:hidden">
+					<p className="p-5 bg-[var(--cards-bg)] rounded-md text-center xl:hidden">
 						We are now tracking
 						<Link href={`/liquidations/bnb`} className="flex items-center gap-1">
 								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />

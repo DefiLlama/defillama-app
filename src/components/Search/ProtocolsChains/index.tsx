@@ -30,7 +30,7 @@ export const ProtocolsChainsSearch = memo(function ProtocolsChainsSearch({
 	}
 
 	return (
-		<span className="hidden lg:block min-h-[56px]">
+		<span className="hidden lg:block min-h-[52px]">
 			<SearchV2 indexName="protocols">
 				<Search {...props} />
 			</SearchV2>
