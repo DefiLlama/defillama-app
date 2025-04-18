@@ -311,7 +311,7 @@ export function Updater() {
 	return null
 }
 
-function subscribe(callback: () => void) {
+export function subscribeToLocalStorage(callback: () => void) {
 	window.addEventListener('storage', callback)
 
 	return () => {
@@ -326,7 +326,7 @@ const toggleDarkMode = () => {
 
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(DARK_MODE) ?? 'true',
 		() => 'true'
 	)
@@ -364,7 +364,7 @@ const updateSetting = (key) => {
 
 function useSettingsManager(settings: Array<string>): [Record<string, boolean>, (key) => void] {
 	const store = useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(DEFILLAMA) ?? '{}',
 		() => '{}'
 	)
@@ -389,7 +389,7 @@ const updateAllSettings = (keys: Record<string, boolean>) => {
 
 export function useManageAppSettings(): [Record<string, boolean>, (keys: Record<string, boolean>) => void] {
 	const store = useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(DEFILLAMA) ?? '{}',
 		() => '{}'
 	)

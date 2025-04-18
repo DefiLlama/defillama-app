@@ -2,6 +2,7 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 
 // change 'value' for new announcements
 export const ANNOUNCEMENT = {
@@ -35,14 +36,6 @@ const getAnnouncementKey = (router: NextRouter) => {
 	else return 'defi'
 }
 
-function subscribe(callback: () => void) {
-	window.addEventListener('storage', callback)
-
-	return () => {
-		window.removeEventListener('storage', callback)
-	}
-}
-
 export function Announcement({
 	children,
 	notCancellable,
@@ -65,7 +58,7 @@ export function Announcement({
 	}
 
 	const store = React.useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(routeAnnouncementKey) ?? null,
 		() => null
 	)

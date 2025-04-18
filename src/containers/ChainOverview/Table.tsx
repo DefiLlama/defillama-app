@@ -22,7 +22,7 @@ import { CustomLink } from '~/components/Link'
 import { ICONS_CDN, removedCategories } from '~/constants'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { subscribeToLocalStorage, useDefiManager } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 
@@ -34,16 +34,16 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 
 	const finalProtocols = useMemo(() => {
 		return formatProtocolsList2({ protocols, extraTvlsEnabled })
-	}, [protocols])
+	}, [protocols, extraTvlsEnabled])
 
 	const columnsInStorage = useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(optionsKey) ?? defaultColumns,
 		() => defaultColumns
 	)
 
 	const filterState = useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(filterStatekey) ?? null,
 		() => null
 	)
@@ -668,14 +668,6 @@ const defaultColumns = JSON.stringify({
 	volumeChange_7d: false,
 	cumulativeVolume: false
 })
-
-function subscribe(callback: () => void) {
-	window.addEventListener('storage', callback)
-
-	return () => {
-		window.removeEventListener('storage', callback)
-	}
-}
 
 const Tvl = ({ rowValues }) => {
 	const [extraTvlsEnabled] = useDefiManager()

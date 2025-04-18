@@ -27,6 +27,7 @@ import { TVLRange } from '~/components/Filters/TVLRange'
 import { TagGroup } from '~/components/TagGroup'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -140,14 +141,6 @@ export const defaultColumns = JSON.stringify({
 	cumulativeVolume: false
 })
 
-function subscribe(callback: () => void) {
-	window.addEventListener('storage', callback)
-
-	return () => {
-		window.removeEventListener('storage', callback)
-	}
-}
-
 const optionsKey = 'protocolsTableColumns'
 
 const ProtocolsTable = ({ data, columnsInStorage }: { data: Array<IProtocolRow>; columnsInStorage: string }) => {
@@ -226,7 +219,7 @@ const ProtocolsTable = ({ data, columnsInStorage }: { data: Array<IProtocolRow>;
 
 export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 	const columnsInStorage = React.useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(optionsKey) ?? defaultColumns,
 		() => defaultColumns
 	)

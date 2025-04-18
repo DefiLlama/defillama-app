@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
-import { DEFI_CHAINS_SETTINGS, useDefiChainsManager } from '~/contexts/LocalStorage'
+import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useDefiChainsManager } from '~/contexts/LocalStorage'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -25,17 +25,9 @@ import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 
 const optionsKey = 'chains-overview-table-columns'
 
-function subscribe(callback: () => void) {
-	window.addEventListener('storage', callback)
-
-	return () => {
-		window.removeEventListener('storage', callback)
-	}
-}
-
 export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWithExtraTvl> }) {
 	const columnsInStorage = React.useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(optionsKey) ?? defaultColumns,
 		() => defaultColumns
 	)

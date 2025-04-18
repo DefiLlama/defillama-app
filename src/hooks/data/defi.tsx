@@ -388,22 +388,58 @@ export const formatProtocolsList2 = ({
 	protocols: IProtocol[]
 	extraTvlsEnabled: ISettings
 }): IProtocol[] => {
-	const tvlSettings = {
-		...extraTvlsEnabled,
-		doublecounted: !extraTvlsEnabled.doublecounted
-	}
-
-	const shouldModifyTvl = Object.values(tvlSettings).some((t) => t)
+	const shouldModifyTvl = Object.values(extraTvlsEnabled).some((t) => t)
 
 	if (!shouldModifyTvl) return protocols
 
 	const final = []
 	for (const protocol of protocols) {
-		let strikeTvl = protocol.strikeTvl ?? false
-		if (strikeTvl && (tvlSettings['liquidstaking'] || tvlSettings['doublecounted'])) {
-			strikeTvl = false
+		if (!protocol.tvl) {
+			final.push({ ...protocol })
+		} else {
+			let strikeTvl = protocol.strikeTvl ?? false
+
+			let defaultTvl = { ...(protocol.tvl?.default ?? ({} as any)) }
+
+			if (strikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
+				strikeTvl = false
+			}
+			for (const tvlKey in protocol.tvl) {
+				// if tvlKey is doublecounted or liquidstaking just strike tvl but do not add them
+				if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
+					defaultTvl.tvl = (defaultTvl.tvl || 0) + protocol.tvl[tvlKey].tvl
+					defaultTvl.tvlPrevDay = (defaultTvl.tvlPrevDay || 0) + protocol.tvl[tvlKey].tvlPrevDay
+					defaultTvl.tvlPrevWeek = (defaultTvl.tvlPrevWeek || 0) + protocol.tvl[tvlKey].tvlPrevWeek
+					defaultTvl.tvlPrevMonth = (defaultTvl.tvlPrevMonth || 0) + protocol.tvl[tvlKey].tvlPrevMonth
+				}
+			}
+
+			if (protocol.childProtocols) {
+				const childProtocols = []
+				for (const child of protocol.childProtocols) {
+					let strikeTvl = child.strikeTvl ?? false
+
+					let defaultTvl = { ...(child.tvl?.default ?? ({} as any)) }
+
+					if (strikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
+						strikeTvl = false
+					}
+					for (const tvlKey in child.tvl) {
+						// if tvlKey is doublecounted or liquidstaking just strike tvl but do not add them
+						if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
+							defaultTvl.tvl = (defaultTvl.tvl || 0) + child.tvl[tvlKey].tvl
+							defaultTvl.tvlPrevDay = (defaultTvl.tvlPrevDay || 0) + child.tvl[tvlKey].tvlPrevDay
+							defaultTvl.tvlPrevWeek = (defaultTvl.tvlPrevWeek || 0) + child.tvl[tvlKey].tvlPrevWeek
+							defaultTvl.tvlPrevMonth = (defaultTvl.tvlPrevMonth || 0) + child.tvl[tvlKey].tvlPrevMonth
+						}
+					}
+					childProtocols.push({ ...child, strikeTvl, tvl: { default: defaultTvl } })
+				}
+				final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, childProtocols })
+			} else {
+				final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl } })
+			}
 		}
-		final.push({ ...protocol, strikeTvl })
 	}
 
 	return final
