@@ -98,8 +98,8 @@ export default function Protocols({ data }) {
 				</a>
 			</Announcement>
 
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
-				<div className="flex flex-col gap-2 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="text-xl mb-4 font-semibold">Unlock Statistics</h1>
 					<table className="text-base w-full border-collapse mt-4">
 						<tbody>
@@ -118,7 +118,7 @@ export default function Protocols({ data }) {
 						</tbody>
 					</table>
 				</div>
-				<div className="flex flex-col gap-4 col-span-1 min-h-[378px] bg-[var(--cards-bg)] rounded-md">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
 					<UpcomingUnlockVolumeChart protocols={data} />
 				</div>
 			</div>

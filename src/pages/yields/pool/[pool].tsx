@@ -247,8 +247,8 @@ const PageView = (props) => {
 
 	return (
 		<>
-			<div className="grid grid-cols-1 gap-1 relative isolate xl:grid-cols-[auto_1fr]">
-				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-md bg-[var(--cards-bg)] overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl flex-wrap">
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 							? `${poolData.symbol} (${poolData.poolMeta})`
@@ -310,7 +310,7 @@ const PageView = (props) => {
 					</p>
 				</div>
 
-				<LazyChart className="col-span-1 bg-[var(--cards-bg)] min-h-[468px] pt-2">
+				<LazyChart className="bg-[var(--cards-bg)] rounded-md pt-3 col-span-2 min-h-[480px]">
 					{!isLoading && (
 						<Chart
 							height="468px"

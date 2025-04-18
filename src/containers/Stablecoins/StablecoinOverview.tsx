@@ -168,7 +168,7 @@ export const PeggedAssetInfo = ({
 
 	const tagStyles = React.useMemo(() => {
 		return {
-			'--tag-border-color': transparentize(0.6, backgroundColor),
+			'--tag-border-color': transparentize(0.9, backgroundColor),
 			'--tag-bg': backgroundColor,
 			'--tag-hover-bg': transparentize(0.8, backgroundColor)
 		}
@@ -176,8 +176,8 @@ export const PeggedAssetInfo = ({
 
 	return (
 		<Ariakit.TabProvider defaultSelectedId={defaultSelectedId}>
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1" style={tagStyles as any}>
-				<div className="flex flex-col col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1" style={tagStyles as any}>
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<Ariakit.TabList aria-label="Pegged Tabs" className="flex">
 						<Ariakit.Tab
 							className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-md border-[var(--tag-border-color)] hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] aria-selected:border-b-[var(--tag-bg)]"
@@ -194,7 +194,7 @@ export const PeggedAssetInfo = ({
 					</Ariakit.TabList>
 
 					<Ariakit.TabPanel tabId={defaultSelectedId}>
-						<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-md xl:rounded-l-md xl:rounded-r-none overflow-x-auto">
+						<div className="flex flex-col gap-6 p-5 overflow-x-auto">
 							<h1 className="flex items-center gap-2 text-xl">
 								<TokenLogo logo={logo} size={24} />
 								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
@@ -258,7 +258,7 @@ export const PeggedAssetInfo = ({
 					</Ariakit.TabPanel>
 
 					<Ariakit.TabPanel>
-						<div className="flex flex-col gap-9 p-6 pb-[calc(24px_+_0.4375rem)] overflow-auto text-[var(--text1)]">
+						<div className="flex flex-col gap-6 p-5 overflow-auto">
 							{description && (
 								<p className="flex flex-col gap-2">
 									<span className="font-medium">Description</span>
@@ -289,7 +289,7 @@ export const PeggedAssetInfo = ({
 					</Ariakit.TabPanel>
 
 					<Ariakit.TabPanel>
-						<div className="flex items-center gap-4 flex-wrap p-6">
+						<div className="flex items-center gap-6 p-5 overflow-auto flex-wrap">
 							{blockExplorerLink !== undefined && (
 								<span>
 									<Link href={blockExplorerLink} passHref>
@@ -390,7 +390,7 @@ export const PeggedAssetInfo = ({
 					</Ariakit.TabPanel>
 				</div>
 
-				<div className="flex-1 flex flex-col bg-[var(--cards-bg)] rounded-md min-h-[416px]">
+				<div className="bg-[var(--cards-bg)] rounded-md min-h-[416px] flex flex-col col-span-2">
 					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--tag-border-color)] m-3">
 						<button
 							data-active={chartType === 'Mcap'}

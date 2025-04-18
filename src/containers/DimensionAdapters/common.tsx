@@ -132,9 +132,9 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			: false
 
 	return (
-		<div className={`grid grid-cols-1 ${valuesExist ? 'xl:grid-cols-[auto_1fr]' : ''} relative isolate gap-1`}>
+		<div className={`grid grid-cols-2 ${valuesExist ? 'xl:grid-cols-3' : ''} relative isolate gap-1`}>
 			{valuesExist ? (
-				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					{!Number.isNaN(props.data.total24h) ? (
 						<p className="flex flex-col">
 							<span className="text-[#545757] dark:text-[#cccccc]">Total {dataType} (24h)</span>
@@ -192,7 +192,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			) : (
 				<></>
 			)}
-			<div className="flex flex-col col-span-1 bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
 				<>
 					<div className="flex gap-2 flex-row items-center flex-wrap justify-between p-3">
 						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">

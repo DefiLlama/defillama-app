@@ -104,8 +104,8 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 	return (
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
-				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Hacked (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{totalHacked}b</span>
@@ -119,7 +119,7 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 						<span className="font-semibold text-2xl font-jetbrains">{totalRugs}b</span>
 					</p>
 				</div>
-				<div className="flex flex-col col-span-1 min-h-[360px] bg-[var(--cards-bg)] rounded-md">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[360px]">
 					<div className="flex items-center justify-end p-3 -mb-12">
 						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 					</div>

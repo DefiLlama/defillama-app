@@ -161,8 +161,8 @@ const PageView = () => {
 
 // 	return (
 // 		<>
-// 			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--cards-bg)] rounded-md">
-// 				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+// 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+// 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 // 					<Name style={{ flexWrap: 'wrap' }}>
 // 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 // 							? `${poolData.symbol} (${poolData.poolMeta})`
@@ -213,7 +213,7 @@ const PageView = () => {
 // 					</TableWrapper>
 // 				</div>
 
-// 				<LazyChart className="col-span-1 bg-[var(--cards-bg)] min-h-[468px] pt-2">
+// 				<LazyChart className="bg-[var(--cards-bg)] rounded-md pt-3 col-span-2  min-h-[372px]">
 // 					<AreaChart title="Net Borrow APY" chartData={netBorrowChartData} color={backgroundColor} valueSymbol={'%'} />
 
 // 					<ButtonLight as="button" onClick={downloadCsv} useTextColor={true}>

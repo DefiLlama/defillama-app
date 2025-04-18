@@ -319,7 +319,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		)
 
 	return (
-		<div className="flex flex-col col-span-1 bg-[var(--cards-bg)] rounded-md">
+		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
 			{chartOptions.length > 0 ? (
 				<div className="flex items-center gap-2 flex-wrap m-3">
 					{chartOptions.map((coption) => (
@@ -365,9 +365,9 @@ const ProtocolChart = React.memo(function ProtocolChart({
 				</div>
 			) : null}
 
-			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-between px-3">
+			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end px-3">
 				{chartDenominations.length > 0 && (
-					<div className="text-xs font-medium flex items-center rounded-md h-full overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
+					<div className="mr-auto text-xs font-medium flex items-center rounded-md h-full overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
 						{chartDenominations.map((D) => (
 							<Link
 								href={

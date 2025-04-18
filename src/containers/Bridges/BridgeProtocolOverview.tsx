@@ -71,8 +71,8 @@ const BridgeInfo = ({
 				</h1>
 				<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
 			</div>
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
-				<div className="flex flex-col gap-9 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-[#545757] dark:text-[#cccccc]">Deposited to {currentChain} (24h)</span>
 						<span className="font-jetbrains font-semibold text-2xl">
@@ -109,7 +109,7 @@ const BridgeInfo = ({
 					) : null}
 				</div>
 
-				<div className="bg-[var(--cards-bg)] rounded-md">
+				<div className="bg-[var(--cards-bg)] rounded-md col-span-2">
 					<div className="w-full max-w-fit overflow-x-auto ml-auto p-3">
 						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							<button

@@ -156,8 +156,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				pathname={pathname}
 			/>
 
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
-				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="font-semibold text-2xl">{investorName}</h1>
 
 					<details className="group text-base">
@@ -183,17 +183,16 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 						))}
 					</details>
 				</div>
-
-				<div className="col-span-1 min-h-[360px] bg-[var(--cards-bg)] rounded-md">
+				<div className="bg-[var(--cards-bg)] rounded-md col-span-2 min-h-[360px]">
 					<BarChart chartData={fundingRoundsByMonth} title="" isMonthly color="#1F67D2" valueSymbol="" />
 				</div>
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+				<LazyChart className="relative col-span-full pt-3 min-h-[372px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
 				</LazyChart>
-				<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+				<LazyChart className="relative col-span-full pt-3 min-h-[372px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
 				</LazyChart>
 			</div>
