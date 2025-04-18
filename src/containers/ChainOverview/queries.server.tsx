@@ -286,10 +286,11 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						.then((res) => res.json())
 						.then((data) => {
 							const chart = Object.entries(data.chart)
-								.slice(-14)
+
+							return chart
+								.slice(chart.length - 15, chart.length - 2)
 								.map(([date, cat]) => [+date * 1000, cat['RWA'] ?? null])
 								.filter((x) => x[1] != null)
-							return chart
 						})
 						.catch(() => null)
 				: null
