@@ -14,7 +14,11 @@ export const toFilterProtocol = ({
 		!protocolMetadata.name.startsWith('chain#') &&
 		protocolMetadata.displayName &&
 		protocolMetadata.chains &&
-		(chainDisplayName !== 'All' ? protocolMetadata.chains.includes(chainDisplayName) : true) &&
+		(chainDisplayName !== 'All'
+			? Array.from(new Set([...(protocolMetadata.chains ?? []), ...(protocolData.chains ?? [])])).includes(
+					chainDisplayName
+			  )
+			: true) &&
 		protocolData.category !== 'Bridge'
 		? true
 		: false
