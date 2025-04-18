@@ -103,13 +103,8 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		const toggled = enabled || {
 			...router.query,
 			...((!metrics.tvl
-				? metrics.fees
-					? {
-							fees: router.query.fees ?? 'true',
-							...(metrics.revenue ? { revenue: router.query.revenue ?? 'true' } : {})
-					  }
-					: metrics.dexs
-					? { dexs: router.query.dexs ?? 'true' }
+				? metrics.dexs
+					? { volume: router.query.volume ?? 'true' }
 					: metrics.perps
 					? { perpsVolume: router.query.perpsVolume ?? 'true' }
 					: metrics.options
@@ -122,6 +117,11 @@ const ProtocolChart = React.memo(function ProtocolChart({
 					? { perpsAggregators: router.query.perpsAggregators ?? 'true' }
 					: metrics.bridge
 					? { bridgeVolume: router.query.bridgeVolume ?? 'true' }
+					: metrics.fees
+					? {
+							fees: router.query.fees ?? 'true',
+							...(metrics.revenue ? { revenue: router.query.revenue ?? 'true' } : {})
+					  }
 					: metrics.unlocks
 					? { unlocks: router.query.unlocks ?? 'true' }
 					: metrics.treasury
@@ -394,7 +394,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 
 				{hasAtleasOneBarChart ? (
 					<>
-						<div className="text-xs font-medium flex items-center rounded-md h-full overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
+						<div className="ml-auto text-xs font-medium flex items-center rounded-md h-full overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
 							<Link
 								href={
 									realPathname +

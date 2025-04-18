@@ -382,6 +382,11 @@ const nextConfig = {
 				source: '/docs',
 				destination: '/docs/api',
 				permanent: true
+			},
+			{
+				source: '/donate',
+				destination: '/donations',
+				permanent: true
 			}
 		]
 	},

@@ -429,7 +429,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			allChains: [{ label: 'All', to: '/' }].concat(chains.map((c) => ({ label: c, to: `/chain/${slug(c)}` })))
 		}
 	} catch (error) {
-		const msg = `Error fetching ${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
+		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
 		console.log(msg)
 		throw new Error(msg)
 	}
