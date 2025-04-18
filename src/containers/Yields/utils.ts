@@ -1,7 +1,6 @@
 import { YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions } from './Filters/Attributes'
 import { calculateLoopAPY } from '~/containers/Yields/queries/index'
-import { slug } from '~/utils'
 
 export function toFilterPool({
 	curr,
@@ -41,9 +40,9 @@ export function toFilterPool({
 		}
 	})
 
-	toFilter = toFilter && selectedProjects?.map((p) => slug(p)).includes(slug(curr.project))
+	toFilter = toFilter && selectedProjects.includes(curr.projectName)
 
-	toFilter = toFilter && selectedCategories?.map((p) => slug(p)).includes(slug(curr.category))
+	toFilter = toFilter && selectedCategories.includes(curr.category)
 
 	const tokensInPool: Array<string> = curr.symbol
 		.split('(')[0]
@@ -73,11 +72,7 @@ export function toFilterPool({
 			.map((t) => t.toLowerCase())
 			.find((token) => tokensInPool.includes(token.toLowerCase()))
 
-		toFilter =
-			toFilter &&
-			selectedChains.map((t) => t.toLowerCase()).includes(curr.chain.toLowerCase()) &&
-			includeToken &&
-			excludeToken
+		toFilter = toFilter && selectedChains.includes(curr.chain) && includeToken && excludeToken
 	} else {
 		const exactToken = exactTokens
 			.map((t) => t.toLowerCase())
@@ -89,7 +84,7 @@ export function toFilterPool({
 				} else return false
 			})
 
-		toFilter = toFilter && selectedChains.map((t) => t.toLowerCase()).includes(curr.chain.toLowerCase()) && exactToken
+		toFilter = toFilter && selectedChains.includes(curr.chain) && exactToken
 	}
 
 	const isValidTvlRange =
@@ -472,13 +467,13 @@ export const filterPool = ({
 }: FilterPools) => {
 	let toFilter = true
 
-	toFilter = toFilter && selectedChains.map((chain) => chain.toLowerCase()).includes(pool.chain.toLowerCase())
+	toFilter = toFilter && selectedChains.includes(pool.chain)
 	// stratey page filters
 	if (selectedLendingProtocols) {
-		toFilter = toFilter && selectedLendingProtocols.map((project) => project.toLowerCase()).includes(pool.project)
+		toFilter = toFilter && selectedLendingProtocols.includes(pool.projectName)
 	}
 	if (selectedFarmProtocols) {
-		toFilter = toFilter && selectedFarmProtocols.map((project) => project.toLowerCase()).includes(pool.farmProject)
+		toFilter = toFilter && selectedFarmProtocols.includes(pool.farmProjectName)
 	}
 	if (selectedAttributes) {
 		selectedAttributes.forEach((attribute) => {

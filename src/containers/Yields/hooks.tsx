@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { slug } from '~/utils'
 
 interface IFormatYieldQueryParams {
 	projectList?: Array<string>
@@ -35,57 +34,52 @@ export const useFormatYieldQueryParams = ({
 		if (projectList) {
 			if (project) {
 				if (typeof project === 'string') {
-					selectedProjects = project === 'All' ? projectList.map((p) => slug(p)) : project === 'None' ? [] : [project]
+					selectedProjects = project === 'All' ? projectList : project === 'None' ? [] : [project]
 				} else {
 					selectedProjects = [...project]
 				}
-			} else selectedProjects = projectList.map((p) => slug(p))
+			} else selectedProjects = projectList
 		}
 
 		if (lendingProtocols) {
 			if (lendingProtocol) {
 				if (typeof lendingProtocol === 'string') {
 					selectedLendingProtocols =
-						lendingProtocol === 'All'
-							? lendingProtocols.map((p) => slug(p))
-							: lendingProtocol === 'None'
-							? []
-							: [lendingProtocol]
+						lendingProtocol === 'All' ? lendingProtocols : lendingProtocol === 'None' ? [] : [lendingProtocol]
 				} else {
 					selectedLendingProtocols = [...lendingProtocol]
 				}
-			} else selectedLendingProtocols = lendingProtocols.map((p) => slug(p))
+			} else selectedLendingProtocols = lendingProtocols
 		}
 
 		if (farmProtocols) {
 			if (farmProtocol) {
 				if (typeof farmProtocol === 'string') {
-					selectedFarmProtocols =
-						farmProtocol === 'All' ? farmProtocols.map((p) => slug(p)) : farmProtocol === 'None' ? [] : [farmProtocol]
+					selectedFarmProtocols = farmProtocol === 'All' ? farmProtocols : farmProtocol === 'None' ? [] : [farmProtocol]
 				} else {
 					selectedFarmProtocols = [...farmProtocol]
 				}
-			} else selectedFarmProtocols = farmProtocols.map((p) => slug(p))
+			} else selectedFarmProtocols = farmProtocols
 		}
 
 		if (categoryList) {
 			if (category) {
 				if (typeof category === 'string') {
-					selectedCategories = category === 'All' ? [...categoryList] : category === 'None' ? [] : [category]
+					selectedCategories = category === 'All' ? categoryList : category === 'None' ? [] : [category]
 				} else {
 					selectedCategories = [...category]
 				}
-			} else selectedCategories = [...categoryList]
+			} else selectedCategories = categoryList
 		}
 
 		if (chainList) {
 			if (chain) {
 				if (typeof chain === 'string') {
-					selectedChains = chain === 'All' ? [...chainList] : chain === 'None' ? [] : [chain]
+					selectedChains = chain === 'All' ? chainList : chain === 'None' ? [] : [chain]
 				} else {
 					selectedChains = [...chain]
 				}
-			} else selectedChains = [...chainList]
+			} else selectedChains = chainList
 		}
 
 		if (attribute) {
