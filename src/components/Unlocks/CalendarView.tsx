@@ -112,7 +112,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 						Week
 					</button>
 					<button
-						onClick={() => setViewMode('week')}
+						onClick={() => setViewMode('treemap')}
 						data-active={viewMode === 'treemap'}
 						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
