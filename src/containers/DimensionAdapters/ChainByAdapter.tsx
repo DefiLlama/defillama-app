@@ -18,7 +18,7 @@ import { useFeesManager } from '~/contexts/LocalStorage'
 
 export type IOverviewContainerProps = IOverviewProps
 
-export default function OverviewContainer(props: IOverviewContainerProps) {
+export function ChainByAdapter(props: IOverviewContainerProps) {
 	const chain = props.chain ?? 'All'
 	const isSimpleFees = props.isSimpleFees
 	const router = useRouter()

@@ -21,7 +21,7 @@ import { useFeesManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
 
-function ProtocolContainer(props: IProtocolContainerProps) {
+export function ProtocolByAdapter(props: IProtocolContainerProps) {
 	useScrollToTop()
 	const blockExplorers = (
 		props.protocolSummary.allAddresses ?? (props.protocolSummary.address ? [props.protocolSummary.address] : [])
@@ -265,5 +265,3 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 		</Layout>
 	)
 }
-
-export default ProtocolContainer

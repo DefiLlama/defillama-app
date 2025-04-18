@@ -1,7 +1,8 @@
 import { maxAgeForNext } from '~/api'
 import { ADAPTOR_TYPES, getDimensionsAdaptersChainsPageData } from '~/api/categories/adaptors'
 import { SEO } from '~/components/SEO'
-import OverviewContainer, { IOverviewContainerProps } from '~/containers/DimensionAdapters'
+import { ChainByAdapter, type IOverviewContainerProps } from '~/containers/DimensionAdapters/ChainByAdapter'
+
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -22,7 +23,7 @@ const VolumeOnAllChains = (props: IOverviewContainerProps) => {
 	return (
 		<Layout title="Options volume by chain - DefiLlama">
 			<SEO pageType={props.type} />
-			<OverviewContainer {...props} />
+			<ChainByAdapter {...props} />
 		</Layout>
 	)
 }

@@ -1,6 +1,6 @@
 import { ADAPTOR_TYPES, getOverviewItemPageData } from '~/api/categories/adaptors'
 import { withPerformanceLogging } from '~/utils/perf'
-import OverviewItemContainer from '~/containers/DimensionAdapters/OverviewItem'
+import { ProtocolByAdapter } from '~/containers/DimensionAdapters/ProtocolByAdapter'
 import { GetStaticPropsContext } from 'next'
 import { slug } from '~/utils'
 import metadataCache from '~/utils/metadata'
@@ -71,5 +71,5 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export default function ProtocolVolume(props) {
-	return <OverviewItemContainer {...props} type="volume" />
+	return <ProtocolByAdapter {...props} type="volume" />
 }
