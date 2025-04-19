@@ -63,6 +63,14 @@ export interface IPieChartProps {
 	showLegend?: boolean
 	formatTooltip?: (params: any) => string
 	customLabel?: Record<string, any>
+	legendPosition?: {
+		left?: string | number
+		right?: string | number
+		top?: string | number
+		bottom?: string | number
+		orient?: 'horizontal' | 'vertical'
+	}
+	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
 }
 
 export interface IStackedBarChartProps extends Omit<IChartProps, 'title' | 'chartData'> {
