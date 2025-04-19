@@ -176,13 +176,23 @@ export const UpcomingEvent = ({
 			<Ariakit.Hovercard
 				className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
 				unmountOnHide
+				portal={true}
 			>
 				<span className="flex items-center justify-between">
 					<span className="flex items-center gap-2">
 						<TokenLogo logo={tokenIconUrl(name)} size={30} />
 						{tokenSymbol}
 					</span>
-					<span>{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
+					<span className="flex flex-col">
+						<span>{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
+						<span className="text-sm text-[var(--text3)]">
+							{timestamp
+								? `${dayjs(timestamp * 1e3).format('HH:mm')} GMT${dayjs(timestamp * 1e3)
+										.format('Z')
+										.slice(0, 3)}`
+								: null}
+						</span>
+					</span>
 				</span>
 				<hr className="border-[var(--bg4)]" />
 				<span className="flex flex-col gap-4">

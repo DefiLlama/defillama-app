@@ -1,6 +1,7 @@
 import { chunk, groupBy, omit, sum } from 'lodash'
 import dynamic from 'next/dynamic'
 import { useMemo, useState } from 'react'
+import useWindowSize from '~/hooks/useWindowSize'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
@@ -30,6 +31,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 }
 
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
+	const { width } = useWindowSize()
 	const [dataType, setDataType] = useState<'documented' | 'realtime'>('documented')
 	const [isTreasuryIncluded, setIsTreasuryIncluded] = useState(false)
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
@@ -241,6 +243,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								chartData={pieChartDataAllocation}
 								stackColors={data.stackColors[dataType]}
 								usdFormat={false}
+								legendPosition={
+									!width
+										? { left: 'right', orient: 'vertical' }
+										: width < 640
+										? { left: 'center', top: 'bottom', orient: 'horizontal' }
+										: { left: 'right', top: 'center', orient: 'vertical' }
+								}
+								legendTextStyle={{ fontSize: !width ? 20 : width < 640 ? 12 : 20 }}
 							/>
 						</LazyChart>
 					)}
@@ -252,6 +262,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								showLegend
 								radius={['50%', '70%']}
 								title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
+								legendPosition={
+									!width
+										? { left: 'right', orient: 'vertical' }
+										: width < 640
+										? { left: 'center', top: 'bottom', orient: 'horizontal' }
+										: { left: 'right', top: 'center', orient: 'vertical' }
+								}
+								legendTextStyle={{ fontSize: !width ? 20 : width < 640 ? 12 : 20 }}
 								chartData={[
 									{ name: 'Unlocked', value: unlockedPercent },
 									{ name: 'Locked', value: 100 - unlockedPercent }

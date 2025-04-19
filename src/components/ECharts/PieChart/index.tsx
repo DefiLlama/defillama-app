@@ -27,6 +27,8 @@ export default function PieChart({
 	showLegend = false,
 	formatTooltip = null,
 	customLabel,
+	legendPosition,
+	legendTextStyle,
 	...props
 }: IPieChartProps) {
 	const id = useId()
@@ -109,18 +111,20 @@ export default function PieChart({
 			},
 			legend: {
 				show: showLegend,
-				left: 'right',
-				orient: 'vertical',
+				left: 'right', // Default
+				orient: 'vertical', // Default
+				...legendPosition, // Apply overrides from prop
 				data: chartData.map((item) => item.name),
 				icon: 'circle',
 				itemWidth: 10,
 				itemHeight: 10,
 				itemGap: 10,
 				textStyle: {
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)', // Default color
+					...legendTextStyle // Apply overrides from prop
 				},
 				formatter: function (name) {
-					const maxLength = 18
+					const maxLength = 18 // Keep existing formatter
 					return name.length > maxLength ? name.slice(0, maxLength) + '...' : name
 				}
 			},
