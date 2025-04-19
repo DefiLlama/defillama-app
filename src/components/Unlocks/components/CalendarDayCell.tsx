@@ -2,6 +2,7 @@ import * as React from 'react'
 import dayjs from 'dayjs'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, tokenIconUrl, slug } from '~/utils'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CustomLink } from '~/components/Link'
 import { interpolateColor } from '../utils/colorUtils'
@@ -16,6 +17,8 @@ interface CalendarDayCellProps {
 }
 
 export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unlocksData, maxUnlockValue }) => {
+	const [isDarkMode] = useDarkModeManager()
+
 	if (!dayInfo.date)
 		return <div className="h-24 w-full border border-[var(--divider)] bg-[var(--bg6)] opacity-40"></div>
 
@@ -31,15 +34,16 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 		intensityFactor = Math.min(1, Math.max(0, intensityFactor))
 	}
 
-	const baseColorRgb = [30, 41, 59]
+	const baseColorRgb = [243, 244, 246]
+	const darkModeBaseColorRgb = [30, 41, 59]
 	const highlightColorRgb = [59, 130, 246]
-
 	let interpolatedColorRgb = baseColorRgb
 	if (dayInfo.isCurrentMonth && intensityFactor > 0) {
-		interpolatedColorRgb = interpolateColor(baseColorRgb, highlightColorRgb, intensityFactor)
+		const baseColor = isDarkMode ? darkModeBaseColorRgb : baseColorRgb
+		interpolatedColorRgb = interpolateColor(baseColor, highlightColorRgb, intensityFactor)
 	}
 
-	const textColorClass = 'text-[var(--text2)] opacity-80'
+	const textColorClass = 'text-[var(--text1)]'
 
 	const textColorClassToday = 'text-[var(--blue)]'
 
