@@ -387,6 +387,11 @@ const nextConfig = {
 				source: '/donate',
 				destination: '/donations',
 				permanent: true
+			},
+			{
+				source: '/protocol/lighter',
+				destination: '/protocol/lighter-v2',
+				permanent: true
 			}
 		]
 	},
