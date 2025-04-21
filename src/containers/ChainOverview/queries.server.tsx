@@ -351,10 +351,10 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 
 		const topProtocolsByFeesChart =
 			fees && fees.totalDataChartBreakdown.length > 0
-				? (Object.entries(fees.totalDataChartBreakdown[fees.totalDataChartBreakdown.length - 1][1] ?? {})
-						.sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
+				? (protocols
+						.sort((a, b) => (b.fees?.total24h ?? 0) - (a.fees?.total24h ?? 0))
 						.slice(0, 14)
-						.map((x) => [x[0], x[1] ?? 0, tokenIconUrl(x[0])]) as Array<[string, number, string]>)
+						.map((x) => [x.name, x.fees?.total24h ?? 0, tokenIconUrl(x.name)]) as Array<[string, number, string]>)
 				: null
 
 		const feesGenerated24h =

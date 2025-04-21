@@ -36,7 +36,7 @@ export default function Layout({
 			<Nav />
 			<main
 				{...props}
-				className={`flex flex-col gap-1 w-full text-[var(--text1)] isolate p-1 lg:p-4 lg:pl-[228px] min-h-screen ${
+				className={`flex flex-col gap-1 w-full text-[var(--text1)] isolate p-1 lg:p-4 lg:pl-[248px] min-h-screen ${
 					className ?? ''
 				}`}
 			>
@@ -50,3 +50,6 @@ export default function Layout({
 		</>
 	)
 }
+
+// sidebar + gap between nav & main + padding right
+// 228px + 4px + 16px = 248px
