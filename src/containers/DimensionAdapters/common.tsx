@@ -246,7 +246,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						) : (
 							<BarChart
 								title=""
-								chartData={barsData.slice(0, 2850)}
+								chartData={barsData}
 								customLegendOptions={props.chartData[1]}
 								stacks={simpleStack}
 								hideDefaultLegend={props.disableDefaultLeged}

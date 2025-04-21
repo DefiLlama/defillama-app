@@ -2,17 +2,12 @@ import * as React from 'react'
 import { OverviewTable } from '~/containers/DimensionAdapters/Table'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
-import {
-	groupProtocolsByParent,
-	IJoin2ReturnType,
-	IOverviewProps,
-	VOLUME_TYPE_ADAPTORS
-} from '~/api/categories/adaptors'
+import { groupProtocolsByParent, IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
 import { useRouter } from 'next/router'
-import { capitalizeFirstLetter, slug } from '~/utils'
+import { slug } from '~/utils'
 import { Announcement } from '~/components/Announcement'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 
@@ -74,6 +69,8 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 		totalDataChartBreakdown: props.totalDataChartBreakdown,
 		totalDataChartBreakdown2: undefined
 	})
+
+	console.log({ charts })
 
 	// Needs to be improved! Too dirty
 	const { data, error, isLoading } = useFetchCharts(
@@ -269,32 +266,4 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 			)}
 		</>
 	)
-}
-
-interface ITitleProps {
-	type: string
-	chain: string
-}
-const TitleByType: React.FC<ITitleProps> = (props) => {
-	let title = capitalizeFirstLetter(props.type)
-	if (VOLUME_TYPE_ADAPTORS.includes(props.type)) {
-		title = `${
-			title === 'Derivatives'
-				? 'Perps'
-				: title === 'Derivatives-aggregator'
-				? 'Perps Aggregators'
-				: title === 'Bridge-aggregators'
-				? 'Bridge Aggregators'
-				: title
-		} volume`
-	} else if (props.type === 'fees') {
-		if (props.chain === 'all') title = 'Ranking by fees'
-		else title = 'Ranking by fees and revenue'
-	}
-	if (props.chain === 'all') {
-		title = `${title} by chain`
-	} else if (props.chain && props.chain !== 'All') {
-		title = `${title} in ${props.chain}`
-	}
-	return <>{title}</>
 }
