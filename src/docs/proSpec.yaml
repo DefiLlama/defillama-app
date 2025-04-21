@@ -404,7 +404,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /bridges/bridges:
+  /bridges:
     get:
       tags:
         - bridges
@@ -422,7 +422,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /bridges/bridge/{id}:
+  /bridge/{id}:
     get:
       tags:
         - bridges
@@ -440,7 +440,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /bridges/bridgevolume/{chain}:
+  /bridgevolume/{chain}:
     get:
       tags:
         - bridges
@@ -465,7 +465,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /bridges/bridgedaystats/{timestamp}/{chain}:
+  /bridgedaystats/{timestamp}/{chain}:
     get:
       tags:
         - bridges

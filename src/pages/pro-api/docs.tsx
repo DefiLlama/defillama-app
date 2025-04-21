@@ -6,26 +6,30 @@ import { useIsClient } from '~/hooks'
 import { useMemo, useState, useEffect } from 'react'
 import Layout from '~/layout'
 import Head from 'next/head'
+
 export default function Docs() {
 	const isClient = useIsClient()
-	const [apiKey, setApiKey] = useState<string | null>(null)
+	const [savedApiKey, setSavedApiKey] = useState<string | null>(null)
+	const [inputApiKey, setInputApiKey] = useState<string>('')
 
 	useEffect(() => {
 		if (isClient) {
-			setApiKey(window.localStorage.getItem('pro_apikey') ?? '')
+			const storedKey = window.localStorage.getItem('pro_apikey') ?? ''
+			setSavedApiKey(storedKey)
+			setInputApiKey(storedKey)
 		}
 	}, [isClient])
 
-	useEffect(() => {
-		if (isClient && apiKey !== null) {
-			window.localStorage.setItem('pro_apikey', apiKey)
+	const handleSaveApiKey = () => {
+		if (isClient) {
+			window.localStorage.setItem('pro_apikey', inputApiKey)
+			window.location.reload()
 		}
-	}, [apiKey, isClient])
+	}
 
-	const finalSpec = useMemo(() => {
-		const key = apiKey ?? 'APIKEY'
-		const spec = JSON.parse(JSON.stringify(yamlApiSpec)) // Deep clone to avoid mutation issues
-		spec.servers = spec.servers.map((s: any) => ({ ...s, url: s.url.replaceAll('APIKEY', key) }))
+	const finalSpec = (() => {
+		const spec = JSON.parse(JSON.stringify(yamlApiSpec))
+		spec.servers = spec.servers.map((s: any) => ({ ...s, url: s.url.replaceAll('APIKEY', savedApiKey ?? 'APIKEY') }))
 		Object.entries(openApiSpec.paths).forEach(([path, val]) => {
 			let server = 'api'
 			const routes = Object.fromEntries(
@@ -37,8 +41,7 @@ export default function Docs() {
 			spec.paths[`/${server}${path}`] = routes
 		})
 		return spec
-	}, [apiKey])
-
+	})()
 	if (!isClient) {
 		return null
 	}
@@ -60,20 +63,28 @@ export default function Docs() {
 				<label htmlFor="apiKeyInput" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 					Enter your Pro API Key:
 				</label>
-				<input
-					id="apiKeyInput"
-					type="text"
-					value={apiKey ?? ''}
-					onChange={(e) => setApiKey(e.target.value)}
-					placeholder="Your API Key"
-					className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-black dark:text-white"
-				/>
+				<div className="flex items-center space-x-2">
+					<input
+						id="apiKeyInput"
+						type="text"
+						value={inputApiKey}
+						onChange={(e) => setInputApiKey(e.target.value)}
+						placeholder="Your API Key"
+						className="flex-grow px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-black dark:text-white"
+					/>
+					<button
+						onClick={handleSaveApiKey}
+						className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+					>
+						Save
+					</button>
+				</div>
 				<p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
 					Your key is saved locally in your browser&apos;s storage.
 				</p>
 			</div>
 
-			<ApiDocs spec={finalSpec} />
+			<ApiDocs spec={{ ...finalSpec }} />
 		</Layout>
 	)
 }

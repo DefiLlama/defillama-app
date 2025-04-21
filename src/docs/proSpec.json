@@ -571,7 +571,7 @@
 				}
 			}
 		},
-		"/bridges/bridges": {
+		"/bridges": {
 			"get": {
 				"tags": ["bridges"],
 				"summary": "List all bridges along with summaries of recent bridge volumes.",
@@ -599,7 +599,7 @@
 				}
 			}
 		},
-		"/bridges/bridge/{id}": {
+		"/bridge/{id}": {
 			"get": {
 				"tags": ["bridges"],
 				"summary": "Get summary of bridge volume and volume breakdown by chain",
@@ -627,7 +627,7 @@
 				}
 			}
 		},
-		"/bridges/bridgevolume/{chain}": {
+		"/bridgevolume/{chain}": {
 			"get": {
 				"tags": ["bridges"],
 				"summary": "Get historical volumes for a bridge, chain, or bridge on a particular chain",
@@ -654,7 +654,7 @@
 						"description": "bridge ID, you can get these from /bridges",
 						"schema": {
 							"type": "integer",
-							"example": 5
+							"example": 1
 						}
 					}
 				],
@@ -665,7 +665,7 @@
 				}
 			}
 		},
-		"/bridges/bridgedaystats/{timestamp}/{chain}": {
+		"/bridgedaystats/{timestamp}/{chain}": {
 			"get": {
 				"tags": ["bridges"],
 				"summary": "Get a 24hr token and address volume breakdown for a bridge",
@@ -702,7 +702,7 @@
 						"description": "bridge ID, you can get these from /bridges",
 						"schema": {
 							"type": "integer",
-							"example": 5
+							"example": 1
 						}
 					}
 				],
