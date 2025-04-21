@@ -231,10 +231,10 @@ function BridgesOverview({
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
-					<p className="flex flex-col">
+					<h1 className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (24h)</span>
 						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(dayTotalVolume, true)}</span>
-					</p>
+					</h1>
 					<p className="hidden md:flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (7d)</span>
 						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(weekTotalVolume, true)}</span>

@@ -99,24 +99,16 @@ export default function Protocols({ data }) {
 			</Announcement>
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
-					<h1 className="text-xl mb-4 font-semibold">Unlock Statistics</h1>
-					<table className="text-base w-full border-collapse mt-4">
-						<tbody>
-							<tr>
-								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
-									Total Protocols Tracked
-								</th>
-								<td className="font-jetbrains text-right">{data?.length || 0}</td>
-							</tr>
-							<tr>
-								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
-									Upcoming Unlocks (30d)
-								</th>
-								<td className="font-jetbrains text-right">{formattedNum(upcomingUnlocks30dValue, true)}</td>
-							</tr>
-						</tbody>
-					</table>
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+					<h1 className="text-xl font-semibold">Unlock Statistics</h1>
+					<p className="hidden md:flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Total Protocols Tracked</span>
+						<span className="font-semibold text-3xl font-jetbrains">{data?.length || 0}</span>
+					</p>
+					<p className="hidden md:flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Upcoming Unlocks (30d)</span>
+						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(upcomingUnlocks30dValue, true)}</span>
+					</p>
 				</div>
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
 					<UpcomingUnlockVolumeChart protocols={data} />

@@ -52,7 +52,7 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({ dayInfo, unlocksDa
 										<span className="truncate">{event.protocol}</span>
 									</div>
 									{event.unlockType && (
-										<span className="px-1.5 py-0.5 rounded bg-[var(--bg5)] text-[var(--text2)] text-[0.6rem] sm:text-[0.65rem] font-medium whitespace-nowrap flex-shrink-0">
+										<span className="px-1.5 py-0.5 rounded bg-[var(--bg5)] text-white text-[0.6rem] sm:text-[0.65rem] font-medium whitespace-nowrap flex-shrink-0">
 											{event.unlockType}
 										</span>
 									)}
