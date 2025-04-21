@@ -126,7 +126,7 @@ export function useDefaults({
 				const date = new Date(params[0].value[0])
 
 				let chartdate = isMonthly
-					? monthNames[date.getUTCMonth()] + '1 - ' + lastDayOfMonth(params[0].value[0]) + ', ' + date.getUTCFullYear()
+					? monthNames[date.getUTCMonth()] + ' 1 - ' + lastDayOfMonth(params[0].value[0]) + ', ' + date.getUTCFullYear()
 					: `${date.getUTCDate().toString().padStart(2, '0')} ${
 							monthNames[date.getUTCMonth()]
 					  } ${date.getUTCFullYear()}`
