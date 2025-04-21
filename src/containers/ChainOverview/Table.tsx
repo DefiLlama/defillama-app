@@ -369,11 +369,13 @@ const columns: ColumnDef<IProtocol>[] = [
 				id: 'tvl',
 				header: 'TVL',
 				cell: ({ row }) =>
-					row.original.strikeTvl || row.original.tvl?.excludeParent ? (
-						<Tvl rowValues={row.original} />
-					) : (
-						<>{row.original.tvl != null ? `$${formattedNum(row.original.tvl?.default?.tvl || 0)}` : null}</>
-					),
+					row.original.tvl ? (
+						row.original.strikeTvl || row.original.tvl.excludeParent ? (
+							<Tvl rowValues={row.original} />
+						) : (
+							<>{`$${formattedNum(row.original.tvl?.default?.tvl || 0)}`}</>
+						)
+					) : null,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -704,7 +706,7 @@ const Tvl = ({ rowValues }) => {
 	return (
 		<span className="flex items-center justify-end gap-1">
 			{text ? <QuestionHelper text={text} /> : null}
-			{rowValues.tvl?.excludeParent && rowValues.childProtocols ? (
+			{rowValues.tvl.excludeParent && rowValues.childProtocols ? (
 				<QuestionHelper
 					text={"There's some internal doublecounting that is excluded from parent TVL, so sum won't match"}
 				/>
