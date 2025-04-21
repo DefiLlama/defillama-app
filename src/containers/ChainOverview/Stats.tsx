@@ -350,7 +350,7 @@ export const Stats = (props: IChainOverviewData) => {
 													props.dexs.change_7dover7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
 												}`}
 											>
-												{`${props.dexs.change_7dover7d >= 0 ? '+' : '-'}${props.dexs.change_7dover7d}%`}
+												{`${props.dexs.change_7dover7d >= 0 ? '+' : ''}${props.dexs.change_7dover7d}%`}
 											</td>
 										</tr>
 										<tr>
@@ -396,7 +396,7 @@ export const Stats = (props: IChainOverviewData) => {
 													props.perps.change_7dover7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
 												}`}
 											>
-												{`${props.perps.change_7dover7d >= 0 ? '+' : '-'}${props.perps.change_7dover7d}%`}
+												{`${props.perps.change_7dover7d >= 0 ? '+' : ''}${props.perps.change_7dover7d}%`}
 											</td>
 										</tr>
 									</>
