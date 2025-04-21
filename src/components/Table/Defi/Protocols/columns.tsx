@@ -565,20 +565,9 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		accessorKey: 'rank',
 		size: 80,
 		enableSorting: false,
-		cell: ({ row }) => {
-			return (
-				<span
-					style={{
-						fontSize: '0.9rem',
-						fontWeight: 'bold',
-						textAlign: 'center',
-						display: 'flex',
-						justifyContent: 'center'
-					}}
-				>
-					{row.index + 1}
-				</span>
-			)
+		cell: ({ row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return <span className="font-bold">{index + 1}</span>
 		},
 		meta: {
 			align: 'center' as any

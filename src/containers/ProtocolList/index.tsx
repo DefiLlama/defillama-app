@@ -112,9 +112,9 @@ function Container({
 	}, [extraTvlsEnabled, protocols, parentProtocols, category, chain, compareProtocols])
 
 	const { tvl, dominance, topToken, percentChange, totals } = React.useMemo(() => {
-		const tvlVal = protocolTotals?.reduce((acc, protocol) => acc + protocol.tvl, 0)
+		const tvlVal = protocolTotals?.reduce((acc, protocol) => (acc += protocol.tvl ?? 0), 0)
 		const tvl = formattedNum(tvlVal, true)
-		const dominance = protocolTotals?.[0]?.tvl ? ((protocolTotals?.[0]?.tvl / tvlVal) * 100).toFixed(2) : 0
+		const dominance = protocolTotals?.[0]?.tvl && tvlVal ? ((protocolTotals?.[0]?.tvl / tvlVal) * 100).toFixed(2) : 0
 		const topToken = protocolTotals?.[0] ?? { name: '', tvl: 0 }
 		const percentChange = getPercentChange(
 			categoryChart?.[categoryChart.length - 1]?.[1],
@@ -137,12 +137,14 @@ function Container({
 		}, {})
 		return { tvl, dominance, topToken, percentChange, totals }
 	}, [protocolTotals, categoryChart])
+
 	if (!title) {
 		title = `TVL Rankings`
 		if (category) {
 			title = `${category} TVL Rankings`
 		}
 	}
+
 	const columnsToRemove = React.useMemo(
 		() =>
 			(category ? ['category'] : []).concat(
