@@ -5,7 +5,6 @@ import { cexColumn } from '~/components/Table/Defi/columns'
 import { cexData } from '~/pages/cexs'
 import { DateFilter } from './DateFilter'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import Layout from '~/layout'
 
 const getOutflowsByTimerange = async (startTime, endTime) => {
@@ -79,7 +78,6 @@ export const Cexs = ({ cexs }) => {
 
 	return (
 		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
 			<TableWithSearch
 				data={cexsWithCustomRange}
 				columns={cexColumn}
