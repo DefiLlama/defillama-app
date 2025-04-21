@@ -45,69 +45,73 @@ function Marketplaces({
 		<Layout title="NFT Marketplaces - DefiLlama" defaultSEO>
 			<NFTsSearch />
 
-			<h1 className="text-2xl font-medium -mb-5">NFT Marketplaces</h1>
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<div className="flex items-center gap-4 justify-between">
+					<h1 className="text-xl font-semibold p-3">NFT Marketplaces</h1>
 
-			<div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full max-w-fit bg-[rgba(33,114,229,0.2)] ml-auto">
-				<button
-					data-active={!dominanceChart}
-					className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
-					onClick={() => setDominanceChart(false)}
-				>
-					Absolute
-				</button>
-				<button
-					data-active={dominanceChart}
-					className="rounded-xl flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
-					onClick={() => setDominanceChart(true)}
-				>
-					Relative
-				</button>
+					<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<button
+							data-active={!dominanceChart}
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							onClick={() => setDominanceChart(false)}
+						>
+							Absolute
+						</button>
+						<button
+							data-active={dominanceChart}
+							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							onClick={() => setDominanceChart(true)}
+						>
+							Relative
+						</button>
+					</div>
+				</div>
+				<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 min-h-[744px] xl:min-h-[384px] py-3">
+					{dominanceChart ? (
+						<AreaChart
+							chartData={dominance}
+							stacks={marketplaces}
+							stackColors={stackColors}
+							hideDefaultLegend
+							valueSymbol="%"
+							title="Volume"
+							expandTo100Percent={true}
+						/>
+					) : (
+						<BarChart
+							title="Volume"
+							stacks={volumeChartStacks}
+							stackColors={stackColors}
+							chartData={volume}
+							valueSymbol="ETH"
+							hideDefaultLegend
+							tooltipOrderBottomUp
+						/>
+					)}
+					{dominanceChart ? (
+						<AreaChart
+							chartData={dominanceTrade}
+							stacks={marketplaces}
+							stackColors={stackColors}
+							hideDefaultLegend
+							valueSymbol="%"
+							title="Trades"
+							expandTo100Percent={true}
+						/>
+					) : (
+						<BarChart
+							title="Trades"
+							stacks={tradeChartStacks}
+							stackColors={stackColors}
+							chartData={trades}
+							valueSymbol=""
+							hideDefaultLegend
+							tooltipOrderBottomUp
+						/>
+					)}
+				</div>
+				<NftsMarketplaceTable data={data} />
 			</div>
-			<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 bg-[var(--bg6)] min-h-[392px] rounded-xl shadow p-4">
-				{dominanceChart ? (
-					<AreaChart
-						chartData={dominance}
-						stacks={marketplaces}
-						stackColors={stackColors}
-						hideDefaultLegend
-						valueSymbol="%"
-						title="Volume"
-						expandTo100Percent={true}
-					/>
-				) : (
-					<BarChart
-						title="Volume"
-						stacks={volumeChartStacks}
-						stackColors={stackColors}
-						chartData={volume}
-						valueSymbol="ETH"
-						hideDefaultLegend
-						tooltipOrderBottomUp
-					/>
-				)}
-				{dominanceChart ? (
-					<AreaChart
-						chartData={dominanceTrade}
-						stacks={marketplaces}
-						stackColors={stackColors}
-						hideDefaultLegend
-						valueSymbol="%"
-						title="Trades"
-						expandTo100Percent={true}
-					/>
-				) : (
-					<BarChart
-						title="Trades"
-						stacks={tradeChartStacks}
-						stackColors={stackColors}
-						chartData={trades}
-						valueSymbol=""
-						hideDefaultLegend
-						tooltipOrderBottomUp
-					/>
-				)}
-			</div>
-			<NftsMarketplaceTable data={data} />
 		</Layout>
 	)
 }

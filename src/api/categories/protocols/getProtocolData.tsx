@@ -28,6 +28,7 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { sluggify } from '~/utils/cache-client'
 import { fetchWithErrorLogging, fetchWithTimeout, postRuntimeLogs } from '~/utils/async'
 import metadata from '~/utils/metadata'
+import { darken, transparentize } from 'polished'
 const { protocolMetadata } = metadata
 
 const fetchGovernanceData = async (apis: Array<string>) => {
@@ -554,7 +555,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					options: protocolMetadata[protocolData.id]?.options ? true : false,
 					medianApy: medianApy.data.length > 0,
 					inflows: inflowsExist,
-					unlocks: protocolMetadata[protocolData.id]?.unlocks ? true : false,
+					unlocks: protocolMetadata[protocolData.id]?.emissions ? true : false,
 					bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
 					treasury: protocolMetadata[protocolData.id]?.treasury ? true : false,
 					tokenLiquidity: protocolMetadata[protocolData.id]?.liquidity ? true : false,
@@ -652,7 +653,8 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			dailyTokenTaxes,
 			bribesRevenue30d,
 			tokenTaxesRevenue30d,
-			clientSide: isCpusHot
+			clientSide: isCpusHot,
+			pageStyles: getProtocolPageStyles(backgroundColor)
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -758,8 +760,19 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 			governanceApis: [],
 			tokenCGData: getTokenCGData(tokenCGData),
 			nextEventDescription: null,
-			clientSide: isCpusHot
+			clientSide: isCpusHot,
+			pageStyles: getProtocolPageStyles(props.backgroundColor)
 		},
 		revalidate: maxAgeForNext([22])
+	}
+}
+
+export function getProtocolPageStyles(color) {
+	return {
+		'--primary-color': color,
+		'--bg-color': transparentize(0.6, color),
+		'--btn-bg': transparentize(0.9, color),
+		'--btn-hover-bg': transparentize(0.8, color),
+		'--btn-text': darken(0.1, color)
 	}
 }

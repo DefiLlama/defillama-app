@@ -92,11 +92,11 @@ const blackListedTokens = ['AUSDT', 'OUSD', 'AUSDC']
 
 import { useState } from 'react'
 import Layout from '~/layout'
-import YieldPage from '~/containers/YieldsPage'
+import YieldPage from '~/containers/Yields'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/containers/YieldsPage/utils'
+import { disclaimer } from '~/containers/Yields/utils'
 import { maxAgeForNext } from '~/api'
-import { getYieldPageData } from '~/api/categories/yield'
+import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/halal', async () => {
@@ -130,7 +130,7 @@ export default function YieldPlots(data) {
 	return (
 		<Layout title={`Halal - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<p className="border border-black/10 dark:border-white/10 p-5 rounded-md whitespace-pre-line text-center">
+			<p className="bg-[var(--cards-bg)] p-3 rounded-md text-center">
 				This list aims to a practical tracker for halal defi yields.
 				<br />
 				Shariah-compliant defi is pretty subjective so our approach is to be practical and list DEXs, yield farming and

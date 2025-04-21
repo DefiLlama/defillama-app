@@ -4,9 +4,11 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { formatChartTvlsByDay } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import type { IChartProps } from '~/components/ECharts/types'
+import Layout from '~/layout'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -19,8 +21,8 @@ const chartColors = {
 	TVL: '#4f8fea'
 }
 
-export const ForkContainer = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
-	const [extraTvlsEnabled] = useDefiManager()
+export const ForksByProtocol = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const { protocolsData, parentForks, finalChartData, totalVolume, volumeChangeUSD } = useMemo(() => {
 		const protocolsData = formatDataWithExtraTvls({
@@ -55,15 +57,15 @@ export const ForkContainer = ({ chartData, tokenLinks, token, filteredProtocols,
 	const percentChange = volumeChangeUSD?.toFixed(2)
 
 	return (
-		<div className="flex flex-col gap-5 p-3 rounded-lg shadow bg-white dark:bg-[#090a0b]">
+		<Layout title={`Forks - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
+
 			{tokenLinks?.length > 0 && (
-				<nav className="flex">
-					<RowLinksWithDropdown links={tokenLinks} activeLink={token} alternativeOthersText="Others" />
-				</nav>
+				<RowLinksWithDropdown links={tokenLinks} activeLink={token} alternativeOthersText="Others" />
 			)}
 
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col gap-8 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
+				<div className="flex flex-col gap-8 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
 						<span className="font-jetbrains font-semibold text-2xl">{tvl}</span>
@@ -79,12 +81,12 @@ export const ForkContainer = ({ chartData, tokenLinks, token, filteredProtocols,
 						<span className="font-jetbrains font-semibold text-2xl">{dominance}%</span>
 					</p>
 				</div>
-				<div className="col-span-1 py-4 min-h-[392px]">
+				<div className="col-span-1 pt-3 min-h-[372px] bg-[var(--cards-bg)] rounded-md">
 					<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
 				</div>
 			</div>
 
 			<ProtocolsTableWithSearch data={protocolsData as any} />
-		</div>
+		</Layout>
 	)
 }

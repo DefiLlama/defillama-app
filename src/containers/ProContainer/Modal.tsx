@@ -38,7 +38,7 @@ export const Modal = ({ children, onClose, onSave, openText, ...props }) => {
 									onSave()
 									closeModal()
 								}}
-								className="flex align-middle rounded-xl py-3 px-4 mr-2 bg-white dark:bg-black"
+								className="flex align-middle rounded-md py-3 px-4 mr-2 bg-white dark:bg-black"
 							>
 								Add
 							</button>

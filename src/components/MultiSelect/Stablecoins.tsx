@@ -1,6 +1,6 @@
 import { ActionMeta, components, GroupProps } from 'react-select'
 import { ReactSelect } from './ReactSelect'
-import { useDefiChainsManager, DEFI_CHAINS_SETTINGS } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager, DEFI_CHAINS_SETTINGS } from '~/contexts/LocalStorage'
 
 const tvlOptions = [{ label: 'Unreleased', value: 'unreleased' }]
 
@@ -12,7 +12,7 @@ const tvlOptionsLabel = [
 ]
 
 export function PeggedAssetTvlOptions({ label }: { label?: string }) {
-	const [extraPeggedEnabled, updater] = useDefiChainsManager()
+	const [extraPeggedEnabled, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const filters = extraPeggedEnabled
 
@@ -22,10 +22,10 @@ export function PeggedAssetTvlOptions({ label }: { label?: string }) {
 
 	const toggle = (_, s: ActionMeta<any>) => {
 		if (s.removedValues) {
-			s.removedValues?.forEach((option) => updater(option.value)())
+			s.removedValues?.forEach((option) => updater(option.value))
 		} else if (s.removedValue) {
-			updater(s.removedValue.value)()
-		} else updater(s.option.value)()
+			updater(s.removedValue.value)
+		} else updater(s.option.value)
 	}
 
 	const Group = (props: GroupProps) => (
@@ -58,7 +58,7 @@ const groupOptionsLabel = [
 ]
 
 export function GroupStablecoins({ label }: { label?: string }) {
-	const [groupTvls, updater] = useDefiChainsManager()
+	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const filters = { ...groupTvls }
 
@@ -68,10 +68,10 @@ export function GroupStablecoins({ label }: { label?: string }) {
 
 	const toggle = (_, s: ActionMeta<any>) => {
 		if (s.removedValues) {
-			s.removedValues?.forEach((option) => updater(option.value)())
+			s.removedValues?.forEach((option) => updater(option.value))
 		} else if (s.removedValue) {
-			updater(s.removedValue.value)()
-		} else updater(s.option.value)()
+			updater(s.removedValue.value)
+		} else updater(s.option.value)
 	}
 
 	const Group = (props: GroupProps) => (

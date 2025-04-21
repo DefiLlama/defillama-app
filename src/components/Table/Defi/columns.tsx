@@ -1,4 +1,4 @@
-import { ColumnDef, sortingFns } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table'
 import { useEffect, useState } from 'react'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
@@ -9,10 +9,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import {
 	capitalizeFirstLetter,
-	chainIconUrl,
 	formattedNum,
 	formattedPercent,
-	getDominancePercent,
 	slug,
 	toK,
 	tokenIconUrl,
@@ -20,84 +18,20 @@ import {
 	toNiceDayMonthYear,
 	toNiceHour
 } from '~/utils'
-import { UpcomingEvent } from '../../../containers/Defi/Protocol/Emissions/UpcomingEvent'
+import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { formatColumnOrder } from '../utils'
 import type {
 	AirdropRow,
 	CategoryPerformanceRow,
 	CoinPerformanceRow,
-	IBridgedRow,
 	ICategoryRow,
-	IChainsRow,
 	IEmission,
 	IETFRow,
 	IForksRow,
 	IGovernance,
-	ILSDRow,
-	IOraclesRow
+	ILSDRow
 } from './types'
-
-export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
-					<CustomLink
-						href={`/oracles/${getValue()}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as string}
-					</CustomLink>
-				</span>
-			)
-		}
-	},
-	{
-		header: 'Chains',
-		accessorKey: 'chains',
-		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			return <IconsRow links={getValue() as Array<string>} url="/oracles/chain" iconType="chain" />
-		},
-		size: 200,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Chains secured by the oracle'
-		}
-	},
-	{
-		header: 'Protocols Secured',
-		accessorKey: 'protocolsSecured',
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'TVS',
-		accessorKey: 'tvs',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Excludes CeFi'
-		}
-	},
-	{
-		header: 'Perp DEXs Volume (30d)',
-		accessorKey: 'monthlyVolume',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Cumulative last 30d volume secured'
-		},
-		sortUndefined: 'last'
-	}
-]
+import * as Ariakit from '@ariakit/react'
 
 export const forksColumn: ColumnDef<IForksRow>[] = [
 	{
@@ -510,65 +444,6 @@ export const calendarColumns: ColumnDef<any>[] = [
 	}
 ]
 
-export const expensesColumns: ColumnDef<any>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink
-						href={`/protocol/${slug(getValue() as string)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as string}
-					</CustomLink>
-				</span>
-			)
-		},
-		size: 220
-	},
-	{
-		header: 'Headcount',
-		accessorKey: 'headcount',
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Annual Expenses',
-		accessorKey: 'sumAnnualUsdExpenses',
-		cell: ({ getValue }) => {
-			return <>{getValue() ? '$' + formattedNum(getValue()) : ''}</>
-		},
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Source',
-		accessorKey: 'sources',
-		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<ButtonLight
-					className="flex items-center justify-center gap-4 !p-[6px]"
-					as="a"
-					href={getValue()[0] as string}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonLight>
-			) : null
-	}
-]
-
 export const governanceColumns: ColumnDef<IGovernance>[] = [
 	{
 		header: 'Name',
@@ -705,20 +580,35 @@ export const activeInvestorsColumns: ColumnDef<{
 		header: 'Top Project Category',
 		accessorKey: 'category',
 		enableSorting: false,
-		size: 160
+		size: 180
 	},
 	{
 		header: 'Top Round Type',
 		accessorKey: 'roundType',
 		enableSorting: false,
-		size: 120
+		size: 140
 	},
 	{
 		header: 'Projects',
 		accessorKey: 'projects',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Tooltip content={getValue() as string | null}>{getValue() as string | null}</Tooltip>
+			return (
+				<Ariakit.HovercardProvider>
+					<Ariakit.HovercardAnchor className="whitespace-nowrap text-ellipsis overflow-hidden">
+						{getValue() as string | null}
+					</Ariakit.HovercardAnchor>
+					<Ariakit.Hovercard
+						unmountOnHide
+						wrapperProps={{
+							className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+						}}
+						className="max-w-xl z-10 p-1 shadow rounded-md bg-[var(--bg2)] border border-[var(--bg3)] text-[var(--text1)] flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden max-sm-drawer"
+					>
+						{getValue() as string | null}
+					</Ariakit.Hovercard>
+				</Ariakit.HovercardProvider>
+			)
 		},
 		size: 240
 	}
@@ -784,354 +674,6 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 				<Icon name="arrow-up-right" height={14} width={14} />
 			</ButtonLight>
 		)
-	}
-]
-
-export const chainsColumn: ColumnDef<IChainsRow>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span
-					className="flex items-center gap-2 relative"
-					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
-				>
-					{row.subRows?.length > 0 && (
-						<button
-							className="absolute -left-[2px]"
-							{...{
-								onClick: row.getToggleExpandedHandler()
-							}}
-						>
-							{row.getIsExpanded() ? (
-								<>
-									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
-								</>
-							) : (
-								<>
-									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
-								</>
-							)}
-						</button>
-					)}
-					<span className="flex-shrink-0">{index + 1}</span>
-					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink
-						href={`/chain/${getValue()}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as string | null}
-					</CustomLink>
-				</span>
-			)
-		},
-		size: 200
-	},
-	{
-		header: 'Protocols',
-		accessorKey: 'protocols',
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Active Addresses',
-		accessorKey: 'users',
-		cell: (info) => <>{info.getValue() === 0 || formattedNum(info.getValue())}</>,
-		size: 180,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Active addresses in the last 24h'
-		}
-	},
-	{
-		header: '1d Change',
-		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '7d Change',
-		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '1m Change',
-		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'DeFi TVL',
-		accessorKey: 'tvl',
-		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
-		},
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Bridged TVL',
-		accessorKey: 'chainAssets',
-		accessorFn: (row) => row.chainAssets?.total ?? undefined,
-		cell: ({ row }) => {
-			const chainAssets: any = row.original.chainAssets
-			if (!chainAssets?.total) return null
-
-			const chainAssetsBreakdown = (
-				<div className="w-52 flex flex-col gap-1">
-					{chainAssets.native ? (
-						<div className="flex items-center gap-1 justify-between">
-							<span>Native:</span>
-							<span>{formattedNum(+chainAssets.native, true)}</span>
-						</div>
-					) : null}
-					{chainAssets.canonical ? (
-						<div className="flex items-center gap-1 justify-between">
-							<span>Canonical:</span>
-							<span>{formattedNum(+chainAssets.canonical, true)}</span>
-						</div>
-					) : null}
-					{chainAssets.ownTokens ? (
-						<div className="flex items-center gap-1 justify-between">
-							<span>Own Tokens:</span>
-							<span>{formattedNum(+chainAssets.ownTokens, true)}</span>
-						</div>
-					) : null}
-					{chainAssets.thirdParty ? (
-						<div className="flex items-center gap-1 justify-between">
-							<span>Third Party:</span>
-							<span>{formattedNum(+chainAssets.thirdParty, true)}</span>
-						</div>
-					) : null}
-				</div>
-			)
-
-			return (
-				<Tooltip content={chainAssetsBreakdown} className="flex-end">
-					{formattedNum(+chainAssets.total, true)}
-				</Tooltip>
-			)
-		},
-		sortUndefined: 'last',
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Stables',
-		accessorKey: 'stablesMcap',
-		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '24h DEXs Volume',
-		accessorKey: 'totalVolume24h',
-		enableSorting: true,
-		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
-		size: 152,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Sum of volume of all DEXs on the chain. Updated daily at 00:00UTC'
-		}
-	},
-	{
-		header: `24h Chain Fees`,
-		accessorKey: 'totalFees24h',
-		enableSorting: true,
-		cell: (info) => {
-			const value = info.getValue()
-
-			if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: `24h App Revenue`,
-		accessorKey: 'totalAppRevenue24h',
-		enableSorting: true,
-		cell: (info) => {
-			const value = info.getValue()
-
-			if (value === null || value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		size: 180,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Sum of revenue of all protocols on the chain. Updated daily at 00:00UTC'
-		}
-	},
-	{
-		header: 'Mcap / DeFi TVL',
-		accessorKey: 'mcaptvl',
-		cell: (info) => {
-			return <>{(info.getValue() ?? null) as string | null}</>
-		},
-		size: 148,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'NFT Volume',
-		accessorKey: 'nftVolume',
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	}
-]
-
-export const bridgedColumns: ColumnDef<IBridgedRow>[] = [
-	{
-		header: () => 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span
-					className="flex items-center gap-2 relative"
-					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
-				>
-					{row.subRows?.length > 0 && (
-						<button
-							className="absolute -left-[2px]"
-							{...{
-								onClick: row.getToggleExpandedHandler()
-							}}
-						>
-							{row.getIsExpanded() ? (
-								<>
-									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
-								</>
-							) : (
-								<>
-									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
-								</>
-							)}
-						</button>
-					)}
-					<span className="flex-shrink-0">{index + 1}</span>
-					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink
-						href={`/bridged/${getValue()}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as any}
-					</CustomLink>
-				</span>
-			)
-		},
-		size: 200
-	},
-	{
-		header: 'Total Bridged',
-		accessorKey: 'total',
-		accessorFn: (row) => row.total?.total ?? undefined,
-		cell: (info: any) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'Total value of assets on the chain, excluding own tokens' }
-	},
-	{
-		header: 'Change 24h',
-		accessorKey: 'change_24h',
-		accessorFn: (row) => row.change_24h ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <div style={{ color: Number(value) > 0 ? '#198600' : '#d92929' }}>{formattedPercent(value)}</div>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end' }
-	},
-	{
-		header: 'Native',
-		accessorKey: 'native',
-		accessorFn: (row) => row.native?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'Assets minted natively on the chain' }
-	},
-	{
-		header: 'Canonical',
-		accessorKey: 'canonical',
-		accessorFn: (row) => row.canonical?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'Assets bridged through the official canonical bridge' }
-	},
-	{
-		header: 'Own Tokens',
-		accessorKey: 'ownTokens',
-		accessorFn: (row) => row.ownTokens?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'The chains own token, either for gas or for governance ' }
-	},
-	{
-		header: 'Third Party',
-		accessorKey: 'thirdParty',
-		accessorFn: (row) => row.thirdParty?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'Assets bridged through bridges that aren’t the canonical bridge' }
 	}
 ]
 
@@ -1431,168 +973,6 @@ export const cexColumn: ColumnDef<any>[] = [
 		}
 	}
 	*/
-]
-
-export const treasuriesColumns: ColumnDef<any>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			const name = (getValue() as string).split(' (treasury)')[0]
-			const slug = (row.original.slug as string).split('-(treasury)')[0]
-
-			return (
-				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
-					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
-					<CustomLink
-						href={`/protocol/${slug}#treasury`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{name}
-					</CustomLink>
-				</span>
-			)
-		},
-		size: 220
-	},
-	{
-		header: 'Breakdown',
-		accessorKey: 'tokenBreakdowns',
-		id: 'tokenBreakdowns0',
-		enableSorting: false,
-		cell: (info) => {
-			const breakdown = info.getValue() as { [type: string]: number }
-			let totalBreakdown = 0
-
-			for (const type in breakdown) {
-				totalBreakdown += breakdown[type]
-			}
-
-			const breakdownDominance = {}
-
-			for (const value in breakdown) {
-				breakdownDominance[value] = getDominancePercent(breakdown[value], totalBreakdown)
-			}
-
-			const dominance = Object.entries(breakdownDominance).sort(
-				(a: [string, number], b: [string, number]) => b[1] - a[1]
-			)
-
-			if (totalBreakdown < 1) {
-				return <></>
-			}
-
-			return (
-				<Tooltip content={<TooltipContent dominance={dominance} protocolName={info.row.original.name} />}>
-					<span className="h-5 !w-full ml-auto bg-white flex items-center flex-nowrap">
-						{dominance.map((dom) => {
-							const color = breakdownColor(dom[0])
-							const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
-
-							return (
-								<div
-									key={dom[0] + dom[1] + info.row.original.name}
-									style={{ width: `${dom[1]}%`, background: color }}
-									className="h-5"
-								/>
-							)
-						})}
-					</span>
-				</Tooltip>
-			)
-		},
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Stablecoins',
-		accessorKey: 'stablecoins',
-		id: 'stablecoins',
-		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
-		},
-		size: 115,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Majors (BTC, ETH)',
-		accessorKey: 'majors',
-		id: 'majors',
-		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
-		},
-		size: 160,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Own Tokens',
-		accessorKey: 'ownTokens',
-		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
-		},
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Others',
-		accessorKey: 'others',
-		id: 'others',
-		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
-		},
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Total excl. own tokens',
-		accessorKey: 'coreTvl',
-		id: 'coreTvl',
-		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
-		},
-		size: 185,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Total Treasury',
-		accessorKey: 'tvl',
-		id: 'total-treasury',
-		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
-		},
-		size: 135,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Mcap',
-		accessorKey: 'mcap',
-		id: 'mcap',
-		cell: (info) => {
-			return <>{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}</>
-		},
-		size: 128,
-		meta: {
-			align: 'end'
-		}
-	}
 ]
 
 export const LSDColumn: ColumnDef<ILSDRow>[] = [
@@ -2053,71 +1433,6 @@ function formatCexInflows(value) {
 	return `${isNegative ? '-' : '+'} $${toK(x)}`
 }
 
-// key: min width of window/screen
-// values: table columns order
-export const chainsTableColumnOrders = formatColumnOrder({
-	0: [
-		'name',
-		'tvl',
-		'chainAssets',
-		'change_7d',
-		'protocols',
-		'users',
-		'change_1d',
-		'change_1m',
-		'stablesMcap',
-		'totalVolume24h',
-		'totalFees24h',
-		'totalRevenue24h',
-		'mcaptvl'
-	],
-	400: [
-		'name',
-		'change_7d',
-		'tvl',
-		'chainAssets',
-		'protocols',
-		'users',
-		'change_1d',
-		'change_1m',
-		'stablesMcap',
-		'totalVolume24h',
-		'totalFees24h',
-		'totalRevenue24h',
-		'mcaptvl'
-	],
-	600: [
-		'name',
-		'protocols',
-		'users',
-		'change_7d',
-		'tvl',
-		'chainAssets',
-		'change_1d',
-		'change_1m',
-		'stablesMcap',
-		'totalVolume24h',
-		'totalFees24h',
-		'totalRevenue24h',
-		'mcaptvl'
-	],
-	900: [
-		'name',
-		'protocols',
-		'users',
-		'change_1d',
-		'change_7d',
-		'change_1m',
-		'tvl',
-		'chainAssets',
-		'stablesMcap',
-		'totalVolume24h',
-		'totalFees24h',
-		'totalRevenue24h',
-		'mcaptvl'
-	]
-})
-
 export const hacksColumnOrders = formatColumnOrder({
 	0: ['name', 'date', 'amountLost', 'chains', 'classification', 'technique', 'link']
 })
@@ -2137,68 +1452,6 @@ export const raisesColumnOrders = formatColumnOrder({
 		'otherInvestors'
 	]
 })
-
-const breakdownColor = (type) => {
-	if (type === 'stablecoins') {
-		return '#16a34a'
-	}
-
-	if (type === 'majors') {
-		return '#2563eb'
-	}
-
-	if (type === 'ownTokens') {
-		return '#f97316'
-	}
-
-	if (type === 'others') {
-		return '#6d28d9'
-	}
-
-	return '#f85149'
-}
-
-const formatBreakdownType = (type) => {
-	if (type === 'stablecoins') {
-		return 'Stablecoins'
-	}
-
-	if (type === 'majors') {
-		return 'Majors'
-	}
-
-	if (type === 'ownTokens') {
-		return 'Own Tokens'
-	}
-
-	if (type === 'others') {
-		return 'Others'
-	}
-
-	return type
-}
-
-const Breakdown = ({ data }) => {
-	const color = breakdownColor(data[0])
-	const name = `${formatBreakdownType(data[0])} (${data[1]}%)`
-
-	return (
-		<span className="flex items-center flex-nowrap gap-1">
-			<span style={{ '--color': color } as any} className="h-4 w-4 bg-[var(--color)] rounded-sm"></span>
-			<span>{name}</span>
-		</span>
-	)
-}
-
-const TooltipContent = ({ dominance, protocolName }) => {
-	return (
-		<span className="flex flex-col gap-1">
-			{dominance.map((dom) => (
-				<Breakdown data={dom} key={dom[0] + dom[1] + protocolName + 'tooltip-content'} />
-			))}
-		</span>
-	)
-}
 
 const SimpleUpcomingEvent = ({ timestamp, name }) => {
 	const timeLeft = timestamp - Date.now() / 1e3

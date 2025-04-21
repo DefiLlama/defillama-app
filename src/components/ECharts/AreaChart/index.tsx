@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject, stringToColour } from '../utils'
@@ -20,7 +20,7 @@ export default function AreaChart({
 	tooltipSort = true,
 	tooltipValuesRelative,
 	chartOptions,
-	height = '360px',
+	height,
 	expandTo100Percent = false,
 	isStackedChart,
 	hideGradient = false,
@@ -29,7 +29,7 @@ export default function AreaChart({
 	hideDefaultLegend,
 	...props
 }: IChartProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 
@@ -223,7 +223,18 @@ export default function AreaChart({
 		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
 		for (const option in chartOptions) {
-			if (defaultChartSettings[option]) {
+			if (option === 'dataZoom') {
+				if (Array.isArray(chartOptions[option])) {
+					if (defaultChartSettings[option]) {
+						defaultChartSettings[option] = [
+							{ ...defaultChartSettings[option][0], ...(chartOptions[option][0] ?? {}) },
+							{ ...defaultChartSettings[option][1], ...(chartOptions[option][1] ?? {}) }
+						]
+					} else {
+						defaultChartSettings[option] = chartOptions[option]
+					}
+				}
+			} else if (defaultChartSettings[option]) {
 				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
@@ -279,7 +290,10 @@ export default function AreaChart({
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
 	return (
-		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-4" {...props}>
+		<div
+			className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-3 [&[role='combobox']]:*:mt-3"
+			{...props}
+		>
 			{customLegendName && customLegendOptions?.length > 1 && (
 				<SelectWithCombobox
 					allValues={customLegendOptions}
@@ -289,9 +303,13 @@ export default function AreaChart({
 					clearAll={() => setLegendOptions([])}
 					toggleAll={() => setLegendOptions(customLegendOptions)}
 					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
+					}}
 				/>
 			)}
-			<div id={id} style={{ height }} className="my-auto" />
+			<div id={id} className="min-h-[360px] my-auto mx-0" style={height ? { height } : undefined} />
 		</div>
 	)
 }

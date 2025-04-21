@@ -1,9 +1,9 @@
 import Layout from '~/layout'
-import { PlotsPage } from '~/containers/YieldsPage/indexPlots'
+import { PlotsPage } from '~/containers/Yields/indexPlots'
 import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/containers/YieldsPage/utils'
+import { disclaimer } from '~/containers/Yields/utils'
 import { maxAgeForNext } from '~/api'
-import { getYieldPageData, getYieldMedianData } from '~/api/categories/yield'
+import { getYieldPageData, getYieldMedianData } from '~/containers/Yields/queries/index'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/overview', async () => {

@@ -79,9 +79,9 @@ function RaisesTable({ raises, downloadCsv }) {
 	}, [projectName, instance])
 
 	return (
-		<>
-			<div className="flex items-center gap-4 flex-wrap -mb-2">
-				<div className="relative w-full sm:max-w-[280px]">
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
+				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon
 						name="search"
 						height={16}
@@ -94,14 +94,18 @@ function RaisesTable({ raises, downloadCsv }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
-				<CSVDownloadButton onClick={downloadCsv} style={{ marginLeft: 'auto' }} />
-				<CSVDownloadButton customText="Download .json" onClick={() => window.open('https://api.llama.fi/raises')} />
+				<CSVDownloadButton onClick={downloadCsv} className="min-h-[34px]" />
+				<CSVDownloadButton
+					customText="Download .json"
+					onClick={() => window.open('https://api.llama.fi/raises')}
+					className="min-h-[34px]"
+				/>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
-		</>
+		</div>
 	)
 }
 
@@ -152,8 +156,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				pathname={pathname}
 			/>
 
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
+				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					<h1 className="font-semibold text-2xl">{investorName}</h1>
 
 					<details className="group text-base">
@@ -180,16 +184,16 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 					</details>
 				</div>
 
-				<div className="col-span-1 py-4 min-h-[392px]">
-					<BarChart chartData={fundingRoundsByMonth} title="Monthly Investments" valueSymbol="" />
+				<div className="col-span-1 min-h-[360px] bg-[var(--cards-bg)] rounded-md">
+					<BarChart chartData={fundingRoundsByMonth} title="" isMonthly color="#1F67D2" valueSymbol="" />
 				</div>
 			</div>
 
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow -mt-4">
-				<LazyChart>
+			<div className="grid grid-cols-2 gap-1">
+				<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
 				</LazyChart>
-				<LazyChart>
+				<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
 				</LazyChart>
 			</div>

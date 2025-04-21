@@ -93,6 +93,12 @@ export const stablecoinPegTypeOptions = [
 		key: STABLECOINS_SETTINGS.PEGGEDREAL,
 		filterFn: (item) => item.pegType === 'peggedREAL',
 		help: 'Show stablecoins pegged to Brazilian Real'
+	},
+	{
+		name: 'RUB',
+		key: STABLECOINS_SETTINGS.PEGGEDRUB,
+		filterFn: (item) => item.pegType === 'peggedRUB',
+		help: 'Show stablecoins pegged to Russian Ruble'
 	}
 ]
 

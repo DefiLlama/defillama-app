@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { getColorFromNumber, getDominancePercent } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { LANGS_API } from '~/constants'
@@ -10,6 +9,7 @@ import type { IChartProps } from '~/components/ECharts/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
@@ -84,12 +84,10 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
 	return (
 		<Layout title={`Languages - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch hideFilters />
-
-			<h2 className="font-semibold text-xl -mb-6 ml-1">Breakdown by Smart Contract Languages</h2>
-
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
-				<LazyChart>
+			<ProtocolsChainsSearch />
+			<div className="bg-[var(--cards-bg)] rounded-md [&[role='combobox']]:*:*:*:-mb-9">
+				<h2 className="font-semibold text-xl p-3">Breakdown by Smart Contract Languages</h2>
+				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<AreaChart
 						chartData={langs}
 						title="TVL"
@@ -100,7 +98,7 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 						stackColors={colors}
 					/>
 				</LazyChart>
-				<LazyChart>
+				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<AreaChart
 						chartData={langsDominance}
 						title="TVL Dominance"
@@ -113,9 +111,10 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 				</LazyChart>
 			</div>
 
-			<h2 className="font-semibold text-xl -mb-6 ml-1">Open/Closed Source breakdown of solana protocols</h2>
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
-				<LazyChart>
+			<div className="bg-[var(--cards-bg)] rounded-md relative">
+				<h2 className="font-semibold text-xl p-3">Open/Closed Source breakdown of solana protocols</h2>
+
+				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 					<AreaChart
 						chartData={osDominance}
 						title=""

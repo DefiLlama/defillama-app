@@ -2,6 +2,7 @@ import { memo, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useDebounce } from '~/hooks/useDebounce'
 import { useGetLiquidationSearchList } from '../Liquidations/hooks'
+import { useGetUnlocksSearchList } from '../Unlocks/hooks'
 import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
 import { useGetAdaptorsSearchList } from '../Adaptors/hooks'
 import { useFetchNftCollectionsList } from '~/api/categories/nfts/client'
@@ -116,6 +117,7 @@ const useMobileSearchResult = (): IGetSearchList => {
 	const dexsSearchList = useGetDexsSearchList({ disabled: !router.pathname.startsWith('/dex') })
 	const nftCollectionsList = useFetchNftCollectionsList({ disabled: !router.pathname.startsWith('/nft') })
 	const feesSearchList = useGetFeesSearchList({ disabled: !router.pathname.startsWith('/fee') })
+	const unlocksSearchList = useGetUnlocksSearchList({ disabled: !router.pathname.startsWith('/unlocks') })
 
 	if (router.pathname.startsWith('/stablecoin')) {
 		return stablecoinsSearchList
@@ -127,6 +129,8 @@ const useMobileSearchResult = (): IGetSearchList => {
 		return nftCollectionsList
 	} else if (router.pathname.startsWith('/fee')) {
 		return feesSearchList
+	} else if (router.pathname.startsWith('/unlocks')) {
+		return unlocksSearchList
 	} else {
 		return { data: [], loading: false, onSearchTermChange: () => {}, onItemClick: () => {} }
 	}

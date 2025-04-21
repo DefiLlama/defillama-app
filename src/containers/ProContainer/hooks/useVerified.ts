@@ -1,15 +1,7 @@
-import { utils } from 'ethers'
 import { useRouter } from 'next/router'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
-
-function subscribe(callback: () => void) {
-	window.addEventListener('storage', callback)
-
-	return () => {
-		window.removeEventListener('storage', callback)
-	}
-}
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 
 export const useVerified = ({ verify } = { verify: () => null }) => {
 	const { data: signMessageData, signMessage, variables } = useSignMessage()
@@ -17,7 +9,7 @@ export const useVerified = ({ verify } = { verify: () => null }) => {
 	const [isVerified, setIsVerified] = useState(false)
 
 	const sig = useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => localStorage.getItem(`signature_${wallet?.address?.toLowerCase()}`) ?? null,
 		() => null
 	)

@@ -1,18 +1,14 @@
-import Layout from '~/layout'
 import * as React from 'react'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getTreasuryData, TreasuriesPage } from '~/containers/Treasuries'
-import { treasuriesColumns } from '~/components/Table/Defi/columns'
+import { Treasuries } from '~/containers/Treasuries'
+import { maxAgeForNext } from '~/api'
+import { getEntitiesData } from '~/containers/Treasuries/queries'
 
-export const getStaticProps = withPerformanceLogging('entities', getTreasuryData('https://api.llama.fi/entities'))
+export const getStaticProps = withPerformanceLogging('entities', async () => {
+	const data = await getEntitiesData()
+	return { props: { data, entity: true }, revalidate: maxAgeForNext([22]) }
+})
 
-export default function Entities({ treasuries }) {
-	return (
-		<Layout title={`Entities - DefiLlama`} defaultSEO>
-			<TreasuriesPage
-				treasuries={treasuries}
-				treasuriesColumns={treasuriesColumns.filter((c: any) => !['ownTokens', 'coreTvl'].includes(c.accessorKey))}
-			/>
-		</Layout>
-	)
+export default function Entities(props) {
+	return <Treasuries {...props} />
 }

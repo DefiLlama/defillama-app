@@ -4,11 +4,12 @@ import { useEffect } from 'react'
 import { getChainPageData } from '~/api/categories/chains'
 import { LocalLoader } from '~/components/LocalLoader'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { useFetchChainChartData } from '~/containers/ChainContainer/useFetchChainChartData'
+import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ChainChart: any = dynamic(() => import('~/components/ECharts/ChainChart'), {
+const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false
 })
 
@@ -66,9 +67,11 @@ export default function ChainChartPage({
 		denomination: typeof denomination === 'string' ? denomination : 'USD',
 		selectedChain,
 		chainGeckoId,
-		volumeData,
-		feesAndRevenueData,
-		stablecoinsData,
+		volumeData: { total24h: volumeData?.totalVolume24h },
+		feesData: { total24h: feesAndRevenueData?.totalFees24h },
+		revenueData: { total24h: feesAndRevenueData?.totalRevenue24h },
+		appRevenueData: { total24h: feesAndRevenueData?.totalAppRevenue24h },
+		stablecoinsData: { stablecoinsData: stablecoinsData?.totalMcapCurrent },
 		inflowsData,
 		userData,
 		raisesChart,
@@ -76,9 +79,10 @@ export default function ChainChartPage({
 		extraTvlCharts,
 		extraTvlsEnabled,
 		devMetricsData,
-		perpsData,
+		perpsData: { total24h: perpsData.totalVolume24h },
 		chainAssets
 	})
+	const isClient = useIsClient()
 
 	const isThemeDark = theme === 'dark' ? true : false
 
@@ -97,7 +101,7 @@ export default function ChainChartPage({
 
 	return (
 		<>
-			{isFetchingChartData || !router.isReady ? (
+			{isFetchingChartData || !router.isReady || !isClient ? (
 				<div className="flex items-center justify-center m-auto min-h-[360px]">
 					<LocalLoader />
 				</div>

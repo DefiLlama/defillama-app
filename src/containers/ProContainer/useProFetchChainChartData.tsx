@@ -6,8 +6,8 @@ import {
 	useFetchProtocolUsers
 } from '~/api/categories/protocols/client'
 import { useGetFeesAndRevenueChartDataByChain, useGetVolumeChartDataByChain } from '~/api/categories/chains/client'
-import { useGetStabelcoinsChartDataByChain } from '~/api/categories/stablecoins/client'
-import { useGetBridgeChartDataByChain } from '~/api/categories/bridges/client'
+import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
+import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useMemo } from 'react'
 import { getUtcDateObject } from '~/components/ECharts/utils'
 import { getPercentChange, getPrevTvlFromChart, nearestUtc } from '~/utils'

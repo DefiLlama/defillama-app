@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useId } from 'react'
 import { toK } from '~/utils'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
@@ -35,7 +35,7 @@ export interface IChartProps {
 }
 
 export default function ScatterChart({ chartData }: IChartProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 
 	const [isDark] = useDarkModeManager()
 
@@ -211,7 +211,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 
 	return (
 		<div className="relative rounded-md p-5 bg-[var(--bg6)] flex flex-col items-end">
-			<div id={id} className="h-[600px] w-full" />
+			<div id={id} className="min-h-[600px] w-full" />
 		</div>
 	)
 }

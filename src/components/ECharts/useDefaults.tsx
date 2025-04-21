@@ -15,7 +15,7 @@ import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neu
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { toK } from '~/utils'
 import { useMemo } from 'react'
-import { lastDayOfMonth } from './ProtocolChart/useFetchAndFormatChartData'
+import { lastDayOfMonth } from './utils'
 
 const CHART_SYMBOLS = {
 	'Active Users': '',
@@ -113,7 +113,7 @@ export function useDefaults({
 			left: 20,
 			containLabel: true,
 			bottom: 60,
-			top: title === '' ? gridTop + 20 : gridTop + 48,
+			top: title ? gridTop + 48 : gridTop + 20,
 			right: 20
 		}
 
@@ -121,15 +121,21 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
-				let chartdate = new Date(params[0].value[0]).toLocaleDateString('en-US', {
-					year: isMonthly ? undefined : 'numeric',
-					month: 'short',
-					day: 'numeric'
-				})
-
-				chartdate += isMonthly
-					? ' - ' + lastDayOfMonth(params[0].value[0]) + ', ' + new Date(params[0].value[0]).getFullYear()
-					: ''
+				let chartdate = isMonthly
+					? new Date(params[0].value[0]).toLocaleDateString('en-US', {
+							year: undefined,
+							month: 'short',
+							day: undefined
+					  }) +
+					  '1 - ' +
+					  lastDayOfMonth(params[0].value[0]) +
+					  ', ' +
+					  new Date(params[0].value[0]).getFullYear()
+					: new Date(params[0].value[0]).toLocaleDateString('en-US', {
+							year: isMonthly ? undefined : 'numeric',
+							month: 'short',
+							day: 'numeric'
+					  })
 
 				let vals
 				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1] !== null)
@@ -270,8 +276,8 @@ export function useDefaults({
 			},
 			splitLine: {
 				lineStyle: {
-					color: '#a1a1aa',
-					opacity: 0.1
+					color: isThemeDark ? '#ffffff' : '#000000',
+					opacity: isThemeDark ? 0.02 : 0.03
 				}
 			}
 		}
@@ -299,8 +305,8 @@ export function useDefaults({
 			},
 			splitLine: {
 				lineStyle: {
-					color: '#a1a1aa',
-					opacity: 0.1
+					color: isThemeDark ? '#ffffff' : '#000000',
+					opacity: isThemeDark ? 0.02 : 0.03
 				}
 			}
 		}

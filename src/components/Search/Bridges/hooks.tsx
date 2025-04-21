@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useFetchBridgeList } from '~/api/categories/bridges/client'
+import { useFetchBridgeList } from '~/containers/Bridges/queries.client'
 import { slug } from '~/utils'
 import type { IBaseSearchProps, IGetSearchList } from '../types'
 

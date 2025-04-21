@@ -3,7 +3,7 @@ import { capitalizeFirstLetter } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getChainsBridged } from '~/api/categories/protocols'
-import ChainBridged from '~/containers/BridgedContainer/ChainBridged'
+import { BridgedTVLByChain } from '~/containers/BridgedTVL/BridgedTVLByChain'
 
 export const getStaticProps = withPerformanceLogging(
 	'bridged/[...chain]',
@@ -29,5 +29,5 @@ export default function Bridged(props) {
 	if (!props.chainData) {
 		return <div>Not found</div>
 	}
-	return <ChainBridged {...props} />
+	return <BridgedTVLByChain {...props} />
 }

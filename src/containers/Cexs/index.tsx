@@ -5,6 +5,7 @@ import { cexColumn } from '~/components/Table/Defi/columns'
 import { cexData } from '~/pages/cexs'
 import { DateFilter } from './DateFilter'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import Layout from '~/layout'
 
 const getOutflowsByTimerange = async (startTime, endTime) => {
 	if (startTime && endTime) {
@@ -28,7 +29,7 @@ const getOutflowsByTimerange = async (startTime, endTime) => {
 
 const SECONDS_IN_HOUR = 3600
 
-const Cexs = ({ cexs }) => {
+export const Cexs = ({ cexs }) => {
 	const [startDate, setStartDate] = useState(() => {
 		const date = new Date()
 		date.setMonth(date.getMonth() - 1)
@@ -76,23 +77,24 @@ const Cexs = ({ cexs }) => {
 	}
 
 	return (
-		<TableWithSearch
-			data={cexsWithCustomRange}
-			columns={cexColumn}
-			columnToSearch={'name'}
-			placeholder={'Search exchange...'}
-			customFilters={
-				<DateFilter
-					startDate={startDate}
-					endDate={endDate}
-					onStartChange={onStartChange}
-					onEndChange={onEndChange}
-					hours={hours}
-					setHours={onHourChange}
-				/>
-			}
-		/>
+		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
+			<TableWithSearch
+				data={cexsWithCustomRange}
+				columns={cexColumn}
+				columnToSearch={'name'}
+				placeholder={'Search exchange...'}
+				header={'CEX Transparency'}
+				customFilters={
+					<DateFilter
+						startDate={startDate}
+						endDate={endDate}
+						onStartChange={onStartChange}
+						onEndChange={onEndChange}
+						hours={hours}
+						setHours={onHourChange}
+					/>
+				}
+			/>
+		</Layout>
 	)
 }
-
-export default Cexs

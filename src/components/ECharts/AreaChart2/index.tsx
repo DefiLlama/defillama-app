@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getUtcDateObject, stringToColour } from '../utils'
@@ -18,13 +18,13 @@ export default function AreaChart({
 	customLegendOptions,
 	tooltipSort = true,
 	chartOptions,
-	height = '360px',
+	height,
 	expandTo100Percent = false,
 	isStackedChart,
 	hideGradient = false,
 	...props
 }: IChartProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 
 	const chartsStack = stacks || customLegendOptions
 
@@ -122,6 +122,7 @@ export default function AreaChart({
 				backgroundColor: 'none',
 				borderWidth: '0',
 				padding: 0,
+				boxShadow: 'none',
 				textStyle: {
 					color: isThemeDark ? 'white' : 'black'
 				}
@@ -205,8 +206,8 @@ export default function AreaChart({
 	}, [createInstance, defaultChartSettings, series, chartOptions, stackColors, isThemeDark, stacks.length])
 
 	return (
-		<div style={{ position: 'relative' }} {...props}>
-			<div id={id} style={{ height }} className="my-auto" />
+		<div className="relative" {...props}>
+			<div id={id} className="min-h-[360px]" style={height ? { height } : undefined} />
 		</div>
 	)
 }

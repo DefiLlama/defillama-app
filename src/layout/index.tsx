@@ -1,23 +1,28 @@
 import * as React from 'react'
 import Head from 'next/head'
-import dynamic from 'next/dynamic'
 import { SEO } from '~/components/SEO'
 import Nav from '~/components/Nav'
 import { useIsClient } from '~/hooks'
 
-const Toaster = dynamic(() => import('~/components/Toast').then((m) => m.Toast), {
-	ssr: false
-})
+const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
 
 interface ILayoutProps {
 	title: string
 	children: React.ReactNode
 	defaultSEO?: boolean
 	backgroundColor?: string
+	className?: string
 	style?: React.CSSProperties
 }
 
-export default function Layout({ title, children, defaultSEO = false, backgroundColor, ...props }: ILayoutProps) {
+export default function Layout({
+	title,
+	children,
+	defaultSEO = false,
+	backgroundColor,
+	className,
+	...props
+}: ILayoutProps) {
 	const isClient = useIsClient()
 	return (
 		<>
@@ -31,11 +36,17 @@ export default function Layout({ title, children, defaultSEO = false, background
 			<Nav />
 			<main
 				{...props}
-				className="flex flex-col gap-7 w-full text-[var(--text1)] isolate p-4 lg:p-7 lg:pl-[248px] min-h-screen"
+				className={`flex flex-col gap-1 w-full text-[var(--text1)] isolate p-1 lg:py-4 lg:pr-7 lg:pl-[248px] min-h-screen ${
+					className ?? ''
+				}`}
 			>
 				{children}
 			</main>
-			{isClient ? <Toaster /> : null}
+			{isClient ? (
+				<React.Suspense>
+					<Toaster />
+				</React.Suspense>
+			) : null}
 		</>
 	)
 }

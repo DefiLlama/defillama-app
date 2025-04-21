@@ -4,6 +4,7 @@ import * as Ariakit from '@ariakit/react'
 import { FormEvent, useState, useSyncExternalStore } from 'react'
 import { useAccount, useDisconnect } from 'wagmi'
 import { AUTH_SERVER } from '~/constants'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 
 async function signIn({ email, password }: { email: string; password: string }) {
 	try {
@@ -104,14 +105,6 @@ async function getUserEmail({ authToken }: { authToken?: string | null }) {
 	}
 }
 
-function subscribe(callback: () => void) {
-	window.addEventListener('storage', callback)
-
-	return () => {
-		window.removeEventListener('storage', callback)
-	}
-}
-
 function getEmailAuthToken() {
 	return localStorage.getItem('auth_token') || null
 }
@@ -136,12 +129,12 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 	const { mutate: logoutUser, isPending: loggingOut, error: errorLoggingOut } = useMutation({ mutationFn: logout })
 
 	const authToken = useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => getEmailAuthToken(),
 		() => null
 	)
 	const refreshToken = useSyncExternalStore(
-		subscribe,
+		subscribeToLocalStorage,
 		() => getEmailRefreshToken(),
 		() => null
 	)

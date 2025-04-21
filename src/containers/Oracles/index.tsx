@@ -1,13 +1,16 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { download } from '~/utils'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { download, formattedNum } from '~/utils'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { ButtonDark } from '~/components/ButtonStyled'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { oraclesColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import Layout from '~/layout'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { CustomLink } from '~/components/Link'
+import { IconsRow } from '~/components/IconsRow'
+import type { ColumnDef } from '@tanstack/react-table'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -17,7 +20,7 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-const Oracles = ({
+export const OraclesByChain = ({
 	chartData,
 	tokensProtocols,
 	tokens,
@@ -59,41 +62,123 @@ const Oracles = ({
 	}
 
 	return (
-		<>
+		<Layout title={`Oracles - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
 
-			<div className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-3">
-				<h1>Total Value Secured All Oracles {chain ? `on ${chain}` : ''}</h1>
-				<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
-			</div>
+			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
-			<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 bg-[var(--bg6)] min-h-[424px] shadow rounded-xl p-4">
-				<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
-				<AreaChart
-					chartData={chainsWithExtraTvlsAndDominanceByDay}
-					stacks={tokens}
-					stackColors={oraclesColors}
-					customLegendName="Oracle"
-					customLegendOptions={tokens}
-					hideDefaultLegend
-					valueSymbol="%"
-					title=""
-					expandTo100Percent={true}
+			<div className="flex flex-col gap-1 xl:flex-row">
+				<div className="isolate relative rounded-md p-3 bg-[var(--cards-bg)] flex-1 min-h-[360px] flex flex-col">
+					<CSVDownloadButton onClick={downloadCsv} className="ml-auto absolute right-3 top-3 z-10" />
+					<React.Suspense fallback={<></>}>
+						<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
+					</React.Suspense>
+				</div>
+				<div className="rounded-md p-3 bg-[var(--cards-bg)] flex-1 min-h-[360px]">
+					<React.Suspense fallback={<></>}>
+						<AreaChart
+							chartData={chainsWithExtraTvlsAndDominanceByDay}
+							stacks={tokens}
+							stackColors={oraclesColors}
+							hideDefaultLegend
+							valueSymbol="%"
+							title=""
+							expandTo100Percent={true}
+							chartOptions={chartOptions}
+						/>
+					</React.Suspense>
+				</div>
+			</div>
+			<React.Suspense
+				fallback={
+					<div style={{ minHeight: `${tokensList.length * 50 + 200}px` }} className="bg-[var(--cards-bg)] rounded-md" />
+				}
+			>
+				<TableWithSearch
+					data={tokensList}
+					columns={columns}
+					columnToSearch={'name'}
+					placeholder={'Search oracles...'}
+					header={'Oracle Rankings'}
 				/>
-			</div>
-
-			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
-				<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
-			</nav>
-
-			<TableWithSearch
-				data={tokensList}
-				columns={oraclesColumn}
-				columnToSearch={'name'}
-				placeholder={'Search oracles...'}
-			/>
-		</>
+			</React.Suspense>
+		</Layout>
 	)
 }
 
-export default Oracles
+const chartOptions = {
+	grid: {
+		top: 10,
+		bottom: 60,
+		left: 0,
+		right: 0
+	},
+	dataZoom: [{}, { bottom: 32, right: 6 }]
+} as any
+
+interface IOraclesRow {
+	name: string
+	protocolsSecured: number
+	tvs: number
+}
+
+const columns: ColumnDef<IOraclesRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<span className="flex items-center gap-2 relative">
+					<span className="flex-shrink-0">{index + 1}</span>
+					<CustomLink
+						href={`/oracles/${getValue()}`}
+						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue() as string}
+					</CustomLink>
+				</span>
+			)
+		}
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue, row }) => {
+			return <IconsRow links={getValue() as Array<string>} url="/oracles/chain" iconType="chain" />
+		},
+		size: 200,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Chains secured by the oracle'
+		}
+	},
+	{
+		header: 'Protocols Secured',
+		accessorKey: 'protocolsSecured',
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'TVS',
+		accessorKey: 'tvs',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Excludes CeFi'
+		}
+	},
+	{
+		header: 'Perp DEXs Volume (30d)',
+		accessorKey: 'monthlyVolume',
+		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Cumulative last 30d volume secured'
+		}
+	}
+]

@@ -27,13 +27,12 @@ function Earnings({ earnings }) {
 		<Layout title="NFT Earnings - DefiLlama" defaultSEO>
 			<NFTsSearch />
 
-			<h1 className="text-2xl font-medium -mb-5">NFTs Earnings</h1>
-
 			<TableWithSearch
 				data={earnings}
 				columns={earningsColumns}
 				columnToSearch={'name'}
 				placeholder={'Search collections...'}
+				header="NFTs Earnings"
 			/>
 		</Layout>
 	)

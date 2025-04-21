@@ -1,12 +1,14 @@
 import * as React from 'react'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import Layout from '~/layout'
 
 function PluginPage() {
 	return (
 		<Layout title="DefiLlama - ChatGPT Plugin" defaultSEO>
-			<h1 className="text-2xl font-medium mt-2 -mb-5">DefiLlama ChatGPT Plugin</h1>
+			<ProtocolsChainsSearch />
+			<h1 className="text-xl font-semibold bg-[var(--cards-bg)] rounded-md p-3">DefiLlama ChatGPT Plugin</h1>
 
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
 				<h2 className="font-semibold text-lg">About</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
@@ -15,7 +17,7 @@ function PluginPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Best Practices</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>To achieve the best results from the plugin, follow these steps:</p>
@@ -44,7 +46,7 @@ function PluginPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Legal</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>

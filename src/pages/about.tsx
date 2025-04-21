@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import Layout from '~/layout'
 import { fetchApi } from '~/utils/async'
@@ -28,11 +29,10 @@ export const getStaticProps = withPerformanceLogging('about', async () => {
 
 function AboutPage(props: any) {
 	return (
-		<Layout title="DefiLlama - DeFi Dashboard" defaultSEO>
-			<h1 className="text-2xl font-medium mt-2 -mb-5">About</h1>
-
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
-				<h2 className="font-semibold text-lg">About DeFiLlama</h2>
+		<Layout title="About - DeFiLlama" defaultSEO>
+			<ProtocolsChainsSearch />
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+				<h1 className="font-semibold text-lg">About DeFiLlama</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
@@ -58,7 +58,7 @@ function AboutPage(props: any) {
 				<p>Our focus is on accurate data and transparent methodology.</p>
 			</div>
 
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Stats</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div>
@@ -73,7 +73,7 @@ function AboutPage(props: any) {
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Contact</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
@@ -145,7 +145,7 @@ function AboutPage(props: any) {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 border border-black/10 dark:border-white/10 p-5 rounded-md">
+			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Acknowledgements</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>

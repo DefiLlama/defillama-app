@@ -37,7 +37,7 @@ export interface Protocol {
 	referralUrl?: string
 	isParentProtocol?: boolean
 	raises?: Array<IRaise>
-	defillamaId?: number
+	defillamaId: string | number
 	treasury?: string
 	governanceID?: Array<string>
 	stablecoins?: Array<string>
@@ -124,27 +124,6 @@ export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChain
 	pool2?: number
 }
 
-export type LiteProtocol = Pick<
-	IProtocol,
-	| 'category'
-	| 'chains'
-	| 'oracles'
-	| 'oraclesByChain'
-	| 'forkedFrom'
-	| 'listedAt'
-	| 'mcap'
-	| 'name'
-	| 'symbol'
-	| 'logo'
-	| 'url'
-	| 'parentProtocol'
-	| 'chainTvls'
-	| 'referralUrl'
-	| 'defillamaId'
-	| 'deprecated'
-> &
-	ProtocolTvls
-
 export interface IChain {
 	tvl: number
 	tvlPrevDay: number
@@ -158,10 +137,6 @@ export interface IChain {
 	tokenSymbol?: string | null
 	cmcId?: string | null
 	chainId: number | null
-}
-
-export interface IOracleProtocols {
-	[key: string]: number
 }
 
 export interface IStackedDataset {
@@ -182,6 +157,26 @@ export interface IChainGeckoId {
 	cmcId: string
 	categories: string[]
 }
+export type LiteProtocol = Pick<
+	IProtocol,
+	| 'category'
+	| 'chains'
+	| 'oracles'
+	| 'oraclesByChain'
+	| 'forkedFrom'
+	| 'listedAt'
+	| 'mcap'
+	| 'name'
+	| 'symbol'
+	| 'logo'
+	| 'url'
+	| 'parentProtocol'
+	| 'chainTvls'
+	| 'referralUrl'
+	| 'defillamaId'
+	| 'deprecated'
+> &
+	ProtocolTvls
 
 export interface IFormattedProtocol extends LiteProtocol {
 	extraTvl?: {

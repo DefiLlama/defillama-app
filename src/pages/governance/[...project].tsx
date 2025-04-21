@@ -11,17 +11,16 @@ import {
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { formatGovernanceData } from '~/api/categories/protocols'
-import { GovernanceTable } from '~/containers/Defi/Protocol/Governance'
+import { GovernanceTable } from '~/containers/ProtocolOverview/Governance'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
-import { ButtonLight } from '~/components/ButtonStyled'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
@@ -116,8 +115,9 @@ export async function getStaticPaths() {
 export default function Protocol({ data, governanceType }) {
 	return (
 		<Layout title={`${data.metadata.name} Governance - DefiLlama`} defaultSEO>
-			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg7)] border border-[var(--divider)] shadow rounded-xl">
-				<h1 className="flex items-center gap-2 text-xl">
+			<ProtocolsChainsSearch />
+			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--cards-bg)] rounded-md">
+				<h1 className="flex items-center gap-2 text-xl font-semibold">
 					<TokenLogo logo={tokenIconUrl(data.metadata.name)} />
 					<span>{data.metadata.name}</span>
 				</h1>
@@ -126,7 +126,7 @@ export default function Protocol({ data, governanceType }) {
 					{data.stats.chainName ? (
 						<p className="flex flex-col gap-1">
 							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Chain</span>
-							<span className="flex items-center gap-1 font-jetbrains font-semibold text-2xl">
+							<span className="flex items-center gap-1 font-jetbrains font-semibold text-lg">
 								<TokenLogo logo={chainIconUrl(data.stats.chainName)} size={32} />
 								<span>{data.stats.chainName}</span>
 							</span>
@@ -135,44 +135,42 @@ export default function Protocol({ data, governanceType }) {
 
 					{data.stats.proposalsCount ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Total Proposals</span>
-							<span className="font-jetbrains font-semibold text-2xl">{data.stats.proposalsCount}</span>
+							<span className="text-[#737373] dark:text-[#a9a9a9]">Total Proposals</span>
+							<span className="font-jetbrains font-semibold text-lg">{data.stats.proposalsCount}</span>
 						</p>
 					) : null}
 
 					{data.stats.successfulProposal ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Successful Proposals</span>
-							<span className="font-jetbrains font-semibold text-2xl">{data.stats.successfulProposals}</span>
+							<span className="text-[#737373] dark:text-[#a9a9a9]">Successful Proposals</span>
+							<span className="font-jetbrains font-semibold text-lg">{data.stats.successfulProposals}</span>
 						</p>
 					) : null}
 
 					{data.stats.propsalsInLast30Days ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">
-								Successful Proposals in last 30 days
-							</span>
-							<span className="font-jetbrains font-semibold text-2xl">{data.stats.propsalsInLast30Days}</span>
+							<span className="text-[#737373] dark:text-[#a9a9a9]">Successful Proposals in last 30 days</span>
+							<span className="font-jetbrains font-semibold text-lg">{data.stats.propsalsInLast30Days}</span>
 						</p>
 					) : null}
 
 					{data.stats.highestTotalScore ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Max Total Votes</span>
-							<span className="font-jetbrains font-semibold text-2xl">{toK(data.stats.highestTotalScore)}</span>
+							<span className="text-[#737373] dark:text-[#a9a9a9]">Max Total Votes</span>
+							<span className="font-jetbrains font-semibold text-lg">{toK(data.stats.highestTotalScore)}</span>
 						</p>
 					) : null}
 
 					{data.metadata.followersCount ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Followers</span>
-							<span className="font-jetbrains font-semibold text-2xl">{toK(data.metadata.followersCount)}</span>
+							<span className="text-[#737373] dark:text-[#a9a9a9]">Followers</span>
+							<span className="font-jetbrains font-semibold text-lg">{toK(data.metadata.followersCount)}</span>
 						</p>
 					) : null}
 				</div>
 
-				<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)]">
-					<LazyChart>
+				<div className="grid grid-cols-2">
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 						<BarChart
 							title={'Activity'}
 							chartData={data.activity}
@@ -180,7 +178,7 @@ export default function Protocol({ data, governanceType }) {
 							stackColors={stackedBarChartColors}
 						/>
 					</LazyChart>
-					<LazyChart>
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 						<BarChart
 							title={'Max Votes'}
 							chartData={data.maxVotes}
@@ -192,36 +190,48 @@ export default function Protocol({ data, governanceType }) {
 
 				<div className="flex flex-wrap items-center gap-9">
 					{data.metadata.domain && (
-						<Link href={`https://${data.metadata.domain}`} passHref>
-							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							target="_blank"
+							rel="noopener noreferrer"
+							href={`https://${data.metadata.domain}`}
+						>
+							<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					)}
 
 					{data.metadata.twitter && (
-						<Link href={`https://twitter.com/${data.metadata.twitter}`} passHref>
-							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							target="_blank"
+							rel="noopener noreferrer"
+							href={`https://twitter.com/${data.metadata.twitter}`}
+						>
+							<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					)}
 
 					{data.metadata.github && (
-						<Link href={`https://github.com/${data.metadata.github}`} passHref>
-							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>Github</span>
-								<Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							target="_blank"
+							rel="noopener noreferrer"
+							href={`https://github.com/${data.metadata.github}`}
+						>
+							<span>Github</span>
+							<Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					)}
 
 					{data.metadata.coingecko && (
-						<Link href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`} passHref>
-							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-								<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							target="_blank"
+							rel="noopener noreferrer"
+							href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`}
+						>
+							<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					)}
 				</div>
 			</div>

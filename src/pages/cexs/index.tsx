@@ -1,10 +1,9 @@
 import { maxAgeForNext } from '~/api'
 import type { IChainTvl } from '~/api/types'
-import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import 'react-datepicker/dist/react-datepicker.css'
-import Cexs from '~/containers/Cexs'
+import { Cexs } from '~/containers/Cexs'
 import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
@@ -550,7 +549,7 @@ export const cexData: Array<ICex> = [
 	},
 	{
 		name: 'LBank',
-        slug: 'lbank',
+		slug: 'lbank',
 		cgId: 'lbank'
 	},
 	{
@@ -676,12 +675,16 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 			}
 		}
 	] = await Promise.all([
-		fetch(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250&x_cg_pro_api_key=${process.env.CG_KEY}`).then(
-			(r) => r.json()
-		),
-		fetch(
-			`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000&x_cg_pro_api_key=${process.env.CG_KEY}`
-		).then((r) => r.json()),
+		fetch(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250`, {
+			headers: {
+				'x-cg-pro-api-key': process.env.CG_KEY
+			}
+		}).then((r) => r.json()),
+		fetch(`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`, {
+			headers: {
+				'x-cg-pro-api-key': process.env.CG_KEY
+			}
+		}).then((r) => r.json()),
 		fetch(`https://coins.llama.fi/prices/current/coingecko:bitcoin`).then((r) => r.json())
 	])
 	const cexs = await Promise.all(
@@ -773,12 +776,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 })
 
 export default function Protocols({ cexs }) {
-	return (
-		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
-			<h1 className="text-2xl font-medium -mb-5">CEX Transparency</h1>
-			<Cexs cexs={cexs} />
-		</Layout>
-	)
+	return <Cexs cexs={cexs} />
 }
 
 //trigger server gogogogogoog

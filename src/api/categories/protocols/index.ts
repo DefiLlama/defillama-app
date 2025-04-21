@@ -1,11 +1,8 @@
 import { capitalizeFirstLetter, getColorFromNumber, slug } from '~/utils'
-import type { IFusedProtocolData, IOracleProtocols, IProtocolResponse } from '~/api/types'
+import type { IFusedProtocolData, IProtocolResponse } from '~/api/types'
 import {
-	ACTIVE_USERS_API,
 	CATEGORY_API,
-	FORK_API,
 	HOURLY_PROTOCOL_API,
-	ORACLE_API,
 	PROTOCOLS_API,
 	PROTOCOL_API,
 	PROTOCOL_EMISSIONS_API,
@@ -17,7 +14,6 @@ import {
 	CHART_API,
 	ETF_SNAPSHOT_API,
 	ETF_FLOWS_API,
-	CHAINS_API_V2,
 	CHAIN_ASSETS_FLOWS,
 	BRIDGEINFLOWS_API,
 	CATEGORY_PERFORMANCE_API,
@@ -26,20 +22,10 @@ import {
 	COINS_INFO_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
-import {
-	getDimensionAdapterChainPageData as getChainPageDataByType,
-	getDimensionsAdaptersChainsPageData as getChainsPageDataByType,
-	getFeesAndRevenueProtocolsByChain,
-	ADAPTOR_TYPES
-} from '~/api/categories/adaptors'
-import { getPeggedAssets } from '../stablecoins'
+import { getFeesAndRevenueProtocolsByChain } from '~/api/categories/adaptors'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { getDexVolumeByChain, getAppRevenueByChain } from '../adaptors'
+import { getDexVolumeByChain } from '../adaptors'
 import { sluggify } from '~/utils/cache-client'
-import { getAPIUrl } from '../adaptors/client'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import metadata from '~/utils/metadata'
-const chainsMetadata = metadata.chainMetadata
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -458,351 +444,6 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 	return { protocols: filteredProtocols, chains, parentProtocols }
 }
 
-// - used in /oracles and /oracles/[name]
-export async function getOraclePageData(oracle = null, chain = null) {
-	try {
-		const [
-			{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle },
-			{ protocols },
-			{ protocols: derivativeProtocols }
-		] = await Promise.all([
-			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
-			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
-			fetchWithErrorLogging(getAPIUrl(ADAPTOR_TYPES.PERPS, null, true, true))
-				.then((r) => r.json())
-				.catch(() => ({ protocols: [] }))
-		])
-
-		const oracleExists = oracle ? oracles[oracle] && (chain ? chainsByOracle[oracle].includes(chain) : true) : true
-
-		if (!oracleExists) {
-			return {
-				notFound: true
-			}
-		}
-
-		const filteredProtocols = formatProtocolsData({ oracle, protocols, chain })
-
-		let chartData = Object.entries(chart)
-		const chainChartData = chain
-			? Object.entries(chainChart)
-					.map(([date, data]) => {
-						const chainName = chain
-						const chainData = Object.entries(data[oracle] || {})
-							.map(([name, value]) =>
-								name.includes(chainName) ? [name.replace(chainName, '').replace('-', '') || 'tvl', value] : null
-							)
-							.filter(Boolean)
-						return Object.values(chainData).length ? [date, Object.fromEntries(chainData)] : null
-					})
-					.filter(Boolean)
-			: null
-
-		const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
-			.sort((a, b) => b[1].tvl - a[1].tvl)
-			.map((orc) => orc[0])
-
-		const oracleMonthlyVolumes = derivativeProtocols.reduce((acc, protocol) => {
-			const p = protocols.find((p) => p.name === protocol.name)
-
-			if (!p) return acc
-
-			if (p.oraclesByChain) {
-				for (const ch in p.oraclesByChain) {
-					if (chain ? chain === ch : true) {
-						for (const oracle of p.oraclesByChain[ch]) {
-							acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(ch)]?.[protocol.name] ?? 0)
-						}
-					}
-				}
-			} else {
-				for (const oracle of p.oracles ?? []) {
-					acc[oracle] = (acc[oracle] ?? 0) + (protocol.total30d ?? 0)
-				}
-			}
-
-			return acc
-		}, {})
-
-		if (oracle) {
-			let data = []
-			chartData.forEach(([date, tokens]) => {
-				const value = tokens[oracle]
-				if (value) {
-					data.push([date, value])
-				}
-			})
-			chartData = data
-		}
-
-		const oraclesProtocols: IOracleProtocols = {}
-
-		for (const orc in oracles) {
-			oraclesProtocols[orc] = oracles[orc]?.length
-		}
-
-		const latestOracleTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
-			string,
-			Record<string, number>
-		>
-
-		const latestTvlByChain: Record<string, number> = {}
-		for (const oracle in latestOracleTvlByChain) {
-			for (const ochain in latestOracleTvlByChain[oracle]) {
-				if (!ochain.includes('-') && !DEFI_SETTINGS_KEYS.includes(ochain)) {
-					latestTvlByChain[ochain] = (latestTvlByChain[ochain] ?? 0) + latestOracleTvlByChain[oracle][ochain]
-				}
-			}
-		}
-
-		const uniqueChains = (Array.from(new Set(Object.values(chainsByOracle).flat())) as Array<string>).sort(
-			(a, b) => (latestTvlByChain[b] ?? 0) - (latestTvlByChain[a] ?? 0)
-		)
-
-		let oracleLinks = oracle
-			? [{ label: 'All', to: `/oracles/${oracle}` }].concat(
-					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
-			  )
-			: [{ label: 'All', to: `/oracles` }].concat(uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${c}` })))
-
-		const colors = {}
-
-		oraclesUnique.forEach((chain, index) => {
-			colors[chain] = getColorFromNumber(index, 6)
-		})
-
-		colors['Others'] = '#AAAAAA'
-
-		return {
-			props: {
-				chain: chain ?? null,
-				chainChartData,
-				chainsByOracle,
-				tokens: oraclesUnique,
-				tokenLinks: oracleLinks,
-				token: oracle,
-				tokensProtocols: oraclesProtocols,
-				filteredProtocols,
-				chartData,
-				oraclesColors: colors,
-				oracleMonthlyVolumes,
-				derivativeProtocols
-			}
-		}
-	} catch (e) {
-		console.log(e)
-		return {
-			notFound: true
-		}
-	}
-}
-
-export async function getOraclePageDataByChain(chain: string) {
-	try {
-		const [
-			{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle },
-			{ protocols },
-			{ protocols: derivativeProtocols }
-		] = await Promise.all([
-			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
-			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
-			fetchWithErrorLogging(getAPIUrl(ADAPTOR_TYPES.PERPS, null, true, true))
-				.then((r) => r.json())
-				.catch(() => ({ protocols: [] }))
-		])
-
-		const filteredProtocols = formatProtocolsData({ protocols, chain })
-
-		let chartData = Object.entries(chart)
-		const chainChartData = chain
-			? Object.entries(chainChart)
-					.map(([date, data]) => {
-						const chainName = chain
-						const chainData = Object.entries(data)
-							.map(([oracle, dayData]) => {
-								const chainData = Object.entries(dayData)
-									.map(([name, value]) =>
-										name.includes(chainName) ? [name.replace(chainName, '').replace('-', '') || 'tvl', value] : null
-									)
-									.filter(Boolean)
-								return Object.values(chainData).length ? [oracle, Object.fromEntries(chainData)] : null
-							})
-							.filter(Boolean)
-						return Object.values(chainData).length ? [date, Object.fromEntries(chainData)] : null
-					})
-					.filter(Boolean)
-			: null
-
-		const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
-			.sort((a, b) => b[1].tvl - a[1].tvl)
-			.map((orc) => orc[0])
-			.filter((orc) => chainsByOracle[orc]?.includes(chain))
-
-		const oracleMonthlyVolumes = derivativeProtocols.reduce((acc, protocol) => {
-			const p = protocols.find((p) => p.name === protocol.name)
-
-			if (!p) return acc
-
-			if (p.oraclesByChain) {
-				for (const ch in p.oraclesByChain) {
-					if (chain ? chain === ch : true) {
-						for (const oracle of p.oraclesByChain[ch]) {
-							acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(chain)]?.[protocol.name] ?? 0)
-						}
-					}
-				}
-			} else {
-				for (const oracle of p.oracles ?? []) {
-					acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(chain)]?.[protocol.name] ?? 0)
-				}
-			}
-
-			return acc
-		}, {})
-
-		const oraclesProtocols: IOracleProtocols = {}
-
-		for (const orc in oracles) {
-			oraclesProtocols[orc] = protocols.filter((p) => p.oracles?.includes(orc) && p.chains.includes(chain)).length
-		}
-
-		const latestOracleTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
-			string,
-			Record<string, number>
-		>
-
-		const latestTvlByChain: Record<string, number> = {}
-		for (const oracle in latestOracleTvlByChain) {
-			for (const ochain in latestOracleTvlByChain[oracle]) {
-				if (!ochain.includes('-') && !DEFI_SETTINGS_KEYS.includes(ochain)) {
-					latestTvlByChain[ochain] = (latestTvlByChain[ochain] ?? 0) + latestOracleTvlByChain[oracle][ochain]
-				}
-			}
-		}
-
-		const uniqueChains = (Array.from(new Set(Object.values(chainsByOracle).flat())) as Array<string>).sort(
-			(a, b) => (latestTvlByChain[b] ?? 0) - (latestTvlByChain[a] ?? 0)
-		)
-		const oracleLinks = [{ label: 'All', to: `/oracles` }].concat(
-			uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${c}` }))
-		)
-
-		const colors = {}
-
-		oraclesUnique.forEach((chain, index) => {
-			colors[chain] = getColorFromNumber(index, 6)
-		})
-
-		colors['Others'] = '#AAAAAA'
-
-		return {
-			props: {
-				chain: chain ?? null,
-				chainChartData,
-				chainsByOracle,
-				tokens: oraclesUnique,
-				tokenLinks: oracleLinks,
-				tokensProtocols: oraclesProtocols,
-				filteredProtocols,
-				chartData: chainChartData,
-				oraclesColors: colors,
-				oracleMonthlyVolumes
-			}
-		}
-	} catch (e) {
-		console.log(e)
-		return {
-			notFound: true
-		}
-	}
-}
-// - used in /forks and /forks/[name]
-export async function getForkPageData(fork = null) {
-	try {
-		const [{ chart = {}, forks = {} }, { protocols }] = await Promise.all(
-			[FORK_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
-		)
-
-		const forkExists = !fork || forks[fork]
-
-		if (!forkExists) {
-			return {
-				notFound: true
-			}
-		}
-
-		let chartData = Object.entries(chart)
-
-		const forksUnique = Object.entries(chartData[chartData.length - 1][1])
-			.sort((a, b) => b[1].tvl - a[1].tvl)
-			.map((fr) => fr[0])
-
-		const protocolsData = formatProtocolsData({ protocols })
-
-		let parentTokens = []
-
-		if (fork) {
-			let data = []
-			chartData.forEach(([date, tokens]) => {
-				const value = tokens[fork]
-				if (value) {
-					data.push([date, value])
-				}
-			})
-			chartData = data
-			const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
-			if (protocol) {
-				parentTokens.push(protocol)
-			}
-		} else {
-			forksUnique.forEach((fork) => {
-				const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
-				if (protocol) {
-					parentTokens.push(protocol)
-				}
-			})
-		}
-
-		const forksProtocols = {}
-
-		for (const frk in forks) {
-			forksProtocols[frk] = forks[frk]?.length
-		}
-
-		let forkLinks = [{ label: 'All', to: `/forks` }].concat(
-			forksUnique.map((o: string) => ({ label: o, to: `/forks/${o}` }))
-		)
-
-		const filteredProtocols = formatProtocolsData({ fork, protocols })
-
-		const colors = {}
-
-		forksUnique.forEach((chain, index) => {
-			colors[chain] = getColorFromNumber(index, 6)
-		})
-
-		colors['Others'] = '#AAAAAA'
-
-		return {
-			props: {
-				tokens: forksUnique,
-				tokenLinks: forkLinks,
-				token: fork,
-				tokensProtocols: forksProtocols,
-				filteredProtocols,
-				chartData,
-				parentTokens,
-				forkColors: colors
-			}
-		}
-	} catch (e) {
-		console.log(e)
-		return {
-			notFound: true
-		}
-	}
-}
-
 // - used in /categories and /categories/[name]
 export async function getCategoriesPageData(category = null) {
 	try {
@@ -865,90 +506,6 @@ interface IExtraPropPerChain {
 			tvlPrevDay?: number
 			tvlPrevWeek?: number
 			tvlPrevMonth?: number
-		}
-	}
-}
-
-export const getNewChainsPageData = async (category: string) => {
-	const appRevenueChains = Object.values(chainsMetadata).filter((chain: any) => (chain.fees ? true : false))
-	const [
-		{ categories, chainTvls, ...rest },
-		{ protocols: dexsProtocols },
-		{ protocols: feesAndRevenueProtocols },
-		{ chains: stablesChainData },
-		activeUsers,
-		chainsAssets,
-		chainNftsVolume,
-		...appRevenue
-	] = await Promise.all([
-		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
-		getChainsPageDataByType('dexs'),
-		getChainPageDataByType('fees'),
-		getPeggedAssets(),
-		fetchWithErrorLogging(ACTIVE_USERS_API)
-			.then((res) => res.json())
-			.catch(() => ({})),
-		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json()),
-		fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json()),
-		getAppRevenueByChain({ excludeTotalDataChart: false, excludeTotalDataChartBreakdown: false }),
-		...appRevenueChains.map((chain: any) => getAppRevenueByChain({ chain: chain.name }))
-	])
-
-	const categoryLinks = [
-		{ label: 'All', to: '/chains' },
-		{ label: 'Non-EVM', to: '/chains/Non-EVM' }
-	].concat(
-		categories.map((category) => ({
-			label: category,
-			to: `/chains/${category}`
-		}))
-	)
-
-	const colors = {}
-
-	rest.chainsUnique.forEach((chain, index) => {
-		colors[chain] = getColorFromNumber(index, 10)
-	})
-
-	colors['Others'] = '#AAAAAA'
-
-	const feesAndRevenueChains = feesAndRevenueProtocols.filter((p) => p.category === 'Chain')
-	const dexsChains = dexsProtocols
-	const stablesChainMcaps = stablesChainData.map((chain) => {
-		return {
-			name: chain.name,
-			mcap: Object.values(chain.totalCirculatingUSD).reduce((a: number, b: number) => a + b)
-		}
-	})
-
-	return {
-		props: {
-			...rest,
-			category,
-			categories: categoryLinks,
-			colorsByChain: colors,
-			chainAssets: chainsAssets ?? null,
-			chainTvls: chainTvls.map((chain) => {
-				const name = slug(chain.name)
-
-				const nftVolume = chainNftsVolume[name] ?? null
-				const { total24h, revenue24h } = feesAndRevenueChains.find((x) => x.name.toLowerCase() === name) || {}
-
-				const { total24h: dexsTotal24h } = dexsChains.find((x) => x.name.toLowerCase() === name) || {}
-
-				const users = activeUsers['chain#' + name]
-
-				return {
-					...chain,
-					nftVolume: nftVolume ? +Number(nftVolume).toFixed(2) : null,
-					totalVolume24h: dexsTotal24h || 0,
-					totalFees24h: total24h || 0,
-					totalRevenue24h: revenue24h || 0,
-					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === name)?.mcap ?? 0,
-					users: users?.users?.value ?? 0,
-					totalAppRevenue24h: appRevenue.find((c) => c.chain === chain.name)?.totalAppRevenue24h ?? null
-				}
-			})
 		}
 	}
 }
@@ -1030,15 +587,56 @@ export async function getLSDPageData() {
 	}
 }
 
+interface AssetTotals {
+	[key: string]: {
+		aum: number
+		flows: number
+	}
+}
+
 export async function getETFData() {
 	const [snapshot, flows] = await Promise.all(
 		[ETF_SNAPSHOT_API, ETF_FLOWS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
 	)
-	return {
-		props: {
-			snapshot: snapshot.sort((a, b) => b.flows - a.flows),
-			flows
+
+	const maxDate = Math.max(...flows.map((item) => new Date(item.day).getTime()))
+
+	const formattedDate = new Date(maxDate).toLocaleDateString('en-US', {
+		month: 'long',
+		day: 'numeric',
+		year: 'numeric'
+	})
+
+	const processedSnapshot = snapshot
+		.map((i) => ({
+			...i,
+			chain: [i.asset.charAt(0).toUpperCase() + i.asset.slice(1)]
+		}))
+		.sort((a, b) => b.flows - a.flows)
+
+	const processedFlows = flows.reduce((acc, { gecko_id, day, total_flow_usd }) => {
+		const timestamp = (new Date(day).getTime() / 86400 / 1000) * 86400
+		acc[timestamp] = {
+			date: timestamp,
+			...acc[timestamp],
+			[gecko_id.charAt(0).toUpperCase() + gecko_id.slice(1)]: total_flow_usd
 		}
+		return acc
+	}, {})
+
+	const totalsByAsset = processedSnapshot.reduce((acc: AssetTotals, item) => {
+		acc[item.asset.toLowerCase()] = {
+			aum: (acc[item.asset.toLowerCase()]?.aum || 0) + item.aum,
+			flows: (acc[item.asset.toLowerCase()]?.flows || 0) + item.flows
+		}
+		return acc
+	}, {})
+
+	return {
+		snapshot: processedSnapshot,
+		flows: processedFlows,
+		totalsByAsset,
+		lastUpdated: formattedDate
 	}
 }
 
@@ -1103,9 +701,8 @@ export function formatGovernanceData(data: {
 }
 
 export async function getChainsBridged(chain?: string) {
-	const [assets, chains, flows1d, inflows] = await Promise.all([
+	const [assets, flows1d, inflows] = await Promise.all([
 		fetchWithErrorLogging(CHAINS_ASSETS).then((r) => r.json()),
-		fetchWithErrorLogging(`${CHAINS_API_V2}/All`).then((r) => r.json()),
 		fetchWithErrorLogging(CHAIN_ASSETS_FLOWS + '/24h').then((r) => r.json()),
 		chain
 			? fetchWithErrorLogging(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
@@ -1114,7 +711,8 @@ export async function getChainsBridged(chain?: string) {
 					.catch(() => [])
 			: []
 	])
-	const chainData = assets[chain] ?? null
+	const chainData = chain ? Object.entries(assets ?? {}).find((a) => slug(a[0]) === slug(chain))?.[1] ?? null : null
+
 	const tokenInflowNames = new Set<string>()
 	for (const inflow of inflows) {
 		for (const token of Object.keys(inflow)) {
@@ -1124,7 +722,22 @@ export async function getChainsBridged(chain?: string) {
 		}
 	}
 
-	return { chains, assets, flows1d, chainData, inflows, tokenInflowNames: Array.from(tokenInflowNames) }
+	return {
+		chains: [
+			{ label: 'All', to: '/bridged' },
+			...Object.entries(assets ?? {})
+				.sort(
+					(a: any, b: any) =>
+						Number(b[1].total?.total?.split('.')?.[0] ?? 0) - Number(a[1].total?.total?.split('.')?.[0] ?? 0)
+				)
+				.map((asset) => ({ label: asset[0], to: `/bridged/${slug(asset[0])}` }))
+		],
+		assets,
+		flows1d,
+		chainData,
+		inflows,
+		tokenInflowNames: Array.from(tokenInflowNames)
+	}
 }
 
 export async function getCategoryInfo() {

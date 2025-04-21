@@ -7,6 +7,7 @@ import { CoinsPicker } from '~/containers/Correlations'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export default function CompareFdv({ coinsData, protocols }) {
 	const router = useRouter()
@@ -118,7 +119,8 @@ export default function CompareFdv({ coinsData, protocols }) {
 
 	return (
 		<>
-			<h1 className="text-2xl font-medium mt-2 text-center w-full max-w-sm mx-auto relative lg:-left-[116px]">
+			<ProtocolsChainsSearch />
+			<h1 className="text-xl font-semibold mt-2 text-center w-full max-w-sm mx-auto relative lg:-left-[116px]">
 				Compare Tokens
 			</h1>
 			<div className="flex flex-col items-center gap-2 w-full max-w-sm mx-auto relative lg:-left-[116px]">
@@ -276,7 +278,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
+							className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
 						/>
 					</div>
 				</div>

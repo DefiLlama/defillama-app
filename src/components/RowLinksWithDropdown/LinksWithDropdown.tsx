@@ -13,8 +13,6 @@ interface IRowLinksProps {
 	alternativeOthersText?: string
 }
 
-const GAP = 6
-
 // Renders a row of links and overflow links / links that not fit in viewport are shown in a dropdown
 export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersText, ...props }: IRowLinksProps) => {
 	const [lastIndexToRender, setLastIndexToRender] = useState<number | null | 'renderMenu'>(null)
@@ -39,7 +37,8 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 				const link = document.querySelector(`#priority-nav-el-${index}`)
 				const linkSize = link.getBoundingClientRect()
 
-				if (linkSize.top - wrapper.top > wrapper.height || linkSize.left + GAP * 2 > wrapper.right - 180) {
+				// 8 - gap between links
+				if (linkSize.top - wrapper.top > wrapper.height || linkSize.left + 8 * 2 > wrapper.right - 180) {
 					indexToCutFrom = index
 				}
 			})
@@ -86,15 +85,11 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 	}, [links, lastIndexToRender, activeLink])
 
 	return (
-		<>
+		<div className="flex flex-nowrap bg-[var(--cards-bg)] rounded-md">
+			{/* max-height: link height + wrapper padding top + padding bottom */}
 			{linksInRow ? (
 				<div
-					className="flex-1 overflow-hidden p-1 flex flex-wrap max-h-[calc(1.8rem_+_14px)] gap-[var(--gap)]"
-					style={
-						{
-							'--gap': `${GAP}px`
-						} as any
-					}
+					className="flex-1 overflow-hidden p-1 flex flex-wrap max-h-[calc(1.5rem_+_0.5rem)] gap-2"
 					id="priority-nav"
 					{...props}
 				>
@@ -109,10 +104,10 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 					name={isLinkInDropdown ? activeLink : alternativeOthersText ?? 'Others'}
 					isActive={isLinkInDropdown}
 					options={dropdownLinks}
-					className={!linksInRow ? 'w-full justify-between' : ''}
+					className={!linksInRow ? 'w-full justify-between' : 'mr-1'}
 				/>
 			) : null}
-		</>
+		</div>
 	)
 }
 
@@ -120,7 +115,7 @@ export const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
 		<Link href={option.to} prefetch={false} passHref>
 			<a
-				className="rounded-xl py-2 px-3 whitespace-nowrap font-medium text-sm text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-active-bg)] data-[active=true]:text-white"
+				className="rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-active-bg)] data-[active=true]:text-white"
 				data-active={option.label === activeLink}
 				{...props}
 			>

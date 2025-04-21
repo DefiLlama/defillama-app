@@ -1,23 +1,17 @@
-import {
-	DARK_MODE,
-	useDarkModeManager,
-	useDefiManager,
-	useNftsManager,
-	useTvlAndFeesManager
-} from '~/contexts/LocalStorage'
-import { protocolsAndChainsOptions } from '~/components/Filters/protocols/options'
+import { DARK_MODE, TSETTINGTYPE, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { protocolsAndChainsOptions } from '~/components/Filters/options'
 import { nftOptions } from '~/components/Filters/nfts/options'
 import { useRouter } from 'next/router'
-import { feesOptions } from '~/components/Filters/protocols/options'
+import { feesOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 
 export function Settings() {
 	const [darkMode] = useDarkModeManager()
 
-	const { options, useSettings } = useAppSettings()
+	const { options, dashboardType } = useAppSettings()
 
-	const [enabledOptions, updater] = useSettings()
+	const [enabledOptions, updater] = useLocalStorageSettingsManager(dashboardType)
 
 	const selectedOptions = options
 		.map((o) => o.key)
@@ -27,10 +21,10 @@ export function Settings() {
 	const onChange = (values) => {
 		if (values.length < selectedOptions.length) {
 			const off = selectedOptions.find((o) => !values.includes(o))
-			updater(off)?.()
+			updater(off)
 		} else {
 			const on = values.find((o) => !selectedOptions.includes(o))
-			updater(on)?.()
+			updater(on)
 		}
 	}
 
@@ -70,48 +64,51 @@ export function Settings() {
 	)
 }
 
-const useAppSettings = () => {
+const useAppSettings = (): {
+	options: Array<{ name: string; key: string; help?: string }>
+	dashboardType: TSETTINGTYPE
+} => {
 	const router = useRouter()
 
 	if (router.pathname.startsWith('/yields')) {
-		return { options: [], useSettings: useDefiManager }
+		return { options: [], dashboardType: 'tvl' }
 	}
 
 	if (router.pathname.startsWith('/stablecoin')) {
-		return { options: [], useSettings: useDefiManager }
+		return { options: [], dashboardType: 'tvl' }
 	}
 
 	if (router.pathname.startsWith('/liquidations')) {
-		return { options: [], useSettings: useDefiManager }
+		return { options: [], dashboardType: 'tvl' }
 	}
 
 	if (router.pathname.startsWith('/dex')) {
-		return { options: [], useSettings: useDefiManager }
+		return { options: [], dashboardType: 'tvl' }
 	}
 
 	if (router.pathname.startsWith('/raises')) {
-		return { options: [], useSettings: useDefiManager }
+		return { options: [], dashboardType: 'tvl' }
 	}
 
 	if (router.pathname.startsWith('/hacks')) {
-		return { options: [], useSettings: useDefiManager }
+		return { options: [], dashboardType: 'tvl' }
 	}
 
 	if (router.pathname.startsWith('/bridge')) {
-		return { options: [], useSettings: useDefiManager }
+		return { options: [], dashboardType: 'tvl' }
 	}
 
 	if (router.pathname.startsWith('/borrow')) {
-		return { options: [], useSettings: useDefiManager }
+		return { options: [], dashboardType: 'tvl' }
 	}
 
 	if (router.pathname.startsWith('/nfts')) {
-		return { options: nftOptions, useSettings: useNftsManager }
+		return { options: nftOptions, dashboardType: 'nfts' }
 	}
 
 	if (router.pathname.startsWith('/protocol')) {
-		return { options: [...protocolsAndChainsOptions, ...feesOptions], useSettings: useTvlAndFeesManager }
+		return { options: [...protocolsAndChainsOptions, ...feesOptions], dashboardType: 'tvl+fees' }
 	}
 
-	return { options: protocolsAndChainsOptions, useSettings: useTvlAndFeesManager }
+	return { options: protocolsAndChainsOptions, dashboardType: 'tvl+fees' }
 }

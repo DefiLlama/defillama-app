@@ -227,6 +227,166 @@ const nextConfig = {
 				source: '/perps/chains/hyperliquid',
 				destination: '/perps/chains/hyperliquid-l1',
 				permanent: true
+			},
+			{
+				source: '/protocol',
+				destination: '/protocols',
+				permanent: true
+			},
+			{
+				source: '/chain',
+				destination: '/chains',
+				permanent: true
+			},
+			{
+				source: '/stablecoin',
+				destination: '/stablecoins',
+				permanent: true
+			},
+			{
+				source: '/fee',
+				destination: '/fees',
+				permanent: true
+			},
+			{
+				source: '/perp',
+				destination: '/perps',
+				permanent: true
+			},
+			{
+				source: '/unlock',
+				destination: '/unlocks',
+				permanent: true
+			},
+			{
+				source: '/oracle',
+				destination: '/oracles',
+				permanent: true
+			},
+			{
+				source: '/fork',
+				destination: '/forks',
+				permanent: true
+			},
+			{
+				source: '/top-protocol',
+				destination: '/top-protocols',
+				permanent: true
+			},
+			{
+				source: '/airdrop',
+				destination: '/airdrops',
+				permanent: true
+			},
+			{
+				source: '/compare-chain',
+				destination: '/compare-chains',
+				permanent: true
+			},
+			{
+				source: '/category',
+				destination: '/categories',
+				permanent: true
+			},
+			{
+				source: '/protocol-expense',
+				destination: '/protocol-expenses',
+				permanent: true
+			},
+			{
+				source: '/yield',
+				destination: '/yields',
+				permanent: true
+			},
+			{
+				source: '/bridge',
+				destination: '/bridges',
+				permanent: true
+			},
+			{
+				source: '/dex',
+				destination: '/dexs',
+				permanent: true
+			},
+			{
+				source: '/option',
+				destination: '/options',
+				permanent: true
+			},
+			{
+				source: '/aggregator',
+				destination: '/aggregators',
+				permanent: true
+			},
+			{
+				source: '/bridge-aggregator',
+				destination: '/bridge-aggregators',
+				permanent: true
+			},
+			{
+				source: '/etf',
+				destination: '/etfs',
+				permanent: true
+			},
+			{
+				source: '/raise',
+				destination: '/raises',
+				permanent: true
+			},
+			{
+				source: '/dex/chain',
+				destination: '/dex/chains',
+				permanent: true
+			},
+			{
+				source: '/perps/chain',
+				destination: '/perps/chains',
+				permanent: true
+			},
+			{
+				source: '/options/chain',
+				destination: '/options/chains',
+				permanent: true
+			},
+			{
+				source: '/hack',
+				destination: '/hacks',
+				permanent: true
+			},
+			{
+				source: '/compare',
+				destination: '/comapre-chains',
+				permanent: true
+			},
+			{
+				source: '/comparison',
+				destination: '/compare-protocols',
+				permanent: true
+			},
+			{
+				source: '/compare-chain',
+				destination: '/comapre-chains',
+				permanent: true
+			},
+			{
+				source: '/compare-protocol',
+				destination: '/compare-protocols',
+				permanent: true
+			},
+			{
+				source: '/stables',
+				destination: '/stablecoins',
+				permanent: true
+			},
+			{
+				source: '/docs',
+				destination: '/docs/api',
+				permanent: true
+			},
+			{
+				source: '/donate',
+				destination: '/donations',
+				permanent: true
 			}
 		]
 	},

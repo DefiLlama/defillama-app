@@ -30,22 +30,6 @@ tags:
     description: Track performance of narratives
 
 paths:
-  /api/hourly/{protocol}:
-    get:
-      tags:
-        - TVL
-      summary: Lists the hourly tvl of a certain protocol
-      parameters:
-        - name: protocol
-          in: path
-          description: protocol slug
-          required: true
-          schema:
-            type: string
-            example: compound-v3
-      responses:
-        '200':
-          description: successful operation
   /api/tokenProtocols/{symbol}:
     get:
       tags:
@@ -280,22 +264,6 @@ paths:
       responses:
         '200':
           description: successful operation
-  /yields/chartHourly/{pool}:
-    get:
-      tags:
-        - Yields
-      summary: Same as /chart/{pool} but with hourly granularity
-      parameters:
-        - name: pool
-          in: path
-          required: true
-          description: pool id, can be retrieved from /pools (property is called pool)
-          schema:
-            type: string
-            example: '747c1d2a-c668-4682-b9f9-296708a3dd90'
-      responses:
-        '200':
-          description: successful operation
   /yields/poolsBorrow:
     get:
       tags:
@@ -436,7 +404,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /bridges/bridges:
+  /bridges:
     get:
       tags:
         - bridges
@@ -454,7 +422,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /bridges/bridge/{id}:
+  /bridge/{id}:
     get:
       tags:
         - bridges
@@ -472,7 +440,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /bridges/bridgevolume/{chain}:
+  /bridgevolume/{chain}:
     get:
       tags:
         - bridges
@@ -497,7 +465,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /bridges/bridgedaystats/{timestamp}/{chain}:
+  /bridgedaystats/{timestamp}/{chain}:
     get:
       tags:
         - bridges

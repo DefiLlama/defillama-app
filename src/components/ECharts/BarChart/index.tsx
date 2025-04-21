@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { getUtcDateObject, stringToColour } from '../utils'
 import type { IBarChartProps } from '../types'
@@ -17,13 +17,13 @@ export default function BarChart({
 	customLegendName,
 	customLegendOptions,
 	chartOptions,
-	height = '360px',
+	height,
 	barWidths,
 	stackColors,
 	tooltipOrderBottomUp,
 	isMonthly
 }: IBarChartProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions ? [...customLegendOptions] : [])
 
@@ -185,7 +185,7 @@ export default function BarChart({
 	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions])
 
 	return (
-		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-4">
+		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-3 [&[role='combobox']]:*:mt-3">
 			{customLegendName && customLegendOptions?.length > 1 && (
 				<SelectWithCombobox
 					allValues={customLegendOptions}
@@ -195,9 +195,13 @@ export default function BarChart({
 					clearAll={() => setLegendOptions([])}
 					toggleAll={() => setLegendOptions(customLegendOptions)}
 					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
+					}}
 				/>
 			)}
-			<div id={id} style={{ height, margin: 'auto 0' }}></div>
+			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

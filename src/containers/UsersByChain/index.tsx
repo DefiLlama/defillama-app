@@ -61,7 +61,7 @@ export function UsersByChain({ chart, backgroundColor, name, chains, chain }: IU
 			title={`${name ? name + ': ' : ''}User Metrics - DefiLlama`}
 			defaultSEO
 			backgroundColor={backgroundColor && transparentize(0.6, backgroundColor)}
-			style={{ gap: '36px' }}
+			className="gap-9"
 		>
 			<ProtocolsChainsSearch hideFilters />
 

@@ -16,8 +16,8 @@ import { fetchApi } from '~/utils/async'
 import { getProtocol, getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
-import { fetchAndFormatGovernanceData } from '~/containers/Defi/Protocol/Governance'
-import { buildProtocolAddlChartsData } from '~/containers/Defi/Protocol/utils'
+import { fetchAndFormatGovernanceData } from '~/containers/ProtocolOverview/Governance'
+import { buildProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useQuery } from '@tanstack/react-query'
 
 export const useFetchProtocolsList = () => {

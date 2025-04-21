@@ -1,16 +1,14 @@
-import { useMemo } from 'react'
 import Layout from '~/layout'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, download, slug } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
-import { IFormattedProtocol } from '~/api/types'
 import { descriptions } from './categories'
 import { withPerformanceLogging } from '~/utils/perf'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
@@ -74,23 +72,24 @@ export default function Chains({ data, columns, uniqueCategories }) {
 	}
 
 	return (
-		<Layout title="TVL Rankings - DefiLlama" defaultSEO>
-			<h1 className="text-2xl font-medium -mb-5 flex items-center justify-between flex-wrap gap-4">
-				<span>Top Protocols by Chain</span>
+		<Layout title="Top Protocols - DefiLlama" defaultSEO>
+			<ProtocolsChainsSearch />
+			<div className="bg-[var(--cards-bg)] rounded-md p-3 flex items-center gap-2 justify-between">
+				<h1 className="text-xl font-semibold mr-auto">Top Protocols by Chain</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
-			</h1>
-			<div className="isolate relative w-full max-w-[calc(100vw-32px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)] h-[85vh]">
+			</div>
+			<div className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--cards-bg)] h-[85vh]">
 				<div className="grid" style={{ gridTemplateColumns: `repeat(${uniqueCategories.length + 1}, 200px)` }}>
 					<div
 						className="col-span-full grid sticky top-0 z-[1]"
 						style={{ gridTemplateColumns: `repeat(${uniqueCategories.length + 1}, 200px)` }}
 					>
-						<div className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] sticky left-0 z-[1]">
+						<div className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-b border-r border-[var(--divider)] sticky left-0 z-[1]">
 							Chain
 						</div>
 						{uniqueCategories.map((cat) => (
 							<div
-								className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)]"
+								className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-b border-r border-[var(--divider)]"
 								key={`uniq-cat-${cat}`}
 							>
 								<span className="flex items-center gap-1">
@@ -107,7 +106,7 @@ export default function Chains({ data, columns, uniqueCategories }) {
 							style={{ gridTemplateColumns: `repeat(${uniqueCategories.length + 1}, 200px)` }}
 							key={`top-protocols-of${item.chain}`}
 						>
-							<div className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)] sticky left-0">
+							<div className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-b border-r border-[var(--divider)] sticky left-0">
 								<span className="flex items-center gap-2">
 									<span className="flex-shrink-0">{index + 1}</span>
 									<TokenLogo logo={chainIconUrl(item.chain)} />
@@ -121,7 +120,7 @@ export default function Chains({ data, columns, uniqueCategories }) {
 							</div>
 							{uniqueCategories.map((cat) => (
 								<div
-									className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--bg8)] dark:data-[ligther=true]:bg-[#1c1d22] border-b border-r border-[var(--divider)]"
+									className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-b border-r border-[var(--divider)]"
 									key={`uniq-cat-${cat}-${item.chain}`}
 								>
 									{item[cat] ? <CustomLink href={`/protocol/${slug(item[cat])}`}>{item[cat]}</CustomLink> : null}

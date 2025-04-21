@@ -14,8 +14,10 @@ import { VirtualTable } from '~/components/Table/Table'
 import { hacksColumns, hacksColumnOrders } from '~/components/Table/Defi/columns'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import useWindowSize from '~/hooks/useWindowSize'
-import { ChartSelector } from '~/containers/PeggedPage'
 import { Icon } from '~/components/Icon'
+import * as Ariakit from '@ariakit/react'
+import { FormattedName } from '~/components/FormattedName'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -71,26 +73,27 @@ function HacksTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<>
-			<div className="relative w-full sm:max-w-[280px] -mb-6 ml-auto">
-				<Icon
-					name="search"
-					height={16}
-					width={16}
-					className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-				/>
-				<input
-					value={projectName}
-					onChange={(e) => {
-						setProjectName(e.target.value)
-					}}
-					placeholder="Search projects..."
-					className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
-				/>
+		<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="p-3 flex items-center justify-end">
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={projectName}
+						onChange={(e) => {
+							setProjectName(e.target.value)
+						}}
+						placeholder="Search projects..."
+						className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+					/>
+				</div>
 			</div>
-
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
-		</>
+		</div>
 	)
 }
 
@@ -100,8 +103,9 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 	const [chartType, setChartType] = React.useState('Total Value Hacked')
 	return (
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+			<ProtocolsChainsSearch />
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
+				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Hacked (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{totalHacked}b</span>
@@ -115,8 +119,10 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 						<span className="font-semibold text-2xl font-jetbrains">{totalRugs}b</span>
 					</p>
 				</div>
-				<div className="flex flex-col gap-4 py-4 col-span-1 *:ml-4 last:*:ml-0 min-h-[444px]">
-					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+				<div className="flex flex-col col-span-1 min-h-[360px] bg-[var(--cards-bg)] rounded-md">
+					<div className="flex items-center justify-end p-3 -mb-12">
+						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+					</div>
 
 					{chartType === 'Total Value Hacked' && monthlyHacks ? (
 						<BarChart chartData={monthlyHacks} title="Monthly sum" isMonthly />
@@ -127,6 +133,43 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 			</div>
 			<HacksTable data={data} />
 		</Layout>
+	)
+}
+
+function ChartSelector({ options, selectedChart, onClick }) {
+	const onItemClick = (chartType: string) => {
+		onClick(chartType)
+	}
+
+	return (
+		<Ariakit.SelectProvider value={selectedChart} setValue={onClick}>
+			<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10">
+				<FormattedName text={selectedChart} maxCharacters={20} fontSize={'16px'} fontWeight={600} />
+				<Ariakit.SelectArrow />
+			</Ariakit.Select>
+			<Ariakit.SelectPopover
+				unmountOnHide
+				hideOnInteractOutside
+				gutter={6}
+				wrapperProps={{
+					className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+				}}
+				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+			>
+				{options.map((option) => (
+					<Ariakit.SelectItem
+						value={option}
+						key={option}
+						focusOnHover
+						setValueOnClick={false}
+						onClick={() => onItemClick(option)}
+						className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-black/10 dark:border-white/10"
+					>
+						{option}
+					</Ariakit.SelectItem>
+				))}
+			</Ariakit.SelectPopover>
+		</Ariakit.SelectProvider>
 	)
 }
 

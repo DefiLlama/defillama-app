@@ -21,10 +21,7 @@ export function PeggedFiltersDropdowns({
 			<PegType pathname={pathname} nestedMenu={nestedMenu} />
 			<McapRange nestedMenu={nestedMenu} />
 			<ResetAllStablecoinFilters pathname={pathname} nestedMenu={nestedMenu} />
-			<CSVDownloadButton
-				onClick={downloadCsv}
-				className="rounded-md py-2 px-3 text-xs whitespace-nowrap sm:ml-auto bg-[var(--link-active-bg)] text-white max-sm:mx-3 max-sm:mt-6"
-			/>
+			<CSVDownloadButton onClick={downloadCsv} className="ml-auto" />
 		</>
 	)
 }

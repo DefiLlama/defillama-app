@@ -1,16 +1,16 @@
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { formatChartTvlsByDay } from '~/hooks/data'
 import { formattedNum, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
 import { maxAgeForNext } from '~/api'
-import { getOraclePageData } from '~/api/categories/protocols'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
-import { useDefiManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
+import { getOraclePageData } from '~/containers/Oracles/queries'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -31,8 +31,12 @@ export const getStaticProps = withPerformanceLogging(
 	}) => {
 		const data = await getOraclePageData(oracle, chain)
 
+		if (!data) {
+			return { notFound: true }
+		}
+
 		return {
-			...data,
+			props: { ...data },
 			revalidate: maxAgeForNext([22])
 		}
 	}
@@ -53,7 +57,7 @@ export async function getStaticPaths() {
 }
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chainChartData, oracleMonthlyVolumes }) => {
-	const [extraTvlsEnabled] = useDefiManager()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const { protocolsData, finalChartData, totalValue } = useMemo(() => {
 		const protocolsData = formatDataWithExtraTvls({
 			data: filteredProtocols,
@@ -79,11 +83,12 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 	return (
 		<>
 			<ProtocolsChainsSearch />
-			<h1 className="text-2xl font-medium -mb-5">
-				Total Value Secured by {token} {chain ? `on ${chain}` : null}
-			</h1>
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--bg6)] border border-[var(--divider)] shadow rounded-xl">
-				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] rounded-t-xl xl:rounded-l-xl xl:rounded-r-none text-[var(--text1)] bg-[var(--bg7)] overflow-x-auto">
+
+			<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
+
+			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
+				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] overflow-x-auto">
+					<h1 className="text-xl font-semibold">{token}</h1>
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Secured (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(totalValue, true)}</span>
@@ -100,14 +105,11 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 						<span className="font-semibold text-2xl font-jetbrains">{dominance}%</span>
 					</p>
 				</div>
-				<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[392px]">
+
+				<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[392px] bg-[var(--cards-bg)] rounded-md">
 					<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
 				</div>
 			</div>
-
-			<nav className="flex items-center gap-5 overflow-hidden -mb-5">
-				<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
-			</nav>
 
 			<ProtocolsTableWithSearch data={protocolsData} />
 		</>

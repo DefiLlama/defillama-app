@@ -16,7 +16,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchWithErrorLogging } from '~/utils/async'
-import { RowFilter } from '~/components/Filters/RowFilter'
+import { TagGroup } from '~/components/TagGroup'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 
@@ -141,7 +141,7 @@ const ActiveInvestors = ({ data }) => {
 	}, [investorName, instance])
 
 	return (
-		<Layout title={`Investors - DefiLlama`} defaultSEO style={{ gap: '16px' }}>
+		<Layout title={`Investors - DefiLlama`} defaultSEO className="gap-4">
 			<Announcement notCancellable>
 				<span>Looking for investors?</span>{' '}
 				<a href="/pitch" className="text-[var(--blue)] underline font-medium" target="_blank" rel="noopener noreferrer">
@@ -149,33 +149,33 @@ const ActiveInvestors = ({ data }) => {
 				</a>
 			</Announcement>
 
-			<div className="flex items-center gap-4 flex-wrap last:*:ml-auto -mb-2">
-				<h1 className="text-2xl font-medium">Investors</h1>
-
-				<div className="relative w-full sm:max-w-[280px]">
-					<Icon
-						name="search"
-						height={16}
-						width={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-					/>
-					<input
-						value={investorName}
-						onChange={(e) => {
-							setInvestorName(e.target.value)
-						}}
-						placeholder="Search investors..."
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<div className="flex items-center gap-2 justify-end flex-wrap p-3">
+					<h1 className="text-xl font-semibold mr-auto">Investors</h1>
+					<div className="relative w-full sm:max-w-[280px]">
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						/>
+						<input
+							value={investorName}
+							onChange={(e) => {
+								setInvestorName(e.target.value)
+							}}
+							placeholder="Search investors..."
+							className="border border-black/10 dark:border-white/10 w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						/>
+					</div>
+					<TagGroup
+						setValue={(val) => onPeriodClick(val)}
+						values={['All', '30d', '180d', '1 year']}
+						selectedValue={period}
 					/>
 				</div>
-
-				<RowFilter
-					setValue={(val) => onPeriodClick(val)}
-					values={['All', '30d', '180d', '1 year']}
-					selectedValue={period}
-				/>
+				<VirtualTable instance={instance} />
 			</div>
-			<VirtualTable instance={instance} />
 		</Layout>
 	)
 }

@@ -1,7 +1,7 @@
 import Layout from '~/layout'
-import { BridgeTransactionsPage } from '~/containers/BridgesPage/Transactions'
+import { BridgeTransactionsPage } from '~/containers/Bridges/Transactions'
 import { maxAgeForNext } from '~/api'
-import { getBridges } from '~/api/categories/bridges'
+import { getBridges } from '~/containers/Bridges/queries.server'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridge-transactions', async () => {
@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging('bridge-transactions', asyn
 
 export default function BridgeTransactions({ bridges }) {
 	return (
-		<Layout title={`Bridge Transactions - DefiLlama Bridges`} defaultSEO>
+		<Layout title={`Bridge Transactions - DefiLlama`} defaultSEO>
 			<BridgeTransactionsPage bridges={bridges} />
 		</Layout>
 	)

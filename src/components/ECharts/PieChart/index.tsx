@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { PieChart as EPieChart } from 'echarts/charts'
@@ -18,7 +18,7 @@ echarts.use([
 ])
 
 export default function PieChart({
-	height = '360px',
+	height,
 	stackColors,
 	chartData,
 	title,
@@ -27,9 +27,11 @@ export default function PieChart({
 	showLegend = false,
 	formatTooltip = null,
 	customLabel,
+	legendPosition,
+	legendTextStyle,
 	...props
 }: IPieChartProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 	const [isDark] = useDarkModeManager()
 
 	const series = useMemo(() => {
@@ -38,7 +40,7 @@ export default function PieChart({
 			type: 'pie',
 			left: 0,
 			right: 0,
-			top: title === '' ? 0 : 25,
+			top: title ? 25 : 0,
 			bottom: 0,
 			label: {
 				fontFamily: 'sans-serif',
@@ -109,18 +111,20 @@ export default function PieChart({
 			},
 			legend: {
 				show: showLegend,
-				left: 'right',
-				orient: 'vertical',
+				left: 'right', // Default
+				orient: 'vertical', // Default
+				...legendPosition, // Apply overrides from prop
 				data: chartData.map((item) => item.name),
 				icon: 'circle',
 				itemWidth: 10,
 				itemHeight: 10,
 				itemGap: 10,
 				textStyle: {
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)', // Default color
+					...legendTextStyle // Apply overrides from prop
 				},
 				formatter: function (name) {
-					const maxLength = 18
+					const maxLength = 18 // Keep existing formatter
 					return name.length > maxLength ? name.slice(0, maxLength) + '...' : name
 				}
 			},
@@ -140,8 +144,8 @@ export default function PieChart({
 	}, [createInstance, series, isDark, title, usdFormat, showLegend, chartData])
 
 	return (
-		<div style={{ position: 'relative' }} {...props}>
-			<div id={id} style={{ height, margin: 'auto 0' }}></div>
+		<div className="relative" {...props}>
+			<div id={id} className="min-h-[360px] my-auto mx-0" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

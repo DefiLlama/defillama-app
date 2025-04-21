@@ -1,7 +1,8 @@
-import type { IFormattedProtocol, LiteProtocol } from '~/api/types'
+import type { IFormattedProtocol } from '~/api/types'
 import { keepNeededProperties } from '~/api/shared'
 import { getPercentChange } from '~/utils'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { ILiteProtocol } from '~/containers/ChainOverview/types'
 
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
 
@@ -10,7 +11,7 @@ interface IFormatProtocolsData {
 	oracle?: string
 	fork?: string
 	category?: string
-	protocols: LiteProtocol[]
+	protocols: Array<ILiteProtocol>
 	protocolProps?: BasicPropsToKeep
 	removeBridges?: boolean
 }
@@ -43,13 +44,6 @@ export const formatProtocolsData = ({
 	removeBridges = false
 }: IFormatProtocolsData) => {
 	const data = protocols.reduce((final, protocol) => {
-		if (protocol.deprecated) {
-			final = [
-				...final,
-				{ name: protocol.name, chains: protocol.chains, extraTvl: {}, category: protocol.category, deprecated: true }
-			]
-			return final
-		}
 		let toFilter = true
 
 		if (removeBridges) {
@@ -81,6 +75,14 @@ export const formatProtocolsData = ({
 		}
 
 		if (toFilter) {
+			if (protocol.deprecated) {
+				final = [
+					...final,
+					{ name: protocol.name, chains: protocol.chains, extraTvl: {}, category: protocol.category, deprecated: true }
+				]
+				return final
+			}
+
 			const p = keepNeededProperties(protocol, protocolProps)
 
 			if (chain) {

@@ -1,11 +1,6 @@
-import { BASE_API } from '~/constants'
 import { IJoin2ReturnType } from '.'
 import { IJSON, ProtocolAdaptorSummaryResponse } from './types'
-
-import { fetchWithErrorLogging } from '~/utils/async'
 import { capitalizeFirstLetter } from '~/utils'
-
-const fetch = fetchWithErrorLogging
 
 export const formatChain = (chain: string) => {
 	if (!chain) return chain
@@ -131,44 +126,4 @@ export function chartBreakdownByTokens(
 		return acc
 	}, {} as IJSON<IJoin2ReturnType[number]>)
 	return [Object.values(rawProcessed), legend]
-}
-
-export async function getCexVolume() {
-	const [cexs, btcPriceRes] = await Promise.all([
-		fetch(
-			`${BASE_API}cachedExternalResponse?url=${encodeURIComponent(
-				'https://api.coingecko.com/api/v3/exchanges?per_page=250'
-			)}`
-		).then(handleFetchResponse),
-		fetch(
-			`${BASE_API}cachedExternalResponse?url=${encodeURIComponent(
-				'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
-			)}`
-		).then(handleFetchResponse)
-	])
-	const btcPrice = btcPriceRes?.bitcoin?.usd
-	if (!btcPrice || !cexs || typeof cexs.filter !== 'function') return undefined
-	// cexs might not be a list TypeError: cexs.filter is not a function
-	const volume = cexs.filter((c) => c.trust_score >= 9).reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
-	return volume
-}
-
-export async function handleFetchResponse(res: Response) {
-	try {
-		const response = await res.json()
-		return iterateAndRemoveUndefined(response)
-	} catch (e) {
-		console.error(`Failed to parse response from ${res.url}, with status ${res.status} and error message ${e.message}`)
-		return {}
-	}
-}
-
-export function iterateAndRemoveUndefined(obj: any) {
-	if (typeof obj !== 'object') return obj
-	if (Array.isArray(obj)) return obj
-	Object.entries(obj).forEach((key: any, value: any) => {
-		if (value === undefined) delete obj[key]
-		else iterateAndRemoveUndefined(value)
-	})
-	return obj
 }

@@ -4,8 +4,8 @@ import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { sluggify } from '~/utils/cache-client'
 import { Modal } from './Modal'
-import { getChainData } from '~/containers/ComparePage'
-import { ChartTypes } from '~/containers/Defi/Protocol/ProtocolPro'
+import { getChainData } from '~/containers/CompareChains'
+import { ChartTypes } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useQuery } from '@tanstack/react-query'
 
 export const chainChartOptions = [
