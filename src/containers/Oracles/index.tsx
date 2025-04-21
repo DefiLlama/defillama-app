@@ -179,6 +179,7 @@ const columns: ColumnDef<IOraclesRow>[] = [
 		meta: {
 			align: 'end',
 			headerHelperText: 'Cumulative last 30d volume secured'
-		}
+		},
+		sortUndefined: 'last'
 	}
 ]
