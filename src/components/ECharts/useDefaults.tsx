@@ -68,6 +68,8 @@ interface IUseDefaultsProps {
 	isMonthly?: boolean
 }
 
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 export function useDefaults({
 	color,
 	title,
@@ -121,21 +123,13 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
+				const date = new Date(params[0].value[0])
+
 				let chartdate = isMonthly
-					? new Date(params[0].value[0]).toLocaleDateString('en-US', {
-							year: undefined,
-							month: 'short',
-							day: undefined
-					  }) +
-					  '1 - ' +
-					  lastDayOfMonth(params[0].value[0]) +
-					  ', ' +
-					  new Date(params[0].value[0]).getFullYear()
-					: new Date(params[0].value[0]).toLocaleDateString('en-US', {
-							year: isMonthly ? undefined : 'numeric',
-							month: 'short',
-							day: 'numeric'
-					  })
+					? monthNames[date.getUTCMonth()] + '1 - ' + lastDayOfMonth(params[0].value[0]) + ', ' + date.getUTCFullYear()
+					: `${date.getUTCDate().toString().padStart(2, '0')} ${
+							monthNames[date.getUTCMonth()]
+					  } ${date.getUTCFullYear()}`
 
 				let vals
 				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1] !== null)

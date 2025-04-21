@@ -94,6 +94,7 @@ export const ProtocolChart = ({
 
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
+	console.log({ barsData })
 	return (
 		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
 			{linkedProtocols && linkedProtocols.length > 0 && (
