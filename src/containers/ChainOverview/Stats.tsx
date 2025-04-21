@@ -718,7 +718,7 @@ export const Stats = (props: IChainOverviewData) => {
 					className="mt-auto mr-auto"
 				/>
 			</div>
-			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-7 col-span-2">
+			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 					<div className="flex items-center flex-wrap gap-2 mr-auto">
 						{chartOptions
@@ -747,7 +747,7 @@ export const Stats = (props: IChainOverviewData) => {
 					</div>
 
 					{DENOMINATIONS.length > 1 ? (
-						<div className="my-[5px] flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							{DENOMINATIONS.map((denom) => (
 								<button
 									key={`denom-${denom}`}
@@ -762,7 +762,7 @@ export const Stats = (props: IChainOverviewData) => {
 					) : null}
 
 					{hasAtleasOneBarChart ? (
-						<div className="-my-[5px] flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							<Tooltip
 								content="Daily"
 								as="button"
