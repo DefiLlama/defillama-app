@@ -617,8 +617,8 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 					</div>
 					{tab === 'information' ? (
 						<div className="flex flex-col gap-1">
-							<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
-								<div className="flex flex-col p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+							<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+								<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 									<h1 className="flex items-center flex-wrap gap-2 text-xl">
 										<TokenLogo logo={tokenIconUrl(name)} size={24} />
 										<span className="font-bold">

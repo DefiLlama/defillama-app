@@ -18,15 +18,15 @@ const Fallback = () => {
 								? '/defillama-press-kit/defi/PNG/defillama.png'
 								: '/defillama-press-kit/defi/PNG/defillama-dark.png'
 						}
-						height={53}
-						width={155}
+						height={32}
+						width={94}
 						className="object-contain object-left mr-auto mb-4 hidden lg:block"
 						alt=""
 					/>
 					<img
 						src="/defillama-press-kit/defi/PNG/defillama.png"
-						height={36}
-						width={105}
+						height={32}
+						width={94}
 						className="object-contain object-left mr-auto mb-4 block lg:hidden"
 						alt=""
 					/>

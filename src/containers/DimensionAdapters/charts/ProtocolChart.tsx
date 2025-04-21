@@ -95,9 +95,9 @@ export const ProtocolChart = ({
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
 	return (
-		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
+		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 			{linkedProtocols && linkedProtocols.length > 0 && (
-				<nav className="col-span-1 text-xs font-medium xl:col-span-2 flex overflow-x-auto rounded-md bg-[var(--cards-bg)] border-b border-black/10 dark:border-white/10">
+				<nav className="col-span-2 text-xs font-medium xl:col-span-3 flex overflow-x-auto rounded-md bg-[var(--cards-bg)] border-b border-black/10 dark:border-white/10">
 					{tabs.map((p) => (
 						<Link href={`/${type}/${slug(p)}`} key={p} passHref>
 							<a
@@ -111,7 +111,7 @@ export const ProtocolChart = ({
 				</nav>
 			)}
 			{!fullChart ? (
-				<div className="flex flex-col gap-6 p-5 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<>
 						{name && (
 							<h1 className="flex items-center gap-2 text-xl">
@@ -160,9 +160,9 @@ export const ProtocolChart = ({
 				</div>
 			) : null}
 			<div
-				className={`flex flex-col gap-4 ${
-					!fullChart ? 'col-span-1' : 'col-span-2'
-				} bg-[var(--cards-bg)] rounded-md min-h-[444px]`}
+				className={`bg-[var(--cards-bg)] rounded-md flex flex-col gap-4 ${
+					!fullChart ? 'col-span-2' : 'col-span-full'
+				} min-h-[444px]`}
 			>
 				{barsData && barsData.length > 0 && (
 					<div className="flex gap-2 flex-row items-center flex-wrap justify-between m-3 -mb-6">

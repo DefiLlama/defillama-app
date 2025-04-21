@@ -39,7 +39,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	return (
 		<div
 			className={`relative hidden lg:flex items-center justify-between gap-4 data-[alwaysdisplay=true]:flex ${
-				variant === 'secondary' ? '' : 'pt-2 pb-3'
+				variant === 'secondary' ? '' : 'pb-3'
 			}`}
 			{...extra}
 		>
@@ -125,7 +125,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange, varia
 	return (
 		<span className={`relative isolate w-full ${variant === 'secondary' ? '' : 'max-w-[50vw]'}`}>
 			{!hideIcon ? (
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[7px] left-[9px] opacity-50">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[9px] opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>

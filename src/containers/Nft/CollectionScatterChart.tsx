@@ -98,9 +98,10 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 				top: '130px'
 			},
 			grid: {
-				left: '20',
-				right: '20',
-				bottom: 0,
+				top: 12,
+				left: 12,
+				right: 12,
+				bottom: 12,
 				containLabel: true
 			},
 			tooltip: {

@@ -21,8 +21,8 @@ export const MobileNav = React.memo(function MobileNav() {
 					<img
 						src="/defillama-press-kit/defi/PNG/defillama.png"
 						alt=""
-						height={36}
-						width={105}
+						height={32}
+						width={94}
 						className="object-contain object-left mr-auto"
 					/>
 				</a>

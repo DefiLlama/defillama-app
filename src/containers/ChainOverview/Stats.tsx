@@ -180,8 +180,8 @@ export const Stats = (props: IChainOverviewData) => {
 	}
 
 	return (
-		<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
-			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-1 w-full xl:w-[380px] overflow-x-auto">
+		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 				{props.metadata.name !== 'All' && (
 					<h1 className="flex items-center flex-nowrap gap-2">
 						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
@@ -718,9 +718,9 @@ export const Stats = (props: IChainOverviewData) => {
 					className="mt-auto mr-auto"
 				/>
 			</div>
-			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-7 col-span-1">
-				<div className="flex flex-wrap items-center gap-2 [&:nth-child(2)]:*:ml-auto p-3">
-					<div className="flex items-center flex-wrap gap-2">
+			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
+				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
+					<div className="flex items-center flex-wrap gap-2 mr-auto">
 						{chartOptions
 							.filter((o) => o.isVisible)
 							.map(({ id, name }) => (
@@ -747,7 +747,7 @@ export const Stats = (props: IChainOverviewData) => {
 					</div>
 
 					{DENOMINATIONS.length > 1 ? (
-						<div className="my-[5px] flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							{DENOMINATIONS.map((denom) => (
 								<button
 									key={`denom-${denom}`}
@@ -762,7 +762,7 @@ export const Stats = (props: IChainOverviewData) => {
 					) : null}
 
 					{hasAtleasOneBarChart ? (
-						<div className="-my-[5px] flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							<Tooltip
 								content="Daily"
 								as="button"

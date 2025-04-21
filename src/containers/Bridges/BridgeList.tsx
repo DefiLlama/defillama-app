@@ -229,12 +229,12 @@ function BridgesOverview({
 
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
-				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] rounded-md overflow-x-auto">
-					<p className="flex flex-col">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+					<h1 className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (24h)</span>
 						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(dayTotalVolume, true)}</span>
-					</p>
+					</h1>
 					<p className="hidden md:flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (7d)</span>
 						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(weekTotalVolume, true)}</span>
@@ -246,7 +246,7 @@ function BridgesOverview({
 
 					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
 				</div>
-				<div className="flex flex-col bg-[var(--cards-bg)] rounded-md">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
 					{selectedChain === 'All' ? (
 						<>
 							<div className="flex items-center">

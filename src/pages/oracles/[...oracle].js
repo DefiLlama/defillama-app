@@ -86,8 +86,8 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
 
-			<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1">
-				<div className="text-base flex flex-col gap-5 p-6 col-span-1 w-full xl:w-[380px] bg-[var(--cards-bg)] overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="text-xl font-semibold">{token}</h1>
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Secured (USD)</span>
@@ -96,7 +96,6 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Perp DEX Volume Secured (30d)</span>
 						<span className="font-semibold text-2xl font-jetbrains">
-							{' '}
 							{formattedNum(oracleMonthlyVolumes[token] ?? 0, true)}
 						</span>
 					</p>
@@ -106,7 +105,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 					</p>
 				</div>
 
-				<div className="flex flex-col gap-4 py-4 col-span-1 min-h-[392px] bg-[var(--cards-bg)] rounded-md">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col pt-3 col-span-2 min-h-[372px]">
 					<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
 				</div>
 			</div>

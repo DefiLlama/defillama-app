@@ -132,7 +132,7 @@ export function VirtualTable({
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
-			className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-276px)] overflow-x-auto mx-auto bg-[var(--cards-bg)]"
+			className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-228px-4px-16px)] overflow-x-auto mx-auto bg-[var(--cards-bg)]"
 		>
 			<div
 				ref={tableHeaderRef}

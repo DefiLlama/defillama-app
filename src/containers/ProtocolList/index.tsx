@@ -173,8 +173,8 @@ function Container({
 			)}
 
 			{category ? (
-				<div className="grid grid-cols-1 relative isolate xl:grid-cols-[auto_1fr] gap-1 min-h-[394px]">
-					<div className="flex flex-col gap-8 p-6 col-span-1 w-full xl:w-[380px] rounded-md bg-[var(--cards-bg)] overflow-x-auto">
+				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+					<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						{chain !== 'All' && chain && (
 							<h1 className="flex items-center gap-2">
 								<TokenLogo logo={chainIconUrl(chain)} size={24} />
@@ -300,7 +300,7 @@ function Container({
 							/>
 						) : null}
 					</div>
-					<div className="bg-[var(--cards-bg)] rounded-md">
+					<div className="bg-[var(--cards-bg)] rounded-md col-span-2">
 						{router.isReady && categoryChart ? <ChainChart datasets={datasets} title="" isThemeDark={isDark} /> : null}
 					</div>
 				</div>

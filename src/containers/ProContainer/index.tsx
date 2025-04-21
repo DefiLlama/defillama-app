@@ -270,6 +270,6 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 // 	border: ${({ theme }) => '1px solid ' + theme.divider};
 
 // 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-// 		max-width: calc(100vw - 276px - 40px);
+// 		max-width: calc(100vw - 228px-4px-16px - 40px);
 // 	}
 // }
