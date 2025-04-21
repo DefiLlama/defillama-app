@@ -704,7 +704,7 @@ const Tvl = ({ rowValues }) => {
 	return (
 		<span className="flex items-center justify-end gap-1">
 			{text ? <QuestionHelper text={text} /> : null}
-			{rowValues.tvl.excludeParent && rowValues.childProtocols ? (
+			{rowValues.tvl?.excludeParent && rowValues.childProtocols ? (
 				<QuestionHelper
 					text={"There's some internal doublecounting that is excluded from parent TVL, so sum won't match"}
 				/>
