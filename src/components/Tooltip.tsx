@@ -20,9 +20,7 @@ export function Tooltip({ content, children, color, fontSize, placement, classNa
 	return (
 		<Ariakit.TooltipProvider>
 			<Ariakit.TooltipAnchor
-				className={`cursor-pointer flex items-center overflow-hidden text-ellipsis whitespace-nowrap flex-shrink-0 ${
-					className ?? ''
-				}`}
+				className={`flex items-center overflow-hidden text-ellipsis whitespace-nowrap flex-shrink-0 ${className ?? ''}`}
 				render={<span />}
 				{...props}
 			>

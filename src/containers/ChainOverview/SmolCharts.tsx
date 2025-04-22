@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId } from 'react'
 import * as echarts from 'echarts/core'
-import { formattedNum } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SVGRenderer } from 'echarts/renderers'
 import { LineChart, BarChart } from 'echarts/charts'
@@ -63,7 +63,8 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 								}
 							])
 						)
-					}
+					},
+					triggerEvent: true
 				}
 			],
 			yAxis: [
@@ -100,6 +101,12 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 				data: series,
 				color: '#1F67D2'
 			}
+		})
+
+		chartInstance.on('click', function (params) {
+			window.open(
+				`/fees/${slug(params.name ?? (typeof params.value === 'string' ? params.value : params.value?.[0] ?? ''))}`
+			)
 		})
 
 		function resize() {
