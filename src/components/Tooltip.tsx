@@ -42,7 +42,7 @@ export function Tooltip({ content, children, color, fontSize, placement, classNa
 export function Tooltip2({ content, children, className, as, ...props }) {
 	return (
 		<Ariakit.TooltipProvider>
-			<Ariakit.TooltipAnchor render={<span />} className={className} {...props}>
+			<Ariakit.TooltipAnchor render={as ?? <span />} className={className} {...props}>
 				{children}
 			</Ariakit.TooltipAnchor>
 
