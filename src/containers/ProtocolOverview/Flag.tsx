@@ -62,7 +62,7 @@ export function Flag({
 	return (
 		<>
 			{dataType ? (
-				<Tooltip content="Report incorrect data" as={<button />} onClick={dialogStore.toggle} className={className}>
+				<Tooltip content="Report incorrect data" render={<button />} onClick={dialogStore.toggle} className={className}>
 					<Icon name="flag" height={14} width={14} />
 				</Tooltip>
 			) : (

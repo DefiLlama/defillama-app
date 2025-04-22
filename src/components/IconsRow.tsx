@@ -35,7 +35,7 @@ export const ChainLogo = ({
 		return (
 			<Tooltip
 				content={chain}
-				as={
+				render={
 					<Link
 						key={chain}
 						href={

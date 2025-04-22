@@ -2,7 +2,7 @@ import { Bookmark } from '~/components/Bookmark'
 import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
-import { Tooltip, Tooltip2 } from '~/components/Tooltip'
+import { Tooltip } from '~/components/Tooltip'
 import { FormattedName } from '~/components/FormattedName'
 import useWindowSize from '~/hooks/useWindowSize'
 import { Icon } from '~/components/Icon'
@@ -84,8 +84,10 @@ export function NameYieldPool({
 			>
 				{poolMeta ? (
 					<>
-						<span className="overflow-hidden whitespace-nowrap text-ellipsis">{value}</span>{' '}
-						<span className="bg-[var(--bg3)] text-black dark:text-white px-1 py-[2px] text-xs rounded-lg overflow-hidden whitespace-nowrap text-ellipsis group-data-[tooltipcontent=true]:whitespace-break-spaces">
+						<span className="flex-shrink-0 overflow-hidden whitespace-nowrap text-ellipsis text-[var(--link-text)] font-medium">
+							{value}
+						</span>
+						<span className="flex-shrink-1 bg-[var(--bg3)] text-black dark:text-white px-1 py-[2px] text-xs rounded-lg overflow-hidden whitespace-nowrap text-ellipsis group-data-[tooltipcontent=true]:whitespace-break-spaces">
 							{poolMeta}
 						</span>
 					</>
@@ -102,19 +104,20 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 		return (
 			<>
 				{url ? (
-					<Tooltip2
-						as={CustomLink}
-						href={url}
-						target="_blank"
-						className="overflow-hidden whitespace-nowrap text-ellipsis"
+					<Tooltip
+						render={<a href={url} target="_blank" rel="noopener noreferrer" />}
+						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center gap-1 !flex-shrink"
 						content={children}
 					>
 						{children}
-					</Tooltip2>
+					</Tooltip>
 				) : (
-					<Tooltip2 className="overflow-hidden whitespace-nowrap text-ellipsis" as="span" content={children}>
+					<Tooltip
+						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center gap-1 !flex-shrink"
+						content={children}
+					>
 						{children}
-					</Tooltip2>
+					</Tooltip>
 				)}
 			</>
 		)

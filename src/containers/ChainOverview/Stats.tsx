@@ -196,7 +196,6 @@ export const Stats = (props: IChainOverviewData) => {
 									? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
 									: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 							}
-							as="span"
 							className="underline decoration-dotted text-[#545757] dark:text-[#cccccc]"
 						>
 							Total Value Locked in DeFi
@@ -207,7 +206,7 @@ export const Stats = (props: IChainOverviewData) => {
 					</h2>
 					<Tooltip
 						content={`${formattedNum(valueChange24hUSD, true)}`}
-						as="p"
+						render={<p />}
 						className="flex items-center flex-nowrap gap-2 relative bottom-[2px]"
 					>
 						<span
@@ -250,7 +249,6 @@ export const Stats = (props: IChainOverviewData) => {
 												<td className="text-right">
 													<Tooltip
 														content={`${formattedNum(props.stablecoins.change7dUsd, true)}`}
-														as="span"
 														className={`justify-end font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
 															+props.stablecoins.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
 														}`}
@@ -765,7 +763,7 @@ export const Stats = (props: IChainOverviewData) => {
 						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
 							<Tooltip
 								content="Daily"
-								as="button"
+								render={<button />}
 								className="flex-shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
 								data-active={groupBy === 'daily' || !groupBy}
 								onClick={() => updateGroupBy('daily')}
@@ -774,7 +772,7 @@ export const Stats = (props: IChainOverviewData) => {
 							</Tooltip>
 							<Tooltip
 								content="Weekly"
-								as="button"
+								render={<button />}
 								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
 								data-active={groupBy === 'weekly'}
 								onClick={() => updateGroupBy('weekly')}
@@ -783,7 +781,7 @@ export const Stats = (props: IChainOverviewData) => {
 							</Tooltip>
 							<Tooltip
 								content="Monthly"
-								as="button"
+								render={<button />}
 								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
 								data-active={groupBy === 'monthly'}
 								onClick={() => updateGroupBy('monthly')}

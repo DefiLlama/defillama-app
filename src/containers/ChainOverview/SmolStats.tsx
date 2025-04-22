@@ -1,8 +1,9 @@
 import dynamic from 'next/dynamic'
 import { IChainOverviewData } from './types'
 import { Suspense, useMemo } from 'react'
-import { formattedNum, getPercentChange } from '~/utils'
+import { formattedNum, getPercentChange, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
+import Link from 'next/link'
 
 const FeesGeneratedChart: any = dynamic(
 	() => import('~/containers/ChainOverview/SmolCharts').then((m) => m.FeesGeneratedChart),
@@ -35,9 +36,8 @@ export const SmolStats = (props: IChainOverviewData) => {
 					{props.globalmcap?.chart?.length > 0 ? (
 						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
-								<h3 className="text-sm font-semibold"></h3>
 								<Tooltip
-									as="h3"
+									render={<h3 />}
 									className="text-sm font-semibold"
 									content="Total market cap of all cryptocurrencies across all chains"
 								>
@@ -72,7 +72,13 @@ export const SmolStats = (props: IChainOverviewData) => {
 						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
-									as="h3"
+									render={
+										<Link
+											href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chains/${slug(props.metadata.name)}`}
+											passHref
+											legacyBehavior={false}
+										/>
+									}
 									className="text-sm font-semibold"
 									content="Total value of all spot trades executed on decentralized exchanges"
 								>
@@ -98,7 +104,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
-									as="h3"
+									render={<Link href="/etfs" passHref legacyBehavior={false} />}
 									className="text-sm font-semibold"
 									content="Daily net inflows/outflows into Bitcoin, Ethereum ETFs, showing institutional investment trends"
 								>
@@ -119,7 +125,13 @@ export const SmolStats = (props: IChainOverviewData) => {
 					{rwaTvl ? (
 						<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 							<Tooltip
-								as="h3"
+								render={
+									<Link
+										href={props.metadata.name === 'All' ? '/protocols/rwa' : `/protocols/RWA/${props.metadata.name}`}
+										passHref
+										legacyBehavior={false}
+									/>
+								}
 								className="text-sm font-semibold"
 								content="Total Value Locked in protocols that involve Real World Assets, such as house tokenization"
 							>
@@ -156,7 +168,13 @@ export const SmolStats = (props: IChainOverviewData) => {
 			) : props.dexs?.chart?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 					<Tooltip
-						as="h3"
+						render={
+							<Link
+								href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chains/${slug(props.metadata.name)}`}
+								passHref
+								legacyBehavior={false}
+							/>
+						}
 						className="text-sm font-semibold"
 						content={`Total value of all spot trades executed on decentralized exchanges${
 							props.metadata.name === 'All' ? '' : ` deployed on ${props.metadata.name}`
@@ -179,7 +197,13 @@ export const SmolStats = (props: IChainOverviewData) => {
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 					<div className="flex items-start gap-4 justify-between">
 						<Tooltip
-							as="h3"
+							render={
+								<Link
+									href={props.metadata.name === 'All' ? '/fees' : `/fees/chains/${slug(props.metadata.name)}`}
+									passHref
+									legacyBehavior={false}
+								/>
+							}
 							className="text-sm font-semibold"
 							content={`Total fees paid by protocols on ${
 								props.metadata.name === 'All' ? 'all chains' : props.metadata.name
@@ -202,7 +226,13 @@ export const SmolStats = (props: IChainOverviewData) => {
 			{props.stablecoins?.mcapChartData?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 					<Tooltip
-						as="h3"
+						render={
+							<Link
+								href={props.metadata.name === 'All' ? '/stablecoins' : `/stablecoins/${props.metadata.name}`}
+								passHref
+								legacyBehavior={false}
+							/>
+						}
 						className="text-sm font-semibold"
 						content={`Total market cap of all stablecoins issued on ${
 							props.metadata.name === 'All' ? 'all chains' : props.metadata.name
