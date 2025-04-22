@@ -7,7 +7,6 @@ import {
 } from '../adaptors'
 import { CHAINS_ASSETS_CHART } from '~/constants'
 import { useQuery } from '@tanstack/react-query'
-import { slug } from '~/utils'
 
 export function useGetProtocolsVolumeByChain(chain?: string) {
 	return useQuery({
