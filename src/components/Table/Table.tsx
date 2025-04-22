@@ -251,7 +251,7 @@ const HeaderWithTooltip = ({ children, content, onClick }) => {
 		if (!content) return <button onClick={onClick}>{children}</button>
 
 		return (
-			<Tooltip content={content} className="underline decoration-dotted" as="button" onClick={onClick}>
+			<Tooltip content={content} className="underline decoration-dotted" render={<button />} onClick={onClick}>
 				{children}
 			</Tooltip>
 		)

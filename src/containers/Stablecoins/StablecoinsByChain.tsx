@@ -274,7 +274,6 @@ function PeggedAssetsOverview({
 							<span className="text-[#545757] dark:text-[#cccccc]">Change (1d)</span>
 							<Tooltip
 								content={change1d_nol}
-								as="span"
 								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
 									change1d.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
 								}`}
@@ -286,7 +285,6 @@ function PeggedAssetsOverview({
 							<span className="text-[#545757] dark:text-[#cccccc]">Change (30d)</span>
 							<Tooltip
 								content={change30d_nol}
-								as="span"
 								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
 									change30d.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
 								}`}

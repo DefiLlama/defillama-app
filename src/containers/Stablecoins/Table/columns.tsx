@@ -255,7 +255,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 			info.row.original.change_1d_nol != null ? (
 				<Tooltip
 					content={info.row.original.change_1d_nol}
-					as="span"
 					className={`justify-end overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
 						info.row.original.change_1d_nol.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
 					}`}
@@ -277,7 +276,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 			info.row.original.change_7d_nol != null ? (
 				<Tooltip
 					content={info.row.original.change_7d_nol}
-					as="span"
 					className={`justify-end overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
 						info.row.original.change_7d_nol.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
 					}`}
@@ -299,7 +297,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 			info.row.original.change_1m_nol != null ? (
 				<Tooltip
 					content={info.row.original.change_1m_nol}
-					as="span"
 					className={`justify-end overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
 						info.row.original.change_1m_nol.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
 					}`}

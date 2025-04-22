@@ -38,7 +38,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 							<div className="flex flex-col gap-1">
 								<Tooltip
 									render={<h3 />}
-									className="text-sm font-semibold"
+									className="text-sm font-semibold !cursor-default"
 									content="Total market cap of all cryptocurrencies across all chains"
 								>
 									Crypto Mcap

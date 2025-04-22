@@ -239,7 +239,7 @@ export function SubscribeHome() {
 									<TooltipAnchor
 										state={tooltip}
 										className="flex flex-nowrap items-center justify-center gap-1"
-										as="button"
+										render={<button />}
 									>
 										<span className="sr-only">Availability</span>
 										<Icon name="circle-help" height={16} width={16} />
