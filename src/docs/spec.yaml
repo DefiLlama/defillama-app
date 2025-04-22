@@ -662,14 +662,7 @@ paths:
           schema:
             type: boolean
             example: true
-        - name: dataType
-          in: query
-          required: false
-          description: Desired data type, dailyVolume by default.
-          schema:
-            type: string
-            enum: [dailyVolume, totalVolume]
-            example: dailyVolume
+
       responses:
         '200':
           description: successful operation
@@ -702,14 +695,7 @@ paths:
           schema:
             type: boolean
             example: true
-        - name: dataType
-          in: query
-          required: false
-          description: Desired data type, dailyVolume by default.
-          schema:
-            type: string
-            enum: [dailyVolume, totalVolume]
-            example: dailyVolume
+
       responses:
         '200':
           description: successful operation
@@ -742,14 +728,7 @@ paths:
           schema:
             type: boolean
             example: true
-        - name: dataType
-          in: query
-          required: false
-          description: Desired data type, dailyVolume by default.
-          schema:
-            type: string
-            enum: [dailyVolume, totalVolume]
-            example: dailyVolume
+
       responses:
         '200':
           description: successful operation
@@ -781,7 +760,7 @@ paths:
           description: Desired data type, dailyNotionalVolume by default.
           schema:
             type: string
-            enum: [dailyPremiumVolume, dailyNotionalVolume, totalPremiumVolume, totalNotionalVolume]
+            enum: [dailyPremiumVolume, dailyNotionalVolume]
             example: dailyPremiumVolume
       responses:
         '200':
@@ -821,7 +800,7 @@ paths:
           description: Desired data type, dailyNotionalVolume by default.
           schema:
             type: string
-            enum: [dailyPremiumVolume, dailyNotionalVolume, totalPremiumVolume, totalNotionalVolume]
+            enum: [dailyPremiumVolume, dailyNotionalVolume]
             example: dailyPremiumVolume
       responses:
         '200':
@@ -847,7 +826,7 @@ paths:
           description: Desired data type, dailyNotionalVolume by default.
           schema:
             type: string
-            enum: [dailyPremiumVolume, dailyNotionalVolume, totalPremiumVolume, totalNotionalVolume]
+            enum: [dailyPremiumVolume, dailyNotionalVolume]
             example: dailyPremiumVolume
       responses:
         '200':
@@ -880,7 +859,7 @@ paths:
           description: Desired data type, dailyFees by default.
           schema:
             type: string
-            enum: [totalFees, dailyFees, totalRevenue, dailyRevenue]
+            enum: [dailyFees, dailyRevenue]
             example: dailyFees
       responses:
         '200':
@@ -920,7 +899,7 @@ paths:
           description: Desired data type, dailyFees by default.
           schema:
             type: string
-            enum: [totalFees, dailyFees, totalRevenue, dailyRevenue]
+            enum: [dailyFees, dailyRevenue]
             example: dailyFees
       responses:
         '200':
@@ -946,7 +925,7 @@ paths:
           description: Desired data type, dailyFees by default.
           schema:
             type: string
-            enum: [totalFees, dailyFees, totalRevenue, dailyRevenue]
+            enum: [dailyFees, dailyRevenue]
             example: dailyFees
       responses:
         '200':
