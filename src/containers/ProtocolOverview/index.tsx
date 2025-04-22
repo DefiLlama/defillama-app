@@ -287,55 +287,59 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 		}
 	}, [extraTvlsEnabled, tvlBreakdowns, historicalChainTvls])
 
-	const {
-		tvls: tvlsByChain,
-		extraTvls,
-		tvlOptions
-	} = tvlByChain.reduce(
-		(acc, [name, tvl]: [string, number]) => {
-			// skip masterchef tvl type
-			if (name === 'masterchef' || name === 'offers') return acc
+	const { tvls, chainsUnique, extraTvls, toggleOptions } = React.useMemo(() => {
+		const {
+			tvls: tvlsByChain,
+			extraTvls,
+			tvlOptions
+		} = tvlByChain.reduce(
+			(acc, [name, tvl]: [string, number]) => {
+				// skip masterchef tvl type
+				if (name === 'masterchef' || name === 'offers') return acc
 
-			// check if tvl name is addl tvl type and is toggled
-			if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name)) {
-				acc.extraTvls.push([name, tvl])
-				acc.tvlOptions.push(protocolsAndChainsOptions.find((e) => e.key === name))
-			} else {
-				// only include total tvl of each chain skip breakdown of addl tvls if extra tvl type is not toggled
-				if (!name.includes('-')) {
-					acc.tvls[name] = (acc.tvls[name] || 0) + tvl
+				// check if tvl name is addl tvl type and is toggled
+				if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name)) {
+					acc.extraTvls.push([name, tvl])
+					acc.tvlOptions.push(protocolsAndChainsOptions.find((e) => e.key === name))
 				} else {
-					// format name to only include chain name and check if it already exists in tvls list
-					const chainName = name.split('-')[0]
-					const prop = name.split('-')[1]
+					// only include total tvl of each chain skip breakdown of addl tvls if extra tvl type is not toggled
+					if (!name.includes('-')) {
+						acc.tvls[name] = (acc.tvls[name] || 0) + tvl
+					} else {
+						// format name to only include chain name and check if it already exists in tvls list
+						const chainName = name.split('-')[0]
+						const prop = name.split('-')[1]
 
-					// check if prop is toggled
-					if (extraTvlsEnabled[prop.toLowerCase()]) {
-						acc.tvls[chainName] = (acc.tvls[chainName] || 0) + tvl
+						// check if prop is toggled
+						if (extraTvlsEnabled[prop.toLowerCase()]) {
+							acc.tvls[chainName] = (acc.tvls[chainName] || 0) + tvl
+						}
 					}
 				}
+				return acc
+			},
+			{
+				tvls: {},
+				extraTvls: [],
+				tvlOptions: []
 			}
-			return acc
-		},
-		{
-			tvls: {},
-			extraTvls: [],
-			tvlOptions: []
+		)
+
+		const feesToggle = []
+
+		if (dailyBribesRevenue) {
+			feesToggle.push(feesOptions.find((f) => f.key === FEES_SETTINGS.BRIBES))
 		}
-	)
+		if (dailyTokenTaxes) {
+			feesToggle.push(feesOptions.find((f) => f.key === FEES_SETTINGS.TOKENTAX))
+		}
 
-	const feesToggle = []
+		const tvls = Object.entries(tvlsByChain)
 
-	if (dailyBribesRevenue) {
-		feesToggle.push(feesOptions.find((f) => f.key === FEES_SETTINGS.BRIBES))
-	}
-	if (dailyTokenTaxes) {
-		feesToggle.push(feesOptions.find((f) => f.key === FEES_SETTINGS.TOKENTAX))
-	}
+		const chainsUnique = tvls.map((t) => t[0])
 
-	const toggleOptions = [...tvlOptions, ...feesToggle]
-
-	const tvls = Object.entries(tvlsByChain)
+		return { tvls, chainsUnique, extraTvls, toggleOptions: [...tvlOptions, ...feesToggle] }
+	}, [dailyBribesRevenue, dailyTokenTaxes, extraTvlsEnabled, tvlByChain])
 
 	const { data: addlProtocolData, isLoading } = useFetchProtocolAddlChartsData(protocol)
 	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, tokenBreakdownPieChart } =
@@ -344,8 +348,6 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 	const chainsSplit = React.useMemo(() => {
 		return formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
 	}, [historicalChainTvls, extraTvlsEnabled])
-
-	const chainsUnique = tvls.map((t) => t[0])
 
 	const showCharts =
 		isLoading ||
@@ -413,7 +415,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 				isCEX={isCEX}
 			/>
 
-			<ProtocolsChainsSearch />
+			<ProtocolsChainsSearch options={toggleOptions} />
 
 			{scams.includes(name) && (
 				<Announcement warning={true} notCancellable={true}>
