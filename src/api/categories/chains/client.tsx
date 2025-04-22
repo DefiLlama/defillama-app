@@ -7,7 +7,6 @@ import {
 } from '../adaptors'
 import { CHAINS_ASSETS_CHART } from '~/constants'
 import { useQuery } from '@tanstack/react-query'
-import { slug } from '~/utils'
 
 export function useGetProtocolsVolumeByChain(chain?: string) {
 	return useQuery({
@@ -109,7 +108,7 @@ export const useGetChainAssetsChart = (chain?: string) => {
 		queryKey: [`chainAssetsChart/${chain}`],
 		queryFn:
 			chain && chain !== 'All'
-				? () => fetch(`${CHAINS_ASSETS_CHART}/${slug(chain)}`).then((r) => r.json())
+				? () => fetch(`${CHAINS_ASSETS_CHART}/${chain}`).then((r) => r.json())
 				: () => null,
 		staleTime: 60 * 60 * 1000
 	})
