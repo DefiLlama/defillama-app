@@ -35,7 +35,7 @@ import type {
 	ITreasury,
 	IChainAssets
 } from './types'
-import { toFilterProtocol, toStrikeTvl } from './utils'
+import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { getETFData } from '~/api/categories/protocols'
 
@@ -408,7 +408,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			inflows: inflowsData,
 			treasury: treasury ? { tvl: treasury.tvl ?? null, tokenBreakdowns: treasury.tokenBreakdowns ?? null } : null,
 			chainRaises: chainRaises ?? null,
-			chainAssets: chain !== 'All' ? chainAssets[metadata.name] ?? null : null,
+			chainAssets: chain !== 'All' ? formatChainAssets(chainAssets[metadata.name]) : null,
 			devMetrics: null,
 			nfts:
 				nftVolumesData && chain !== 'All' && nftVolumesData[metadata.name.toLowerCase()]

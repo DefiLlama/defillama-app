@@ -707,7 +707,7 @@ export async function getChainsBridged(chain?: string) {
 		chain
 			? fetchWithErrorLogging(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
 					.then((res) => res.json())
-					.then((data) => data.map((item) => ({ ...item.data, date: item.timestamp })))
+					.then((data) => data.data.map((item) => ({ ...item.data, date: item.timestamp })))
 					.catch(() => [])
 			: []
 	])

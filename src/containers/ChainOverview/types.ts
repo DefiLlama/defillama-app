@@ -97,7 +97,7 @@ export interface IChainOverviewData {
 	raises: Record<string, number> | null
 	treasury: { tvl: number | null; tokenBreakdowns: Record<string, number> | null } | null
 	chainRaises: Array<IRaises> | null
-	chainAssets: IChainAsset | null
+	chainAssets: IFormattedChainAsset | null
 	devMetrics: null
 	nfts: { total24h: number | null }
 	etfs: Array<[number, number]> | null
@@ -267,7 +267,7 @@ export interface ITreasury {
 	mcap: number | null
 }
 
-interface IChainAsset {
+export interface IChainAsset {
 	canonical: {
 		total: string
 		breakdown: Record<string, string>
@@ -287,6 +287,29 @@ interface IChainAsset {
 	total: {
 		total: string
 		breakdown: Record<string, string>
+	}
+}
+
+export interface IFormattedChainAsset {
+	canonical: {
+		total: number
+		breakdown: Record<string, number>
+	}
+	ownTokens?: {
+		total: number
+		breakdown: Record<string, number>
+	}
+	native?: {
+		total: number
+		breakdown: Record<string, number>
+	}
+	thirdParty?: {
+		total: number
+		breakdown: Record<string, number>
+	}
+	total: {
+		total: number
+		breakdown: Record<string, number>
 	}
 }
 

@@ -1,5 +1,5 @@
 import { removedCategories } from '~/constants'
-import type { ILiteProtocol, IProtocolMetadata } from './types'
+import type { IChainAsset, IChainAssets, IFormattedChainAsset, ILiteProtocol, IProtocolMetadata } from './types'
 
 export const toFilterProtocol = ({
 	protocolMetadata,
@@ -79,4 +79,20 @@ export function cumulativeSum(data) {
 	}
 
 	return cumulativeData
+}
+
+export function formatChainAssets(chainAsset: IChainAsset | null) {
+	if (!chainAsset) return null
+
+	return Object.entries(chainAsset).reduce((acc, [type, asset]) => {
+		const formatted = {} as any
+		formatted.total = Number(asset.total.split('.')[0])
+		const breakdown = {}
+		for (const b in asset.breakdown) {
+			breakdown[b] = Number(asset.breakdown[b].split('.')[0])
+		}
+		formatted.breakdown = breakdown
+		acc[type] = formatted
+		return acc
+	}, {} as IFormattedChainAsset)
 }
