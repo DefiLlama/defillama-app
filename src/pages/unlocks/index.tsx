@@ -8,8 +8,9 @@ import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { withPerformanceLogging } from '~/utils/perf'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
-import { formattedNum } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { UpcomingUnlockVolumeChart } from '~/components/Charts/UpcomingUnlockVolumeChart'
+import { useWatchlist } from '~/contexts/LocalStorage'
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const data = await getAllProtocolEmissions()
@@ -26,22 +27,29 @@ export default function Protocols({ data }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
 	const [projectName, setProjectName] = React.useState('')
+	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
+	const { savedProtocols } = useWatchlist()
 	const [filteredData, setFilteredData] = React.useState(data)
 
 	React.useEffect(() => {
 		const id = setTimeout(() => {
 			const searchTerm = projectName.toLowerCase()
-			const filtered = projectName
+			let filtered = projectName
 				? data.filter(
 						(protocol) =>
 							protocol.name.toLowerCase().includes(searchTerm) ||
 							(protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm))
 				  )
 				: data
+
+			if (showOnlyWatchlist) {
+				filtered = filtered.filter((protocol) => savedProtocols[slug(protocol.name)])
+			}
+
 			setFilteredData(filtered)
 		}, 200)
 		return () => clearTimeout(id)
-	}, [projectName, data])
+	}, [projectName, data, showOnlyWatchlist, savedProtocols])
 
 	const instance = useReactTable({
 		data: filteredData,
@@ -116,8 +124,22 @@ export default function Protocols({ data }) {
 			</div>
 
 			<div className="bg-[var(--cards-bg)] rounded-md">
-				<div className="flex items-cente justify-end gap-2 flex-wrap p-3">
+				<div className="flex items-center justify-end gap-2 flex-wrap p-3">
 					<h1 className="text-xl font-semibold mr-auto">Token Unlocks</h1>
+
+					<button
+						onClick={() => setShowOnlyWatchlist((prev) => !prev)}
+						className="border border-black/10 dark:border-white/10 p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2"
+					>
+						<Icon
+							name="bookmark"
+							height={16}
+							width={16}
+							style={{ fill: showOnlyWatchlist ? 'var(--text1)' : 'none' }}
+						/>
+						{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
+					</button>
+
 					<div className="relative w-full sm:max-w-[280px]">
 						<Icon
 							name="search"

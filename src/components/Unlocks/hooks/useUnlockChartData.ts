@@ -24,7 +24,7 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 		for (let i = 0; i < 7; i++) {
 			const day = startOfWeek.add(i, 'day')
 			const dateStr = day.format('YYYY-MM-DD')
-			const dayData = unlocksData[dateStr]
+			const dayData = unlocksData?.[dateStr]
 			if (dayData?.events) {
 				dayData.events.forEach((event) => {
 					if (!protocolTotals[event.protocol]) {
@@ -44,7 +44,7 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 		for (let i = 0; i < 7; i++) {
 			const day = startOfWeek.add(i, 'day')
 			const dateStr = day.format('YYYY-MM-DD')
-			const dayData = unlocksData[dateStr]
+			const dayData = unlocksData?.[dateStr]
 			const dataPoint: { date: number; [key: string]: number } = { date: day.unix() }
 
 			sortedProtocols.forEach((protocol) => {
@@ -59,6 +59,14 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 				})
 			}
 			weekData.push(dataPoint)
+		}
+
+		if (sortedProtocols.length === 0) {
+			return {
+				chartData: weekData.map((d) => [d.date, 0]),
+				stacks: {},
+				stackColors: {}
+			}
 		}
 
 		const stacks = sortedProtocols.reduce((acc, protocol) => {
@@ -86,7 +94,7 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 		for (let i = 1; i <= daysInMonth; i++) {
 			const day = startOfMonth.date(i)
 			const dateStr = day.format('YYYY-MM-DD')
-			const dayData = unlocksData[dateStr]
+			const dayData = unlocksData?.[dateStr]
 			if (dayData?.events) {
 				dayData.events.forEach((event) => {
 					if (!protocolTotals[event.protocol]) {
@@ -123,6 +131,14 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 			monthData.push(dataPoint)
 		}
 
+		if (sortedProtocols.length === 0) {
+			return {
+				chartData: monthData.map((d) => [d.date, 0]),
+				stacks: {},
+				stackColors: {}
+			}
+		}
+
 		const stacks = sortedProtocols.reduce((acc, protocol) => {
 			acc[protocol] = 'unlocks'
 			return acc
@@ -140,7 +156,7 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 		const startOfMonth = currentDate.startOf('month')
 		const endOfMonth = currentDate.endOf('month')
 		let max = 0
-		Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+		Object.entries(unlocksData || {}).forEach(([dateStr, dailyData]) => {
 			const date = dayjs(dateStr)
 			if (date.isBetween(startOfMonth.subtract(1, 'day'), endOfMonth.add(1, 'day'))) {
 				if (dailyData.totalValue > max) {
