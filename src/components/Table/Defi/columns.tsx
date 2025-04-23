@@ -2,6 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { useEffect, useState } from 'react'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
+import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -279,7 +280,13 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<span className="flex items-center gap-2 relative">
+				<span className="flex items-center gap-2 relative pl-6">
+					<Bookmark
+						readableProtocolName={getValue() as string}
+						data-lgonly
+						data-bookmark
+						className="absolute -left-[2px]"
+					/>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<CustomLink
 						href={`/unlocks/${slug(getValue() as string)}`}
@@ -295,6 +302,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Token Price',
 		accessorKey: 'tPrice',
+		accessorFn: (row) => (row.tPrice ? +row.tPrice : undefined),
+		sortUndefined: 'last',
 		cell: ({ getValue }) => {
 			return <>{getValue() ? '$' + (+getValue()).toFixed(2) : ''}</>
 		},
@@ -306,6 +315,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Mcap',
 		accessorKey: 'mcap',
+		accessorFn: (row) => (row.mcap ? +row.mcap : undefined),
+		sortUndefined: 'last',
 		cell: ({ getValue }) => {
 			if (!getValue()) return null
 			return <>{'$' + formattedNum(getValue())}</>
@@ -348,7 +359,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Daily unlocks',
 		id: 'nextEvent',
-		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : 0),
+		sortUndefined: 'last',
+		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
 		cell: ({ getValue, row }) => {
 			const symbol = row.original.tSymbol
 

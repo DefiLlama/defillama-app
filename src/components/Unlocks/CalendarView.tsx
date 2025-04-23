@@ -36,7 +36,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 		const endDate = startDate.add(listDurationDays, 'days')
 		const events: Array<{ date: Dayjs; event: any }> = []
 
-		Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+		Object.entries(unlocksData || {}).forEach(([dateStr, dailyData]) => {
 			const date = dayjs(dateStr)
 			if (date.isBetween(startDate.subtract(1, 'day'), endDate)) {
 				dailyData.events.forEach((event) => {
@@ -57,7 +57,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 		const startOfMonth = currentDate.startOf('month')
 		const endOfMonth = currentDate.endOf('month')
 		let max = 0
-		Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+		Object.entries(unlocksData || {}).forEach(([dateStr, dailyData]) => {
 			const date = dayjs(dateStr)
 			if (
 				date.isSame(startOfMonth, 'day') ||

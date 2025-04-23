@@ -2,6 +2,9 @@ import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissionsWithHistory } from '~/api/categories/protocols'
 import * as React from 'react'
 import Layout from '~/layout'
+import { useWatchlist } from '~/contexts/LocalStorage'
+import { slug } from '~/utils'
+import { Icon } from '~/components/Icon'
 import { withPerformanceLogging } from '~/utils/perf'
 import { CalendarView } from '~/components/Unlocks/CalendarView'
 import { Announcement } from '~/components/Announcement'
@@ -119,7 +122,40 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 	}
 })
 
-export default function UnlocksCalendar({ unlocksData }) {
+interface UnlocksData {
+	[date: string]: {
+		totalValue: number
+		events: Array<{
+			protocol: string
+			value: number
+			details: string
+			unlockType: string
+		}>
+	}
+}
+
+export default function UnlocksCalendar({ unlocksData: initialUnlocksData }: { unlocksData: UnlocksData }) {
+	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
+	const { savedProtocols } = useWatchlist()
+
+	const unlocksData = React.useMemo(() => {
+		if (!showOnlyWatchlist) return initialUnlocksData
+		if (!initialUnlocksData) return {}
+
+		const filteredData: UnlocksData = {}
+		Object.entries(initialUnlocksData).forEach(([date, dailyData]) => {
+			const filteredEvents = dailyData.events.filter((event) => savedProtocols[slug(event.protocol)])
+			if (filteredEvents.length > 0) {
+				filteredData[date] = {
+					...dailyData,
+					events: filteredEvents,
+					totalValue: filteredEvents.reduce((sum, event) => sum + event.value, 0)
+				}
+			}
+		})
+		return filteredData
+	}, [initialUnlocksData, showOnlyWatchlist, savedProtocols])
+
 	return (
 		<Layout title={`Token Unlocks Calendar - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>
@@ -134,8 +170,15 @@ export default function UnlocksCalendar({ unlocksData }) {
 				</a>
 			</Announcement>
 
-			<div className="flex items-center p-3 bg-[var(--cards-bg)] rounded-md">
-				<h1 className="text-xl font-semibold text-center">Token Unlocks Calendar</h1>
+			<div className="flex items-center justify-between gap-2 p-3 bg-[var(--cards-bg)] rounded-md">
+				<h1 className="text-xl font-semibold">Token Unlocks Calendar</h1>
+				<button
+					onClick={() => setShowOnlyWatchlist((prev) => !prev)}
+					className="border border-black/10 dark:border-white/10 p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2"
+				>
+					<Icon name="bookmark" height={16} width={16} style={{ fill: showOnlyWatchlist ? 'var(--text1)' : 'none' }} />
+					{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
+				</button>
 			</div>
 
 			<div className="bg-[var(--cards-bg)] rounded-md p-3">

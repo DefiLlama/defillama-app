@@ -52,7 +52,7 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 	} ${!dayInfo.isCurrentMonth ? 'bg-[var(--bg6)] opacity-60 hover:opacity-80' : 'hover:brightness-110'}`
 
 	const cellStyle: React.CSSProperties = {}
-	if (dayInfo.isCurrentMonth) {
+	if (dayInfo.isCurrentMonth && hasUnlocks) {
 		cellStyle.backgroundColor = `rgb(${interpolatedColorRgb.join(', ')})`
 	}
 
