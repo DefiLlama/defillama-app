@@ -274,6 +274,21 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			})
 		})
 
+		let upcomingEvent = []
+		if (metadata?.events?.length > 0) {
+			const now = Date.now() / 1000
+			let event = metadata.events.find((e) => e.timestamp >= now)
+
+			if (!event || (event.noOfTokens?.length === 1 && event.noOfTokens[0] === 0)) {
+				upcomingEvent = [{ timestamp: null }]
+			} else {
+				const comingEvents = metadata.events.filter((e) => e.timestamp === event.timestamp)
+				upcomingEvent = [...comingEvents]
+			}
+		} else {
+			upcomingEvent = [{ timestamp: null }]
+		}
+
 		const chartData = {
 			documented: Object.entries(protocolEmissions['documented']).map(
 				([date, values]: [string, { [key: string]: number }]) => ({
@@ -321,6 +336,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			events: metadata?.events ?? [],
 			token: metadata?.token ?? null,
 			geckoId: res?.gecko_id ?? null,
+			upcomingEvent,
 			tokenAllocation: {
 				documented: documentedData.tokenAllocation ?? {},
 				realtime: realTimeData.tokenAllocation ?? {}

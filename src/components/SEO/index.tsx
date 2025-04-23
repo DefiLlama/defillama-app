@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import Head from 'next/head'
-import { chainIconUrl, tokenIconUrl } from '~/utils'
+import { chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
 import { useIsClient } from '~/hooks'
 import { ADAPTOR_TYPES } from '~/api/categories/adaptors'
 
@@ -14,6 +14,8 @@ interface SEOProps {
 	nftPage?: boolean
 	liqsPage?: boolean
 	stablePage?: boolean
+	unlockPage?: boolean
+	unlockAmount?: string
 	pageType?: string
 	isCEX?: boolean
 }
@@ -28,6 +30,8 @@ export const SEO = ({
 	nftPage = false,
 	liqsPage = false,
 	stablePage = false,
+	unlockPage = false,
+	unlockAmount,
 	pageType,
 	isCEX
 }: SEOProps) => {
@@ -35,7 +39,7 @@ export const SEO = ({
 
 	const windowURL = isClient && window.location.href ? window.location.href : ''
 
-	const isTvlValid = tvl && tvl !== '$0'
+	const isTvlValid = unlockPage ? true : tvl && tvl !== '$0'
 
 	const isVolumeChangeValid = volumeChange && volumeChange !== 'NaN%' && volumeChange !== 'undefined%'
 
@@ -56,6 +60,12 @@ export const SEO = ({
 			valueHeader = 'Total Liquidatable Amount'
 		} else if (stablePage) {
 			valueHeader = 'Market Cap'
+		} else if (unlockPage) {
+			if (unlockAmount !== '$0') {
+				valueHeader = 'Next Unlock | ' + unlockAmount
+			} else {
+				valueHeader = `Next Unlock`
+			}
 		} else if (pageType === ADAPTOR_TYPES.FEES) {
 			valueHeader = '24h fees'
 		} else if (
@@ -108,6 +118,8 @@ export const SEO = ({
 		volumeChange,
 		logo,
 		nftPage,
+		unlockPage,
+		unlockAmount,
 		windowURL,
 		isTvlValid,
 		isVolumeChangeValid,
