@@ -1382,11 +1382,6 @@ export const chainCoingeckoIds = {
 		symbol: 'APE',
 		cmcId: '18876'
 	},
-	'Asset Chain': {
-		geckoId: 'xend-finance',
-		symbol: 'RWA',
-		cmcId: '8519'
-	},
 	UNIT0: {
 		geckoId: 'unit0',
 		symbol: 'UNIT0',
