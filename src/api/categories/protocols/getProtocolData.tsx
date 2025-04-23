@@ -31,6 +31,43 @@ import metadata from '~/utils/metadata'
 import { darken, transparentize } from 'polished'
 const { protocolMetadata } = metadata
 
+const chartTypes = [
+	'TVL',
+	'Mcap',
+	'Token Price',
+	'FDV',
+	'Fees',
+	'Revenue',
+	'Volume',
+	'Perps Volume',
+	'Unlocks',
+	'Active Addresses',
+	'New Addresses',
+	'Transactions',
+	'Gas Used',
+	'Staking',
+	'Borrowed',
+	'Median APY',
+	'USD Inflows',
+	'Total Proposals',
+	'Successful Proposals',
+	'Max Votes',
+	'Treasury',
+	'Bridge Deposits',
+	'Bridge Withdrawals',
+	'Token Volume',
+	'Token Liquidity',
+	'Tweets',
+	'Developers',
+	'Contributers',
+	'Devs Commits',
+	'Contributers Commits',
+	'NFT Volume',
+	'Premium Volume',
+	'Perps Aggregators Volume',
+	'Bridge Aggregators Volume'
+]
+
 const fetchGovernanceData = async (apis: Array<string>) => {
 	const governanceData = await Promise.all(
 		apis.map((gapi) =>
@@ -84,7 +121,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		liquidityInfo,
 		hacks,
 		raises,
-		backgroundColor,
+		bgColor,
 		allProtocols,
 		users,
 		feesProtocols,
@@ -367,44 +404,11 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
-	const chartTypes = [
-		'TVL',
-		'Mcap',
-		'Token Price',
-		'FDV',
-		'Fees',
-		'Revenue',
-		'Volume',
-		'Perps Volume',
-		'Unlocks',
-		'Active Addresses',
-		'New Addresses',
-		'Transactions',
-		'Gas Used',
-		'Staking',
-		'Borrowed',
-		'Median APY',
-		'USD Inflows',
-		'Total Proposals',
-		'Successful Proposals',
-		'Max Votes',
-		'Treasury',
-		'Bridge Deposits',
-		'Bridge Withdrawals',
-		'Token Volume',
-		'Token Liquidity',
-		'Tweets',
-		'Developers',
-		'Contributers',
-		'Devs Commits',
-		'Contributers Commits',
-		'NFT Volume',
-		'Premium Volume',
-		'Perps Aggregators Volume',
-		'Bridge Aggregators Volume'
-	]
-
-	const colorTones = Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)]))
+	const backgroundColor = bgColor === '#7f7f7f' ? '#1f67d2' : bgColor
+	const colorTones = {
+		...Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)])),
+		TVL: backgroundColor
+	}
 
 	const similarProtocols =
 		allProtocols && protocolData.category
@@ -748,9 +752,19 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 
 	pregenMetrics.inflows = inflowsExist
 
+	const backgroundColor =
+		!props.backgroundColor || props.backgroundColor === '#7f7f7f' ? '#1f67d2' : props.backgroundColor
+
+	const colorTones = {
+		...Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)])),
+		TVL: backgroundColor
+	}
+
 	return {
 		props: {
 			...props,
+			backgroundColor,
+			chartColors: colorTones,
 			protocol,
 			protocolData: {
 				...protocolData,
@@ -761,18 +775,19 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 			tokenCGData: getTokenCGData(tokenCGData),
 			nextEventDescription: null,
 			clientSide: isCpusHot,
-			pageStyles: getProtocolPageStyles(props.backgroundColor)
+			pageStyles: getProtocolPageStyles(backgroundColor)
 		},
 		revalidate: maxAgeForNext([22])
 	}
 }
 
 export function getProtocolPageStyles(color) {
+	let finalColor = color === '#7f7f7f' ? '#1f67d2' : color
 	return {
-		'--primary-color': color,
-		'--bg-color': transparentize(0.6, color),
-		'--btn-bg': transparentize(0.9, color),
-		'--btn-hover-bg': transparentize(0.8, color),
-		'--btn-text': darken(0.1, color)
+		'--primary-color': finalColor,
+		'--bg-color': transparentize(0.6, finalColor),
+		'--btn-bg': transparentize(0.9, finalColor),
+		'--btn-hover-bg': transparentize(0.8, finalColor),
+		'--btn-text': darken(0.1, finalColor)
 	}
 }
