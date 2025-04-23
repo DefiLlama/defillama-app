@@ -28,6 +28,7 @@ export default function Protocols({ data }) {
 
 	const [projectName, setProjectName] = React.useState('')
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
+	const [showOnlyInsider, setShowOnlyInsider] = React.useState(false)
 	const { savedProtocols } = useWatchlist()
 	const [filteredData, setFilteredData] = React.useState(data)
 
@@ -46,10 +47,14 @@ export default function Protocols({ data }) {
 				filtered = filtered.filter((protocol) => savedProtocols[slug(protocol.name)])
 			}
 
+			if (showOnlyInsider) {
+				filtered = filtered.filter((protocol) => protocol.upcomingEvent?.some((event) => event.category === 'insiders'))
+			}
+
 			setFilteredData(filtered)
 		}, 200)
 		return () => clearTimeout(id)
-	}, [projectName, data, showOnlyWatchlist, savedProtocols])
+	}, [projectName, data, showOnlyInsider, showOnlyWatchlist, savedProtocols])
 
 	const instance = useReactTable({
 		data: filteredData,
@@ -67,7 +72,7 @@ export default function Protocols({ data }) {
 		const now = Date.now() / 1000
 		const thirtyDaysLater = now + 30 * 24 * 60 * 60
 
-		data?.forEach((protocol) => {
+		filteredData?.forEach((protocol) => {
 			if (!protocol.upcomingEvent || protocol.tPrice === null || protocol.tPrice === undefined) {
 				return
 			}
@@ -90,7 +95,7 @@ export default function Protocols({ data }) {
 		})
 
 		return { upcomingUnlocks30dValue }
-	}, [data])
+	}, [filteredData])
 
 	return (
 		<Layout title={`Unlocks - DefiLlama`} defaultSEO>
@@ -119,7 +124,7 @@ export default function Protocols({ data }) {
 					</p>
 				</div>
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
-					<UpcomingUnlockVolumeChart protocols={data} />
+					<UpcomingUnlockVolumeChart protocols={filteredData} />
 				</div>
 			</div>
 
@@ -129,7 +134,7 @@ export default function Protocols({ data }) {
 
 					<button
 						onClick={() => setShowOnlyWatchlist((prev) => !prev)}
-						className="border border-black/10 dark:border-white/10 p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2"
+						className="border border-black/10 dark:border-white/10 p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
 					>
 						<Icon
 							name="bookmark"
@@ -138,6 +143,14 @@ export default function Protocols({ data }) {
 							style={{ fill: showOnlyWatchlist ? 'var(--text1)' : 'none' }}
 						/>
 						{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
+					</button>
+
+					<button
+						onClick={() => setShowOnlyInsider((prev) => !prev)}
+						className="border border-black/10 dark:border-white/10 p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+					>
+						<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text1)' : 'none' }} />
+						{showOnlyInsider ? 'Show All' : 'Show Insiders Only'}
 					</button>
 
 					<div className="relative w-full sm:max-w-[280px]">
