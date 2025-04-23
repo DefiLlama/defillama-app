@@ -11,8 +11,8 @@ import { Announcement } from '~/components/Announcement'
 import dayjs from 'dayjs'
 
 const determineUnlockType = (
-	event: { timestamp: number; noOfTokens: number[]; description?: string },
-	allEventsForProtocol: Array<{ timestamp: number; noOfTokens: number[]; description?: string }>
+	event: { timestamp: number; noOfTokens: number[]; description?: string; category?: string },
+	allEventsForProtocol: Array<{ timestamp: number; noOfTokens: number[]; description?: string; category?: string }>
 ): string => {
 	const futureEvents = allEventsForProtocol
 		.filter((e) => e.timestamp && e.timestamp > dayjs().unix())
@@ -59,6 +59,7 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 			value: number
 			details: string
 			unlockType: string
+			category?: string
 		}> = []
 
 		const validEvents = protocol.events.filter(
@@ -79,11 +80,14 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 				dateStr: dateStr,
 				value: valueUSD,
 				details: event.description || 'Token unlock',
-				unlockType: unlockType
+				unlockType: unlockType,
+				category: event.category || ''
 			})
 		})
 
-		const protocolUnlocksByDate: { [date: string]: { value: number; details: string[]; unlockTypes: string[] } } = {}
+		const protocolUnlocksByDate: {
+			[date: string]: { value: number; details: string[]; unlockTypes: string[]; category?: string }
+		} = {}
 		processedEvents.forEach((processedEvent) => {
 			if (!protocolUnlocksByDate[processedEvent.dateStr]) {
 				protocolUnlocksByDate[processedEvent.dateStr] = { value: 0, details: [], unlockTypes: [] }
@@ -91,6 +95,7 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 			protocolUnlocksByDate[processedEvent.dateStr].value += processedEvent.value
 			protocolUnlocksByDate[processedEvent.dateStr].details.push(processedEvent.details)
 			protocolUnlocksByDate[processedEvent.dateStr].unlockTypes.push(processedEvent.unlockType)
+			protocolUnlocksByDate[processedEvent.dateStr].category = processedEvent.category
 		})
 
 		Object.entries(protocolUnlocksByDate).forEach(([dateStr, dailyData]) => {
@@ -105,7 +110,8 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 				protocol: protocol.name,
 				value: dailyData.value,
 				details: dailyData.details.join(', '),
-				unlockType: dailyData.unlockTypes.find((type) => type !== '') || ''
+				unlockType: dailyData.unlockTypes.find((type) => type !== '') || '',
+				category: dailyData.category
 			})
 		})
 	})
@@ -129,6 +135,7 @@ interface UnlocksData {
 			protocol: string
 			value: number
 			details: string
+			category?: string
 			unlockType: string
 		}>
 	}
@@ -136,25 +143,38 @@ interface UnlocksData {
 
 export default function UnlocksCalendar({ unlocksData: initialUnlocksData }: { unlocksData: UnlocksData }) {
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
+	const [showOnlyInsider, setShowOnlyInsider] = React.useState(false)
 	const { savedProtocols } = useWatchlist()
 
 	const unlocksData = React.useMemo(() => {
-		if (!showOnlyWatchlist) return initialUnlocksData
-		if (!initialUnlocksData) return {}
+		let filteredData = initialUnlocksData
+		if (!filteredData) return {}
 
-		const filteredData: UnlocksData = {}
-		Object.entries(initialUnlocksData).forEach(([date, dailyData]) => {
-			const filteredEvents = dailyData.events.filter((event) => savedProtocols[slug(event.protocol)])
-			if (filteredEvents.length > 0) {
-				filteredData[date] = {
-					...dailyData,
-					events: filteredEvents,
-					totalValue: filteredEvents.reduce((sum, event) => sum + event.value, 0)
+		if (showOnlyWatchlist || showOnlyInsider) {
+			filteredData = {}
+			Object.entries(initialUnlocksData).forEach(([date, dailyData]) => {
+				let filteredEvents = dailyData.events
+
+				if (showOnlyWatchlist) {
+					filteredEvents = filteredEvents.filter((event) => savedProtocols[slug(event.protocol)])
 				}
-			}
-		})
+
+				if (showOnlyInsider) {
+					filteredEvents = filteredEvents.filter((event) => event.category === 'insiders')
+				}
+
+				if (filteredEvents.length > 0) {
+					filteredData[date] = {
+						...dailyData,
+						events: filteredEvents,
+						totalValue: filteredEvents.reduce((sum, event) => sum + event.value, 0)
+					}
+				}
+			})
+		}
+
 		return filteredData
-	}, [initialUnlocksData, showOnlyWatchlist, savedProtocols])
+	}, [initialUnlocksData, showOnlyWatchlist, showOnlyInsider, savedProtocols])
 
 	return (
 		<Layout title={`Token Unlocks Calendar - DefiLlama`} defaultSEO>
@@ -172,13 +192,28 @@ export default function UnlocksCalendar({ unlocksData: initialUnlocksData }: { u
 
 			<div className="flex items-center justify-between gap-2 p-3 bg-[var(--cards-bg)] rounded-md">
 				<h1 className="text-xl font-semibold">Token Unlocks Calendar</h1>
-				<button
-					onClick={() => setShowOnlyWatchlist((prev) => !prev)}
-					className="border border-black/10 dark:border-white/10 p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2"
-				>
-					<Icon name="bookmark" height={16} width={16} style={{ fill: showOnlyWatchlist ? 'var(--text1)' : 'none' }} />
-					{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
-				</button>
+				<div className="flex items-center gap-2">
+					<button
+						onClick={() => setShowOnlyWatchlist((prev) => !prev)}
+						className="border border-black/10 dark:border-white/10 p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+					>
+						<Icon
+							name="bookmark"
+							height={16}
+							width={16}
+							style={{ fill: showOnlyWatchlist ? 'var(--text1)' : 'none' }}
+						/>
+						{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
+					</button>
+
+					<button
+						onClick={() => setShowOnlyInsider((prev) => !prev)}
+						className="border border-black/10 dark:border-white/10 p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+					>
+						<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text1)' : 'none' }} />
+						{showOnlyInsider ? 'Show All' : 'Show Insiders Only'}
+					</button>
+				</div>
 			</div>
 
 			<div className="bg-[var(--cards-bg)] rounded-md p-3">

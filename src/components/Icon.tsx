@@ -68,6 +68,7 @@ type Name =
 	| 'ethereum'
 	| 'download-paper'
 	| 'arrow-up-right-2'
+	| 'key'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
