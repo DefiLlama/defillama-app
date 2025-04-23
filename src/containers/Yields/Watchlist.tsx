@@ -6,6 +6,7 @@ import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
 import { Switch } from '~/components/Switch'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import Link from 'next/link'
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()
@@ -74,155 +75,182 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 	}, [isClient, savedProtocolsInWatchlist, protocolsDict])
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md">
-			<h1 className="text-xl font-semibold p-3">Saved Pools</h1>
+		<>
+			<WatchListTabs />
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<h1 className="text-xl font-semibold p-3">Saved Pools</h1>
 
-			<div className="flex items-center flex-wrap gap-4 p-3">
-				<h2>Current portfolio:</h2>
-				<Menu
-					name={selectedPortfolio}
-					options={portfolios}
-					onItemClick={(value) => setSelectedPortfolio(value)}
-					className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium"
-				/>
-				<button onClick={addPortfolio}>
-					<Icon name="folder-plus" height={24} width={24} />
-				</button>
-				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
-					<button onClick={removePortfolio}>
-						<Icon name="trash-2" height={24} width={24} />
-					</button>
-				)}
-
-				<div className="flex items-center flex-wrap gap-4 p-3 ml-auto">
-					<Switch
-						label="7d Base Apy"
-						value="7d Base Apy"
-						onChange={() => {
-							const enabled = show7dBaseApy === 'true'
-							push({ pathname, query: { ...query, show7dBaseApy: !enabled } }, undefined, { shallow: true })
-						}}
-						checked={query.show7dBaseApy === 'true'}
+				<div className="flex items-center flex-wrap gap-4 p-3">
+					<h2>Current portfolio:</h2>
+					<Menu
+						name={selectedPortfolio}
+						options={portfolios}
+						onItemClick={(value) => setSelectedPortfolio(value)}
+						className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium"
 					/>
+					<button onClick={addPortfolio}>
+						<Icon name="folder-plus" height={24} width={24} />
+					</button>
+					{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
+						<button onClick={removePortfolio}>
+							<Icon name="trash-2" height={24} width={24} />
+						</button>
+					)}
+
+					<div className="flex items-center flex-wrap gap-4 p-3 ml-auto">
+						<Switch
+							label="7d Base Apy"
+							value="7d Base Apy"
+							onChange={() => {
+								const enabled = show7dBaseApy === 'true'
+								push({ pathname, query: { ...query, show7dBaseApy: !enabled } }, undefined, { shallow: true })
+							}}
+							checked={query.show7dBaseApy === 'true'}
+						/>
+						<Switch
+							label="7d IL"
+							value="7d IL"
+							onChange={() => {
+								const enabled = show7dIL === 'true'
+								push({ pathname, query: { ...query, show7dIL: !enabled } }, undefined, { shallow: true })
+							}}
+							checked={query.show7dIL === 'true'}
+						/>
+					</div>
+				</div>
+
+				<div className="flex items-center flex-wrap gap-4 p-3">
 					<Switch
-						label="7d IL"
-						value="7d IL"
+						label="1d Volume"
+						value="1d Volume"
 						onChange={() => {
-							const enabled = show7dIL === 'true'
-							push({ pathname, query: { ...query, show7dIL: !enabled } }, undefined, { shallow: true })
+							const enabled = show1dVolume === 'true'
+							push({ pathname, query: { ...query, show1dVolume: !enabled } }, undefined, { shallow: true })
 						}}
-						checked={query.show7dIL === 'true'}
+						checked={query.show1dVolume === 'true'}
+					/>
+
+					<Switch
+						label="7d Volume"
+						value="7d Volume"
+						onChange={() => {
+							const enabled = show7dVolume === 'true'
+							push({ pathname, query: { ...query, show7dVolume: !enabled } }, undefined, { shallow: true })
+						}}
+						checked={query.show7dVolume === 'true'}
+					/>
+
+					<Switch
+						label="Inception APY"
+						value="Inception APY"
+						onChange={() => {
+							const enabled = showInceptionApy === 'true'
+							push({ pathname, query: { ...query, showInceptionApy: !enabled } }, undefined, { shallow: true })
+						}}
+						checked={query.showInceptionApy === 'true'}
+					/>
+
+					<Switch
+						label="Borrow APY"
+						value="Borrow APY"
+						onChange={() => {
+							const enabled = showNetBorrowApy === 'true'
+							push({ pathname, query: { ...query, showNetBorrowApy: !enabled } }, undefined, { shallow: true })
+						}}
+						checked={query.showNetBorrowApy === 'true'}
+					/>
+
+					<Switch
+						label="Borrow Base APY"
+						value="Borrow Base APY"
+						onChange={() => {
+							const enabled = showBorrowBaseApy === 'true'
+							push({ pathname, query: { ...query, showBorrowBaseApy: !enabled } }, undefined, { shallow: true })
+						}}
+						checked={query.showBorrowBaseApy === 'true'}
+					/>
+
+					<Switch
+						label="Borrow Reward APY"
+						value="Borrow Reward APY"
+						onChange={() => {
+							const enabled = showBorrowRewardApy === 'true'
+							push({ pathname, query: { ...query, showBorrowRewardApy: !enabled } }, undefined, { shallow: true })
+						}}
+						checked={query.showBorrowRewardApy === 'true'}
+					/>
+
+					<Switch
+						label="Total Supplied"
+						value="Total Supplied"
+						onChange={() => {
+							const enabled = showTotalSupplied === 'true'
+							push({ pathname, query: { ...query, showTotalSupplied: !enabled } }, undefined, { shallow: true })
+						}}
+						checked={query.showTotalSupplied === 'true'}
+					/>
+
+					<Switch
+						label="Total Borrowed"
+						value="Total Borrowed"
+						onChange={() => {
+							const enabled = showTotalBorrowed === 'true'
+							push({ pathname, query: { ...query, showTotalBorrowed: !enabled } }, undefined, { shallow: true })
+						}}
+						checked={query.showTotalBorrowed === 'true'}
+					/>
+
+					<Switch
+						label="Available"
+						value="Available"
+						onChange={() => {
+							const enabled = showAvailable === 'true'
+							push({ pathname, query: { ...query, showAvailable: !enabled } }, undefined, { shallow: true })
+						}}
+						checked={query.showAvailable === 'true'}
+					/>
+
+					<Switch
+						label="LTV"
+						value="LTV"
+						onChange={() => {
+							const enabled = showLTV === 'true'
+							push({ pathname, query: { ...query, showLTV: !enabled } }, undefined, { shallow: true })
+						}}
+						checked={query.showLTV === 'true'}
 					/>
 				</div>
+
+				{filteredProtocols.length ? (
+					<YieldsPoolsTable data={filteredProtocols} />
+				) : (
+					<p className="p-5 bg-[var(--cards-bg)] rounded-md text-center">You have not saved any pools.</p>
+				)}
 			</div>
+		</>
+	)
+}
 
-			<div className="flex items-center flex-wrap gap-4 p-3">
-				<Switch
-					label="1d Volume"
-					value="1d Volume"
-					onChange={() => {
-						const enabled = show1dVolume === 'true'
-						push({ pathname, query: { ...query, show1dVolume: !enabled } }, undefined, { shallow: true })
-					}}
-					checked={query.show1dVolume === 'true'}
-				/>
-
-				<Switch
-					label="7d Volume"
-					value="7d Volume"
-					onChange={() => {
-						const enabled = show7dVolume === 'true'
-						push({ pathname, query: { ...query, show7dVolume: !enabled } }, undefined, { shallow: true })
-					}}
-					checked={query.show7dVolume === 'true'}
-				/>
-
-				<Switch
-					label="Inception APY"
-					value="Inception APY"
-					onChange={() => {
-						const enabled = showInceptionApy === 'true'
-						push({ pathname, query: { ...query, showInceptionApy: !enabled } }, undefined, { shallow: true })
-					}}
-					checked={query.showInceptionApy === 'true'}
-				/>
-
-				<Switch
-					label="Borrow APY"
-					value="Borrow APY"
-					onChange={() => {
-						const enabled = showNetBorrowApy === 'true'
-						push({ pathname, query: { ...query, showNetBorrowApy: !enabled } }, undefined, { shallow: true })
-					}}
-					checked={query.showNetBorrowApy === 'true'}
-				/>
-
-				<Switch
-					label="Borrow Base APY"
-					value="Borrow Base APY"
-					onChange={() => {
-						const enabled = showBorrowBaseApy === 'true'
-						push({ pathname, query: { ...query, showBorrowBaseApy: !enabled } }, undefined, { shallow: true })
-					}}
-					checked={query.showBorrowBaseApy === 'true'}
-				/>
-
-				<Switch
-					label="Borrow Reward APY"
-					value="Borrow Reward APY"
-					onChange={() => {
-						const enabled = showBorrowRewardApy === 'true'
-						push({ pathname, query: { ...query, showBorrowRewardApy: !enabled } }, undefined, { shallow: true })
-					}}
-					checked={query.showBorrowRewardApy === 'true'}
-				/>
-
-				<Switch
-					label="Total Supplied"
-					value="Total Supplied"
-					onChange={() => {
-						const enabled = showTotalSupplied === 'true'
-						push({ pathname, query: { ...query, showTotalSupplied: !enabled } }, undefined, { shallow: true })
-					}}
-					checked={query.showTotalSupplied === 'true'}
-				/>
-
-				<Switch
-					label="Total Borrowed"
-					value="Total Borrowed"
-					onChange={() => {
-						const enabled = showTotalBorrowed === 'true'
-						push({ pathname, query: { ...query, showTotalBorrowed: !enabled } }, undefined, { shallow: true })
-					}}
-					checked={query.showTotalBorrowed === 'true'}
-				/>
-
-				<Switch
-					label="Available"
-					value="Available"
-					onChange={() => {
-						const enabled = showAvailable === 'true'
-						push({ pathname, query: { ...query, showAvailable: !enabled } }, undefined, { shallow: true })
-					}}
-					checked={query.showAvailable === 'true'}
-				/>
-
-				<Switch
-					label="LTV"
-					value="LTV"
-					onChange={() => {
-						const enabled = showLTV === 'true'
-						push({ pathname, query: { ...query, showLTV: !enabled } }, undefined, { shallow: true })
-					}}
-					checked={query.showLTV === 'true'}
-				/>
-			</div>
-
-			{filteredProtocols.length ? (
-				<YieldsPoolsTable data={filteredProtocols} />
-			) : (
-				<p className="p-5 bg-[var(--cards-bg)] rounded-md text-center">You have not saved any pools.</p>
-			)}
-		</div>
+export const WatchListTabs = () => {
+	const router = useRouter()
+	return (
+		<nav className="text-xs font-medium flex overflow-x-auto rounded-md bg-[var(--cards-bg)]">
+			<Link href={'/watchlist'} passHref>
+				<a
+					data-active={router.pathname === '/watchlist'}
+					className="flex-shrink-0 py-2 px-6 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-black/10 dark:border-white/10 data-[active=true]:border-[var(--old-blue)]"
+				>
+					DeFi
+				</a>
+			</Link>
+			<Link href={'/yields/watchlist'} passHref>
+				<a
+					data-active={router.pathname === '/yields/watchlist'}
+					className="flex-shrink-0 py-2 px-6 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-black/10 dark:border-white/10 data-[active=true]:border-[var(--old-blue)]"
+				>
+					Yields
+				</a>
+			</Link>
+		</nav>
 	)
 }

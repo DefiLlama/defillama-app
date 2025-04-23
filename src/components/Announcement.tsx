@@ -69,7 +69,7 @@ export function Announcement({
 
 	return (
 		<p
-			className="relative p-3 text-sm text-black dark:text-white text-center rounded-md bg-[var(--bg)]"
+			className="relative p-3 text-sm text-black dark:text-white text-center rounded-md bg-[var(--bg)] mb-4"
 			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as any}
 		>
 			{children}

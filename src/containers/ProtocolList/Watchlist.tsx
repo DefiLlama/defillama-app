@@ -8,6 +8,7 @@ import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } fr
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { Icon } from '~/components/Icon'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { WatchListTabs } from '../Yields/Watchlist'
 
 interface IFolder {
 	isSaved?: boolean
@@ -55,6 +56,7 @@ export function DefiWatchlistContainer() {
 	return (
 		<>
 			<ProtocolsChainsSearch />
+			<WatchListTabs />
 			<div className="bg-[var(--cards-bg)]">
 				<h1 className="text-xl font-semibold p-3">Saved Protocols</h1>
 
