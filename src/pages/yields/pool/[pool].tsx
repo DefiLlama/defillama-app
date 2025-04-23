@@ -22,7 +22,7 @@ import { Icon } from '~/components/Icon'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
-const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
 	loading: () => <></>
 }) as React.FC<IBarChartProps>
@@ -447,11 +447,11 @@ const PageView = (props) => {
 					<>
 						{barChartData?.length ? (
 							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
-								<StackedBarChart
+								<BarChart
 									title="Supply APY"
 									chartData={barChartData}
 									stacks={barChartStacks}
-									stackColors={stackedBarChartColors}
+									stackColors={barChartColors}
 									valueSymbol={'%'}
 								/>
 							</LazyChart>
@@ -477,11 +477,11 @@ const PageView = (props) => {
 					<>
 						{areaChartDataBorrow?.length ? (
 							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
-								<StackedBarChart
+								<BarChart
 									title="Borrow APY"
 									chartData={barChartDataBorrow}
 									stacks={barChartStacks}
-									stackColors={stackedBarChartColors}
+									stackColors={barChartColors}
 									valueSymbol={'%'}
 								/>
 							</LazyChart>
@@ -560,7 +560,7 @@ const mainChartStackColors = {
 	TVL: '#4f8fea'
 }
 
-const stackedBarChartColors = {
+const barChartColors = {
 	Base: backgroundColor,
 	Reward: '#E59421'
 }

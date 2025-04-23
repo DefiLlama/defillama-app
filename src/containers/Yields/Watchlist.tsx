@@ -234,11 +234,11 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 export const WatchListTabs = () => {
 	const router = useRouter()
 	return (
-		<nav className="text-xs font-medium flex overflow-x-auto rounded-md bg-[var(--cards-bg)]">
+		<nav className="text-xs font-semibold flex items-center gap-2 border-b-2 border-[#E6E6E6] dark:border-[#39393E] w-full max-w-fit relative">
 			<Link href={'/watchlist'} passHref>
 				<a
 					data-active={router.pathname === '/watchlist'}
-					className="flex-shrink-0 py-2 px-6 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-black/10 dark:border-white/10 data-[active=true]:border-[var(--old-blue)]"
+					className="flex-shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-transparent data-[active=true]:border-[var(--old-blue)] relative bottom-[-2px] z-10"
 				>
 					DeFi
 				</a>
@@ -246,7 +246,7 @@ export const WatchListTabs = () => {
 			<Link href={'/yields/watchlist'} passHref>
 				<a
 					data-active={router.pathname === '/yields/watchlist'}
-					className="flex-shrink-0 py-2 px-6 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-black/10 dark:border-white/10 data-[active=true]:border-[var(--old-blue)]"
+					className="flex-shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-transparent data-[active=true]:border-[var(--old-blue)] relative bottom-[-2px] z-10"
 				>
 					Yields
 				</a>

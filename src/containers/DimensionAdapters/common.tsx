@@ -117,13 +117,6 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 					: null
 		}
 	}, [props.chartData, chartInterval])
-	const x = barsData[2848]
-	const y = barsData[2849]
-	for (const k in y) {
-		if (!x[k]) {
-			console.log(k, y[k], simpleStack[k])
-		}
-	}
 
 	const valuesExist =
 		typeof props.data.total24h === 'number' ||
@@ -255,7 +248,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 								stacks={simpleStack}
 								hideDefaultLegend={props.disableDefaultLeged}
 								isMonthly={chartInterval === 'Monthly'}
-								/* stackColors={stackedBarChartColors} */
+								/* stackColors={barChartColors} */
 							/>
 						)}
 					</div>

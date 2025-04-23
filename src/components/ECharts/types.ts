@@ -72,13 +72,3 @@ export interface IPieChartProps {
 	}
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
 }
-
-export interface IStackedBarChartProps extends Omit<IChartProps, 'title' | 'chartData'> {
-	title?: string
-	chartData: Array<{
-		name: string
-		data: [Date, number][]
-	}>
-	stackColors?: { name: string; color: string }
-	showLegend?: boolean
-}

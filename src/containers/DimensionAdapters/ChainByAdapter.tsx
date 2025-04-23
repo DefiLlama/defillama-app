@@ -70,8 +70,6 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 		totalDataChartBreakdown2: undefined
 	})
 
-	console.log({ charts })
-
 	// Needs to be improved! Too dirty
 	const { data, error, isLoading } = useFetchCharts(
 		props.type,

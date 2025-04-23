@@ -9,7 +9,7 @@ import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~
 import { getColorFromNumber } from '~/utils'
 import { useEffect } from 'react'
 
-const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
 	loading: () => <></>
 })
@@ -236,22 +236,22 @@ const PageView = () => {
 // 						<>
 // 							{barChartDataSupply?.length ? (
 // 								<LazyChart>
-// 									<StackedBarChart
+// 									<BarChart
 // 										title="Supply APY"
 // 										chartData={barChartDataSupply}
 // 										stacks={barChartStacks}
-// 										stackColors={stackedBarChartColors}
+// 										stackColors={barChartColors}
 // 										valueSymbol={'%'}
 // 									/>
 // 								</LazyChart>
 // 							) : null}
 
 // 							<LazyChart>
-// 								<StackedBarChart
+// 								<BarChart
 // 									title="Borrow APY"
 // 									chartData={barChartDataBorrow}
 // 									stacks={barChartStacks}
-// 									stackColors={stackedBarChartColors}
+// 									stackColors={barChartColors}
 // 									valueSymbol={'%'}
 // 								/>
 // 							</LazyChart>
@@ -315,7 +315,7 @@ const PageView = () => {
 
 const backgroundColor = '#4f8fea'
 
-const stackedBarChartColors = {
+const barChartColors = {
 	Base: backgroundColor,
 	Reward: '#E59421'
 }

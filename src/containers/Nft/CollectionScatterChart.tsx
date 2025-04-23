@@ -15,6 +15,7 @@ import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neu
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import type { ICollectionScatterChartProps } from './types'
 import { useMedia } from '~/hooks/useMedia'
+import { formatTooltipChartData } from '~/components/ECharts/useDefaults'
 
 echarts.use([
 	CanvasRenderer,
@@ -108,11 +109,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 				showDelay: 0,
 				confine: true,
 				formatter: function (params) {
-					const chartdate = new Date(params.value[0]).toLocaleDateString(undefined, {
-						year: 'numeric',
-						month: 'short',
-						day: 'numeric'
-					})
+					const chartdate = formatTooltipChartData(params.value[0], false)
 
 					let vals =
 						chartdate +

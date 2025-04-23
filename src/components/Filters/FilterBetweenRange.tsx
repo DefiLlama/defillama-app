@@ -30,7 +30,7 @@ export function FilterBetweenRange({
 						<input
 							type="number"
 							name="min"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[#E6E6E6] dark:border-[#39393E]"
 							value={min || ''}
 						/>
 					</label>
@@ -39,7 +39,7 @@ export function FilterBetweenRange({
 						<input
 							type="number"
 							name="max"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[#E6E6E6] dark:border-[#39393E]"
 							value={max || ''}
 						/>
 					</label>
@@ -82,7 +82,7 @@ export function FilterBetweenRange({
 							<input
 								type="number"
 								name="min"
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[#E6E6E6] dark:border-[#39393E]"
 								defaultValue={min || ''}
 							/>
 						</label>
@@ -91,7 +91,7 @@ export function FilterBetweenRange({
 							<input
 								type="number"
 								name="max"
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-black/10 dark:border-white/10"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[#E6E6E6] dark:border-[#39393E]"
 								defaultValue={max || ''}
 							/>
 						</label>

@@ -86,7 +86,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 								</Tooltip>
 								{props.dexs.chart?.length > 0 ? (
 									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
-										props.dexs.chart[props.dexs.chart.length - 1][1],
+										props.dexs.total24h,
 										true
 									)} (24h)`}</p>
 								) : null}
@@ -184,7 +184,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 					</Tooltip>
 					{props.dexs.chart?.length > 0 ? (
 						<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
-							props.dexs.chart[props.dexs.chart.length - 1][1],
+							props.dexs.total24h,
 							true
 						)} (24h)`}</p>
 					) : null}

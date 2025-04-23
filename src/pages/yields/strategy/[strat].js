@@ -12,7 +12,7 @@ import {
 import { calculateLoopAPY } from '~/containers/Yields/queries/index'
 import { toK } from '~/utils'
 
-const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
 	loading: () => <></>
 })
@@ -286,11 +286,11 @@ const PageView = () => {
 						<>
 							{barChartDataSupply?.length ? (
 								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
-									<StackedBarChart
+									<BarChart
 										title="Supply APY"
 										chartData={barChartDataSupply}
 										stacks={barChartStacks}
-										stackColors={stackedBarChartColors}
+										stackColors={barChartColors}
 										valueSymbol={'%'}
 									/>
 								</LazyChart>
@@ -298,11 +298,11 @@ const PageView = () => {
 
 							{barChartDataBorrow?.length ? (
 								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
-									<StackedBarChart
+									<BarChart
 										title="Borrow APY"
 										chartData={barChartDataBorrow}
 										stacks={barChartStacks}
-										stackColors={stackedBarChartColors}
+										stackColors={barChartColors}
 										valueSymbol={'%'}
 									/>
 								</LazyChart>
@@ -310,11 +310,11 @@ const PageView = () => {
 
 							{barChartDataFarm?.length ? (
 								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
-									<StackedBarChart
+									<BarChart
 										title="Farm APY"
 										chartData={barChartDataFarm}
 										stacks={barChartStacks}
-										stackColors={stackedBarChartColors}
+										stackColors={barChartColors}
 										valueSymbol={'%'}
 									/>
 								</LazyChart>
@@ -329,10 +329,11 @@ const PageView = () => {
 
 const backgroundColor = '#4f8fea'
 
-const stackedBarChartColors = {
+const barChartColors = {
 	Base: backgroundColor,
 	Reward: '#E59421'
 }
+
 const barChartStacks = {
 	Base: 'a',
 	Reward: 'a'

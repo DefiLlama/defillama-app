@@ -25,7 +25,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					<input
 						value={startDate && `${formatDate(startDate)}`}
 						onClick={() => onStartChange(null)}
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
+						className="border border-[#E6E6E6] dark:border-[#39393E] w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
 					/>
 				</div>
 				<div style={{ position: 'absolute', zIndex: 100, top: 0, display: startDate ? 'none' : 'block' }}>
@@ -43,7 +43,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					<input
 						value={startHour}
 						onChange={(e) => setHours([e.target?.value, endHour])}
-						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-black/10 dark:border-white/10 w-10"
+						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-[#E6E6E6] dark:border-[#39393E] w-10"
 					/>
 					<span>h</span>
 				</label>
@@ -60,7 +60,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					<input
 						value={endDate && `${formatDate(endDate)}`}
 						onClick={() => onEndChange(null)}
-						className="border border-black/10 dark:border-white/10 w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
+						className="border border-[#E6E6E6] dark:border-[#39393E] w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
 					/>
 				</div>
 				<div style={{ position: 'absolute', top: 0, zIndex: 100, display: endDate ? 'none' : 'block' }}>
@@ -78,7 +78,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					<input
 						value={endHour}
 						onChange={(e) => setHours([startHour, e.target?.value])}
-						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-black/10 dark:border-white/10 w-10"
+						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-[#E6E6E6] dark:border-[#39393E] w-10"
 					/>
 					<span>h</span>
 				</label>

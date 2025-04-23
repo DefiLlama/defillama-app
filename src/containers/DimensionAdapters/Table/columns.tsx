@@ -20,7 +20,7 @@ import { formatColumnOrder } from '~/components/Table/utils'
 export const getColumnsByType = (type: string, allChains?: boolean, isSimple?: boolean) => {
 	switch (type) {
 		case 'dexs':
-			return volumesColumns(allChains)
+			return dexsColumns(allChains)
 		case 'fees':
 			return isSimple ? simpleFeesColumns(allChains) : feesColumns(allChains)
 		case 'incentives':
@@ -36,7 +36,7 @@ export const getColumnsByType = (type: string, allChains?: boolean, isSimple?: b
 		case 'bridge-aggregators':
 			return bridgeAggregatorsColumns(allChains)
 		default:
-			return volumesColumns(allChains)
+			return dexsColumns(allChains)
 	}
 }
 
@@ -45,7 +45,7 @@ export const getColumnsOrdernSizeByType = (type: string) => {
 		case 'volumes':
 			return {
 				order: volumesTableColumnOrders,
-				size: volumesColumnSizes
+				size: dexsColumnSizes
 			}
 		case 'fees':
 			return {
@@ -55,12 +55,12 @@ export const getColumnsOrdernSizeByType = (type: string) => {
 		default:
 			return {
 				order: volumesTableColumnOrders,
-				size: volumesColumnSizes
+				size: dexsColumnSizes
 			}
 	}
 }
 
-export const volumesColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
+export const dexsColumns = (allChains?: boolean): ColumnDef<IAdapterRow>[] =>
 	[
 		NameColumn('dexs', allChains),
 		allChains ? undefined : ChainsColumn('dexs'),
@@ -279,7 +279,7 @@ export const volumesTableColumnOrders = formatColumnOrder({
 	]
 })
 
-export const volumesColumnSizes = {
+export const dexsColumnSizes = {
 	0: {
 		name: 140,
 		chains: 140,

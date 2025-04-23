@@ -32,7 +32,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 							<Link href={`/protocol/${slug(p)}`} key={p} passHref>
 								<a
 									data-active={router.asPath.split('#')[0].split('?')[0] === `/protocol/${slug(p)}`}
-									className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-xl last:rounded-r-xl data-[active=true]:bg-[var(--active-bg)] hover:bg-[var(--active-bg)] focus-visible:bg-[var(--active-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
+									className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-xl last:rounded-r-xl data-[active=true]:bg-[var(--active-bg)] hover:bg-[var(--active-bg)] focus-visible:bg-[var(--active-bg)] border-l border-[#E6E6E6] dark:border-[#39393E] first:border-l-0"
 								>
 									{p}
 								</a>

@@ -68,8 +68,6 @@ interface IUseDefaultsProps {
 	isMonthly?: boolean
 }
 
-const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
 export function useDefaults({
 	color,
 	title,
@@ -123,13 +121,7 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
-				const date = new Date(params[0].value[0])
-
-				let chartdate = isMonthly
-					? monthNames[date.getUTCMonth()] + ' 1 - ' + lastDayOfMonth(params[0].value[0]) + ', ' + date.getUTCFullYear()
-					: `${date.getUTCDate().toString().padStart(2, '0')} ${
-							monthNames[date.getUTCMonth()]
-					  } ${date.getUTCFullYear()}`
+				let chartdate = formatTooltipChartData(params[0].value[0], isMonthly)
 
 				let vals
 				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1] !== null)
@@ -225,14 +217,11 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
-				const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric'
-				})
+				const chartdate = formatTooltipChartData(params[0].value[0], false)
 
 				let vals = params
 					.sort((a, b) => (tooltipSort ? a.value[1] - b.value[1] : 0))
+					.slice(0, 10)
 					.reduce((prev, curr) => {
 						if (curr.value[1] !== 0 && curr.value[1] !== '-') {
 							return (prev +=
@@ -245,6 +234,12 @@ export function useDefaults({
 								'</li>')
 						} else return prev
 					}, '')
+
+				const others = params.slice(10).reduce((acc, curr) => (acc += curr.value[1]), 0)
+
+				if (others) {
+					vals += '<li style="list-style:none">' + 'Others' + '&nbsp;&nbsp;' + valueSymbol + toK(others) + '</li>'
+				}
 
 				const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
 
@@ -391,4 +386,14 @@ export const formatTooltipValue = (value, symbol) => {
 		: `${value}`.startsWith('0.00')
 		? toK(value)
 		: `${toK(value)} ${symbol}`
+}
+
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+export function formatTooltipChartData(value: number, isMonthly: boolean) {
+	const date = new Date(value)
+
+	return isMonthly
+		? monthNames[date.getUTCMonth()] + ' 1 - ' + lastDayOfMonth(value) + ', ' + date.getUTCFullYear()
+		: `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
 }

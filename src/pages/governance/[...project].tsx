@@ -171,19 +171,14 @@ export default function Protocol({ data, governanceType }) {
 
 				<div className="grid grid-cols-2">
 					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
-						<BarChart
-							title={'Activity'}
-							chartData={data.activity}
-							stacks={simpleStack}
-							stackColors={stackedBarChartColors}
-						/>
+						<BarChart title={'Activity'} chartData={data.activity} stacks={simpleStack} stackColors={barChartColors} />
 					</LazyChart>
 					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 						<BarChart
 							title={'Max Votes'}
 							chartData={data.maxVotes}
 							stacks={maxVotesStack}
-							stackColors={stackedBarChartColors}
+							stackColors={barChartColors}
 						/>
 					</LazyChart>
 				</div>
@@ -241,7 +236,7 @@ export default function Protocol({ data, governanceType }) {
 	)
 }
 
-const stackedBarChartColors = {
+const barChartColors = {
 	Total: '#4f8fea',
 	Successful: '#E59421',
 	'Max Votes': '#4f8fea'

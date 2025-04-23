@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
-import BridgeList from '~/containers/Bridges/BridgeList'
+import { BridgesOverviewByChain } from '~/containers/Bridges/BridgesOverviewByChain'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import { withPerformanceLogging } from '~/utils/perf'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -39,7 +39,7 @@ export default function Bridges({
 	return (
 		<QueryClientProvider client={queryClient}>
 			<Layout title={`Bridge Volume - DefiLlama`} defaultSEO>
-				<BridgeList
+				<BridgesOverviewByChain
 					chains={chains}
 					selectedChain={chain}
 					filteredBridges={filteredBridges}

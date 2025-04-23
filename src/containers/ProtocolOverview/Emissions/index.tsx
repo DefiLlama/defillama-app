@@ -308,7 +308,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									))
 								)}
 							</div>
-							<hr className="border-black/10 dark:border-white/10" />
+							<hr className="border-[#E6E6E6] dark:border-[#39393E]" />
 
 							<h4 style={{ fontSize: '16px' }}>Final</h4>
 

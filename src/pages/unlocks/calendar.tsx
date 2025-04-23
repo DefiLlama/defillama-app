@@ -195,7 +195,7 @@ export default function UnlocksCalendar({ unlocksData: initialUnlocksData }: { u
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => setShowOnlyWatchlist((prev) => !prev)}
-						className="border border-black/10 dark:border-white/10 p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+						className="border border-[#E6E6E6] dark:border-[#39393E] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
 					>
 						<Icon
 							name="bookmark"
@@ -208,7 +208,7 @@ export default function UnlocksCalendar({ unlocksData: initialUnlocksData }: { u
 
 					<button
 						onClick={() => setShowOnlyInsider((prev) => !prev)}
-						className="border border-black/10 dark:border-white/10 p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+						className="border border-[#E6E6E6] dark:border-[#39393E] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
 					>
 						<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text1)' : 'none' }} />
 						{showOnlyInsider ? 'Show All' : 'Show Insiders Only'}

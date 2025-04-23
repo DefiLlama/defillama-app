@@ -462,7 +462,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 						<Link href={`/protocol/${slug(p)}` + '#information'} key={'navigate to ' + `/protocol/${slug(p)}`} passHref>
 							<a
 								data-active={router.asPath.split('#')[0].split('?')[0] === `/protocol/${slug(p)}`}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-md last:rounded-r-md data-[active=true]:bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-md last:rounded-r-md data-[active=true]:bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] border-l border-[#E6E6E6] dark:border-[#39393E] first:border-l-0"
 							>
 								{p}
 							</a>
@@ -477,7 +477,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 						<button
 							data-active={tab === 'information'}
 							onClick={(e) => setTab('information', e)}
-							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Information
 						</button>
@@ -485,7 +485,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'tvl-charts'}
 								onClick={(e) => setTab('tvl-charts', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								{isCEX ? 'Assets' : 'TVL'}
 							</button>
@@ -494,7 +494,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'stablecoin-info'}
 								onClick={(e) => setTab('stablecoin-info', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Stablecoin Info
 							</button>
@@ -503,7 +503,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'bridge'}
 								onClick={(e) => setTab('bridge', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Bridge Info
 							</button>
@@ -512,7 +512,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'treasury'}
 								onClick={(e) => setTab('treasury', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Treasury
 							</button>
@@ -521,7 +521,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'unlocks'}
 								onClick={(e) => setTab('unlocks', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Unlocks
 							</button>
@@ -530,7 +530,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'yields'}
 								onClick={(e) => setTab('yields', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Yields
 							</button>
@@ -539,7 +539,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'fees-revenue'}
 								onClick={(e) => setTab('fees-revenue', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Fees and Revenue
 							</button>
@@ -548,7 +548,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'volume'}
 								onClick={(e) => setTab('volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Volume
 							</button>
@@ -557,7 +557,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'perps-volume'}
 								onClick={(e) => setTab('perps-volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Perps Volume
 							</button>
@@ -566,7 +566,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'aggregators-volume'}
 								onClick={(e) => setTab('aggregators-volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Aggregators Volume
 							</button>
@@ -575,7 +575,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'perps-aggregator'}
 								onClick={(e) => setTab('perps-aggregator', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Perps Aggregators Volume
 							</button>
@@ -584,7 +584,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'bridge-aggregators'}
 								onClick={(e) => setTab('bridge-aggregators', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Bridge Aggregators Volume
 							</button>
@@ -593,7 +593,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'options-volume'}
 								onClick={(e) => setTab('options-volume', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Options Volume
 							</button>
@@ -602,7 +602,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'governance'}
 								onClick={(e) => setTab('governance', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Governance
 							</button>
@@ -611,7 +611,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 							<button
 								data-active={tab === 'forks'}
 								onClick={(e) => setTab('forks', e)}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-black/10 dark:border-white/10 data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[#E6E6E6] dark:border-[#39393E] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 							>
 								Forks
 							</button>
