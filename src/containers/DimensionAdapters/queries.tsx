@@ -101,7 +101,7 @@ export interface IAdapterSummary {
 	linkedProtocols?: string[]
 }
 
-export async function getAdapterOverview({
+export async function getAdapterChainOverview({
 	type,
 	chain,
 	excludeTotalDataChart,
@@ -127,7 +127,7 @@ export async function getAdapterOverview({
 	return data as IAdapterOverview
 }
 
-export async function getAdapterSummary({
+export async function getAdapterProtocolSummary({
 	type,
 	chain,
 	excludeTotalDataChart,

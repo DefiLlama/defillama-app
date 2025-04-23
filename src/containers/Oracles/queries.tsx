@@ -2,7 +2,7 @@ import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
 import { ORACLE_API, PROTOCOLS_API } from '~/constants'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getAdapterOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
+import { getAdapterChainOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
 import { getColorFromNumber, slug } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 
@@ -27,7 +27,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		] = await Promise.all([
 			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
 			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
-			getAdapterOverview({
+			getAdapterChainOverview({
 				type: 'derivatives',
 				chain: 'All',
 				excludeTotalDataChart: true,
@@ -172,7 +172,7 @@ export async function getOraclePageDataByChain(chain: string) {
 		] = await Promise.all([
 			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
 			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
-			getAdapterOverview({
+			getAdapterChainOverview({
 				type: 'derivatives',
 				chain: 'All',
 				excludeTotalDataChart: true,

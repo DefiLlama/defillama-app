@@ -11,8 +11,8 @@ import {
 } from '~/constants'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import {
-	getAdapterOverview,
-	getAdapterSummary,
+	getAdapterChainOverview,
+	getAdapterProtocolSummary,
 	getCexVolume,
 	IAdapterOverview,
 	IAdapterSummary
@@ -207,7 +207,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				.then((res) => res.json())
 				.catch(() => ({})),
 			metadata.fees && chain !== 'All'
-				? getAdapterOverview({
+				? getAdapterChainOverview({
 						type: 'fees',
 						chain: metadata.name,
 						excludeTotalDataChart: true,
@@ -219,7 +219,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				  })
 				: Promise.resolve(null),
 			metadata.chainFees
-				? getAdapterSummary({
+				? getAdapterProtocolSummary({
 						type: 'fees',
 						chain: metadata.name,
 						excludeTotalDataChart: true,
@@ -230,7 +230,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				  })
 				: Promise.resolve(null),
 			metadata.chainFees
-				? getAdapterSummary({
+				? getAdapterProtocolSummary({
 						type: 'fees',
 						chain: metadata.name,
 						excludeTotalDataChart: true,
@@ -242,7 +242,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				  })
 				: Promise.resolve(null),
 			metadata.derivatives
-				? getAdapterOverview({
+				? getAdapterChainOverview({
 						type: 'derivatives',
 						chain: metadata.name,
 						excludeTotalDataChart: true,
@@ -444,7 +444,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 	] = await Promise.all([
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
 		metadata.fees
-			? getAdapterOverview({
+			? getAdapterChainOverview({
 					type: 'fees',
 					chain: metadata.name,
 					excludeTotalDataChart: true,
@@ -455,7 +455,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			  })
 			: Promise.resolve(null),
 		metadata.fees
-			? getAdapterOverview({
+			? getAdapterChainOverview({
 					type: 'fees',
 					chain: metadata.name,
 					excludeTotalDataChart: true,
@@ -467,7 +467,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			  })
 			: Promise.resolve(null),
 		metadata.dexs
-			? getAdapterOverview({
+			? getAdapterChainOverview({
 					type: 'dexs',
 					chain: metadata.name,
 					excludeTotalDataChart: false,

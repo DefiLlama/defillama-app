@@ -2,9 +2,10 @@ import { getColorFromNumber, slug } from '~/utils'
 import { ACTIVE_USERS_API, CHAINS_ASSETS } from '~/constants'
 import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { getAdapterOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
+import { getAdapterChainOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
 import { IChainAssets } from '~/containers/ChainOverview/types'
 import { IChainsByCategory, IChainsByCategoryData } from './types'
+import { getDimensionAdapterChainsOverview } from '../DimensionAdapters/queries.server'
 
 export const getChainsByCategory = async ({
 	category,
@@ -27,16 +28,8 @@ export const getChainsByCategory = async ({
 		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) =>
 			res.json()
 		) as Promise<IChainsByCategory>,
-		getAdapterOverview({
-			type: 'dexs',
-			chain: 'All',
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
-		}).catch((err) => {
-			console.log(err)
-			return null
-		}) as Promise<IAdapterOverview | null>,
-		getAdapterOverview({
+		getDimensionAdapterChainsOverview({ adapterType: 'dexs' }),
+		getAdapterChainOverview({
 			type: 'fees',
 			chain: 'All',
 			excludeTotalDataChart: true,
@@ -45,7 +38,7 @@ export const getChainsByCategory = async ({
 			console.log(err)
 			return null
 		}) as Promise<IAdapterOverview | null>,
-		getAdapterOverview({
+		getAdapterChainOverview({
 			type: 'fees',
 			chain: 'All',
 			excludeTotalDataChart: true,
@@ -73,16 +66,7 @@ export const getChainsByCategory = async ({
 		fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json()) as Promise<
 			Record<string, number>
 		>,
-		getAdapterOverview({
-			type: 'fees',
-			chain: 'All',
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true,
-			dataType: 'dailyAppRevenue'
-		}).catch((err) => {
-			console.log(err)
-			return null
-		}) as Promise<IAdapterOverview | null>
+		getDimensionAdapterChainsOverview({ adapterType: 'fees', dataType: 'dailyAppRevenue' })
 	])
 
 	const categoryLinks = [
@@ -134,8 +118,8 @@ export const getChainsByCategory = async ({
 			const nftVolume = chainNftsVolume[name] ?? null
 			const totalFees24h = fees?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
 			const totalRevenue24h = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
-			const totalAppRevenue24h = appRevenue?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
-			const totalVolume24h = dexs?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
+			const totalAppRevenue24h = appRevenue?.find((x) => x.chain === chain.name)?.total24h ?? null
+			const totalVolume24h = dexs?.find((x) => x.chain === chain.name)?.total24h ?? null
 			const stablesMcap = stablesChainMcaps.find((x) => x.name.toLowerCase() === name)?.mcap ?? null
 			const users = activeUsers['chain#' + name]?.users?.value
 
