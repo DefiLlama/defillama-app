@@ -396,7 +396,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 			)
 
 			return (
-				<Tooltip content={chainAssetsBreakdown} className="flex-end">
+				<Tooltip content={chainAssetsBreakdown} className="justify-end">
 					{formattedNum(+chainAssets.total, true)}
 				</Tooltip>
 			)

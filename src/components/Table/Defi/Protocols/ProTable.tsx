@@ -163,10 +163,9 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 					setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}
 					values={['Previous', 'Next']}
 				/>
-				<div className="flex">
+				<div className="flex justify-between">
 					<div className="mr-2 mt-[6px]">Per page</div>
 					<TagGroup
-						style={{ alignSelf: 'flex-end' }}
 						selectedValue={String(table.getState().pagination.pageSize)}
 						values={['10', '30', '50']}
 						setValue={(val) => table.setPageSize(Number(val))}

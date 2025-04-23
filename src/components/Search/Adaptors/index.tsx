@@ -45,7 +45,7 @@ const BreakdownToggle = (props) => {
 		setIsToggleEnabled(props.toggleStatus)
 	}, [props.toggleStatus])
 	return (
-		<ul className="flex items-center flex-end">
+		<ul className="flex items-center justify-end">
 			<li className="ml-5 first-of-type:ml-0">
 				<OptionToggle
 					isLoading={!props.onToggleClick}

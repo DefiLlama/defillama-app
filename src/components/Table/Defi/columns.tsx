@@ -1090,7 +1090,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 				)
 			}
 			return (
-				<Tooltip content={<TooltipContent />} className="flex-end">
+				<Tooltip content={<TooltipContent />} className="justify-end">
 					{getValue() ? formattedPercent(getValue()) : null}
 				</Tooltip>
 			)
@@ -1110,7 +1110,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 				return <>{row.original.mcap ? <span>{`Market Cap: $${toK(row.original.mcap)}`}</span> : null}</>
 			}
 			return (
-				<Tooltip content={<TooltipContent />} className="flex-end">
+				<Tooltip content={<TooltipContent />} className="justify-end">
 					{(getValue() ?? null) as string | null}
 				</Tooltip>
 			)

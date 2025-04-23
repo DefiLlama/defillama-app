@@ -106,14 +106,14 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 				{url ? (
 					<Tooltip
 						render={<a href={url} target="_blank" rel="noopener noreferrer" />}
-						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center gap-1 !flex-shrink"
+						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center gap-1 text-[var(--link-text)] font-medium !flex-shrink"
 						content={children}
 					>
 						{children}
 					</Tooltip>
 				) : (
 					<Tooltip
-						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center gap-1 !flex-shrink"
+						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center gap-1 text-[var(--link-text)] font-medium !flex-shrink"
 						content={children}
 					>
 						{children}

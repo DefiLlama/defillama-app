@@ -412,12 +412,8 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => {
 			return (
 				<span
-					style={{
-						display: 'flex',
-						gap: '4px',
-						justifyContent: 'flex-end',
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ?? 'false'}
+					className="flex justify-end gap-1 data-[strike=true]:text-[var(--text-disabled)]"
 				>
 					{['Morpho Compound', 'Morpho Aave'].includes(info.row.original.project) ? (
 						<QuestionHelper

@@ -34,7 +34,7 @@ export function BridgesSearchWithBreakdown({ onToggleClick, ...props }: IBridges
 			loading={loading}
 			filters={
 				onToggleClick && (
-					<ul className="flex items-center flex-end">
+					<ul className="flex items-center justify-end">
 						<li className="ml-5 first-of-type:ml-0">
 							<OptionToggle
 								name="Bridge breakdown"
