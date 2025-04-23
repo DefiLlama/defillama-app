@@ -13,13 +13,12 @@ import { Tooltip } from '~/components/Tooltip'
 export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 	{
 		header: 'Name',
-		accessorKey: 'name',
+		id: 'name',
+		accessorFn: (row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`,
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
-			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const isSubRow = value.startsWith('Bridged from')
-			const symbol = row.original.symbol && row.original.symbol !== '-' ? ` (${row.original.symbol})` : ''
+			const isSubRow = row.original.name.startsWith('Bridged from')
 
 			return (
 				<span
@@ -50,17 +49,17 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 					{isSubRow ? (
 						<>
 							<span>-</span>
-							<span>{value}</span>
+							<span>{getValue() as string}</span>
 						</>
 					) : (
 						<>
 							<span className="flex-shrink-0">{index + 1}</span>
-							<TokenLogo logo={chainIconUrl(value)} data-lgonly />
+							<TokenLogo logo={chainIconUrl(row.original.name)} data-lgonly />
 							<CustomLink
-								href={`/stablecoins/${value}`}
+								href={`/stablecoins/${row.original.name}`}
 								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 							>
-								{value + symbol}
+								{getValue() as string}
 							</CustomLink>
 						</>
 					)}
@@ -160,22 +159,21 @@ export const assetsByChainColumnSizes = {
 export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 	{
 		header: 'Name',
-		accessorKey: 'name',
+		id: 'name',
+		accessorFn: (row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`,
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
-			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const symbol = row.original.symbol && row.original.symbol !== '-' ? ` (${row.original.symbol})` : ''
 
 			return (
 				<span className="flex items-center gap-2">
 					<span className="flex-shrink-0">{index + 1}</span>
-					<TokenLogo logo={peggedAssetIconUrl(value)} data-lgonly />
+					<TokenLogo logo={peggedAssetIconUrl(row.original.name)} data-lgonly />
 					<CustomLink
-						href={`/stablecoin/${slug(value)}`}
+						href={`/stablecoin/${slug(row.original.name)}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
-						{value + symbol}
+						{getValue() as string}
 					</CustomLink>
 				</span>
 			)
