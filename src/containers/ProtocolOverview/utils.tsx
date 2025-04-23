@@ -370,7 +370,7 @@ export const formatRaisedAmount = (n: number) => {
 
 export const useFetchProtocolAddlChartsData = (protocolName) => {
 	const { data: addlProtocolData, isLoading } = useFetchProtocol(protocolName)
-	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl+fees')
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	const data = useQuery({
 		queryKey: [

@@ -7,7 +7,11 @@ import { formattedNum } from '~/utils'
 import type { IDexChartsProps } from './types'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { useChartInterval } from '~/contexts/LocalStorage'
+import {
+	useDimensionChartInterval,
+	useLocalStorageSettingsManager,
+	useManageAppSettings
+} from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
 import { VOLUME_TYPE_ADAPTORS } from '~/api/categories/adaptors'
 
@@ -96,7 +100,7 @@ export const aggregateDataByInterval =
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const router = useRouter()
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
-	const [chartInterval, changeChartInterval] = useChartInterval()
+	const [chartInterval, changeChartInterval] = useDimensionChartInterval()
 	const dataType = VOLUME_TYPE_ADAPTORS.includes(props.type) ? 'volume' : props.type
 
 	const { barsData, simpleStack } = React.useMemo(() => {
@@ -199,7 +203,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							{GROUP_INTERVALS_LIST.map((dataInterval) => (
 								<a
 									key={dataInterval}
-									onClick={() => changeChartInterval(dataInterval)}
+									onClick={() => changeChartInterval(dataInterval as 'Daily' | 'Weekly' | 'Monthly')}
 									data-active={dataInterval === chartInterval}
 									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 								>

@@ -230,7 +230,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const [extraTvlsEnabled, updater] = useLocalStorageSettingsManager('tvl+fees')
+	const [extraTvlsEnabled, updater] = useLocalStorageSettingsManager('tvl_fees')
 
 	const { data: twitterData } = useFetchProtocolTwitter(protocolData?.twitter ? protocolData?.twitter : null)
 	const weeksFromLastTweet = React.useMemo(() => {

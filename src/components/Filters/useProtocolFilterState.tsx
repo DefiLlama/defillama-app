@@ -50,7 +50,7 @@ export function useTvlAndFeesFilterState({
 		help?: string
 	}[]
 }) {
-	const [toggledKeys, updater] = useLocalStorageSettingsManager('tvl+fees')
+	const [toggledKeys, updater] = useLocalStorageSettingsManager('tvl_fees')
 
 	const fitlers = options.map((o) => o.key)
 

@@ -107,8 +107,8 @@ const useAppSettings = (): {
 	}
 
 	if (router.pathname.startsWith('/protocol')) {
-		return { options: [...protocolsAndChainsOptions, ...feesOptions], dashboardType: 'tvl+fees' }
+		return { options: [...protocolsAndChainsOptions, ...feesOptions], dashboardType: 'tvl_fees' }
 	}
 
-	return { options: protocolsAndChainsOptions, dashboardType: 'tvl+fees' }
+	return { options: protocolsAndChainsOptions, dashboardType: 'tvl_fees' }
 }

@@ -79,8 +79,6 @@ export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES'
 // DIMENSIONS (DEXS AND FEES)
 const DIMENSIONS_CHART_INTERVAL_KEY = 'DIMENSIONS:CHART_INTERVAL'
 
-export const BAR_MIN_WIDTH_IN_CHART = 'BAR_MIN_WIDTH_IN_CHART'
-
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS } as const
 
 const BRIBES = 'bribes'
@@ -166,13 +164,7 @@ export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
 export const BRIDGES_SETTINGS_KEYS = Object.values(BRIDGES_SETTINGS)
 
-const UPDATABLE_KEYS = [
-	DEFI_WATCHLIST,
-	YIELDS_WATCHLIST,
-	SELECTED_PORTFOLIO,
-	DIMENSIONS_CHART_INTERVAL_KEY,
-	BAR_MIN_WIDTH_IN_CHART
-]
+const UPDATABLE_KEYS = [DEFI_WATCHLIST, YIELDS_WATCHLIST, SELECTED_PORTFOLIO]
 
 const UPDATE_KEY = 'UPDATE_KEY'
 const UPDATE_KEY_OPTIONALLY_PERSIST = 'UPDATE_KEY_OPTIONALLY_PERSIST'
@@ -217,8 +209,7 @@ function init() {
 	const defaultLocalStorage = {
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
-		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME,
-		[BAR_MIN_WIDTH_IN_CHART]: 0
+		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME
 	}
 
 	try {
@@ -357,12 +348,13 @@ const updateSetting = (key) => {
 export type TSETTINGTYPE =
 	| 'tvl'
 	| 'fees'
-	| 'tvl+fees'
+	| 'tvl_fees'
 	| 'tvl_chains'
 	| 'stablecoins'
 	| 'nfts'
 	| 'liquidations'
 	| 'bridges'
+	| 'dimension_chart_interval'
 
 function getSettingKeys(type: TSETTINGTYPE) {
 	switch (type) {
@@ -370,7 +362,7 @@ function getSettingKeys(type: TSETTINGTYPE) {
 			return DEFI_SETTINGS_KEYS
 		case 'fees':
 			return FEES_SETTINGS_KEYS
-		case 'tvl+fees':
+		case 'tvl_fees':
 			return [...DEFI_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS]
 		case 'tvl_chains':
 			return DEFI_CHAINS_KEYS
@@ -394,9 +386,11 @@ export function useLocalStorageSettingsManager(type: TSETTINGTYPE): [Record<stri
 		() => '{}'
 	)
 
-	const urlParams = typeof document !== 'undefined' ? new URLSearchParams(window.location.search) : null
+	const isClient = useIsClient()
 
 	const toggledSettings = useMemo(() => {
+		const urlParams = isClient ? new URLSearchParams(window.location.search) : null
+
 		const ps = JSON.parse(store)
 		return Object.fromEntries(
 			getSettingKeys(type).map((s) => [
@@ -404,7 +398,7 @@ export function useLocalStorageSettingsManager(type: TSETTINGTYPE): [Record<stri
 				(urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false
 			])
 		)
-	}, [store, type])
+	}, [store, type, isClient])
 
 	return [toggledSettings, updateSetting]
 }
@@ -424,16 +418,6 @@ export function useManageAppSettings(): [Record<string, boolean>, (keys: Record<
 	const toggledSettings = useMemo(() => JSON.parse(store), [store])
 
 	return [toggledSettings, updateAllSettings]
-}
-
-export function useChartManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-
-	const updater = (value: number) => {
-		updateKey(BAR_MIN_WIDTH_IN_CHART, value)
-	}
-
-	return [state[BAR_MIN_WIDTH_IN_CHART], updater]
 }
 
 // DEFI AND YIELDS WATCHLIST
@@ -504,16 +488,25 @@ export function useWatchlist() {
 	}
 }
 
-export function useChartInterval(): [string, (interval: string) => void] {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const isClient = useIsClient()
-	const chartInterval = isClient ? state[DIMENSIONS_CHART_INTERVAL_KEY] ?? 'Daily' : 'Daily'
+const updateChartInterval = (value: 'Daily' | 'Weekly' | 'Monthly') => {
+	const current = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+	localStorage.setItem(DEFILLAMA, JSON.stringify({ ...current, [DIMENSIONS_CHART_INTERVAL_KEY]: value }))
+	window.dispatchEvent(new Event('storage'))
+}
 
-	const changeChartInterval = useCallback(
-		(value) => {
-			updateKey(DIMENSIONS_CHART_INTERVAL_KEY, value)
-		},
-		[updateKey]
+export const useDimensionChartInterval = () => {
+	const store = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
 	)
-	return [chartInterval, changeChartInterval]
+
+	const chartInterval = useMemo(() => {
+		const currentStore = JSON.parse(store)
+		return ['Daily', 'Weekly', 'Monthly'].includes(currentStore[DIMENSIONS_CHART_INTERVAL_KEY])
+			? currentStore[DIMENSIONS_CHART_INTERVAL_KEY]
+			: 'Daily'
+	}, [store])
+
+	return [chartInterval, updateChartInterval] as const
 }
