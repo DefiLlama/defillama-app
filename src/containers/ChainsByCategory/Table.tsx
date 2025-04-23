@@ -410,7 +410,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: 'Stables',
 		accessorKey: 'stablesMcap',
-		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
+		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
 		size: 120,
 		meta: {
 			align: 'end'
@@ -420,7 +420,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		header: '24h DEXs Volume',
 		accessorKey: 'totalVolume24h',
 		enableSorting: true,
-		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
+		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
 		size: 152,
 		meta: {
 			align: 'end',
@@ -431,12 +431,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		header: `24h Chain Fees`,
 		accessorKey: 'totalFees24h',
 		enableSorting: true,
-		cell: (info) => {
-			const value = info.getValue()
-
-			if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
-			return <>${formattedNum(value)}</>
-		},
+		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -446,12 +441,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		header: `24h App Revenue`,
 		accessorKey: 'totalAppRevenue24h',
 		enableSorting: true,
-		cell: (info) => {
-			const value = info.getValue()
-
-			if (value === null || value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
-			return <>${formattedNum(value)}</>
-		},
+		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
 		size: 180,
 		meta: {
 			align: 'end',
@@ -472,11 +462,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: 'NFT Volume',
 		accessorKey: 'nftVolume',
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
+		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
 		size: 120,
 		meta: {
 			align: 'end'
