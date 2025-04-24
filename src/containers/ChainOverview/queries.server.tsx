@@ -663,10 +663,10 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				parentFees.pf = getAnnualizedRatio(parentProtocol.mcap, parentFees.total30d)
 			}
 
-			const parentRevenue = parentStore[parentProtocol.id].some((child) => child.fees !== null)
+			const parentRevenue = parentStore[parentProtocol.id].some((child) => child.revenue !== null)
 				? parentStore[parentProtocol.id].reduce((acc, curr) => {
-						for (const key1 in curr.fees ?? {}) {
-							acc[key1] = (acc[key1] ?? 0) + curr.fees[key1]
+						for (const key1 in curr.revenue ?? {}) {
+							acc[key1] = (acc[key1] ?? 0) + curr.revenue[key1]
 						}
 						return acc
 				  }, {} as IChildProtocol['revenue'])
