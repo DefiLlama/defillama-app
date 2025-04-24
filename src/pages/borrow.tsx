@@ -212,7 +212,7 @@ const TokensSelect = ({
 									<Ariakit.SelectItem
 										key={`${query}-${option.name}`}
 										value={option.name}
-										className="group flex items-center gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[#E6E6E6] dark:border-[#39393E]"
+										className="group flex items-center gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
 										render={<Ariakit.ComboboxItem />}
 									>
 										{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : `${option.symbol}`}
@@ -293,16 +293,16 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 
 	return (
 		<div className="rounded-md bg-white/60 dark:bg-black/60 flex flex-col overflow-y-auto">
-			<div className="flex flex-wrap overflow-x-auto border-b border-[#E6E6E6] dark:border-[#39393E]">
+			<div className="flex flex-wrap overflow-x-auto border-b border-[var(--form-control-border)]">
 				<button
-					className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-[#E6E6E6] dark:border-[#39393E] data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+					className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-[var(--form-control-border)] data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
 					onClick={() => setTab('safe')}
 					data-selected={tab === 'safe'}
 				>
 					Safe
 				</button>
 				<button
-					className="py-2 px-6 whitespace-nowrap border-b border-l border-[#E6E6E6] dark:border-[#39393E] data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+					className="py-2 px-6 whitespace-nowrap border-b border-l border-[var(--form-control-border)] data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
 					onClick={() => setTab('degen')}
 					data-selected={tab === 'degen'}
 				>

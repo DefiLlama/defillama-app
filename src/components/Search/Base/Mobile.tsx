@@ -70,13 +70,13 @@ const DefiSearch = memo(function DefiSearch() {
 							refine(e.target.value)
 						}}
 						autoFocus
-						className="absolute top-2 left-2 right-2 p-3 rounded-t-md text-base bg-[var(--bg6)] text-[var(--text1)]"
+						className="absolute top-2 left-2 right-2 p-3 rounded-t-md text-base bg-[var(--cards-bg)] text-[var(--text1)]"
 					/>
 					<button onClick={() => setDisplay(false)} className="absolute z-10 top-5 right-5">
 						<span className="sr-only">Close Search</span>
 						<Icon name="x" height={24} width={24} />
 					</button>
-					<div className="h-full max-h-[240px] overflow-y-auto bg-[var(--bg6)] rounded-b-md shadow z-10 absolute left-2 right-2 top-[56px]">
+					<div className="h-full max-h-[240px] overflow-y-auto bg-[var(--cards-bg)] rounded-b-md shadow z-10 absolute left-2 right-2 top-[56px]">
 						{status === 'loading' ? (
 							<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
 						) : finalResults.length ? (
@@ -164,13 +164,13 @@ const MobileSearchV1 = memo(function MobileSearchV1() {
 							onSearchTermChange?.(e.target.value)
 						}}
 						autoFocus
-						className="absolute top-2 left-2 right-2 p-3 rounded-t-md text-base bg-[var(--bg6)] text-[var(--text1)]"
+						className="absolute top-2 left-2 right-2 p-3 rounded-t-md text-base bg-[var(--cards-bg)] text-[var(--text1)]"
 					/>
 					<button onClick={() => setDisplay(false)} className="absolute z-10 top-5 right-5">
 						<span className="sr-only">Close Search</span>
 						<Icon name="x" height={24} width={24} />
 					</button>
-					<div className="h-full max-h-[240px] overflow-y-auto bg-[var(--bg6)] rounded-b-md shadow z-10 absolute left-2 right-2 top-[56px]">
+					<div className="h-full max-h-[240px] overflow-y-auto bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] rounded-b-md shadow z-10 absolute left-2 right-2 top-[56px]">
 						{loading ? (
 							<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
 						) : finalResults.length ? (

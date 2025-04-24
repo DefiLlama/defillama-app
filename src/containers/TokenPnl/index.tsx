@@ -122,7 +122,7 @@ export default function TokenPnl({ coinsData }) {
 						<span>Start Date:</span>
 						<input
 							type="date"
-							className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-[#E6E6E6] dark:border-[#39393E]"
+							className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-[var(--form-control-border)]"
 							value={unixToDateString(start)}
 							onChange={(e) => updateDateAndFetchPnl(e.target.value, true)}
 							min={unixToDateString(0)}
@@ -139,7 +139,7 @@ export default function TokenPnl({ coinsData }) {
 						<span>End Date:</span>
 						<input
 							type="date"
-							className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-[#E6E6E6] dark:border-[#39393E]"
+							className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-[var(--form-control-border)]"
 							value={unixToDateString(end)}
 							onChange={(e) => updateDateAndFetchPnl(e.target.value, false)}
 							min={unixToDateString(start)}
@@ -161,7 +161,7 @@ export default function TokenPnl({ coinsData }) {
 									setModalOpen(1)
 									dialogStore.toggle()
 								}}
-								className="flex items-center gap-1 p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-[#E6E6E6] dark:border-[#39393E]"
+								className="flex items-center gap-1 p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-[var(--form-control-border)]"
 							>
 								<img
 									src={selectedCoins[0].image}
@@ -179,7 +179,7 @@ export default function TokenPnl({ coinsData }) {
 										setModalOpen(1)
 										dialogStore.toggle()
 									}}
-									className="flex items-center gap-1 p-[6px] rounded-md text-base bg-white text-black/60 dark:bg-black dark:text-white/60 border border-[#E6E6E6] dark:border-[#39393E]"
+									className="flex items-center gap-1 p-[6px] rounded-md text-base bg-white text-black/60 dark:bg-black dark:text-white/60 border border-[var(--form-control-border)]"
 								>
 									<Icon name="search" height={16} width={16} />
 									<span>Search coins...</span>

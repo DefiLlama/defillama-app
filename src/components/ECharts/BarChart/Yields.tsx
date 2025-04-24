@@ -182,7 +182,7 @@ export default function BarChartYields({ chartData }: IChartProps) {
 	}
 
 	return (
-		<div className="relative rounded-md p-5 bg-[var(--bg6)] flex flex-col items-end">
+		<div className="relative rounded-md p-3 bg-[var(--cards-bg)] flex flex-col items-end">
 			<div id={id} className="min-h-[600px] w-full" />
 			<CSVDownloadButton onClick={downloadCsv} />
 		</div>

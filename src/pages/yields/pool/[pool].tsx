@@ -332,7 +332,7 @@ const PageView = (props) => {
 						</h2>
 						<div className="flex flex-col items-start relative">
 							<div className="flex flex-col justify-between flex-1 w-full relative">
-								<div className="flex items-center p-1 border border-[var(--text4)] mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-[var(--form-control-border)] mb-3 last:mb-0 rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.pool_design?.rating_color)}
@@ -341,7 +341,7 @@ const PageView = (props) => {
 									</p>
 									<p className="text-sm flex-1">Pool Design</p>
 								</div>
-								<div className="flex items-center p-1 border border-[var(--text4)] mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-[var(--form-control-border)] mb-3 last:mb-0 rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.assets?.rating_color)}
@@ -364,7 +364,7 @@ const PageView = (props) => {
 										))}
 									</div>
 								</div>
-								<div className="flex items-center p-1 border border-[var(--text4)] mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-[var(--form-control-border)] mb-3 last:mb-0 rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.protocols?.underlying[0]?.rating_color)}
@@ -389,7 +389,7 @@ const PageView = (props) => {
 											))}
 									</div>
 								</div>
-								<div className="flex items-center p-1 border border-[var(--text4)] mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-[var(--form-control-border)] mb-3 last:mb-0 rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.chain?.rating_color)}

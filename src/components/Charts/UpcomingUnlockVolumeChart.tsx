@@ -90,7 +90,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 	return (
 		<>
 			<div className="flex items-center gap-2 p-3">
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 					{TIME_PERIODS.map((period) => (
 						<button
 							key={period}
@@ -104,7 +104,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 				</div>
 				<button
 					onClick={() => setIsFullView(!isFullView)}
-					className={`py-2 px-3 text-xs font-medium rounded-md border border-[#E6E6E6] dark:border-[#2F3336] transition-all ${
+					className={`py-2 px-3 text-xs font-medium rounded-md border border-[var(--form-control-border)] transition-all ${
 						isFullView
 							? 'bg-[var(--old-blue)] text-white shadow-sm'
 							: 'bg-[var(--bg7)] text-[var(--text1)] hover:text-[var(--old-blue)] hover:bg-[var(--bg8)]'

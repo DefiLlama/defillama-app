@@ -43,7 +43,7 @@ export function Select({
 			>
 				<NestedMenu label={label} render={<Ariakit.Select />}>
 					{clearAll || toggleAll ? (
-						<span className="sticky z-[1] top-0 flex flex-wrap justify-between gap-1 bg-[var(--bg1)] text-[var(--link)] text-xs border-b border-[#E6E6E6] dark:border-[#39393E]">
+						<span className="sticky z-[1] top-0 flex flex-wrap justify-between gap-1 bg-[var(--bg1)] text-[var(--link)] text-xs border-b border-[var(--form-control-border)]">
 							{clearAll ? (
 								<button onClick={clearAll} className="p-3">
 									Clear
@@ -61,7 +61,7 @@ export function Select({
 							key={valuesAreAnArrayOfStrings ? option : option.key}
 							render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
 							hideOnClick={false}
-							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[#E6E6E6] dark:border-[#39393E]"
+							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
 						>
 							{valuesAreAnArrayOfStrings ? (
 								<span>{option}</span>
@@ -133,7 +133,7 @@ export function Select({
 				{allValues.length > 0 ? (
 					<>
 						{clearAll || toggleAll ? (
-							<span className="sticky z-[1] top-0 flex flex-wrap justify-between gap-1 bg-[var(--bg1)] text-[var(--link)] text-xs border-b border-[#E6E6E6] dark:border-[#39393E]">
+							<span className="sticky z-[1] top-0 flex flex-wrap justify-between gap-1 bg-[var(--bg1)] text-[var(--link)] text-xs border-b border-[var(--form-control-border)]">
 								{clearAll ? (
 									<button onClick={clearAll} className="p-3">
 										Clear
@@ -151,7 +151,7 @@ export function Select({
 							<Ariakit.SelectItem
 								key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 								value={valuesAreAnArrayOfStrings ? option : option.key}
-								className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[#E6E6E6] dark:border-[#39393E]"
+								className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
 							>
 								{valuesAreAnArrayOfStrings ? (
 									<span>{option}</span>

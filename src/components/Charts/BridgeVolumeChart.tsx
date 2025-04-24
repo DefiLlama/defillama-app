@@ -104,7 +104,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 			<div className="flex justify-end flex-wrap max-w-2xl w-full mx-auto gap-4 p-3 overflow-x-auto">
 				<div className="flex-1 flex flex-col gap-1 ml-auto">
 					<h2 className="text-sm font-medium text-[var(--text2)]">Time Period:</h2>
-					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 						{TIME_PERIODS.map((period) => (
 							<button
 								key={period}
@@ -120,7 +120,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 
 				<div className="flex-1 flex flex-col gap-1">
 					<h2 className="text-sm font-medium text-[var(--text2)]">View:</h2>
-					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 						<button
 							onClick={() => setViewType('Split')}
 							data-active={viewType === 'Split'}
@@ -140,7 +140,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 
 				<div className="flex-1 flex flex-col gap-1">
 					<h2 className="text-sm font-medium text-[var(--text2)]">Metric:</h2>
-					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 						<button
 							onClick={() => setMetricType('Volume')}
 							data-active={metricType === 'Volume'}

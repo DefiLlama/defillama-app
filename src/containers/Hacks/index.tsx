@@ -88,7 +88,7 @@ function HacksTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-[#E6E6E6] dark:border-[#39393E] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 			</div>
@@ -143,7 +143,7 @@ function ChartSelector({ options, selectedChart, onClick }) {
 
 	return (
 		<Ariakit.SelectProvider value={selectedChart} setValue={onClick}>
-			<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10">
+			<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10">
 				<FormattedName text={selectedChart} maxCharacters={20} fontSize={'16px'} fontWeight={600} />
 				<Ariakit.SelectArrow />
 			</Ariakit.Select>
@@ -163,7 +163,7 @@ function ChartSelector({ options, selectedChart, onClick }) {
 						focusOnHover
 						setValueOnClick={false}
 						onClick={() => onItemClick(option)}
-						className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[#E6E6E6] dark:border-[#39393E]"
+						className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
 					>
 						{option}
 					</Ariakit.SelectItem>

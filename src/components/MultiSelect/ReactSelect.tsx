@@ -18,7 +18,7 @@ const customStyles = {
 	}),
 	menu: (provided) => ({
 		...provided,
-		background: 'var(--bg6)',
+		background: 'var(--cards-bg)',
 		zIndex: 10
 	}),
 	option: (provided, state) => ({

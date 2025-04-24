@@ -137,14 +137,14 @@ const ProApi = () => {
 							<table className="border-collapse">
 								<tbody>
 									<tr>
-										<th className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]"></th>
-										<th className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<th className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]"></th>
+										<th className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Free
 										</th>
-										<th className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<th className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											300$/mo
 										</th>
-										<th className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<th className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											<span className="flex items-center gap-2">
 												Github Contributor
 												<QuestionHelper text="Only available to users who have contributed to DefiLlama repos, lasts for 3 months" />
@@ -152,70 +152,70 @@ const ProApi = () => {
 										</th>
 									</tr>
 									<tr>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Access to TVL, revenue/fees and prices
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Yes
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Yes
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Yes
 										</td>
 									</tr>
 									<tr>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Access to all data (unlocks, active users, token liq...)
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											No
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Yes
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Yes
 										</td>
 									</tr>
 									<tr>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Rate limits
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											10-200 reqs/minute
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											1k reqs/minute
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											1k reqs/minute
 										</td>
 									</tr>
 									<tr>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Credits
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]"></td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]"></td>
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											1M calls/month
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											200k calls/month
 										</td>
 									</tr>
 									<tr>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Support
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Public discord
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Priority support
 										</td>
-										<td className="p-3 whitespace-nowrap border border-[#E6E6E6] dark:border-[#39393E] bg-[var(--bg1)] text-[var(--text1)]">
+										<td className="p-3 whitespace-nowrap border border-[var(--form-control-border)] bg-[var(--bg1)] text-[var(--text1)]">
 											Priority support
 										</td>
 									</tr>

@@ -73,7 +73,7 @@ const CurrencyToggle = (props: { symbol: string }) => {
 	const isLiqsUsingUsd = liqsSettings[LIQS_USING_USD]
 
 	return (
-		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 			<button
 				data-active={!isLiqsUsingUsd}
 				onClick={() => toggleLiqsSettings(LIQS_USING_USD)}

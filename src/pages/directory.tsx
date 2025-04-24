@@ -64,7 +64,7 @@ export default function Protocols({ protocols }) {
 				<Ariakit.ComboboxPopover
 					sameWidth
 					open={true}
-					className="h-full max-h-[320px] overflow-y-auto bg-[var(--bg6)] rounded-b-md shadow z-10 border border-[#ececec] dark:border-[#2d2f36]"
+					className="h-full max-h-[320px] overflow-y-auto bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] rounded-b-md shadow z-10"
 				>
 					{matches.length ? (
 						<>

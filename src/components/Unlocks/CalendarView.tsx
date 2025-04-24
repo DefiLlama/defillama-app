@@ -96,7 +96,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 						? 'TreeMap Chart'
 						: `Unlocks starting ${currentDate.format('MMM D, YYYY')} (Next 30 Days)`}
 				</h2>
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 					<button
 						onClick={() => setViewMode('month')}
 						data-active={viewMode === 'month'}
@@ -126,7 +126,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 						List
 					</button>
 				</div>
-				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 					<button
 						onClick={prev}
 						className="p-2 rounded hover:bg-[var(--bg7)] text-[var(--text2)] hover:text-[var(--text1)]"

@@ -8,7 +8,7 @@ export const StackBySwitch = () => {
 	const _stackBy = !!stackBy ? stackBy : 'protocols'
 
 	return (
-		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 			<button
 				data-active={_stackBy === 'protocols'}
 				onClick={() => {

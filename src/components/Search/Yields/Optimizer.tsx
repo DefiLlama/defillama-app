@@ -52,7 +52,7 @@ export function YieldsSearch({ lend = false, searchData, value }) {
 						onChange={(e) => {
 							setSearchValue?.(e.target.value)
 						}}
-						className="p-4 mb-4 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white border border-[#E6E6E6] dark:border-[#39393E] sm:hidden"
+						className="p-4 mb-4 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white border border-[var(--form-control-border)] sm:hidden"
 					/>
 					{matches.length ? (
 						<>
@@ -110,7 +110,7 @@ function Input({ placeholder, onSearchTermChange, open, setOpen }: IInputProps) 
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="p-2 pl-8 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white border border-[#E6E6E6] dark:border-[#39393E]"
+				className="p-2 pl-8 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white border border-[var(--form-control-border)]"
 			/>
 		</>
 	)

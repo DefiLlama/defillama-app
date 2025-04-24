@@ -223,7 +223,7 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 	}, [id, data, createInstance, isDark])
 
 	return (
-		<div className="relative rounded-md p-5 bg-[var(--bg6)] flex flex-col items-end">
+		<div className="relative rounded-md p-3 bg-[var(--cards-bg)] flex flex-col items-end">
 			<div id={id} className="min-h-[800px] w-full" />
 		</div>
 	)

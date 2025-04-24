@@ -86,7 +86,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						name={selectedPortfolio}
 						options={portfolios}
 						onItemClick={(value) => setSelectedPortfolio(value)}
-						className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium"
+						className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium"
 					/>
 					<button onClick={addPortfolio}>
 						<Icon name="folder-plus" height={24} width={24} />
@@ -234,7 +234,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 export const WatchListTabs = () => {
 	const router = useRouter()
 	return (
-		<nav className="text-xs font-semibold flex items-center gap-2 border-b-2 border-[#E6E6E6] dark:border-[#39393E] w-full max-w-fit relative">
+		<nav className="text-xs font-semibold flex items-center gap-2 border-b-2 border-[var(--form-control-border)] w-full max-w-fit relative">
 			<Link href={'/watchlist'} passHref>
 				<a
 					data-active={router.pathname === '/watchlist'}

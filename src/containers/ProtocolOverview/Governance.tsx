@@ -77,7 +77,7 @@ export function GovernanceTable({ data, governanceType }) {
 							setProposalName(e.target.value)
 						}}
 						placeholder="Search proposals..."
-						className="border border-[#E6E6E6] dark:border-[#39393E] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 			</div>

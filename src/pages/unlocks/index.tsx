@@ -134,7 +134,7 @@ export default function Protocols({ data }) {
 
 					<button
 						onClick={() => setShowOnlyWatchlist((prev) => !prev)}
-						className="border border-[#E6E6E6] dark:border-[#39393E] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+						className="border border-[var(--form-control-border)] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
 					>
 						<Icon
 							name="bookmark"
@@ -147,7 +147,7 @@ export default function Protocols({ data }) {
 
 					<button
 						onClick={() => setShowOnlyInsider((prev) => !prev)}
-						className="border border-[#E6E6E6] dark:border-[#39393E] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+						className="border border-[var(--form-control-border)] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
 					>
 						<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text1)' : 'none' }} />
 						{showOnlyInsider ? 'Show All' : 'Show Insiders Only'}
@@ -166,7 +166,7 @@ export default function Protocols({ data }) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search projects..."
-							className="border border-[#E6E6E6] dark:border-[#39393E] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
 				</div>

@@ -160,7 +160,7 @@ export default function Correlations({ coinsData }) {
 			<ProtocolsChainsSearch />
 			<div className="p-3 bg-[var(--cards-bg)] rounded-md flex items-center flex-wrap justify-between gap-4">
 				<h1 className="text-xl font-semibold">Correlations Matrix</h1>
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 					<button
 						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 						onClick={() => setPeriod(7)}

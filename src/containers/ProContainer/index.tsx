@@ -225,7 +225,7 @@ export function ChainContainer({ selectedChain = 'All', chainOptions, protocolsL
 							<SortableContext items={items} strategy={rectSortingStrategy}>
 								{items.map((id, i) => (
 									<SortableItem id={id} key={id + items.length} isTable={id.includes('table')}>
-										<div className="rounded-cl p-2 shadow bg-[var(--bg6)]">
+										<div className="rounded-cl p-2 shadow bg-[var(--cards-bg)]">
 											<div className="font-bold text-sm mx-4 mt-1">{getName(id)}</div>
 											{renderChart(id, i)}
 										</div>

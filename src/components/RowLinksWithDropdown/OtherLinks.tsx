@@ -96,7 +96,7 @@ const Item = ({ label, to }: { label: string; to: string }) => {
 				}
 			}}
 			render={<Ariakit.ComboboxItem value={label} />}
-			className="group flex items-center gap-4 py-2 px-3 flex-shrink-0 data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[#E6E6E6] dark:border-[#39393E]"
+			className="group flex items-center gap-4 py-2 px-3 flex-shrink-0 data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
 		>
 			<span>{label}</span>
 			{loading ? (

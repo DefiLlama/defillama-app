@@ -466,7 +466,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					</div>
 				)}
 
-				<div className="mt-4 text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+				<div className="mt-4 text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 					<button
 						onClick={() => setTimeView('currentMonth')}
 						data-active={timeView === 'currentMonth'}

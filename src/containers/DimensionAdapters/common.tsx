@@ -192,7 +192,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
 				<>
 					<div className="flex gap-2 flex-row items-center flex-wrap justify-between p-3">
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 							{GROUP_INTERVALS_LIST.map((dataInterval) => (
 								<a
 									key={dataInterval}
@@ -205,7 +205,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							))}
 						</div>
 						{props.chartTypes && (
-							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 								{props.chartTypes.map((dataType) => (
 									<Link href={`${router.asPath.split('?')[0]}?dataType=${dataType}`} key={dataType} shallow passHref>
 										<a
@@ -219,7 +219,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							</div>
 						)}
 						{props.chartData?.[1]?.length > 1 ? (
-							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 								{GROUP_CHART_LIST.map((dataType) => (
 									<button
 										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"

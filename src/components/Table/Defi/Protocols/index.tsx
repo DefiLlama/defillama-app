@@ -292,7 +292,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 					}}
 				/>
 				<TVLRange variant="third" />
@@ -401,7 +401,7 @@ export function ProtocolsTableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="border border-[#E6E6E6] dark:border-[#39393E] w-full p-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-[var(--form-control-border)] w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 			</div>

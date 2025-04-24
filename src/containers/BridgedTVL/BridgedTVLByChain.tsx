@@ -101,7 +101,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 					</div>
 					<div className="bg-[var(--cards-bg)] rounded-md col-span-2 flex flex-col items-center gap-4 min-h-[434px]">
 						<div className="w-full max-w-fit overflow-x-auto p-3">
-							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 								{chartTypes.map(({ type, name }) =>
 									chainData[type]?.total !== '0' ? (
 										<button

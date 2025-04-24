@@ -181,7 +181,7 @@ export default function Protocols({ emissions }) {
 							}}
 							className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 						>
-							<span className="sticky z-[1] top-0 flex flex-wrap justify-between gap-1 bg-[var(--bg1)] text-[var(--link)] text-xs border-b border-[#E6E6E6] dark:border-[#39393E]">
+							<span className="sticky z-[1] top-0 flex flex-wrap justify-between gap-1 bg-[var(--bg1)] text-[var(--link)] text-xs border-b border-[var(--form-control-border)]">
 								<button
 									onClick={() => {
 										router.push(
@@ -224,7 +224,7 @@ export default function Protocols({ emissions }) {
 								<Ariakit.SelectItem
 									key={`calendar-type-${value}`}
 									value={value}
-									className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[#E6E6E6] dark:border-[#39393E]"
+									className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
 								>
 									<span>{value}</span>
 									<Ariakit.SelectItemCheck className="h-3 w-3 flex items-center justify-center rounded-sm flex-shrink-0 border border-[#28a2b5]" />
@@ -246,7 +246,7 @@ export default function Protocols({ emissions }) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search events..."
-							className="border border-[#E6E6E6] dark:border-[#39393E] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
 				</div>

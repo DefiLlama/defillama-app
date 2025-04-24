@@ -43,7 +43,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 			}}
 		>
 			<Ariakit.MenuProvider>
-				<Ariakit.MenuButton className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium">
+				<Ariakit.MenuButton className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium">
 					<TokenLogo logo={selectedAsset.logo} size={20} />
 					<FormattedName text={selectedAsset.name} maxCharacters={20} fontWeight={700} />
 					<span className="font-normal mr-auto">({selectedAsset.symbol})</span>
@@ -72,7 +72,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 										focusOnHover
 										hideOnClick
 										role="link"
-										className="flex items-center gap-1 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[#E6E6E6] dark:border-[#39393E]"
+										className="flex items-center gap-1 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
 									>
 										<TokenLogo logo={match.logo} size={20} />
 										{match.name} ({match.symbol})

@@ -39,7 +39,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 					handleClick(values)
 				}}
 			>
-				<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10">
+				<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10">
 					{currentChain}
 					<Ariakit.SelectArrow className="ml-auto" />
 				</Ariakit.Select>
@@ -65,7 +65,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 									<Ariakit.SelectItem
 										key={`bridge-chain-${option.name}`}
 										value={option.name}
-										className="group flex items-center gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[#E6E6E6] dark:border-[#39393E]"
+										className="group flex items-center gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
 										render={<Ariakit.ComboboxItem />}
 									>
 										<span>{option.name}</span>

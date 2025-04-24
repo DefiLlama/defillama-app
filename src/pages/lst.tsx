@@ -60,16 +60,16 @@ const PageView = ({
 				</h1>
 
 				<div className="bg-[var(--cards-bg)] rounded-md w-full flex flex-col">
-					<div className="flex flex-wrap overflow-x-auto border-y border-[#E6E6E6] dark:border-[#39393E]">
+					<div className="flex flex-wrap overflow-x-auto border-y border-[var(--form-control-border)]">
 						<button
-							className="py-2 px-6 whitespace-nowrap border-[#E6E6E6] dark:border-[#39393E] data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							className="py-2 px-6 whitespace-nowrap border-[var(--form-control-border)] data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
 							onClick={() => setTab('breakdown')}
 							data-selected={tab === 'breakdown'}
 						>
 							Breakdown
 						</button>
 						<button
-							className="py-2 px-6 whitespace-nowrap border-l border-[#E6E6E6] dark:border-[#39393E] data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							className="py-2 px-6 whitespace-nowrap border-l border-[var(--form-control-border)] data-[selected=true]:border-b data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
 							onClick={() => setTab('inflows')}
 							data-selected={tab === 'inflows'}
 						>
@@ -95,7 +95,7 @@ const PageView = ({
 							</div>
 						) : (
 							<div className="flex flex-col w-full gap-1">
-								<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+								<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 									<button
 										data-active={groupBy === 'daily'}
 										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"

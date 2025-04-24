@@ -153,7 +153,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="border border-[#E6E6E6] dark:border-[#39393E] w-full py-[6px] px-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
+							className="border border-[var(--form-control-border)] w-full py-[6px] px-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
 						/>
 					</div>
 					{/* <ReactSelect
@@ -278,7 +278,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="border border-[#E6E6E6] dark:border-[#39393E] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
+							className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
 						/>
 					</div>
 				</div>
@@ -309,7 +309,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 											{ shallow: true }
 										)
 									}}
-									className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[#E6E6E6] dark:border-[#39393E]"
+									className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
 								>
 									{item.label}
 								</Ariakit.MenuItem>

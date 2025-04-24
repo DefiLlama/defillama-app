@@ -745,7 +745,7 @@ export const Stats = (props: IChainOverviewData) => {
 					</div>
 
 					{DENOMINATIONS.length > 1 ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 							{DENOMINATIONS.map((denom) => (
 								<button
 									key={`denom-${denom}`}
@@ -760,7 +760,7 @@ export const Stats = (props: IChainOverviewData) => {
 					) : null}
 
 					{hasAtleasOneBarChart ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 							<Tooltip
 								content="Daily"
 								render={<button />}
