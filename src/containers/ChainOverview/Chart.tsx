@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import uniq from 'lodash/uniq'
 import * as echarts from 'echarts/core'
-import { getUtcDateObject } from '~/components/ECharts/utils'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { useRouter } from 'next/router'
 import { primaryColor } from '~/constants/colors'
@@ -158,7 +157,7 @@ export function ChainChart({
 					show: true
 				} as Record<string, any>)
 				data?.globalChart?.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 			if (route.volume === 'true' && data?.volumeChart) {
@@ -178,7 +177,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.volumeChart.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 
@@ -198,7 +197,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.feesChart.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 
@@ -218,7 +217,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.feesChart.forEach(([date, _, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 
@@ -238,7 +237,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.appRevenueChart.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 
@@ -259,7 +258,7 @@ export function ChainChart({
 				})
 				data?.priceData.forEach(([date, value]) => {
 					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
-						series[series.length - 1].data.push([getUtcDateObject(date), value])
+						series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 
@@ -280,7 +279,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.usersData.forEach(([date, value, value2]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), (value ?? 0) - (value2 ?? 0)])
+					series[series.length - 1].data.push([+date * 1e3, (value ?? 0) - (value2 ?? 0)])
 				})
 				series.push({
 					name: namePrefix + 'New Users',
@@ -296,7 +295,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.usersData.forEach(([date, value, value2]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value2 ?? 0])
+					series[series.length - 1].data.push([+date * 1e3, value2 ?? 0])
 				})
 			}
 
@@ -317,7 +316,7 @@ export function ChainChart({
 				})
 
 				data?.globalChart?.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), (data?.raisesData[date] || 0) * 1e6])
+					series[series.length - 1].data.push([+date * 1e3, (data?.raisesData[date] || 0) * 1e6])
 				})
 			}
 
@@ -337,7 +336,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.totalStablesData.forEach((data) => {
-					series[series.length - 1].data.push([getUtcDateObject(data.date), data.Mcap])
+					series[series.length - 1].data.push([+data.date * 1e3, data.Mcap])
 				})
 			}
 
@@ -358,7 +357,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.txsData.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 
@@ -379,7 +378,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.bridgeData.forEach(([date, inflow, outflow]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), outflow + inflow || 0])
+					series[series.length - 1].data.push([+date * 1e3, outflow + inflow || 0])
 				})
 			}
 
@@ -400,7 +399,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.developersChart?.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 
@@ -420,7 +419,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.commitsChart?.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 			if (route.chainTokenPrice === 'true' && data?.chainTokenPriceData && denomination === 'USD') {
@@ -440,7 +439,7 @@ export function ChainChart({
 				})
 				data?.chainTokenPriceData.forEach(([date, value]) => {
 					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
-						series[series.length - 1].data.push([getUtcDateObject(date), value])
+						series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 
@@ -462,7 +461,7 @@ export function ChainChart({
 				})
 				data?.chainTokenMcapData.forEach(([date, value]) => {
 					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
-						series[series.length - 1].data.push([getUtcDateObject(date), value])
+						series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 
@@ -483,7 +482,7 @@ export function ChainChart({
 				})
 				data?.aggregatorsData.forEach(([date, value]) => {
 					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
-						series[series.length - 1].data.push([getUtcDateObject(date), value])
+						series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 			if (route.perps === 'true' && data?.perpsChart) {
@@ -503,7 +502,7 @@ export function ChainChart({
 				})
 				data?.perpsChart.forEach(([date, value]) => {
 					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
-						series[series.length - 1].data.push([getUtcDateObject(date), value])
+						series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 			if (route.chainAssets === 'true' && data?.chainAssetsData) {
@@ -522,7 +521,7 @@ export function ChainChart({
 					areaStyle: areaColor
 				})
 				data?.chainAssetsData.forEach(([date, value]) => {
-					series[series.length - 1].data.push([getUtcDateObject(date), value])
+					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 			if (route.chainTokenVolume === 'true' && data?.chainTokenVolumeData) {
@@ -542,7 +541,7 @@ export function ChainChart({
 				})
 				data?.chainTokenVolumeData.forEach(([date, value]) => {
 					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
-						series[series.length - 1].data.push([getUtcDateObject(date), value])
+						series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 		})

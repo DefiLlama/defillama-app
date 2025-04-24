@@ -18,7 +18,7 @@ const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 const charts = ['TVL']
 
 const chartColors = {
-	TVL: '#4f8fea'
+	TVL: '#1f67d2'
 }
 
 export const ForksByProtocol = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {

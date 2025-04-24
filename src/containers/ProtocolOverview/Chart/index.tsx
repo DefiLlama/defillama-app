@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
-import { getUtcDateObject, stringToColour } from '~/components/ECharts/utils'
+import { stringToColour } from '~/components/ECharts/utils'
 import type { IChartProps } from '~/components/ECharts/types'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { toK } from '~/utils'
@@ -224,9 +224,7 @@ export default function AreaBarChart({
 
 		for (const { date, ...item } of chartData) {
 			for (const stack of stacks) {
-				series
-					.find((t) => t.name === stack)
-					?.data.push([getUtcDateObject(date), item[stack] || (stack === 'TVL' ? 0 : '-')])
+				series.find((t) => t.name === stack)?.data.push([+date * 1e3, item[stack] || (stack === 'TVL' ? 0 : '-')])
 			}
 		}
 
@@ -237,7 +235,7 @@ export default function AreaBarChart({
 					data: hallmarks.map(([date, event], index) => [
 						{
 							name: event,
-							xAxis: getUtcDateObject(date),
+							xAxis: +date * 1e3,
 							yAxis: 0,
 							label: {
 								color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -248,7 +246,7 @@ export default function AreaBarChart({
 						},
 						{
 							name: 'end',
-							xAxis: getUtcDateObject(date),
+							xAxis: +date * 1e3,
 							yAxis: 'max',
 							y: Math.max(hallmarks.length * 20 - index * 20, 20)
 						}
