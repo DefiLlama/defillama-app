@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { OptionToggle } from '~/components/OptionToggle'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import type { ICommonSearchProps } from '../types'
 import { useGetAdaptorsSearchList } from './hooks'
@@ -7,6 +6,7 @@ import { useIsClient } from '~/hooks'
 import { Select } from '~/components/Select'
 import { useFeesFilterState } from '~/components/Filters/useProtocolFilterState'
 import { feesOptions } from '~/components/Filters/options'
+import { Switch } from '~/components/Switch'
 
 interface IAdaptorSearchProps extends ICommonSearchProps {
 	onlyChains?: boolean
@@ -47,10 +47,10 @@ const BreakdownToggle = (props) => {
 	return (
 		<ul className="flex items-center justify-end">
 			<li className="ml-5 first-of-type:ml-0">
-				<OptionToggle
-					isLoading={!props.onToggleClick}
-					name="Protocol breakdown"
-					toggle={() => {
+				<Switch
+					label="Protocol breakdown"
+					value="Protocol breakdown"
+					onChange={() => {
 						setIsToggleEnabled((prev) => {
 							props.onToggleClick(!prev)
 							return !prev
@@ -58,7 +58,8 @@ const BreakdownToggle = (props) => {
 						return {} //
 					}}
 					help="Breakdown charts by protocol"
-					enabled={isToggleEnabled}
+					checked={isToggleEnabled}
+					isLoading={!props.onToggleClick}
 				/>
 			</li>
 		</ul>
