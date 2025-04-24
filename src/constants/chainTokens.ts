@@ -1559,5 +1559,10 @@ export const chainCoingeckoIdsForGasNotMcap = {
 		geckoId: 'ethereum',
 		symbol: 'ETH',
 		cmcId: '1027'
+	},
+	Swellchain: {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
 	}
 }
