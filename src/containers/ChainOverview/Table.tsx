@@ -25,16 +25,26 @@ import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
+import { useRouter } from 'next/router'
 
 const optionsKey = 'ptc'
 const filterStatekey = 'ptcfs'
 
 export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol> }) => {
+	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const minTvl =
+		typeof router.query.minTvl === 'string' && router.query.minTvl !== '' && !Number.isNaN(Number(router.query.minTvl))
+			? +router.query.minTvl
+			: null
+	const maxTvl =
+		typeof router.query.maxTvl === 'string' && router.query.maxTvl !== '' && !Number.isNaN(Number(router.query.maxTvl))
+			? +router.query.maxTvl
+			: null
 
 	const finalProtocols = useMemo(() => {
-		return formatProtocolsList2({ protocols, extraTvlsEnabled })
-	}, [protocols, extraTvlsEnabled])
+		return formatProtocolsList2({ protocols, extraTvlsEnabled, minTvl, maxTvl })
+	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
 
 	const columnsInStorage = useSyncExternalStore(
 		subscribeToLocalStorage,

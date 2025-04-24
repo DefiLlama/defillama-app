@@ -383,19 +383,25 @@ export const formatProtocolsList = ({
 
 export const formatProtocolsList2 = ({
 	protocols,
-	extraTvlsEnabled
+	extraTvlsEnabled,
+	minTvl,
+	maxTvl
 }: {
 	protocols: IProtocol[]
 	extraTvlsEnabled: ISettings
+	minTvl: number | null
+	maxTvl: number | null
 }): IProtocol[] => {
-	const shouldModifyTvl = Object.values(extraTvlsEnabled).some((t) => t)
+	const shouldModifyTvl = Object.values(extraTvlsEnabled).some((t) => t) || minTvl !== null || maxTvl !== null
 
 	if (!shouldModifyTvl) return protocols
 
 	const final = []
 	for (const protocol of protocols) {
 		if (!protocol.tvl) {
-			final.push({ ...protocol })
+			if (minTvl === null && maxTvl === null) {
+				final.push({ ...protocol })
+			}
 		} else {
 			let strikeTvl = protocol.strikeTvl ?? false
 
@@ -449,11 +455,17 @@ export const formatProtocolsList2 = ({
 
 					const mcaptvl = child.mcap != null ? +(child.mcap / defaultTvl.tvl).toFixed(2) : null
 
-					childProtocols.push({ ...child, strikeTvl, tvl: { default: defaultTvl }, tvlChange, mcaptvl })
+					if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
+						childProtocols.push({ ...child, strikeTvl, tvl: { default: defaultTvl }, tvlChange, mcaptvl })
+					}
 				}
-				final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, childProtocols, tvlChange, mcaptvl })
+				if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
+					final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, childProtocols, tvlChange, mcaptvl })
+				}
 			} else {
-				final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, tvlChange, mcaptvl })
+				if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
+					final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, tvlChange, mcaptvl })
+				}
 			}
 		}
 	}
