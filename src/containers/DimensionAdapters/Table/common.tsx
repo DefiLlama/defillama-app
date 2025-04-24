@@ -13,7 +13,9 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 	enableSorting: false,
 	cell: ({ getValue, row, table }) => {
 		const value = getValue() as string
+
 		const isParent = row.original?.subRows?.length > 0
+
 		const Link =
 			row.original?.category === 'NFT' ? (
 				isParent ? (
@@ -31,7 +33,9 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 					className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 				>{`${value}`}</CustomLink>
 			)
+
 		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 		return (
 			<span
 				className="flex items-center gap-2 relative"

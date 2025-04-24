@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
-import { getUtcDateObject, stringToColour } from '../utils'
+import { stringToColour } from '../utils'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -76,7 +76,7 @@ export default function BarChart({
 			}
 
 			for (const [date, value] of chartData ?? []) {
-				series.data.push([getUtcDateObject(date), value])
+				series.data.push([+date * 1e3, value])
 			}
 
 			return series
@@ -111,7 +111,7 @@ export default function BarChart({
 
 			for (const { date, ...item } of chartData) {
 				for (const stack of selectedStacks) {
-					series[stack]?.data?.push([getUtcDateObject(date), item[stack] || 0])
+					series[stack]?.data?.push([+date * 1e3, item[stack] || 0])
 				}
 			}
 

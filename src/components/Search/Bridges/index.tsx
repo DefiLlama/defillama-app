@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { OptionToggle } from '~/components/OptionToggle'
+import { Switch } from '~/components/Switch'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import type { ICommonSearchProps } from '../types'
 import { useGetBridgesSearchList } from './hooks'
@@ -36,16 +36,17 @@ export function BridgesSearchWithBreakdown({ onToggleClick, ...props }: IBridges
 				onToggleClick && (
 					<ul className="flex items-center justify-end">
 						<li className="ml-5 first-of-type:ml-0">
-							<OptionToggle
-								name="Bridge breakdown"
-								toggle={() => {
+							<Switch
+								label="Bridge breakdown"
+								value="Bridge breakdown"
+								onChange={() => {
 									setIsToggleEnabled((prev) => {
 										onToggleClick(!prev)
 										return !prev
 									})
 								}}
 								help="Break down 'All' volume chart by bridge"
-								enabled={isToggleEnabled}
+								checked={isToggleEnabled}
 							/>
 						</li>
 					</ul>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { getUtcDateObject, stringToColour } from '../utils'
+import { stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -83,7 +83,7 @@ export default function AreaChart({
 						data: hallmarks.map(([date, event], index) => [
 							{
 								name: event,
-								xAxis: getUtcDateObject(date),
+								xAxis: +date * 1e3,
 								yAxis: 0,
 								label: {
 									color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -94,7 +94,7 @@ export default function AreaChart({
 							},
 							{
 								name: 'end',
-								xAxis: getUtcDateObject(date),
+								xAxis: +date * 1e3,
 								yAxis: 'max',
 								y: Math.max(hallmarks.length * 40 - index * 40, 40)
 							}
@@ -104,7 +104,7 @@ export default function AreaChart({
 			}
 
 			for (const [date, value] of chartData ?? []) {
-				series.data.push([getUtcDateObject(date), value])
+				series.data.push([+date * 1e3, value])
 			}
 
 			return series
@@ -151,7 +151,7 @@ export default function AreaChart({
 							data: hallmarks.map(([date, event], index) => [
 								{
 									name: event,
-									xAxis: getUtcDateObject(date),
+									xAxis: +date * 1e3,
 									yAxis: 0,
 									label: {
 										color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -162,7 +162,7 @@ export default function AreaChart({
 								},
 								{
 									name: 'end',
-									xAxis: getUtcDateObject(date),
+									xAxis: +date * 1e3,
 									yAxis: 'max',
 									y: Math.max(hallmarks.length * 40 - index * 40, 40)
 								}
@@ -189,7 +189,7 @@ export default function AreaChart({
 								width: 0
 							}
 						}
-						series[stack].data.push([getUtcDateObject(date), value])
+						series[stack].data.push([+date * 1e3, value])
 					}
 				}
 			}

@@ -46,7 +46,7 @@ export function InputFilter({ placeholder, filterKey }: { placeholder: string; f
 				onChange={onChange}
 				type="number"
 				ref={ref}
-				className="p-2 pl-8 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white border border-black/10 dark:border-white/10"
+				className="p-2 pl-8 rounded-md text-sm bg-white text-black dark:bg-[#22242a] dark:text-white border border-[#E6E6E6] dark:border-[#39393E]"
 			/>
 		</div>
 	)

@@ -9,7 +9,6 @@ import { useGetFeesAndRevenueChartDataByChain, useGetVolumeChartDataByChain } fr
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useMemo } from 'react'
-import { getUtcDateObject } from '~/components/ECharts/utils'
 import { getPercentChange, getPrevTvlFromChart, nearestUtc } from '~/utils'
 
 export const useFetchChainChartData = ({
@@ -101,30 +100,28 @@ export const useFetchChainChartData = ({
 	const chartDatasets = useMemo(() => {
 		const priceData =
 			denomination === 'USD' && denominationPriceHistory?.prices
-				? denominationPriceHistory?.prices.map(([timestamp, price]) => [timestamp / 1000, price])
+				? denominationPriceHistory?.prices.map(([timestamp, price]) => [+timestamp, price])
 				: null
 
 		const isNonUSDDenomination = denomination !== 'USD' && denominationPriceHistory && chainGeckoId
 
 		const normalizedDenomination = isNonUSDDenomination
-			? Object.fromEntries(
-					denominationPriceHistory.prices.map(([timestamp, price]) => [getUtcDateObject(timestamp / 1000), price])
-			  )
+			? Object.fromEntries(denominationPriceHistory.prices.map(([timestamp, price]) => [+timestamp, price]))
 			: []
 
 		const finalTvlChart = isNonUSDDenomination
-			? globalChart.map(([date, tvl]) => [date, tvl / normalizedDenomination[getUtcDateObject(date)]])
+			? globalChart.map(([date, tvl]) => [date, tvl / normalizedDenomination[+date * 1e3]])
 			: globalChart
 
 		const finalVolumeChart = isNonUSDDenomination
-			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[getUtcDateObject(date)]])
+			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[+date * 1e3]])
 			: volumeChart
 
 		const finalFeesAndRevenueChart = isNonUSDDenomination
 			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
 					date,
-					fees / normalizedDenomination[getUtcDateObject(date)],
-					revenue / normalizedDenomination[getUtcDateObject(date)]
+					fees / normalizedDenomination[+date * 1e3],
+					revenue / normalizedDenomination[+date * 1e3]
 			  ])
 			: feesAndRevenueChart
 

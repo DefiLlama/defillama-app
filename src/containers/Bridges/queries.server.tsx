@@ -188,48 +188,17 @@ export async function getBridgeChainsPageData() {
 		})
 	)
 
-	let unformattedChartData = {}
-	let useOthers = false
-	chains.map((chain, i) => {
+	let chartData: Record<string, Record<string, number>> = {}
+
+	chains.forEach((chain, i) => {
 		const charts = chartDataByChain[i]
-		charts.map((chart) => {
+		charts.forEach((chart) => {
 			const date = chart.date
 			const netFlow = chart.depositUSD - chart.withdrawUSD
-			unformattedChartData[date] = unformattedChartData[date] || {}
-			unformattedChartData[date][chain.name] = netFlow
+			chartData[date] = chartData[date] || {}
+			chartData[date][chain.name] = netFlow
 		})
 	})
-	const chartDates = Object.keys(unformattedChartData)
-	const formattedChartEntries = Object.entries(unformattedChartData).reduce((acc, data) => {
-		const date = data[0]
-		const netFlows = data[1] as { [chain: string]: number }
-		let sortednetFlows = Object.entries(netFlows).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-
-		if (sortednetFlows.length > 11) {
-			useOthers = true
-			const othersnetFlow = sortednetFlows.slice(11).reduce((acc, curr: [string, number]) => (acc += curr[1]), 0)
-			sortednetFlows = [...sortednetFlows.slice(0, 11), ['Others', othersnetFlow]]
-		}
-		return { ...acc, ...{ [date]: Object.fromEntries(sortednetFlows) } }
-	}, {})
-
-	const formattedVolumeChartData = [...chains, 'Others']
-		.map((chain) => {
-			if (chain === 'Others' && !useOthers) return { data: [] }
-			const chainName = chain === 'Others' ? 'Others' : chain.name
-			if (chainName !== 'Others') {
-				const chartIndex = chainToChartDataIndex[chainName]
-				if (chartDataByChain[chartIndex].length === 0) return { data: [] }
-			}
-			return {
-				name: chainName,
-				data: chartDates.map((date) => [
-					JSON.parse(JSON.stringify(new Date((parseInt(date) + 43200) * 1000))), // shifted forward by 12 hours, so the date is at 12:00 UTC instead of 00:00 UTC
-					formattedChartEntries[date][chainName] ?? 0
-				])
-			}
-		})
-		.filter((chart) => chart.data.length !== 0)
 
 	// order of chains will update every 24 hrs, can consider changing metric sorted by here
 	const chainList = await chains
@@ -266,10 +235,13 @@ export async function getBridgeChainsPageData() {
 	})
 
 	return {
-		chains: chainList,
-		filteredChains,
-		chainToChartDataIndex,
-		formattedVolumeChartData
+		allChains: chainList,
+		tableData: filteredChains,
+		chartData: Object.entries(chartData).map(([date, data]: [string, Record<string, number>]) => ({
+			date,
+			...data
+		})),
+		chartStacks: Object.fromEntries(chainList.map((chain) => [chain, chain]))
 	}
 }
 

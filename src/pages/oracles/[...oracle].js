@@ -19,7 +19,7 @@ const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 const charts = ['TVS']
 
 const chartColors = {
-	TVS: '#4f8fea'
+	TVS: '#1f67d2'
 }
 
 export const getStaticProps = withPerformanceLogging(

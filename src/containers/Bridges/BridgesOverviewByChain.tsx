@@ -3,7 +3,6 @@ import dynamic from 'next/dynamic'
 import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import type { IStackedBarChartProps } from '~/components/ECharts/types'
 import { BridgesSearchWithBreakdown } from '~/components/Search/Bridges'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { BridgesTable } from '~/components/Table/Bridges'
@@ -20,11 +19,6 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	loading: () => <div className="min-h-[360px]" />
 }) as React.FC<IBarChartProps>
 
-const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
-	ssr: false,
-	loading: () => <div className="min-h-[360px]" />
-}) as React.FC<IStackedBarChartProps>
-
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false,
 	loading: () => <div className="min-h-[360px]" />
@@ -35,7 +29,7 @@ const NetflowChart = dynamic(() => import('~/components/ECharts/BarChart/Netflow
 	loading: () => <div className="min-h-[600px]" />
 }) as React.FC<any>
 
-function BridgesOverview({
+export function BridgesOverviewByChain({
 	selectedChain = 'All',
 	chains = [],
 	filteredBridges,
@@ -289,7 +283,6 @@ function BridgesOverview({
 									onClick={setChartType}
 								/>
 							</div>
-
 							{chartType === 'Bridge Volume' && (
 								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
 							)}
@@ -317,20 +310,6 @@ function BridgesOverview({
 								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
 							)}
 							{chartType === 'Net Flow By Chain' && <NetflowChart height="600px" />}
-							{chartType === 'Volumes' && chartData && chartData.length > 0 && (
-								<StackedBarChart
-									chartData={
-										enableBreakdownChart
-											? (chartData as IStackedBarChartProps['chartData'])
-											: [
-													{
-														name: selectedChain,
-														data: chartData as IStackedBarChartProps['chartData'][0]['data']
-													}
-											  ]
-									}
-								/>
-							)}
 							{chartType === '24h Tokens Deposited' && <PieChart chartData={tokenWithdrawals} />}
 							{chartType === '24h Tokens Withdrawn' && <PieChart chartData={tokenDeposits} />}
 						</>
@@ -361,5 +340,3 @@ const volumeChartOptions = {
 		inflow: true
 	}
 }
-
-export default BridgesOverview

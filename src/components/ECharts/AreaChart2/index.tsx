@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { getUtcDateObject, stringToColour } from '../utils'
+import { stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { toK } from '~/utils'
 
+// AreaChart where tooltip is always shown
 export default function AreaChart({
 	chartData,
 	stacks,
@@ -85,7 +86,7 @@ export default function AreaChart({
 
 		for (const { date, ...item } of chartData) {
 			for (const stack of chartsStack) {
-				series[stack].data.push([getUtcDateObject(date), item[stack] || 0])
+				series[stack].data.push([+date * 1e3, item[stack] || 0])
 			}
 		}
 

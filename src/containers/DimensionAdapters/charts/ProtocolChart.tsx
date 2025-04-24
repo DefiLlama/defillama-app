@@ -97,12 +97,12 @@ export const ProtocolChart = ({
 	return (
 		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 			{linkedProtocols && linkedProtocols.length > 0 && (
-				<nav className="col-span-2 text-xs font-medium xl:col-span-3 flex overflow-x-auto rounded-md bg-[var(--cards-bg)] border-b border-black/10 dark:border-white/10">
+				<nav className="col-span-2 text-xs font-medium xl:col-span-3 flex overflow-x-auto rounded-md bg-[var(--cards-bg)] border-b border-[#E6E6E6] dark:border-[#39393E]">
 					{tabs.map((p) => (
 						<Link href={`/${type}/${slug(p)}`} key={p} passHref>
 							<a
 								data-active={router.asPath.split('#')[0].split('?')[0] === `/${type}/${slug(p)}`}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-tl-md data-[active=true]:bg-[var(--link-hover-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-l border-black/10 dark:border-white/10 first:border-l-0"
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-tl-md data-[active=true]:bg-[var(--link-hover-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-l border-[#E6E6E6] dark:border-[#39393E] first:border-l-0"
 							>
 								{p}
 							</a>
@@ -187,7 +187,7 @@ export const ProtocolChart = ({
 						title={''}
 						chartData={barsData}
 						stacks={chartData[1]}
-						stackColors={stackedBarChartColors}
+						stackColors={barChartColors}
 						valueSymbol="$"
 						hideDefaultLegend
 						customLegendName="Chains"
@@ -198,7 +198,7 @@ export const ProtocolChart = ({
 						title={''}
 						chartData={barsData}
 						stacks={simpleStack}
-						stackColors={stackedBarChartColors}
+						stackColors={barChartColors}
 						isMonthly={barInterval === 'Monthly'}
 						hideDefaultLegend
 						customLegendName="Chains"
@@ -244,7 +244,7 @@ export const ChartOnly = ({ title, chartData }) => {
 					title={''}
 					chartData={barsData}
 					stacks={chartData[1]}
-					stackColors={stackedBarChartColors}
+					stackColors={barChartColors}
 					valueSymbol="$"
 					hideDefaultLegend
 					customLegendName="Chains"
@@ -255,7 +255,7 @@ export const ChartOnly = ({ title, chartData }) => {
 					title={''}
 					chartData={barsData}
 					stacks={simpleStack}
-					stackColors={stackedBarChartColors}
+					stackColors={barChartColors}
 					isMonthly={barInterval === 'Monthly'}
 					hideDefaultLegend
 					customLegendName="Chains"
@@ -266,7 +266,7 @@ export const ChartOnly = ({ title, chartData }) => {
 	)
 }
 
-export const stackedBarChartColors = {
+export const barChartColors = {
 	Fees: '#4f8fea',
 	Revenue: '#E59421',
 	Incentives: '#1cd8a6'

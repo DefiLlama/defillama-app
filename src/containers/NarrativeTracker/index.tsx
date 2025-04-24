@@ -132,23 +132,23 @@ export const CategoryPerformanceContainer = ({
 					{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
 				</h1>
 
-				<div className="flex flex-wrap overflow-x-auto border-b border-black/10 dark:border-white/10">
+				<div className="flex flex-wrap overflow-x-auto border-b border-[#E6E6E6] dark:border-[#39393E]">
 					<button
-						className="py-2 px-6 whitespace-nowrap border-b border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						className="py-2 px-6 whitespace-nowrap border-b border-[#E6E6E6] dark:border-[#39393E] data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
 						onClick={() => setTab('linechart')}
 						data-selected={tab === 'linechart'}
 					>
 						Linechart
 					</button>
 					<button
-						className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-[#E6E6E6] dark:border-[#39393E] data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
 						onClick={() => setTab('barchart')}
 						data-selected={tab === 'barchart'}
 					>
 						Barchart
 					</button>
 					<button
-						className="py-2 px-6 whitespace-nowrap border-b border-l border-black/10 dark:border-white/10 data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-[#E6E6E6] dark:border-[#39393E] data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
 						onClick={() => setTab('heatmap')}
 						data-selected={tab === 'heatmap'}
 					>
