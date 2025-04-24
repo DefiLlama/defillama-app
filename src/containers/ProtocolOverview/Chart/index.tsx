@@ -580,11 +580,6 @@ export default function AreaBarChart({
 
 		chartInstance.setOption({
 			graphic: { ...graphic },
-			legend: {
-				...legend,
-				left: 65,
-				show: stacks.length > 1
-			},
 			tooltip: {
 				...tooltip
 			},

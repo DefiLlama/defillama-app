@@ -404,7 +404,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
-	const backgroundColor = bgColor === '#7f7f7f' ? '#1f67d2' : bgColor
+	const backgroundColor = isDarkColor(bgColor) ? '#1f67d2' : bgColor
 	const colorTones = {
 		...Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)])),
 		TVL: backgroundColor
@@ -753,7 +753,7 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 	pregenMetrics.inflows = inflowsExist
 
 	const backgroundColor =
-		!props.backgroundColor || props.backgroundColor === '#7f7f7f' ? '#1f67d2' : props.backgroundColor
+		!props.backgroundColor || isDarkColor(props.backgroundColor) ? '#1f67d2' : props.backgroundColor
 
 	const colorTones = {
 		...Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)])),
@@ -781,8 +781,9 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 	}
 }
 
-export function getProtocolPageStyles(color) {
-	let finalColor = color === '#7f7f7f' ? '#1f67d2' : color
+export function getProtocolPageStyles(color: string) {
+	let finalColor = isDarkColor(color) ? '#1f67d2' : color
+
 	return {
 		'--primary-color': finalColor,
 		'--bg-color': transparentize(0.6, finalColor),
@@ -790,4 +791,31 @@ export function getProtocolPageStyles(color) {
 		'--btn-hover-bg': transparentize(0.8, finalColor),
 		'--btn-text': darken(0.1, finalColor)
 	}
+}
+
+function isDarkColor(color: string) {
+	// Convert hex to RGB
+	const hex = color.replace('#', '')
+	const r = parseInt(hex.substring(0, 2), 16)
+	const g = parseInt(hex.substring(2, 4), 16)
+	const b = parseInt(hex.substring(4, 6), 16)
+
+	// Calculate relative luminance
+	const max = Math.max(r, g, b)
+	const min = Math.min(r, g, b)
+
+	// Calculate saturation (0-1)
+	const saturation = max === 0 ? 0 : (max - min) / max
+
+	// Check if the color is grayish by comparing RGB components and saturation
+	const tolerance = 15 // RGB difference tolerance
+	const saturationThreshold = 0.15 // Colors with saturation below this are considered grayish
+
+	const isGrayish =
+		Math.abs(r - g) <= tolerance &&
+		Math.abs(g - b) <= tolerance &&
+		Math.abs(r - b) <= tolerance &&
+		saturation <= saturationThreshold
+
+	return isGrayish
 }

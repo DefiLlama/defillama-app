@@ -518,14 +518,16 @@ export const ProtocolChartOnly = React.memo(function ProtocolChartOnly({
 					hallmarks={!(events === 'false') && hallmarks}
 					tooltipSort={false}
 					stackColors={chartColors}
-					style={{
-						...(bobo && {
-							backgroundImage: 'url("/bobo.png")',
-							backgroundSize: '100% 360px',
-							backgroundRepeat: 'no-repeat',
-							backgroundPosition: 'bottom'
-						})
-					}}
+					style={
+						bobo
+							? {
+									backgroundImage: 'url("/bobo.png")',
+									backgroundSize: '100% 360px',
+									backgroundRepeat: 'no-repeat',
+									backgroundPosition: 'bottom'
+							  }
+							: undefined
+					}
 					unlockTokenSymbol={unlockTokenSymbol}
 					isThemeDark={isThemeDark}
 					isMonthly={isMonthly}
