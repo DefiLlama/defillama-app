@@ -331,7 +331,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			try {
 				const authData = await pb.collection('users').authWithOAuth2({
 					provider: 'github',
-					redirectTo: `${window.location.origin}/subscribe`
+					redirectTo: `${window.location.origin}/subscription`
 				})
 
 				return authData
