@@ -128,9 +128,10 @@ export function Flag({
 						)}
 					</label>
 					<label className="flex flex-col gap-1">
-						<span>What's wrong about it? (optional)</span>
+						<span>What's wrong about it?</span>
 						<textarea
 							name="message"
+							required
 							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
 						/>
 					</label>

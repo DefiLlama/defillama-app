@@ -34,6 +34,27 @@ interface ILinks {
 export const defaultToolsAndFooterLinks = {
 	tools: [
 		{
+			name: 'Report Error',
+			path: '/report-error',
+			external: false,
+			newTag: true
+		},
+		{
+			name: 'LlamaSwap',
+			path: 'https://swap.defillama.com',
+			external: true
+		},
+		{
+			name: 'LlamaFeed',
+			path: 'https://feed.defillama.com',
+			external: true
+		},
+		{
+			name: 'LlamaPay',
+			path: 'https://llamapay.io',
+			external: true
+		},
+		{
 			name: 'DefiLlama Extension',
 			path: 'https://chrome.google.com/webstore/detail/defillama/phgiabfbjodhgckcffppiboooeiecgeg',
 			external: true
@@ -146,6 +167,12 @@ export const navLinks: ILinks = {
 			{ name: 'Halal', path: '/yields/halal' }
 		],
 		tools: [
+			{
+				name: 'Report Error',
+				path: '/report-error',
+				external: false,
+				newTag: true
+			},
 			{ name: 'Watchlist', path: '/yields/watchlist' },
 			{ name: 'Directory', path: '/directory' },
 			{
@@ -197,16 +224,6 @@ export const navLinks: ILinks = {
 			}
 		],
 		icon: <Icon name="percent" height={16} width={16} />
-	},
-	'DefiLlama Swap': {
-		main: [],
-		...defaultToolsAndFooterLinks,
-		icon: <Icon name="repeat" height={16} width={16} />
-	},
-	LlamaFeed: {
-		main: [],
-		...defaultToolsAndFooterLinks,
-		icon: <Icon name="align-left" height={16} width={16} />
 	},
 	NFT: {
 		main: [
