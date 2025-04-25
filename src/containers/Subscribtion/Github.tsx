@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { IGithubAuthData, useGetCreditsUsage, useGithubAuth } from '../Subscribe/queries'
+import { IGithubAuthData, useGetCreditsUsage, useGithubAuth } from './queries'
 import { Icon } from '~/components/Icon'
 import { GH_CLIENT_ID } from '../ProApi/lib/constants'
 

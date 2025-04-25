@@ -185,7 +185,7 @@ const nextConfig = {
 			},
 			{
 				source: '/pro-api',
-				destination: '/subscribe',
+				destination: '/subscription',
 				permanent: true
 			},
 			{
@@ -205,7 +205,7 @@ const nextConfig = {
 			},
 			{
 				source: '/pro',
-				destination: '/subscribe',
+				destination: '/subscription',
 				permanent: true
 			},
 			{
@@ -391,6 +391,11 @@ const nextConfig = {
 			{
 				source: '/protocol/lighter',
 				destination: '/protocol/lighter-v2',
+				permanent: true
+			},
+			{
+				source: '/subscribe',
+				destination: '/subscription',
 				permanent: true
 			}
 		]

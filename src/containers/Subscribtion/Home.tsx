@@ -102,10 +102,10 @@ export function SubscribeHome() {
 										Free
 									</span>
 								</div>
-								<span className="h-2"></span>
+								<span className="h-7"></span>
 								<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
 									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400" />
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Access to TVL, revenue/fees and prices</span>
 									</li>
 									<li className="text-[#8a8c90] flex flex-nowrap gap-[10px] items-start">
@@ -176,19 +176,19 @@ export function SubscribeHome() {
 								<p className="text-center font-medium text-[#8a8c90] mt-1 relative z-10">Multiple payment options</p>
 								<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
 									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400" />
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Access to TVL, revenue/fees and prices</span>
 									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400" />
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Access to all data (unlocks, active users, token liq...)</span>
 									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400" />
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Access to LlamaFeed</span>
 									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400" />
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Download CSV data</span>
 									</li>
 									<li className="px-[26px] flex flex-col gap-1 mt-1">
@@ -222,6 +222,35 @@ export function SubscribeHome() {
 										<PaymentButton paymentMethod="stripe" type="api" />
 									</div>
 								</div>
+							</div>
+							<div className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:transform hover:scale-[1.02] bg-gradient-to-br from-[#222429] to-[#222429] rounded-xl border border-[#39393E] shadow-md relative overflow-hidden">
+								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent opacity-30"></div>
+								<div className="absolute top-[-50px] right-[-50px] w-[100px] h-[100px] rounded-full bg-gray-500 opacity-5 blur-3xl"></div>
+								<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center">Enterprise</h2>
+								<span className="h-8"></span>
+								<span className="h-7"></span>
+								<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
+									<li className="flex flex-nowrap gap-[10px] items-start">
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
+										<span>Direct raw access to our database</span>
+									</li>
+									<li className="flex flex-nowrap gap-[10px] items-start">
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
+										<span>Hourly data</span>
+									</li>
+									<li className="flex flex-nowrap gap-[10px] items-start">
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
+										<span>Access to non-public data, such as TVL breakdowns by token address</span>
+									</li>
+								</ul>
+								<a
+									className="mt-auto font-medium rounded-lg border border-[#39393E] py-[14px] text-center mx-auto w-full hover:bg-[#2a2b30] transition-colors disabled:cursor-not-allowed"
+									target="_blank"
+									rel="noopener noreferrer"
+									href="mailto:sales@defillama.com"
+								>
+									Contact Us
+								</a>
 							</div>
 							{/* <div className="price-card py-8 px-5 lg:flex-1 flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:transform hover:scale-[1.02] bg-gradient-to-br from-[#222429] to-[#222429] rounded-xl border border-[#39393E] shadow-md relative overflow-hidden">
 								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-200 to-transparent opacity-30"></div>
@@ -266,19 +295,19 @@ export function SubscribeHome() {
 								</p>
 								<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
 									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400" />
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Access to TVL, revenue/fees and prices</span>
 									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400" />
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Access to all data (unlocks, active users, token liq...)</span>
 									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400" />
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Access to LlamaFeed</span>
 									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400" />
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Download CSV data</span>
 									</li>
 									<li className="px-[26px] flex flex-col gap-1 mt-1">

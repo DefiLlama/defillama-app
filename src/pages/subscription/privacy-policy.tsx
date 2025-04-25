@@ -1,8 +1,8 @@
-import { SubscribeLayout } from '~/containers/Subscribe/Layout'
+import { SubscribeLayout2 } from './fulfillment-policies'
 
 export default function PrivacyPolicy() {
 	return (
-		<SubscribeLayout>
+		<SubscribeLayout2>
 			<div className="mb-[64px] flex flex-col gap-8 w-full max-w-3xl mx-auto text-[#d5d5d5]">
 				<h1 className="text-3xl text-center text-white font-bold">Privacy Policy</h1>
 				<p>
@@ -157,6 +157,6 @@ export default function PrivacyPolicy() {
 					</p>
 				</div>
 			</div>
-		</SubscribeLayout>
+		</SubscribeLayout2>
 	)
 }
