@@ -76,10 +76,10 @@ export function SubscribeLayout({ children }) {
 						<div className="mt-6 pt-6 border-t border-[#39393E]/40 flex flex-wrap items-center justify-center md:justify-between gap-4 text-xs text-[#8a8c90]">
 							<div>© {new Date().getFullYear()} DefiLlama. All rights reserved.</div>
 							<div className="flex flex-wrap items-center gap-4">
-								<Link href="/subscription/privacy-policy" passHref>
+								<Link href="/subscribe/privacy-policy" passHref>
 									<a className="hover:text-white transition-colors">Privacy Policy</a>
 								</Link>
-								<Link href="/subscription/fulfillment-policies" passHref>
+								<Link href="/subscribe/fulfillment-policies" passHref>
 									<a className="hover:text-white transition-colors">Fulfillment Policies</a>
 								</Link>
 							</div>
