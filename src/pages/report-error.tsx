@@ -95,6 +95,7 @@ function ReportError() {
 						</li>
 						<li>Data errors (eg protocol A is missing fees for their new version, or the data just seems wrong)</li>
 						<li>Missing data</li>
+						<li>Bug on site</li>
 					</ul>
 					<p className="text-center">
 						All submissions are completely anonymous and will be reviewed by a human manually
