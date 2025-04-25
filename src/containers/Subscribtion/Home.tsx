@@ -244,7 +244,7 @@ export function SubscribeHome() {
 									</li>
 								</ul>
 								<a
-									className="mt-auto font-medium rounded-lg border border-[#39393E] py-[14px] text-center mx-auto w-full hover:bg-[#2a2b30] transition-colors disabled:cursor-not-allowed"
+									className="mt-auto font-medium rounded-lg border border-[#5C5CF9] dark:border-[#5C5CF9] bg-[#5C5CF9] dark:bg-[#5C5CF9] hover:bg-[#4A4AF0] dark:hover:bg-[#4A4AF0] text-white transition-all duration-200 py-[14px] shadow-sm hover:shadow-md group flex items-center gap-2 justify-center w-full ${shadowClass} disabled:cursor-not-allowed disabled:opacity-70 flex-nowrap"
 									target="_blank"
 									rel="noopener noreferrer"
 									href="mailto:sales@defillama.com"
