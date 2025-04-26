@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { slug, tokenIconUrl } from '~/utils'
-import { getAllProtocolEmissions } from '~/api/categories/protocols'
+import { getProtocolEmissionsList } from '~/api/categories/protocols'
 import { IGetSearchList } from '../types'
 
 export function useGetUnlocksSearchList({ disabled }: { disabled?: boolean }): IGetSearchList {
 	const { data, isLoading, isError } = useQuery({
 		queryKey: ['unlocks-search-list'],
 		queryFn: () =>
-			getAllProtocolEmissions().catch((err) => {
+			getProtocolEmissionsList().catch((err) => {
 				console.error(err)
 				return null
 			}),

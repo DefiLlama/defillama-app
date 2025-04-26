@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
 import * as Ariakit from '@ariakit/react'
+import { Icon } from '~/components/Icon'
 
 export const UpcomingEvent = ({
 	noOfTokens = [],
@@ -18,18 +19,17 @@ export const UpcomingEvent = ({
 }) => {
 	const tokenPrice = price
 	const tokenSymbol = tokenPrice?.symbol?.toUpperCase() || symbol?.toUpperCase()
-
-	const currentUnlockBreakdown = event.map(({ description, noOfTokens, timestamp }) => {
+	const currentUnlockBreakdown = event.map(({ description, noOfTokens, timestamp, unlockType }) => {
 		const regex =
 			/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
 		const matches = description.match(regex)
 		const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
 		const amount = sum(noOfTokens)
-
 		return {
 			name,
 			amount,
-			timestamp
+			timestamp,
+			unlockType
 		}
 	})
 
@@ -103,14 +103,29 @@ export const UpcomingEvent = ({
 
 				<hr className="border-[var(--bg4)]" />
 				<span className="flex flex-col gap-4">
-					{currentUnlockBreakdown.map(({ name, amount }) => {
+					{currentUnlockBreakdown.map(({ name, amount, unlockType }) => {
 						const percentage = (amount / maxSupply) * 100
 						const percentageFloat = tokenValue && mcap ? (amount / mcap) * 100 : null
 						const usdValue = price ? amount * price : null
 						return (
 							<span className="flex flex-col gap-1" key={name + amount}>
 								<span className="flex items-center justify-between gap-2">
-									<span>{name}</span>
+									<span className="flex items-center gap-2">
+										{name}
+										<Ariakit.TooltipProvider>
+											<Ariakit.TooltipAnchor>
+												<Icon
+													name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
+													height={16}
+													width={16}
+													className="text-[var(--text3)]"
+												/>
+											</Ariakit.TooltipAnchor>
+											<Ariakit.Tooltip className="rounded-md bg-[var(--bg2)] px-2 py-1 text-sm z-50">
+												{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
+											</Ariakit.Tooltip>
+										</Ariakit.TooltipProvider>
+									</span>
 									<span>{usdValue ? formattedNum(usdValue, true) : '-'}</span>
 								</span>
 								<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
@@ -196,14 +211,29 @@ export const UpcomingEvent = ({
 				</span>
 				<hr className="border-[var(--bg4)]" />
 				<span className="flex flex-col gap-4">
-					{currentUnlockBreakdown.map(({ name, amount }) => {
+					{currentUnlockBreakdown.map(({ name, amount, unlockType }) => {
 						const percentage = (amount / maxSupply) * 100
 						const percentageFloat = tokenValue && mcap ? (amount / mcap) * 100 : null
 						const usdValue = price ? amount * price : null
 						return (
 							<span className="flex flex-col gap-1" key={name + amount}>
 								<span className="flex items-center justify-between gap-2">
-									<span>{name}</span>
+									<span className="flex items-center gap-2">
+										{name}
+										<Ariakit.TooltipProvider>
+											<Ariakit.TooltipAnchor>
+												<Icon
+													name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
+													height={16}
+													width={16}
+													className="text-[var(--text3)]"
+												/>
+											</Ariakit.TooltipAnchor>
+											<Ariakit.Tooltip className="rounded-md bg-[var(--bg2)] px-2 py-1 text-sm z-50">
+												{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
+											</Ariakit.Tooltip>
+										</Ariakit.TooltipProvider>
+									</span>
 									<span>{usdValue ? formattedNum(usdValue, true) : '-'}</span>
 								</span>
 								<span className="flex items-center justify-between gap-2 text-[var(--text3)]">

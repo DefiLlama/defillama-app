@@ -69,6 +69,8 @@ type Name =
 	| 'download-paper'
 	| 'arrow-up-right-2'
 	| 'key'
+	| 'linear-unlock'
+	| 'cliff-unlock'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
