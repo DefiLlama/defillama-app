@@ -96,13 +96,15 @@ const Pagination = ({ items, startIndex = 0 }) => {
 		}
 	}
 
+	const startIndexSlice = currentPage * visibleItems
+	const endIndexSlice = startIndexSlice + visibleItems
+	const currentItems = items.slice(startIndexSlice, endIndexSlice)
+
 	const contentStyle = {
-		transform: isSwiping
-			? `translateX(calc(${swipeOffset}px - ${currentPage * 100}%))`
-			: `translateX(-${currentPage * 100}%)`,
+		transform: isSwiping ? `translateX(${swipeOffset}px)` : `translateX(0)`,
 		transition: isSwiping ? 'none' : 'transform 300ms ease-out',
 		display: 'flex',
-		width: `${100 * Math.ceil(items.length / visibleItems)}%`
+		width: '100%'
 	}
 
 	return (
@@ -119,12 +121,8 @@ const Pagination = ({ items, startIndex = 0 }) => {
 				</button>
 				<div className="flex items-center justify-start overflow-hidden flex-1">
 					<div style={contentStyle}>
-						{items.map((item, index) => (
-							<div
-								key={index}
-								className="w-[100%] p-4 text-center relative"
-								style={{ flex: `0 0 ${100 / visibleItems}%` }}
-							>
+						{currentItems.map((item, index) => (
+							<div key={index} className="w-[100%] p-4 text-center relative">
 								{item}
 							</div>
 						))}
