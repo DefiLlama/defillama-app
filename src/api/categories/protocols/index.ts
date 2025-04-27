@@ -135,6 +135,19 @@ export const getAllProtocolEmissionsWithHistory = async ({
 	}
 }
 
+export const getProtocolEmissionsList = async () => {
+	try {
+		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
+		return res.map((protocol) => ({
+			name: protocol.name,
+			token: protocol.token
+		}))
+	} catch (e) {
+		console.log(e)
+		return []
+	}
+}
+
 export const getAllProtocolEmissions = async () => {
 	try {
 		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())

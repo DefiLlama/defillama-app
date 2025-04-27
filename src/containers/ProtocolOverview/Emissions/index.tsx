@@ -1,6 +1,6 @@
 import { chunk, groupBy, omit, sum } from 'lodash'
 import dynamic from 'next/dynamic'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import useWindowSize from '~/hooks/useWindowSize'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -12,6 +12,7 @@ import Pagination from './Pagination'
 import { IEmission } from './types'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/UnlocksChart'), {
 	ssr: false
@@ -35,6 +36,19 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const [dataType, setDataType] = useState<'documented' | 'realtime'>('documented')
 	const [isTreasuryIncluded, setIsTreasuryIncluded] = useState(false)
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
+	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+
+	useEffect(() => {
+		if (data?.categories?.[dataType]) {
+			setSelectedCategories(
+				data.categories[dataType].filter(
+					(cat) =>
+						!['Market Cap', 'Price'].includes(cat) &&
+						!(data.categoriesBreakdown?.noncirculating?.includes(cat) && !isTreasuryIncluded)
+				)
+			)
+		}
+	}, [data, dataType, isTreasuryIncluded])
 	const { data: geckoId } = useGeckoId(data.token ?? null)
 
 	const priceChart = usePriceChart(data.geckoId ?? geckoId)
@@ -106,6 +120,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			if (data?.categoriesBreakdown?.noncirculating?.includes(pieChartItem.name)) {
 				if (isTreasuryIncluded) return pieChartItem
 				else return null
+			}
+			if (!selectedCategories.includes(pieChartItem.name)) {
+				return null
 			}
 			return pieChartItem
 		})
@@ -220,13 +237,46 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div className="flex flex-col gap-1">
 				{data.categories?.[dataType] && data.chartData?.[dataType] && data.stackColors?.[dataType] && (
-					<LazyChart className="bg-[var(--cards-bg)] rounded-md min-h-[384px] p-3">
+					<LazyChart className="bg-[var(--cards-bg)] rounded-md min-h-[384px] p-3 relative">
+						<div className="absolute right-4 z-10">
+							<SelectWithCombobox
+								allValues={data.categories[dataType].filter(
+									(cat) =>
+										!['Market Cap', 'Price'].includes(cat) &&
+										!(data.categoriesBreakdown?.noncirculating?.includes(cat) && !isTreasuryIncluded)
+								)}
+								selectedValues={selectedCategories}
+								setSelectedValues={(newCategories) => {
+									if (newCategories.length === 0) return
+									setSelectedCategories(newCategories)
+								}}
+								label="Categories"
+								clearAll={() => {
+									if (selectedCategories.length > 0) {
+										setSelectedCategories([selectedCategories[0]])
+									}
+								}}
+								toggleAll={() =>
+									setSelectedCategories(
+										data.categories[dataType].filter(
+											(cat) =>
+												!['Market Cap', 'Price'].includes(cat) &&
+												!(data.categoriesBreakdown?.noncirculating?.includes(cat) && !isTreasuryIncluded)
+										)
+									)
+								}
+								labelType="smol"
+								triggerProps={{
+									className:
+										'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+								}}
+							/>
+						</div>
 						<AreaChart
 							customYAxis={isPriceEnabled ? ['Market Cap', 'Price'] : []}
 							title="Schedule"
-							stacks={data.categories[dataType]}
+							stacks={[...selectedCategories, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean)}
 							chartData={chartData}
-							hideDefaultLegend
 							hallmarks={data.hallmarks[dataType]}
 							stackColors={data.stackColors[dataType]}
 							isStackedChart
