@@ -10,8 +10,9 @@ import { ProgressBar } from '~/components/ProgressBar/ProgressBar'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 
 export function SubscribeHome() {
-	const { isAuthenticated, user, loaders } = useAuthContext()
+	const { isAuthenticated, loaders } = useAuthContext()
 	const { subscription, isSubscriptionFetching } = useSubscribe()
+
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
 
@@ -29,7 +30,8 @@ export function SubscribeHome() {
 			const scrollLeft = ref.scrollLeft
 			let closestIndex = 0
 			let minDistance = Infinity
-			const containerCenter = scrollLeft + ref.offsetWidth / 2
+			const containerVisibleWidth = ref.offsetWidth
+			const containerCenter = scrollLeft + containerVisibleWidth / 2
 
 			for (let i = 0; i < ref.children.length; i++) {
 				const cardElement = ref.children[i] as HTMLElement
@@ -44,13 +46,12 @@ export function SubscribeHome() {
 			setActivePriceCard(closestIndex)
 		}
 
-		ref.addEventListener('scrollend', calculateActiveCard)
+		ref.addEventListener('scroll', calculateActiveCard, { passive: true })
 		calculateActiveCard()
-
 		window.addEventListener('resize', calculateActiveCard)
 
 		return () => {
-			ref.removeEventListener('scrollend', calculateActiveCard)
+			ref.removeEventListener('scroll', calculateActiveCard)
 			window.removeEventListener('resize', calculateActiveCard)
 		}
 	}, [isClient])
@@ -114,11 +115,11 @@ export function SubscribeHome() {
 					<div className="relative">
 						<div
 							ref={pricingContainer}
-							className="pricing-container flex flex-row relative z-10 overflow-x-auto sm:overflow-hidden scroll-smooth snap-x snap-mandatory max-md:-mx-2 max-md:pl-2 gap-4 py-4 justify-start"
+							className="pricing-container flex flex-row relative z-10 overflow-x-auto scroll-smooth snap-x snap-mandatory max-md:-mx-2 max-md:pl-2 gap-4 py-4 justify-start md:overflow-visible md:justify-center"
 						>
 							<SubscribePlusCard context="page" />
 							<div
-								className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 relative -top-2 transition-all duration-300 hover:transform hover:scale-[1.02] bg-[#22242966] backdrop-blur-xl rounded-xl border-2 border-[#6e6edb] shadow-2xl overflow-hidden"
+								className="price-card py-8 px-5 flex flex-col w-[92vw] px-4 snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink relative transition-all duration-300 hover:transform md:hover:scale-[1.02] bg-[#22242966] backdrop-blur-xl rounded-xl border-2 border-[#6e6edb] shadow-2xl overflow-hidden"
 								style={{ boxShadow: '0 0 15px rgba(138, 138, 255, 0.12), 0 0 5px rgba(92, 92, 249, 0.08)' }}
 							>
 								<div className="absolute inset-0 overflow-hidden">
@@ -198,7 +199,7 @@ export function SubscribeHome() {
 									</div>
 								</div>
 							</div>
-							<div className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 relative transition-all duration-300 hover:transform hover:scale-[1.02] bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden">
+							<div className="price-card py-8 px-5 flex flex-col w-[92vw] px-4 snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink relative transition-all duration-300 hover:transform md:hover:scale-[1.02] bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden">
 								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-500 to-transparent opacity-20"></div>
 								<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-gray-600 opacity-5 blur-2xl"></div>
 								<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center">Enterprise</h2>
@@ -253,7 +254,9 @@ export function SubscribeHome() {
 										const ref = pricingContainer.current
 										if (ref && ref.children[index]) {
 											const cardElement = ref.children[index] as HTMLElement
-											ref.scrollTo({ left: cardElement.offsetLeft, behavior: 'smooth' })
+											// Calculate scroll position to center the card, considering container padding/margins
+											const scrollLeft = cardElement.offsetLeft + cardElement.offsetWidth / 2 - ref.offsetWidth / 2
+											ref.scrollTo({ left: scrollLeft, behavior: 'smooth' })
 										}
 									}}
 								/>

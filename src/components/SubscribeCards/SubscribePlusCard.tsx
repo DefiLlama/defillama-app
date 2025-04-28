@@ -10,7 +10,7 @@ interface SubscribePlusCardProps {
 
 export function SubscribePlusCard({ context = 'page' }: SubscribePlusCardProps) {
 	return (
-		<div className="price-card py-8 px-5 flex flex-col w-full max-w-[400px] bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden relative">
+		<div className="price-card py-8 flex flex-col w-[92vw] px-4 snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden relative">
 			<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#5c5cf9] to-transparent opacity-20"></div>
 			<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-[#5c5cf9] opacity-5 blur-2xl"></div>
 			<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center text-[#5C5CF9] relative z-10">Llama+</h2>

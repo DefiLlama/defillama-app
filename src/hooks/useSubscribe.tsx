@@ -4,7 +4,6 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import toast from 'react-hot-toast'
 import pb from '~/utils/pocketbase'
 import { useState, useEffect } from 'react'
-import Cookies from 'js-cookie'
 
 export interface SubscriptionRequest {
 	redirectUrl: string
@@ -27,6 +26,7 @@ export interface Subscription {
 	expires_at: string
 	started_at?: string
 	type: string
+	provider: string
 }
 
 export interface SubscriptionResponse {
@@ -38,6 +38,62 @@ interface Credits {
 	maxCredits: number
 	monthKey: string
 }
+const defaultInactiveSubscription = {
+	subscription: {
+		status: 'inactive',
+		id: '',
+		PK: '',
+		checkoutUrl: '',
+		updatedAt: '',
+		expires_at: '',
+		type: '',
+		provider: ''
+	}
+}
+
+const useSubscription = (type: 'api' | 'llamafeed') => {
+	const { isAuthenticated } = useAuthContext()!
+
+	const data = useQuery<SubscriptionResponse>({
+		queryKey: ['subscription', pb.authStore.record?.id, type],
+		queryFn: async () => {
+			console.log('isAuthenticated', isAuthenticated, type)
+			if (!isAuthenticated) {
+				return defaultInactiveSubscription
+			}
+
+			try {
+				const response = await fetch(`${AUTH_SERVER}/subscription/status`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${pb.authStore.token}`
+					},
+					body: JSON.stringify({ subscriptionType: type })
+				})
+
+				if (!response.ok) {
+					console.log(`Subscription status error: ${response.status}`)
+					return defaultInactiveSubscription
+				}
+
+				const data = await response.json()
+
+				return data
+			} catch (error) {
+				console.error('Error fetching subscription:', error)
+				return defaultInactiveSubscription
+			}
+		},
+		placeholderData: defaultInactiveSubscription,
+		retry: false,
+		refetchOnWindowFocus: false,
+		enabled: isAuthenticated,
+		staleTime: 1000 * 60 * 15
+	})
+
+	return data
+}
 
 export const useSubscribe = () => {
 	const { authorizedFetch } = useAuthContext()!
@@ -47,18 +103,6 @@ export const useSubscribe = () => {
 	const [apiKey, setApiKey] = useState<string | null>(null)
 	const [isApiKeyLoading, setIsApiKeyLoading] = useState(false)
 	const isAuthenticated = !!pb.authStore.token
-
-	const defaultInactiveSubscription = {
-		subscription: {
-			status: 'inactive',
-			id: '',
-			PK: '',
-			checkoutUrl: '',
-			updatedAt: '',
-			expires_at: '',
-			type: ''
-		}
-	}
 
 	const createSubscription = useMutation<SubscriptionCreateResponse, Error, SubscriptionRequest>({
 		mutationFn: async (subscriptionData) => {
@@ -111,7 +155,7 @@ export const useSubscribe = () => {
 				subscriptionType: type || 'api'
 			}
 
-			queryClient.setQueryData(['subscription', pb.authStore.record?.id], defaultInactiveSubscription)
+			queryClient.setQueryData(['subscription', pb.authStore.record?.id, type], defaultInactiveSubscription)
 
 			const result = await createSubscription.mutateAsync(subscriptionData)
 
@@ -129,95 +173,23 @@ export const useSubscribe = () => {
 	}
 
 	const {
-		data: subscription,
-		isLoading: isSubscriptionLoading,
-		isFetching: isSubscriptionFetching,
-		isPending: isSubscriptionPending,
-		isError: isSubscriptionError
-	} = useQuery<SubscriptionResponse>({
-		queryKey: ['subscription', pb.authStore.record?.id],
-		queryFn: async () => {
-			if (!isAuthenticated) {
-				return defaultInactiveSubscription
-			}
-
-			try {
-				const response = await fetch(`${AUTH_SERVER}/subscription/status`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${pb.authStore.token}`
-					},
-					body: JSON.stringify({ subscriptionType: 'api' })
-				})
-
-				if (!response.ok) {
-					console.log(`Subscription status error: ${response.status}`)
-					return defaultInactiveSubscription
-				}
-
-				const data = await response.json()
-
-				if (typeof window !== 'undefined') {
-					if (data?.subscription?.status === 'active') {
-						Cookies.set('subscription_status', 'active', {
-							expires: 1,
-							path: '/',
-							sameSite: 'strict',
-							secure: window.location.protocol === 'https:'
-						})
-					} else {
-						Cookies.remove('subscription_status', { path: '/' })
-					}
-				}
-
-				return data
-			} catch (error) {
-				console.error('Error fetching subscription:', error)
-				return defaultInactiveSubscription
-			}
-		},
-		placeholderData: defaultInactiveSubscription,
-		retry: false,
-		refetchOnWindowFocus: false,
-		enabled: isAuthenticated,
-		staleTime: 1000 * 60 * 15
-	})
-
-	const { data: isLlamafeedSubscriptionActive } = useQuery({
-		queryKey: ['isLlamafeedSubscribed', pb.authStore.record?.id],
-		queryFn: async () => {
-			if (!isAuthenticated) {
-				return false
-			}
-
-			try {
-				const response = await fetch(`${AUTH_SERVER}/subscription/status`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${pb.authStore.token}`
-					},
-					body: JSON.stringify({ subscriptionType: 'llamafeed' })
-				})
-
-				if (!response.ok) {
-					return false
-				}
-
-				const data = await response.json()
-				console.log({ data })
-				return data.subscription.status === 'active'
-			} catch (error) {
-				console.error('Error fetching subscription:', error)
-				return false
-			}
-		}
-	})
+		data: apiSubscription,
+		isLoading: isApiSubscriptionLoading,
+		isFetching: isApiSubscriptionFetching,
+		isPending: isApiSubscriptionPending,
+		isError: isApiSubscriptionError
+	} = useSubscription('api')
+	const {
+		data: llamafeedSubscription,
+		isLoading: isLlamafeedSubscriptionLoading,
+		isFetching: isLlamafeedSubscriptionFetching,
+		isPending: isLlamafeedSubscriptionPending,
+		isError: isLlamafeedSubscriptionError
+	} = useSubscription('llamafeed')
 
 	useEffect(() => {
 		const fetchApiKey = async () => {
-			if (isAuthenticated && subscription?.subscription?.status === 'active') {
+			if (isAuthenticated && apiSubscription?.subscription?.status === 'active') {
 				setIsApiKeyLoading(true)
 				try {
 					const response = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
@@ -236,7 +208,7 @@ export const useSubscribe = () => {
 		}
 
 		fetchApiKey()
-	}, [isAuthenticated, subscription?.subscription?.status, authorizedFetch])
+	}, [isAuthenticated, apiSubscription?.subscription?.status, authorizedFetch])
 
 	const generateNewKey = async () => {
 		setIsApiKeyLoading(true)
@@ -258,9 +230,10 @@ export const useSubscribe = () => {
 		}
 	}
 
-	const subscriptionData = isSubscriptionError
-		? defaultInactiveSubscription.subscription
-		: subscription?.subscription || defaultInactiveSubscription.subscription
+	const subscriptionData =
+		[apiSubscription?.subscription, llamafeedSubscription?.subscription].find(
+			(subscription) => subscription?.status === 'active'
+		) || defaultInactiveSubscription.subscription
 
 	const {
 		data: credits,
@@ -334,8 +307,11 @@ export const useSubscribe = () => {
 			return null
 		}
 
-		if (subscription?.subscription?.status !== 'active') {
-			toast.error('No active Stripe subscription found')
+		if (
+			apiSubscription?.subscription?.status !== 'active' &&
+			llamafeedSubscription?.subscription?.status !== 'active'
+		) {
+			toast.error('No active subscription found')
 			return null
 		}
 
@@ -357,10 +333,10 @@ export const useSubscribe = () => {
 		error: createSubscription.error,
 		subscription: subscriptionData,
 		loading: isStripeLoading ? 'stripe' : isLlamaLoading ? 'llamapay' : null,
-		isSubscriptionLoading: isAuthenticated && isSubscriptionLoading,
-		isSubscriptionFetching: isAuthenticated && isSubscriptionFetching,
-		isSubscriptionPending: isAuthenticated && isSubscriptionPending,
-		isSubscriptionError,
+		isSubscriptionLoading: isAuthenticated && (isApiSubscriptionLoading || isLlamafeedSubscriptionLoading),
+		isSubscriptionFetching: isAuthenticated && (isApiSubscriptionFetching || isLlamafeedSubscriptionFetching),
+		isSubscriptionPending: isAuthenticated && (isApiSubscriptionPending || isLlamafeedSubscriptionPending),
+		isSubscriptionError: isAuthenticated && (isApiSubscriptionError || isLlamafeedSubscriptionError),
 		apiKey,
 		isApiKeyLoading,
 		generateNewKey,
@@ -369,7 +345,8 @@ export const useSubscribe = () => {
 		refetchCredits,
 		createPortalSession,
 		isPortalSessionLoading: createPortalSessionMutation.isPending,
-		isLlamafeedSubscriptionActive,
-		isContributor: false
+		isContributor: false,
+		apiSubscription: apiSubscription?.subscription,
+		llamafeedSubscription: llamafeedSubscription?.subscription
 	}
 }

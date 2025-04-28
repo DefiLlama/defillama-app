@@ -14,21 +14,19 @@ export const AccountInfo = () => {
 	const [showEmailForm, setShowEmailForm] = useState(false)
 
 	const { user, isAuthenticated, logout, changeEmail, resendVerification, loaders } = useAuthContext()
-	console.log(user)
+
 	const {
 		subscription,
-		handleSubscribe,
-		loading,
 		apiKey,
 		isApiKeyLoading,
 		generateNewKey,
 		credits,
 		isCreditsLoading,
 		createPortalSession,
-		isPortalSessionLoading,
-		isLlamafeedSubscriptionActive
+		isPortalSessionLoading
 	} = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
+
 	const isVerified = user?.verified
 	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()

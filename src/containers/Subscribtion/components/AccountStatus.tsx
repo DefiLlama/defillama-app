@@ -79,7 +79,7 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 						<span className="font-medium text-sm bg-gradient-to-r from-white to-[#b4b7bc] group-hover:from-white group-hover:to-white bg-clip-text text-transparent transition-colors">
 							{isSubscribed ? (
 								<span className="flex items-center gap-2">
-									<span>{subscription.type === 'contributor' ? 'Contributor' : 'Pro'}</span>
+									<span>{subscription.type === 'llamafeed' ? 'Llama+' : 'Pro'}</span>
 									<Icon
 										name="star"
 										height={12}
@@ -95,7 +95,7 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 					<div className="flex flex-col p-3.5 bg-gradient-to-br from-[#222429]/90 to-[#1d1e23]/70 rounded-xl border border-[#39393E]/40 hover:border-[#5C5CF9]/30 transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] transform hover:translate-y-[-2px] group">
 						<span className="text-xs text-[#8a8c90] mb-1.5">API Access</span>
 						<span className="font-medium text-sm bg-gradient-to-r from-white to-[#b4b7bc] group-hover:from-white group-hover:to-white bg-clip-text text-transparent transition-colors">
-							{isSubscribed ? (
+							{isSubscribed && subscription.type !== 'llamafeed' ? (
 								<span className="flex items-center gap-2">
 									<span>Enabled</span>
 									<span className="h-1.5 w-1.5 rounded-full bg-green-400 opacity-0 group-hover:opacity-100 transition-opacity"></span>
