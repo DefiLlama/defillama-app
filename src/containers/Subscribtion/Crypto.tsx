@@ -11,7 +11,7 @@ export const PaymentButton = ({
 	type = 'api'
 }: {
 	paymentMethod: 'stripe' | 'llamapay'
-	type?: 'api' | 'contributor'
+	type?: 'api' | 'contributor' | 'llamafeed'
 }) => {
 	const { handleSubscribe, loading } = useSubscribe()
 	const { isAuthenticated, user } = useAuthContext()

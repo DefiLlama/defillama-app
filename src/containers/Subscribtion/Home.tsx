@@ -13,30 +13,48 @@ export function SubscribeHome() {
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
 
-	useEffect(() => {
-		setIsClient(true)
-	}, [])
-
 	const pricingContainer = useRef<HTMLDivElement>(null)
-	const [activePriceCard, setActivePriceCard] = useState(2)
+	const [activePriceCard, setActivePriceCard] = useState(0)
 
 	useEffect(() => {
 		const ref = pricingContainer.current
 		if (!ref) return
 
-		const onScroll = () => {
-			setActivePriceCard(Math.round(ref!.scrollLeft / window.innerWidth) + 1)
+		const calculateActiveCard = () => {
+			if (ref.children.length === 0) return
+			const cardWidth = (ref.children[0] as HTMLElement).offsetWidth
+			const gapWidth = 16
+			const scrollLeft = ref.scrollLeft
+			let closestIndex = 0
+			let minDistance = Infinity
+			const containerCenter = scrollLeft + ref.offsetWidth / 2
+
+			for (let i = 0; i < ref.children.length; i++) {
+				const cardElement = ref.children[i] as HTMLElement
+				const cardCenter = cardElement.offsetLeft + cardWidth / 2
+				const distance = Math.abs(containerCenter - cardCenter)
+
+				if (distance < minDistance) {
+					minDistance = distance
+					closestIndex = i
+				}
+			}
+			setActivePriceCard(closestIndex)
 		}
 
-		ref?.addEventListener('scrollend', onScroll)
+		ref.addEventListener('scrollend', calculateActiveCard)
+		calculateActiveCard()
 
-		if (ref && window.innerWidth < 768) {
-			ref.scrollTo({ left: ref.clientWidth, behavior: 'smooth' })
-		}
+		window.addEventListener('resize', calculateActiveCard)
 
 		return () => {
-			ref?.removeEventListener('scrollend', onScroll)
+			ref.removeEventListener('scrollend', calculateActiveCard)
+			window.removeEventListener('resize', calculateActiveCard)
 		}
+	}, [isClient])
+
+	useEffect(() => {
+		setIsClient(true)
 	}, [])
 
 	if (loaders.userLoading || loaders.userFetching || (isClient && (isSubscriptionFetching || !subscription))) {
@@ -90,85 +108,105 @@ export function SubscribeHome() {
 				) : (
 					<div className="relative">
 						<div
-							className="pricing-container flex flex-row relative z-10 overflow-x-auto sm:overflow-hidden scroll-smooth snap-x snap-mandatory max-md:-mx-2 gap-4 py-4 justify-center"
 							ref={pricingContainer}
+							className="pricing-container flex flex-row relative z-10 overflow-x-auto sm:overflow-hidden scroll-smooth snap-x snap-mandatory max-md:-mx-2 max-md:pl-2 gap-4 py-4 justify-start"
 						>
-							<div className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:transform hover:scale-[1.02] bg-gradient-to-br from-[#222429] to-[#222429] rounded-xl border border-[#39393E] shadow-md relative overflow-hidden">
-								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent opacity-30"></div>
-								<div className="absolute top-[-50px] right-[-50px] w-[100px] h-[100px] rounded-full bg-gray-500 opacity-5 blur-3xl"></div>
-								<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center">Open</h2>
-								<div className="flex items-center justify-center mt-1">
-									<span className="text-center text-2xl font-medium bg-gradient-to-r from-gray-200 to-gray-100 bg-clip-text text-transparent">
-										Free
+							<div className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 relative transition-all duration-300 hover:transform hover:scale-[1.02] bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden">
+								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#5c5cf9] to-transparent opacity-20"></div>
+								<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-[#5c5cf9] opacity-5 blur-2xl"></div>
+								<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center text-[#5C5CF9] relative z-10">
+									Plus
+								</h2>
+								<div className="flex items-center justify-center mt-1 relative z-10">
+									<span className="text-center text-2xl font-medium bg-gradient-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-transparent">
+										49 USD
 									</span>
+									<span className="text-[#8a8c90] ml-1">/month</span>
 								</div>
-								<span className="h-7"></span>
+								<p className="text-center font-medium text-[#8a8c90] mt-1 relative z-10">Multiple payment options</p>
 								<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
+									<li className="flex flex-col gap-3">
+										<div className="flex flex-nowrap gap-[10px] items-start">
+											<Icon
+												name="check"
+												height={16}
+												width={16}
+												className="relative top-1 text-green-400 flex-shrink-0"
+											/>
+											<span>Full access to LlamaFeed v2</span>
+										</div>
+										<ul className="flex flex-col pl-6 gap-3">
+											<li className="flex flex-nowrap gap-[4px] items-start">
+												<span className="relative flex-shrink-0 w-4 text-center">•</span>
+												<span>Premium Sections Unlocked (Listings, Stocks...)</span>
+											</li>
+											<li className="flex flex-nowrap gap-[4px] items-start">
+												<span className="relative flex-shrink-0 w-4 text-center">•</span>
+												<span>Increased Content Per Section</span>
+											</li>
+											<li className="flex flex-nowrap gap-[4px] items-start">
+												<span className="relative flex-shrink-0 w-4 text-center">•</span>
+												<span>AI-Powered News Summaries</span>
+											</li>
+											<li className="flex flex-nowrap gap-[4px] items-start">
+												<span className="relative flex-shrink-0 w-4 text-center">•</span>
+												<span>Flexible Content Filtering & Customization</span>
+											</li>
+											<li className="flex flex-nowrap gap-[4px] items-start">
+												<span className="relative flex-shrink-0 w-4 text-center">•</span>
+												<span>Redesigned for better usability on all devices</span>
+											</li>
+										</ul>
+									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
 										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-										<span>Access to TVL, revenue/fees and prices</span>
+										<span>CSV Data downloads</span>
 									</li>
-									<li className="text-[#8a8c90] flex flex-nowrap gap-[10px] items-start">
-										<Icon name="x" height={16} width={16} className="relative top-1 text-red-400" />
-										<span>Access to all data (unlocks, active users, token liq...)</span>
-									</li>
-									<li className="text-[#8a8c90] flex flex-nowrap gap-[10px] items-start">
-										<Icon name="x" height={16} width={16} className="relative top-1 text-red-400" />
-										<span>Access to LlamaFeed</span>
-									</li>
-									<li className="text-[#8a8c90] flex flex-nowrap gap-[10px] items-start">
-										<Icon name="x" height={16} width={16} className="relative top-1 text-red-400" />
-										<span>Download CSV data</span>
-									</li>
-									<li className="px-[26px] flex flex-col gap-1 mt-1">
-										<span className="font-medium">Support on public Discord</span>
-									</li>
-									<p className="px-[26px] font-medium">
-										<a
-											href="https://defillama.com/docs/api"
-											target="_blank"
-											rel="noreferrer noopener"
-											className="underline"
-										>
-											Open API
-										</a>{' '}
-										limits:
-									</p>
-									<li className="px-[26px] flex flex-col gap-2">
-										<span>10-200 requests/minute</span>
-										<ProgressBar pct={12} />
+									<li className="flex flex-nowrap gap-[10px] items-start">
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
+										<span>Access to upcoming DefiLlama products</span>
 									</li>
 								</ul>
+								<div className="w-full max-w-[408px] mx-auto flex flex-col gap-3 relative z-10">
+									<SignIn text="Already a subscriber? Sign In" />
+									<div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1 max-sm:w-full">
+										<PaymentButton paymentMethod="llamapay" type="llamafeed" />
+										<PaymentButton paymentMethod="stripe" type="llamafeed" />
+									</div>
+								</div>
 							</div>
-							<div className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 relative transition-all duration-300 hover:transform hover:scale-[1.02] bg-[#22242930] backdrop-blur-md rounded-xl border border-[#5c5cf950] shadow-md overflow-hidden">
-								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#5c5cf9] to-transparent opacity-30"></div>
-								<div className="absolute top-[-50px] right-[-50px] w-[100px] h-[100px] rounded-full bg-[#5c5cf9] opacity-10 blur-3xl"></div>
-
+							<div
+								className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 relative -top-2 transition-all duration-300 hover:transform hover:scale-[1.02] bg-[#22242966] backdrop-blur-xl rounded-xl border-[3px] border-[#6e6edb] shadow-2xl overflow-hidden"
+								style={{ boxShadow: '0 0 25px rgba(138, 138, 255, 0.18), 0 0 10px rgba(92, 92, 249, 0.12)' }}
+							>
 								<div className="absolute inset-0 overflow-hidden">
 									<div
-										className="absolute top-[-15%] left-[-5%] w-[25%] h-[25%] rounded-full bg-[#5c5cf9] opacity-[0.003] blur-3xl animate-pulse"
-										style={{ animationDuration: '6s' }}
+										className="absolute top-[-15%] left-[-5%] w-[25%] h-[25%] rounded-full bg-[#5c5cf9] opacity-[0.01] blur-3xl animate-pulse"
+										style={{ animationDuration: '5s' }}
 									></div>
 									<div
-										className="absolute bottom-[-15%] right-[-5%] w-[20%] h-[20%] rounded-full bg-[#7B7BFF] opacity-[0.002] blur-3xl animate-pulse"
-										style={{ animationDelay: '3s', animationDuration: '7s' }}
+										className="absolute bottom-[-15%] right-[-5%] w-[20%] h-[20%] rounded-full bg-[#7B7BFF] opacity-[0.012] blur-3xl animate-pulse"
+										style={{ animationDelay: '2.5s', animationDuration: '6s' }}
 									></div>
 									<div
-										className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[15%] h-[15%] rounded-full bg-[#462A92] opacity-[0.0025] blur-3xl animate-ping"
-										style={{ animationDuration: '10s' }}
+										className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[15%] h-[15%] rounded-full bg-[#462A92] opacity-[0.015] blur-3xl animate-ping"
+										style={{ animationDuration: '8s' }}
 									></div>
 								</div>
-
 								<div
-									className="absolute inset-0 rounded-xl border border-[#5c5cf908] animate-pulse"
-									style={{ animationDuration: '6s' }}
+									className="absolute inset-0 rounded-xl border border-[#8a8aff2a] animate-pulse"
+									style={{
+										animationDuration: '5s',
+										boxShadow: '0 0 30px rgba(138, 138, 255, 0.4), inset 0 0 15px rgba(92, 92, 249, 0.2)',
+										background:
+											'linear-gradient(135deg, rgba(92, 92, 249, 0.05) 0%, rgba(138, 138, 255, 0.02) 50%, rgba(70, 42, 146, 0.03) 100%)'
+									}}
 								></div>
-
 								<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center text-[#5C5CF9] relative z-10">
 									Pro
 								</h2>
 								<div className="flex items-center justify-center mt-1 relative z-10">
-									<span className="text-center text-2xl font-medium bg-gradient-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-transparent">
+									<span className="text-center text-2xl font-medium bg-gradient-to-r from-[#5C5CF9] to-[#8a8aff] bg-clip-text text-transparent">
 										300 USD
 									</span>
 									<span className="text-[#8a8c90] ml-1">/month</span>
@@ -177,19 +215,15 @@ export function SubscribeHome() {
 								<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
 									<li className="flex flex-nowrap gap-[10px] items-start">
 										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-										<span>Access to TVL, revenue/fees and prices</span>
+										<span>All features included in Plus tier</span>
+									</li>
+									<li className="flex flex-nowrap gap-[10px] items-start">
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
+										<span>Access to TVL, revenue/fees and prices API endpoints</span>
 									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
 										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Access to all data (unlocks, active users, token liq...)</span>
-									</li>
-									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-										<span>Access to LlamaFeed</span>
-									</li>
-									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-										<span>Download CSV data</span>
 									</li>
 									<li className="px-[26px] flex flex-col gap-1 mt-1">
 										<span className="font-medium">Priority support</span>
@@ -214,7 +248,6 @@ export function SubscribeHome() {
 										<ProgressBar pct={100} />
 									</li>
 								</ul>
-
 								<div className="w-full max-w-[408px] mx-auto flex flex-col gap-3 relative z-10">
 									<SignIn text="Already a subscriber? Sign In" />
 									<div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1 max-sm:w-full">
@@ -223,13 +256,17 @@ export function SubscribeHome() {
 									</div>
 								</div>
 							</div>
-							<div className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:transform hover:scale-[1.02] bg-gradient-to-br from-[#222429] to-[#222429] rounded-xl border border-[#39393E] shadow-md relative overflow-hidden">
-								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent opacity-30"></div>
-								<div className="absolute top-[-50px] right-[-50px] w-[100px] h-[100px] rounded-full bg-gray-500 opacity-5 blur-3xl"></div>
+							<div className="price-card py-8 px-5 md:w-[400px] flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 relative transition-all duration-300 hover:transform hover:scale-[1.02] bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden">
+								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-500 to-transparent opacity-20"></div>
+								<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-gray-600 opacity-5 blur-2xl"></div>
 								<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center">Enterprise</h2>
 								<span className="h-8"></span>
 								<span className="h-7"></span>
 								<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
+									<li className="flex flex-nowrap gap-[10px] items-start">
+										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
+										<span>All features included in Plus and Pro tiers</span>
+									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
 										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 										<span>Direct raw access to our database</span>
@@ -244,140 +281,36 @@ export function SubscribeHome() {
 									</li>
 								</ul>
 								<a
-									className="mt-auto font-medium rounded-lg border border-[#5C5CF9] dark:border-[#5C5CF9] bg-[#5C5CF9] dark:bg-[#5C5CF9] hover:bg-[#4A4AF0] dark:hover:bg-[#4A4AF0] text-white transition-all duration-200 py-[14px] shadow-sm hover:shadow-md group flex items-center gap-2 justify-center w-full ${shadowClass} disabled:cursor-not-allowed disabled:opacity-70 flex-nowrap"
+									className="mt-auto font-medium rounded-lg border border-[#5C5CF9] dark:border-[#5C5CF9] bg-[#5C5CF9] dark:bg-[#5C5CF9] hover:bg-[#4A4AF0] dark:hover:bg-[#4A4AF0] text-white transition-all duration-200 py-[14px] shadow-sm hover:shadow-md group flex items-center gap-2 justify-center w-full disabled:cursor-not-allowed disabled:opacity-70 flex-nowrap"
 									target="_blank"
 									rel="noopener noreferrer"
 									href="mailto:sales@defillama.com"
 								>
+									<Icon name="mail" height={16} width={16} />
 									Contact Us
 								</a>
 							</div>
-							{/* <div className="price-card py-8 px-5 lg:flex-1 flex flex-col max-lg:w-[92vw] max-lg:px-4 max-lg:snap-center flex-shrink-0 transition-all duration-300 hover:transform hover:scale-[1.02] bg-gradient-to-br from-[#222429] to-[#222429] rounded-xl border border-[#39393E] shadow-md relative overflow-hidden">
-								<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-200 to-transparent opacity-30"></div>
-								<div className="absolute top-[-50px] right-[-50px] w-[100px] h-[100px] rounded-full bg-amber-200 opacity-5 blur-3xl"></div>
-								<h2 className="text-[2rem] font-[800] text-center">Supporter</h2>
-								<div className="flex items-center justify-center mt-1">
-									<span className="text-center text-2xl font-medium bg-gradient-to-r from-amber-200 to-amber-100 bg-clip-text text-transparent">
-										15 USD
-									</span>
-									<span className="text-[#8a8c90] ml-1">/month</span>
-								</div>
-								<p className="text-center font-medium text-[#8a8c90] flex flex-nowrap items-center justify-center gap-1">
-									<span>Free for all Github contributors</span>
-									<TooltipAnchor
-										state={tooltip}
-										className="flex flex-nowrap items-center justify-center gap-1"
-										render={<button />}
-									>
-										<span className="sr-only">Availability</span>
-										<Icon name="circle-help" height={16} width={16} />
-									</TooltipAnchor>
-									<Tooltip
-										state={tooltip}
-										className="bg-black border border-[#39393E] rounded-2xl relative z-10 p-4 max-w-sm text-sm"
-									>
-										Only available for 3 months to users who have contributed 5 commits or more over at least 2 months
-										on the following repos:{' '}
-										{eligibleRepos.map((repo, index) => (
-											<Fragment key={repo}>
-												<a
-													href={`https://github.com/DefiLlama/${repo}`}
-													target="_blank"
-													rel="noreferrer noopener"
-													className="p-1 bg-[#222429] rounded"
-												>
-													{repo}
-												</a>
-												{index + 1 !== eligibleRepos.length ? `, ` : ''}
-											</Fragment>
-										))}
-									</Tooltip>
-								</p>
-								<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
-									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-										<span>Access to TVL, revenue/fees and prices</span>
-									</li>
-									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-										<span>Access to all data (unlocks, active users, token liq...)</span>
-									</li>
-									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-										<span>Access to LlamaFeed</span>
-									</li>
-									<li className="flex flex-nowrap gap-[10px] items-start">
-										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-										<span>Download CSV data</span>
-									</li>
-									<li className="px-[26px] flex flex-col gap-1 mt-1">
-										<span className="font-medium">Priority support</span>
-									</li>
-									<p className="px-[26px] font-medium">
-										<a
-											href="https://defillama.com/pro-api/docs"
-											target="_blank"
-											rel="noreferrer noopener"
-											className="underline"
-										>
-											Pro API
-										</a>{' '}
-										limits:
-									</p>
-									<li className="px-[26px] flex flex-col gap-2">
-										<span>1000 requests/minute</span>
-										<ProgressBar pct={100} />
-									</li>
-									<li className="px-[26px] flex flex-col gap-2">
-										<span>200k calls/month</span>
-										<ProgressBar pct={20} />
-									</li>
-								</ul>
-
-								<div className="w-full max-w-[408px] mx-auto flex flex-col gap-2">
-									<SignIn
-										text="Connect GitHub"
-										className="font-medium rounded-lg border border-[#39393E] py-[14px] flex-1 text-center mx-auto w-full transition-all duration-300 flex items-center justify-center gap-2 bg-[#24292e] hover:bg-[#2c3136] text-white shadow-md hover:shadow-xl hover:border-gray-500 hover:scale-[1.02]"
-									/>
-								</div>
-								{hasGithubUsername && (
-									<div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1 max-sm:w-full">
-										<PaymentButton paymentMethod="llamapay" type="contributor" />
-										<PaymentButton paymentMethod="stripe" type="contributor" />
-									</div>
-								)}
-							</div> */}
+						</div>
+						<div className="flex md:hidden justify-center gap-2 mt-4">
+							{[0, 1, 2].map((index) => (
+								<button
+									key={index}
+									className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+										activePriceCard === index ? 'bg-white' : 'bg-gray-500'
+									}`}
+									aria-label={`Go to slide ${index + 1}`}
+									onClick={() => {
+										const ref = pricingContainer.current
+										if (ref && ref.children[index]) {
+											const cardElement = ref.children[index] as HTMLElement
+											ref.scrollTo({ left: cardElement.offsetLeft, behavior: 'smooth' })
+										}
+									}}
+								/>
+							))}
 						</div>
 					</div>
 				)}
-				<div className="flex items-center justify-center flex-nowrap gap-2 md:hidden mb-3">
-					<button
-						className="h-3 w-3 bg-[#39393E] data-[active=true]:bg-[#5c5cf9] rounded-full flex-shrink-0"
-						data-active={activePriceCard === 1}
-						onClick={() => {
-							const container = pricingContainer.current
-							if (container) {
-								container.scrollTo({ left: 0, behavior: 'smooth' })
-								setActivePriceCard(1)
-							}
-						}}
-					>
-						<span className="sr-only">go to pricing type 1</span>
-					</button>
-					<button
-						className="h-3 w-3 bg-[#39393E] data-[active=true]:bg-[#5c5cf9] rounded-full flex-shrink-0"
-						data-active={activePriceCard === 2}
-						onClick={() => {
-							const container = pricingContainer.current
-							if (container) {
-								container.scrollTo({ left: container.clientWidth, behavior: 'smooth' })
-								setActivePriceCard(2)
-							}
-						}}
-					>
-						<span className="sr-only">go to pricing type 2</span>
-					</button>
-				</div>
 			</div>
 		</>
 	)

@@ -89,7 +89,7 @@ export const useSubscribe = () => {
 
 	const handleSubscribe = async (
 		paymentMethod: 'stripe' | 'llamapay',
-		type: 'api' | 'contributor',
+		type: 'api' | 'contributor' | 'llamafeed',
 		onSuccess?: (checkoutUrl: string) => void
 	) => {
 		if (!isAuthenticated) {
