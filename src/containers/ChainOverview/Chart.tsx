@@ -100,6 +100,13 @@ export function ChainChart({
 	)
 	const isCompare = pathname?.includes('compare') || compareMode
 
+	let atleastOneBarChart = false
+	for (const chartType in datasets[0]) {
+		if (datasets[0][chartType] && groupableCharts.includes(chartType)) {
+			atleastOneBarChart = true
+		}
+	}
+
 	const defaultChartSettings = useDefaults({
 		color: primaryColor,
 		title,
@@ -108,7 +115,7 @@ export function ChainChart({
 		hideLegend: true,
 		isThemeDark,
 		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
+			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy) && atleastOneBarChart
 				? (groupBy as 'daily' | 'weekly' | 'monthly')
 				: 'daily'
 	})

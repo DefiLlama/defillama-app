@@ -222,9 +222,9 @@ export const useFetchChainChartData = ({
 				developersChart: finalDevsChart,
 				commitsChart: finalCommitsChart,
 				txsData,
-				chainTokenPriceData: finalPriceChart,
-				chainTokenMcapData: finalMcapChart,
-				chainTokenVolumeData: finalTokenVolumeChart,
+				chainTokenPriceData: finalPriceChart?.length ? finalPriceChart : null,
+				chainTokenMcapData: finalMcapChart?.length ? finalMcapChart : null,
+				chainTokenVolumeData: finalTokenVolumeChart?.length ? finalTokenVolumeChart : null,
 				perpsChart: finalPerpsChart,
 				chainAssetsData: finalChainAssetsChart
 			}

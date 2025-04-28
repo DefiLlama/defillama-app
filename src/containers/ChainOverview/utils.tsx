@@ -46,9 +46,10 @@ const getStartOfTimeFrame = (date: Date, frame: string) => {
 }
 
 export function groupByTimeFrame(data, timeFrame) {
+	if (timeFrame === 'daily') return data
 	const groupedData = data.reduce((acc, [timestamp, ...values]) => {
 		const date = new Date(parseInt(timestamp) * 1000)
-		const timeFrameStart = getStartOfTimeFrame(date, timeFrame)
+		const timeFrameStart = Math.trunc(getStartOfTimeFrame(date, timeFrame) / 1000)
 
 		if (!acc[timeFrameStart]) {
 			acc[timeFrameStart] = values.map(() => 0)
@@ -59,11 +60,9 @@ export function groupByTimeFrame(data, timeFrame) {
 		})
 
 		return acc
-	}, {})
+	}, {} as Record<number, number[]>)
 
-	return Object.entries(groupedData).map(([timeFrameStart, sums]: [string, number[]]) => {
-		return [(+timeFrameStart / 1000).toFixed(0), ...sums]
-	})
+	return Object.entries(groupedData)
 }
 
 export function cumulativeSum(data) {
