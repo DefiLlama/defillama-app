@@ -215,11 +215,11 @@ export function SubscribeHome() {
 									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
 										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-										<span>Hourly data</span>
+										<span>Custom bespoke solutions that fit your needs</span>
 									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
 										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-										<span>Custom bespoke solutions that fit your needs</span>
+										<span>Hourly data</span>
 									</li>
 									<li className="flex flex-nowrap gap-[10px] items-start">
 										<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
