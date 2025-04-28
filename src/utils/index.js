@@ -417,13 +417,7 @@ export function download(filename, text) {
 }
 
 export function nearestUtc(dateString) {
-	const date = new Date(
-		Date.UTC(
-			new Date(dateString).getUTCFullYear(),
-			new Date(dateString).getUTCMonth(),
-			new Date(dateString).getUTCDate()
-		)
-	)
+	const date = new Date(dateString)
 
 	if (date.getHours() >= 12) {
 		date.setDate(date.getDate() + 1)
@@ -431,7 +425,7 @@ export function nearestUtc(dateString) {
 
 	date.setHours(0, 0, 0, 0)
 
-	return Date.now() < date.getTime() ? Date.now() : date.getTime()
+	return Date.now() < date.getTime() ? Date.UTC(Date.now()) : Date.UTC(date.getTime())
 }
 
 export const formatPercentage = (value) => {

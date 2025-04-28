@@ -33,14 +33,14 @@ export const toStrikeTvl = (protocol, toggledSettings) => {
 	return false
 }
 
-const getStartOfTimeFrame = (date, frame) => {
+const getStartOfTimeFrame = (date: Date, frame: string) => {
 	if (frame === 'daily') {
-		return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+		return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
 	} else if (frame === 'weekly') {
-		const day = date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1)
-		return new Date(date.getFullYear(), date.getMonth(), day).getTime()
+		const day = date.getUTCDate() - date.getUTCDay() + (date.getUTCDay() === 0 ? -6 : 1)
+		return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), day)
 	} else if (frame === 'monthly') {
-		return new Date(date.getFullYear(), date.getMonth(), 1).getTime()
+		return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1)
 	}
 }
 
