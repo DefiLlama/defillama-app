@@ -199,7 +199,8 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 				pathname: router.basePath,
 				query: {
 					...queries,
-					category: 'All'
+					...(!router.basePath.includes('/chains/') && chain ? { chain } : {}),
+					category: categories
 				}
 			},
 			undefined,
@@ -213,7 +214,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 				pathname: router.basePath,
 				query: {
 					...queries,
-					category: 'None'
+					...(!router.basePath.includes('/chains/') && chain ? { chain } : {})
 				}
 			},
 			undefined,
