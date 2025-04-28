@@ -13,7 +13,7 @@ export function SubscribePlusCard({ context = 'page' }: SubscribePlusCardProps) 
 		<div className="price-card py-8 px-5 flex flex-col w-full max-w-[400px] bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden relative">
 			<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#5c5cf9] to-transparent opacity-20"></div>
 			<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-[#5c5cf9] opacity-5 blur-2xl"></div>
-			<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center text-[#5C5CF9] relative z-10">Plus+</h2>
+			<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center text-[#5C5CF9] relative z-10">Llama+</h2>
 			<div className="flex items-center justify-center mt-1 relative z-10">
 				<span className="text-center text-2xl font-medium bg-gradient-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-transparent">
 					49 USD
@@ -25,7 +25,7 @@ export function SubscribePlusCard({ context = 'page' }: SubscribePlusCardProps) 
 				<li className="flex flex-col gap-3">
 					<div className="flex flex-nowrap gap-[10px] items-start">
 						<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
-						<span>Full access to LlamaFeed Pro</span>
+						<span>Full access to LlamaFeed</span>
 					</div>
 					<ul className="flex flex-col pl-6 gap-3">
 						<li className="flex flex-nowrap gap-[4px] items-start">
