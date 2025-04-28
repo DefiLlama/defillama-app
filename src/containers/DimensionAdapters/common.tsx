@@ -3,15 +3,10 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import { formattedNum } from '~/utils'
+import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
 import type { IDexChartsProps } from './types'
-import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import {
-	useDimensionChartInterval,
-	useLocalStorageSettingsManager,
-	useManageAppSettings
-} from '~/contexts/LocalStorage'
+import { useDimensionChartInterval } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
 import { VOLUME_TYPE_ADAPTORS } from '~/api/categories/adaptors'
 
@@ -78,9 +73,11 @@ export const aggregateDataByInterval =
 			}))
 		}
 
-		let cleanTimestampFormatter: typeof getCleanMonthTimestamp
-		if (barInterval === 'Monthly') cleanTimestampFormatter = getCleanMonthTimestamp
-		else if (barInterval === 'Weekly') cleanTimestampFormatter = getCleanWeekTimestamp
+		let cleanTimestampFormatter: (timestampInSeconds: number) => number
+		if (barInterval === 'Monthly')
+			cleanTimestampFormatter = (timestampInSeconds) => firstDayOfMonth(timestampInSeconds * 1000)
+		else if (barInterval === 'Weekly')
+			cleanTimestampFormatter = (timestampInSeconds) => lastDayOfWeek(timestampInSeconds * 1000)
 		else cleanTimestampFormatter = (timestampInSeconds: number) => timestampInSeconds
 
 		const monthBarsDataMap = chartData[0].reduce((acc, current) => {

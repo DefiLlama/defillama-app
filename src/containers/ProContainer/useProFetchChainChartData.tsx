@@ -9,7 +9,7 @@ import { useGetFeesAndRevenueChartDataByChain, useGetVolumeChartDataByChain } fr
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useMemo } from 'react'
-import { getPercentChange, getPrevTvlFromChart, nearestUtc } from '~/utils'
+import { getPercentChange, getPrevTvlFromChart, nearestUtcZeroHour } from '~/utils'
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -126,12 +126,12 @@ export const useFetchChainChartData = ({
 			: feesAndRevenueChart
 
 		const finalDevsChart = devMetricsData?.report?.monthly_devs?.map(({ k, v }) => [
-			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
+			Math.floor(nearestUtcZeroHour(dayjs(k).toDate().getTime()) / 1000),
 			v
 		])
 
 		const finalCommitsChart = devMetricsData?.report?.monthly_devs?.map(({ k, cc }) => [
-			Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000),
+			Math.floor(nearestUtcZeroHour(dayjs(k).toDate().getTime()) / 1000),
 			cc
 		])
 

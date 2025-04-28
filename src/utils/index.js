@@ -416,19 +416,6 @@ export function download(filename, text) {
 	document.body.removeChild(element)
 }
 
-export function nearestUtc(dateString) {
-	const date = new Date(dateString)
-
-	if (date.getHours() >= 12) {
-		date.setDate(date.getDate() + 1)
-	}
-
-	const now = new Date()
-	return Date.now() < date.getTime()
-		? Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-		: Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-}
-
 export const formatPercentage = (value) => {
 	let zeroes = 0
 	let stop = false
@@ -457,4 +444,29 @@ export function iterateAndRemoveUndefined(obj) {
 		else iterateAndRemoveUndefined(value)
 	})
 	return obj
+}
+
+export function nearestUtcZeroHour(dateString) {
+	const date = new Date(dateString)
+
+	if (date.getHours() >= 12) {
+		date.setDate(date.getDate() + 1)
+	}
+
+	const now = new Date()
+	return Date.now() < date.getTime()
+		? Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+		: Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+}
+
+export function firstDayOfMonth(dateString) {
+	const date = new Date(dateString)
+	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
+}
+
+export function lastDayOfWeek(dateString) {
+	const date = new Date(dateString)
+	const weekDay = date.getUTCDay() === 0 ? 7 : date.getUTCDay()
+	const lastDayOfWeek = date.getUTCDate() - weekDay
+	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), lastDayOfWeek) / 1000)
 }

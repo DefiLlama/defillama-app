@@ -37,8 +37,9 @@ const getStartOfTimeFrame = (date: Date, frame: string) => {
 	if (frame === 'daily') {
 		return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
 	} else if (frame === 'weekly') {
-		const day = date.getUTCDate() - date.getUTCDay() + (date.getUTCDay() === 0 ? -6 : 1)
-		return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), day)
+		const weekDay = date.getUTCDay() === 0 ? 7 : date.getUTCDay()
+		const lastDayOfWeek = date.getUTCDate() - weekDay
+		return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), lastDayOfWeek)
 	} else if (frame === 'monthly') {
 		return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1)
 	}

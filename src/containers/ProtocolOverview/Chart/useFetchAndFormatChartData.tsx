@@ -13,7 +13,7 @@ import {
 	useFetchProtocolTwitter,
 	useFetchProtocolDevMetrics
 } from '~/api/categories/protocols/client'
-import { nearestUtc } from '~/utils'
+import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour } from '~/utils'
 import { useGetOverviewChartData } from '~/containers/DimensionAdapters/charts/hooks'
 import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/Bridges/BridgeProtocolOverview'
@@ -271,7 +271,7 @@ export function useFetchAndFormatChartData({
 				chartsUnique.push('Mcap')
 
 				for (const [dateMs, Mcap] of protocolCGData['mcaps']) {
-					const date = Math.floor(nearestUtc(dateMs) / 1000)
+					const date = Math.floor(nearestUtcZeroHour(dateMs) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = { date }
 					}
@@ -289,7 +289,7 @@ export function useFetchAndFormatChartData({
 				) {
 					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
-						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
+						: Math.floor(nearestUtcZeroHour(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
 					const Mcap = protocolCGData['mcaps']?.[protocolCGData['mcaps'].length - 1][1]
 
 					chartData[date]['Mcap'] = showNonUsdDenomination
@@ -302,7 +302,7 @@ export function useFetchAndFormatChartData({
 				chartsUnique.push('Token Price')
 
 				for (const [dateMs, price] of protocolCGData['prices']) {
-					const date = Math.floor(nearestUtc(dateMs) / 1000)
+					const date = Math.floor(nearestUtcZeroHour(dateMs) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = { date }
 					}
@@ -320,7 +320,7 @@ export function useFetchAndFormatChartData({
 				) {
 					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
-						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
+						: Math.floor(nearestUtcZeroHour(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
 					const tokenPrice = protocolCGData['prices'][protocolCGData['prices'].length - 1][1]
 
 					chartData[date]['Token Price'] = showNonUsdDenomination
@@ -335,7 +335,7 @@ export function useFetchAndFormatChartData({
 				const totalSupply = fdvData['data']['total_supply']
 
 				for (const [dateMs, price] of protocolCGData['prices']) {
-					const date = Math.floor(nearestUtc(dateMs) / 1000)
+					const date = Math.floor(nearestUtcZeroHour(dateMs) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = { date }
 					}
@@ -352,7 +352,7 @@ export function useFetchAndFormatChartData({
 				) {
 					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
-						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
+						: Math.floor(nearestUtcZeroHour(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
 					const tokenPrice = protocolCGData['prices'][protocolCGData['prices'].length - 1][1]
 					const fdv = totalSupply * tokenPrice
 
@@ -364,7 +364,7 @@ export function useFetchAndFormatChartData({
 				chartsUnique.push('Token Volume')
 
 				for (const [dateMs, price] of protocolCGData['volumes']) {
-					const date = Math.floor(nearestUtc(dateMs) / 1000)
+					const date = Math.floor(nearestUtcZeroHour(dateMs) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = { date }
 					}
@@ -382,7 +382,7 @@ export function useFetchAndFormatChartData({
 				) {
 					const date = isHourlyChart
 						? tvlData[tvlData.length - 1][0]
-						: Math.floor(nearestUtc(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
+						: Math.floor(nearestUtcZeroHour(+tvlData[tvlData.length - 1][0] * 1000) / 1000)
 					const tokenVolume = protocolCGData['volumes'][protocolCGData['volumes'].length - 1][1]
 
 					chartData[date]['Token Volume'] = showNonUsdDenomination
@@ -396,7 +396,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Token Liquidity')
 
 			for (const item of tokenLiquidityData) {
-				const date = Math.floor(nearestUtc(+item[0] * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+item[0] * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
@@ -412,7 +412,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Bridge Withdrawals')
 
 			for (const item of bridgeVolumeData) {
-				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
@@ -430,7 +430,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Volume')
 
 			for (const item of volumeData) {
-				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
@@ -445,7 +445,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Perps Volume')
 
 			for (const item of perpsVolumeData) {
-				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
@@ -460,7 +460,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Premium Volume')
 
 			for (const item of optionsVolumeData) {
-				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
@@ -475,7 +475,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Aggregators Volume')
 
 			for (const item of aggregatorsVolumeData) {
-				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
@@ -490,7 +490,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Perps Aggregators Volume')
 
 			for (const item of perpsAggregatorsVolumeData) {
-				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
@@ -505,7 +505,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Bridge Aggregators Volume')
 
 			for (const item of bridgeAggregatorsVolumeData) {
-				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
@@ -526,7 +526,7 @@ export function useFetchAndFormatChartData({
 			}
 
 			for (const item of feesAndRevenue) {
-				const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
@@ -565,7 +565,7 @@ export function useFetchAndFormatChartData({
 			unlocksData.chartData.documented
 				.filter((emission) => +emission.date * 1000 <= Date.now())
 				.forEach((item) => {
-					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+					const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 					if (!chartData[date]) {
 						chartData[date] = { date }
 					}
@@ -586,7 +586,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Active Addresses')
 
 			for (const [dateS, noOfUsers] of activeAddressesData) {
-				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -599,7 +599,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('New Addresses')
 
 			for (const [dateS, noOfUsers] of newAddressesData) {
-				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -612,7 +612,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Transactions')
 
 			for (const [dateS, noOfTxs] of transactionsData) {
-				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -625,7 +625,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Gas Used')
 
 			for (const [dateS, gasAmount] of gasData) {
-				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -640,7 +640,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Median APY')
 
 			for (const { date: dateS, medianAPY } of medianAPYData) {
-				const date = Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -666,7 +666,7 @@ export function useFetchAndFormatChartData({
 				? Object.entries(
 						usdInflowsData.reduce((acc, curr) => {
 							if (!currentDate || currentDate + 86400 < +curr[0]) {
-								currentDate = Math.floor(nearestUtc(+curr[0] * 1000) / 1000)
+								currentDate = Math.floor(nearestUtcZeroHour(+curr[0] * 1000) / 1000)
 							}
 
 							if (!acc[currentDate]) {
@@ -681,7 +681,7 @@ export function useFetchAndFormatChartData({
 				: usdInflowsData
 
 			data.forEach(([dateS, inflows]) => {
-				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = isHourlyChart ? dateS : Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -698,7 +698,7 @@ export function useFetchAndFormatChartData({
 
 			for (const gItem of governanceData) {
 				for (const item of gItem.activity ?? []) {
-					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+					const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 
 					if (!chartData[date]) {
 						chartData[date] = { date }
@@ -711,7 +711,7 @@ export function useFetchAndFormatChartData({
 
 			for (const gItem of governanceData) {
 				for (const item of gItem.maxVotes ?? []) {
-					const date = Math.floor(nearestUtc(+item.date * 1000) / 1000)
+					const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 
 					if (!chartData[date]) {
 						chartData[date] = { date }
@@ -728,7 +728,7 @@ export function useFetchAndFormatChartData({
 			const metricKey = groupBy === 'monthly' ? 'monthly_contributers' : 'weekly_contributers'
 
 			for (const { k, v } of devMetricsData.report?.[metricKey] ?? []) {
-				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(dayjs(k).toDate().getTime()) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -744,7 +744,7 @@ export function useFetchAndFormatChartData({
 			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
 
 			for (const { k, v } of devMetricsData.report?.[metricKey] ?? []) {
-				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(dayjs(k).toDate().getTime()) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -758,7 +758,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('NFT Volume')
 
 			for (const { date, volume, volumeUsd } of nftVolumeData) {
-				const ts = Math.floor(nearestUtc(dayjs(date).toDate().getTime()) / 1000)
+				const ts = Math.floor(nearestUtcZeroHour(dayjs(date).toDate().getTime()) / 1000)
 
 				if (!chartData[ts]) {
 					chartData[ts] = {}
@@ -774,7 +774,7 @@ export function useFetchAndFormatChartData({
 			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
 
 			for (const { k, cc } of devMetricsData.report?.[metricKey] ?? []) {
-				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(dayjs(k).toDate().getTime()) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -790,7 +790,7 @@ export function useFetchAndFormatChartData({
 			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
 
 			for (const { k, cc } of devMetricsData.report?.[metricKey] ?? []) {
-				const date = Math.floor(nearestUtc(dayjs(k).toDate().getTime()) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(dayjs(k).toDate().getTime()) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -807,7 +807,7 @@ export function useFetchAndFormatChartData({
 			let prevDate = null
 
 			for (const [dateS, treasuryValue] of tData) {
-				const date = isHourlyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = isHourlyChart ? dateS : Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				// if (prevDate && +date - prevDate > 86400) {
 				// 	const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
@@ -850,7 +850,7 @@ export function useFetchAndFormatChartData({
 			let prevDate = null
 
 			for (const [dateS, TVL] of tvlData) {
-				const date = isHourlyChart && useDailyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = isHourlyChart && useDailyChart ? dateS : Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				if (prevDate && +date - prevDate > 86400) {
 					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
@@ -887,7 +887,7 @@ export function useFetchAndFormatChartData({
 			let prevDate = null
 
 			for (const { date: dateS, totalLiquidityUSD } of historicalChainTvls['staking'].tvl) {
-				const date = isHourlyChart && useDailyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = isHourlyChart && useDailyChart ? dateS : Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				if (prevDate && +date - prevDate > 86400) {
 					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
@@ -928,7 +928,7 @@ export function useFetchAndFormatChartData({
 			let prevDate = null
 
 			for (const { date: dateS, totalLiquidityUSD } of historicalChainTvls['borrowed'].tvl) {
-				const date = isHourlyChart && useDailyChart ? dateS : Math.floor(nearestUtc(+dateS * 1000) / 1000)
+				const date = isHourlyChart && useDailyChart ? dateS : Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				if (prevDate && +date - prevDate > 86400) {
 					const noOfDatesMissing = Math.floor((+date - prevDate) / 86400)
@@ -1291,18 +1291,4 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 	}
 	const final = Object.entries(tvlDictionary)
 	return final.length < 50 ? final.filter((x) => x[1] !== 0) : final
-}
-
-const firstDayOfMonth = (dateString) => {
-	const date = new Date(dateString)
-
-	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
-}
-
-function lastDayOfWeek(dateString) {
-	const date = new Date(dateString)
-	const weekDay = date.getUTCDay() === 0 ? 7 : date.getUTCDay()
-	const monthDay = date.getUTCDate() - weekDay
-
-	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), monthDay) / 1000)
 }
