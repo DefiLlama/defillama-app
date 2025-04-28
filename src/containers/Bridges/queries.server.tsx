@@ -105,7 +105,7 @@ export async function getBridgeOverviewPageData(chain) {
 					return formattedCharts
 				} catch (e) {}
 			}
-			throw new Error(`${BRIDGEVOLUME_API}/?id=${elem.id} is broken`)
+			return []
 		})
 	)
 
