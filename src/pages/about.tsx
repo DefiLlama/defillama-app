@@ -122,7 +122,7 @@ function AboutPage(props: any) {
 						className="text-[var(--blue)] hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="https://defillama.com/pro-api"
+						href="https://defillama.com/subscription"
 					>
 						here after subscribing
 					</a>

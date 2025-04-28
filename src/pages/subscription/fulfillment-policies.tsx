@@ -47,10 +47,10 @@ export function SubscribeLayout2({ children }) {
 					<a href="mailto:support@llama.fi" className="underline">
 						Contact Us
 					</a>
-					<Link href="/subscribe/privacy-policy" passHref>
+					<Link href="/subscription/privacy-policy" passHref>
 						<a className="underline">Privacy Policy</a>
 					</Link>
-					<Link href="/subscribe/fulfillment-policies" passHref>
+					<Link href="/subscription/fulfillment-policies" passHref>
 						<a className="underline">Fulfillment policies</a>
 					</Link>
 				</footer>

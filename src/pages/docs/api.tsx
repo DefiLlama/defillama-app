@@ -39,8 +39,8 @@ export function ApiDocs({ spec = yamlApiSpec }: { spec: any }) {
 
 							<p>
 								Upgrade here:{' '}
-								<a href="https://defillama.com/subscribe" className="underline">
-									https://defillama.com/subscribe
+								<a href="https://defillama.com/subscribtion" className="underline">
+									https://defillama.com/subscribtion
 								</a>
 							</p>
 

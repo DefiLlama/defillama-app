@@ -54,8 +54,8 @@ export default function Docs() {
 			<div className="relative p-3 text-sm text-black dark:text-white text-center rounded-md bg-[hsl(215deg_79%_51%_/_12%)]">
 				<p>
 					Upgrade to the <b>Pro API</b>{' '}
-					<a href="https://defillama.com/subscribe" className="underline">
-						https://defillama.com/subscribe
+					<a href="https://defillama.com/subscribtion" className="underline">
+						https://defillama.com/subscribtion
 					</a>
 				</p>
 			</div>

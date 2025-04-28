@@ -3,7 +3,7 @@ info:
   description: |
     Docs for defillama's open API
 
-    Need higher rate limits or priority support? We offer a premium plan for 300$/mo. To get it, go to https://defillama.com/pro-api
+    Need higher rate limits or priority support? We offer a premium plan for 300$/mo. To get it, go to https://defillama.com/subscription
   version: 1.0.0-oas3
   title: DefiLlama API
 tags:
