@@ -65,7 +65,7 @@ interface IUseDefaultsProps {
 	unlockTokenSymbol?: string
 	isThemeDark: boolean
 	hideOthersInTooltip?: boolean
-	isMonthly?: boolean
+	groupBy?: 'daily' | 'weekly' | 'monthly'
 }
 
 export function useDefaults({
@@ -80,7 +80,7 @@ export function useDefaults({
 	unlockTokenSymbol = '',
 	isThemeDark,
 	hideOthersInTooltip,
-	isMonthly
+	groupBy
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -121,7 +121,7 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
-				let chartdate = formatTooltipChartData(params[0].value[0], isMonthly)
+				let chartdate = formatTooltipChartDate(params[0].value[0], groupBy)
 
 				let vals
 				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1] !== null)
@@ -217,7 +217,7 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
-				const chartdate = formatTooltipChartData(params[0].value[0], false)
+				const chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
 
 				let vals = params
 					.sort((a, b) => (tooltipSort ? a.value[1] - b.value[1] : 0))
@@ -351,10 +351,7 @@ export function useDefaults({
 					}
 				},
 				fillerColor: isThemeDark ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
-				labelFormatter: (val) => {
-					const date = new Date(val)
-					return date.toLocaleDateString()
-				}
+				labelFormatter: formatChartEmphasisDate
 			}
 		]
 
@@ -372,7 +369,7 @@ export function useDefaults({
 		unlockTokenSymbol,
 		hideOthersInTooltip,
 		tooltipValuesRelative,
-		isMonthly
+		groupBy
 	])
 
 	return defaults
@@ -390,10 +387,42 @@ export const formatTooltipValue = (value, symbol) => {
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export function formatTooltipChartData(value: number, isMonthly: boolean) {
+// timestamps in monthly chart date is 1st of every month
+// timestamps in weekly chart date is last day of week i.e., sunday
+export function formatTooltipChartDate(value: number, groupBy: 'daily' | 'weekly' | 'monthly') {
 	const date = new Date(value)
 
-	return isMonthly
-		? monthNames[date.getUTCMonth()] + ' 1 - ' + lastDayOfMonth(value) + ', ' + date.getUTCFullYear()
+	return groupBy === 'monthly'
+		? `${monthNames[date.getUTCMonth()]} 1 - ${lastDayOfMonth(value)}, ${date.getUTCFullYear()}`
+		: groupBy === 'weekly'
+		? getStartAndEndDayOfTheWeek(value)
+		: date.getUTCHours() !== 0
+		? `${date.getUTCHours()}:${date.getUTCMinutes()}, ${date.getUTCDate().toString().padStart(2, '0')} ${
+				monthNames[date.getUTCMonth()]
+		  } ${date.getUTCFullYear()}`
 		: `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
+}
+
+function formatChartEmphasisDate(value: number) {
+	const date = new Date(value)
+	return date.toLocaleDateString(undefined, {
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		timeZone: 'UTC'
+	})
+}
+
+function getStartAndEndDayOfTheWeek(value: number) {
+	const current = new Date(value)
+	const past = new Date(value - 7 * 24 * 60 * 60 * 1000)
+
+	const currentMonth = monthNames[current.getUTCMonth()]
+	const pastMonth = monthNames[past.getUTCMonth()]
+	const currentYear = current.getUTCFullYear()
+	const pastYear = past.getUTCFullYear()
+
+	return `${past.getUTCDate().toString().padStart(2, '0')}${pastMonth !== currentMonth ? ` ${pastMonth}` : ''}${
+		pastYear !== currentYear ? ` ${pastYear}` : ''
+	} - ${current.getUTCDate().toString().padStart(2, '0')} ${currentMonth} ${currentYear}`
 }

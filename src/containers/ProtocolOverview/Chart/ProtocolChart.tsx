@@ -315,7 +315,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 				bobo={bobo}
 				unlockTokenSymbol={unlockTokenSymbol}
 				isThemeDark={isThemeDark}
-				isMonthly={toggledMetrics.groupBy === 'monthly'}
+				groupBy={toggledMetrics.groupBy}
 			/>
 		)
 
@@ -481,7 +481,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 				bobo={bobo}
 				unlockTokenSymbol={unlockTokenSymbol}
 				isThemeDark={isThemeDark}
-				isMonthly={toggledMetrics.groupBy === 'monthly'}
+				groupBy={toggledMetrics.groupBy}
 			/>
 		</div>
 	)
@@ -503,7 +503,7 @@ export const ProtocolChartOnly = React.memo(function ProtocolChartOnly({
 	bobo,
 	unlockTokenSymbol,
 	isThemeDark,
-	isMonthly
+	groupBy
 }: any) {
 	return (
 		<LazyChart className="col-span-1 min-h-[360px]">
@@ -531,7 +531,7 @@ export const ProtocolChartOnly = React.memo(function ProtocolChartOnly({
 					}
 					unlockTokenSymbol={unlockTokenSymbol}
 					isThemeDark={isThemeDark}
-					isMonthly={isMonthly}
+					groupBy={groupBy}
 				/>
 			)}
 		</LazyChart>

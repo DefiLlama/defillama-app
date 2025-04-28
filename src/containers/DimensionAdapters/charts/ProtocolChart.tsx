@@ -199,7 +199,7 @@ export const ProtocolChart = ({
 						chartData={barsData}
 						stacks={simpleStack}
 						stackColors={barChartColors}
-						isMonthly={barInterval === 'Monthly'}
+						groupBy={barInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
 						hideDefaultLegend
 						customLegendName="Chains"
 						customLegendOptions={customLegendOptions}
@@ -256,7 +256,7 @@ export const ChartOnly = ({ title, chartData }) => {
 					chartData={barsData}
 					stacks={simpleStack}
 					stackColors={barChartColors}
-					isMonthly={barInterval === 'Monthly'}
+					groupBy={barInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
 					hideDefaultLegend
 					customLegendName="Chains"
 					customLegendOptions={customLegendOptions}

@@ -5,7 +5,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SVGRenderer } from 'echarts/renderers'
 import { LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
-import { formatTooltipChartData } from '~/components/ECharts/useDefaults'
+import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
 
 echarts.use([SVGRenderer, LineChart, BarChart, TooltipComponent, GridComponent])
 
@@ -187,7 +187,7 @@ export function SmolLineChart({
 				trigger: 'axis',
 				confine: false,
 				formatter: function (params) {
-					let chartdate = formatTooltipChartData(params[0].value[0], false)
+					let chartdate = formatTooltipChartDate(params[0].value[0], false)
 
 					return (
 						chartdate +
@@ -294,7 +294,7 @@ export function SmolBarChart({
 				trigger: 'axis',
 				confine: false,
 				formatter: function (params) {
-					let chartdate = formatTooltipChartData(params[0].value[0], false)
+					let chartdate = formatTooltipChartDate(params[0].value[0], false)
 
 					return (
 						chartdate +

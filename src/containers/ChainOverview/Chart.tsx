@@ -106,7 +106,11 @@ export function ChainChart({
 		valueSymbol: denomination || 'USD',
 		tooltipSort,
 		hideLegend: true,
-		isThemeDark
+		isThemeDark,
+		groupBy:
+			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
+				? (groupBy as 'daily' | 'weekly' | 'monthly')
+				: 'daily'
 	})
 
 	const [series, activeSeries] = useMemo(() => {

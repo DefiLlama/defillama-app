@@ -186,7 +186,7 @@ export default function ProtocolChart({
 			bobo={false}
 			unlockTokenSymbol={unlockTokenSymbol}
 			isThemeDark={isThemeDark}
-			isMonthly={groupBy === 'monthly'}
+			groupBy={groupBy}
 		/>
 	)
 }

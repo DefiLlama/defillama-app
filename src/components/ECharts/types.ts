@@ -31,7 +31,7 @@ export interface IChartProps {
 	hideGradient?: boolean
 	unlockTokenSymbol?: string
 	isThemeDark?: boolean
-	isMonthly?: boolean
+	groupBy?: 'daily' | 'weekly' | 'monthly'
 	customYAxis?: Array<string>
 	hideOthersInTooltip?: boolean
 }

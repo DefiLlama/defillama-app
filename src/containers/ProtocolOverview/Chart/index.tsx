@@ -36,14 +36,6 @@ export default function AreaBarChart({
 	const { groupBy } = router.query
 	const isCumulative = router.isReady && groupBy === 'cumulative' ? true : false
 
-	let atleastOneLineChart = false
-
-	stacks.forEach((stack) => {
-		if (!BAR_CHARTS.includes(stack)) {
-			atleastOneLineChart = true
-		}
-	})
-
 	const defaultChartSettings = useDefaults({
 		color,
 		title,
@@ -52,7 +44,10 @@ export default function AreaBarChart({
 		hideLegend: true,
 		unlockTokenSymbol,
 		isThemeDark,
-		isMonthly: !atleastOneLineChart && groupBy === 'monthly' ? true : false
+		groupBy:
+			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
+				? (groupBy as 'daily' | 'weekly' | 'monthly')
+				: 'daily'
 	})
 
 	const { series, yAxisByIndex } = useMemo(() => {
@@ -274,7 +269,7 @@ export default function AreaBarChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {

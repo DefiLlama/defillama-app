@@ -21,7 +21,7 @@ export default function BarChart({
 	barWidths,
 	stackColors,
 	tooltipOrderBottomUp,
-	isMonthly
+	groupBy
 }: IBarChartProps) {
 	const id = useId()
 
@@ -54,7 +54,10 @@ export default function BarChart({
 		hideLegend,
 		tooltipOrderBottomUp,
 		isThemeDark,
-		isMonthly
+		groupBy:
+			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
+				? (groupBy as 'daily' | 'weekly' | 'monthly')
+				: 'daily'
 	})
 
 	const series = useMemo(() => {
