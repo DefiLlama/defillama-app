@@ -425,8 +425,8 @@ export function nearestUtc(dateString) {
 
 	const now = new Date()
 	return Date.now() < date.getTime()
-		? Math.trunc(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-		: Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+		? Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+		: Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
 }
 
 export const formatPercentage = (value) => {
