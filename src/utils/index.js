@@ -417,7 +417,13 @@ export function download(filename, text) {
 }
 
 export function nearestUtc(dateString) {
-	const date = new Date(dateString)
+	const date = new Date(
+		Date.UTC(
+			new Date(dateString).getUTCFullYear(),
+			new Date(dateString).getUTCMonth(),
+			new Date(dateString).getUTCDate()
+		)
+	)
 
 	if (date.getHours() >= 12) {
 		date.setDate(date.getDate() + 1)
