@@ -397,9 +397,14 @@ export function formatTooltipChartDate(value: number, groupBy: 'daily' | 'weekly
 		: groupBy === 'weekly'
 		? getStartAndEndDayOfTheWeek(value)
 		: date.getUTCHours() !== 0
-		? `${date.getUTCHours()}:${date.getUTCMinutes()}, ${date.getUTCDate().toString().padStart(2, '0')} ${
-				monthNames[date.getUTCMonth()]
-		  } ${date.getUTCFullYear()}`
+		? `${date.toLocaleDateString(undefined, {
+				year: 'numeric',
+				month: '2-digit',
+				day: '2-digit',
+				hour: '2-digit',
+				minute: '2-digit',
+				timeZone: 'UTC'
+		  })}`
 		: `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
 }
 
