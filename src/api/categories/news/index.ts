@@ -46,7 +46,7 @@ export const fetchArticles = async ({ tags = '', size = 2 }) => {
 
 	const articles: IArticle[] =
 		articlesRes?.content_elements
-			?.filter((element) => element.taxonomy?.tags?.some((tag) => tag.text.toLowerCase() === target))
+			?.filter((element) => element.taxonomy?.tags?.some((tag) => tag.slug.toLowerCase() === target))
 			.map((element) => ({
 				headline: element.headlines.basic,
 				date: element.display_date,
