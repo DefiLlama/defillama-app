@@ -69,7 +69,8 @@ const CHART_TYPES = [
 	'devCommits',
 	'nftVolume',
 	'perpsAggregators',
-	'bridgeAggregators'
+	'bridgeAggregators',
+	'aggregators'
 ]
 
 const ProtocolChart = React.memo(function ProtocolChart({
