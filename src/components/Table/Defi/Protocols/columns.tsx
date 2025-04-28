@@ -961,6 +961,12 @@ const Tvl = ({ value, rowValues }) => {
 				'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
 		}
 
+		const whiteLabeledVaultProviders = ['Veda']
+		if (whiteLabeledVaultProviders.includes(rowValues.name)) {
+			text =
+				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
+		}
+
 		removedCategories.forEach((removedCategory) => {
 			if (rowValues.category === removedCategory) {
 				text = `${removedCategory} protocols are not counted into Chain TVL`
