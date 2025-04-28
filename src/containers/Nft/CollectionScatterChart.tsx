@@ -109,7 +109,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 				showDelay: 0,
 				confine: true,
 				formatter: function (params) {
-					const chartdate = formatTooltipChartDate(params.value[0], false)
+					const chartdate = formatTooltipChartDate(params.value[0], 'daily')
 
 					let vals =
 						chartdate +

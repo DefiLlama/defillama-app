@@ -72,7 +72,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</div>
 
 				<div className="bg-[var(--cards-bg)] rounded-md col-span-2 min-h-[360px] ">
-					<BarChart chartData={monthlyInvestment} title="" valueSymbol="$" color="#1F67D2" isMonthly />
+					<BarChart chartData={monthlyInvestment} title="" valueSymbol="$" color="#1F67D2" groupBy="monthly" />
 				</div>
 			</div>
 

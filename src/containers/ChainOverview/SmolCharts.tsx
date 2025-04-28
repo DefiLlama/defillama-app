@@ -187,7 +187,7 @@ export function SmolLineChart({
 				trigger: 'axis',
 				confine: false,
 				formatter: function (params) {
-					let chartdate = formatTooltipChartDate(params[0].value[0], false)
+					let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
 
 					return (
 						chartdate +
@@ -294,7 +294,7 @@ export function SmolBarChart({
 				trigger: 'axis',
 				confine: false,
 				formatter: function (params) {
-					let chartdate = formatTooltipChartDate(params[0].value[0], false)
+					let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
 
 					return (
 						chartdate +
