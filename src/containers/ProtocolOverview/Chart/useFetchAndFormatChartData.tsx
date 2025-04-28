@@ -1296,18 +1296,13 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 const firstDayOfMonth = (dateString) => {
 	const date = new Date(dateString)
 
-	date.setDate(1)
-	date.setHours(0)
-	date.setMinutes(0)
-	date.setSeconds(0)
-	date.setMilliseconds(0)
-
-	return date.getTime() / 1000
+	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 }
 
 function lastDayOfWeek(dateString) {
 	const date = new Date(dateString)
 	const weekDay = date.getUTCDay() === 0 ? 7 : date.getUTCDay()
 	const monthDay = date.getUTCDate() - weekDay
+
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), monthDay) / 1000)
 }
