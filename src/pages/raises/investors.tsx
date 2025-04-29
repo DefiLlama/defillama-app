@@ -77,42 +77,44 @@ const ActiveInvestors = ({ data }) => {
 		}
 	}
 
-	const normalizedData = Object.values(
-		mapValues(
-			data?.reduce((acc, round) => {
-				round?.leadInvestors?.forEach((lead) => {
-					acc[lead] = acc[lead] ? acc[lead].concat(round) : [round]
-				})
-				return acc
-			}, {}),
-			(raises, name) => {
-				const normalizedRaises = getRaisesByPeriod(raises, periodToNumber[period])
+	const normalizedData = React.useMemo(() => {
+		return Object.values(
+			mapValues(
+				data?.reduce((acc, round) => {
+					round?.leadInvestors?.forEach((lead) => {
+						acc[lead] = acc[lead] ? acc[lead].concat(round) : [round]
+					})
+					return acc
+				}, {}),
+				(raises, name) => {
+					const normalizedRaises = getRaisesByPeriod(raises, periodToNumber[period])
 
-				const categories = Object.entries(countBy(raises?.map((raise) => raise?.category).filter(Boolean)))
-					.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
-					.map((val) => val[0])
-				const roundTypes = Object.entries(countBy(raises?.map((raise) => raise?.round).filter(Boolean)))
-					.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
-					.map((val) => val[0])
+					const categories = Object.entries(countBy(raises?.map((raise) => raise?.category).filter(Boolean)))
+						.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
+						.map((val) => val[0])
+					const roundTypes = Object.entries(countBy(raises?.map((raise) => raise?.round).filter(Boolean)))
+						.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
+						.map((val) => val[0])
 
-				const medianAmount = findMedian(raises.map((r) => r?.amount))?.toFixed(2)
+					const medianAmount = findMedian(raises.map((r) => r?.amount))?.toFixed(2)
 
-				const totalAmount = sumBy(normalizedRaises, 'amount')
-				const averageAmount = totalAmount / normalizedRaises?.length || 0
-				if (totalAmount > 0)
-					return {
-						averageAmount: averageAmount.toFixed(2),
-						name,
-						medianAmount: medianAmount ?? 0,
-						category: categories[0],
-						roundType: roundTypes[0],
-						deals: normalizedRaises?.length,
-						projects: raises.map((raise) => raise.name).join(', '),
-						chains: uniq(flatten(raises.map((raise) => raise.chains.map((chain) => chain))))
-					}
-			}
-		)
-	).filter(Boolean)
+					const totalAmount = sumBy(normalizedRaises, 'amount')
+					const averageAmount = totalAmount / normalizedRaises?.length || 0
+					if (totalAmount > 0)
+						return {
+							averageAmount: averageAmount.toFixed(2),
+							name,
+							medianAmount: medianAmount ?? 0,
+							category: categories[0],
+							roundType: roundTypes[0],
+							deals: normalizedRaises?.length,
+							projects: raises.map((raise) => raise.name).join(', '),
+							chains: uniq(flatten(raises.map((raise) => raise.chains.map((chain) => chain))))
+						}
+				}
+			)
+		).filter(Boolean)
+	}, [data, period])
 
 	const [investorName, setInvestorName] = React.useState('')
 
