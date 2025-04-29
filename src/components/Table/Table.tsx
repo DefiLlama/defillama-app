@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '../Tooltip'
+import { useIsClient } from '~/hooks'
 
 interface ITableProps {
 	instance: Table<any>
@@ -36,14 +37,14 @@ export function VirtualTable({
 	const router = useRouter()
 	const [tableTop, setTableTop] = React.useState(0)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
-
+	const isClient = useIsClient()
 	const { rows } = instance.getRowModel()
 
 	React.useEffect(() => {
-		if (!skipVirtualization && tableContainerRef?.current) {
+		if (!skipVirtualization && tableContainerRef?.current && isClient) {
 			setTableTop(tableContainerRef.current.offsetTop)
 		}
-	}, [skipVirtualization])
+	}, [skipVirtualization, isClient])
 
 	React.useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
