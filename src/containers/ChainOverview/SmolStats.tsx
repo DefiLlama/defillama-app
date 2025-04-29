@@ -82,7 +82,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 								<Tooltip
 									render={<Link href="/unlocks" passHref legacyBehavior={false} />}
 									className="text-sm font-semibold"
-									content="Value of tokens unlocking in the next 14 days"
+									content="Value of tokens unlocking over the next 14 days"
 								>
 									Upcoming Unlocks
 								</Tooltip>
@@ -90,7 +90,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 										props.unlocks.total14d,
 										true
-									)} in 14 days`}</p>
+									)} over 14 days`}</p>
 								) : null}
 							</div>
 							<Suspense fallback={<></>}>
