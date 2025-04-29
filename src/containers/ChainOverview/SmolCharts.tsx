@@ -368,25 +368,26 @@ export function UpcomingUnlocksChart({
 			series[stack] = {
 				name: stack,
 				type: 'bar',
+				large: true,
+				largeThreshold: 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
 				},
+				stack: 'upcomingUnlock',
 				symbol: 'none',
 				data: []
 			}
 		}
 
 		for (const [date, tokensInDate] of data) {
-			for (const stack in tokensInDate) {
-				series[stack]?.data?.push([date, tokensInDate[stack]])
+			for (const stack of tokens) {
+				series[stack]?.data?.push([date, tokensInDate[stack] || 0])
 			}
 		}
 
 		return Object.values(series)
 	}, [data, tokens])
-
-	console.log({ series })
 
 	useEffect(() => {
 		// create instance
@@ -433,6 +434,7 @@ export function UpcomingUnlocksChart({
 						params
 							.sort((a, b) => b.value[1] - a.value[1])
 							.reduce((prev, curr) => {
+								if (curr.value[1] === 0) return prev
 								return (
 									(prev +=
 										'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +

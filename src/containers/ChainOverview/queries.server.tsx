@@ -374,7 +374,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						const date = new Date(event.timestamp * 1000)
 						const utcTimestamp = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
 						const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
-						const valueUSD = Number(totalTokens.toFixed(2)) * protocol.tPrice
+						const valueUSD = Number((Number(totalTokens.toFixed(2)) * protocol.tPrice).toFixed(2))
 						acc[utcTimestamp] = { ...(acc[utcTimestamp] || {}), [protocol.tSymbol]: valueUSD }
 						uniqueUnlockTokens.add(protocol.tSymbol)
 						total14dUnlocks += valueUSD
@@ -386,6 +386,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		const finalUnlocksChart = Object.entries(unlocksChart).map(([date, tokens]) => {
 			const topTokens = Object.entries(tokens).sort((a, b) => b[1] - a[1]) as Array<[string, number]>
 			const others = topTokens.slice(10).reduce((acc, curr) => (acc += curr[1]), 0)
+			if (others) {
+				uniqueUnlockTokens.add('Others')
+			}
 			const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? ['Others', others] : []))
 			return [+date, finalTokens]
 		}) as Array<[number, Record<string, number>]>

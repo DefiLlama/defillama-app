@@ -4,7 +4,6 @@ import { Suspense, useMemo } from 'react'
 import { formattedNum, getPercentChange, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import Link from 'next/link'
-import { UpcomingUnlocksChart } from '~/containers/ChainOverview/SmolCharts'
 
 const FeesGeneratedChart: any = dynamic(
 	() => import('~/containers/ChainOverview/SmolCharts').then((m) => m.FeesGeneratedChart),
@@ -20,6 +19,13 @@ const SmolLineChart: any = dynamic(() => import('~/containers/ChainOverview/Smol
 const SmolBarChart: any = dynamic(() => import('~/containers/ChainOverview/SmolCharts').then((m) => m.SmolBarChart), {
 	ssr: false
 })
+
+const UpcomingUnlocksChart: any = dynamic(
+	() => import('~/containers/ChainOverview/SmolCharts').then((m) => m.UpcomingUnlocksChart),
+	{
+		ssr: false
+	}
+)
 
 export const SmolStats = (props: IChainOverviewData) => {
 	const rwaTvl = useMemo(() => {
@@ -76,7 +82,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 								<Tooltip
 									render={<Link href="/unlocks" passHref legacyBehavior={false} />}
 									className="text-sm font-semibold"
-									content="Total value of all spot trades executed on decentralized exchanges"
+									content="Value of tokens unlocking in the next 14 days"
 								>
 									Upcoming Unlocks
 								</Tooltip>
