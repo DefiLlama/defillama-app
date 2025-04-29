@@ -34,7 +34,7 @@ paths:
     get:
       tags:
         - TVL
-      summary: Lists the amount of a certain token within all protocols
+      summary: Lists the amount of a certain token within all protocols. Data for the Token Usage page
       parameters:
         - name: symbol
           in: path
