@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId } from 'react'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { formattedNum, slug } from '~/utils'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -338,6 +338,132 @@ export function SmolBarChart({
 	return (
 		<div className="relative flex-1">
 			<div id={id} className={className ?? 'my-auto h-[132px]'} />
+		</div>
+	)
+}
+
+export function UpcomingUnlocksChart({
+	data,
+	tokens,
+	name,
+	className
+}: {
+	data: Array<[number, Record<string, number>]>
+	tokens: Array<string>
+	name: string
+	className?: string
+}) {
+	const id = useId()
+
+	const createInstance = useCallback(() => {
+		const instance = echarts.getInstanceByDom(document.getElementById(id))
+
+		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
+	}, [id])
+
+	const series = useMemo(() => {
+		const series = {}
+
+		for (const stack of tokens) {
+			series[stack] = {
+				name: stack,
+				type: 'bar',
+				emphasis: {
+					focus: 'series',
+					shadowBlur: 10
+				},
+				symbol: 'none',
+				data: []
+			}
+		}
+
+		for (const [date, tokensInDate] of data) {
+			for (const stack in tokensInDate) {
+				series[stack]?.data?.push([date, tokensInDate[stack]])
+			}
+		}
+
+		return Object.values(series)
+	}, [data, tokens])
+
+	console.log({ series })
+
+	useEffect(() => {
+		// create instance
+		const chartInstance = createInstance()
+
+		chartInstance.setOption({
+			animation: false,
+			grid: {
+				left: 0,
+				containLabel: true,
+				bottom: 0,
+				top: 0,
+				right: 0
+			},
+			xAxis: [
+				{
+					type: 'time',
+					axisLine: {
+						show: false
+					},
+					axisTick: {
+						show: false
+					},
+					splitLine: false,
+					axisLabel: false
+				}
+			],
+			yAxis: [
+				{
+					type: 'value',
+					splitLine: false,
+					axisLabel: false,
+					boundaryGap: false
+				}
+			],
+			tooltip: {
+				trigger: 'axis',
+				confine: false,
+				formatter: function (params) {
+					let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
+
+					return (
+						chartdate +
+						params
+							.sort((a, b) => b.value[1] - a.value[1])
+							.reduce((prev, curr) => {
+								return (
+									(prev +=
+										'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
+										curr.marker +
+										curr.seriesName +
+										'&nbsp;&nbsp;' +
+										'$' +
+										formattedNum(curr.value[1])) + '</li>'
+								)
+							}, '')
+					)
+				}
+			},
+			series
+		})
+
+		function resize() {
+			chartInstance.resize()
+		}
+
+		window.addEventListener('resize', resize)
+
+		return () => {
+			window.removeEventListener('resize', resize)
+			chartInstance.dispose()
+		}
+	}, [createInstance, series, name])
+
+	return (
+		<div className="relative flex-1">
+			<div id={id} className={className ?? 'my-auto h-[156px]'} />
 		</div>
 	)
 }

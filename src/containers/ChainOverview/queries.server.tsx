@@ -37,7 +37,7 @@ import type {
 } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { getETFData } from '~/api/categories/protocols'
+import { getAllProtocolEmissions, getETFData } from '~/api/categories/protocols'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
 	const metadata =
@@ -68,7 +68,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			cexVolume,
 			etfData,
 			globalMcapChartData,
-			rwaTvlChartData
+			rwaTvlChartData,
+			upcomingUnlocks
 		]: [
 			ILiteChart,
 			{
@@ -107,7 +108,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			number | null,
 			Array<[number, number]> | null,
 			Array<[number, number]> | null,
-			Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null
+			Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null,
+			any
 		] = await Promise.all([
 			fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((r) => r.json()),
 			getProtocolsByChain({ chain, metadata }),
@@ -270,7 +272,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 							return recentFlows
 						})
 						.catch(() => null)
-				: null,
+				: Promise.resolve(null),
 			chain === 'All'
 				? fetchWithErrorLogging(`https://pro-api.coingecko.com/api/v3/global/market_cap_chart?days=14`, {
 						headers: {
@@ -280,7 +282,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						.then((res) => res.json())
 						.then((data) => data?.market_cap_chart?.market_cap?.slice(0, 14) ?? null)
 						.catch(() => null)
-				: null,
+				: Promise.resolve(null),
 			chain === 'All'
 				? fetchWithErrorLogging(`https://api.llama.fi/categories`)
 						.then((res) => res.json())
@@ -293,7 +295,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 								.filter((x) => x[1] != null)
 						})
 						.catch(() => null)
-				: null
+				: Promise.resolve(null),
+			chain === 'All' ? getAllProtocolEmissions() : Promise.resolve(null)
 		])
 
 		const {
@@ -362,6 +365,31 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				? fees.protocols.reduce((acc, curr) => (acc += curr.total24h || 0), 0)
 				: null
 
+		const uniqueUnlockTokens = new Set<string>()
+		let total14dUnlocks = 0
+		const unlocksChart = upcomingUnlocks.reduce((acc, protocol) => {
+			if (protocol.tPrice && protocol.events) {
+				for (const event of protocol.events) {
+					if (+event.timestamp * 1e3 > Date.now() && +event.timestamp * 1e3 < Date.now() + 14 * 24 * 60 * 60 * 1000) {
+						const date = new Date(event.timestamp * 1000)
+						const utcTimestamp = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+						const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
+						const valueUSD = Number(totalTokens.toFixed(2)) * protocol.tPrice
+						acc[utcTimestamp] = { ...(acc[utcTimestamp] || {}), [protocol.tSymbol]: valueUSD }
+						uniqueUnlockTokens.add(protocol.tSymbol)
+						total14dUnlocks += valueUSD
+					}
+				}
+			}
+			return acc
+		}, {} as Record<string, Record<string, number>>)
+		const finalUnlocksChart = Object.entries(unlocksChart).map(([date, tokens]) => {
+			const topTokens = Object.entries(tokens).sort((a, b) => b[1] - a[1]) as Array<[string, number]>
+			const others = topTokens.slice(10).reduce((acc, curr) => (acc += curr[1]), 0)
+			const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? ['Others', others] : []))
+			return [+date, finalTokens]
+		}) as Array<[number, Record<string, number>]>
+
 		return {
 			chain,
 			metadata,
@@ -426,7 +454,14 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 					  }
 					: null,
 			rwaTvlChartData,
-			allChains: [{ label: 'All', to: '/' }].concat(chains.map((c) => ({ label: c, to: `/chain/${slug(c)}` })))
+			allChains: [{ label: 'All', to: '/' }].concat(chains.map((c) => ({ label: c, to: `/chain/${slug(c)}` }))),
+			unlocks: upcomingUnlocks
+				? {
+						chart: finalUnlocksChart,
+						total14d: total14dUnlocks,
+						tokens: Array.from(uniqueUnlockTokens)
+				  }
+				: null
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`

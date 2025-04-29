@@ -4,6 +4,7 @@ import { Suspense, useMemo } from 'react'
 import { formattedNum, getPercentChange, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import Link from 'next/link'
+import { UpcomingUnlocksChart } from '~/containers/ChainOverview/SmolCharts'
 
 const FeesGeneratedChart: any = dynamic(
 	() => import('~/containers/ChainOverview/SmolCharts').then((m) => m.FeesGeneratedChart),
@@ -29,11 +30,12 @@ export const SmolStats = (props: IChainOverviewData) => {
 			change7d: chart.length > 1 ? getPercentChange(chart[chart.length - 1][1], chart[0][1]).toFixed(2) : 0
 		}
 	}, [props.rwaTvlChartData])
+
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1 isolate">
-			{props.chain === 'All' && props.globalmcap?.chart?.length > 0 ? (
+			{props.chain === 'All' ? (
 				<>
-					{props.globalmcap?.chart?.length > 0 ? (
+					{/* {props.globalmcap?.chart?.length > 0 ? (
 						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
@@ -64,6 +66,33 @@ export const SmolStats = (props: IChainOverviewData) => {
 									color={+props.globalmcap.change7d >= 0 ? 'green' : 'red'}
 									name="Global Mcap"
 									className={'my-auto h-[53px]'}
+								/>
+							</Suspense>
+						</div>
+					) : null} */}
+					{props.unlocks?.chart?.length > 0 ? (
+						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
+							<div className="flex flex-col gap-1">
+								<Tooltip
+									render={<Link href="/unlocks" passHref legacyBehavior={false} />}
+									className="text-sm font-semibold"
+									content="Total value of all spot trades executed on decentralized exchanges"
+								>
+									Upcoming Unlocks
+								</Tooltip>
+								{props.unlocks.chart?.length > 0 ? (
+									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+										props.unlocks.total14d,
+										true
+									)} in 14 days`}</p>
+								) : null}
+							</div>
+							<Suspense fallback={<></>}>
+								<UpcomingUnlocksChart
+									data={props.unlocks.chart}
+									tokens={props.unlocks.tokens}
+									name="Upcoming Unlocks"
+									className={'my-auto h-[53px] md:h-[132px] xl:h-[53px]'}
 								/>
 							</Suspense>
 						</div>

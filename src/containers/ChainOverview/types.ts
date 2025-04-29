@@ -107,6 +107,11 @@ export interface IChainOverviewData {
 	} | null
 	rwaTvlChartData: Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null
 	allChains: Array<{ label: string; to: string }>
+	unlocks: {
+		chart: Array<[number, Record<string, number>]>
+		total14d: number
+		tokens: Array<string>
+	} | null
 }
 
 export interface ILiteChart {

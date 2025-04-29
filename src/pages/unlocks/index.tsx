@@ -30,31 +30,34 @@ export default function Protocols({ data }) {
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
 	const [showOnlyInsider, setShowOnlyInsider] = React.useState(false)
 	const { savedProtocols } = useWatchlist()
-	const [filteredData, setFilteredData] = React.useState(data)
 
-	React.useEffect(() => {
-		const id = setTimeout(() => {
-			const searchTerm = projectName.toLowerCase()
-			let filtered = projectName
-				? data.filter(
-						(protocol) =>
-							protocol.name.toLowerCase().includes(searchTerm) ||
-							(protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm))
-				  )
+	const filteredData = React.useMemo(() => {
+		const searchTerm = projectName.toLowerCase()
+		let filtered =
+			searchTerm || showOnlyWatchlist || showOnlyInsider
+				? data.filter((protocol) => {
+						let toFilter = false
+
+						if (searchTerm) {
+							toFilter =
+								protocol.name.toLowerCase().includes(searchTerm) ||
+								(protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm))
+						}
+
+						if (showOnlyWatchlist && !savedProtocols[slug(protocol.name)]) {
+							toFilter = false
+						}
+
+						if (showOnlyInsider && !protocol.upcomingEvent?.some((event) => event.category === 'insiders')) {
+							toFilter = false
+						}
+
+						return toFilter
+				  })
 				: data
 
-			if (showOnlyWatchlist) {
-				filtered = filtered.filter((protocol) => savedProtocols[slug(protocol.name)])
-			}
-
-			if (showOnlyInsider) {
-				filtered = filtered.filter((protocol) => protocol.upcomingEvent?.some((event) => event.category === 'insiders'))
-			}
-
-			setFilteredData(filtered)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [projectName, data, showOnlyInsider, showOnlyWatchlist, savedProtocols])
+		return filtered
+	}, [data, projectName, savedProtocols, showOnlyInsider, showOnlyWatchlist])
 
 	const instance = useReactTable({
 		data: filteredData,
