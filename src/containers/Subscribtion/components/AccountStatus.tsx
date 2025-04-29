@@ -46,20 +46,22 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 						</div>
 					</div>
 
-					<button
-						onClick={onEmailChange}
-						className="py-2 px-4 rounded-lg bg-[#222429]/70 hover:bg-[#222429] border border-[#39393E]/50 hover:border-[#5C5CF9]/50 transition-all duration-200 text-sm shadow-md flex items-center gap-2 group hover:shadow-[0_4px_12px_rgba(92,92,249,0.15)]"
-					>
-						<Icon
-							name="mail"
-							height={14}
-							width={14}
-							className="text-[#5C5CF9] group-hover:scale-110 transition-transform"
-						/>
-						<span className="bg-gradient-to-r from-white to-[#b4b7bc] group-hover:from-white group-hover:to-white bg-clip-text text-transparent transition-colors">
-							Change Email
-						</span>
-					</button>
+					{user.address ? null : (
+						<button
+							onClick={onEmailChange}
+							className="py-2 px-4 rounded-lg bg-[#222429]/70 hover:bg-[#222429] border border-[#39393E]/50 hover:border-[#5C5CF9]/50 transition-all duration-200 text-sm shadow-md flex items-center gap-2 group hover:shadow-[0_4px_12px_rgba(92,92,249,0.15)]"
+						>
+							<Icon
+								name="mail"
+								height={14}
+								width={14}
+								className="text-[#5C5CF9] group-hover:scale-110 transition-transform"
+							/>
+							<span className="bg-gradient-to-r from-white to-[#b4b7bc] group-hover:from-white group-hover:to-white bg-clip-text text-transparent transition-colors">
+								Change Email
+							</span>
+						</button>
+					)}
 				</div>
 			</div>
 
@@ -68,9 +70,18 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 					<div className="flex flex-col p-3.5 bg-gradient-to-br from-[#222429]/90 to-[#1d1e23]/70 rounded-xl border border-[#39393E]/40 hover:border-[#5C5CF9]/30 transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] transform hover:translate-y-[-2px] group">
 						<span className="text-xs text-[#8a8c90] mb-1.5">Status</span>
 						<span className="font-medium text-sm flex items-center gap-2">
-							<span className="h-2 w-2 rounded-full inline-block bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse"></span>
 							<span className="bg-gradient-to-r from-white to-[#b4b7bc] group-hover:from-white group-hover:to-white bg-clip-text text-transparent transition-colors">
-								Active
+								{subscription.status === 'active' ? (
+									<>
+										<span className="h-2 w-2 mr-1 rounded-full inline-block bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse"></span>
+										Active
+									</>
+								) : (
+									<>
+										<span className="h-2 w-2 mr-1 rounded-full inline-block bg-red-400 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></span>
+										Inactive
+									</>
+								)}
 							</span>
 						</span>
 					</div>

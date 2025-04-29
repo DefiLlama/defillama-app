@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
@@ -8,11 +8,21 @@ import { AccountInfo } from './AccountInfo'
 import { LocalLoader } from '~/components/LocalLoader'
 import { ProgressBar } from '~/components/ProgressBar/ProgressBar'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { AccountStatus } from './components/AccountStatus'
+import pb from '~/utils/pocketbase'
+import { EmailChangeModal } from './components/EmailChangeModal'
 
 export function SubscribeHome() {
-	const { isAuthenticated, loaders } = useAuthContext()
+	const { isAuthenticated, loaders, user, changeEmail } = useAuthContext()
 	const { subscription, isSubscriptionFetching } = useSubscribe()
-
+	const [showEmailForm, setShowEmailForm] = useState(false)
+	const [newEmail, setNewEmail] = useState('')
+	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		changeEmail(newEmail)
+		setNewEmail('')
+		setShowEmailForm(false)
+	}
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
 
@@ -107,6 +117,25 @@ export function SubscribeHome() {
 					/>
 				)}
 
+				{isAuthenticated && !isSubscribed && (
+					<>
+						<AccountStatus
+							user={user}
+							isVerified={user?.verified}
+							isSubscribed={isSubscribed}
+							subscription={subscription}
+							onEmailChange={() => {}}
+						/>
+					</>
+				)}
+				<EmailChangeModal
+					isOpen={showEmailForm}
+					onClose={() => setShowEmailForm(false)}
+					onSubmit={handleEmailChange}
+					email={newEmail}
+					onEmailChange={setNewEmail}
+					isLoading={loaders.changeEmail}
+				/>
 				{isAuthenticated && isSubscribed ? (
 					<div className="mt-6 w-full max-w-[1000px] mx-auto">
 						<AccountInfo />
