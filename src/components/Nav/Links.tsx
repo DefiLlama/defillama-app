@@ -34,6 +34,11 @@ interface ILinks {
 export const defaultToolsAndFooterLinks = {
 	tools: [
 		{
+			name: 'DefiLlama Pro',
+			path: '/subscription',
+			newTag: true
+		},
+		{
 			name: 'Report Error',
 			path: '/report-error',
 			external: false,
@@ -268,8 +273,7 @@ export const navLinks: ILinks = {
 	Governance: {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Icon name="file-text" height={16} width={16} />,
-		newTag: true
+		icon: <Icon name="file-text" height={16} width={16} />
 	},
 	Liquidations: {
 		main: [],
@@ -333,8 +337,7 @@ export const navLinks: ILinks = {
 	'Narrative Tracker': {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Icon name="eye" height={16} width={16} />,
-		newTag: true
+		icon: <Icon name="eye" height={16} width={16} />
 	}
 	// NFTs: {
 	// 	main: [],
