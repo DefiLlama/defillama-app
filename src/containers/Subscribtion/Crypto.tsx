@@ -5,6 +5,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { AUTH_SERVER } from '~/constants'
 import { Tooltip as CustomTooltip } from '~/components/Tooltip'
+import { StyledButton } from '~/components/ButtonStyled/StyledButton'
 
 export const PaymentButton = ({
 	paymentMethod,
@@ -32,14 +33,14 @@ export const PaymentButton = ({
 					: null
 			}
 		>
-			<button
+			<StyledButton
 				onClick={() => handleSubscribe(paymentMethod, type)}
 				disabled={disabled}
-				className={`font-medium rounded-lg border border-[#5C5CF9] dark:border-[#5C5CF9] bg-[#5C5CF9] dark:bg-[#5C5CF9] hover:bg-[#4A4AF0] dark:hover:bg-[#4A4AF0] text-white transition-all duration-200 py-[14px] shadow-sm hover:shadow-md group flex items-center gap-2 justify-center w-full ${shadowClass} disabled:cursor-not-allowed disabled:opacity-70 flex-nowrap`}
+				className={shadowClass}
+				iconName={icon}
 			>
-				<Icon name={icon} height={16} width={16} className="group-hover:scale-110 transition-transform" />
-				<span>{text}</span>
-			</button>
+				{text}
+			</StyledButton>
 		</CustomTooltip>
 	)
 }

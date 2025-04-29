@@ -1,7 +1,9 @@
-import { ReactNode, useState } from 'react'
-import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
+import { ReactNode, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { Icon } from '~/components/Icon'
+import { useSubscribe } from '~/hooks/useSubscribe'
+import { SubscribeModal } from '~/components/Modal/SubscribeModal'
+import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 
 const ProCSVDownload = dynamic(() => import('~/containers/ProApi/ProDownload').then((comp) => comp.ProCSVDownload), {
 	ssr: false
@@ -19,15 +21,27 @@ export const CSVDownloadButton = ({
 	className?: string
 	smol?: boolean
 }) => {
-	const [verifyAndDownload, setVerifyAndDownload] = useState(0)
+	const { subscription } = useSubscribe()
+	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const [isClient, setIsClient] = useState(false)
+
+	useEffect(() => {
+		setIsClient(true)
+	}, [])
 
 	return (
 		<>
 			<button
-				className={`flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] ${
+				className={`flex items-center gap-1 justify-center py-2 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] ${
 					className ?? ''
 				}`}
-				onClick={() => (IS_PRO_API_ENABLED ? setVerifyAndDownload((prev) => prev + 1) : onClick())}
+				onClick={() => {
+					if (subscription?.status === 'active') {
+						onClick()
+					} else {
+						setShowSubscribeModal(true)
+					}
+				}}
 			>
 				{customText ? (
 					<span>{customText}</span>
@@ -37,11 +51,12 @@ export const CSVDownloadButton = ({
 						<span>{smol ? '' : 'Download'} .csv</span>
 					</>
 				)}
-				{IS_PRO_API_ENABLED ? (
-					<span className="inline-block py-1 px-2 rounded-full text-white text-xs font-bold">DefiLlama Pro</span>
-				) : null}
 			</button>
-			{verifyAndDownload ? <ProCSVDownload onClick={onClick} clicked={verifyAndDownload} /> : null}
+			{isClient && (
+				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
+					<SubscribePlusCard context="modal" />
+				</SubscribeModal>
+			)}
 		</>
 	)
 }
