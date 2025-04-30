@@ -53,6 +53,7 @@ export const getStaticProps = withPerformanceLogging(
 				protocolRes.chainTvls = chainTvls
 				const currentChainTvls = {}
 				for (const chain in chainTvls) {
+					if (chainTvls[chain].tvl.length === 0) continue
 					currentChainTvls[chain] = chainTvls[chain].tvl[chainTvls[chain].tvl.length - 1].totalLiquidityUSD
 				}
 				protocolRes.currentChainTvls = currentChainTvls
