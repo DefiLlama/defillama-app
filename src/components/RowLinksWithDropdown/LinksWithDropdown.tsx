@@ -77,9 +77,10 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 
 		const linksInRow = lastIndexToRender ? links.slice(0, lastIndexToRender - 1) : links
 
-		const dropdownLinks = lastIndexToRender ? links.slice(linksInRow.length) : null
+		const dropdownLinks = lastIndexToRender ? links : null
+		const dropdownLinks2 = lastIndexToRender ? links.slice(linksInRow.length) : null
 
-		const isLinkInDropdown = dropdownLinks?.find((link) => link.label === activeLink) ? true : false
+		const isLinkInDropdown = dropdownLinks2?.find((link) => link.label === activeLink) ? true : false
 
 		return { linksInRow, dropdownLinks, isLinkInDropdown }
 	}, [links, lastIndexToRender, activeLink])
