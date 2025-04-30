@@ -27,8 +27,7 @@ export const toFilterProtocol = ({
 export const toStrikeTvl = (protocol, toggledSettings) => {
 	if (removedCategories.includes(protocol.category)) return true
 
-	if (protocol.category === 'Liquid Staking' && !toggledSettings['liquidstaking'] && !toggledSettings['doublecounted'])
-		return true
+	if (toggledSettings['liquidstaking'] || toggledSettings['doublecounted']) return true
 
 	return false
 }
