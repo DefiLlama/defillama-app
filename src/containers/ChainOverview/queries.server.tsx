@@ -640,7 +640,10 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				tvlChange: protocol.tvl != null ? tvlChange : null,
 				mcap: protocol.mcap ?? null,
 				mcaptvl: protocol.mcap && tvls?.default?.tvl ? +(protocol.mcap / tvls.default.tvl).toFixed(2) : null,
-				strikeTvl: toStrikeTvl(protocol, {})
+				strikeTvl: toStrikeTvl(protocol, {
+					liquidstaking: tvls?.liquidstaking ? true : false,
+					doublecounted: tvls?.doublecounted ? true : false
+				})
 			}
 
 			if (protocol.deprecated) {
