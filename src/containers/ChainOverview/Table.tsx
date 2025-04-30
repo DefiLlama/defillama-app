@@ -715,7 +715,7 @@ const Tvl = ({ rowValues }) => {
 		})
 
 		if (text && rowValues.childProtocols) {
-			text = 'Some subprotocols are excluded from chain tvl'
+			text = 'Some sub-protocols are excluded from chain tvl'
 		}
 	}
 
