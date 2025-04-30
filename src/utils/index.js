@@ -340,20 +340,26 @@ export function getRandomColor() {
 	return color
 }
 
-export function selectColor(number, color) {
-	const hue = number * 137.508 // use golden angle approximation
+export function getNDistinctColors(n, startColor) {
+	const colors = []
+	const startHsl = hexToHSL(startColor || '#2172E5')
+	
+	// Use golden ratio for better hue distribution
+	const goldenRatio = 0.618033988749895
+	let hue = startHsl.h / 360 // Normalize to [0,1]
 
-	const { h, s, l, a } = colord(color).toHsl()
+	for (let i = 0; i < n; i++) {
+		hue += goldenRatio
+		hue %= 1 // Keep in [0,1] range
+		
+		// Use fixed saturation and lightness for better distinction
+		colors.push(hslToHex(hue * 360, 85, 60))
+	}
 
-	return colord({
-		h: h + hue,
-		s: number !== 0 && l < 70 ? 70 : s,
-		l: number !== 0 && l < 60 ? 60 : l,
-		a: number !== 0 && a < 0.6 ? 1 : a
-	}).toHex()
+	return colors
 }
 
-export const getColorFromNumber = (index, length) => {
+export function getColorFromNumber(index, length) {
 	//use defillama blue as starting
 	return colord({
 		l: 48.792 + (index / (length + 1)) * 30,
@@ -469,4 +475,52 @@ export function lastDayOfWeek(dateString) {
 	const weekDay = date.getUTCDay() === 0 ? 7 : date.getUTCDay()
 	const lastDayOfWeek = date.getUTCDate() - weekDay
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), lastDayOfWeek) / 1000)
+}
+
+function hexToHSL(hex) {
+	let r = parseInt(hex.slice(1, 3), 16) / 255
+	let g = parseInt(hex.slice(3, 5), 16) / 255
+	let b = parseInt(hex.slice(5, 7), 16) / 255
+
+	const max = Math.max(r, g, b)
+	const min = Math.min(r, g, b)
+	let h,
+		s,
+		l = (max + min) / 2
+
+	if (max === min) {
+		h = s = 0
+	} else {
+		const d = max - min
+		s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+		switch (max) {
+			case r:
+				h = (g - b) / d + (g < b ? 6 : 0)
+				break
+			case g:
+				h = (b - r) / d + 2
+				break
+			case b:
+				h = (r - g) / d + 4
+				break
+		}
+		h /= 6
+	}
+
+	return { h: h * 360, s: s * 100, l: l * 100 }
+}
+
+function hslToHex(h, s, l) {
+	l /= 100
+	const a = (s * Math.min(l, 1 - l)) / 100
+
+	const f = (n) => {
+		const k = (n + h / 30) % 12
+		const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+		return Math.round(255 * color)
+			.toString(16)
+			.padStart(2, '0')
+	}
+
+	return `#${f(0)}${f(8)}${f(4)}`
 }
