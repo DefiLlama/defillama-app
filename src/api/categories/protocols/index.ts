@@ -148,7 +148,13 @@ export const getProtocolEmissionsList = async () => {
 	}
 }
 
-export const getAllProtocolEmissions = async () => {
+export const getAllProtocolEmissions = async ({
+	startDate,
+	endDate
+}: {
+	startDate?: number
+	endDate?: number
+} = {}) => {
 	try {
 		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
 		const coins = await fetchWithErrorLogging(
@@ -170,13 +176,22 @@ export const getAllProtocolEmissions = async () => {
 						const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
 						upcomingEvent = [...comingEvents]
 					}
+
+					let filteredEvents = protocol.events || []
+					if (startDate) {
+						filteredEvents = filteredEvents.filter((e) => e.timestamp >= startDate)
+					}
+					if (endDate) {
+						filteredEvents = filteredEvents.filter((e) => e.timestamp <= endDate)
+					}
+
 					const coin = coins.coins['coingecko:' + protocol.gecko_id]
 					const tSymbol = coin?.symbol ?? null
 
 					return {
 						...protocol,
 						upcomingEvent,
-						events: protocol.events || [],
+						events: filteredEvents,
 						tPrice: coin?.price ?? null,
 						tSymbol
 					}
