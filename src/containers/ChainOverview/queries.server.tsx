@@ -335,7 +335,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		const raisesChart =
 			metadata.name !== 'All' && raisesData
 				? (raisesData?.raises ?? []).reduce((acc, curr) => {
-						if (curr.date) {
+						if (curr.date && curr.defillamaId === `chain#${slug(metadata.name)}`) {
 							acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
 						}
 						return acc
