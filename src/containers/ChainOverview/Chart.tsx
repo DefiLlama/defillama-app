@@ -273,7 +273,7 @@ export function ChainChart({
 				})
 			}
 
-			if (route.users === 'true' && data?.usersData?.length > 0) {
+			if (route.addresses === 'true' && data?.usersData?.length > 0) {
 				const color = getColor(isCompare) || colors.returningUsers
 				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
