@@ -91,7 +91,7 @@ const linksToOtherLlamaApps = [
 	{
 		name: 'LlamaFeed',
 		description: 'The ultimate crypto feed',
-		href: 'https://feed.defillama.com',
+		href: 'https://llamafeed.io/',
 		icon: (
 			<img src="/llama-apps/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="object-contain" />
 		),

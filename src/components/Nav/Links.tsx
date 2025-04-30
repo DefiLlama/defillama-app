@@ -51,7 +51,7 @@ export const defaultToolsAndFooterLinks = {
 		},
 		{
 			name: 'LlamaFeed',
-			path: 'https://feed.defillama.com',
+			path: 'https://llamafeed.io/',
 			external: true
 		},
 		{
@@ -361,7 +361,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'Governance', url: '/governance' },
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
-	{ name: 'LlamaFeed', url: 'https://feed.defillama.com/', external: true },
+	{ name: 'LlamaFeed', url: 'https://llamafeed.io/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lst' },
 	{ name: 'ETFs', url: '/etfs' },
 	{ name: 'Pro API', url: '/pro-api' },
