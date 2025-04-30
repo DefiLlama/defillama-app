@@ -199,7 +199,7 @@ export function useDefaults({
 				const mcap = params.filter((param) => param.seriesName === 'Mcap')?.[0]?.value[1]
 				const tvl = params.filter((param) => param.seriesName === 'TVL')?.[0]?.value[1]
 
-				if (mcap && tvl) {
+				if (mcap && mcap != '-' && tvl) {
 					vals += '<li style="list-style:none">' + 'Mcap/TVL' + '&nbsp;&nbsp;' + Number(mcap / tvl).toFixed(2) + '</li>'
 				}
 

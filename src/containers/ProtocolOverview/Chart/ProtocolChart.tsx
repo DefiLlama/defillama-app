@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-
 import dynamic from 'next/dynamic'
 import { useLocalStorageSettingsManager, useDarkModeManager } from '~/contexts/LocalStorage'
 import type { IChartProps } from '~/components/ECharts/types'
@@ -97,7 +96,6 @@ const ProtocolChart = React.memo(function ProtocolChart({
 	enabled = null
 }: IProps) {
 	const router = useRouter()
-
 	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
 	const [isThemeDark] = useDarkModeManager()
 
