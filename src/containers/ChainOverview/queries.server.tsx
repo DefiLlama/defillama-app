@@ -367,22 +367,23 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 
 		const uniqueUnlockTokens = new Set<string>()
 		let total14dUnlocks = 0
-		const unlocksChart = upcomingUnlocks.reduce((acc, protocol) => {
-			if (protocol.tPrice && protocol.events) {
-				for (const event of protocol.events) {
-					if (+event.timestamp * 1e3 > Date.now() && +event.timestamp * 1e3 < Date.now() + 14 * 24 * 60 * 60 * 1000) {
-						const date = new Date(event.timestamp * 1000)
-						const utcTimestamp = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-						const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
-						const valueUSD = Number((Number(totalTokens.toFixed(2)) * protocol.tPrice).toFixed(2))
-						acc[utcTimestamp] = { ...(acc[utcTimestamp] || {}), [protocol.tSymbol]: valueUSD }
-						uniqueUnlockTokens.add(protocol.tSymbol)
-						total14dUnlocks += valueUSD
+		const unlocksChart =
+			upcomingUnlocks?.reduce((acc, protocol) => {
+				if (protocol.tPrice && protocol.events) {
+					for (const event of protocol.events) {
+						if (+event.timestamp * 1e3 > Date.now() && +event.timestamp * 1e3 < Date.now() + 14 * 24 * 60 * 60 * 1000) {
+							const date = new Date(event.timestamp * 1000)
+							const utcTimestamp = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+							const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
+							const valueUSD = Number((Number(totalTokens.toFixed(2)) * protocol.tPrice).toFixed(2))
+							acc[utcTimestamp] = { ...(acc[utcTimestamp] || {}), [protocol.tSymbol]: valueUSD }
+							uniqueUnlockTokens.add(protocol.tSymbol)
+							total14dUnlocks += valueUSD
+						}
 					}
 				}
-			}
-			return acc
-		}, {} as Record<string, Record<string, number>>)
+				return acc
+			}, {} as Record<string, Record<string, number>>) ?? {}
 		const finalUnlocksChart = Object.entries(unlocksChart).map(([date, tokens]) => {
 			const topTokens = Object.entries(tokens).sort((a, b) => b[1] - a[1]) as Array<[string, number]>
 			const others = topTokens.slice(10).reduce((acc, curr) => (acc += curr[1]), 0)
